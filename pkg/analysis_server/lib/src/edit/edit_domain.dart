@@ -290,7 +290,8 @@ class _RefactoringManager {
         AstNode node = nodes[0];
         Element element = elements[0];
         refactoring = new RenameRefactoring(searchEngine, element);
-        feedback = new RenameFeedback(node.offset, node.length);
+        feedback =
+            new RenameFeedback(node.offset, node.length, 'kind', 'oldName');
       }
     }
     if (refactoring == null) {
@@ -317,6 +318,12 @@ class _RefactoringManager {
         feedback.parameters = refactoring.parameters;
         feedback.offsets = refactoring.offsets;
         feedback.lengths = refactoring.lengths;
+      }
+      if (refactoring is RenameRefactoring) {
+        RenameRefactoring refactoring = this.refactoring;
+        RenameFeedback feedback = this.feedback;
+        feedback.elementKindName = refactoring.elementKindName;
+        feedback.oldName = refactoring.oldName;
       }
       return initStatus;
     });

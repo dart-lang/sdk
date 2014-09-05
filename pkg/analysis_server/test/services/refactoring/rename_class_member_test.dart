@@ -356,6 +356,7 @@ main() {
     // configure refactoring
     createRenameRefactoringAtString('test; // marker');
     expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
     expect(refactoring.oldName, 'test');
     refactoring.newName = 'newName';
     // validate change
@@ -499,6 +500,7 @@ main() {
     // configure refactoring
     createRenameRefactoringAtString('test() {} // marker');
     expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.elementKindName, 'method');
     expect(refactoring.oldName, 'test');
     refactoring.newName = 'newName';
     // validate change
@@ -720,6 +722,7 @@ class A<Test> {
     // configure refactoring
     createRenameRefactoringAtString('Test> {');
     expect(refactoring.refactoringName, 'Rename Type Parameter');
+    expect(refactoring.elementKindName, 'type parameter');
     expect(refactoring.oldName, 'Test');
     refactoring.newName = 'NewName';
     // validate change

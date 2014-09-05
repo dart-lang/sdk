@@ -9713,6 +9713,8 @@ class InlineMethodOptions extends RefactoringOptions implements HasToJson {
  * {
  *   "offset": int
  *   "length": int
+ *   "elementKindName": String
+ *   "oldName": String
  * }
  */
 class RenameFeedback extends RefactoringFeedback implements HasToJson {
@@ -9726,7 +9728,18 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
    */
   int length;
 
-  RenameFeedback(this.offset, this.length);
+  /**
+   * The human-readable description of the kind of element being renamed (such
+   * as “class” or “function type alias”).
+   */
+  String elementKindName;
+
+  /**
+   * The old name of the element before the refactoring.
+   */
+  String oldName;
+
+  RenameFeedback(this.offset, this.length, this.elementKindName, this.oldName);
 
   factory RenameFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -9745,7 +9758,19 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
-      return new RenameFeedback(offset, length);
+      String elementKindName;
+      if (json.containsKey("elementKindName")) {
+        elementKindName = jsonDecoder._decodeString(jsonPath + ".elementKindName", json["elementKindName"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "elementKindName");
+      }
+      String oldName;
+      if (json.containsKey("oldName")) {
+        oldName = jsonDecoder._decodeString(jsonPath + ".oldName", json["oldName"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "oldName");
+      }
+      return new RenameFeedback(offset, length, elementKindName, oldName);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "rename feedback");
     }
@@ -9755,6 +9780,8 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
     Map<String, dynamic> result = {};
     result["offset"] = offset;
     result["length"] = length;
+    result["elementKindName"] = elementKindName;
+    result["oldName"] = oldName;
     return result;
   }
 
@@ -9765,7 +9792,9 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
   bool operator==(other) {
     if (other is RenameFeedback) {
       return offset == other.offset &&
-          length == other.length;
+          length == other.length &&
+          elementKindName == other.elementKindName &&
+          oldName == other.oldName;
     }
     return false;
   }
@@ -9775,6 +9804,8 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = _JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, elementKindName.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, oldName.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }

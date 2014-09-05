@@ -153,6 +153,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
   final SearchEngine searchEngine;
   final Element element;
   final AnalysisContext context;
+  final String elementKindName;
   final String oldName;
 
   String newName;
@@ -161,6 +162,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
       : searchEngine = searchEngine,
         element = element,
         context = element.context,
+        elementKindName = element.kind.displayName,
         oldName = _getDisplayName(element);
 
   /**

@@ -60,6 +60,7 @@ part 'part.dart';
     // configure refactoring
     _createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Library');
+    expect(refactoring.elementKindName, 'library');
     refactoring.newName = 'the.new.name';
     // validate change
     return assertSuccessfulRefactoring('''

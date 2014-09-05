@@ -103,6 +103,7 @@ main() {
     // configure refactoring
     _createConstructorDeclarationRefactoring('() {} // marker');
     expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
     // validate change
     refactoring.newName = 'newName';
@@ -136,6 +137,7 @@ main() {
     // configure refactoring
     _createConstructorDeclarationRefactoring('test() {} // marker');
     expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, 'test');
     // validate change
     refactoring.newName = 'newName';
@@ -169,6 +171,7 @@ main() {
     // configure refactoring
     _createConstructorDeclarationRefactoring('test() {} // marker');
     expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, 'test');
     // validate change
     refactoring.newName = '';

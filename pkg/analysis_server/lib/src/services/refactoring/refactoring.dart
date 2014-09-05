@@ -312,6 +312,12 @@ abstract class RenameRefactoring implements Refactoring {
   }
 
   /**
+   * Returns the human-readable description of the kind of element being renamed
+   * (such as “class” or “function type alias”).
+   */
+  String get elementKindName;
+
+  /**
    * Sets the new name for the [Element].
    */
   void set newName(String newName);

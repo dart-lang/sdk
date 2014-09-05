@@ -284,6 +284,7 @@ main() {
     // configure refactoring
     createRenameRefactoringAtString('test() => 0');
     expect(refactoring.refactoringName, 'Rename Local Function');
+    expect(refactoring.elementKindName, 'function');
     refactoring.newName = 'newName';
     // validate change
     return assertSuccessfulRefactoring('''
@@ -347,6 +348,7 @@ main() {
     // configure refactoring
     createRenameRefactoringAtString('test = 0');
     expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
     refactoring.newName = 'newName';
     // validate change
     return assertSuccessfulRefactoring('''
@@ -413,6 +415,7 @@ main() {
     // configure refactoring
     createRenameRefactoringAtString('test}) {');
     expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
     refactoring.newName = 'newName';
     // validate change
     return assertSuccessfulRefactoring('''

@@ -1918,12 +1918,16 @@ final Matcher isInlineMethodOptions = new LazyMatcher(() => new MatchesJsonObjec
  * {
  *   "offset": int
  *   "length": int
+ *   "elementKindName": String
+ *   "oldName": String
  * }
  */
 final Matcher isRenameFeedback = new LazyMatcher(() => new MatchesJsonObject(
   "rename feedback", {
     "offset": isInt,
-    "length": isInt
+    "length": isInt,
+    "elementKindName": isString,
+    "oldName": isString
   }));
 
 /**

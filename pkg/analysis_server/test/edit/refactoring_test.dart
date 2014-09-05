@@ -789,7 +789,10 @@ main() {
     return getRefactoringResult(() {
       return sendRenameRequest('Test {}', 'NewName', true);
     }).then((result) {
+      RenameFeedback feedback = result.feedback;
       assertResultProblemsOK(result);
+      expect(feedback.elementKindName, 'class');
+      expect(feedback.oldName, 'Test');
       expect(result.change, isNull);
     });
   }
