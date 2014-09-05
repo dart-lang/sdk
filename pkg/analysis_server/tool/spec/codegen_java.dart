@@ -31,10 +31,8 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
    * Type references in the spec that are named something else in Java.
    */
   static const Map<String, String> _typeRenames = const {
-    // TODO (jwren) in some situations we want to use Boolean/Integer while
-    // other situations we want to use boolean/int...
-    'bool': 'Boolean',
-    'int': 'Integer',
+    'bool': 'boolean',
+    'int': 'int',
     'FilePath': 'String',
     'DebugContextId': 'String',
     'object': 'Object',
@@ -137,17 +135,30 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 
   /**
+   * Return a Java type for the given [TypeObjectField].
+   */
+  String javaFieldType(TypeObjectField field) {
+    return javaType(field.type, field.optional);
+  }
+
+  /**
    * Convert the given [TypeDecl] to a Java type.
    */
-  String javaType(TypeDecl type) {
+  String javaType(TypeDecl type, [bool optional = false]) {
     if (type is TypeReference) {
       TypeReference resolvedType = resolveTypeReferenceChain(type);
       String typeName = resolvedType.typeName;
       if (_typeRenames.containsKey(typeName)) {
-        return _typeRenames[typeName];
-      } else {
-        return typeName;
+        typeName = _typeRenames[typeName];
+        if (optional) {
+          if (typeName == 'boolean') {
+            typeName = 'Boolean';
+          } else if (typeName == 'int') {
+            typeName = 'Integer';
+          }
+        }
       }
+      return typeName;
     } else if (type is TypeList) {
       if (isPrimitive(type.itemType)) {
         return '${javaType(type.itemType)}[]';
@@ -169,7 +180,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   bool isPrimitive(TypeDecl type) {
     if (type is TypeReference) {
       String typeStr = javaType(type);
-      return typeStr == 'Integer' || typeStr == 'boolean';
+      return typeStr == 'int' || typeStr == 'boolean';
     }
     return false;
   }
@@ -187,7 +198,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
     }
     return false;
   }
-  
+
   /**
    * Return true iff the passed [TypeDecl] will be represented as Object in Java.
    */

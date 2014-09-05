@@ -129,7 +129,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
               toHtmlVisitor.translateHtml(field.html);
             }));
             writeln(
-                'private final ${javaType(field.type)} ${javaName(field.name)};');
+                'private final ${javaFieldType(field)} ${javaName(field.name)};');
           });
         }
       }
@@ -158,7 +158,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
         for (TypeObjectField field in fields) {
           if (!_isTypeFieldInUpdateContentUnionType(className, field.name) &&
               !(className == 'Outline' && javaName(field.name) == 'children')) {
-            parameters.add('${javaType(field.type)} ${javaName(field.name)}');
+            parameters.add('${javaFieldType(field)} ${javaName(field.name)}');
           }
         }
         write(parameters.join(', '));
@@ -193,12 +193,12 @@ class CodegenJavaType extends CodegenJavaVisitor {
           javadocComment(toHtmlVisitor.collectHtml(() {
             toHtmlVisitor.translateHtml(field.html);
           }));
-          if (javaType(field.type) == 'Boolean') {
+          if (javaFieldType(field) == 'boolean') {
             writeln(
-                'public ${javaType(field.type)} ${javaName(field.name)}() {');
+                'public ${javaFieldType(field)} ${javaName(field.name)}() {');
           } else {
             writeln(
-                'public ${javaType(field.type)} get${capitalize(javaName(field.name))}() {');
+                'public ${javaFieldType(field)} get${capitalize(javaName(field.name))}() {');
           }
           writeln('  return ${javaName(field.name)};');
           writeln('}');
@@ -217,18 +217,18 @@ class CodegenJavaType extends CodegenJavaVisitor {
               'public static ${className} fromJson(JsonObject jsonObject) {');
           indent(() {
             for (TypeObjectField field in fields) {
-              write('${javaType(field.type)} ${javaName(field.name)} = ');
+              write('${javaFieldType(field)} ${javaName(field.name)} = ');
               if (field.optional) {
                 write(
                     'jsonObject.get("${javaName(field.name)}") == null ? null : ');
               }
               if (isDeclaredInSpec(field.type)) {
-                write('${javaType(field.type)}.fromJson(');
+                write('${javaFieldType(field)}.fromJson(');
                 write(
                     'jsonObject.get("${javaName(field.name)}").getAsJsonObject())');
               } else {
                 if (isList(field.type)) {
-                  if (javaType(field.type).endsWith('<String>')) {
+                  if (javaFieldType(field).endsWith('<String>')) {
                     write(
                         'JsonUtilities.decodeStringList(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
                   } else {
@@ -236,9 +236,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
                         '${javaType((field.type as TypeList).itemType)}.fromJsonArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
                   }
                 } else if (isArray(field.type)) {
-                  if (javaType(field.type).startsWith('Integer')) {
+                  if (javaFieldType(field).startsWith('int')) {
                     write(
-                        'JsonUtilities.decodeIntegerArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
+                        'JsonUtilities.decodeIntArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
                   }
                 } else {
                   write(
@@ -521,7 +521,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
 
   String _getEqualsLogicForField(TypeObjectField field, String other) {
     String name = javaName(field.name);
-    if (isPrimitive(field.type)) {
+    if (isPrimitive(field.type) && !field.optional) {
       return '${other}.${name} == ${name}';
     } else if (isArray(field.type)) {
       return 'Arrays.equals(other.${name}, ${name})';
@@ -543,12 +543,12 @@ class CodegenJavaType extends CodegenJavaVisitor {
   }
 
   String _getAsTypeMethodName(TypeDecl typeDecl) {
-    String name = javaType(typeDecl);
+    String name = javaType(typeDecl, true);
     if (name == 'String') {
       return 'getAsString';
-    } else if (name == 'Boolean') {
+    } else if (name == 'boolean' || name == 'Boolean') {
       return 'getAsBoolean';
-    } else if (name == 'Integer') {
+    } else if (name == 'int' || name == 'Integer') {
       return 'getAsInt';
     } else if (name.startsWith('List')) {
       return 'getAsJsonArray';
