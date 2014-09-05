@@ -6,6 +6,8 @@ part of type_graph_inferrer;
 
 class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
   final Iterable<FunctionElement> tracedElements;
+  final List<CallSiteTypeInformation> callsToAnalyze =
+      new List<CallSiteTypeInformation>();
 
   ClosureTracerVisitor(this.tracedElements, tracedType, inferrer)
       : super(tracedType, inferrer);
@@ -19,13 +21,13 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
       });
     }
     analyze();
+    if (!continueAnalyzing) return;
+    callsToAnalyze.forEach(analyzeCall);
     for(FunctionElement e in tracedElements) {
       e.functionSignature.forEachParameter((Element parameter) {
         ElementTypeInformation info =
             inferrer.types.getInferredTypeOf(parameter);
-        if (continueAnalyzing) {
-          info.disableInferenceForClosures = false;
-        }
+        info.disableInferenceForClosures = false;
       });
     }
   }
@@ -35,6 +37,10 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
     if (_VERBOSE) {
       print("Closure $tracedType might be passed to apply: $reason");
     }
+  }
+
+  void registerCallForLaterAnalysis(CallSiteTypeInformation info) {
+    callsToAnalyze.add(info);
   }
 
   void analyzeCall(CallSiteTypeInformation info) {
@@ -49,7 +55,7 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
   visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info) {
     super.visitClosureCallSiteTypeInformation(info);
     if (info.closure == currentUser) {
-      analyzeCall(info);
+      registerCallForLaterAnalysis(info);
     } else {
       bailout('Passed to a closure');
     }
@@ -70,7 +76,7 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
         && inferrer.types.getInferredTypeOf(called) == currentUser) {
       // This node can be a closure call as well. For example, `foo()`
       // where `foo` is a getter.
-      analyzeCall(info);
+      registerCallForLaterAnalysis(info);
     }
     if (checkIfFunctionApply(called) &&
         info.arguments != null &&
@@ -98,7 +104,7 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
           tagAsFunctionApplyTarget("dynamic call");
         }
       } else if (info.targets.any((element) => checkIfCurrentUser(element))) {
-        analyzeCall(info);
+        registerCallForLaterAnalysis(info);
       }
     } else if (info.selector.isGetter &&
         info.selector.name == Compiler.CALL_OPERATOR_NAME) {
