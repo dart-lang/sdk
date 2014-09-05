@@ -1285,7 +1285,7 @@ class StandardTestSuite extends TestSuite {
               dartFlags, environmentOverrides));
         } else {
           commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
-              runtime, fullHtmlPath, checkedMode: configuration['checked']));
+              runtime, fullHtmlPath, configuration));
         }
 
         // Create BrowserTestCase and queue it.
@@ -1962,7 +1962,7 @@ class TestUtils {
           if (result.exitCode != 0) {
             throw new Exception('Can\'t delete path $native_path. '
                                 'This path might be too long');
-          }  
+          }
         });
     } else {
       var dir = new Directory(path);
