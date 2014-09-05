@@ -337,7 +337,6 @@ webgl_1_test: Pass, Fail # Issue 8219
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
 audiocontext_test/functional: Fail # Issue 14354
-websql_test/functional: RuntimeError # Issue 14523
 
 # Safari Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
