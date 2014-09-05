@@ -1356,13 +1356,13 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
     : resolver_(resolver),
       reg_(kNoRegister),
       spilled_(false) {
-  uword blocked_mask = ((blocked != kNoRegister) ? 1 << blocked : 0)
+  uword blocked_mask = ((blocked > kNoRegister) ? 1 << blocked : 0)
                      | 1 << CTX
                      | 1 << SPREG
                      | 1 << FPREG
-                     | ((TMP != kNoRegister) ? 1 << TMP : 0)
-                     | ((TMP2 != kNoRegister) ? 1 << TMP2 : 0)
-                     | ((PP != kNoRegister) ? 1 << PP : 0);
+                     | ((TMP > kNoRegister) ? 1 << TMP : 0)
+                     | ((TMP2 > kNoRegister) ? 1 << TMP2 : 0)
+                     | ((PP > kNoRegister) ? 1 << PP : 0);
   reg_ = static_cast<Register>(
       resolver_->AllocateScratchRegister(Location::kRegister,
                                          blocked_mask,
