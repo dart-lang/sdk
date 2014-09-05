@@ -1234,7 +1234,7 @@ void normalizeMutationRecord(MutationRecord record,
     var first = record.removedNodes.first;
     var line = findLine(record.target);
 
-    if (first is Text && first.data=="\n" && line.nextNode != null) {
+    if (first is Text && line.nextNode != null) {
       normalizedNodes.add(line.nextNode);
     }
     normalizedNodes.add(line);
