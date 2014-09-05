@@ -176,7 +176,7 @@ String _filePathFromUri(String userUri) {
     case 'file':
       return uri.toFilePath();
     case 'package':
-      return _filePathFromPackageUri(uri);
+      return _filePathFromUri(_resolvePackageUri(uri).toString());
     case 'http':
       return uri.toString();
     default:
@@ -190,7 +190,7 @@ String _filePathFromUri(String userUri) {
 }
 
 
-String _filePathFromPackageUri(Uri uri) {
+Uri _resolvePackageUri(Uri uri) {
   if (!uri.host.isEmpty) {
     var path = '${uri.host}${uri.path}';
     var right = 'package:$path';
@@ -203,7 +203,7 @@ String _filePathFromPackageUri(Uri uri) {
   var packageRoot = _packageRoot == null ?
                     _entryPointScript.resolve('packages/') :
                     _packageRoot;
-  return _filePathFromUri(packageRoot.resolve(uri.path).toString());
+  return packageRoot.resolve(uri.path);
 }
 
 
@@ -303,7 +303,7 @@ Uri _createUri(String userUri) {
     case 'http':
       return uri;
     case 'package':
-      return Uri.parse(_filePathFromPackageUri(uri));
+      return _resolvePackageUri(uri);
     default:
       // Only handling file, http, and package URIs
       // in standalone binary.
