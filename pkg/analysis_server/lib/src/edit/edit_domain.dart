@@ -202,12 +202,13 @@ class _RefactoringManager {
     // process the request
     var params = new EditGetRefactoringParams.fromRequest(request);
     _init(params.kind, params.file, params.offset, params.length).then((_) {
-      if (_hasFatalError) {
+      if (initStatus.hasFatalError) {
         return _sendResultResponse();
       }
       // set options
       if (_requiresOptions) {
         if (params.options == null) {
+          optionsStatus = new RefactoringStatus();
           return _sendResultResponse();
         }
         optionsStatus = _setOptions(params);
@@ -217,6 +218,7 @@ class _RefactoringManager {
       }
       // done if just validation
       if (params.validateOnly) {
+        finalStatus = new RefactoringStatus();
         return _sendResultResponse();
       }
       // validation and create change
