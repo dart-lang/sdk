@@ -1290,13 +1290,17 @@ bool ParallelMoveResolver::IsScratchLocation(Location loc) {
 
 intptr_t ParallelMoveResolver::AllocateScratchRegister(
     Location::Kind kind,
-    intptr_t blocked,
+    uword blocked_mask,
     intptr_t first_free_register,
     intptr_t last_free_register,
     bool* spilled) {
+  COMPILE_ASSERT(static_cast<intptr_t>(sizeof(blocked_mask)) * kBitsPerByte >=
+                 kNumberOfFpuRegisters);
+  COMPILE_ASSERT(static_cast<intptr_t>(sizeof(blocked_mask)) * kBitsPerByte >=
+                 kNumberOfCpuRegisters);
   intptr_t scratch = -1;
   for (intptr_t reg = first_free_register; reg <= last_free_register; reg++) {
-    if ((blocked != reg) &&
+    if ((((1 << reg) & blocked_mask) == 0) &&
         IsScratchLocation(Location::MachineRegisterLocation(kind, reg))) {
       scratch = reg;
       break;
@@ -1306,7 +1310,7 @@ intptr_t ParallelMoveResolver::AllocateScratchRegister(
   if (scratch == -1) {
     *spilled = true;
     for (intptr_t reg = first_free_register; reg <= last_free_register; reg++) {
-      if (blocked != reg) {
+      if (((1 << reg) & blocked_mask) == 0) {
         scratch = reg;
         break;
       }
@@ -1324,9 +1328,12 @@ ParallelMoveResolver::ScratchFpuRegisterScope::ScratchFpuRegisterScope(
     : resolver_(resolver),
       reg_(kNoFpuRegister),
       spilled_(false) {
+  COMPILE_ASSERT(FpuTMP != kNoFpuRegister);
+  uword blocked_mask = ((blocked != kNoFpuRegister) ? 1 << blocked : 0)
+                     | 1 << FpuTMP;
   reg_ = static_cast<FpuRegister>(
       resolver_->AllocateScratchRegister(Location::kFpuRegister,
-                                         blocked,
+                                         blocked_mask,
                                          0,
                                          kNumberOfFpuRegisters - 1,
                                          &spilled_));
@@ -1349,9 +1356,16 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
     : resolver_(resolver),
       reg_(kNoRegister),
       spilled_(false) {
+  uword blocked_mask = ((blocked != kNoRegister) ? 1 << blocked : 0)
+                     | 1 << CTX
+                     | 1 << SPREG
+                     | 1 << FPREG
+                     | ((TMP != kNoRegister) ? 1 << TMP : 0)
+                     | ((TMP2 != kNoRegister) ? 1 << TMP2 : 0)
+                     | ((PP != kNoRegister) ? 1 << PP : 0);
   reg_ = static_cast<Register>(
       resolver_->AllocateScratchRegister(Location::kRegister,
-                                         blocked,
+                                         blocked_mask,
                                          kFirstFreeCpuRegister,
                                          kLastFreeCpuRegister,
                                          &spilled_));

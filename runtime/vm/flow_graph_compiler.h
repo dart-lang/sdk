@@ -61,7 +61,7 @@ class ParallelMoveResolver : public ValueObject {
 
   bool IsScratchLocation(Location loc);
   intptr_t AllocateScratchRegister(Location::Kind kind,
-                                   intptr_t blocked,
+                                   uword blocked_mask,
                                    intptr_t first_free_register,
                                    intptr_t last_free_register,
                                    bool* spilled);
@@ -96,8 +96,11 @@ class ParallelMoveResolver : public ValueObject {
   void StoreObject(const Address& dst, const Object& obj);
   void Exchange(Register reg, const Address& mem);
   void Exchange(const Address& mem1, const Address& mem2);
-  void Exchange(Register reg, intptr_t stack_offset);
-  void Exchange(intptr_t stack_offset1, intptr_t stack_offset2);
+  void Exchange(Register reg, Register base_reg, intptr_t stack_offset);
+  void Exchange(Register base_reg1,
+                intptr_t stack_offset1,
+                Register base_reg2,
+                intptr_t stack_offset2);
 
   FlowGraphCompiler* compiler_;
 

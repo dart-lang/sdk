@@ -283,8 +283,10 @@ class Location : public ValueObject {
   }
 
   // Spill slots.
-  static Location StackSlot(intptr_t stack_index) {
-    uword payload = EncodeStackIndex(stack_index);
+  static Location StackSlot(intptr_t stack_index,
+                            Register base = FPREG) {
+    uword payload = StackSlotBaseField::encode(base)
+        | StackIndexField::encode(EncodeStackIndex(stack_index));
     Location loc(kStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
@@ -296,7 +298,8 @@ class Location : public ValueObject {
   }
 
   static Location DoubleStackSlot(intptr_t stack_index) {
-    uword payload = EncodeStackIndex(stack_index);
+    uword payload = StackSlotBaseField::encode(FPREG)
+        | StackIndexField::encode(EncodeStackIndex(stack_index));
     Location loc(kDoubleStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
@@ -308,7 +311,8 @@ class Location : public ValueObject {
   }
 
   static Location QuadStackSlot(intptr_t stack_index) {
-    uword payload = EncodeStackIndex(stack_index);
+    uword payload = StackSlotBaseField::encode(FPREG)
+        | StackIndexField::encode(EncodeStackIndex(stack_index));
     Location loc(kQuadStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
@@ -319,10 +323,15 @@ class Location : public ValueObject {
     return kind() == kQuadStackSlot;
   }
 
+  Register base_reg() const {
+    ASSERT(HasStackIndex());
+    return StackSlotBaseField::decode(payload());
+  }
+
   intptr_t stack_index() const {
     ASSERT(HasStackIndex());
     // Decode stack index manually to preserve sign.
-    return payload() - kStackIndexBias;
+    return StackIndexField::decode(payload()) - kStackIndexBias;
   }
 
   bool HasStackIndex() const {
@@ -378,8 +387,16 @@ class Location : public ValueObject {
   typedef BitField<Policy, 0, 3> PolicyField;
 
   // Layout for stack slots.
+  static const intptr_t kBitsForBaseReg = 5;
+  static const intptr_t kBitsForStackIndex = kBitsForPayload - kBitsForBaseReg;
+  typedef BitField<Register, 0, kBitsForBaseReg> StackSlotBaseField;
+  typedef BitField<intptr_t,
+                   kBitsForBaseReg,
+                   kBitsForStackIndex> StackIndexField;
+  COMPILE_ASSERT(1 << kBitsForBaseReg >= kNumberOfCpuRegisters);
+
   static const intptr_t kStackIndexBias =
-      static_cast<intptr_t>(1) << (kBitsForPayload - 1);
+      static_cast<intptr_t>(1) << (kBitsForStackIndex - 1);
 
   // Location either contains kind and payload fields or a tagged handle for
   // a constant locations. Values of enumeration Kind are selected in such a

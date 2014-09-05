@@ -1721,12 +1721,16 @@ void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
 }
 
 
-void ParallelMoveResolver::Exchange(Register reg, intptr_t stack_offset) {
+void ParallelMoveResolver::Exchange(Register reg,
+                                    Register base_reg,
+                                    intptr_t stack_offset) {
   UNREACHABLE();
 }
 
 
-void ParallelMoveResolver::Exchange(intptr_t stack_offset1,
+void ParallelMoveResolver::Exchange(Register base_reg1,
+                                    intptr_t stack_offset1,
+                                    Register base_reg2,
                                     intptr_t stack_offset2) {
   UNREACHABLE();
 }

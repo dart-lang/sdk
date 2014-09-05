@@ -121,24 +121,35 @@ Location Location::AnyOrConstant(Value* value) {
 
 Address Location::ToStackSlotAddress() const {
   const intptr_t index = stack_index();
-  if (index < 0) {
-    const intptr_t offset = (kParamEndSlotFromFp - index)  * kWordSize;
-    return Address(FPREG, offset);
+  const Register base = base_reg();
+  if (base == FPREG) {
+    if (index < 0) {
+      const intptr_t offset = (kParamEndSlotFromFp - index)  * kWordSize;
+      return Address(base, offset);
+    } else {
+      const intptr_t offset = (kFirstLocalSlotFromFp - index) * kWordSize;
+      return Address(base, offset);
+    }
   } else {
-    const intptr_t offset = (kFirstLocalSlotFromFp - index) * kWordSize;
-    return Address(FPREG, offset);
+    ASSERT(base == SPREG);
+    return Address(base, index * kWordSize);
   }
 }
 
 
 intptr_t Location::ToStackSlotOffset() const {
   const intptr_t index = stack_index();
-  if (index < 0) {
-    const intptr_t offset = (kParamEndSlotFromFp - index)  * kWordSize;
-    return offset;
+  if (base_reg() == FPREG) {
+    if (index < 0) {
+      const intptr_t offset = (kParamEndSlotFromFp - index)  * kWordSize;
+      return offset;
+    } else {
+      const intptr_t offset = (kFirstLocalSlotFromFp - index) * kWordSize;
+      return offset;
+    }
   } else {
-    const intptr_t offset = (kFirstLocalSlotFromFp - index) * kWordSize;
-    return offset;
+    ASSERT(base_reg() == SPREG);
+    return index * kWordSize;
   }
 }
 

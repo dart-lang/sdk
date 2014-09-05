@@ -1573,18 +1573,19 @@ void ParallelMoveResolver::EmitMove(int index) {
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ StoreToOffset(source.reg(), FP, dest_offset);
+      __ StoreToOffset(source.reg(), destination.base_reg(), dest_offset);
     }
   } else if (source.IsStackSlot()) {
     if (destination.IsRegister()) {
       const intptr_t source_offset = source.ToStackSlotOffset();
-      __ LoadFromOffset(destination.reg(), FP, source_offset);
+      __ LoadFromOffset(destination.reg(), source.base_reg(), source_offset);
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ LoadFromOffset(TMP, FP, source_offset);
-      __ StoreToOffset(TMP, FP, dest_offset);
+      ScratchRegisterScope tmp(this, kNoRegister);
+      __ LoadFromOffset(tmp.reg(), source.base_reg(), source_offset);
+      __ StoreToOffset(tmp.reg(), destination.base_reg(), dest_offset);
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
@@ -1592,29 +1593,23 @@ void ParallelMoveResolver::EmitMove(int index) {
       DRegister src = source.fpu_reg();
       __ movd(dst, src);
     } else {
-      if (destination.IsDoubleStackSlot()) {
-        const intptr_t dest_offset = destination.ToStackSlotOffset();
-        DRegister src = source.fpu_reg();
-        __ StoreDToOffset(src, FP, dest_offset);
-      } else {
-        ASSERT(destination.IsQuadStackSlot());
-        UNIMPLEMENTED();
-      }
+      ASSERT(destination.IsDoubleStackSlot());
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      DRegister src = source.fpu_reg();
+      __ StoreDToOffset(src, destination.base_reg(), dest_offset);
     }
   } else if (source.IsDoubleStackSlot()) {
     if (destination.IsFpuRegister()) {
-      const intptr_t dest_offset = source.ToStackSlotOffset();
+      const intptr_t source_offset = source.ToStackSlotOffset();
       DRegister dst = destination.fpu_reg();
-      __ LoadDFromOffset(dst, FP, dest_offset);
+      __ LoadDFromOffset(dst, source.base_reg(), source_offset);
     } else {
       ASSERT(destination.IsDoubleStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ LoadDFromOffset(DTMP, FP, source_offset);
-      __ StoreDToOffset(DTMP, FP, dest_offset);
+      __ LoadDFromOffset(DTMP, source.base_reg(), source_offset);
+      __ StoreDToOffset(DTMP, destination.base_reg(), dest_offset);
     }
-  } else if (source.IsQuadStackSlot()) {
-    UNIMPLEMENTED();
   } else {
     ASSERT(source.IsConstant());
     const Object& constant = source.constant();
@@ -1628,12 +1623,13 @@ void ParallelMoveResolver::EmitMove(int index) {
       const intptr_t dest_offset = destination.ToStackSlotOffset();
       __ LoadObject(TMP, constant);
       __ LoadDFromOffset(DTMP, TMP, Double::value_offset() - kHeapObjectTag);
-      __ StoreDToOffset(DTMP, FP, dest_offset);
+      __ StoreDToOffset(DTMP, destination.base_reg(), dest_offset);
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ LoadObject(TMP, constant);
-      __ StoreToOffset(TMP, FP, dest_offset);
+      ScratchRegisterScope tmp(this, kNoRegister);
+      __ LoadObject(tmp.reg(), constant);
+      __ StoreToOffset(tmp.reg(), destination.base_reg(), dest_offset);
     }
   }
 
@@ -1653,11 +1649,14 @@ void ParallelMoveResolver::EmitSwap(int index) {
     __ mov(source.reg(), destination.reg());
     __ mov(destination.reg(), TMP);
   } else if (source.IsRegister() && destination.IsStackSlot()) {
-    Exchange(source.reg(), destination.ToStackSlotOffset());
+    Exchange(source.reg(),
+             destination.base_reg(), destination.ToStackSlotOffset());
   } else if (source.IsStackSlot() && destination.IsRegister()) {
-    Exchange(destination.reg(), source.ToStackSlotOffset());
+    Exchange(destination.reg(),
+             source.base_reg(), source.ToStackSlotOffset());
   } else if (source.IsStackSlot() && destination.IsStackSlot()) {
-    Exchange(source.ToStackSlotOffset(), destination.ToStackSlotOffset());
+    Exchange(source.base_reg(), source.ToStackSlotOffset(),
+             destination.base_reg(), destination.ToStackSlotOffset());
   } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
     DRegister dst = destination.fpu_reg();
     DRegister src = source.fpu_reg();
@@ -1665,37 +1664,28 @@ void ParallelMoveResolver::EmitSwap(int index) {
     __ movd(src, dst);
     __ movd(dst, DTMP);
   } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
-    ASSERT(destination.IsDoubleStackSlot() ||
-           destination.IsQuadStackSlot() ||
-           source.IsDoubleStackSlot() ||
-           source.IsQuadStackSlot());
-    bool double_width = destination.IsDoubleStackSlot() ||
-                        source.IsDoubleStackSlot();
+    ASSERT(destination.IsDoubleStackSlot() || source.IsDoubleStackSlot());
     DRegister reg = source.IsFpuRegister() ? source.fpu_reg()
                                            : destination.fpu_reg();
+    Register base_reg = source.IsFpuRegister()
+        ? destination.base_reg()
+        : source.base_reg();
     const intptr_t slot_offset = source.IsFpuRegister()
         ? destination.ToStackSlotOffset()
         : source.ToStackSlotOffset();
-
-    if (double_width) {
-      __ LoadDFromOffset(DTMP, FP, slot_offset);
-      __ StoreDToOffset(reg, FP, slot_offset);
-      __ movd(reg, DTMP);
-    } else {
-      UNIMPLEMENTED();
-    }
+    __ LoadDFromOffset(DTMP, base_reg, slot_offset);
+    __ StoreDToOffset(reg, base_reg, slot_offset);
+    __ movd(reg, DTMP);
   } else if (source.IsDoubleStackSlot() && destination.IsDoubleStackSlot()) {
     const intptr_t source_offset = source.ToStackSlotOffset();
     const intptr_t dest_offset = destination.ToStackSlotOffset();
 
     ScratchFpuRegisterScope ensure_scratch(this, DTMP);
     DRegister scratch = ensure_scratch.reg();
-    __ LoadDFromOffset(DTMP, FP, source_offset);
-    __ LoadDFromOffset(scratch, FP, dest_offset);
-    __ StoreDToOffset(DTMP, FP, dest_offset);
-    __ StoreDToOffset(scratch, FP, source_offset);
-  } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
-    UNIMPLEMENTED();
+    __ LoadDFromOffset(DTMP, source.base_reg(), source_offset);
+    __ LoadDFromOffset(scratch, destination.base_reg(), dest_offset);
+    __ StoreDToOffset(DTMP, destination.base_reg(), dest_offset);
+    __ StoreDToOffset(scratch, source.base_reg(), source_offset);
   } else {
     UNREACHABLE();
   }
@@ -1747,20 +1737,26 @@ void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
 }
 
 
-void ParallelMoveResolver::Exchange(Register reg, intptr_t stack_offset) {
-  __ mov(TMP, reg);
-  __ LoadFromOffset(reg, FP, stack_offset);
-  __ StoreToOffset(TMP, FP, stack_offset);
+void ParallelMoveResolver::Exchange(Register reg,
+                                    Register base_reg,
+                                    intptr_t stack_offset) {
+  ScratchRegisterScope tmp(this, reg);
+  __ mov(tmp.reg(), reg);
+  __ LoadFromOffset(reg, base_reg, stack_offset);
+  __ StoreToOffset(tmp.reg(), base_reg, stack_offset);
 }
 
 
-void ParallelMoveResolver::Exchange(intptr_t stack_offset1,
+void ParallelMoveResolver::Exchange(Register base_reg1,
+                                    intptr_t stack_offset1,
+                                    Register base_reg2,
                                     intptr_t stack_offset2) {
-  ScratchRegisterScope ensure_scratch(this, TMP);
-  __ LoadFromOffset(ensure_scratch.reg(), FP, stack_offset1);
-  __ LoadFromOffset(TMP, FP, stack_offset2);
-  __ StoreToOffset(ensure_scratch.reg(), FP, stack_offset2);
-  __ StoreToOffset(TMP, FP, stack_offset1);
+  ScratchRegisterScope tmp1(this, kNoRegister);
+  ScratchRegisterScope tmp2(this, tmp1.reg());
+  __ LoadFromOffset(tmp1.reg(), base_reg1, stack_offset1);
+  __ LoadFromOffset(tmp2.reg(), base_reg2, stack_offset2);
+  __ StoreToOffset(tmp1.reg(), base_reg1, stack_offset2);
+  __ StoreToOffset(tmp2.reg(), base_reg2, stack_offset1);
 }
 
 
