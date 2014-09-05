@@ -53,11 +53,13 @@ const Map<String, String> _extraMethodsOnElement = const {
 };
 
 class CodegenJavaType extends CodegenJavaVisitor {
+  final String className;
+  final String superclassName;
+  final bool generateGetters;
+  final bool generateSetters;
 
-  String className;
-  String superclassName;
-
-  CodegenJavaType(Api api, this.className, this.superclassName)
+  CodegenJavaType(Api api, this.className, this.superclassName,
+      this.generateGetters, this.generateSetters)
       : super(api);
 
   void emitType(TypeDecl type, dom.Element html) {
@@ -123,13 +125,18 @@ class CodegenJavaType extends CodegenJavaVisitor {
       TypeObject typeObject = type as TypeObject;
       List<TypeObjectField> fields = typeObject.fields;
       for (TypeObjectField field in fields) {
-        if (!(className == 'Outline' && javaName(field.name) == 'children')) {
-          privateField(javaName(field.name), () {
+        String type = javaFieldType(field);
+        String name = javaName(field.name);
+        if (!(className == 'Outline' && name == 'children')) {
+          privateField(name, () {
             javadocComment(toHtmlVisitor.collectHtml(() {
               toHtmlVisitor.translateHtml(field.html);
             }));
-            writeln(
-                'private final ${javaFieldType(field)} ${javaName(field.name)};');
+            if (generateSetters) {
+              writeln('private $type $name;');
+            } else {
+              writeln('private final $type $name;');
+            }
           });
         }
       }
@@ -156,9 +163,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
           parameters.add('Outline parent');
         }
         for (TypeObjectField field in fields) {
+          String type = javaFieldType(field);
+          String name = javaName(field.name);
           if (!_isTypeFieldInUpdateContentUnionType(className, field.name) &&
-              !(className == 'Outline' && javaName(field.name) == 'children')) {
-            parameters.add('${javaFieldType(field)} ${javaName(field.name)}');
+              !(className == 'Outline' && name == 'children')) {
+            parameters.add('$type $name');
           }
         }
         write(parameters.join(', '));
@@ -169,10 +178,10 @@ class CodegenJavaType extends CodegenJavaVisitor {
             writeln('this.parent = parent;');
           }
           for (TypeObjectField field in fields) {
+            String name = javaName(field.name);
             if (!_isTypeFieldInUpdateContentUnionType(className, field.name) &&
-                !(className == 'Outline' && javaName(field.name) == 'children')) {
-              writeln(
-                  'this.${javaName(field.name)} = ${javaName(field.name)};');
+                !(className == 'Outline' && name == 'children')) {
+              writeln('this.$name = $name;');
             } else if (className == 'AddContentOverlay') {
               writeln('this.type = "add";');
             } else if (className == 'ChangeContentOverlay') {
@@ -188,21 +197,42 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       // getter methods
       //
-      for (TypeObjectField field in fields) {
-        publicMethod('get${javaName(field.name)}', () {
-          javadocComment(toHtmlVisitor.collectHtml(() {
-            toHtmlVisitor.translateHtml(field.html);
-          }));
-          if (javaFieldType(field) == 'boolean') {
-            writeln(
-                'public ${javaFieldType(field)} ${javaName(field.name)}() {');
-          } else {
-            writeln(
-                'public ${javaFieldType(field)} get${capitalize(javaName(field.name))}() {');
-          }
-          writeln('  return ${javaName(field.name)};');
-          writeln('}');
-        });
+      if (generateGetters) {
+        for (TypeObjectField field in fields) {
+          String type = javaFieldType(field);
+          String name = javaName(field.name);
+          publicMethod('get$name', () {
+            javadocComment(toHtmlVisitor.collectHtml(() {
+              toHtmlVisitor.translateHtml(field.html);
+            }));
+            if (type == 'boolean') {
+              writeln('public $type $name() {');
+            } else {
+              writeln('public $type get${capitalize(name)}() {');
+            }
+            writeln('  return $name;');
+            writeln('}');
+          });
+        }
+      }
+
+      //
+      // setter methods
+      //
+      if (generateSetters) {
+        for (TypeObjectField field in fields) {
+          String type = javaFieldType(field);
+          String name = javaName(field.name);
+          publicMethod('set$name', () {
+            javadocComment(toHtmlVisitor.collectHtml(() {
+              toHtmlVisitor.translateHtml(field.html);
+            }));
+            String setterName = 'set' + capitalize(name);
+            writeln('public void $setterName($type $name) {');
+            writeln('  this.$name = $name;');
+            writeln('}');
+          });
+        }
       }
 
       //
@@ -638,9 +668,15 @@ final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
           if (isRefactoringOption) {
             superclassName = 'RefactoringOptions';
           }
+          // configure accessors
+          bool generateGetters = true;
+          bool generateSetters = false;
+          if (isRefactoringOption) {
+            generateSetters = true;
+          }
           // create the visitor
-          CodegenJavaType visitor =
-              new CodegenJavaType(api, typeNameInJava, superclassName);
+          CodegenJavaType visitor = new CodegenJavaType(api, typeNameInJava,
+              superclassName, generateGetters, generateSetters);
           return visitor.collectCode(() {
             dom.Element doc = type.html;
             if (impliedType.apiNode is TypeDefinition) {
