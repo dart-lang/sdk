@@ -11,7 +11,7 @@ import 'dart:io';
 
 // This is used by [libraryPath]. It must be kept up-to-date with all libraries
 // whose paths are looked up using that function.
-@MirrorsUsed(targets: ['pub.io', 'test_pub'])
+@MirrorsUsed(targets: const ['pub.io', 'test_pub'])
 import 'dart:mirrors';
 
 import "package:crypto/crypto.dart";
