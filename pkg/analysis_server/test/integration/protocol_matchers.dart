@@ -665,96 +665,96 @@ final Matcher isEditGetRefactoringResult = new LazyMatcher(() => new MatchesJson
   }));
 
 /**
- * debug.createContext params
+ * execution.createContext params
  *
  * {
  *   "contextRoot": FilePath
  * }
  */
-final Matcher isDebugCreateContextParams = new LazyMatcher(() => new MatchesJsonObject(
-  "debug.createContext params", {
+final Matcher isExecutionCreateContextParams = new LazyMatcher(() => new MatchesJsonObject(
+  "execution.createContext params", {
     "contextRoot": isFilePath
   }));
 
 /**
- * debug.createContext result
+ * execution.createContext result
  *
  * {
- *   "id": DebugContextId
+ *   "id": ExecutionContextId
  * }
  */
-final Matcher isDebugCreateContextResult = new LazyMatcher(() => new MatchesJsonObject(
-  "debug.createContext result", {
-    "id": isDebugContextId
+final Matcher isExecutionCreateContextResult = new LazyMatcher(() => new MatchesJsonObject(
+  "execution.createContext result", {
+    "id": isExecutionContextId
   }));
 
 /**
- * debug.deleteContext params
+ * execution.deleteContext params
  *
  * {
- *   "id": DebugContextId
+ *   "id": ExecutionContextId
  * }
  */
-final Matcher isDebugDeleteContextParams = new LazyMatcher(() => new MatchesJsonObject(
-  "debug.deleteContext params", {
-    "id": isDebugContextId
+final Matcher isExecutionDeleteContextParams = new LazyMatcher(() => new MatchesJsonObject(
+  "execution.deleteContext params", {
+    "id": isExecutionContextId
   }));
 
 /**
- * debug.deleteContext result
+ * execution.deleteContext result
  */
-final Matcher isDebugDeleteContextResult = isNull;
+final Matcher isExecutionDeleteContextResult = isNull;
 
 /**
- * debug.mapUri params
+ * execution.mapUri params
  *
  * {
- *   "id": DebugContextId
+ *   "id": ExecutionContextId
  *   "file": optional FilePath
  *   "uri": optional String
  * }
  */
-final Matcher isDebugMapUriParams = new LazyMatcher(() => new MatchesJsonObject(
-  "debug.mapUri params", {
-    "id": isDebugContextId
+final Matcher isExecutionMapUriParams = new LazyMatcher(() => new MatchesJsonObject(
+  "execution.mapUri params", {
+    "id": isExecutionContextId
   }, optionalFields: {
     "file": isFilePath,
     "uri": isString
   }));
 
 /**
- * debug.mapUri result
+ * execution.mapUri result
  *
  * {
  *   "file": optional FilePath
  *   "uri": optional String
  * }
  */
-final Matcher isDebugMapUriResult = new LazyMatcher(() => new MatchesJsonObject(
-  "debug.mapUri result", null, optionalFields: {
+final Matcher isExecutionMapUriResult = new LazyMatcher(() => new MatchesJsonObject(
+  "execution.mapUri result", null, optionalFields: {
     "file": isFilePath,
     "uri": isString
   }));
 
 /**
- * debug.setSubscriptions params
+ * execution.setSubscriptions params
  *
  * {
- *   "subscriptions": List<DebugService>
+ *   "subscriptions": List<ExecutionService>
  * }
  */
-final Matcher isDebugSetSubscriptionsParams = new LazyMatcher(() => new MatchesJsonObject(
-  "debug.setSubscriptions params", {
-    "subscriptions": isListOf(isDebugService)
+final Matcher isExecutionSetSubscriptionsParams = new LazyMatcher(() => new MatchesJsonObject(
+  "execution.setSubscriptions params", {
+    "subscriptions": isListOf(isExecutionService)
   }));
 
 /**
- * debug.setSubscriptions result
+ * execution.setSubscriptions result
  */
-final Matcher isDebugSetSubscriptionsResult = isNull;
+final Matcher isExecutionSetSubscriptionsResult = isNull;
 
 /**
- * debug.launchData params
+ * execution.launchData params
  *
  * {
  *   "executables": List<ExecutableFile>
@@ -762,8 +762,8 @@ final Matcher isDebugSetSubscriptionsResult = isNull;
  *   "htmlToDart": Map<FilePath, List<FilePath>>
  * }
  */
-final Matcher isDebugLaunchDataParams = new LazyMatcher(() => new MatchesJsonObject(
-  "debug.launchData params", {
+final Matcher isExecutionLaunchDataParams = new LazyMatcher(() => new MatchesJsonObject(
+  "execution.launchData params", {
     "executables": isListOf(isExecutableFile),
     "dartToHtml": isMapOf(isFilePath, isListOf(isFilePath)),
     "htmlToDart": isMapOf(isFilePath, isListOf(isFilePath))
@@ -1041,24 +1041,6 @@ final Matcher isCompletionSuggestionKind = new MatchesEnum("CompletionSuggestion
 ]);
 
 /**
- * DebugContextId
- *
- * String
- */
-final Matcher isDebugContextId = isString;
-
-/**
- * DebugService
- *
- * enum {
- *   LAUNCH_DATA
- * }
- */
-final Matcher isDebugService = new MatchesEnum("DebugService", [
-  "LAUNCH_DATA"
-]);
-
-/**
  * Element
  *
  * {
@@ -1153,6 +1135,24 @@ final Matcher isExecutableKind = new MatchesEnum("ExecutableKind", [
   "CLIENT",
   "EITHER",
   "SERVER"
+]);
+
+/**
+ * ExecutionContextId
+ *
+ * String
+ */
+final Matcher isExecutionContextId = isString;
+
+/**
+ * ExecutionService
+ *
+ * enum {
+ *   LAUNCH_DATA
+ * }
+ */
+final Matcher isExecutionService = new MatchesEnum("ExecutionService", [
+  "LAUNCH_DATA"
 ]);
 
 /**

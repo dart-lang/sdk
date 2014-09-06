@@ -114,7 +114,7 @@
       <li><a href="#domain_completion">Code Completion</a></li>
       <li><a href="#domain_search">Search</a></li>
       <li><a href="#domain_edit">Edit</a></li>
-      <li><a href="#domain_debug">Debugging</a></li>
+      <li><a href="#domain_execution">Execution</a></li>
     </ul>
     <p>
       The specifications of the API’s refer to data structures beyond
@@ -279,7 +279,7 @@
           which is not currently subject to analysis (e.g. because it
           is not associated with any analysis root specified to
           analysis.setAnalysisRoots), an error of type
-          GET_ERRORS_INVALID_FILE will be generated.
+          <tt>GET_ERRORS_INVALID_FILE</tt> will be generated.
         </p>
         <params>
           <field name="file">
@@ -1165,14 +1165,7 @@
           <field name="fixes">
             <list><ref>AnalysisErrorFixes</ref></list>
             <p>
-              The fixes that are available for each of the analysis
-              errors. There is a one-to-one correspondence between the
-              analysis errors in the request and the lists of changes
-              in the response. In particular, it is always the case
-              that errors.length == fixes.length and that fixes[i] is
-              the list of fixes for the error in errors[i]. The list
-              of changes corresponding to an error can be empty if
-              there are no fixes available for that error.
+              The fixes that are available for the errors at the given offset.
             </p>
           </field>
         </result>
@@ -1273,18 +1266,17 @@
         </result>
       </request>
     </domain>
-    <domain name="debug">
+    <domain name="execution">
       <p>
-        The debugging domain contains commands related to providing a
-        debugging experience.
+        The execution domain contains commands related to providing an execution
+        or debugging experience.
       </p>
       <request method="createContext">
         <p>
-          Create a debugging context for the executable file with the
-          given path. The context that is created will persist until
-          debug.deleteContext is used to delete it. Clients,
-          therefore, are responsible for managing the lifetime of
-          debugging contexts.
+          Create an execution context for the executable file with the given
+          path. The context that is created will persist until
+          execution.deleteContext is used to delete it. Clients, therefore, are
+          responsible for managing the lifetime of execution contexts.
         </p>
         <params>
           <field name="contextRoot">
@@ -1296,45 +1288,44 @@
         </params>
         <result>
           <field name="id">
-            <ref>DebugContextId</ref>
+            <ref>ExecutionContextId</ref>
             <p>
-              The identifier used to refer to the debugging context
-              that was created.
+              The identifier used to refer to the execution context that was
+              created.
             </p>
           </field>
         </result>
       </request>
       <request method="deleteContext">
         <p>
-          Delete the debugging context with the given identifier. The
-          context id is no longer valid after this command. The server
-          is allowed to re-use ids when they are no longer valid.
+          Delete the execution context with the given identifier. The context id
+          is no longer valid after this command. The server is allowed to re-use
+          ids when they are no longer valid.
         </p>
         <params>
           <field name="id">
-            <ref>DebugContextId</ref>
+            <ref>ExecutionContextId</ref>
             <p>
-              The identifier of the debugging context that is to be
-              deleted.
+              The identifier of the execution context that is to be deleted.
             </p>
           </field>
         </params>
       </request>
       <request method="mapUri">
         <p>
-          Map a URI from the debugging context to the file that it
-          corresponds to, or map a file to the URI that it corresponds
-          to in the debugging context.
+          Map a URI from the execution context to the file that it corresponds
+          to, or map a file to the URI that it corresponds to in the execution
+          context.
         </p>
         <p>
           Exactly one of the file and uri fields must be provided.
         </p>
         <params>
           <field name="id">
-            <ref>DebugContextId</ref>
+            <ref>ExecutionContextId</ref>
             <p>
-              The identifier of the debugging context in which the URI
-              is to be mapped.
+              The identifier of the execution context in which the URI is to be
+              mapped.
             </p>
           </field>
           <field name="file" optional="true">
@@ -1354,32 +1345,32 @@
           <field name="file" optional="true">
             <ref>FilePath</ref>
             <p>
-              The file to which the URI was mapped. This field is
-              omitted if the uri field was not given in the request.
+              The file to which the URI was mapped. This field is omitted if the
+              uri field was not given in the request.
             </p>
           </field>
           <field name="uri" optional="true">
             <ref>String</ref>
             <p>
-              The URI to which the file path was mapped. This field is
-              omitted if the file field was not given in the request.
+              The URI to which the file path was mapped. This field is omitted
+              if the file field was not given in the request.
             </p>
           </field>
         </result>
       </request>
       <request method="setSubscriptions">
         <p>
-          Subscribe for services. All previous subscriptions are
-          replaced by the given set of services.
+          Subscribe for services. All previous subscriptions are replaced by the
+          given set of services.
         </p>
         <p>
-          It is an error if any of the elements in the list are not
-          valid services. If there is an error, then the current
-          subscriptions will remain unchanged.
+          It is an error if any of the elements in the list are not valid
+          services. If there is an error, then the current subscriptions will
+          remain unchanged.
         </p>
         <params>
           <field name="subscriptions">
-            <list><ref>DebugService</ref></list>
+            <list><ref>ExecutionService</ref></list>
             <p>
               A list of the services being subscribed to.
             </p>
@@ -1388,21 +1379,20 @@
       </request>
       <notification event="launchData">
         <p>
-          Reports information needed to allow applications within the
-          given context to be launched.
+          Reports information needed to allow applications within the given
+          context to be launched.
         </p>
         <p>
-          This notification is not subscribed to by default. Clients
-          can subscribe by including the value "LAUNCH_DATA" in the
-          list of services passed in a debug.setSubscriptions request.
+          This notification is not subscribed to by default. Clients can
+          subscribe by including the value "LAUNCH_DATA" in the list of services
+          passed in a execution.setSubscriptions request.
         </p>
         <params>
           <field name="executables">
             <list><ref>ExecutableFile</ref></list>
             <p>
-              A list of the files that are executable in the given
-              context. This list replaces any previous list provided
-              for the given context.
+              A list of the files that are executable in the given context. This
+              list replaces any previous list provided for the given context.
             </p>
           </field>
           <field name="dartToHtml">
@@ -1413,9 +1403,8 @@
               </value>
             </map>
             <p>
-              A mapping from the paths of Dart files that are
-              referenced by HTML files to a list of the HTML files
-              that reference the Dart files.
+              A mapping from the paths of Dart files that are referenced by HTML
+              files to a list of the HTML files that reference the Dart files.
             </p>
           </field>
           <field name="htmlToDart">
@@ -1426,8 +1415,8 @@
               </value>
             </map>
             <p>
-              A mapping from the paths of HTML files that reference
-              Dart files to a list of the Dart files they reference.
+              A mapping from the paths of HTML files that reference Dart files
+              to a list of the Dart files they reference.
             </p>
           </field>
         </params>
@@ -1836,21 +1825,6 @@
           <value><code>TYPE_PARAMETER</code></value>
         </enum>
       </type>
-      <type name="DebugContextId">
-        <ref>String</ref>
-        <p>
-          The identifier for a debug context.
-        </p>
-      </type>
-      <type name="DebugService">
-        <p>
-          An enumeration of the services provided by the debug
-          domain.
-        </p>
-        <enum>
-          <value><code>LAUNCH_DATA</code></value>
-        </enum>
-      </type>
       <type name="Element">
         <p>
           Information about an element (something that can be declared
@@ -1963,6 +1937,21 @@
           <value><code>CLIENT</code></value>
           <value><code>EITHER</code></value>
           <value><code>SERVER</code></value>
+        </enum>
+      </type>
+      <type name="ExecutionContextId">
+        <ref>String</ref>
+        <p>
+          The identifier for a execution context.
+        </p>
+      </type>
+      <type name="ExecutionService">
+        <p>
+          An enumeration of the services provided by the execution
+          domain.
+        </p>
+        <enum>
+          <value><code>LAUNCH_DATA</code></value>
         </enum>
       </type>
       <type name="FilePath">
@@ -3131,21 +3120,21 @@
             <list><ref>RefactoringMethodParameter</ref></list>
             <p>
               The parameters that should be defined for the method.
-              <p>
-                It is an error if a REQUIRED or NAMED parameter follows a
-                POSITIONAL parameter.
-                It is an error if a REQUIRED or POSITIONAL parameter follows a
-                NAMED parameter.
-              </p>
-              <ul>
-                <li>
-                  To change the order and/or update proposed paramerers, add
-                  parameters with the same identifiers as proposed.
-                </li>
-                <li>To add new parameters, omit their identifier.</li>
-                <li>To remove some parameters, omit them in this list.</li>
-              </ul>
             </p>
+            <p>
+              It is an error if a REQUIRED or NAMED parameter follows a
+              POSITIONAL parameter.
+              It is an error if a REQUIRED or POSITIONAL parameter follows a
+              NAMED parameter.
+            </p>
+            <ul>
+              <li>
+                To change the order and/or update proposed paramerers, add
+                parameters with the same identifiers as proposed.
+              </li>
+              <li>To add new parameters, omit their identifier.</li>
+              <li>To remove some parameters, omit them in this list.</li>
+            </ul>
           </field>
           <field name="extractAll">
             <ref>bool</ref>

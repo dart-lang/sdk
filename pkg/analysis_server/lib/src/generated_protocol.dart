@@ -3368,12 +3368,7 @@ class EditGetFixesParams implements HasToJson {
  */
 class EditGetFixesResult implements HasToJson {
   /**
-   * The fixes that are available for each of the analysis errors. There is a
-   * one-to-one correspondence between the analysis errors in the request and
-   * the lists of changes in the response. In particular, it is always the case
-   * that errors.length == fixes.length and that fixes[i] is the list of fixes
-   * for the error in errors[i]. The list of changes corresponding to an error
-   * can be empty if there are no fixes available for that error.
+   * The fixes that are available for the errors at the given offset.
    */
   List<AnalysisErrorFixes> fixes;
 
@@ -3708,21 +3703,21 @@ class EditGetRefactoringResult implements HasToJson {
 }
 
 /**
- * debug.createContext params
+ * execution.createContext params
  *
  * {
  *   "contextRoot": FilePath
  * }
  */
-class DebugCreateContextParams implements HasToJson {
+class ExecutionCreateContextParams implements HasToJson {
   /**
    * The path of the Dart or HTML file that will be launched.
    */
   String contextRoot;
 
-  DebugCreateContextParams(this.contextRoot);
+  ExecutionCreateContextParams(this.contextRoot);
 
-  factory DebugCreateContextParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionCreateContextParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -3733,14 +3728,14 @@ class DebugCreateContextParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "contextRoot");
       }
-      return new DebugCreateContextParams(contextRoot);
+      return new ExecutionCreateContextParams(contextRoot);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.createContext params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.createContext params");
     }
   }
 
-  factory DebugCreateContextParams.fromRequest(Request request) {
-    return new DebugCreateContextParams.fromJson(
+  factory ExecutionCreateContextParams.fromRequest(Request request) {
+    return new ExecutionCreateContextParams.fromJson(
         new RequestDecoder(request), "params", request._params);
   }
 
@@ -3751,7 +3746,7 @@ class DebugCreateContextParams implements HasToJson {
   }
 
   Request toRequest(String id) {
-    return new Request(id, "debug.createContext", toJson());
+    return new Request(id, "execution.createContext", toJson());
   }
 
   @override
@@ -3759,7 +3754,7 @@ class DebugCreateContextParams implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugCreateContextParams) {
+    if (other is ExecutionCreateContextParams) {
       return contextRoot == other.contextRoot;
     }
     return false;
@@ -3774,21 +3769,21 @@ class DebugCreateContextParams implements HasToJson {
 }
 
 /**
- * debug.createContext result
+ * execution.createContext result
  *
  * {
- *   "id": DebugContextId
+ *   "id": ExecutionContextId
  * }
  */
-class DebugCreateContextResult implements HasToJson {
+class ExecutionCreateContextResult implements HasToJson {
   /**
-   * The identifier used to refer to the debugging context that was created.
+   * The identifier used to refer to the execution context that was created.
    */
   String id;
 
-  DebugCreateContextResult(this.id);
+  ExecutionCreateContextResult(this.id);
 
-  factory DebugCreateContextResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionCreateContextResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -3799,14 +3794,14 @@ class DebugCreateContextResult implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
-      return new DebugCreateContextResult(id);
+      return new ExecutionCreateContextResult(id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.createContext result");
+      throw jsonDecoder.mismatch(jsonPath, "execution.createContext result");
     }
   }
 
-  factory DebugCreateContextResult.fromResponse(Response response) {
-    return new DebugCreateContextResult.fromJson(
+  factory ExecutionCreateContextResult.fromResponse(Response response) {
+    return new ExecutionCreateContextResult.fromJson(
         new ResponseDecoder(response), "result", response._result);
   }
 
@@ -3825,7 +3820,7 @@ class DebugCreateContextResult implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugCreateContextResult) {
+    if (other is ExecutionCreateContextResult) {
       return id == other.id;
     }
     return false;
@@ -3840,21 +3835,21 @@ class DebugCreateContextResult implements HasToJson {
 }
 
 /**
- * debug.deleteContext params
+ * execution.deleteContext params
  *
  * {
- *   "id": DebugContextId
+ *   "id": ExecutionContextId
  * }
  */
-class DebugDeleteContextParams implements HasToJson {
+class ExecutionDeleteContextParams implements HasToJson {
   /**
-   * The identifier of the debugging context that is to be deleted.
+   * The identifier of the execution context that is to be deleted.
    */
   String id;
 
-  DebugDeleteContextParams(this.id);
+  ExecutionDeleteContextParams(this.id);
 
-  factory DebugDeleteContextParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionDeleteContextParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -3865,14 +3860,14 @@ class DebugDeleteContextParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
-      return new DebugDeleteContextParams(id);
+      return new ExecutionDeleteContextParams(id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.deleteContext params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.deleteContext params");
     }
   }
 
-  factory DebugDeleteContextParams.fromRequest(Request request) {
-    return new DebugDeleteContextParams.fromJson(
+  factory ExecutionDeleteContextParams.fromRequest(Request request) {
+    return new ExecutionDeleteContextParams.fromJson(
         new RequestDecoder(request), "params", request._params);
   }
 
@@ -3883,7 +3878,7 @@ class DebugDeleteContextParams implements HasToJson {
   }
 
   Request toRequest(String id) {
-    return new Request(id, "debug.deleteContext", toJson());
+    return new Request(id, "execution.deleteContext", toJson());
   }
 
   @override
@@ -3891,7 +3886,7 @@ class DebugDeleteContextParams implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugDeleteContextParams) {
+    if (other is ExecutionDeleteContextParams) {
       return id == other.id;
     }
     return false;
@@ -3905,16 +3900,16 @@ class DebugDeleteContextParams implements HasToJson {
   }
 }
 /**
- * debug.deleteContext result
+ * execution.deleteContext result
  */
-class DebugDeleteContextResult {
+class ExecutionDeleteContextResult {
   Response toResponse(String id) {
     return new Response(id, result: null);
   }
 
   @override
   bool operator==(other) {
-    if (other is DebugDeleteContextResult) {
+    if (other is ExecutionDeleteContextResult) {
       return true;
     }
     return false;
@@ -3922,22 +3917,22 @@ class DebugDeleteContextResult {
 
   @override
   int get hashCode {
-    return 923895626;
+    return 479954425;
   }
 }
 
 /**
- * debug.mapUri params
+ * execution.mapUri params
  *
  * {
- *   "id": DebugContextId
+ *   "id": ExecutionContextId
  *   "file": optional FilePath
  *   "uri": optional String
  * }
  */
-class DebugMapUriParams implements HasToJson {
+class ExecutionMapUriParams implements HasToJson {
   /**
-   * The identifier of the debugging context in which the URI is to be mapped.
+   * The identifier of the execution context in which the URI is to be mapped.
    */
   String id;
 
@@ -3951,9 +3946,9 @@ class DebugMapUriParams implements HasToJson {
    */
   String uri;
 
-  DebugMapUriParams(this.id, {this.file, this.uri});
+  ExecutionMapUriParams(this.id, {this.file, this.uri});
 
-  factory DebugMapUriParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionMapUriParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -3972,14 +3967,14 @@ class DebugMapUriParams implements HasToJson {
       if (json.containsKey("uri")) {
         uri = jsonDecoder._decodeString(jsonPath + ".uri", json["uri"]);
       }
-      return new DebugMapUriParams(id, file: file, uri: uri);
+      return new ExecutionMapUriParams(id, file: file, uri: uri);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.mapUri params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.mapUri params");
     }
   }
 
-  factory DebugMapUriParams.fromRequest(Request request) {
-    return new DebugMapUriParams.fromJson(
+  factory ExecutionMapUriParams.fromRequest(Request request) {
+    return new ExecutionMapUriParams.fromJson(
         new RequestDecoder(request), "params", request._params);
   }
 
@@ -3996,7 +3991,7 @@ class DebugMapUriParams implements HasToJson {
   }
 
   Request toRequest(String id) {
-    return new Request(id, "debug.mapUri", toJson());
+    return new Request(id, "execution.mapUri", toJson());
   }
 
   @override
@@ -4004,7 +3999,7 @@ class DebugMapUriParams implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugMapUriParams) {
+    if (other is ExecutionMapUriParams) {
       return id == other.id &&
           file == other.file &&
           uri == other.uri;
@@ -4023,14 +4018,14 @@ class DebugMapUriParams implements HasToJson {
 }
 
 /**
- * debug.mapUri result
+ * execution.mapUri result
  *
  * {
  *   "file": optional FilePath
  *   "uri": optional String
  * }
  */
-class DebugMapUriResult implements HasToJson {
+class ExecutionMapUriResult implements HasToJson {
   /**
    * The file to which the URI was mapped. This field is omitted if the uri
    * field was not given in the request.
@@ -4043,9 +4038,9 @@ class DebugMapUriResult implements HasToJson {
    */
   String uri;
 
-  DebugMapUriResult({this.file, this.uri});
+  ExecutionMapUriResult({this.file, this.uri});
 
-  factory DebugMapUriResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionMapUriResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -4058,14 +4053,14 @@ class DebugMapUriResult implements HasToJson {
       if (json.containsKey("uri")) {
         uri = jsonDecoder._decodeString(jsonPath + ".uri", json["uri"]);
       }
-      return new DebugMapUriResult(file: file, uri: uri);
+      return new ExecutionMapUriResult(file: file, uri: uri);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.mapUri result");
+      throw jsonDecoder.mismatch(jsonPath, "execution.mapUri result");
     }
   }
 
-  factory DebugMapUriResult.fromResponse(Response response) {
-    return new DebugMapUriResult.fromJson(
+  factory ExecutionMapUriResult.fromResponse(Response response) {
+    return new ExecutionMapUriResult.fromJson(
         new ResponseDecoder(response), "result", response._result);
   }
 
@@ -4089,7 +4084,7 @@ class DebugMapUriResult implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugMapUriResult) {
+    if (other is ExecutionMapUriResult) {
       return file == other.file &&
           uri == other.uri;
     }
@@ -4106,50 +4101,50 @@ class DebugMapUriResult implements HasToJson {
 }
 
 /**
- * debug.setSubscriptions params
+ * execution.setSubscriptions params
  *
  * {
- *   "subscriptions": List<DebugService>
+ *   "subscriptions": List<ExecutionService>
  * }
  */
-class DebugSetSubscriptionsParams implements HasToJson {
+class ExecutionSetSubscriptionsParams implements HasToJson {
   /**
    * A list of the services being subscribed to.
    */
-  List<DebugService> subscriptions;
+  List<ExecutionService> subscriptions;
 
-  DebugSetSubscriptionsParams(this.subscriptions);
+  ExecutionSetSubscriptionsParams(this.subscriptions);
 
-  factory DebugSetSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionSetSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
-      List<DebugService> subscriptions;
+      List<ExecutionService> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder._decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new DebugService.fromJson(jsonDecoder, jsonPath, json));
+        subscriptions = jsonDecoder._decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ExecutionService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
-      return new DebugSetSubscriptionsParams(subscriptions);
+      return new ExecutionSetSubscriptionsParams(subscriptions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.setSubscriptions params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.setSubscriptions params");
     }
   }
 
-  factory DebugSetSubscriptionsParams.fromRequest(Request request) {
-    return new DebugSetSubscriptionsParams.fromJson(
+  factory ExecutionSetSubscriptionsParams.fromRequest(Request request) {
+    return new ExecutionSetSubscriptionsParams.fromJson(
         new RequestDecoder(request), "params", request._params);
   }
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["subscriptions"] = subscriptions.map((DebugService value) => value.toJson()).toList();
+    result["subscriptions"] = subscriptions.map((ExecutionService value) => value.toJson()).toList();
     return result;
   }
 
   Request toRequest(String id) {
-    return new Request(id, "debug.setSubscriptions", toJson());
+    return new Request(id, "execution.setSubscriptions", toJson());
   }
 
   @override
@@ -4157,8 +4152,8 @@ class DebugSetSubscriptionsParams implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugSetSubscriptionsParams) {
-      return _listEqual(subscriptions, other.subscriptions, (DebugService a, DebugService b) => a == b);
+    if (other is ExecutionSetSubscriptionsParams) {
+      return _listEqual(subscriptions, other.subscriptions, (ExecutionService a, ExecutionService b) => a == b);
     }
     return false;
   }
@@ -4171,16 +4166,16 @@ class DebugSetSubscriptionsParams implements HasToJson {
   }
 }
 /**
- * debug.setSubscriptions result
+ * execution.setSubscriptions result
  */
-class DebugSetSubscriptionsResult {
+class ExecutionSetSubscriptionsResult {
   Response toResponse(String id) {
     return new Response(id, result: null);
   }
 
   @override
   bool operator==(other) {
-    if (other is DebugSetSubscriptionsResult) {
+    if (other is ExecutionSetSubscriptionsResult) {
       return true;
     }
     return false;
@@ -4188,12 +4183,12 @@ class DebugSetSubscriptionsResult {
 
   @override
   int get hashCode {
-    return 36732888;
+    return 287678780;
   }
 }
 
 /**
- * debug.launchData params
+ * execution.launchData params
  *
  * {
  *   "executables": List<ExecutableFile>
@@ -4201,7 +4196,7 @@ class DebugSetSubscriptionsResult {
  *   "htmlToDart": Map<FilePath, List<FilePath>>
  * }
  */
-class DebugLaunchDataParams implements HasToJson {
+class ExecutionLaunchDataParams implements HasToJson {
   /**
    * A list of the files that are executable in the given context. This list
    * replaces any previous list provided for the given context.
@@ -4220,9 +4215,9 @@ class DebugLaunchDataParams implements HasToJson {
    */
   Map<String, List<String>> htmlToDart;
 
-  DebugLaunchDataParams(this.executables, this.dartToHtml, this.htmlToDart);
+  ExecutionLaunchDataParams(this.executables, this.dartToHtml, this.htmlToDart);
 
-  factory DebugLaunchDataParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionLaunchDataParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -4245,14 +4240,14 @@ class DebugLaunchDataParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "htmlToDart");
       }
-      return new DebugLaunchDataParams(executables, dartToHtml, htmlToDart);
+      return new ExecutionLaunchDataParams(executables, dartToHtml, htmlToDart);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.launchData params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.launchData params");
     }
   }
 
-  factory DebugLaunchDataParams.fromNotification(Notification notification) {
-    return new DebugLaunchDataParams.fromJson(
+  factory ExecutionLaunchDataParams.fromNotification(Notification notification) {
+    return new ExecutionLaunchDataParams.fromJson(
         new ResponseDecoder(null), "params", notification._params);
   }
 
@@ -4265,7 +4260,7 @@ class DebugLaunchDataParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("debug.launchData", toJson());
+    return new Notification("execution.launchData", toJson());
   }
 
   @override
@@ -4273,7 +4268,7 @@ class DebugLaunchDataParams implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugLaunchDataParams) {
+    if (other is ExecutionLaunchDataParams) {
       return _listEqual(executables, other.executables, (ExecutableFile a, ExecutableFile b) => a == b) &&
           _mapEqual(dartToHtml, other.dartToHtml, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b)) &&
           _mapEqual(htmlToDart, other.htmlToDart, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b));
@@ -5520,45 +5515,6 @@ class CompletionSuggestionKind {
 }
 
 /**
- * DebugService
- *
- * enum {
- *   LAUNCH_DATA
- * }
- */
-class DebugService {
-  static const LAUNCH_DATA = const DebugService._("LAUNCH_DATA");
-
-  final String name;
-
-  const DebugService._(this.name);
-
-  factory DebugService(String name) {
-    switch (name) {
-      case "LAUNCH_DATA":
-        return LAUNCH_DATA;
-    }
-    throw new Exception('Illegal enum value: $name');
-  }
-
-  factory DebugService.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json is String) {
-      try {
-        return new DebugService(json);
-      } catch(_) {
-        // Fall through
-      }
-    }
-    throw jsonDecoder.mismatch(jsonPath, "DebugService");
-  }
-
-  @override
-  String toString() => "DebugService.$name";
-
-  String toJson() => name;
-}
-
-/**
  * Element
  *
  * {
@@ -5981,6 +5937,45 @@ class ExecutableKind {
 
   @override
   String toString() => "ExecutableKind.$name";
+
+  String toJson() => name;
+}
+
+/**
+ * ExecutionService
+ *
+ * enum {
+ *   LAUNCH_DATA
+ * }
+ */
+class ExecutionService {
+  static const LAUNCH_DATA = const ExecutionService._("LAUNCH_DATA");
+
+  final String name;
+
+  const ExecutionService._(this.name);
+
+  factory ExecutionService(String name) {
+    switch (name) {
+      case "LAUNCH_DATA":
+        return LAUNCH_DATA;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory ExecutionService.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new ExecutionService(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "ExecutionService");
+  }
+
+  @override
+  String toString() => "ExecutionService.$name";
 
   String toJson() => name;
 }

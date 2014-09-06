@@ -1083,12 +1083,7 @@ abstract class IntegrationTestMixin {
    *
    * fixes ( List<AnalysisErrorFixes> )
    *
-   *   The fixes that are available for each of the analysis errors. There is a
-   *   one-to-one correspondence between the analysis errors in the request and
-   *   the lists of changes in the response. In particular, it is always the
-   *   case that errors.length == fixes.length and that fixes[i] is the list of
-   *   fixes for the error in errors[i]. The list of changes corresponding to
-   *   an error can be empty if there are no fixes available for that error.
+   *   The fixes that are available for the errors at the given offset.
    */
   Future sendEditGetFixes(String file, int offset, {bool checkTypes: true}) {
     Map<String, dynamic> params = {};
@@ -1194,10 +1189,10 @@ abstract class IntegrationTestMixin {
   }
 
   /**
-   * Create a debugging context for the executable file with the given path.
-   * The context that is created will persist until debug.deleteContext is used
-   * to delete it. Clients, therefore, are responsible for managing the
-   * lifetime of debugging contexts.
+   * Create an execution context for the executable file with the given path.
+   * The context that is created will persist until execution.deleteContext is
+   * used to delete it. Clients, therefore, are responsible for managing the
+   * lifetime of execution contexts.
    *
    * Parameters
    *
@@ -1207,62 +1202,62 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * id ( DebugContextId )
+   * id ( ExecutionContextId )
    *
-   *   The identifier used to refer to the debugging context that was created.
+   *   The identifier used to refer to the execution context that was created.
    */
-  Future sendDebugCreateContext(String contextRoot, {bool checkTypes: true}) {
+  Future sendExecutionCreateContext(String contextRoot, {bool checkTypes: true}) {
     Map<String, dynamic> params = {};
     params["contextRoot"] = contextRoot;
     if (checkTypes) {
-      expect(params, isDebugCreateContextParams);
+      expect(params, isExecutionCreateContextParams);
     }
-    return server.send("debug.createContext", params)
+    return server.send("execution.createContext", params)
         .then((result) {
       if (checkTypes) {
-        expect(result, isDebugCreateContextResult);
+        expect(result, isExecutionCreateContextResult);
       }
       return result;
     });
   }
 
   /**
-   * Delete the debugging context with the given identifier. The context id is
+   * Delete the execution context with the given identifier. The context id is
    * no longer valid after this command. The server is allowed to re-use ids
    * when they are no longer valid.
    *
    * Parameters
    *
-   * id ( DebugContextId )
+   * id ( ExecutionContextId )
    *
-   *   The identifier of the debugging context that is to be deleted.
+   *   The identifier of the execution context that is to be deleted.
    */
-  Future sendDebugDeleteContext(String id, {bool checkTypes: true}) {
+  Future sendExecutionDeleteContext(String id, {bool checkTypes: true}) {
     Map<String, dynamic> params = {};
     params["id"] = id;
     if (checkTypes) {
-      expect(params, isDebugDeleteContextParams);
+      expect(params, isExecutionDeleteContextParams);
     }
-    return server.send("debug.deleteContext", params)
+    return server.send("execution.deleteContext", params)
         .then((result) {
       if (checkTypes) {
-        expect(result, isDebugDeleteContextResult);
+        expect(result, isExecutionDeleteContextResult);
       }
       return result;
     });
   }
 
   /**
-   * Map a URI from the debugging context to the file that it corresponds to,
-   * or map a file to the URI that it corresponds to in the debugging context.
+   * Map a URI from the execution context to the file that it corresponds to,
+   * or map a file to the URI that it corresponds to in the execution context.
    *
    * Exactly one of the file and uri fields must be provided.
    *
    * Parameters
    *
-   * id ( DebugContextId )
+   * id ( ExecutionContextId )
    *
-   *   The identifier of the debugging context in which the URI is to be
+   *   The identifier of the execution context in which the URI is to be
    *   mapped.
    *
    * file ( optional FilePath )
@@ -1285,7 +1280,7 @@ abstract class IntegrationTestMixin {
    *   The URI to which the file path was mapped. This field is omitted if the
    *   file field was not given in the request.
    */
-  Future sendDebugMapUri(String id, {String file, String uri, bool checkTypes: true}) {
+  Future sendExecutionMapUri(String id, {String file, String uri, bool checkTypes: true}) {
     Map<String, dynamic> params = {};
     params["id"] = id;
     if (file != null) {
@@ -1295,12 +1290,12 @@ abstract class IntegrationTestMixin {
       params["uri"] = uri;
     }
     if (checkTypes) {
-      expect(params, isDebugMapUriParams);
+      expect(params, isExecutionMapUriParams);
     }
-    return server.send("debug.mapUri", params)
+    return server.send("execution.mapUri", params)
         .then((result) {
       if (checkTypes) {
-        expect(result, isDebugMapUriResult);
+        expect(result, isExecutionMapUriResult);
       }
       return result;
     });
@@ -1316,20 +1311,20 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * subscriptions ( List<DebugService> )
+   * subscriptions ( List<ExecutionService> )
    *
    *   A list of the services being subscribed to.
    */
-  Future sendDebugSetSubscriptions(List<String> subscriptions, {bool checkTypes: true}) {
+  Future sendExecutionSetSubscriptions(List<String> subscriptions, {bool checkTypes: true}) {
     Map<String, dynamic> params = {};
     params["subscriptions"] = subscriptions;
     if (checkTypes) {
-      expect(params, isDebugSetSubscriptionsParams);
+      expect(params, isExecutionSetSubscriptionsParams);
     }
-    return server.send("debug.setSubscriptions", params)
+    return server.send("execution.setSubscriptions", params)
         .then((result) {
       if (checkTypes) {
-        expect(result, isDebugSetSubscriptionsResult);
+        expect(result, isExecutionSetSubscriptionsResult);
       }
       return result;
     });
@@ -1341,7 +1336,7 @@ abstract class IntegrationTestMixin {
    *
    * This notification is not subscribed to by default. Clients can subscribe
    * by including the value "LAUNCH_DATA" in the list of services passed in a
-   * debug.setSubscriptions request.
+   * execution.setSubscriptions request.
    *
    * Parameters
    *
@@ -1360,12 +1355,12 @@ abstract class IntegrationTestMixin {
    *   A mapping from the paths of HTML files that reference Dart files to a
    *   list of the Dart files they reference.
    */
-  Stream onDebugLaunchData;
+  Stream onExecutionLaunchData;
 
   /**
-   * Stream controller for [onDebugLaunchData].
+   * Stream controller for [onExecutionLaunchData].
    */
-  StreamController _onDebugLaunchData;
+  StreamController _onExecutionLaunchData;
 
   /**
    * Initialize the fields in InttestMixin, and ensure that notifications will
@@ -1398,8 +1393,8 @@ abstract class IntegrationTestMixin {
     onCompletionResults = _onCompletionResults.stream.asBroadcastStream();
     _onSearchResults = new StreamController(sync: true);
     onSearchResults = _onSearchResults.stream.asBroadcastStream();
-    _onDebugLaunchData = new StreamController(sync: true);
-    onDebugLaunchData = _onDebugLaunchData.stream.asBroadcastStream();
+    _onExecutionLaunchData = new StreamController(sync: true);
+    onExecutionLaunchData = _onExecutionLaunchData.stream.asBroadcastStream();
   }
 
   /**
@@ -1460,9 +1455,9 @@ abstract class IntegrationTestMixin {
         expect(params, isSearchResultsParams);
         _onSearchResults.add(params);
         break;
-      case "debug.launchData":
-        expect(params, isDebugLaunchDataParams);
-        _onDebugLaunchData.add(params);
+      case "execution.launchData":
+        expect(params, isExecutionLaunchDataParams);
+        _onExecutionLaunchData.add(params);
         break;
       default:
         fail('Unexpected notification: $event');
