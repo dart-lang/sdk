@@ -41,7 +41,8 @@ class Linter extends Transformer with PolymerTransformer {
     bool isEntryPoint = options.isHtmlEntryPoint(id);
 
     var logger = new BuildLogger(transform,
-        convertErrorsToWarnings: !options.releaseMode);
+        convertErrorsToWarnings: !options.releaseMode,
+        detailsUri: 'http://goo.gl/5HPeuP');
 
     return readPrimaryAsHtml(transform, logger).then((document) {
       return _collectElements(document, id, transform, logger, seen)

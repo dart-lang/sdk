@@ -34,7 +34,8 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
 
   Future apply(Transform transform) {
     var logger = new BuildLogger(transform,
-        convertErrorsToWarnings: !options.releaseMode);
+        convertErrorsToWarnings: !options.releaseMode,
+        detailsUri: 'http://goo.gl/5HPeuP');
     return readPrimaryAsHtml(transform, logger).then((document) {
       bool webComponentsFound = false;
       Element dartJs;

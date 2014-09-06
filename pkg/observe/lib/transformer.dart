@@ -73,7 +73,8 @@ class ObservableTransformer extends Transformer {
             ? 'package:${id.package}/${id.path.substring(4)}' : id.path;
       var sourceFile = new SourceFile(content, url: url);
       var logger = new BuildLogger(transform,
-          convertErrorsToWarnings: !releaseMode);
+          convertErrorsToWarnings: !releaseMode,
+          detailsUri: 'http://goo.gl/5HPeuP');
       var transaction = _transformCompilationUnit(
           content, sourceFile, logger);
       if (!transaction.hasEdits) {

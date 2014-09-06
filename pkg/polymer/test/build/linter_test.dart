@@ -287,7 +287,7 @@ void main() {
           </html>'''.replaceAll('          ', ''),
     }, [
       'warning: <element> elements are not supported, use <polymer-element>'
-      ' instead (lib/test.html 1 0)'
+      ' instead. (lib/test.html 1 0)'
     ]);
 
   _testLinter('do not nest <polymer-element>', {

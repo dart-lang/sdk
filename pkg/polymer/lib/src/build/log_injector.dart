@@ -91,7 +91,7 @@ class LogInjector {
         logHtml.write('<div class="log">');
 
         var id = log.message.id;
-        var hashTag = 'msg_${id.package}_${id.id}';
+        var hashTag = '${id.package}_${id.id}';
         var message = new HtmlEscape().convert(log.message.snippet);
         message.replaceAllMapped(_urlRegex,
             (m) => '<a href="${m.group(0)}" target="blank">${m.group(0)}</a>');

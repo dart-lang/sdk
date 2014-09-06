@@ -148,7 +148,8 @@ class _ScriptCompactor extends PolymerTransformer {
       : transform = transform,
         options = options,
         logger = new BuildLogger(
-            transform, convertErrorsToWarnings: !options.releaseMode),
+            transform, convertErrorsToWarnings: !options.releaseMode,
+            detailsUri: 'http://goo.gl/5HPeuP'),
         docId = transform.primaryInput.id,
         bootstrapId = transform.primaryInput.id.addExtension('_bootstrap.dart');
 

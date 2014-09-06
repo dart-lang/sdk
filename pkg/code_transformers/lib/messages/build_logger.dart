@@ -40,13 +40,19 @@ class BuildLogger implements TransformLogger {
   /// underlying logger in `_transform.logger`.
   final bool convertErrorsToWarnings;
 
-  BuildLogger(this._transform, {this.convertErrorsToWarnings: false});
+  /// Uri prefix to link for additional details. If set, messages logged through
+  /// this logger will contain an additional sentence, telling users to find
+  /// more details at `$detailsUri#packagename_id`.
+  final String detailsUri;
+
+  BuildLogger(this._transform, {this.convertErrorsToWarnings: false,
+      this.detailsUri});
 
   /// Records a message at the fine level. If [msg] is a [Message] it is
   /// recorded directly, otherwise it is first converted to a [String].
   void fine(msg, {AssetId asset, SourceSpan span}) {
     msg = msg is Message ? msg : new Message.unknown('$msg');
-    _transform.logger.fine(msg.snippet, asset: asset, span: span);
+    _transform.logger.fine(_snippet(msg), asset: asset, span: span);
     _logs.add(new BuildLogEntry(msg, span, LogLevel.FINE.name));
   }
 
@@ -54,7 +60,7 @@ class BuildLogger implements TransformLogger {
   /// recorded directly, otherwise it is first converted to a [String].
   void info(msg, {AssetId asset, SourceSpan span}) {
     msg = msg is Message ? msg : new Message.unknown('$msg');
-    _transform.logger.info(msg.snippet, asset: asset, span: span);
+    _transform.logger.info(_snippet(msg), asset: asset, span: span);
     _logs.add(new BuildLogEntry(msg, span, LogLevel.INFO.name));
   }
 
@@ -62,7 +68,7 @@ class BuildLogger implements TransformLogger {
   /// directly, otherwise it is first converted to a [String].
   void warning(msg, {AssetId asset, SourceSpan span}) {
     msg = msg is Message ? msg : new Message.unknown('$msg');
-    _transform.logger.warning(msg.snippet, asset: asset, span: span);
+    _transform.logger.warning(_snippet(msg), asset: asset, span: span);
     _logs.add(new BuildLogEntry(msg, span, LogLevel.WARNING.name));
   }
 
@@ -71,11 +77,19 @@ class BuildLogger implements TransformLogger {
   void error(msg, {AssetId asset, SourceSpan span}) {
     msg = msg is Message ? msg : new Message.unknown('$msg');
     if (convertErrorsToWarnings) {
-      _transform.logger.warning(msg.snippet, asset: asset, span: span);
+      _transform.logger.warning(_snippet(msg), asset: asset, span: span);
     } else {
-      _transform.logger.error(msg.snippet, asset: asset, span: span);
+      _transform.logger.error(_snippet(msg), asset: asset, span: span);
     }
     _logs.add(new BuildLogEntry(msg, span, LogLevel.ERROR.name));
+  }
+
+  String _snippet(Message msg) {
+    var s = msg.snippet;
+    if (detailsUri == null) return s;
+    var dot = s.endsWith('.') || s.endsWith('!') || s.endsWith('?') ? '' : '.';
+    var hashTag = '${msg.id.package}_${msg.id.id}';
+    return '$s$dot See $detailsUri#$hashTag for details.';
   }
 
   /// Outputs the log data to a JSON serialized file.

@@ -36,7 +36,8 @@ class BuildFilter extends Transformer with PolymerTransformer {
       return null;
     }
     var logger = new BuildLogger(transform,
-        convertErrorsToWarnings: !options.releaseMode);
+        convertErrorsToWarnings: !options.releaseMode,
+          detailsUri: 'http://goo.gl/5HPeuP');
     return readPrimaryAsHtml(transform, logger).then((document) {
       // Keep .html files that don't use polymer, since the app developer might
       // have non-polymer entrypoints.

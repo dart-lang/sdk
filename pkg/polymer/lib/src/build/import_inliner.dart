@@ -42,7 +42,8 @@ class _HtmlInliner extends PolymerTransformer {
       : options = options,
         transform = transform,
         logger = new BuildLogger(transform,
-            convertErrorsToWarnings: !options.releaseMode),
+            convertErrorsToWarnings: !options.releaseMode,
+            detailsUri: 'http://goo.gl/5HPeuP'),
         docId = transform.primaryInput.id;
 
   Future apply() {

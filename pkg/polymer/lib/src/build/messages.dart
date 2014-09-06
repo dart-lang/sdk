@@ -107,7 +107,7 @@ const MISSING_HREF = const MessageTemplate(
 
 const ELEMENT_DEPRECATED_EONS_AGO = const MessageTemplate(
     const MessageId('polymer', 10),
-    '<element> elements are not supported, use <polymer-element> instead',
+    '<element> elements are not supported, use <polymer-element> instead.',
     '`<element>` is deprecated',
     '''
 Long ago `<polymer-element>` used to be called `<element>`. You probably ran
