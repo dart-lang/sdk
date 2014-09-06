@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 
 void main() {
   test("supports backslash-escaped characters", () {
-    expect(r"\*[]{,}?()", contains(new Glob(r"\\\*\[\]\{\,\}\?\(\)")));
+    expect(r"*[]{,}?()", contains(new Glob(r"\*\[\]\{\,\}\?\(\)")));
     if (p.style != p.Style.windows) {
       expect(r"foo\bar", contains(new Glob(r"foo\\bar")));
     }
