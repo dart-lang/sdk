@@ -33,6 +33,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   static const Map<String, String> _typeRenames = const {
     'bool': 'boolean',
     'int': 'int',
+    'ExecutionContextId': 'String',
     'FilePath': 'String',
     'DebugContextId': 'String',
     'object': 'Object',
