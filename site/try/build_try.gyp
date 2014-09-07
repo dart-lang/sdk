@@ -55,7 +55,6 @@
           '../../pkg/intl/lib',
           '../../pkg/logging/lib',
           '../../pkg/matcher/lib',
-          '../../pkg/math/lib',
           '../../pkg/path/lib',
           '../../pkg/serialization/lib',
           '../../pkg/stack_trace/lib',
