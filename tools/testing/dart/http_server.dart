@@ -56,7 +56,8 @@ class DispatchingServer {
 /// /root_build/X: This will serve the corresponding file from the build
 ///                directory (i.e. '$BuildDirectory/X').
 /// /FOO/packages/BAR: This will serve the corresponding file from the packages
-///                    directory (i.e. '$BuildDirectory/packages/BAR')
+///                    directory (i.e. '$BuildDirectory/packages/BAR') or the 
+///                    passed-in package root
 /// /ws: This will upgrade the connection to a WebSocket connection and echo
 ///      all data back to the client.
 ///
@@ -84,6 +85,7 @@ main(List<String> arguments) {
   parser.addFlag('help', abbr: 'h', negatable: false,
       help: 'Print this usage information.');
   parser.addOption('build-directory', help: 'The build directory to use.');
+  parser.addOption('package-root', help: 'The package root to use.');
   parser.addOption('network', help: 'The network interface to use.',
       defaultsTo: '0.0.0.0');
   parser.addFlag('csp', help: 'Use Content Security Policy restrictions.',
@@ -97,7 +99,9 @@ main(List<String> arguments) {
   } else {
     var servers = new TestingServers(new Path(args['build-directory']),
                                      args['csp'],
-                                     args['runtime']);
+                                     args['runtime'],
+                                     null,
+                                     args['package-root']);
     var port = int.parse(args['port']);
     var crossOriginPort = int.parse(args['crossOriginPort']);
     servers.startServers(args['network'],
@@ -136,16 +140,21 @@ class TestingServers {
   List _serverList = [];
   Path _buildDirectory = null;
   Path _dartDirectory = null;
+  Path _packageRoot;
   final bool useContentSecurityPolicy;
   final String runtime;
   DispatchingServer _server;
 
   TestingServers(Path buildDirectory,
                  this.useContentSecurityPolicy,
-                 [String this.runtime = 'none', String dartDirectory]) {
+                 [String this.runtime = 'none', String dartDirectory,
+                  String packageRoot]) {
     _buildDirectory = TestUtils.absolutePath(buildDirectory);
     _dartDirectory = dartDirectory == null ? TestUtils.dartDir
         : new Path(dartDirectory);
+    _packageRoot = packageRoot == null ? 
+      _buildDirectory.append('packages') :
+      new Path(packageRoot);
   }
 
   int get port => _serverList[0].port;
@@ -176,7 +185,8 @@ class TestingServers {
     var buildDirectory = _buildDirectory.toNativePath();
     var csp = useContentSecurityPolicy ? '--csp ' : '';
     return '$dart $script -p $port -c $crossOriginPort $csp'
-           '--build-directory=$buildDirectory --runtime=$runtime';
+           '--build-directory=$buildDirectory --runtime=$runtime '
+           '--package-root=$_packageRoot';
   }
 
   void stopServers() {
@@ -283,11 +293,10 @@ class TestingServers {
         relativePath = new Path(
             pathSegments.skip(1).join('/'));
       }
-      var packagesDirName = 'packages';
-      var packagesIndex = pathSegments.indexOf(packagesDirName);
+      var packagesIndex = pathSegments.indexOf('packages');
       if (packagesIndex != -1) {
         var start = packagesIndex + 1;
-        basePath = _buildDirectory.append(packagesDirName);
+        basePath = _packageRoot;
         relativePath = new Path(pathSegments.skip(start).join('/'));
       }
       if (basePath != null && relativePath != null) {

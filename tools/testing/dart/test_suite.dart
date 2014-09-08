@@ -887,6 +887,11 @@ class StandardTestSuite extends TestSuite {
           }
       }
     }
+    if (configuration['package_root'] != null) {
+      packageRoot = new Path(configuration['package_root']);
+      optionsFromFile['packageRoot'] = packageRoot.toNativePath();
+    }
+
     String testName = buildTestCaseDisplayName(suiteDir, info.originTestPath,
         multitestName: optionsFromFile['isMultitest'] ? info.multitestKey : "");
 

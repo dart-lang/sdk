@@ -150,7 +150,9 @@ void testConfigurations(List<Map> configurations) {
       // getCrossOriginPortNumber().
       var servers = new TestingServers(new Path(TestUtils.buildDir(conf)),
                                        useContentSecurityPolicy,
-                                       conf['runtime']);
+                                       conf['runtime'],
+                                       null,
+                                       conf['package_root']);
       serverFutures.add(servers.startServers(conf['local_ip'],
           port: conf['test_server_port'],
           crossOriginPort: conf['test_server_cross_origin_port']));
