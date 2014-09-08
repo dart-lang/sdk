@@ -24,11 +24,9 @@ class MultiEmitter(object):
 
   """
 
-  def __init__(self, logging_level=logging.WARNING):
+  def __init__(self):
     self._key_to_emitter = {}     # key -> Emitter
     self._filename_to_emitter = {}    # filename -> Emitter
-
-    _logger.setLevel(logging_level)
 
 
   def FileEmitter(self, filename, key=None):

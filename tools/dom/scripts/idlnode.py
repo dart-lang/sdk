@@ -6,14 +6,6 @@
 import os
 import sys
 
-import idl_definitions
-from idl_types import IdlType, IdlUnionType
-
-from compute_interfaces_info_overall import interfaces_info
-
-
-new_asts = {}
-
 
 _operation_suffix_map = {
   '__getter__': "Getter",
@@ -31,7 +23,6 @@ class IDLNode(object):
   def __init__(self, ast):
     """Initializes an IDLNode from a PegParser AST output."""
     self.id = self._find_first(ast, 'Id') if ast is not None else None
-
 
   def __repr__(self):
     """Generates string of the form <class id extra extra ... 0x12345678>."""
@@ -137,68 +128,14 @@ class IDLNode(object):
 
     if isinstance(ast, list):
       for childAst in ast:
-        if childAst and \
-           not(isinstance(childAst, dict)) and \
-           not(isinstance(childAst, str)) and \
-           not(isinstance(childAst, tuple)) and \
-           childAst.__module__ == "idl_definitions":
-          field_name = self._convert_label_to_field(label)
-          if hasattr(childAst, field_name):
-            field_value = getattr(childAst, field_name)
-            # It's an IdlType we need the string name of the type. 
-            if field_name == 'idl_type':
-              field_value =  getattr(field_value, 'base_type')
-            res.append(field_value)
-        else:
-          sub_res = self._find_all(childAst, label,
-                       max_results - len(res))
-          res.extend(sub_res)
+        sub_res = self._find_all(childAst, label,
+                     max_results - len(res))
+        res.extend(sub_res)
     elif isinstance(ast, tuple):
       (nodeLabel, value) = ast
       if nodeLabel == label:
         res.append(value)
-    # TODO(terry): Seems bogus to check for so many things probably better to just
-    #              pass in blink_compile and drive it off from that...
-    elif (ast and not(isinstance(ast, dict)) and
-          not(isinstance(ast, str)) and ast.__module__ == "idl_definitions"):
-      field_name = self._convert_label_to_field(label)
-      if hasattr(ast, field_name):
-        field_value = getattr(ast, field_name)
-        if field_value:
-          if label == 'Interface' or label == 'Enum':
-            for key in field_value:
-              value = field_value[key]
-              res.append(value)
-          elif isinstance(field_value, list):
-            for item in field_value:
-              res.append(item)
-          elif label == 'ParentInterface' or label == 'InterfaceType':
-            # Fetch the AST for the parent interface.
-            parent_idlnode = new_asts[field_value]
-            res.append(parent_idlnode.interfaces[field_value])
-          else:
-            res.append(field_value)
-
     return res
-
-  def _convert_from_blink(self, object, label):
-    field_name = self._convert_label_to_field(label)
-    if hasattr(object, field_name):
-      field_value = getattr(object, field_name)
-      if field_value:
-        if label == 'Interface' or label == 'Enum':
-          for key in field_value:
-            value = field_value[key]
-            res.append(value)
-        elif isinstance(field_value, list):
-          for item in field_value:
-            res.append(item)
-        elif label == 'ParentInterface' or label == 'InterfaceType':
-          # Fetch the AST for the parent interface.
-          parent_idlnode = new_asts[field_value]
-          res.append(parent_idlnode.interfaces[field_value])
-        else:
-          res.append(field_value)
 
   def _find_first(self, ast, label):
     """Convenience method for _find_all(..., max_results=1).
@@ -213,38 +150,6 @@ class IDLNode(object):
     """Returns true if an element with the given label is
     in the AST by searching for it."""
     return len(self._find_all(ast, label, max_results=1)) == 1
-
-  # Mapping from original AST tuple names to new AST field names idl_definitions.Idl*.
-  def _convert_label_to_field(self, label):
-    label_field = {
-      # Keys old AST names, Values Blink IdlInterface names.
-      'ParentInterface': 'parent',
-      'Id': 'name',
-      'Interface': 'interfaces',
-      'Callback': 'is_callback',
-      'Partial': 'is_partial',
-      'Operation': 'operations',
-      'Attribute': 'attributes',
-      'Const': 'constants',
-      'Type': 'idl_type',
-      'ExtAttrs':  'extended_attributes',
-      'Special': 'specials',
-      'ReturnType': 'idl_type',
-      'Argument': 'arguments',
-      'InterfaceType': 'name',
-      'ConstExpr': 'value',
-      'Static': 'is_static',
-      'ReadOnly': 'is_read_only',
-      'Optional': 'is_optional',
-      'Nullable': 'is_nullable',
-      'Enum': 'enumerations',
-      'Annotation': '',         # TODO(terry): Ignore annotation used for database cache.
-      'TypeDef': '',            # typedef in an IDL are already resolved.
-    }
-    result = label_field.get(label)
-    if result != '' and not(result):
-      print 'FATAL ERROR: AST mapping name not found %s.' % label
-    return result if result else ''
 
   def _convert_all(self, ast, label, idlnode_ctor):
     """Converts AST elements into IDLNode elements.
@@ -352,55 +257,19 @@ class IDLDictNode(IDLNode):
 class IDLFile(IDLNode):
   """IDLFile is the top-level node in each IDL file. It may contain interfaces."""
 
-  DART_IDL = 'dart.idl'
-
   def __init__(self, ast, filename=None):
     IDLNode.__init__(self, ast)
     self.filename = filename
-
-    filename_basename = os.path.basename(filename)
-
     self.interfaces = self._convert_all(ast, 'Interface', IDLInterface)
-
-    is_blink = not(isinstance(ast, list)) and ast.__module__ == 'idl_definitions'
-
-    if is_blink:
-      # implements is handled by the interface merging step (see the function
-      # merge_interface_dependencies).
-      for interface in self.interfaces:
-        blink_interface = ast.interfaces.get(interface.id)
-        if filename_basename == self.DART_IDL:
-          # TODO(terry): Does this seem right?
-          self.implementsStatements = []
-        else:
-          interface_info = interfaces_info[interface.id]
-
-          implements = interface_info['implements_interfaces']
-          if not(blink_interface.is_partial) and len(implements) > 0:
-            implementor = new_asts[interface.id].interfaces.get(interface.id)
-
-            self.implementsStatements = []
-
-            # TODO(terry): Need to handle more than one implements.
-            for implemented_name in implements:
-              implemented = new_asts[implemented_name].interfaces.get(implemented_name)
-
-              implement_statement = IDLImplementsStatement(implemented)
-
-              implement_statement.implementor = IDLType(implementor)
-              implement_statement.implemented = IDLType(implemented)
-
-              self.implementsStatements.append(implement_statement)
-          else:
-            self.implementsStatements = []
-    else:
-      self.implementsStatements = self._convert_all(ast, 'ImplStmt',
-        IDLImplementsStatement)
-
-    # No reason to handle typedef they're already aliased in Blink's AST.
-    self.typeDefs = [] if is_blink else self._convert_all(ast, 'TypeDef', IDLTypeDef)
-
+    modules = self._convert_all(ast, 'Module', IDLModule)
+    self.implementsStatements = self._convert_all(ast, 'ImplStmt',
+      IDLImplementsStatement)
+    self.typeDefs = self._convert_all(ast, 'TypeDef', IDLTypeDef)
     self.enums = self._convert_all(ast, 'Enum', IDLEnum)
+    for module in modules:
+      self.interfaces.extend(module.interfaces)
+      self.implementsStatements.extend(module.implementsStatements)
+      self.typeDefs.extend(module.typeDefs)
 
 
 class IDLModule(IDLNode):
@@ -411,24 +280,10 @@ class IDLModule(IDLNode):
     self._convert_ext_attrs(ast)
     self._convert_annotations(ast)
     self.interfaces = self._convert_all(ast, 'Interface', IDLInterface)
-
-    is_blink = ast.__module__ == 'idl_definitions'
-
-    # No reason to handle typedef they're already aliased in Blink's AST.
-    self.typeDefs = [] if is_blink else self._convert_all(ast, 'TypeDef', IDLTypeDef)
-
+    self.typeDefs = self._convert_all(ast, 'TypeDef', IDLTypeDef)
     self.enums = self._convert_all(ast, 'Enum', IDLNode)
-
-    if is_blink:
-      # implements is handled by the interface merging step (see the function
-      # merge_interface_dependencies).
-      for interface in self.interfaces:
-        interface_info = interfaces_info[interface.id]
-        # TODO(terry): Same handling for implementsStatements as in IDLFile?
-        self.implementsStatements = interface_info['implements_interfaces']
-    else:
-      self.implementsStatements = self._convert_all(ast, 'ImplStmt',
-        IDLImplementsStatement)
+    self.implementsStatements = self._convert_all(ast, 'ImplStmt',
+      IDLImplementsStatement)
 
 
 class IDLExtAttrs(IDLDictNode):
@@ -438,52 +293,34 @@ class IDLExtAttrs(IDLDictNode):
     IDLDictNode.__init__(self, None)
     if not ast:
       return
-    if not(isinstance(ast, list)) and ast.__module__ == "idl_definitions":
-      # Pull out extended attributes from Blink AST.
-      for name, value in ast.extended_attributes.items():
-        # TODO(terry): Handle constructors...
-        if name == 'NamedConstructor' or name == 'Constructor':
-          for constructor in ast.constructors:
-            if constructor.name == 'NamedConstructor':
-              constructor_name = ast.extended_attributes['NamedConstructor']
-            else:
-              constructor_name = None
-            func_value = IDLExtAttrFunctionValue(constructor_name, constructor.arguments, True)
-            if name == 'Constructor':
-              self.setdefault('Constructor', []).append(func_value)
-            else:
-              self[name] = func_value
-        else:
-          self[name] = value
-    else:
-      ext_attrs_ast = self._find_first(ast, 'ExtAttrs')
-      if not ext_attrs_ast:
-        return
-      for ext_attr in self._find_all(ext_attrs_ast, 'ExtAttr'):
-        name = self._find_first(ext_attr, 'Id')
-        value = self._find_first(ext_attr, 'ExtAttrValue')
+    ext_attrs_ast = self._find_first(ast, 'ExtAttrs')
+    if not ext_attrs_ast:
+      return
+    for ext_attr in self._find_all(ext_attrs_ast, 'ExtAttr'):
+      name = self._find_first(ext_attr, 'Id')
+      value = self._find_first(ext_attr, 'ExtAttrValue')
 
-        if name == 'Constructor':
-          # There might be multiple constructor attributes, collect them
-          # as a list.  Represent plain Constructor attribute
-          # (without any signature) as None.
-          assert value is None
-          func_value = None
-          ctor_args = self._find_first(ext_attr, 'ExtAttrArgList')
-          if ctor_args:
-            func_value = IDLExtAttrFunctionValue(None, ctor_args)
-          self.setdefault('Constructor', []).append(func_value)
-          continue
-  
-        func_value = self._find_first(value, 'ExtAttrFunctionValue')
-        if func_value:
-          # E.g. NamedConstructor=Audio(optional DOMString src)
-          self[name] = IDLExtAttrFunctionValue(
-              func_value,
-              self._find_first(func_value, 'ExtAttrArgList'))
-          continue
+      if name == 'Constructor':
+        # There might be multiple constructor attributes, collect them
+        # as a list.  Represent plain Constructor attribute
+        # (without any signature) as None.
+        assert value is None
+        func_value = None
+        ctor_args = self._find_first(ext_attr, 'ExtAttrArgList')
+        if ctor_args:
+          func_value = IDLExtAttrFunctionValue(None, ctor_args)
+        self.setdefault('Constructor', []).append(func_value)
+        continue
 
-        self[name] = value
+      func_value = self._find_first(value, 'ExtAttrFunctionValue')
+      if func_value:
+        # E.g. NamedConstructor=Audio(optional DOMString src)
+        self[name] = IDLExtAttrFunctionValue(
+            func_value,
+            self._find_first(func_value, 'ExtAttrArgList'))
+        continue
+
+      self[name] = value
 
   def _all_subnodes(self):
     # Extended attributes may contain IDLNodes, e.g. IDLExtAttrFunctionValue
@@ -492,16 +329,9 @@ class IDLExtAttrs(IDLDictNode):
 
 class IDLExtAttrFunctionValue(IDLNode):
   """IDLExtAttrFunctionValue."""
-  def __init__(self, func_value_ast, arg_list_ast, is_blink=False):
+  def __init__(self, func_value_ast, arg_list_ast):
     IDLNode.__init__(self, func_value_ast)
-    if is_blink:
-      # Blink path
-      self.id = func_value_ast   # func_value_ast is the function name for Blink.
-      self.arguments = []
-      for argument in arg_list_ast:
-        self.arguments.append(IDLArgument(argument))
-    else:
-      self.arguments = self._convert_all(arg_list_ast, 'Argument', IDLArgument)
+    self.arguments = self._convert_all(arg_list_ast, 'Argument', IDLArgument)
 
 
 class IDLType(IDLNode):
@@ -511,7 +341,6 @@ class IDLType(IDLNode):
 
   def __init__(self, ast):
     IDLNode.__init__(self, ast)
-
     self.nullable = self._has(ast, 'Nullable')
     # Search for a 'ScopedName' or any label ending with 'Type'.
     if isinstance(ast, list):
@@ -530,8 +359,6 @@ class IDLType(IDLNode):
               return 'sequence<%s>' % findType(type_ast)
           raise Exception('No type declaration found in %s' % ast)
         self.id = findType(ast)
-      # TODO(terry): Remove array_modifiers id has [] appended, keep for old
-      #              parsing.
       array_modifiers = self._find_first(ast, 'ArrayModifiers')
       if array_modifiers:
         self.id += array_modifiers
@@ -543,25 +370,7 @@ class IDLType(IDLNode):
         self.id = self._label_to_type(label, ast)
     elif isinstance(ast, str):
       self.id = ast
-    # New blink handling.
-    elif ast.__module__ == "idl_types":
-      if isinstance(ast, IdlType):
-        type_name = str(ast)
-
-        # TODO(terry): For now don't handle unrestricted types see
-        #              https://code.google.com/p/chromium/issues/detail?id=354298
-        type_name = type_name.replace('unrestricted ', '', 1);
-
-        # TODO(terry): Handled ScalarValueString as a DOMString.
-        type_name = type_name.replace('ScalarValueString', 'DOMString', 1)
-
-        self.id = type_name
-      else:
-        # IdlUnionType
-        assert ast.is_union_type
-        self.id = self._label_to_type('UnionType', ast)
     if not self.id:
-      print '>>>> __module__ %s' % ast.__module__
       raise SyntaxError('Could not parse type %s' % (ast))
 
   def _label_to_type(self, label, ast):
@@ -582,13 +391,7 @@ class IDLEnum(IDLNode):
   def __init__(self, ast):
     IDLNode.__init__(self, ast)
     self._convert_annotations(ast)
-    if not(isinstance(ast, list)) and ast.__module__ == "idl_definitions":
-      # Blink AST
-      self.values = ast.values
-    else:
-      self.values = self._find_all(ast, 'StringLiteral')
-
-    # TODO(terry): Need to handle emitting of enums for dart:html
+    # TODO(antonm): save enum values.
 
 
 class IDLTypeDef(IDLNode):
@@ -607,10 +410,8 @@ class IDLInterface(IDLNode):
     IDLNode.__init__(self, ast)
     self._convert_ext_attrs(ast)
     self._convert_annotations(ast)
-
     self.parents = self._convert_all(ast, 'ParentInterface',
       IDLParentInterface)
-
     javascript_interface_name = self.ext_attrs.get('InterfaceName', self.id)
     self.javascript_binding_name = javascript_interface_name
     self.doc_js_name = javascript_interface_name
@@ -629,9 +430,7 @@ class IDLInterface(IDLNode):
       lambda ast: IDLConstant(ast, self.doc_js_name))
     self.is_supplemental = 'Supplemental' in self.ext_attrs
     self.is_no_interface_object = 'NoInterfaceObject' in self.ext_attrs
-    # TODO(terry): Can eliminate Suppressed when we're only using blink parser.
-    self.is_fc_suppressed = 'Suppressed' in self.ext_attrs or \
-                            'DartSuppress' in self.ext_attrs
+    self.is_fc_suppressed = 'Suppressed' in self.ext_attrs
 
 
   def reset_id(self, new_id):
@@ -669,14 +468,11 @@ class IDLMember(IDLNode):
 
   def __init__(self, ast, doc_js_interface_name):
     IDLNode.__init__(self, ast)
-
     self.type = self._convert_first(ast, 'Type', IDLType)
     self._convert_ext_attrs(ast)
     self._convert_annotations(ast)
     self.doc_js_interface_name = doc_js_interface_name
-    # TODO(terry): Can eliminate Suppressed when we're only using blink parser.
-    self.is_fc_suppressed = 'Suppressed' in self.ext_attrs or \
-                            'DartSuppress' in self.ext_attrs
+    self.is_fc_suppressed = 'Suppressed' in self.ext_attrs
     self.is_static = self._has(ast, 'Static')
 
 
@@ -684,21 +480,16 @@ class IDLOperation(IDLMember):
   """IDLNode specialization for 'type name(args)' declarations."""
   def __init__(self, ast, doc_js_interface_name):
     IDLMember.__init__(self, ast, doc_js_interface_name)
-
     self.type = self._convert_first(ast, 'ReturnType', IDLType)
     self.arguments = self._convert_all(ast, 'Argument', IDLArgument)
     self.specials = self._find_all(ast, 'Special')
+    self.is_stringifier = self._has(ast, 'Stringifier')
     # Special case: there are getters of the form
     # getter <ReturnType>(args).  For now force the name to be __getter__,
     # but it should be operator[] later.
     if self.id is None:
       if self.specials == ['getter']:
-        if self.ext_attrs.get('Custom') == 'PropertyQuery':
-          # Handling __propertyQuery__ the extended attribute is:
-          # [Custom=PropertyQuery] legacycaller boolean (DOMString name);
-          self.id = '__propertyQuery__'
-        else:
-          self.id = '__getter__'
+        self.id = '__getter__'
       elif self.specials == ['setter']:
         self.id = '__setter__'
         # Special case: if it's a setter, ignore 'declared' return type
@@ -727,12 +518,10 @@ class IDLAttribute(IDLMember):
     IDLMember.__init__(self, ast, doc_js_interface_name)
     self.is_read_only = self._has(ast, 'ReadOnly')
     # There are various ways to define exceptions for attributes:
-
   def _extra_repr(self):
     extra = []
     if self.is_read_only: extra.append('readonly')
     return extra
-
 
 class IDLConstant(IDLMember):
   """IDLNode specialization for 'const type name = value' declarations."""
@@ -757,12 +546,13 @@ class IDLArgument(IDLNode):
 
 
 class IDLImplementsStatement(IDLNode):
-  """IDLNode specialization for 'IMPLEMENTOR implements IMPLEMENTED' declarations."""
+  """IDLNode specialization for 'X implements Y' declarations."""
   def __init__(self, ast):
     IDLNode.__init__(self, ast)
-    if isinstance(ast, list) or ast.__module__ != 'idl_definitions':
-      self.implementor = self._convert_first(ast, 'ImplStmtImplementor', IDLType)
-      self.implemented = self._convert_first(ast, 'ImplStmtImplemented', IDLType)
+    self.implementor = self._convert_first(ast, 'ImplStmtImplementor',
+      IDLType)
+    self.implemented = self._convert_first(ast, 'ImplStmtImplemented',
+      IDLType)
 
 
 class IDLAnnotations(IDLDictNode):

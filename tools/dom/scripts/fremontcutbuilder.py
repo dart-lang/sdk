@@ -9,7 +9,6 @@ import idlparser
 import logging.config
 import os.path
 import sys
-import time
 
 _logger = logging.getLogger('fremontcutbuilder')
 
@@ -35,14 +34,11 @@ FEATURE_DEFINES = [
     'ENABLE_WEB_AUDIO', # Not on Android
 ]
 
-def build_database(idl_files, database_dir, feature_defines=None, parallel=False,
-                   blink_parser=False, logging_level=logging.WARNING):
+def build_database(idl_files, database_dir, feature_defines=None, parallel=False):
   """This code reconstructs the FremontCut IDL database from W3C,
   WebKit and Dart IDL files."""
   current_dir = os.path.dirname(__file__)
   logging.config.fileConfig(os.path.join(current_dir, "logging.conf"))
-
-  _logger.setLevel(logging_level)
 
   db = database.Database(database_dir)
 
@@ -67,27 +63,24 @@ def build_database(idl_files, database_dir, feature_defines=None, parallel=False
       # TODO(vsm): What else should we define as on when processing IDL?
       idl_defines=webkit_defines + feature_defines,
       source='WebKit',
-      source_attributes={'revision': webkit_revision},
-      logging_level=logging_level)
+      source_attributes={'revision': webkit_revision})
 
   # Import WebKit IDLs.
-  builder.import_idl_files(idl_files, webkit_options, parallel, blink_parser, False)
+  builder.import_idl_files(idl_files, webkit_options, parallel)
 
   # Import Dart idl:
   dart_options = databasebuilder.DatabaseBuilderOptions(
     idl_syntax=idlparser.FREMONTCUT_SYNTAX,
     source='Dart',
-    rename_operation_arguments_on_merge=True,
-    logging_level=logging_level)
+    rename_operation_arguments_on_merge=True)
 
   builder.import_idl_files(
       [ os.path.join(current_dir, '..', 'idl', 'dart', 'dart.idl') ],
-      dart_options, parallel, blink_parser, True)
-
-  start_time = time.time()
+      dart_options,
+      parallel)
 
   # Merging:
-  builder.merge_imported_interfaces(blink_parser)
+  builder.merge_imported_interfaces()
 
   builder.fetch_constructor_data(webkit_options)
   builder.fix_displacements('WebKit')
@@ -111,14 +104,10 @@ def build_database(idl_files, database_dir, feature_defines=None, parallel=False
         sorted(unknown_conditionals))
     _logger.warning('Please update fremontcutbuilder.py')
 
-  print 'Merging interfaces %s seconds' % round(time.time() - start_time, 2)
-
-# TODO(terry): Don't generate the database cache.
-#  db.Save()
-
+  db.Save()
   return db
 
-def main(parallel=False, blink_parser=False, logging_level=logging.WARNING):
+def main(parallel=False):
   current_dir = os.path.dirname(__file__)
 
   idl_files = []
@@ -143,29 +132,19 @@ def main(parallel=False, blink_parser=False, logging_level=logging.WARNING):
       'inspector',
   ]
 
-  # TODO(terry): Integrate this into the htmlrenamer's _removed_html_interfaces
-  #              (if possible). 
-  FILES_TO_IGNORE = [
-      'InspectorFrontendHostFileSystem.idl',  # Uses interfaces in inspector dir (which is ignored)
-      'WebKitGamepad.idl',                    # Gamepad.idl is the new one.
-      'WebKitGamepadList.idl',                # GamepadList is the new one.
-  ]
-
   def visitor(arg, dir_name, names):
     if os.path.basename(dir_name) in DIRS_TO_IGNORE:
       names[:] = [] # Do not go underneath
     for name in names:
       file_name = os.path.join(dir_name, name)
       (interface, ext) = os.path.splitext(file_name)
-      if ext == '.idl' and not(name in FILES_TO_IGNORE):
+      if ext == '.idl':
         idl_files.append(file_name)
 
   os.path.walk(webcore_dir, visitor, webcore_dir)
 
   database_dir = os.path.join(current_dir, '..', 'database')
-
-  return build_database(idl_files, database_dir, parallel=parallel,
-                        blink_parser=blink_parser, logging_level=logging_level)
+  return build_database(idl_files, database_dir, parallel=parallel)
 
 if __name__ == '__main__':
   sys.exit(main())

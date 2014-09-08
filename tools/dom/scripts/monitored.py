@@ -3,17 +3,16 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-
 """This module provides maps and sets that report unused elements."""
 
 _monitored_values = []
 
 
-def FinishMonitoring(includeDart2jsOnly, logger):
+def FinishMonitoring(includeDart2jsOnly):
   for value in _monitored_values:
     if value._dart2jsOnly and not includeDart2jsOnly:
       continue
-    value.CheckUsage(logger)
+    value.CheckUsage()
 
 class MonitoredCollection(object):
   def __init__(self, name, dart2jsOnly):
@@ -50,10 +49,10 @@ class Dict(MonitoredCollection):
   def keys(self):
     return self._map.keys()
 
-  def CheckUsage(self, logger):
+  def CheckUsage(self):
     for v in sorted(self._map.keys()):
       if v not in self._used_keys:
-        logger.warn('dict \'%s\' has unused key \'%s\'' % (self.name, v))
+        print "dict '%s' has unused key '%s'" % (self.name, v)
 
 
 class Set(MonitoredCollection):
@@ -73,7 +72,7 @@ class Set(MonitoredCollection):
   def add(self, key):
     self._set += [key]
 
-  def CheckUsage(self, logger):
+  def CheckUsage(self):
     for v in sorted(self._set):
       if v not in self._used_keys:
-        logger.warn('set \'%s\' has unused key \'%s\'' % (self.name, v))
+        print "set '%s' has unused key '%s'" % (self.name, v)

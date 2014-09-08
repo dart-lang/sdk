@@ -206,7 +206,6 @@ class HtmlDartGenerator(object):
     operation.id. If not, stop library generation, and throw an error, requiring
     programmer input about the best name change before proceeding."""
     operation_str = '%s.%s' % (interface.id, operation.id)
-
     if (operation.id in operations_by_name and
         len(operations_by_name[operation.id]) > 1 and
         len(filter(lambda overload: overload.startswith(operation_str),
