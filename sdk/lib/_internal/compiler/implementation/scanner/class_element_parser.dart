@@ -10,17 +10,18 @@ class ClassElementParser extends PartialParser {
   Token parseClassBody(Token token) => fullParseClassBody(token);
 }
 
-class PartialClassElement extends ClassElementX {
-  final Token beginToken;
-  final Token endToken;
+class PartialClassElement extends ClassElementX with PartialElement {
   ClassNode cachedNode;
 
   PartialClassElement(String name,
-                      Token this.beginToken,
-                      Token this.endToken,
+                      Token beginToken,
+                      Token endToken,
                       Element enclosing,
                       int id)
-      : super(name, enclosing, id, STATE_NOT_STARTED);
+      : super(name, enclosing, id, STATE_NOT_STARTED) {
+    this.beginToken = beginToken;
+    this.endToken = endToken;
+  }
 
   void set supertypeLoadState(int state) {
     assert(state == supertypeLoadState + 1);
