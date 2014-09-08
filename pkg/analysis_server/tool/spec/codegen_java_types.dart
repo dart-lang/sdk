@@ -493,6 +493,23 @@ class CodegenJavaType extends CodegenJavaVisitor {
         _writeExtraContentInElementType();
       }
 
+      //
+      // getBestName()
+      //
+      if (className == 'TypeHierarchyItem') {
+        publicMethod('getBestName', () {
+          writeln('public String getBestName() {');
+          indent(() {
+            writeln('if (displayName == null) {');
+            writeln('  return classElement.getName();');
+            writeln('} else {');
+            writeln('  return displayName;');
+            writeln('}');
+          });
+          writeln('}');
+        });
+      }
+
     });
   }
 
@@ -675,8 +692,12 @@ final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
             generateSetters = true;
           }
           // create the visitor
-          CodegenJavaType visitor = new CodegenJavaType(api, typeNameInJava,
-              superclassName, generateGetters, generateSetters);
+          CodegenJavaType visitor = new CodegenJavaType(
+              api,
+              typeNameInJava,
+              superclassName,
+              generateGetters,
+              generateSetters);
           return visitor.collectCode(() {
             dom.Element doc = type.html;
             if (impliedType.apiNode is TypeDefinition) {
