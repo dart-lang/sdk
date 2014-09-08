@@ -207,6 +207,11 @@ class AnalysisServer {
       new HashMap<AnalysisContext, Completer<AnalysisDoneReason>>();
 
   /**
+   * The listeners that are listening for lifecycle events from this server.
+   */
+  List<AnalysisServerListener> listeners = <AnalysisServerListener>[];
+
+  /**
    * True if any exceptions thrown by analysis should be propagated up the call
    * stack.
    */
@@ -327,6 +332,16 @@ class AnalysisServer {
   }
 
   /**
+   * Add the given [listener] to the list of listeners that are listening for
+   * lifecycle events from this server.
+   */
+  void addAnalysisServerListener(AnalysisServerListener listener) {
+    if (!listeners.contains(listener)) {
+      listeners.add(listener);
+    }
+  }
+
+  /**
    * Adds the given [ServerOperation] to the queue, but does not schedule
    * operations execution.
    */
@@ -408,6 +423,13 @@ class AnalysisServer {
   }
 
   /**
+   * Return `true` if analysis is complete.
+   */
+  bool isAnalysisComplete() {
+    return operationQueue.isEmpty;
+  }
+
+  /**
    * Returns `true` if the given [AnalysisContext] is a priority one.
    */
   bool isPriorityContext(AnalysisContext context) {
@@ -446,8 +468,17 @@ class AnalysisServer {
         _schedulePerformOperation();
       } else {
         sendStatusNotification(null);
+        _notifyAnalysisComplete();
       }
     }
+  }
+
+  /**
+   * Remove the given [listener] from the list of listeners that are listening
+   * for lifecycle events from this server.
+   */
+  void removeAnalysisServerListener(AnalysisServerListener listener) {
+    listeners.remove(listener);
   }
 
   /**
@@ -582,6 +613,14 @@ class AnalysisServer {
   }
 
   /**
+   * Return the [AnalysisContext]s that are being used to analyze the analysis
+   * roots.
+   */
+  Iterable<AnalysisContext> getAnalysisContexts() {
+    return folderMap.values;
+  }
+
+  /**
    * Return the [AnalysisContext] that is used to analyze the given [path].
    * Return `null` if there is no such context.
    */
@@ -593,13 +632,11 @@ class AnalysisServer {
       }
     }
     // check if there is a context that analyzed this source
-    {
-      Source source = getSource(path);
-      for (AnalysisContext context in folderMap.values) {
-        SourceKind kind = context.getKindOf(source);
-        if (kind != null) {
-          return context;
-        }
+    Source source = getSource(path);
+    for (AnalysisContext context in folderMap.values) {
+      SourceKind kind = context.getKindOf(source);
+      if (kind != null) {
+        return context;
       }
     }
     return null;
@@ -832,6 +869,15 @@ class AnalysisServer {
   }
 
   /**
+   * Notify all listeners that analysis is complete.
+   */
+  void _notifyAnalysisComplete() {
+    listeners.forEach((AnalysisServerListener listener) {
+      listener.analysisComplete();
+    });
+  }
+
+  /**
    * Schedules [performOperation] exection.
    */
   void _schedulePerformOperation() {
@@ -862,5 +908,14 @@ class AnalysisServer {
   }
 }
 
+/**
+ * An object that is listening for lifecycle events from an analysis server.
+ */
+abstract class AnalysisServerListener {
+  /**
+   * Analysis is complete.
+   */
+  void analysisComplete();
+}
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);

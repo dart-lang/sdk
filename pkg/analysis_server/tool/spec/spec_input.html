@@ -126,15 +126,16 @@
       The command-line arguments that can be passed to the server.
     </p>
     <h4>Options</h4>
+    <blockquote>
     <dl>
       <dt>--no-error-notification</dt>
-      <dd></dd>
-    </dl>
-    <p>
+      <dd>
       Disable notifications about errors (see analysis.error). If this
       flag is not specified then notifications will be sent for all
       errors produced for all files in the actual analysis roots.
-    </p>
+      </dd>
+    </dl>
+    </blockquote>
     <domain name="server">
       <p>
         The server domain contains API’s related to the execution of
@@ -1379,20 +1380,19 @@
       </request>
       <notification event="launchData">
         <p>
-          Reports information needed to allow applications within the given
-          context to be launched.
+          Reports information needed to allow applications to be launched.
         </p>
         <p>
           This notification is not subscribed to by default. Clients can
           subscribe by including the value "LAUNCH_DATA" in the list of services
-          passed in a execution.setSubscriptions request.
+          passed in an <tt>execution.setSubscriptions</tt> request.
         </p>
         <params>
           <field name="executables">
             <list><ref>ExecutableFile</ref></list>
             <p>
-              A list of the files that are executable in the given context. This
-              list replaces any previous list provided for the given context.
+              A list of the files that are executable. This list replaces any
+              previous list provided.
             </p>
           </field>
           <field name="dartToHtml">
@@ -1423,7 +1423,7 @@
       </notification>
     </domain>
     <types>
-      <h2><a name="types">Types</a></h2>
+      <h2 class="domain"><a name="types">Types</a></h2>
       <p>
         This section contains descriptions of the data types referenced
         in the API’s of the various domains.

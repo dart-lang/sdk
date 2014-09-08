@@ -17,6 +17,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_file_index.dart';
+import 'package:analysis_server/src/domain_execution.dart';
 
 
 /**
@@ -81,6 +82,7 @@ class SocketServer {
         new EditDomainHandler(server),
         new SearchDomainHandler(server),
         new CompletionDomainHandler(server),
+        new ExecutionDomainHandler(server),
     ];
   }
 }

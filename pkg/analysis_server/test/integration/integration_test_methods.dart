@@ -1331,19 +1331,18 @@ abstract class IntegrationTestMixin {
   }
 
   /**
-   * Reports information needed to allow applications within the given context
-   * to be launched.
+   * Reports information needed to allow applications to be launched.
    *
    * This notification is not subscribed to by default. Clients can subscribe
-   * by including the value "LAUNCH_DATA" in the list of services passed in a
+   * by including the value "LAUNCH_DATA" in the list of services passed in an
    * execution.setSubscriptions request.
    *
    * Parameters
    *
    * executables ( List<ExecutableFile> )
    *
-   *   A list of the files that are executable in the given context. This list
-   *   replaces any previous list provided for the given context.
+   *   A list of the files that are executable. This list replaces any previous
+   *   list provided.
    *
    * dartToHtml ( Map<FilePath, List<FilePath>> )
    *

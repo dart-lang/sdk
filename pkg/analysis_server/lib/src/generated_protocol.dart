@@ -4198,8 +4198,8 @@ class ExecutionSetSubscriptionsResult {
  */
 class ExecutionLaunchDataParams implements HasToJson {
   /**
-   * A list of the files that are executable in the given context. This list
-   * replaces any previous list provided for the given context.
+   * A list of the files that are executable. This list replaces any previous
+   * list provided.
    */
   List<ExecutableFile> executables;
 

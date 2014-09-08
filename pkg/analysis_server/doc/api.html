@@ -164,15 +164,16 @@ dt.typeDefinition {
       The command-line arguments that can be passed to the server.
     </p>
     <h4>Options</h4>
+    <blockquote>
     <dl>
       <dt>--no-error-notification</dt>
-      <dd></dd>
-    </dl>
-    <p>
+      <dd>
       Disable notifications about errors (see analysis.error). If this
       flag is not specified then notifications will be sent for all
       errors produced for all files in the actual analysis roots.
-    </p>
+      </dd>
+    </dl>
+    </blockquote>
     <h2 class="domain"><a name="domain_server">Domain: server</a></h2>
       <p>
         The server domain contains API’s related to the execution of
@@ -1634,20 +1635,19 @@ dt.typeDefinition {
   }
 }</pre></div>
         <p>
-          Reports information needed to allow applications within the given
-          context to be launched.
+          Reports information needed to allow applications to be launched.
         </p>
         <p>
           This notification is not subscribed to by default. Clients can
           subscribe by including the value "LAUNCH_DATA" in the list of services
-          passed in a execution.setSubscriptions request.
+          passed in an <tt>execution.setSubscriptions</tt> request.
         </p>
         
       <h4>Parameters</h4><dl><dt class="field"><b><i>executables ( List&lt;<a href="#type_ExecutableFile">ExecutableFile</a>&gt; )</i></b></dt><dd>
             
             <p>
-              A list of the files that are executable in the given context. This
-              list replaces any previous list provided for the given context.
+              A list of the files that are executable. This list replaces any
+              previous list provided.
             </p>
           </dd><dt class="field"><b><i>dartToHtml ( Map&lt;<a href="#type_FilePath">FilePath</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt; )</i></b></dt><dd>
             
@@ -1663,7 +1663,7 @@ dt.typeDefinition {
             </p>
           </dd></dl></dd></dl>
     
-      <h2><a name="types">Types</a></h2>
+      <h2 class="domain"><a name="types">Types</a></h2>
       <p>
         This section contains descriptions of the data types referenced
         in the API’s of the various domains.
