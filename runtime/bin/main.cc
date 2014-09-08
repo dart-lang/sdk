@@ -34,7 +34,7 @@ extern const uint8_t* snapshot_buffer;
 
 // Global state that stores a pointer to the application script snapshot.
 static bool generate_script_snapshot = false;
-static File* snapshot_file = NULL;
+static const char* snapshot_filename = NULL;
 
 
 // Global state that indicates whether there is a debug breakpoint.
@@ -274,12 +274,7 @@ static bool ProcessGenScriptSnapshotOption(const char* filename,
                     " dart\n");
       return false;
     }
-    snapshot_file = File::Open(filename, File::kWriteTruncate);
-    if (snapshot_file == NULL) {
-      Log::PrintErr("Unable to open file %s for writing the snapshot\n",
-                    filename);
-      return false;
-    }
+    snapshot_filename = filename;
     generate_script_snapshot = true;
     return true;
   }
@@ -1073,6 +1068,14 @@ void main(int argc, char** argv) {
     result = Dart_CreateScriptSnapshot(&buffer, &size);
     DartExitOnError(result);
 
+    // Open the snapshot file.
+    File* snapshot_file = File::Open(snapshot_filename, File::kWriteTruncate);
+    if (snapshot_file == NULL) {
+      ErrorExit(kErrorExitCode,
+                "Unable to open file %s for writing the snapshot\n",
+                snapshot_filename);
+    }
+
     // Write the magic number to indicate file is a script snapshot.
     DartUtils::WriteMagicNumber(snapshot_file);
 
@@ -1080,6 +1083,7 @@ void main(int argc, char** argv) {
     bool bytes_written = snapshot_file->WriteFully(buffer, size);
     ASSERT(bytes_written);
     delete snapshot_file;
+    snapshot_file = NULL;
   } else {
     // Lookup the library of the root script.
     Dart_Handle root_lib = Dart_RootLibrary();
