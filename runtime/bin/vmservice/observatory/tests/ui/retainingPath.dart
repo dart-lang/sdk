@@ -1,23 +1,9 @@
-/*
-0.
-dart --observe retainingPath.dart
-1.
-isolate 'root'
-2.
-library 'retainingPath.dart'
-3.
-class 'Foo'
-4.
-under 'instances', find 'strongly reachable' list; it should contain 2 elements, one of which should have a field containing "87"
-5.
-instance "87"
-6.
-find 'retaining path'; it should have length 4, and be annotated as follows:
- "87" in var a
- Foo in var b
- Foo at list index 5 of
- _List(10)
-*/
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// See reatiningPath.txt for expected behavior.
+
 class Foo {
   var a;
   var b;

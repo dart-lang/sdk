@@ -1,0 +1,5 @@
+0. Run dart --observe inspector.dart
+1. Visit isolate 'root'
+2. Visit library manual_inspector_test
+3. Expand 'variables'
+4. Each should display a reasonable value, not a blank nor an 'Unknown service ref'
