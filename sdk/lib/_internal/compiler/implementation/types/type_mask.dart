@@ -20,22 +20,14 @@ abstract class TypeMask {
 
   const factory TypeMask.empty() = FlatTypeMask.empty;
 
-  factory TypeMask.exact(ClassElement base, ClassWorld classWorld) {
-    assert(invariant(base, classWorld.isInstantiated(base),
-        message: "Cannot create extact type mask for uninstantiated class"));
-    return new FlatTypeMask.exact(base);
-  }
-
-  factory TypeMask.exactOrEmpty(ClassElement base, ClassWorld classWorld) {
-    if (classWorld.isInstantiated(base)) return new FlatTypeMask.exact(base);
-    return const TypeMask.empty();
-  }
+  factory TypeMask.exact(ClassElement base)
+      => new FlatTypeMask.exact(base);
 
   factory TypeMask.subclass(ClassElement base, ClassWorld classWorld) {
     if (classWorld.hasAnySubclass(base)) {
       return new FlatTypeMask.subclass(base);
     } else {
-      return new TypeMask.exactOrEmpty(base, classWorld);
+      return new FlatTypeMask.exact(base);
     }
   }
 
@@ -46,31 +38,20 @@ abstract class TypeMask {
     if (classWorld.hasAnySubtype(base)) {
       return new FlatTypeMask.subtype(base);
     } else {
-      return new TypeMask.exactOrEmpty(base, classWorld);
+      return new FlatTypeMask.exact(base);
     }
   }
 
   const factory TypeMask.nonNullEmpty() = FlatTypeMask.nonNullEmpty;
 
-  factory TypeMask.nonNullExact(ClassElement base, ClassWorld classWorld) {
-    assert(invariant(base, classWorld.isInstantiated(base),
-        message: "Cannot create extact type mask for uninstantiated class"));
-    return new FlatTypeMask.nonNullExact(base);
-  }
-
-  factory TypeMask.nonNullExactOrEmpty(ClassElement base,
-      ClassWorld classWorld) {
-    if (classWorld.isInstantiated(base)) {
-      return new FlatTypeMask.nonNullExact(base);
-    }
-    return const TypeMask.nonNullEmpty();
-  }
+  factory TypeMask.nonNullExact(ClassElement base)
+      => new FlatTypeMask.nonNullExact(base);
 
   factory TypeMask.nonNullSubclass(ClassElement base, ClassWorld classWorld) {
     if (classWorld.hasAnySubclass(base)) {
       return new FlatTypeMask.nonNullSubclass(base);
     } else {
-      return new TypeMask.nonNullExactOrEmpty(base, classWorld);
+      return new FlatTypeMask.nonNullExact(base);
     }
   }
 
@@ -81,7 +62,7 @@ abstract class TypeMask {
     if (classWorld.hasAnySubtype(base)) {
       return new FlatTypeMask.nonNullSubtype(base);
     } else {
-      return new TypeMask.nonNullExactOrEmpty(base, classWorld);
+      return new FlatTypeMask.nonNullExact(base);
     }
   }
 
@@ -104,14 +85,12 @@ abstract class TypeMask {
    * Checks whether this mask uses the smallest possible representation for
    * its types. Currently, we normalize subtype and subclass to exact if no
    * subtypes or subclasses are present and subtype to subclass if only
-   * subclasses exist. We also normalize exact to empty if the corresponding
-   * baseclass was never instantiated.
+   * subclasses exist.
    */
   static bool isNormalized(TypeMask mask, ClassWorld classWorld) {
     mask = nonForwardingMask(mask);
     if (mask is FlatTypeMask) {
-      if (mask.isEmpty) return true;
-      if (mask.isExact) return classWorld.isInstantiated(mask.base);
+      if (mask.isExact || mask.isEmpty) return true;
       if (mask.isSubclass) return classWorld.hasAnySubclass(mask.base);
       assert(mask.isSubtype);
       return classWorld.hasAnySubtype(mask.base) &&

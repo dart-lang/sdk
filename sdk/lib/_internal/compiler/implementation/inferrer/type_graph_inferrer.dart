@@ -302,8 +302,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   }
 
   TypeInformation nonNullExact(ClassElement type) {
-    return getConcreteTypeFor(
-        new TypeMask.nonNullExact(type.declaration, classWorld));
+    return getConcreteTypeFor(new TypeMask.nonNullExact(type.declaration));
   }
 
   TypeInformation nonNullEmpty() {

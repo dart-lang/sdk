@@ -224,8 +224,7 @@ class JavaScriptBackend extends Backend {
   TypeMask _fixedArrayTypeCache;
   TypeMask get fixedArrayType {
     if (_fixedArrayTypeCache == null) {
-      _fixedArrayTypeCache = new TypeMask.nonNullExact(jsFixedArrayClass,
-          compiler.world);
+      _fixedArrayTypeCache = new TypeMask.nonNullExact(jsFixedArrayClass);
     }
     return _fixedArrayTypeCache;
   }
@@ -234,7 +233,7 @@ class JavaScriptBackend extends Backend {
   TypeMask get extendableArrayType {
     if (_extendableArrayTypeCache == null) {
       _extendableArrayTypeCache =
-          new TypeMask.nonNullExact(jsExtendableArrayClass, compiler.world);
+          new TypeMask.nonNullExact(jsExtendableArrayClass);
     }
     return _extendableArrayTypeCache;
   }

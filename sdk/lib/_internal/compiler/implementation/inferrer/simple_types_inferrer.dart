@@ -102,7 +102,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask nonNullSubclass(ClassElement type)
       => new TypeMask.nonNullSubclass(type.declaration, classWorld);
   TypeMask nonNullExact(ClassElement type)
-      => new TypeMask.nonNullExact(type.declaration, classWorld);
+      => new TypeMask.nonNullExact(type.declaration);
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
 
   TypeMask allocateList(TypeMask type,

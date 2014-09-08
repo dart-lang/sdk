@@ -662,8 +662,7 @@ class TypedSelector extends Selector {
 
   factory TypedSelector.exact(
       ClassElement base, Selector selector, World world)
-          => new TypedSelector(new TypeMask.exact(base, world), selector,
-              world);
+          => new TypedSelector(new TypeMask.exact(base), selector, world);
 
   factory TypedSelector.subclass(
       ClassElement base, Selector selector, World world)

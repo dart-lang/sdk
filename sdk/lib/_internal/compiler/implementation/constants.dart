@@ -609,7 +609,7 @@ class ConstructedConstant extends ObjectConstant {
     if (compiler.backend.isInterceptorClass(type.element)) {
       return compiler.typesTask.nonNullType;
     }
-    return new ti.TypeMask.nonNullExact(type.element, compiler.world);
+    return new ti.TypeMask.nonNullExact(type.element);
   }
 
   accept(ConstantVisitor visitor) => visitor.visitConstructed(this);

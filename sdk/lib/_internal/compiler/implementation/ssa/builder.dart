@@ -322,9 +322,8 @@ class LocalsHandler {
           new SyntheticLocal('receiver', executableContext);
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
-      ClassWorld classWorld = compiler.world;
       HParameterValue value =
-          new HParameterValue(parameter, new TypeMask.exact(cls, classWorld));
+          new HParameterValue(parameter, new TypeMask.exact(cls));
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAtEntry(value);
     }
@@ -1980,8 +1979,7 @@ class SsaBuilder extends ResolvedVisitor {
         includeSuperAndInjectedMembers: true);
 
     InterfaceType type = classElement.thisType;
-    TypeMask ssaType =
-        new TypeMask.nonNullExact(classElement.declaration, compiler.world);
+    TypeMask ssaType = new TypeMask.nonNullExact(classElement.declaration);
     List<DartType> instantiatedTypes;
     addInlinedInstantiation(type);
     if (!currentInlinedInstantiations.isEmpty) {
@@ -2924,8 +2922,7 @@ class SsaBuilder extends ResolvedVisitor {
       capturedVariables.add(localsHandler.readLocal(capturedLocal));
     });
 
-    TypeMask type =
-        new TypeMask.nonNullExact(compiler.functionClass, compiler.world);
+    TypeMask type = new TypeMask.nonNullExact(compiler.functionClass);
     push(new HForeignNew(closureClassElement, type, capturedVariables));
 
     Element methodElement = nestedClosureData.closureElement;
@@ -4112,11 +4109,11 @@ class SsaBuilder extends ResolvedVisitor {
         ClassElement cls = element.enclosingClass;
         assert(cls.thisType.element.isNative);
         return inferred.containsAll(compiler.world)
-            ? new TypeMask.nonNullExact(cls.thisType.element, compiler.world)
+            ? new TypeMask.nonNullExact(cls.thisType.element)
             : inferred;
       } else if (element.isGenerativeConstructor) {
         ClassElement cls = element.enclosingClass;
-        return new TypeMask.nonNullExact(cls.thisType.element, compiler.world);
+        return new TypeMask.nonNullExact(cls.thisType.element);
       } else {
         return TypeMaskFactory.inferredReturnTypeForElement(
             originalElement, compiler);
@@ -4558,11 +4555,11 @@ class SsaBuilder extends ResolvedVisitor {
           && selector.name == "length";
       if (isLength || selector.isIndex) {
         TypeMask type = new TypeMask.nonNullExact(
-            element.enclosingClass.declaration, compiler.world);
+            element.enclosingClass.declaration);
         return type.satisfies(backend.jsIndexableClass, compiler.world);
       } else if (selector.isIndexSet) {
         TypeMask type = new TypeMask.nonNullExact(
-            element.enclosingClass.declaration, compiler.world);
+            element.enclosingClass.declaration);
         return type.satisfies(backend.jsMutableIndexableClass, compiler.world);
       } else {
         return false;
@@ -6392,9 +6389,9 @@ class SsaBranchBuilder {
 }
 
 class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
-  final ClassWorld classWorld;
+  final World world;
 
-  TypeBuilder(this.classWorld);
+  TypeBuilder(this.world);
 
   void visitType(DartType type, _) {
     throw 'Internal error $type';
@@ -6402,13 +6399,13 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
 
   void visitVoidType(VoidType type, SsaBuilder builder) {
     ClassElement cls = builder.backend.findHelper('VoidRuntimeType');
-    builder.push(new HVoidType(type, new TypeMask.exact(cls, classWorld)));
+    builder.push(new HVoidType(type, new TypeMask.exact(cls)));
   }
 
   void visitTypeVariableType(TypeVariableType type,
                              SsaBuilder builder) {
     ClassElement cls = builder.backend.findHelper('RuntimeType');
-    TypeMask instructionType = new TypeMask.subclass(cls, classWorld);
+    TypeMask instructionType = new TypeMask.subclass(cls, world);
     if (!builder.sourceElement.enclosingElement.isClosure &&
         builder.sourceElement.isInstanceMember) {
       HInstruction receiver = builder.localsHandler.readThis();
@@ -6446,8 +6443,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
     }
 
     ClassElement cls = builder.backend.findHelper('RuntimeFunctionType');
-    builder.push(new HFunctionType(inputs, type,
-        new TypeMask.exact(cls, classWorld)));
+    builder.push(new HFunctionType(inputs, type, new TypeMask.exact(cls)));
   }
 
   void visitMalformedType(MalformedType type, SsaBuilder builder) {
@@ -6474,8 +6470,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
     } else {
       cls = builder.backend.findHelper('RuntimeTypeGeneric');
     }
-    builder.push(new HInterfaceType(inputs, type,
-        new TypeMask.exact(cls, classWorld)));
+    builder.push(new HInterfaceType(inputs, type, new TypeMask.exact(cls)));
   }
 
   void visitTypedefType(TypedefType type, SsaBuilder builder) {
@@ -6487,6 +6482,6 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   void visitDynamicType(DynamicType type, SsaBuilder builder) {
     JavaScriptBackend backend = builder.compiler.backend;
     ClassElement cls = backend.findHelper('DynamicRuntimeType');
-    builder.push(new HDynamicType(type, new TypeMask.exact(cls, classWorld)));
+    builder.push(new HDynamicType(type, new TypeMask.exact(cls)));
   }
 }
