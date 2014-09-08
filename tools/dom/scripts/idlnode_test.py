@@ -104,7 +104,6 @@ AST   :
         [ExAttr] t1 op1();
         t2 op2(in int arg1, in long arg2);
         getter any item(in long index);
-        stringifier name();
       };''',
       {'interfaces': [{'operations': [{'doc_js_interface_name': 'I', 'type': {'id': 't1'}, 'ext_attrs': {'ExAttr': None}, 'id': 'op1'}, {'doc_js_interface_name': 'I', 'type': {'id': 't2'}, 'id': 'op2', 'arguments': [{'type': {'id': 'int'}, 'id': 'arg1'}, {'type': {'id': 'long'}, 'id': 'arg2'}]}, {'specials': ['getter'], 'doc_js_interface_name': 'I', 'type': {'id': 'any'}, 'id': 'item', 'arguments': [{'type': {'id': 'long'}, 'id': 'index'}]}, {'is_stringifier': True, 'type': {'id': 'name'}, 'doc_js_interface_name': 'I'}], 'javascript_binding_name': 'I', 'id': 'I', 'doc_js_name': 'I'}]})
 

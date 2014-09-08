@@ -396,7 +396,7 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
 
 # Members that have multiple definitions, but their types are vary, so we rename
 # them to make them distinct.
-renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
+renamed_overloads = monitored.Dict('htmldartgenerator.renamed_overloads', {
   'AudioContext.createBuffer(ArrayBuffer buffer, boolean mixToMono)':
       'createBufferFromBuffer',
   'CSS.supports(DOMString conditionText)': 'supportsCondition',
@@ -480,12 +480,20 @@ keep_overloaded_members = monitored.Set(
   'XMLHttpRequest.send'
 ])
 
+# Members that can be overloaded.
 overloaded_and_renamed = monitored.Set(
     'htmldartgenerator.overloaded_and_renamed', [
-  'WebGLRenderingContext.texImage2D',
-  'WebGLRenderingContext.texSubImage2D',
-  'WebGLRenderingContext.bufferData',
-  'WebGLRenderingContext.bufferSubData',
+  'CanvasRenderingContext2D.clip',
+  'CanvasRenderingContext2D.drawFocusIfNeeded',
+  'CanvasRenderingContext2D.fill',
+  'CanvasRenderingContext2D.isPointInPath',
+  'CanvasRenderingContext2D.isPointInStroke',
+  'CanvasRenderingContext2D.stroke',
+  'Navigator.sendBeacon',
+  'WebGLRenderingContextBase.bufferData',
+  'WebGLRenderingContextBase.bufferSubData',
+  'WebGLRenderingContextBase.texImage2D',
+  'WebGLRenderingContextBase.texSubImage2D',
 ])
 
 for member in convert_to_future_members:
