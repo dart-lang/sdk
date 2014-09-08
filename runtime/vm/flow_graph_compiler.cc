@@ -872,15 +872,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
   uword label_address = 0;
   StubCode* stub_code = isolate()->stub_code();
   if (is_optimizing() && (ic_data.NumberOfUsedChecks() == 0)) {
-    if (ic_data.IsClosureCall()) {
-      // This IC call may be closure call only.
-      label_address = stub_code->ClosureCallInlineCacheEntryPoint();
-      ExternalLabel target_label(label_address);
-      EmitInstanceCall(&target_label,
-                       ICData::ZoneHandle(ic_data.AsUnaryClassChecks()),
-                       argument_count, deopt_id, token_pos, locs);
-      return;
-    }
     // Emit IC call that will count and thus may need reoptimization at
     // function entry.
     ASSERT(!is_optimizing()

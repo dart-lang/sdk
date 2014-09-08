@@ -706,7 +706,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                      const Class& receiver_class,
                                      const String& target_name,
                                      const Array& arguments_descriptor,
-                                     const ICData& ic_data,
                                      Function* result) {
   // 1. Check if there is a getter with the same name.
   const String& getter_name = String::Handle(Field::GetterName(target_name));
@@ -752,7 +751,6 @@ RawFunction* InlineCacheMissHelper(
                                 receiver_class,
                                 target_name,
                                 args_descriptor,
-                                ic_data,
                                 &result)) {
     ArgumentsDescriptor desc(args_descriptor);
     const Function& target_function =
@@ -787,7 +785,6 @@ static RawFunction* InlineCacheMissHandler(
                    String::Handle(ic_data.target_name()).ToCString(),
                    receiver.ToCString());
     }
-    ic_data.SetIsClosureCall();
     target_function = InlineCacheMissHelper(receiver, ic_data);
   }
   ASSERT(!target_function.IsNull());
@@ -989,7 +986,6 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
                                                name,
                                                args_desc));
   if (target_function.IsNull()) {
-    ic_data.SetIsClosureCall();
     target_function = InlineCacheMissHelper(receiver, ic_data);
   }
 
@@ -1258,12 +1254,11 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
   OS::PrintErr("IC call @%#" Px ": ICData: %p cnt:%" Pd " nchecks: %" Pd
-      " %s %s\n",
+      " %s\n",
       frame->pc(),
       ic_data.raw(),
       function.usage_counter(),
       ic_data.NumberOfChecks(),
-      ic_data.IsClosureCall() ? "closure" : "",
       function.ToFullyQualifiedCString());
 }
 

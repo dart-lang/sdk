@@ -3501,9 +3501,6 @@ class ICData : public Object {
   // possibly issue) a Javascript compatibility warning.
   bool MayCheckForJSWarning() const;
 
-  bool IsClosureCall() const;
-  void SetIsClosureCall() const;
-
   intptr_t NumberOfChecks() const;
 
   // Discounts any checks with usage of zero.
@@ -3634,7 +3631,6 @@ class ICData : public Object {
     kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
     kDeoptReasonSize = kDeoptNumReasons,
     kIssuedJSWarningBit = kDeoptReasonPos + kDeoptReasonSize,
-    kIsClosureCallBit = kIssuedJSWarningBit + 1,
   };
 
   class NumArgsTestedBits : public BitField<uint32_t,
@@ -3642,7 +3638,6 @@ class ICData : public Object {
   class DeoptReasonBits : public BitField<uint32_t,
       ICData::kDeoptReasonPos, ICData::kDeoptReasonSize> {};  // NOLINT
   class IssuedJSWarningBit : public BitField<bool, kIssuedJSWarningBit, 1> {};
-  class IsClosureCallBit : public BitField<bool, kIsClosureCallBit, 1> {};
 
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.

@@ -63,7 +63,6 @@ class RawCode;
   V(OneArgOptimizedCheckInlineCache)                                           \
   V(TwoArgsOptimizedCheckInlineCache)                                          \
   V(ThreeArgsOptimizedCheckInlineCache)                                        \
-  V(ClosureCallInlineCache)                                                    \
   V(ZeroArgsUnoptimizedStaticCall)                                             \
   V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \

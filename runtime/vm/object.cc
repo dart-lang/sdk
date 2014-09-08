@@ -11295,17 +11295,6 @@ bool ICData::MayCheckForJSWarning() const {
 }
 
 
-bool ICData::IsClosureCall() const {
-  return IsClosureCallBit::decode(raw_ptr()->state_bits_);
-}
-
-
-void ICData::SetIsClosureCall() const {
-  raw_ptr()->state_bits_ =
-      IsClosureCallBit::update(true, raw_ptr()->state_bits_);
-}
-
-
 void ICData::set_state_bits(uint32_t bits) const {
   raw_ptr()->state_bits_ = bits;
 }

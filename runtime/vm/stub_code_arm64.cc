@@ -1624,12 +1624,6 @@ void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
 }
 
 
-void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
-  GenerateNArgsCheckInlineCacheStub(assembler, 1,
-      kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
-}
-
-
 void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
 #if defined(DEBUG)
