@@ -68,6 +68,18 @@ class NativeEnqueuer {
   // TODO(sra): The entry from codegen will not have a resolver.
   void registerJsCall(Send node, ResolverVisitor resolver) {}
 
+  /**
+   * Handles JS-embedded global calls, which can be an instantiation point for
+   * types.
+   *
+   * For example, the following code instantiates and returns a String class
+   *
+   *     JS_EMBEDDED_GLOBAL('String', 'foo')
+   *
+   */
+  // TODO(sra): The entry from codegen will not have a resolver.
+  void registerJsEmbeddedGlobalCall(Send node, ResolverVisitor resolver) {}
+
   /// Emits a summary information using the [log] function.
   void logSummary(log(message)) {}
 
@@ -459,6 +471,14 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   void registerJsCall(Send node, ResolverVisitor resolver) {
     NativeBehavior behavior = NativeBehavior.ofJsCall(node, compiler, resolver);
+    processNativeBehavior(behavior, node);
+    nativeBehaviors[node] = behavior;
+    flushQueue();
+  }
+
+  void registerJsEmbeddedGlobalCall(Send node, ResolverVisitor resolver) {
+    NativeBehavior behavior =
+        NativeBehavior.ofJsEmbeddedGlobalCall(node, compiler, resolver);
     processNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
     flushQueue();
@@ -931,6 +951,62 @@ class NativeBehavior {
     }
 
     processSpecString(compiler, jsCall,
+                      specString,
+                      resolveType: resolveType,
+                      typesReturned: behavior.typesReturned,
+                      typesInstantiated: behavior.typesInstantiated,
+                      objectType: compiler.objectClass.computeType(compiler),
+                      nullType: compiler.nullClass.computeType(compiler));
+
+    return behavior;
+  }
+
+  static NativeBehavior ofJsEmbeddedGlobalCall(Send jsGlobalCall,
+                                               Compiler compiler,
+                                               resolver) {
+    // The first argument of a JS-embedded global call is a string encoding
+    // the type of the code.
+    //
+    //  'Type1|Type2'.  A union type.
+    //  '=Object'.      A JavaScript Object, no subtype.
+
+    Link<Node> argNodes = jsGlobalCall.arguments;
+    if (argNodes.isEmpty) {
+      compiler.internalError(jsGlobalCall,
+          "JS embedded global expression has no type.");
+    }
+
+    // We don't check the given name. That needs to be done at a later point.
+    // This is, because we want to allow non-literals as names.
+    if (argNodes.tail.isEmpty) {
+      compiler.internalError(jsGlobalCall, 'Embedded Global is missing name');
+    }
+
+    if (!argNodes.tail.tail.isEmpty) {
+      compiler.internalError(argNodes.tail.tail.head,
+          'Embedded Global has more than 2 arguments');
+    }
+
+    LiteralString specLiteral = argNodes.head.asLiteralString();
+    if (specLiteral == null) {
+      // TODO(sra): We could accept a type identifier? e.g. JS(bool, '1<2').  It
+      // is not very satisfactory because it does not work for void, dynamic.
+      compiler.internalError(argNodes.head, "Unexpected first argument.");
+    }
+
+    NativeBehavior behavior = new NativeBehavior();
+
+    String specString = specLiteral.dartString.slowToString();
+
+    resolveType(String typeString) {
+      return _parseType(
+          typeString,
+          compiler,
+          (name) => resolver.resolveTypeFromString(specLiteral, name),
+          jsGlobalCall);
+    }
+
+    processSpecString(compiler, jsGlobalCall,
                       specString,
                       resolveType: resolveType,
                       typesReturned: behavior.typesReturned,

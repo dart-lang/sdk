@@ -4,7 +4,7 @@
 
 library dart._js_mirrors;
 
-import '../implementation/runtime_data.dart' as encoding;
+import 'shared/runtime_data.dart' as encoding;
 
 import 'dart:collection' show
     UnmodifiableListView,

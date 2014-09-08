@@ -241,10 +241,13 @@ String JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG() {}
  */
 String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG() {}
 
-/**
- * Obtain [name] from Namer.
- */
+/// Returns the JS name for [name] from the Namer.
 String JS_GET_NAME(String name) {}
+
+/// Reads an embedded global.
+///
+/// The [name] should be a constant defined in the `_embedded_names` library.
+JS_EMBEDDED_GLOBAL(String typeDescription, String name) {}
 
 /// Returns the state of a flag that is determined by the state of the compiler
 /// when the program has been analyzed.

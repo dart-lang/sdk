@@ -167,6 +167,11 @@ class CodeEmitterTask extends CompilerTask {
   /// All the global state can be passed around with this variable.
   String get globalsHolder => namer.getMappedGlobalName("globalsHolder");
 
+  jsAst.Expression generateEmbeddedGlobalAccess(String global) {
+    // TODO(floitsch): don't use 'init' as global embedder storage.
+    return js('$initName.$global');
+  }
+
   jsAst.FunctionDeclaration get generateAccessorFunction {
     const RANGE1_SIZE = RANGE1_LAST - RANGE1_FIRST + 1;
     const RANGE2_SIZE = RANGE2_LAST - RANGE2_FIRST + 1;
@@ -1066,8 +1071,8 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   jsAst.Expression generateDispatchPropertyNameInitialization() {
-    return js(
-        'init.dispatchPropertyName = init.getIsolateTag("dispatch_record")');
+    return js('init.${embeddedNames.DISPATCH_PROPERTY_NAME} = '
+              'init.getIsolateTag("dispatch_record")');
   }
 
   String generateIsolateTagRoot() {

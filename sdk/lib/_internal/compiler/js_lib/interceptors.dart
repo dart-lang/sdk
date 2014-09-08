@@ -4,6 +4,9 @@
 
 library _interceptors;
 
+import 'shared/embedded_names.dart' show
+    DISPATCH_PROPERTY_NAME;
+
 import 'dart:collection';
 import 'dart:_internal' hide Symbol;
 import "dart:_internal" as _symbol_dev show Symbol;
@@ -31,7 +34,11 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               firstMatchAfter,
                               NoInline;
 import 'dart:_foreign_helper' show
-    JS, JS_EFFECT, JS_INTERCEPTOR_CONSTANT, JS_STRING_CONCAT;
+    JS,
+    JS_EFFECT,
+    JS_EMBEDDED_GLOBAL,
+    JS_INTERCEPTOR_CONSTANT,
+    JS_STRING_CONCAT;
 import 'dart:math' show Random;
 
 part 'js_array.dart';
@@ -65,11 +72,14 @@ getInterceptor(object) {
 }
 
 getDispatchProperty(object) {
-  return JS('', '#[#]', object, JS('String', 'init.dispatchPropertyName'));
+  return JS('', '#[#]',
+      object, JS_EMBEDDED_GLOBAL('String', DISPATCH_PROPERTY_NAME));
 }
 
 setDispatchProperty(object, value) {
-  defineProperty(object, JS('String', 'init.dispatchPropertyName'), value);
+  defineProperty(object,
+                JS_EMBEDDED_GLOBAL('String', DISPATCH_PROPERTY_NAME),
+                value);
 }
 
 // Avoid inlining this method because inlining gives us multiple allocation
