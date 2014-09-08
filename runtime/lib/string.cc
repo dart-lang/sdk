@@ -19,24 +19,10 @@ DEFINE_NATIVE_ENTRY(String_fromEnvironment, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(String, default_value, arguments->NativeArgAt(2));
   // Call the embedder to supply us with the environment.
-  Api::Scope api_scope(isolate);
-  Dart_EnvironmentCallback callback = isolate->environment_callback();
-  if (callback != NULL) {
-    Dart_Handle result = callback(Api::NewHandle(isolate, name.raw()));
-    if (Dart_IsString(result)) {
-      const Object& value =
-          Object::Handle(isolate, Api::UnwrapHandle(result));
-      return Symbols::New(String::Cast(value));
-    } else if (Dart_IsError(result)) {
-      const Object& error =
-          Object::Handle(isolate, Api::UnwrapHandle(result));
-      Exceptions::ThrowArgumentError(
-          String::Handle(
-              String::New(Error::Cast(error).ToErrorCString())));
-    } else if (!Dart_IsNull(result)) {
-      Exceptions::ThrowArgumentError(
-          String::Handle(String::New("Illegal environment value")));
-    }
+  const String& env_value =
+      String::Handle(Api::CallEnvironmentCallback(isolate, name));
+  if (!env_value.IsNull()) {
+    return Symbols::New(env_value);
   }
   return default_value.raw();
 }

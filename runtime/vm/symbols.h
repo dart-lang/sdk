@@ -137,6 +137,8 @@ class ObjectPointerVisitor;
   V(_Bigint, "_Bigint")                                                        \
   V(_Double, "_Double")                                                        \
   V(Bool, "bool")                                                              \
+  V(True, "true")                                                              \
+  V(False, "false")                                                            \
   V(_List, "_List")                                                            \
   V(_ListFactory, "_List.")                                                    \
   V(_GrowableList, "_GrowableList")                                            \
@@ -320,6 +322,7 @@ class ObjectPointerVisitor;
   V(Default, "Default")                                                        \
   V(StubPrefix, "[Stub] ")                                                     \
   V(ClassID, "ClassID")                                                        \
+  V(DartIsVM, "dart.isVM")                                                     \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

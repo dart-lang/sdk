@@ -239,27 +239,15 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(Integer, default_value, arguments->NativeArgAt(2));
   // Call the embedder to supply us with the environment.
-  Api::Scope api_scope(isolate);
-  Dart_EnvironmentCallback callback = isolate->environment_callback();
-  if (callback != NULL) {
-    Dart_Handle response = callback(Api::NewHandle(isolate, name.raw()));
-    if (Dart_IsString(response)) {
-      const String& value = String::Cast(
-          Object::Handle(isolate, Api::UnwrapHandle(response)));
-      const Integer& result = Integer::Handle(ParseInteger(value));
-      if (!result.IsNull()) {
-        if (result.IsSmi()) return result.raw();
-        return result.CheckAndCanonicalize(NULL);
+  const String& env_value =
+      String::Handle(Api::CallEnvironmentCallback(isolate, name));
+  if (!env_value.IsNull()) {
+    const Integer& result = Integer::Handle(ParseInteger(env_value));
+    if (!result.IsNull()) {
+      if (result.IsSmi()) {
+        return result.raw();
       }
-    } else if (Dart_IsError(response)) {
-      const Object& error =
-          Object::Handle(isolate, Api::UnwrapHandle(response));
-      Exceptions::ThrowArgumentError(
-          String::Handle(
-              String::New(Error::Cast(error).ToErrorCString())));
-    } else  if (!Dart_IsNull(response)) {
-      Exceptions::ThrowArgumentError(
-          String::Handle(String::New("Illegal environment value")));
+      return result.CheckAndCanonicalize(NULL);
     }
   }
   return default_value.raw();

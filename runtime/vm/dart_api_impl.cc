@@ -4721,6 +4721,38 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 
 
 // --- Environment ---
+RawString* Api::CallEnvironmentCallback(Isolate* isolate, const String& name) {
+  Scope api_scope(isolate);
+  Dart_EnvironmentCallback callback = isolate->environment_callback();
+  String& result = String::Handle(isolate);
+  if (callback != NULL) {
+    Dart_Handle response = callback(Api::NewHandle(isolate, name.raw()));
+    if (::Dart_IsString(response)) {
+      result ^= Api::UnwrapHandle(response);
+    } else if (::Dart_IsError(response)) {
+      const Object& error =
+          Object::Handle(isolate, Api::UnwrapHandle(response));
+      Exceptions::ThrowArgumentError(
+          String::Handle(String::New(Error::Cast(error).ToErrorCString())));
+    } else if (!::Dart_IsNull(response)) {
+      // At this point everything except null are invalid environment values.
+      Exceptions::ThrowArgumentError(
+          String::Handle(String::New("Illegal environment value")));
+    }
+  }
+  if (result.IsNull()) {
+    // TODO(iposva): Determine whether builtin values can be overriden by the
+    // embedder.
+    // Check for default VM provided values. If it was not overriden on the
+    // command line.
+    if (Symbols::DartIsVM().Equals(name)) {
+      return Symbols::True().raw();
+    }
+  }
+  return result.raw();
+}
+
+
 DART_EXPORT Dart_Handle Dart_SetEnvironmentCallback(
     Dart_EnvironmentCallback callback) {
   Isolate* isolate = Isolate::Current();
