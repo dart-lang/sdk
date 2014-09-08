@@ -5,6 +5,7 @@ web_components, and template_binding) if they impact polymer.
 #### 0.13.1-dev
   * Upgraded error messages to have a unique and stable identifier. This
     requires a version of `code_transformers` newer than `0.2.2-dev`.
+  * Upgraded minimum version constraint on 'args' to '0.11.0'.
 
 #### 0.13.0+3
   * Added a warning about flashes of unstyled content if we can detect a

@@ -8,7 +8,7 @@ description: >
 homepage: https://www.dartlang.org/polymer-dart/
 dependencies:
   analyzer: '>=0.15.6 <0.23.0'
-  args: '>=0.10.0 <0.13.0'
+  args: '>=0.11.0 <0.13.0'
   barback: '>=0.14.2 <0.16.0'
   browser: '>=0.10.0 <0.11.0'
   code_transformers: '>=0.2.3-dev <0.3.0'
