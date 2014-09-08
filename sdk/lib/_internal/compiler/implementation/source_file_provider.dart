@@ -49,7 +49,7 @@ abstract class SourceFileProvider {
           "(${ex.osError})");
     }
     dartCharactersRead += source.length;
-    sourceFiles[resourceUri.toString()] = new Utf8BytesSourceFile(
+    sourceFiles[resourceUri.toString()] = new CachingUtf8BytesSourceFile(
         relativize(cwd, resourceUri, isWindows), source);
     return new Future.value(source);
   }

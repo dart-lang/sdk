@@ -181,6 +181,20 @@ class Utf8BytesSourceFile extends SourceFile {
   int lengthCache = -1;
 }
 
+class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
+  String cachedText;
+
+  CachingUtf8BytesSourceFile(String filename, List<int> content)
+      : super(filename, content);
+
+  String slowText() {
+    if (cachedText == null) {
+      cachedText = super.slowText();
+    }
+    return cachedText;
+  }
+}
+
 class StringSourceFile extends SourceFile {
 
   final String text;
