@@ -61,7 +61,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
     source = addSource('/does/not/exist.dart', '');
-    manager = new DartCompletionManager(context, searchEngine, source, 17);
+    manager = new DartCompletionManager(context, searchEngine, source, 0);
     suggestion1 = new CompletionSuggestion(
         CompletionSuggestionKind.CLASS,
         CompletionRelevance.DEFAULT,
@@ -89,8 +89,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     manager.results().listen((CompletionResult r) {
       switch (++count) {
         case 1:
-          computer1.assertCalls(context, source, 17, searchEngine);
-          computer2.assertCalls(context, source, 17, searchEngine);
+          computer1.assertCalls(context, source, 0, searchEngine);
+          computer2.assertCalls(context, source, 0, searchEngine);
           expect(r.last, isFalse);
           expect(r.suggestions, hasLength(1));
           expect(r.suggestions, contains(suggestion1));
@@ -125,8 +125,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     manager.results().listen((CompletionResult r) {
       switch (++count) {
         case 1:
-          computer1.assertCalls(context, source, 17, searchEngine);
-          computer2.assertCalls(context, source, 17, searchEngine);
+          computer1.assertCalls(context, source, 0, searchEngine);
+          computer2.assertCalls(context, source, 0, searchEngine);
           expect(r.last, isTrue);
           expect(r.suggestions, hasLength(2));
           expect(r.suggestions, contains(suggestion1));

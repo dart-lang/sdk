@@ -38,7 +38,52 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   _KeywordVisitor(this.request);
 
   @override
+  visitBlock(Block node) {
+    if (_isOffsetAfterNode(node)) {
+      node.parent.accept(this);
+    } else {
+      _addSuggestions(
+          [
+              Keyword.ASSERT,
+              Keyword.CASE,
+              Keyword.CONTINUE,
+              Keyword.DO,
+              Keyword.FACTORY,
+              Keyword.FINAL,
+              Keyword.FOR,
+              Keyword.IF,
+              Keyword.NEW,
+              Keyword.RETHROW,
+              Keyword.RETURN,
+              Keyword.SUPER,
+              Keyword.SWITCH,
+              Keyword.THIS,
+              Keyword.THROW,
+              Keyword.TRY,
+              Keyword.VAR,
+              Keyword.VOID,
+              Keyword.WHILE]);
+    }
+  }
+
+  @override
   visitClassDeclaration(ClassDeclaration node) {
+    // Inside the class declaration { }
+    if (request.offset > node.leftBracket.offset) {
+      _addSuggestions(
+          [
+              Keyword.CONST,
+              Keyword.DYNAMIC,
+              Keyword.FACTORY,
+              Keyword.FINAL,
+              Keyword.GET,
+              Keyword.OPERATOR,
+              Keyword.SET,
+              Keyword.STATIC,
+              Keyword.VAR,
+              Keyword.VOID]);
+      return;
+    }
     // Very simplistic suggestion because analyzer will warn if
     // the extends / with / implements keywords are out of order
     if (node.extendsClause == null) {
@@ -100,22 +145,17 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitNode(AstNode node) {
-    if (request.offset == node.end) {
-      Token token = node.endToken;
-      if (token != null && !token.isSynthetic) {
-        if (token.lexeme == ';' || token.lexeme == '}') {
-          node.parent.accept(this);
-        }
-      }
+    if (_isOffsetAfterNode(node)) {
+      node.parent.accept(this);
     }
   }
 
   visitSimpleIdentifier(SimpleIdentifier node) {
-    AstNode parent =
-        node.getAncestor((n) => n is TopLevelVariableDeclaration);
+    AstNode parent = node.getAncestor((n) => n is TopLevelVariableDeclaration);
     if (parent is TopLevelVariableDeclaration) {
-      if (parent.variables != null && parent.variables.type != null
-          && parent.variables.type.name == node) {
+      if (parent.variables != null &&
+          parent.variables.type != null &&
+          parent.variables.type.name == node) {
         AstNode unit = node.getAncestor((n) => n is CompilationUnit);
         if (unit is CompilationUnit) {
           visitCompilationUnit(unit);
@@ -141,5 +181,17 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     keywords.forEach((Keyword keyword) {
       _addSuggestion(keyword);
     });
+  }
+
+  bool _isOffsetAfterNode(AstNode node) {
+    if (request.offset == node.end) {
+      Token token = node.endToken;
+      if (token != null && !token.isSynthetic) {
+        if (token.lexeme == ';' || token.lexeme == '}') {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

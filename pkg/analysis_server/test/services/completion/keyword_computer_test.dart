@@ -6,10 +6,10 @@ library test.services.completion.dart.keyword;
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/keyword_computer.dart';
-import '../../reflective_tests.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import 'completion_test_util.dart';
 
 main() {
@@ -20,14 +20,42 @@ main() {
 @ReflectiveTestCase()
 class KeywordComputerTest extends AbstractCompletionTest {
 
-  void assertSuggestKeywords(List<String> names) {
-    Keyword.values.forEach((Keyword keyword) {
-      if (names.contains(keyword.syntax)) {
-        assertSuggest(CompletionSuggestionKind.KEYWORD, keyword.syntax);
-      } else {
-        assertNotSuggested(keyword.syntax);
+  void assertSuggestKeywords(Iterable<Keyword> expectedKeywords) {
+    Set<Keyword> actualKeywords = new Set<Keyword>();
+    request.suggestions.forEach((CompletionSuggestion s) {
+      if (s.kind == CompletionSuggestionKind.KEYWORD) {
+        Keyword k = Keyword.keywords[s.completion];
+        if (k == null) {
+          fail('Invalid keyword suggested: ${s.completion}');
+        } else {
+          if (!actualKeywords.add(k)) {
+            fail('Duplicate keyword suggested: ${s.completion}');
+          }
+        }
+        expect(s.relevance, equals(CompletionRelevance.DEFAULT));
+        expect(s.selectionOffset, equals(s.completion.length));
+        expect(s.selectionLength, equals(0));
+        expect(s.isDeprecated, equals(false));
+        expect(s.isPotential, equals(false));
       }
     });
+    if (expectedKeywords.any((k) => k is String)) {
+      StringBuffer msg = new StringBuffer();
+      msg.writeln('Expected set should be:');
+      expectedKeywords.forEach((n) {
+        Keyword k = Keyword.keywords[n];
+        msg.writeln('  Keyword.${k.name},');
+      });
+      fail(msg.toString());
+    }
+    if (!_equalSets(expectedKeywords, actualKeywords)) {
+      StringBuffer msg = new StringBuffer();
+      msg.writeln('Expected:');
+      _appendKeywords(msg, expectedKeywords);
+      msg.writeln('but found:');
+      _appendKeywords(msg, actualKeywords);
+      fail(msg.toString());
+    }
   }
 
   @override
@@ -40,25 +68,32 @@ class KeywordComputerTest extends AbstractCompletionTest {
     addTestSource('class A {} ^');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
-        ['abstract', 'class', 'const', 'final', 'typedef', 'var']);
+        [
+            Keyword.ABSTRACT,
+            Keyword.CLASS,
+            Keyword.CONST,
+            Keyword.FINAL,
+            Keyword.TYPEDEF,
+            Keyword.VAR]);
   }
 
   test_before_import() {
     addTestSource('^ import foo;');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(['export', 'import', 'library', 'part']);
+    assertSuggestKeywords(
+        [Keyword.EXPORT, Keyword.IMPORT, Keyword.LIBRARY, Keyword.PART]);
   }
 
   test_class() {
     addTestSource('class A ^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(['extends', 'implements']);
+    assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS]);
   }
 
   test_class_extends() {
     addTestSource('class A extends foo ^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(['implements', 'with']);
+    assertSuggestKeywords([Keyword.IMPLEMENTS, Keyword.WITH]);
   }
 
   test_class_extends_name() {
@@ -70,7 +105,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
   test_class_implements() {
     addTestSource('class A ^ implements foo');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(['extends']);
+    assertSuggestKeywords([Keyword.EXTENDS]);
   }
 
   test_class_implements_name() {
@@ -96,16 +131,59 @@ class KeywordComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [
-            'abstract',
-            'class',
-            'const',
-            'export',
-            'final',
-            'import',
-            'library',
-            'part',
-            'typedef',
-            'var']);
+            Keyword.ABSTRACT,
+            Keyword.CLASS,
+            Keyword.CONST,
+            Keyword.EXPORT,
+            Keyword.FINAL,
+            Keyword.IMPORT,
+            Keyword.LIBRARY,
+            Keyword.PART,
+            Keyword.TYPEDEF,
+            Keyword.VAR]);
+  }
+
+  test_function_body() {
+    addTestSource('main() {^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [
+            Keyword.ASSERT,
+            Keyword.CASE,
+            Keyword.CONTINUE,
+            Keyword.DO,
+            Keyword.FACTORY,
+            Keyword.FINAL,
+            Keyword.FOR,
+            Keyword.IF,
+            Keyword.NEW,
+            Keyword.RETHROW,
+            Keyword.RETURN,
+            Keyword.SUPER,
+            Keyword.SWITCH,
+            Keyword.THIS,
+            Keyword.THROW,
+            Keyword.TRY,
+            Keyword.VAR,
+            Keyword.VOID,
+            Keyword.WHILE]);
+  }
+
+  test_in_class() {
+    addTestSource('class A {^}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [
+            Keyword.CONST,
+            Keyword.DYNAMIC,
+            Keyword.FACTORY,
+            Keyword.FINAL,
+            Keyword.GET,
+            Keyword.OPERATOR,
+            Keyword.SET,
+            Keyword.STATIC,
+            Keyword.VAR,
+            Keyword.VOID]);
   }
 
   test_library() {
@@ -113,19 +191,51 @@ class KeywordComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [
-            'abstract',
-            'class',
-            'const',
-            'export',
-            'final',
-            'import',
-            'part',
-            'typedef',
-            'var']);
+            Keyword.ABSTRACT,
+            Keyword.CLASS,
+            Keyword.CONST,
+            Keyword.EXPORT,
+            Keyword.FINAL,
+            Keyword.IMPORT,
+            Keyword.PART,
+            Keyword.TYPEDEF,
+            Keyword.VAR]);
   }
 
   test_library_name() {
     addTestSource('library ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_method_body() {
+    addTestSource('class A { foo() {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [
+            Keyword.ASSERT,
+            Keyword.CASE,
+            Keyword.CONTINUE,
+            Keyword.DO,
+            Keyword.FACTORY,
+            Keyword.FINAL,
+            Keyword.FOR,
+            Keyword.IF,
+            Keyword.NEW,
+            Keyword.RETHROW,
+            Keyword.RETURN,
+            Keyword.SUPER,
+            Keyword.SWITCH,
+            Keyword.THIS,
+            Keyword.THROW,
+            Keyword.TRY,
+            Keyword.VAR,
+            Keyword.VOID,
+            Keyword.WHILE]);
+  }
+
+  test_named_constructor_invocation() {
+    addTestSource('void main() {new Future.^}');
     expect(computeFast(), isTrue);
     assertSuggestKeywords([]);
   }
@@ -135,15 +245,15 @@ class KeywordComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [
-            'abstract',
-            'class',
-            'const',
-            'export',
-            'final',
-            'import',
-            'part',
-            'typedef',
-            'var']);
+            Keyword.ABSTRACT,
+            Keyword.CLASS,
+            Keyword.CONST,
+            Keyword.EXPORT,
+            Keyword.FINAL,
+            Keyword.IMPORT,
+            Keyword.PART,
+            Keyword.TYPEDEF,
+            Keyword.VAR]);
   }
 
   test_partial_class() {
@@ -151,16 +261,16 @@ class KeywordComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [
-            'abstract',
-            'class',
-            'const',
-            'export',
-            'final',
-            'import',
-            'library',
-            'part',
-            'typedef',
-            'var']);
+            Keyword.ABSTRACT,
+            Keyword.CLASS,
+            Keyword.CONST,
+            Keyword.EXPORT,
+            Keyword.FINAL,
+            Keyword.IMPORT,
+            Keyword.LIBRARY,
+            Keyword.PART,
+            Keyword.TYPEDEF,
+            Keyword.VAR]);
   }
 
   test_partial_class2() {
@@ -168,14 +278,27 @@ class KeywordComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
         [
-            'abstract',
-            'class',
-            'const',
-            'export',
-            'final',
-            'import',
-            'part',
-            'typedef',
-            'var']);
+            Keyword.ABSTRACT,
+            Keyword.CLASS,
+            Keyword.CONST,
+            Keyword.EXPORT,
+            Keyword.FINAL,
+            Keyword.IMPORT,
+            Keyword.PART,
+            Keyword.TYPEDEF,
+            Keyword.VAR]);
+  }
+
+  void _appendKeywords(StringBuffer msg, Iterable<Keyword> keywords) {
+    List<Keyword> sorted = keywords.toList();
+    sorted.sort((k1, k2) => k1.name.compareTo(k2.name));
+    sorted.forEach((k) => msg.writeln('  Keyword.${k.name},'));
+  }
+
+  bool _equalSets(Iterable<Keyword> iter1, Iterable<Keyword> iter2) {
+    if (iter1.length != iter2.length) return false;
+    if (iter1.any((k) => !iter2.contains(k))) return false;
+    if (iter2.any((k) => !iter1.contains(k))) return false;
+    return true;
   }
 }

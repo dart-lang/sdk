@@ -73,9 +73,7 @@ class DartCompletionManager extends CompletionManager {
     CompilationUnit unit = context.parseCompilationUnit(source);
     request.unit = unit;
     request.node = new NodeLocator.con1(offset).searchWithin(unit);
-    if (request.node != null) {
-      request.node.accept(new _ReplacementOffsetBuilder(request));
-    }
+    request.node.accept(new _ReplacementOffsetBuilder(request));
     computers.removeWhere((DartCompletionComputer c) => c.computeFast(request));
     sendResults(computers.isEmpty);
   }
