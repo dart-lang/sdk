@@ -1316,7 +1316,7 @@ abstract class Compiler implements DiagnosticListener {
     Selector.canonicalizedValues.clear();
     TypedSelector.canonicalizedValues.clear();
 
-    assert(uri != null || analyzeOnly);
+    assert(uri != null || analyzeOnly || hasIncrementalSupport);
     return new Future.sync(() {
       if (librariesToAnalyzeWhenRun != null) {
         return Future.forEach(librariesToAnalyzeWhenRun, (libraryUri) {
@@ -2001,6 +2001,8 @@ class CompilerTask {
 
   String get name => 'Unknown task';
   int get timing => (watch != null) ? watch.elapsedMilliseconds : 0;
+
+  int get timingMicroseconds => (watch != null) ? watch.elapsedMicroseconds : 0;
 
   UserTag getProfilerTag() {
     if (profilerTag == null) profilerTag = new UserTag(name);
