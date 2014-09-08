@@ -63,10 +63,9 @@ class _AsyncRun {
         JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)',
             div, div, span, div, span);
       };
-
+    } else if (JS('', 'self.setImmediate') != null) {
+      return _scheduleImmediateWithSetImmediate;
     }
-    // TODO(9002): don't use the Timer to enqueue the immediate callback.
-    // Also check for other JS options like setImmediate.
     // TODO(20055): We should use DOM promises when available.
     return _scheduleImmediateWithTimer;
   }
@@ -78,6 +77,16 @@ class _AsyncRun {
     };
     enterJsAsync();
     JS('void', 'self.scheduleImmediate(#)',
+       convertDartClosureToJS(internalCallback, 0));
+  }
+
+  static void _scheduleImmediateWithSetImmediate(void callback()) {
+    internalCallback() {
+      leaveJsAsync();
+      callback();
+    };
+    enterJsAsync();
+    JS('void', 'self.setImmediate(#)',
        convertDartClosureToJS(internalCallback, 0));
   }
 
