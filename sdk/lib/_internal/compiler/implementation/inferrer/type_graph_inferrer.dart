@@ -68,6 +68,19 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     nonNullEmptyType = getConcreteTypeFor(const TypeMask.nonNullEmpty());
   }
 
+  /// Used to group [TypeInformation] nodes by the element that triggered their
+  /// creation.
+  MemberTypeInformation _currentMember = null;
+  MemberTypeInformation get currentMember => _currentMember;
+
+  void withMember(MemberElement element, action) {
+    assert(invariant(element, _currentMember == null,
+        message: "Already constructing graph for $_currentMember."));
+    _currentMember = getInferredTypeOf(element);
+    action();
+    _currentMember = null;
+  }
+
   TypeInformation nullTypeCache;
   TypeInformation get nullType {
     if (nullTypeCache != null) return nullTypeCache;
@@ -254,7 +267,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   ElementTypeInformation getInferredTypeOf(Element element) {
     element = element.implementation;
     return typeInformations.putIfAbsent(element, () {
-      return new ElementTypeInformation(element);
+      return new ElementTypeInformation(currentMember, element);
     });
   }
 
@@ -319,16 +332,17 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     ContainerTypeMask mask = new ContainerTypeMask(
         type.type, node, enclosing, elementTypeMask, inferredLength);
     ElementInContainerTypeInformation element =
-        new ElementInContainerTypeInformation(elementType);
+        new ElementInContainerTypeInformation(currentMember, elementType);
     element.inferred = isElementInferred;
 
     allocatedTypes.add(element);
     return allocatedLists[node] =
-        new ListTypeInformation(mask, element, length);
+        new ListTypeInformation(currentMember, mask, element, length);
   }
 
   TypeInformation allocateClosure(ast.Node node, Element element) {
-    TypeInformation result = new ClosureTypeInformation(node, element);
+    TypeInformation result =
+        new ClosureTypeInformation(currentMember, node, element);
     allocatedClosures.add(result);
     return result;
   }
@@ -356,13 +370,15 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
                                        keyType,
                                        valueType);
 
-    TypeInformation keyTypeInfo = new KeyInMapTypeInformation(null);
-    TypeInformation valueTypeInfo = new ValueInMapTypeInformation(null);
+    TypeInformation keyTypeInfo =
+        new KeyInMapTypeInformation(currentMember, null);
+    TypeInformation valueTypeInfo =
+        new ValueInMapTypeInformation(currentMember, null);
     allocatedTypes.add(keyTypeInfo);
     allocatedTypes.add(valueTypeInfo);
 
     MapTypeInformation map =
-        new MapTypeInformation(mask, keyTypeInfo, valueTypeInfo);
+        new MapTypeInformation(currentMember, mask, keyTypeInfo, valueTypeInfo);
 
     for (int i = 0; i < keyTypes.length; ++i) {
       TypeInformation newType =
@@ -390,7 +406,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   TypeInformation allocateDiamondPhi(TypeInformation firstInput,
                                      TypeInformation secondInput) {
     PhiElementTypeInformation result =
-        new PhiElementTypeInformation(null, false, null);
+        new PhiElementTypeInformation(currentMember, null, false, null);
     result.addAssignment(firstInput);
     result.addAssignment(secondInput);
     allocatedTypes.add(result);
@@ -408,7 +424,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       return inputType;
     }
     PhiElementTypeInformation result =
-        new PhiElementTypeInformation(node, true, variable);
+        new PhiElementTypeInformation(currentMember, node, true, variable);
     allocatedTypes.add(result);
     result.addAssignment(inputType);
     return result;
@@ -582,10 +598,9 @@ class TypeGraphInferrerEngine
         compiler.log('Added $addedInGraph elements in inferencing graph.');
         compiler.progress.reset();
       }
-      // Force the creation of the [ElementTypeInformation] to ensure it is
-      // in the graph.
-      types.getInferredTypeOf(element);
-      analyze(element, null);
+      // This also forces the creation of the [ElementTypeInformation] to ensure
+      // it is in the graph.
+      types.withMember(element, () => analyze(element, null));
     });
     compiler.log('Added $addedInGraph elements in inferencing graph.');
 
@@ -946,7 +961,7 @@ class TypeGraphInferrerEngine
    */
   TypeInformation getDefaultTypeOfParameter(Element parameter) {
     return defaultTypeOfParameter.putIfAbsent(parameter, () {
-      return new PlaceholderTypeInformation();
+      return new PlaceholderTypeInformation(types.currentMember);
     });
   }
 
@@ -1018,7 +1033,8 @@ class TypeGraphInferrerEngine
                                         SideEffects sideEffects,
                                         bool inLoop) {
     CallSiteTypeInformation info = new StaticCallSiteTypeInformation(
-          node, caller, callee, selector, arguments, inLoop);
+          types.currentMember, node, caller, callee, selector, arguments,
+          inLoop);
     info.addToGraph(this);
     allocatedCalls.add(info);
     updateSideEffects(sideEffects, selector, callee);
@@ -1042,7 +1058,8 @@ class TypeGraphInferrerEngine
     });
 
     CallSiteTypeInformation info = new DynamicCallSiteTypeInformation(
-          node, caller, selector, receiverType, arguments, inLoop);
+          types.currentMember, node, caller, selector, receiverType, arguments,
+          inLoop);
 
     info.addToGraph(this);
     allocatedCalls.add(info);
@@ -1059,7 +1076,8 @@ class TypeGraphInferrerEngine
     sideEffects.setDependsOnSomething();
     sideEffects.setAllSideEffects();
     CallSiteTypeInformation info = new ClosureCallSiteTypeInformation(
-          node, caller, selector, closure, arguments, inLoop);
+          types.currentMember, node, caller, selector, closure, arguments,
+          inLoop);
     info.addToGraph(this);
     allocatedCalls.add(info);
     return info;

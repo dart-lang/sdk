@@ -971,7 +971,7 @@ abstract class ExecutableElement extends Element
   MemberElement get memberContext;
 }
 
-/// A top-level or static field or method, or a constructor.
+/// A top-level, static or instance field or method, or a constructor.
 ///
 /// A [MemberElement] is the outermost executable element for any executable
 /// context.
