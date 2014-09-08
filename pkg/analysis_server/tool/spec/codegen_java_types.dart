@@ -688,7 +688,8 @@ final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
           // configure accessors
           bool generateGetters = true;
           bool generateSetters = false;
-          if (isRefactoringOption) {
+          if (isRefactoringOption ||
+              typeNameInSpec == 'RefactoringMethodParameter') {
             generateSetters = true;
           }
           // create the visitor
