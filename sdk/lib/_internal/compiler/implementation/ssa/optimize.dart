@@ -634,6 +634,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // raw type.
     } else if (!RuntimeTypes.hasTypeArguments(type)) {
       TypeMask expressionMask = expression.instructionType;
+      assert(TypeMask.isNormalized(expressionMask, classWorld));
       TypeMask typeMask = (element == compiler.nullClass)
           ? new TypeMask.subtype(element, classWorld)
           : new TypeMask.nonNullSubtype(element, classWorld);
