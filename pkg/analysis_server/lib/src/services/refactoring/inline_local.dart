@@ -47,7 +47,18 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
 
   @override
   int get referenceCount {
+    if (_references == null) {
+      return 0;
+    }
     return _references.length;
+  }
+
+  @override
+  String get variableName {
+    if (_variableElement == null) {
+      return null;
+    }
+    return _variableElement.name;
   }
 
   @override

@@ -194,6 +194,7 @@ main() {
     expect(refactoring.refactoringName, 'Inline Local Variable');
     // check initial conditions and access
     return refactoring.checkInitialConditions().then((_) {
+      expect(refactoring.variableName, 'test');
       expect(refactoring.referenceCount, 2);
     });
   }
@@ -278,6 +279,8 @@ main() {
   }
 
   void _assert_fatalError_selection(RefactoringStatus status) {
+    expect(refactoring.variableName, isNull);
+    expect(refactoring.referenceCount, 0);
     assertRefactoringStatus(
         status,
         RefactoringProblemSeverity.FATAL,

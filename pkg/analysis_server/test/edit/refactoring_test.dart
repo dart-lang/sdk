@@ -538,6 +538,23 @@ main() {
 ''');
   }
 
+  test_feedback() {
+    addTestFile('''
+main() {
+  int test = 42;
+  print(test);
+  print(test);
+}
+''');
+    return getRefactoringResult(() {
+      return _sendInlineRequest('test =');
+    }).then((result) {
+      InlineLocalVariableFeedback feedback = result.feedback;
+      expect(feedback.name, 'test');
+      expect(feedback.occurrences, 2);
+    });
+  }
+
   test_init_fatalError_notVariable() {
     addTestFile('main() {}');
     return getRefactoringResult(() {

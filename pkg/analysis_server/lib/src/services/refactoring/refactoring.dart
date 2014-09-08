@@ -195,6 +195,11 @@ abstract class InlineLocalRefactoring implements Refactoring {
    * Returns the number of references to the [VariableElement].
    */
   int get referenceCount;
+
+  /**
+   * Returns the name of the variable being inlined.
+   */
+  String get variableName;
 }
 
 

@@ -321,6 +321,14 @@ class _RefactoringManager {
         feedback.offsets = refactoring.offsets;
         feedback.lengths = refactoring.lengths;
       }
+      if (refactoring is InlineLocalRefactoring) {
+        InlineLocalRefactoring refactoring = this.refactoring;
+        if (!status.hasFatalError) {
+          feedback = new InlineLocalVariableFeedback(
+              refactoring.variableName,
+              refactoring.referenceCount);
+        }
+      }
       if (refactoring is RenameRefactoring) {
         RenameRefactoring refactoring = this.refactoring;
         RenameFeedback feedback = this.feedback;
