@@ -291,6 +291,9 @@ async/deferred/deferred_in_isolate_test: Skip # Issue 17523
 # Dart vm does not support spawn from a dom-enabled isolate.
 async/deferred/deferred_in_isolate_test: RuntimeError # Issue 16209
 
+[ $compiler == dart2js && $runtime == jsshell ]
+async/schedule_microtask_test: Fail  # Preamble file does not correctly implement scheduleImmediate.
+
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 mirrors/generic_f_bounded_mixin_application_test: StaticWarning # Test Issue
 
