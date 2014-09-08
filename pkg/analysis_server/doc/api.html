@@ -3093,12 +3093,29 @@ dt.typeDefinition {
           or part of the name of a single method.
         </p>
         
-      <h4>Feedback</h4><p>none</p><h4>Options</h4><dl><dt class="field"><b><i>deleteSource ( bool )</i></b></dt><dd>
+        
+      <h4>Feedback</h4><dl><dt class="field"><b><i>className ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
             
             <p>
-              True if the method being inlined should be removed. It
-              is an error if this field is true and inlineAll is
-              false.
+              The name of the class enclosing the method being inlined.
+              If not a class member is being inlined, this field will be absent.
+            </p>
+          </dd><dt class="field"><b><i>methodName ( String )</i></b></dt><dd>
+            
+            <p>
+              The name of the method (or function) being inlined.
+            </p>
+          </dd><dt class="field"><b><i>isDeclaration ( bool )</i></b></dt><dd>
+            
+            <p>
+              True if the declaration of the method is selected.
+              So all references should be inlined.
+            </p>
+          </dd></dl><h4>Options</h4><dl><dt class="field"><b><i>deleteSource ( bool )</i></b></dt><dd>
+            
+            <p>
+              True if the method being inlined should be removed.
+              It is an error if this field is true and inlineAll is false.
             </p>
           </dd><dt class="field"><b><i>inlineAll ( bool )</i></b></dt><dd>
             

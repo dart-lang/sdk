@@ -9670,21 +9670,93 @@ class InlineLocalVariableOptions {
     return 540364977;
   }
 }
+
 /**
  * inlineMethod feedback
+ *
+ * {
+ *   "className": optional String
+ *   "methodName": String
+ *   "isDeclaration": bool
+ * }
  */
-class InlineMethodFeedback {
+class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
+  /**
+   * The name of the class enclosing the method being inlined. If not a class
+   * member is being inlined, this field will be absent.
+   */
+  String className;
+
+  /**
+   * The name of the method (or function) being inlined.
+   */
+  String methodName;
+
+  /**
+   * True if the declaration of the method is selected. So all references
+   * should be inlined.
+   */
+  bool isDeclaration;
+
+  InlineMethodFeedback(this.methodName, this.isDeclaration, {this.className});
+
+  factory InlineMethodFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String className;
+      if (json.containsKey("className")) {
+        className = jsonDecoder._decodeString(jsonPath + ".className", json["className"]);
+      }
+      String methodName;
+      if (json.containsKey("methodName")) {
+        methodName = jsonDecoder._decodeString(jsonPath + ".methodName", json["methodName"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "methodName");
+      }
+      bool isDeclaration;
+      if (json.containsKey("isDeclaration")) {
+        isDeclaration = jsonDecoder._decodeBool(jsonPath + ".isDeclaration", json["isDeclaration"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "isDeclaration");
+      }
+      return new InlineMethodFeedback(methodName, isDeclaration, className: className);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "inlineMethod feedback");
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    if (className != null) {
+      result["className"] = className;
+    }
+    result["methodName"] = methodName;
+    result["isDeclaration"] = isDeclaration;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
   @override
   bool operator==(other) {
     if (other is InlineMethodFeedback) {
-      return true;
+      return className == other.className &&
+          methodName == other.methodName &&
+          isDeclaration == other.isDeclaration;
     }
     return false;
   }
 
   @override
   int get hashCode {
-    return 882400079;
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, className.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, methodName.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, isDeclaration.hashCode);
+    return _JenkinsSmiHash.finish(hash);
   }
 }
 

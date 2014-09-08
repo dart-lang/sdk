@@ -3180,13 +3180,34 @@
           It is an error if the range contains anything other than all
           or part of the name of a single method.
         </p>
+        <feedback>
+          <field name="className" optional="true">
+            <ref>String</ref>
+            <p>
+              The name of the class enclosing the method being inlined.
+              If not a class member is being inlined, this field will be absent.
+            </p>
+          </field>
+          <field name="methodName">
+            <ref>String</ref>
+            <p>
+              The name of the method (or function) being inlined.
+            </p>
+          </field>
+          <field name="isDeclaration">
+            <ref>bool</ref>
+            <p>
+              True if the declaration of the method is selected.
+              So all references should be inlined.
+            </p>
+          </field>
+        </feedback>
         <options>
           <field name="deleteSource">
             <ref>bool</ref>
             <p>
-              True if the method being inlined should be removed. It
-              is an error if this field is true and inlineAll is
-              false.
+              True if the method being inlined should be removed.
+              It is an error if this field is true and inlineAll is false.
             </p>
           </field>
           <field name="inlineAll">

@@ -1906,8 +1906,20 @@ final Matcher isInlineLocalVariableOptions = isNull;
 
 /**
  * inlineMethod feedback
+ *
+ * {
+ *   "className": optional String
+ *   "methodName": String
+ *   "isDeclaration": bool
+ * }
  */
-final Matcher isInlineMethodFeedback = isNull;
+final Matcher isInlineMethodFeedback = new LazyMatcher(() => new MatchesJsonObject(
+  "inlineMethod feedback", {
+    "methodName": isString,
+    "isDeclaration": isBool
+  }, optionalFields: {
+    "className": isString
+  }));
 
 /**
  * inlineMethod options
