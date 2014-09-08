@@ -2,9 +2,9 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
-#### 0.13.1-dev
+#### 0.13.1
   * Upgraded error messages to have a unique and stable identifier. This
-    requires a version of `code_transformers` newer than `0.2.2-dev`.
+    requires a version of `code_transformers` newer than `0.2.3`.
   * Upgraded minimum version constraint on 'args' to '0.11.0'.
 
 #### 0.13.0+3

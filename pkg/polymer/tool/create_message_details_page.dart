@@ -127,7 +127,7 @@ const _SITE_HEADER = '''
 #
 #     dart tool/create_message_details_page.dart -s -o path_to_this_file
 layout: default
-title: "Error messages"
+title: "Error Messages"
 subsite: "Polymer.dart"
 description: "Details about error messages from polymer and related packages."
 ---

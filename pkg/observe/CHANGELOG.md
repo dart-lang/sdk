@@ -1,4 +1,4 @@
-#### 0.12.1-dev
+#### 0.12.1
   * Upgraded error messages to have a unique and stable identifier.
 
 #### 0.12.0

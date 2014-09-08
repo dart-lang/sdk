@@ -1,4 +1,4 @@
-## 0.2.3-dev
+## 0.2.3
 
 * Added support for logging stable error messages from transformers.
 
