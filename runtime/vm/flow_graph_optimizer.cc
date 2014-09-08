@@ -8488,8 +8488,31 @@ void ConstantPropagator::VisitBinaryDoubleOp(
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
-    // TODO(kmillikin): Handle binary operation.
-    SetValue(instr, non_constant_);
+    ASSERT(left.IsSmi() || left.IsDouble());
+    ASSERT(right.IsSmi() || right.IsDouble());
+    double left_val = left.IsSmi()
+        ? Smi::Cast(left).AsDoubleValue() : Double::Cast(left).value();
+    double right_val = right.IsSmi()
+        ? Smi::Cast(right).AsDoubleValue() : Double::Cast(right).value();
+    double result_val = 0.0;
+    switch (instr->op_kind()) {
+      case Token::kADD:
+        result_val = left_val + right_val;
+        break;
+      case Token::kSUB:
+        result_val = left_val - right_val;
+        break;
+      case Token::kMUL:
+        result_val = left_val * right_val;
+        break;
+      case Token::kDIV:
+        result_val = left_val / right_val;
+        break;
+      default:
+        UNREACHABLE();
+    }
+    const Double& result = Double::ZoneHandle(Double::NewCanonical(result_val));
+    SetValue(instr, result);
   }
 }
 
