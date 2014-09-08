@@ -26,6 +26,8 @@ Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
 
 LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
 
+LibTest/core/DateTime/DateTime.now_A01_t02: Pass, Fail # co19 issue 709
+
 LibTest/isolate/Isolate/spawnUri_A01_t02: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A01_t03: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Dart issue 15617
