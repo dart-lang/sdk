@@ -13,6 +13,8 @@ import '../elements/elements.dart';
 import '../js_emitter/js_emitter.dart'
     show Emitter, CodeEmitterTask, ClassBuilder, MetadataEmitter;
 
+import '../../js_lib/shared/embedded_names.dart' as embeddedNames;
+
 import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../js/js.dart' as jsAst;

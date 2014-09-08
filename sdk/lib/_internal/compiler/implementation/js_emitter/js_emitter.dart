@@ -74,6 +74,8 @@ import '../deferred_load.dart' show
 
 import '../runtime_data.dart' as encoding;
 
+import '../../js_lib/shared/embedded_names.dart' as embeddedNames;
+
 part 'class_builder.dart';
 part 'class_emitter.dart';
 part 'code_emitter_helper.dart';

@@ -1066,7 +1066,7 @@ class SimpleTypeInferrerVisitor<T>
     Selector selector = elements.getSelector(node);
     String name = selector.name;
     handleStaticSend(node, selector, elements[node], arguments);
-    if (name == 'JS') {
+    if (name == 'JS' || name == 'JS_EMBEDDED_GLOBAL') {
       native.NativeBehavior nativeBehavior =
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
       sideEffects.add(nativeBehavior.sideEffects);
