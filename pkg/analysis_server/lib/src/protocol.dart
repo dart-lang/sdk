@@ -418,6 +418,9 @@ RefactoringFeedback _refactoringFeedbackFromJson(JsonDecoder jsonDecoder,
   if (kind == RefactoringKind.EXTRACT_METHOD) {
     return new ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
+  if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
+    return new InlineLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
+  }
   if (kind == RefactoringKind.RENAME) {
     return new RenameFeedback.fromJson(jsonDecoder, jsonPath, json);
   }

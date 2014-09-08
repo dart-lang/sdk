@@ -9581,21 +9581,76 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
     return _JenkinsSmiHash.finish(hash);
   }
 }
+
 /**
  * inlineLocalVariable feedback
+ *
+ * {
+ *   "name": String
+ *   "occurrences": int
+ * }
  */
-class InlineLocalVariableFeedback {
+class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
+  /**
+   * The name of the variable being inlined.
+   */
+  String name;
+
+  /**
+   * The number of times the variable occurs.
+   */
+  int occurrences;
+
+  InlineLocalVariableFeedback(this.name, this.occurrences);
+
+  factory InlineLocalVariableFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "name");
+      }
+      int occurrences;
+      if (json.containsKey("occurrences")) {
+        occurrences = jsonDecoder._decodeInt(jsonPath + ".occurrences", json["occurrences"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "occurrences");
+      }
+      return new InlineLocalVariableFeedback(name, occurrences);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "inlineLocalVariable feedback");
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    result["occurrences"] = occurrences;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
   @override
   bool operator==(other) {
     if (other is InlineLocalVariableFeedback) {
-      return true;
+      return name == other.name &&
+          occurrences == other.occurrences;
     }
     return false;
   }
 
   @override
   int get hashCode {
-    return 247971243;
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, occurrences.hashCode);
+    return _JenkinsSmiHash.finish(hash);
   }
 }
 /**

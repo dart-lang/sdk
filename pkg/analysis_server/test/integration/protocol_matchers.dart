@@ -1887,8 +1887,17 @@ final Matcher isExtractMethodOptions = new LazyMatcher(() => new MatchesJsonObje
 
 /**
  * inlineLocalVariable feedback
+ *
+ * {
+ *   "name": String
+ *   "occurrences": int
+ * }
  */
-final Matcher isInlineLocalVariableFeedback = isNull;
+final Matcher isInlineLocalVariableFeedback = new LazyMatcher(() => new MatchesJsonObject(
+  "inlineLocalVariable feedback", {
+    "name": isString,
+    "occurrences": isInt
+  }));
 
 /**
  * inlineLocalVariable options

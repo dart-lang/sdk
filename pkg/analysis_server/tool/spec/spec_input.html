@@ -3156,6 +3156,20 @@
           It is an error if the range contains anything other than all
           or part of the name of a single local variable.
         </p>
+        <feedback>
+          <field name="name">
+            <ref>String</ref>
+            <p>
+              The name of the variable being inlined.
+            </p>
+          </field>
+          <field name="occurrences">
+            <ref>int</ref>
+            <p>
+              The number of times the variable occurs.
+            </p>
+          </field>
+        </feedback>
       </refactoring>
       <refactoring kind="INLINE_METHOD">
         <p>
