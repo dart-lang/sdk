@@ -1,3 +1,6 @@
+#### 0.12.1+1
+  * Expand stack_trace version constraint.
+
 #### 0.12.1
   * Upgraded error messages to have a unique and stable identifier.
 
