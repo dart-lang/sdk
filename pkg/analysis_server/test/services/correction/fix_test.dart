@@ -1024,7 +1024,6 @@ main() {
   }
 
   void test_importLibrarySdk_withTopLevelVariable() {
-    _ensureSdkMathLibraryResolved();
     _indexTestUnit('''
 main() {
   print(PI);
@@ -1041,7 +1040,6 @@ main() {
   }
 
   void test_importLibrarySdk_withType_invocationTarget() {
-    _ensureSdkAsyncLibraryResolved();
     _indexTestUnit('''
 main() {
   Future.wait(null);
@@ -1057,7 +1055,6 @@ main() {
   }
 
   void test_importLibrarySdk_withType_typeAnnotation() {
-    _ensureSdkAsyncLibraryResolved();
     _indexTestUnit('''
 main() {
   Future f = null;
@@ -1073,7 +1070,6 @@ main() {
   }
 
   void test_importLibrarySdk_withType_typeAnnotation_PrefixedIdentifier() {
-    _ensureSdkAsyncLibraryResolved();
     _indexTestUnit('''
 main() {
   Future.wait;
@@ -1811,22 +1807,6 @@ main() {
     if (expectedSuggestions != null) {
       expect(group.suggestions, unorderedEquals(expectedSuggestions));
     }
-  }
-
-  /**
-   * We search for elements only already resolved lbiraries, and we use
-   * `dart:async` elements in tests.
-   */
-  void _ensureSdkAsyncLibraryResolved() {
-    resolveLibraryUnit(addSource('/other.dart', 'import "dart:async";'));
-  }
-
-  /**
-   * We search for elements only already resolved lbiraries, and we use
-   * `dart:async` elements in tests.
-   */
-  void _ensureSdkMathLibraryResolved() {
-    resolveLibraryUnit(addSource('/other.dart', 'import "dart:math";'));
   }
 
   AnalysisError _findErrorToFix() {

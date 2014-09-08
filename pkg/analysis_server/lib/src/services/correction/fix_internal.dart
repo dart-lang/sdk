@@ -777,7 +777,7 @@ class FixProcessor {
       List<SdkLibrary> sdkLibraries = sdk.sdkLibraries;
       for (SdkLibrary sdkLibrary in sdkLibraries) {
         SourceFactory sdkSourceFactory = context.sourceFactory;
-        String libraryUri = 'dart:' + sdkLibrary.shortName;
+        String libraryUri = sdkLibrary.shortName;
         Source librarySource =
             sdkSourceFactory.resolveUri(unitSource, libraryUri);
         // prepare LibraryElement
