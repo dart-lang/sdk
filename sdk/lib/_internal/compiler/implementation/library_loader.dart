@@ -397,19 +397,6 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     });
   }
 
-  /// True if the uris are pointing to a library that is shared between dart2js
-  /// and the core libraries. By construction they must be imported into the
-  /// runtime, and, at the same time, into dart2js.
-  bool _isSharedDart2jsLibrary(Uri uri1, Uri uri2) {
-    if (uri1.scheme == 'dart' && uri2.scheme == 'dart') return false;
-    if (uri2.scheme == 'dart') return _isSharedDart2jsLibrary(uri2, uri1);
-    if (uri1.scheme != 'dart') return false;
-    List<String> segments = uri2.pathSegments;
-    if (segments.length < 2) return false;
-    if (segments[segments.length - 2] == 'shared') return true;
-    return false;
-  }
-
   void checkDuplicatedLibraryName(LibraryElement library) {
     Uri resourceUri = library.entryCompilationUnit.script.resourceUri;
     LibraryName tag = library.libraryTag;
@@ -417,16 +404,14 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         libraryResourceUriMap.putIfAbsent(resourceUri, () => library);
     if (!identical(existing, library)) {
       if (tag != null) {
-        if (!_isSharedDart2jsLibrary(resourceUri, existing.canonicalUri)) {
-          compiler.withCurrentElement(library, () {
-            compiler.reportWarning(tag.name,
-                MessageKind.DUPLICATED_LIBRARY_RESOURCE,
-                {'libraryName': tag.name,
-                 'resourceUri': resourceUri,
-                 'canonicalUri1': library.canonicalUri,
-                 'canonicalUri2': existing.canonicalUri});
-          });
-        }
+        compiler.withCurrentElement(library, () {
+          compiler.reportWarning(tag.name,
+              MessageKind.DUPLICATED_LIBRARY_RESOURCE,
+              {'libraryName': tag.name,
+               'resourceUri': resourceUri,
+               'canonicalUri1': library.canonicalUri,
+               'canonicalUri2': existing.canonicalUri});
+        });
       } else {
         compiler.reportHint(library,
             MessageKind.DUPLICATED_RESOURCE,

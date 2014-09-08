@@ -2922,8 +2922,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (target != null && target.isForeign(compiler.backend)) {
         if (selector.name == 'JS') {
           registry.registerJsCall(node, this);
-        } else if (selector.name == 'JS_EMBEDDED_GLOBAL') {
-          registry.registerJsEmbeddedGlobalCall(node, this);
         } else if (selector.name == 'JS_INTERCEPTOR_CONSTANT') {
           if (!node.argumentsNode.isEmpty) {
             Node argument = node.argumentsNode.nodes.head;

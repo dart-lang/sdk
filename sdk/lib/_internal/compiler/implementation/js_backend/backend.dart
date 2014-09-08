@@ -2038,15 +2038,13 @@ class JavaScriptBackend extends Backend {
 
   jsAst.Call generateIsJsIndexableCall(jsAst.Expression use1,
                                        jsAst.Expression use2) {
-    String dispatchPropertyName = embeddedNames.DISPATCH_PROPERTY_NAME;
-    jsAst.Expression dispatchProperty =
-        emitter.generateEmbeddedGlobalAccess(dispatchPropertyName);
+    String dispatchPropertyName = 'init.dispatchPropertyName';
 
     // We pass the dispatch property record to the isJsIndexable
     // helper rather than reading it inside the helper to increase the
     // chance of making the dispatch record access monomorphic.
-    jsAst.PropertyAccess record =
-        new jsAst.PropertyAccess(use2, dispatchProperty);
+    jsAst.PropertyAccess record = new jsAst.PropertyAccess(
+        use2, js(dispatchPropertyName));
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
     FunctionElement helper = findHelper('isJsIndexable');

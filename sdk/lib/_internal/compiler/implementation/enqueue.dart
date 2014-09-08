@@ -803,10 +803,6 @@ class ResolutionEnqueuer extends Enqueuer {
     nativeEnqueuer.registerJsCall(node, resolver);
   }
 
-  void registerJsEmbeddedGlobalCall(Send node, ResolverVisitor resolver) {
-    nativeEnqueuer.registerJsEmbeddedGlobalCall(node, resolver);
-  }
-
   void _logSpecificSummary(log(message)) {
     log('Resolved ${resolvedElements.length} elements.');
   }

@@ -3589,50 +3589,6 @@ class SsaBuilder extends ResolvedVisitor {
                 argument, string.dartString.slowToString())));
   }
 
-  void handleForeignJsEmbeddedGlobal(ast.Send node) {
-    List<ast.Node> arguments = node.arguments.toList();
-    ast.Node globalNameNode;
-    switch (arguments.length) {
-    case 0:
-    case 1:
-      compiler.reportError(
-          node, MessageKind.GENERIC,
-          {'text': 'Error: Expected two arguments to JS_EMBEDDED_GLOBAL.'});
-      return;
-    case 2:
-      // The type has been extracted earlier. We are only interested in the
-      // name in this function.
-      globalNameNode = arguments[1];
-      break;
-    default:
-      for (int i = 2; i < arguments.length; i++) {
-        compiler.reportError(
-            arguments[i], MessageKind.GENERIC,
-            {'text': 'Error: Extra argument to JS_EMBEDDED_GLOBAL.'});
-      }
-      return;
-    }
-    visit(arguments[1]);
-    HInstruction globalNameHNode = pop();
-    if (!globalNameHNode.isConstantString()) {
-      compiler.reportError(
-          arguments[1], MessageKind.GENERIC,
-          {'text': 'Error: Expected String as second argument '
-                   'to JS_EMBEDDED_GLOBAL.'});
-      return;
-    }
-    HConstant hConstant = globalNameHNode;
-    StringConstant constant = hConstant.constant;
-    String globalName = constant.value.slowToString();
-    js.Template expr = js.js.expressionTemplateYielding(
-        backend.emitter.generateEmbeddedGlobalAccess(globalName));
-    native.NativeBehavior nativeBehavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
-    TypeMask ssaType =
-        TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
-    push(new HForeign(expr, ssaType, const []));
-  }
-
   void handleJsInterceptorConstant(ast.Send node) {
     // Single argument must be a TypeConstant which is converted into a
     // InterceptorConstant.
@@ -3819,8 +3775,6 @@ class SsaBuilder extends ResolvedVisitor {
       handleForeignJsCurrentIsolate(node);
     } else if (name == 'JS_GET_NAME') {
       handleForeignJsGetName(node);
-    } else if (name == 'JS_EMBEDDED_GLOBAL') {
-      handleForeignJsEmbeddedGlobal(node);
     } else if (name == 'JS_GET_FLAG') {
       handleForeingJsGetFlag(node);
     } else if (name == 'JS_EFFECT') {

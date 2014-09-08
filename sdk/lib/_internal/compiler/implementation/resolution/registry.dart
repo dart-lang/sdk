@@ -268,12 +268,6 @@ class ResolutionRegistry extends Registry {
     world.registerJsCall(node, visitor);
   }
 
-  // TODO(johnniwinther): Remove the [ResolverVisitor] dependency. Its only
-  // needed to lookup types in the current scope.
-  void registerJsEmbeddedGlobalCall(Node node, ResolverVisitor visitor) {
-    world.registerJsEmbeddedGlobalCall(node, visitor);
-  }
-
   void registerGetOfStaticFunction(FunctionElement element) {
     world.registerGetOfStaticFunction(element);
   }
