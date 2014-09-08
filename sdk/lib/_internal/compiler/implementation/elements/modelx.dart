@@ -1236,6 +1236,11 @@ class FieldElementX extends VariableElementX
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
 
   MemberElement get memberContext => this;
+
+  void reuseElement() {
+    super.reuseElement();
+    nestedClosures.clear();
+  }
 }
 
 /// [Element] for a parameter-like element.
@@ -1592,6 +1597,11 @@ abstract class FunctionElementX extends BaseFunctionElementX
       : super(name, kind, modifiers, enclosing, hasNoBody);
 
   MemberElement get memberContext => this;
+
+  void reuseElement() {
+    super.reuseElement();
+    nestedClosures.clear();
+  }
 }
 
 class LocalFunctionElementX extends BaseFunctionElementX

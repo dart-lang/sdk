@@ -20,6 +20,8 @@ import 'util/util.dart' as util;
 
 import 'elements/elements.dart' as elements;
 
+import 'elements/modelx.dart' as modelx;
+
 import 'elements/visitor.dart' as elements_visitor;
 
 import 'js/js.dart' as js;
@@ -66,7 +68,7 @@ void main(List<String> arguments) {
   useSsa(null);
   useCodeBuffer(null);
   usedByTests();
-  useElements(null, null);
+  useElements(null, null, null);
   useIr(null, null);
   useCompiler(null);
 }
@@ -211,10 +213,11 @@ usedByTests() {
   sourceFileProvider.readStringFromUri(null);
 }
 
-useElements(elements.ClassElement e, elements.Name n) {
+useElements(elements.ClassElement e, elements.Name n, modelx.FieldElementX f) {
   e.lookupClassMember(null);
   e.lookupInterfaceMember(null);
   n.isAccessibleFrom(null);
+  f.reuseElement();
 }
 
 useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,

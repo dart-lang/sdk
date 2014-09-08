@@ -4917,6 +4917,10 @@ abstract class AnalyzableElementX implements AnalyzableElement {
         message: "TreeElements have not been computed for $this."));
     return _treeElements;
   }
+
+  void reuseElement() {
+    _treeElements = null;
+  }
 }
 
 /// The result of resolving a node.
