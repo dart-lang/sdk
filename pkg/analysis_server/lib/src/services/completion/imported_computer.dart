@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/element.dart';
  * A computer for calculating imported class and top level variable
  * `completion.getSuggestions` request results.
  */
-class ImportedTypeComputer extends DartCompletionComputer {
+class ImportedComputer extends DartCompletionComputer {
 
   @override
   bool computeFast(DartCompletionRequest request) {
@@ -30,7 +30,7 @@ class ImportedTypeComputer extends DartCompletionComputer {
 
   @override
   Future<bool> computeFull(DartCompletionRequest request) {
-    return request.node.accept(new _ImportedTypeVisitor(request));
+    return request.node.accept(new _ImportedVisitor(request));
   }
 }
 
@@ -38,10 +38,10 @@ class ImportedTypeComputer extends DartCompletionComputer {
  * A visitor for determining which imported class and top level variable
  * should be suggested and building those suggestions.
  */
-class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
+class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   final DartCompletionRequest request;
 
-  _ImportedTypeVisitor(this.request);
+  _ImportedVisitor(this.request);
 
   @override
   Future<bool> visitCombinator(Combinator node) {

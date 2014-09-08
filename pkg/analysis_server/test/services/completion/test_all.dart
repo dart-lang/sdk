@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'completion_computer_test.dart' as completion_computer_test;
 import 'completion_manager_test.dart' as completion_manager_test;
-import 'imported_type_computer_test.dart' as importedType_test;
+import 'imported_computer_test.dart' as imported_test;
 import 'invocation_computer_test.dart' as invocation_test;
 import 'keyword_computer_test.dart' as keyword_test;
 import 'local_computer_test.dart' as local_test;
@@ -19,7 +19,7 @@ main() {
   group('completion', () {
     completion_computer_test.main();
     completion_manager_test.main();
-    importedType_test.main();
+    imported_test.main();
     keyword_test.main();
     invocation_test.main();
     local_test.main();

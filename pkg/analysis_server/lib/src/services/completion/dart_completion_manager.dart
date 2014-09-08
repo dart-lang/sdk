@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/imported_type_computer.dart';
+import 'package:analysis_server/src/services/completion/imported_computer.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
 import 'package:analysis_server/src/services/completion/keyword_computer.dart';
 import 'package:analysis_server/src/services/completion/local_computer.dart';
@@ -110,7 +110,7 @@ class DartCompletionManager extends CompletionManager {
       computers = [
           new KeywordComputer(),
           new LocalComputer(),
-          new ImportedTypeComputer(),
+          new ImportedComputer(),
           new InvocationComputer()];
     }
   }

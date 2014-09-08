@@ -5,7 +5,7 @@
 library test.services.completion.toplevel;
 
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/services/completion/imported_type_computer.dart';
+import 'package:analysis_server/src/services/completion/imported_computer.dart';
 import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -22,7 +22,7 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
   @override
   void setUp() {
     super.setUp();
-    computer = new ImportedTypeComputer();
+    computer = new ImportedComputer();
   }
 
   test_class() {
