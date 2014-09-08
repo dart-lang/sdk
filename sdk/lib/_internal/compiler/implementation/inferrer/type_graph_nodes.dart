@@ -301,16 +301,15 @@ abstract class ElementTypeInformation extends TypeInformation {
   /// Marker to disable inference for closures in [handleSpecialCases].
   bool disableInferenceForClosures = true;
 
-  factory ElementTypeInformation(MemberTypeInformation context,
-                                 Element element) {
+  factory ElementTypeInformation(Element element, TypeInformationSystem types) {
     if (element.isParameter || element.isInitializingFormal) {
       ParameterElement parameter = element;
       if (parameter.functionDeclaration.isInstanceMember) {
-        return new ParameterTypeInformation._instanceMember(context, element);
+        return new ParameterTypeInformation._instanceMember(element, types);
       }
-      return new ParameterTypeInformation._internal(context, element);
+      return new ParameterTypeInformation._internal(element, types);
     }
-    return new MemberTypeInformation._internal(context, element);
+    return new MemberTypeInformation._internal(element);
   }
 
   ElementTypeInformation._internal(MemberTypeInformation context, this.element)
@@ -348,12 +347,8 @@ class MemberTypeInformation extends ElementTypeInformation
    */
   final Map<Element, Setlet<Spannable>> _callers = new Map<Element, Setlet>();
 
-  MemberTypeInformation._internal(MemberTypeInformation context,
-                                  Element element)
-      : super._internal(context, element) {
-    assert(invariant(element, context == null,
-        message: "MemberTypeInformation should not have a context."));
-  }
+  MemberTypeInformation._internal(Element element)
+      : super._internal(null, element);
 
   void addCall(Element caller, Spannable node) {
     assert(node is ast.Node || node is cps_ir.Node || node is Element);
@@ -486,14 +481,19 @@ class MemberTypeInformation extends ElementTypeInformation
  * the [ElementTypeInformation] factory.
  */
 class ParameterTypeInformation extends ElementTypeInformation {
-  ParameterTypeInformation._internal(MemberTypeInformation context,
-                                     ParameterElement element)
-      : super._internal(context, element) {
+  ParameterTypeInformation._internal(ParameterElement element,
+                                     TypeInformationSystem types)
+      : super._internal(types.getInferredTypeOf(element.functionDeclaration),
+                        element) {
     assert(!element.functionDeclaration.isInstanceMember);
   }
-  ParameterTypeInformation._instanceMember(MemberTypeInformation context,
-                                           ParameterElement element)
-      : super._withAssignments(context, element, new ParameterAssignments()) {
+
+  ParameterTypeInformation._instanceMember(ParameterElement element,
+                                           TypeInformationSystem types)
+      : super._withAssignments(
+          types.getInferredTypeOf(element.functionDeclaration),
+          element,
+          new ParameterAssignments()) {
     assert(element.functionDeclaration.isInstanceMember);
   }
 

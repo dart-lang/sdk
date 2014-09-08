@@ -267,7 +267,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   ElementTypeInformation getInferredTypeOf(Element element) {
     element = element.implementation;
     return typeInformations.putIfAbsent(element, () {
-      return new ElementTypeInformation(currentMember, element);
+      return new ElementTypeInformation(element, this);
     });
   }
 
