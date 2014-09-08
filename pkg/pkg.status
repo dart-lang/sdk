@@ -236,6 +236,7 @@ template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
 polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 polymer_expressions/test/syntax_test: Fail, Timeout, Pass # Issue 19138
+observe/test/list_path_observer_test: RuntimeError, Pass # Issue 20849
 
 [ $runtime == ie10 ]
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
