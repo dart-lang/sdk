@@ -37,10 +37,13 @@ main() {
   var res = test(1, 2);
 }
 ''');
-    _createRefactoring('test(a, b)');
+    _createRefactoring('test(1, 2)');
     // validate state
     return refactoring.checkInitialConditions().then((_) {
       expect(refactoring.refactoringName, 'Inline Function');
+      expect(refactoring.className, isNull);
+      expect(refactoring.methodName, 'test');
+      expect(refactoring.isDeclaration, isFalse);
     });
   }
 
@@ -59,6 +62,9 @@ class A {
     // validate state
     return refactoring.checkInitialConditions().then((_) {
       expect(refactoring.refactoringName, 'Inline Method');
+      expect(refactoring.className, 'A');
+      expect(refactoring.methodName, 'test');
+      expect(refactoring.isDeclaration, isTrue);
     });
   }
 

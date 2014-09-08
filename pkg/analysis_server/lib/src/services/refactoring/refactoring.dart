@@ -216,6 +216,12 @@ abstract class InlineMethodRefactoring implements Refactoring {
   }
 
   /**
+   * The name of the class enclosing the method being inlined.
+   * If not a class member is being inlined, then `null`.
+   */
+  String get className;
+
+  /**
    * True if the method being inlined should be removed.
    * It is an error if this field is `true` and [inlineAll] is `false`.
    */
@@ -226,6 +232,17 @@ abstract class InlineMethodRefactoring implements Refactoring {
    * the invocation site used to create this refactoring should be inlined.
    */
   void set inlineAll(bool inlineAll);
+
+  /**
+   * True if the declaration of the method is selected.
+   * So, all references should be inlined.
+   */
+  bool get isDeclaration;
+
+  /**
+   * The name of the method (or function) being inlined.
+   */
+  String get methodName;
 }
 
 

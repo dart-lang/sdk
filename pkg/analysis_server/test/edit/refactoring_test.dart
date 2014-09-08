@@ -584,6 +584,28 @@ main() {
 class InlineMethodTest extends _AbstractGetRefactoring_Test {
   InlineMethodOptions options = new InlineMethodOptions(true, true);
 
+  test_feedback() {
+    addTestFile('''
+class A {
+  int f;
+  test(int p) {
+    print(f + p);
+  }
+  main() {
+    test(1);
+  }
+}
+''');
+    return getRefactoringResult(() {
+      return _sendInlineRequest('test(int p)');
+    }).then((result) {
+      InlineMethodFeedback feedback = result.feedback;
+      expect(feedback.className, 'A');
+      expect(feedback.methodName, 'test');
+      expect(feedback.isDeclaration, isTrue);
+    });
+  }
+
   test_init_fatalError_noMethod() {
     addTestFile('// nothing to inline');
     return getRefactoringResult(() {

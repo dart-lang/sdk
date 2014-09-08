@@ -329,6 +329,15 @@ class _RefactoringManager {
               refactoring.referenceCount);
         }
       }
+      if (refactoring is InlineMethodRefactoring) {
+        InlineMethodRefactoring refactoring = this.refactoring;
+        if (!status.hasFatalError) {
+          feedback = new InlineMethodFeedback(
+              refactoring.methodName,
+              refactoring.isDeclaration,
+              className: refactoring.className);
+        }
+      }
       if (refactoring is RenameRefactoring) {
         RenameRefactoring refactoring = this.refactoring;
         RenameFeedback feedback = this.feedback;
