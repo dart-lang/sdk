@@ -27,7 +27,6 @@ mirrors/library_imports_shown_test: Fail
 
 [ $unchecked ]
 exit_code_test: Skip # This tests requires checked mode.
-type_mask2_test: Fail # dartbug.com/20861
 
 [ $checked ]
 deferred_mirrors_test: Pass, Slow
