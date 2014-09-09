@@ -584,11 +584,12 @@ TEST_CASE(Service_Objects) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("_vmName");
+  handler.filterMsg("size");
   EXPECT_STREQ(
       "{\"type\":\"bool\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/46\","
       "\"name\":\"bool\"},"
-      "\"size\":8,\"fields\":[],\"id\":\"objects\\/bool-true\","
+      "\"fields\":[],\"id\":\"objects\\/bool-true\","
       "\"valueAsString\":\"true\"}",
       handler.msg());
 
