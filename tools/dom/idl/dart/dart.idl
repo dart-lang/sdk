@@ -69,7 +69,7 @@ interface CharacterData {
   readonly attribute Element previousElementSibling;
 };
 
-[DartCallback]
+[Callback]
 interface TimeoutHandler {
   void handleEvent();
 };
@@ -253,7 +253,7 @@ interface Blob {
 interface WebKitPoint {
 };
 
-[DartSupplemental, DartCallback] // Add missing Callback attribute.
+[DartSupplemental, Callback] // Add missing Callback attribute.
 interface VoidCallback {
 };
 
@@ -262,9 +262,8 @@ interface SVGNumber {
 };
 
 // Keep it in to generate Dart code, C++ implementation is filterd out in generator.
-[
-  DartCallback
-] interface MutationCallback {
+[Callback]
+interface MutationCallback {
   [Custom] boolean handleEvent(MutationRecordArray mutations, MutationObserver observer);
 };
 

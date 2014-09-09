@@ -1550,7 +1550,8 @@ class DartiumBackend(HtmlDartGenerator):
         if isinstance(argument, IDLArgument):
           if IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument):
             return True
-          if argument.ext_attrs.get('Default') == 'NullString':
+          # argument default to null (e.g., DOMString arg = null).
+          if argument.default_value_is_null:
             return True
           if _IsOptionalStringArgumentInInitEventMethod(self._interface, node, argument):
             return True
@@ -1789,7 +1790,7 @@ class DartiumBackend(HtmlDartGenerator):
       return False
     if operation.id in ['addEventListener', 'removeEventListener'] and argument.id == 'useCapture':
       return False
-    if 'ForceOptional' in argument.ext_attrs:
+    if 'DartForceOptional' in argument.ext_attrs:
       return False
     if argument.type.id == 'Dictionary':
       return False
@@ -1997,5 +1998,5 @@ def _IsOptionalStringArgumentInInitEventMethod(interface, operation, argument):
   return (
       interface.id.endswith('Event') and
       operation.id.startswith('init') and
-      argument.ext_attrs.get('Default') == 'Undefined' and
+      argument.default_value == 'Undefined' and
       argument.type.id == 'DOMString')

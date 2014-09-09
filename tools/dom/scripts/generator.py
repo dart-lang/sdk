@@ -228,7 +228,7 @@ def _BuildArguments(args, interface, constructor=False):
       # FIXME: Optional constructors arguments should not be treated as
       # optional arguments.
       return argument.optional
-    if 'ForceOptional' in argument.ext_attrs:
+    if 'DartForceOptional' in argument.ext_attrs:
       return True
     return False
 
@@ -262,9 +262,13 @@ def _BuildArguments(args, interface, constructor=False):
 
   return result
 
+# Argument default value set (literal value or null).
+def HasDefault(argument):
+  return (argument.default_value != None) or argument.default_value_is_null
+
 def IsOptional(argument):
-  return argument.optional and ('Default' not in argument.ext_attrs)\
-      or 'ForceOptional' in argument.ext_attrs
+  return argument.optional and (not(HasDefault(argument))) \
+         or 'DartForceOptional' in argument.ext_attrs
 
 def AnalyzeOperation(interface, operations):
   """Makes operation calling convention decision for a set of overloads.

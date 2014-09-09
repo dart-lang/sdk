@@ -223,7 +223,7 @@ class DatabaseBuilder(object):
       idl_node.reset_id(strip_modules(idl_node.id))
 
     def rename_ext_attrs(ext_attrs_node):
-      for type_valued_attribute_name in ['Supplemental']:
+      for type_valued_attribute_name in ['DartSupplemental']:
         if type_valued_attribute_name in ext_attrs_node:
           value = ext_attrs_node[type_valued_attribute_name]
           if isinstance(value, str):

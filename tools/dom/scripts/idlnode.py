@@ -619,7 +619,7 @@ class IDLInterface(IDLNode):
       self.ext_attrs['Callback'] = None
     if not (self._find_first(ast, 'Partial') is None):
       self.is_supplemental = True
-      self.ext_attrs['Supplemental'] = None
+      self.ext_attrs['DartSupplemental'] = None
 
     self.operations = self._convert_all(ast, 'Operation',
       lambda ast: IDLOperation(ast, self.doc_js_name))
@@ -627,7 +627,7 @@ class IDLInterface(IDLNode):
       lambda ast: IDLAttribute(ast, self.doc_js_name))
     self.constants = self._convert_all(ast, 'Const',
       lambda ast: IDLConstant(ast, self.doc_js_name))
-    self.is_supplemental = 'Supplemental' in self.ext_attrs
+    self.is_supplemental = 'DartSupplemental' in self.ext_attrs
     self.is_no_interface_object = 'NoInterfaceObject' in self.ext_attrs
     # TODO(terry): Can eliminate Suppressed when we're only using blink parser.
     self.is_fc_suppressed = 'Suppressed' in self.ext_attrs or \
@@ -695,7 +695,7 @@ class IDLOperation(IDLMember):
       if self.specials == ['getter']:
         if self.ext_attrs.get('Custom') == 'PropertyQuery':
           # Handling __propertyQuery__ the extended attribute is:
-          # [Custom=PropertyQuery] legacycaller boolean (DOMString name);
+          # [Custom=PropertyQuery] getter boolean (DOMString name);
           self.id = '__propertyQuery__'
         else:
           self.id = '__getter__'
@@ -745,6 +745,21 @@ class IDLArgument(IDLNode):
   """IDLNode specialization for operation arguments."""
   def __init__(self, ast):
     IDLNode.__init__(self, ast)
+
+    self.default_value = None
+    self.default_value_is_null = False
+    # Handle the 'argType arg = default'. IDL syntax changed from
+    # [default=NullString].
+    if not isinstance(ast, list):
+      if isinstance(ast.default_value, idl_definitions.IdlLiteral) and ast.default_value:
+        self.default_value = ast.default_value.value
+        self.default_value_is_null = ast.default_value.is_null
+      elif 'Default' in ast.extended_attributes:
+        # Work around [Default=Undefined] for arguments - only look in the model's
+        # default_value
+        self.default_value = ast.extended_attributes.get('Default')
+        self.default_value_is_null = False
+
     self.type = self._convert_first(ast, 'Type', IDLType)
     self.optional = self._has(ast, 'Optional')
     self._convert_ext_attrs(ast)
