@@ -50,6 +50,13 @@
             </div>
           </template>
 
+          <template if="{{ instance.isString }}">
+            <div class="memberItem">
+              <div class="memberName">valueAsLiteral</div>
+              <div class="memberValue"> {{ asStringLiteral(instance.valueAsString, instance.valueAsStringIsTruncated) }}</div>
+            </div>
+          </template>
+
           <template if="{{ instance.isMirrorReference }}">
             <div class="memberItem">
               <div class="memberName">referent</div>

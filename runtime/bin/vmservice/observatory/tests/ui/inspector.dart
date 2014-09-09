@@ -43,8 +43,13 @@ var regex;
 var smi;
 var stacktrace;
 var string;
+var stringEscapedUnicodeEscape;
+var stringHebrew;
 var stringLatin1;
+var stringNewLinesAndTabs;
+var stringNullInTheMiddle;
 var stringSnowflake;
+var stringTrebleClefs;
 var stringUnicode;
 var theFalse;
 var theNull;
@@ -127,8 +132,13 @@ main() {
   smi = 7;
   stacktrace = genStacktrace();
   string = "Hello";
+  stringEscapedUnicodeEscape = "Should not be A: \\u0041";
+  stringHebrew = "שלום רב שובך צפורה נחמדת";  // Right-to-left text.
   stringLatin1 = "blåbærgrød";
+  stringNewLinesAndTabs = "One fish\ttwo fish\nRed fish\tBlue fish\n";
+  stringNullInTheMiddle = "There are four\u0000 words.";
   stringSnowflake = "❄";
+  stringTrebleClefs = "1𝄞2𝄞𝄞3𝄞𝄞𝄞";  // Surrogate pair.
   stringUnicode = "Îñţérñåţîöñåļîžåţîờñ";
   theFalse = false;
   theNull = null;

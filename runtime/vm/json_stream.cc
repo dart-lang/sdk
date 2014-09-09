@@ -217,6 +217,14 @@ void JSONStream::PrintValue(const char* s) {
 }
 
 
+void JSONStream::PrintValue(const char* s, intptr_t len) {
+  PrintCommaIfNeeded();
+  buffer_.AddChar('"');
+  AddEscapedUTF8String(s, len);
+  buffer_.AddChar('"');
+}
+
+
 void JSONStream::PrintValueNoEscape(const char* s) {
   PrintCommaIfNeeded();
   buffer_.Printf("%s", s);
@@ -299,6 +307,12 @@ void JSONStream::PrintProperty(const char* name, double d) {
 void JSONStream::PrintProperty(const char* name, const char* s) {
   PrintPropertyName(name);
   PrintValue(s);
+}
+
+
+void JSONStream::PrintProperty(const char* name, const char* s, intptr_t len) {
+  PrintPropertyName(name);
+  PrintValue(s, len);
 }
 
 
@@ -412,6 +426,14 @@ void JSONStream::AddEscapedUTF8String(const char* s) {
     return;
   }
   intptr_t len = strlen(s);
+  AddEscapedUTF8String(s, len);
+}
+
+
+void JSONStream::AddEscapedUTF8String(const char* s, intptr_t len) {
+  if (s == NULL) {
+    return;
+  }
   const uint8_t* s8 = reinterpret_cast<const uint8_t*>(s);
   intptr_t i = 0;
   for (; i < len; ) {

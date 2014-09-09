@@ -111,4 +111,28 @@ class ObservatoryElement extends PolymerElement {
   }
 
   int parseInt(String value) => int.parse(value);
+
+  String asStringLiteral(String value, [bool wasTruncated=false]) {
+    var result = new List();
+    result.add("'".codeUnitAt(0));
+    for (int codeUnit in value.codeUnits) {
+      if (codeUnit == '\n'.codeUnitAt(0)) result.addAll('\\n'.codeUnits);
+      else if (codeUnit == '\r'.codeUnitAt(0)) result.addAll('\\r'.codeUnits);
+      else if (codeUnit == '\f'.codeUnitAt(0)) result.addAll('\\f'.codeUnits);
+      else if (codeUnit == '\b'.codeUnitAt(0)) result.addAll('\\b'.codeUnits);
+      else if (codeUnit == '\t'.codeUnitAt(0)) result.addAll('\\t'.codeUnits);
+      else if (codeUnit == '\v'.codeUnitAt(0)) result.addAll('\\v'.codeUnits);
+      else if (codeUnit == '\$'.codeUnitAt(0)) result.addAll('\\\$'.codeUnits);
+      else if (codeUnit == '\\'.codeUnitAt(0)) result.addAll('\\\\'.codeUnits);
+      else if (codeUnit == "'".codeUnitAt(0)) result.addAll("'".codeUnits);
+      else if (codeUnit < 32) result.addAll("\\u$codeUnit".codeUnits);
+      else result.add(codeUnit);
+    }
+    if (wasTruncated) {
+      result.addAll("...".codeUnits);
+    } else {
+      result.add("'".codeUnitAt(0));
+    }
+    return new String.fromCharCodes(result);
+  }
 }

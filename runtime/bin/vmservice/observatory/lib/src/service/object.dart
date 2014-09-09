@@ -1226,7 +1226,7 @@ class DartError extends ServiceObject {
   @observable String kind;
   @observable String message;
   @observable Instance exception;
-  @observable ServiceMap stacktrace;
+  @observable Instance stacktrace;
 
   void _update(ObservableMap map, bool mapIsRef) {
     kind = map['kind'];
@@ -1509,6 +1509,7 @@ class Instance extends ServiceObject {
   @observable Class clazz;
   @observable int size;
   @observable String valueAsString;  // If primitive.
+  @observable bool valueAsStringIsTruncated;
   @observable ServiceFunction closureFunc;  // If a closure.
   @observable Context closureCtxt;  // If a closure.
   @observable String name;  // If a Type.
@@ -1534,6 +1535,8 @@ class Instance extends ServiceObject {
     clazz = map['class'];
     size = map['size'];
     valueAsString = map['valueAsString'];
+    // Coerce absence to false.
+    valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
     closureFunc = map['closureFunc'];
     closureCtxt = map['closureCtxt'];
     name = map['name'];

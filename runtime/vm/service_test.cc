@@ -623,7 +623,7 @@ TEST_CASE(Service_Objects) {
           "\"index\":0,"
           "\"value\":{\"type\":\"@String\","
           "\"class\":{\"type\":\"@Class\",\"name\":\"_OneByteString\",},"
-          "\"valueAsString\":\"\\\"value\\\"\"}}]}",
+          "\"valueAsString\":\"value\"}}]}",
       handler.msg());
 
   // object id ring / invalid => expired

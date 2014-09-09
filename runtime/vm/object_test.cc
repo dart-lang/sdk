@@ -4111,70 +4111,65 @@ TEST_CASE(SpecialClassesHaveEmptyArrays) {
 }
 
 
-TEST_CASE(ToUserCString) {
+TEST_CASE(ToCStringTruncated) {
   const char* kScriptChars =
-      "var simple = 'simple';\n"
-      "var escapes = 'stuff\\n\\r\\f\\b\\t\\v\\'\"\\$stuff';\n"
-      "var uescapes = 'stuff\\u0001\\u0002stuff';\n"
-      "var toolong = "
-      "'01234567890123456789012345678901234567890123456789howdy';\n"
-      "var toolong2 = "
-      "'0123456789012345678901234567890123\\t567890123456789howdy';\n"
-      "var toolong3 = "
-      "'012345678901234567890123456789\\u0001567890123456789howdy';\n";
+      "var ascii = 'Hello, World!';\n"
+      "var unicode = '\\u00CE\\u00F1\\u0163\\u00E9r\\u00F1\\u00E5\\u0163"
+      "\\u00EE\\u00F6\\u00F1\\u00E5\\u013C\\u00EE\\u017E\\u00E5\\u0163"
+      "\\u00EE\\u1EDD\\u00F1';\n"
+      "var surrogates ='\\u{1D11E}\\u{1D11E}\\u{1D11E}\\u{1D11E}"\
+      "\\u{1D11E}';\n";
+
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
   String& obj = String::Handle();
   Dart_Handle result;
+  bool did_truncate;
+  intptr_t length;
 
-  // Simple string.
-  result = Dart_GetField(lib, NewString("simple"));
+  result = Dart_GetField(lib, NewString("ascii"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"simple\"", obj.ToUserCString(40));
+  EXPECT_STREQ("Hello, World!",
+               obj.ToCStringTruncated(100, &did_truncate, &length));
+  EXPECT(!did_truncate);
+  EXPECT_EQ(13, length);
+  EXPECT_STREQ("Hel", obj.ToCStringTruncated(3, &did_truncate, &length));
+  EXPECT(did_truncate);
+  EXPECT_EQ(3, length);
 
-  // Escaped chars.
-  result = Dart_GetField(lib, NewString("escapes"));
+  result = Dart_GetField(lib, NewString("unicode"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"stuff\\n\\r\\f\\b\\t\\v'\\\"\\$stuff\"",
-               obj.ToUserCString(40));
+  EXPECT_STREQ("\u00CE\u00F1\u0163\u00E9r\u00F1\u00E5\u0163"
+        "\u00EE\u00F6\u00F1\u00E5\u013C\u00EE\u017E\u00E5\u0163"
+        "\u00EE\u1EDD\u00F1",
+        obj.ToCStringTruncated(100, &did_truncate, &length));
+  EXPECT(!did_truncate);
+  EXPECT_EQ(40, length);
+  EXPECT_STREQ("\u00CE\u00F1\u0163",
+               obj.ToCStringTruncated(3, &did_truncate, &length));
+  EXPECT(did_truncate);
+  EXPECT_EQ(6, length);
 
-  // U-escaped chars.
-  result = Dart_GetField(lib, NewString("uescapes"));
+  result = Dart_GetField(lib, NewString("surrogates"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"stuff\\u0001\\u0002stuff\"", obj.ToUserCString(40));
-
-  // Truncation.
-  result = Dart_GetField(lib, NewString("toolong"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"01234567890123456789012345678901234\"...",
-               obj.ToUserCString(40));
-
-  // Truncation, shorter.
-  result = Dart_GetField(lib, NewString("toolong"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"01234\"...", obj.ToUserCString(10));
-
-  // Truncation, limit is in escape.
-  result = Dart_GetField(lib, NewString("toolong2"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"0123456789012345678901234567890123\"...",
-               obj.ToUserCString(40));
-
-  // Truncation, limit is in u-escape
-  result = Dart_GetField(lib, NewString("toolong3"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"012345678901234567890123456789\"...",
-               obj.ToUserCString(40));
+  EXPECT_STREQ("\U0001D11E\U0001D11E\U0001D11E\U0001D11E\U0001D11E",
+               obj.ToCStringTruncated(100, &did_truncate, &length));
+  EXPECT(!did_truncate);
+  EXPECT_EQ(20, length);
+  EXPECT_STREQ("\U0001D11E",
+               obj.ToCStringTruncated(3, &did_truncate, &length));
+  EXPECT(did_truncate);
+  EXPECT_EQ(4, length);  // 3 code units would be in the middle of a surrogate
+                         // pair, so it gets rounded down 2 code units.
+  EXPECT_STREQ("\U0001D11E\U0001D11E",
+               obj.ToCStringTruncated(4, &did_truncate, &length));
+  EXPECT(did_truncate);
+  EXPECT_EQ(8, length);
 }
-
 
 class ObjectAccumulator : public ObjectVisitor {
  public:
@@ -4372,7 +4367,7 @@ TEST_CASE(PrintJSONPrimitives) {
         "{\"type\":\"@String\","
         "\"class\":{\"type\":\"@Class\",\"id\":\"\","
         "\"name\":\"_OneByteString\",\"_vmName\":\"\"},"
-        "\"id\":\"\",\"valueAsString\":\"\\\"dw\\\"\"}",
+        "\"id\":\"\",\"valueAsString\":\"dw\"}",
         buffer);
   }
   // Array reference

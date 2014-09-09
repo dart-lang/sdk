@@ -364,11 +364,6 @@ static bool IsSpecialCharacter(type value) {
 }
 
 
-static bool IsAsciiPrintChar(int32_t code_point) {
-  return (code_point >= ' ') && (code_point <= '~');
-}
-
-
 static inline bool IsAsciiNonprintable(int32_t c) {
   return ((0 <= c) && (c < 32)) || (c == 127);
 }
@@ -17149,10 +17144,17 @@ RawString* String::SubString(const String& str,
 
 
 const char* String::ToCString() const {
+  intptr_t length;
+  return ToCString(&length);
+}
+
+
+const char* String::ToCString(intptr_t* length) const {
   if (IsOneByteString()) {
     // Quick conversion if OneByteString contains only ASCII characters.
     intptr_t len = Length();
     if (len == 0) {
+      *length = 0;
       return "";
     }
     Zone* zone = Isolate::Current()->current_zone();
@@ -17169,6 +17171,7 @@ const char* String::ToCString() const {
     }
     if (len > 0) {
       result[len] = 0;
+      *length = len;
       return reinterpret_cast<const char*>(result);
     }
   }
@@ -17177,95 +17180,30 @@ const char* String::ToCString() const {
   uint8_t* result = zone->Alloc<uint8_t>(len + 1);
   ToUTF8(result, len);
   result[len] = 0;
+  *length = len;
   return reinterpret_cast<const char*>(result);
 }
 
 
-// Does not null-terminate.
-intptr_t String::EscapedString(char* buffer, int max_len) const {
-  int pos = 0;
-
-  CodePointIterator cpi(*this);
-  while (cpi.Next()) {
-    int32_t code_point = cpi.Current();
-    if (IsSpecialCharacter(code_point)) {
-      if (pos + 2 > max_len) {
-        return pos;
-      }
-      buffer[pos++] = '\\';
-      buffer[pos++] = SpecialCharacter(code_point);
-    } else if (IsAsciiPrintChar(code_point)) {
-      buffer[pos++] = code_point;
-    } else {
-      if (pos + 6 > max_len) {
-        return pos;
-      }
-      pos += OS::SNPrint((buffer + pos), (max_len - pos),
-                         "\\u%04x", code_point);
-    }
-    if (pos == max_len) {
-      return pos;
-    }
-  }
-  return pos;
-}
-
-
-intptr_t String::EscapedStringLen(intptr_t too_long) const {
-  intptr_t len = 0;
-
-  CodePointIterator cpi(*this);
-  while (cpi.Next()) {
-    int32_t code_point = cpi.Current();
-    if (IsSpecialCharacter(code_point)) {
-      len += 2;  // e.g. "\n"
-    } else if (IsAsciiPrintChar(code_point)) {
-      len += 1;
-    } else {
-      len += 6;  // e.g. "\u0000".
-    }
-    if (len > too_long) {
-      // No point going further.
-      break;
-    }
-  }
-  return len;
-}
-
-
-const char* String::ToUserCString(intptr_t max_len) const {
-  // Compute the needed length for the buffer.
-  const intptr_t escaped_len = EscapedStringLen(max_len);
-  intptr_t print_len = escaped_len;
-  intptr_t buffer_len = escaped_len + 2;  // +2 for quotes.
-  if (buffer_len > max_len) {
-    buffer_len = max_len;     // Truncate.
-    print_len = max_len - 5;  // -2 for quotes, -3 for elipsis.
+const char* String::ToCStringTruncated(intptr_t max_len,
+                                       bool* did_truncate,
+                                       intptr_t* length) const {
+  if (Length() <= max_len) {
+    *did_truncate = false;
+    return ToCString(length);
   }
 
-  // Allocate the buffer.
-  Zone* zone = Isolate::Current()->current_zone();
-  char* buffer = zone->Alloc<char>(buffer_len + 1);
-
-  // Leading quote.
-  intptr_t pos = 0;
-  buffer[pos++] = '\"';
-
-  // Print escaped string.
-  pos += EscapedString((buffer + pos), print_len);
-
-  // Trailing quote.
-  buffer[pos++] = '\"';
-
-  if (print_len < escaped_len) {
-    buffer[pos++] = '.';
-    buffer[pos++] = '.';
-    buffer[pos++] = '.';
+  intptr_t aligned_limit = max_len;
+  if (Utf16::IsLeadSurrogate(CharAt(max_len - 1))) {
+    // Don't let truncation split a surrogate pair.
+    aligned_limit--;
   }
-  ASSERT(pos <= buffer_len);
-  buffer[pos++] = '\0';
+  ASSERT(!Utf16::IsLeadSurrogate(CharAt(aligned_limit - 1)));
 
-  return buffer;
+  *did_truncate = true;
+  const String& truncated =
+      String::Handle(String::SubString(*this, 0, aligned_limit));
+  return truncated.ToCString(length);
 }
 
 
@@ -17285,7 +17223,19 @@ void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  jsobj.AddProperty("valueAsString", ToUserCString(1024));
+  if (ref) {
+    bool did_truncate = false;
+    intptr_t length = 0;
+    const char* cstr = ToCStringTruncated(128, &did_truncate, &length);
+    jsobj.AddProperty("valueAsString", cstr, length);
+    if (did_truncate) {
+      jsobj.AddProperty("valueAsStringIsTruncated", did_truncate);
+    }
+  } else {
+    intptr_t length = 0;
+    const char* cstr = ToCString(&length);
+    jsobj.AddProperty("valueAsString", cstr, length);
+  }
 }
 
 

@@ -72,7 +72,7 @@ var tests = [
       expect(block.closureCtxt.length, equals(1));
       return block.closureCtxt.load().then((Context ctxt) {
         expect(ctxt.variables.single['value'].isString, isTrue);
-        expect(ctxt.variables.single['value'].valueAsString, equals('"I could be copied into the block"'));
+        expect(ctxt.variables.single['value'].valueAsString, equals('I could be copied into the block'));
         expect(block.closureCtxt.parentContext.isNull, isTrue);
       });
     });
