@@ -125,7 +125,7 @@ UNIT_TEST_CASE(CountZeros) {
   EXPECT_EQ(0, Utils::CountTrailingZeros(0x3));
   EXPECT_EQ(kBitsPerWord - 2, Utils::CountLeadingZeros(0x3));
   EXPECT_EQ(2, Utils::CountTrailingZeros(0x4));
-  EXPECT_EQ(kBitsPerWord - 2, Utils::CountLeadingZeros(0x4));
+  EXPECT_EQ(kBitsPerWord - 3, Utils::CountLeadingZeros(0x4));
   EXPECT_EQ(0, Utils::CountTrailingZeros(kUwordMax));
   EXPECT_EQ(0, Utils::CountLeadingZeros(kUwordMax));
   static const uword kTopBit = static_cast<uword>(1) << (kBitsPerWord - 1);
