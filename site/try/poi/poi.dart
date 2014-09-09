@@ -88,6 +88,15 @@ int poiCount;
 
 int globalCounter = 0;
 
+/// Enabled by the option --verbose (or -v). Prints more information than you
+/// really need.
+bool isVerbose = false;
+
+/// When true (the default value) print serialized scope information at the
+/// provided position.
+const bool PRINT_SCOPE_INFO =
+    const bool.fromEnvironment('PRINT_SCOPE_INFO', defaultValue: true);
+
 /// Iterator for reading lines from [io.stdin].
 class StdinIterator implements Iterator<String> {
   String current;
@@ -98,6 +107,11 @@ class StdinIterator implements Iterator<String> {
   }
 }
 
+printVerbose(message) {
+  if (!isVerbose) return;
+  print(message);
+}
+
 main(List<String> arguments) {
   poiCount = 0;
   List<String> nonOptionArguments = [];
@@ -106,6 +120,10 @@ main(List<String> arguments) {
       switch (argument) {
         case '--simulate-mutation':
           isSimulateMutationEnabled = true;
+          break;
+        case '-v':
+        case '--verbose':
+          isVerbose = true;
           break;
         default:
           throw 'Unknown option: $argument.';
@@ -148,25 +166,25 @@ api.CompilerInputProvider simulateMutation(
   int counter = ++globalCounter;
   return (Uri uri) {
     if (counter != globalCounter) throw 'Using old provider';
-    print('fake inputProvider#$counter($uri): $poiCount $count');
+    printVerbose('fake inputProvider#$counter($uri): $poiCount $count');
     if (uri == script) {
       if (poiCount == count) {
         cachedFileName = uri.toFilePath();
         if (count != 0) {
           cachedFileName = '$cachedFileName.$count.dart';
         }
-        print('Not using cached version of $cachedFileName');
+        printVerbose('Not using cached version of $cachedFileName');
         cache = new File(cachedFileName).readAsBytes().then((data) {
-          print('Read file $cachedFileName: ${UTF8.decode(data)}');
+          printVerbose('Read file $cachedFileName: ${UTF8.decode(data)}');
           return data;
         });
         count++;
       } else {
-        print('Using cached version of $cachedFileName');
+        printVerbose('Using cached version of $cachedFileName');
       }
       return cache;
     } else {
-      print('Using realProvider for $uri');
+      printVerbose('Using original provider for $uri');
       return inputProvider(uri);
     }
   };
@@ -222,10 +240,13 @@ Future parseUserInput(
   if (position == null) return repeat();
 
   inputProvider(script);
-  handler(
-      script, position, position + 1,
-      'Point of interest. Cursor is immediately before highlighted character.',
-      api.Diagnostic.HINT);
+  if (isVerbose) {
+    handler(
+        script, position, position + 1,
+        'Point of interest. '
+        'Cursor is immediately before highlighted character.',
+        api.Diagnostic.HINT);
+  }
 
   Stopwatch sw = new Stopwatch()..start();
 
@@ -236,8 +257,10 @@ Future parseUserInput(
     sw.reset();
     String info = scopeInformation(element, position);
     sw.stop();
-    print(info);
-    print('Scope information took ${sw.elapsedMicroseconds}us.');
+    if (PRINT_SCOPE_INFO) {
+      print(info);
+    }
+    printVerbose('Scope information took ${sw.elapsedMicroseconds}us.');
     sw..reset()..start();
     Token token = findToken(element, position);
     String prefix;
@@ -250,13 +273,13 @@ Future parseUserInput(
         prefix = token.value.substring(0, position - token.charOffset);
       }
     }
-    print('Find token took ${sw.elapsedMicroseconds}us.');
+    printVerbose('Find token took ${sw.elapsedMicroseconds}us.');
     sw.reset();
     if (prefix != null) {
       return queryDartMind(prefix, info).then((String dartMindSuggestion) {
         sw.stop();
         print('Dart Mind ($prefix): $dartMindSuggestion.');
-        print('Dart Mind took ${sw.elapsedMicroseconds}us.');
+        printVerbose('Dart Mind took ${sw.elapsedMicroseconds}us.');
         return repeat();
       });
     } else {
