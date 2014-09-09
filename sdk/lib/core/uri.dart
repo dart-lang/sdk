@@ -886,7 +886,7 @@ class Uri {
     if (port != null) {
       port = _makePort(port, scheme);
     } else {
-      port = this.port;
+      port = this._port;
       if (schemeChanged) {
         // The default port might have changed.
         port = _makePort(port, scheme);
