@@ -596,6 +596,11 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T visitFunctionExpression(ast.FunctionExpression node) {
+    // We loose track of [this] in closures (see issue 20840). To be on
+    // the safe side, we mark [this] as exposed here. We could do better by
+    // analyzing the closure.
+    // TODO(herhut): Analyze whether closure exposes this.
+    isThisExposed = true;
     LocalFunctionElement element = elements.getFunctionDefinition(node);
     // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
