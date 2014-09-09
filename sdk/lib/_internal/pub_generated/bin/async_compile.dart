@@ -103,7 +103,8 @@ String _translateAsyncAwait(String sourcePath, String source) {
 }
 String _fixDart2jsImports(String sourcePath, String source, String destPath) {
   var compilerDir = p.url.join(sourceUrl, "../compiler");
-  var relative = p.url.relative(compilerDir, from: p.dirname(destPath));
+  var relative =
+      p.url.relative(compilerDir, from: p.dirname(p.toUri(destPath).toString()));
   return source.replaceAll(_compilerPattern, "import '$relative");
 }
 void _generateSnapshot(String buildDir) {
