@@ -7,17 +7,17 @@ library test.services.completion.util;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import '../../abstract_context.dart';
-import '../../mock_sdk.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../abstract_context.dart';
 
 class AbstractCompletionTest extends AbstractContextTest {
   Index index;
@@ -162,6 +162,15 @@ class AbstractCompletionTest extends AbstractContextTest {
     if (!_computeFastCalled) {
       expect(computeFast(), isFalse);
     }
+
+    // Index SDK
+    for (Source librarySource in context.librarySources) {
+      CompilationUnit unit = context.getResolvedCompilationUnit2(librarySource, librarySource);
+      if (unit != null) {
+          index.indexUnit(context, unit);
+      }
+    }
+
     var result = context.performAnalysisTask();
     bool resolved = false;
     while (result.hasMoreWork) {
@@ -203,6 +212,5 @@ class AbstractCompletionTest extends AbstractContextTest {
     super.setUp();
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
-    addResolvedUnit(MockSdk.LIB_CORE.path, MockSdk.LIB_CORE.content);
   }
 }
