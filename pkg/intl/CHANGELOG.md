@@ -1,4 +1,5 @@
-## 0.11.7-dev
+## 0.11.7
+  * Moved petitparser into a regular dependency so pub run works.
 
   * Improved code layout of the package.
 
