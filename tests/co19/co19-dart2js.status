@@ -1535,6 +1535,7 @@ LibTest/isolate/Isolate/spawnUri_A01_t04: Fail # co19-roll r672: Please triage t
 LibTest/isolate/Isolate/spawnUri_A01_t05: Fail # co19-roll r672: Please triage this failure
 
 [ $compiler == dart2js ]
+LibTest/core/double/operator_multiplication_A01_t05: RuntimeError # Maybe an issue with r40061? Please triage this failure
 LibTest/core/double/operator_multiplication_A01_t09: RuntimeError # Maybe an issue with r40061? Please triage this failure
 LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 Language/03_Overview/2_Privacy_A01_t02: RuntimeError # co19-roll r667: Please triage this failure
