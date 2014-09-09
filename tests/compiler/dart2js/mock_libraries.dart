@@ -93,11 +93,18 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   }''',
   'buildFunctionType':
       r'''buildFunctionType(returnType, parameterTypes,
-                            optionalParameterTypes) {}''',
-  'buildInterfaceType': 'buildInterfaceType(rti, typeArguments) {}',
+                            optionalParameterTypes) {
+            return new RuntimeFunctionType();
+          }''',
+  'buildInterfaceType': '''buildInterfaceType(rti, typeArguments) {
+                             if (rti == null) return new RuntimeTypePlain();
+                             return new RuntimeTypeGeneric();
+                           }''',
   'buildNamedFunctionType':
       r'''buildNamedFunctionType(returnType, parameterTypes,
-                                 namedParameters) {}''',
+                                 namedParameters) {
+            return new RuntimeFunctionType();
+          }''',
   'checkFunctionSubtype':
       r'''checkFunctionSubtype(var target, String signatureName,
                                String contextName, var context,
@@ -169,6 +176,7 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'propertyTypeCheck': 'propertyTypeCheck(value, property) {}',
   'requiresPreamble': 'requiresPreamble() {}',
   'RuntimeFunctionType': 'class RuntimeFunctionType {}',
+  'RuntimeTypeGeneric': 'class RuntimeTypeGeneric {}',
   'RuntimeTypePlain': 'class RuntimeTypePlain {}',
   'runtimeTypeToString': 'runtimeTypeToString(type, {onTypeVariable(i)}) {}',
   'S': 'S() {}',
