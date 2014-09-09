@@ -59,8 +59,8 @@ PACKAGES_DIR="$BUILD_DIR/pub_packages/"
 # Compile async/await down to vanilla Dart.
 # TODO(rnystrom): Remove this when #104 is fixed.
 ASYNC_COMPILER="$SDK_DIR/lib/_internal/pub/bin/async_compile.dart"
-"$DART" "--package-root=$PACKAGES_DIR" "$ASYNC_COMPILER" "$BUILD_DIR" --silent
+"$DART" "--package-root=$PACKAGES_DIR" "$ASYNC_COMPILER" "$BUILD_DIR"
 
 # Run the async/await compiled pub.
-PUB="$BUILD_DIR/pub_async/bin/pub.dart"
+PUB="$SDK_DIR/lib/_internal/pub_generated/bin/pub.dart"
 exec "$DART" "${VM_OPTIONS[@]}" "--package-root=$PACKAGES_DIR" "$PUB" "$@"

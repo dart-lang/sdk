@@ -1,0 +1,37 @@
+import 'package:scheduled_test/scheduled_test.dart';
+import 'package:scheduled_test/scheduled_stream.dart';
+import '../../descriptor.dart' as d;
+import '../../test_pub.dart';
+main() {
+  initConfig();
+  integration('activating a path package installs dependencies', () {
+    servePackages((builder) {
+      builder.serve("bar", "1.0.0", deps: {
+        "baz": "any"
+      });
+      builder.serve("baz", "2.0.0");
+    });
+    d.dir("foo", [d.libPubspec("foo", "0.0.0", deps: {
+        "bar": "any"
+      }),
+          d.dir("bin", [d.file("foo.dart", "main() => print('ok');")])]).create();
+    var pub = startPub(args: ["global", "activate", "-spath", "../foo"]);
+    pub.stdout.expect(consumeThrough("Resolving dependencies..."));
+    pub.stdout.expect(consumeThrough("Downloading bar 1.0.0..."));
+    pub.stdout.expect(consumeThrough("Downloading baz 2.0.0..."));
+    pub.stdout.expect(
+        consumeThrough(startsWith("Activated foo 0.0.0 at path")));
+    pub.shouldExit();
+    d.dir(
+        "foo",
+        [
+            d.matcherFile(
+                "pubspec.lock",
+                allOf(
+                    [
+                        contains("bar"),
+                        contains("1.0.0"),
+                        contains("baz"),
+                        contains("2.0.0")]))]).validate();
+  });
+}

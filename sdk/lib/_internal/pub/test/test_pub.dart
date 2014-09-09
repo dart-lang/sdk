@@ -476,39 +476,6 @@ void confirmPublish(ScheduledProcess pub) {
   pub.writeLine("y");
 }
 
-/// Whether the async/await compiler has already been run.
-///
-/// If a test suite runs pub more than once, we only need to run the compiler
-/// the first time.
-// TODO(rnystrom): Remove this when #104 is fixed.
-bool _compiledAsync = false;
-
-/// Gets the path to the pub entrypoint Dart script to run.
-// TODO(rnystrom): This exists to run the async/await compiler on pub and then
-// get the path to the output of that. Once #104 is fixed, remove this.
-String _getPubPath(String dartBin) {
-  var buildDir = p.join(p.dirname(dartBin), '../../');
-
-  // Ensure the async/await compiler has been run once for this test suite. The
-  // compiler itself will only re-compile source files that have actually
-  // changed, so this is a no-op if everything is already compiled.
-  if (!_compiledAsync) {
-    var result = Process.runSync(dartBin, [
-      '--package-root=$_packageRoot/',
-      p.join(testDirectory, '..', 'bin', 'async_compile.dart'),
-      buildDir,
-      '--silent'
-    ]);
-    stdout.write(result.stdout);
-    stderr.write(result.stderr);
-    if (result.exitCode != 0) fail("Async/await compiler failed.");
-
-    _compiledAsync = true;
-  }
-
-  return p.join(buildDir, 'pub_async/bin/pub.dart');
-}
-
 /// Starts a Pub process and returns a [ScheduledProcess] that supports
 /// interaction with that process.
 ///
@@ -530,14 +497,15 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
     dartBin = p.absolute(dartBin);
   }
 
-  // Find the main pub entrypoint.
-  var pubPath = _getPubPath(dartBin);
-  // TODO(rnystrom): Replace the above line with the following when #104 is
-  // fixed.
-  //var pubPath = p.join(testDirectory, '..', 'bin', 'pub.dart');
-
-  var dartArgs = ['--package-root=$_packageRoot/', '--checked', pubPath,
-      '--verbose'];
+  // Always run pub from a snapshot. Since we require the SDK to be built, the
+  // snapshot should be there. Note that this *does* mean that the snapshot has
+  // to be manually updated when changing code before running the tests.
+  // Otherwise, you will test against stale data.
+  //
+  // Using the snapshot makes running the tests much faster, which is why we
+  // make this trade-off.
+  var pubPath = p.join(p.dirname(dartBin), 'snapshots/pub.dart.snapshot');
+  var dartArgs = [pubPath, '--verbose'];
   dartArgs.addAll(args);
 
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
@@ -826,8 +794,16 @@ Map packageMap(String name, String version, [Map dependencies]) {
 }
 
 /// Resolves [target] relative to the path to pub's `test/asset` directory.
-String testAssetPath(String target) =>
-    p.join(p.dirname(libraryPath('test_pub')), 'asset', target);
+String testAssetPath(String target) {
+  var libPath = libraryPath('test_pub');
+
+  // We are running from the generated directory, but non-dart assets are only
+  // in the canonical directory.
+  // TODO(rnystrom): Remove this when #104 is fixed.
+  libPath = libPath.replaceAll('pub_generated', 'pub');
+
+  return p.join(p.dirname(libPath), 'asset', target);
+}
 
 /// Returns a Map in the format used by the pub.dartlang.org API to represent a
 /// package version.

@@ -1,0 +1,17 @@
+library pub.exit_codes;
+const SUCCESS = 0;
+const USAGE = 64;
+const DATA = 65;
+const NO_INPUT = 66;
+const NO_USER = 67;
+const NO_HOST = 68;
+const UNAVAILABLE = 69;
+const SOFTWARE = 70;
+const OS = 71;
+const OS_FILE = 72;
+const CANT_CREATE = 73;
+const IO = 74;
+const TEMP_FAIL = 75;
+const PROTOCOL = 76;
+const NO_PERM = 77;
+const CONFIG = 78;

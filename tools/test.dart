@@ -70,7 +70,6 @@ final TEST_SUITE_DIRECTORIES = [
     new Path('tests/utils'),
     new Path('utils/tests/css'),
     new Path('utils/tests/peg'),
-    new Path('sdk/lib/_internal/pub'),
 ];
 
 void testConfigurations(List<Map> configurations) {
@@ -219,6 +218,11 @@ void testConfigurations(List<Map> configurations) {
           }
           testSuites.add(
               new PkgBuildTestSuite(conf, 'pkgbuild', 'pkg/pkgbuild.status'));
+        } else if (key == 'pub') {
+          // TODO(rnystrom): Move pub back into TEST_SUITE_DIRECTORIES once
+          // #104 is fixed.
+          testSuites.add(new StandardTestSuite.forDirectory(conf,
+              new Path('sdk/lib/_internal/pub_generated'), 'pub'));
         }
       }
 

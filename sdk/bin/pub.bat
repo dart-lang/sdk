@@ -37,11 +37,10 @@ set DART=%BUILD_DIR%\dart-sdk\bin\dart
 rem Compile async/await down to vanilla Dart.
 rem TODO(rnystrom): Remove this when #104 is fixed.
 set ASYNC_COMPILER="%SDK_DIR%"\lib\_internal\pub\bin\async_compile.dart
-"%DART%" --package-root="%PACKAGES_DIR%" "%ASYNC_COMPILER%" "%BUILD_DIR%" ^
-    --silent
+"%DART%" --package-root="%PACKAGES_DIR%" "%ASYNC_COMPILER%" "%BUILD_DIR%"
 
 rem Run the async/await compiled pub.
-set PUB="%BUILD_DIR%\pub_async\bin\pub.dart"
+set PUB="%SDK_DIR%"\lib\_internal\pub_generated\bin\pub.dart"
 "%DART%" %VM_OPTIONS% --package-root="%PACKAGES_DIR%" "%PUB%" %*
 
 endlocal

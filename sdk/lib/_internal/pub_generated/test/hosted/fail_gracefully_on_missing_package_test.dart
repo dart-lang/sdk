@@ -1,0 +1,20 @@
+library pub_tests;
+import '../../lib/src/exit_codes.dart' as exit_codes;
+import '../descriptor.dart' as d;
+import '../test_pub.dart';
+import '../test_pub.dart';
+main() {
+  initConfig();
+  forBothPubGetAndUpgrade((command) {
+    integration('fails gracefully if the package does not exist', () {
+      serveNoPackages();
+      d.appDir({
+        "foo": "1.2.3"
+      }).create();
+      pubCommand(command, error: new RegExp(r"""
+Could not find package foo at http://localhost:\d+\.
+Depended on by:
+- myapp""", multiLine: true), exitCode: exit_codes.UNAVAILABLE);
+    });
+  });
+}

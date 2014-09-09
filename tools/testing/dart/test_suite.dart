@@ -635,12 +635,10 @@ class StandardTestSuite extends TestSuite {
    * instead of having to create a custom [StandardTestSuite] subclass. In
    * particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
    * in test.dart, this will all be set up for you.
-   *
-   * The [StandardTestSuite] also optionally takes a list of servers that have
-   * been started up by the test harness, to be used by browser tests.
    */
-  factory StandardTestSuite.forDirectory(Map configuration, Path directory) {
-    final name = directory.filename;
+  factory StandardTestSuite.forDirectory(Map configuration, Path directory,
+      [String name]) {
+    if (name == null) name = directory.filename;
 
     var status_paths = ['$directory/$name.status',
                         '$directory/.status',
