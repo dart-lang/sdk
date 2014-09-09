@@ -60,7 +60,32 @@ main() {
     });
   }
 
-  test_constructor_unamed() {
+  test_constructor_named_potential() {
+    // Constructors in other classes shouldn't be considered potential matches,
+    // nor should unresolved method calls, since constructor call sites are
+    // statically bound to their targets).
+    addTestFile('''
+class A {
+  A.named(p); // A
+}
+class B {
+  B.named(p);
+}
+f(x) {
+  new A.named(1);
+  new B.named(2);
+  x.named(3);
+}
+''');
+    return findElementReferences('named(p); // A', true).then((_) {
+      expect(searchElement.kind, ElementKind.CONSTRUCTOR);
+      assertHasResult(SearchResultKind.DECLARATION, '.named(p)', 6);
+      assertHasResult(SearchResultKind.REFERENCE, '.named(1)', 6);
+      expect(results, hasLength(2));
+    });
+  }
+
+  test_constructor_unnamed() {
     addTestFile('''
 class A {
   A(p);
@@ -74,6 +99,36 @@ main() {
       expect(searchElement.kind, ElementKind.CONSTRUCTOR);
       assertHasResult(SearchResultKind.REFERENCE, '(1)', 0);
       assertHasResult(SearchResultKind.REFERENCE, '(2)', 0);
+    });
+  }
+
+  test_constructor_unnamed_potential() {
+    // Constructors in other classes shouldn't be considered potential matches,
+    // even if they are also unnamed (since constructor call sites are
+    // statically bound to their targets).
+    // Also, assignments to local variables shouldn't be considered potential
+    // matches.
+    addTestFile('''
+class A {
+  A(p); // A
+}
+class B {
+  B(p);
+  foo() {
+    int k;
+    k = 3;
+  }
+}
+main() {
+  new A(1);
+  new B(2);
+}
+''');
+    return findElementReferences('A(p)', true).then((_) {
+      expect(searchElement.kind, ElementKind.CONSTRUCTOR);
+      assertHasResult(SearchResultKind.DECLARATION, '(p); // A', 0);
+      assertHasResult(SearchResultKind.REFERENCE, '(1)', 0);
+      expect(results, hasLength(2));
     });
   }
 

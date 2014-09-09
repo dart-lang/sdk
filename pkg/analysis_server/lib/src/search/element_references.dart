@@ -106,6 +106,9 @@ class ElementReferencesComputer {
   }
 
   static bool _isMemberElement(Element element) {
+    if (element is ConstructorElement) {
+      return false;
+    }
     return element.enclosingElement is ClassElement;
   }
 
