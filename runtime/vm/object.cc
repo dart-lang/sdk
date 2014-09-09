@@ -7943,7 +7943,21 @@ const char* TokenStream::ToCString() const {
 
 
 void TokenStream::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  // TODO(johnmccutchan): Generate a stable id. TokenStreams hang off
+  // a Script object but do not have a back reference to generate a stable id.
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  if (ref) {
+    return;
+  }
+  const String& private_key = String::Handle(PrivateKey());
+  jsobj.AddProperty("privateKey", private_key);
+  // TODO(johnmccutchan): Add support for printing LiteralTokens and add
+  // them to members array.
+  JSONArray members(&jsobj, "members");
 }
 
 
@@ -10552,12 +10566,16 @@ const char* PcDescriptors::ToCString() const {
 }
 
 
-void PcDescriptors::PrintToJSONObject(JSONObject* jsobj) const {
-  jsobj->AddProperty("type", JSONType(false));
-  // TODO(johnmccutchan): Generate a valid ID.
-  // PcDescriptors hang off a Code object but do not have a back reference to
-  // generate an ID. Currently we only print PcDescriptors inline with a Code.
-  jsobj->AddProperty("id", "");
+void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
+  jsobj->AddProperty("type", JSONType(ref));
+  // TODO(johnmccutchan): Generate a stable id. PcDescriptors hang off a Code
+  // object but do not have a back reference to generate an ID.
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj->AddPropertyF("id", "objects/%" Pd "", id);
+  if (ref) {
+    return;
+  }
   JSONArray members(jsobj, "members");
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
@@ -10573,7 +10591,7 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj) const {
 
 void PcDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  PrintToJSONObject(&jsobj);
+  PrintToJSONObject(&jsobj, ref);
 }
 
 
@@ -10847,9 +10865,53 @@ const char* LocalVarDescriptors::ToCString() const {
 
 void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
                                         bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  // TODO(johnmccutchan): Generate a stable id. LocalVarDescriptors hang off
+  // a Code object but do not have a back reference to generate an ID.
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  if (ref) {
+    return;
+  }
+  JSONArray members(&jsobj, "members");
+  String& var_name = String::Handle();
+  for (intptr_t i = 0; i < Length(); i++) {
+    RawLocalVarDescriptors::VarInfo info;
+    var_name = GetName(i);
+    if (var_name.IsNull()) {
+      var_name = Symbols::Empty().raw();
+    }
+    GetInfo(i, &info);
+    JSONObject var(&members);
+    var.AddProperty("name", var_name.ToCString());
+    var.AddProperty("index", info.index);
+    var.AddProperty("beginPos", info.begin_pos);
+    var.AddProperty("endPos", info.end_pos);
+    var.AddProperty("scopeId", static_cast<intptr_t>(info.scope_id));
+    var.AddProperty("kind", KindToStr(info.kind));
+  }
 }
 
+
+const char* LocalVarDescriptors::KindToStr(intptr_t kind) {
+  switch (kind) {
+    case RawLocalVarDescriptors::kStackVar:
+      return "StackVar";
+    case RawLocalVarDescriptors::kContextVar:
+      return "ContextVar";
+    case RawLocalVarDescriptors::kContextLevel:
+      return "ContextLevel";
+    case RawLocalVarDescriptors::kSavedEntryContext:
+      return "SavedEntryContext";
+    case RawLocalVarDescriptors::kSavedCurrentContext:
+      return "SavedCurrentContext";
+    default:
+      UNIMPLEMENTED();
+      return NULL;
+  }
+}
 
 RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
   ASSERT(Object::var_descriptors_class() != Class::null());
@@ -12309,7 +12371,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   if (!descriptors.IsNull()) {
     JSONObject desc(&jsobj, "descriptors");
-    descriptors.PrintToJSONObject(&desc);
+    descriptors.PrintToJSONObject(&desc, false);
   }
 }
 

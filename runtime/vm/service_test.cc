@@ -1338,6 +1338,170 @@ TEST_CASE(Service_Code) {
 }
 
 
+TEST_CASE(Service_TokenStream) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "main() {\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+
+  const String& script_name = String::Handle(String::New("test-lib"));
+  EXPECT(!script_name.IsNull());
+  const Script& script = Script::Handle(vmlib.LookupScript(script_name));
+  EXPECT(!script.IsNull());
+
+  const TokenStream& token_stream = TokenStream::Handle(script.tokens());
+  EXPECT(!token_stream.IsNull());
+  ObjectIdRing* ring = isolate->object_id_ring();
+  intptr_t id = ring->GetIdForObject(token_stream.raw());
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Array& service_msg = Array::Handle();
+
+  // Fetch object.
+  service_msg = EvalF(lib, "[0, port, ['objects', '%" Pd "'], [], []]", id);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+
+  // Check type.
+  EXPECT_SUBSTRING("\"type\":\"TokenStream\"", handler.msg());
+  // Check for members array.
+  EXPECT_SUBSTRING("\"members\":[", handler.msg());
+}
+
+
+TEST_CASE(Service_PcDescriptors) {
+  const char* kScript =
+    "var port;\n"  // Set to our mock port by C++.
+    "\n"
+    "class A {\n"
+    "  var a;\n"
+    "  dynamic b() {}\n"
+    "  dynamic c() {\n"
+    "    var d = () { b(); };\n"
+    "    return d;\n"
+    "  }\n"
+    "}\n"
+    "main() {\n"
+    "  var z = new A();\n"
+    "  var x = z.c();\n"
+    "  x();\n"
+    "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  const Class& class_a = Class::Handle(GetClass(vmlib, "A"));
+  EXPECT(!class_a.IsNull());
+  const Function& function_c = Function::Handle(GetFunction(class_a, "c"));
+  EXPECT(!function_c.IsNull());
+  const Code& code_c = Code::Handle(function_c.CurrentCode());
+  EXPECT(!code_c.IsNull());
+
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code_c.pc_descriptors());
+  EXPECT(!descriptors.IsNull());
+  ObjectIdRing* ring = isolate->object_id_ring();
+  intptr_t id = ring->GetIdForObject(descriptors.raw());
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Array& service_msg = Array::Handle();
+
+  // Fetch object.
+  service_msg = EvalF(lib, "[0, port, ['objects', '%" Pd "'], [], []]", id);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  // Check type.
+  EXPECT_SUBSTRING("\"type\":\"PcDescriptors\"", handler.msg());
+  // Check for members array.
+  EXPECT_SUBSTRING("\"members\":[", handler.msg());
+}
+
+
+TEST_CASE(Service_LocalVarDescriptors) {
+  const char* kScript =
+    "var port;\n"  // Set to our mock port by C++.
+    "\n"
+    "class A {\n"
+    "  var a;\n"
+    "  dynamic b() {}\n"
+    "  dynamic c() {\n"
+    "    var d = () { b(); };\n"
+    "    return d;\n"
+    "  }\n"
+    "}\n"
+    "main() {\n"
+    "  var z = new A();\n"
+    "  var x = z.c();\n"
+    "  x();\n"
+    "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  const Class& class_a = Class::Handle(GetClass(vmlib, "A"));
+  EXPECT(!class_a.IsNull());
+  const Function& function_c = Function::Handle(GetFunction(class_a, "c"));
+  EXPECT(!function_c.IsNull());
+  const Code& code_c = Code::Handle(function_c.CurrentCode());
+  EXPECT(!code_c.IsNull());
+
+  const LocalVarDescriptors& descriptors =
+      LocalVarDescriptors::Handle(code_c.var_descriptors());
+  // Generate an ID for this object.
+  ObjectIdRing* ring = isolate->object_id_ring();
+  intptr_t id = ring->GetIdForObject(descriptors.raw());
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Array& service_msg = Array::Handle();
+
+  // Fetch object.
+  service_msg = EvalF(lib, "[0, port, ['objects', '%" Pd "'], [], []]", id);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  // Check type.
+  EXPECT_SUBSTRING("\"type\":\"LocalVarDescriptors\"", handler.msg());
+  // Check for members array.
+  EXPECT_SUBSTRING("\"members\":[", handler.msg());
+}
+
+
 TEST_CASE(Service_VM) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.

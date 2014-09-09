@@ -3093,6 +3093,8 @@ class LocalVarDescriptors : public Object {
 
   static RawLocalVarDescriptors* New(intptr_t num_variables);
 
+  static const char* KindToStr(intptr_t kind);
+
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors, Object);
   friend class Class;
@@ -3146,7 +3148,7 @@ class PcDescriptors : public Object {
 
   static void PrintHeaderString();
 
-  void PrintToJSONObject(JSONObject* jsobj) const;
+  void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
 
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
