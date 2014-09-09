@@ -2712,6 +2712,7 @@ checkMalformedType(value, message) {
 
 @NoInline()
 void checkDeferredIsLoaded(String loadId, String uri) {
+  print(_loadedLibraries);
   if (!_loadedLibraries.contains(loadId)) {
     throw new DeferredNotLoadedError(uri);
   }
@@ -3236,15 +3237,25 @@ final Map<String, Future<Null>> _loadingLibraries = <String, Future<Null>>{};
 final Set<String> _loadedLibraries = new Set<String>();
 
 Future<Null> loadDeferredLibrary(String loadId) {
-  List<String> librariesToLoad = JS('JSExtendableArray|Null',
-      'init.librariesToLoad[#]',
-      loadId);
-  if (librariesToLoad == null) return new Future.value(null);
-  return Future.wait(librariesToLoad.map(
-      (String hunkName) => _loadHunk(hunkName))).then((_) {
-    for (String hunkName in librariesToLoad) {
+  // For each loadId there is a list of hunk-uris to load, and a corresponding
+  // list of hashes. These are stored in the app-global scope.
+  List<String> uris = JS('JSExtendableArray|Null',
+      'init.deferredLibraryUris[#]', loadId);
+  List<String> hashes = JS('JSExtendableArray|Null',
+      'init.deferredLibraryHashes[#]', loadId);
+  print("Here $loadId $hashes $uris");
+  if (uris == null) return new Future.value(null);
+  // The indices into `uris` and `hashes` that we want to load.
+  List<int> indices = new List.generate(uris.length, (i) => i);
+  return Future.wait(indices
+      // Filter away indices for hunks that have already been loaded.
+      .where((int i) => !JS('bool','init.isHunkLoaded(#)', hashes[i]))
+      // Load the rest.
+      .map((int i) => _loadHunk(uris[i]))).then((_) {
+    // Now all hunks have been loaded, we call all their initializers
+    for (String hash in hashes) {
       // TODO(floitsch): Replace unsafe access to embedded global.
-      JS('void', 'init.initializeLoadedHunk(#)', hunkName);
+      JS('void', 'init.initializeLoadedHunk(#)', hash);
     }
     _loadedLibraries.add(loadId);
   });
