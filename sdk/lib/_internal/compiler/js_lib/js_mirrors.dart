@@ -5,6 +5,12 @@
 library dart._js_mirrors;
 
 import 'shared/runtime_data.dart' as encoding;
+import 'shared/embedded_names.dart' show
+    ALL_CLASSES,
+    LAZIES,
+    LIBRARIES,
+    STATICS,
+    TYPE_INFORMATION;
 
 import 'dart:collection' show
     UnmodifiableListView,
@@ -16,6 +22,7 @@ import 'dart:_foreign_helper' show
     JS,
     JS_CURRENT_ISOLATE,
     JS_CURRENT_ISOLATE_CONTEXT,
+    JS_EMBEDDED_GLOBAL,
     JS_GET_NAME;
 
 import 'dart:_internal' as _symbol_dev;
@@ -111,7 +118,7 @@ class JsMirrorSystem implements MirrorSystem {
   static Map<String, List<LibraryMirror>> computeLibrariesByName() {
     disableTreeShaking();
     var result = new Map<String, List<LibraryMirror>>();
-    var jsLibraries = JS('JSExtendableArray|Null', 'init.libraries');
+    var jsLibraries = JS_EMBEDDED_GLOBAL('JSExtendableArray|Null', LIBRARIES);
     if (jsLibraries == null) return result;
     for (List data in jsLibraries) {
       String name = data[0];
@@ -572,7 +579,8 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
     JsCache.update(classMirrors, mangledName, mirror);
     return mirror;
   }
-  var constructor = JS('var', 'init.allClasses[#]', mangledName);
+  var allClasses = JS_EMBEDDED_GLOBAL('', ALL_CLASSES);
+  var constructor = JS('var', '#[#]', allClasses, mangledName);
   if (constructor == null) {
     // Probably an intercepted class.
     // TODO(ahe): How to handle intercepted classes?
@@ -1439,8 +1447,9 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
   ClassMirror get superclass {
     if (_superclass != null) return _superclass;
 
+    var typeInformationContainer = JS_EMBEDDED_GLOBAL('', TYPE_INFORMATION);
     List<int> typeInformation =
-        JS('List|Null', 'init.typeInformation[#]', _class._mangledName);
+        JS('List|Null', '#[#]', typeInformationContainer, _class._mangledName);
     assert(typeInformation != null);
     var type = getMetadata(typeInformation[0]);
     return _superclass = typeMirrorFromRuntimeTypeRepresentation(this, type);
@@ -1628,7 +1637,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       mirror._owner = methodOwner;
     }
 
-    keys = extractKeys(JS('', 'init.statics[#]', _mangledName));
+    var statics = JS_EMBEDDED_GLOBAL('', STATICS);
+    keys = extractKeys(JS('', '#[#]', statics, _mangledName));
     for (String mangledName in keys) {
       if (isReflectiveDataInPrototype(mangledName)) continue;
       String unmangledName = mangledName;
@@ -1674,7 +1684,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     parseCompactFieldSpecification(
         fieldOwner, instanceFieldSpecfication, false, result);
 
-    var staticDescriptor = JS('', 'init.statics[#]', _mangledName);
+    var statics = JS_EMBEDDED_GLOBAL('', STATICS);
+    var staticDescriptor = JS('', '#[#]', statics, _mangledName);
     if (staticDescriptor != null) {
       parseCompactFieldSpecification(
           fieldOwner,
@@ -1826,8 +1837,9 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       if (!JS('bool', '# in #', jsName, JS_CURRENT_ISOLATE())) {
         throw new RuntimeError('Cannot find "$jsName" in current isolate.');
       }
-      if (JS('bool', '# in init.lazies', jsName)) {
-        String getterName = JS('String', 'init.lazies[#]', jsName);
+      var lazies = JS_EMBEDDED_GLOBAL('', LAZIES);
+      if (JS('bool', '# in #', jsName, lazies)) {
+        String getterName = JS('String', '#[#]', lazies, jsName);
         return reflect(JS('', '#[#]()', JS_CURRENT_ISOLATE(), getterName));
       } else {
         return reflect(JS('', '#[#]', JS_CURRENT_ISOLATE(), jsName));
@@ -1907,8 +1919,9 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   ClassMirror get superclass {
     if (_superclass == null) {
+      var typeInformationContainer = JS_EMBEDDED_GLOBAL('', TYPE_INFORMATION);
       List<int> typeInformation =
-          JS('List|Null', 'init.typeInformation[#]', _mangledName);
+          JS('List|Null', '#[#]', typeInformationContainer, _mangledName);
       if (typeInformation != null) {
         var type = getMetadata(typeInformation[0]);
         _superclass = typeMirrorFromRuntimeTypeRepresentation(this, type);
@@ -1962,8 +1975,9 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   ClassMirror get originalDeclaration => this;
 
   List<ClassMirror> _getSuperinterfacesWithOwner(DeclarationMirror owner) {
+    var typeInformationContainer = JS_EMBEDDED_GLOBAL('', TYPE_INFORMATION);
     List<int> typeInformation =
-        JS('List|Null', 'init.typeInformation[#]', _mangledName);
+        JS('List|Null', '#[#]', typeInformationContainer, _mangledName);
     List<ClassMirror> result = const <ClassMirror>[];
     if (typeInformation != null) {
       ClassMirror lookupType(int i) {

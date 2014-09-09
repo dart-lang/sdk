@@ -168,8 +168,12 @@ class CodeEmitterTask extends CompilerTask {
   String get globalsHolder => namer.getMappedGlobalName("globalsHolder");
 
   jsAst.Expression generateEmbeddedGlobalAccess(String global) {
+    return js(generateEmbeddedGlobalAccessString(global));
+  }
+
+  String generateEmbeddedGlobalAccessString(String global) {
     // TODO(floitsch): don't use 'init' as global embedder storage.
-    return js('$initName.$global');
+    return '$initName.$global';
   }
 
   jsAst.FunctionDeclaration get generateAccessorFunction {
@@ -331,12 +335,20 @@ class CodeEmitterTask extends CompilerTask {
     // object and copy over the members.
 
     String reflectableField = namer.reflectableField;
+    jsAst.Expression allClassesAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
+    jsAst.Expression metadataAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.METADATA);
+    jsAst.Expression interceptorsByTagAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
+    jsAst.Expression leafTagsAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
 
     return js('''
       function(collectedClasses, isolateProperties, existingIsolateProperties) {
         var pendingClasses = {};
-        if (!init.allClasses) init.allClasses = {};
-        var allClasses = init.allClasses;
+        if (!#) # = {};  // embedded allClasses.
+        var allClasses = #;  // embedded allClasses;
 
         if (#)  // DEBUG_FAST_OBJECTS
           print("Number of classes: " +
@@ -391,7 +403,7 @@ class CodeEmitterTask extends CompilerTask {
               var functionSignature = split[1];
               if (functionSignature)
                 desc.\$signature = (function(s) {
-                    return function(){ return init.metadata[s]; };
+                    return function(){ return #[s]; };  // embedded metadata.
                   })(functionSignature);
             }
 
@@ -443,8 +455,8 @@ class CodeEmitterTask extends CompilerTask {
         constructors = null;
 
         var finishedClasses = {};
-        init.interceptorsByTag = Object.create(null);
-        init.leafTags = {};
+        # = Object.create(null);  // embedded interceptorsByTag.
+        # = {};  // embedded leafTags.
 
         #;  // buildFinishClass(),
 
@@ -452,10 +464,15 @@ class CodeEmitterTask extends CompilerTask {
 
         for (var cls in pendingClasses) finishClass(cls);
       }''', [
+          allClassesAccess, allClassesAccess,
+          allClassesAccess,
           DEBUG_FAST_OBJECTS,
           backend.hasRetainedMetadata,
+          metadataAccess,
           needsMixinSupport,
           backend.isTreeShakingDisabled,
+          interceptorsByTagAccess,
+          leafTagsAccess,
           buildFinishClass(),
           nsmEmitter.buildTrivialNsmHandlers()]);
   }
@@ -466,6 +483,11 @@ class CodeEmitterTask extends CompilerTask {
 
   jsAst.FunctionDeclaration buildFinishClass() {
     String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
+
+    jsAst.Expression interceptorsByTagAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
+    jsAst.Expression leafTagsAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
 
     return js.statement('''
       function finishClass(cls) {
@@ -522,8 +544,8 @@ class CodeEmitterTask extends CompilerTask {
             if (nativeSpec[0]) {
               var tags = nativeSpec[0].split("|");
               for (var i = 0; i < tags.length; i++) {
-                init.interceptorsByTag[tags[i]] = constructor;
-                init.leafTags[tags[i]] = true;
+                #[tags[i]] = constructor;  // embedded interceptorsByTag.
+                #[tags[i]] = true;  // embedded leafTags.
               }
             }
             if (nativeSpec[1]) {
@@ -537,14 +559,19 @@ class CodeEmitterTask extends CompilerTask {
                   }
                 }
                 for (i = 0; i < tags.length; i++) {
-                  init.interceptorsByTag[tags[i]] = constructor;
-                  init.leafTags[tags[i]] = false;
+                  #[tags[i]] = constructor;  // embedded interceptorsByTag.
+                  #[tags[i]] = false;  // embedded leafTags.
                 }
               }
             }
           }
         }
-      }''', [!nativeClasses.isEmpty, true]);
+      }''', [!nativeClasses.isEmpty,
+             interceptorsByTagAccess,
+             leafTagsAccess,
+             true,
+             interceptorsByTagAccess,
+             leafTagsAccess]);
   }
 
   jsAst.Fun get finishIsolateConstructorFunction {
@@ -586,12 +613,14 @@ class CodeEmitterTask extends CompilerTask {
     String isolate = namer.currentIsolate;
     jsAst.Expression cyclicThrow =
         namer.elementAccess(backend.getCyclicThrowHelper());
+    jsAst.Expression laziesAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 
     return js('''
       function (prototype, staticName, fieldName, getterName, lazyValue) {
         if (#) {
-          if (!init.lazies) init.lazies = {};
-          init.lazies[fieldName] = getterName;
+          if (!#) # = {};
+          #[fieldName] = getterName;
         }
 
         var sentinelUndefined = {};
@@ -623,7 +652,10 @@ class CodeEmitterTask extends CompilerTask {
           }
         }
       }
-    ''', [backend.rememberLazies, cyclicThrow]);
+    ''', [backend.rememberLazies,
+          laziesAccess, laziesAccess,
+          laziesAccess,
+          cyclicThrow]);
   }
 
   List buildDefineClassAndFinishClassFunctionsIfNecessary() {
@@ -1033,9 +1065,14 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   /**
-   * Emits code that sets `init.isolateTag` to a unique string.
+   * Emits code that sets the `isolateTag embedded global to a unique string.
    */
   jsAst.Expression generateIsolateAffinityTagInitialization() {
+    jsAst.Expression getIsolateTagAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.GET_ISOLATE_TAG);
+    jsAst.Expression isolateTagAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.ISOLATE_TAG);
+
     return js('''
       !function() {
         // On V8, the 'intern' function converts a string to a symbol, which
@@ -1046,8 +1083,8 @@ class CodeEmitterTask extends CompilerTask {
           return Object.keys(convertToFastObject(o))[0];
         }
 
-        init.getIsolateTag = function(name) {
-          return intern("___dart_" + name + init.isolateTag);
+        # = function(name) {  // embedded getIsolateTag
+          return intern("___dart_" + name + #);  // embedded isolateTag
         };
 
         // To ensure that different programs loaded into the same context (page)
@@ -1062,17 +1099,24 @@ class CodeEmitterTask extends CompilerTask {
           var property = intern(rootProperty + "_" + i + "_");
           if (!(property in usedProperties)) {
             usedProperties[property] = 1;
-            init.isolateTag = property;
+            # = property;  // embedded isolateTag
             break;
           }
         }
       }()
-    ''');
+    ''', [getIsolateTagAccess,
+          isolateTagAccess,
+          isolateTagAccess]);
   }
 
   jsAst.Expression generateDispatchPropertyNameInitialization() {
-    return js('init.${embeddedNames.DISPATCH_PROPERTY_NAME} = '
-              'init.getIsolateTag("dispatch_record")');
+    jsAst.Expression dispatchPropertyNameAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.DISPATCH_PROPERTY_NAME);
+    jsAst.Expression getIsolateTagAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.GET_ISOLATE_TAG);
+    return js('# = #("dispatch_record")',
+        [dispatchPropertyNameAccess,
+         getIsolateTagAccess]);
   }
 
   String generateIsolateTagRoot() {
@@ -1106,6 +1150,9 @@ class CodeEmitterTask extends CompilerTask {
       buffer.write(N);
     }
 
+    jsAst.Expression currentScriptAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.CURRENT_SCRIPT);
+
     addComment('BEGIN invoke [main].', buffer);
     // This code finds the currently executing script by listening to the
     // onload event of all script tags and getting the first script which
@@ -1133,14 +1180,16 @@ class CodeEmitterTask extends CompilerTask {
     scripts[i].addEventListener("load", onLoad, false);
   }
 })(function(currentScript) {
-  init.currentScript = currentScript;
+  # = currentScript;  // embedded currentScript.
 
   if (typeof dartMainRunner === "function") {
-    dartMainRunner(#, []);
+    dartMainRunner(#, []);  // mainCallClosure.
   } else {
-    #([]);
+    #([]);  // mainCallClosure.
   }
-})$N''', [mainCallClosure, mainCallClosure]);
+})$N''', [currentScriptAccess,
+          mainCallClosure,
+          mainCallClosure]);
 
     buffer.write(';');
     buffer.write(jsAst.prettyPrint(invokeMain,
@@ -1577,10 +1626,13 @@ class CodeEmitterTask extends CompilerTask {
             var value = js.string('${mangledFieldNames[key]}');
             properties.add(new jsAst.Property(js.string(key), value));
           }
+
+          jsAst.Expression mangledNamesAccess =
+              generateEmbeddedGlobalAccess(embeddedNames.MANGLED_NAMES);
           var map = new jsAst.ObjectInitializer(properties);
           mainBuffer.write(
               jsAst.prettyPrint(
-                  js.statement('init.mangledNames = #', map),
+                  js.statement('# = #', [mangledNamesAccess, map]),
                   compiler,
                   monitor: compiler.dumpInfoTask));
           if (compiler.enableMinification) {
@@ -1595,10 +1647,12 @@ class CodeEmitterTask extends CompilerTask {
             var value = js.string('${mangledGlobalFieldNames[key]}');
             properties.add(new jsAst.Property(js.string(key), value));
           }
+          jsAst.Expression mangledGlobalNamesAccess =
+              generateEmbeddedGlobalAccess(embeddedNames.MANGLED_GLOBAL_NAMES);
           var map = new jsAst.ObjectInitializer(properties);
           mainBuffer.write(
               jsAst.prettyPrint(
-                  js.statement('init.mangledGlobalNames = #', map),
+                  js.statement('# = #', [mangledGlobalNamesAccess, map]),
                   compiler,
                   monitor: compiler.dumpInfoTask));
           if (compiler.enableMinification) {

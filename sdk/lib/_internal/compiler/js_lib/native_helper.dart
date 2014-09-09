@@ -104,7 +104,7 @@ bool isDartObject(obj) {
  *
  * Example: 'HTMLImageElement' maps to the ImageElement class constructor.
  */
-get interceptorsByTag => JS('=Object', 'init.interceptorsByTag');
+get interceptorsByTag => JS_EMBEDDED_GLOBAL('=Object', INTERCEPTORS_BY_TAG);
 
 /**
  * A JavaScript object mapping tags to `true` or `false`.
@@ -112,7 +112,7 @@ get interceptorsByTag => JS('=Object', 'init.interceptorsByTag');
  * Example: 'HTMLImageElement' maps to `true` since, as there are no subclasses
  * of ImageElement, it is a leaf class in the native class hierarchy.
  */
-get leafTags => JS('=Object', 'init.leafTags');
+get leafTags => JS_EMBEDDED_GLOBAL('=Object', LEAF_TAGS);
 
 String findDispatchTagForInterceptorClass(interceptorClassConstructor) {
   return JS('', r'#.$nativeSuperclassTag', interceptorClassConstructor);

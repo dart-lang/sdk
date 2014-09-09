@@ -19,6 +19,7 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
                                         JavaScriptBackend backend) {
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
+  CodeEmitterTask emitter = backend.emitter;
 
   String metadataField = '"${namer.metadataField}"';
   String reflectableField = namer.reflectableField;
@@ -36,16 +37,30 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
       ? ' 3 * optionalParameterCount + 2 * requiredParameterCount + 3'
       : ' 2 * optionalParameterCount + requiredParameterCount + 3';
 
+  jsAst.Expression typeInformationAccess =
+      emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPE_INFORMATION);
+  jsAst.Expression globalFunctionsAccess =
+      emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
+  jsAst.Expression staticsAccess =
+      emitter.generateEmbeddedGlobalAccess(embeddedNames.STATICS);
+  jsAst.Expression interceptedNamesAccess =
+      emitter.generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTED_NAMES);
+  jsAst.Expression mangledGlobalNamesAccess =
+      emitter.generateEmbeddedGlobalAccess(embeddedNames.MANGLED_GLOBAL_NAMES);
+  jsAst.Expression mangledNamesAccess =
+      emitter.generateEmbeddedGlobalAccess(embeddedNames.MANGLED_NAMES);
+  jsAst.Expression librariesAccess =
+      emitter.generateEmbeddedGlobalAccess(embeddedNames.LIBRARIES);
 
-  String header = '''
+  jsAst.Statement header = js.statement('''
 // [map] returns an object literal that V8 shouldn not try to optimize with a
 // hidden class. This prevents a potential performance problem where V8 tries
 // to build a hidden class for an object used as a hashMap.
 
   function map(x){x={x:x};delete x.x;return x}
-''';
+''');
 
-  String processStatics = '''
+  jsAst.Statement processStatics = js.statement('''
     function processStatics(descriptor) {
       for (var property in descriptor) {
         if (!hasOwnProperty.call(descriptor, property)) continue;
@@ -59,7 +74,7 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
           if (flag > 0)
             descriptor[previousProperty].$reflectableField = flag;
           if (element && element.length)
-            init.typeInformation[previousProperty] = element;
+            #[previousProperty] = element;  // embedded typeInformation.
         } else if (firstChar === "@") {
           property = property.substring(1);
           ${namer.currentIsolate}[property][$metadataField] = element;
@@ -73,7 +88,7 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
         } else if (typeof element === "function") {
           globalObject[previousProperty = property] = element;
           functions.push(property);
-          init.globalFunctions[property] = element;
+          #[property] = element;  // embedded globalFunctions.
         } else if (element.constructor === Array) {
           addStubs(globalObject, element, property,
                    true, descriptor, functions);
@@ -85,7 +100,7 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
             if (!hasOwnProperty.call(element, prop)) continue;
             firstChar = prop.substring(0, 1);
             if (prop === "static") {
-              processStatics(init.statics[property] = element[prop]);
+              processStatics(#[property] = element[prop]);  // embedded statics.
             } else if (firstChar === "+") {
               mangledNames[previousProp] = prop.substring(1);
               var flag = element[prop];
@@ -117,14 +132,14 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
         }
       }
     }
-''';
+''', [typeInformationAccess, globalFunctionsAccess, staticsAccess]);
 
 
   /**
    * See [dart2js.js_emitter.ContainerBuilder.addMemberMethod] for format of
    * [array].
    */
-  String addStubs = '''
+  jsAst.Statement addStubs = js.statement('''
   function addStubs(descriptor, array, name, isStatic,
                     originalDescriptor, functions) {
     var f, funcs =
@@ -166,20 +181,20 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
       descriptor[name].\$getter = f;
       f.\$getterStub = true;
       // Used to create an isolate using spawnFunction.
-      if (isStatic) init.globalFunctions[name] = f;
+      if (isStatic) #[name] = f;  // embedded globalFunctions.
       originalDescriptor[getterStubName] = descriptor[getterStubName] = f;
       funcs.push(f);
       if (getterStubName) functions.push(getterStubName);
       f.\$stubName = getterStubName;
       f.\$callName = null;
-      if (isIntercepted) init.interceptedNames[getterStubName] = true;
+      if (isIntercepted) #[getterStubName] = true; // embedded interceptedNames.
     }
     if (isReflectable) {
       for (var i = 0; i < funcs.length; i++) {
         funcs[i].$reflectableField = 1;
         funcs[i].$reflectionInfoField = array;
       }
-      var mangledNames = isStatic ? init.mangledGlobalNames : init.mangledNames;
+      var mangledNames = isStatic ? # : #;  // embedded mangledGlobalNames, mangledNames
       var unmangledName = ${readString("array", "unmangledNameIndex")};
       // The function is either a getter, a setter, or a method.
       // If it is a method, it might also have a tear-off closure.
@@ -198,24 +213,25 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
       if (optionalParameterCount) descriptor[unmangledName + "*"] = funcs[0];
     }
   }
-''';
+''', [globalFunctionsAccess, interceptedNamesAccess,
+      mangledGlobalNamesAccess, mangledNamesAccess]);
 
   List<jsAst.Statement> tearOffCode = buildTearOffCode(backend);
 
-  String init = '''
+  jsAst.Statement init = js.statement('''{
   var functionCounter = 0;
   var tearOffGetter = (typeof dart_precompiled == "function")
       ? tearOffGetterCsp : tearOffGetterNoCsp;
-  if (!init.libraries) init.libraries = [];
-  if (!init.mangledNames) init.mangledNames = map();
-  if (!init.mangledGlobalNames) init.mangledGlobalNames = map();
-  if (!init.statics) init.statics = map();
-  if (!init.typeInformation) init.typeInformation = map();
-  if (!init.globalFunctions) init.globalFunctions = map();
-  if (!init.interceptedNames) init.interceptedNames = map();
-  var libraries = init.libraries;
-  var mangledNames = init.mangledNames;
-  var mangledGlobalNames = init.mangledGlobalNames;
+  if (!#) # = [];  // embedded libraries.
+  if (!#) # = map();  // embedded mangledNames.
+  if (!#) # = map();  // embedded mangledGlobalNames.
+  if (!#) # = map();  // embedded statics.
+  if (!#) # = map();  // embedded typeInformation.
+  if (!#) # = map();  // embedded globalFunctions.
+  if (!#) # = map();  // embedded interceptedNames.
+  var libraries = #;  // embeded libraries.
+  var mangledNames = #;  // embedded mangledNames.
+  var mangledGlobalNames = #;  // embedded mangledGlobalNames.
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   var length = reflectionData.length;
   for (var i = 0; i < length; i++) {
@@ -246,17 +262,26 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
     libraries.push([name, uri, classes, functions, metadata, fields, isRoot,
                     globalObject]);
   }
-''';
+}''', [librariesAccess, librariesAccess,
+       mangledNamesAccess, mangledNamesAccess,
+       mangledGlobalNamesAccess, mangledGlobalNamesAccess,
+       staticsAccess, staticsAccess,
+       typeInformationAccess, typeInformationAccess,
+       globalFunctionsAccess, globalFunctionsAccess,
+       interceptedNamesAccess, interceptedNamesAccess,
+       librariesAccess,
+       mangledNamesAccess,
+       mangledGlobalNamesAccess]);
 
   return js('''
 (function (reflectionData) {
   "use strict";
-  $header
-  $processStatics
-  $addStubs
+  #; // header
+  #; // processStatics
+  #; // addStubs
   #; // tearOffCode
-  $init
-})'''  , [tearOffCode]);
+  #; // init
+})''', [header, processStatics, addStubs, tearOffCode, init]);
 }
 
 

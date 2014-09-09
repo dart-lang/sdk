@@ -4,8 +4,13 @@
 
 library dart._js_names;
 
+import 'shared/embedded_names.dart' show
+    MANGLED_GLOBAL_NAMES,
+    MANGLED_NAMES;
+
 import 'dart:_foreign_helper' show
     JS,
+    JS_EMBEDDED_GLOBAL,
     JS_GET_NAME;
 
 import 'dart:_js_helper' show
@@ -22,7 +27,9 @@ preserveNames() {}
 /// with some additional information, such as, number of required arguments.
 /// This map is for mangled names used as instance members.
 final Map<String, String> mangledNames =
-    computeMangledNames(JS('=Object', 'init.mangledNames'), false);
+    computeMangledNames(
+        JS_EMBEDDED_GLOBAL('=Object', MANGLED_NAMES),
+        false);
 
 /// A map from "reflective" names to mangled names (the reverse of
 /// [mangledNames]).
@@ -31,8 +38,9 @@ final Map<String, String> reflectiveNames =
 
 /// A map from mangled names to "reflective" names (see [mangledNames]).  This
 /// map is for globals, that is, static and top-level members.
-final Map<String, String> mangledGlobalNames =
-    computeMangledNames(JS('=Object', 'init.mangledGlobalNames'), true);
+final Map<String, String> mangledGlobalNames = computeMangledNames(
+        JS_EMBEDDED_GLOBAL('=Object', MANGLED_GLOBAL_NAMES),
+        true);
 
 /// A map from "reflective" names to mangled names (the reverse of
 /// [mangledGlobalNames]).
@@ -94,13 +102,14 @@ List extractKeys(victim) {
  * example).
  */
 String unmangleGlobalNameIfPreservedAnyways(String name) {
-  var names = JS('=Object', 'init.mangledGlobalNames');
+  var names = JS_EMBEDDED_GLOBAL('=Object', MANGLED_GLOBAL_NAMES);
   return JsCache.fetch(names, name);
 }
 
 String unmangleAllIdentifiersIfPreservedAnyways(String str) {
   return JS("String",
             r"(#).replace(/[^<,> ]+/g,"
-            r"function(m) { return init.mangledGlobalNames[m] || m; })",
-            str);
+            r"function(m) { return #[m] || m; })",
+            str,
+            JS_EMBEDDED_GLOBAL('', MANGLED_GLOBAL_NAMES));
 }

@@ -4,6 +4,10 @@
 
 library _isolate_helper;
 
+import 'shared/embedded_names.dart' show
+    CURRENT_SCRIPT,
+    GLOBAL_FUNCTIONS;
+
 import 'dart:async';
 import 'dart:collection' show Queue, HashMap;
 import 'dart:isolate';
@@ -19,6 +23,7 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_CREATE_ISOLATE,
                                    JS_CURRENT_ISOLATE_CONTEXT,
                                    JS_CURRENT_ISOLATE,
+                                   JS_EMBEDDED_GLOBAL,
                                    JS_SET_CURRENT_ISOLATE,
                                    IsolateContext;
 import 'dart:_interceptors' show JSExtendableArray;
@@ -735,7 +740,7 @@ class IsolateNatives {
    * JavaScript workers.
    */
   static String computeThisScript() {
-    var currentScript = JS('', r'init.currentScript');
+    var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
     if (currentScript != null) {
       return JS('String', 'String(#.src)', currentScript);
     }
@@ -891,7 +896,8 @@ class IsolateNatives {
   }
 
   static _getJSFunctionFromName(String functionName) {
-    return JS("", "init.globalFunctions[#]()", functionName);
+    var globalFunctionsContainer = JS_EMBEDDED_GLOBAL("", GLOBAL_FUNCTIONS);
+    return JS("", "#[#]()", globalFunctionsContainer, functionName);
   }
 
   /**
