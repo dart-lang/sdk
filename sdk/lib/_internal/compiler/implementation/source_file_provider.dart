@@ -49,12 +49,14 @@ abstract class SourceFileProvider {
           "(${ex.osError})");
     }
     dartCharactersRead += source.length;
-    sourceFiles[resourceUri.toString()] = new CachingUtf8BytesSourceFile(
-        relativize(cwd, resourceUri, isWindows), source);
+    sourceFiles[resourceUri.toString()] =
+        new CachingUtf8BytesSourceFile(relativizeUri(resourceUri), source);
     return new Future.value(source);
   }
 
   Future/*<List<int> | String>*/ call(Uri resourceUri);
+
+  relativizeUri(Uri uri) => relativize(cwd, uri, isWindows);
 }
 
 class CompilerSourceFileProvider extends SourceFileProvider {
@@ -160,7 +162,8 @@ class FormattingDiagnosticHandler {
       if (file != null) {
         print(file.getLocationMessage(color(message), begin, end, true, color));
       } else {
-        throw '$uri: file is null';
+        print('${provider.relativizeUri(uri)}@$begin+${end - begin}:'
+              ' [$kind] ${color(message)}');
       }
     }
     if (fatal && ++fatalCount >= throwOnErrorCount && throwOnError) {
