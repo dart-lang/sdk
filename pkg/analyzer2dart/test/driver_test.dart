@@ -8,6 +8,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:compiler/implementation/dart2jslib.dart' show NullSink;
 import 'package:unittest/unittest.dart';
 
 import '../lib/src/closed_world.dart';
@@ -19,7 +20,7 @@ main() {
   setUp(() {
     provider = new MemoryResourceProvider();
     DartSdk sdk = new MockSdk();
-    driver = new Driver(provider, sdk);
+    driver = new Driver(provider, sdk, NullSink.outputProvider);
   });
 
   Source setFakeRoot(String contents) {

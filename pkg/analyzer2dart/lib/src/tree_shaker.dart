@@ -15,8 +15,13 @@ import 'closed_world.dart';
 class TreeShaker {
   List<Element> _queue = <Element>[];
   Set<Element> _alreadyEnqueued = new HashSet<Element>();
-  ClosedWorld _world = new ClosedWorld();
+  ClosedWorld _world;
   Set<Selector> _selectors = new HashSet<Selector>();
+
+  TreeShaker(FunctionElement mainFunction)
+      : _world = new ClosedWorld(mainFunction) {
+    addElement(mainFunction);
+  }
 
   void addElement(Element element) {
     if (_alreadyEnqueued.add(element)) {
@@ -96,6 +101,19 @@ class TreeShaker {
   }
 }
 
+Selector createSelectorFromMethodInvocation(MethodInvocation node) {
+  int arity = 0;
+  List<String> namedArguments = <String>[];
+  for (var x in node.argumentList.arguments) {
+    if (x is NamedExpression) {
+      namedArguments.add(x.name.label.name);
+    } else {
+      arity++;
+    }
+  }
+  return new Selector.call(node.methodName.name, null, arity, namedArguments);
+}
+
 class TreeShakingVisitor extends RecursiveAstVisitor {
   final TreeShaker treeShaker;
 
@@ -106,17 +124,7 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
    * a non-static method).
    */
   void handleMethodCall(MethodInvocation node) {
-    int arity = 0;
-    List<String> namedArguments = <String>[];
-    for (var x in node.argumentList.arguments) {
-      if (x is NamedExpression) {
-        namedArguments.add(x.name.label.name);
-      } else {
-        arity++;
-      }
-    }
-    treeShaker.addSelector(
-        new Selector.call(node.methodName.name, null, arity, namedArguments));
+    treeShaker.addSelector(createSelectorFromMethodInvocation(node));
   }
 
   @override
