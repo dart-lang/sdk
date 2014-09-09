@@ -10,6 +10,7 @@ import 'dart:async' show
     Stream;
 
 import 'dart:io' show
+    File,
     HttpClient,
     HttpClientRequest,
     HttpClientResponse,
@@ -69,6 +70,24 @@ bool enableDartMind = true;
 /// Iterator over lines from standard input (or the argument array).
 Iterator<String> stdin;
 
+/// Enabled by the option --simulate-mutation. When true, this program will
+/// only prompt for one file name, and subsequent runs will read
+/// FILENAME.N.dart, where N starts at 1, and is increased on each iteration.
+/// For example, if the program is invoked as:
+///
+///   dart poi.dart --simulate-mutation test.dart 11 22 33 44
+///
+/// The program will first read the file 'test.dart' and compute scope
+/// information about position 11, then position 22 in test.dart.1.dart, then
+/// position 33 in test.dart.2.dart, and finally position 44 in
+/// test.dart.3.dart.
+bool isSimulateMutationEnabled = false;
+
+/// Counts the number of times [runPoi] has been invoked.
+int poiCount;
+
+int globalCounter = 0;
+
 /// Iterator for reading lines from [io.stdin].
 class StdinIterator implements Iterator<String> {
   String current;
@@ -80,30 +99,83 @@ class StdinIterator implements Iterator<String> {
 }
 
 main(List<String> arguments) {
+  poiCount = 0;
+  List<String> nonOptionArguments = [];
+  for (String argument in arguments) {
+    if (argument.startsWith('-')) {
+      switch (argument) {
+        case '--simulate-mutation':
+          isSimulateMutationEnabled = true;
+          break;
+        default:
+          throw 'Unknown option: $argument.';
+      }
+    } else {
+      nonOptionArguments.add(argument);
+    }
+  }
+  if (nonOptionArguments.isEmpty) {
+    stdin = new StdinIterator();
+  } else {
+    stdin = nonOptionArguments.iterator;
+  }
+
   FormattingDiagnosticHandler handler = new FormattingDiagnosticHandler();
   handler
       ..verbose = false
       ..enableColors = true;
   api.CompilerInputProvider inputProvider = handler.provider;
 
-  if (arguments.length == 0) {
-    stdin = new StdinIterator();
-  } else {
-    stdin = arguments.where((String line) {
-      print(line); // Simulates user input in terminal.
-      return true;
-    }).iterator;
-  }
-
   return prompt('Dart file: ').then((String fileName) {
+    if (isSimulateMutationEnabled) {
+      inputProvider = simulateMutation(fileName, inputProvider);
+    }
     return prompt('Position: ').then((String position) {
       return parseUserInput(fileName, position, inputProvider, handler);
     });
   });
 }
 
+/// Create an input provider that implements the behavior documented at
+/// [simulateMutation].
+api.CompilerInputProvider simulateMutation(
+    String fileName,
+    SourceFileProvider inputProvider) {
+  Uri script = Uri.base.resolveUri(new Uri.file(fileName));
+  int count = poiCount;
+  Future cache;
+  String cachedFileName = script.toFilePath();
+  int counter = ++globalCounter;
+  return (Uri uri) {
+    if (counter != globalCounter) throw 'Using old provider';
+    print('fake inputProvider#$counter($uri): $poiCount $count');
+    if (uri == script) {
+      if (poiCount == count) {
+        cachedFileName = uri.toFilePath();
+        if (count != 0) {
+          cachedFileName = '$cachedFileName.$count.dart';
+        }
+        print('Not using cached version of $cachedFileName');
+        cache = new File(cachedFileName).readAsBytes().then((data) {
+          print('Read file $cachedFileName: ${UTF8.decode(data)}');
+          return data;
+        });
+        count++;
+      } else {
+        print('Using cached version of $cachedFileName');
+      }
+      return cache;
+    } else {
+      print('Using realProvider for $uri');
+      return inputProvider(uri);
+    }
+  };
+}
+
 Future<String> prompt(message) {
-  stdout.write(message);
+  if (stdin is StdinIterator) {
+    stdout.write(message);
+  }
   return stdout.flush().then((_) {
     stdin.moveNext();
     return stdin.current;
@@ -159,6 +231,7 @@ Future parseUserInput(
 
   Future future = runPoi(script, position, inputProvider, handler);
   return future.then((Element element) {
+    poiCount++;
     print('Resolving took ${sw.elapsedMicroseconds}us.');
     sw.reset();
     String info = scopeInformation(element, position);
