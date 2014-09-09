@@ -544,12 +544,15 @@ class HtmlDartGenerator(object):
           stmts_emitter, call_emitter,
           version, signature_index, argument_count):
         name = emitter.Format('_create_$VERSION', VERSION=version)
+        arguments = constructor_info.idl_args[signature_index][:argument_count]
         if self._dart_use_blink:
-            base_name = \
-                self.DeriveNativeName(name + 'constructorCallback')
+            type_ids = [p.type.id for p in arguments]
+            base_name, rs = \
+                self.DeriveNativeEntry("constructorCallback", None, type_ids,
+                                       False)
             qualified_name = \
-              self.DeriveQualifiedBlinkName(self._interface.id,
-                                            base_name)
+                self.DeriveQualifiedBlinkName(self._interface.id,
+                                              base_name)
         else:
             qualified_name = emitter.Format(
                 '$FACTORY.$NAME',
@@ -559,9 +562,7 @@ class HtmlDartGenerator(object):
             FACTORY_NAME=qualified_name,
             FACTORY_PARAMS= \
                 constructor_info.ParametersAsArgumentList(argument_count))
-        self.EmitStaticFactoryOverload(
-            constructor_info, name,
-            constructor_info.idl_args[signature_index][:argument_count])
+        self.EmitStaticFactoryOverload(constructor_info, name, arguments)
 
       def IsOptional(signature_index, argument):
         return self.IsConstructorArgumentOptional(argument)
