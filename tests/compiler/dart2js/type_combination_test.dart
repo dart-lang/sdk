@@ -711,25 +711,26 @@ void main() {
         world);
     jsMutableArray = new TypeMask.nonNullSubclass(backend.jsMutableArrayClass,
         world);
-    jsFixedArrayOrNull = new TypeMask.exact(backend.jsFixedArrayClass);
-    jsFixedArray = new TypeMask.nonNullExact(backend.jsFixedArrayClass);
-    jsExtendableArrayOrNull = new TypeMask.exact(backend.jsExtendableArrayClass);
+    jsFixedArrayOrNull = new TypeMask.exact(backend.jsFixedArrayClass, world);
+    jsFixedArray = new TypeMask.nonNullExact(backend.jsFixedArrayClass, world);
+    jsExtendableArrayOrNull = new TypeMask.exact(backend.jsExtendableArrayClass,
+        world);
     jsExtendableArray = new TypeMask.nonNullExact(
-        backend.jsExtendableArrayClass);
+        backend.jsExtendableArrayClass, world);
     jsIndexableOrNull = new TypeMask.subtype(backend.jsIndexableClass, world);
     jsIndexable = new TypeMask.nonNullSubtype(backend.jsIndexableClass, world);
     jsInterceptorOrNull = new TypeMask.subclass(backend.jsInterceptorClass,
         world);
-    jsStringOrNull = new TypeMask.exact(backend.jsStringClass);
-    jsString = new TypeMask.nonNullExact(backend.jsStringClass);
-    jsBoolean = new TypeMask.nonNullExact(backend.jsBoolClass);
+    jsStringOrNull = new TypeMask.exact(backend.jsStringClass, world);
+    jsString = new TypeMask.nonNullExact(backend.jsStringClass, world);
+    jsBoolean = new TypeMask.nonNullExact(backend.jsBoolClass, world);
     jsNumber = new TypeMask.nonNullSubclass(backend.jsNumberClass, world);
-    jsInteger = new TypeMask.nonNullExact(backend.jsIntClass);
-    jsDouble = new TypeMask.nonNullExact(backend.jsDoubleClass);
-    jsBooleanOrNull = new TypeMask.exact(backend.jsBoolClass);
+    jsInteger = new TypeMask.nonNullExact(backend.jsIntClass, world);
+    jsDouble = new TypeMask.nonNullExact(backend.jsDoubleClass, world);
+    jsBooleanOrNull = new TypeMask.exact(backend.jsBoolClass, world);
     jsNumberOrNull = new TypeMask.subclass(backend.jsNumberClass, world);
-    jsIntegerOrNull = new TypeMask.exact(backend.jsIntClass);
-    jsDoubleOrNull = new TypeMask.exact(backend.jsDoubleClass);
+    jsIntegerOrNull = new TypeMask.exact(backend.jsIntClass, world);
+    jsDoubleOrNull = new TypeMask.exact(backend.jsDoubleClass, world);
     nullType = const TypeMask.empty();
     objectType = new TypeMask.nonNullSubclass(
         compiler.objectClass, world);

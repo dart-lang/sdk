@@ -107,14 +107,14 @@ void testUnionTypeMaskFlatten() {
 
     TypeMask empty = const TypeMask.nonNullEmpty();
     TypeMask subclassObject = new TypeMask.nonNullSubclass(Object_, classWorld);
-    TypeMask exactA = new TypeMask.nonNullExact(A);
+    TypeMask exactA = new TypeMask.nonNullExact(A, classWorld);
     TypeMask subclassA = new TypeMask.nonNullSubclass(A, classWorld);
     TypeMask subtypeA = new TypeMask.nonNullSubtype(A, classWorld);
-    TypeMask exactB = new TypeMask.nonNullExact(B);
+    TypeMask exactB = new TypeMask.nonNullExact(B, classWorld);
     TypeMask subclassB = new TypeMask.nonNullSubclass(B, classWorld);
-    TypeMask exactC = new TypeMask.nonNullExact(C);
-    TypeMask exactD = new TypeMask.nonNullExact(D);
-    TypeMask exactE = new TypeMask.nonNullExact(E);
+    TypeMask exactC = new TypeMask.nonNullExact(C, classWorld);
+    TypeMask exactD = new TypeMask.nonNullExact(D, classWorld);
+    TypeMask exactE = new TypeMask.nonNullExact(E, classWorld);
 
     check([],
           result: empty,
