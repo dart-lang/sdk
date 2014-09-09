@@ -10728,7 +10728,7 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
   // PC. StackmapTableBuilder::FinalizeStackmaps will replace it with the pc
   // address.
   ASSERT(pc_offset >= 0);
-  result.SetPC(pc_offset);
+  result.SetPcOffset(pc_offset);
   for (intptr_t i = 0; i < length; ++i) {
     result.SetBit(i, bmap->Get(i));
   }
@@ -10742,7 +10742,7 @@ const char* Stackmap::ToCString() const {
     return "{null}";
   } else {
     const char* kFormat = "%#" Px ": ";
-    intptr_t fixed_length = OS::SNPrint(NULL, 0, kFormat, PC()) + 1;
+    intptr_t fixed_length = OS::SNPrint(NULL, 0, kFormat, PcOffset()) + 1;
     Isolate* isolate = Isolate::Current();
     // Guard against integer overflow in the computation of alloc_size.
     //
@@ -10753,7 +10753,7 @@ const char* Stackmap::ToCString() const {
     }
     intptr_t alloc_size = fixed_length + Length();
     char* chars = isolate->current_zone()->Alloc<char>(alloc_size);
-    intptr_t index = OS::SNPrint(chars, alloc_size, kFormat, PC());
+    intptr_t index = OS::SNPrint(chars, alloc_size, kFormat, PcOffset());
     for (intptr_t i = 0; i < Length(); i++) {
       chars[index++] = IsObject(i) ? '1' : '0';
     }
@@ -10824,35 +10824,37 @@ static int PrintVarInfo(char* buffer, int len,
                         intptr_t i,
                         const String& var_name,
                         const RawLocalVarDescriptors::VarInfo& info) {
-  if (info.kind == RawLocalVarDescriptors::kContextLevel) {
+  const int8_t kind = info.kind();
+  const int32_t index = info.index();
+  if (kind == RawLocalVarDescriptors::kContextLevel) {
     return OS::SNPrint(buffer, len,
-                       "%2" Pd " %-13s level=%-3" Pd " scope=%-3d"
-                       " begin=%-3" Pd " end=%" Pd "\n",
+                       "%2" Pd " %-13s level=%-3d scope=%-3d"
+                       " begin=%-3d end=%d\n",
                        i,
-                       VarKindString(info.kind),
-                       info.index,
+                       VarKindString(kind),
+                       index,
                        info.scope_id,
                        info.begin_pos,
                        info.end_pos);
-  } else if (info.kind == RawLocalVarDescriptors::kContextVar) {
+  } else if (kind == RawLocalVarDescriptors::kContextVar) {
     return OS::SNPrint(buffer, len,
-                       "%2" Pd " %-13s level=%-3d index=%-3" Pd ""
-                       " begin=%-3" Pd " end=%-3" Pd " name=%s\n",
+                       "%2" Pd " %-13s level=%-3d index=%-3d"
+                       " begin=%-3d end=%-3d name=%s\n",
                        i,
-                       VarKindString(info.kind),
+                       VarKindString(kind),
                        info.scope_id,
-                       info.index,
+                       index,
                        info.begin_pos,
                        info.end_pos,
                        var_name.ToCString());
   } else {
     return OS::SNPrint(buffer, len,
-                       "%2" Pd " %-13s scope=%-3d index=%-3" Pd ""
-                       " begin=%-3" Pd " end=%-3" Pd " name=%s\n",
+                       "%2" Pd " %-13s scope=%-3d index=%-3d"
+                       " begin=%-3d end=%-3d name=%s\n",
                        i,
-                       VarKindString(info.kind),
+                       VarKindString(kind),
                        info.scope_id,
-                       info.index,
+                       index,
                        info.begin_pos,
                        info.end_pos,
                        var_name.ToCString());
@@ -10916,11 +10918,11 @@ void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
     GetInfo(i, &info);
     JSONObject var(&members);
     var.AddProperty("name", var_name.ToCString());
-    var.AddProperty("index", info.index);
-    var.AddProperty("beginPos", info.begin_pos);
-    var.AddProperty("endPos", info.end_pos);
+    var.AddProperty("index", static_cast<intptr_t>(info.index()));
+    var.AddProperty("beginPos", static_cast<intptr_t>(info.begin_pos));
+    var.AddProperty("endPos", static_cast<intptr_t>(info.end_pos));
     var.AddProperty("scopeId", static_cast<intptr_t>(info.scope_id));
-    var.AddProperty("kind", KindToStr(info.kind));
+    var.AddProperty("kind", KindToStr(info.kind()));
   }
 }
 
@@ -10947,8 +10949,9 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
   ASSERT(Object::var_descriptors_class() != Class::null());
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in LocalVarDescriptors::New: "
-           "invalid num_variables %" Pd "\n", num_variables);
+    FATAL2("Fatal error in LocalVarDescriptors::New: "
+           "invalid num_variables %" Pd ". Maximum is: %d\n",
+           num_variables, RawLocalVarDescriptors::kMaxIndex);
   }
   LocalVarDescriptors& result = LocalVarDescriptors::Handle();
   {
@@ -12424,7 +12427,8 @@ uword Code::GetLazyDeoptPc() const {
 }
 
 
-RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
+RawStackmap* Code::GetStackmap(
+    uint32_t pc_offset, Array* maps, Stackmap* map) const {
   // This code is used during iterating frames during a GC and hence it
   // should not in turn start a GC.
   NoGCScope no_gc;
@@ -12440,7 +12444,7 @@ RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
   for (intptr_t i = 0; i < maps->Length(); i++) {
     *map ^= maps->At(i);
     ASSERT(!map->IsNull());
-    if (map->PC() == pc) {
+    if (map->PcOffset() == pc_offset) {
       return map->raw();  // We found a stack map for this frame.
     }
   }
@@ -19500,7 +19504,7 @@ RawJSRegExp* JSRegExp::FromDataStartAddress(void* data) {
 
 
 const char* JSRegExp::Flags() const {
-  switch (raw_ptr()->flags_) {
+  switch (flags()) {
     case kGlobal | kIgnoreCase | kMultiLine :
     case kIgnoreCase | kMultiLine :
       return "im";

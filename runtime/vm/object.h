@@ -3012,7 +3012,7 @@ class Instructions : public Object {
     return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
   }
 
-  static const intptr_t kMaxElements = (kIntptrMax -
+  static const intptr_t kMaxElements = (kMaxInt32 -
                                         (sizeof(RawInstructions) +
                                          sizeof(RawObject) +
                                          (2 * OS::kMaxPreferredCodeAlignment)));
@@ -3078,7 +3078,7 @@ class LocalVarDescriptors : public Object {
 
   static const intptr_t kBytesPerElement =
       sizeof(RawLocalVarDescriptors::VarInfo);
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static const intptr_t kMaxElements = RawLocalVarDescriptors::kMaxIndex;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawLocalVarDescriptors) ==
@@ -3125,7 +3125,7 @@ class PcDescriptors : public Object {
 
   static const intptr_t kMaxBytesPerElement =
       sizeof(RawPcDescriptors::PcDescriptorRec);
-  static const intptr_t kMaxElements = kSmiMax / kMaxBytesPerElement;
+  static const intptr_t kMaxElements = kMaxInt32 / kMaxBytesPerElement;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawPcDescriptors) ==
@@ -3253,11 +3253,15 @@ class Stackmap : public Object {
 
   intptr_t Length() const { return raw_ptr()->length_; }
 
-  uword PC() const { return raw_ptr()->pc_; }
-  void SetPC(uword value) const { raw_ptr()->pc_ = value; }
+  uint32_t PcOffset() const { return raw_ptr()->pc_offset_; }
+  void SetPcOffset(uint32_t value) const {
+    ASSERT(value <= kMaxUint32);
+    raw_ptr()->pc_offset_ = value;
+  }
 
   intptr_t RegisterBitCount() const { return raw_ptr()->register_bit_count_; }
   void SetRegisterBitCount(intptr_t register_bit_count) const {
+    ASSERT(register_bit_count < kMaxInt32);
     raw_ptr()->register_bit_count_ = register_bit_count;
   }
 
@@ -3661,7 +3665,7 @@ class Code : public Object {
     return OFFSET_OF(RawCode, instructions_);
   }
   intptr_t pointer_offsets_length() const {
-    return raw_ptr()->pointer_offsets_length_;
+    return PtrOffBits::decode(raw_ptr()->state_bits_);
   }
 
   bool is_optimized() const {
@@ -3717,7 +3721,8 @@ class Code : public Object {
     return raw_ptr()->stackmaps_;
   }
   void set_stackmaps(const Array& maps) const;
-  RawStackmap* GetStackmap(uword pc, Array* stackmaps, Stackmap* map) const;
+  RawStackmap* GetStackmap(
+      uint32_t pc_offset, Array* stackmaps, Stackmap* map) const;
 
   enum {
     kSCallTableOffsetEntry = 0,
@@ -3891,14 +3896,18 @@ class Code : public Object {
  private:
   void set_state_bits(intptr_t bits) const;
 
+  friend class RawObject;  // For RawObject::SizeFromClass().
   friend class RawCode;
   enum {
     kOptimizedBit = 0,
     kAliveBit = 1,
+    kPtrOffBit = 2,
+    kPtrOffSize = 30,
   };
 
   class OptimizedBit : public BitField<bool, kOptimizedBit, 1> {};
   class AliveBit : public BitField<bool, kAliveBit, 1> {};
+  class PtrOffBits : public BitField<intptr_t, kPtrOffBit, kPtrOffSize> {};
 
   // An object finder visitor interface.
   class FindRawCodeVisitor : public FindObjectVisitor {
@@ -3929,9 +3938,11 @@ class Code : public Object {
     // store buffer update is not needed here.
     raw_ptr()->instructions_ = instructions;
   }
+
   void set_pointer_offsets_length(intptr_t value) {
-    ASSERT(value >= 0);
-    raw_ptr()->pointer_offsets_length_ = value;
+    // The number of fixups is limited to 1-billion.
+    ASSERT(Utils::IsUint(30, value));
+    set_state_bits(PtrOffBits::update(value, raw_ptr()->state_bits_));
   }
   int32_t* PointerOffsetAddrAt(int index) const {
     ASSERT(index >= 0);
@@ -7103,8 +7114,8 @@ class JSRegExp : public Instance {
   // kComplex: A complex pattern to match.
   enum RegExType {
     kUnitialized = 0,
-    kSimple,
-    kComplex,
+    kSimple = 1,
+    kComplex = 2,
   };
 
   // Flags are passed to a regex object as follows:
@@ -7116,13 +7127,23 @@ class JSRegExp : public Instance {
     kMultiLine = 4,
   };
 
-  bool is_initialized() const { return (raw_ptr()->type_ != kUnitialized); }
-  bool is_simple() const { return (raw_ptr()->type_ == kSimple); }
-  bool is_complex() const { return (raw_ptr()->type_ == kComplex); }
+  enum {
+    kTypePos = 0,
+    kTypeSize = 2,
+    kFlagsPos = 2,
+    kFlagsSize = 4,
+  };
 
-  bool is_global() const { return (raw_ptr()->flags_ & kGlobal); }
-  bool is_ignore_case() const { return (raw_ptr()->flags_ & kIgnoreCase); }
-  bool is_multi_line() const { return (raw_ptr()->flags_ & kMultiLine); }
+  class TypeBits : public BitField<RegExType, kTypePos, kTypeSize> {};
+  class FlagsBits : public BitField<intptr_t, kFlagsPos, kFlagsSize> {};
+
+  bool is_initialized() const { return (type() != kUnitialized); }
+  bool is_simple() const { return (type() == kSimple); }
+  bool is_complex() const { return (type() == kComplex); }
+
+  bool is_global() const { return (flags() & kGlobal); }
+  bool is_ignore_case() const { return (flags() & kIgnoreCase); }
+  bool is_multi_line() const { return (flags() & kMultiLine); }
 
   RawString* pattern() const { return raw_ptr()->pattern_; }
   RawSmi* num_bracket_expressions() const {
@@ -7131,11 +7152,11 @@ class JSRegExp : public Instance {
 
   void set_pattern(const String& pattern) const;
   void set_num_bracket_expressions(intptr_t value) const;
-  void set_is_global() const { raw_ptr()->flags_ |= kGlobal; }
-  void set_is_ignore_case() const { raw_ptr()->flags_ |= kIgnoreCase; }
-  void set_is_multi_line() const { raw_ptr()->flags_ |= kMultiLine; }
-  void set_is_simple() const { raw_ptr()->type_ = kSimple; }
-  void set_is_complex() const { raw_ptr()->type_ = kComplex; }
+  void set_is_global() const { set_flags(flags() | kGlobal); }
+  void set_is_ignore_case() const { set_flags(flags() | kIgnoreCase); }
+  void set_is_multi_line() const { set_flags(flags() | kMultiLine); }
+  void set_is_simple() const { set_type(kSimple); }
+  void set_is_complex() const { set_type(kComplex); }
 
   void* GetDataStartAddress() const;
   static RawJSRegExp* FromDataStartAddress(void* data);
@@ -7160,8 +7181,19 @@ class JSRegExp : public Instance {
   static RawJSRegExp* New(intptr_t length, Heap::Space space = Heap::kNew);
 
  private:
-  void set_type(RegExType type) const { raw_ptr()->type_ = type; }
-  void set_flags(intptr_t value) const { raw_ptr()->flags_ = value; }
+  void set_type(RegExType type) const {
+    raw_ptr()->type_flags_ = TypeBits::update(type, raw_ptr()->type_flags_);
+  }
+  void set_flags(intptr_t value) const {
+    raw_ptr()->type_flags_ = FlagsBits::update(value, raw_ptr()->type_flags_);
+  }
+
+  RegExType type() const {
+    return TypeBits::decode(raw_ptr()->type_flags_);
+  }
+  intptr_t flags() const {
+    return FlagsBits::decode(raw_ptr()->type_flags_);
+  }
 
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause

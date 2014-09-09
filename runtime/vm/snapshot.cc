@@ -149,7 +149,7 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
 
 
 RawSmi* BaseReader::ReadAsSmi() {
-  intptr_t value = ReadIntptrValue();
+  intptr_t value = Read<int32_t>();
   ASSERT((value & kSmiTagMask) == kSmiTag);
   return reinterpret_cast<RawSmi*>(value);
 }
@@ -212,7 +212,7 @@ RawObject* SnapshotReader::ReadObject() {
 RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   ASSERT(kind_ != Snapshot::kFull);
   // Read the class header information and lookup the class.
-  intptr_t class_header = ReadIntptrValue();
+  intptr_t class_header = Read<int32_t>();
   ASSERT((class_header & kSmiTagMask) != kSmiTag);
   ASSERT(!IsVMIsolateObject(class_header) ||
          !IsSingletonClassId(GetVMIsolateObjectId(class_header)));
@@ -284,7 +284,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
   ASSERT(GetBackRef(object_id) == NULL);
 
   // Read the class header information and lookup the class.
-  intptr_t class_header = ReadIntptrValue();
+  intptr_t class_header = Read<int32_t>();
 
   // Since we are only reading an object reference, If it is an instance kind
   // then we only need to figure out the class of the object and allocate an
@@ -932,7 +932,7 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id) {
 
 RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
-  intptr_t class_header = ReadIntptrValue();
+  intptr_t class_header = Read<int32_t>();
   intptr_t tags = ReadTags();
   if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
     // Object is regular dart instance.
@@ -1654,7 +1654,7 @@ void SnapshotWriter::WriteInstance(intptr_t object_id,
   WriteInlinedObjectHeader(object_id);
 
   // Indicate this is an instance object.
-  WriteIntptrValue(SerializedHeaderData::encode(kInstanceObjectId));
+  Write<int32_t>(SerializedHeaderData::encode(kInstanceObjectId));
 
   // Write out the tags.
   WriteTags(tags);
@@ -1689,7 +1689,7 @@ void SnapshotWriter::WriteInstanceRef(RawObject* raw, RawClass* cls) {
   WriteInlinedObjectHeader(kOmittedObjectId);
 
   // Indicate this is an instance object.
-  WriteIntptrValue(SerializedHeaderData::encode(kInstanceObjectId));
+  Write<int32_t>(SerializedHeaderData::encode(kInstanceObjectId));
 
   // Write out the class information for this object.
   WriteObjectImpl(cls);

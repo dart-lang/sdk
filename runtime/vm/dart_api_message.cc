@@ -257,7 +257,7 @@ static Dart_TypedData_Type GetTypedDataTypeFromView(
 
 Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
-  intptr_t class_header = ReadIntptrValue();
+  intptr_t class_header = Read<int32_t>();
   intptr_t tags = ReadTags();
   USE(tags);
   intptr_t class_id;
@@ -405,7 +405,7 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
   }
   ASSERT(SerializedHeaderTag::decode(value) == kInlined);
   // Read the class header information and lookup the class.
-  intptr_t class_header = ReadIntptrValue();
+  intptr_t class_header = Read<int32_t>();
 
   intptr_t object_id = SerializedHeaderData::decode(value);
   if (object_id == kOmittedObjectId) {
@@ -497,9 +497,9 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       // TODO(sgjesse): Fix this workaround ignoring the type parameter.
       Dart_CObject* value = &dynamic_type_marker;
       AddBackRef(object_id, value, kIsDeserialized);
-      intptr_t index = ReadIntptrValue();
+      intptr_t index = Read<int32_t>();
       USE(index);
-      intptr_t token_index = ReadIntptrValue();
+      intptr_t token_index = Read<int32_t>();
       USE(token_index);
       int8_t type_state = Read<int8_t>();
       USE(type_state);
@@ -523,7 +523,7 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
     }
     case kBigintCid: {
       // Read in the hex string representation of the bigint.
-      intptr_t len = ReadIntptrValue();
+      intptr_t len = Read<int32_t>();
       Dart_CObject* object = AllocateDartCObjectBigint(len);
       AddBackRef(object_id, object, kIsDeserialized);
       char* p = object->value.as_bigint;
@@ -1054,7 +1054,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteTags(0);
       // Write hex string length and content
       intptr_t len = strlen(hex_string);
-      WriteIntptrValue(len);
+      Write<int32_t>(len);
       for (intptr_t i = 0; i < len; i++) {
         Write<uint8_t>(hex_string[i]);
       }

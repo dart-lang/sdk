@@ -57,7 +57,7 @@ bool StackmapTableBuilder::Verify() {
     map1 = MapAt(i - 1);
     map2 = MapAt(i);
     // Ensure there are no duplicates and the entries are sorted.
-    if (map1.PC() >= map2.PC()) {
+    if (map1.PcOffset() >= map2.PcOffset()) {
       return false;
     }
   }
@@ -70,11 +70,6 @@ RawArray* StackmapTableBuilder::FinalizeStackmaps(const Code& code) {
   intptr_t num_entries = Length();
   if (num_entries == 0) {
     return Object::empty_array().raw();
-  }
-  uword entry_point = code.EntryPoint();
-  for (intptr_t i = 0; i < num_entries; i++) {
-    stack_map_ = MapAt(i);
-    stack_map_.SetPC(entry_point + stack_map_.PC());
   }
   return Array::MakeArray(list_);
 }

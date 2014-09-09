@@ -72,7 +72,7 @@ intptr_t RawObject::SizeFromClass() const {
       case kCodeCid: {
         const RawCode* raw_code = reinterpret_cast<const RawCode*>(this);
         intptr_t pointer_offsets_length =
-            raw_code->ptr()->pointer_offsets_length_;
+            Code::PtrOffBits::decode(raw_code->ptr()->state_bits_);
         instance_size = Code::InstanceSize(pointer_offsets_length);
         break;
       }
@@ -468,7 +468,7 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
 
   RawCode* obj = raw_obj->ptr();
-  intptr_t length = obj->pointer_offsets_length_;
+  intptr_t length = Code::PtrOffBits::decode(obj->state_bits_);
   if (Code::AliveBit::decode(obj->state_bits_)) {
     // Also visit all the embedded pointers in the corresponding instructions.
     uword entry_point = reinterpret_cast<uword>(obj->instructions_->ptr()) +

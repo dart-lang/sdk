@@ -829,7 +829,7 @@ RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
   literal_token.set_tags(tags);
 
   // Read the token attributes.
-  Token::Kind token_kind = static_cast<Token::Kind>(reader->ReadIntptrValue());
+  Token::Kind token_kind = static_cast<Token::Kind>(reader->Read<int32_t>());
   literal_token.set_kind(token_kind);
   *reader->StringHandle() ^= reader->ReadObjectImpl();
   literal_token.set_literal(*reader->StringHandle());
@@ -854,7 +854,7 @@ void RawLiteralToken::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the kind field.
-  writer->Write<intptr_t>(ptr()->kind_);
+  writer->Write<int32_t>(ptr()->kind_);
 
   // Write out literal and value fields.
   writer->WriteObjectImpl(ptr()->literal_);
@@ -1323,7 +1323,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Allocate context object.
-  intptr_t num_vars = reader->ReadIntptrValue();
+  int32_t num_vars = reader->Read<int32_t>();
   Context& context = Context::ZoneHandle(reader->isolate(), Context::null());
   if (kind == Snapshot::kFull) {
     context = reader->NewContext(num_vars);
@@ -1365,7 +1365,7 @@ void RawContext::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out num of variables in the context.
-  writer->WriteIntptrValue(ptr()->num_variables_);
+  writer->Write<int32_t>(ptr()->num_variables_);
 
   // Can't serialize the isolate pointer, we set it implicitly on read.
 
@@ -1718,7 +1718,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Read in the HexCString representation of the bigint.
-  intptr_t len = reader->ReadIntptrValue();
+  int32_t len = reader->Read<int32_t>();
   char* str = reader->isolate()->current_zone()->Alloc<char>(len + 1);
   str[len] = '\0';
   reader->ReadBytes(reinterpret_cast<uint8_t*>(str), len);
@@ -1765,7 +1765,7 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the bigint value as a HEXCstring.
-  intptr_t length = ptr()->signed_length_;
+  int32_t length = ptr()->signed_length_;
   bool is_negative = false;
   if (length <= 0) {
     length = -length;
@@ -1785,10 +1785,10 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   intptr_t len = strlen(str);
   ASSERT(len > 2 && str[0] == '0' && str[1] == 'x');
   if (neg) {
-    writer->WriteIntptrValue(len - 1);  // Include '-' in length.
+    writer->Write<int32_t>(len - 1);  // Include '-' in length.
     writer->Write<uint8_t>('-');
   } else {
-    writer->WriteIntptrValue(len - 2);
+    writer->Write<int32_t>(len - 2);
   }
   writer->WriteBytes(reinterpret_cast<const uint8_t*>(&(str[2])), (len - 2));
 }
@@ -2755,8 +2755,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   regex.raw_ptr()->num_bracket_expressions_ = reader->ReadAsSmi();
   *reader->StringHandle() ^= reader->ReadObjectImpl();
   regex.set_pattern(*reader->StringHandle());
-  regex.raw_ptr()->type_ = reader->ReadIntptrValue();
-  regex.raw_ptr()->flags_ = reader->ReadIntptrValue();
+  regex.raw_ptr()->type_flags_ = reader->Read<int8_t>();
 
   // TODO(5411462): Need to implement a way of recompiling the regex.
 
@@ -2783,8 +2782,7 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
   // Write out all the other fields.
   writer->Write<RawObject*>(ptr()->num_bracket_expressions_);
   writer->WriteObjectImpl(ptr()->pattern_);
-  writer->WriteIntptrValue(ptr()->type_);
-  writer->WriteIntptrValue(ptr()->flags_);
+  writer->Write<int8_t>(ptr()->type_flags_);
 
   // Do not write out the data part which is native.
 }

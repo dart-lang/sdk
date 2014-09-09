@@ -439,7 +439,8 @@ intptr_t ActivationFrame::ContextLevel() {
     for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
       RawLocalVarDescriptors::VarInfo var_info;
       var_descriptors_.GetInfo(cur_idx, &var_info);
-      if ((var_info.kind == RawLocalVarDescriptors::kContextLevel) &&
+      const int8_t kind = var_info.kind();
+      if ((kind == RawLocalVarDescriptors::kContextLevel) &&
           (var_info.begin_pos <= activation_token_pos) &&
           (activation_token_pos < var_info.end_pos)) {
         // This var_descriptors_ entry is a context scope which is in scope
@@ -447,7 +448,7 @@ intptr_t ActivationFrame::ContextLevel() {
         // the previous context scope.
         if (innermost_begin_pos < var_info.begin_pos) {
           innermost_begin_pos = var_info.begin_pos;
-          context_level_ = var_info.index;
+          context_level_ = var_info.index();
         }
       }
     }
@@ -464,12 +465,12 @@ RawContext* ActivationFrame::GetSavedEntryContext() {
   for (intptr_t i = 0; i < var_desc_len; i++) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
-    if (var_info.kind == RawLocalVarDescriptors::kSavedEntryContext) {
+    const int8_t kind = var_info.kind();
+    if (kind == RawLocalVarDescriptors::kSavedEntryContext) {
       if (FLAG_trace_debugger_stacktrace) {
-        OS::PrintErr("\tFound saved entry ctx at index %" Pd "\n",
-                     var_info.index);
+        OS::PrintErr("\tFound saved entry ctx at index %d\n", var_info.index());
       }
-      return GetLocalContextVar(var_info.index);
+      return GetLocalContextVar(var_info.index());
     }
   }
 
@@ -486,12 +487,13 @@ RawContext* ActivationFrame::GetSavedCurrentContext() {
   for (intptr_t i = 0; i < var_desc_len; i++) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
-    if (var_info.kind == RawLocalVarDescriptors::kSavedCurrentContext) {
+    const int8_t kind = var_info.kind();
+    if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
       if (FLAG_trace_debugger_stacktrace) {
-        OS::PrintErr("\tFound saved current ctx at index %" Pd "\n",
-                     var_info.index);
+        OS::PrintErr("\tFound saved current ctx at index %d\n",
+            var_info.index());
       }
-      return GetLocalContextVar(var_info.index);
+      return GetLocalContextVar(var_info.index());
     }
   }
   UNREACHABLE();
@@ -596,13 +598,14 @@ void ActivationFrame::GetDescIndices() {
     ASSERT(var_names.length() == desc_indices_.length());
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(cur_idx, &var_info);
-    if ((var_info.kind != RawLocalVarDescriptors::kStackVar) &&
-        (var_info.kind != RawLocalVarDescriptors::kContextVar)) {
+    const int8_t kind = var_info.kind();
+    if ((kind != RawLocalVarDescriptors::kStackVar) &&
+        (kind != RawLocalVarDescriptors::kContextVar)) {
       continue;
     }
     if ((var_info.begin_pos <= activation_token_pos) &&
         (activation_token_pos <= var_info.end_pos)) {
-      if ((var_info.kind == RawLocalVarDescriptors::kContextVar) &&
+      if ((kind == RawLocalVarDescriptors::kContextVar) &&
           (ContextLevel() < var_info.scope_id)) {
         // The variable is textually in scope but the context level
         // at the activation frame's PC is lower than the context
@@ -753,10 +756,11 @@ void ActivationFrame::VariableAt(intptr_t i,
   ASSERT(end_pos != NULL);
   *end_pos = var_info.end_pos;
   ASSERT(value != NULL);
-  if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
-    *value = GetLocalInstanceVar(var_info.index);
+  const int8_t kind = var_info.kind();
+  if (kind == RawLocalVarDescriptors::kStackVar) {
+    *value = GetLocalInstanceVar(var_info.index());
   } else {
-    ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
+    ASSERT(kind == RawLocalVarDescriptors::kContextVar);
     if (ctx_.IsNull()) {
       // The context has been removed by the optimizing compiler.
       //
@@ -771,7 +775,7 @@ void ActivationFrame::VariableAt(intptr_t i,
     // The context level of the variable.
     intptr_t var_ctx_level = var_info.scope_id;
     intptr_t level_diff = frame_ctx_level - var_ctx_level;
-    intptr_t ctx_slot = var_info.index;
+    intptr_t ctx_slot = var_info.index();
     if (level_diff == 0) {
       if ((ctx_slot < 0) ||
           (ctx_slot >= ctx_.num_variables())) {

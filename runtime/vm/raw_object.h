@@ -889,16 +889,17 @@ class RawCode : public RawObject {
 
   // Compilation timestamp.
   int64_t compile_timestamp_;
-  intptr_t pointer_offsets_length_;
+
+  // state_bits_ is a bitfield with three fields:
+  // The optimized bit, the alive bit, and a count of the number of pointer
+  // offsets.
   // Alive: If true, the embedded object pointers will be visited during GC.
-  // This field cannot be shorter because of alignment issues on x64
-  // architectures.
-  intptr_t state_bits_;  // state, is_optimized, is_alive.
+  int32_t state_bits_;
 
   // PC offsets for code patching.
-  intptr_t entry_patch_pc_offset_;
-  intptr_t patch_code_pc_offset_;
-  intptr_t lazy_deopt_pc_offset_;
+  int32_t entry_patch_pc_offset_;
+  int32_t patch_code_pc_offset_;
+  int32_t lazy_deopt_pc_offset_;
 
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
@@ -920,7 +921,7 @@ class RawInstructions : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->object_pool_);
   }
-  intptr_t size_;
+  int32_t size_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
@@ -1012,8 +1013,8 @@ class RawPcDescriptors : public RawObject {
   static const intptr_t kFullRecSize;
   static const intptr_t kCompressedRecSize;
 
-  intptr_t record_size_in_bytes_;
-  intptr_t length_;  // Number of descriptors.
+  int32_t record_size_in_bytes_;
+  int32_t length_;  // Number of descriptors.
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }
@@ -1032,12 +1033,16 @@ class RawPcDescriptors : public RawObject {
 class RawStackmap : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Stackmap);
 
-  // TODO(kmillikin): We need a small number of bits to encode the register
-  // count.  Consider packing them in with the length.
-  intptr_t length_;  // Length of payload, in bits.
-  intptr_t register_bit_count_;  // Live register bits, included in length_.
+  // Regarding changing this to a bitfield: ARM64 requires register_bit_count_
+  // to be as large as 96, meaning 7 bits, leaving 25 bits for the length, or
+  // as large as ~33 million entries. If that is sufficient, then these two
+  // fields can be merged into a BitField.
+  int32_t length_;  // Length of payload, in bits.
+  int32_t register_bit_count_;  // Live register bits, included in length_.
 
-  uword pc_;  // PC corresponding to this stack map representation.
+  // Offset from code entry point corresponding to this stack map
+  // representation.
+  uint32_t pc_offset_;
 
   // Variable length data follows here (bitmap of the stack layout).
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
@@ -1054,21 +1059,49 @@ class RawLocalVarDescriptors : public RawObject {
     kSavedCurrentContext
   };
 
+  enum {
+    kKindPos = 0,
+    kKindSize = 8,
+    kIndexPos = kKindPos + kKindSize,
+    // Since there are 24 bits for the stack slot index, Functions can have
+    // only ~16.7 million stack slots.
+    kPayloadSize = sizeof(int32_t) * kBitsPerByte,
+    kIndexSize = kPayloadSize - kIndexPos,
+    kIndexBias = 1 << (kIndexSize - 1),
+    kMaxIndex = (1 << (kIndexSize - 1)) - 1,
+  };
+
+  class IndexBits : public BitField<int32_t, kIndexPos, kIndexSize> {};
+  class KindBits : public BitField<int8_t, kKindPos, kKindSize>{};
+
   struct VarInfo {
-    intptr_t index;      // Slot index on stack or in context.
-    intptr_t begin_pos;  // Token position of scope start.
-    intptr_t end_pos;    // Token position of scope end.
-    int16_t  scope_id;   // Scope to which the variable belongs.
-    int8_t   kind;       // Entry kind of type VarInfoKind.
+    int32_t index_kind;  // Bitfield for slot index on stack or in context,
+                         // and Entry kind of type VarInfoKind.
+    int32_t begin_pos;   // Token position of scope start.
+    int32_t end_pos;     // Token position of scope end.
+    int16_t scope_id;    // Scope to which the variable belongs.
+
+    VarInfoKind kind() const {
+      return static_cast<VarInfoKind>(KindBits::decode(index_kind));
+    }
+    void set_kind(VarInfoKind kind) {
+      index_kind = KindBits::update(kind, index_kind);
+    }
+    int32_t index() const {
+      return IndexBits::decode(index_kind) - kIndexBias;
+    }
+    void set_index(int32_t index) {
+      index_kind = IndexBits::update(index + kIndexBias, index_kind);
+    }
   };
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors);
-  intptr_t length_;  // Number of descriptors.
   RawArray* names_;  // Array of [length_] variable names.
+  int32_t length_;  // Number of descriptors.
 
   // Variable info with [length_] entries.
-  VarInfo* data() { OPEN_ARRAY_START(VarInfo, intptr_t); }
+  VarInfo* data() { OPEN_ARRAY_START(VarInfo, int32_t); }
 };
 
 
@@ -1087,7 +1120,7 @@ class RawExceptionHandlers : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
 
   // Number of exception handler entries.
-  intptr_t length_;
+  int32_t length_;
 
   // Array with [length_] entries. Each entry is an array of all handled
   // exception types.
@@ -1113,7 +1146,7 @@ class RawDeoptInfo : public RawObject {
 class RawContext : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Context);
 
-  intptr_t num_variables_;
+  int32_t num_variables_;
   Isolate* isolate_;
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->parent_); }
@@ -1132,7 +1165,7 @@ class RawContext : public RawObject {
 class RawContextScope : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ContextScope);
 
-  // TODO(iposva): Switch to convential enum offset based structure to avoid
+  // TODO(iposva): Switch to conventional enum offset based structure to avoid
   // alignment mishaps.
   struct VariableDesc {
     RawSmi* token_pos;
@@ -1147,7 +1180,7 @@ class RawContextScope : public RawObject {
     RawSmi* context_level;
   };
 
-  intptr_t num_variables_;
+  int32_t num_variables_;
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->data()[0]);
@@ -1416,12 +1449,12 @@ class RawBigint : public RawInteger {
   // Actual length in chunks at the time of allocation (later we may
   // clamp the operational length but we need to maintain a consistent
   // object length so that the object can be traversed during GC).
-  intptr_t allocated_length_;
+  int32_t allocated_length_;
 
   // Operational length in chunks of the bigint object, clamping can
   // cause this length to be reduced. If the signed_length_ is
   // negative then the number is negative.
-  intptr_t signed_length_;
+  int32_t signed_length_;
 
   // A sequence of Chunks (typedef in Bignum) representing bignum digits.
   // Bignum::Chunk chunks_[Utils::Abs(signed_length_)];
@@ -1734,8 +1767,10 @@ class RawJSRegExp : public RawInstance {
     return reinterpret_cast<RawObject**>(&ptr()->pattern_);
   }
 
-  intptr_t type_;  // Uninitialized, simple or complex.
-  intptr_t flags_;  // Represents global/local, case insensitive, multiline.
+  // A bitfield with two fields:
+  // type: Uninitialized, simple or complex.
+  // flags: Represents global/local, case insensitive, multiline.
+  int8_t type_flags_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
