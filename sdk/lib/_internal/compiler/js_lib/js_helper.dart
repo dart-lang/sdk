@@ -2712,7 +2712,6 @@ checkMalformedType(value, message) {
 
 @NoInline()
 void checkDeferredIsLoaded(String loadId, String uri) {
-  print(_loadedLibraries);
   if (!_loadedLibraries.contains(loadId)) {
     throw new DeferredNotLoadedError(uri);
   }
@@ -3243,7 +3242,6 @@ Future<Null> loadDeferredLibrary(String loadId) {
       'init.deferredLibraryUris[#]', loadId);
   List<String> hashes = JS('JSExtendableArray|Null',
       'init.deferredLibraryHashes[#]', loadId);
-  print("Here $loadId $hashes $uris");
   if (uris == null) return new Future.value(null);
   // The indices into `uris` and `hashes` that we want to load.
   List<int> indices = new List.generate(uris.length, (i) => i);
