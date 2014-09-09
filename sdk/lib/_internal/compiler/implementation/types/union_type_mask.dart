@@ -50,7 +50,7 @@ class UnionTypeMask implements TypeMask {
         for (int i = 0; i < disjoint.length; i++) {
           FlatTypeMask current = disjoint[i];
           if (current == null) continue;
-          TypeMask newMask = mask.union(current, classWorld);
+          TypeMask newMask = flatMask.union(current, classWorld);
           // If we have found a disjoint union, continue iterating.
           if (newMask.isUnion) continue;
           covered = true;
@@ -63,7 +63,7 @@ class UnionTypeMask implements TypeMask {
           // [newMask] may contain different information than [mask],
           // like nullability.
           disjoint[i] = newMask;
-          mask = newMask;
+          flatMask = newMask;
 
           if (inListIndex != -1) {
             // If the mask was already covered, we remove the previous
@@ -77,7 +77,7 @@ class UnionTypeMask implements TypeMask {
         }
         // If none of the masks in [disjoint] covers [mask], we just
         // add [mask] to the list.
-        if (!covered) disjoint.add(mask);
+        if (!covered) disjoint.add(flatMask);
       }
     }
   }

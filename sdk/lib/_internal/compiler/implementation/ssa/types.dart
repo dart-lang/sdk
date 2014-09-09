@@ -56,7 +56,7 @@ class TypeMaskFactory {
     ClassWorld classWorld = compiler.world;
     JavaScriptBackend backend = compiler.backend;
     if (type == native.SpecialType.JsObject) {
-      return new TypeMask.nonNullExact(compiler.objectClass);
+      return new TypeMask.nonNullExact(compiler.objectClass, classWorld);
     } else if (type.isVoid) {
       return backend.nullType;
     } else if (type.element == compiler.nullClass) {
