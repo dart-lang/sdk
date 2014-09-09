@@ -163,7 +163,7 @@ String _resolveUri(String base, String userString) {
 }
 
 
-// Returns either a file path or a URI starting with http:, as a String.
+// Returns either a file path or a URI starting with http[s]:, as a String.
 String _filePathFromUri(String userUri) {
   var uri = Uri.parse(userUri);
   if (_logBuiltin) {
@@ -178,6 +178,7 @@ String _filePathFromUri(String userUri) {
     case 'package':
       return _filePathFromUri(_resolvePackageUri(uri).toString());
     case 'http':
+    case 'https':
       return uri.toString();
     default:
       // Only handling file, http, and package URIs
@@ -301,11 +302,12 @@ Uri _createUri(String userUri) {
     case '':
     case 'file':
     case 'http':
+    case 'https':
       return uri;
     case 'package':
       return _resolvePackageUri(uri);
     default:
-      // Only handling file, http, and package URIs
+      // Only handling file, http[s], and package URIs
       // in standalone binary.
       if (_logBuiltin) {
         _print('# Unknown scheme (${uri.scheme}) in $uri.');
@@ -315,7 +317,7 @@ Uri _createUri(String userUri) {
 }
 
 
-// Asynchronously loads script data through a http or file uri.
+// Asynchronously loads script data through a http[s] or file uri.
 _loadDataAsync(int tag, String uri, String libraryUri) {
   if (tag == null) {
     uri = _resolveScriptUri(uri);
@@ -326,7 +328,7 @@ _loadDataAsync(int tag, String uri, String libraryUri) {
     _print("_loadDataAsync($uri), "
            "${_numOutstandingLoadRequests} requests outstanding");
   }
-  if (resourceUri.scheme == 'http') {
+  if ((resourceUri.scheme == 'http') || (resourceUri.scheme == 'https')) {
     _httpGet(resourceUri, libraryUri, (data) {
       _loadScript(tag, uri, libraryUri, data);
     });

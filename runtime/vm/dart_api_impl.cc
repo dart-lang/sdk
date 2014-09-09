@@ -3968,7 +3968,6 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
         "%s expects argument 'number_of_arguments' to be non-negative.",
         CURRENT_FUNC);
   }
-  ASSERT(ClassFinalizer::AllClassesFinalized());
 
   // Set up arguments to include the closure as the first argument.
   const Array& args = Array::Handle(isolate,
