@@ -56,8 +56,9 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
 // [map] returns an object literal that V8 shouldn not try to optimize with a
 // hidden class. This prevents a potential performance problem where V8 tries
 // to build a hidden class for an object used as a hashMap.
-
-  function map(x){x={x:x};delete x.x;return x}
+// It requires fewer characters to declare a variable as a parameter than
+// with `var`.
+  function map(x){x=Object.create(null);x.x=0;delete x.x;return x}
 ''');
 
   jsAst.Statement processStatics = js.statement('''

@@ -39,10 +39,6 @@ getPropertyFromPrototype(var object, String name) {
   return JS('var', 'Object.getPrototypeOf(#)[#]', object, name);
 }
 
-newJsObject() {
-  return JS('var', '{}');
-}
-
 /**
  * Returns a String tag identifying the type of the native object, or `null`.
  * The tag is not the name of the type, but usually the name of the JavaScript

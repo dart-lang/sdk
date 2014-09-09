@@ -346,8 +346,8 @@ class CodeEmitterTask extends CompilerTask {
 
     return js('''
       function(collectedClasses, isolateProperties, existingIsolateProperties) {
-        var pendingClasses = {};
-        if (!#) # = {};  // embedded allClasses.
+        var pendingClasses = Object.create(null);
+        if (!#) # = Object.create(null);  // embedded allClasses.
         var allClasses = #;  // embedded allClasses;
 
         if (#)  // DEBUG_FAST_OBJECTS
@@ -366,66 +366,64 @@ class CodeEmitterTask extends CompilerTask {
         }
 
         for (var cls in collectedClasses) {
-          if (hasOwnProperty.call(collectedClasses, cls)) {
-            var desc = collectedClasses[cls];
-            if (desc instanceof Array) desc = desc[1];
+          var desc = collectedClasses[cls];
+          if (desc instanceof Array) desc = desc[1];
 
-            /* The 'fields' are either a constructor function or a
-             * string encoding fields, constructor and superclass.  Get
-             * the superclass and the fields in the format
-             *   '[name/]Super;field1,field2'
-             * from the CLASS_DESCRIPTOR_PROPERTY property on the descriptor.
-             * The 'name/' is optional and contains the name that should be used
-             * when printing the runtime type string.  It is used, for example,
-             * to print the runtime type JSInt as 'int'.
-             */
-            var classData = desc["${namer.classDescriptorProperty}"],
-                supr, name = cls, fields = classData;
-            if (#)  // backend.hasRetainedMetadata
-              if (typeof classData == "object" &&
-                  classData instanceof Array) {
-                classData = fields = classData[0];
-              }
-            if (typeof classData == "string") {
-              var split = classData.split("/");
-              if (split.length == 2) {
-                name = split[0];
-                fields = split[1];
-              }
+          /* The 'fields' are either a constructor function or a
+           * string encoding fields, constructor and superclass.  Get
+           * the superclass and the fields in the format
+           *   '[name/]Super;field1,field2'
+           * from the CLASS_DESCRIPTOR_PROPERTY property on the descriptor.
+           * The 'name/' is optional and contains the name that should be used
+           * when printing the runtime type string.  It is used, for example,
+           * to print the runtime type JSInt as 'int'.
+           */
+          var classData = desc["${namer.classDescriptorProperty}"],
+              supr, name = cls, fields = classData;
+          if (#)  // backend.hasRetainedMetadata
+            if (typeof classData == "object" &&
+                classData instanceof Array) {
+              classData = fields = classData[0];
             }
-
-            var s = fields.split(";");
-            fields = s[1] == "" ? [] : s[1].split(",");
-            supr = s[0];
-            split = supr.split(":");
+          if (typeof classData == "string") {
+            var split = classData.split("/");
             if (split.length == 2) {
-              supr = split[0];
-              var functionSignature = split[1];
-              if (functionSignature)
-                desc.\$signature = (function(s) {
-                    return function(){ return #[s]; };  // embedded metadata.
-                  })(functionSignature);
+              name = split[0];
+              fields = split[1];
             }
-
-            if (#)  // needsMixinSupport
-              if (supr && supr.indexOf("+") > 0) {
-                s = supr.split("+");
-                supr = s[0];
-                var mixin = collectedClasses[s[1]];
-                if (mixin instanceof Array) mixin = mixin[1];
-                for(var d in mixin) {
-                  if (hasOwnProperty.call(mixin, d) &&
-                      !hasOwnProperty.call(desc, d))
-                    desc[d] = mixin[d];
-                }
-              }
-
-            if (typeof dart_precompiled != "function") {
-              combinedConstructorFunction += defineClass(name, cls, fields);
-              constructorsList.push(cls);
-            }
-            if (supr) pendingClasses[cls] = supr;
           }
+
+          var s = fields.split(";");
+          fields = s[1] == "" ? [] : s[1].split(",");
+          supr = s[0];
+          split = supr.split(":");
+          if (split.length == 2) {
+            supr = split[0];
+            var functionSignature = split[1];
+            if (functionSignature)
+              desc.\$signature = (function(s) {
+                  return function(){ return #[s]; };  // embedded metadata.
+                })(functionSignature);
+          }
+
+          if (#)  // needsMixinSupport
+            if (supr && supr.indexOf("+") > 0) {
+              s = supr.split("+");
+              supr = s[0];
+              var mixin = collectedClasses[s[1]];
+              if (mixin instanceof Array) mixin = mixin[1];
+              for (var d in mixin) {
+                if (hasOwnProperty.call(mixin, d) &&
+                    !hasOwnProperty.call(desc, d))
+                  desc[d] = mixin[d];
+              }
+            }
+
+          if (typeof dart_precompiled != "function") {
+            combinedConstructorFunction += defineClass(name, cls, fields);
+            constructorsList.push(cls);
+          }
+          if (supr) pendingClasses[cls] = supr;
         }
 
         if (typeof dart_precompiled != "function") {
@@ -454,9 +452,9 @@ class CodeEmitterTask extends CompilerTask {
 
         constructors = null;
 
-        var finishedClasses = {};
+        var finishedClasses = Object.create(null);
         # = Object.create(null);  // embedded interceptorsByTag.
-        # = {};  // embedded leafTags.
+        # = Object.create(null);  // embedded leafTags.
 
         #;  // buildFinishClass(),
 
@@ -492,13 +490,7 @@ class CodeEmitterTask extends CompilerTask {
     return js.statement('''
       function finishClass(cls) {
 
-        // TODO(8540): Remove this work around.
-        // Opera does not support 'getOwnPropertyNames'. Therefore we use
-        //   hasOwnProperty instead.
-        var hasOwnProperty = Object.prototype.hasOwnProperty;
-
-        if (hasOwnProperty.call(finishedClasses, cls)) return;
-
+        if (finishedClasses[cls]) return;
         finishedClasses[cls] = true;
 
         var superclass = pendingClasses[cls];
@@ -539,7 +531,7 @@ class CodeEmitterTask extends CompilerTask {
           //
           // The information is used to build tables referenced by
           // getNativeInterceptor and custom element support.
-          if (hasOwnProperty.call(prototype, $specProperty)) {
+          if (Object.prototype.hasOwnProperty.call(prototype, $specProperty)) {
             var nativeSpec = prototype[$specProperty].split(";");
             if (nativeSpec[0]) {
               var tags = nativeSpec[0].split("|");
@@ -619,7 +611,7 @@ class CodeEmitterTask extends CompilerTask {
     return js('''
       function (prototype, staticName, fieldName, getterName, lazyValue) {
         if (#) {
-          if (!#) # = {};
+          if (!#) # = Object.create(null);
           #[fieldName] = getterName;
         }
 
@@ -1336,7 +1328,7 @@ class CodeEmitterTask extends CompilerTask {
   void emitInitFunction(CodeBuffer buffer) {
     jsAst.FunctionDeclaration decl = js.statement('''
       function init() {
-        $isolateProperties = {};
+        $isolateProperties = Object.create(null);
         #; #; #;
       }''', [
           buildDefineClassAndFinishClassFunctionsIfNecessary(),
@@ -1482,7 +1474,7 @@ class CodeEmitterTask extends CompilerTask {
       /// following parenthesis looks like a call to the object literal.
       mainBuffer..add(
           'if$_(typeof(${deferredInitializers})$_===$_"undefined")$_'
-          '${deferredInitializers} = {};$n');
+          '${deferredInitializers} = Object.create(null);$n');
 
       // Using a named function here produces easier to read stack traces in
       // Chrome/V8.
@@ -1490,7 +1482,7 @@ class CodeEmitterTask extends CompilerTask {
       if (compiler.deferredLoadTask.isProgramSplit) {
         /// We collect all the global state of the, so it can be passed to the
         /// initializer of deferred files.
-        mainBuffer.add('var ${globalsHolder}$_=$_{}$N');
+        mainBuffer.add('var ${globalsHolder}$_=${_}Object.create(null)$N');
       }
       mainBuffer.add('function dart()$_{$n'
           '${_}${_}this.x$_=${_}0$N'
@@ -1531,7 +1523,7 @@ class CodeEmitterTask extends CompilerTask {
           typedefsNeededForReflection.isEmpty)) {
         // Shorten the code by using "$$" as temporary.
         classesCollector = r"$$";
-        mainBuffer.add('var $classesCollector$_=$_{}$N$n');
+        mainBuffer.add('var $classesCollector$_=${_}Object.create(null)$N$n');
       }
 
       // Emit native classes on [nativeBuffer].
@@ -2001,7 +1993,7 @@ class CodeEmitterTask extends CompilerTask {
                      '${globalsHolder}.${namer.isolateName}$N')
             ..write('var ${namer.currentIsolate}$_=$_$isolatePropertiesName$N')
             // The classesCollector object ($$).
-            ..write('$classesCollector$_=$_{};$n')
+            ..write('$classesCollector$_=${_}Object.create(null);$n')
           ..write('(')
           ..write(
               jsAst.prettyPrint(

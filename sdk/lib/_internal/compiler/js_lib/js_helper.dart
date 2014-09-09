@@ -1369,7 +1369,7 @@ class TypeErrorDecoder {
     var match = JS('JSExtendableArray|Null',
         'new RegExp(#).exec(#)', _pattern, message);
     if (match == null) return null;
-    var result = JS('', '{}');
+    var result = JS('', 'Object.create(null)');
     if (_arguments != -1) {
       JS('', '#.arguments = #[# + 1]', result, match, _arguments);
     }
@@ -2934,7 +2934,7 @@ class RuntimeFunctionType extends RuntimeType {
     }
 
     if (namedParameters != null) {
-      var namedRti = JS('=Object', '{}');
+      var namedRti = JS('=Object', 'Object.create(null)');
       var keys = extractKeys(namedParameters);
       for (var i = 0; i < keys.length; i++) {
         var name = keys[i];
