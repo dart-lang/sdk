@@ -12,12 +12,18 @@ import 'dart:convert' show
 
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
-import 'dart2jslib.dart' show Backend, CodeBuffer, Compiler, CompilerTask;
+import 'dart2jslib.dart' show
+    Backend,
+    CodeBuffer,
+    Compiler,
+    CompilerTask,
+    MessageKind;
 import 'types/types.dart' show TypeMask;
 import 'deferred_load.dart' show OutputUnit;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js/js.dart' as jsAst;
 import 'universe/universe.dart' show Selector;
+import 'util/util.dart' show NO_LOCATION_SPANNABLE;
 
 /// Maps objects to an id.  Supports lookups in
 /// both directions.
@@ -653,5 +659,9 @@ class DumpInfoTask extends CompilerTask {
       encoder.startChunkedConversion(
           new StringConversionSink.fromStringSink(buffer));
     sink.add(outJson);
+    compiler.reportInfo(NO_LOCATION_SPANNABLE,
+        const MessageKind(
+            "View the dumped .info.json file at "
+            "https://dart-lang.github.io/dump-info-visualizer"));
   }
 }

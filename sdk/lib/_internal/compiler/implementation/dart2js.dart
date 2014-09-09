@@ -542,7 +542,7 @@ be removed in a future version:
   --dump-info
     Generates an out.info.json file with information about the generated code.
     You can inspect the generated file with the viewer at:
-    http://dart-lang.github.io/dump-info-visualizer/build/web/viewer.html
+    https://dart-lang.github.io/dump-info-visualizer/
 
 '''.trim());
 }
