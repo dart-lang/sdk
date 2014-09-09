@@ -47,7 +47,8 @@ import 'dart:_js_helper' show
     getRuntimeType,
     runtimeTypeToString,
     setRuntimeTypeInfo,
-    throwInvalidReflectionError;
+    throwInvalidReflectionError,
+    TypeImpl;
 
 import 'dart:_interceptors' show
     Interceptor,
@@ -2689,7 +2690,7 @@ int findTypeVariableIndex(List<TypeVariableMirror> typeVariables, String name) {
 
 TypeMirror typeMirrorFromRuntimeTypeRepresentation(
     DeclarationMirror owner,
-    var /*int|List|JsFunction*/ type) {
+    var /*int|List|JsFunction|TypeImpl*/ type) {
   // TODO(ahe): This method might benefit from using convertRtiToRuntimeType
   // instead of working on strings.
   ClassMirror ownerClass;
@@ -2707,7 +2708,7 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
   String representation;
   if (type == null) {
     return JsMirrorSystem._dynamicType;
-  } else if (type is Type) {
+  } else if (type is TypeImpl) {
     return reflectType(type);
   } else if (ownerClass == null) {
     representation = runtimeTypeToString(type);
