@@ -1520,7 +1520,7 @@ void Assembler::LoadWordFromPoolOffset(Register rd,
       add(rd, PP, o, cond);
     } else {
       LoadImmediate(rd, offset_hi, cond);
-      add(rd, PP, Operand(rd), cond);
+      add(rd, PP, Operand(LR), cond);
     }
     ldr(rd, Address(rd, offset_lo), cond);
   }
