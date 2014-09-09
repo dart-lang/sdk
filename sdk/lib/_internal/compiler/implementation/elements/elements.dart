@@ -25,6 +25,7 @@ import '../dart2jslib.dart' show InterfaceType,
                                  isPrivateName;
 
 import '../dart_types.dart';
+import '../helpers/helpers.dart';
 
 import '../scanner/scannerlib.dart' show Token,
                                          isUserDefinableOperator,
@@ -460,14 +461,13 @@ class Elements {
   }
 
   static bool isStaticOrTopLevel(Element element) {
-    // TODO(ager): This should not be necessary when patch support has
-    // been reworked.
-    if (!Elements.isUnresolved(element)
-        && element.isStatic) {
-      return true;
-    }
-    return !Elements.isUnresolved(element)
-           && !element.isAmbiguous
+    // TODO(johnniwinther): Clean this up. This currently returns true for a
+    // PartialConstructorElement, SynthesizedConstructorElementX, and
+    // TypeVariableElementX though neither `element.isStatic` nor
+    // `element.isTopLevel` is true.
+    if (Elements.isUnresolved(element)) return false;
+    if (element.isStatic || element.isTopLevel) return true;
+    return !element.isAmbiguous
            && !element.isInstanceMember
            && !element.isPrefix
            && element.enclosingElement != null
@@ -855,6 +855,10 @@ abstract class LibraryElement extends Element
    * libraries the canonical uri is of the form [:dart:x:].
    */
   Uri get canonicalUri;
+
+  /// Returns `true` if this library is 'dart:core'.
+  bool get isDartCore;
+
   CompilationUnitElement get entryCompilationUnit;
   Link<CompilationUnitElement> get compilationUnits;
   Iterable<LibraryTag> get tags;

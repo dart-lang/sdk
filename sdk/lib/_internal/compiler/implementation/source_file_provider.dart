@@ -7,8 +7,9 @@ library source_file_provider;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
-import '../compiler.dart' as api show Diagnostic;
+import '../compiler.dart' as api show Diagnostic, DiagnosticHandler;
 import 'dart2js.dart' show AbortLeg;
 import 'colors.dart' as colors;
 import 'source_file.dart';
@@ -175,4 +176,108 @@ class FormattingDiagnosticHandler {
   void call(Uri uri, int begin, int end, String message, api.Diagnostic kind) {
     return diagnosticHandler(uri, begin, end, message, kind);
   }
+}
+
+typedef void MessageCallback(String message);
+
+class RandomAccessFileOutputProvider {
+  final Uri out;
+  final Uri sourceMapOut;
+  final MessageCallback onInfo;
+  final MessageCallback onFailure;
+
+  int totalCharactersWritten = 0;
+  List<String> allOutputFiles = new List<String>();
+
+  RandomAccessFileOutputProvider(this.out,
+                                 this.sourceMapOut,
+                                 {this.onInfo,
+                                  this.onFailure});
+
+  static Uri computePrecompiledUri(Uri out) {
+    String extension = 'precompiled.js';
+    String outPath = out.path;
+    if (outPath.endsWith('.js')) {
+      outPath = outPath.substring(0, outPath.length - 3);
+      return out.resolve('$outPath.$extension');
+    } else {
+      return out.resolve(extension);
+    }
+  }
+
+  EventSink<String> call(String name, String extension) {
+    Uri uri;
+    String sourceMapFileName;
+    bool isPrimaryOutput = false;
+    if (name == '') {
+      if (extension == 'js' || extension == 'dart') {
+        isPrimaryOutput = true;
+        uri = out;
+        sourceMapFileName =
+            sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
+      } else if (extension == 'precompiled.js') {
+        uri = computePrecompiledUri(out);
+        onInfo("File ($uri) is compatible with header"
+               " \"Content-Security-Policy: script-src 'self'\"");
+      } else if (extension == 'js.map' || extension == 'dart.map') {
+        uri = sourceMapOut;
+      } else if (extension == 'info.html' || extension == "info.json") {
+        String outName = out.path.substring(out.path.lastIndexOf('/') + 1);
+        uri = out.resolve('$outName.$extension');
+      } else {
+        onFailure('Unknown extension: $extension');
+      }
+    } else {
+      uri = out.resolve('$name.$extension');
+    }
+
+    if (uri.scheme != 'file') {
+      onFailure('Unhandled scheme ${uri.scheme} in $uri.');
+    }
+
+    RandomAccessFile output;
+    try {
+      output = new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
+    } on FileSystemException catch(e) {
+      onFailure('$e');
+    }
+
+    allOutputFiles.add(relativize(currentDirectory, uri, Platform.isWindows));
+
+    int charactersWritten = 0;
+
+    writeStringSync(String data) {
+      // Write the data in chunks of 8kb, otherwise we risk running OOM.
+      int chunkSize = 8*1024;
+
+      int offset = 0;
+      while (offset < data.length) {
+        output.writeStringSync(
+            data.substring(offset, math.min(offset + chunkSize, data.length)));
+        offset += chunkSize;
+      }
+      charactersWritten += data.length;
+    }
+
+    onDone() {
+      output.closeSync();
+      if (isPrimaryOutput) {
+        totalCharactersWritten += charactersWritten;
+      }
+    }
+
+    return new EventSinkWrapper(writeStringSync, onDone);
+  }
+}
+
+class EventSinkWrapper extends EventSink<String> {
+  var onAdd, onClose;
+
+  EventSinkWrapper(this.onAdd, this.onClose);
+
+  void add(String data) => onAdd(data);
+
+  void addError(error, [StackTrace stackTrace]) => throw error;
+
+  void close() => onClose();
 }

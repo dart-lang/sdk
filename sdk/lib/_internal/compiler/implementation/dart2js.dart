@@ -9,7 +9,6 @@ import 'dart:async'
 import 'dart:io'
     show exit, File, FileMode, Platform, RandomAccessFile, FileSystemException,
          stdin, stderr;
-import 'dart:math' as math;
 
 import '../compiler.dart' as api;
 import 'source_file.dart';
@@ -101,7 +100,6 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
 FormattingDiagnosticHandler diagnosticHandler;
 
 Future compile(List<String> argv) {
-  bool isWindows = (Platform.operatingSystem == 'windows');
   stackTraceFilePrefix = '$currentDirectory';
   Uri libraryRoot = currentDirectory;
   Uri out = currentDirectory.resolve('out.js');
@@ -259,17 +257,6 @@ Future compile(List<String> argv) {
     }
   }
 
-  Uri computePrecompiledUri() {
-    String extension = 'precompiled.js';
-    String outPath = out.path;
-    if (outPath.endsWith('.js')) {
-      outPath = outPath.substring(0, outPath.length - 3);
-      return out.resolve('$outPath.$extension');
-    } else {
-      return out.resolve(extension);
-    }
-  }
-
   List<String> arguments = <String>[];
   List<OptionHandler> handlers = <OptionHandler>[
     new OptionHandler('-[chvm?]+', handleShortOptions),
@@ -333,7 +320,9 @@ Future compile(List<String> argv) {
 
   if (hasDisallowUnsafeEval) {
     String precompiledName =
-        relativize(currentDirectory, computePrecompiledUri(), isWindows);
+        relativize(currentDirectory,
+                   RandomAccessFileOutputProvider.computePrecompiledUri(out),
+                   Platform.isWindows);
     helpAndFail("Option '--disallow-unsafe-eval' has been removed."
                 " Instead, the compiler generates a file named"
                 " '$precompiledName'.");
@@ -371,12 +360,12 @@ Future compile(List<String> argv) {
 
   diagnosticHandler.info('Package root is $packageRoot');
 
-  int totalCharactersWritten = 0;
-
   options.add('--out=$out');
   options.add('--source-map=$sourceMapOut');
 
-  List<String> allOutputFiles = new List<String>();
+  RandomAccessFileOutputProvider outputProvider =
+      new RandomAccessFileOutputProvider(
+          out, sourceMapOut, onInfo: diagnosticHandler.info, onFailure: fail);
 
   compilationDone(String code) {
     if (analyzeOnly) return;
@@ -387,103 +376,27 @@ Future compile(List<String> argv) {
                 getDepsOutput(inputProvider.sourceFiles));
     diagnosticHandler.info(
          'Compiled ${inputProvider.dartCharactersRead} characters Dart '
-         '-> $totalCharactersWritten characters $outputLanguage '
-         'in ${relativize(currentDirectory, out, isWindows)}');
+         '-> ${outputProvider.totalCharactersWritten} characters '
+         '$outputLanguage in '
+         '${relativize(currentDirectory, out, Platform.isWindows)}');
     if (diagnosticHandler.verbose) {
       String input = uriPathToNative(arguments[0]);
       print('Dart file ($input) compiled to $outputLanguage.');
       print('Wrote the following files:');
-      for (String filename in allOutputFiles) {
+      for (String filename in outputProvider.allOutputFiles) {
         print("  $filename");
       }
     } else if (!explicitOut) {
       String input = uriPathToNative(arguments[0]);
-      String output = relativize(currentDirectory, out, isWindows);
+      String output = relativize(currentDirectory, out, Platform.isWindows);
       print('Dart file ($input) compiled to $outputLanguage: $output');
     }
-  }
-
-  EventSink<String> outputProvider(String name, String extension) {
-    Uri uri;
-    String sourceMapFileName;
-    bool isPrimaryOutput = false;
-    if (name == '') {
-      if (extension == 'js' || extension == 'dart') {
-        isPrimaryOutput = true;
-        uri = out;
-        sourceMapFileName =
-            sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
-      } else if (extension == 'precompiled.js') {
-        uri = computePrecompiledUri();
-        diagnosticHandler.info(
-            "File ($uri) is compatible with header"
-            " \"Content-Security-Policy: script-src 'self'\"");
-      } else if (extension == 'js.map' || extension == 'dart.map') {
-        uri = sourceMapOut;
-      } else if (extension == 'info.html' || extension == "info.json") {
-        String outName = out.path.substring(out.path.lastIndexOf('/') + 1);
-        uri = out.resolve('$outName.$extension');
-      } else {
-        fail('Unknown extension: $extension');
-      }
-    } else {
-      uri = out.resolve('$name.$extension');
-    }
-
-    if (uri.scheme != 'file') {
-      fail('Unhandled scheme ${uri.scheme} in $uri.');
-    }
-
-    RandomAccessFile output;
-    try {
-      output = new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
-    } on FileSystemException catch(e) {
-      fail('$e');
-    }
-
-    allOutputFiles.add(relativize(currentDirectory, uri, isWindows));
-
-    int charactersWritten = 0;
-
-    writeStringSync(String data) {
-      // Write the data in chunks of 8kb, otherwise we risk running OOM.
-      int chunkSize = 8*1024;
-
-      int offset = 0;
-      while (offset < data.length) {
-        output.writeStringSync(
-            data.substring(offset, math.min(offset + chunkSize, data.length)));
-        offset += chunkSize;
-      }
-      charactersWritten += data.length;
-    }
-
-    onDone() {
-      output.closeSync();
-      if (isPrimaryOutput) {
-        totalCharactersWritten += charactersWritten;
-      }
-    }
-
-    return new EventSinkWrapper(writeStringSync, onDone);
   }
 
   return compileFunc(uri, libraryRoot, packageRoot,
                      inputProvider, diagnosticHandler,
                      options, outputProvider, environment)
             .then(compilationDone);
-}
-
-class EventSinkWrapper extends EventSink<String> {
-  var onAdd, onClose;
-
-  EventSinkWrapper(this.onAdd, this.onClose);
-
-  void add(String data) => onAdd(data);
-
-  void addError(error, [StackTrace stackTrace]) => throw error;
-
-  void close() => onClose();
 }
 
 class AbortLeg {

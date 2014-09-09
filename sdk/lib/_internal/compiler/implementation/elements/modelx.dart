@@ -269,6 +269,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
                     String name, Element enclosing)
       : super(name, ElementKind.ERROR, enclosing);
 
+  bool get isTopLevel => false;
+
   bool get isSynthesized => true;
 
   AbstractFieldElement abstractField;
@@ -426,6 +428,8 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
   }
 
   accept(ElementVisitor visitor) => visitor.visitAmbiguousElement(this);
+
+  bool get isTopLevel => false;
 }
 
 class ScopeX {
@@ -736,6 +740,8 @@ class LibraryElementX
     }
   }
 
+  bool get isDartCore => canonicalUri == Compiler.DART_CORE;
+
   Link<MetadataAnnotation> get metadata {
     return (libraryTag == null) ? super.metadata : libraryTag.metadata;
   }
@@ -976,6 +982,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   PrefixElementX(String prefix, Element enclosing, this.firstPosition)
       : super(prefix, ElementKind.PREFIX, enclosing);
+
+  bool get isTopLevel => false;
 
   Element lookupLocalMember(String memberName) => importScope[memberName];
 
@@ -1708,6 +1716,7 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
 
   bool get isGetter => true;
 
+  bool get isTopLevel => true;
   // By having position null, the enclosing elements location is printed in
   // error messages.
   Token get position => null;

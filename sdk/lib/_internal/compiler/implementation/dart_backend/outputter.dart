@@ -13,6 +13,7 @@ typedef void ElementPostProcessFunction(
     ElementCallback<ClassElement> classCallback);
 typedef ElementAst ComputeElementAstFunction(AstElement element);
 typedef bool ElementFilter(Element element);
+typedef List<Element> ElementSorter(Iterable<Element> elements);
 
 /// Output engine for dart2dart that is shared between the dart2js and the
 /// analyzer implementations of dart2dart.
@@ -41,19 +42,57 @@ class DartOutputter {
                  bool this.enableMinification: false,
                  bool this.multiFile: false});
 
+  /// Generate Dart code for the program starting at [mainFunction].
+  ///
+  /// [libraries] is the set of all libraries (user/package/sdk) that are
+  /// referenced in the program.
+  ///
+  /// [instantiatedClasses] is the set of classes that are potentially
+  /// instantiated in the program.
+  ///
+  /// [resolvedElements] is the set of methods, constructors, and fields that
+  /// are potentially accessed/called in the program.
+  ///
+  /// The [sortElements] function is used to sort [instantiatedClasses] and
+  /// [resolvedElements] in the generated output.
   String assembleProgram({
-      MirrorRenamer mirrorRenamer,
+      MirrorRenamer mirrorRenamer: const MirrorRenamer(),
       Iterable<LibraryElement> libraries,
       Iterable<Element> instantiatedClasses,
       Iterable<Element> resolvedElements,
-      Iterable<ClassElement> usedTypeLiterals,
-      LibraryElement mainLibrary,
+      Iterable<ClassElement> usedTypeLiterals: const <ClassElement>[],
       FunctionElement mainFunction,
       Uri outputUri,
       ElementPostProcessFunction postProcessElementAst,
       ComputeElementAstFunction computeElementAst,
       ElementFilter shouldOutput,
-      IsSafeToRemoveTypeDeclarations isSafeToRemoveTypeDeclarations}) {
+      IsSafeToRemoveTypeDeclarations isSafeToRemoveTypeDeclarations,
+      ElementSorter sortElements}) {
+
+    assert(invariant(NO_LOCATION_SPANNABLE, libraries != null,
+        message: "'libraries' must be non-null."));
+    assert(invariant(NO_LOCATION_SPANNABLE, instantiatedClasses != null,
+        message: "'instantiatedClasses' must be non-null."));
+    assert(invariant(NO_LOCATION_SPANNABLE, resolvedElements != null,
+        message: "'resolvedElements' must be non-null."));
+    assert(invariant(NO_LOCATION_SPANNABLE, mainFunction != null,
+        message: "'mainFunction' must be non-null."));
+    assert(invariant(NO_LOCATION_SPANNABLE, computeElementAst != null,
+        message: "'computeElementAst' must be non-null."));
+    assert(invariant(NO_LOCATION_SPANNABLE, shouldOutput != null,
+        message: "'shouldOutput' must be non-null."));
+    assert(invariant(NO_LOCATION_SPANNABLE,
+        isSafeToRemoveTypeDeclarations != null,
+        message: "'isSafeToRemoveTypeDeclarations' must be non-null."));
+
+    if (sortElements == null) {
+      // Ensure deterministic output order.
+      sortElements = (Iterable<Element> elements) {
+        List<Element> list = elements.toList();
+        list.sort((Element a, Element b) => a.name.compareTo(b.name));
+        return list;
+      };
+    }
 
     libraryInfo = LibraryInfo.processLibraries(libraries, resolvedElements);
 
@@ -63,7 +102,8 @@ class DartOutputter {
         usedTypeLiterals,
         postProcessElementAst: postProcessElementAst,
         parseElementAst: computeElementAst,
-        shouldOutput: shouldOutput);
+        shouldOutput: shouldOutput,
+        sortElements: sortElements);
 
     PlaceholderCollector collector = collectPlaceholders(
         listener,
@@ -90,7 +130,7 @@ class DartOutputter {
           elementInfo,
           collector,
           renamer,
-          mainLibrary,
+          mainFunction,
           outputUri,
           outputProvider,
           mirrorRenamer,
@@ -147,13 +187,13 @@ class DartOutputter {
     return placeholderRenamer;
   }
 
-  static String astOutput(Compiler compiler,
+  static String astOutput(DiagnosticListener listener,
                           ElementInfo elementInfo) {
     // TODO(antonm): Ideally XML should be a separate backend.
     // TODO(antonm): obey renames and minification, at least as an option.
     StringBuffer sb = new StringBuffer();
     outputElement(element) {
-      sb.write(element.parseNode(compiler).toDebugString());
+      sb.write(element.parseNode(listener).toDebugString());
     }
 
     // Emit XML for AST instead of the program.
@@ -288,18 +328,21 @@ class ElementInfoProcessor implements ElementInfo {
       Iterable<ClassElement> usedTypeLiterals,
       {ElementPostProcessFunction postProcessElementAst,
        ComputeElementAstFunction parseElementAst,
-       ElementFilter shouldOutput}) {
+       ElementFilter shouldOutput,
+       ElementSorter sortElements}) {
     ElementInfoProcessor processor = new ElementInfoProcessor(
         postProcessElementAst: postProcessElementAst,
         parseElementAst: parseElementAst,
         shouldOutput: shouldOutput);
     return processor.process(
-        instantiatedClasses, resolvedElements, usedTypeLiterals);
+        instantiatedClasses, resolvedElements, usedTypeLiterals,
+        sortElements: sortElements);
   }
 
   ElementInfo process(Iterable<ClassElement> instantiatedClasses,
                       Iterable<AstElement> resolvedElements,
-                      Iterable<ClassElement> usedTypeLiterals) {
+                      Iterable<ClassElement> usedTypeLiterals,
+                      {ElementSorter sortElements}) {
     // Build all top level elements to emit and necessary class members.
     instantiatedClasses.where(shouldOutput).forEach(addClass);
     resolvedElements.where(shouldOutput).forEach(addMember);
@@ -326,9 +369,11 @@ class ElementInfoProcessor implements ElementInfo {
   }
 
   void processElement(Element element, ElementAst elementAst) {
-    postProcessElementAst(element, elementAst,
-                          newTypedefElementCallback,
-                          newClassElementCallback);
+    if (postProcessElementAst != null) {
+      postProcessElementAst(element, elementAst,
+                            newTypedefElementCallback,
+                            newClassElementCallback);
+    }
     elementAsts[element] = elementAst;
   }
 
@@ -383,7 +428,7 @@ class MainOutputGenerator {
       ElementInfo elementInfo,
       PlaceholderCollector collector,
       PlaceholderRenamer placeholderRenamer,
-      LibraryElement mainApp,
+      FunctionElement mainFunction,
       Uri outputUri,
       CompilerOutputProvider outputProvider,
       MirrorRenamer mirrorRenamer,
@@ -425,7 +470,7 @@ class MainOutputGenerator {
       // library and [compiler.outputUri].
       Set<String> usedLibraryPaths = new Set<String>();
       for (LibraryElement library in libraryInfo.userLibraries) {
-        if (library == mainApp) {
+        if (library == mainFunction.library) {
           outputPaths[library] = mainBaseName;
         } else {
           List<String> names =
@@ -498,7 +543,7 @@ class MainOutputGenerator {
              ..close();
       }
       // TODO(sigurdm): We should get rid of compiler.assembledCode.
-      assembledCode = unparsers[mainApp].result;
+      assembledCode = unparsers[mainFunction.library].result;
     } else {
       assembledCode = mainUnparser.result;
       outputProvider("", "dart")

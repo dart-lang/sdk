@@ -340,7 +340,7 @@ class PlaceholderCollector extends Visitor {
     assert(element != null);
     LibraryElement library = element.library;
     if (identical(element, mainFunction)) return;
-    if (library.canonicalUri == Compiler.DART_CORE) return;
+    if (library.isDartCore) return;
 
     if (library.isPlatformLibrary && !element.isTopLevel) {
       return;

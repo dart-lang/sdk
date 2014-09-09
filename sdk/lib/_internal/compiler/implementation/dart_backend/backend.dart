@@ -227,8 +227,8 @@ class DartBackend extends Backend {
         computeElementAst: computeElementAst,
         shouldOutput: shouldOutput,
         isSafeToRemoveTypeDeclarations: isSafeToRemoveTypeDeclarations,
+        sortElements: sortElements,
         mirrorRenamer: mirrorRenamer,
-        mainLibrary: compiler.mainApp,
         mainFunction: compiler.mainFunction,
         outputUri: compiler.outputUri);
     compiler.assembledCode = assembledCode;
