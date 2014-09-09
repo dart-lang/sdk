@@ -33,7 +33,12 @@
 /// discovered in the HTML document.
 (function() {
   // Only run in Dartium.
-  if (navigator.userAgent.indexOf('(Dart)') === -1) return;
+  if (!navigator.dartEnabled &&
+      // TODO(sigmund): remove userAgent check once 1.6 rolls as stable.
+      // See: dartbug.com/18463
+      (navigator.userAgent.indexOf('(Dart)') === -1)) {
+    return;
+  }
 
   // Extract a Dart import URL from a script tag, which is the 'src' attribute
   // of the script tag, or a data-url with the script contents for inlined code.
