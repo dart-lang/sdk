@@ -30,12 +30,13 @@ part of intl;
  * one integer digit and three fraction digits.
  *
  * There are also standard patterns available via the special constructors. e.g.
- *       var symbols = new NumberFormat.percentFormat("ar");
+ *       var percent = new NumberFormat.percentFormat("ar");
+ *       var eurosInUSFormat = new NumberFormat.currencyPattern("en_US", "€");
  * There are four such constructors: decimalFormat, percentFormat,
  * scientificFormat and currencyFormat. However, at the moment,
  * scientificFormat prints only as equivalent to "#E0" and does not take
- * into account significant digits. currencyFormat will always use the name
- * of the currency rather than the symbol.
+ * into account significant digits. The currencyFormat will default to the 
+ * three-letter name of the currency if no explicit name/symbol is provided.
  */
 class NumberFormat {
   /** Variables to determine how number printing behaves. */
@@ -106,9 +107,14 @@ class NumberFormat {
   NumberFormat.scientificPattern([String locale]) : this._forPattern(locale,
       (x) => x.SCIENTIFIC_PATTERN);
 
-  /** Create a number format that prints as CURRENCY_PATTERN. */
-  NumberFormat.currencyPattern([String locale, String currency]) :
-      this._forPattern(locale, (x) => x.CURRENCY_PATTERN, currency);
+  /** 
+   * Create a number format that prints as CURRENCY_PATTERN. If provided,
+   * use [nameOrSymbol] in place of the default currency name. e.g.
+   *        var eurosInCurrentLocale = new NumberFormat
+   *            .currencyPattern(Intl.defaultLocale, "€");
+   */
+  NumberFormat.currencyPattern([String locale, String nameOrSymbol]) :
+      this._forPattern(locale, (x) => x.CURRENCY_PATTERN, nameOrSymbol);
 
   /**
    * Create a number format that prints in a pattern we get from
