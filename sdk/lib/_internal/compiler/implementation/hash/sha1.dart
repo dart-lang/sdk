@@ -215,11 +215,6 @@ abstract class Hash {
   List<int> close();
 
   /**
-   * Returns a new instance of this hash function.
-   */
-  Hash newInstance();
-
-  /**
    * Internal block size of the hash in bytes.
    *
    * This is exposed for use by the HMAC class which needs to know the
@@ -241,11 +236,6 @@ class SHA1 extends _HashBase {
     _h[2] = 0x98BADCFE;
     _h[3] = 0x10325476;
     _h[4] = 0xC3D2E1F0;
-  }
-
-  // Returns a new instance of this Hash.
-  SHA1 newInstance() {
-    return new SHA1();
   }
 
   // Compute one iteration of the SHA1 algorithm with a chunk of
