@@ -8,6 +8,7 @@ dromaeo_smoke_test: Skip # Issue 14521, 8257
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
+custom/document_register_basic_test: RuntimeError # Issue 20813
 indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 form_data_test/functional: Skip # Issue 19726
 indexeddb_4_test: Skip # Issue 19726
