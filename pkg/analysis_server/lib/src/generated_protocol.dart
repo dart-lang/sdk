@@ -9483,7 +9483,7 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
    * parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
    * NAMED parameter.
    *
-   * - To change the order and/or update proposed paramerers, add parameters
+   * - To change the order and/or update proposed parameters, add parameters
    *   with the same identifiers as proposed.
    * - To add new parameters, omit their identifier.
    * - To remove some parameters, omit them in this list.
