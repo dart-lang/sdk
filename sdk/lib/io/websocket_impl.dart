@@ -372,6 +372,8 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
         _upgrade(request, _protocolSelector)
             .then((WebSocket webSocket) => _controller.add(webSocket))
             .catchError(_controller.addError);
+    }, onDone: () {
+      _controller.close();
     });
 
     return _controller.stream;

@@ -425,6 +425,11 @@ void testReplace() {
       }
     }
   }
+
+  // Regression test, http://dartbug.com/20814
+  var uri = Uri.parse("/no-authorty/");
+  uri = uri.replace(fragment: "fragment");
+  Expect.isFalse(uri.hasAuthority);
 }
 
 main() {

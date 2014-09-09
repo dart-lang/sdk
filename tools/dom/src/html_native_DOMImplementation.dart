@@ -990,3 +990,7 @@ get _pureIsolateScheduleImmediateClosure => ((void callback()) =>
 void _initializeCustomElement(Element e) {
   _Utils.initializeCustomElement(e);
 }
+
+// Class for unsupported native browser 'DOM' objects.
+class _UnsupportedBrowserObject extends NativeFieldWrapperClass2 {
+}
