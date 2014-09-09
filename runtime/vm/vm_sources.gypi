@@ -47,6 +47,7 @@
     'bigint_operations.cc',
     'bigint_operations.h',
     'bigint_operations_test.cc',
+    'bit_set_test.cc',
     'bit_vector.cc',
     'bit_vector.h',
     'bit_vector_test.cc',

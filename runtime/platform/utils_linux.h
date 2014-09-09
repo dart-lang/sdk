@@ -9,6 +9,17 @@
 
 namespace dart {
 
+inline int Utils::CountLeadingZeros(uword x) {
+#if defined(ARCH_IS_32_BIT)
+  return __builtin_clzl(x);
+#elif defined(ARCH_IS_64_BIT)
+  return __builtin_clzll(x);
+#else
+#error Architecture is not 32-bit or 64-bit.
+#endif
+}
+
+
 inline int Utils::CountTrailingZeros(uword x) {
 #if defined(ARCH_IS_32_BIT)
   return __builtin_ctzl(x);
@@ -17,7 +28,7 @@ inline int Utils::CountTrailingZeros(uword x) {
 #else
 #error Architecture is not 32-bit or 64-bit.
 #endif
-};
+}
 
 
 inline uint16_t Utils::HostToBigEndian16(uint16_t value) {

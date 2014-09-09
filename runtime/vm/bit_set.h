@@ -58,11 +58,31 @@ class BitSet {
     for (int w = kLengthInWords - 1; w >= 0; --w) {
       uword d = data_[w];
       if (d != 0) {
-        // TODO(koda): Define HighestBit(uword) or use uint64_t[] for data_.
-        return (w << kBitsPerWordLog2) + Utils::HighestBit(d);
+        return ((w + 1) << kBitsPerWordLog2) - Utils::CountLeadingZeros(d) - 1;
       }
     }
     return -1;
+  }
+
+  intptr_t ClearLastAndFindPrevious(intptr_t current_last) {
+    ASSERT(Test(current_last));
+    ASSERT(Last() == current_last);
+    intptr_t w = current_last >> kBitsPerWordLog2;
+    uword bits = data_[w];
+    // Clear the current last.
+    bits ^= (static_cast<uword>(1) << (current_last & (kBitsPerWord - 1)));
+    data_[w] = bits;
+    // Search backwards for a non-zero word.
+    while (bits == 0 && w > 0) {
+      bits = data_[--w];
+    }
+    if (bits == 0) {
+      // None found.
+      return -1;
+    } else {
+      // Bitlength incl. w, minus leading zeroes of w, minus 1 to 0-based index.
+      return ((w + 1) << kBitsPerWordLog2) - Utils::CountLeadingZeros(bits) - 1;
+    }
   }
 
   void Reset() {

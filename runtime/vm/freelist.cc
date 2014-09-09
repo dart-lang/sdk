@@ -231,12 +231,13 @@ FreeListElement* FreeList::DequeueElement(intptr_t index) {
   FreeListElement* result = free_lists_[index];
   FreeListElement* next = result->next();
   if (next == NULL && index != kNumLists) {
-    free_map_.Set(index, false);
     intptr_t size = index << kObjectAlignmentLog2;
     if (size == last_free_small_size_) {
-      // Note: Last() returns -1 if none are set; avoid shift of negative.
-      last_free_small_size_ = free_map_.Last() * kObjectAlignment;
-      // TODO(koda): Consider adding BitSet::Previous(i).
+      // Note: This is -1 * kObjectAlignment if no other small sizes remain.
+      last_free_small_size_ =
+          free_map_.ClearLastAndFindPrevious(index) * kObjectAlignment;
+    } else {
+      free_map_.Set(index, false);
     }
   }
   free_lists_[index] = next;
