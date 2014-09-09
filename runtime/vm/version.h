@@ -16,6 +16,7 @@ class Version : public AllStatic {
 
  private:
   static const char* str_;
+  static const char* snapshot_hash_;
 };
 
 }  // namespace dart

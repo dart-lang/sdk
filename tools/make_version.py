@@ -4,6 +4,8 @@
 #
 # This python script creates a version string in a C++ file.
 
+import hashlib
+import os
 import sys
 import time
 from optparse import OptionParser
@@ -13,10 +15,39 @@ def debugLog(message):
   print >> sys.stderr, message
   sys.stderr.flush()
 
+# When these files change, snapshots created by the VM are potentially no longer
+# backwards-compatible.
+VM_SNAPSHOT_FILES=[
+  # Header files.
+  'datastream.h',
+  'object.h',
+  'raw_object.h',
+  'snapshot.h',
+  'snapshot_ids.h',
+  'symbols.h',
+  # Source files.
+  'dart.cc',
+  'dart_api_impl.cc',
+  'object.cc',
+  'raw_object.cc',
+  'raw_object_snapshot.cc',
+  'snapshot.cc',
+  'symbols.cc',
+]
+
 def makeVersionString():
   version_string = utils.GetVersion()
   debugLog("Returning version string: %s " % version_string)
   return version_string
+
+
+def makeSnapshotHashString():
+  vmhash = hashlib.md5()
+  for vmfilename in VM_SNAPSHOT_FILES:
+    vmfilepath = os.path.join(utils.DART_DIR, 'runtime', 'vm', vmfilename)
+    with open(vmfilepath) as vmfile:
+      vmhash.update(vmfile.read())
+  return vmhash.hexdigest()
 
 
 def makeFile(output_file, input_file):
@@ -27,6 +58,9 @@ def makeFile(output_file, input_file):
   version_time = time.ctime(time.time())
   version_cc_text = version_cc_text.replace("{{BUILD_TIME}}",
                                             version_time)
+  snapshot_hash = makeSnapshotHashString()
+  version_cc_text = version_cc_text.replace("{{SNAPSHOT_HASH}}",
+                                            snapshot_hash)
   open(output_file, 'w').write(version_cc_text)
   return True
 

@@ -28,10 +28,10 @@ const char* Version::String() {
 
 
 const char* Version::SnapshotString() {
-  return str_;
+  return snapshot_hash_;
 }
 
-
+const char* Version::snapshot_hash_ = "{{SNAPSHOT_HASH}}";
 const char* Version::str_ = "{{VERSION_STR}} ({{BUILD_TIME}})";
 
 }  // namespace dart
