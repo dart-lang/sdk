@@ -11,6 +11,19 @@ import multiprocessing
 import os
 import os.path
 import re
+import sys
+import tempfile
+import time
+import traceback
+
+import idl_validator
+
+import compiler
+import compute_interfaces_info_individual
+from compute_interfaces_info_individual import compute_info_individual, info_individual
+import compute_interfaces_info_overall
+from compute_interfaces_info_overall import compute_interfaces_info_overall, interfaces_info
+import idl_definitions
 
 from idlnode import *
 
@@ -31,7 +44,8 @@ class DatabaseBuilderOptions(object):
       source=None, source_attributes={},
       rename_operation_arguments_on_merge=False,
       add_new_interfaces=True,
-      obsolete_old_declarations=False):
+      obsolete_old_declarations=False,
+      logging_level=logging.WARNING):
     """Constructor.
     Args:
       idl_syntax -- the syntax of the IDL file that is imported.
@@ -56,9 +70,10 @@ class DatabaseBuilderOptions(object):
         rename_operation_arguments_on_merge
     self.add_new_interfaces = add_new_interfaces
     self.obsolete_old_declarations = obsolete_old_declarations
+    _logger.setLevel(logging_level)
 
 
-def _load_idl_file(file_name, import_options):
+def _load_idl_file(build, file_name, import_options):
   """Loads an IDL file into memory"""
   idl_parser = idlparser.IDLParser(import_options.idl_syntax)
 
@@ -68,10 +83,105 @@ def _load_idl_file(file_name, import_options):
     f.close()
 
     idl_ast = idl_parser.parse(content)
+
     return IDLFile(idl_ast, file_name)
   except SyntaxError, e:
     raise RuntimeError('Failed to load file %s: %s: Content: %s[end]'
                        % (file_name, e, content))
+
+
+def format_exception(e):
+    exception_list = traceback.format_stack()
+    exception_list = exception_list[:-2]
+    exception_list.extend(traceback.format_tb(sys.exc_info()[2]))
+    exception_list.extend(traceback.format_exception_only(sys.exc_info()[0], sys.exc_info()[1]))
+
+    exception_str = "Traceback (most recent call last):\n"
+    exception_str += "".join(exception_list)
+    # Removing the last \n
+    exception_str = exception_str[:-1]
+
+    return exception_str
+
+
+# Compile IDL using Blink's IDL compiler.
+def _new_compile_idl_file(build, file_name, import_options):
+  try:
+    idl_file_fullpath = os.path.realpath(file_name)
+    idl_definition = build.idl_compiler.compile_file(idl_file_fullpath)
+    return idl_definition
+  except Exception as err:
+    print 'ERROR: idl_compiler.py: ' + os.path.basename(file_name)
+    print err
+    print
+    print 'Stack Dump:'
+    print format_exception(err)
+
+  return 1
+
+
+# Create the Model (IDLFile) from the new AST of the compiled IDL file.
+def _new_load_idl_file(build, file_name, import_options):
+  try:
+    # Compute interface name from IDL filename (it's one for one in WebKit).
+    name = os.path.splitext(os.path.basename(file_name))[0]
+
+    idl_definition = new_asts[name]
+    return IDLFile(idl_definition, file_name)
+  except Exception as err:
+    print 'ERROR: loading AST from cache: ' + os.path.basename(file_name)
+    print err
+    print
+    print 'Stack Dump:'
+    print format_exception(err)
+
+  return 1
+
+
+# New IDL parser builder.
+class Build():
+    def __init__(self, provider):
+        # TODO(terry): Consider using the generator to do the work today we're
+        #              driven by the databasebuilder.  Blink compiler requires
+        #              an output directory even though we don't use (yet). Might
+        #              use the code generator portion of the new IDL compiler
+        #              then we'd have a real output directory. Today we use the
+        #              compiler to only create an AST.
+        self.output_directory = tempfile.mkdtemp()
+        attrib_file = os.path.join('Source', idl_validator.EXTENDED_ATTRIBUTES_FILENAME)
+        # Create compiler.
+        self.idl_compiler = compiler.IdlCompilerDart(self.output_directory,
+                                            attrib_file,
+                                            interfaces_info=interfaces_info,
+                                            only_if_changed=True)
+
+    def format_exception(self, e):
+        exception_list = traceback.format_stack()
+        exception_list = exception_list[:-2]
+        exception_list.extend(traceback.format_tb(sys.exc_info()[2]))
+        exception_list.extend(traceback.format_exception_only(sys.exc_info()[0], sys.exc_info()[1]))
+
+        exception_str = "Traceback (most recent call last):\n"
+        exception_str += "".join(exception_list)
+        # Removing the last \n
+        exception_str = exception_str[:-1]
+
+        return exception_str
+
+    def generate_from_idl(self, idl_file):
+        try:
+            idl_file_fullpath = os.path.realpath(idl_file)
+            self.idl_compiler.compile_file(idl_file_fullpath)
+        except Exception as err:
+            print 'ERROR: idl_compiler.py: ' + os.path.basename(idl_file)
+            print err
+            print
+            print 'Stack Dump:'
+            print self.format_exception(err)
+
+            return 1
+
+        return IDLFile(idl_ast, file_name)
 
 
 class DatabaseBuilder(object):
@@ -82,6 +192,9 @@ class DatabaseBuilder(object):
     self._imported_interfaces = []
     self._impl_stmts = []
     self.conditionals_met = set()
+
+    # Spin up the new IDL parser.
+    self.build = Build(None)
 
   def _resolve_type_defs(self, idl_file):
     type_def_map = {}
@@ -192,8 +305,14 @@ class DatabaseBuilder(object):
       if sig is None:
         continue
       if sig in res:
-        raise RuntimeError('Warning: Multiple members have the same '
-                           'signature: "%s"' % sig)
+        op = res[sig]
+        # Only report if the the operations that match are either both suppressed
+        # or both not suppressed.  Optional args aren't part of type signature
+        # for this routine. Suppressing a non-optional type and supplementing
+        # with an optional type appear the same.
+        if idl_node.is_fc_suppressed == op.is_fc_suppressed:
+          raise RuntimeError('Warning: Multiple members have the same '
+                           '  signature: "%s"' % sig)
       res[sig] = idl_node
     return res
 
@@ -375,15 +494,17 @@ class DatabaseBuilder(object):
             import_options.source_attributes)
       interface.parents.append(parent)
 
-  def merge_imported_interfaces(self):
+  def merge_imported_interfaces(self, blink_parser):
     """Merges all imported interfaces and loads them into the DB."""
+    imported_interfaces = self._imported_interfaces
 
     # Step 1: Pre process imported interfaces
-    for interface, import_options in self._imported_interfaces:
+#    for interface, import_options in imported_interfaces.iteritems():
+    for interface, import_options in imported_interfaces:
       self._annotate(interface, import_options)
 
     # Step 2: Add all new interfaces and merge overlapping ones
-    for interface, import_options in self._imported_interfaces:
+    for interface, import_options in imported_interfaces:
       if not interface.is_supplemental:
         if self._database.HasInterface(interface.id):
           old_interface = self._database.GetInterface(interface.id)
@@ -393,15 +514,9 @@ class DatabaseBuilder(object):
             self._database.AddInterface(interface)
 
     # Step 3: Merge in supplemental interfaces
-    for interface, import_options in self._imported_interfaces:
+    for interface, import_options in imported_interfaces:
       if interface.is_supplemental:
-        target_name = interface.ext_attrs['Supplemental']
-        if target_name:
-          # [Supplemental=Window] - merge into Window.
-          target = target_name
-        else:
-          # [Supplemental] - merge into existing inteface with same name.
-          target = interface.id
+        target = interface.id
         if self._database.HasInterface(target):
           old_interface = self._database.GetInterface(target)
           self._merge_interfaces(old_interface, interface, import_options)
@@ -415,14 +530,76 @@ class DatabaseBuilder(object):
     self._impl_stmts = []
     self._imported_interfaces = []
 
-  def import_idl_files(self, file_paths, import_options, parallel):
+  # Compile the IDL file with the Blink compiler and remember each AST for the
+  # IDL.
+  def _blink_compile_idl_files(self, file_paths, import_options, parallel, is_dart_idl):
+    if not(is_dart_idl):
+      start_time = time.time()
+
+      # 2-stage computation: individual, then overall
+      for file_path in file_paths:
+        filename = os.path.splitext(os.path.basename(file_path))[0]
+        compute_info_individual(file_path, 'dart')
+      info_individuals = [info_individual()]
+      compute_interfaces_info_overall(info_individuals)
+
+      end_time = time.time()
+      print 'Compute dependencies %s seconds' % round((end_time - start_time),
+                                                      2)
+
+    # use --parallel for async on a pool.  Look at doing it like Blink
+    blink_compiler = _new_compile_idl_file
+    process_ast = self._process_ast
+
     if parallel:
       # Parse the IDL files in parallel.
       pool = multiprocessing.Pool()
       try:
         for file_path in file_paths:
-          pool.apply_async(_load_idl_file,
-                           [ file_path, import_options],
+          pool.apply_async(blink_compiler,
+                           [ self.build, file_path, import_options],
+                           callback = lambda new_ast: process_ast(new_ast, True))
+        pool.close()
+        pool.join()
+      except:
+        pool.terminate()
+        raise
+    else:
+      # Parse the IDL files serially.
+      start_time = time.time()
+
+      for file_path in file_paths:
+        file_path = os.path.normpath(file_path)
+        ast = blink_compiler(self.build, file_path, import_options)
+        process_ast(os.path.splitext(os.path.basename(file_path))[0], ast, True)
+
+      end_time = time.time()
+      print 'Compiled %s IDL files in %s seconds' % (len(file_paths),
+                                                    round((end_time - start_time), 2))
+
+  def _process_ast(self, filename, ast, blink_parser = False):
+    if blink_parser:
+      new_asts[filename] = ast
+    else:
+      for name in ast.interfaces:
+        # Index by filename some files are partial on another interface (e.g.,
+        # DocumentFontFaceSet.idl).
+        new_asts[filename] = ast.interfaces
+
+  def import_idl_files(self, file_paths, import_options, parallel, blink_parser, is_dart_idl):
+    if blink_parser:
+      self._blink_compile_idl_files(file_paths, import_options, parallel, is_dart_idl)
+
+    # use --parallel for async on a pool.  Look at doing it like Blink
+    idl_loader = _new_load_idl_file if blink_parser else _load_idl_file
+
+    if parallel:
+      # Parse the IDL files in parallel.
+      pool = multiprocessing.Pool()
+      try:
+        for file_path in file_paths:
+          pool.apply_async(idl_loader,
+                           [ self.build, file_path, import_options],
                            callback = lambda idl_file:
                              self._process_idl_file(idl_file, import_options))
         pool.close()
@@ -431,14 +608,24 @@ class DatabaseBuilder(object):
         pool.terminate()
         raise
     else:
+      start_time = time.time()
+
       # Parse the IDL files in serial.
       for file_path in file_paths:
-        idl_file = _load_idl_file(file_path, import_options)
-        self._process_idl_file(idl_file, import_options)
+        file_path = os.path.normpath(file_path)
+        idl_file = idl_loader(self.build, file_path, import_options)
+        _logger.info('Processing %s' % os.path.splitext(os.path.basename(file_path))[0])
+        self._process_idl_file(idl_file, import_options, is_dart_idl)
 
-  def _process_idl_file(self, idl_file,
-                        import_options):
-    self._strip_ext_attributes(idl_file)
+      end_time = time.time()
+
+      print 'Total %s files %sprocessed in databasebuilder in %s seconds' % \
+      (len(file_paths), '' if blink_parser else 'compiled/', \
+       round((end_time - start_time), 2))
+
+  def _process_idl_file(self, idl_file, import_options, dart_idl = False):
+    # TODO(terry): strip_ext_attributes on an idl_file does nothing.
+    #self._strip_ext_attributes(idl_file)
     self._resolve_type_defs(idl_file)
     self._rename_types(idl_file, import_options)
 
@@ -452,7 +639,8 @@ class DatabaseBuilder(object):
         continue
 
       _logger.info('importing interface %s (source=%s file=%s)'
-        % (interface.id, import_options.source, idl_file))
+        % (interface.id, import_options.source, os.path.basename(idl_file.filename)))
+
       interface.attributes = filter(enabled, interface.attributes)
       interface.operations = filter(enabled, interface.operations)
       self._imported_interfaces.append((interface, import_options))

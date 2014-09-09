@@ -49,6 +49,6 @@ if [[ $CACHED ]] ; then
   --update-dom-metadata
 else
   reset &&
-  ./dartdomgenerator.py --rebuild --parallel --systems="$SYSTEMS" \
-  --update-dom-metadata
+  ./dartdomgenerator.py --rebuild --systems="$SYSTEMS" --blink-parser \
+  --logging=40 --update-dom-metadata
 fi

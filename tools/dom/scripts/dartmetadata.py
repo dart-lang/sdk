@@ -585,7 +585,9 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
 _monitor_type_metadata = False
 
 class DartMetadata(object):
-  def __init__(self, api_status_path, doc_comments_path):
+  def __init__(self, api_status_path, doc_comments_path,
+               logging_level=logging.WARNING):
+    _logger.setLevel(logging_level)
     self._api_status_path = api_status_path
     status_file = open(self._api_status_path, 'r+')
     self._types = json.load(status_file)

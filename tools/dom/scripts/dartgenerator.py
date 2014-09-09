@@ -26,9 +26,10 @@ def MergeNodes(node, other):
 class DartGenerator(object):
   """Utilities to generate Dart APIs and corresponding JavaScript."""
 
-  def __init__(self):
+  def __init__(self, logging_level=logging.WARNING):
     self._auxiliary_files = {}
     self._dart_templates_re = re.compile(r'[\w.:]+<([\w\.<>:]+)>')
+    _logger.setLevel(logging_level)
 
   def _StripModules(self, type_name):
     return type_name.split('::')[-1]

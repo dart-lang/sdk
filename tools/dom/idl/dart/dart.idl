@@ -1,6 +1,6 @@
 // This file introduces / supplements and forces Dart declarations.
 
-[Supplemental,
+[DartSupplemental,
  Constructor]
 interface AudioContext {
   // TODO(ager): Auto-generate this custom method when the info about retaining
@@ -8,40 +8,38 @@ interface AudioContext {
   [Custom] void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, AudioBufferCallback errorCallback);
 };
 
-[Supplemental]
+[DartSupplemental]
 interface WaveShaperNode {
   // TODO(ager): Auto-generate this custom method when the info about retaining
   // typed arrays is in the IDL.
   [Custom=Setter] attribute Float32Array curve;
 };
 
-[Supplemental]
+[DartSupplemental]
 interface AudioParam {
   // TODO(ager): Auto-generate this custom method when the info about retaining
   // typed arrays is in the IDL.
   [Custom] void setValueCurveAtTime(Float32Array values, double time, double duration);
 };
 
-[Supplemental]
+[DartSupplemental]
 interface Document {
-  [Suppressed] DOMObject getCSSCanvasContext(DOMString contextId, DOMString name, long width, long height);
-  CanvasRenderingContext getCSSCanvasContext(DOMString contextId, DOMString name, long width, long height);
   [Custom] Element createElement(DOMString tagName);
   [Custom] Element createElement(DOMString localName, DOMString typeExtension);
   [Custom] Element createElementNS(DOMString namespaceURI, DOMString qualifiedName);
   [Custom] Element createElementNS(DOMString namespaceURI, DOMString qualifiedName, DOMString typeExtension);
 };
 
-[Supplemental]
+[DartSupplemental]
 interface Node {
   [Custom] Node cloneNode([Default=Undefined] optional boolean deep);
-  [Suppressed] readonly attribute Element nextElementSibling;
-  [Suppressed] readonly attribute Element previousElementSibling;
+  [DartSuppress] readonly attribute Element nextElementSibling;
+  [DartSuppress] readonly attribute Element previousElementSibling;
 };
 
-[Supplemental]
+[DartSupplemental]
 interface ScriptProcessorNode {
-  [Suppressed] attribute EventListener onaudioprocess;
+  [DartSuppress] attribute EventListener onaudioprocess;
   [Custom] void _setEventListener(EventListener eventListener);
 };
 
@@ -59,19 +57,19 @@ interface ElementTraversal : ChildNode, ParentNode {
 Element implements ElementTraversal;
 */
 
-[Supplemental]
+[DartSupplemental]
 interface Element {
   readonly attribute Element nextElementSibling;
   readonly attribute Element previousElementSibling;
 };
 
-[Supplemental]
+[DartSupplemental]
 interface CharacterData {
   readonly attribute Element nextElementSibling;
   readonly attribute Element previousElementSibling;
 };
 
-[Callback]
+[DartCallback]
 interface TimeoutHandler {
   void handleEvent();
 };
@@ -80,60 +78,46 @@ interface TimeoutHandler {
 // we are still generating _blink from the dart side idl files.
 // Once we are up and running generating dart:_blink in dartium
 // this should go away.
-[Supplemental]
+[DartSupplemental]
 interface URL {
-  [Suppressed] static DOMString createObjectURL(WebKitMediaSource source);
+  [DartSuppress] static DOMString createObjectURL(WebKitMediaSource source);
 };
 
-[Supplemental]
+[DartSupplemental]
 interface CanvasRenderingContext2D {
   [DartName=createImageDataFromImageData] ImageData createImageData(ImageData imagedata);
 
   // Removed in 1916.
-  [Suppressed] void drawSystemFocusRing(Element element);
+  [DartSuppress] void drawSystemFocusRing(Element element);
 
-  [Suppressed] void assert(boolean condition);
+  [DartSuppress] void assert(boolean condition);
 
-  [Suppressed] attribute boolean webkitImageSmoothingEnabled;
+  [DartSuppress] attribute boolean webkitImageSmoothingEnabled;
 
   // Removed in 1985.
-  [Suppressed] readonly attribute float webkitBackingStorePixelRatio; 
-};
-
-[Supplemental]
-interface ConsoleBase {
-  [Suppressed] void assert(boolean condition);
-  [CallWith=ScriptArguments|ScriptState] void assertCondition(boolean condition);
+  [DartSuppress] readonly attribute float webkitBackingStorePixelRatio;
 };
 
 interface HTMLCanvasElement {
-  [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Default=Undefined] DOMString type);
+  [DartSuppress] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Default=Undefined] DOMString type);
   [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Default=Undefined] DOMString type, optional float quality);
-
-  [Suppressed] any getContext(DOMString contextId);
-  [Custom] CanvasRenderingContext getContext(DOMString contextId, optional Dictionary attrs);
 };
 
-[Supplemental]
+[DartSupplemental]
 interface HTMLOptionsCollection {
-  [Suppressed] void add(optional HTMLOptionElement element, optional long before);
-  [Suppressed] void remove(HTMLOptionElement option); // Non standard.
+  [DartSuppress] void add(optional HTMLOptionElement element, optional long before);
+  [DartSuppress] void remove(HTMLOptionElement option); // Non standard.
 };
 
-[Supplemental]
+[DartSupplemental]
 interface HTMLSelectElement {
-  [Suppressed] void add([Default=Undefined] HTMLElement element, [Default=Undefined] HTMLElement before);
-  [Suppressed, Custom] void remove();
-  [Suppressed] void remove(long index);
-  [Suppressed] void remove(HTMLOptionElement option); // Non standard.
+  [DartSuppress] void add([Default=Undefined] HTMLElement element, [Default=Undefined] HTMLElement before);
+  [DartSuppress, Custom] void remove();
+  [DartSuppress] void remove(long index);
+  [DartSuppress] void remove(HTMLOptionElement option); // Non standard.
 };
 
-[Supplemental]
-interface ImageData {
-  [Custom] readonly attribute int[] data;
-};
-
-[Supplemental]
+[DartSupplemental]
 interface HTMLMediaElement {
   // Adding media events.
   attribute EventListener oncanplay;
@@ -159,200 +143,188 @@ interface HTMLMediaElement {
   attribute EventListener onwaiting;
 };
 
-[Supplemental]
+[DartSupplemental]
 interface RTCPeerConnection {
-  [Suppressed, RaisesException] void addIceCandidate(RTCIceCandidate candidate);
+  [DartSuppress, RaisesException] void addIceCandidate(RTCIceCandidate candidate);
 };
 
-[Supplemental]
+[DartSupplemental]
 interface WebGLContextEvent {
-  [Suppressed] void initEvent(optional DOMString eventTypeArg,
+  [DartSuppress] void initEvent(optional DOMString eventTypeArg,
                               optional boolean canBubbleArg,
                               optional boolean cancelableArg,
                               optional DOMString statusMessageArg);
 };
 
-[Supplemental]
+[DartSupplemental]
 interface WebGLRenderingContext {
 
   //void         compressedTexImage2D(unsigned long target, long level, unsigned long internalformat, unsigned long width, unsigned long height, long border, unsigned long imageSize, const void* data);
   //void         compressedTexSubImage2D(unsigned long target, long level, long xoffset, long yoffset, unsigned long width, unsigned long height, unsigned long format, unsigned long imageSize, const void* data);
 
   [Custom] any getBufferParameter(unsigned long target, unsigned long pname);
-  [Suppressed, StrictTypeChecking, Custom] void getBufferParameter();
+  [DartSuppress, DartStrictTypeChecking, Custom] void getBufferParameter();
 
   [Custom] any getFramebufferAttachmentParameter(unsigned long target, unsigned long attachment, unsigned long pname);
-  [Suppressed, StrictTypeChecking, Custom] void getFramebufferAttachmentParameter();
+  [DartSuppress, DartStrictTypeChecking, Custom] void getFramebufferAttachmentParameter();
 
   [Custom] any getParameter(unsigned long pname);
-  [Suppressed, StrictTypeChecking, Custom] void getParameter();
+  [DartSuppress, DartStrictTypeChecking, Custom] void getParameter();
 
   [Custom] any getProgramParameter(WebGLProgram program, unsigned long pname);
-  [Suppressed, StrictTypeChecking, Custom] void getProgramParameter();
+  [DartSuppress, DartStrictTypeChecking, Custom] void getProgramParameter();
 
   [Custom] any getRenderbufferParameter(unsigned long target, unsigned long pname);
-  [Suppressed, StrictTypeChecking, Custom] void getRenderbufferParameter();
+  [DartSuppress, DartStrictTypeChecking, Custom] void getRenderbufferParameter();
 
   [Custom] any getShaderParameter(WebGLShader shader, unsigned long pname);
-  [Suppressed, StrictTypeChecking, Custom] void getShaderParameter();
+  [DartSuppress, DartStrictTypeChecking, Custom] void getShaderParameter();
 
   // TBD
   // void glGetShaderPrecisionFormat (GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision);
 
   [Custom] any getExtension(DOMString name);
-  [Suppressed, StrictTypeChecking, Custom] void getExtension(DOMString name);
-  [Suppressed, StrictTypeChecking, Custom] void getSupportedExtensions();
+  [DartSuppress, DartStrictTypeChecking, Custom] void getExtension(DOMString name);
+  [DartSuppress, DartStrictTypeChecking, Custom] void getSupportedExtensions();
 
   [Custom] any getTexParameter(unsigned long target, unsigned long pname);
-  [Suppressed, StrictTypeChecking, Custom] void getTexParameter();
+  [DartSuppress, DartStrictTypeChecking, Custom] void getTexParameter();
 
   [Custom] any getUniform(WebGLProgram program, WebGLUniformLocation location);
-  [Suppressed, StrictTypeChecking, Custom] void getUniform();
+  [DartSuppress, DartStrictTypeChecking, Custom] void getUniform();
 
   [Custom] any getVertexAttrib(unsigned long index, unsigned long pname);
-  [Suppressed, StrictTypeChecking, Custom] void getVertexAttrib();
+  [DartSuppress, DartStrictTypeChecking, Custom] void getVertexAttrib();
 };
 
 // TODO(vsm): Define new names for these (see b/4436830).
-[Supplemental]
+[DartSupplemental]
 interface IDBCursor {
-  [DartName=next, CallWith=ExecutionContext, ImplementedAs=continueFunction, RaisesException] void continue([ForceOptional] optional any key);
+  [DartName=next, CallWith=ExecutionContext, ImplementedAs=continueFunction, RaisesException] void continue([DartForceOptional] optional any key);
 };
-[Supplemental]
+[DartSupplemental]
 interface IDBIndex {
-    [CallWith=ExecutionContext, RaisesException] IDBRequest openCursor([Default=Undefined] optional any key, [ForceOptional] optional DOMString direction);
+    [CallWith=ExecutionContext, RaisesException] IDBRequest openCursor([Default=Undefined] optional any key, [DartForceOptional] optional DOMString direction);
 
-    [CallWith=ExecutionContext, RaisesException] IDBRequest openKeyCursor([Default=Undefined] optional any key, [ForceOptional] optional DOMString direction);
+    [CallWith=ExecutionContext, RaisesException] IDBRequest openKeyCursor([Default=Undefined] optional any key, [DartForceOptional] optional DOMString direction);
 
     [CallWith=ExecutionContext, RaisesException] IDBRequest count([Default=Undefined] optional any key);
 };
 
-[Supplemental]
+[DartSupplemental]
 interface HTMLMediaElement {
-  DOMString canPlayType([Default=Undefined] optional DOMString type, [Default=Undefined, TreatNullAs=NullString, TreatUndefinedAs=NullString, ForceOptional] optional DOMString keySystem);
+  DOMString canPlayType([Default=Undefined] optional DOMString type, [Default=Undefined, TreatNullAs=NullString, TreatUndefinedAs=NullString, DartForceOptional] optional DOMString keySystem);
 };
 
-[Supplemental]
+[DartSupplemental]
 interface IDBKeyRange {
   [DartName=only_] static IDBKeyRange only(any value);
-  [DartName=lowerBound_] static IDBKeyRange lowerBound(any bound, [ForceOptional] optional boolean open);
-  [DartName=upperBound_] static IDBKeyRange upperBound(any bound, [ForceOptional] optional boolean open);
-  [DartName=bound_] static IDBKeyRange bound(any lower, any upper, [ForceOptional] optional boolean lowerOpen, [ForceOptional] optional boolean upperOpen);
+  [DartName=lowerBound_] static IDBKeyRange lowerBound(any bound, [DartForceOptional] optional boolean open);
+  [DartName=upperBound_] static IDBKeyRange upperBound(any bound, [DartForceOptional] optional boolean open);
+  [DartName=bound_] static IDBKeyRange bound(any lower, any upper, [DartForceOptional] optional boolean lowerOpen, [DartForceOptional] optional boolean upperOpen);
 };
 
-[Supplemental]
+[DartSupplemental]
 interface IDBObjectStore {
-    [CallWith=ScriptState, RaisesException] IDBRequest put(any value, [ForceOptional] optional any key);
-    [CallWith=ScriptState, RaisesException] IDBRequest add(any value, [ForceOptional] optional any key);
-    # [CallWith=ExecutionContext, ImplementedAs=deleteFunction, RaisesException] IDBRequest delete(any key);
-    [CallWith=ExecutionContext, RaisesException] IDBRequest openCursor(any key, [ForceOptional] optional DOMString direction);
+    [CallWith=ScriptState, RaisesException] IDBRequest put(any value, [DartForceOptional] optional any key);
+    [CallWith=ScriptState, RaisesException] IDBRequest add(any value, [DartForceOptional] optional any key);
+    // [CallWith=ExecutionContext, ImplementedAs=deleteFunction, RaisesException] IDBRequest delete(any key);
+    [CallWith=ExecutionContext, RaisesException] IDBRequest openCursor(any key, [DartForceOptional] optional DOMString direction);
     [CallWith=ExecutionContext, RaisesException] IDBRequest count(any key);
 };
 
 interface EntrySync {
   // Native implementation is declared to return EntrySync.
-  [Suppressed] DirectoryEntrySync getParent();
+  [DartSuppress] DirectoryEntrySync getParent();
   EntrySync getParent();
 };
 
 
-[Supplemental,
+[DartSupplemental,
   CustomConstructor,
   Constructor(Array blobParts, optional DOMString type, optional DOMString endings)
   ]
 interface Blob {
 };
 
-[Supplemental,
+[DartSupplemental,
   Constructor(float x, float y)
 ]
 interface WebKitPoint {
 };
 
-[Supplemental, Callback] // Add missing Callback attribute.
+[DartSupplemental, DartCallback] // Add missing Callback attribute.
 interface VoidCallback {
 };
 
 interface SVGNumber {
-  [StrictTypeChecking, Custom] attribute float value;
+  [DartStrictTypeChecking, Custom] attribute float value;
 };
 
 // Keep it in to generate Dart code, C++ implementation is filterd out in generator.
 [
-  Callback
+  DartCallback
 ] interface MutationCallback {
   [Custom] boolean handleEvent(MutationRecordArray mutations, MutationObserver observer);
 };
 
-[Supplemental,
+[DartSupplemental,
   CustomConstructor,
   // Provide missing constructor signature.
   Constructor(MutationCallback callback)]
 interface MutationObserver {
 };
 
-[Supplemental,
+[DartSupplemental,
   CustomConstructor,
   // Provide missing constructor signature.
   Constructor(optional HTMLFormElement form)]
 interface FormData {
-  [Suppressed] void append(DOMString name, DOMString value, DOMString filename);
+  [DartSuppress] void append(DOMString name, DOMString value, DOMString filename);
   [Custom] void append(DOMString name, DOMString value);
   [Custom] void append(DOMString name, Blob value, optional DOMString filename);
 };
 
-[Supplemental]
-interface SQLResultSetRowList {
-  // Change the return type to Dictionary so that rows are exposed in the Dart
-  // API as a Maps, with the appropriate conversion in JavaScript.
-  [Suppressed] object item(unsigned long index);
-  [Custom] Dictionary item(unsigned long index);
-};
-
-[Supplemental, Constructor]
+[DartSupplemental, Constructor]
 interface XMLHttpRequest {
    [Custom] void send();
    [Custom] void send(ArrayBuffer data); // FIXME: this should be eventually deprecated.
    [Custom] void send(ArrayBufferView data);
    [Custom] void send(Blob data);
    [Custom] void send(Document data);
-   [Custom] void send([StrictTypeChecking] DOMString data);
+   [Custom] void send([DartStrictTypeChecking] DOMString data);
    [Custom] void send(FormData data);
 };
 
-[Suppressed]
+[DartSuppress]
 interface AbstractView {};
-
 
 interface InjectedScriptHost {
     [Custom] void inspect(any objectId, any hints);
-    [Suppressed, Custom] any inspectedObject(long num);
-    [Suppressed, Custom] any internalConstructorName(any obj);
-    [Suppressed, Custom] boolean isHTMLAllCollection(any obj);
-    [Suppressed, Custom] DOMString type(any obj);
-    [Suppressed, Custom] any functionDetails(any obj);
-    [Suppressed, Custom] any[] getInternalProperties(any obj);
-    [Suppressed, Custom] EventListener[] getEventListeners(EventTarget target);
-    [Suppressed, Custom] any evaluate(DOMString text);
-    [Suppressed, Custom] void debugFunction(any fn);
-    [Suppressed, Custom] void undebugFunction(any fn);
-    [Suppressed, Custom] void monitorFunction(any fn);
-    [Suppressed, Custom] void unmonitorFunction(any fn);
+    [DartSuppress, Custom] any inspectedObject(long num);
+    [DartSuppress, Custom] any internalConstructorName(any obj);
+    [DartSuppress, Custom] boolean isHTMLAllCollection(any obj);
+    [DartSuppress, Custom] DOMString type(any obj);
+    [DartSuppress, Custom] any functionDetails(any obj);
+    [DartSuppress, Custom] any[] getInternalProperties(any obj);
+    [DartSuppress, Custom] EventListener[] getEventListeners(EventTarget target);
+    [DartSuppress, Custom] any evaluate(DOMString text);
+    [DartSuppress, Custom] void debugFunction(any fn);
+    [DartSuppress, Custom] void undebugFunction(any fn);
+    [DartSuppress, Custom] void monitorFunction(any fn);
+    [DartSuppress, Custom] void unmonitorFunction(any fn);
 
     // Only declarative scope (local, with and catch) is accepted. Returns undefined.
-    [Suppressed, Custom] any setFunctionVariableValue(any functionObject, long scopeIndex, DOMString variableName, any newValue);
+    [DartSuppress, Custom] any setFunctionVariableValue(any functionObject, long scopeIndex, DOMString variableName, any newValue);
 };
 
 
-[Suppressed]
-interface InspectorFrontendHost {};
 
-
-[Suppressed]
+[DartSuppress]
 interface JavaScriptCallFrame {};
 
 
-[Supplemental]
+[DartSupplemental]
 interface Location {
   [Custom=Setter] attribute DOMString href;
 
@@ -371,123 +343,125 @@ interface Location {
 };
 
 // TODO(jacobr): reenable these new Blink features.
-[Suppressed]
+[DartSuppress]
 interface ImageBitmapFactories {};
 
 // See https://chromiumcodereview.appspot.com/15901002 for the V8 implementation of
 // TextEncoder/TextDecoder
-[Suppressed]
+[DartSuppress]
 interface TextEncoder {};
 
-[Suppressed]
+[DartSuppress]
 interface TextDecoder {};
 
-[Supplemental]
-interface Window : EventTarget {};
+[DartSupplemental]
+interface Window : EventTarget {
+  [DartSuppress] void alert();
+  [DartSuppress] void alert(DOMString message);
+  void alert(optional DOMString message);
 
-[Suppressed]
+  [DartSuppress] void scrollBy(long x, long y);
+  [DartSuppress] void scrollBy(long x, long y, Dictionary scrollOptions);
+  [RaisesException] void scrollBy(long x, long y, optional Dictionary scrollOptions);
+
+  [DartSuppress] void scrollTo(long x, long y);
+  [DartSuppress] void scrollTo(long x, long y, Dictionary scrollOptions);
+  [RaisesException] void scrollTo(long x, long y, optional Dictionary scrollOptions);
+
+  [DartSuppress] void scroll(long x, long y);
+  [DartSuppress] void scroll(long x, long y, Dictionary scrollOptions);
+  [RaisesException] void scroll(long x, long y, optional Dictionary scrollOptions);
+};
+
+[DartSuppress]
 interface Promise {};
 
-[Supplemental]
-interface Screen {
-    [Suppressed]
-    boolean lockOrientation(sequence<DOMString> orientations);
+[DartSupplemental] interface CanvasRenderingContext2D {
+    [DartSuppress] void webkitPutImageDataHD(ImageData? imagedata, float dx, float dy);
+    [DartSuppress] void webkitPutImageDataHD(ImageData? imagedata, float dx, float dy, float dirtyX, float dirtyY, float dirtyWidth, float dirtyHeight);
+    [DartSuppress] ImageData webkitGetImageDataHD(float sx, float sy, float sw, float sh);
 };
 
-[Supplemental] interface CanvasRenderingContext2D {
-    [Suppressed] void webkitPutImageDataHD(ImageData? imagedata, float dx, float dy);
-    [Suppressed] void webkitPutImageDataHD(ImageData? imagedata, float dx, float dy, float dirtyX, float dirtyY, float dirtyWidth, float dirtyHeight);
-    [Suppressed] ImageData webkitGetImageDataHD(float sx, float sy, float sw, float sh);
-    [Suppressed] attribute Path currentPath;
-};
-
-[Supplemental] interface AudioParam {
-    [Suppressed] void setTargetValueAtTime(float target, double time, double timeConstant);
+[DartSupplemental] interface AudioParam {
+    [DartSuppress] void setTargetValueAtTime(float target, double time, double timeConstant);
     void setTargetAtTime(float target, double time, double timeConstant);
 };
 
-[Supplemental] interface AudioContext {
+[DartSupplemental] interface AudioContext {
     // Number of AudioBufferSourceNodes that are currently playing.
-    [Suppressed] readonly attribute unsigned long activeSourceCount;
-    [Suppressed] ScriptProcessorNode createJavaScriptNode(unsigned long bufferSize, optional unsigned long numberOfInputChannels, optional unsigned long numberOfOutputChannels);
-    [Suppressed] AudioBuffer createBuffer(ArrayBuffer? buffer, boolean mixToMono);
-    [Suppressed] GainNode createGainNode();
-    [Suppressed] DelayNode createDelayNode(optional double maxDelayTime);
+    [DartSuppress] readonly attribute unsigned long activeSourceCount;
+    [DartSuppress] ScriptProcessorNode createJavaScriptNode(unsigned long bufferSize, optional unsigned long numberOfInputChannels, optional unsigned long numberOfOutputChannels);
+    [DartSuppress] AudioBuffer createBuffer(ArrayBuffer? buffer, boolean mixToMono);
+    [DartSuppress] GainNode createGainNode();
+    [DartSuppress] DelayNode createDelayNode(optional double maxDelayTime);
 };
 
-[Supplemental] interface HTMLInputElement {
-    [Suppressed] attribute boolean webkitSpeech;
-    [Suppressed] attribute boolean webkitGrammar;
+[DartSupplemental] interface HTMLInputElement {
+    [DartSuppress] attribute boolean webkitSpeech;
+    [DartSuppress] attribute boolean webkitGrammar;
 };
 
-[Supplemental] interface ShadowRoot {
-    [Suppressed] attribute boolean applyAuthorStyles;
+[DartSupplemental] interface ShadowRoot {
+    [DartSuppress] attribute boolean applyAuthorStyles;
 };
 
-[Supplemental] interface BeforeLoadEvent {
-    [Suppressed] readonly attribute DOMString url;
+[DartSupplemental] interface BeforeLoadEvent {
+    [DartSuppress] readonly attribute DOMString url;
 };
 
-[Supplemental] interface OscillatorNode {
-    [Suppressed] readonly attribute unsigned short playbackState;
+[DartSupplemental] interface OscillatorNode {
+    [DartSuppress] readonly attribute unsigned short playbackState;
 };
 
-[Supplemental] interface SVGElementInstance {
-    [Suppressed] readonly attribute SVGElementInstanceList childNodes;
+[DartSupplemental] interface SVGElementInstance {
+    [DartSuppress] readonly attribute SVGElementInstanceList childNodes;
 };
 
-[Supplemental] interface TimedItem {
-    [Suppressed] readonly attribute Timing specified;
-};
-
-[Supplemental] interface DOMImplementation {
-    [Suppressed]
+[DartSupplemental] interface DOMImplementation {
+    [DartSuppress]
     CSSStyleSheet createCSSStyleSheet([Default=Undefined] optional DOMString title,
                                       [Default=Undefined] optional DOMString media);
 };
 
-[Supplemental] interface SVGSVGElement {
-    [Suppressed] attribute DOMString contentStyleType;
-    [Suppressed] attribute DOMString contentScriptType;
+[DartSupplemental] interface SVGSVGElement {
+    [DartSuppress] attribute DOMString contentStyleType;
+    [DartSuppress] attribute DOMString contentScriptType;
 };
 
-[Supplemental] interface WorkerGlobalScope {
-    [Suppressed] readonly attribute NotificationCenter webkitNotifications;
+[DartSupplemental] interface WorkerGlobalScope {
+    [DartSuppress] readonly attribute NotificationCenter webkitNotifications;
 };
 
-[Supplemental] interface AudioBuffer {
-    [Suppressed] attribute float gain;
+[DartSupplemental] interface AudioBuffer {
+    [DartSuppress] attribute float gain;
 };
 
-[Supplemental] interface WorkerCrypto {
-    [Suppressed] ArrayBufferView getRandomValues(ArrayBufferView array);
+[DartSupplemental] interface WorkerCrypto {
+    [DartSuppress] ArrayBufferView getRandomValues(ArrayBufferView array);
 };
 
-[Supplemental] interface HTMLFormElement {
+[DartSupplemental] interface HTMLFormElement {
     void requestAutocomplete([Default=Undefined] optional Dictionary details);
-    [Suppressed] void requestAutocomplete();
+    [DartSuppress] void requestAutocomplete();
 };
 
-[Supplemental] interface AudioBufferSourceNode {
-    [Suppressed] readonly attribute unsigned short playbackState;
+[DartSupplemental] interface AudioBufferSourceNode {
+    [DartSuppress] readonly attribute unsigned short playbackState;
 };
 
-[Supplemental] interface SpeechInputResult {
-    [Suppressed] readonly attribute DOMString utterance;
-    [Suppressed] readonly attribute float confidence;
+[DartSupplemental] interface AudioBufferSourceNode : AudioSourceNode {
+    [DartSuppress] readonly attribute AudioParam gain;
 };
 
-[Supplemental] interface SpeechInputEvent : Event {
-    [Suppressed] readonly attribute SpeechInputResultList results;
+// Remove backward compatible operation requestPointerLock exist now too.
+[DartSupplemental] interface Element : Node {
+    [DartSuppress] void webkitRequestPointerLock();
 };
 
-[Supplemental] interface AudioBufferSourceNode : AudioSourceNode {
-    [Suppressed] readonly attribute AudioParam gain;
-};
-
-[Supplemental]
-interface CSSStyleDeclaration {
-    [Supplemental] boolean __propertyQuery__(DOMString name);
+[DartSupplemental] interface CSSStyleDeclaration {
+    // Expose __propertyQuery__  a getter with a special operation in the IDL
+    // when used with Custom=PropertyQuery will emit __propertyQuery__.
+    [Custom=PropertyQuery] getter boolean (DOMString name);
 };
 
 Element implements GlobalEventHandlers;
