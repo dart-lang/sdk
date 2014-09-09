@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/options.dart';
 
-void main(args) {
+void main(List<String> args) {
   StringUtilities.INTERNER = new MappedInterner();
   CommandLineOptions options = CommandLineOptions.parse(args);
   if (options.shouldBatch) {

@@ -21,7 +21,6 @@ import 'domain_execution_test.dart' as domain_execution_test;
 import 'domain_server_test.dart' as domain_server_test;
 import 'edit/test_all.dart' as edit_all;
 import 'operation/test_all.dart' as operation_test_all;
-import 'package_map_provider_test.dart' as package_map_provider_test;
 import 'protocol_test.dart' as protocol_test;
 import 'search/test_all.dart' as search_all;
 import 'services/test_all.dart' as services_all;
@@ -50,7 +49,6 @@ main() {
     domain_server_test.main();
     edit_all.main();
     operation_test_all.main();
-    package_map_provider_test.main();
     protocol_test.main();
     search_all.main();
     services_all.main();

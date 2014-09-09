@@ -11,7 +11,7 @@ import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/domain_server.dart';
-import 'package:analysis_server/src/package_map_provider.dart';
+import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';

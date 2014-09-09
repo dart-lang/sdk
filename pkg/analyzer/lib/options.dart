@@ -118,7 +118,7 @@ class CommandLineOptions {
           defaultsTo: false, negatable: false)
       ..addOption('dart-sdk', help: 'The path to the Dart SDK')
       ..addOption('package-root', abbr: 'p',
-          help: 'The path to the package root')
+          help: 'The path to the package root. The flag package-root is deprecated. Remove to use package information computed by pub.')
       ..addOption('format',
           help: 'Specifies the format in which errors are displayed')
       ..addFlag('machine',

@@ -5,7 +5,6 @@
 library analyzer_impl;
 
 import 'dart:async';
-
 import 'dart:io';
 
 import 'generated/constant.dart';
@@ -13,7 +12,6 @@ import 'generated/engine.dart';
 import 'generated/element.dart';
 import 'generated/error.dart';
 import 'generated/java_io.dart';
-import 'generated/sdk.dart';
 import 'generated/sdk_io.dart';
 import 'generated/source_io.dart';
 import '../options.dart';
@@ -22,13 +20,16 @@ import 'dart:collection';
 
 import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
 import 'package:analyzer/src/error_formatter.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/source/package_map_provider.dart';
 
 /**
  * The maximum number of sources for which AST structures should be kept in the cache.
  */
 const int _MAX_CACHE_SIZE = 512;
 
-DartSdk sdk;
+DirectoryBasedDartSdk sdk;
 
 /// Analyzes single library [File].
 class AnalyzerImpl {
@@ -48,7 +49,8 @@ class AnalyzerImpl {
   final List<AnalysisErrorInfo> errorInfos = new List<AnalysisErrorInfo>();
 
   /// [HashMap] between sources and analysis error infos.
-  final HashMap<Source, AnalysisErrorInfo> sourceErrorsMap = new HashMap<Source, AnalysisErrorInfo>();
+  final HashMap<Source, AnalysisErrorInfo> sourceErrorsMap =
+      new HashMap<Source, AnalysisErrorInfo>();
 
   AnalyzerImpl(this.sourcePath, this.options, this.startTime) {
     if (sdk == null) {
@@ -63,7 +65,7 @@ class AnalyzerImpl {
    * then both will be printed. If [printMode] is `2`, then only performance
    * information will be printed, and it will be marked as being for a cold VM.
    */
-  ErrorSeverity analyzeSync({int printMode : 1}) {
+  ErrorSeverity analyzeSync({int printMode: 1}) {
     setupForAnalysis();
     return _analyzeSync(printMode);
   }
@@ -141,7 +143,7 @@ class AnalyzerImpl {
       // numbers.
       //
       // prepare errors
-      sourceErrorsMap.forEach((k,v) {
+      sourceErrorsMap.forEach((k, v) {
         errorInfos.add(sourceErrorsMap[k]);
       });
 
@@ -159,7 +161,8 @@ class AnalyzerImpl {
     });
   }
 
-  bool _excludeTodo(AnalysisError error) => error.errorCode.type != ErrorType.TODO;
+  bool _excludeTodo(AnalysisError error) =>
+      error.errorCode.type != ErrorType.TODO;
 
   _printErrorsAndPerf() {
     // The following is a hack. We currently print out to stderr to ensure that
@@ -195,7 +198,7 @@ class AnalyzerImpl {
           - (ioTime + scanTime + parseTime + resolveTime + errorsTime + hintsTime
           + angularTime)}");
       stdout.writeln("total:$totalTime");
-   }
+    }
   }
 
   _printColdPerf() {
@@ -234,17 +237,24 @@ class AnalyzerImpl {
   }
 
   void prepareAnalysisContext(JavaFile sourceFile, Source source) {
-    List<UriResolver> resolvers = [new DartUriResolver(sdk), new FileUriResolver()];
+    List<UriResolver> resolvers = [
+        new DartUriResolver(sdk),
+        new FileUriResolver()];
     // may be add package resolver
     {
       JavaFile packageDirectory;
       if (options.packageRootPath != null) {
         packageDirectory = new JavaFile(options.packageRootPath);
-      } else {
-        packageDirectory = getPackageDirectoryFor(sourceFile);
-      }
-      if (packageDirectory != null) {
         resolvers.add(new PackageUriResolver([packageDirectory]));
+      } else {
+        PubPackageMapProvider pubPackageMapProvider =
+            new PubPackageMapProvider(PhysicalResourceProvider.INSTANCE, sdk);
+        PackageMapInfo packageMapInfo = pubPackageMapProvider.computePackageMap(
+            PhysicalResourceProvider.INSTANCE.getResource(''));
+        resolvers.add(
+            new PackageMapUriResolver(
+                PhysicalResourceProvider.INSTANCE,
+                packageMapInfo.packageMap));
       }
     }
     sourceFactory = new SourceFactory(resolvers);
@@ -274,8 +284,8 @@ class AnalyzerImpl {
     context.applyChanges(changeSet);
   }
 
-  void addCompilationUnitSource(CompilationUnitElement unit, Set<LibraryElement> libraries,
-      Set<CompilationUnitElement> units) {
+  void addCompilationUnitSource(CompilationUnitElement unit,
+      Set<LibraryElement> libraries, Set<CompilationUnitElement> units) {
     if (unit == null || units.contains(unit)) {
       return;
     }
@@ -285,7 +295,7 @@ class AnalyzerImpl {
 
   void addLibrarySources(LibraryElement library, Set<LibraryElement> libraries,
       Set<CompilationUnitElement> units) {
-    if (library == null || !libraries.add(library) ) {
+    if (library == null || !libraries.add(library)) {
       return;
     }
     // may be skip library

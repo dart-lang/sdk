@@ -17,7 +17,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
-import 'package:analysis_server/src/package_map_provider.dart';
+import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';

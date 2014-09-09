@@ -5,10 +5,10 @@
 library test.context.directory.manager;
 
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/package_map_provider.dart';
 import 'reflective_tests.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
