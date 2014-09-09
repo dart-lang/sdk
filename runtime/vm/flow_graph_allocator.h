@@ -565,6 +565,7 @@ class LiveRange : public ZoneAllocated {
   UseInterval* first_use_interval() const { return first_use_interval_; }
   UseInterval* last_use_interval() const { return last_use_interval_; }
   Location assigned_location() const { return assigned_location_; }
+  Location* assigned_location_slot() { return &assigned_location_; }
   intptr_t Start() const { return first_use_interval()->start(); }
   intptr_t End() const { return last_use_interval()->end(); }
 
