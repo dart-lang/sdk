@@ -64,8 +64,9 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
     PartialElement,
     Token;
 
-/// Controls if this program should be querying Dart Mind. Used by tests.
-bool enableDartMind = true;
+/// Enabled by the option --enable-dart-mind.  Controls if this program should
+/// be querying Dart Mind.
+bool isDartMindEnabled = false;
 
 /// Iterator over lines from standard input (or the argument array).
 Iterator<String> stdin;
@@ -120,6 +121,9 @@ main(List<String> arguments) {
       switch (argument) {
         case '--simulate-mutation':
           isSimulateMutationEnabled = true;
+          break;
+        case '--enable-dart-mind':
+          isDartMindEnabled = true;
           break;
         case '-v':
         case '--verbose':
@@ -202,7 +206,6 @@ Future<String> prompt(message) {
 
 Future queryDartMind(String prefix, String info) {
   // TODO(lukechurch): Use [info] for something.
-  if (!enableDartMind) return new Future.value("[]");
   String encodedArg0 = Uri.encodeComponent('"$prefix"');
   String mindQuery =
       'http://dart-mind.appspot.com/rpc'
@@ -273,9 +276,10 @@ Future parseUserInput(
         prefix = token.value.substring(0, position - token.charOffset);
       }
     }
+    sw.stop();
     printVerbose('Find token took ${sw.elapsedMicroseconds}us.');
-    sw.reset();
-    if (prefix != null) {
+    if (isDartMindEnabled && prefix != null) {
+      sw..reset()..start();
       return queryDartMind(prefix, info).then((String dartMindSuggestion) {
         sw.stop();
         print('Dart Mind ($prefix): $dartMindSuggestion.');
@@ -283,7 +287,9 @@ Future parseUserInput(
         return repeat();
       });
     } else {
-      print("Didn't talk to Dart Mind, no identifier at POI ($token).");
+      if (isDartMindEnabled) {
+        print("Didn't talk to Dart Mind, no identifier at POI ($token).");
+      }
       return repeat();
     }
   });
