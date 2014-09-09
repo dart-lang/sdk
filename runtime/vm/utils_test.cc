@@ -117,6 +117,23 @@ UNIT_TEST_CASE(CountOneBits) {
 }
 
 
+UNIT_TEST_CASE(CountZeros) {
+  EXPECT_EQ(0, Utils::CountTrailingZeros(0x1));
+  EXPECT_EQ(kBitsPerWord - 1, Utils::CountLeadingZeros(0x1));
+  EXPECT_EQ(1, Utils::CountTrailingZeros(0x2));
+  EXPECT_EQ(kBitsPerWord - 2, Utils::CountLeadingZeros(0x2));
+  EXPECT_EQ(0, Utils::CountTrailingZeros(0x3));
+  EXPECT_EQ(kBitsPerWord - 2, Utils::CountLeadingZeros(0x3));
+  EXPECT_EQ(2, Utils::CountTrailingZeros(0x4));
+  EXPECT_EQ(kBitsPerWord - 2, Utils::CountLeadingZeros(0x4));
+  EXPECT_EQ(0, Utils::CountTrailingZeros(kUwordMax));
+  EXPECT_EQ(0, Utils::CountLeadingZeros(kUwordMax));
+  static const uword kTopBit = static_cast<uword>(1) << (kBitsPerWord - 1);
+  EXPECT_EQ(kBitsPerWord - 1, Utils::CountTrailingZeros(kTopBit));
+  EXPECT_EQ(0, Utils::CountLeadingZeros(kTopBit));
+}
+
+
 UNIT_TEST_CASE(IsInt) {
   EXPECT(Utils::IsInt(8, 16));
   EXPECT(Utils::IsInt(8, 127));

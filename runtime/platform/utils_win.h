@@ -13,9 +13,9 @@ namespace dart {
 inline int Utils::CountLeadingZeros(uword x) {
   unsigned long result;  // NOLINT
 #if defined(ARCH_IS_32_BIT)
-  _BitScanForward(&result, x);
+  _BitScanReverse(&result, x);
 #elif defined(ARCH_IS_64_BIT)
-  _BitScanForward64(&result, x);
+  _BitScanReverse64(&result, x);
 #else
 #error Architecture is not 32-bit or 64-bit.
 #endif
@@ -26,9 +26,9 @@ inline int Utils::CountLeadingZeros(uword x) {
 inline int Utils::CountTrailingZeros(uword x) {
   unsigned long result;  // NOLINT
 #if defined(ARCH_IS_32_BIT)
-  _BitScanReverse(&result, x);
+  _BitScanForward(&result, x);
 #elif defined(ARCH_IS_64_BIT)
-  _BitScanReverse64(&result, x);
+  _BitScanForward64(&result, x);
 #else
 #error Architecture is not 32-bit or 64-bit.
 #endif
