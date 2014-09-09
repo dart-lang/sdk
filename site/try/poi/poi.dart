@@ -98,6 +98,8 @@ bool isVerbose = false;
 const bool PRINT_SCOPE_INFO =
     const bool.fromEnvironment('PRINT_SCOPE_INFO', defaultValue: true);
 
+Stopwatch wallClock = new Stopwatch();
+
 /// Iterator for reading lines from [io.stdin].
 class StdinIterator implements Iterator<String> {
   String current;
@@ -108,6 +110,24 @@ class StdinIterator implements Iterator<String> {
   }
 }
 
+printFormattedTime(message, int us) {
+  String m = '$message${" " * 65}'.substring(0, 60);
+  String i = '${" " * 10}${(us/1000).toStringAsFixed(3)}';
+  i = i.substring(i.length - 10);
+  print('$m ${i}ms');
+}
+
+printWallClock(message) {
+  if (!isVerbose) return;
+  if (wallClock.isRunning) {
+    print('$message');
+    printFormattedTime('--->>>', wallClock.elapsedMicroseconds);
+    wallClock.reset();
+  } else {
+    print(message);
+  }
+}
+
 printVerbose(message) {
   if (!isVerbose) return;
   print(message);
@@ -115,6 +135,7 @@ printVerbose(message) {
 
 main(List<String> arguments) {
   poiCount = 0;
+  wallClock.start();
   List<String> nonOptionArguments = [];
   for (String argument in arguments) {
     if (argument.startsWith('-')) {
@@ -231,10 +252,16 @@ Future parseUserInput(
     api.CompilerInputProvider inputProvider,
     api.DiagnosticHandler handler) {
   Future repeat() {
+    printFormattedTime('--->>>', wallClock.elapsedMicroseconds);
+    wallClock.reset();
+
     return prompt('Position: ').then((String positionString) {
+      wallClock.reset();
       return parseUserInput(fileName, positionString, inputProvider, handler);
     });
   }
+
+  printWallClock("\n\n\nparseUserInput('$fileName', '$positionString')");
 
   Uri script = Uri.base.resolveUri(new Uri.file(fileName));
   if (positionString == null) return null;
@@ -255,8 +282,9 @@ Future parseUserInput(
 
   Future future = runPoi(script, position, inputProvider, handler);
   return future.then((Element element) {
-    poiCount++;
-    print('Resolving took ${sw.elapsedMicroseconds}us.');
+    if (isVerbose) {
+      printFormattedTime('Resolving took', sw.elapsedMicroseconds);
+    }
     sw.reset();
     String info = scopeInformation(element, position);
     sw.stop();
@@ -417,6 +445,9 @@ class ScriptOnlyFilter implements QueueFilter {
   void processWorkItem(void f(WorkItem work), WorkItem work) {
     if (work.element.library.canonicalUri == script) {
       f(work);
+      printWallClock('Processed ${work.element}.');
+    } else {
+      printWallClock('Skipped ${work.element}.');
     }
   }
 }
