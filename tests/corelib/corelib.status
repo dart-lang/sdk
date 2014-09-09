@@ -158,8 +158,12 @@ int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
 
+[ $arch == simarm ]
+big_integer_vm_test: Skip # Timeout
+
 [ $arch == simmips ]
 int_parse_radix_test: Skip # Timeout
+big_integer_vm_test: Skip # Timeout
 
 [ $arch == simarm && $checked ]
 num_parse_test: Skip  # Pass, Timeout
