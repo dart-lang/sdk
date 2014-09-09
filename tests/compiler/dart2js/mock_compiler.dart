@@ -108,7 +108,7 @@ class MockCompiler extends Compiler {
   }
 
   /// Initialize the mock compiler with an empty main library.
-  Future init([String mainSource = ""]) {
+  Future<Uri> init([String mainSource = ""]) {
     Uri uri = new Uri(scheme: "mock");
     registerSource(uri, mainSource);
     return libraryLoader.loadLibrary(uri)
@@ -119,12 +119,12 @@ class MockCompiler extends Compiler {
       // the interfaces of the Object class which would be 'null' if the class
       // wasn't resolved.
       objectClass.ensureResolved(this);
-    });
+    }).then((_) => uri);
   }
 
-  Future runCompiler(Uri uri) {
-    return init().then((_) {
-      return super.runCompiler(uri);
+  Future runCompiler(Uri uri, [String mainSource = ""]) {
+    return init(mainSource).then((Uri mainUri) {
+      return super.runCompiler(uri == null ? mainUri : uri);
     }).then((result) {
       if (expectedErrors != null &&
           expectedErrors != errors.length) {

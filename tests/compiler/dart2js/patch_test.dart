@@ -13,14 +13,21 @@ import "mock_libraries.dart";
 import 'package:compiler/implementation/elements/modelx.dart';
 
 Future<Compiler> applyPatch(String script, String patch,
-                            {bool analyzeAll: false, bool analyzeOnly: false}) {
+                            {bool analyzeAll: false, bool analyzeOnly: false,
+                             bool runCompiler: false, String main: ""}) {
   Map<String, String> core = <String, String>{'script': script};
   MockCompiler compiler = new MockCompiler.internal(coreSource: core,
                                                     analyzeAll: analyzeAll,
                                                     analyzeOnly: analyzeOnly);
   var uri = Uri.parse("patch:core");
   compiler.registerSource(uri, "$DEFAULT_PATCH_CORE_SOURCE\n$patch");
-  return compiler.init().then((_) => compiler);
+  var future;
+  if (runCompiler) {
+    future = compiler.runCompiler(null, main);
+  } else {
+    future = compiler.init(main);
+  }
+  return future.then((_) => compiler);
 }
 
 void expectHasBody(compiler, ElementX element) {
@@ -763,7 +770,14 @@ testPatchAndSelector() {
         int method() => 0;
         @patch void clear() {}
       }
-      """).then((Compiler compiler) {
+      """,
+      main: """
+      main () {
+        new A(); // ensure A and B are instantiated
+        new B();
+      }
+      """,
+      runCompiler: true, analyzeOnly: true).then((Compiler compiler) {
     World world = compiler.world;
 
     ClassElement cls = ensure(compiler, "A", compiler.coreLibrary.find,
