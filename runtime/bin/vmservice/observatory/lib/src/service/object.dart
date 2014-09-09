@@ -38,20 +38,57 @@ abstract class ServiceObject extends Observable {
   @reflectable String get vmType => _vmType;
   String _vmType;
 
-  bool get isBool => vmType == 'Bool';
-  bool get isClosure => false;
-  bool get isContext => vmType == 'Context';
-  bool get isDouble => vmType == 'Double';
-  bool get isError => vmType == 'Error';
-  bool get isInstance => vmType == 'Instance';
-  bool get isInt => vmType == 'Smi' || vmType == 'Mint' || vmType == 'Bigint';
-  bool get isList => vmType == 'GrowableObjectArray' || vmType == 'Array';
+  static bool _isInstanceType(String type) {
+    switch (type) {
+      case 'BoundedType':
+      case 'Instance':
+      case 'List':
+      case 'String':
+      case 'Type':
+      case 'TypeParameter':
+      case 'TypeRef':
+      case 'bool':
+      case 'double':
+      case 'int':
+      case 'null':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  static bool _isTypeType(String type) {
+    switch (type) {
+      case 'BoundedType':
+      case 'Type':
+      case 'TypeParameter':
+      case 'TypeRef':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool get isAbstractType => _isTypeType(type);
+  bool get isBool => type == 'bool';
+  bool get isContext => type == 'Context';
+  bool get isDouble => type == 'double';
+  bool get isError => type == 'Error';
+  bool get isInstance => _isInstanceType(type);
+  bool get isInt => type == 'int';
+  bool get isList => type == 'List';
+  bool get isNull => type == 'null';
+  bool get isSentinel => type == 'Sentinel';
+  bool get isString => type == 'String';
+
+  // Kinds of Instance.
   bool get isMirrorReference => vmType == 'MirrorReference';
-  bool get isNull => vmType == 'Null';
-  bool get isSentinel => vmType == 'Sentinel';
-  bool get isString => vmType == 'String';
-  bool get isType => vmType == 'Type';
   bool get isWeakProperty => vmType == 'WeakProperty';
+  bool get isClosure => false;
+  bool get isPlainInstance {
+    return (type == 'Instance' &&
+            !isMirrorReference && !isWeakProperty && !isClosure);
+  }
 
   /// The complete service url of this object.
   @reflectable String get link => _owner.relativeLink(_id);
@@ -110,22 +147,6 @@ abstract class ServiceObject extends Observable {
       case 'Gauge':
         obj = new ServiceMetric._empty(owner);
         break;
-      case 'Array':
-      case 'Bigint':
-      case 'Bool':
-      case 'Double':
-      case 'GrowableObjectArray':
-      case 'Instance':
-      case 'Mint':
-      case 'MirrorReference':
-      case 'Null':
-      case 'Sentinel':  // TODO(rmacnak): Separate this out.
-      case 'Smi':
-      case 'String':
-      case 'Type':
-      case 'WeakProperty':
-        obj = new Instance._empty(owner);
-        break;
       case 'Isolate':
         obj = new Isolate._empty(owner.vm);
         break;
@@ -148,7 +169,14 @@ abstract class ServiceObject extends Observable {
         obj = new Socket._empty(owner);
         break;
       default:
-        obj = new ServiceMap._empty(owner);
+        if (_isInstanceType(type) ||
+            type == 'Sentinel') {  // TODO(rmacnak): Separate this out.
+          obj = new Instance._empty(owner);
+          break;
+        } else {
+          obj = new ServiceMap._empty(owner);
+          break;
+        }
     }
     obj.update(map);
     return obj;
@@ -185,7 +213,7 @@ abstract class ServiceObject extends Observable {
             // updating the existing one.
             //
             // TODO(turnidge): Check for vmType changing as well?
-            assert(mapType == 'Error' || mapType == 'Null');
+            assert(mapType == 'Error' || mapType == 'null');
             return new ServiceObject._fromMap(owner, map);
           }
           update(map);
@@ -219,8 +247,8 @@ abstract class ServiceObject extends Observable {
     // When the response specifies a specific vmType, use it.
     // Otherwise the vmType of the response is the same as the 'user'
     // type.
-    if (map.containsKey('vmType')) {
-      _vmType = _stripRef(map['vmType']);
+    if (map.containsKey('_vmType')) {
+      _vmType = _stripRef(map['_vmType']);
     } else {
       _vmType = _type;
     }

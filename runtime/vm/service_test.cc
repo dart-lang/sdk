@@ -522,9 +522,9 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'null'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_SUBSTRING(
-      "{\"type\":\"Null\",\"id\":\"objects\\/null\","
+      "{\"type\":\"null\",\"id\":\"objects\\/null\","
       "\"valueAsString\":\"null\",\"class\":",
       handler.msg());
 
@@ -532,7 +532,7 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'not-initialized'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
       "{\"type\":\"Sentinel\",\"id\":\"objects\\/not-initialized\","
       "\"valueAsString\":\"<not initialized>\"}",
@@ -543,7 +543,7 @@ TEST_CASE(Service_Objects) {
                      "[0, port, ['objects', 'being-initialized'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
       "{\"type\":\"Sentinel\",\"id\":\"objects\\/being-initialized\","
       "\"valueAsString\":\"<being initialized>\"}",
@@ -553,7 +553,7 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'optimized-out'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
       "{\"type\":\"Sentinel\",\"id\":\"objects\\/optimized-out\","
       "\"valueAsString\":\"<optimized out>\"}",
@@ -563,7 +563,7 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'collected'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
       "{\"type\":\"Sentinel\",\"id\":\"objects\\/collected\","
       "\"valueAsString\":\"<collected>\"}",
@@ -573,7 +573,7 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'expired'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
       "{\"type\":\"Sentinel\",\"id\":\"objects\\/expired\","
       "\"valueAsString\":\"<expired>\"}",
@@ -583,20 +583,22 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'bool-true'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
-      "{\"type\":\"Bool\",\"id\":\"objects\\/bool-true\","
+      "{\"type\":\"bool\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/46\","
-      "\"name\":\"bool\"},\"valueAsString\":\"true\"}",
+      "\"name\":\"bool\"},"
+      "\"size\":8,\"fields\":[],\"id\":\"objects\\/bool-true\","
+      "\"valueAsString\":\"true\"}",
       handler.msg());
 
   // int
   service_msg = Eval(lib, "[0, port, ['objects', 'int-123'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
-      "{\"type\":\"Smi\","
+      "{\"type\":\"int\",\"_vmType\":\"Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
       "\"name\":\"_Smi\",},"
       "\"fields\":[],"
@@ -608,11 +610,11 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', '$validId'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   handler.filterMsg("size");
   handler.filterMsg("id");
   EXPECT_STREQ(
-      "{\"type\":\"Array\","
+      "{\"type\":\"List\",\"_vmType\":\"Array\","
       "\"class\":{\"type\":\"@Class\",\"name\":\"_List\",},"
       "\"fields\":[],"
       "\"length\":1,"
@@ -627,7 +629,7 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', '99999999'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
       "{\"type\":\"Sentinel\",\"id\":\"objects\\/expired\","
       "\"valueAsString\":\"<expired>\"}",
@@ -637,7 +639,7 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'expired', 'eval'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
       "{\"type\":\"Error\",\"id\":\"\","
       "\"message\":\"expected at most 2 arguments but found 3\\n\","
@@ -651,9 +653,9 @@ TEST_CASE(Service_Objects) {
                      "['expr'], ['this+99']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
-      "{\"type\":\"@Smi\","
+      "{\"type\":\"@int\",\"_vmType\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
       "\"name\":\"_Smi\",},"
       "\"id\":\"objects\\/int-222\","
@@ -666,9 +668,9 @@ TEST_CASE(Service_Objects) {
                      "['expr'], ['null']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
-      "{\"type\":\"@Null\",\"id\":\"objects\\/null\","
+      "{\"type\":\"@null\",\"id\":\"objects\\/null\","
       "\"valueAsString\":\"null\"}",
       handler.msg());
 
@@ -677,7 +679,7 @@ TEST_CASE(Service_Objects) {
                      "['expr'], ['this']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
       "{\"type\":\"Error\",\"id\":\"\",\"kind\":\"EvalExpired\","
       "\"message\":\"attempt to evaluate against expired object\\n\","
@@ -691,7 +693,7 @@ TEST_CASE(Service_Objects) {
                      "['expr'], ['this+99']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
       "{\"type\":\"Error\",\"id\":\"\","
       "\"message\":\"expected at most 3 arguments but found 4\\n\","
@@ -704,7 +706,7 @@ TEST_CASE(Service_Objects) {
                      "[0, port, ['objects', '$validId', 'retained'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   ExpectSubstringF(handler.msg(),
                    "\"id\":\"objects\\/int-%" Pd "\"",
                    arr.raw()->Size() + arr.At(0)->Size());
@@ -718,7 +720,7 @@ TEST_CASE(Service_Objects) {
   ExpectSubstringF(
       handler.msg(),
       "{\"type\":\"RetainingPath\",\"id\":\"retaining_path\",\"length\":1,"
-      "\"elements\":[{\"index\":0,\"value\":{\"type\":\"@Array\"");
+      "\"elements\":[{\"index\":0,\"value\":{\"type\":\"@List\"");
 
   // Retaining path missing limit.
   service_msg = Eval(
@@ -853,7 +855,7 @@ TEST_CASE(Service_RetainingPath) {
       "\"elements\":[{\"index\":0,\"value\":{\"type\":\"@String\"");
   ExpectSubstringF(handler.msg(), "\"parentListIndex\":%" Pd, kElemIndex);
   ExpectSubstringF(handler.msg(),
-      "{\"index\":1,\"value\":{\"type\":\"@Array\"");
+      "{\"index\":1,\"value\":{\"type\":\"@List\"");
 }
 
 
@@ -897,9 +899,9 @@ TEST_CASE(Service_Libraries) {
                       vmlib.index());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
-      "{\"type\":\"@Smi\","
+      "{\"type\":\"@int\",\"_vmType\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
       "\"name\":\"_Smi\",},\"id\":\"objects\\/int-54320\","
       "\"valueAsString\":\"54320\"}",
@@ -976,9 +978,9 @@ TEST_CASE(Service_Classes) {
                       "['expr'], ['cobra + 100000']]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("vmName");
+  handler.filterMsg("_vmName");
   EXPECT_STREQ(
-      "{\"type\":\"@Smi\","
+      "{\"type\":\"@int\",\"_vmType\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
       "\"name\":\"_Smi\",},"
       "\"id\":\"objects\\/int-111235\","
@@ -1325,7 +1327,7 @@ TEST_CASE(Service_Code) {
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING("{\"type\":\"Null\",\"id\":\"objects\\/null\","
+  EXPECT_SUBSTRING("{\"type\":\"null\",\"id\":\"objects\\/null\","
                    "\"valueAsString\":\"null\"",
                    handler.msg());
 
@@ -1378,7 +1380,8 @@ TEST_CASE(Service_TokenStream) {
   handler.HandleNextMessage();
 
   // Check type.
-  EXPECT_SUBSTRING("\"type\":\"TokenStream\"", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"Object\"", handler.msg());
+  EXPECT_SUBSTRING("\"_vmType\":\"TokenStream\"", handler.msg());
   // Check for members array.
   EXPECT_SUBSTRING("\"members\":[", handler.msg());
 }
@@ -1437,7 +1440,8 @@ TEST_CASE(Service_PcDescriptors) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Check type.
-  EXPECT_SUBSTRING("\"type\":\"PcDescriptors\"", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"Object\"", handler.msg());
+  EXPECT_SUBSTRING("\"_vmType\":\"PcDescriptors\"", handler.msg());
   // Check for members array.
   EXPECT_SUBSTRING("\"members\":[", handler.msg());
 }
@@ -1496,7 +1500,8 @@ TEST_CASE(Service_LocalVarDescriptors) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Check type.
-  EXPECT_SUBSTRING("\"type\":\"LocalVarDescriptors\"", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"Object\"", handler.msg());
+  EXPECT_SUBSTRING("\"_vmType\":\"LocalVarDescriptors\"", handler.msg());
   // Check for members array.
   EXPECT_SUBSTRING("\"members\":[", handler.msg());
 }
@@ -2041,7 +2046,7 @@ TEST_CASE(Service_Address) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // TODO(turnidge): Should this be a ServiceException instead?
-  EXPECT_STREQ("{\"type\":\"@Null\",\"id\":\"objects\\/null\","
+  EXPECT_STREQ("{\"type\":\"@null\",\"id\":\"objects\\/null\","
                "\"valueAsString\":\"null\"}",
                handler.msg());
 }

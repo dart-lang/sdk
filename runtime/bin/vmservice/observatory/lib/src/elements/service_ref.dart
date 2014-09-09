@@ -64,7 +64,7 @@ class AnyServiceRefElement extends ObservatoryElement {
   AnyServiceRefElement.created() : super.created();
 
   Element _constructElementForRef() {
-    var type = ref.vmType;
+    var type = ref.type;
     switch (type) {
      case 'Class':
         ServiceRefElement element = new Element.tag('class-ref');
@@ -94,28 +94,17 @@ class AnyServiceRefElement extends ObservatoryElement {
         ServiceRefElement element = new Element.tag('library-ref');
         element.ref = ref;
         return element;
-      case 'Array':
-      case 'Bigint':
-      case 'Bool':
-      case 'Closure':
-      case 'Double':
-      case 'GrowableObjectArray':
-      case 'Instance':
-      case 'Mint':
-      case 'MirrorReference':
-      case 'Null':
-      case 'Sentinel':  // TODO(rmacnak): Separate this out.
-      case 'Smi':
-      case 'String':
-      case 'Type':
-      case 'WeakProperty':
-        ServiceRefElement element = new Element.tag('instance-ref');
-        element.ref = ref;
-        return element;
       default:
-        SpanElement element = new Element.tag('span');
-        element.text = "<<Unknown service ref: $ref>>";
-        return element;
+        if (ref.isInstance ||
+            ref.isSentinel) {  // TODO(rmacnak): Separate this out.
+          ServiceRefElement element = new Element.tag('instance-ref');
+          element.ref = ref;
+          return element;
+        } else {
+          SpanElement element = new Element.tag('span');
+          element.text = "<<Unknown service ref: $ref>>";
+          return element;
+        }
     }
   }
 

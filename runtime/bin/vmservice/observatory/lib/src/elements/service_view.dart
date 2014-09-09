@@ -20,7 +20,7 @@ class ServiceObjectViewElement extends ObservatoryElement {
   ServiceObjectViewElement.created() : super.created();
 
   ObservatoryElement _constructElementForObject() {
-    var type = object.vmType;
+    var type = object.type;
     switch (type) {
       case 'AllocationProfile':
         HeapProfileElement element = new Element.tag('heap-profile');
@@ -61,42 +61,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'HeapMap':
         HeapMapElement element = new Element.tag('heap-map');
         element.fragmentation = object;
-        return element;
-      case 'LibraryPrefix':
-      case 'TypeRef':
-      case 'TypeParameter':
-      case 'BoundedType':
-      case 'Int32x4':
-      case 'Float32x4':
-      case 'Float64x4':
-      case 'TypedData':
-      case 'ExternalTypedData':
-      case 'Capability':
-      case 'ReceivePort':
-      case 'SendPort':
-      case 'Stacktrace':
-      case 'JSRegExp':
-      case 'UserTag':
-        // TODO(turnidge): The types above this comment are instance
-        // types and should be handled by the InstanceViewElement.  We
-        // need to go through these and make sure that they print in a
-        // reasonable way.
-      case 'Type':
-      case 'Array':
-      case 'Bool':
-      case 'Closure':
-      case 'Double':
-      case 'GrowableObjectArray':
-      case 'Instance':
-      case 'Smi':
-      case 'Mint':
-      case 'MirrorReference':
-      case 'Null':
-      case 'Bigint':
-      case 'String':
-      case 'WeakProperty':
-        InstanceViewElement element = new Element.tag('instance-view');
-        element.instance = object;
         return element;
       case 'IO':
         IOViewElement element = new Element.tag('io-view');
@@ -189,9 +153,16 @@ class ServiceObjectViewElement extends ObservatoryElement {
         element.vm = object;
         return element;
       default:
-        JsonViewElement element = new Element.tag('json-view');
-        element.map = object;
-        return element;
+        if (object.isInstance ||
+            object.isSentinel) {  // TODO(rmacnak): Separate this out.
+          InstanceViewElement element = new Element.tag('instance-view');
+          element.instance = object;
+          return element;
+        } else {
+          JsonViewElement element = new Element.tag('json-view');
+          element.map = object;
+          return element;
+        }
     }
   }
 

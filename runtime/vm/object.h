@@ -136,8 +136,8 @@ class Symbols;
   /* Object is printed as JSON into stream. If ref is true only a header */    \
   /* with an object id is printed. If ref is false the object is fully   */    \
   /* printed.                                                            */    \
-  virtual const char* JSONType(bool ref) const {                               \
-    return ref ? "@"#object : ""#object;                                       \
+  virtual const char* JSONType() const {                                       \
+    return ""#object;                                                          \
   }                                                                            \
   static const ClassId kClassId = k##object##Cid;                              \
  protected:  /* NOLINT */                                                      \
@@ -281,7 +281,7 @@ class Object {
 
   void PrintJSON(JSONStream* stream, bool ref = true) const;
 
-  virtual const char* JSONType(bool ref) const {
+  virtual const char* JSONType() const {
     return IsNull() ? "null" : "Object";
   }
 

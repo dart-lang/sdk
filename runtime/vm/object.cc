@@ -1556,10 +1556,39 @@ void Object::Print() const {
 }
 
 
+static void AddNameProperties(JSONObject* jsobj,
+                              const String& name,
+                              const String& vm_name) {
+  jsobj->AddProperty("name", name.ToCString());
+  if (!name.Equals(vm_name)) {
+    jsobj->AddProperty("_vmName", vm_name.ToCString());
+  }
+}
+
+
+static void AddTypeProperties(JSONObject* jsobj,
+                              const char* user_type,
+                              const char* vm_type,
+                              bool ref) {
+  bool same_type = (strcmp(user_type, vm_type) == 0);
+  if (ref) {
+    jsobj->AddPropertyF("type", "@%s", user_type);
+    if (!same_type) {
+      jsobj->AddPropertyF("_vmType", "@%s", vm_type);
+    }
+  } else {
+    jsobj->AddProperty("type", user_type);
+    if (!same_type) {
+      jsobj->AddProperty("_vmType", vm_type);
+    }
+  }
+}
+
+
 void Object::PrintJSON(JSONStream* stream, bool ref) const {
   if (IsNull()) {
     JSONObject jsobj(stream);
-    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    AddTypeProperties(&jsobj, "null", JSONType(), ref);
     jsobj.AddProperty("id", "objects/null");
     jsobj.AddProperty("valueAsString", "null");
     if (!ref) {
@@ -1570,6 +1599,15 @@ void Object::PrintJSON(JSONStream* stream, bool ref) const {
   } else {
     PrintJSONImpl(stream, ref);
   }
+}
+
+
+void Object::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "Object", JSONType(), ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
 }
 
 
@@ -4103,23 +4141,15 @@ const char* Class::ToCString() const {
 }
 
 
-static void AddNameProperties(JSONObject* jsobj,
-                              const String& name,
-                              const String& vm_name) {
-  jsobj->AddProperty("name", name.ToCString());
-  if (!name.Equals(vm_name)) {
-    jsobj->AddProperty("vmName", vm_name.ToCString());
-  }
-}
-
-
 void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   if ((raw() == Class::null()) || (id() == kFreeListElement)) {
-    jsobj.AddProperty("type", "Null");
+    // TODO(turnidge): This is weird.  See if there is another way to
+    // handle this.
+    jsobj.AddProperty("type", "null");
     return;
   }
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Class", JSONType(), ref);
   jsobj.AddPropertyF("id", "classes/%" Pd "", id());
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
@@ -4457,7 +4487,7 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   ASSERT(table.Length() > 0);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "TypeArguments", JSONType(), ref);
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
@@ -6807,7 +6837,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   err ^= cls.EnsureIsFinalized(Isolate::Current());
   ASSERT(err.IsNull());
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Function", JSONType(), ref);
   jsobj.AddProperty("id", GetFunctionServiceId(*this, cls));
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(name());
@@ -7153,7 +7183,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   intptr_t id = cls.FindFieldIndex(*this);
   ASSERT(id >= 0);
   intptr_t cid = cls.id();
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Field", JSONType(), ref);
   jsobj.AddPropertyF("id", "classes/%" Pd "/fields/%" Pd "", cid, id);
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(name());
@@ -7944,7 +7974,7 @@ const char* TokenStream::ToCString() const {
 
 void TokenStream::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Object", JSONType(), ref);
   // TODO(johnmccutchan): Generate a stable id. TokenStreams hang off
   // a Script object but do not have a back reference to generate a stable id.
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
@@ -8487,7 +8517,7 @@ RawLibrary* Script::FindLibrary() const {
 // See also Dart_ScriptGetTokenInfo.
 void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Script", JSONType(), ref);
   const String& name = String::Handle(url());
   ASSERT(!name.IsNull());
   const String& encoded_url = String::Handle(String::EncodeIRI(name));
@@ -9780,7 +9810,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   intptr_t id = index();
   ASSERT(id >= 0);
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Library", JSONType(), ref);
   jsobj.AddPropertyF("id", "libraries/%" Pd "", id);
   jsobj.AddProperty("name", library_name);
   const char* library_url = String::Handle(url()).ToCString();
@@ -10567,7 +10597,7 @@ const char* PcDescriptors::ToCString() const {
 
 
 void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
-  jsobj->AddProperty("type", JSONType(ref));
+  AddTypeProperties(jsobj, "Object", JSONType(), ref);
   // TODO(johnmccutchan): Generate a stable id. PcDescriptors hang off a Code
   // object but do not have a back reference to generate an ID.
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
@@ -10866,7 +10896,7 @@ const char* LocalVarDescriptors::ToCString() const {
 void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
                                         bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Object", JSONType(), ref);
   // TODO(johnmccutchan): Generate a stable id. LocalVarDescriptors hang off
   // a Code object but do not have a back reference to generate an ID.
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
@@ -12332,7 +12362,7 @@ RawString* Code::PrettyName() const {
 
 void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Code", JSONType(), ref);
   jsobj.AddPropertyF("id", "code/%" Px64"-%" Px "", compile_timestamp(),
                      EntryPoint());
   jsobj.AddPropertyF("start", "%" Px "", EntryPoint());
@@ -12495,7 +12525,9 @@ void Context::Dump(int indent) const {
 
 void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  // TODO(turnidge): Should the user level type for Context be Context
+  // or Object?
+  AddTypeProperties(&jsobj, "Context", JSONType(), ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
@@ -12895,9 +12927,8 @@ const char* ApiError::ToCString() const {
 
 void ApiError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "Error");
+  AddTypeProperties(&jsobj, "Error", JSONType(), ref);
   jsobj.AddProperty("id", "");
-  jsobj.AddProperty("kind", JSONType(false));
   jsobj.AddProperty("message", ToErrorCString());
 }
 
@@ -13034,9 +13065,8 @@ const char* LanguageError::ToCString() const {
 
 void LanguageError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "Error");
+  AddTypeProperties(&jsobj, "Error", JSONType(), ref);
   jsobj.AddProperty("id", "");
-  jsobj.AddProperty("kind", JSONType(false));
   jsobj.AddProperty("message", ToErrorCString());
 }
 
@@ -13129,9 +13159,8 @@ const char* UnhandledException::ToCString() const {
 void UnhandledException::PrintJSONImpl(JSONStream* stream,
                                        bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "Error");
+  AddTypeProperties(&jsobj, "Error", JSONType(), ref);
   jsobj.AddProperty("id", "");
-  jsobj.AddProperty("kind", JSONType(false));
   jsobj.AddProperty("message", ToErrorCString());
 
   Instance& instance = Instance::Handle();
@@ -13175,9 +13204,8 @@ const char* UnwindError::ToCString() const {
 
 void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "Error");
+  AddTypeProperties(&jsobj, "Error", JSONType(), ref);
   jsobj.AddProperty("id", "");
-  jsobj.AddProperty("kind", JSONType(false));
   jsobj.AddProperty("message", ToErrorCString());
 }
 
@@ -13620,8 +13648,8 @@ const char* Instance::ToCString() const {
 }
 
 
-void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
-  jsobj->AddProperty("type", JSONType(ref));
+void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
+                                       bool ref) const {
   Class& cls = Class::Handle(this->clazz());
   jsobj->AddProperty("class", cls);
   // TODO(turnidge): Provide the type arguments here too.
@@ -13667,15 +13695,6 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
 }
 
 
-void Object::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
-  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-  const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-}
-
-
 void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
 
@@ -13692,6 +13711,7 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
 
+  AddTypeProperties(&jsobj, "Instance", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -14759,6 +14779,7 @@ const char* Type::ToCString() const {
 
 void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "Type", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   if (IsCanonical()) {
     const Class& type_cls = Class::Handle(type_class());
@@ -14931,6 +14952,7 @@ const char* TypeRef::ToCString() const {
 
 void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "TypeRef", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -15147,6 +15169,7 @@ const char* TypeParameter::ToCString() const {
 
 void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "TypeParameter", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -15350,6 +15373,7 @@ const char* BoundedType::ToCString() const {
 
 void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "BoundedType", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -15443,12 +15467,7 @@ const char* Number::ToCString() const {
 
 
 void Number::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  PrintSharedInstanceJSON(&jsobj, ref);
-  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-  const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  jsobj.AddProperty("valueAsString", ToCString());
+  UNREACHABLE();
 }
 
 
@@ -15460,7 +15479,13 @@ const char* Integer::ToCString() const {
 
 
 void Integer::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Number::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "int", JSONType(), ref);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  jsobj.AddProperty("valueAsString", ToCString());
 }
 
 
@@ -15893,6 +15918,7 @@ const char* Smi::ToCString() const {
 
 void Smi::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "int", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddPropertyF("id", "objects/int-%" Pd "", Value());
   jsobj.AddPropertyF("valueAsString", "%" Pd "", Value());
@@ -16019,7 +16045,7 @@ const char* Mint::ToCString() const {
 
 
 void Mint::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Number::PrintJSONImpl(stream, ref);
+  Integer::PrintJSONImpl(stream, ref);
 }
 
 
@@ -16151,7 +16177,15 @@ const char* Double::ToCString() const {
 
 
 void Double::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Number::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  // Suppress the fact that the internal vm name for this type is
+  // "Double".  Return "double" instead.
+  AddTypeProperties(&jsobj, "double", "double", ref);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  jsobj.AddProperty("valueAsString", ToCString());
 }
 
 
@@ -16327,7 +16361,7 @@ const char* Bigint::ToCString() const {
 
 
 void Bigint::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Number::PrintJSONImpl(stream, ref);
+  Integer::PrintJSONImpl(stream, ref);
 }
 
 
@@ -17242,6 +17276,7 @@ void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("valueAsString", "<optimized out>");
     return;
   }
+  AddTypeProperties(&jsobj, "String", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -18111,10 +18146,11 @@ const char* Bool::ToCString() const {
 void Bool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const char* str = ToCString();
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  // Suppress the fact that the internal vm name for this type is
+  // "Bool".  Return "bool" instead.
+  AddTypeProperties(&jsobj, "bool", "bool", ref);
+  PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddPropertyF("id", "objects/bool-%s", str);
-  const Class& cls = Class::Handle(this->clazz());
-  jsobj.AddProperty("class", cls);
   jsobj.AddPropertyF("valueAsString", "%s", str);
 }
 
@@ -18232,6 +18268,7 @@ const char* Array::ToCString() const {
 
 void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "List", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -18476,6 +18513,7 @@ const char* GrowableObjectArray::ToCString() const {
 void GrowableObjectArray::PrintJSONImpl(JSONStream* stream,
                                         bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "List", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -19535,6 +19573,7 @@ const char* WeakProperty::ToCString() const {
 
 void WeakProperty::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "Instance", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -19608,6 +19647,7 @@ const char* MirrorReference::ToCString() const {
 
 void MirrorReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "Instance", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());

@@ -31,10 +31,10 @@
 
     <template if="{{ !instance.isError }}">
       <div class="content">
-        <template if="{{ instance.isType }}">
+        <template if="{{ instance.isAbstractType }}">
           <h1>type {{ instance.name }}</h1>
         </template>
-        <template if="{{ !instance.isType }}">
+        <template if="{{ !instance.isAbstractType }}">
           <h1>instance of {{ instance.clazz.name }}</h1>
         </template>
 

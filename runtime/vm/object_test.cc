@@ -4293,10 +4293,11 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Bool::True().PrintJSON(&js, true);
     elideSubstring("classes", js.ToCString(), buffer);
-    EXPECT_STREQ("{\"type\":\"@Bool\",\"id\":\"objects\\/bool-true\","
-                 "\"class\":{\"type\":\"@Class\",\"id\":\"\","
-                 "\"name\":\"bool\"},\"valueAsString\":\"true\"}",
-                 buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@bool\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
+        "\"id\":\"objects\\/bool-true\",\"valueAsString\":\"true\"}",
+        buffer);
   }
   // Smi reference
   {
@@ -4306,9 +4307,9 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("classes", js.ToCString(), buffer);
     elideSubstring("_Smi@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Smi\","
+        "{\"type\":\"@int\",\"_vmType\":\"@Smi\","
         "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Smi\","
-        "\"vmName\":\"\"},"
+        "\"_vmName\":\"\"},"
         "\"id\":\"objects\\/int-7\",\"valueAsString\":\"7\"}",
         buffer);
   }
@@ -4321,9 +4322,9 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_Mint@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Mint\","
+        "{\"type\":\"@int\",\"_vmType\":\"@Mint\","
         "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Mint\","
-        "\"vmName\":\"\"},"
+        "\"_vmName\":\"\"},"
         "\"id\":\"\",\"valueAsString\":\"-9223372036854775808\"}",
         buffer);
   }
@@ -4338,9 +4339,9 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_Bigint@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Bigint\","
+        "{\"type\":\"@int\",\"_vmType\":\"@Bigint\","
         "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Bigint\","
-        "\"vmName\":\"\"},"
+        "\"_vmName\":\"\"},"
         "\"id\":\"\",\"valueAsString\":\"44444444444444444444444444444444\"}",
         buffer);
   }
@@ -4353,9 +4354,9 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_Double@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Double\","
+        "{\"type\":\"@double\","
         "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Double\","
-        "\"vmName\":\"\"},"
+        "\"_vmName\":\"\"},"
         "\"id\":\"\",\"valueAsString\":\"0.1234\"}",
         buffer);
   }
@@ -4370,7 +4371,7 @@ TEST_CASE(PrintJSONPrimitives) {
     EXPECT_STREQ(
         "{\"type\":\"@String\","
         "\"class\":{\"type\":\"@Class\",\"id\":\"\","
-        "\"name\":\"_OneByteString\",\"vmName\":\"\"},"
+        "\"name\":\"_OneByteString\",\"_vmName\":\"\"},"
         "\"id\":\"\",\"valueAsString\":\"\\\"dw\\\"\"}",
         buffer);
   }
@@ -4383,9 +4384,9 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_List@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Array\","
+        "{\"type\":\"@List\",\"_vmType\":\"@Array\","
         "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_List\","
-        "\"vmName\":\"\"},"
+        "\"_vmName\":\"\"},"
         "\"id\":\"\",\"length\":0}",
         buffer);
   }
@@ -4399,9 +4400,9 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_GrowableList@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@GrowableObjectArray\","
+        "{\"type\":\"@List\",\"_vmType\":\"@GrowableObjectArray\","
         "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_GrowableList\","
-        "\"vmName\":\"\"},\"id\":\"\",\"length\":0}",
+        "\"_vmName\":\"\"},\"id\":\"\",\"length\":0}",
         buffer);
   }
   // LinkedHashMap reference
@@ -4413,9 +4414,9 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_InternalLinkedHashMap@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@LinkedHashMap\","
+        "{\"type\":\"@Instance\",\"_vmType\":\"@LinkedHashMap\","
         "\"class\":{\"type\":\"@Class\",\"id\":\"\","
-        "\"name\":\"_InternalLinkedHashMap\",\"vmName\":\"\"},\"id\":\"\"}",
+        "\"name\":\"_InternalLinkedHashMap\",\"_vmName\":\"\"},\"id\":\"\"}",
         buffer);
   }
   // UserTag reference
@@ -4427,9 +4428,9 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_UserTag@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@UserTag\","
+        "{\"type\":\"@Instance\",\"_vmType\":\"@UserTag\","
         "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_UserTag\","
-        "\"vmName\":\"\"},"
+        "\"_vmName\":\"\"},"
         "\"id\":\"\"}",
         buffer);
   }
@@ -4445,7 +4446,7 @@ TEST_CASE(PrintJSONPrimitives) {
     EXPECT_STREQ(
         "{\"type\":\"@Type\","
         "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Type\","
-        "\"vmName\":\"\"},\"id\":\"\","
+        "\"_vmName\":\"\"},\"id\":\"\","
         "\"typeClass\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
         "\"name\":\"bool\"}",
         buffer);
@@ -4455,7 +4456,7 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Object::null_object().PrintJSON(&js, true);
     EXPECT_STREQ(
-        "{\"type\":\"@Null\",\"id\":\"objects\\/null\","
+        "{\"type\":\"@null\",\"id\":\"objects\\/null\","
         "\"valueAsString\":\"null\"}",
         js.ToCString());
   }
@@ -4486,7 +4487,7 @@ TEST_CASE(PrintJSONPrimitives) {
     tok.PrintJSON(&js, true);
     elideSubstring("objects", js.ToCString(), buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@LiteralToken\",\"id\":\"\"}",
+        "{\"type\":\"@Object\",\"_vmType\":\"@LiteralToken\",\"id\":\"\"}",
         buffer);
   }
 }
