@@ -135,6 +135,7 @@ class ObjectPointerVisitor;
   V(_Smi, "_Smi")                                                              \
   V(_Mint, "_Mint")                                                            \
   V(_Bigint, "_Bigint")                                                        \
+  V(_BigintFromDoubleFactory, "_Bigint._fromDouble")                           \
   V(_Double, "_Double")                                                        \
   V(Bool, "bool")                                                              \
   V(True, "true")                                                              \

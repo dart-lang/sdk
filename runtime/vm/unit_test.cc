@@ -165,6 +165,11 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
 }
 
 
+char* TestCase::BigintToHexValue(Dart_CObject* bigint) {
+  return bin::CObject::BigintToHexValue(bigint);
+}
+
+
 void AssemblerTest::Assemble() {
   const String& function_name = String::ZoneHandle(Symbols::New(name_));
   const Class& cls = Class::ZoneHandle(

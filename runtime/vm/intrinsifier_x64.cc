@@ -960,6 +960,52 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Bigint_getNeg(Assembler* assembler) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RAX, FieldAddress(RAX, Bigint::neg_offset()));
+  __ ret();
+}
+
+
+void Intrinsifier::Bigint_setNeg(Assembler* assembler) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RCX, Address(RSP, + 2 * kWordSize));
+  __ StoreIntoObject(RCX, FieldAddress(RCX, Bigint::neg_offset()), RAX, false);
+  __ ret();
+}
+
+
+void Intrinsifier::Bigint_getUsed(Assembler* assembler) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RAX, FieldAddress(RAX, Bigint::used_offset()));
+  __ ret();
+}
+
+
+void Intrinsifier::Bigint_setUsed(Assembler* assembler) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RCX, Address(RSP, + 2 * kWordSize));
+  __ StoreIntoObject(RCX, FieldAddress(RCX, Bigint::used_offset()), RAX);
+  __ ret();
+}
+
+
+void Intrinsifier::Bigint_getDigits(Assembler* assembler) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RAX, FieldAddress(RAX, Bigint::digits_offset()));
+  __ ret();
+}
+
+
+void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RCX, Address(RSP, + 2 * kWordSize));
+  __ StoreIntoObject(RCX,
+                     FieldAddress(RCX, Bigint::digits_offset()), RAX, false);
+  __ ret();
+}
+
+
 // Check if the last argument is a double, jump to label 'is_smi' if smi
 // (easy to convert to double), otherwise jump to label 'not_double_smi',
 // Returns the last argument in RAX.

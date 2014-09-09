@@ -6,9 +6,10 @@
 
 #include "platform/math.h"
 
-#include "vm/bigint_operations.h"
 #include "vm/code_generator.h"  // DartModulo.
+#include "vm/dart_entry.h"
 #include "vm/double_conversion.h"
+#include "vm/double_internals.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
@@ -78,8 +79,63 @@ static RawInteger* DoubleToInteger(double val, const char* error_msg) {
     args.SetAt(0, String::Handle(String::New(error_msg)));
     Exceptions::ThrowByType(Exceptions::kUnsupported, args);
   }
-  const Bigint& big = Bigint::Handle(BigintOperations::NewFromDouble(val));
-  return big.AsValidInteger();
+  // TODO(regis): Should we implement Bigint::NewFromDouble instead?
+  if ((-1.0 < val) && (val < 1.0)) {
+    return Smi::New(0);
+  }
+  DoubleInternals internals = DoubleInternals(val);
+  if (internals.IsSpecial()) {
+    const Array& exception_arguments = Array::Handle(Array::New(1));
+    exception_arguments.SetAt(
+        0, Object::Handle(String::New("BigintOperations::NewFromDouble")));
+    Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
+  }
+  uint64_t significand = internals.Significand();
+  intptr_t exponent = internals.Exponent();
+  intptr_t sign = internals.Sign();
+  if (exponent <= 0) {
+    significand >>= -exponent;
+    exponent = 0;
+  } else if (exponent <= 10) {
+    // A double significand has at most 53 bits. The following shift will
+    // hence not overflow, and yield an integer of at most 63 bits.
+    significand <<= exponent;
+    exponent = 0;
+  }
+  // A significand has at most 63 bits (after the shift above).
+  // The cast to int64_t is hence safe.
+  if (exponent == 0) {
+    // The double fits in a Smi or Mint.
+    int64_t ival = static_cast<int64_t>(significand);
+    if (sign < 0) {
+      ival = -ival;
+    }
+    return Integer::New(ival);
+  }
+  // Lookup the factory creating a Bigint from a double.
+  const Class& bigint_class =
+      Class::Handle(Library::LookupCoreClass(Symbols::_Bigint()));
+  ASSERT(!bigint_class.IsNull());
+  const Function& factory_method = Function::Handle(
+      bigint_class.LookupFactoryAllowPrivate(
+          Symbols::_BigintFromDoubleFactory()));
+  ASSERT(!factory_method.IsNull());
+
+  // Create the argument list.
+  const intptr_t kNumArgs = 4;
+  const Array& args = Array::Handle(Array::New(kNumArgs));
+  // Factories get type arguments.
+  args.SetAt(0, Object::null_type_arguments());
+  args.SetAt(1, Smi::Handle(Smi::New(sign)));
+  args.SetAt(2,
+             Integer::Handle(Integer::New(static_cast<int64_t>(significand))));
+  args.SetAt(3, Integer::Handle(Integer::New(exponent)));
+
+  // Invoke the constructor and return the new object.
+  Integer& result = Integer::Handle();
+  result ^= DartEntry::InvokeFunction(factory_method, args);
+  ASSERT(result.IsBigint());
+  return result.AsValidInteger();
 }
 
 

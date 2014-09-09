@@ -150,6 +150,12 @@ namespace dart {
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, 105519892)                                         \
   V(_Smi, get:bitLength, Smi_bitLength, 869956497)                             \
+  V(_Bigint, get:_neg, Bigint_getNeg, 1151514099)                              \
+  V(_Bigint, set:_neg, Bigint_setNeg, 920204960)                               \
+  V(_Bigint, get:_used, Bigint_getUsed, 1308529543)                            \
+  V(_Bigint, set:_used, Bigint_setUsed, 1857576743)                            \
+  V(_Bigint, get:_digits, Bigint_getDigits, 1408062672)                        \
+  V(_Bigint, set:_digits, Bigint_setDigits, 1633805112)                        \
   V(_Double, >, Double_greaterThan, 381325711)                                 \
   V(_Double, >=, Double_greaterEqualThan, 1409267140)                          \
   V(_Double, <, Double_lessThan, 2080387973)                                   \
@@ -194,26 +200,26 @@ namespace dart {
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
   V(_IntegerImplementation, _addFromInteger, Integer_addFromInteger,           \
     438687793)                                                                 \
-  V(_IntegerImplementation, +, Integer_add, 837070328)                         \
+  V(_IntegerImplementation, +, Integer_add, 501253666)                         \
   V(_IntegerImplementation, _subFromInteger, Integer_subFromInteger,           \
     562800077)                                                                 \
-  V(_IntegerImplementation, -, Integer_sub, 1904782019)                        \
+  V(_IntegerImplementation, -, Integer_sub, 1819430179)                        \
   V(_IntegerImplementation, _mulFromInteger, Integer_mulFromInteger,           \
     67891834)                                                                  \
-  V(_IntegerImplementation, *, Integer_mul, 1012952097)                        \
+  V(_IntegerImplementation, *, Integer_mul, 1787870724)                        \
   V(_IntegerImplementation, _moduloFromInteger, Integer_moduloFromInteger,     \
     93478264)                                                                  \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, 724644222)                \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 1309867000)               \
   V(_IntegerImplementation, unary-, Integer_negate, 2095203689)                \
   V(_IntegerImplementation, _bitAndFromInteger,                                \
     Integer_bitAndFromInteger, 504496713)                                      \
-  V(_IntegerImplementation, &, Integer_bitAnd, 347192674)                      \
+  V(_IntegerImplementation, &, Integer_bitAnd, 648886925)                      \
   V(_IntegerImplementation, _bitOrFromInteger,                                 \
     Integer_bitOrFromInteger, 1763728073)                                      \
-  V(_IntegerImplementation, |, Integer_bitOr, 1293445202)                      \
+  V(_IntegerImplementation, |, Integer_bitOr, 1473764427)                      \
   V(_IntegerImplementation, _bitXorFromInteger,                                \
     Integer_bitXorFromInteger, 281425907)                                      \
-  V(_IntegerImplementation, ^, Integer_bitXor, 2139935734)                     \
+  V(_IntegerImplementation, ^, Integer_bitXor, 99980524)                       \
   V(_IntegerImplementation,                                                    \
     _greaterThanFromInteger,                                                   \
     Integer_greaterThanFromInt, 787426822)                                     \
@@ -224,8 +230,8 @@ namespace dart {
   V(_IntegerImplementation, <, Integer_lessThan, 425560117)                    \
   V(_IntegerImplementation, <=, Integer_lessEqualThan, 1512735828)             \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 668293748)           \
-  V(_IntegerImplementation, <<, Integer_shl, 34265041)                         \
-  V(_IntegerImplementation, >>, Integer_sar, 1797129864)                       \
+  V(_IntegerImplementation, <<, Integer_shl, 656407087)                        \
+  V(_IntegerImplementation, >>, Integer_sar, 487746736)                        \
   V(_Double, toInt, DoubleToInteger, 1547535151)
 
 

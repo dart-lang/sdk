@@ -54,6 +54,7 @@ class RawLinkedHashMap;
 class RawLiteralToken;
 class RawMint;
 class RawMixinAppType;
+class RawBigint;
 class RawNamespace;
 class RawObject;
 class RawOneByteString;
@@ -290,7 +291,7 @@ class SnapshotReader : public BaseReader {
   RawClass* NewClass(intptr_t class_id);
   RawInstance* NewInstance();
   RawMint* NewMint(int64_t value);
-  RawBigint* NewBigint(const char* hex_string);
+  RawBigint* NewBigint();
   RawTypedData* NewTypedData(intptr_t class_id, intptr_t len);
   RawDouble* NewDouble(double value);
   RawUnresolvedClass* NewUnresolvedClass();
@@ -404,6 +405,7 @@ class SnapshotReader : public BaseReader {
   friend class Library;
   friend class LibraryPrefix;
   friend class Namespace;
+  friend class Bigint;
   friend class LiteralToken;
   friend class PatchClass;
   friend class Script;

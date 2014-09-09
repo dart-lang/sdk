@@ -8,7 +8,6 @@
 #include "platform/assert.h"
 #include "vm/assembler.h"
 #include "vm/cpu.h"
-#include "vm/bigint_operations.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
@@ -3860,6 +3859,11 @@ RawFunction* Class::LookupConstructorAllowPrivate(const String& name) const {
 
 RawFunction* Class::LookupFactory(const String& name) const {
   return LookupFunction(name, kFactory);
+}
+
+
+RawFunction* Class::LookupFactoryAllowPrivate(const String& name) const {
+  return LookupFunctionAllowPrivate(name, kFactory);
 }
 
 
@@ -11750,26 +11754,6 @@ bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
 }
 
 
-bool ICData::AllReceiversAreNumbers() const {
-  if (NumberOfChecks() == 0) return false;
-  Class& cls = Class::Handle();
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    if (IsUsedAt(i)) {
-      cls = Function::Handle(GetTargetAt(i)).Owner();
-      const intptr_t cid = cls.id();
-      if ((cid != kSmiCid) &&
-          (cid != kMintCid) &&
-          (cid != kBigintCid) &&
-          (cid != kDoubleCid)) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-
 bool ICData::HasReceiverClassId(intptr_t class_id) const {
   ASSERT(NumArgsTested() > 0);
   const intptr_t len = NumberOfChecks();
@@ -13286,7 +13270,7 @@ class CheckForPointers : public ObjectPointerVisitor {
 
 bool Instance::CheckAndCanonicalizeFields(const char** error_str) const {
   const Class& cls = Class::Handle(this->clazz());
-  if ((cls.id() >= kNumPredefinedCids)) {
+  if (cls.id() >= kNumPredefinedCids) {
     // Iterate over all fields, canonicalize numbers and strings, expect all
     // other instances to be canonical otherwise report error (return false).
     Object& obj = Object::Handle();
@@ -15503,9 +15487,10 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
   ASSERT(str.IsOneByteString());
   int64_t value;
   if (!OS::StringToInt64(str.ToCString(), &value)) {
-    const Bigint& big = Bigint::Handle(Bigint::New(str, space));
-    ASSERT(!BigintOperations::FitsIntoSmi(big));
-    ASSERT(!BigintOperations::FitsIntoInt64(big));
+    const Bigint& big = Bigint::Handle(
+        Bigint::NewFromCString(str.ToCString(), space));
+    ASSERT(!big.FitsIntoSmi());
+    ASSERT(!big.FitsIntoInt64());
     if (FLAG_throw_on_javascript_int_overflow) {
       ThrowJavascriptIntegerOverflow(big);
     }
@@ -15525,8 +15510,8 @@ RawInteger* Integer::NewCanonical(const String& str) {
   int64_t value;
   if (!OS::StringToInt64(str.ToCString(), &value)) {
     const Bigint& big = Bigint::Handle(Bigint::NewCanonical(str));
-    ASSERT(!BigintOperations::FitsIntoSmi(big));
-    ASSERT(!BigintOperations::FitsIntoInt64(big));
+    ASSERT(!big.FitsIntoSmi());
+    ASSERT(!big.FitsIntoInt64());
     return big.raw();
   }
   if (Smi::IsValid(value)) {
@@ -15563,37 +15548,68 @@ RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
 RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
     if (FLAG_throw_on_javascript_int_overflow) {
-      const Integer &i =
-          Integer::Handle(BigintOperations::NewFromUint64(value, space));
+      const Integer &i = Integer::Handle(Bigint::NewFromUint64(value, space));
       ThrowJavascriptIntegerOverflow(i);
     }
-    return BigintOperations::NewFromUint64(value, space);
+    return Bigint::NewFromUint64(value, space);
   } else {
     return Integer::New(value, space);
   }
 }
 
 
+bool Integer::Equals(const Instance& other) const {
+  // Integer is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
+bool Integer::IsZero() const {
+  // Integer is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
+bool Integer::IsNegative() const {
+  // Integer is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 double Integer::AsDoubleValue() const {
-  UNIMPLEMENTED();
+  // Integer is an abstract class.
+  UNREACHABLE();
   return 0.0;
 }
 
 
 int64_t Integer::AsInt64Value() const {
-  UNIMPLEMENTED();
+  // Integer is an abstract class.
+  UNREACHABLE();
   return 0;
 }
 
 
 uint32_t Integer::AsTruncatedUint32Value() const {
-  UNIMPLEMENTED();
+  // Integer is an abstract class.
+  UNREACHABLE();
   return 0;
 }
 
 
+bool Integer::FitsIntoSmi() const {
+  // Integer is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 int Integer::CompareWith(const Integer& other) const {
-  UNIMPLEMENTED();
+  // Integer is an abstract class.
+  UNREACHABLE();
   return 0;
 }
 
@@ -15610,11 +15626,8 @@ bool Integer::CheckJavascriptIntegerOverflow() const {
     mint ^= raw();
     value = mint.value();
   } else {
-    ASSERT(IsBigint());
-    Bigint& big_value = Bigint::Handle();
-    big_value ^= raw();
-    if (BigintOperations::FitsIntoInt64(big_value)) {
-      value = BigintOperations::ToInt64(big_value);
+    if (Bigint::Cast(*this).FitsIntoInt64()) {
+      value = AsInt64Value();
     }
   }
   return !IsJavascriptInt(value);
@@ -15636,16 +15649,14 @@ RawInteger* Integer::AsValidInteger() const {
       return raw();
     }
   }
-  ASSERT(IsBigint());
-  Bigint& big_value = Bigint::Handle();
-  big_value ^= raw();
-  if (BigintOperations::FitsIntoSmi(big_value)) {
-    return BigintOperations::ToSmi(big_value);
-  } else if (BigintOperations::FitsIntoInt64(big_value)) {
-    return Mint::New(BigintOperations::ToInt64(big_value));
-  } else {
-    return big_value.raw();
+  if (Bigint::Cast(*this).FitsIntoInt64()) {
+    const int64_t value = AsInt64Value();
+    if (Smi::IsValid(value)) {
+      return Smi::New(value);
+    }
+    return Mint::New(value);
   }
+  return raw();
 }
 
 
@@ -15698,28 +15709,37 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         UNIMPLEMENTED();
     }
   }
-  // In 32-bit mode, the result of any operation (except multiplication) between
-  // two 63-bit signed integers will fit in a 64-bit signed result.
-  // For the multiplication result to fit, the sum of the highest bits of the
-  // absolute values of the operands must be smaller than 62.
-  // In 64-bit mode, 63-bit signed integers are Smis, already processed above.
-  if ((Smi::kBits < 32) && !IsBigint() && !other.IsBigint()) {
+  if (!IsBigint() && !other.IsBigint()) {
     const int64_t left_value = AsInt64Value();
     const int64_t right_value = other.AsInt64Value();
-    if (operation == Token::kMUL) {
-      if ((Utils::HighestBit(left_value) +
-           Utils::HighestBit(right_value)) < 62) {
-        return Integer::New(left_value * right_value);
+    switch (operation) {
+      case Token::kADD: {
+        if (((left_value < 0) != (right_value < 0)) ||
+            ((left_value + right_value) < 0) == (left_value < 0)) {
+          return Integer::New(left_value + right_value);
+        }
+        break;
       }
-      // Perform a Bigint multiplication below.
-    } else if (Utils::IsInt(63, left_value) && Utils::IsInt(63, right_value)) {
-      switch (operation) {
-      case Token::kADD:
-        return Integer::New(left_value + right_value);
-      case Token::kSUB:
-        return Integer::New(left_value - right_value);
-      case Token::kTRUNCDIV:
-        return Integer::New(left_value / right_value);
+      case Token::kSUB: {
+        if (((left_value < 0) == (right_value < 0)) ||
+            ((left_value - right_value) < 0) == (left_value < 0)) {
+          return Integer::New(left_value - right_value);
+        }
+        break;
+      }
+      case Token::kMUL: {
+        if ((Utils::HighestBit(left_value) +
+             Utils::HighestBit(right_value)) < 62) {
+          return Integer::New(left_value * right_value);
+        }
+        break;
+      }
+      case Token::kTRUNCDIV: {
+        if ((left_value != Mint::kMinValue) || (right_value != -1)) {
+          return Integer::New(left_value / right_value);
+        }
+        break;
+      }
       case Token::kMOD: {
         const int64_t remainder = left_value % right_value;
         if (remainder < 0) {
@@ -15733,14 +15753,9 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
       }
       default:
         UNIMPLEMENTED();
-      }
     }
   }
-  const Bigint& left_big = Bigint::Handle(AsBigint());
-  const Bigint& right_big = Bigint::Handle(other.AsBigint());
-  const Bigint& result =
-      Bigint::Handle(left_big.BigArithmeticOp(operation, right_big));
-  return Integer::Handle(result.AsValidInteger()).raw();
+  return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
 
@@ -15782,21 +15797,8 @@ RawInteger* Integer::BitOp(Token::Kind kind, const Integer& other) const {
       default:
         UNIMPLEMENTED();
     }
-  } else {
-    Bigint& op1 = Bigint::Handle(AsBigint());
-    Bigint& op2 = Bigint::Handle(other.AsBigint());
-    switch (kind) {
-      case Token::kBIT_AND:
-        return BigintOperations::BitAnd(op1, op2);
-      case Token::kBIT_OR:
-        return BigintOperations::BitOr(op1, op2);
-      case Token::kBIT_XOR:
-        return BigintOperations::BitXor(op1, op2);
-      default:
-        UNIMPLEMENTED();
-    }
   }
-  return Integer::null();
+  return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
 
@@ -15817,9 +15819,7 @@ RawInteger* Smi::ShiftOp(Token::Kind kind,
         int cnt = Utils::HighestBit(left_value);
         if ((cnt + right_value) >= Smi::kBits) {
           if ((cnt + right_value) >= Mint::kBits) {
-            return BigintOperations::ShiftLeft(
-                Bigint::Handle(BigintOperations::NewFromSmi(*this)),
-                               right_value);
+            return Bigint::NewFromShiftedInt64(left_value, right_value);
           } else {
             int64_t left_64 = left_value;
             return Integer::New(left_64 << right_value, Heap::kNew, silent);
@@ -15866,22 +15866,6 @@ uint32_t Smi::AsTruncatedUint32Value() const {
 }
 
 
-static bool FitsIntoSmi(const Integer& integer) {
-  if (integer.IsSmi()) {
-    return true;
-  }
-  if (integer.IsMint()) {
-    int64_t mint_value = integer.AsInt64Value();
-    return Smi::IsValid(mint_value);
-  }
-  if (integer.IsBigint()) {
-    return BigintOperations::FitsIntoSmi(Bigint::Cast(integer));
-  }
-  UNREACHABLE();
-  return false;
-}
-
-
 int Smi::CompareWith(const Integer& other) const {
   if (other.IsSmi()) {
     const Smi& other_smi = Smi::Cast(other);
@@ -15893,7 +15877,7 @@ int Smi::CompareWith(const Integer& other) const {
       return 0;
     }
   }
-  ASSERT(!FitsIntoSmi(other));
+  ASSERT(!other.FitsIntoSmi());
   if (other.IsMint() || other.IsBigint()) {
     if (this->IsNegative() == other.IsNegative()) {
       return this->IsNegative() ? 1 : -1;
@@ -16008,8 +15992,13 @@ uint32_t Mint::AsTruncatedUint32Value() const {
 }
 
 
+bool Mint::FitsIntoSmi() const {
+  return Smi::IsValid(AsInt64Value());
+}
+
+
 int Mint::CompareWith(const Integer& other) const {
-  ASSERT(!FitsIntoSmi(*this));
+  ASSERT(!FitsIntoSmi());
   if (other.IsMint() || other.IsSmi()) {
     int64_t a = AsInt64Value();
     int64_t b = other.AsInt64Value();
@@ -16021,15 +16010,12 @@ int Mint::CompareWith(const Integer& other) const {
       return 0;
     }
   }
-  if (other.IsBigint()) {
-    ASSERT(!BigintOperations::FitsIntoInt64(Bigint::Cast(other)));
-    if (this->IsNegative() == other.IsNegative()) {
-      return this->IsNegative() ? 1 : -1;
-    }
-    return this->IsNegative() ? -1 : 1;
+  ASSERT(other.IsBigint());
+  ASSERT(!Bigint::Cast(other).FitsIntoInt64());
+  if (this->IsNegative() == other.IsNegative()) {
+    return this->IsNegative() ? 1 : -1;
   }
-  UNREACHABLE();
-  return 0;
+  return this->IsNegative() ? -1 : 1;
 }
 
 
@@ -16188,43 +16174,50 @@ void Double::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-RawBigint* Integer::AsBigint() const {
-  ASSERT(!IsNull());
-  if (IsSmi()) {
-    Smi& smi = Smi::Handle();
-    smi ^= raw();
-    return BigintOperations::NewFromSmi(smi);
-  } else if (IsMint()) {
-    Mint& mint = Mint::Handle();
-    mint ^= raw();
-    return BigintOperations::NewFromInt64(mint.value());
-  } else {
-    ASSERT(IsBigint());
-    Bigint& big = Bigint::Handle();
-    big ^= raw();
-    ASSERT(!BigintOperations::FitsIntoSmi(big));
-    return big.raw();
-  }
+void Bigint::set_neg(const Bool& value) const {
+  StorePointer(&raw_ptr()->neg_, value.raw());
 }
 
 
-RawBigint* Bigint::BigArithmeticOp(Token::Kind operation,
-                                   const Bigint& other) const {
-  switch (operation) {
-    case Token::kADD:
-      return BigintOperations::Add(*this, other);
-    case Token::kSUB:
-      return BigintOperations::Subtract(*this, other);
-    case Token::kMUL:
-      return BigintOperations::Multiply(*this, other);
-    case Token::kTRUNCDIV:
-      return BigintOperations::Divide(*this, other);
-    case Token::kMOD:
-      return BigintOperations::Modulo(*this, other);
-    default:
-      UNIMPLEMENTED();
-      return Bigint::null();
-  }
+void Bigint::set_used(const Smi& value) const {
+  raw_ptr()->used_ = value.raw();
+}
+
+
+void Bigint::set_digits(const TypedData& value) const {
+  StorePointer(&raw_ptr()->digits_, value.raw());
+}
+
+
+bool Bigint::Neg() const {
+  return Bool::Handle(neg()).value();
+}
+
+
+void Bigint::SetNeg(bool value) const {
+  set_neg(Bool::Get(value));
+}
+
+
+intptr_t Bigint::Used() const {
+  return Smi::Value(used());
+}
+
+
+void Bigint::SetUsed(intptr_t value) const {
+  set_used(Smi::Handle(Smi::New(value)));
+}
+
+
+uint32_t Bigint::DigitAt(intptr_t index) const {
+  const TypedData& typed_data = TypedData::Handle(digits());
+  return typed_data.GetUint32(index << 2);
+}
+
+
+void Bigint::SetDigitAt(intptr_t index, uint32_t value) const {
+  const TypedData& typed_data = TypedData::Handle(digits());
+  typed_data.SetUint32(index << 2, value);
 }
 
 
@@ -16240,17 +16233,17 @@ bool Bigint::Equals(const Instance& other) const {
 
   const Bigint& other_bgi = Bigint::Cast(other);
 
-  if (this->IsNegative() != other_bgi.IsNegative()) {
+  if (this->Neg() != other_bgi.Neg()) {
     return false;
   }
 
-  intptr_t len = this->Length();
-  if (len != other_bgi.Length()) {
+  const intptr_t used = this->Used();
+  if (used != other_bgi.Used()) {
     return false;
   }
 
-  for (intptr_t i = 0; i < len; i++) {
-    if (this->GetChunkAt(i) != other_bgi.GetChunkAt(i)) {
+  for (intptr_t i = 0; i < used; i++) {
+    if (this->DigitAt(i) != other_bgi.DigitAt(i)) {
       return false;
     }
   }
@@ -16258,18 +16251,165 @@ bool Bigint::Equals(const Instance& other) const {
 }
 
 
-RawBigint* Bigint::New(const String& str, Heap::Space space) {
-  const Bigint& result = Bigint::Handle(
-      BigintOperations::NewFromCString(str.ToCString(), space));
-  ASSERT(!BigintOperations::FitsIntoInt64(result));
+bool Bigint::CheckAndCanonicalizeFields(const char** error_str) const {
+  // Bool field neg should always be canonical.
+  ASSERT(Bool::Handle(neg()).IsCanonical());
+  // Smi field used is canonical by definition.
+  if (Used() > 0) {
+    // Canonicalize TypedData field digits.
+    TypedData& digits_ = TypedData::Handle(digits());
+    digits_ ^= digits_.CheckAndCanonicalize(NULL);
+    ASSERT(!digits_.IsNull());
+    set_digits(digits_);
+  } else {
+    ASSERT(digits() == TypedData::null());
+  }
+  return true;
+}
+
+
+RawBigint* Bigint::New(Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->bigint_class() != Class::null());
+  Bigint& result = Bigint::Handle();
+  {
+    RawObject* raw = Object::Allocate(Bigint::kClassId,
+                                      Bigint::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_neg(Bool::Get(false));
+  result.set_used(Smi::Handle(Smi::New(0)));
   return result.raw();
+}
+
+
+RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
+  const Bigint& result = Bigint::Handle(New(space));
+  result.EnsureLength(2, space);
+  result.SetUsed(2);
+  if (value < 0) {
+    result.SetNeg(true);
+    value = -value;  // No concern about overflow, since sign is captured.
+  }
+  result.SetDigitAt(0, static_cast<uint32_t>(value));
+  result.SetDigitAt(1, static_cast<uint32_t>(value >> 32));  // value >= 0.
+  result.Clamp();
+  return result.raw();
+}
+
+
+RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
+  const Bigint& result = Bigint::Handle(New(space));
+  result.EnsureLength(2, space);
+  result.SetUsed(2);
+  result.SetDigitAt(0, static_cast<uint32_t>(value));
+  result.SetDigitAt(1, static_cast<uint32_t>(value >> 32));
+  result.Clamp();
+  return result.raw();
+}
+
+
+RawBigint* Bigint::NewFromShiftedInt64(int64_t value, intptr_t shift,
+                                         Heap::Space space) {
+  ASSERT(kBitsPerDigit == 32);
+  ASSERT(shift >= 0);
+  const Bigint& result = Bigint::Handle(New(space));
+  const intptr_t digit_shift = shift / kBitsPerDigit;
+  const intptr_t bit_shift = shift % kBitsPerDigit;
+  result.EnsureLength(3 + digit_shift, space);
+  result.SetUsed(3 + digit_shift);
+  uint64_t abs_value;
+  if (value < 0) {
+    result.SetNeg(true);
+    abs_value = -value;  // No concern about overflow, since sign is captured.
+  } else {
+    abs_value = value;
+  }
+  for (intptr_t i = 0; i < digit_shift; i++) {
+    result.SetDigitAt(i, 0);
+  }
+  result.SetDigitAt(0 + digit_shift,
+                    static_cast<uint32_t>(abs_value << bit_shift));
+  result.SetDigitAt(1 + digit_shift,
+                    static_cast<uint32_t>(abs_value >> (32 - bit_shift)));
+  result.SetDigitAt(2 + digit_shift,
+      (bit_shift == 0) ? 0
+                       : static_cast<uint32_t>(abs_value >> (64 - bit_shift)));
+  result.Clamp();
+  return result.raw();
+}
+
+
+void Bigint::EnsureLength(intptr_t length, Heap::Space space) const {
+  ASSERT(length >= 0);
+  TypedData& old_digits = TypedData::Handle(digits());
+  if ((length > 0) && (old_digits.IsNull() || (length > old_digits.Length()))) {
+    TypedData& new_digits = TypedData::Handle(
+        TypedData::New(kTypedDataUint32ArrayCid, length + kExtraDigits, space));
+    if (!old_digits.IsNull()) {
+      TypedData::Copy(new_digits, TypedData::data_offset(),
+                      old_digits, TypedData::data_offset(),
+                      old_digits.LengthInBytes());
+    }
+    set_digits(new_digits);
+  }
+}
+
+
+void Bigint::Clamp() const {
+  intptr_t used = Used();
+  while ((used > 0) && (DigitAt(used - 1) == 0)) {
+    --used;
+  }
+  SetUsed(used);
+}
+
+
+bool Bigint::IsClamped() const {
+  intptr_t used = Used();
+  return (used == 0) || (DigitAt(used - 1) > 0);
+}
+
+
+RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
+  ASSERT(str != NULL);
+  if (str[0] == '\0') {
+    return NewFromInt64(0, space);
+  }
+
+  // If the string starts with '-' recursively restart the whole operation
+  // without the character and then toggle the sign.
+  // This allows multiple leading '-' (which will cancel each other out), but
+  // we have added an assert, to make sure that the returned result of the
+  // recursive call is not negative.
+  // We don't catch leading '-'s for zero. Ex: "--0", or "---".
+  if (str[0] == '-') {
+    const Bigint& result = Bigint::Handle(NewFromCString(&str[1], space));
+    result.SetNeg(!result.Neg());  // Toggle sign.
+    ASSERT(result.IsZero() || result.IsNegative());
+    ASSERT(result.IsClamped());
+    return result.raw();
+  }
+
+  // No overflow check needed since overflowing str_length implies that we take
+  // the branch to NewFromDecCString() which contains a check itself.
+  const intptr_t str_length = strlen(str);
+  if ((str_length > 2) &&
+      (str[0] == '0') &&
+      ((str[1] == 'x') || (str[1] == 'X'))) {
+    const Bigint& result = Bigint::Handle(NewFromHexCString(&str[2], space));
+    ASSERT(result.IsClamped());
+    return result.raw();
+  } else {
+    return NewFromDecCString(str, space);
+  }
 }
 
 
 RawBigint* Bigint::NewCanonical(const String& str) {
   const Bigint& value = Bigint::Handle(
-      BigintOperations::NewFromCString(str.ToCString(), Heap::kOld));
-  ASSERT(!BigintOperations::FitsIntoInt64(value));
+      Bigint::NewFromCString(str.ToCString(), Heap::kOld));
   const Class& cls =
       Class::Handle(Isolate::Current()->object_store()->bigint_class());
   const Array& constants = Array::Handle(cls.constants());
@@ -16296,55 +16436,497 @@ RawBigint* Bigint::NewCanonical(const String& str) {
 }
 
 
+RawBigint* Bigint::NewFromHexCString(const char* str, Heap::Space space) {
+  // TODO(regis): Do we need to check for max length?
+  // If the string starts with '-' recursively restart the whole operation
+  // without the character and then toggle the sign.
+  // This allows multiple leading '-' (which will cancel each other out), but
+  // we have added an assert, to make sure that the returned result of the
+  // recursive call is not negative.
+  // We don't catch leading '-'s for zero. Ex: "--0", or "---".
+  if (str[0] == '-') {
+    const Bigint& result = Bigint::Handle(NewFromHexCString(&str[1], space));
+    result.SetNeg(!result.Neg());  // Toggle sign.
+    ASSERT(result.IsZero() || result.IsNegative());
+    ASSERT(result.IsClamped());
+    return result.raw();
+  }
+  const Bigint& result = Bigint::Handle(New(space));
+  const int kBitsPerHexDigit = 4;
+  const int kHexDigitsPerDigit = 8;
+  const int kBitsPerDigit = kBitsPerHexDigit * kHexDigitsPerDigit;
+  intptr_t hex_i = strlen(str);  // Terminating byte excluded.
+  result.EnsureLength((hex_i + kHexDigitsPerDigit - 1) / kHexDigitsPerDigit,
+                      space);
+  intptr_t used_ = 0;
+  uint32_t digit = 0;
+  intptr_t bit_i = 0;
+  while (--hex_i >= 0) {
+    digit += Utils::HexDigitToInt(str[hex_i]) << bit_i;
+    bit_i += kBitsPerHexDigit;
+    if (bit_i == kBitsPerDigit) {
+      bit_i = 0;
+      result.SetDigitAt(used_++, digit);
+      digit = 0;
+    }
+  }
+  if (bit_i != 0) {
+    result.SetDigitAt(used_++, digit);
+  }
+  result.SetUsed(used_);
+  result.Clamp();
+  return result.raw();
+}
+
+
+RawBigint* Bigint::NewFromDecCString(const char* str, Heap::Space space) {
+  // Read 9 digits a time. 10^9 < 2^32.
+  const int kDecDigitsPerIteration = 9;
+  const uint32_t kTenMultiplier = 1000000000;
+  ASSERT(kBitsPerDigit == 32);
+
+  const intptr_t str_length = strlen(str);
+  if (str_length < 0) {  // TODO(regis): Pick a smaller limit.
+    FATAL("Fatal error in Bigint::NewFromDecCString: string too long");
+  }
+  intptr_t str_pos = 0;
+
+  Bigint& result = Bigint::Handle(Bigint::New(space));
+  // One decimal digit takes log2(10) bits, i.e. ~3.32192809489 bits.
+  // That is a theoretical limit for large numbers.
+  // The extra digits allocated take care of variations (kExtraDigits).
+  const int64_t kLog10Dividend = 33219281;
+  const int64_t kLog10Divisor = 10000000;
+  result.EnsureLength((kLog10Dividend * str_length) /
+                      (kLog10Divisor * kBitsPerDigit), space);
+
+  // Read first digit separately. This avoids a multiplication and addition.
+  // The first digit might also not have kDecDigitsPerIteration decimal digits.
+  const intptr_t lsdigit_length = str_length % kDecDigitsPerIteration;
+  uint32_t digit = 0;
+  for (intptr_t i = 0; i < lsdigit_length; i++) {
+    char c = str[str_pos++];
+    ASSERT(('0' <= c) && (c <= '9'));
+    digit = digit * 10 + c - '0';
+  }
+  result.SetDigitAt(0, digit);
+  intptr_t used = 1;
+
+  // Read kDecDigitsPerIteration at a time, and store it in 'digit'.
+  // Then multiply the temporary result by 10^kDecDigitsPerIteration and add
+  // 'digit' to the new result.
+  while (str_pos < str_length - 1) {
+    digit = 0;
+    for (intptr_t i = 0; i < kDecDigitsPerIteration; i++) {
+      char c = str[str_pos++];
+      ASSERT(('0' <= c) && (c <= '9'));
+      digit = digit * 10 + c - '0';
+    }
+    // Multiply result with kTenMultiplier and add digit.
+    for (intptr_t i = 0; i < used; i++) {
+      uint64_t product =
+          (static_cast<uint64_t>(result.DigitAt(i)) * kTenMultiplier) + digit;
+      result.SetDigitAt(i, static_cast<uint32_t>(product & kDigitMask));
+      digit = static_cast<uint32_t>(product >> kBitsPerDigit);
+    }
+    result.SetDigitAt(used++, digit);
+  }
+  result.SetUsed(used);
+  result.Clamp();
+  return result.raw();
+}
+
+
+static double Uint64ToDouble(uint64_t x) {
+#if _WIN64
+  // For static_cast<double>(x) MSVC x64 generates
+  //
+  //    cvtsi2sd xmm0, rax
+  //    test  rax, rax
+  //    jns done
+  //    addsd xmm0, static_cast<double>(2^64)
+  //  done:
+  //
+  // while GCC -m64 generates
+  //
+  //    test rax, rax
+  //    js negative
+  //    cvtsi2sd xmm0, rax
+  //    jmp done
+  //  negative:
+  //    mov rdx, rax
+  //    shr rdx, 1
+  //    and eax, 0x1
+  //    or rdx, rax
+  //    cvtsi2sd xmm0, rdx
+  //    addsd xmm0, xmm0
+  //  done:
+  //
+  // which results in a different rounding.
+  //
+  // For consistency between platforms fallback to GCC style converstion
+  // on Win64.
+  //
+  const int64_t y = static_cast<int64_t>(x);
+  if (y > 0) {
+    return static_cast<double>(y);
+  } else {
+    const double half = static_cast<double>(
+        static_cast<int64_t>(x >> 1) | (y & 1));
+    return half + half;
+  }
+#else
+  return static_cast<double>(x);
+#endif
+}
+
+
 double Bigint::AsDoubleValue() const {
-  return Double::Handle(BigintOperations::ToDouble(*this)).value();
+  ASSERT(kBitsPerDigit == 32);
+  ASSERT(IsClamped());
+  const intptr_t used = Used();
+  if (used == 0) {
+    return 0.0;
+  }
+  if (used <= 2) {
+    const uint64_t digit1 = (used > 1) ? DigitAt(1) : 0;
+    const uint64_t abs_value = (digit1 << 32) + DigitAt(0);
+    const double abs_double_value = Uint64ToDouble(abs_value);
+    return Neg() ? -abs_double_value : abs_double_value;
+  }
+
+  static const int kPhysicalSignificandSize = 52;
+  // The significand size has an additional hidden bit.
+  static const int kSignificandSize = kPhysicalSignificandSize + 1;
+  static const int kExponentBias = 0x3FF + kPhysicalSignificandSize;
+  static const int kMaxExponent = 0x7FF - kExponentBias;
+  static const uint64_t kOne64 = 1;
+  static const uint64_t kInfinityBits =
+      DART_2PART_UINT64_C(0x7FF00000, 00000000);
+
+  // A double is composed of an exponent e and a significand s. Its value equals
+  // s * 2^e. The significand has 53 bits of which the first one must always be
+  // 1 (at least for then numbers we are working with here) and is therefore
+  // omitted. The physical size of the significand is thus 52 bits.
+  // The exponent has 11 bits and is biased by 0x3FF + 52. For example an
+  // exponent e = 10 is written as 0x3FF + 52 + 10 (in the 11 bits that are
+  // reserved for the exponent).
+  // When converting the given bignum to a double we have to pay attention to
+  // the rounding. In particular we have to decide which double to pick if an
+  // input lies exactly between two doubles. As usual with double operations
+  // we pick the double with an even significand in such cases.
+  //
+  // General approach of this algorithm: Get 54 bits (one more than the
+  // significand size) of the bigint. If the last bit is then 1, then (without
+  // knowledge of the remaining bits) we could have a half-way number.
+  // If the second-to-last bit is odd then we know that we have to round up:
+  // if the remaining bits are not zero then the input lies closer to the higher
+  // double. If the remaining bits are zero then we have a half-way case and
+  // we need to round up too (rounding to the even double).
+  // If the second-to-last bit is even then we need to look at the remaining
+  // bits to determine if any of them is not zero. If that's the case then the
+  // number lies closer to the next-higher double. Otherwise we round the
+  // half-way case down to even.
+
+  if (((used - 1) * kBitsPerDigit) > (kMaxExponent + kSignificandSize)) {
+    // Does not fit into a double.
+    const double infinity = bit_cast<double>(kInfinityBits);
+    return Neg() ? -infinity : infinity;
+  }
+
+  intptr_t digit_index = used - 1;
+  // In order to round correctly we need to look at half-way cases. Therefore we
+  // get kSignificandSize + 1 bits. If the last bit is 1 then we have to look
+  // at the remaining bits to know if we have to round up.
+  int needed_bits = kSignificandSize + 1;
+  ASSERT((kBitsPerDigit < needed_bits) && (2 * kBitsPerDigit >= needed_bits));
+  bool discarded_bits_were_zero = true;
+
+  const uint32_t firstDigit = DigitAt(digit_index--);
+  ASSERT(firstDigit > 0);
+  uint64_t twice_significand_floor = firstDigit;
+  intptr_t twice_significant_exponent = (digit_index + 1) * kBitsPerDigit;
+  needed_bits -= Utils::HighestBit(firstDigit) + 1;
+
+  if (needed_bits >= kBitsPerDigit) {
+    twice_significand_floor <<= kBitsPerDigit;
+    twice_significand_floor |= DigitAt(digit_index--);
+    twice_significant_exponent -= kBitsPerDigit;
+    needed_bits -= kBitsPerDigit;
+  }
+  if (needed_bits > 0) {
+    ASSERT(needed_bits <= kBitsPerDigit);
+    uint32_t digit = DigitAt(digit_index--);
+    int discarded_bits_count = kBitsPerDigit - needed_bits;
+    twice_significand_floor <<= needed_bits;
+    twice_significand_floor |= digit >> discarded_bits_count;
+    twice_significant_exponent -= needed_bits;
+    uint64_t discarded_bits_mask = (kOne64 << discarded_bits_count) - 1;
+    discarded_bits_were_zero = ((digit & discarded_bits_mask) == 0);
+  }
+  ASSERT((twice_significand_floor >> kSignificandSize) == 1);
+
+  // We might need to round up the significand later.
+  uint64_t significand = twice_significand_floor >> 1;
+  const intptr_t exponent = twice_significant_exponent + 1;
+
+  if (exponent >= kMaxExponent) {
+    // Infinity.
+    // Does not fit into a double.
+    const double infinity = bit_cast<double>(kInfinityBits);
+    return Neg() ? -infinity : infinity;
+  }
+
+  if ((twice_significand_floor & 1) == 1) {
+    bool round_up = false;
+
+    if ((significand & 1) != 0 || !discarded_bits_were_zero) {
+      // Even if the remaining bits are zero we still need to round up since we
+      // want to round to even for half-way cases.
+      round_up = true;
+    } else {
+      // Could be a half-way case. See if the remaining bits are non-zero.
+      for (intptr_t i = 0; i <= digit_index; i++) {
+        if (DigitAt(i) != 0) {
+          round_up = true;
+          break;
+        }
+      }
+    }
+
+    if (round_up) {
+      significand++;
+      // It might be that we just went from 53 bits to 54 bits.
+      // Example: After adding 1 to 1FFF..FF (with 53 bits set to 1) we have
+      // 2000..00 (= 2 ^ 54). When adding the exponent and significand together
+      // this will increase the exponent by 1 which is exactly what we want.
+    }
+  }
+
+  ASSERT(((significand >> (kSignificandSize - 1)) == 1) ||
+         (significand == (kOne64 << kSignificandSize)));
+  // The significand still has the hidden bit. We simply decrement the biased
+  // exponent by one instead of playing around with the significand.
+  const uint64_t biased_exponent = exponent + kExponentBias - 1;
+  // Note that we must use the plus operator instead of bit-or.
+  const uint64_t double_bits =
+      (biased_exponent << kPhysicalSignificandSize) + significand;
+
+  const double value = bit_cast<double>(double_bits);
+  return Neg() ? -value : value;
+}
+
+
+bool Bigint::FitsIntoSmi() const {
+  return FitsIntoInt64() && Smi::IsValid(AsInt64Value());
+}
+
+
+bool Bigint::FitsIntoInt64() const {
+  ASSERT(Bigint::kBitsPerDigit == 32);
+  const intptr_t used = Used();
+  if (used < 2) return true;
+  if (used > 2) return false;
+  const uint64_t digit1 = DigitAt(1);
+  const uint64_t value = (digit1 << 32) + DigitAt(0);
+  uint64_t limit = Mint::kMaxValue;
+  if (Neg()) {
+    limit++;
+  }
+  return value <= limit;
 }
 
 
 int64_t Bigint::AsInt64Value() const {
-  if (!BigintOperations::FitsIntoInt64(*this)) {
-    UNREACHABLE();
-  }
-  return BigintOperations::ToInt64(*this);
+  ASSERT(FitsIntoInt64());
+  const intptr_t used = Used();
+  if (used == 0) return 0;
+  const int64_t digit1 = (used > 1) ? DigitAt(1) : 0;
+  const int64_t value = (digit1 << 32) + DigitAt(0);
+  return Neg() ? -value : value;
+}
+
+
+bool Bigint::FitsIntoUint64() const {
+  ASSERT(Bigint::kBitsPerDigit == 32);
+  return !Neg() && (Used() <= 2);
+}
+
+
+uint64_t Bigint::AsUint64Value() const {
+  ASSERT(FitsIntoUint64());
+  const intptr_t used = Used();
+  if (used == 0) return 0;
+  const uint64_t digit1 = (used > 1) ? DigitAt(1) : 0;
+  return (digit1 << 32) + DigitAt(0);
 }
 
 
 uint32_t Bigint::AsTruncatedUint32Value() const {
-  return BigintOperations::TruncateToUint32(*this);
+  // Note: the previous implementation of Bigint returned the absolute value
+  // truncated to 32 bits, which is not consistent with Smi and Mint behavior.
+  ASSERT(Bigint::kBitsPerDigit == 32);
+  const intptr_t used = Used();
+  if (used == 0) return 0;
+  const uint32_t digit0 = DigitAt(0);
+  return Neg() ? -digit0 : digit0;
 }
 
 
 // For positive values: Smi < Mint < Bigint.
 int Bigint::CompareWith(const Integer& other) const {
-  ASSERT(!FitsIntoSmi(*this));
-  ASSERT(!BigintOperations::FitsIntoInt64(*this));
-  if (other.IsBigint()) {
-    return BigintOperations::Compare(*this, Bigint::Cast(other));
-  }
-  if (this->IsNegative() == other.IsNegative()) {
-    return this->IsNegative() ? -1 : 1;
+  ASSERT(!FitsIntoSmi());
+  ASSERT(!FitsIntoInt64());
+  if (other.IsBigint() && (IsNegative() == other.IsNegative())) {
+    const Bigint& other_bgi = Bigint::Cast(other);
+    int64_t result = Used() - other_bgi.Used();
+    if (result == 0) {
+      for (intptr_t i = Used(); --i >= 0; ) {
+        result = DigitAt(i);
+        result -= other_bgi.DigitAt(i);
+        if (result != 0) break;
+      }
+    }
+    if (IsNegative()) {
+      result = -result;
+    }
+    return result > 0 ? 1 : result < 0 ? -1 : 0;
   }
   return this->IsNegative() ? -1 : 1;
 }
 
 
-RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
-  if (length < 0 || length > kMaxElements) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in Bigint::Allocate: invalid length %" Pd "\n", length);
+const char* Bigint::ToDecCString(uword (*allocator)(intptr_t size)) const {
+  // log10(2) ~= 0.30102999566398114.
+  const intptr_t kLog2Dividend = 30103;
+  const intptr_t kLog2Divisor = 100000;
+  intptr_t used = Used();
+  const intptr_t kMaxUsed =
+      kIntptrMax / kBitsPerDigit / kLog2Dividend * kLog2Divisor;
+  if (used > kMaxUsed) {
+    // Throw out of memory exception.
+    Isolate* isolate = Isolate::Current();
+    const Instance& exception =
+        Instance::Handle(isolate->object_store()->out_of_memory());
+    Exceptions::Throw(isolate, exception);
+    UNREACHABLE();
   }
-  ASSERT(Isolate::Current()->object_store()->bigint_class() != Class::null());
-  Bigint& result = Bigint::Handle();
-  {
-    RawObject* raw = Object::Allocate(Bigint::kClassId,
-                                      Bigint::InstanceSize(length),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.raw_ptr()->allocated_length_ = length;  // Chunk length allocated.
-    result.raw_ptr()->signed_length_ = length;  // Chunk length in use.
+  const int64_t bit_len = used * kBitsPerDigit;
+  const int64_t dec_len = (bit_len * kLog2Dividend / kLog2Divisor) + 1;
+  // Add one byte for the minus sign and for the trailing \0 character.
+  const int64_t len = (Neg() ? 1 : 0) + dec_len + 1;
+  char* chars = reinterpret_cast<char*>(allocator(len));
+  intptr_t pos = 0;
+  const intptr_t kDivisor = 100000000;
+  const intptr_t kDigits = 8;
+  ASSERT(pow(10.0, kDigits) == kDivisor);
+  ASSERT(kDivisor < kDigitBase);
+  ASSERT(Smi::IsValid(kDivisor));
+  // Allocate a copy of the digits.
+  const TypedData& rest_digits = TypedData::Handle(
+      TypedData::New(kTypedDataUint32ArrayCid, used));
+  for (intptr_t i = 0; i < used; i++) {
+    rest_digits.SetUint32(i << 2, DigitAt(i));
   }
-  return result.raw();
+  if (used == 0) {
+    chars[pos++] = '0';
+  }
+  while (used > 0) {
+    uint32_t remainder = 0;
+    for (intptr_t i = used - 1; i >= 0; i--) {
+      uint64_t dividend = (static_cast<uint64_t>(remainder) << kBitsPerDigit) +
+          rest_digits.GetUint32(i << 2);
+      uint32_t quotient = static_cast<uint32_t>(dividend / kDivisor);
+      remainder = static_cast<uint32_t>(
+          dividend - static_cast<uint64_t>(quotient) * kDivisor);
+      rest_digits.SetUint32(i << 2, quotient);
+    }
+    // Clamp rest_digits.
+    while ((used > 0) && (rest_digits.GetUint32((used - 1) << 2) == 0)) {
+      used--;
+    }
+    for (intptr_t i = 0; i < kDigits; i++) {
+      chars[pos++] = '0' + (remainder % 10);
+      remainder /= 10;
+    }
+    ASSERT(remainder == 0);
+  }
+  // Remove leading zeros.
+  while ((pos > 1) && (chars[pos - 1] == '0')) {
+    pos--;
+  }
+  if (Neg()) {
+    chars[pos++] = '-';
+  }
+  // Reverse the string.
+  intptr_t i = 0;
+  intptr_t j = pos - 1;
+  while (i < j) {
+    char tmp = chars[i];
+    chars[i] = chars[j];
+    chars[j] = tmp;
+    i++;
+    j--;
+  }
+  chars[pos] = '\0';
+  return chars;
+}
+
+
+const char* Bigint::ToHexCString(uword (*allocator)(intptr_t size)) const {
+  NoGCScope no_gc;  // TODO(regis): Is this necessary?
+
+  const intptr_t used = Used();
+  if (used == 0) {
+    const char* zero = "0x0";
+    const size_t len = strlen(zero) + 1;
+    char* chars = reinterpret_cast<char*>(allocator(len));
+    strncpy(chars, zero, len);
+    return chars;
+  }
+  const int kBitsPerHexDigit = 4;
+  const int kHexDigitsPerDigit = 8;
+  const intptr_t kMaxUsed = (kIntptrMax - 4) / kHexDigitsPerDigit;
+  if (used > kMaxUsed) {
+    // Throw out of memory exception.
+    Isolate* isolate = Isolate::Current();
+    const Instance& exception =
+        Instance::Handle(isolate->object_store()->out_of_memory());
+    Exceptions::Throw(isolate, exception);
+    UNREACHABLE();
+  }
+  intptr_t hex_len = (used - 1) * kHexDigitsPerDigit;
+  // The most significant digit may use fewer than kHexDigitsPerDigit digits.
+  uint32_t digit = DigitAt(used - 1);
+  ASSERT(digit != 0);  // Value must be clamped.
+  while (digit != 0) {
+    hex_len++;
+    digit >>= kBitsPerHexDigit;
+  }
+  // Add bytes for '0x', for the minus sign, and for the trailing \0 character.
+  const int32_t len = (Neg() ? 1 : 0) + 2 + hex_len + 1;
+  char* chars = reinterpret_cast<char*>(allocator(len));
+  intptr_t pos = len;
+  chars[--pos] = '\0';
+  for (intptr_t i = 0; i < (used - 1); i++) {
+    digit = DigitAt(i);
+    for (intptr_t j = 0; j < kHexDigitsPerDigit; j++) {
+      chars[--pos] = Utils::IntToHexDigit(digit & 0xf);
+      digit >>= kBitsPerHexDigit;
+    }
+  }
+  digit = DigitAt(used - 1);
+  while (digit != 0) {
+    chars[--pos] = Utils::IntToHexDigit(digit & 0xf);
+    digit >>= kBitsPerHexDigit;
+  }
+  chars[--pos] = 'x';
+  chars[--pos] = '0';
+  if (Neg()) {
+    chars[--pos] = '-';
+  }
+  ASSERT(pos == 0);
+  return chars;
 }
 
 
@@ -16355,7 +16937,7 @@ static uword BigintAllocator(intptr_t size) {
 
 
 const char* Bigint::ToCString() const {
-  return BigintOperations::ToDecimalCString(*this, &BigintAllocator);
+  return ToDecCString(&BigintAllocator);
 }
 
 
@@ -18512,6 +19094,7 @@ class DefaultHashTraits {
     if (hash_code.IsSmi()) {
       // May waste some bits on 64-bit, to ensure consistency with non-Smi case.
       return static_cast<uword>(Smi::Cast(hash_code).Value() & 0xFFFFFFFF);
+      // TODO(regis): Same as Smi::AsTruncatedUint32Value(), simplify?
     } else if (hash_code.IsInteger()) {
       return static_cast<uword>(
           Integer::Cast(hash_code).AsTruncatedUint32Value());
@@ -18954,6 +19537,32 @@ const intptr_t TypedData::element_size[] = {
 };
 
 
+bool TypedData::CanonicalizeEquals(const Instance& other) const {
+  if (this->raw() == other.raw()) {
+    // Both handles point to the same raw instance.
+    return true;
+  }
+
+  if (!other.IsTypedData() || other.IsNull()) {
+    return false;
+  }
+
+  const TypedData& other_typed_data = TypedData::Cast(other);
+
+  if (this->ElementType() != other_typed_data.ElementType()) {
+    return false;
+  }
+
+  const intptr_t len = this->LengthInBytes();
+  if (len != other_typed_data.LengthInBytes()) {
+    return false;
+  }
+
+  return (len == 0) ||
+      (memcmp(DataAddr(0), other_typed_data.DataAddr(0), len) == 0);
+}
+
+
 RawTypedData* TypedData::New(intptr_t class_id,
                              intptr_t len,
                              Heap::Space space) {
@@ -18962,7 +19571,7 @@ RawTypedData* TypedData::New(intptr_t class_id,
   }
   TypedData& result = TypedData::Handle();
   {
-    intptr_t lengthInBytes = len * ElementSizeInBytes(class_id);
+    const intptr_t lengthInBytes = len * ElementSizeInBytes(class_id);
     RawObject* raw = Object::Allocate(class_id,
                                       TypedData::InstanceSize(lengthInBytes),
                                       space);

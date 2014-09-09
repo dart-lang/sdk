@@ -1030,6 +1030,7 @@ class Class : public Object {
   RawFunction* LookupConstructor(const String& name) const;
   RawFunction* LookupConstructorAllowPrivate(const String& name) const;
   RawFunction* LookupFactory(const String& name) const;
+  RawFunction* LookupFactoryAllowPrivate(const String& name) const;
   RawFunction* LookupFunction(const String& name) const;
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupGetterFunction(const String& name) const;
@@ -5118,8 +5119,8 @@ class Number : public Instance {
 class Integer : public Number {
  public:
   static RawInteger* New(const String& str, Heap::Space space = Heap::kNew);
-  static RawInteger* NewFromUint64(
-      uint64_t value, Heap::Space space = Heap::kNew);
+  static RawInteger* NewFromUint64(uint64_t value,
+                                   Heap::Space space = Heap::kNew);
 
   // Returns a canonical Integer object allocated in the old gen space.
   static RawInteger* NewCanonical(const String& str);
@@ -5135,26 +5136,18 @@ class Integer : public Number {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
-  virtual bool Equals(const Instance& other) const {
-    UNREACHABLE();
-    return false;
-  }
+  virtual bool Equals(const Instance& other) const;
 
   virtual RawObject* HashCode() const { return raw(); }
 
-  // Integer is an abstract class.
-  virtual bool IsZero() const {
-    UNREACHABLE();
-    return false;
-  }
-  virtual bool IsNegative() const {
-    // Number is an abstract class.
-    UNREACHABLE();
-    return false;
-  }
+  virtual bool IsZero() const;
+  virtual bool IsNegative() const;
+
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
   virtual uint32_t AsTruncatedUint32Value() const;
+
+  virtual bool FitsIntoSmi() const;
 
   // Returns 0, -1 or 1.
   virtual int CompareWith(const Integer& other) const;
@@ -5162,6 +5155,7 @@ class Integer : public Number {
   // Return the most compact presentation of an integer.
   RawInteger* AsValidInteger() const;
 
+  // Returns null to indicate that a bigint operation is required.
   RawInteger* ArithmeticOp(Token::Kind operation, const Integer& other) const;
   RawInteger* BitOp(Token::Kind operation, const Integer& other) const;
 
@@ -5169,9 +5163,6 @@ class Integer : public Number {
   bool CheckJavascriptIntegerOverflow() const;
 
  private:
-  // Return an integer in the form of a RawBigint.
-  RawBigint* AsBigint() const;
-
   OBJECT_IMPLEMENTATION(Integer, Number);
   friend class Class;
 };
@@ -5198,6 +5189,8 @@ class Smi : public Integer {
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
   virtual uint32_t AsTruncatedUint32Value() const;
+
+  virtual bool FitsIntoSmi() const { return true; }
 
   virtual int CompareWith(const Integer& other) const;
 
@@ -5285,6 +5278,8 @@ class Mint : public Integer {
   virtual int64_t AsInt64Value() const;
   virtual uint32_t AsTruncatedUint32Value() const;
 
+  virtual bool FitsIntoSmi() const;
+
   virtual int CompareWith(const Integer& other) const;
 
   static intptr_t InstanceSize() {
@@ -5308,15 +5303,9 @@ class Mint : public Integer {
 
 
 class Bigint : public Integer {
- private:
-  typedef uint32_t Chunk;
-  typedef uint64_t DoubleChunk;
-  static const int kChunkSize = sizeof(Chunk);
-
  public:
-  virtual bool IsZero() const { return raw_ptr()->signed_length_ == 0; }
-  virtual bool IsNegative() const { return raw_ptr()->signed_length_ < 0; }
-
+  virtual bool IsZero() const { return Used() == 0;}
+  virtual bool IsNegative() const { return Neg(); }
   virtual bool Equals(const Instance& other) const;
 
   virtual double AsDoubleValue() const;
@@ -5325,71 +5314,79 @@ class Bigint : public Integer {
 
   virtual int CompareWith(const Integer& other) const;
 
-  static const intptr_t kBytesPerElement = kChunkSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  virtual bool CheckAndCanonicalizeFields(const char** error_str) const;
 
-  static intptr_t InstanceSize() { return 0; }
+  virtual bool FitsIntoSmi() const;
+  bool FitsIntoInt64() const;
+  bool FitsIntoUint64() const;
+  uint64_t AsUint64Value() const;
 
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(sizeof(RawBigint) + (len * kBytesPerElement));
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawBigint));
   }
 
- protected:
-  // Only Integer::NewXXX is allowed to call Bigint::NewXXX directly.
-  friend class Integer;
+  // Accessors used by native calls from Dart.
+  RawBool* neg() const { return raw_ptr()->neg_; }
+  void set_neg(const Bool& value) const;
+  static intptr_t neg_offset() { return OFFSET_OF(RawBigint, neg_); }
+  RawSmi* used() const { return raw_ptr()->used_; }
+  void set_used(const Smi& value) const;
+  static intptr_t used_offset() { return OFFSET_OF(RawBigint, used_); }
+  RawTypedData* digits() const { return raw_ptr()->digits_; }
+  void set_digits(const TypedData& value) const;
+  static intptr_t digits_offset() { return OFFSET_OF(RawBigint, digits_); }
 
-  RawBigint* BigArithmeticOp(Token::Kind operation, const Bigint& other) const;
+  // Accessors used by runtime calls from C++.
+  bool Neg() const;
+  void SetNeg(bool value) const;
+  intptr_t Used() const;
+  void SetUsed(intptr_t value) const;
+  uint32_t DigitAt(intptr_t index) const;
+  void SetDigitAt(intptr_t index, uint32_t value) const;
 
-  static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
+  const char* ToDecCString(uword (*allocator)(intptr_t size)) const;
+  const char* ToHexCString(uword (*allocator)(intptr_t size)) const;
+
+  static const intptr_t kExtraDigits = 4;  // Same as _Bigint.EXTRA_DIGITS
+  static const intptr_t kBitsPerDigit = 32;  // Same as _Bigint.DIGIT_BITS
+  static const int64_t kDigitBase = 1LL << kBitsPerDigit;
+  static const int64_t kDigitMask = kDigitBase - 1;
+
+  static RawBigint* New(Heap::Space space = Heap::kNew);
+
+  static RawBigint* NewFromInt64(int64_t value,
+                                  Heap::Space space = Heap::kNew);
+
+  static RawBigint* NewFromUint64(uint64_t value,
+                                   Heap::Space space = Heap::kNew);
+
+  static RawBigint* NewFromShiftedInt64(int64_t value, intptr_t shift,
+                                         Heap::Space space = Heap::kNew);
+
+  static RawBigint* NewFromCString(const char* str,
+                                    Heap::Space space = Heap::kNew);
 
   // Returns a canonical Bigint object allocated in the old gen space.
   static RawBigint* NewCanonical(const String& str);
 
  private:
-  Chunk GetChunkAt(intptr_t i) const {
-    return *ChunkAddr(i);
-  }
+  static RawBigint* NewFromHexCString(const char* str,
+                                       Heap::Space space = Heap::kNew);
+  static RawBigint* NewFromDecCString(const char* str,
+                                       Heap::Space space = Heap::kNew);
 
-  void SetChunkAt(intptr_t i, Chunk newValue) const {
-    *ChunkAddr(i) = newValue;
-  }
+  // Make sure at least 'length' _digits are allocated.
+  // Copy existing _digits if reallocation is necessary.
+  void EnsureLength(intptr_t length, Heap::Space space = Heap::kNew) const;
 
-  // Returns the number of chunks in use.
-  intptr_t Length() const {
-    intptr_t signed_length = raw_ptr()->signed_length_;
-    return Utils::Abs(signed_length);
-  }
+  // Do not count zero high digits as used.
+  void Clamp() const;
 
-  // SetLength does not change the sign.
-  void SetLength(intptr_t length) const {
-    ASSERT(length >= 0);
-    bool is_negative = IsNegative();
-    raw_ptr()->signed_length_ = length;
-    if (is_negative) ToggleSign();
-  }
-
-  void SetSign(bool is_negative) const {
-    if (is_negative != IsNegative()) {
-      ToggleSign();
-    }
-  }
-
-  void ToggleSign() const {
-    raw_ptr()->signed_length_ = -raw_ptr()->signed_length_;
-  }
-
-  Chunk* ChunkAddr(intptr_t index) const {
-    ASSERT(0 <= index);
-    ASSERT(index < Length());
-    uword digits_start = reinterpret_cast<uword>(raw_ptr()) + sizeof(RawBigint);
-    return &(reinterpret_cast<Chunk*>(digits_start)[index]);
-  }
+  bool IsClamped() const;
 
   static RawBigint* Allocate(intptr_t length, Heap::Space space = Heap::kNew);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Bigint, Integer);
-  friend class BigintOperations;
   friend class Class;
 };
 
@@ -6606,6 +6603,8 @@ class TypedData : public Instance {
            ((byte_offset > 0) && (byte_offset < LengthInBytes())));
     return reinterpret_cast<void*>(raw_ptr()->data() + byte_offset);
   }
+
+  virtual bool CanonicalizeEquals(const Instance& other) const;
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \

@@ -5,7 +5,6 @@
 #include "vm/bootstrap_natives.h"
 
 #include "include/dart_api.h"
-#include "vm/bigint_operations.h"
 #include "vm/dart_entry.h"
 #include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"

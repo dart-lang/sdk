@@ -55,9 +55,13 @@ namespace dart {
   V(Mint_bitNegate, 1)                                                         \
   V(Mint_bitLength, 1)                                                         \
   V(Mint_shlFromInt, 2)                                                        \
-  V(Bigint_bitNegate, 1)                                                       \
-  V(Bigint_bitLength, 1)                                                       \
-  V(Bigint_shlFromInt, 2)                                                      \
+  V(Bigint_getNeg, 1)                                                          \
+  V(Bigint_setNeg, 2)                                                          \
+  V(Bigint_getUsed, 1)                                                         \
+  V(Bigint_setUsed, 2)                                                         \
+  V(Bigint_getDigits, 1)                                                       \
+  V(Bigint_setDigits, 2)                                                       \
+  V(Bigint_allocate, 1)                                                        \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \

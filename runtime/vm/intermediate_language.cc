@@ -4,7 +4,6 @@
 
 #include "vm/intermediate_language.h"
 
-#include "vm/bigint_operations.h"
 #include "vm/bit_vector.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
@@ -382,10 +381,8 @@ bool LoadIndexedInstr::AttributesEqual(Instruction* other) const {
 
 ConstantInstr::ConstantInstr(const Object& value) : value_(value) {
   // Check that the value is not an incorrect Integer representation.
-  ASSERT(!value.IsBigint() ||
-         !BigintOperations::FitsIntoSmi(Bigint::Cast(value)));
-  ASSERT(!value.IsBigint() ||
-         !BigintOperations::FitsIntoInt64(Bigint::Cast(value)));
+  ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoSmi());
+  ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoInt64());
   ASSERT(!value.IsMint() || !Smi::IsValid(Mint::Cast(value).AsInt64Value()));
 }
 

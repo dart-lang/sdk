@@ -97,12 +97,6 @@ intptr_t RawObject::SizeFromClass() const {
         instance_size = ContextScope::InstanceSize(num_variables);
         break;
       }
-      case kBigintCid: {
-        const RawBigint* raw_bgi = reinterpret_cast<const RawBigint*>(this);
-        intptr_t length = raw_bgi->ptr()->allocated_length_;
-        instance_size = Bigint::InstanceSize(length);
-        break;
-      }
       case kOneByteStringCid: {
         const RawOneByteString* raw_string =
             reinterpret_cast<const RawOneByteString*>(this);
@@ -689,9 +683,8 @@ intptr_t RawBigint::VisitBigintPointers(RawBigint* raw_obj,
                                         ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
-  RawBigint* obj = raw_obj->ptr();
-  intptr_t length = obj->allocated_length_;
-  return Bigint::InstanceSize(length);
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return Bigint::InstanceSize();
 }
 
 

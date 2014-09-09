@@ -6,7 +6,6 @@
 
 #include "include/dart_api.h"
 
-#include "vm/bigint_operations.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"

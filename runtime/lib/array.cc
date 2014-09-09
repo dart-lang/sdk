@@ -5,7 +5,6 @@
 #include "platform/assert.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/assembler.h"
-#include "vm/bigint_operations.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"

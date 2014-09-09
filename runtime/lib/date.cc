@@ -6,7 +6,6 @@
 
 #include "vm/bootstrap_natives.h"
 
-#include "vm/bigint_operations.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/os.h"

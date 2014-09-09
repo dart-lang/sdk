@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/bigint_operations.h"
 #include "vm/dart_api_message.h"
 #include "vm/object.h"
 #include "vm/snapshot_ids.h"
@@ -92,14 +91,11 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectInt64(int64_t val) {
 }
 
 
-Dart_CObject* ApiMessageReader::AllocateDartCObjectBigint(intptr_t length) {
-  // Allocate a Dart_CObject structure followed by an array of chars
-  // for the bigint hex string content. The pointer to the bigint
-  // content is set up to this area.
-  Dart_CObject* value =
-      reinterpret_cast<Dart_CObject*>(
-          alloc_(NULL, 0, sizeof(Dart_CObject) + length + 1));
-  value->value.as_bigint = reinterpret_cast<char*>(value) + sizeof(*value);
+Dart_CObject* ApiMessageReader::AllocateDartCObjectBigint() {
+  Dart_CObject* value = AllocateDartCObject(Dart_CObject_kBigint);
+  value->value.as_bigint.neg = false;
+  value->value.as_bigint.used = 0;
+  value->value.as_bigint.digits = NULL;
   value->type = Dart_CObject_kBigint;
   return value;
 }
@@ -522,15 +518,24 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       return object;
     }
     case kBigintCid: {
-      // Read in the hex string representation of the bigint.
-      intptr_t len = Read<int32_t>();
-      Dart_CObject* object = AllocateDartCObjectBigint(len);
+      // Allocate an empty bigint which will be updated when its contents
+      // has been deserialized.
+      Dart_CObject* object = AllocateDartCObjectBigint();
       AddBackRef(object_id, object, kIsDeserialized);
-      char* p = object->value.as_bigint;
-      for (intptr_t i = 0; i < len; i++) {
-        p[i] = Read<uint8_t>();
-      }
-      p[len] = '\0';
+      Dart_CObject* neg_obj = ReadObjectImpl();
+      ASSERT(neg_obj->type == Dart_CObject_kBool);
+      const bool neg = neg_obj->value.as_bool;
+      Dart_CObject* used_obj = ReadObjectImpl();
+      ASSERT(used_obj->type == Dart_CObject_kInt32);
+      const intptr_t used = used_obj->value.as_int32;
+      Dart_CObject* digits = ReadObjectImpl();
+      ASSERT(digits->type == Dart_CObject_kTypedData);
+      ASSERT(digits->value.as_typed_data.type == Dart_TypedData_kUint32);
+      ASSERT(digits->value.as_typed_data.length >= 4*used);
+      // Update the bigint object.
+      object->value.as_bigint.neg = neg;
+      object->value.as_bigint.used = used;
+      object->value.as_bigint.digits = digits;
       return object;
     }
     case kDoubleCid: {
@@ -1040,24 +1045,21 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteInt64(object);
       break;
     case Dart_CObject_kBigint: {
-      char* hex_string = object->value.as_bigint;
-      const intptr_t chunk_len =
-          BigintOperations::ComputeChunkLength(hex_string);
-      if (chunk_len < 0 ||
-          chunk_len > Bigint::kMaxElements) {
-        return false;
-      }
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tags information.
       WriteIndexedObject(kBigintCid);
       WriteTags(0);
-      // Write hex string length and content
-      intptr_t len = strlen(hex_string);
-      Write<int32_t>(len);
-      for (intptr_t i = 0; i < len; i++) {
-        Write<uint8_t>(hex_string[i]);
+      // Write neg field.
+      if (object->value.as_bigint.neg) {
+        WriteVMIsolateObject(kTrueValue);
+      } else {
+        WriteVMIsolateObject(kFalseValue);
       }
+      // Write used field.
+      WriteSmi(object->value.as_bigint.used);
+      // Write digits as TypedData (or NullObject).
+      WriteCObject(object->value.as_bigint.digits);
       break;
     }
     case Dart_CObject_kDouble:
@@ -1124,6 +1126,9 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
         case Dart_TypedData_kUint8:
           class_id = kTypedDataUint8ArrayCid;
           break;
+        case Dart_TypedData_kUint32:
+          class_id = kTypedDataUint32ArrayCid;
+          break;
         default:
           class_id = kTypedDataUint8ArrayCid;
           UNIMPLEMENTED();
@@ -1138,9 +1143,25 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteIndexedObject(class_id);
       WriteTags(RawObject::ClassIdTag::update(class_id, 0));
       WriteSmi(len);
-      uint8_t* bytes = object->value.as_typed_data.values;
-      for (intptr_t i = 0; i < len; i++) {
-        Write<uint8_t>(bytes[i]);
+      switch (class_id) {
+        case kTypedDataInt8ArrayCid:
+        case kTypedDataUint8ArrayCid: {
+          uint8_t* bytes = object->value.as_typed_data.values;
+          for (intptr_t i = 0; i < len; i++) {
+            Write<uint8_t>(bytes[i]);
+          }
+          break;
+        }
+        case kTypedDataUint32ArrayCid: {
+          uint32_t* words =
+              reinterpret_cast<uint32_t*>(object->value.as_typed_data.values);
+          for (intptr_t i = 0; i < len; i++) {
+            Write<uint32_t>(words[i]);
+          }
+          break;
+        }
+        default:
+          UNIMPLEMENTED();
       }
       break;
     }

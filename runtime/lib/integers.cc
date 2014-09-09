@@ -5,7 +5,6 @@
 #include "vm/bootstrap_natives.h"
 
 #include "include/dart_api.h"
-#include "vm/bigint_operations.h"
 #include "vm/dart_entry.h"
 #include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
@@ -27,8 +26,7 @@ DEFINE_FLAG(bool, trace_intrinsified_natives, false,
 static bool CheckInteger(const Integer& i) {
   if (i.IsBigint()) {
     const Bigint& bigint = Bigint::Cast(i);
-    return !BigintOperations::FitsIntoSmi(bigint) &&
-        !BigintOperations::FitsIntoInt64(bigint);
+    return !bigint.FitsIntoSmi() && !bigint.FitsIntoInt64();
   }
   if (i.IsMint()) {
     const Mint& mint = Mint::Cast(i);
@@ -40,6 +38,7 @@ static bool CheckInteger(const Integer& i) {
 
 static int BitLengthInt64(int64_t value) {
   value ^= value >> (8 * sizeof(value) - 1);  // flip bits if negative.
+  // TODO(regis): Utils::HighestBit handles negative values. Why the above?
   return value == 0 ? 0 : Utils::HighestBit(value) + 1;
 }
 
@@ -53,9 +52,9 @@ DEFINE_NATIVE_ENTRY(Integer_bitAndFromInteger, 2) {
     OS::Print("Integer_bitAndFromInteger %s & %s\n",
         right.ToCString(), left.ToCString());
   }
-  const Integer& result =
-      Integer::Handle(left.BitOp(Token::kBIT_AND, right));
-  return result.AsValidInteger();
+  const Integer& result = Integer::Handle(left.BitOp(Token::kBIT_AND, right));
+  // A null result indicates that a bigint operation is required.
+  return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
 
@@ -68,9 +67,9 @@ DEFINE_NATIVE_ENTRY(Integer_bitOrFromInteger, 2) {
     OS::Print("Integer_bitOrFromInteger %s | %s\n",
         left.ToCString(), right.ToCString());
   }
-  const Integer& result =
-      Integer::Handle(left.BitOp(Token::kBIT_OR, right));
-  return result.AsValidInteger();
+  const Integer& result = Integer::Handle(left.BitOp(Token::kBIT_OR, right));
+  // A null result indicates that a bigint operation is required.
+  return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
 
@@ -83,9 +82,9 @@ DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 2) {
     OS::Print("Integer_bitXorFromInteger %s ^ %s\n",
         left.ToCString(), right.ToCString());
   }
-  const Integer& result =
-      Integer::Handle(left.BitOp(Token::kBIT_XOR, right));
-  return result.AsValidInteger();
+  const Integer& result = Integer::Handle(left.BitOp(Token::kBIT_XOR, right));
+  // A null result indicates that a bigint operation is required.
+  return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
 
@@ -100,7 +99,8 @@ DEFINE_NATIVE_ENTRY(Integer_addFromInteger, 2) {
   }
   const Integer& result =
       Integer::Handle(left_int.ArithmeticOp(Token::kADD, right_int));
-  return result.AsValidInteger();
+  // A null result indicates that a bigint operation is required.
+  return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
 
@@ -115,7 +115,8 @@ DEFINE_NATIVE_ENTRY(Integer_subFromInteger, 2) {
   }
   const Integer& result =
       Integer::Handle(left_int.ArithmeticOp(Token::kSUB, right_int));
-  return result.AsValidInteger();
+  // A null result indicates that a bigint operation is required.
+  return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
 
@@ -130,7 +131,8 @@ DEFINE_NATIVE_ENTRY(Integer_mulFromInteger, 2) {
   }
   const Integer& result =
       Integer::Handle(left_int.ArithmeticOp(Token::kMUL, right_int));
-  return result.AsValidInteger();
+  // A null result indicates that a bigint operation is required.
+  return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
 
@@ -142,7 +144,8 @@ DEFINE_NATIVE_ENTRY(Integer_truncDivFromInteger, 2) {
   ASSERT(!right_int.IsZero());
   const Integer& result =
       Integer::Handle(left_int.ArithmeticOp(Token::kTRUNCDIV, right_int));
-  return result.AsValidInteger();
+  // A null result indicates that a bigint operation is required.
+  return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
 
@@ -161,7 +164,8 @@ DEFINE_NATIVE_ENTRY(Integer_moduloFromInteger, 2) {
   }
   const Integer& result =
       Integer::Handle(left_int.ArithmeticOp(Token::kMOD, right_int));
-  return result.AsValidInteger();
+  // A null result indicates that a bigint operation is required.
+  return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
 
@@ -266,7 +270,6 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
     const Smi& smi_value = Smi::Cast(value);
     return smi_value.ShiftOp(kind, amount, silent);
   }
-  Bigint& big_value = Bigint::Handle();
   if (value.IsMint()) {
     const int64_t mint_value = value.AsInt64Value();
     const int count = Utils::HighestBit(mint_value);
@@ -285,19 +288,10 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
       }
     } else {
       // Overflow in shift, use Bigints
-      big_value = BigintOperations::NewFromInt64(mint_value);
+      return Integer::null();
     }
   } else {
     ASSERT(value.IsBigint());
-    big_value = Bigint::Cast(value).raw();
-  }
-  switch (kind) {
-    case Token::kSHL:
-      return BigintOperations::ShiftLeft(big_value, amount.Value());
-    case Token::kSHR:
-      return BigintOperations::ShiftRight(big_value, amount.Value());
-    default:
-      UNIMPLEMENTED();
   }
   return Integer::null();
 }
@@ -332,7 +326,8 @@ DEFINE_NATIVE_ENTRY(Smi_shrFromInt, 2) {
   ASSERT(CheckInteger(value));
   const Integer& result = Integer::Handle(
       ShiftOperationHelper(Token::kSHR, value, amount));
-  return result.AsValidInteger();
+  // A null result indicates that a bigint operation is required.
+  return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
 
@@ -348,7 +343,8 @@ DEFINE_NATIVE_ENTRY(Smi_shlFromInt, 2) {
   }
   const Integer& result = Integer::Handle(
       ShiftOperationHelper(Token::kSHL, value, amount));
-  return result.AsValidInteger();
+  // A null result indicates that a bigint operation is required.
+  return result.IsNull() ? result.raw() : result.AsValidInteger();
 }
 
 
@@ -414,29 +410,51 @@ DEFINE_NATIVE_ENTRY(Mint_shlFromInt, 2) {
 
 // Bigint natives.
 
-DEFINE_NATIVE_ENTRY(Bigint_bitNegate, 1) {
-  const Bigint& value = Bigint::CheckedHandle(arguments->NativeArgAt(0));
-  const Bigint& result = Bigint::Handle(BigintOperations::BitNot(value));
-  ASSERT(CheckInteger(value));
-  ASSERT(CheckInteger(result));
-  return result.AsValidInteger();
+DEFINE_NATIVE_ENTRY(Bigint_getNeg, 1) {
+  const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
+  return bigint.neg();
 }
 
 
-DEFINE_NATIVE_ENTRY(Bigint_bitLength, 1) {
-  const Bigint& value = Bigint::CheckedHandle(arguments->NativeArgAt(0));
-  return Integer::New(BigintOperations::BitLength(value));
+DEFINE_NATIVE_ENTRY(Bigint_setNeg, 2) {
+  const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
+  const Bool& neg = Bool::CheckedHandle(arguments->NativeArgAt(1));
+  bigint.set_neg(neg);
+  return Object::null();
 }
 
 
-DEFINE_NATIVE_ENTRY(Bigint_shlFromInt, 2) {
-  // Use the preallocated out of memory exception to avoid calling
-  // into dart code or allocating any code.
-  const Instance& exception =
-      Instance::Handle(isolate->object_store()->out_of_memory());
-  Exceptions::Throw(isolate, exception);
-  UNREACHABLE();
-  return 0;
+DEFINE_NATIVE_ENTRY(Bigint_getUsed, 1) {
+  const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
+  return bigint.used();
+}
+
+
+DEFINE_NATIVE_ENTRY(Bigint_setUsed, 2) {
+  const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
+  const Smi& used = Smi::CheckedHandle(arguments->NativeArgAt(1));
+  bigint.set_used(used);
+  return Object::null();
+}
+
+
+DEFINE_NATIVE_ENTRY(Bigint_getDigits, 1) {
+  const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
+  return bigint.digits();
+}
+
+
+DEFINE_NATIVE_ENTRY(Bigint_setDigits, 2) {
+  const Bigint& bigint = Bigint::CheckedHandle(arguments->NativeArgAt(0));
+  const TypedData& digits = TypedData::CheckedHandle(arguments->NativeArgAt(1));
+  bigint.set_digits(digits);
+  return Object::null();
+}
+
+
+DEFINE_NATIVE_ENTRY(Bigint_allocate, 1) {
+  // Argument is null type arguments, since class Bigint is not parameterized.
+  return Bigint::New();
 }
 
 }  // namespace dart

@@ -8250,7 +8250,7 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
   const Object& left = left_val.definition()->constant_value();
   const Object& right = right_val.definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
-    // TODO(srdjan): Add arithemtic simplifications, e.g, add with 0.
+    // TODO(srdjan): Add arithmetic simplifications, e.g, add with 0.
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
     if (left.IsInteger() && right.IsInteger()) {
@@ -8270,6 +8270,12 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
         case Token::kMUL: {
           Instance& result = Integer::ZoneHandle(I,
               left_int.ArithmeticOp(op_kind, right_int));
+          if (result.IsNull()) {
+            // TODO(regis): A bigint operation is required. Invoke dart?
+            // Punt for now.
+            SetValue(instr, non_constant_);
+            break;
+          }
           result = result.CheckAndCanonicalize(NULL);
           ASSERT(!result.IsNull());
           SetValue(instr, result);
@@ -8280,6 +8286,12 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
           if (left.IsSmi() && right.IsSmi()) {
             Instance& result = Integer::ZoneHandle(I,
                 Smi::Cast(left_int).ShiftOp(op_kind, Smi::Cast(right_int)));
+            if (result.IsNull()) {
+              // TODO(regis): A bigint operation is required. Invoke dart?
+              // Punt for now.
+              SetValue(instr, non_constant_);
+              break;
+            }
             result = result.CheckAndCanonicalize(NULL);
             ASSERT(!result.IsNull());
             SetValue(instr, result);

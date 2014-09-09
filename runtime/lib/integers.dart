@@ -5,27 +5,33 @@
 // TODO(srdjan): fix limitations.
 // - shift amount must be a Smi.
 class _IntegerImplementation extends _Num {
-  factory _IntegerImplementation._uninstantiable() {
-    throw new UnsupportedError(
-        "_IntegerImplementation can only be allocated by the VM");
-  }
+  // The Dart class _Bigint extending _IntegerImplementation requires a
+  // default constructor.
 
   Type get runtimeType => int;
 
   num operator +(num other) {
-    return other._addFromInteger(this);
+    var result = other._addFromInteger(this);
+    if (result != null) return result;
+    return other._toBigint()._addFromInteger(this);
   }
   num operator -(num other) {
-    return other._subFromInteger(this);
+    var result = other._subFromInteger(this);
+    if (result != null) return result;
+    return other._toBigint()._subFromInteger(this);
   }
   num operator *(num other) {
-    return other._mulFromInteger(this);
+    var result = other._mulFromInteger(this);
+    if (result != null) return result;
+    return other._toBigint()._mulFromInteger(this);
   }
   num operator ~/(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
-    return other._truncDivFromInteger(this);
+    var result = other._truncDivFromInteger(this);
+    if (result != null) return result;
+    return other._toBigint()._truncDivFromInteger(this);
   }
   num operator /(num other) {
     return this.toDouble() / other.toDouble();
@@ -34,19 +40,27 @@ class _IntegerImplementation extends _Num {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
-    return other._moduloFromInteger(this);
+    var result = other._moduloFromInteger(this);
+    if (result != null) return result;
+    return other._toBigint()._moduloFromInteger(this);
   }
   int operator -() {
     return 0 - this;
   }
   int operator &(int other) {
-    return other._bitAndFromInteger(this);
+    var result = other._bitAndFromInteger(this);
+    if (result != null) return result;
+    return other._toBigint()._bitAndFromInteger(this);
   }
   int operator |(int other) {
-    return other._bitOrFromInteger(this);
+    var result = other._bitOrFromInteger(this);
+    if (result != null) return result;
+    return other._toBigint()._bitOrFromInteger(this);
   }
   int operator ^(int other) {
-    return other._bitXorFromInteger(this);
+    var result = other._bitXorFromInteger(this);
+    if (result != null) return result;
+    return other._toBigint()._bitXorFromInteger(this);
   }
   num remainder(num other) {
     return other._remainderFromInteger(this);
@@ -63,10 +77,14 @@ class _IntegerImplementation extends _Num {
     return other - (other ~/ this) * this;
   }
   int operator >>(int other) {
-    return other._shrFromInt(this);
+    var result = other._shrFromInt(this);
+    if (result != null) return result;
+    return other._toBigint()._shrFromInt(this);
   }
   int operator <<(int other) {
-    return other._shlFromInt(this);
+    var result = other._shlFromInt(this);
+    if (result != null) return result;
+    return other._toBigint()._shlFromInt(this);
   }
   bool operator <(num other) {
     return other > this;
@@ -182,6 +200,7 @@ class _IntegerImplementation extends _Num {
 
   int toInt() { return this; }
   double toDouble() { return new _Double.fromInteger(this); }
+  _Bigint _toBigint() { return new _Bigint()._setInt(this); }
 
   String toStringAsFixed(int fractionDigits) {
     return this.toDouble().toStringAsFixed(fractionDigits);
@@ -463,32 +482,4 @@ class _Mint extends _IntegerImplementation implements int {
     }
   }
   int _shlFromInt(int other) native "Mint_shlFromInt";
-}
-
-// A number that can be represented as Smi or Mint will never be represented as
-// Bigint.
-class _Bigint extends _IntegerImplementation implements int {
-  factory _Bigint._uninstantiable() {
-    throw new UnsupportedError(
-        "_Bigint can only be allocated by the VM");
-  }
-  int get _identityHashCode {
-    return this;
-  }
-  int operator ~() native "Bigint_bitNegate";
-  int get bitLength native "Bigint_bitLength";
-
-  // Shift by bigint exceeds range that can be handled by the VM.
-  int _shrFromInt(int other) {
-    if (other < 0) {
-      return -1;
-    } else {
-      return 0;
-    }
-  }
-  int _shlFromInt(int other) native "Bigint_shlFromInt";
-
-  int pow(int exponent) {
-    throw "Bigint.pow not implemented";
-  }
 }

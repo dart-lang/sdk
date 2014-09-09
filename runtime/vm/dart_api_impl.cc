@@ -7,7 +7,6 @@
 #include "include/dart_native_api.h"
 
 #include "platform/assert.h"
-#include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/dart.h"
@@ -148,8 +147,8 @@ static bool GetNativeIntegerArgument(NativeArguments* arguments,
   intptr_t cid = obj.GetClassId();
   if (cid == kBigintCid) {
     const Bigint& bigint = Bigint::Cast(obj);
-    if (BigintOperations::FitsIntoInt64(bigint)) {
-      *value = BigintOperations::ToInt64(bigint);
+    if (bigint.FitsIntoInt64()) {
+      *value = bigint.AsInt64Value();
       return true;
     }
   }
@@ -174,8 +173,8 @@ static bool GetNativeUnsignedIntegerArgument(NativeArguments* arguments,
   intptr_t cid = obj.GetClassId();
   if (cid == kBigintCid) {
     const Bigint& bigint = Bigint::Cast(obj);
-    if (BigintOperations::FitsIntoUint64(bigint)) {
-      *value = BigintOperations::ToUint64(bigint);
+    if (bigint.FitsIntoUint64()) {
+      *value = bigint.AsUint64Value();
       return true;
     }
   }
@@ -884,8 +883,8 @@ DART_EXPORT uint64_t Dart_IdentityHash(Dart_Handle obj) {
   }
   if (result.IsBigint()) {
     const Bigint& bigint = Bigint::Cast(result);
-    if (BigintOperations::FitsIntoUint64(bigint)) {
-      return BigintOperations::ToUint64(bigint);
+    if (bigint.FitsIntoUint64()) {
+      return bigint.AsUint64Value();
     }
   }
   return 0;
@@ -1906,7 +1905,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, integer, Integer);
   }
-  ASSERT(!BigintOperations::FitsIntoInt64(Bigint::Cast(int_obj)));
+  ASSERT(!Bigint::Cast(int_obj).FitsIntoInt64());
   *fits = false;
   return Api::Success();
 }
@@ -1931,7 +1930,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
   if (int_obj.IsMint()) {
     *fits = !int_obj.IsNegative();
   } else {
-    *fits = BigintOperations::FitsIntoUint64(Bigint::Cast(int_obj));
+    *fits = Bigint::Cast(int_obj).FitsIntoUint64();
   }
   return Api::Success();
 }
@@ -1982,8 +1981,8 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
     return Api::Success();
   } else {
     const Bigint& bigint = Bigint::Cast(int_obj);
-    if (BigintOperations::FitsIntoInt64(bigint)) {
-      *value = BigintOperations::ToInt64(bigint);
+    if (bigint.FitsIntoInt64()) {
+      *value = bigint.AsInt64Value();
       return Api::Success();
     }
   }
@@ -2016,8 +2015,8 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
     return Api::Success();
   } else {
     const Bigint& bigint = Bigint::Cast(int_obj);
-    if (BigintOperations::FitsIntoUint64(bigint)) {
-      *value = BigintOperations::ToUint64(bigint);
+    if (bigint.FitsIntoUint64()) {
+      *value = bigint.AsUint64Value();
       return Api::Success();
     }
   }
@@ -2041,11 +2040,10 @@ DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
   }
   if (int_obj.IsSmi() || int_obj.IsMint()) {
     const Bigint& bigint = Bigint::Handle(isolate,
-        BigintOperations::NewFromInt64(int_obj.AsInt64Value()));
-    *value = BigintOperations::ToHexCString(bigint, BigintAllocate);
+        Bigint::NewFromInt64(int_obj.AsInt64Value()));
+    *value = bigint.ToHexCString(BigintAllocate);
   } else {
-    *value = BigintOperations::ToHexCString(Bigint::Cast(int_obj),
-                                            BigintAllocate);
+    *value = Bigint::Cast(int_obj).ToHexCString(BigintAllocate);
   }
   return Api::Success();
 }
@@ -2485,7 +2483,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
       // Check for a non-canonical Mint range value.
       ASSERT(retval.IsBigint());
       const Bigint& bigint = Bigint::Handle();
-      if (BigintOperations::FitsIntoInt64(bigint)) {
+      if (bigint.FitsIntoInt64()) {
         int64_t bigint_value = bigint.AsInt64Value();
         if (bigint_value >= kIntptrMin && bigint_value <= kIntptrMax) {
           *len = static_cast<intptr_t>(bigint_value);

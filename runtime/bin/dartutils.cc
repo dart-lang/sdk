@@ -869,6 +869,137 @@ Dart_CObject* CObject::NewIntptr(intptr_t value) {
 }
 
 
+static bool IsHexDigit(char c) {
+  return (('0' <= c) && (c <= '9'))
+      || (('A' <= c) && (c <= 'F'))
+      || (('a' <= c) && (c <= 'f'));
+}
+
+
+static int HexDigitToInt(char c) {
+  if (('0' <= c) && (c <= '9')) return c - '0';
+  if (('A' <= c) && (c <= 'F')) return 10 + (c - 'A');
+  return 10 + (c - 'a');
+}
+
+
+Dart_CObject* CObject::NewBigint(const char* hex_value) {
+  if (hex_value == NULL) {
+    return NULL;
+  }
+  bool neg = false;
+  if (hex_value[0] == '-') {
+    neg = true;
+    hex_value++;
+  }
+  if ((hex_value[0] != '0') ||
+      ((hex_value[1] != 'x') && (hex_value[1] != 'X'))) {
+    return NULL;
+  }
+  hex_value += 2;
+  intptr_t hex_i = strlen(hex_value);  // Terminating byte excluded.
+  if (hex_i == 0) {
+    return NULL;
+  }
+  const int kBitsPerHexDigit = 4;
+  const int kHexDigitsPerDigit = 8;
+  const int kBitsPerDigit = kBitsPerHexDigit * kHexDigitsPerDigit;
+  const intptr_t len = (hex_i + kHexDigitsPerDigit - 1) / kHexDigitsPerDigit;
+  Dart_CObject* cobject = New(Dart_CObject_kBigint);
+  cobject->value.as_bigint.digits = NewUint32Array(len);
+  uint32_t* digits = reinterpret_cast<uint32_t*>(
+      cobject->value.as_bigint.digits->value.as_typed_data.values);
+  intptr_t used = 0;
+  uint32_t digit = 0;
+  intptr_t bit_i = 0;
+  while (--hex_i >= 0) {
+    if (!IsHexDigit(hex_value[hex_i])) {
+      return NULL;
+    }
+    digit += HexDigitToInt(hex_value[hex_i]) << bit_i;
+    bit_i += kBitsPerHexDigit;
+    if (bit_i == kBitsPerDigit) {
+      bit_i = 0;
+      digits[used++] = digit;
+      digit = 0;
+    }
+  }
+  if (bit_i != 0) {
+    digits[used++] = digit;
+  }
+  while ((used > 0) && (digits[used - 1] == 0)) {
+    used--;
+  }
+  cobject->value.as_bigint.used = used;
+  if (used == 0) {
+    neg = false;
+  }
+  cobject->value.as_bigint.neg = neg;
+  return cobject;
+}
+
+
+static char IntToHexDigit(int i) {
+  ASSERT(0 <= i && i < 16);
+  if (i < 10) return static_cast<char>('0' + i);
+  return static_cast<char>('A' + (i - 10));
+}
+
+
+char* CObject::BigintToHexValue(Dart_CObject* bigint) {
+  ASSERT(bigint->type == Dart_CObject_kBigint);
+  const intptr_t used = bigint->value.as_bigint.used;
+  if (used == 0) {
+    const char* zero = "0x0";
+    const size_t len = strlen(zero) + 1;
+    char* hex_value = reinterpret_cast<char*>(malloc(len));
+    strncpy(hex_value, zero, len);
+    return hex_value;
+  }
+  const int kBitsPerHexDigit = 4;
+  const int kHexDigitsPerDigit = 8;
+  const intptr_t kMaxUsed = (kIntptrMax - 4) / kHexDigitsPerDigit;
+  if (used > kMaxUsed) {
+    return NULL;
+  }
+  intptr_t hex_len = (used - 1) * kHexDigitsPerDigit;
+  const uint32_t* digits = reinterpret_cast<uint32_t*>(
+      bigint->value.as_bigint.digits->value.as_typed_data.values);
+  // The most significant digit may use fewer than kHexDigitsPerDigit digits.
+  uint32_t digit = digits[used - 1];
+  ASSERT(digit != 0);  // Value must be clamped.
+  while (digit != 0) {
+    hex_len++;
+    digit >>= kBitsPerHexDigit;
+  }
+  const bool neg = bigint->value.as_bigint.neg;
+  // Add bytes for '0x', for the minus sign, and for the trailing \0 character.
+  const int32_t len = (neg ? 1 : 0) + 2 + hex_len + 1;
+  char* hex_value = reinterpret_cast<char*>(malloc(len));
+  intptr_t pos = len;
+  hex_value[--pos] = '\0';
+  for (intptr_t i = 0; i < (used - 1); i++) {
+    digit = digits[i];
+    for (intptr_t j = 0; j < kHexDigitsPerDigit; j++) {
+      hex_value[--pos] = IntToHexDigit(digit & 0xf);
+      digit >>= kBitsPerHexDigit;
+    }
+  }
+  digit = digits[used - 1];
+  while (digit != 0) {
+    hex_value[--pos] = IntToHexDigit(digit & 0xf);
+    digit >>= kBitsPerHexDigit;
+  }
+  hex_value[--pos] = 'x';
+  hex_value[--pos] = '0';
+  if (neg) {
+    hex_value[--pos] = '-';
+  }
+  ASSERT(pos == 0);
+  return hex_value;
+}
+
+
 Dart_CObject* CObject::NewDouble(double value) {
   Dart_CObject* cobject = New(Dart_CObject_kDouble);
   cobject->value.as_double = value;
@@ -904,6 +1035,15 @@ Dart_CObject* CObject::NewArray(intptr_t length) {
 Dart_CObject* CObject::NewUint8Array(intptr_t length) {
   Dart_CObject* cobject = New(Dart_CObject_kTypedData, length);
   cobject->value.as_typed_data.type = Dart_TypedData_kUint8;
+  cobject->value.as_typed_data.length = length;
+  cobject->value.as_typed_data.values = reinterpret_cast<uint8_t*>(cobject + 1);
+  return cobject;
+}
+
+
+Dart_CObject* CObject::NewUint32Array(intptr_t length) {
+  Dart_CObject* cobject = New(Dart_CObject_kTypedData, 4*length);
+  cobject->value.as_typed_data.type = Dart_TypedData_kUint32;
   cobject->value.as_typed_data.length = length;
   cobject->value.as_typed_data.values = reinterpret_cast<uint8_t*>(cobject + 1);
   return cobject;

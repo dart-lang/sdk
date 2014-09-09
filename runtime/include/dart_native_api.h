@@ -52,7 +52,11 @@ typedef struct _Dart_CObject {
     int64_t as_int64;
     double as_double;
     char* as_string;
-    char* as_bigint;
+    struct {
+      bool neg;
+      intptr_t used;
+      struct _Dart_CObject* digits;
+    } as_bigint;
     Dart_Port as_send_port;
     struct {
       intptr_t length;

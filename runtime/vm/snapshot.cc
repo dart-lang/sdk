@@ -5,7 +5,6 @@
 #include "vm/snapshot.h"
 
 #include "platform/assert.h"
-#include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/exceptions.h"
@@ -156,7 +155,7 @@ RawSmi* BaseReader::ReadAsSmi() {
 
 
 intptr_t BaseReader::ReadSmiValue() {
-  return  Smi::Value(ReadAsSmi());
+  return Smi::Value(ReadAsSmi());
 }
 
 
@@ -617,19 +616,6 @@ RawMint* SnapshotReader::NewMint(int64_t value) {
 }
 
 
-RawBigint* SnapshotReader::NewBigint(const char* hex_string) {
-  ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
-  intptr_t bigint_length = BigintOperations::ComputeChunkLength(hex_string);
-  RawBigint* obj = reinterpret_cast<RawBigint*>(
-      AllocateUninitialized(kBigintCid, Bigint::InstanceSize(bigint_length)));
-  obj->ptr()->allocated_length_ = bigint_length;
-  obj->ptr()->signed_length_ = bigint_length;
-  BigintOperations::FromHexCString(hex_string, Bigint::Handle(obj));
-  return obj;
-}
-
-
 RawDouble* SnapshotReader::NewDouble(double value) {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT(isolate()->no_gc_scope_depth() != 0);
@@ -656,6 +642,11 @@ RawTypedData* SnapshotReader::NewTypedData(intptr_t class_id, intptr_t len) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);                                 \
   return reinterpret_cast<Raw##type*>(                                         \
       AllocateUninitialized(k##type##Cid, type::InstanceSize()));              \
+
+
+RawBigint* SnapshotReader::NewBigint() {
+  ALLOC_NEW_OBJECT(Bigint);
+}
 
 
 RawUnresolvedClass* SnapshotReader::NewUnresolvedClass() {

@@ -5,7 +5,6 @@
 #include "platform/globals.h"
 
 #include "vm/assembler.h"
-#include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
@@ -346,9 +345,9 @@ TEST_CASE(Smi) {
   EXPECT_EQ(-1, c.CompareWith(mint1));
   EXPECT_EQ(1, c.CompareWith(mint2));
 
-  Bigint& big1 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString(
       "10000000000000000000"));
-  Bigint& big2 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big2 = Bigint::Handle(Bigint::NewFromCString(
       "-10000000000000000000"));
   EXPECT_EQ(-1, a.CompareWith(big1));
   EXPECT_EQ(1, a.CompareWith(big2));
@@ -509,9 +508,9 @@ TEST_CASE(Mint) {
   EXPECT_EQ(-1, c.CompareWith(smi1));
   EXPECT_EQ(-1, c.CompareWith(smi2));
 
-  Bigint& big1 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString(
       "10000000000000000000"));
-  Bigint& big2 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big2 = Bigint::Handle(Bigint::NewFromCString(
       "-10000000000000000000"));
   EXPECT_EQ(-1, a.CompareWith(big1));
   EXPECT_EQ(1, a.CompareWith(big2));
@@ -625,17 +624,16 @@ TEST_CASE(Bigint) {
   EXPECT_STREQ(cstr, str);
 
   int64_t t64 = DART_2PART_UINT64_C(1, 0);
-  Bigint& big = Bigint::Handle();
-  big = BigintOperations::NewFromInt64(t64);
+  Bigint& big = Bigint::Handle(Bigint::NewFromInt64(t64));
   EXPECT_EQ(t64, big.AsInt64Value());
-  big = BigintOperations::NewFromCString("10000000000000000000");
+  big = Bigint::NewFromCString("10000000000000000000");
   EXPECT_EQ(1e19, big.AsDoubleValue());
 
-  Bigint& big1 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString(
       "100000000000000000000"));
-  Bigint& big2 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big2 = Bigint::Handle(Bigint::NewFromCString(
       "100000000000000000010"));
-  Bigint& big3 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big3 = Bigint::Handle(Bigint::NewFromCString(
       "-10000000000000000000"));
 
   EXPECT_EQ(0, big1.CompareWith(big1));

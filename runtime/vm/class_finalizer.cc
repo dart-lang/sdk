@@ -200,8 +200,6 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT(Smi::InstanceSize() == cls.instance_size());
   cls = object_store->mint_class();
   ASSERT(Mint::InstanceSize() == cls.instance_size());
-  cls = object_store->bigint_class();
-  ASSERT(Bigint::InstanceSize() == cls.instance_size());
   cls = object_store->one_byte_string_class();
   ASSERT(OneByteString::InstanceSize() == cls.instance_size());
   cls = object_store->two_byte_string_class();

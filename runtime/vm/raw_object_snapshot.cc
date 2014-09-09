@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/bigint_operations.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot.h"
@@ -21,12 +20,6 @@ namespace dart {
 #define NEW_OBJECT_WITH_LEN_SPACE(type, len, kind)                             \
   ((kind == Snapshot::kFull) ?                                                 \
   reader->New##type(len) : type::New(len, HEAP_SPACE(kind)))
-
-
-static uword BigintAllocator(intptr_t size) {
-  Zone* zone = Isolate::Current()->current_zone();
-  return zone->AllocUnsafe(size);
-}
 
 
 RawClass* Class::ReadFrom(SnapshotReader* reader,
@@ -1717,17 +1710,19 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
                             Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
-  // Read in the HexCString representation of the bigint.
-  int32_t len = reader->Read<int32_t>();
-  char* str = reader->isolate()->current_zone()->Alloc<char>(len + 1);
-  str[len] = '\0';
-  reader->ReadBytes(reinterpret_cast<uint8_t*>(str), len);
+  // Allocate bigint object.
+  Bigint& obj = Bigint::ZoneHandle(reader->isolate(), NEW_OBJECT(Bigint));
+  reader->AddBackRef(object_id, &obj, kIsDeserialized);
 
-  // Create a Bigint object from HexCString.
-  Bigint& obj = Bigint::ZoneHandle(
-      reader->isolate(),
-      ((kind == Snapshot::kFull) ? reader->NewBigint(str) :
-       BigintOperations::FromHexCString(str, HEAP_SPACE(kind))));
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (obj.raw()->to() - obj.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    obj.StorePointer(obj.raw()->from() + i,
+                     reader->PassiveObjectHandle()->raw());
+  }
 
   // If it is a canonical constant make it one.
   // When reading a full snapshot we don't need to canonicalize the object
@@ -1743,7 +1738,6 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
     obj ^= obj.CheckAndCanonicalize(NULL);
     ASSERT(!obj.IsNull());
   }
-  reader->AddBackRef(object_id, &obj, kIsDeserialized);
 
   // Set the object tags.
   obj.set_tags(tags);
@@ -1764,33 +1758,9 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kBigintCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
-  // Write out the bigint value as a HEXCstring.
-  int32_t length = ptr()->signed_length_;
-  bool is_negative = false;
-  if (length <= 0) {
-    length = -length;
-    is_negative = true;
-  }
-  uword data_start = reinterpret_cast<uword>(ptr()) + sizeof(RawBigint);
-  const char* str = BigintOperations::ToHexCString(
-      length,
-      is_negative,
-      reinterpret_cast<void*>(data_start),
-      &BigintAllocator);
-  bool neg = false;
-  if (*str == '-') {
-    neg = true;
-    str++;
-  }
-  intptr_t len = strlen(str);
-  ASSERT(len > 2 && str[0] == '0' && str[1] == 'x');
-  if (neg) {
-    writer->Write<int32_t>(len - 1);  // Include '-' in length.
-    writer->Write<uint8_t>('-');
-  } else {
-    writer->Write<int32_t>(len - 2);
-  }
-  writer->WriteBytes(reinterpret_cast<const uint8_t*>(&(str[2])), (len - 2));
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
 }
 
 

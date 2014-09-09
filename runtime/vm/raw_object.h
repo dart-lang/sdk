@@ -1446,21 +1446,11 @@ class RawMint : public RawInteger {
 class RawBigint : public RawInteger {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Bigint);
 
-  // Actual length in chunks at the time of allocation (later we may
-  // clamp the operational length but we need to maintain a consistent
-  // object length so that the object can be traversed during GC).
-  int32_t allocated_length_;
-
-  // Operational length in chunks of the bigint object, clamping can
-  // cause this length to be reduced. If the signed_length_ is
-  // negative then the number is negative.
-  int32_t signed_length_;
-
-  // A sequence of Chunks (typedef in Bignum) representing bignum digits.
-  // Bignum::Chunk chunks_[Utils::Abs(signed_length_)];
-  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
-
-  friend class SnapshotReader;
+  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->neg_); }
+  RawBool* neg_;
+  RawSmi* used_;
+  RawTypedData* digits_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->digits_); }
 };
 
 
@@ -2026,7 +2016,6 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          (index == kCodeCid) ||
          (index == kContextScopeCid) ||
          (index == kInstanceCid) ||
-         (index == kBigintCid) ||
          (index == kJSRegExpCid);
 }
 

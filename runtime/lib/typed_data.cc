@@ -6,7 +6,6 @@
 
 #include "include/dart_api.h"
 
-#include "vm/bigint_operations.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
@@ -280,6 +279,8 @@ DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
 
 // TODO(asiva): Consider truncating the bigint value if it does not fit into
 // a uint64_t value (see ASSERT(BigintOperations::FitsIntoUint64(bigint))).
+// TODO(regis): Shouldn't we throw an argument error if the bigint is too large
+// instead of assert faulting or truncating the bigint as suggested?
 #define TYPED_DATA_UINT64_SETTER(setter, object)                               \
 DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
@@ -288,8 +289,8 @@ DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
   uint64_t object_value;                                                       \
   if (value.IsBigint()) {                                                      \
     const Bigint& bigint = Bigint::Cast(value);                                \
-    ASSERT(BigintOperations::FitsIntoUint64(bigint));                          \
-    object_value = BigintOperations::AbsToUint64(bigint);                      \
+    ASSERT(bigint.FitsIntoUint64());                                           \
+    object_value = bigint.AsUint64Value();                                     \
   } else {                                                                     \
     ASSERT(value.IsMint() || value.IsSmi());                                   \
     object_value = value.AsInt64Value();                                       \
@@ -415,8 +416,8 @@ DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint64, 2) {
   uint64_t value;
   if (host_value.IsBigint()) {
     const Bigint& bigint = Bigint::Cast(host_value);
-    ASSERT(BigintOperations::FitsIntoUint64(bigint));
-    value = BigintOperations::AbsToUint64(bigint);
+    ASSERT(bigint.FitsIntoUint64());
+    value = bigint.AsUint64Value();
   } else {
     ASSERT(host_value.IsMint() || host_value.IsSmi());
     value = host_value.AsInt64Value();
