@@ -1606,8 +1606,6 @@ class JavaScriptBackend extends Backend {
     return symbolsUsed.contains(name);
   }
 
-  bool get rememberLazies => isTreeShakingDisabled;
-
   bool retainMetadataOf(Element element) {
     if (mustRetainMetadata) hasRetainedMetadata = true;
     if (mustRetainMetadata && referencedFromMirrorSystem(element)) {

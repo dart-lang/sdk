@@ -580,12 +580,34 @@ class CodeEmitterTask extends CompilerTask {
           for (var staticName in isolateProperties)
             if (hasOwnProperty.call(isolateProperties, staticName))
               this[staticName] = isolateProperties[staticName];
+
+          // Reset lazy initializers to null.
+          // When forcing the object to fast mode (below) v8 will consider
+          // functions as part the object's map. Since we will change them
+          // (after the first call to the getter), we would have a map
+          // transition.
+          var lazies = init.lazies;
+          for (var lazyInit in lazies) {
+             var lazyInitName = lazies[lazyInit];
+             if (hasOwnProperty.call(lazies, lazyInitName)) {
+               this[lazyInitName] = null;
+             }
+          }
+
           // Use the newly created object as prototype. In Chrome,
           // this creates a hidden class for the object and makes
           // sure it is fast to access.
           function ForceEfficientMap() {}
           ForceEfficientMap.prototype = this;
           new ForceEfficientMap();
+
+          // Now, after being a fast map we can set the lazies again.
+          for (var lazyInit in lazies) {
+            lazyInitName = lazies[lazyInit];
+            if (hasOwnProperty.call(isolateProperties, lazyInitName)) {
+              this[lazyInitName] = isolateProperties[lazyInitName];
+            }
+          }
         }
         Isolate.prototype = oldIsolate.prototype;
         Isolate.prototype.constructor = Isolate;
@@ -610,10 +632,8 @@ class CodeEmitterTask extends CompilerTask {
 
     return js('''
       function (prototype, staticName, fieldName, getterName, lazyValue) {
-        if (#) {
-          if (!#) # = Object.create(null);
-          #[fieldName] = getterName;
-        }
+        if (!#) # = Object.create(null);
+        #[fieldName] = getterName;
 
         var sentinelUndefined = {};
         var sentinelInProgress = {};
@@ -644,8 +664,7 @@ class CodeEmitterTask extends CompilerTask {
           }
         }
       }
-    ''', [backend.rememberLazies,
-          laziesAccess, laziesAccess,
+    ''', [laziesAccess, laziesAccess,
           laziesAccess,
           cyclicThrow]);
   }
