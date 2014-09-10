@@ -1822,6 +1822,13 @@ static void Join(Range* range,
 }
 
 
+// A definition dominates a phi if its block dominates the phi's block
+// and the two blocks are different.
+static bool DominatesPhi(BlockEntryInstr* a, BlockEntryInstr* phi_block) {
+  return a->Dominates(phi_block) && (a != phi_block);
+}
+
+
 // When assigning range to a phi we must take care to avoid self-reference
 // cycles when phi's range depends on the phi itself.
 // To prevent such cases we impose additional restriction on symbols that
@@ -1830,14 +1837,14 @@ static void Join(Range* range,
 static RangeBoundary EnsureAcyclicSymbol(BlockEntryInstr* phi_block,
                                          const RangeBoundary& a,
                                          const RangeBoundary& limit) {
-  if (!a.IsSymbol() || a.symbol()->GetBlock()->Dominates(phi_block)) {
+  if (!a.IsSymbol() || DominatesPhi(a.symbol()->GetBlock(), phi_block)) {
     return a;
   }
 
   // Symbol does not dominate phi. Try unwrapping constraint and check again.
   Definition* unwrapped = UnwrapConstraint(a.symbol());
   if ((unwrapped != a.symbol()) &&
-      unwrapped->GetBlock()->Dominates(phi_block)) {
+      DominatesPhi(unwrapped->GetBlock(), phi_block)) {
     return RangeBoundary::FromDefinition(unwrapped, a.offset());
   }
 
