@@ -257,9 +257,6 @@ class AssetEnvironment {
           if (result.success) {
             log.message("Precompiled ${_formatExecutable(id)}.");
           } else {
-            // TODO(nweiz): Stop manually deleting this when issue 20504 is
-            // fixed.
-            deleteEntry(snapshotPath);
             throw new ApplicationException(
                 log.yellow("Failed to precompile "
                     "${_formatExecutable(id)}:\n") +
