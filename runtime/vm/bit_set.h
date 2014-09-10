@@ -41,7 +41,7 @@ class BitSet {
     ASSERT(i >= 0);
     ASSERT(i < N);
     intptr_t w = i >> kBitsPerWordLog2;
-    uword mask = ~static_cast<uword>(0) << i;
+    uword mask = ~static_cast<uword>(0) << (i & (kBitsPerWord - 1));
     if ((data_[w] & mask) != 0) {
       uword tz = Utils::CountTrailingZeros(data_[w] & mask);
       return (w << kBitsPerWordLog2) + tz;
