@@ -911,6 +911,23 @@ import 'dart:math';
     assertNoAssistAt('import ', AssistKind.IMPORT_ADD_SHOW);
   }
 
+  void test_importAddShow_OK_hasUnresolvedIdentifier() {
+    _indexTestUnit('''
+import 'dart:math';
+main(x) {
+  PI;
+  return x.foo();
+}
+''');
+    assertHasAssistAt('import ', AssistKind.IMPORT_ADD_SHOW, '''
+import 'dart:math' show PI;
+main(x) {
+  PI;
+  return x.foo();
+}
+''');
+  }
+
   void test_importAddShow_OK_onDirective() {
     _indexTestUnit('''
 import 'dart:math';

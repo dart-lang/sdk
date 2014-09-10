@@ -530,7 +530,7 @@ class AssistProcessor {
     _SimpleIdentifierRecursiveAstVisitor visitor =
         new _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
       Element element = node.staticElement;
-      if (namespace[node.name] == element) {
+      if (element != null && namespace[node.name] == element) {
         referencedNames.add(element.displayName);
       }
     });
