@@ -358,6 +358,32 @@ class IrBuilder {
         (k) => new ir.InvokeStatic(element, selector, k, arguments));
   }
 
+  // TODO(johnniwinther): Build constants directly through [ConstExp] when these
+  // are created from analyzer2dart.
+  ir.Constant buildIntegerLiteral(int value) {
+    assert(isOpen);
+    ir.Node prim = makePrimConst(constantSystem.createInt(value));
+    add(new ir.LetPrim(prim));
+    return prim;
+  }
+
+
+  /// Creates a return statement `return value;` or `return;` if [value] is
+  /// null.
+  void buildReturn([ir.Primitive value]) {
+    // Build(Return(e), C) = C'[InvokeContinuation(return, x)]
+    //   where (C', x) = Build(e, C)
+    //
+    // Return without a subexpression is translated as if it were return null.
+    assert(isOpen);
+    if (value == null) {
+      value = makePrimConst(constantSystem.createNull());
+      add(new ir.LetPrim(value));
+    }
+    add(new ir.InvokeContinuation(returnContinuation, [value]));
+    current = null;
+  }
+
 }
 
 /**
@@ -1031,18 +1057,13 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
   //
   // Return without a subexpression is translated as if it were return null.
   ir.Primitive visitReturn(ast.Return node) {
-    assert(isOpen);
     // TODO(lry): support native returns.
     if (node.beginToken.value == 'native') return giveup(node, 'Native return');
-    ir.Primitive value;
     if (node.expression == null) {
-      value = makePrimConst(constantSystem.createNull());
-      add(new ir.LetPrim(value));
+      buildReturn();
     } else {
-      value = visit(node.expression);
+      buildReturn(visit(node.expression));
     }
-    add(new ir.InvokeContinuation(returnContinuation, [value]));
-    current = null;
     return null;
   }
 

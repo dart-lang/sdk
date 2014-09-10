@@ -105,6 +105,20 @@ main() $NEW_BACKEND_COMMENT
 
 ''');
   });
+
+  test('Literals', () {
+    checkResult('''
+main() {
+  return 0;
+}
+''', '''
+main() $NEW_BACKEND_COMMENT
+  {
+    return 0;
+  }
+
+''');
+  });
 }
 
 checkResult(String input, String expectedOutput) {

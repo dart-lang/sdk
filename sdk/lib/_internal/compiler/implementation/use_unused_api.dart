@@ -69,7 +69,7 @@ void main(List<String> arguments) {
   useCodeBuffer(null);
   usedByTests();
   useElements(null, null, null);
-  useIr(null, null);
+  useIr(null, null, null);
   useCompiler(null);
 }
 
@@ -221,7 +221,8 @@ useElements(elements.ClassElement e, elements.Name n, modelx.FieldElementX f) {
 }
 
 useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
-      ir_builder.IrBuilderTask task) {
+      ir_builder.IrBuilderTask task,
+      ir_builder.IrBuilder builder) {
   new cps_ir_nodes_sexpr.SExpressionStringifier();
   stringifier
     ..newContinuationName()
@@ -238,6 +239,8 @@ useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
   task
     ..hasIr(null)
     ..getIr(null);
+  builder
+    ..buildIntegerLiteral(null);
 }
 
 useCompiler(dart2jslib.Compiler compiler) {

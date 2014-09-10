@@ -40,4 +40,18 @@ class CpsGeneratingVisitor extends RecursiveAstVisitor<ir.Node> {
           element, createSelectorFromMethodInvocation(node), []);
     }
   }
+
+  @override
+  visitIntegerLiteral(IntegerLiteral node) {
+    return irBuilder.buildIntegerLiteral(node.value);
+  }
+
+  @override
+  visitReturnStatement(ReturnStatement node) {
+    if (node.expression != null) {
+      irBuilder.buildReturn(node.expression.accept(this));
+    } else {
+      irBuilder.buildReturn();
+    }
+  }
 }
