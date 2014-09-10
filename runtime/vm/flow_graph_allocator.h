@@ -56,7 +56,8 @@ class FlowGraphAllocator : public ValueObject {
   // Number of stack slots needed for a fpu register spill slot.
   static const intptr_t kDoubleSpillFactor = kDoubleSize / kWordSize;
 
-  explicit FlowGraphAllocator(const FlowGraph& flow_graph);
+  explicit FlowGraphAllocator(const FlowGraph& flow_graph,
+                              bool intrinsic_mode = false);
 
   void AllocateRegisters();
 
@@ -323,6 +324,8 @@ class FlowGraphAllocator : public ValueObject {
   GrowableArray<bool> untagged_spill_slots_;
 
   intptr_t cpu_spill_slot_count_;
+
+  const bool intrinsic_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphAllocator);
 };

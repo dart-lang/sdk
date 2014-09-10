@@ -1909,12 +1909,15 @@ class PhiInstr : public Definition {
 
 class ParameterInstr : public Definition {
  public:
-  ParameterInstr(intptr_t index, BlockEntryInstr* block)
-      : index_(index), block_(block) { }
+  ParameterInstr(intptr_t index,
+                 BlockEntryInstr* block,
+                 Register base_reg = FPREG)
+      : index_(index), base_reg_(base_reg), block_(block) { }
 
   DECLARE_INSTRUCTION(Parameter)
 
   intptr_t index() const { return index_; }
+  Register base_reg() const { return base_reg_; }
 
   // Get the block entry for that instruction.
   virtual BlockEntryInstr* GetBlock() const { return block_; }
@@ -1947,6 +1950,7 @@ class ParameterInstr : public Definition {
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   const intptr_t index_;
+  const Register base_reg_;
   BlockEntryInstr* block_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
@@ -7675,7 +7679,6 @@ class CheckSmiInstr : public TemplateInstruction<1> {
  public:
   CheckSmiInstr(Value* value, intptr_t original_deopt_id, intptr_t token_pos)
       : token_pos_(token_pos) {
-    ASSERT(original_deopt_id != Isolate::kNoDeoptId);
     SetInputAt(0, value);
     deopt_id_ = original_deopt_id;
   }

@@ -91,7 +91,7 @@ class FlowGraph : public ZoneAllocated {
   }
 
   // Function properties.
-  const ParsedFunction& parsed_function() const {
+  ParsedFunction& parsed_function() const {
     return parsed_function_;
   }
   intptr_t parameter_count() const {
@@ -317,7 +317,7 @@ class FlowGraph : public ZoneAllocated {
 
   // Flow graph fields.
   const FlowGraphBuilder& builder_;
-  const ParsedFunction& parsed_function_;
+  ParsedFunction& parsed_function_;
   const intptr_t num_copied_params_;
   const intptr_t num_non_copied_params_;
   const intptr_t num_stack_locals_;

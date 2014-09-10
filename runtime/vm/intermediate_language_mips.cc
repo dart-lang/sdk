@@ -88,6 +88,13 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("ReturnInstr");
   Register result = locs()->in(0).reg();
   ASSERT(result == V0);
+
+  if (compiler->intrinsic_mode()) {
+    // Intrinsics don't have a frame.
+    __ Ret();
+    return;
+  }
+
 #if defined(DEBUG)
   Label stack_ok;
   __ Comment("Stack Check");
@@ -1706,7 +1713,6 @@ class BoxAllocationSlowPath : public SlowPathCode {
       __ mov(result_, V0);
     }
     compiler->RestoreLiveRegisters(locs);
-
     __ b(exit_label());
   }
 
@@ -1715,21 +1721,28 @@ class BoxAllocationSlowPath : public SlowPathCode {
                        const Class& cls,
                        Register result,
                        Register temp) {
-    BoxAllocationSlowPath* slow_path =
-        new BoxAllocationSlowPath(instruction, cls, result);
-    compiler->AddSlowPathCode(slow_path);
+    if (compiler->intrinsic_mode()) {
+      __ TryAllocate(cls,
+                     compiler->intrinsic_slow_path_label(),
+                     result,
+                     temp);
+    } else {
+      BoxAllocationSlowPath* slow_path =
+          new BoxAllocationSlowPath(instruction, cls, result);
+      compiler->AddSlowPathCode(slow_path);
 
-    __ TryAllocate(cls,
-                   slow_path->entry_label(),
-                   result,
-                   temp);
-    __ Bind(slow_path->exit_label());
+      __ TryAllocate(cls,
+                     slow_path->entry_label(),
+                     result,
+                     temp);
+      __ Bind(slow_path->exit_label());
+    }
   }
 
  private:
   Instruction* instruction_;
   const Class& cls_;
-  Register result_;
+  const Register result_;
 };
 
 

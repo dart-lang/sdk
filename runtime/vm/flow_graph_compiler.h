@@ -273,7 +273,7 @@ class FlowGraphCompiler : public ValueObject {
 
   // Accessors.
   Assembler* assembler() const { return assembler_; }
-  const ParsedFunction& parsed_function() const { return parsed_function_; }
+  ParsedFunction& parsed_function() const { return parsed_function_; }
   const GrowableArray<BlockEntryInstr*>& block_order() const {
     return block_order_;
   }
@@ -291,6 +291,14 @@ class FlowGraphCompiler : public ValueObject {
   bool CanOptimizeFunction() const;
   bool CanOSRFunction() const;
   bool is_optimizing() const { return is_optimizing_; }
+
+  void EnterIntrinsicMode();
+  void ExitIntrinsicMode();
+  bool intrinsic_mode() const { return intrinsic_mode_; }
+
+  Label* intrinsic_slow_path_label() {
+    return &intrinsic_slow_path_label_;
+  }
 
   bool ForceSlowPathForStackOverflow() const;
 
@@ -601,7 +609,7 @@ class FlowGraphCompiler : public ValueObject {
 
   Isolate* isolate_;
   Assembler* assembler_;
-  const ParsedFunction& parsed_function_;
+  ParsedFunction& parsed_function_;
   const FlowGraph& flow_graph_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
 
@@ -620,6 +628,9 @@ class FlowGraphCompiler : public ValueObject {
   const bool is_optimizing_;
   // Set to true if optimized code has IC calls.
   bool may_reoptimize_;
+  // True while emitting intrinsic code.
+  bool intrinsic_mode_;
+  Label intrinsic_slow_path_label_;
 
   const Class& double_class_;
   const Class& mint_class_;

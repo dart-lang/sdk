@@ -20,44 +20,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 #define __ assembler->
 
 
-void Intrinsifier::ObjectArrayLength(Assembler* assembler) {
-  __ lw(V0, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->lw(V0, FieldAddress(V0, Array::length_offset()));
-}
-
-
-void Intrinsifier::ImmutableArrayLength(Assembler* assembler) {
-  ObjectArrayLength(assembler);
-}
-
-
-void Intrinsifier::ObjectArrayGetIndexed(Assembler* assembler) {
-  Label fall_through;
-
-  __ lw(T0, Address(SP, + 0 * kWordSize));  // Index
-
-  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
-  __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through
-  __ delay_slot()->lw(T1, Address(SP, + 1 * kWordSize));  // Array
-
-  // Range check.
-  __ lw(T2, FieldAddress(T1, Array::length_offset()));
-  __ BranchUnsignedGreaterEqual(T0, T2, &fall_through);
-
-  ASSERT(kSmiTagShift == 1);
-  // array element at T1 + T0*2 + Array::data_offset - 1
-  __ sll(T2, T0, 1);
-  __ addu(T2, T1, T2);
-  __ Ret();
-  __ delay_slot()->lw(V0, FieldAddress(T2, Array::data_offset()));
-  __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::ImmutableArrayGetIndexed(Assembler* assembler) {
-  ObjectArrayGetIndexed(assembler);
-}
+intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 
 
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
@@ -166,22 +129,6 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
       FieldAddress(V0, GrowableObjectArray::length_offset()));
 
   __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::GrowableArrayLength(Assembler* assembler) {
-  __ lw(V0, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->lw(V0,
-      FieldAddress(V0, GrowableObjectArray::length_offset()));
-}
-
-
-void Intrinsifier::GrowableArrayCapacity(Assembler* assembler) {
-  __ lw(V0, Address(SP, 0 * kWordSize));
-  __ lw(V0, FieldAddress(V0, GrowableObjectArray::data_offset()));
-  __ Ret();
-  __ delay_slot()->lw(V0, FieldAddress(V0, Array::length_offset()));
 }
 
 
@@ -396,131 +343,6 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
                                                                                \
   __ Ret();                                                                    \
   __ Bind(&fall_through);                                                      \
-
-
-// Gets the length of a TypedData.
-void Intrinsifier::TypedDataLength(Assembler* assembler) {
-  __ lw(T0, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->lw(V0, FieldAddress(T0, TypedData::length_offset()));
-}
-
-
-void Intrinsifier::Uint8ArrayGetIndexed(Assembler* assembler) {
-  Label fall_through;
-
-  __ lw(T0, Address(SP, + 0 * kWordSize));  // Index.
-
-  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
-  __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through.
-  __ delay_slot()->lw(T1, Address(SP, + 1 * kWordSize));  // Array.
-
-  // Range check.
-  __ lw(T2, FieldAddress(T1, TypedData::length_offset()));
-  __ BranchUnsignedGreaterEqual(T0, T2, &fall_through);
-
-  __ SmiUntag(T0);
-  __ addu(T1, T1, T0);
-  __ lbu(V0, FieldAddress(T1, TypedData::data_offset()));
-  __ Ret();
-  __ delay_slot()->SmiTag(V0);
-
-  __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::ExternalUint8ArrayGetIndexed(Assembler* assembler) {
-  Label fall_through;
-
-  __ lw(T0, Address(SP, + 0 * kWordSize));  // Index.
-
-  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
-  __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through.
-  __ delay_slot()->lw(T1, Address(SP, + 1 * kWordSize));  // Array.
-
-  // Range check.
-  __ lw(T2, FieldAddress(T1, TypedData::length_offset()));
-  __ BranchUnsignedGreaterEqual(T0, T2, &fall_through);
-
-  __ lw(T1, FieldAddress(T1, ExternalTypedData::data_offset()));
-  __ SmiUntag(T0);
-  __ addu(T1, T1, T0);
-  __ lbu(V0, Address(T1, 0));
-  __ Ret();
-  __ delay_slot()->SmiTag(V0);
-
-  __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::Float64ArrayGetIndexed(Assembler* assembler) {
-  Label fall_through;
-
-  __ lw(T0, Address(SP, + 0 * kWordSize));  // Index.
-
-  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
-  __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through.
-  __ delay_slot()->lw(T1, Address(SP, + 1 * kWordSize));  // Array.
-
-  // Range check.
-  __ lw(T2, FieldAddress(T1, TypedData::length_offset()));
-  __ BranchUnsignedGreaterEqual(T0, T2, &fall_through);
-
-  Address element_address =
-      __ ElementAddressForRegIndex(true,  // Load.
-                                   false,  // Not external.
-                                   kTypedDataFloat64ArrayCid,  // Cid.
-                                   8,  // Index scale.
-                                   T1,  // Array.
-                                   T0);  // Index.
-
-  __ LoadDFromOffset(D0, element_address.base(), element_address.offset());
-
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class,
-                 &fall_through,
-                 V0,  // Result register.
-                 T1);
-  __ StoreDToOffset(D0, V0, Double::value_offset() - kHeapObjectTag);
-  __ Ret();
-  __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::Float64ArraySetIndexed(Assembler* assembler) {
-  Label fall_through;
-
-  __ lw(T0, Address(SP, + 1 * kWordSize));  // Index.
-
-  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
-  __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through.
-  __ delay_slot()->lw(T1, Address(SP, + 2 * kWordSize));  // Array.
-
-  // Range check.
-  __ lw(T2, FieldAddress(T1, TypedData::length_offset()));
-  __ BranchUnsignedGreaterEqual(T0, T2, &fall_through);
-
-  __ lw(T2, Address(SP, + 0 * kWordSize));  // Value.
-  __ andi(CMPRES1, T2, Immediate(kSmiTagMask));
-  __ beq(CMPRES1, ZR, &fall_through);  // Value is a Smi. Fall through.
-
-  __ LoadClassId(T3, T2);
-  __ BranchNotEqual(T3, kDoubleCid, &fall_through);  // Not a Double.
-
-  __ LoadDFromOffset(D0, T2, Double::value_offset() - kHeapObjectTag);
-
-  Address element_address =
-      __ ElementAddressForRegIndex(false,  // Store.
-                                   false,  // Not external.
-                                   kTypedDataFloat64ArrayCid,  // Cid.
-                                   8,  // Index scale.
-                                   T1,  // Array.
-                                   T0);  // Index.
-  __ StoreDToOffset(D0, element_address.base(), element_address.offset());
-  __ Ret();
-  __ Bind(&fall_through);
-}
 
 
 static int GetScaleFactor(intptr_t size) {
@@ -1447,13 +1269,6 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ beq(V0, ZR, &fall_through);
   __ Ret();
   __ Bind(&fall_through);  // Hash not yet computed.
-}
-
-
-void Intrinsifier::StringBaseLength(Assembler* assembler) {
-  __ lw(T0, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->lw(V0, FieldAddress(T0, String::length_offset()));
 }
 
 

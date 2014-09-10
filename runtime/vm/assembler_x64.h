@@ -688,6 +688,13 @@ class Assembler : public ValueObject {
     kNotPatchable,
   };
 
+  bool allow_constant_pool() const {
+    return allow_constant_pool_;
+  }
+  void set_allow_constant_pool(bool b) {
+    allow_constant_pool_ = b;
+  }
+
   bool CanLoadImmediateFromPool(const Immediate& imm, Register pp);
   void LoadImmediate(Register reg, const Immediate& imm, Register pp);
   void LoadImmediate(const Address& dst, const Immediate& imm, Register pp);
@@ -983,6 +990,7 @@ class Assembler : public ValueObject {
   };
 
   GrowableArray<CodeComment*> comments_;
+  bool allow_constant_pool_;
 
   intptr_t FindObject(const Object& obj, Patchability patchable);
   intptr_t FindExternalLabel(const ExternalLabel* label,

@@ -29,39 +29,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 #define __ assembler->
 
 
-void Intrinsifier::ObjectArrayLength(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, Array::length_offset()));
-  __ ret();
-}
-
-
-void Intrinsifier::ImmutableArrayLength(Assembler* assembler) {
-  ObjectArrayLength(assembler);
-}
-
-
-void Intrinsifier::ObjectArrayGetIndexed(Assembler* assembler) {
-  Label fall_through;
-  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
-  __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
-  __ cmpl(EBX, FieldAddress(EAX, Array::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-  // Note that EBX is Smi, i.e, times 2.
-  ASSERT(kSmiTagShift == 1);
-  __ movl(EAX, FieldAddress(EAX, EBX, TIMES_2, Array::data_offset()));
-  __ ret();
-  __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::ImmutableArrayGetIndexed(Assembler* assembler) {
-  ObjectArrayGetIndexed(assembler);
-}
+intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
 
 
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
@@ -170,25 +138,6 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   __ ret();  // returns the newly allocated object in EAX.
 
   __ Bind(&fall_through);
-}
-
-
-// Get length of growable object array.
-// On stack: growable array (+1), return-address (+0).
-void Intrinsifier::GrowableArrayLength(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, GrowableObjectArray::length_offset()));
-  __ ret();
-}
-
-
-// Get capacity of growable object array.
-// On stack: growable array (+1), return-address (+0).
-void Intrinsifier::GrowableArrayCapacity(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, GrowableObjectArray::data_offset()));
-  __ movl(EAX, FieldAddress(EAX, Array::length_offset()));
-  __ ret();
 }
 
 
@@ -403,121 +352,6 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
                                                                                \
   __ ret();                                                                    \
   __ Bind(&fall_through);                                                      \
-
-
-
-// Gets the length of a TypedData.
-void Intrinsifier::TypedDataLength(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, TypedData::length_offset()));
-  __ ret();
-}
-
-
-void Intrinsifier::Uint8ArrayGetIndexed(Assembler* assembler) {
-  Label fall_through;
-  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
-  __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
-  __ cmpl(EBX, FieldAddress(EAX, TypedData::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-
-  __ SmiUntag(EBX);
-  __ movzxb(EAX, FieldAddress(EAX, EBX, TIMES_1, TypedData::data_offset()));
-  __ SmiTag(EAX);
-  __ ret();
-  __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::ExternalUint8ArrayGetIndexed(Assembler* assembler) {
-  Label fall_through;
-  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
-  __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
-  __ cmpl(EBX, FieldAddress(EAX, TypedData::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-
-  __ movl(EAX, FieldAddress(EAX, ExternalTypedData::data_offset()));
-  __ SmiUntag(EBX);
-  __ movzxb(EAX, Address(EAX, EBX, TIMES_1, 0));
-  __ SmiTag(EAX);
-  __ ret();
-  __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::Float64ArrayGetIndexed(Assembler* assembler) {
-  Label fall_through;
-  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
-  __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
-  __ cmpl(EBX, FieldAddress(EAX, TypedData::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-
-  Address element_address =
-      Assembler::ElementAddressForRegIndex(false,  // Not external
-                                           kTypedDataFloat64ArrayCid,  // Cid.
-                                           8,  // Index scale.
-                                           EAX,  // Array.
-                                           EBX);  // Index.
-
-  __ movsd(XMM0, element_address);
-
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class,
-                 &fall_through,
-                 Assembler::kNearJump,
-                 EAX,  // Result register.
-                 EBX);
-  __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
-  __ ret();
-  __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::Float64ArraySetIndexed(Assembler* assembler) {
-  Label fall_through;
-  __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
-  __ movl(EAX, Address(ESP, + 3 * kWordSize));  // Array.
-  __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
-  __ cmpl(EBX, FieldAddress(EAX, TypedData::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-
-  __ movl(ECX, Address(ESP, + 1 * kWordSize));  // Value.
-  __ testl(ECX, Immediate(kSmiTagMask));
-  __ j(ZERO, &fall_through, Assembler::kNearJump);  // Value is Smi.
-  __ LoadClassId(EDI, ECX);
-
-  __ cmpl(EDI, Immediate(kDoubleCid));
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);  // Not a Double.
-
-  __ movsd(XMM0, FieldAddress(ECX, Double::value_offset()));
-
-  Address element_address =
-      Assembler::ElementAddressForRegIndex(false,  // Not external
-                                           kTypedDataFloat64ArrayCid,  // Cid.
-                                           8,  // Index scale.
-                                           EAX,  // Array.
-                                           EBX);  // Index.
-
-  __ movsd(element_address, XMM0);
-  __ ret();
-  __ Bind(&fall_through);
-}
 
 
 static ScaleFactor GetScaleFactor(intptr_t size) {
@@ -1410,13 +1244,6 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ ret();
   __ Bind(&fall_through);
   // Hash not yet computed.
-}
-
-
-void Intrinsifier::StringBaseLength(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // String object.
-  __ movl(EAX, FieldAddress(EAX, String::length_offset()));
-  __ ret();
 }
 
 

@@ -649,8 +649,7 @@ class CallSiteInliner : public ValueObject {
       FlowGraphBuilder builder(parsed_function,
                                *ic_data_array,
                                exit_collector,
-                               Isolate::kNoDeoptId,
-                               true);
+                               Isolate::kNoDeoptId);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {

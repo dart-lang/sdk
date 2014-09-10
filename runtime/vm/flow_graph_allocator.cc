@@ -72,7 +72,8 @@ static intptr_t ToInstructionEnd(intptr_t pos) {
 }
 
 
-FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
+FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
+                                       bool intrinsic_mode)
   : flow_graph_(flow_graph),
     reaching_defs_(flow_graph),
     value_representations_(flow_graph.max_virtual_register_number()),
@@ -88,7 +89,8 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
     number_of_registers_(0),
     registers_(),
     blocked_registers_(),
-    cpu_spill_slot_count_(0) {
+    cpu_spill_slot_count_(0),
+    intrinsic_mode_(intrinsic_mode) {
   for (intptr_t i = 0; i < vreg_count_; i++) {
     live_ranges_.Add(NULL);
   }
@@ -119,6 +121,13 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
 
   // FpuTMP is used as scratch by optimized code and parallel move resolver.
   blocked_fpu_registers_[FpuTMP] = true;
+
+  // Block additional registers needed preserved when generating intrinsics.
+  // TODO(fschneider): Handle saving and restoring these registers when
+  // generating intrinsic code.
+  if (intrinsic_mode) {
+    blocked_cpu_registers_[ARGS_DESC_REG] = true;
+  }
 }
 
 
@@ -616,13 +625,18 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     // This might change in the future and, if so, the index will be wrong.
     ASSERT((flow_graph_.num_copied_params() == 0) ||
            (flow_graph_.num_non_copied_params() == 0));
-    // Slot index for the leftmost copied parameter is 0.
     intptr_t slot_index = param->index();
-    // Slot index for the rightmost fixed parameter is -1.
-    slot_index -= flow_graph_.num_non_copied_params();
+    ASSERT((param->base_reg() == FPREG) || (param->base_reg() == SPREG));
+    if (param->base_reg() == FPREG) {
+      // Slot index for the leftmost copied parameter is 0.
+      // Slot index for the rightmost fixed parameter is -1.
+      slot_index -= flow_graph_.num_non_copied_params();
+    }
 
-    range->set_assigned_location(Location::StackSlot(slot_index));
-    range->set_spill_slot(Location::StackSlot(slot_index));
+    range->set_assigned_location(Location::StackSlot(slot_index,
+                                                     param->base_reg()));
+    range->set_spill_slot(Location::StackSlot(slot_index,
+                                              param->base_reg()));
   } else {
     ConstantInstr* constant = defn->AsConstant();
     ASSERT(constant != NULL);
@@ -2628,6 +2642,12 @@ void FlowGraphAllocator::AllocateUnallocatedRanges() {
     AdvanceActiveIntervals(start);
 
     if (!AllocateFreeRegister(range)) {
+      if (intrinsic_mode_) {
+        // No spilling when compiling intrinsics.
+        // TODO(fschneider): Handle spilling in intrinsics. For now, the
+        // IR has to be built so that there are enough free registers.
+        UNREACHABLE();
+      }
       AllocateAnyRegister(range);
     }
   }

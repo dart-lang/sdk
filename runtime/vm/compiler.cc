@@ -304,8 +304,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         FlowGraphBuilder builder(parsed_function,
                                  *ic_data_array,
                                  NULL,  // NULL = not inlining.
-                                 osr_id,
-                                 optimized);
+                                 osr_id);
         flow_graph = builder.BuildGraph();
       }
 

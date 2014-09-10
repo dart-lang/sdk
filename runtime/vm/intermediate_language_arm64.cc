@@ -61,7 +61,7 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else {
       ASSERT(value.IsStackSlot());
       const intptr_t value_offset = value.ToStackSlotOffset();
-      __ LoadFromOffset(TMP, FP, value_offset, PP);
+      __ LoadFromOffset(TMP, value.base_reg(), value_offset, PP);
       __ Push(TMP);
     }
   }
@@ -85,6 +85,13 @@ LocationSummary* ReturnInstr::MakeLocationSummary(Isolate* isolate,
 void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->in(0).reg();
   ASSERT(result == R0);
+
+  if (compiler->intrinsic_mode()) {
+    // Intrinsics don't have a frame.
+    __ ret();
+    return;
+  }
+
 #if defined(DEBUG)
   Label stack_ok;
   __ Comment("Stack Check");
@@ -1590,7 +1597,6 @@ class BoxAllocationSlowPath : public SlowPathCode {
                  String::Handle(cls_.PrettyName()).ToCString());
     }
     __ Bind(entry_label());
-
     const Code& stub =
         Code::Handle(isolate, stub_code->GetAllocationStubForClass(cls_));
     const ExternalLabel label(stub.EntryPoint());
@@ -1606,7 +1612,6 @@ class BoxAllocationSlowPath : public SlowPathCode {
                            locs);
     __ mov(result_, R0);
     compiler->RestoreLiveRegisters(locs);
-
     __ b(exit_label());
   }
 
@@ -1615,22 +1620,30 @@ class BoxAllocationSlowPath : public SlowPathCode {
                        const Class& cls,
                        Register result,
                        Register temp) {
-    BoxAllocationSlowPath* slow_path =
-        new BoxAllocationSlowPath(instruction, cls, result);
-    compiler->AddSlowPathCode(slow_path);
+    if (compiler->intrinsic_mode()) {
+      __ TryAllocate(cls,
+                     compiler->intrinsic_slow_path_label(),
+                     result,
+                     temp,
+                     PP);
+    } else {
+      BoxAllocationSlowPath* slow_path =
+          new BoxAllocationSlowPath(instruction, cls, result);
+      compiler->AddSlowPathCode(slow_path);
 
-    __ TryAllocate(cls,
-                   slow_path->entry_label(),
-                   result,
-                   temp,
-                   PP);
-    __ Bind(slow_path->exit_label());
+      __ TryAllocate(cls,
+                     slow_path->entry_label(),
+                     result,
+                     temp,
+                     PP);
+      __ Bind(slow_path->exit_label());
+    }
   }
 
  private:
   Instruction* instruction_;
   const Class& cls_;
-  Register result_;
+  const Register result_;
 };
 
 

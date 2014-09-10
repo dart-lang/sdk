@@ -122,10 +122,8 @@ namespace dart {
   V(_Float32Array, []=, Float32ArraySetIndexed, 2086166464)                    \
   V(_Int8Array, [], Int8ArrayGetIndexed, 321230586)                            \
   V(_Int8Array, []=, Int8ArraySetIndexed, 2050598685)                          \
-  V(_Uint8Array, []=, Uint8ArraySetIndexed, 2018064553)                        \
   V(_Uint8ClampedArray, [], Uint8ClampedArrayGetIndexed, 430672063)            \
   V(_Uint8ClampedArray, []=, Uint8ClampedArraySetIndexed, 821294340)           \
-  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 918478513)         \
   V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
     1346536303)                                                                \
   V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArraySetIndexed,      \
@@ -169,23 +167,16 @@ namespace dart {
   V(_Double, get:isNegative, Double_getIsNegative, 1637875580)                 \
   V(_Double, _mulFromInteger, Double_mulFromInteger, 1594796483)               \
   V(_Double, .fromInteger, DoubleFromInteger, 999771940)                       \
-  V(_List, get:length, ObjectArrayLength, 1181352729)                          \
-  V(_List, [], ObjectArrayGetIndexed, 795612476)                               \
   V(_List, []=, ObjectArraySetIndexed, 1288827575)                             \
   V(_GrowableList, .withData, GrowableArray_Allocate, 732923072)               \
-  V(_GrowableList, get:length, GrowableArrayLength, 778505107)                 \
-  V(_GrowableList, get:_capacity, GrowableArrayCapacity, 555140075)            \
   V(_GrowableList, [], GrowableArrayGetIndexed, 919108233)                     \
   V(_GrowableList, []=, GrowableArraySetIndexed, 1218649853)                   \
   V(_GrowableList, _setLength, GrowableArraySetLength, 89389299)               \
   V(_GrowableList, _setData, GrowableArraySetData, 2126927509)                 \
   V(_GrowableList, add, GrowableArray_add, 1899133961)                         \
-  V(_ImmutableList, [], ImmutableArrayGetIndexed, 1990177341)                  \
-  V(_ImmutableList, get:length, ImmutableArrayLength, 274917727)               \
   V(Object, ==, ObjectEquals, 1068471689)                                      \
   V(_StringBase, get:hashCode, String_getHashCode, 2102906241)                 \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 49873871)                     \
-  V(_StringBase, get:length, StringBaseLength, 784399628)                      \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 397735324)                  \
   V(_StringBase, [], StringBaseCharAt, 1512210677)                             \
   V(_OneByteString, get:hashCode, OneByteString_getHashCode, 1111837929)       \
@@ -241,7 +232,6 @@ namespace dart {
 
 
 #define TYPED_DATA_LIB_INTRINSIC_LIST(V)                                       \
-  V(_TypedList, get:length, TypedDataLength, 522565357)                        \
   V(_Int8Array, _new, TypedData_Int8Array_new, 1150131819)                     \
   V(_Uint8Array, _new, TypedData_Uint8Array_new, 2019665760)                   \
   V(_Uint8ClampedArray, _new, TypedData_Uint8ClampedArray_new, 726412668)      \
@@ -270,27 +260,48 @@ namespace dart {
   V(_Float32x4Array, ., TypedData_Float32x4Array_factory, 1217848993)          \
   V(_Int32x4Array, ., TypedData_Int32x4Array_factory, 100825417)               \
   V(_Float64x2Array, ., TypedData_Float64x2Array_factory, 611308575)           \
-  V(_Uint8Array, [], Uint8ArrayGetIndexed, 16125140)                           \
-  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 1678777951)         \
-  V(_Float64Array, [], Float64ArrayGetIndexed, 1779054297)                     \
-  V(_Float64Array, []=, Float64ArraySetIndexed, 243929230)                     \
 
+#define GRAPH_TYPED_DATA_INTRINSICS_LIST(V) \
+  V(_Uint8Array, [], Uint8ArrayGetIndexed, 16125140)                           \
+  V(_Uint8Array, []=, Uint8ArraySetIndexed, 2018064553)                        \
+  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 1678777951)         \
+  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 918478513)         \
+  V(_Float64Array, []=, Float64ArraySetIndexed, 243929230)                     \
+  V(_Float64Array, [], Float64ArrayGetIndexed, 1779054297)                     \
+  V(_TypedList, get:length, TypedDataLength, 522565357)                        \
+
+#define GRAPH_CORE_INTRINSICS_LIST(V)                                          \
+  V(_List, get:length, ObjectArrayLength, 1181352729)                          \
+  V(_List, [], ObjectArrayGetIndexed, 795612476)                               \
+  V(_ImmutableList, get:length, ImmutableArrayLength, 274917727)               \
+  V(_ImmutableList, [], ImmutableArrayGetIndexed, 1990177341)                  \
+  V(_GrowableList, get:length, GrowableArrayLength, 778505107)                 \
+  V(_GrowableList, get:_capacity, GrowableArrayCapacity, 555140075)            \
+  V(_StringBase, get:length, StringBaseLength, 784399628)                      \
+
+#define GRAPH_INTRINSICS_LIST(V)                                               \
+  GRAPH_CORE_INTRINSICS_LIST(V)                                                \
+  GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                          \
 
 #define PROFILER_LIB_INTRINSIC_LIST(V)                                         \
   V(_UserTag, makeCurrent, UserTag_makeCurrent, 370414636)                     \
   V(::, _getDefaultTag, UserTag_defaultTag, 1159885970)                        \
   V(::, _getCurrentTag, Profiler_getCurrentTag, 1182126114)                    \
 
-#define ALL_INTRINSICS_LIST(V)                                                 \
+#define ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                  \
   CORE_LIB_INTRINSIC_LIST(V)                                                   \
-  CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                           \
   MATH_LIB_INTRINSIC_LIST(V)                                                   \
   TYPED_DATA_LIB_INTRINSIC_LIST(V)                                             \
   PROFILER_LIB_INTRINSIC_LIST(V)
 
+#define ALL_INTRINSICS_LIST(V)                                                 \
+  ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                        \
+  CORE_INTEGER_LIB_INTRINSIC_LIST(V)
+
 #define RECOGNIZED_LIST(V)                                                     \
   OTHER_RECOGNIZED_LIST(V)                                                     \
-  ALL_INTRINSICS_LIST(V)
+  ALL_INTRINSICS_LIST(V)                                                       \
+  GRAPH_INTRINSICS_LIST(V)
 
 // A list of core function that should always be inlined.
 #define INLINE_WHITE_LIST(V)                                                   \

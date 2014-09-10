@@ -25,7 +25,8 @@ Assembler::Assembler(bool use_far_branches)
       object_pool_(GrowableObjectArray::Handle()),
       patchable_pool_entries_(),
       prologue_offset_(-1),
-      comments_() {
+      comments_(),
+      allow_constant_pool_(true) {
   // Far branching mode is only needed and implemented for MIPS and ARM.
   ASSERT(!use_far_branches);
   Isolate* isolate = Isolate::Current();
@@ -148,6 +149,7 @@ void Assembler::call(const ExternalLabel* label) {
 
 
 void Assembler::CallPatchable(const ExternalLabel* label) {
+  ASSERT(allow_constant_pool());
   intptr_t call_start = buffer_.GetPosition();
   LoadExternalLabel(TMP, label, kPatchable, PP);
   call(TMP);
@@ -2368,6 +2370,7 @@ void Assembler::jmp(const ExternalLabel* label) {
 
 
 void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
+  ASSERT(allow_constant_pool());
   intptr_t call_start = buffer_.GetPosition();
   LoadExternalLabel(TMP, label, kPatchable, pp);
   jmp(TMP);
@@ -2588,7 +2591,20 @@ intptr_t Assembler::FindExternalLabel(const ExternalLabel* label,
 }
 
 
+// A set of VM objects that are present in every constant pool.
+static bool IsAlwaysInConstantPool(const Object& object) {
+  // TODO(zra): Evaluate putting all VM heap objects into the pool.
+  return (object.raw() == Object::null())
+      || (object.raw() == Bool::True().raw())
+      || (object.raw() == Bool::False().raw());
+}
+
+
 bool Assembler::CanLoadFromObjectPool(const Object& object) {
+  if (!allow_constant_pool()) {
+    return IsAlwaysInConstantPool(object);
+  }
+
   // TODO(zra, kmillikin): Also load other large immediates from the object
   // pool
   if (object.IsSmi()) {
@@ -2601,10 +2617,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) {
   return (Isolate::Current() != Dart::vm_isolate()) &&
          // Not in the VMHeap, OR is one of the VMHeap objects we put in every
          // object pool.
-         // TODO(zra): Evaluate putting all VM heap objects into the pool.
-         (!object.InVMHeap() || (object.raw() == Object::null()) ||
-                                (object.raw() == Bool::True().raw()) ||
-                                (object.raw() == Bool::False().raw()));
+         (!object.InVMHeap() || IsAlwaysInConstantPool(object));
 }
 
 
@@ -2672,6 +2685,9 @@ intptr_t Assembler::FindImmediate(int64_t imm) {
 
 
 bool Assembler::CanLoadImmediateFromPool(const Immediate& imm, Register pp) {
+  if (!allow_constant_pool()) {
+    return false;
+  }
   return !imm.is_int32() &&
          (pp != kNoRegister) &&
          (Isolate::Current() != Dart::vm_isolate());

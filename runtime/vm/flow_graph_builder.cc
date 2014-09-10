@@ -239,8 +239,7 @@ FlowGraphBuilder::FlowGraphBuilder(
     ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     InlineExitCollector* exit_collector,
-    intptr_t osr_id,
-    bool is_optimizing) :
+    intptr_t osr_id) :
         parsed_function_(parsed_function),
         ic_data_array_(ic_data_array),
         num_copied_params_(parsed_function->num_copied_params()),
@@ -260,7 +259,6 @@ FlowGraphBuilder::FlowGraphBuilder(
         args_pushed_(0),
         nesting_stack_(NULL),
         osr_id_(osr_id),
-        is_optimizing_(is_optimizing),
         jump_cnt_(0),
         await_joins_(new(I) ZoneGrowableArray<JoinEntryInstr*>()),
         await_levels_(new(I) ZoneGrowableArray<intptr_t>()) { }

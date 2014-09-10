@@ -145,8 +145,7 @@ class FlowGraphBuilder: public ValueObject {
   FlowGraphBuilder(ParsedFunction* parsed_function,
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
                    InlineExitCollector* exit_collector,
-                   intptr_t osr_id,
-                   bool is_optimizing);
+                   intptr_t osr_id);
 
   FlowGraph* BuildGraph();
 
@@ -201,8 +200,6 @@ class FlowGraphBuilder: public ValueObject {
   bool IsInlining() const { return (exit_collector_ != NULL); }
   InlineExitCollector* exit_collector() const { return exit_collector_; }
 
-  bool is_optimizing() const { return is_optimizing_; }
-
   ZoneGrowableArray<const Field*>* guarded_fields() const {
     return guarded_fields_;
   }
@@ -234,6 +231,7 @@ class FlowGraphBuilder: public ValueObject {
 
  private:
   friend class NestedStatement;  // Explicit access to nesting_stack_.
+  friend class Intrinsifier;
 
   intptr_t parameter_count() const {
     return num_copied_params_ + num_non_copied_params_;
@@ -269,10 +267,6 @@ class FlowGraphBuilder: public ValueObject {
   // The deopt id of the OSR entry or Isolate::kNoDeoptId if not compiling
   // for OSR.
   const intptr_t osr_id_;
-
-  // The graph is being rebuilt for the optimizing compiler.
-  // Do not generate a different graph based on this flag.
-  const bool is_optimizing_;
 
   intptr_t jump_cnt_;
   ZoneGrowableArray<JoinEntryInstr*>* await_joins_;

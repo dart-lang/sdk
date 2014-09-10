@@ -13,23 +13,37 @@ namespace dart {
 
 // Forward declarations.
 class Assembler;
+class FlowGraphCompiler;
 class Function;
+class TargetEntryInstr;
+class ParsedFunction;
+class FlowGraph;
 
 class Intrinsifier : public AllStatic {
  public:
-  // Try to intrinsify 'function'. Returns true if the function intrinsified
-  // completely and the code does not need to be generated (i.e., no slow
-  // path possible).
-  static void Intrinsify(const Function& function, Assembler* assembler);
+  static void Intrinsify(ParsedFunction* parsed_function,
+                         FlowGraphCompiler* compiler);
   static void InitializeState();
+
+  static bool GraphIntrinsify(ParsedFunction* parsed_function,
+                              FlowGraphCompiler* compiler);
+
+  static intptr_t ParameterSlotFromSp();
 
  private:
   static bool CanIntrinsify(const Function& function);
 
-#define DECLARE_FUNCTION(test_class_name, test_function_name, destination, fp) \
-  static void destination(Assembler* assembler);
+#define DECLARE_FUNCTION(test_class_name, test_function_name, enum_name, fp)   \
+  static void enum_name(Assembler* assembler);
 
   ALL_INTRINSICS_LIST(DECLARE_FUNCTION)
+
+#undef DECLARE_FUNCTION
+
+#define DECLARE_FUNCTION(test_class_name, test_function_name, enum_name, fp)   \
+  static bool Build_##enum_name(FlowGraph* flow_graph);
+
+  GRAPH_INTRINSICS_LIST(DECLARE_FUNCTION)
 
 #undef DECLARE_FUNCTION
 };

@@ -84,6 +84,13 @@ LocationSummary* ReturnInstr::MakeLocationSummary(Isolate* isolate,
 void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->in(0).reg();
   ASSERT(result == EAX);
+
+  if (compiler->intrinsic_mode()) {
+    // Intrinsics don't have a frame.
+    __ ret();
+    return;
+  }
+
 #if defined(DEBUG)
   __ Comment("Stack Check");
   Label done;
@@ -930,7 +937,7 @@ LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Isolate* isolate,
   const intptr_t kNumInputs = 1;
   return LocationSummary::Make(isolate,
                                kNumInputs,
-                               Location::RequiresRegister(),
+                               Location::SameAsFirstInput(),
                                LocationSummary::kNoCall);
 }
 
@@ -1689,7 +1696,6 @@ class BoxAllocationSlowPath : public SlowPathCode {
                  String::Handle(cls_.PrettyName()).ToCString());
     }
     __ Bind(entry_label());
-
     const Code& stub =
         Code::Handle(isolate, stub_code->GetAllocationStubForClass(cls_));
     const ExternalLabel label(stub.EntryPoint());
@@ -1713,22 +1719,30 @@ class BoxAllocationSlowPath : public SlowPathCode {
                        const Class& cls,
                        Register result,
                        Register temp) {
-    BoxAllocationSlowPath* slow_path =
-        new BoxAllocationSlowPath(instruction, cls, result);
-    compiler->AddSlowPathCode(slow_path);
+    if (compiler->intrinsic_mode()) {
+      __ TryAllocate(cls,
+                     compiler->intrinsic_slow_path_label(),
+                     Assembler::kFarJump,
+                     result,
+                     temp);
+    } else {
+      BoxAllocationSlowPath* slow_path =
+          new BoxAllocationSlowPath(instruction, cls, result);
+      compiler->AddSlowPathCode(slow_path);
 
-    __ TryAllocate(cls,
-                   slow_path->entry_label(),
-                   Assembler::kFarJump,
-                   result,
-                   temp);
-    __ Bind(slow_path->exit_label());
+      __ TryAllocate(cls,
+                     slow_path->entry_label(),
+                     Assembler::kFarJump,
+                     result,
+                     temp);
+      __ Bind(slow_path->exit_label());
+    }
   }
 
  private:
   Instruction* instruction_;
   const Class& cls_;
-  Register result_;
+  const Register result_;
 };
 
 

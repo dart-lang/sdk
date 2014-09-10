@@ -144,7 +144,8 @@ class Assembler : public ValueObject {
         use_far_branches_(use_far_branches),
         delay_slot_available_(false),
         in_delay_slot_(false),
-        comments_() { }
+        comments_(),
+        allow_constant_pool_(true) { }
   ~Assembler() { }
 
   void PopRegister(Register r) { Pop(r); }
@@ -1251,6 +1252,13 @@ class Assembler : public ValueObject {
   static bool IsSafe(const Object& object) { return true; }
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
+  bool allow_constant_pool() const {
+    return allow_constant_pool_;
+  }
+  void set_allow_constant_pool(bool b) {
+    allow_constant_pool_ = b;
+  }
+
  private:
   AssemblerBuffer buffer_;
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
@@ -1279,6 +1287,8 @@ class Assembler : public ValueObject {
   };
 
   GrowableArray<CodeComment*> comments_;
+
+  bool allow_constant_pool_;
 
   void Emit(int32_t value) {
     // Emitting an instruction clears the delay slot state.

@@ -92,6 +92,7 @@ const Register PP = R15;
 const Register SPREG = RSP;  // Stack pointer register.
 const Register FPREG = RBP;  // Frame pointer register.
 const Register ICREG = RBX;  // IC data register.
+const Register ARGS_DESC_REG = R10;  // Arguments descriptor register.
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.

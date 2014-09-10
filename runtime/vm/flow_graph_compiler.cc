@@ -98,6 +98,7 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
           GrowableObjectArray::New())),
       is_optimizing_(is_optimizing),
       may_reoptimize_(false),
+      intrinsic_mode_(false),
       double_class_(Class::ZoneHandle(
           isolate_->object_store()->double_class())),
       mint_class_(Class::ZoneHandle(
@@ -547,6 +548,7 @@ void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
 void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
                                             intptr_t token_pos) {
   ASSERT(is_optimizing());
+  ASSERT(!intrinsic_mode());
   CompilerDeoptInfo* info =
       new CompilerDeoptInfo(deopt_id,
                             ICData::kDeoptAtCall,
@@ -727,6 +729,10 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
 
 Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
                                        ICData::DeoptReasonId reason) {
+  if (intrinsic_mode()) {
+    return &intrinsic_slow_path_label_;
+  }
+
   ASSERT(is_optimizing_);
   CompilerDeoptInfoWithStub* stub =
       new CompilerDeoptInfoWithStub(deopt_id,
@@ -855,9 +861,19 @@ void FlowGraphCompiler::TryIntrinsify() {
       }
     }
   }
-  // Even if an intrinsified version of the function was successfully
-  // generated, it may fall through to the non-intrinsified method body.
-  Intrinsifier::Intrinsify(parsed_function().function(), assembler());
+
+  EnterIntrinsicMode();
+
+  Intrinsifier::Intrinsify(&parsed_function(), this);
+
+  ExitIntrinsicMode();
+  // "Deoptimization" from intrinsic continues here. All deoptimization
+  // branches from intrinsic code redirect to here where the slow-path
+  // (normal function body) starts.
+  // This means that there must not be any side-effects in intrinsic code
+  // before any deoptimization point.
+  ASSERT(!intrinsic_slow_path_label_.IsBound());
+  assembler()->Bind(&intrinsic_slow_path_label_);
 }
 
 
@@ -1359,6 +1375,10 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
                      | MaskBit(TMP)
                      | MaskBit(TMP2)
                      | MaskBit(PP);
+  if (resolver->compiler_->intrinsic_mode()) {
+    // Block additional registers that must be preserved for intrinsics.
+    blocked_mask |= MaskBit(ARGS_DESC_REG);
+  }
   reg_ = static_cast<Register>(
       resolver_->AllocateScratchRegister(Location::kRegister,
                                          blocked_mask,
