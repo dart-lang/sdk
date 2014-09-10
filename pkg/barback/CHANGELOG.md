@@ -1,3 +1,8 @@
+## 0.15.2
+
+* Add a `StaticPackageProvider` class to more efficiently handle immutable,
+  untransformed packages.
+
 ## 0.15.0+1
 
 * Widen the version constraint on the `collection` package.

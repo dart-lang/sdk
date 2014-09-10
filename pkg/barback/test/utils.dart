@@ -84,11 +84,18 @@ void initConfig() {
 /// [transformers] is a map from package names to the transformers for each
 /// package.
 void initGraph([assets,
-    Map<String, Iterable<Iterable<Transformer>>> transformers]) {
+      Map<String, Iterable<Iterable<Transformer>>> transformers]) =>
+    initStaticGraph(assets, transformers: transformers);
+
+void initStaticGraph(assets, {Iterable<String> staticPackages,
+    Map<String, Iterable<Iterable<Transformer>>> transformers}) {
   if (assets == null) assets = [];
+  if (staticPackages == null) staticPackages = [];
   if (transformers == null) transformers = {};
 
-  _provider = new MockProvider(assets, additionalPackages: transformers.keys);
+  _provider = new MockProvider(assets,
+      staticPackages: staticPackages,
+      additionalPackages: transformers.keys);
   _barback = new Barback(_provider);
   // Add a dummy listener to the log so it doesn't print to stdout.
   _barback.log.listen((_) {});
@@ -469,8 +476,11 @@ Future _futureShouldNotCompleteUntil(Future future, Future delay,
 }
 
 /// An [AssetProvider] that provides the given set of assets.
-class MockProvider implements PackageProvider {
-  Iterable<String> get packages => _assets.keys;
+class MockProvider implements StaticPackageProvider {
+  Iterable<String> get packages =>
+      _assets.keys.toSet().difference(staticPackages);
+
+  final Set<String> staticPackages;
 
   final Map<String, AssetSet> _assets;
 
@@ -500,8 +510,11 @@ class MockProvider implements PackageProvider {
     _pauseCompleter = null;
   }
 
-  MockProvider(assets, {Iterable<String> additionalPackages})
-      : _assets = _normalizeAssets(assets, additionalPackages);
+  MockProvider(assets, {Iterable<String> staticPackages,
+          Iterable<String> additionalPackages})
+      : staticPackages = staticPackages == null ? new Set() :
+            staticPackages.toSet(),
+        _assets = _normalizeAssets(assets, additionalPackages);
 
   static Map<String, AssetSet> _normalizeAssets(assets,
       Iterable<String> additionalPackages) {
@@ -547,13 +560,8 @@ class MockProvider implements PackageProvider {
     (async ? _errors : _syncErrors).add(new AssetId.parse(name));
   }
 
-  List<AssetId> listAssets(String package, {String within}) {
-    if (within != null) {
-      throw new UnimplementedError("Doesn't handle 'within' yet.");
-    }
-
-    return _assets[package].map((asset) => asset.id);
-  }
+  List<AssetId> getAllAssets(String package) =>
+      _assets[package].map((asset) => asset.id);
 
   Future<Asset> getAsset(AssetId id) {
     // Eagerly load the asset so we can test an asset's value changing between

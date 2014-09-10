@@ -82,8 +82,8 @@ class AssetCascade {
   Stream<NodeStatus> get onStatusChange => _streams.onStatusChange;
 
   /// Returns all currently-available output assets from this cascade.
-  AssetSet get availableOutputs =>
-    new AssetSet.from(_phases.last.availableOutputs.map((node) => node.asset));
+  Future<AssetSet> get availableOutputs => new Future.value(new AssetSet.from(
+      _phases.last.availableOutputs.map((node) => node.asset)));
 
   /// Creates a new [AssetCascade].
   ///

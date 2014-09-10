@@ -24,5 +24,26 @@ abstract class PackageProvider {
   ///
   /// This should be re-entrant; it may be called multiple times with the same
   /// id before the previously returned future has completed.
+  ///
+  /// If no asset with [id] exists, the provider should throw an
+  /// [AssetNotFoundException].
   Future<Asset> getAsset(AssetId id);
+}
+
+/// A PackageProvider for which some packages are known to be static—that is,
+/// the package has no transformers and its assets won't ever change.
+///
+/// For static packages, rather than telling barback up-front which assets that
+/// package contains via [Barback.updateSources], barback will lazily query the
+/// provider for an asset when it's needed. This is much more efficient.
+abstract class StaticPackageProvider implements PackageProvider {
+  /// The names of all static packages provided by this provider.
+  ///
+  /// This must be disjoint from [packages].
+  Iterable<String> get staticPackages;
+
+  /// Returns all ids of assets in [package].
+  ///
+  /// This is used for [Barback.getAllAssets].
+  Stream<AssetId> getAllAssetIds(String package);
 }
