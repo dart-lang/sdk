@@ -560,8 +560,8 @@ class MockProvider implements StaticPackageProvider {
     (async ? _errors : _syncErrors).add(new AssetId.parse(name));
   }
 
-  List<AssetId> getAllAssets(String package) =>
-      _assets[package].map((asset) => asset.id);
+  Stream<AssetId> getAllAssetIds(String package) =>
+      new Stream.fromIterable(_assets[package].map((asset) => asset.id));
 
   Future<Asset> getAsset(AssetId id) {
     // Eagerly load the asset so we can test an asset's value changing between
