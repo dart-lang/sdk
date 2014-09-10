@@ -1,6 +1,6 @@
 BUILD LOG
 ---------
-Build Time: 2014-08-28T12:39:13
+Build Time: 2014-08-25T14:50:58
 
 NODEJS INFORMATION
 ==================
@@ -14,11 +14,11 @@ grunt-contrib-uglify: 0.5.1
 grunt-karma: 0.8.3
 karma: 0.12.22
 karma-crbot-reporter: 0.0.4
-karma-safari-launcher: 0.1.1
-mocha: 1.21.4
+karma-firefox-launcher: 0.1.3
 karma-ie-launcher: 0.1.5
 karma-mocha: 0.1.9
-karma-firefox-launcher: 0.1.3
+karma-safari-launcher: 0.1.1
+mocha: 1.21.4
 
 REPO REVISIONS
 ==============
@@ -33,4 +33,4 @@ platform-dev: fe549bc7f05ec668bc496108958eaee0bd174a06
 
 BUILD HASHES
 ============
-build/platform.js: a15f487ef6424420af4d2e64f0f5d5740306b691
+build/platform.js: e5a0b4192fb91750c708270b7267d81c972e5bdd

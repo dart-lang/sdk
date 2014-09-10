@@ -7982,6 +7982,9 @@ void TokenStream::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
+  Class& cls = Class::Handle(this->clazz());
+  jsobj.AddProperty("class", cls);
+  jsobj.AddProperty("size", raw()->Size());
   const String& private_key = String::Handle(PrivateKey());
   jsobj.AddProperty("privateKey", private_key);
   // TODO(johnmccutchan): Add support for printing LiteralTokens and add
@@ -10605,6 +10608,9 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
   if (ref) {
     return;
   }
+  Class& cls = Class::Handle(this->clazz());
+  jsobj->AddProperty("class", cls);
+  jsobj->AddProperty("size", raw()->Size());
   JSONArray members(jsobj, "members");
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
@@ -10906,6 +10912,9 @@ void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
   if (ref) {
     return;
   }
+  Class& cls = Class::Handle(this->clazz());
+  jsobj.AddProperty("class", cls);
+  jsobj.AddProperty("size", raw()->Size());
   JSONArray members(&jsobj, "members");
   String& var_name = String::Handle();
   for (intptr_t i = 0; i < Length(); i++) {

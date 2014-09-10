@@ -7,4 +7,15 @@
 <polymer-element name="any-service-ref" extends="observatory-element">
 </polymer-element>
 
+<polymer-element name="object-ref" extends="service-ref">
+  <template><link rel="stylesheet" href="css/shared.css">
+    <template if="{{ nameIsEmpty }}">
+      <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.vmType }}</em></a>
+    </template>
+    <template if="{{ !nameIsEmpty }}">
+      <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ name }}</em></a>
+    </template>
+  </template>
+</polymer-element>
+
 <script type="application/dart" src="service_ref.dart"></script>

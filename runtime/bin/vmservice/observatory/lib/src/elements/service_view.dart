@@ -81,6 +81,10 @@ class ServiceObjectViewElement extends ObservatoryElement {
             new Element.tag('io-http-server-connection-view');
         element.connection = object;
         return element;
+      case 'Object':
+        ObjectViewElement element = new Element.tag('object-view');
+        element.object = object;
+        return element;
       case 'SocketList':
         IOSocketListViewElement element =
             new Element.tag('io-socket-list-view');

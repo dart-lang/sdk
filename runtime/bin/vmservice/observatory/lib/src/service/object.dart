@@ -123,6 +123,7 @@ abstract class ServiceObject extends Observable {
     }
     assert(_isServiceMap(map));
     var type = _stripRef(map['type']);
+    var vmType = map['_vmType'] != null ? _stripRef(map['_vmType']) : type;
     var obj = null;
     assert(type != 'VM');
     switch (type) {
@@ -153,6 +154,19 @@ abstract class ServiceObject extends Observable {
       case 'Library':
         obj = new Library._empty(owner);
         break;
+      case 'Object':
+        switch (vmType) {
+          case 'PcDescriptors':
+            obj = new PcDescriptors._empty(owner);
+            break;
+          case 'LocalVarDescriptors':
+            obj = new LocalVarDescriptors._empty(owner);
+            break;
+          case 'TokenStream':
+            obj = new TokenStream._empty(owner);
+            break;
+        }
+        break;
       case 'ServiceError':
         obj = new ServiceError._empty(owner);
         break;
@@ -172,11 +186,11 @@ abstract class ServiceObject extends Observable {
         if (_isInstanceType(type) ||
             type == 'Sentinel') {  // TODO(rmacnak): Separate this out.
           obj = new Instance._empty(owner);
-          break;
-        } else {
-          obj = new ServiceMap._empty(owner);
-          break;
         }
+        break;
+    }
+    if (obj == null) {
+      obj = new ServiceMap._empty(owner);
     }
     obj.update(map);
     return obj;
@@ -1892,7 +1906,6 @@ class CodeTick {
   CodeTick(this.address, this.exclusiveTicks, this.inclusiveTicks);
 }
 
-
 class PcDescriptor extends Observable {
   final int address;
   @reflectable final int deoptId;
@@ -1930,6 +1943,101 @@ class PcDescriptor extends Observable {
     this.script = script;
     var scriptLine = script.getLine(line);
     formattedLine = scriptLine.text;
+  }
+}
+
+class PcDescriptors extends ServiceObject {
+  @observable Class clazz;
+  @observable int size;
+  bool get canCache => false;
+  bool get immutable => true;
+  @reflectable final List<PcDescriptor> descriptors =
+      new ObservableList<PcDescriptor>();
+
+  PcDescriptors._empty(ServiceObjectOwner owner) : super._empty(owner) {
+    print('created PcDescriptors.');
+  }
+
+  void _update(ObservableMap m, bool mapIsRef) {
+    if (mapIsRef) {
+      return;
+    }
+    _upgradeCollection(m, isolate);
+    clazz = m['class'];
+    size = m['size'];
+    descriptors.clear();
+    for (var descriptor in m['members']) {
+      var address = int.parse(descriptor['pc'], radix:16);
+      var deoptId = descriptor['deoptId'];
+      var tokenPos = descriptor['tokenPos'];
+      var tryIndex = descriptor['tryIndex'];
+      var kind = descriptor['kind'].trim();
+      descriptors.add(
+          new PcDescriptor(address, deoptId, tokenPos, tryIndex, kind));
+    }
+  }
+}
+
+class LocalVarDescriptor extends Observable {
+  @reflectable final String name;
+  @reflectable final int index;
+  @reflectable final int beginPos;
+  @reflectable final int endPos;
+  @reflectable final int scopeId;
+  @reflectable final String kind;
+
+  LocalVarDescriptor(this.name, this.index, this.beginPos, this.endPos,
+                     this.scopeId, this.kind);
+}
+
+class LocalVarDescriptors extends ServiceObject {
+  @observable Class clazz;
+  @observable int size;
+  bool get canCache => false;
+  bool get immutable => true;
+  @reflectable final List<LocalVarDescriptor> descriptors =
+        new ObservableList<LocalVarDescriptor>();
+  LocalVarDescriptors._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap m, bool mapIsRef) {
+    if (mapIsRef) {
+      return;
+    }
+    _upgradeCollection(m, isolate);
+    clazz = m['class'];
+    size = m['size'];
+    descriptors.clear();
+    for (var descriptor in m['members']) {
+      var name = descriptor['name'];
+      var index = descriptor['index'];
+      var beginPos = descriptor['beginPos'];
+      var endPos = descriptor['endPos'];
+      var scopeId = descriptor['scopeId'];
+      var kind = descriptor['kind'].trim();
+      descriptors.add(
+          new LocalVarDescriptor(name, index, beginPos, endPos, scopeId, kind));
+    }
+  }
+}
+
+class TokenStream extends ServiceObject {
+  @observable Class clazz;
+  @observable int size;
+  bool get canCache => false;
+  bool get immutable => true;
+
+  @observable String privateKey;
+
+  TokenStream._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap m, bool mapIsRef) {
+    if (mapIsRef) {
+      return;
+    }
+    _upgradeCollection(m, isolate);
+    clazz = m['class'];
+    size = m['size'];
+    privateKey = m['privateKey'];
   }
 }
 
@@ -2089,8 +2197,6 @@ class Code extends ServiceObject {
   @observable ServiceFunction function;
   @observable Script script;
   @observable bool isOptimized = false;
-  String name;
-  String vmName;
 
   bool get canCache => true;
   bool get immutable => true;

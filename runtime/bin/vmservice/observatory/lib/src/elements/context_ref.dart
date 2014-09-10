@@ -26,7 +26,7 @@ class ContextRefElement extends ServiceRefElement {
       }).whenComplete(onDone);
     } else {
       Context refMap = ref;
-      refMap.elements = null;
+      refMap.variables = null;
       onDone();
     }
   }

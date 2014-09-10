@@ -21,10 +21,19 @@
         </div>
       </div>
 
-      <div class="memberItem" title="Space for this object in memory">
-        <div class="memberName">size</div>
-        <div class="memberValue">{{ object.size | formatSize }}</div>
-      </div>
+      <template if="{{ object.size != null }}">
+        <div class="memberItem" title="Space for this object in memory">
+          <div class="memberName">size</div>
+          <div class="memberValue">{{ object.size | formatSize }}</div>
+        </div>
+      </template>
+
+      <template if="{{ object.size == null }}">
+        <div class="memberItem" title="Space for this object in memory">
+          <div class="memberName">size</div>
+          <div class="memberValue">0</div>
+        </div>
+      </template>
 
       <div class="memberItem" title="Space that would be reclaimed if references to this object were replaced with null">
         <div class="memberName">retained size</div>
