@@ -49,6 +49,7 @@ polymer/test/js_custom_event_test: Pass, RuntimeError # Issue 18931
 polymer/test/js_interop_test: Pass, RuntimeError # Issue 18931
 polymer/test/nested_binding_test: Pass, RuntimeError # Issue 18931
 polymer/test/noscript_test: Pass, RuntimeError # Issue 18931
+polymer/test/platform_less_test: Pass, RuntimeError # Issue 18931
 polymer/test/prop_attr_bind_reflection_test: Pass, RuntimeError # Issue 18931
 polymer/test/prop_attr_reflection_test: Pass, RuntimeError # Issue 18931
 polymer/test/property_change_test: Pass, Timeout # Issue 18931
@@ -56,6 +57,7 @@ polymer/test/publish_attributes_test: Pass, RuntimeError # Issue 18931
 polymer/test/publish_inherited_properties_test: Pass, RuntimeError # Issue 18931
 polymer/test/register_test: Pass, RuntimeError # Issue 18931
 polymer/test/take_attributes_test: Pass, RuntimeError # Issue 18931
+polymer/test/template_attr_template_test: Pass, RuntimeError # Issue 18931
 polymer/test/template_distribute_dynamic_test: Pass, RuntimeError # Issue 18931
 polymer/test/two_way_bind_test: Pass, RuntimeError # Issue 18931
 web_components/test/interop_test: Pass, RuntimeError # Issue 18931
