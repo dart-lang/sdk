@@ -16,6 +16,9 @@ part 'running_isolates.dart';
 part 'message.dart';
 part 'message_router.dart';
 
+final RawReceivePort isolateLifecyclePort = new RawReceivePort();
+final RawReceivePort scriptLoadPort = new RawReceivePort();
+
 class VMService extends MessageRouter {
   static VMService _instance;
   /// Collection of currently connected clients.
@@ -104,13 +107,14 @@ class VMService extends MessageRouter {
   }
 
   VMService._internal()
-      : eventPort = new RawReceivePort() {
+      : eventPort = isolateLifecyclePort {
     eventPort.handler = messageHandler;
   }
 
   factory VMService() {
     if (VMService._instance == null) {
       VMService._instance = new VMService._internal();
+      _onStart();
     }
     return _instance;
   }
@@ -142,9 +146,8 @@ class VMService extends MessageRouter {
 }
 
 RawReceivePort boot() {
-  // Boot the VMService.
   // Return the port we expect isolate startup and shutdown messages on.
-  return new VMService().eventPort;
+  return isolateLifecyclePort;
 }
 
 void _registerIsolate(int port_id, SendPort sp, String name) {
@@ -154,3 +157,5 @@ void _registerIsolate(int port_id, SendPort sp, String name) {
 
 void _setEventMask(int mask)
     native "VMService_SetEventMask";
+
+void _onStart() native "VMService_OnStart";

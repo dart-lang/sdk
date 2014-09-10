@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:mirrors';
 import 'dart:vmservice';
 
 part 'resources.dart';
@@ -26,53 +25,47 @@ bool _isWindows = false;
 Server server;
 Future<Server> serverFuture;
 
-// The VM service instance.
-VMService service;
+void _bootServer() {
+  // Load resources.
+  _triggerResourceLoad();
+  // Lazily create service.
+  var service = new VMService();
+  // Lazily create server.
+  server = new Server(service, _ip, _port);
+}
+
+void _clearFuture(_) {
+  serverFuture = null;
+}
 
 void _onSignal(ProcessSignal signal) {
   if (serverFuture != null) {
     // Still waiting.
     return;
   }
+  if (server == null) {
+    _bootServer();
+  }
   // Toggle HTTP server.
   if (server.running) {
-    serverFuture = server.shutdown(true).then((_) {
-      serverFuture = null;
-    });
+    serverFuture = server.shutdown(true).then(_clearFuture);
   } else {
-    serverFuture = server.startup().then((_) {
-      serverFuture = null;
-    });
+    serverFuture = server.startup().then(_clearFuture);
   }
 }
 
-void registerSignalHandler() {
+void _registerSignalHandler(Stream signalWatch(ProcessSignal signal)) {
   if (_isWindows) {
     // Cannot register for signals on Windows.
     return;
   }
-  bool useSIGQUIT = true;
-  // Listen for SIGQUIT.
-  if (useSIGQUIT) {
-    var io = currentMirrorSystem().findLibrary(const Symbol('dart.io'));
-    var c = MirrorSystem.getSymbol('_ProcessUtils', io);
-    var m = MirrorSystem.getSymbol('_watchSignalInternal', io);
-    var processUtils = io.declarations[c];
-    processUtils.invoke(m, [ProcessSignal.SIGQUIT]).reflectee.listen(_onSignal);
-  } else {
-    ProcessSignal.SIGUSR1.watch().listen(_onSignal);
-  }
+  signalWatch(ProcessSignal.SIGQUIT).listen(_onSignal);
 }
 
-
-main() {
-  // Get VMService.
-  service = new VMService();
-  // Start HTTP server.
-  server = new Server(service, _ip, _port);
+main(Stream signalWatch(ProcessSignal signal)) {
   if (_autoStart) {
+    _bootServer();
     server.startup();
   }
-
-  registerSignalHandler();
+  _registerSignalHandler(signalWatch);
 }
