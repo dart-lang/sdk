@@ -2765,10 +2765,10 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
     return reflectClassByMangledName(
         getMangledTypeName(createRuntimeType(representation)));
   }
-  if (type != null && JS('Object|Null', '#.typedef', type) != null) {
+  if (type != null && JS('', '#.typedef', type) != null) {
     return typeMirrorFromRuntimeTypeRepresentation(
-        owner, JS('Object', '#.typedef', type));
-  } else if (type != null && JS('Object|Null', '#.func', type) != null) {
+        owner, JS('', '#.typedef', type));
+  } else if (type != null && JS('', '#.func', type) != null) {
     return new JsFunctionTypeMirror(type, owner);
   }
   return reflectClass(Function);
