@@ -428,7 +428,7 @@ class JavaScriptBackend extends Backend {
 
   JavaScriptConstantTask constantCompilerTask;
 
-  JavaScriptionResolutionCallbacks resolutionCallbacks;
+  JavaScriptResolutionCallbacks resolutionCallbacks;
 
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
       : namer = determineNamer(compiler),
@@ -444,7 +444,7 @@ class JavaScriptBackend extends Backend {
     typeVariableHandler = new TypeVariableHandler(this);
     customElementsAnalysis = new CustomElementsAnalysis(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
-    resolutionCallbacks = new JavaScriptionResolutionCallbacks(this);
+    resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
   }
 
   ConstantSystem get constantSystem => constants.constantSystem;
@@ -2210,10 +2210,10 @@ class JavaScriptBackend extends Backend {
   }
 }
 
-class JavaScriptionResolutionCallbacks extends ResolutionCallbacks {
+class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
   final JavaScriptBackend backend;
 
-  JavaScriptionResolutionCallbacks(this.backend);
+  JavaScriptResolutionCallbacks(this.backend);
 
   void registerBackendStaticInvocation(Element element, Registry registry) {
     registry.registerStaticInvocation(backend.registerBackendUse(element));
