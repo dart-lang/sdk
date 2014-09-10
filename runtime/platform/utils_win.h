@@ -11,15 +11,15 @@
 namespace dart {
 
 inline int Utils::CountLeadingZeros(uword x) {
-  unsigned long result;  // NOLINT
+  unsigned long position;  // NOLINT
 #if defined(ARCH_IS_32_BIT)
-  _BitScanReverse(&result, x);
+  _BitScanReverse(&position, x);
 #elif defined(ARCH_IS_64_BIT)
-  _BitScanReverse64(&result, x);
+  _BitScanReverse64(&position, x);
 #else
 #error Architecture is not 32-bit or 64-bit.
 #endif
-  return static_cast<int>(result);
+  return kBitsPerWord - static_cast<int>(position) - 1;
 }
 
 
