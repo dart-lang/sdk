@@ -474,6 +474,17 @@ class AnalysisServer {
   }
 
   /**
+   * Trigger reanalysis of all files from disk.
+   */
+  void reanalyze() {
+    // Clear any operations that are pending.
+    operationQueue.clear();
+    // Instruct the contextDirectoryManager to rebuild all contexts from
+    // scratch.
+    contextDirectoryManager.refresh();
+  }
+
+  /**
    * Remove the given [listener] from the list of listeners that are listening
    * for lifecycle events from this server.
    */
