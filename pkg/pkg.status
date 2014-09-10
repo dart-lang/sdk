@@ -28,7 +28,6 @@ intl/test/number_format_test: Skip # Dart Issue 20875
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
-polymer/example/component/news/test/news_index_test: RuntimeError # Issue 18931
 intl/test/date_time_format_http_request_test: Skip # Times out flakily. Issue 19544
 intl/test/date_time_format_local_even_test: Skip # Times out flakily. Issue 19544
 intl/test/date_time_format_local_odd_test: Skip # Times out flakily. Issue 19544
@@ -198,9 +197,11 @@ polymer/test/events_test: Skip #uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
 polymer/test/js_custom_event_test: Skip #uses dart:html
 polymer/test/js_interop_test: Skip #uses dart:html
+polymer/test/layout_test: Skip #uses dart:html
 polymer/test/mirror_loader_test: Skip # uses dart:html
 polymer/test/nested_binding_test: Skip # uses dart:html
 polymer/test/noscript_test: Skip #uses dart:html
+polymer/test/platform_less_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
 polymer/test/property_change_test: Skip # uses dart:html
@@ -209,6 +210,7 @@ polymer/test/publish_attributes_test: Skip #uses dart:html
 polymer/test/publish_inherited_properties_test: Skip #uses dart:html
 polymer/test/register_test: Skip #uses dart:html
 polymer/test/take_attributes_test: Skip #uses dart:html
+polymer/test/template_attr_template_test: Skip #uses dart:html
 polymer/test/template_distribute_dynamic_test: Skip #uses dart:html
 polymer/test/two_way_bind_test: Skip #uses dart:html
 polymer/test/unbind_test: Skip # uses dart:html

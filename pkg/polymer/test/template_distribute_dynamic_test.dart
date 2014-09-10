@@ -39,15 +39,7 @@ class XTest extends PolymerElement {
           'shadowDOM dynamic distribution via template');
       expect(children[2].text, 'bar', reason:
           'shadowDOM dynamic distribution via template');
-
-      // TODO(jmesserly): restore this if we get the JS interop capability.
-      /*
-      if (window.ShadowDOMPolyfill) {
-        var actualChildren = this.$.echo.impl.children;
-        chai.assert.equal(actualChildren.length, 4,
-          'shadowDOMPolyfill distributes expected number of actual children.');
-      }
-      */
+      expect(children.length, 3, reason: 'expected number of children');
     });
   }
 }

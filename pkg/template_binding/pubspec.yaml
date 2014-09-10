@@ -1,5 +1,5 @@
 name: template_binding
-version: 0.12.1
+version: 0.13.0-dev
 author: Polymer.dart Team <web-ui-dev@dartlang.org>
 description: >
   Extends the capabilities of the HTML Template Element by enabling it to
@@ -7,8 +7,8 @@ description: >
 homepage: https://www.dartlang.org/polymer-dart/
 dependencies:
   observe: ">=0.11.0 <0.13.0"
+  web_components: ">=0.7.0-dev <0.8.0"
 dev_dependencies:
-  web_components: ">=0.3.1 <0.4.0"
   unittest: ">=0.10.0 <0.11.0"
 environment:
   sdk: ">=1.2.0 <2.0.0"

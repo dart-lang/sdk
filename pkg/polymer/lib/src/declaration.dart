@@ -159,8 +159,8 @@ class PolymerDeclaration {
 
   // from declaration/path.js
   void resolveElementPaths(Node node) {
-    if (_Platform == null) return;
-    _Platform['urlResolver'].callMethod('resolveDom', [node]);
+    if (_Polymer == null) return;
+    _Polymer['urlResolver'].callMethod('resolveDom', [node]);
   }
 
   // Dart note: renamed from "addResolvePathApi".
@@ -553,3 +553,4 @@ bool _isObserverMethod(Symbol symbol) {
 final _ATTRIBUTES_REGEX = new RegExp(r'\s|,');
 
 final JsObject _Platform = js.context['Platform'];
+final JsObject _Polymer = js.context['Polymer'];

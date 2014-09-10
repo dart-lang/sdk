@@ -1,0 +1,179 @@
+<!--
+   Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file.
+-->
+<!doctype html>
+<html>
+<!--polymer-test: this comment is needed for test_suite.dart-->
+<head>
+  <script src="packages/web_components/platform.js"></script>
+  <script src="packages/web_components/dart_support.js"></script>
+  <link rel="import" href="packages/polymer/polymer.html">
+  <script src="/root_dart/tools/testing/dart/test_controller.js"></script>
+
+  <style shim-shadowdom>
+    [layout] {
+    border: 1px solid orange;
+    }
+
+    [flex] {
+    background-color: orange;
+    }
+
+    [sized] {
+    background-color: green;
+    border: 1px solid black;
+    height: 200px;
+    width: 200px;
+    }
+
+    [sized-container] [layout] {
+    height: 500px;
+    width: 500px;
+    }
+
+    /* IE10: requires flex items to be display block */
+    span {
+    display: block;
+    }
+
+  </style>
+
+</head>
+<body unresolved>
+<div id="test1">
+  <h2>layout flex</h2>
+    <span horizontal layout>
+      <span>I am not flex</span>
+      <span flex>
+        intrinsix
+      </span>
+      <span flex sized></span>
+      <span>I am not flex</span>
+    </span>
+  <br><br>
+    <span vertical layout>
+      <span>I am not flex</span>
+      <span flex>
+        intrinsix
+      </span>
+      <span flex sized></span>
+      <span>I am not flex</span>
+    </span>
+</div>
+<br><hr><br>
+<div id="test2">
+  <h2>layout flex auto</h2>
+    <span horizontal layout>
+      <span>I am not flex</span>
+      <span flex auto>
+        intrinsix
+      </span>
+      <span flex auto sized></span>
+      <span>I am not flex</span>
+    </span>
+  <br><br>
+    <span vertical layout>
+      <span>I am not flex</span>
+      <span flex auto>
+        intrinsix
+      </span>
+      <span flex auto sized></span>
+      <span>I am not flex</span>
+    </span>
+</div>
+<br><hr><br>
+<div id="test3">
+  <h2>layout flex auto-vertical</h2>
+  <span horizontal layout>
+    <span>I am not flex</span>
+    <span flex auto-vertical>
+      intrinsix
+    </span>
+    <span flex auto-vertical sized></span>
+    <span>I am not flex</span>
+  </span>
+  <br><br>
+  <span vertical layout>
+    <span>I am not flex</span>
+    <span flex auto-vertical>
+      intrinsix
+    </span>
+    <span flex auto-vertical sized></span>
+    <span>I am not flex</span>
+  </span>
+</div>
+<br><hr><hr><br>
+<h1>Sized Container</h1>
+<div sized-container>
+  <div id="test4">
+    <h2>layout flex</h2>
+    <span horizontal layout>
+      <span>I am not flex</span>
+      <span flex>
+        intrinsix
+      </span>
+      <span flex sized></span>
+      <span>I am not flex</span>
+    </span>
+    <br><br>
+    <span vertical layout>
+      <span>I am not flex</span>
+      <span flex>
+        intrinsix
+      </span>
+      <span flex sized></span>
+      <span>I am not flex</span>
+    </span>
+  </div>
+  <br><hr><br>
+  <div id="test5">
+    <h2>layout flex auto</h2>
+    <span horizontal layout>
+      <span>I am not flex</span>
+      <span flex auto>
+        intrinsix
+      </span>
+      <span flex auto sized></span>
+      <span>I am not flex</span>
+    </span>
+    <br><br>
+    <span vertical layout>
+      <span>I am not flex</span>
+      <span flex auto>
+        intrinsix
+      </span>
+      <span flex auto sized></span>
+      <span>I am not flex</span>
+    </span>
+  </div>
+  <br><hr><br>
+  <div id="test6">
+    <h2>layout flex auto-vertical</h2>
+    <span horizontal layout>
+      <span>I am not flex</span>
+      <span flex auto-vertical>
+        intrinsix
+      </span>
+      <span flex auto-vertical sized></span>
+      <span>I am not flex</span>
+    </span>
+    <br><br>
+    <span vertical layout>
+      <span>I am not flex</span>
+      <span flex auto-vertical>
+        intrinsix
+      </span>
+      <span flex auto-vertical sized></span>
+      <span>I am not flex</span>
+    </span>
+  </div>
+</div>
+
+
+<script type="application/dart" src="layout_test.dart">
+</script>
+
+</body>
+</html>

@@ -643,6 +643,8 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   /// You can override this method to change the instantiation behavior of the
   /// template, for example to use a different data-binding syntax.
   DocumentFragment instanceTemplate(Element template) {
+    // ensure template is decorated (lets things like <tr template ...> work)
+    TemplateBindExtension.decorate(template);
     var syntax = this.syntax;
     var t = templateBind(template);
     if (syntax == null && t.bindingDelegate == null) {
@@ -843,12 +845,12 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 
       closeNamedObserver('${name}__array');
     }
-    // if the new value is an array, being observing it
+    // if the new value is an array, begin observing it
     if (value is ObservableList) {
       _observeLog.fine(() => '[$_name] observeArrayValue: register $name');
       var sub = value.listChanges.listen((changes) {
         for (var callback in callbacks) {
-          smoke.invoke(this, callback, [old], adjust: true);
+          smoke.invoke(this, callback, [changes], adjust: true);
         }
       });
       registerNamedObserver('${name}__array', sub);

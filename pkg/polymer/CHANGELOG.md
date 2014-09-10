@@ -1,6 +1,11 @@
-This file contains highlights of what changes on each version of the polymer
-package. We will also note important changes to the polyfill packages (observe,
-web_components, and template_binding) if they impact polymer.
+#### 0.14.0-dev
+  * Upgraded to polymer 0.4.0 ([polymer-dev#d66a86e][d66a86e]).
+  * The platform.js script is no longer required in Chrome or Dartium
+    (version 36). You can now remove this from your projects for development,
+    and it will be injected when running pub build or pub serve. If you would
+    like the option to not inject platform.js at all in the built output (if you
+    are deploying to chrome exclusively), please star this bug
+    http://dartbug.com/20865.
 
 #### 0.13.1
   * Upgraded error messages to have a unique and stable identifier. This

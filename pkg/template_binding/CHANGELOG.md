@@ -1,10 +1,11 @@
-# changelog
-
-This file contains highlights of what changes on each version of the
-template_binding package.
+#### Pub version 0.13.0-dev
+  * Up to date with [TemplateBinding#41e95ea][41e95ea] (release 0.4.0)
+  * Using this package now requires some additional javascript polyfills, that
+    were moved out of platform.js. These files are listed under lib/js, and all
+    are required in addition to platform.js from the web_components package.
 
 #### Pub version 0.12.1
-  * Up to date with [TemplateBinding#6a2808][6a2808] (release 0.3.5)
+  * Up to date with [TemplateBinding#6a2808c][6a2808c] (release 0.3.5)
 
 #### Pub version 0.12.0+4
   * Widen the dependency constraint on `observe`.

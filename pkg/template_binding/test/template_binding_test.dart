@@ -1369,14 +1369,22 @@ templateInstantiationTests() {
       expect(div.nodes.length, 4);
       expect('Hi, Fry', div.nodes[3].text);
 
-      div.nodes[2].attributes['ref'] = 'B';
+      // In IE 11, MutationObservers do not fire before setTimeout.
+      // So rather than using "then" to queue up the next test, we use a
+      // MutationObserver here to detect the change to "ref".
+      var done = new Completer();
+      new MutationObserver((mutations, observer) {
+        expect(div.nodes.length, 5);
+
+        expect('Hola, Fry', div.nodes[3].text);
+        expect('Hola, Leela', div.nodes[4].text);
+        done.complete();
+      }).observe(template, attributes: true, attributeFilter: ['ref']);
+
+      template.setAttribute('ref', 'B');
       model.add('Leela');
 
-    }).then(nextMicrotask).then((x) {
-      expect(div.nodes.length, 5);
-
-      expect('Hola, Fry', div.nodes[3].text);
-      expect('Hola, Leela', div.nodes[4].text);
+      return done.future;
     });
   });
 

@@ -1,7 +1,9 @@
-# changelog
-
-This file contains highlights of what changes on each version of the
-polymer_expressions package.
+#### Pub version 0.13.0-dev
+  * Move minimum 'template_binding' constraint to 0.13.0.
+  * Additional polyfills are now required when using this package outside of 
+    polymer. All the files in the 'template_binding' package under lib/js should
+    be included at the top of your app in addition to platform.js from the
+    'web_components' package.
 
 #### Pub version 0.12.0+1
   * Widen dependency constraint on `observe`.
