@@ -4618,8 +4618,10 @@ class AnalysisErrorSeverity {
  * AnalysisErrorType
  *
  * enum {
+ *   ANGULAR
  *   COMPILE_TIME_ERROR
  *   HINT
+ *   POLYMER
  *   STATIC_TYPE_WARNING
  *   STATIC_WARNING
  *   SYNTACTIC_ERROR
@@ -4627,9 +4629,13 @@ class AnalysisErrorSeverity {
  * }
  */
 class AnalysisErrorType {
+  static const ANGULAR = const AnalysisErrorType._("ANGULAR");
+
   static const COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
 
   static const HINT = const AnalysisErrorType._("HINT");
+
+  static const POLYMER = const AnalysisErrorType._("POLYMER");
 
   static const STATIC_TYPE_WARNING = const AnalysisErrorType._("STATIC_TYPE_WARNING");
 
@@ -4645,10 +4651,14 @@ class AnalysisErrorType {
 
   factory AnalysisErrorType(String name) {
     switch (name) {
+      case "ANGULAR":
+        return ANGULAR;
       case "COMPILE_TIME_ERROR":
         return COMPILE_TIME_ERROR;
       case "HINT":
         return HINT;
+      case "POLYMER":
+        return POLYMER;
       case "STATIC_TYPE_WARNING":
         return STATIC_TYPE_WARNING;
       case "STATIC_WARNING":
