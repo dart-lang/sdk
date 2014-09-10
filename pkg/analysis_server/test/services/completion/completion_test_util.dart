@@ -44,11 +44,8 @@ class AbstractCompletionTest extends AbstractContextTest {
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
     testSource = addSource(testFile, content);
-    request = new DartCompletionRequest(
-        context,
-        searchEngine,
-        testSource,
-        completionOffset);
+    request =
+        new DartCompletionRequest(context, searchEngine, testSource, completionOffset);
   }
 
   void assertNotSuggested(String completion) {
@@ -57,9 +54,9 @@ class AbstractCompletionTest extends AbstractContextTest {
     }
   }
 
-  void assertSuggest(CompletionSuggestionKind kind, String completion,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT, bool isDeprecated
-      = false, bool isPotential = false]) {
+  CompletionSuggestion assertSuggest(CompletionSuggestionKind kind,
+      String completion, [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
+      bool isDeprecated = false, bool isPotential = false]) {
     CompletionSuggestion cs;
     request.suggestions.forEach((s) {
       if (s.completion == completion) {
@@ -84,6 +81,7 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));
     expect(cs.isPotential, equals(isPotential));
+    return cs;
   }
 
   void assertSuggestClass(String className, [CompletionRelevance relevance =
@@ -91,19 +89,26 @@ class AbstractCompletionTest extends AbstractContextTest {
     assertSuggest(CompletionSuggestionKind.CLASS, className, relevance);
   }
 
-  void assertSuggestField(String completion, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
-    assertSuggest(CompletionSuggestionKind.FIELD, completion, relevance);
+  void assertSuggestField(String completion, String declaringType, String type,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.FIELD, completion, relevance);
+    expect(cs.declaringType, equals(declaringType));
+    expect(cs.returnType, equals(type));
   }
 
-  void assertSuggestFunction(String completion, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
-    assertSuggest(CompletionSuggestionKind.FUNCTION, completion, relevance);
+  void assertSuggestFunction(String completion, String returnType,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.FUNCTION, completion, relevance);
+    expect(cs.returnType, equals(returnType));
   }
 
-  void assertSuggestGetter(String className, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
-    assertSuggest(CompletionSuggestionKind.GETTER, className, relevance);
+  void assertSuggestGetter(String className, String returnType,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.GETTER, className, relevance);
+    expect(cs.returnType, equals(returnType));
   }
 
   void assertSuggestLibraryPrefix(String completion,
@@ -114,26 +119,33 @@ class AbstractCompletionTest extends AbstractContextTest {
         relevance);
   }
 
-  void assertSuggestLocalVariable(String completion,
+  void assertSuggestLocalVariable(String completion, String returnType,
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
-    assertSuggest(
-        CompletionSuggestionKind.LOCAL_VARIABLE,
-        completion,
-        relevance);
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.LOCAL_VARIABLE, completion, relevance);
+    expect(cs.returnType, equals(returnType));
   }
 
-  void assertSuggestMethod(String className, [CompletionRelevance relevance =
+  void assertSuggestMethod(String className, String declaringType,
+      String returnType, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
-    assertSuggest(CompletionSuggestionKind.METHOD, className, relevance);
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.METHOD, className, relevance);
+    expect(cs.declaringType, equals(declaringType));
+    expect(cs.returnType, equals(returnType));
   }
 
-  void assertSuggestMethodName(String completion, [CompletionRelevance relevance
-      = CompletionRelevance.DEFAULT]) {
-    assertSuggest(CompletionSuggestionKind.METHOD_NAME, completion, relevance);
+  void assertSuggestMethodName(String completion, String declaringType,
+      String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.METHOD_NAME, completion, relevance);
+    expect(cs.declaringType, equals(declaringType));
+    expect(cs.returnType, equals(returnType));
   }
 
-  void assertSuggestParameter(String completion, [CompletionRelevance relevance
-      = CompletionRelevance.DEFAULT]) {
+  void assertSuggestParameter(String completion, String returnType,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
     assertSuggest(CompletionSuggestionKind.PARAMETER, completion, relevance);
   }
 
@@ -142,12 +154,13 @@ class AbstractCompletionTest extends AbstractContextTest {
     assertSuggest(CompletionSuggestionKind.SETTER, className, relevance);
   }
 
-  void assertSuggestTopLevelVar(String completion,
+  void assertSuggestTopLevelVar(String completion, String returnType,
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
-    assertSuggest(
+    CompletionSuggestion cs = assertSuggest(
         CompletionSuggestionKind.TOP_LEVEL_VARIABLE,
         completion,
         relevance);
+    expect(cs.returnType, equals(returnType));
   }
 
   bool computeFast() {
@@ -165,9 +178,10 @@ class AbstractCompletionTest extends AbstractContextTest {
 
     // Index SDK
     for (Source librarySource in context.librarySources) {
-      CompilationUnit unit = context.getResolvedCompilationUnit2(librarySource, librarySource);
+      CompilationUnit unit =
+          context.getResolvedCompilationUnit2(librarySource, librarySource);
       if (unit != null) {
-          index.indexUnit(context, unit);
+        index.indexUnit(context, unit);
       }
     }
 
@@ -190,8 +204,8 @@ class AbstractCompletionTest extends AbstractContextTest {
             context.getResolvedCompilationUnit(testSource, library);
         if (unit != null) {
           request.unit = unit;
-          request.node = new NodeLocator.con1(
-              completionOffset).searchWithin(unit);
+          request.node =
+              new NodeLocator.con1(completionOffset).searchWithin(unit);
           resolved = true;
           if (!fullAnalysis) {
             break;

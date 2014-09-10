@@ -27,30 +27,30 @@ class LocalComputerTest extends AbstractCompletionTest {
   test_block() {
     addTestSource('class A {a() {var f; {var x;} ^ var g;}}');
     expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('f');
+    assertSuggestLocalVariable('f', null);
     assertNotSuggested('g');
     assertNotSuggested('x');
   }
 
   test_catch() {
-    addTestSource('class A {a() {try{} catch (e) {^}}}');
+    addTestSource('class A {a() {try{} on E catch (e) {^}}}');
     expect(computeFast(), isTrue);
-    assertSuggestParameter('e');
+    assertSuggestParameter('e', 'E');
   }
 
   test_catch2() {
     addTestSource('class A {a() {try{} catch (e, s) {^}}}');
     expect(computeFast(), isTrue);
-    assertSuggestParameter('e');
-    assertSuggestParameter('s');
+    assertSuggestParameter('e', null);
+    assertSuggestParameter('s', null);
   }
 
   test_compilationUnit_declarations() {
-    addTestSource('class A {^} class B {} var T;');
+    addTestSource('class A {^} class B {} A T;');
     expect(computeFast(), isTrue);
     assertSuggestClass('A');
     assertSuggestClass('B');
-    assertSuggestTopLevelVar('T');
+    assertSuggestTopLevelVar('T', 'A');
   }
 
   test_compilationUnit_directives() {
@@ -74,32 +74,29 @@ class LocalComputerTest extends AbstractCompletionTest {
   test_for() {
     addTestSource('main(args) {for (int i; i < 10; ++i) {^}}');
     expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('i');
+    assertSuggestLocalVariable('i', 'int');
   }
 
   test_forEach() {
     addTestSource('main(args) {for (foo in bar) {^}}');
     expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('foo');
+    assertSuggestLocalVariable('foo', null);
   }
 
   test_function() {
-    addTestSource('main(args) {x.then((b) {^});}');
+    addTestSource('String foo(List args) {x.then((R b) {^});}');
     expect(computeFast(), isTrue);
-    assertSuggestFunction('main');
-    assertSuggestParameter('args');
-    assertSuggestParameter('b');
+    assertSuggestFunction('foo', 'String');
+    assertSuggestParameter('args', 'List');
+    assertSuggestParameter('b', 'R');
   }
 
   test_local_name() {
     addTestSource('class A {a() {var f; A ^}}');
     expect(computeFast(), isTrue);
-    //TODO (danrubel) should not be suggested
-    // but A ^ in this test
-    // parses differently than var ^ in test below
-    assertSuggestClass('A');
-    assertSuggestMethodName('a');
-    assertSuggestLocalVariable('f');
+    assertNotSuggested('A');
+    assertNotSuggested('a');
+    assertNotSuggested('f');
   }
 
   test_local_name2() {
@@ -111,27 +108,27 @@ class LocalComputerTest extends AbstractCompletionTest {
   }
 
   test_members() {
-    addTestSource('class A {var f; a() {^} var g;}');
+    addTestSource('class A {X f; Z a() {^} var g;}');
     expect(computeFast(), isTrue);
-    assertSuggestMethodName('a');
-    assertSuggestField('f');
-    assertSuggestField('g');
+    assertSuggestMethodName('a', 'A', 'Z');
+    assertSuggestField('f', 'A', 'X');
+    assertSuggestField('g', 'A', null);
   }
 
   test_methodParam_named() {
-    addTestSource('class A {a(x, {y: boo}) {^}}');
+    addTestSource('class A {Z a(X x, {y: boo}) {^}}');
     expect(computeFast(), isTrue);
-    assertSuggestMethodName('a');
-    assertSuggestParameter('x');
-    assertSuggestParameter('y');
+    assertSuggestMethodName('a', 'A', 'Z');
+    assertSuggestParameter('x', 'X');
+    assertSuggestParameter('y', 'boo');
   }
 
   test_methodParam_positional() {
-    addTestSource('class A {a(x, [y=1]) {^}}');
+    addTestSource('class A {Z a(X x, [int y=1]) {^}}');
     expect(computeFast(), isTrue);
-    assertSuggestMethodName('a');
-    assertSuggestParameter('x');
-    assertSuggestParameter('y');
+    assertSuggestMethodName('a', 'A', 'Z');
+    assertSuggestParameter('x', 'X');
+    assertSuggestParameter('y', 'int');
   }
 
   test_topLevelVar_name() {
@@ -149,7 +146,7 @@ class LocalComputerTest extends AbstractCompletionTest {
   test_variableDeclaration() {
     addTestSource('main() {int a = 1, b = 2 + ^;}');
     expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('a');
+    assertSuggestLocalVariable('a', 'int');
     assertNotSuggested('b');
   }
 }

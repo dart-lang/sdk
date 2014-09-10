@@ -147,13 +147,10 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
   }
 
   test_local_name() {
-    addSource('/testA.dart', 'var T1;');
+    addSource('/testA.dart', 'B T1; class B{}');
     addTestSource('import "/testA.dart"; class C {a() {C ^}}');
     return computeFull().then((_) {
-      //TODO (danrubel) should not be suggested
-      // but C ^ in this test
-      // parses differently than var ^ in test below
-      assertSuggestTopLevelVar('T1');
+      assertNotSuggested('T1');
     });
   }
 
@@ -166,10 +163,10 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
   }
 
   test_topLevelVar() {
-    addSource('/testA.dart', 'var T1; var _T2;');
+    addSource('/testA.dart', 'String T1; var _T2;');
     addTestSource('import "/testA.dart"; class C {foo(){^}}');
     return computeFull().then((_) {
-      assertSuggestTopLevelVar('T1');
+      assertSuggestTopLevelVar('T1', 'String');
       assertNotSuggested('_T2');
     });
   }
@@ -194,7 +191,7 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     addSource('/testA.dart', 'var T1; var _T2;');
     addTestSource('class C {foo(){^}}');
     return computeFull(true).then((_) {
-      assertSuggestTopLevelVar('T1', CompletionRelevance.LOW);
+      assertSuggestTopLevelVar('T1', null, CompletionRelevance.LOW);
       assertNotSuggested('_T2');
     });
   }

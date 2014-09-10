@@ -56,6 +56,18 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
+  Future<bool> visitExpressionStatement(ExpressionStatement node) {
+    Expression expression = node.expression;
+    if (expression is SimpleIdentifier) {
+      if (expression.end < request.offset) {
+        // Don't suggest imported elements for local var name
+        return new Future.value(false);
+      }
+    }
+    return visitNode(node);
+  }
+
+  @override
   Future<bool> visitNode(AstNode node) {
     return _addImportedElements();
   }
@@ -102,11 +114,11 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
             visibleLibs.add(lib);
             directive.combinators.forEach((Combinator combinator) {
               if (combinator is ShowCombinator) {
-                showNames[lib] = combinator.shownNames.map(
-                    (SimpleIdentifier id) => id.name).toSet();
+                showNames[lib] =
+                    combinator.shownNames.map((SimpleIdentifier id) => id.name).toSet();
               } else if (combinator is HideCombinator) {
-                hideNames[lib] = combinator.hiddenNames.map(
-                    (SimpleIdentifier id) => id.name).toSet();
+                hideNames[lib] =
+                    combinator.hiddenNames.map((SimpleIdentifier id) => id.name).toSet();
               }
             });
           } else {
@@ -126,17 +138,40 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
             Set<String> hide = hideNames[lib];
             if ((show == null || show.contains(completion)) &&
                 (hide == null || !hide.contains(completion))) {
-              request.suggestions.add(
-                  new CompletionSuggestion(
-                      new CompletionSuggestionKind.fromElementKind(element.kind),
-                      visibleLibs.contains(lib) || lib.isDartCore ?
-                          CompletionRelevance.DEFAULT :
-                          CompletionRelevance.LOW,
-                      completion,
-                      completion.length,
-                      0,
-                      element.isDeprecated,
-                      false));
+
+              CompletionSuggestionKind kind =
+                  new CompletionSuggestionKind.fromElementKind(element.kind);
+
+              CompletionRelevance relevance;
+              if (visibleLibs.contains(lib) || lib.isDartCore) {
+                relevance = CompletionRelevance.DEFAULT;
+              } else {
+                relevance = CompletionRelevance.LOW;
+              }
+
+              CompletionSuggestion suggestion = new CompletionSuggestion(
+                  kind,
+                  relevance,
+                  completion,
+                  completion.length,
+                  0,
+                  element.isDeprecated,
+                  false);
+
+              DartType type;
+              if (element is TopLevelVariableElement) {
+                type = element.type;
+              } else if (element is FunctionElement) {
+                type = element.returnType;
+              }
+              if (type != null) {
+                String name = type.displayName;
+                if (name != null && name.length > 0 && name != 'dynamic') {
+                  suggestion.returnType = name;
+                }
+              }
+
+              request.suggestions.add(suggestion);
             }
           }
         }
@@ -145,4 +180,3 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     });
   }
 }
-
