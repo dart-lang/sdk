@@ -4,6 +4,7 @@
     purely focused on polyfills.
   * Change Platform.deliverDeclarations to 
     Platform.consumeDeclarations(callback).
+  * Cherry pick https://github.com/Polymer/ShadowDOM/pull/505 to fix mem leak.
 
 #### Pub version 0.6.0+1
   * Cherry pick https://github.com/Polymer/ShadowDOM/pull/500 to fix
