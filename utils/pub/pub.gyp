@@ -78,7 +78,7 @@
           'inputs': [
             '../../tools/create_timestamp_file.py',
             '<!@(["python", "../../tools/list_files.py", "\\.dart$",'
-                ' "../../sdk/lib/_internal/pub"])',
+                ' "../../sdk/lib/_internal/pub_generated"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/pub_files.stamp',
