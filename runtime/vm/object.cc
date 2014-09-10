@@ -16828,8 +16828,7 @@ const char* Bigint::ToDecCString(uword (*allocator)(intptr_t size)) const {
   intptr_t pos = 0;
   const intptr_t kDivisor = 100000000;
   const intptr_t kDigits = 8;
-  // TODO(regis): Fix Windows error reported for ambiguous call to 'pow'.
-  // ASSERT(pow(10.0, kDigits) == kDivisor);
+  ASSERT(pow(10.0, 1.0 * kDigits) == kDivisor);
   ASSERT(kDivisor < kDigitBase);
   ASSERT(Smi::IsValid(kDivisor));
   // Allocate a copy of the digits.

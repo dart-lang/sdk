@@ -33,10 +33,12 @@ class BigIntegerTest {
     a = 10000000000000000001;
     Expect.equals(20000000000000000002, a + a);
     // Bigint and double.
-    a = 100000000000.0;
-    b = 100000000000;
-    Expect.equals(200000000000.0, a + b);
-    Expect.equals(200000000000.0, b + a);
+    a = 100000000000000000000.0;
+    b = 200000000000000000000;
+    Expect.isTrue((a + b) is double);
+    Expect.equals(300000000000000000000.0, a + b);
+    Expect.isTrue((b + a) is double);
+    Expect.equals(300000000000000000000.0, b + a);
   }
 
   static testBigintSub() {
@@ -49,10 +51,12 @@ class BigIntegerTest {
     a = 10000000000000000001;
     Expect.equals(20000000000000000002, a + a);
     // Bigint and double.
-    a = 100000000000.0;
-    b = 100000000000;
-    Expect.equals(200000000000.0, a + b);
-    Expect.equals(200000000000.0, b + a);
+    a = 100000000000000000000.0;
+    b = 200000000000000000000;
+    Expect.isTrue((a + b) is double);
+    Expect.equals(-100000000000000000000.0, a - b);
+    Expect.isTrue((b + a) is double);
+    Expect.equals(100000000000000000000.0, b - a);
     Expect.equals(-1, 0xF00000000 - 0xF00000001);
   }
 
@@ -67,10 +71,12 @@ class BigIntegerTest {
     b = 10000000000000000;
     Expect.equals(123456789012345678900000000000000000, a * b);
     // Bigint and double.
-    a = 200.0;
-    b = 100000000000;
-    Expect.equals(20000000000000.0, a * b);
-    Expect.equals(20000000000000.0, b * a);
+    a = 2.0;
+    b = 200000000000000000000;
+    Expect.isTrue((a * b) is double);
+    Expect.equals(400000000000000000000.0, a * b);
+    Expect.isTrue((b * a) is double);
+    Expect.equals(400000000000000000000.0, b * a);
   }
 
   static testBigintHugeMul() {
@@ -96,10 +102,10 @@ class BigIntegerTest {
     b = 10000000000000000;
     Expect.equals(1234, a ~/ b);
     // Bigint and double.
-    a = 200.0;
-    b = 100000000000;
-    Expect.equals(0.0, a ~/ b);
-    Expect.equals(500000000.0, b ~/ a);
+    a = 100000000000000000000.0;
+    b = 200000000000000000000;
+    Expect.equals(0, a ~/ b);
+    Expect.equals(2, b ~/ a);
   }
 
   static testBigintDiv() {
@@ -112,10 +118,10 @@ class BigIntegerTest {
     var b = 10000000000000000;
     Expect.equals(1234.567, a / b);
     // Bigint and double.
-    a = 200.0;
-    b = 100000000000;
-    Expect.equals(0.000000002, a / b);
-    Expect.equals(500000000.0, b / a);
+    a = 400000000000000000000.0;
+    b = 200000000000000000000;
+    Expect.equals(2.0, a / b);
+    Expect.equals(0.5, b / a);
   }
 
   static testBigintModulo() {
@@ -130,10 +136,10 @@ class BigIntegerTest {
     Expect.equals(1, a % b);
     Expect.equals(10000000000000000000, b % a);
     // Bigint & double.
-    a = 100000000001.0;
-    b = 100000000000;
-    Expect.equals(1.0, a % b);
-    Expect.equals(100000000000.0, b % a);
+    a = 10000000100000000.0;
+    b = 10000000000000000;
+    Expect.equals(100000000.0, a % b);
+    Expect.equals(10000000000000000.0, b % a);
     // Transitioning from Mint to Bigint.
     var iStart = 4611686018427387900;
     var prevX = -23 % iStart;
@@ -146,9 +152,9 @@ class BigIntegerTest {
   }
 
   static testBigintNegate() {
-    var a = 0xF000000000F;
+    var a = 0xF000000000000000F;
     var b = ~a;  // negate.
-    Expect.equals(-0xF0000000010, b);
+    Expect.equals(-0xF0000000000000010, b);
     Expect.equals(0, a & b);
     Expect.equals(-1, a | b);
   }

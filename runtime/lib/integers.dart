@@ -201,6 +201,7 @@ class _IntegerImplementation extends _Num {
   int toInt() { return this; }
   double toDouble() { return new _Double.fromInteger(this); }
   _Bigint _toBigint() { return new _Bigint()._setInt(this); }
+  num _toBigintOrDouble() { return _toBigint(); }
 
   String toStringAsFixed(int fractionDigits) {
     return this.toDouble().toStringAsFixed(fractionDigits);

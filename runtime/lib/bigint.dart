@@ -950,46 +950,40 @@ class _Bigint extends _IntegerImplementation implements int {
   // efficiency, but are not necessary for correctness. They shortcut native
   // calls that would return null because the receiver is _Bigint.
   num operator +(num other) {
-    return other._toBigint()._addFromInteger(this);
+    return other._toBigintOrDouble()._addFromInteger(this);
   }
   num operator -(num other) {
-    return other._toBigint()._subFromInteger(this);
+    return other._toBigintOrDouble()._subFromInteger(this);
   }
   num operator *(num other) {
-    return other._toBigint()._mulFromInteger(this);
+    return other._toBigintOrDouble()._mulFromInteger(this);
   }
   num operator ~/(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
-    return other._toBigint()._truncDivFromInteger(this);
+    return other._toBigintOrDouble()._truncDivFromInteger(this);
   }
-  num operator /(num other) {
-    return this.toDouble() / other.toDouble();
-  }
-  // TODO(regis): Investigate strange behavior with % double.INFINITY.
-  /*
   num operator %(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
     }
-    return other._toBigint()._moduloFromInteger(this);
+    return other._toBigintOrDouble()._moduloFromInteger(this);
   }
-  */
   int operator &(int other) {
-    return other._toBigint()._bitAndFromInteger(this);
+    return other._toBigintOrDouble()._bitAndFromInteger(this);
   }
   int operator |(int other) {
-    return other._toBigint()._bitOrFromInteger(this);
+    return other._toBigintOrDouble()._bitOrFromInteger(this);
   }
   int operator ^(int other) {
-    return other._toBigint()._bitXorFromInteger(this);
+    return other._toBigintOrDouble()._bitXorFromInteger(this);
   }
   int operator >>(int other) {
-    return other._toBigint()._shrFromInt(this);
+    return other._toBigintOrDouble()._shrFromInt(this);
   }
   int operator <<(int other) {
-    return other._toBigint()._shlFromInt(this);
+    return other._toBigintOrDouble()._shlFromInt(this);
   }
   // End of operator shortcuts.
 
