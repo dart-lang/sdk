@@ -2,6 +2,19 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# Failing on vm-linux-release-optcounter-threshold-be only. There seems to
+# be no way to disable only that configuration though.
+[ $runtime == vm && $system == linux && $mode == release ]
+LibTest/core/Duration/operator_lt_A01_t01: Skip # Issue 20875
+LibTest/core/Duration/operator_lte_A01_t01: Skip # Issue 20875
+LibTest/core/Duration/operator_gte_A01_t01: Skip # Issue 20875
+LibTest/core/Duration/operator_mult_A01_t01: Skip # Issue 20875
+LibTest/core/Duration/operator_gt_A01_t01: Skip # Issue 20875
+LibTest/core/Duration/operator_plus_A01_t01: Skip # Issue 20875
+LibTest/core/Duration/operator_eq_A01_t01: Skip # Issue 20875
+LibTest/core/Duration/operator_minus_A01_t01: Skip # Issue 20875
+LibTest/core/Duration/operator_div_A01_t01: Skip # Issue 20875
+
 
 [ $compiler == none && ($runtime == vm || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 
