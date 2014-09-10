@@ -1,0 +1,19 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+test/dart2js/compiles_generated_file_from_dependency_test: Pass, Slow
+test/serve/web_socket/url_to_asset_id_test: Pass, Slow
+test/transformer/loads_a_diamond_transformer_dependency_graph_test: Pass, Slow
+
+# Pub only runs on the VM, so just rule out all compilers.
+[ $compiler == dart2js || $compiler == dart2dart ]
+*: Skip
+
+# Pub only runs on the standalone VM, not the browser.
+[ $runtime == drt || $runtime == dartium || $runtime == opera ]
+*: Skip
+
+[ $runtime == vm && $system == windows ]
+test/run/app_can_read_from_stdin_test: Fail # Issue 19448
+test/real_version_test: RuntimeError # Issue 20882
