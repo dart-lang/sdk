@@ -38,9 +38,17 @@ abstract class SourceFileProvider {
   }
 
   Future<List<int>> readUtf8BytesFromUri(Uri resourceUri) {
-    if (resourceUri.scheme != 'file') {
+    if (resourceUri.scheme == 'file') {
+      return _readFromFile(resourceUri);
+    } else if (resourceUri.scheme == 'http') {
+      return _readFromHttp(resourceUri);
+    } else {
       throw new ArgumentError("Unknown scheme in uri '$resourceUri'");
     }
+  }
+
+  Future<List<int>> _readFromFile(Uri resourceUri) {
+    assert(resourceUri.scheme == 'file');
     List<int> source;
     try {
       source = readAll(resourceUri.toFilePath());
@@ -53,6 +61,37 @@ abstract class SourceFileProvider {
     sourceFiles[resourceUri.toString()] =
         new CachingUtf8BytesSourceFile(relativizeUri(resourceUri), source);
     return new Future.value(source);
+  }
+
+  Future<List<int>> _readFromHttp(Uri resourceUri) {
+    assert(resourceUri.scheme == 'http');
+    HttpClient client = new HttpClient();
+    return client.getUrl(resourceUri)
+        .then((HttpClientRequest request) => request.close())
+        .then((HttpClientResponse response) {
+          if (response.statusCode != HttpStatus.OK) {
+            String msg = 'Failure getting $resourceUri: '
+                      '${response.statusCode} ${response.reasonPhrase}';
+            throw msg;
+          }
+          return response.toList();
+        })
+        .then((List<List<int>> splitContent) {
+           int totalLength = splitContent.fold(0, (int old, List list) {
+             return old + list.length;
+           });
+           Uint8List result = new Uint8List(totalLength);
+           int offset = 0;
+           for (List<int> contentPart in splitContent) {
+             result.setRange(
+                 offset, offset + contentPart.length, contentPart);
+             offset += contentPart.length;
+           }
+           dartCharactersRead += totalLength;
+           sourceFiles[resourceUri.toString()] =
+               new CachingUtf8BytesSourceFile(resourceUri.toString(), result);
+           return result;
+         });
   }
 
   Future/*<List<int> | String>*/ call(Uri resourceUri);
