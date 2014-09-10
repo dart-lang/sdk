@@ -588,10 +588,7 @@ class CodeEmitterTask extends CompilerTask {
           // transition.
           var lazies = init.lazies;
           for (var lazyInit in lazies) {
-             var lazyInitName = lazies[lazyInit];
-             if (hasOwnProperty.call(lazies, lazyInitName)) {
-               this[lazyInitName] = null;
-             }
+             this[lazies[lazyInit]] = null;
           }
 
           // Use the newly created object as prototype. In Chrome,
@@ -603,10 +600,8 @@ class CodeEmitterTask extends CompilerTask {
 
           // Now, after being a fast map we can set the lazies again.
           for (var lazyInit in lazies) {
-            lazyInitName = lazies[lazyInit];
-            if (hasOwnProperty.call(isolateProperties, lazyInitName)) {
-              this[lazyInitName] = isolateProperties[lazyInitName];
-            }
+            var lazyInitName = lazies[lazyInit];
+            this[lazyInitName] = isolateProperties[lazyInitName];
           }
         }
         Isolate.prototype = oldIsolate.prototype;
