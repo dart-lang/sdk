@@ -158,7 +158,7 @@ int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
 
-[ $arch == simarm ]
+[ $arch == simarm || $arch == simarm64 ]
 big_integer_vm_test: Skip # Timeout
 
 [ $arch == simmips ]
