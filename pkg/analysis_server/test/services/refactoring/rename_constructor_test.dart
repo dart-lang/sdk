@@ -5,7 +5,7 @@
 library test.services.refactoring.rename_constructor;
 
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import '../../reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:unittest/unittest.dart';
@@ -103,6 +103,7 @@ main() {
     // configure refactoring
     _createConstructorDeclarationRefactoring('() {} // marker');
     expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, '');
     // validate change
     refactoring.newName = 'newName';
@@ -136,6 +137,7 @@ main() {
     // configure refactoring
     _createConstructorDeclarationRefactoring('test() {} // marker');
     expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, 'test');
     // validate change
     refactoring.newName = 'newName';
@@ -169,6 +171,7 @@ main() {
     // configure refactoring
     _createConstructorDeclarationRefactoring('test() {} // marker');
     expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
     expect(refactoring.oldName, 'test');
     // validate change
     refactoring.newName = '';

@@ -20,14 +20,14 @@ $if DART2JS
   int get __webkitRadiusX => JS('num', '#.webkitRadiusX', this).round();
   int get __webkitRadiusY => JS('num', '#.webkitRadiusY', this).round();
 $else
-  int get __clientX => _blink.BlinkTouch.$clientX_Getter(this).round();
-  int get __clientY => _blink.BlinkTouch.$clientY_Getter(this).round();
-  int get __screenX => _blink.BlinkTouch.$screenX_Getter(this).round();
-  int get __screenY => _blink.BlinkTouch.$screenY_Getter(this).round();
-  int get __pageX => _blink.BlinkTouch.$pageX_Getter(this).round();
-  int get __pageY => _blink.BlinkTouch.$pageY_Getter(this).round();
-  int get __webkitRadiusX => _blink.BlinkTouch.$webkitRadiusX_Getter(this).round();
-  int get __webkitRadiusY => _blink.BlinkTouch.$webkitRadiusY_Getter(this).round();
+  int get __clientX => _blink.BlinkTouch.clientX_Getter(this).round();
+  int get __clientY => _blink.BlinkTouch.clientY_Getter(this).round();
+  int get __screenX => _blink.BlinkTouch.screenX_Getter(this).round();
+  int get __screenY => _blink.BlinkTouch.screenY_Getter(this).round();
+  int get __pageX => _blink.BlinkTouch.pageX_Getter(this).round();
+  int get __pageY => _blink.BlinkTouch.pageY_Getter(this).round();
+  int get __webkitRadiusX => _blink.BlinkTouch.webkitRadiusX_Getter(this).round();
+  int get __webkitRadiusY => _blink.BlinkTouch.webkitRadiusY_Getter(this).round();
 $endif
 
   @DomName('Touch.clientX')

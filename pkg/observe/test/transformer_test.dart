@@ -7,6 +7,7 @@ import 'package:barback/barback.dart';
 import 'package:observe/transformer.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 main() {
   useCompactVMConfiguration();
@@ -129,16 +130,19 @@ _testInitializers(String args, String expected) {
 
 /// Helper that applies the transform by creating mock assets.
 Future<String> _transform(String code) {
-  var id = new AssetId('foo', 'a/b/c.dart');
-  var asset = new Asset.fromString(id, code);
-  var transformer = new ObservableTransformer();
-  return transformer.isPrimary(asset).then((isPrimary) {
-    expect(isPrimary, isTrue);
-    var transform = new _MockTransform(asset);
-    return transformer.apply(transform).then((_) {
-      expect(transform.outs, hasLength(1));
-      expect(transform.outs[0].id, id);
-      return transform.outs.first.readAsString();
+  return Chain.capture(() {
+    var id = new AssetId('foo', 'a/b/c.dart');
+    var asset = new Asset.fromString(id, code);
+    var transformer = new ObservableTransformer();
+    return transformer.isPrimary(asset).then((isPrimary) {
+      expect(isPrimary, isTrue);
+      var transform = new _MockTransform(asset);
+      return transformer.apply(transform).then((_) {
+        expect(transform.outs, hasLength(2));
+        expect(transform.outs[0].id, id);
+        expect(transform.outs[1].id, id.addExtension('._buildLogs.1'));
+        return transform.outs.first.readAsString();
+      });
     });
   });
 }
@@ -166,7 +170,8 @@ class _MockTransform implements Transform {
 
   readInput(id) => throw new UnimplementedError();
   readInputAsString(id, {encoding}) => throw new UnimplementedError();
-  hasInput(id) => throw new UnimplementedError();
+  hasInput(id) =>
+      new Future.value(id == _asset.id || outs.any((a) => a.id == id));
 
   static void _mockLogFn(AssetId asset, LogLevel level, String message,
                          span) {

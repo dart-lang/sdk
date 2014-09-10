@@ -5,15 +5,11 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import 'dart:async';
-
-@lazy import 'deferred_class_library2.dart' as lib;
-
-const lazy = const DeferredLibrary('deferred_class_library2');
+import 'deferred_class_library2.dart' deferred as lib;
 
 main() {
   asyncStart();
-  lazy.load().then((_) {
+  lib.loadLibrary().then((_) {
     // Only Gee2.n888 to make sure no other constant pulls in its super.
     Expect.equals(888, new lib.Gee2.n888().value);
     asyncEnd();

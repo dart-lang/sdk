@@ -1575,7 +1575,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // type because our optimizations might end up in a state where the
       // invoke dynamic knows more than the receiver.
       ClassElement enclosing = node.element.enclosingClass;
-      TypeMask receiverType = new TypeMask.nonNullExact(enclosing.declaration);
+      TypeMask receiverType =
+          new TypeMask.nonNullExact(enclosing.declaration, compiler.world);
       return new TypedSelector(receiverType, selector, compiler.world);
     }
     // If [JSInvocationMirror._invokeOn] is enabled, and this call
@@ -1673,7 +1674,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // If the selector we need to register a typed getter to the
         // [world]. The emitter needs to know if it needs to emit a
         // bound closure for a method.
-        TypeMask receiverType = new TypeMask.nonNullExact(superClass);
+        TypeMask receiverType =
+            new TypeMask.nonNullExact(superClass, compiler.world);
         selector = new TypedSelector(receiverType, selector, compiler.world);
         // TODO(floitsch): we know the target. We shouldn't register a
         // dynamic getter.

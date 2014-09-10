@@ -205,8 +205,9 @@ class ResolutionRegistry extends Registry {
     backend.resolutionCallbacks.onLazyField(this);
   }
 
-  void registerMetadataConstant(Constant constant, Element annotatedElement) {
-    backend.registerMetadataConstant(constant, annotatedElement, this);
+  void registerMetadataConstant(MetadataAnnotation metadata,
+                                Element annotatedElement) {
+    backend.registerMetadataConstant(metadata, annotatedElement, this);
   }
 
   void registerThrowRuntimeError() {
@@ -265,6 +266,12 @@ class ResolutionRegistry extends Registry {
   // needed to lookup types in the current scope.
   void registerJsCall(Node node, ResolverVisitor visitor) {
     world.registerJsCall(node, visitor);
+  }
+
+  // TODO(johnniwinther): Remove the [ResolverVisitor] dependency. Its only
+  // needed to lookup types in the current scope.
+  void registerJsEmbeddedGlobalCall(Node node, ResolverVisitor visitor) {
+    world.registerJsEmbeddedGlobalCall(node, visitor);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {

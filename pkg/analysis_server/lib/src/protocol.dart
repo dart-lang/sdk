@@ -23,6 +23,10 @@ import 'package:analyzer/src/generated/source.dart' as engine;
 
 part 'generated_protocol.dart';
 
+
+final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
+    new HashMap<String, RefactoringKind>();
+
 /**
  * Translate the input [map], applying [keyCallback] to all its keys, and
  * [valueCallback] to all its values.
@@ -126,6 +130,9 @@ List<AnalysisError> _analysisErrorListFromEngine(engine.LineInfo lineInfo,
  * SourceEdit.apply().
  */
 String _applyEdit(String code, SourceEdit edit) {
+  if (edit.length < 0) {
+    throw new RangeError('length is negative');
+  }
   return code.substring(0, edit.offset) +
       edit.replacement +
       code.substring(edit.end);
@@ -294,6 +301,9 @@ Location _locationForArgs(engine.AnalysisContext context, engine.Source source,
 Location _locationFromElement(engine.Element element) {
   engine.AnalysisContext context = element.context;
   engine.Source source = element.source;
+  if (context == null || source == null) {
+    return null;
+  }
   String name = element.displayName;
   int offset = element.nameOffset;
   int length = name != null ? name.length : 0;
@@ -389,6 +399,56 @@ OverriddenMember _overriddenMemberFromEngine(engine.Element member) {
   Element element = elementFromEngine(member);
   String className = member.enclosingElement.displayName;
   return new OverriddenMember(element, className);
+}
+
+
+/**
+ * Create a [RefactoringFeedback] corresponding the given [kind].
+ */
+RefactoringFeedback _refactoringFeedbackFromJson(JsonDecoder jsonDecoder,
+    String jsonPath, Object json, Map feedbackJson) {
+  String requestId;
+  if (jsonDecoder is ResponseDecoder) {
+    requestId = jsonDecoder.response.id;
+  }
+  RefactoringKind kind = REQUEST_ID_REFACTORING_KINDS.remove(requestId);
+  if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
+    return new ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.EXTRACT_METHOD) {
+    return new ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
+    return new InlineLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.INLINE_METHOD) {
+    return new InlineMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.RENAME) {
+    return new RenameFeedback.fromJson(jsonDecoder, jsonPath, json);
+  }
+  return null;
+}
+
+
+/**
+ * Create a [RefactoringOptions] corresponding the given [kind].
+ */
+RefactoringOptions _refactoringOptionsFromJson(JsonDecoder jsonDecoder,
+    String jsonPath, Object json, RefactoringKind kind) {
+  if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
+    return new ExtractLocalVariableOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.EXTRACT_METHOD) {
+    return new ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.INLINE_METHOD) {
+    return new InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.RENAME) {
+    return new RenameOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
+  return null;
 }
 
 
@@ -832,7 +892,7 @@ class Response {
       Object error = json[Response.ERROR];
       RequestError decodedError;
       if (error is Map) {
-        decodedError = new RequestError.fromJson(new ResponseDecoder(),
+        decodedError = new RequestError.fromJson(new ResponseDecoder(null),
             '.error', error);
       }
       Object result = json[Response.RESULT];
@@ -848,15 +908,14 @@ class Response {
   }
 
   /**
-   * Initialize a newly created instance to represent an error condition caused
-   * by an error during `analysis.getErrors`.
+   * Initialize a newly created instance to represent the
+   * GET_ERRORS_INVALID_FILE error condition.
    */
-  Response.getErrorsError(Request request, String message,
-      Map<String, Object> result)
+  Response.getErrorsInvalidFile(Request request)
     : this(
         request.id,
-        error: new RequestError(RequestErrorCode.GET_ERRORS_ERROR, 'Error during `analysis.getErrors`: $message.'),
-        result: result);
+        error: new RequestError(RequestErrorCode.GET_ERRORS_INVALID_FILE,
+            'Error during `analysis.getErrors`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -916,6 +975,10 @@ class Response {
  * used only for testing.  Errors are reported using bare [Exception] objects.
  */
 class ResponseDecoder extends JsonDecoder {
+  final Response response;
+
+  ResponseDecoder(this.response);
+
   @override
   dynamic mismatch(String jsonPath, String expected) {
     return new Exception('Expected $expected at $jsonPath');

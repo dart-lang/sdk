@@ -23,6 +23,10 @@ tree.FunctionExpression emit(dart2js.TreeElementMapping treeElements,
 /// backend.
 const bool INSERT_NEW_BACKEND_COMMENT = true;
 
+/// The comment inserted in front of every function body.
+const String NEW_BACKEND_COMMENT =
+    INSERT_NEW_BACKEND_COMMENT ? '/* new backend */ ' : '';
+
 /// Converts backend ASTs to frontend ASTs.
 class TreePrinter {
   dart2js.TreeElementMapping treeElements;
@@ -236,11 +240,12 @@ class TreePrinter {
 
   tree.Node makeStaticReceiver(elements.Element element) {
     if (treeElements == null) return null;
-    if (element.enclosingElement is elements.ClassElement) {
+    if (element.isStatic) {
+      elements.ClassElement enclosingClass = element.enclosingClass;
       tree.Send send = new tree.Send(
           null,
-          makeIdentifier(element.enclosingElement.name));
-      treeElements[send] = element.enclosingElement;
+          makeIdentifier(enclosingClass.name));
+      treeElements[send] = enclosingClass;
       return send;
     } else {
       return null;
@@ -579,7 +584,7 @@ class TreePrinter {
 
   /// A comment token to be inserted when [INSERT_NEW_BACKEND_COMMENT] is true.
   final SymbolToken newBackendComment = new SymbolToken(
-      const PrecedenceInfo('/* new backend */ ', 0, OPEN_CURLY_BRACKET_TOKEN),
+      const PrecedenceInfo(NEW_BACKEND_COMMENT, 0, OPEN_CURLY_BRACKET_TOKEN),
       -1);
 
   tree.Node makeFunctionBody(Statement stmt) {

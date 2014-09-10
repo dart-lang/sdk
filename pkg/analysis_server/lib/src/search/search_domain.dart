@@ -28,7 +28,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
   SearchEngine searchEngine;
 
   /**
-   * The next searc response id.
+   * The next search response id.
    */
   int _nextSearchId = 0;
 

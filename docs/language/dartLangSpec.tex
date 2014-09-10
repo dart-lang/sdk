@@ -252,7 +252,7 @@ Privacy is indicated by the name of a declaration - hence privacy and naming are
 
 Dart code is always single threaded. There is no shared-state concurrency in Dart. Concurrency is supported via actor-like entities called {\em isolates}.
 
-An isolate is a unit of concurrency. It has its own memory and its own thread of control. Isolates communicate by message passing (\ref{sendingMessages}). No state is ever shared between isolates. Isolates are created by spawning (\ref{spawningAnIsolate}).
+An isolate is a unit of concurrency. It has its own memory and its own thread of control. Isolates communicate by message passing (\ref{sendingMessages}). No state is ever shared between isolates. Isolates are created by spawning (\ref{spawningAnIsolate}). 
 
 
 \section{Errors and Warnings}
@@ -481,8 +481,8 @@ Functions abstract over executable actions.
       type
     .
 
-{\bf functionBody:}`={\escapegrammar \gt}' expression `{\escapegrammar ;}';
-     block
+{\bf functionBody:} \ASYNC{}?  `={\escapegrammar \gt}' expression `{\escapegrammar ;}';
+     (\ASYNC{} $|$ \ASYNC* $|$ \SYNC*)? block
     .
 
 {\bf block:}
@@ -495,23 +495,33 @@ Functions include  function declarations (\ref{functionDeclarations}), methods (
 
 All functions have a signature and a body. The signature describes the formal parameters of the function, and possibly its name and return type.  A function body is either:
 \begin{itemize}
-\item A block statement  (\ref{blocks}) containing the statements  (\ref{statements}) executed by the function. In this case, if the last statement of a function is not a return statement, the statement \code{\RETURN{};} is implicitly appended to the function body.
+\item A block statement  (\ref{blocks}) containing the statements  (\ref{statements}) executed by the function, optionally marked with one of the modifiers: \ASYNC, \ASYNC* or \SYNC*. In this case, if the last statement of a function is not a return statement (\ref{return}), the statement \code{\RETURN{};} is implicitly appended to the function body.
 
 \rationale{
-Because Dart is optionally typed, we cannot guarantee that a function that does not return a value will not be used in the context of an expression. Therefore, every function must return a value. A \RETURN{} without an expression returns \NULL{}. See further discussion in section \ref{return}.
+Because Dart is optionally typed, we cannot guarantee that a function that does not return a value will not be used in the context of an expression. Therefore, every function must return a value. A \RETURN{} without an expression returns \NULL{}. For generator functions, the situation is more subtle. See further discussion in section \ref{return}.
 }
 
 OR
-\item of the form   \code{=$>$ $e$} which is equivalent to a body of the form \code{\{\RETURN{} $e$;\}}.
+\item of the form   \code{=$>$ $e$} which is equivalent to a body of the form \code{\{\RETURN{} $e$;\}} or the form \code{\ASYNC{} =$>$ $e$} which is equivalent to a body of the form \code{\ASYNC{} \{\RETURN{} $e$;\}}. \rationale{The other modifiers do not apply here, because they apply only to generators, discussed below, and generators do not allow the form \code{\RETURN{} $e$}; values are added to the generated stream or iterable using \YIELD{} instead.}
+
 \end{itemize}
 
+A function is {\em asynchronous} if its body is marked with the \ASYNC{} or \ASYNC* modifier. Otherwise the function is {\em synchronous}. A function is a {\em generator} if its body is marked with the \SYNC* or \ASYNC* modifier.  
 
+\commentary{
+Whether a function is synchronous or asynchronous is orthogonal to whether it is a generator or not. Generator functions are a sugar for functions that produce collections in a systematic way, by lazily applying a function that {\em generates} individual elements of a collection. Dart provides such a sugar in both the synchronous case, where one returns an iterable, and in the asynchronous case, where one returns a stream. Dart also allows both synchronous and asynchronous functions that produce a single value. 
+}
 
-% A function has a formal parameter scope and a  body scope. The enclosing scope of a function's body scope is its formal parameter scope. The enclosing scope of the  formal parameter scope of a function is the enclosing scope of the function.
+It is a compile-time error if an \ASYNC, \ASYNC* or \SYNC* modifier is attached to the body of a setter or constructor.
 
-% The body of a function $f$ is processed within the body scope of $f$.
-%\rationale{This may seem obvious, but needs to be stated.}
-% \commentary{It follows from the above rules that the formal parameters of a function may be referenced within its body.  }
+\rationale{
+An asynchronous setter would be of little use, since setters can only be used in the context of an assignment (\ref{assignment}), and an assignment expression always evaluates to the value of the assignment's right hand side. If the setter actually did its work asynchronously, one might imagine that one would return a future that resolved to the assignment's right hand side after the setter did its work. However, this would require dynamic tests at every assignment, and so would be prohibitively expensive. 
+
+An asynchronous constructor would, by definition, never return an instance of the class it purports to construct, but instead return a future. Calling such a beast via \NEW{} would be very confusing. If you need to produce an object asynchronously, use a method.
+
+One could allow modifiers for factories. A factory for \code{Future} could be modified by \ASYNC{}, a factory for \code{Stream} could be modified by \ASYNC* and a factory for \code{Iterable} could be modified by \SYNC*. No other scenario makes sense because the object returned by the factory would be of the wrong type. This situation is very unusual so it is not worth making an exception to the general rule for constructors in order to allow it.
+}
+
 
 \subsection{Function Declarations}
 \label{functionDeclarations}
@@ -552,9 +562,9 @@ When we say that a function $f_1$ {\em forwards} to another function $f_2$, we m
 
 Every function includes a {\em formal parameter list}, which consists of a list of required positional parameters (\ref{requiredFormals}), followed by any optional parameters (\ref{optionalFormals}). The optional parameters may be specified either as a set of named parameters or as a list of positional parameters, but not both.
 
-The formal parameter list of a function introduces a new scope known as the function`s {\em formal parameter scope}. The formal parameter scope of a function $f$  is enclosed in the scope where $f$ is declared.   Every formal parameter introduces a local variable into the formal parameter scope. However, the scope of a function's signature is the function's enclosing scope, not the formal parameter scope.
+The formal parameter list of a function introduces a new scope known as the function's {\em formal parameter scope}. The formal parameter scope of a function $f$  is enclosed in the scope where $f$ is declared.   Every formal parameter introduces a local variable into the formal parameter scope. However, the scope of a function's signature is the function's enclosing scope, not the formal parameter scope.
 
-The body of a function introduces a new scope known as the function`s {\em  body scope}. The body scope of a function $f$  is enclosed  in the scope introduced by the formal parameter scope of $f$.
+The body of a function introduces a new scope known as the function's {\em  body scope}. The body scope of a function $f$  is enclosed  in the scope introduced by the formal parameter scope of $f$.
 
 
 %The formal parameter scope of a function maps the name of each formal parameter $p$ to the value $p$ is bound to. 
@@ -822,7 +832,7 @@ It is a static warning if an instance method $m_1$ overrides  (\ref{inheritanceA
 
 % not quite right. It should be ok to override a method that requires N parameters with one that requires M < N but accepts the others as optional.
 
-It is a static warning if an instance method $m_1$ overrides an instance member $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$. It is a static warning if an instance method $m_1$ overrides an instance member $m_2$,  the signature of $m_2$ explicitly specifies a default value for a formal parameter $p$ and the signature of $m_1$ specifies a different default value for $p$. It is a static warning if a class $C$ declares an instance method named $n$ and has a setter named $n=$. It is a static warning if a class $C$ declares an instance method named $n$ and an accessible static member named $n$ is declared in a superclass of $C$.
+It is a static warning if an instance method $m_1$ overrides an instance member $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$. It is a static warning if an instance method $m_1$ overrides an instance member $m_2$,  the signature of $m_2$ explicitly specifies a default value for a formal parameter $p$ and the signature of $m_1$ implies a different default value for $p$. It is a static warning if a class $C$ declares an instance method named $n$ and has a setter named $n=$. It is a static warning if a class $C$ declares an instance method named $n$ and an accessible static member named $n$ is declared in a superclass of $C$.
 
 % Works. If the name is public, no issue. If it's private, if a subclass has a conflicting inst var, it either is in the same lib and will be flagged, or is in another and is not an issue.
 
@@ -930,7 +940,7 @@ A setter definition that is prefixed with the \STATIC{} modifier defines a stati
 
 The instance setters of a class $C$ are those instance setters declared by $C$ either implicitly or explicitly, and the instance setters inherited by $C$ from its superclass. The static setters of a class $C$ are those static setters declared by $C$.
 
-It is a compile-time error if a setter's formal parameter list does not consist of exactly one required formal parameter $p$.  \rationale{We could enforce this via the grammar, but we`d have to specify the evaluation rules in that case.}
+It is a compile-time error if a setter's formal parameter list does not consist of exactly one required formal parameter $p$.  \rationale{We could enforce this via the grammar, but we'd have to specify the evaluation rules in that case.}
 
 %It is a compile-time error if a class has both a setter and a method with the same name. This restriction holds regardless of whether the setter is defined explicitly or implicitly, or whether the setter or the method are inherited or not.
 
@@ -1066,7 +1076,7 @@ A {\em constructor parameter list} is a parenthesized, comma-separated list of f
 
 If an explicit type is attached to the initializing formal, that is its static type. Otherwise, the type of an initializing formal named \code{id} is $T_{id}$, where $T_{id}$ is the type of the field named \code{id} in the immediately enclosing class. It is a static warning if the static type of \code{id} is not assignable to $T_{id}$.
 
-Using an initializing formal \code{\THIS{}.id} in a formal parameter list does not introduce a formal parameter name into the scope of the constructor. However, the initializing formal does effect the type of the constructor function exactly as if a formal parameter  named \code{id}  of the same type were introduced in the same position. 
+Using an initializing formal \code{\THIS{}.id} in a formal parameter list does not introduce a formal parameter name into the scope of the constructor. However, the initializing formal does effect the type of the constructor function exactly as if a formal parameter  named \code{id}  of the same type were introduced in the same position.
 
 Initializing formals are executed during the execution of generative constructors detailed below. Executing an initializing formal  \code{\THIS{}.id} causes the field \code{id} of the immediately surrounding class to be assigned the value of the corresponding actual parameter, unless $id$ is a final variable that has already been initialized, in which case a runtime error occurs.
 
@@ -1571,7 +1581,7 @@ It is nevertheless convenient to define the override relation between members in
 }
 
 \commentary{
-Note that instance variables do not participate in the override relation, but the getters and setters they induce do. Also, getters don`t override setters and vice versa.  Finally, static members never override anything.
+Note that instance variables do not participate in the override relation, but the getters and setters they induce do. Also, getters don't override setters and vice versa.  Finally, static members never override anything.
 }
 
 It is a static warning if a non-abstract class inherits an abstract method.
@@ -1620,7 +1630,7 @@ If two members override each other, it is a static warning if the overriding mem
 
 %Can we have abstract getters and setters?
 
-\subsection{Superinterfaces}
+\subsection{ Superinterfaces}
 \label{superinterfaces}
 % what about rules about classes that fail to implement their interfaces?
 
@@ -1906,8 +1916,6 @@ metadata \CLASS{} E \{
 It is also a compile-time error to subclass, mix-in or implement an enum or to explicitly instantiate an enum.  These restrictions are given in normative form in sections \ref{superclasses}, \ref{superinterfaces}, \ref{mixinApplication} and \ref{instanceCreation} as appropriate.
 }
 
-
-
 \section{Generics}
 \label{generics}
 
@@ -2131,7 +2139,7 @@ The predefined Dart function \cd{identical()} is defined such that \code{identic
 \end{itemize}
     
 \commentary{
-The definition of \cd{identity} for doubles differs from that of equality in that a NaN is equal to itself, and that negative and positive zero are distinct.  
+The definition of \cd{identity} for doubles differs from that of equality in that a NaN is identical to itself, and that negative and positive zero are distinct.  
 }
 
 \rationale{
@@ -2704,14 +2712,33 @@ The {\em throw expression}  is used to raise an exception.
  
  \end{grammar}
  
- The {\em current exception} is the last unhandled exception thrown. 
+ The {\em current exception} is the last exception raised and not subsequently caught at a given moment during runtime. 
 
  Evaluation of a throw expression of the form  \code{\THROW{} $e$;} proceeds as follows:
  
-The expression $e$ is evaluated yielding a value $v$. If $v$ evaluates to \NULL{}, then a \code{NullThrownError} is thrown. Otherwise, control is transferred to the nearest dynamically enclosing exception handler (\ref{try}), with the current exception set to $v$.
+The expression $e$ is evaluated yielding a value $v$. 
 
 \commentary{
 There is no requirement that the expression $e$ evaluate to a special kind of exception or error object.
+}
+
+If $e$ evaluates to \NULL{} (\ref{null}), then a \code{NullThrownError} is thrown. Otherwise the current exception is set to $v$ and the current return value (\ref{return}) becomes undefined.
+
+\rationale{The current exception and the current return value must never be simultaneously defined, as they represent mutually exclusive options for exiting the current function. 
+}
+
+Let $f$ be the immediately enclosing function. 
+
+If $f$ is synchronous (\ref{functions}), control is transferred to the nearest dynamically enclosing exception handler.
+
+\commentary{
+If $f$ is marked \SYNC* then a dynamically enclosing exception handler encloses the call to \code{moveNext()} that initiated the evaluation of the throw expression.
+}
+
+If $f$ is asynchronous  then if there is a dynamically enclosing exception handler $h$  (\ref{try}) introduced by the current activation, control is transferred to $h$, otherwise $f$  terminates.
+
+\rationale{
+The rules for where a thrown exception will be handled must necessarily differ between the synchronous and asynchronous cases. Asynchronous functions cannot transfer control to an exception handler defined outside themselves.  Asynchronous generators post exceptions to their stream. Other asynchronous functions report exceptions via their future.
 }
 
 If the object being thrown is an instance of class \code{Error} or a subclass thereof, its \code{stackTrace} getter will return the stack trace current at the point where the the object was first thrown.
@@ -2726,13 +2753,7 @@ A {\em function literal} is an object that encapsulates an executable unit of co
 
 \begin{grammar}
 {\bf functionExpression:}
-    formalParameterList functionExpressionBody
-    .
-
-
-{\bf functionExpressionBody:}
-      `={\escapegrammar \gt}' expression;
-      block
+    formalParameterList functionBody
     .
  \end{grammar}   
  
@@ -2746,29 +2767,76 @@ The class of a function literal implements the built-in class \code{Function}.
 The static type of a function literal of the form 
 
 $(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k]) => e$ 
+is 
 
-is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow T_0$, where $T_0$ is the static type of $e$. In any case where $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
+$(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow T_0$, where $T_0$ is the static type of $e$. 
+
+The static type of a function literal of the form 
+
+$(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k])$ \ASYNC{} $=> e$
+is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow Future<T_0>$, where $T_0$ is the static type of $e$. 
 
 The static type of a function literal of the form 
 
 $(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\}) => e$ 
+is 
 
-is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow T_0$, where $T_0$ is the static type of $e$. In any case where $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
+$(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow T_0$, where $T_0$ is the static type of $e$. 
+
+The static type of a function literal of the form 
+
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ \ASYNC{}  $=> e$
+
+is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow Future<T_0>$, where $T_0$ is the static type of $e$. 
 
 The static type of a function literal of the form  
 
 $(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k}= d_k])\{s\}$ 
 
-is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow  \DYNAMIC{}$. In any case where $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
+is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow  \DYNAMIC{}$.
 
 The static type of a function literal of the form  
 
-$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})\{s\}$ 
+$(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k}= d_k])$ $ \ASYNC{}$ $\{s\}$ 
+is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow Future$. 
 
-is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow  \DYNAMIC{}$. In any case where $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
+The static type of a function literal of the form  
 
-%** Now that declared return types are precluded, do we need some better return type rule for (x){s} and friends?
+$(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k}= d_k])$ $ \ASYNC*{}$ $\{s\}$ 
+is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow Stream$. 
 
+The static type of a function literal of the form  
+
+$(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k}= d_k])$ $ \SYNC*{}$ $\{s\}$ 
+is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow Iterable$. 
+
+
+The static type of a function literal of the form  
+
+$(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k}= d_k])\{s\}$ 
+
+is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow  \DYNAMIC{}$. 
+
+
+The static type of a function literal of the form  
+
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ $\ASYNC{}$ $\{s\}$
+ 
+is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow  Future{}$.
+
+The static type of a function literal of the form  
+
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ $\ASYNC*{}$ $\{s\}$
+ 
+is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow  Stream{}$.
+
+The static type of a function literal of the form  
+
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ $\SYNC*{}$ $\{s\}$
+ 
+is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow  Iterable{}$.
+
+In all of the above cases, whenever $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
 
 
 \subsection{ This}
@@ -2788,7 +2856,7 @@ The static type of \THIS{} is the interface of the immediately enclosing class.
 We do not support self-types at this point. 
 }
 
-It is a compile-time error if \THIS{} appears in a top-level function or variable initializer,  in a factory constructor, or in a static method or variable initializer, or in the initializer of an instance variable. 
+It is a compile-time error if \THIS{} appears, implicitly or explicitly,  in a top-level function or variable initializer,  in a factory constructor, or in a static method or variable initializer, or in the initializer of an instance variable. 
 
 \subsection{ Instance Creation}
 \label{instanceCreation}
@@ -2863,7 +2931,7 @@ Furthermore, if $e$ is of the form \NEW{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n
 
 If $R$ is a generic with $l = m$ type parameters then
 \begin{itemize}
-\item  $T$ is not a parameterized type, then for $ i \in 1 .. l$, let $V_i =  \DYNAMIC{}$.
+\item  If $T$ is not a parameterized type, then for $ i \in 1 .. l$, let $V_i =  \DYNAMIC{}$.
 \item  If $T$ is  a parameterized type then let $V_i = U_i$ for $ i \in 1 .. m$.  
 \end{itemize}
 
@@ -3043,10 +3111,39 @@ As discussed in section \ref{errorsAndWarnings}, the handling of a suspended iso
 \subsection{ Function Invocation}
 \label{functionInvocation}
  
-Function invocation occurs in the following cases: when a function expression  (\ref{functionExpressions}) is invoked (\ref{functionExpressionInvocation}), when a method (\ref{methodInvocation}), getter (\ref{topLevelGetterInvocation}, \ref{propertyExtraction}) or setter (\ref{assignment}) is invoked or when a constructor is invoked (either via instance creation (\ref{instanceCreation}), constructor redirection (\ref{redirectingConstructors}) or super initialization). The various kinds of function invocation differ as to how the function to be invoked, $f$,  is determined, as well as whether \THIS{} is bound. Once $f$ has been determined, the formal parameters of $f$ are bound to corresponding actual arguments. The body of $f$ is then executed with the aforementioned bindings. Execution of the body terminates when the first of the following occurs:
+Function invocation occurs in the following cases: when a function expression  (\ref{functionExpressions}) is invoked (\ref{functionExpressionInvocation}), when a method (\ref{methodInvocation}), getter (\ref{topLevelGetterInvocation}, \ref{propertyExtraction}) or setter (\ref{assignment}) is invoked or when a constructor is invoked (either via instance creation (\ref{instanceCreation}), constructor redirection (\ref{redirectingConstructors}) or super initialization). The various kinds of function invocation differ as to how the function to be invoked, $f$,  is determined, as well as whether \THIS{} (\ref{this}) is bound. Once $f$ has been determined, the formal parameters of $f$ are bound to corresponding actual arguments. When the body of $f$ is executed it will be executed with the aforementioned bindings. 
+
+If $f$ is marked \ASYNC{} (\ref{functions}), then a fresh instance (\ref{generativeConstructors}) $o$ implementing the built-in class \code{Future} is associated with the invocation and immediately returned to the caller. The body of $f$ is scheduled for execution at some future time. The future $o$ will complete when $f$ terminates. The value used to complete $o$ is the current return value (\ref{return}), if it is defined, and the current exception (\ref{throw}) otherwise. 
+
+If $f$ is marked \ASYNC* (\ref{functions}), then a fresh instance $s$ implementing the built-in class \code{Stream} is associated with the invocation and immediately returned. When $s$ is listened to, execution of the body of $f$ will begin.  When $f$ terminates:
+\begin{itemize}
+\item If the current return value is defined then, if $s$ has been canceled then its cancellation future is completed with \NULL{} (\ref{null}). 
+\item If the current exception $x$ is defined:
+  \begin{itemize}
+  \item $x$ is added to $s$. 
+  \item If $s$ has been canceled then its cancellation future is completed with $x$ as an error.
+  \end{itemize}
+\item $s$ is closed.
+\end{itemize}
+
+\rationale{
+When an asynchronous generator's stream has been canceled, cleanup will occur in the \FINALLY{} clauses (\ref{try}) inside the generator. We choose to direct any exceptions that occur at this time to the cancellation future rather than have them be lost. 
+}
+
+If $f$ is asynchronous then, when $f$ terminates, any open stream subscriptions associated with any asynchronous for loops  (\ref{asynchronousFor-in}) or yield-each statements  (\ref{yieldEach}) executing within $f$ are canceled.
+
+\rationale{Such streams may be left open by for loops that were escaped when an exception was thrown within them for example.
+}
+
+If $f$ is marked \SYNC* (\ref{functions}), then a fresh instance $i$ implementing the built-in class \code{Iterable} is associated with the invocation and immediately returned. When iteration over the iterable is started, by getting an iterator $j$ from the iterable and calling \code{moveNext()} on it, execution of the body of $f$ will begin. When $f$ terminates, $j$ is positioned after its last element, so that its current value is \NULL{} and the current call to \code{moveNext()} on $j$ returns false, as will all further calls.
+
+If $f$ is synchronous and is not a generator (\ref{functions}) then execution of the body of $f$ begins immediately.  When $f$ terminates the current return value is returned to the caller.
+
+
+Execution of $f$ terminates when the first of the following occurs:
 \begin{itemize}
 \item An exception is thrown and not caught within the current function activation. 
-\item A return statement (\ref{return}) immediately nested in the body of $f$ is executed.
+\item A return statement (\ref{return}) immediately nested in the body of $f$ is executed and not intercepted in a \FINALLY{} (\ref{try}) clause.
 \item The last statement of the body completes execution.
 \end{itemize}
 
@@ -3056,7 +3153,7 @@ Function invocation occurs in the following cases: when a function expression  (
 \subsubsection{ Actual Argument List Evaluation}
 \label{actualArguments}
 
-Function invocation involves evaluation of the list of actual arguments to the function and binding of the results to the function`s formal parameters.
+Function invocation involves evaluation of the list of actual arguments to the function and binding of the results to the function's formal parameters.
 
 \begin{grammar}
 {\bf arguments:}
@@ -3173,7 +3270,7 @@ the static type of $i$ is the declared return type of  $F$.
 %\item Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \to \bot$.
 %\end{itemize}
 
-\subsection{Lookup}
+\subsection{ Lookup}
 
 \subsubsection{Method Lookup}
 \label{methodLookup}
@@ -3201,7 +3298,7 @@ The motivation for skipping abstract members during lookup is largely to allow s
 }
 
 
-\subsection{Top level Getter Invocation}
+\subsection{ Top level Getter Invocation}
 \label{topLevelGetterInvocation}
 
 Evaluation of a top-level getter invocation $i$ of the form $m$, where $m$ is an identifier, proceeds as follows:
@@ -3603,13 +3700,13 @@ Let $T$ be the static type of $e_1$. It is a static type warning if $T$ does not
 
 
 
-It is a static type warning if the static type of $e_2$ may not be assigned to $T$.   The static type of the expression $e_1v$ \code{=} $e_2$ is the static type of $e_2$.
+It is a static type warning if the static type of $e_2$ may not be assigned to the static type of the formal parameter of the setter $v=$.   The static type of the expression $e_1.v$ \code{=} $e_2$ is the static type of $e_2$.
 
 Evaluation of an assignment of the form $e_1[e_2]$ \code{=} $e_3$ is equivalent to the evaluation of the expression \code{(a, i, e)\{a.[]=(i, e); \RETURN{} e; \} ($e_1, e_2, e_3$)}.  The static type of the expression $e_1[e_2]$ \code{=} $e_3$ is the static type of $e_3$.
 
 % Should we add: It is a dynamic error if $e_1$ evaluates to an  constant list or map.
 
-It is as static warning if an assignment of the form $v = e$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer and there is neither a local variable declaration with name $v$  nor setter declaration with name $v=$ in the lexical scope enclosing the assignment.
+It is a static warning if an assignment of the form $v = e$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer and there is neither a local variable declaration with name $v$  nor setter declaration with name $v=$ in the lexical scope enclosing the assignment.
 
 It is a compile-time error to invoke any of the setters of class \cd{Object} on a prefix object (\ref{imports}) or on a constant type literal that is  immediately followed by the token `.'.
 
@@ -3651,7 +3748,7 @@ A {\em conditional expression} evaluates one of two expressions based on a boole
 
 Evaluation of a conditional expression $c$ of the form $e_1 ? e_2 : e_3$ proceeds as follows:
 
-First, $e_1$ is evaluated to an object $o_1$.  Then, $o_1$ is  subjected to boolean conversion (\ref{booleanConversion}) producing an object $r$.  If $r$ is true, then the value of $c$ is the result of evaluating the expression $e_2$. Otherwise the value of $c$ is the result of evaluating the expression $e_3$. 
+First, $e_1$ is evaluated to an object $o_1$.  Then, $o_1$ is  subjected to boolean conversion (\ref{booleanConversion}) producing an object $r$.  If $r$ is \TRUE, then the value of $c$ is the result of evaluating the expression $e_2$. Otherwise the value of $c$ is the result of evaluating the expression $e_3$. 
 
 If all of the following hold:
 \begin{itemize}
@@ -3685,9 +3782,9 @@ The logical boolean expressions combine boolean objects using the boolean conjun
  
 A {\em logical boolean expression} is either an equality expression (\ref{equality}), or an invocation of a logical boolean operator on an expression $e_1$ with argument $e_2$.
  
-Evaluation of a logical boolean expression $b$ of the form $e_1 || e_2$ causes the evaluation of $e_1$ which is then  subjected to boolean conversion, yielding an object $o_1$; if $o_1$ is true, the result of evaluating $b$ is true, otherwise $e_2$ is evaluated to an object $o_2$, which is then subjected to boolean conversion (\ref{booleanConversion}) producing an object $r$, which is the value of $b$. 
+Evaluation of a logical boolean expression $b$ of the form $e_1 || e_2$ causes the evaluation of $e_1$ which is then  subjected to boolean conversion, yielding an object $o_1$; if $o_1$ is \TRUE, the result of evaluating $b$ is \TRUE, otherwise $e_2$ is evaluated to an object $o_2$, which is then subjected to boolean conversion (\ref{booleanConversion}) producing an object $r$, which is the value of $b$. 
 
-Evaluation of a logical boolean expression $b$ of the form $e_1 \&\& e_2$ causes the evaluation of $e_1$ which is then subjected to boolean conversion, yielding an object $o_1$; if $o_1$ is not  true, the result of evaluating $b$ is false, otherwise $e_2$ is evaluated to an object $o_2$, which is then subjected to boolean conversion producing an object $r$, which is the value of $b$. 
+Evaluation of a logical boolean expression $b$ of the form $e_1 \&\& e_2$ causes the evaluation of $e_1$ which is then subjected to boolean conversion, yielding an object $o_1$; if $o_1$ is not  \TRUE, the result of evaluating $b$ is \FALSE, otherwise $e_2$ is evaluated to an object $o_2$, which is then subjected to boolean conversion producing an object $r$, which is the value of $b$. 
 
 A logical boolean expression $b$ of the form $e_1 \&\& e_2$ shows that a variable $v$ has type 
 $T$ if all of the following conditions hold:
@@ -3896,6 +3993,7 @@ Unary expressions invoke unary operators on objects.
 
 \begin{grammar}
 {\bf unaryExpression:}prefixOperator unaryExpression;
+      awaitExpression;
       postfixExpression;
       (minusOperator $|$ tildeOperator) \SUPER{};
       incrementOperator assignableExpression
@@ -3919,15 +4017,51 @@ Unary expressions invoke unary operators on objects.
     
 \end{grammar}
 
-A {\em unary expression} is either a postfix expression  (\ref{postfixExpressions}), an invocation of a prefix operator on an expression or an invocation of a unary operator on either \SUPER{} or an expression $e$.
+A {\em unary expression} is either a postfix expression  (\ref{postfixExpressions}), an await expression (\ref{awaitExpressions}) or an invocation of a prefix operator on an expression or an invocation of a unary operator on either \SUPER{} or an expression $e$.
 
-The expression $!e$ is equivalent to the expression $e? \FALSE{} :\TRUE{}$. 
+The expression $!e$ is equivalent to the expression $e?$ $ \FALSE{} :\TRUE{}$. 
 
 Evaluation of an expression of the form \code{++$e$} is equivalent to \code{$e$ += 1}.  Evaluation of an expression of the form \code{-{}-$e$} is equivalent to \code{$e$ -= 1}. 
 
 %The expression $-e$ is equivalent to the method invocation \code{$e$.-()}.  The expression \code{-\SUPER{}} is equivalent  to the method invocation \code{\SUPER{}.-()}.
 
-An expression of the form \code{$op$ $e$} is equivalent to the method invocation \code{$e.op()$}. An expression of the form \code{$op$ \SUPER{}} is equivalent to the method invocation \code{\SUPER{}.$op()$}.
+An expression of the form \code{$op$ $e$} is equivalent to the method invocation \code{$e.op()$}. An expression of the form \code{$op$ \SUPER{}} is equivalent to the method invocation  (\ref{superInvocation}) \code{\SUPER{}.$op()$}.
+
+\subsection{ Await Expressions}
+\label{awaitExpressions}
+
+An {\em await expression} allows code to yield control until an asynchronous operation (\ref{functions}) completes. 
+
+ \begin{grammar}
+{\bf awaitExpression:}
+      \AWAIT{} unaryExpression
+ \end{grammar}
+
+Evaluation of an await expression $a$ of the form \AWAIT{} $e$ proceeds as follows:
+First, the expression $e$ is evaluated. Next:
+
+If $e$ evaluates to an instance of \code{Future}, $f$, then execution of the function $m$ immediately enclosing $a$ is suspended until after $f$ completes. The stream associated with the innermost enclosing asynchronous for loop (\ref{asynchronousFor-in}), if any, is paused. At some time after $f$ is completed, control returns to the current invocation. The stream associated with the innermost enclosing asynchronous for loop  (\ref{asynchronousFor-in}), if any, is resumed. If $f$ has completed with an exception $x$, $a$ raises $x$. If $f$ completes with a value $v$, $a$ evaluates to $v$.
+
+Otherwise, the value of $a$ is the value of $e$. If evaluation of $e$ raises an exception $x$, $a$ raises $x$.
+
+\commentary{
+It is a compile-time error if  the function  immediately enclosing  $a$  is not declared asynchronous.  However, this error is simply a syntax error, because in the context of a normal function, \AWAIT{} has no special meaning.
+}
+
+\rationale{
+An await expression has no meaning in a synchronous function. If such a function were to suspend waiting for a future, it would no longer be synchronous.
+}
+
+\commentary{
+It is not a static warning if the type of $e$ is not a subtype of \code{Future}. Tools may choose to give a hint in such cases.
+}
+
+Let $flatten(T) = flatten(S)$ if $T = Future<S>$, and $T$ otherwise. The static type of $a$ is $flatten(T)$ where $T$ is the static type of $e$.
+
+\rationale{
+We collapse multiple layers of futures into one. If $e$ evaluates to a future $f$, the future will not invoke its \code{then()} callback until f completes to a non-future value, and so the result of an await is never a future, and the result of an async function will never have type \code{Future$<X>$} where $X$ itself is an invocation of \code{Future}. 
+}
+
 
 
      
@@ -4097,10 +4231,16 @@ An {\em identifier expression} consists of a single identifier; it provides acce
       . 
 \end{grammar}
 
-A built-in identifier is one of the identifiers produced by the production {\em BUILT\_IN\_IDENTIFIER}. It is a compile-time error if a built-in identifier is used as the declared name of a prefix, class, type parameter or type alias. It is a compile-time error to use a built-in identifier other than \DYNAMIC{} as a type annotation.
+A built-in identifier is one of the identifiers produced by the production {\em BUILT\_IN\_IDENTIFIER}. It is a compile-time error if a built-in identifier is used as the declared name of a prefix, class, type parameter or type alias. It is a compile-time error to use a built-in identifier other than \DYNAMIC{} as a type annotation or type parameter.
 
 \rationale{
 Built-in identifiers are identifiers that are used as keywords in Dart, but are not reserved words in Javascript. To minimize incompatibilities when porting Javascript code to Dart, we do not make these into reserved words. A built-in identifier may not be used to name a class or type. In other words, they are treated as reserved words when used as types.  This eliminates many confusing situations without causing compatibility problems. After all, a Javascript program has no type declarations or annotations so no clash can occur.  Furthermore, types should begin with an uppercase letter (see the appendix) and so no clash should occur in any Dart user program anyway.
+}
+
+It is a compile-time error if any of the identifiers \ASYNC, \AWAIT{} or \YIELD{} is used as an identifier in a function body marked with either \ASYNC{}, \ASYNC* or \SYNC*.
+
+\rationale{
+For compatibility reasons, new constructs cannot  rely upon new reserved words or even built-in identifiers. However, the constructs above are only usable in contexts that require special markers introduced concurrently with these constructs, so no old code could use them. Hence the restriction, which treats these names as reserved words in a limited context.
 }
 
 Evaluation of an identifier expression $e$ of the form $id$ proceeds as follows:
@@ -4170,7 +4310,7 @@ The {\em is-expression} tests if an object is a member of a type.
  
  Evaluation of the is-expression \code{$e$ \IS{} $T$} proceeds as follows:
 
-The expression $e$ is evaluated to a value $v$. Then, if $T$ is a malformed or deferred type (\ref{staticTypes}), a dynamic error occurs. Otherwise, if the interface of the class of $v$ is a subtype of $T$, the is-expression evaluates to true. Otherwise it evaluates to false.
+The expression $e$ is evaluated to a value $v$. Then, if $T$ is a malformed or deferred type (\ref{staticTypes}), a dynamic error occurs. Otherwise, if the interface of the class of $v$ is a subtype of $T$, the is-expression evaluates to \TRUE. Otherwise it evaluates to \FALSE.
 
 \commentary{It follows that \code{$e$ \IS{} Object} is always true. This makes sense in a language where everything is an object. 
 
@@ -4246,6 +4386,8 @@ The static type of a cast expression  \code{$e$ \AS{} $T$}  is $T$.
       breakStatement;
       continueStatement;
       returnStatement;
+      yieldStatement;
+      yieldEachStatement;
       expressionStatement;
       assertStatement;
       localFunctionDeclaration
@@ -4436,7 +4578,7 @@ The {\em for statement} supports iteration.
 
 \begin{grammar}
 {\bf forStatement:}
-     \FOR{} `(' forLoopParts `)' statement
+     \AWAIT? \FOR{} `(' forLoopParts `)' statement
     .
 
 {\bf forLoopParts:}forInitializerStatement expression? `{\escapegrammar ;}' expressionList?;
@@ -4449,7 +4591,7 @@ The {\em for statement} supports iteration.
     .
  \end{grammar}
  
- The for statement has two forms - the traditional for loop and the for-in statement.
+ The for statement has three forms - the traditional for loop and two forms of the for-in statement - synchronous and asynchronous.
 
 \subsubsection{For Loop}
 \label{forLoop}
@@ -4515,6 +4657,28 @@ where \code{n0} is an identifier that does not occur anywhere in the program.
 \commentary{
 Note that in fact, using a  \CONST{} variable would give rise to a compile time error since \cd{n0.current} is not a constant expression.  
 }
+ 
+\subsubsection{Asynchronous For-in}
+\label{asynchronousFor-in}
+
+A for-in statement may be asynchronous. The asynchronous form is designed to iterate over streams. An asynchronous for loop is distinguished by the keyword \AWAIT{} immediately preceding the keyword \FOR.
+
+Execution of a for-in statement of the form  \code{\AWAIT{} \FOR{} (finalConstVarOrType? id \IN{} $e$) $s$} proceeds as follows:
+
+The expression $e$ is evaluated to an object $o$. It is a dynamic error if $o$ is not an instance of a class that implements \code{Stream}. Otherwise, the expression \code{\AWAIT{} $v_f$}  (\ref{awaitExpressions}) is evaluated, where $v_f$ is a fresh variable whose value is a fresh instance (\ref{generativeConstructors}) $f$ implementing the built-in class \code{Future}.
+
+The stream $o$ is listened to,  and on each data event in $o$ the statement $s$ is executed with \code{id} bound to the value of the current element of the stream. If $s$ raises an exception, or if $o$ raises an exception, then $f$ is completed with that exception. Otherwise, when all events in the stream $o$ have been processed, $f$ is completed with \NULL{}  (\ref{null}).
+
+Let $u$ be the stream associated with the immediately enclosing asynchronous for loop or generator function (\ref{functions}), if any. If another event $e_u$ of $u$ occurs before execution of $s$ is complete, handling of $e_u$ must wait until $s$ is complete.
+
+\rationale{
+The future $f$ and the corresponding \AWAIT{} expression ensure that execution suspends as an asynchronous for loop begins and resumes after the \FOR{} statement when it ends. They also ensure that the stream of any enclosing asynchronous \FOR{} loop is paused for the duration of this loop.
+}
+
+It is a compile-time error if an asynchronous for-in statement appears inside a synchronous function (\ref{functions}). It is a compile-time error if a traditional for loop  (\ref{forLoop}) is prefixed by the \AWAIT{}  keyword.
+
+\rationale{An asynchronous loop would make no sense within a synchronous function, for the same reasons that an await expression makes no sense in a synchronous function.}
+
  
 \subsection{While}
 \label{while}
@@ -4688,7 +4852,7 @@ In other words, there is no implicit fall-through between cases. The last case i
 It is a static warning if the type of $e$ may not be assigned to the type of $e_k$. It is a static warning if the last statement of the statement sequence $s_k$ is not a \BREAK{}, \CONTINUE{}, \RETURN{} or \THROW{} statement.
 
 \rationale{
-The behavior of switch cases intentionally differs from the C tradition.  Implicit fall through is a known cause of programming errors and therefore disallowed.  Why not simply break the flow implicitly at the end of every case, rather than requiring explicit code to do so?  This would indeed be cleaner.  It would also be cleaner to insist that each case have a single (possibly compound) statement.  We have chosen not to do so in order to facilitate porting of switch statements from other languages.  Implicitly breaking the control flow at the end of a case would silently alter the meaning of ported code that relied on fall-through, potentially forcing the programmer to deal with subtle bugs. Our design ensures that the difference is immediately brought to the coder`s attention.  The programmer will be notified at compile-time if they forget to end a case with a statement that terminates the straight-line control flow. We could make this warning a compile-time error, but refrain from doing so because do not wish to force the programmer to deal with this issue immediately while porting code.  If developers ignore the warning and run their code, a run time error will prevent the program from misbehaving in hard-to-debug ways (at least with respect to this issue).
+The behavior of switch cases intentionally differs from the C tradition.  Implicit fall through is a known cause of programming errors and therefore disallowed.  Why not simply break the flow implicitly at the end of every case, rather than requiring explicit code to do so?  This would indeed be cleaner.  It would also be cleaner to insist that each case have a single (possibly compound) statement.  We have chosen not to do so in order to facilitate porting of switch statements from other languages.  Implicitly breaking the control flow at the end of a case would silently alter the meaning of ported code that relied on fall-through, potentially forcing the programmer to deal with subtle bugs. Our design ensures that the difference is immediately brought to the coder's attention.  The programmer will be notified at compile-time if they forget to end a case with a statement that terminates the straight-line control flow. We could make this warning a compile-time error, but refrain from doing so because do not wish to force the programmer to deal with this issue immediately while porting code.  If developers ignore the warning and run their code, a run time error will prevent the program from misbehaving in hard-to-debug ways (at least with respect to this issue).
 
 The sophistication of the analysis of fall-through is another issue. For now, we have opted for a very straightforward syntactic requirement. There are obviously situations where code does not fall through, and yet does not conform to these simple rules, e.g.:
 }
@@ -4723,18 +4887,31 @@ The {\em rethrow statement}  is used to re-raise an exception.
 
  \begin{grammar}
 {\bf rethrowStatement:}
-     \RETHROW{}
+     \RETHROW{}  `{\escapegrammar ;}'
     .
  \end{grammar}
  
 Execution of a \code{\RETHROW{}} statement proceeds as follows:
-Control is transferred to the nearest innermost enclosing exception handler (\ref{try}).
 
-\commentary{No change is made to the current exception.}
+Let $f$ be the immediately enclosing function, and let \code{\ON{} $T$ \CATCH{} ($p_1$, $p_2$)}  be the immediately enclosing catch clause (\ref{try}).
 
-It is a compile-time error if a  \code{\RETHROW{}} statement is not enclosed within an on-catch clause. 
+\rationale{
+A \RETHROW{} statement always appears inside a \CATCH{} clause, and any \CATCH{} clause is semantically equivalent to some \CATCH{} clause of the form \code{\ON{} $T$ \CATCH{} (p1, p2)}.  So we can assume that the \RETHROW{} is enclosed in a \CATCH{} clause of that form.
+}
 
-%The static type of a rethrow expression is $\bot$.
+The current exception (\ref{throw}) is set to $p_1$, the current return value (\ref{return}) becomes undefined, and the active stack trace (\ref{try}) is set to $p_2$.
+
+If $f$ is marked \ASYNC{} or \ASYNC* (\ref{functions}) and there is a dynamically enclosing exception handler (\ref{try}) $h$ introduced by the current activation, control is transferred to $h$, otherwise $f$  terminates.
+
+\rationale{
+In the case of an asynchronous function, the dynamically enclosing exception handler is only relevant within the function. If an exception is not caught within the function, the exception value is channelled through a future or stream rather than propagating via exception handlers.
+}
+
+Otherwise, control is transferred to the  innermost enclosing exception handler.
+
+\commentary{The change in control may result in multiple functions terminating if these functions do not catch the exception via a \CATCH{} or \FINALLY{} clause, both of which introduce a dynamically enclosing exception handler.}
+
+It is a compile-time error if a  \code{\RETHROW{}} statement is not enclosed within an \ON-\CATCH{} clause. 
 
 
 
@@ -4779,18 +4956,18 @@ An \ON{}-\CATCH{} clause of the form   \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$
 It is of course a static warning if $T$ is a deferred or malformed type.
 }
 
-An \ON{}-\CATCH{} clause of the form   \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$} introduces a new scope $CS$ in which local variables specified by $p_1$ and $p_2$ are defined. The statement $s$ is enclosed within $CS$.
+An \ON{}-\CATCH{} clause of the form   \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$} introduces a new scope $CS$ in which final local variables specified by $p_1$ and $p_2$ are defined. The statement $s$ is enclosed within $CS$. The static type of $p_1$ is $T$ and the static type of $p_2$ is \code{StackTrace}.
 
 
 An \ON{}-\CATCH{} clause of the form  \code{\ON{} $T$ \CATCH{} ($p_1$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$} where $p_2$ is an identifier that does not occur anywhere else in the program. 
 
 
-An \ON{}-\CATCH{} clause of the form  \code{\CATCH{} ($p$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} \DYNAMIC{} \CATCH{} ($p$) $s$}. An \ON{}-\CATCH{} clause of the form  \code{\CATCH{} ($p_1, p_2$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} \DYNAMIC{} \CATCH{} ($p_1, p_2$) $s$}
+An \ON{}-\CATCH{} clause of the form  \code{\CATCH{} ($p$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} \DYNAMIC{} \CATCH{} ($p$) $s$}. An \ON{}-\CATCH{} clause of the form  \code{\CATCH{} ($p_1, p_2$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} \DYNAMIC{} \CATCH{} ($p_1, p_2$) $s$}.
 
 
 %If an explicit type is associated with of $p_2$, it is a static warning if that type is not \code{Object} or \DYNAMIC{}.
 
-The {\em active stack trace} is an object whose \code{toString()} method produces a string that is a record of exactly those function activations within the current isolate that had not completed execution at the point where the current exception was thrown.
+The {\em active stack trace} is an object whose \code{toString()} method produces a string that is a record of exactly those function activations within the current isolate that had not completed execution at the point where the current exception (\ref{throw}) was thrown.
 %\begin{enumerate}
 %\item Started execution after the currently executing function.
 %\item Had not completed execution at the point where the exception caught by the currently executing  \ON{}-\CATCH{} clause was initially thrown. 
@@ -4819,33 +4996,36 @@ Note that we say nothing about the identity of the stack trace, or what notion o
  \commentary{The term position should not be interpreted as a line number, but rather as a precise position - the exact character index of the  expression that raised  the exception. }
  
  % A position can be represented via a Token. If we make that part of the core reflection facility, we can state this here.
- 
- \rationale{The definition below is an attempt to characterize exception handling without resorting to a normal/abrupt completion formulation. It has the advantage that one need not specify abrupt completion behavior for every compound statement.  On the other hand, it is new and different and needs more thought.
-}
-
-% so, we need to fix things so that returns in the try still go through the finally clause and so that
-% uncaught or rethrown exceptions propagate  from the finally clause unless it returns.
-
-% plan: return transfers control to the enclosing finally clause if it exists and erases
-% any current stack trace & exception.
-% But how to ensure return leaves the finally if it does not throw? special text? say return
-% does the finally and then xfers control ?
 
 A try statement \TRY{} $s_1$ $on-catch_1 \ldots  on-catch_n$ \FINALLY{} $s_f$  defines an exception handler $h$ that executes as follows:
 
 The \ON{}-\CATCH{} clauses are examined in order, starting with $catch_1$, until either an \ON{}-\CATCH{} clause that matches the current exception (\ref{throw}) is found, or the list of \ON{}-\CATCH{} clauses has been exhausted. If an \ON{}-\CATCH{} clause $on-catch_k$ is found, then $p_{k1}$ is bound to the current exception,  $p_{k2}$, if declared,  is bound to the active stack trace, and then $catch_k$ is executed. If no \ON{}-\CATCH{} clause is found, the \FINALLY{} clause is executed. Then, execution resumes at the end of the try statement.
 
 
-A finally clause \FINALLY{} $s$ defines an exception handler $h$ that executes by executing the finally clause. 
-% If the current exception is defined 
+A finally clause \FINALLY{} $s$ defines an exception handler $h$ that executes as follows:
 
-Then, execution resumes at the end of the try statement.
+Let $r$ be the current return value (\ref{return}). Then the current return value becomes undefined. Any open streams associated with any asynchronous for loops (\ref{asynchronousFor-in}) and yield-each (\ref{yieldEach}) statements executing within the dynamic scope of $h$ are canceled. 
+
+\rationale{
+Streams left open by for loops that were escaped for whatever reason would be canceled at function termination, but it is best to cancel them as soon as possible.
+}
+
+Then the \FINALLY{} clause is executed. Let $m$ be the immediately enclosing function. If $r$ is defined then the current return value is set to $r$ and then:
+\begin{itemize}
+\item
+ if there is a dynamically enclosing error handler $g$ defined by a \FINALLY{} clause in $m$, control is transferred to $g$.
+ \item
+Otherwise $m$ terminates. 
+\end{itemize}
+
+Otherwise, execution resumes at the end of the try statement.
 
 Execution of an \ON{}-\CATCH{} clause \code{\ON{} $T$ \CATCH{} ($p_1$, $p_2$)} $s$ of a try statement $t$ proceeds as follows: The statement $s$ is executed in the dynamic scope of the exception handler defined by the finally clause of $t$. Then, the current exception and active stack trace both become undefined.
 
 Execution of a \FINALLY{} clause \FINALLY{} $s$ of a try statement proceeds as follows: 
 
-The statement $s$ is executed. Then, if the current exception is defined, control is transferred to the nearest dynamically enclosing exception handler.
+Let $x$ be the current exception and let $t$ be the active stack trace. Then the current exception and the active stack trace both become undefined. The statement $s$ is executed. Then, if $x$ is defined,  it is rethrown as if by a rethrow statement (\ref{rethrow}) enclosed in a \CATCH{} clause of the form \code{\CATCH{} ($v_x$, $v_t$)} where $v_x$ and $v_t$ are fresh variables bound to $x$ and $t$ respectively.
+
 
 Execution of a try statement of the form \code{\TRY{} $s_1$ $on-catch_1 \ldots on-catch_n$ \FINALLY{} $s_f$;}  proceeds as follows:
 
@@ -4863,30 +5043,53 @@ If an exception is thrown during execution of an \ON{}-\CATCH{} clause, this wil
 If no exception was raised, the \FINALLY{} clause is also executed. Execution of the \FINALLY{} clause could also raise an exception, which will cause transfer of control to the next enclosing handler. 
 }
 
-A try statement of the form \code{\TRY{} $s_1$ $on-catch_1 \ldots on-catch_n$;} is equivalent to the statement \code{\TRY{} $s_1$ $on-catch_1 \ldots on-catch_n$ \FINALLY{} $\{\}$;}.
+A try statement of the form \code{\TRY{} $s_1$ $on-catch_1 \ldots on-catch_n$;} is equivalent to the statement \code{\TRY{} $s_1$ $on-catch_1 \ldots on-catch_n$ \FINALLY{} $\{\}$}.
  
 
 \subsection{ Return}
 \label{return}
 
-The {\em return statement} returns a result to the caller of a function.
+The {\em return statement} returns a result to the caller of a synchronous function,  completes the future associated with an asynchronous function or terminates the stream or iterable associated with a generator (\ref{functions}).
+
 
  \begin{grammar}
 {\bf returnStatement:}
-    \RETURN{} expression? '{\escapegrammar ;}' % could do top level here
+    \RETURN{} expression? `{\escapegrammar ;}' % could do top level here
     .
  \end{grammar}
+ 
+ \commentary{
+ Due to \FINALLY{} clauses, the precise behavior of \RETURN{} is a little more involved. Whether the value a return statement is supposed to return is actually returned depends on the behavior of any \FINALLY{} clauses in effect when executing the return. A \FINALLY{} clause may choose to return another value, or throw an exception, or even redirect control flow leading to other returns or throws. All a return statement really does is set a value that is intended to be returned when the function terminates. 
+ }
+
+The {\em current return value} is a unique value specific to a given function activation. It is undefined unless explicitly set in this specification.
     
-Executing a return statement 
+Executing a return statement \code{\RETURN{} $e$;} proceeds as follows:
 
-\code{\RETURN{} $e$;}
+First the expression $e$ is evaluated, producing an object $o$. Next:
+\begin{itemize}
+\item  
+The current return value is set to $o$ and the current exception (\ref{throw}) and active stack trace (\ref{try}) become undefined.
+\item
+Let $c$ be the \FINALLY{} clause of the innermost enclosing try-finally statement (\ref{try}), if any. If $c$ is defined, let $h$ be the handler induced by $c$. If $h$ is defined, control is transferred to $h$. 
+\item
+Otherwise execution of the current method terminates.
+\end{itemize}
 
-first causes evaluation of the expression $e$, producing an object $o$. Next, control is transferred to the caller of the current function activation, and the object $o$ is provided to the caller as the result of the function call.
+\commentary{
+In the simplest case, the immediately enclosing function is an ordinary, synchronous non-generator, and upon function termination, the current return value is given to the caller.  The other possibility is that the function is marked \ASYNC{}, in which case the current return value is used to complete the future associated with the function invocation. Both these scenarios are specified in section \ref{functionInvocation}.
+The enclosing function cannot be marked as generator (i.e, \ASYNC* or \SYNC*), since generators are not allowed to contain a statement of the form \code{\RETURN{} $e$;} as discussed below.
+}
 
-It is a static type warning if the type of $e$ may not be assigned to the declared return type of the immediately enclosing function. 
-%It is a static warning if the immediately enclosing function of a return statement of the form \code{\RETURN{} $e$;} is \VOID{}.
+Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.  
 
-In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the runtime type of $o$ is not a subtype of the actual return type (\ref{actualTypeOfADeclaration}) of the immediately enclosing function.
+It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future$<$flatten(T)$>$} (\ref{awaitExpressions}) may not be assigned to the declared return type of $f$.   Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$. 
+
+Let $S$ be the runtime type of $o$. In checked mode:
+\begin{itemize}
+\item  If the body of $f$ is marked \ASYNC{} (\ref{functions}) it is a dynamic type error if $o$ is not \NULL{} (\ref{null}) and \code{Future$<$S$>$} is not a subtype of the actual return type  (\ref{actualTypeOfADeclaration}) of $f$.
+\item Otherwise, it is a dynamic type error if $o$ is not \NULL{} and the runtime type of $o$ is not a subtype of the actual return type of $f$.
+\end{itemize}
 
 It is a compile-time error if a return statement of the form \code{\RETURN{} $e$;} appears in a generative constructor (\ref{generativeConstructors}).
 
@@ -4894,19 +5097,38 @@ It is a compile-time error if a return statement of the form \code{\RETURN{} $e$
 It is quite easy to forget to add the factory prefix for a constructor, accidentally converting a factory into a generative constructor. The static checker may detect a type mismatch in some, but not all, of these cases. The rule above helps catch such errors, which can otherwise be very hard to recognize. There is no real downside to it, as returning a value from a generative constructor is meaningless.
 }
 
-Let $f$ be the function immediately enclosing a return statement of the form \RETURN{}; It is a static warning if both of the following conditions hold:
-\begin{itemize}
-\item  $f$ is not a generative constructor.
-\item The return type of $f$ may not be assigned to \VOID{}. 
-\end{itemize}
+It is a compile-time error if a return statement of the form \code{\RETURN{} $e$;} appears in a generator function.
 
-\commentary{
-Hence, a static warning will not be issued if $f$ has no declared return type, since the return type would be  \DYNAMIC{} and  \DYNAMIC{} may be assigned to \VOID{}. However, any function that declares a return type must return an expression explicitly.
+\rationale{
+In the case of a generator function, the value returned by the function is the iterable or stream associated with it, and individual elements are added to that iterable using yield statements, and so returning a value makes no sense. 
 }
 
+Let $f$ be the function immediately enclosing a return statement of the form \RETURN{}; It is a static warning  $f$ is neither a generator nor a generative constructor and either:
+\begin{itemize}
+\item  $f$ is synchronous and the return type of $f$ may not be assigned to \VOID{} (\ref{typeVoid}) or, 
+\item  $f$ is asynchronous and the return type of $f$ may not be assigned to \code{Future$<$Null$>$}.  
+\end{itemize}
+
+ \commentary{
+Hence, a static warning will not be issued if $f$ has no declared return type, since the return type would be  \DYNAMIC{} and  \DYNAMIC{} may be assigned to \VOID{} and to \code{Future$<$Null$>$}. However, any synchronous non-generator function that declares a return type must return an expression explicitly.
+}
 \rationale{This helps catch situations where users forget to return a value in a return statement.}
 
-A return statement of the form \code{\RETURN{};}  is executed by executing the statement  \code{\RETURN{} \NULL{};} if it occurs inside a method, getter, setter or factory; otherwise, the return statement necessarily occurs inside a generative constructor, in which case it is executed by executing  \code{\RETURN{} \THIS{};}.
+\rationale{ An asynchronous non-generator always returns a future of some sort. If no expression is given, the future will be completed with \NULL{} and this motivates the requirement above.} \commentary{Leaving the return type of a function marked \ASYNC{}  blank will be interpreted as \DYNAMIC{} as always, and cause no type error. Using \code{Future} or \code{Future$<$Object$>$} is acceptable as well, but any other type will cause a warning, since \NULL{} has no subtypes.}
+
+A return statement with no expression, \code{\RETURN;} is executed as follows:
+
+If the immediately enclosing function $f$ is a generator, then:
+\begin{itemize}
+\item
+The current return value is set to \NULL{}.
+\item 
+Let $c$ be the \FINALLY{} clause of the innermost enclosing try-finally statement, if any. If $c$ is defined,  let $h$ be the handler induced by $c$. If $h$ is defined, control is transferred to $h$.
+\item
+Otherwise, execution of the current method terminates. 
+\end{itemize}
+
+Otherwise the return statement is executed by executing the statement  \code{\RETURN{} \NULL{};} if it occurs inside a method, getter, setter or factory; otherwise, the return statement necessarily occurs inside a generative constructor, in which case it is executed by executing  \code{\RETURN{} \THIS{};}.
 
 \commentary{Despite the fact that \code{\RETURN{};} is executed as if by a \code{\RETURN{} $e$;}, it is important to understand that it is not a static warning to include a statement of the form \code{\RETURN{};} 
 %in a \VOID{} function; neither is it illegal 
@@ -4920,7 +5142,9 @@ The motivation for formulating \code{\RETURN{};} in this way stems from the basi
 The question then becomes, what value should a return statement return when no return expression is given. In a generative constructor, it is obviously the object being constructed (\THIS{}). A void function is not expected to participate in an expression, which is why it is marked \VOID{} in the first place. Hence, this situation is a mistake which should be detected as soon as possible. The static rules help here, but if the code is executed, using \NULL{} leads to fast failure, which is desirable in this case. The same rationale applies for function bodies that do not contain a return statement at all.
 }
 
-It is a static warning if a function contains both one or more explicit return statements of the form \code{\RETURN;} and one or more return statements of the form \code{\RETURN{} $e$;}.
+It is a static warning if a  function contains both one or more explicit return statements of the form \code{\RETURN;} and one or more return statements of the form \code{\RETURN{} $e$;}.
+
+
 
 
 \subsection{ Labels}
@@ -4934,7 +5158,7 @@ A {\em label} is an identifier followed by a colon. A {\em labeled statement} is
 
  \begin{grammar}
 {\bf label:}
-      identifier '{\escapegrammar :}'
+      identifier `{\escapegrammar :}'
     .
  \end{grammar}
  
@@ -4953,11 +5177,14 @@ The {\em break statement} consists of the reserved word \BREAK{} and an optional
 
 \begin{grammar}
 {\bf breakStatement:}
-     \BREAK{} identifier? '{\escapegrammar ;}'
+     \BREAK{} identifier? `{\escapegrammar ;}'
     .
  \end{grammar}
  
 Let $s_b$ be a \BREAK{} statement. If $s_b$ is of the form  \code{\BREAK{} $L$;}, then let $s_E$ be the the innermost labeled statement with label $L$ enclosing $s_b$. If $s_b$ is of the form \code{\BREAK{};},  then let $s_E$ be the the innermost  \DO{} (\ref{do}), \FOR{} (\ref{for}), \SWITCH{} (\ref{switch}) or \WHILE{} (\ref{while}) statement enclosing  $s_b$. It is a compile-time error if no such statement $s_E$ exists within the innermost function in which  $s_b$ occurs.  Furthermore, let $s_1, \ldots, s_n$ be those \TRY{} statements that are both enclosed in $s_E$ and that enclose  $s_b$, and that have a \FINALLY{} clause. Lastly, let $f_j$ be the \FINALLY{} clause of $s_j, 1 \le j \le n$.   Executing  $s_b$ first executes $f_1, \ldots,  f_n$ in innermost-clause-first  order and then terminates $s_E$. 
+
+If $s_E$ is an asynchronous for loop (\ref{asynchronousFor-in}), its associated stream subscription is canceled. Furthermore, let $a_k$ be the set of asynchronous for loops  and yield-each statements (\ref{yieldEach}) enclosing $s_b$ that are enclosed in $s_E , 1 \le k \le m$.   The stream subscriptions associated with $a_j$ are canceled, $1 \le j \le m$. 
+
 
 
 \subsection{ Continue}
@@ -4967,7 +5194,7 @@ The {\em continue statement} consists of the reserved word \CONTINUE{} and an op
 
 \begin{grammar}
 {\bf continueStatement:}
-    \CONTINUE{} identifier? '{\escapegrammar ;}'
+    \CONTINUE{} identifier? `{\escapegrammar ;}'
         .
  \end{grammar}      
  
@@ -4977,6 +5204,88 @@ The {\em continue statement} consists of the reserved word \CONTINUE{} and an op
  In a while loop, that would be the boolean expression before the body. In a do loop, it would be the boolean expression after the body. In a for loop, it would be the increment clause.  In other words, execution continues to the next iteration of the loop.
  }
  
+ If $s_E$ is an asynchronous for loop (\ref{asynchronousFor-in}), let $a_k$ be the set of asynchronous for loops and yield-each statements (\ref{yieldEach}) enclosing $s_c$ that are enclosed in $s_E , 1 \le k \le m$.   The stream subscriptions associated with $a_j$ are canceled, $1 \le j \le m$. 
+ 
+ \subsection{ Yield and Yield-Each}
+ \label{yieldAndYieldEach}
+ 
+ \subsubsection{ Yield}
+ \label{yield}
+ 
+ The {\em yield statement} adds an element to the result of a generator function (\ref{functions}).
+
+ \begin{grammar}
+{\bf yieldStatement:}
+   \YIELD{} expression `{\escapegrammar ;}'
+      .
+\end{grammar}
+
+Execution of a statement $s$ of the form \code{\YIELD{} $e$;}  proceeds as follows:
+
+First, the expression $e$ is evaluated to an object $o$. If the enclosing function $m$ is marked \ASYNC* (\ref{functions}) and the stream $u$ associated with $m$ has been paused,  then execution of $m$ is suspended until $u$ is resumed or canceled.
+
+Next, $o$ is added to the iterable or stream associated with the immediately enclosing function. 
+
+If the enclosing function $m$ is marked \ASYNC* and the stream $u$ associated with $m$ has been canceled, then let $c$ be the \FINALLY{} clause (\ref{try}) of the innermost enclosing try-finally statement, if any. If $c$ is defined, let $h$ be the handler induced by $c$. If $h$ is defined, control is transferred to $h$. If $h$ is undefined, the immediately enclosing function terminates.
+
+\rationale{
+The stream associated with an asynchronous generator could be canceled by any code with a reference to that stream at any point where the generator was passivated.  Such a cancellation constitutes an irretrievable error for the generator. At this point, the only plausible action for the generator is to clean up after itself via its \FINALLY{} clauses.
+}
+
+If the enclosing function $m$ is marked \SYNC* (\ref{functions}) then:
+\begin{itemize}
+\item
+Execution of the function $m$ immediately enclosing $s$ is suspended until the method \code{moveNext()} is invoked upon the iterator used to initiate the current invocation of $m$. 
+\item
+The current call to \code{moveNext()} returns \TRUE.
+\end{itemize}
+
+It is a compile-time error if a yield statement appears in a function that is not a generator function.
+
+Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.  It is a static type warning if either:
+\begin{itemize}
+\item
+ the body of $f$ is marked \ASYNC* and the type \code{Stream$<$T$>$} may not be assigned to the declared return type of $f$. 
+ \item
+ the body of $f$ is marked \SYNC* and the type \code{Iterable$<$T$>$} may not be assigned to the declared return type of $f$.
+ \end{itemize} 
+
+ 
+ \subsubsection{ Yield-Each}
+ \label{yieldEach}
+ 
+ The {\em yield-each statement} adds a series of values to the result of a generator function (\ref{functions}).
+ 
+ \begin{grammar}
+{\bf yieldEachStatement:}
+   \YIELD* expression `{\escapegrammar ;}'
+      .
+\end{grammar}
+
+Execution of a statement s of the form \code{\YIELD* $e$;}  proceeds as follows:
+
+First, the expression $e$ is evaluated to an object $o$. If the immediately enclosing function $m$ is synchronous, then it is a dynamic error if the class of $o$ does not implement \code{Iterable}.  If $m$ asynchronous, then it is a dynamic error if the class of $o$ does not implement \code{Stream}. Next, for each element $x$ of $o$:
+\begin{itemize}
+\item
+If $m$ is marked \ASYNC* (\ref{functions}) and the stream $u$ associated with $m$ has been paused,  then execution of $m$ is suspended until $u$ is resumed or canceled.
+\item
+ $x$ is added to the iterable or stream associated with $m$ in the order it appears in $o$.  
+ \item
+If $m$ is marked \ASYNC* and the stream $u$ associated with $m$ has been canceled, then let $c$ be the \FINALLY{} clause (\ref{try}) of the innermost enclosing try-finally statement, if any. If $c$ is defined,  let $h$ be the handler induced by $c$. If $h$ is defined, control is transferred to $h$. If $h$ is undefined, the immediately enclosing function terminates.
+\end{itemize}
+
+If the enclosing function is marked \SYNC* (\ref{functions}) then:
+\begin{itemize}
+\item
+Execution of the function $m$ immediately enclosing $s$ is suspended until the method \code{moveNext()} is invoked upon the iterator used to initiate the current invocation of $m$. 
+\item
+The current call to \code{moveNext()} returns \TRUE.
+\end{itemize}
+
+It is a compile-time error if a yield-each statement appears in a function that is not a generator function.
+
+Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.  It is a static type warning if $T$ may not be assigned to the declared return type of $f$. 
+
 
 \subsection{ Assert}
 \label{assert}
@@ -4985,7 +5294,7 @@ An {\em assert statement} is used to disrupt normal execution if a given boolean
 
 \begin{grammar}
 {\bf assertStatement:}
-   assert '(' conditionalExpression ')' '{\escapegrammar ;}'
+   assert `(' conditionalExpression `)' `{\escapegrammar ;}'
       .
 \end{grammar}
       
@@ -5314,7 +5623,7 @@ A library $L$ exports a namespace (\ref{scoping}), meaning that the declarations
  
  An export specifies a URI $x$ where the declaration of an exported library is to be found.  It is a compile-time error if  the specified URI does not refer to a library declaration.  
 
-We say that a name {\em is exported by a library} (or equivalently, that a library {\em exports a name}) if the name is in the library's exported namespace. We say that a declaration {\em is exported by a library} (or equivalently, that a library {\em exports a declaration}) if the declaration is in the library`s exported namespace.
+We say that a name {\em is exported by a library} (or equivalently, that a library {\em exports a name}) if the name is in the library's exported namespace. We say that a declaration {\em is exported by a library} (or equivalently, that a library {\em exports a declaration}) if the declaration is in the library's exported namespace.
 
 A library always exports all names and all declarations in its public namespace. In addition, a library may choose to re-export additional libraries via {\em export directives}, often referred to simply as {\em exports}.
 
@@ -5610,7 +5919,7 @@ bool b = x is I;
 \end{dartCode}
 
 \commentary{
-\code{b} is bound to true, but in checked mode the second line causes a dynamic type error.
+\code{b} is bound to \TRUE, but in checked mode the second line causes a dynamic type error.
 }
 
 

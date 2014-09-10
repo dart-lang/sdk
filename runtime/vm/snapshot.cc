@@ -5,7 +5,6 @@
 #include "vm/snapshot.h"
 
 #include "platform/assert.h"
-#include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/exceptions.h"
@@ -149,14 +148,14 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
 
 
 RawSmi* BaseReader::ReadAsSmi() {
-  intptr_t value = ReadIntptrValue();
+  intptr_t value = Read<int32_t>();
   ASSERT((value & kSmiTagMask) == kSmiTag);
   return reinterpret_cast<RawSmi*>(value);
 }
 
 
 intptr_t BaseReader::ReadSmiValue() {
-  return  Smi::Value(ReadAsSmi());
+  return Smi::Value(ReadAsSmi());
 }
 
 
@@ -212,7 +211,7 @@ RawObject* SnapshotReader::ReadObject() {
 RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   ASSERT(kind_ != Snapshot::kFull);
   // Read the class header information and lookup the class.
-  intptr_t class_header = ReadIntptrValue();
+  intptr_t class_header = Read<int32_t>();
   ASSERT((class_header & kSmiTagMask) != kSmiTag);
   ASSERT(!IsVMIsolateObject(class_header) ||
          !IsSingletonClassId(GetVMIsolateObjectId(class_header)));
@@ -284,7 +283,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
   ASSERT(GetBackRef(object_id) == NULL);
 
   // Read the class header information and lookup the class.
-  intptr_t class_header = ReadIntptrValue();
+  intptr_t class_header = Read<int32_t>();
 
   // Since we are only reading an object reference, If it is an instance kind
   // then we only need to figure out the class of the object and allocate an
@@ -504,7 +503,8 @@ RawApiError* SnapshotReader::VerifyVersion() {
     char* actual_version = OS::StrNDup(version, version_len);
     OS::SNPrint(message_buffer,
                 kMessageBufferSize,
-                "Wrong full snapshot version, expected '%s' found '%s'",
+                "Wrong %s snapshot version, expected '%s' found '%s'",
+                (kind_ == Snapshot::kFull) ? "full" : "script",
                 Version::SnapshotString(),
                 actual_version);
     free(actual_version);
@@ -616,19 +616,6 @@ RawMint* SnapshotReader::NewMint(int64_t value) {
 }
 
 
-RawBigint* SnapshotReader::NewBigint(const char* hex_string) {
-  ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_gc_scope_depth() != 0);
-  intptr_t bigint_length = BigintOperations::ComputeChunkLength(hex_string);
-  RawBigint* obj = reinterpret_cast<RawBigint*>(
-      AllocateUninitialized(kBigintCid, Bigint::InstanceSize(bigint_length)));
-  obj->ptr()->allocated_length_ = bigint_length;
-  obj->ptr()->signed_length_ = bigint_length;
-  BigintOperations::FromHexCString(hex_string, Bigint::Handle(obj));
-  return obj;
-}
-
-
 RawDouble* SnapshotReader::NewDouble(double value) {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT(isolate()->no_gc_scope_depth() != 0);
@@ -655,6 +642,11 @@ RawTypedData* SnapshotReader::NewTypedData(intptr_t class_id, intptr_t len) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);                                 \
   return reinterpret_cast<Raw##type*>(                                         \
       AllocateUninitialized(k##type##Cid, type::InstanceSize()));              \
+
+
+RawBigint* SnapshotReader::NewBigint() {
+  ALLOC_NEW_OBJECT(Bigint);
+}
 
 
 RawUnresolvedClass* SnapshotReader::NewUnresolvedClass() {
@@ -931,7 +923,7 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id) {
 
 RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
-  intptr_t class_header = ReadIntptrValue();
+  intptr_t class_header = Read<int32_t>();
   intptr_t tags = ReadTags();
   if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
     // Object is regular dart instance.
@@ -1653,7 +1645,7 @@ void SnapshotWriter::WriteInstance(intptr_t object_id,
   WriteInlinedObjectHeader(object_id);
 
   // Indicate this is an instance object.
-  WriteIntptrValue(SerializedHeaderData::encode(kInstanceObjectId));
+  Write<int32_t>(SerializedHeaderData::encode(kInstanceObjectId));
 
   // Write out the tags.
   WriteTags(tags);
@@ -1688,7 +1680,7 @@ void SnapshotWriter::WriteInstanceRef(RawObject* raw, RawClass* cls) {
   WriteInlinedObjectHeader(kOmittedObjectId);
 
   // Indicate this is an instance object.
-  WriteIntptrValue(SerializedHeaderData::encode(kInstanceObjectId));
+  Write<int32_t>(SerializedHeaderData::encode(kInstanceObjectId));
 
   // Write out the class information for this object.
   WriteObjectImpl(cls);

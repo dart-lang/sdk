@@ -8,6 +8,7 @@ dromaeo_smoke_test: Skip # Issue 14521, 8257
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
+custom/document_register_basic_test: RuntimeError # Issue 20813
 indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 form_data_test/functional: Skip # Issue 19726
 indexeddb_4_test: Skip # Issue 19726
@@ -337,7 +338,6 @@ webgl_1_test: Pass, Fail # Issue 8219
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
 audiocontext_test/functional: Fail # Issue 14354
-websql_test/functional: RuntimeError # Issue 14523
 
 # Safari Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.

@@ -8,7 +8,6 @@
 #include "platform/assert.h"
 #include "vm/assembler.h"
 #include "vm/cpu.h"
-#include "vm/bigint_operations.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
@@ -361,11 +360,6 @@ static bool IsSpecialCharacter(type value) {
           (value == '\r') ||
           (value == '\\') ||
           (value == '$'));
-}
-
-
-static bool IsAsciiPrintChar(int32_t code_point) {
-  return (code_point >= ' ') && (code_point <= '~');
 }
 
 
@@ -1556,10 +1550,39 @@ void Object::Print() const {
 }
 
 
+static void AddNameProperties(JSONObject* jsobj,
+                              const String& name,
+                              const String& vm_name) {
+  jsobj->AddProperty("name", name.ToCString());
+  if (!name.Equals(vm_name)) {
+    jsobj->AddProperty("_vmName", vm_name.ToCString());
+  }
+}
+
+
+static void AddTypeProperties(JSONObject* jsobj,
+                              const char* user_type,
+                              const char* vm_type,
+                              bool ref) {
+  bool same_type = (strcmp(user_type, vm_type) == 0);
+  if (ref) {
+    jsobj->AddPropertyF("type", "@%s", user_type);
+    if (!same_type) {
+      jsobj->AddPropertyF("_vmType", "@%s", vm_type);
+    }
+  } else {
+    jsobj->AddProperty("type", user_type);
+    if (!same_type) {
+      jsobj->AddProperty("_vmType", vm_type);
+    }
+  }
+}
+
+
 void Object::PrintJSON(JSONStream* stream, bool ref) const {
   if (IsNull()) {
     JSONObject jsobj(stream);
-    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    AddTypeProperties(&jsobj, "null", JSONType(), ref);
     jsobj.AddProperty("id", "objects/null");
     jsobj.AddProperty("valueAsString", "null");
     if (!ref) {
@@ -1570,6 +1593,15 @@ void Object::PrintJSON(JSONStream* stream, bool ref) const {
   } else {
     PrintJSONImpl(stream, ref);
   }
+}
+
+
+void Object::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "Object", JSONType(), ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
 }
 
 
@@ -3830,6 +3862,11 @@ RawFunction* Class::LookupFactory(const String& name) const {
 }
 
 
+RawFunction* Class::LookupFactoryAllowPrivate(const String& name) const {
+  return LookupFunctionAllowPrivate(name, kFactory);
+}
+
+
 RawFunction* Class::LookupFunction(const String& name) const {
   return LookupFunction(name, kAny);
 }
@@ -4103,23 +4140,15 @@ const char* Class::ToCString() const {
 }
 
 
-static void AddNameProperties(JSONObject* jsobj,
-                              const String& name,
-                              const String& vm_name) {
-  jsobj->AddProperty("name", name.ToCString());
-  if (!name.Equals(vm_name)) {
-    jsobj->AddProperty("vmName", vm_name.ToCString());
-  }
-}
-
-
 void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   if ((raw() == Class::null()) || (id() == kFreeListElement)) {
-    jsobj.AddProperty("type", "Null");
+    // TODO(turnidge): This is weird.  See if there is another way to
+    // handle this.
+    jsobj.AddProperty("type", "null");
     return;
   }
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Class", JSONType(), ref);
   jsobj.AddPropertyF("id", "classes/%" Pd "", id());
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
@@ -4457,7 +4486,7 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   ASSERT(table.Length() > 0);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "TypeArguments", JSONType(), ref);
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
@@ -5442,9 +5471,7 @@ void Function::set_result_type(const AbstractType& value) const {
 
 RawAbstractType* Function::ParameterTypeAt(intptr_t index) const {
   const Array& parameter_types = Array::Handle(raw_ptr()->parameter_types_);
-  AbstractType& parameter_type = AbstractType::Handle();
-  parameter_type ^= parameter_types.At(index);
-  return parameter_type.raw();
+  return AbstractType::RawCast(parameter_types.At(index));
 }
 
 
@@ -5463,9 +5490,7 @@ void Function::set_parameter_types(const Array& value) const {
 
 RawString* Function::ParameterNameAt(intptr_t index) const {
   const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
-  String& parameter_name = String::Handle();
-  parameter_name ^= parameter_names.At(index);
-  return parameter_name.raw();
+  return String::RawCast(parameter_names.At(index));
 }
 
 
@@ -6811,7 +6836,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   err ^= cls.EnsureIsFinalized(Isolate::Current());
   ASSERT(err.IsNull());
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Function", JSONType(), ref);
   jsobj.AddProperty("id", GetFunctionServiceId(*this, cls));
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(name());
@@ -7157,7 +7182,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   intptr_t id = cls.FindFieldIndex(*this);
   ASSERT(id >= 0);
   intptr_t cid = cls.id();
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Field", JSONType(), ref);
   jsobj.AddPropertyF("id", "classes/%" Pd "/fields/%" Pd "", cid, id);
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(name());
@@ -7947,7 +7972,21 @@ const char* TokenStream::ToCString() const {
 
 
 void TokenStream::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "Object", JSONType(), ref);
+  // TODO(johnmccutchan): Generate a stable id. TokenStreams hang off
+  // a Script object but do not have a back reference to generate a stable id.
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  if (ref) {
+    return;
+  }
+  const String& private_key = String::Handle(PrivateKey());
+  jsobj.AddProperty("privateKey", private_key);
+  // TODO(johnmccutchan): Add support for printing LiteralTokens and add
+  // them to members array.
+  JSONArray members(&jsobj, "members");
 }
 
 
@@ -8477,7 +8516,7 @@ RawLibrary* Script::FindLibrary() const {
 // See also Dart_ScriptGetTokenInfo.
 void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Script", JSONType(), ref);
   const String& name = String::Handle(url());
   ASSERT(!name.IsNull());
   const String& encoded_url = String::Handle(String::EncodeIRI(name));
@@ -9770,7 +9809,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   intptr_t id = index();
   ASSERT(id >= 0);
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Library", JSONType(), ref);
   jsobj.AddPropertyF("id", "libraries/%" Pd "", id);
   jsobj.AddProperty("name", library_name);
   const char* library_url = String::Handle(url()).ToCString();
@@ -10528,21 +10567,23 @@ const char* PcDescriptors::ToCString() const {
       "%#-*" Px "\t%s\t%" Pd "\t\t%" Pd "\t%" Pd "\n";
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
-  Iterator iter(*this, RawPcDescriptors::kAnyKind);
-  while (iter.MoveNext()) {
-    len += OS::SNPrint(NULL, 0, kFormat, addr_width,
-                       iter.Pc(),
-                       KindAsStr(iter.Kind()),
-                       iter.DeoptId(),
-                       iter.TokenPos(),
-                       iter.TryIndex());
+  {
+    Iterator iter(*this, RawPcDescriptors::kAnyKind);
+    while (iter.MoveNext()) {
+      len += OS::SNPrint(NULL, 0, kFormat, addr_width,
+                         iter.Pc(),
+                         KindAsStr(iter.Kind()),
+                         iter.DeoptId(),
+                         iter.TokenPos(),
+                         iter.TryIndex());
+    }
   }
   // Allocate the buffer.
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
   intptr_t index = 0;
-  Iterator iter2(*this, RawPcDescriptors::kAnyKind);
-  while (iter2.MoveNext()) {
+  Iterator iter(*this, RawPcDescriptors::kAnyKind);
+  while (iter.MoveNext()) {
     index += OS::SNPrint((buffer + index), (len - index), kFormat, addr_width,
                          iter.Pc(),
                          KindAsStr(iter.Kind()),
@@ -10554,12 +10595,16 @@ const char* PcDescriptors::ToCString() const {
 }
 
 
-void PcDescriptors::PrintToJSONObject(JSONObject* jsobj) const {
-  jsobj->AddProperty("type", JSONType(false));
-  // TODO(johnmccutchan): Generate a valid ID.
-  // PcDescriptors hang off a Code object but do not have a back reference to
-  // generate an ID. Currently we only print PcDescriptors inline with a Code.
-  jsobj->AddProperty("id", "");
+void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
+  AddTypeProperties(jsobj, "Object", JSONType(), ref);
+  // TODO(johnmccutchan): Generate a stable id. PcDescriptors hang off a Code
+  // object but do not have a back reference to generate an ID.
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj->AddPropertyF("id", "objects/%" Pd "", id);
+  if (ref) {
+    return;
+  }
   JSONArray members(jsobj, "members");
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
@@ -10575,7 +10620,7 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj) const {
 
 void PcDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  PrintToJSONObject(&jsobj);
+  PrintToJSONObject(&jsobj, ref);
 }
 
 
@@ -10682,7 +10727,7 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
   // PC. StackmapTableBuilder::FinalizeStackmaps will replace it with the pc
   // address.
   ASSERT(pc_offset >= 0);
-  result.SetPC(pc_offset);
+  result.SetPcOffset(pc_offset);
   for (intptr_t i = 0; i < length; ++i) {
     result.SetBit(i, bmap->Get(i));
   }
@@ -10696,7 +10741,7 @@ const char* Stackmap::ToCString() const {
     return "{null}";
   } else {
     const char* kFormat = "%#" Px ": ";
-    intptr_t fixed_length = OS::SNPrint(NULL, 0, kFormat, PC()) + 1;
+    intptr_t fixed_length = OS::SNPrint(NULL, 0, kFormat, PcOffset()) + 1;
     Isolate* isolate = Isolate::Current();
     // Guard against integer overflow in the computation of alloc_size.
     //
@@ -10707,7 +10752,7 @@ const char* Stackmap::ToCString() const {
     }
     intptr_t alloc_size = fixed_length + Length();
     char* chars = isolate->current_zone()->Alloc<char>(alloc_size);
-    intptr_t index = OS::SNPrint(chars, alloc_size, kFormat, PC());
+    intptr_t index = OS::SNPrint(chars, alloc_size, kFormat, PcOffset());
     for (intptr_t i = 0; i < Length(); i++) {
       chars[index++] = IsObject(i) ? '1' : '0';
     }
@@ -10778,35 +10823,37 @@ static int PrintVarInfo(char* buffer, int len,
                         intptr_t i,
                         const String& var_name,
                         const RawLocalVarDescriptors::VarInfo& info) {
-  if (info.kind == RawLocalVarDescriptors::kContextLevel) {
+  const int8_t kind = info.kind();
+  const int32_t index = info.index();
+  if (kind == RawLocalVarDescriptors::kContextLevel) {
     return OS::SNPrint(buffer, len,
-                       "%2" Pd " %-13s level=%-3" Pd " scope=%-3d"
-                       " begin=%-3" Pd " end=%" Pd "\n",
+                       "%2" Pd " %-13s level=%-3d scope=%-3d"
+                       " begin=%-3d end=%d\n",
                        i,
-                       VarKindString(info.kind),
-                       info.index,
+                       VarKindString(kind),
+                       index,
                        info.scope_id,
                        info.begin_pos,
                        info.end_pos);
-  } else if (info.kind == RawLocalVarDescriptors::kContextVar) {
+  } else if (kind == RawLocalVarDescriptors::kContextVar) {
     return OS::SNPrint(buffer, len,
-                       "%2" Pd " %-13s level=%-3d index=%-3" Pd ""
-                       " begin=%-3" Pd " end=%-3" Pd " name=%s\n",
+                       "%2" Pd " %-13s level=%-3d index=%-3d"
+                       " begin=%-3d end=%-3d name=%s\n",
                        i,
-                       VarKindString(info.kind),
+                       VarKindString(kind),
                        info.scope_id,
-                       info.index,
+                       index,
                        info.begin_pos,
                        info.end_pos,
                        var_name.ToCString());
   } else {
     return OS::SNPrint(buffer, len,
-                       "%2" Pd " %-13s scope=%-3d index=%-3" Pd ""
-                       " begin=%-3" Pd " end=%-3" Pd " name=%s\n",
+                       "%2" Pd " %-13s scope=%-3d index=%-3d"
+                       " begin=%-3d end=%-3d name=%s\n",
                        i,
-                       VarKindString(info.kind),
+                       VarKindString(kind),
                        info.scope_id,
-                       info.index,
+                       index,
                        info.begin_pos,
                        info.end_pos,
                        var_name.ToCString());
@@ -10849,16 +10896,61 @@ const char* LocalVarDescriptors::ToCString() const {
 
 void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
                                         bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "Object", JSONType(), ref);
+  // TODO(johnmccutchan): Generate a stable id. LocalVarDescriptors hang off
+  // a Code object but do not have a back reference to generate an ID.
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  if (ref) {
+    return;
+  }
+  JSONArray members(&jsobj, "members");
+  String& var_name = String::Handle();
+  for (intptr_t i = 0; i < Length(); i++) {
+    RawLocalVarDescriptors::VarInfo info;
+    var_name = GetName(i);
+    if (var_name.IsNull()) {
+      var_name = Symbols::Empty().raw();
+    }
+    GetInfo(i, &info);
+    JSONObject var(&members);
+    var.AddProperty("name", var_name.ToCString());
+    var.AddProperty("index", static_cast<intptr_t>(info.index()));
+    var.AddProperty("beginPos", static_cast<intptr_t>(info.begin_pos));
+    var.AddProperty("endPos", static_cast<intptr_t>(info.end_pos));
+    var.AddProperty("scopeId", static_cast<intptr_t>(info.scope_id));
+    var.AddProperty("kind", KindToStr(info.kind()));
+  }
 }
 
+
+const char* LocalVarDescriptors::KindToStr(intptr_t kind) {
+  switch (kind) {
+    case RawLocalVarDescriptors::kStackVar:
+      return "StackVar";
+    case RawLocalVarDescriptors::kContextVar:
+      return "ContextVar";
+    case RawLocalVarDescriptors::kContextLevel:
+      return "ContextLevel";
+    case RawLocalVarDescriptors::kSavedEntryContext:
+      return "SavedEntryContext";
+    case RawLocalVarDescriptors::kSavedCurrentContext:
+      return "SavedCurrentContext";
+    default:
+      UNIMPLEMENTED();
+      return NULL;
+  }
+}
 
 RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
   ASSERT(Object::var_descriptors_class() != Class::null());
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in LocalVarDescriptors::New: "
-           "invalid num_variables %" Pd "\n", num_variables);
+    FATAL2("Fatal error in LocalVarDescriptors::New: "
+           "invalid num_variables %" Pd ". Maximum is: %d\n",
+           num_variables, RawLocalVarDescriptors::kMaxIndex);
   }
   LocalVarDescriptors& result = LocalVarDescriptors::Handle();
   {
@@ -11297,17 +11389,6 @@ bool ICData::MayCheckForJSWarning() const {
 }
 
 
-bool ICData::IsClosureCall() const {
-  return IsClosureCallBit::decode(raw_ptr()->state_bits_);
-}
-
-
-void ICData::SetIsClosureCall() const {
-  raw_ptr()->state_bits_ =
-      IsClosureCallBit::update(true, raw_ptr()->state_bits_);
-}
-
-
 void ICData::set_state_bits(uint32_t bits) const {
   raw_ptr()->state_bits_ = bits;
 }
@@ -11665,26 +11746,6 @@ bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
     if (IsUsedAt(i)) {
       cls = Function::Handle(GetTargetAt(i)).Owner();
       if (cls.id() != owner_cid) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-
-bool ICData::AllReceiversAreNumbers() const {
-  if (NumberOfChecks() == 0) return false;
-  Class& cls = Class::Handle();
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    if (IsUsedAt(i)) {
-      cls = Function::Handle(GetTargetAt(i)).Owner();
-      const intptr_t cid = cls.id();
-      if ((cid != kSmiCid) &&
-          (cid != kMintCid) &&
-          (cid != kBigintCid) &&
-          (cid != kDoubleCid)) {
         return false;
       }
     }
@@ -12283,7 +12344,7 @@ RawString* Code::PrettyName() const {
 
 void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  AddTypeProperties(&jsobj, "Code", JSONType(), ref);
   jsobj.AddPropertyF("id", "code/%" Px64"-%" Px "", compile_timestamp(),
                      EntryPoint());
   jsobj.AddPropertyF("start", "%" Px "", EntryPoint());
@@ -12322,7 +12383,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   if (!descriptors.IsNull()) {
     JSONObject desc(&jsobj, "descriptors");
-    descriptors.PrintToJSONObject(&desc);
+    descriptors.PrintToJSONObject(&desc, false);
   }
 }
 
@@ -12345,7 +12406,8 @@ uword Code::GetLazyDeoptPc() const {
 }
 
 
-RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
+RawStackmap* Code::GetStackmap(
+    uint32_t pc_offset, Array* maps, Stackmap* map) const {
   // This code is used during iterating frames during a GC and hence it
   // should not in turn start a GC.
   NoGCScope no_gc;
@@ -12361,7 +12423,7 @@ RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
   for (intptr_t i = 0; i < maps->Length(); i++) {
     *map ^= maps->At(i);
     ASSERT(!map->IsNull());
-    if (map->PC() == pc) {
+    if (map->PcOffset() == pc_offset) {
       return map->raw();  // We found a stack map for this frame.
     }
   }
@@ -12445,7 +12507,35 @@ void Context::Dump(int indent) const {
 
 
 void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  // TODO(turnidge): Should the user level type for Context be Context
+  // or Object?
+  AddTypeProperties(&jsobj, "Context", JSONType(), ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+
+  jsobj.AddProperty("length", num_variables());
+
+  if (ref) {
+    return;
+  }
+
+  Class& cls = Class::Handle(this->clazz());
+  jsobj.AddProperty("class", cls);
+
+  jsobj.AddProperty("size", raw()->Size());
+
+  const Context& parent_context = Context::Handle(parent());
+  jsobj.AddProperty("parent", parent_context);
+
+  JSONArray jsarr(&jsobj, "variables");
+  for (intptr_t i = 0; i < num_variables(); i++) {
+    const Instance& var = Instance::Handle(At(i));
+    JSONObject jselement(&jsarr);
+    jselement.AddProperty("index", i);
+    jselement.AddProperty("value", var);
+  }
 }
 
 
@@ -12820,9 +12910,8 @@ const char* ApiError::ToCString() const {
 
 void ApiError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "Error");
+  AddTypeProperties(&jsobj, "Error", JSONType(), ref);
   jsobj.AddProperty("id", "");
-  jsobj.AddProperty("kind", JSONType(false));
   jsobj.AddProperty("message", ToErrorCString());
 }
 
@@ -12959,9 +13048,8 @@ const char* LanguageError::ToCString() const {
 
 void LanguageError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "Error");
+  AddTypeProperties(&jsobj, "Error", JSONType(), ref);
   jsobj.AddProperty("id", "");
-  jsobj.AddProperty("kind", JSONType(false));
   jsobj.AddProperty("message", ToErrorCString());
 }
 
@@ -13054,9 +13142,8 @@ const char* UnhandledException::ToCString() const {
 void UnhandledException::PrintJSONImpl(JSONStream* stream,
                                        bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "Error");
+  AddTypeProperties(&jsobj, "Error", JSONType(), ref);
   jsobj.AddProperty("id", "");
-  jsobj.AddProperty("kind", JSONType(false));
   jsobj.AddProperty("message", ToErrorCString());
 
   Instance& instance = Instance::Handle();
@@ -13100,9 +13187,8 @@ const char* UnwindError::ToCString() const {
 
 void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "Error");
+  AddTypeProperties(&jsobj, "Error", JSONType(), ref);
   jsobj.AddProperty("id", "");
-  jsobj.AddProperty("kind", JSONType(false));
   jsobj.AddProperty("message", ToErrorCString());
 }
 
@@ -13184,7 +13270,7 @@ class CheckForPointers : public ObjectPointerVisitor {
 
 bool Instance::CheckAndCanonicalizeFields(const char** error_str) const {
   const Class& cls = Class::Handle(this->clazz());
-  if ((cls.id() >= kNumPredefinedCids)) {
+  if (cls.id() >= kNumPredefinedCids) {
     // Iterate over all fields, canonicalize numbers and strings, expect all
     // other instances to be canonical otherwise report error (return false).
     Object& obj = Object::Handle();
@@ -13545,8 +13631,8 @@ const char* Instance::ToCString() const {
 }
 
 
-void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
-  jsobj->AddProperty("type", JSONType(ref));
+void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
+                                       bool ref) const {
   Class& cls = Class::Handle(this->clazz());
   jsobj->AddProperty("class", cls);
   // TODO(turnidge): Provide the type arguments here too.
@@ -13592,15 +13678,6 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
 }
 
 
-void Object::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
-  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-  const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-}
-
-
 void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
 
@@ -13617,12 +13694,15 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
 
+  AddTypeProperties(&jsobj, "Instance", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
   if (IsClosure()) {
     const Function& closureFunc = Function::Handle(Closure::function(*this));
     jsobj.AddProperty("closureFunc", closureFunc);
+    const Context& closureCtxt = Context::Handle(Closure::context(*this));
+    jsobj.AddProperty("closureCtxt", closureCtxt);
   }
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   if (ref) {
@@ -14682,6 +14762,7 @@ const char* Type::ToCString() const {
 
 void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "Type", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   if (IsCanonical()) {
     const Class& type_cls = Class::Handle(type_class());
@@ -14854,6 +14935,7 @@ const char* TypeRef::ToCString() const {
 
 void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "TypeRef", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -15070,6 +15152,7 @@ const char* TypeParameter::ToCString() const {
 
 void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "TypeParameter", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -15273,6 +15356,7 @@ const char* BoundedType::ToCString() const {
 
 void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "BoundedType", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -15366,12 +15450,7 @@ const char* Number::ToCString() const {
 
 
 void Number::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  PrintSharedInstanceJSON(&jsobj, ref);
-  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-  const intptr_t id = ring->GetIdForObject(raw());
-  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  jsobj.AddProperty("valueAsString", ToCString());
+  UNREACHABLE();
 }
 
 
@@ -15383,7 +15462,13 @@ const char* Integer::ToCString() const {
 
 
 void Integer::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Number::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "int", JSONType(), ref);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  jsobj.AddProperty("valueAsString", ToCString());
 }
 
 
@@ -15402,9 +15487,10 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
   ASSERT(str.IsOneByteString());
   int64_t value;
   if (!OS::StringToInt64(str.ToCString(), &value)) {
-    const Bigint& big = Bigint::Handle(Bigint::New(str, space));
-    ASSERT(!BigintOperations::FitsIntoSmi(big));
-    ASSERT(!BigintOperations::FitsIntoInt64(big));
+    const Bigint& big = Bigint::Handle(
+        Bigint::NewFromCString(str.ToCString(), space));
+    ASSERT(!big.FitsIntoSmi());
+    ASSERT(!big.FitsIntoInt64());
     if (FLAG_throw_on_javascript_int_overflow) {
       ThrowJavascriptIntegerOverflow(big);
     }
@@ -15424,8 +15510,8 @@ RawInteger* Integer::NewCanonical(const String& str) {
   int64_t value;
   if (!OS::StringToInt64(str.ToCString(), &value)) {
     const Bigint& big = Bigint::Handle(Bigint::NewCanonical(str));
-    ASSERT(!BigintOperations::FitsIntoSmi(big));
-    ASSERT(!BigintOperations::FitsIntoInt64(big));
+    ASSERT(!big.FitsIntoSmi());
+    ASSERT(!big.FitsIntoInt64());
     return big.raw();
   }
   if (Smi::IsValid(value)) {
@@ -15449,7 +15535,7 @@ RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
       !IsJavascriptInt(value)) {
     const Integer& i = is_smi ?
         Integer::Handle(Smi::New(static_cast<intptr_t>(value))) :
-        Integer::Handle(Mint::New(value));
+        Integer::Handle(Mint::New(value, space));
     ThrowJavascriptIntegerOverflow(i);
   }
   if (is_smi) {
@@ -15462,37 +15548,68 @@ RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
 RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
     if (FLAG_throw_on_javascript_int_overflow) {
-      const Integer &i =
-          Integer::Handle(BigintOperations::NewFromUint64(value));
+      const Integer &i = Integer::Handle(Bigint::NewFromUint64(value, space));
       ThrowJavascriptIntegerOverflow(i);
     }
-    return BigintOperations::NewFromUint64(value);
+    return Bigint::NewFromUint64(value, space);
   } else {
-    return Integer::New(value);
+    return Integer::New(value, space);
   }
 }
 
 
+bool Integer::Equals(const Instance& other) const {
+  // Integer is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
+bool Integer::IsZero() const {
+  // Integer is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
+bool Integer::IsNegative() const {
+  // Integer is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 double Integer::AsDoubleValue() const {
-  UNIMPLEMENTED();
+  // Integer is an abstract class.
+  UNREACHABLE();
   return 0.0;
 }
 
 
 int64_t Integer::AsInt64Value() const {
-  UNIMPLEMENTED();
+  // Integer is an abstract class.
+  UNREACHABLE();
   return 0;
 }
 
 
 uint32_t Integer::AsTruncatedUint32Value() const {
-  UNIMPLEMENTED();
+  // Integer is an abstract class.
+  UNREACHABLE();
   return 0;
 }
 
 
+bool Integer::FitsIntoSmi() const {
+  // Integer is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 int Integer::CompareWith(const Integer& other) const {
-  UNIMPLEMENTED();
+  // Integer is an abstract class.
+  UNREACHABLE();
   return 0;
 }
 
@@ -15509,11 +15626,8 @@ bool Integer::CheckJavascriptIntegerOverflow() const {
     mint ^= raw();
     value = mint.value();
   } else {
-    ASSERT(IsBigint());
-    Bigint& big_value = Bigint::Handle();
-    big_value ^= raw();
-    if (BigintOperations::FitsIntoInt64(big_value)) {
-      value = BigintOperations::ToInt64(big_value);
+    if (Bigint::Cast(*this).FitsIntoInt64()) {
+      value = AsInt64Value();
     }
   }
   return !IsJavascriptInt(value);
@@ -15535,16 +15649,14 @@ RawInteger* Integer::AsValidInteger() const {
       return raw();
     }
   }
-  ASSERT(IsBigint());
-  Bigint& big_value = Bigint::Handle();
-  big_value ^= raw();
-  if (BigintOperations::FitsIntoSmi(big_value)) {
-    return BigintOperations::ToSmi(big_value);
-  } else if (BigintOperations::FitsIntoInt64(big_value)) {
-    return Mint::New(BigintOperations::ToInt64(big_value));
-  } else {
-    return big_value.raw();
+  if (Bigint::Cast(*this).FitsIntoInt64()) {
+    const int64_t value = AsInt64Value();
+    if (Smi::IsValid(value)) {
+      return Smi::New(value);
+    }
+    return Mint::New(value);
   }
+  return raw();
 }
 
 
@@ -15597,28 +15709,37 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         UNIMPLEMENTED();
     }
   }
-  // In 32-bit mode, the result of any operation (except multiplication) between
-  // two 63-bit signed integers will fit in a 64-bit signed result.
-  // For the multiplication result to fit, the sum of the highest bits of the
-  // absolute values of the operands must be smaller than 62.
-  // In 64-bit mode, 63-bit signed integers are Smis, already processed above.
-  if ((Smi::kBits < 32) && !IsBigint() && !other.IsBigint()) {
+  if (!IsBigint() && !other.IsBigint()) {
     const int64_t left_value = AsInt64Value();
     const int64_t right_value = other.AsInt64Value();
-    if (operation == Token::kMUL) {
-      if ((Utils::HighestBit(left_value) +
-           Utils::HighestBit(right_value)) < 62) {
-        return Integer::New(left_value * right_value);
+    switch (operation) {
+      case Token::kADD: {
+        if (((left_value < 0) != (right_value < 0)) ||
+            ((left_value + right_value) < 0) == (left_value < 0)) {
+          return Integer::New(left_value + right_value);
+        }
+        break;
       }
-      // Perform a Bigint multiplication below.
-    } else if (Utils::IsInt(63, left_value) && Utils::IsInt(63, right_value)) {
-      switch (operation) {
-      case Token::kADD:
-        return Integer::New(left_value + right_value);
-      case Token::kSUB:
-        return Integer::New(left_value - right_value);
-      case Token::kTRUNCDIV:
-        return Integer::New(left_value / right_value);
+      case Token::kSUB: {
+        if (((left_value < 0) == (right_value < 0)) ||
+            ((left_value - right_value) < 0) == (left_value < 0)) {
+          return Integer::New(left_value - right_value);
+        }
+        break;
+      }
+      case Token::kMUL: {
+        if ((Utils::HighestBit(left_value) +
+             Utils::HighestBit(right_value)) < 62) {
+          return Integer::New(left_value * right_value);
+        }
+        break;
+      }
+      case Token::kTRUNCDIV: {
+        if ((left_value != Mint::kMinValue) || (right_value != -1)) {
+          return Integer::New(left_value / right_value);
+        }
+        break;
+      }
       case Token::kMOD: {
         const int64_t remainder = left_value % right_value;
         if (remainder < 0) {
@@ -15632,14 +15753,9 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
       }
       default:
         UNIMPLEMENTED();
-      }
     }
   }
-  const Bigint& left_big = Bigint::Handle(AsBigint());
-  const Bigint& right_big = Bigint::Handle(other.AsBigint());
-  const Bigint& result =
-      Bigint::Handle(left_big.BigArithmeticOp(operation, right_big));
-  return Integer::Handle(result.AsValidInteger()).raw();
+  return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
 
@@ -15681,21 +15797,8 @@ RawInteger* Integer::BitOp(Token::Kind kind, const Integer& other) const {
       default:
         UNIMPLEMENTED();
     }
-  } else {
-    Bigint& op1 = Bigint::Handle(AsBigint());
-    Bigint& op2 = Bigint::Handle(other.AsBigint());
-    switch (kind) {
-      case Token::kBIT_AND:
-        return BigintOperations::BitAnd(op1, op2);
-      case Token::kBIT_OR:
-        return BigintOperations::BitOr(op1, op2);
-      case Token::kBIT_XOR:
-        return BigintOperations::BitXor(op1, op2);
-      default:
-        UNIMPLEMENTED();
-    }
   }
-  return Integer::null();
+  return Integer::null();  // Notify caller that a bigint operation is required.
 }
 
 
@@ -15716,9 +15819,7 @@ RawInteger* Smi::ShiftOp(Token::Kind kind,
         int cnt = Utils::HighestBit(left_value);
         if ((cnt + right_value) >= Smi::kBits) {
           if ((cnt + right_value) >= Mint::kBits) {
-            return BigintOperations::ShiftLeft(
-                Bigint::Handle(BigintOperations::NewFromSmi(*this)),
-                               right_value);
+            return Bigint::NewFromShiftedInt64(left_value, right_value);
           } else {
             int64_t left_64 = left_value;
             return Integer::New(left_64 << right_value, Heap::kNew, silent);
@@ -15765,22 +15866,6 @@ uint32_t Smi::AsTruncatedUint32Value() const {
 }
 
 
-static bool FitsIntoSmi(const Integer& integer) {
-  if (integer.IsSmi()) {
-    return true;
-  }
-  if (integer.IsMint()) {
-    int64_t mint_value = integer.AsInt64Value();
-    return Smi::IsValid(mint_value);
-  }
-  if (integer.IsBigint()) {
-    return BigintOperations::FitsIntoSmi(Bigint::Cast(integer));
-  }
-  UNREACHABLE();
-  return false;
-}
-
-
 int Smi::CompareWith(const Integer& other) const {
   if (other.IsSmi()) {
     const Smi& other_smi = Smi::Cast(other);
@@ -15792,7 +15877,7 @@ int Smi::CompareWith(const Integer& other) const {
       return 0;
     }
   }
-  ASSERT(!FitsIntoSmi(other));
+  ASSERT(!other.FitsIntoSmi());
   if (other.IsMint() || other.IsBigint()) {
     if (this->IsNegative() == other.IsNegative()) {
       return this->IsNegative() ? 1 : -1;
@@ -15816,6 +15901,7 @@ const char* Smi::ToCString() const {
 
 void Smi::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "int", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddPropertyF("id", "objects/int-%" Pd "", Value());
   jsobj.AddPropertyF("valueAsString", "%" Pd "", Value());
@@ -15906,8 +15992,13 @@ uint32_t Mint::AsTruncatedUint32Value() const {
 }
 
 
+bool Mint::FitsIntoSmi() const {
+  return Smi::IsValid(AsInt64Value());
+}
+
+
 int Mint::CompareWith(const Integer& other) const {
-  ASSERT(!FitsIntoSmi(*this));
+  ASSERT(!FitsIntoSmi());
   if (other.IsMint() || other.IsSmi()) {
     int64_t a = AsInt64Value();
     int64_t b = other.AsInt64Value();
@@ -15919,15 +16010,12 @@ int Mint::CompareWith(const Integer& other) const {
       return 0;
     }
   }
-  if (other.IsBigint()) {
-    ASSERT(!BigintOperations::FitsIntoInt64(Bigint::Cast(other)));
-    if (this->IsNegative() == other.IsNegative()) {
-      return this->IsNegative() ? 1 : -1;
-    }
-    return this->IsNegative() ? -1 : 1;
+  ASSERT(other.IsBigint());
+  ASSERT(!Bigint::Cast(other).FitsIntoInt64());
+  if (this->IsNegative() == other.IsNegative()) {
+    return this->IsNegative() ? 1 : -1;
   }
-  UNREACHABLE();
-  return 0;
+  return this->IsNegative() ? -1 : 1;
 }
 
 
@@ -15942,7 +16030,7 @@ const char* Mint::ToCString() const {
 
 
 void Mint::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Number::PrintJSONImpl(stream, ref);
+  Integer::PrintJSONImpl(stream, ref);
 }
 
 
@@ -16074,47 +16162,62 @@ const char* Double::ToCString() const {
 
 
 void Double::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Number::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  // Suppress the fact that the internal vm name for this type is
+  // "Double".  Return "double" instead.
+  AddTypeProperties(&jsobj, "double", "double", ref);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  jsobj.AddProperty("valueAsString", ToCString());
 }
 
 
-RawBigint* Integer::AsBigint() const {
-  ASSERT(!IsNull());
-  if (IsSmi()) {
-    Smi& smi = Smi::Handle();
-    smi ^= raw();
-    return BigintOperations::NewFromSmi(smi);
-  } else if (IsMint()) {
-    Mint& mint = Mint::Handle();
-    mint ^= raw();
-    return BigintOperations::NewFromInt64(mint.value());
-  } else {
-    ASSERT(IsBigint());
-    Bigint& big = Bigint::Handle();
-    big ^= raw();
-    ASSERT(!BigintOperations::FitsIntoSmi(big));
-    return big.raw();
-  }
+void Bigint::set_neg(const Bool& value) const {
+  StorePointer(&raw_ptr()->neg_, value.raw());
 }
 
 
-RawBigint* Bigint::BigArithmeticOp(Token::Kind operation,
-                                   const Bigint& other) const {
-  switch (operation) {
-    case Token::kADD:
-      return BigintOperations::Add(*this, other);
-    case Token::kSUB:
-      return BigintOperations::Subtract(*this, other);
-    case Token::kMUL:
-      return BigintOperations::Multiply(*this, other);
-    case Token::kTRUNCDIV:
-      return BigintOperations::Divide(*this, other);
-    case Token::kMOD:
-      return BigintOperations::Modulo(*this, other);
-    default:
-      UNIMPLEMENTED();
-      return Bigint::null();
-  }
+void Bigint::set_used(const Smi& value) const {
+  raw_ptr()->used_ = value.raw();
+}
+
+
+void Bigint::set_digits(const TypedData& value) const {
+  StorePointer(&raw_ptr()->digits_, value.raw());
+}
+
+
+bool Bigint::Neg() const {
+  return Bool::Handle(neg()).value();
+}
+
+
+void Bigint::SetNeg(bool value) const {
+  set_neg(Bool::Get(value));
+}
+
+
+intptr_t Bigint::Used() const {
+  return Smi::Value(used());
+}
+
+
+void Bigint::SetUsed(intptr_t value) const {
+  set_used(Smi::Handle(Smi::New(value)));
+}
+
+
+uint32_t Bigint::DigitAt(intptr_t index) const {
+  const TypedData& typed_data = TypedData::Handle(digits());
+  return typed_data.GetUint32(index << 2);
+}
+
+
+void Bigint::SetDigitAt(intptr_t index, uint32_t value) const {
+  const TypedData& typed_data = TypedData::Handle(digits());
+  typed_data.SetUint32(index << 2, value);
 }
 
 
@@ -16130,17 +16233,17 @@ bool Bigint::Equals(const Instance& other) const {
 
   const Bigint& other_bgi = Bigint::Cast(other);
 
-  if (this->IsNegative() != other_bgi.IsNegative()) {
+  if (this->Neg() != other_bgi.Neg()) {
     return false;
   }
 
-  intptr_t len = this->Length();
-  if (len != other_bgi.Length()) {
+  const intptr_t used = this->Used();
+  if (used != other_bgi.Used()) {
     return false;
   }
 
-  for (intptr_t i = 0; i < len; i++) {
-    if (this->GetChunkAt(i) != other_bgi.GetChunkAt(i)) {
+  for (intptr_t i = 0; i < used; i++) {
+    if (this->DigitAt(i) != other_bgi.DigitAt(i)) {
       return false;
     }
   }
@@ -16148,18 +16251,165 @@ bool Bigint::Equals(const Instance& other) const {
 }
 
 
-RawBigint* Bigint::New(const String& str, Heap::Space space) {
-  const Bigint& result = Bigint::Handle(
-      BigintOperations::NewFromCString(str.ToCString(), space));
-  ASSERT(!BigintOperations::FitsIntoInt64(result));
+bool Bigint::CheckAndCanonicalizeFields(const char** error_str) const {
+  // Bool field neg should always be canonical.
+  ASSERT(Bool::Handle(neg()).IsCanonical());
+  // Smi field used is canonical by definition.
+  if (Used() > 0) {
+    // Canonicalize TypedData field digits.
+    TypedData& digits_ = TypedData::Handle(digits());
+    digits_ ^= digits_.CheckAndCanonicalize(NULL);
+    ASSERT(!digits_.IsNull());
+    set_digits(digits_);
+  } else {
+    ASSERT(digits() == TypedData::null());
+  }
+  return true;
+}
+
+
+RawBigint* Bigint::New(Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->bigint_class() != Class::null());
+  Bigint& result = Bigint::Handle();
+  {
+    RawObject* raw = Object::Allocate(Bigint::kClassId,
+                                      Bigint::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_neg(Bool::Get(false));
+  result.set_used(Smi::Handle(Smi::New(0)));
   return result.raw();
+}
+
+
+RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
+  const Bigint& result = Bigint::Handle(New(space));
+  result.EnsureLength(2, space);
+  result.SetUsed(2);
+  if (value < 0) {
+    result.SetNeg(true);
+    value = -value;  // No concern about overflow, since sign is captured.
+  }
+  result.SetDigitAt(0, static_cast<uint32_t>(value));
+  result.SetDigitAt(1, static_cast<uint32_t>(value >> 32));  // value >= 0.
+  result.Clamp();
+  return result.raw();
+}
+
+
+RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
+  const Bigint& result = Bigint::Handle(New(space));
+  result.EnsureLength(2, space);
+  result.SetUsed(2);
+  result.SetDigitAt(0, static_cast<uint32_t>(value));
+  result.SetDigitAt(1, static_cast<uint32_t>(value >> 32));
+  result.Clamp();
+  return result.raw();
+}
+
+
+RawBigint* Bigint::NewFromShiftedInt64(int64_t value, intptr_t shift,
+                                         Heap::Space space) {
+  ASSERT(kBitsPerDigit == 32);
+  ASSERT(shift >= 0);
+  const Bigint& result = Bigint::Handle(New(space));
+  const intptr_t digit_shift = shift / kBitsPerDigit;
+  const intptr_t bit_shift = shift % kBitsPerDigit;
+  result.EnsureLength(3 + digit_shift, space);
+  result.SetUsed(3 + digit_shift);
+  uint64_t abs_value;
+  if (value < 0) {
+    result.SetNeg(true);
+    abs_value = -value;  // No concern about overflow, since sign is captured.
+  } else {
+    abs_value = value;
+  }
+  for (intptr_t i = 0; i < digit_shift; i++) {
+    result.SetDigitAt(i, 0);
+  }
+  result.SetDigitAt(0 + digit_shift,
+                    static_cast<uint32_t>(abs_value << bit_shift));
+  result.SetDigitAt(1 + digit_shift,
+                    static_cast<uint32_t>(abs_value >> (32 - bit_shift)));
+  result.SetDigitAt(2 + digit_shift,
+      (bit_shift == 0) ? 0
+                       : static_cast<uint32_t>(abs_value >> (64 - bit_shift)));
+  result.Clamp();
+  return result.raw();
+}
+
+
+void Bigint::EnsureLength(intptr_t length, Heap::Space space) const {
+  ASSERT(length >= 0);
+  TypedData& old_digits = TypedData::Handle(digits());
+  if ((length > 0) && (old_digits.IsNull() || (length > old_digits.Length()))) {
+    TypedData& new_digits = TypedData::Handle(
+        TypedData::New(kTypedDataUint32ArrayCid, length + kExtraDigits, space));
+    if (!old_digits.IsNull()) {
+      TypedData::Copy(new_digits, TypedData::data_offset(),
+                      old_digits, TypedData::data_offset(),
+                      old_digits.LengthInBytes());
+    }
+    set_digits(new_digits);
+  }
+}
+
+
+void Bigint::Clamp() const {
+  intptr_t used = Used();
+  while ((used > 0) && (DigitAt(used - 1) == 0)) {
+    --used;
+  }
+  SetUsed(used);
+}
+
+
+bool Bigint::IsClamped() const {
+  intptr_t used = Used();
+  return (used == 0) || (DigitAt(used - 1) > 0);
+}
+
+
+RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
+  ASSERT(str != NULL);
+  if (str[0] == '\0') {
+    return NewFromInt64(0, space);
+  }
+
+  // If the string starts with '-' recursively restart the whole operation
+  // without the character and then toggle the sign.
+  // This allows multiple leading '-' (which will cancel each other out), but
+  // we have added an assert, to make sure that the returned result of the
+  // recursive call is not negative.
+  // We don't catch leading '-'s for zero. Ex: "--0", or "---".
+  if (str[0] == '-') {
+    const Bigint& result = Bigint::Handle(NewFromCString(&str[1], space));
+    result.SetNeg(!result.Neg());  // Toggle sign.
+    ASSERT(result.IsZero() || result.IsNegative());
+    ASSERT(result.IsClamped());
+    return result.raw();
+  }
+
+  // No overflow check needed since overflowing str_length implies that we take
+  // the branch to NewFromDecCString() which contains a check itself.
+  const intptr_t str_length = strlen(str);
+  if ((str_length > 2) &&
+      (str[0] == '0') &&
+      ((str[1] == 'x') || (str[1] == 'X'))) {
+    const Bigint& result = Bigint::Handle(NewFromHexCString(&str[2], space));
+    ASSERT(result.IsClamped());
+    return result.raw();
+  } else {
+    return NewFromDecCString(str, space);
+  }
 }
 
 
 RawBigint* Bigint::NewCanonical(const String& str) {
   const Bigint& value = Bigint::Handle(
-      BigintOperations::NewFromCString(str.ToCString(), Heap::kOld));
-  ASSERT(!BigintOperations::FitsIntoInt64(value));
+      Bigint::NewFromCString(str.ToCString(), Heap::kOld));
   const Class& cls =
       Class::Handle(Isolate::Current()->object_store()->bigint_class());
   const Array& constants = Array::Handle(cls.constants());
@@ -16186,55 +16436,498 @@ RawBigint* Bigint::NewCanonical(const String& str) {
 }
 
 
+RawBigint* Bigint::NewFromHexCString(const char* str, Heap::Space space) {
+  // TODO(regis): Do we need to check for max length?
+  // If the string starts with '-' recursively restart the whole operation
+  // without the character and then toggle the sign.
+  // This allows multiple leading '-' (which will cancel each other out), but
+  // we have added an assert, to make sure that the returned result of the
+  // recursive call is not negative.
+  // We don't catch leading '-'s for zero. Ex: "--0", or "---".
+  if (str[0] == '-') {
+    const Bigint& result = Bigint::Handle(NewFromHexCString(&str[1], space));
+    result.SetNeg(!result.Neg());  // Toggle sign.
+    ASSERT(result.IsZero() || result.IsNegative());
+    ASSERT(result.IsClamped());
+    return result.raw();
+  }
+  const Bigint& result = Bigint::Handle(New(space));
+  const int kBitsPerHexDigit = 4;
+  const int kHexDigitsPerDigit = 8;
+  const int kBitsPerDigit = kBitsPerHexDigit * kHexDigitsPerDigit;
+  intptr_t hex_i = strlen(str);  // Terminating byte excluded.
+  result.EnsureLength((hex_i + kHexDigitsPerDigit - 1) / kHexDigitsPerDigit,
+                      space);
+  intptr_t used_ = 0;
+  uint32_t digit = 0;
+  intptr_t bit_i = 0;
+  while (--hex_i >= 0) {
+    digit += Utils::HexDigitToInt(str[hex_i]) << bit_i;
+    bit_i += kBitsPerHexDigit;
+    if (bit_i == kBitsPerDigit) {
+      bit_i = 0;
+      result.SetDigitAt(used_++, digit);
+      digit = 0;
+    }
+  }
+  if (bit_i != 0) {
+    result.SetDigitAt(used_++, digit);
+  }
+  result.SetUsed(used_);
+  result.Clamp();
+  return result.raw();
+}
+
+
+RawBigint* Bigint::NewFromDecCString(const char* str, Heap::Space space) {
+  // Read 9 digits a time. 10^9 < 2^32.
+  const int kDecDigitsPerIteration = 9;
+  const uint32_t kTenMultiplier = 1000000000;
+  ASSERT(kBitsPerDigit == 32);
+
+  const intptr_t str_length = strlen(str);
+  if (str_length < 0) {  // TODO(regis): Pick a smaller limit.
+    FATAL("Fatal error in Bigint::NewFromDecCString: string too long");
+  }
+  intptr_t str_pos = 0;
+
+  Bigint& result = Bigint::Handle(Bigint::New(space));
+  // One decimal digit takes log2(10) bits, i.e. ~3.32192809489 bits.
+  // That is a theoretical limit for large numbers.
+  // The extra digits allocated take care of variations (kExtraDigits).
+  const int64_t kLog10Dividend = 33219281;
+  const int64_t kLog10Divisor = 10000000;
+  result.EnsureLength((kLog10Dividend * str_length) /
+                      (kLog10Divisor * kBitsPerDigit), space);
+
+  // Read first digit separately. This avoids a multiplication and addition.
+  // The first digit might also not have kDecDigitsPerIteration decimal digits.
+  const intptr_t lsdigit_length = str_length % kDecDigitsPerIteration;
+  uint32_t digit = 0;
+  for (intptr_t i = 0; i < lsdigit_length; i++) {
+    char c = str[str_pos++];
+    ASSERT(('0' <= c) && (c <= '9'));
+    digit = digit * 10 + c - '0';
+  }
+  result.SetDigitAt(0, digit);
+  intptr_t used = 1;
+
+  // Read kDecDigitsPerIteration at a time, and store it in 'digit'.
+  // Then multiply the temporary result by 10^kDecDigitsPerIteration and add
+  // 'digit' to the new result.
+  while (str_pos < str_length - 1) {
+    digit = 0;
+    for (intptr_t i = 0; i < kDecDigitsPerIteration; i++) {
+      char c = str[str_pos++];
+      ASSERT(('0' <= c) && (c <= '9'));
+      digit = digit * 10 + c - '0';
+    }
+    // Multiply result with kTenMultiplier and add digit.
+    for (intptr_t i = 0; i < used; i++) {
+      uint64_t product =
+          (static_cast<uint64_t>(result.DigitAt(i)) * kTenMultiplier) + digit;
+      result.SetDigitAt(i, static_cast<uint32_t>(product & kDigitMask));
+      digit = static_cast<uint32_t>(product >> kBitsPerDigit);
+    }
+    result.SetDigitAt(used++, digit);
+  }
+  result.SetUsed(used);
+  result.Clamp();
+  return result.raw();
+}
+
+
+static double Uint64ToDouble(uint64_t x) {
+#if _WIN64
+  // For static_cast<double>(x) MSVC x64 generates
+  //
+  //    cvtsi2sd xmm0, rax
+  //    test  rax, rax
+  //    jns done
+  //    addsd xmm0, static_cast<double>(2^64)
+  //  done:
+  //
+  // while GCC -m64 generates
+  //
+  //    test rax, rax
+  //    js negative
+  //    cvtsi2sd xmm0, rax
+  //    jmp done
+  //  negative:
+  //    mov rdx, rax
+  //    shr rdx, 1
+  //    and eax, 0x1
+  //    or rdx, rax
+  //    cvtsi2sd xmm0, rdx
+  //    addsd xmm0, xmm0
+  //  done:
+  //
+  // which results in a different rounding.
+  //
+  // For consistency between platforms fallback to GCC style converstion
+  // on Win64.
+  //
+  const int64_t y = static_cast<int64_t>(x);
+  if (y > 0) {
+    return static_cast<double>(y);
+  } else {
+    const double half = static_cast<double>(
+        static_cast<int64_t>(x >> 1) | (y & 1));
+    return half + half;
+  }
+#else
+  return static_cast<double>(x);
+#endif
+}
+
+
 double Bigint::AsDoubleValue() const {
-  return Double::Handle(BigintOperations::ToDouble(*this)).value();
+  ASSERT(kBitsPerDigit == 32);
+  ASSERT(IsClamped());
+  const intptr_t used = Used();
+  if (used == 0) {
+    return 0.0;
+  }
+  if (used <= 2) {
+    const uint64_t digit1 = (used > 1) ? DigitAt(1) : 0;
+    const uint64_t abs_value = (digit1 << 32) + DigitAt(0);
+    const double abs_double_value = Uint64ToDouble(abs_value);
+    return Neg() ? -abs_double_value : abs_double_value;
+  }
+
+  static const int kPhysicalSignificandSize = 52;
+  // The significand size has an additional hidden bit.
+  static const int kSignificandSize = kPhysicalSignificandSize + 1;
+  static const int kExponentBias = 0x3FF + kPhysicalSignificandSize;
+  static const int kMaxExponent = 0x7FF - kExponentBias;
+  static const uint64_t kOne64 = 1;
+  static const uint64_t kInfinityBits =
+      DART_2PART_UINT64_C(0x7FF00000, 00000000);
+
+  // A double is composed of an exponent e and a significand s. Its value equals
+  // s * 2^e. The significand has 53 bits of which the first one must always be
+  // 1 (at least for then numbers we are working with here) and is therefore
+  // omitted. The physical size of the significand is thus 52 bits.
+  // The exponent has 11 bits and is biased by 0x3FF + 52. For example an
+  // exponent e = 10 is written as 0x3FF + 52 + 10 (in the 11 bits that are
+  // reserved for the exponent).
+  // When converting the given bignum to a double we have to pay attention to
+  // the rounding. In particular we have to decide which double to pick if an
+  // input lies exactly between two doubles. As usual with double operations
+  // we pick the double with an even significand in such cases.
+  //
+  // General approach of this algorithm: Get 54 bits (one more than the
+  // significand size) of the bigint. If the last bit is then 1, then (without
+  // knowledge of the remaining bits) we could have a half-way number.
+  // If the second-to-last bit is odd then we know that we have to round up:
+  // if the remaining bits are not zero then the input lies closer to the higher
+  // double. If the remaining bits are zero then we have a half-way case and
+  // we need to round up too (rounding to the even double).
+  // If the second-to-last bit is even then we need to look at the remaining
+  // bits to determine if any of them is not zero. If that's the case then the
+  // number lies closer to the next-higher double. Otherwise we round the
+  // half-way case down to even.
+
+  if (((used - 1) * kBitsPerDigit) > (kMaxExponent + kSignificandSize)) {
+    // Does not fit into a double.
+    const double infinity = bit_cast<double>(kInfinityBits);
+    return Neg() ? -infinity : infinity;
+  }
+
+  intptr_t digit_index = used - 1;
+  // In order to round correctly we need to look at half-way cases. Therefore we
+  // get kSignificandSize + 1 bits. If the last bit is 1 then we have to look
+  // at the remaining bits to know if we have to round up.
+  int needed_bits = kSignificandSize + 1;
+  ASSERT((kBitsPerDigit < needed_bits) && (2 * kBitsPerDigit >= needed_bits));
+  bool discarded_bits_were_zero = true;
+
+  const uint32_t firstDigit = DigitAt(digit_index--);
+  ASSERT(firstDigit > 0);
+  uint64_t twice_significand_floor = firstDigit;
+  intptr_t twice_significant_exponent = (digit_index + 1) * kBitsPerDigit;
+  needed_bits -= Utils::HighestBit(firstDigit) + 1;
+
+  if (needed_bits >= kBitsPerDigit) {
+    twice_significand_floor <<= kBitsPerDigit;
+    twice_significand_floor |= DigitAt(digit_index--);
+    twice_significant_exponent -= kBitsPerDigit;
+    needed_bits -= kBitsPerDigit;
+  }
+  if (needed_bits > 0) {
+    ASSERT(needed_bits <= kBitsPerDigit);
+    uint32_t digit = DigitAt(digit_index--);
+    int discarded_bits_count = kBitsPerDigit - needed_bits;
+    twice_significand_floor <<= needed_bits;
+    twice_significand_floor |= digit >> discarded_bits_count;
+    twice_significant_exponent -= needed_bits;
+    uint64_t discarded_bits_mask = (kOne64 << discarded_bits_count) - 1;
+    discarded_bits_were_zero = ((digit & discarded_bits_mask) == 0);
+  }
+  ASSERT((twice_significand_floor >> kSignificandSize) == 1);
+
+  // We might need to round up the significand later.
+  uint64_t significand = twice_significand_floor >> 1;
+  const intptr_t exponent = twice_significant_exponent + 1;
+
+  if (exponent >= kMaxExponent) {
+    // Infinity.
+    // Does not fit into a double.
+    const double infinity = bit_cast<double>(kInfinityBits);
+    return Neg() ? -infinity : infinity;
+  }
+
+  if ((twice_significand_floor & 1) == 1) {
+    bool round_up = false;
+
+    if ((significand & 1) != 0 || !discarded_bits_were_zero) {
+      // Even if the remaining bits are zero we still need to round up since we
+      // want to round to even for half-way cases.
+      round_up = true;
+    } else {
+      // Could be a half-way case. See if the remaining bits are non-zero.
+      for (intptr_t i = 0; i <= digit_index; i++) {
+        if (DigitAt(i) != 0) {
+          round_up = true;
+          break;
+        }
+      }
+    }
+
+    if (round_up) {
+      significand++;
+      // It might be that we just went from 53 bits to 54 bits.
+      // Example: After adding 1 to 1FFF..FF (with 53 bits set to 1) we have
+      // 2000..00 (= 2 ^ 54). When adding the exponent and significand together
+      // this will increase the exponent by 1 which is exactly what we want.
+    }
+  }
+
+  ASSERT(((significand >> (kSignificandSize - 1)) == 1) ||
+         (significand == (kOne64 << kSignificandSize)));
+  // The significand still has the hidden bit. We simply decrement the biased
+  // exponent by one instead of playing around with the significand.
+  const uint64_t biased_exponent = exponent + kExponentBias - 1;
+  // Note that we must use the plus operator instead of bit-or.
+  const uint64_t double_bits =
+      (biased_exponent << kPhysicalSignificandSize) + significand;
+
+  const double value = bit_cast<double>(double_bits);
+  return Neg() ? -value : value;
+}
+
+
+bool Bigint::FitsIntoSmi() const {
+  return FitsIntoInt64() && Smi::IsValid(AsInt64Value());
+}
+
+
+bool Bigint::FitsIntoInt64() const {
+  ASSERT(Bigint::kBitsPerDigit == 32);
+  const intptr_t used = Used();
+  if (used < 2) return true;
+  if (used > 2) return false;
+  const uint64_t digit1 = DigitAt(1);
+  const uint64_t value = (digit1 << 32) + DigitAt(0);
+  uint64_t limit = Mint::kMaxValue;
+  if (Neg()) {
+    limit++;
+  }
+  return value <= limit;
 }
 
 
 int64_t Bigint::AsInt64Value() const {
-  if (!BigintOperations::FitsIntoInt64(*this)) {
-    UNREACHABLE();
-  }
-  return BigintOperations::ToInt64(*this);
+  ASSERT(FitsIntoInt64());
+  const intptr_t used = Used();
+  if (used == 0) return 0;
+  const int64_t digit1 = (used > 1) ? DigitAt(1) : 0;
+  const int64_t value = (digit1 << 32) + DigitAt(0);
+  return Neg() ? -value : value;
+}
+
+
+bool Bigint::FitsIntoUint64() const {
+  ASSERT(Bigint::kBitsPerDigit == 32);
+  return !Neg() && (Used() <= 2);
+}
+
+
+uint64_t Bigint::AsUint64Value() const {
+  ASSERT(FitsIntoUint64());
+  const intptr_t used = Used();
+  if (used == 0) return 0;
+  const uint64_t digit1 = (used > 1) ? DigitAt(1) : 0;
+  return (digit1 << 32) + DigitAt(0);
 }
 
 
 uint32_t Bigint::AsTruncatedUint32Value() const {
-  return BigintOperations::TruncateToUint32(*this);
+  // Note: the previous implementation of Bigint returned the absolute value
+  // truncated to 32 bits, which is not consistent with Smi and Mint behavior.
+  ASSERT(Bigint::kBitsPerDigit == 32);
+  const intptr_t used = Used();
+  if (used == 0) return 0;
+  const uint32_t digit0 = DigitAt(0);
+  return Neg() ? -digit0 : digit0;
 }
 
 
 // For positive values: Smi < Mint < Bigint.
 int Bigint::CompareWith(const Integer& other) const {
-  ASSERT(!FitsIntoSmi(*this));
-  ASSERT(!BigintOperations::FitsIntoInt64(*this));
-  if (other.IsBigint()) {
-    return BigintOperations::Compare(*this, Bigint::Cast(other));
-  }
-  if (this->IsNegative() == other.IsNegative()) {
-    return this->IsNegative() ? -1 : 1;
+  ASSERT(!FitsIntoSmi());
+  ASSERT(!FitsIntoInt64());
+  if (other.IsBigint() && (IsNegative() == other.IsNegative())) {
+    const Bigint& other_bgi = Bigint::Cast(other);
+    int64_t result = Used() - other_bgi.Used();
+    if (result == 0) {
+      for (intptr_t i = Used(); --i >= 0; ) {
+        result = DigitAt(i);
+        result -= other_bgi.DigitAt(i);
+        if (result != 0) break;
+      }
+    }
+    if (IsNegative()) {
+      result = -result;
+    }
+    return result > 0 ? 1 : result < 0 ? -1 : 0;
   }
   return this->IsNegative() ? -1 : 1;
 }
 
 
-RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
-  if (length < 0 || length > kMaxElements) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in Bigint::Allocate: invalid length %" Pd "\n", length);
+const char* Bigint::ToDecCString(uword (*allocator)(intptr_t size)) const {
+  // log10(2) ~= 0.30102999566398114.
+  const intptr_t kLog2Dividend = 30103;
+  const intptr_t kLog2Divisor = 100000;
+  intptr_t used = Used();
+  const intptr_t kMaxUsed =
+      kIntptrMax / kBitsPerDigit / kLog2Dividend * kLog2Divisor;
+  if (used > kMaxUsed) {
+    // Throw out of memory exception.
+    Isolate* isolate = Isolate::Current();
+    const Instance& exception =
+        Instance::Handle(isolate->object_store()->out_of_memory());
+    Exceptions::Throw(isolate, exception);
+    UNREACHABLE();
   }
-  ASSERT(Isolate::Current()->object_store()->bigint_class() != Class::null());
-  Bigint& result = Bigint::Handle();
-  {
-    RawObject* raw = Object::Allocate(Bigint::kClassId,
-                                      Bigint::InstanceSize(length),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.raw_ptr()->allocated_length_ = length;  // Chunk length allocated.
-    result.raw_ptr()->signed_length_ = length;  // Chunk length in use.
+  const int64_t bit_len = used * kBitsPerDigit;
+  const int64_t dec_len = (bit_len * kLog2Dividend / kLog2Divisor) + 1;
+  // Add one byte for the minus sign and for the trailing \0 character.
+  const int64_t len = (Neg() ? 1 : 0) + dec_len + 1;
+  char* chars = reinterpret_cast<char*>(allocator(len));
+  intptr_t pos = 0;
+  const intptr_t kDivisor = 100000000;
+  const intptr_t kDigits = 8;
+  // TODO(regis): Fix Windows error reported for ambiguous call to 'pow'.
+  // ASSERT(pow(10.0, kDigits) == kDivisor);
+  ASSERT(kDivisor < kDigitBase);
+  ASSERT(Smi::IsValid(kDivisor));
+  // Allocate a copy of the digits.
+  const TypedData& rest_digits = TypedData::Handle(
+      TypedData::New(kTypedDataUint32ArrayCid, used));
+  for (intptr_t i = 0; i < used; i++) {
+    rest_digits.SetUint32(i << 2, DigitAt(i));
   }
-  return result.raw();
+  if (used == 0) {
+    chars[pos++] = '0';
+  }
+  while (used > 0) {
+    uint32_t remainder = 0;
+    for (intptr_t i = used - 1; i >= 0; i--) {
+      uint64_t dividend = (static_cast<uint64_t>(remainder) << kBitsPerDigit) +
+          rest_digits.GetUint32(i << 2);
+      uint32_t quotient = static_cast<uint32_t>(dividend / kDivisor);
+      remainder = static_cast<uint32_t>(
+          dividend - static_cast<uint64_t>(quotient) * kDivisor);
+      rest_digits.SetUint32(i << 2, quotient);
+    }
+    // Clamp rest_digits.
+    while ((used > 0) && (rest_digits.GetUint32((used - 1) << 2) == 0)) {
+      used--;
+    }
+    for (intptr_t i = 0; i < kDigits; i++) {
+      chars[pos++] = '0' + (remainder % 10);
+      remainder /= 10;
+    }
+    ASSERT(remainder == 0);
+  }
+  // Remove leading zeros.
+  while ((pos > 1) && (chars[pos - 1] == '0')) {
+    pos--;
+  }
+  if (Neg()) {
+    chars[pos++] = '-';
+  }
+  // Reverse the string.
+  intptr_t i = 0;
+  intptr_t j = pos - 1;
+  while (i < j) {
+    char tmp = chars[i];
+    chars[i] = chars[j];
+    chars[j] = tmp;
+    i++;
+    j--;
+  }
+  chars[pos] = '\0';
+  return chars;
+}
+
+
+const char* Bigint::ToHexCString(uword (*allocator)(intptr_t size)) const {
+  NoGCScope no_gc;  // TODO(regis): Is this necessary?
+
+  const intptr_t used = Used();
+  if (used == 0) {
+    const char* zero = "0x0";
+    const size_t len = strlen(zero) + 1;
+    char* chars = reinterpret_cast<char*>(allocator(len));
+    strncpy(chars, zero, len);
+    return chars;
+  }
+  const int kBitsPerHexDigit = 4;
+  const int kHexDigitsPerDigit = 8;
+  const intptr_t kMaxUsed = (kIntptrMax - 4) / kHexDigitsPerDigit;
+  if (used > kMaxUsed) {
+    // Throw out of memory exception.
+    Isolate* isolate = Isolate::Current();
+    const Instance& exception =
+        Instance::Handle(isolate->object_store()->out_of_memory());
+    Exceptions::Throw(isolate, exception);
+    UNREACHABLE();
+  }
+  intptr_t hex_len = (used - 1) * kHexDigitsPerDigit;
+  // The most significant digit may use fewer than kHexDigitsPerDigit digits.
+  uint32_t digit = DigitAt(used - 1);
+  ASSERT(digit != 0);  // Value must be clamped.
+  while (digit != 0) {
+    hex_len++;
+    digit >>= kBitsPerHexDigit;
+  }
+  // Add bytes for '0x', for the minus sign, and for the trailing \0 character.
+  const int32_t len = (Neg() ? 1 : 0) + 2 + hex_len + 1;
+  char* chars = reinterpret_cast<char*>(allocator(len));
+  intptr_t pos = len;
+  chars[--pos] = '\0';
+  for (intptr_t i = 0; i < (used - 1); i++) {
+    digit = DigitAt(i);
+    for (intptr_t j = 0; j < kHexDigitsPerDigit; j++) {
+      chars[--pos] = Utils::IntToHexDigit(digit & 0xf);
+      digit >>= kBitsPerHexDigit;
+    }
+  }
+  digit = DigitAt(used - 1);
+  while (digit != 0) {
+    chars[--pos] = Utils::IntToHexDigit(digit & 0xf);
+    digit >>= kBitsPerHexDigit;
+  }
+  chars[--pos] = 'x';
+  chars[--pos] = '0';
+  if (Neg()) {
+    chars[--pos] = '-';
+  }
+  ASSERT(pos == 0);
+  return chars;
 }
 
 
@@ -16245,12 +16938,12 @@ static uword BigintAllocator(intptr_t size) {
 
 
 const char* Bigint::ToCString() const {
-  return BigintOperations::ToDecimalCString(*this, &BigintAllocator);
+  return ToDecCString(&BigintAllocator);
 }
 
 
 void Bigint::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Number::PrintJSONImpl(stream, ref);
+  Integer::PrintJSONImpl(stream, ref);
 }
 
 
@@ -16992,7 +17685,10 @@ RawString* String::SubString(const String& str,
   if (begin_index >= str.Length()) {
     return String::null();
   }
-  return String::SubString(str, begin_index, (str.Length() - begin_index));
+  return String::SubString(str,
+                           begin_index,
+                           (str.Length() - begin_index),
+                           space);
 }
 
 
@@ -17031,10 +17727,17 @@ RawString* String::SubString(const String& str,
 
 
 const char* String::ToCString() const {
+  intptr_t length;
+  return ToCString(&length);
+}
+
+
+const char* String::ToCString(intptr_t* length) const {
   if (IsOneByteString()) {
     // Quick conversion if OneByteString contains only ASCII characters.
     intptr_t len = Length();
     if (len == 0) {
+      *length = 0;
       return "";
     }
     Zone* zone = Isolate::Current()->current_zone();
@@ -17051,6 +17754,7 @@ const char* String::ToCString() const {
     }
     if (len > 0) {
       result[len] = 0;
+      *length = len;
       return reinterpret_cast<const char*>(result);
     }
   }
@@ -17059,95 +17763,30 @@ const char* String::ToCString() const {
   uint8_t* result = zone->Alloc<uint8_t>(len + 1);
   ToUTF8(result, len);
   result[len] = 0;
+  *length = len;
   return reinterpret_cast<const char*>(result);
 }
 
 
-// Does not null-terminate.
-intptr_t String::EscapedString(char* buffer, int max_len) const {
-  int pos = 0;
-
-  CodePointIterator cpi(*this);
-  while (cpi.Next()) {
-    int32_t code_point = cpi.Current();
-    if (IsSpecialCharacter(code_point)) {
-      if (pos + 2 > max_len) {
-        return pos;
-      }
-      buffer[pos++] = '\\';
-      buffer[pos++] = SpecialCharacter(code_point);
-    } else if (IsAsciiPrintChar(code_point)) {
-      buffer[pos++] = code_point;
-    } else {
-      if (pos + 6 > max_len) {
-        return pos;
-      }
-      pos += OS::SNPrint((buffer + pos), (max_len - pos),
-                         "\\u%04x", code_point);
-    }
-    if (pos == max_len) {
-      return pos;
-    }
-  }
-  return pos;
-}
-
-
-intptr_t String::EscapedStringLen(intptr_t too_long) const {
-  intptr_t len = 0;
-
-  CodePointIterator cpi(*this);
-  while (cpi.Next()) {
-    int32_t code_point = cpi.Current();
-    if (IsSpecialCharacter(code_point)) {
-      len += 2;  // e.g. "\n"
-    } else if (IsAsciiPrintChar(code_point)) {
-      len += 1;
-    } else {
-      len += 6;  // e.g. "\u0000".
-    }
-    if (len > too_long) {
-      // No point going further.
-      break;
-    }
-  }
-  return len;
-}
-
-
-const char* String::ToUserCString(intptr_t max_len) const {
-  // Compute the needed length for the buffer.
-  const intptr_t escaped_len = EscapedStringLen(max_len);
-  intptr_t print_len = escaped_len;
-  intptr_t buffer_len = escaped_len + 2;  // +2 for quotes.
-  if (buffer_len > max_len) {
-    buffer_len = max_len;     // Truncate.
-    print_len = max_len - 5;  // -2 for quotes, -3 for elipsis.
+const char* String::ToCStringTruncated(intptr_t max_len,
+                                       bool* did_truncate,
+                                       intptr_t* length) const {
+  if (Length() <= max_len) {
+    *did_truncate = false;
+    return ToCString(length);
   }
 
-  // Allocate the buffer.
-  Zone* zone = Isolate::Current()->current_zone();
-  char* buffer = zone->Alloc<char>(buffer_len + 1);
-
-  // Leading quote.
-  intptr_t pos = 0;
-  buffer[pos++] = '\"';
-
-  // Print escaped string.
-  pos += EscapedString((buffer + pos), print_len);
-
-  // Trailing quote.
-  buffer[pos++] = '\"';
-
-  if (print_len < escaped_len) {
-    buffer[pos++] = '.';
-    buffer[pos++] = '.';
-    buffer[pos++] = '.';
+  intptr_t aligned_limit = max_len;
+  if (Utf16::IsLeadSurrogate(CharAt(max_len - 1))) {
+    // Don't let truncation split a surrogate pair.
+    aligned_limit--;
   }
-  ASSERT(pos <= buffer_len);
-  buffer[pos++] = '\0';
+  ASSERT(!Utf16::IsLeadSurrogate(CharAt(aligned_limit - 1)));
 
-  return buffer;
+  *did_truncate = true;
+  const String& truncated =
+      String::Handle(String::SubString(*this, 0, aligned_limit));
+  return truncated.ToCString(length);
 }
 
 
@@ -17162,11 +17801,24 @@ void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("valueAsString", "<optimized out>");
     return;
   }
+  AddTypeProperties(&jsobj, "String", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  jsobj.AddProperty("valueAsString", ToUserCString(1024));
+  if (ref) {
+    bool did_truncate = false;
+    intptr_t length = 0;
+    const char* cstr = ToCStringTruncated(128, &did_truncate, &length);
+    jsobj.AddProperty("valueAsString", cstr, length);
+    if (did_truncate) {
+      jsobj.AddProperty("valueAsStringIsTruncated", did_truncate);
+    }
+  } else {
+    intptr_t length = 0;
+    const char* cstr = ToCString(&length);
+    jsobj.AddProperty("valueAsString", cstr, length);
+  }
 }
 
 
@@ -18031,10 +18683,11 @@ const char* Bool::ToCString() const {
 void Bool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const char* str = ToCString();
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
+  // Suppress the fact that the internal vm name for this type is
+  // "Bool".  Return "bool" instead.
+  AddTypeProperties(&jsobj, "bool", "bool", ref);
+  PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddPropertyF("id", "objects/bool-%s", str);
-  const Class& cls = Class::Handle(this->clazz());
-  jsobj.AddProperty("class", cls);
   jsobj.AddPropertyF("valueAsString", "%s", str);
 }
 
@@ -18097,6 +18750,32 @@ RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
 }
 
 
+RawArray* Array::Slice(intptr_t start,
+                       intptr_t count,
+                       bool with_type_argument) const {
+  // TODO(vegorov) introduce an array allocation method that fills newly
+  // allocated array with values from the given source array instead of
+  // null-initializing all elements.
+  Array& dest = Array::Handle(Array::New(count));
+  if (dest.raw()->IsNewObject()) {
+    NoGCScope no_gc_scope;
+    memmove(dest.ObjectAddr(0), ObjectAddr(start), count * kWordSize);
+  } else {
+    PassiveObject& obj = PassiveObject::Handle();
+    for (intptr_t i = 0; i < count; i++) {
+      obj = At(start + i);
+      dest.SetAt(i, obj);
+    }
+  }
+
+  if (with_type_argument) {
+    dest.SetTypeArguments(TypeArguments::Handle(GetTypeArguments()));
+  }
+
+  return dest.raw();
+}
+
+
 void Array::MakeImmutable() const {
   NoGCScope no_gc;
   uword tags = raw_ptr()->tags_;
@@ -18126,6 +18805,7 @@ const char* Array::ToCString() const {
 
 void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "List", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -18370,6 +19050,7 @@ const char* GrowableObjectArray::ToCString() const {
 void GrowableObjectArray::PrintJSONImpl(JSONStream* stream,
                                         bool ref) const {
   JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "List", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
@@ -18414,6 +19095,7 @@ class DefaultHashTraits {
     if (hash_code.IsSmi()) {
       // May waste some bits on 64-bit, to ensure consistency with non-Smi case.
       return static_cast<uword>(Smi::Cast(hash_code).Value() & 0xFFFFFFFF);
+      // TODO(regis): Same as Smi::AsTruncatedUint32Value(), simplify?
     } else if (hash_code.IsInteger()) {
       return static_cast<uword>(
           Integer::Cast(hash_code).AsTruncatedUint32Value());
@@ -18856,6 +19538,32 @@ const intptr_t TypedData::element_size[] = {
 };
 
 
+bool TypedData::CanonicalizeEquals(const Instance& other) const {
+  if (this->raw() == other.raw()) {
+    // Both handles point to the same raw instance.
+    return true;
+  }
+
+  if (!other.IsTypedData() || other.IsNull()) {
+    return false;
+  }
+
+  const TypedData& other_typed_data = TypedData::Cast(other);
+
+  if (this->ElementType() != other_typed_data.ElementType()) {
+    return false;
+  }
+
+  const intptr_t len = this->LengthInBytes();
+  if (len != other_typed_data.LengthInBytes()) {
+    return false;
+  }
+
+  return (len == 0) ||
+      (memcmp(DataAddr(0), other_typed_data.DataAddr(0), len) == 0);
+}
+
+
 RawTypedData* TypedData::New(intptr_t class_id,
                              intptr_t len,
                              Heap::Space space) {
@@ -18864,7 +19572,7 @@ RawTypedData* TypedData::New(intptr_t class_id,
   }
   TypedData& result = TypedData::Handle();
   {
-    intptr_t lengthInBytes = len * ElementSizeInBytes(class_id);
+    const intptr_t lengthInBytes = len * ElementSizeInBytes(class_id);
     RawObject* raw = Object::Allocate(class_id,
                                       TypedData::InstanceSize(lengthInBytes),
                                       space);
@@ -19356,7 +20064,7 @@ RawJSRegExp* JSRegExp::FromDataStartAddress(void* data) {
 
 
 const char* JSRegExp::Flags() const {
-  switch (raw_ptr()->flags_) {
+  switch (flags()) {
     case kGlobal | kIgnoreCase | kMultiLine :
     case kIgnoreCase | kMultiLine :
       return "im";
@@ -19428,7 +20136,21 @@ const char* WeakProperty::ToCString() const {
 
 
 void WeakProperty::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "Instance", JSONType(), ref);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+
+  if (ref) {
+    return;
+  }
+
+  const Object& key_handle = Object::Handle(key());
+  jsobj.AddProperty("key", key_handle);
+  const Object& value_handle = Object::Handle(value());
+  jsobj.AddProperty("value", value_handle);
 }
 
 RawAbstractType* MirrorReference::GetAbstractTypeReferent() const {
@@ -19488,7 +20210,19 @@ const char* MirrorReference::ToCString() const {
 
 
 void MirrorReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddTypeProperties(&jsobj, "Instance", JSONType(), ref);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+
+  if (ref) {
+    return;
+  }
+
+  const Object& referent_handle = Object::Handle(referent());
+  jsobj.AddProperty("referent", referent_handle);
 }
 
 

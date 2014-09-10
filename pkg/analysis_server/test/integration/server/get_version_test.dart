@@ -5,7 +5,7 @@
 library test.integration.server.get.version;
 
 
-import 'package:analysis_testing/reflective_tests.dart';
+import '../../reflective_tests.dart';
 
 import '../integration_tests.dart';
 

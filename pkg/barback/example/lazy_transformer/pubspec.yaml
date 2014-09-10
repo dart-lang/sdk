@@ -1,0 +1,11 @@
+name: lazy_transformer
+description: This example implements a very simple lazy transformer
+ which implements a ROT13 converter. ROT13 (ROTate by 13 spaces) is
+ a classic substitution cipher where each letter is replaced by
+ the letter 13 places later in the alphabet.
+
+dependencies:
+  barback: ">=0.14.1 <0.16.0"
+
+transformers:
+- lazy_transformer

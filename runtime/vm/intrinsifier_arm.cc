@@ -1049,6 +1049,51 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Bigint_getNeg(Assembler* assembler) {
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ ldr(R0, FieldAddress(R0, Bigint::neg_offset()));
+  __ Ret();
+}
+
+
+void Intrinsifier::Bigint_setNeg(Assembler* assembler) {
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ ldr(R1, Address(SP, 1 * kWordSize));
+  __ StoreIntoObject(R1, FieldAddress(R1, Bigint::neg_offset()), R0, false);
+  __ Ret();
+}
+
+
+void Intrinsifier::Bigint_getUsed(Assembler* assembler) {
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ ldr(R0, FieldAddress(R0, Bigint::used_offset()));
+  __ Ret();
+}
+
+
+void Intrinsifier::Bigint_setUsed(Assembler* assembler) {
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ ldr(R1, Address(SP, 1 * kWordSize));
+  __ StoreIntoObject(R1, FieldAddress(R1, Bigint::used_offset()), R0);
+  __ Ret();
+}
+
+
+void Intrinsifier::Bigint_getDigits(Assembler* assembler) {
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ ldr(R0, FieldAddress(R0, Bigint::digits_offset()));
+  __ Ret();
+}
+
+
+void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ ldr(R1, Address(SP, 1 * kWordSize));
+  __ StoreIntoObject(R1, FieldAddress(R1, Bigint::digits_offset()), R0, false);
+  __ Ret();
+}
+
+
 // Check if the last argument is a double, jump to label 'is_smi' if smi
 // (easy to convert to double), otherwise jump to label 'not_double_smi',
 // Returns the last argument in R0.

@@ -260,6 +260,10 @@ class Namer implements ClosureNamer {
   final Map<Constant, String> constantLongNames;
   ConstantCanonicalHasher constantHasher;
 
+  // All alphanumeric characters.
+  static const String _alphaNumeric =
+      'abcdefghijklmnopqrstuvwxyzABZDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
   Namer(Compiler compiler)
       : compiler = compiler,
         globals = new Map<Element, String>(),

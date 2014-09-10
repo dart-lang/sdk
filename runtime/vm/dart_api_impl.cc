@@ -7,7 +7,6 @@
 #include "include/dart_native_api.h"
 
 #include "platform/assert.h"
-#include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/dart.h"
@@ -46,7 +45,6 @@ DEFINE_FLAG(bool, check_function_fingerprints, false,
             "Check function fingerprints");
 DEFINE_FLAG(bool, trace_api, false,
             "Trace invocation of API calls (debug mode only)");
-DEFINE_FLAG(bool, load_async, true, "load source code asynchronously");
 
 ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -149,8 +147,8 @@ static bool GetNativeIntegerArgument(NativeArguments* arguments,
   intptr_t cid = obj.GetClassId();
   if (cid == kBigintCid) {
     const Bigint& bigint = Bigint::Cast(obj);
-    if (BigintOperations::FitsIntoInt64(bigint)) {
-      *value = BigintOperations::ToInt64(bigint);
+    if (bigint.FitsIntoInt64()) {
+      *value = bigint.AsInt64Value();
       return true;
     }
   }
@@ -175,8 +173,8 @@ static bool GetNativeUnsignedIntegerArgument(NativeArguments* arguments,
   intptr_t cid = obj.GetClassId();
   if (cid == kBigintCid) {
     const Bigint& bigint = Bigint::Cast(obj);
-    if (BigintOperations::FitsIntoUint64(bigint)) {
-      *value = BigintOperations::ToUint64(bigint);
+    if (bigint.FitsIntoUint64()) {
+      *value = bigint.AsUint64Value();
       return true;
     }
   }
@@ -885,8 +883,8 @@ DART_EXPORT uint64_t Dart_IdentityHash(Dart_Handle obj) {
   }
   if (result.IsBigint()) {
     const Bigint& bigint = Bigint::Cast(result);
-    if (BigintOperations::FitsIntoUint64(bigint)) {
-      return BigintOperations::ToUint64(bigint);
+    if (bigint.FitsIntoUint64()) {
+      return bigint.AsUint64Value();
     }
   }
   return 0;
@@ -1907,7 +1905,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, integer, Integer);
   }
-  ASSERT(!BigintOperations::FitsIntoInt64(Bigint::Cast(int_obj)));
+  ASSERT(!Bigint::Cast(int_obj).FitsIntoInt64());
   *fits = false;
   return Api::Success();
 }
@@ -1932,7 +1930,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
   if (int_obj.IsMint()) {
     *fits = !int_obj.IsNegative();
   } else {
-    *fits = BigintOperations::FitsIntoUint64(Bigint::Cast(int_obj));
+    *fits = Bigint::Cast(int_obj).FitsIntoUint64();
   }
   return Api::Success();
 }
@@ -1983,8 +1981,8 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
     return Api::Success();
   } else {
     const Bigint& bigint = Bigint::Cast(int_obj);
-    if (BigintOperations::FitsIntoInt64(bigint)) {
-      *value = BigintOperations::ToInt64(bigint);
+    if (bigint.FitsIntoInt64()) {
+      *value = bigint.AsInt64Value();
       return Api::Success();
     }
   }
@@ -2017,8 +2015,8 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
     return Api::Success();
   } else {
     const Bigint& bigint = Bigint::Cast(int_obj);
-    if (BigintOperations::FitsIntoUint64(bigint)) {
-      *value = BigintOperations::ToUint64(bigint);
+    if (bigint.FitsIntoUint64()) {
+      *value = bigint.AsUint64Value();
       return Api::Success();
     }
   }
@@ -2042,11 +2040,10 @@ DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
   }
   if (int_obj.IsSmi() || int_obj.IsMint()) {
     const Bigint& bigint = Bigint::Handle(isolate,
-        BigintOperations::NewFromInt64(int_obj.AsInt64Value()));
-    *value = BigintOperations::ToHexCString(bigint, BigintAllocate);
+        Bigint::NewFromInt64(int_obj.AsInt64Value()));
+    *value = bigint.ToHexCString(BigintAllocate);
   } else {
-    *value = BigintOperations::ToHexCString(Bigint::Cast(int_obj),
-                                            BigintAllocate);
+    *value = Bigint::Cast(int_obj).ToHexCString(BigintAllocate);
   }
   return Api::Success();
 }
@@ -2486,7 +2483,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
       // Check for a non-canonical Mint range value.
       ASSERT(retval.IsBigint());
       const Bigint& bigint = Bigint::Handle();
-      if (BigintOperations::FitsIntoInt64(bigint)) {
+      if (bigint.FitsIntoInt64()) {
         int64_t bigint_value = bigint.AsInt64Value();
         if (bigint_value >= kIntptrMin && bigint_value <= kIntptrMax) {
           *len = static_cast<intptr_t>(bigint_value);
@@ -3969,7 +3966,6 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
         "%s expects argument 'number_of_arguments' to be non-negative.",
         CURRENT_FUNC);
   }
-  ASSERT(ClassFinalizer::AllClassesFinalized());
 
   // Set up arguments to include the closure as the first argument.
   const Array& args = Array::Handle(isolate,
@@ -4722,6 +4718,38 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 
 
 // --- Environment ---
+RawString* Api::CallEnvironmentCallback(Isolate* isolate, const String& name) {
+  Scope api_scope(isolate);
+  Dart_EnvironmentCallback callback = isolate->environment_callback();
+  String& result = String::Handle(isolate);
+  if (callback != NULL) {
+    Dart_Handle response = callback(Api::NewHandle(isolate, name.raw()));
+    if (::Dart_IsString(response)) {
+      result ^= Api::UnwrapHandle(response);
+    } else if (::Dart_IsError(response)) {
+      const Object& error =
+          Object::Handle(isolate, Api::UnwrapHandle(response));
+      Exceptions::ThrowArgumentError(
+          String::Handle(String::New(Error::Cast(error).ToErrorCString())));
+    } else if (!::Dart_IsNull(response)) {
+      // At this point everything except null are invalid environment values.
+      Exceptions::ThrowArgumentError(
+          String::Handle(String::New("Illegal environment value")));
+    }
+  }
+  if (result.IsNull()) {
+    // TODO(iposva): Determine whether builtin values can be overriden by the
+    // embedder.
+    // Check for default VM provided values. If it was not overriden on the
+    // command line.
+    if (Symbols::DartIsVM().Equals(name)) {
+      return Symbols::True().raw();
+    }
+  }
+  return result.raw();
+}
+
+
 DART_EXPORT Dart_Handle Dart_SetEnvironmentCallback(
     Dart_EnvironmentCallback callback) {
   Isolate* isolate = Isolate::Current();

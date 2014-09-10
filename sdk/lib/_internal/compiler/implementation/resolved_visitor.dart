@@ -5,10 +5,9 @@
 part of dart2js;
 
 abstract class ResolvedVisitor<R> extends Visitor<R> {
-  final Compiler compiler;
   TreeElements elements;
 
-  ResolvedVisitor(this.elements, this.compiler);
+  ResolvedVisitor(this.elements);
 
   R visitSend(Send node) {
     Element element = elements[node];

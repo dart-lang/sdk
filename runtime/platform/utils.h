@@ -81,6 +81,7 @@ class Utils {
 
   static int HighestBit(int64_t v);
 
+  static int CountLeadingZeros(uword x);
   static int CountTrailingZeros(uword x);
 
   // Computes a hash value for the given string.

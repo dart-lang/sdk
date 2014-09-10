@@ -12,10 +12,16 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
+import 'package:code_transformers/messages/build_logger.dart';
 import 'package:html5lib/dom.dart' show Document;
 import 'package:html5lib/parser.dart' show HtmlParser;
-import 'package:path/path.dart' as path;
 import 'package:observe/transformer.dart' show ObservableTransformer;
+import 'package:path/path.dart' as path;
+
+import 'constants.dart';
+import 'messages.dart';
+
+export 'constants.dart';
 
 const _ignoredErrors = const [
   'unexpected-dash-after-double-dash-in-comment',
@@ -24,7 +30,7 @@ const _ignoredErrors = const [
 
 /// Parses an HTML file [contents] and returns a DOM-like tree. Adds emitted
 /// error/warning to [logger].
-Document _parseHtml(String contents, String sourcePath, TransformLogger logger,
+Document _parseHtml(String contents, String sourcePath, BuildLogger logger,
     {bool checkDocType: true, bool showWarnings: true}) {
   // TODO(jmesserly): make HTTP encoding configurable
   var parser = new HtmlParser(contents, encoding: 'utf8',
@@ -37,7 +43,8 @@ Document _parseHtml(String contents, String sourcePath, TransformLogger logger,
     for (var e in parser.errors) {
       if (_ignoredErrors.contains(e.errorCode)) continue;
       if (checkDocType || e.errorCode != 'expected-doctype-but-got-start-tag') {
-        logger.warning(e.message, span: e.span);
+        logger.warning(HTML5_WARNING.create({'message': e.message}),
+            span: e.span);
       }
     }
   }
@@ -126,22 +133,23 @@ class TransformOptions {
 abstract class PolymerTransformer {
   TransformOptions get options;
 
-  Future<Document> readPrimaryAsHtml(Transform transform) {
+  Future<Document> readPrimaryAsHtml(Transform transform, BuildLogger logger) {
     var asset = transform.primaryInput;
     var id = asset.id;
     return asset.readAsString().then((content) {
-      return _parseHtml(content, id.path, transform.logger,
+      return _parseHtml(content, id.path, logger,
         checkDocType: options.isHtmlEntryPoint(id));
     });
   }
 
   Future<Document> readAsHtml(AssetId id, Transform transform,
+      BuildLogger logger,
       {bool showWarnings: true}) {
     var primaryId = transform.primaryInput.id;
     bool samePackage = id.package == primaryId.package;
-    var url = spanUrlFor(id, transform);
+    var url = spanUrlFor(id, transform, logger);
     return transform.readInputAsString(id).then((content) {
-      return _parseHtml(content, url, transform.logger,
+      return _parseHtml(content, url, logger,
         checkDocType: samePackage && options.isHtmlEntryPoint(id),
         showWarnings: showWarnings);
     });
@@ -162,11 +170,11 @@ abstract class PolymerTransformer {
 /// - If the asset is from another package, then use [assetUrlFor], this will
 ///   likely be a "package:" url to the file in the other package, which is
 ///   enough for users to identify where the error is.
-String spanUrlFor(AssetId id, Transform transform) {
+String spanUrlFor(AssetId id, Transform transform, logger) {
   var primaryId = transform.primaryInput.id;
   bool samePackage = id.package == primaryId.package;
   return samePackage ? id.path
-      : assetUrlFor(id, primaryId, transform.logger, allowAssetUrl: true);
+      : assetUrlFor(id, primaryId, logger, allowAssetUrl: true);
 }
 
 /// Transformer phases which should be applied to the Polymer package.
@@ -176,7 +184,7 @@ List<List<Transformer>> get phasesForPolymer =>
 /// Generate the import url for a file described by [id], referenced by a file
 /// with [sourceId].
 // TODO(sigmund): this should also be in barback (dartbug.com/12610)
-String assetUrlFor(AssetId id, AssetId sourceId, TransformLogger logger,
+String assetUrlFor(AssetId id, AssetId sourceId, BuildLogger logger,
     {bool allowAssetUrl: false}) {
   // use package: and asset: urls if possible
   if (id.path.startsWith('lib/')) {
@@ -185,8 +193,10 @@ String assetUrlFor(AssetId id, AssetId sourceId, TransformLogger logger,
 
   if (id.path.startsWith('asset/')) {
     if (!allowAssetUrl) {
-      logger.error("asset urls not allowed. "
-          "Don't know how to refer to $id from $sourceId");
+      logger.error(INTERNAL_ERROR_DONT_KNOW_HOW_TO_IMPORT.create({
+            'target': id,
+            'source': sourceId,
+            'extra': ' (asset urls not allowed.)'}));
       return null;
     }
     return 'asset:${id.package}/${id.path.substring(6)}';
@@ -210,19 +220,6 @@ String systemToAssetPath(String assetPath) {
   return path.posix.joinAll(path.split(assetPath));
 }
 
-/// These names have meaning in SVG or MathML, so they aren't allowed as custom
-/// tags. See [isCustomTagName].
-const invalidTagNames = const {
-  'annotation-xml': '',
-  'color-profile': '',
-  'font-face': '',
-  'font-face-src': '',
-  'font-face-uri': '',
-  'font-face-format': '',
-  'font-face-name': '',
-  'missing-glyph': '',
-};
-
 /// Returns true if this is a valid custom element name. See:
 /// <http://w3c.github.io/webcomponents/spec/custom/#dfn-custom-element-type>
 bool isCustomTagName(String name) {
@@ -233,7 +230,3 @@ bool isCustomTagName(String name) {
 /// Regex to split names in the 'attributes' attribute, which supports 'a b c',
 /// 'a,b,c', or even 'a b,c'. This is the same as in `lib/src/declaration.dart`.
 final ATTRIBUTES_REGEX = new RegExp(r'\s|,');
-
-const POLYMER_EXPERIMENTAL_HTML = 'packages/polymer/polymer_experimental.html';
-
-const String LOG_EXTENSION = '._buildLogs';

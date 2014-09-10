@@ -322,8 +322,9 @@ class LocalsHandler {
           new SyntheticLocal('receiver', executableContext);
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
+      ClassWorld classWorld = compiler.world;
       HParameterValue value =
-          new HParameterValue(parameter, new TypeMask.exact(cls));
+          new HParameterValue(parameter, new TypeMask.exact(cls, classWorld));
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAtEntry(value);
     }
@@ -902,6 +903,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
  * This class builds SSA nodes for functions represented in AST.
  */
 class SsaBuilder extends ResolvedVisitor {
+  final Compiler compiler;
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
   final CodegenWorkItem work;
@@ -985,11 +987,12 @@ class SsaBuilder extends ResolvedVisitor {
   SsaBuilder(JavaScriptBackend backend,
              CodegenWorkItem work,
              this.nativeEmitter)
-    : this.backend = backend,
+    : this.compiler = backend.compiler,
+      this.backend = backend,
       this.constantSystem = backend.constantSystem,
       this.work = work,
       this.rti = backend.rti,
-      super(work.resolutionTree, backend.compiler) {
+      super(work.resolutionTree) {
     localsHandler = new LocalsHandler(this, work.element);
     sourceElementStack.add(work.element);
   }
@@ -1254,6 +1257,13 @@ class SsaBuilder extends ResolvedVisitor {
 
       if (cachedCanBeInlined == true) return cachedCanBeInlined;
 
+      if (backend.functionsToAlwaysInline.contains(function)) {
+        // Inline this function regardless of it's size.
+        assert(InlineWeeder.canBeInlined(function.node, -1, false,
+                                         allowLoops: true));
+        return true;
+      }
+
       int numParameters = function.functionSignature.parameterCount;
       int maxInliningNodes;
       bool useMaxInliningNodes = true;
@@ -1269,9 +1279,7 @@ class SsaBuilder extends ResolvedVisitor {
       // inlining stack are called only once as well, we know we will
       // save on output size by inlining this method.
       TypesInferrer inferrer = compiler.typesTask.typesInferrer;
-      if (inferrer.isCalledOnce(element)
-          && (inliningStack.every(
-                  (entry) => inferrer.isCalledOnce(entry.function)))) {
+      if (inferrer.isCalledOnce(element) && allInlinedFunctionsCalledOnce) {
         useMaxInliningNodes = false;
       }
       bool canInline;
@@ -1320,6 +1328,10 @@ class SsaBuilder extends ResolvedVisitor {
     }
 
     return false;
+  }
+
+  bool get allInlinedFunctionsCalledOnce {
+    return inliningStack.isEmpty || inliningStack.last.allFunctionsCalledOnce;
   }
 
   inlinedFrom(Element element, f()) {
@@ -1968,7 +1980,8 @@ class SsaBuilder extends ResolvedVisitor {
         includeSuperAndInjectedMembers: true);
 
     InterfaceType type = classElement.thisType;
-    TypeMask ssaType = new TypeMask.nonNullExact(classElement.declaration);
+    TypeMask ssaType =
+        new TypeMask.nonNullExact(classElement.declaration, compiler.world);
     List<DartType> instantiatedTypes;
     addInlinedInstantiation(type);
     if (!currentInlinedInstantiations.isEmpty) {
@@ -2911,7 +2924,8 @@ class SsaBuilder extends ResolvedVisitor {
       capturedVariables.add(localsHandler.readLocal(capturedLocal));
     });
 
-    TypeMask type = new TypeMask.nonNullExact(compiler.functionClass);
+    TypeMask type =
+        new TypeMask.nonNullExact(compiler.functionClass, compiler.world);
     push(new HForeignNew(closureClassElement, type, capturedVariables));
 
     Element methodElement = nestedClosureData.closureElement;
@@ -3578,6 +3592,50 @@ class SsaBuilder extends ResolvedVisitor {
                 argument, string.dartString.slowToString())));
   }
 
+  void handleForeignJsEmbeddedGlobal(ast.Send node) {
+    List<ast.Node> arguments = node.arguments.toList();
+    ast.Node globalNameNode;
+    switch (arguments.length) {
+    case 0:
+    case 1:
+      compiler.reportError(
+          node, MessageKind.GENERIC,
+          {'text': 'Error: Expected two arguments to JS_EMBEDDED_GLOBAL.'});
+      return;
+    case 2:
+      // The type has been extracted earlier. We are only interested in the
+      // name in this function.
+      globalNameNode = arguments[1];
+      break;
+    default:
+      for (int i = 2; i < arguments.length; i++) {
+        compiler.reportError(
+            arguments[i], MessageKind.GENERIC,
+            {'text': 'Error: Extra argument to JS_EMBEDDED_GLOBAL.'});
+      }
+      return;
+    }
+    visit(arguments[1]);
+    HInstruction globalNameHNode = pop();
+    if (!globalNameHNode.isConstantString()) {
+      compiler.reportError(
+          arguments[1], MessageKind.GENERIC,
+          {'text': 'Error: Expected String as second argument '
+                   'to JS_EMBEDDED_GLOBAL.'});
+      return;
+    }
+    HConstant hConstant = globalNameHNode;
+    StringConstant constant = hConstant.constant;
+    String globalName = constant.value.slowToString();
+    js.Template expr = js.js.expressionTemplateYielding(
+        backend.emitter.generateEmbeddedGlobalAccess(globalName));
+    native.NativeBehavior nativeBehavior =
+        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    TypeMask ssaType =
+        TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
+    push(new HForeign(expr, ssaType, const []));
+  }
+
   void handleJsInterceptorConstant(ast.Send node) {
     // Single argument must be a TypeConstant which is converted into a
     // InterceptorConstant.
@@ -3764,6 +3822,8 @@ class SsaBuilder extends ResolvedVisitor {
       handleForeignJsCurrentIsolate(node);
     } else if (name == 'JS_GET_NAME') {
       handleForeignJsGetName(node);
+    } else if (name == 'JS_EMBEDDED_GLOBAL') {
+      handleForeignJsEmbeddedGlobal(node);
     } else if (name == 'JS_GET_FLAG') {
       handleForeingJsGetFlag(node);
     } else if (name == 'JS_EFFECT') {
@@ -4098,11 +4158,11 @@ class SsaBuilder extends ResolvedVisitor {
         ClassElement cls = element.enclosingClass;
         assert(cls.thisType.element.isNative);
         return inferred.containsAll(compiler.world)
-            ? new TypeMask.nonNullExact(cls.thisType.element)
+            ? new TypeMask.nonNullExact(cls.thisType.element, compiler.world)
             : inferred;
       } else if (element.isGenerativeConstructor) {
         ClassElement cls = element.enclosingClass;
-        return new TypeMask.nonNullExact(cls.thisType.element);
+        return new TypeMask.nonNullExact(cls.thisType.element, compiler.world);
       } else {
         return TypeMaskFactory.inferredReturnTypeForElement(
             originalElement, compiler);
@@ -4544,11 +4604,11 @@ class SsaBuilder extends ResolvedVisitor {
           && selector.name == "length";
       if (isLength || selector.isIndex) {
         TypeMask type = new TypeMask.nonNullExact(
-            element.enclosingClass.declaration);
+            element.enclosingClass.declaration, compiler.world);
         return type.satisfies(backend.jsIndexableClass, compiler.world);
       } else if (selector.isIndexSet) {
         TypeMask type = new TypeMask.nonNullExact(
-            element.enclosingClass.declaration);
+            element.enclosingClass.declaration, compiler.world);
         return type.satisfies(backend.jsMutableIndexableClass, compiler.world);
       } else {
         return false;
@@ -5867,9 +5927,11 @@ class SsaBuilder extends ResolvedVisitor {
   void enterInlinedMethod(FunctionElement function,
                           ast.Node _,
                           List<HInstruction> compiledArguments) {
+    TypesInferrer inferrer = compiler.typesTask.typesInferrer;
     AstInliningState state = new AstInliningState(
         function, returnLocal, returnType, elements, stack, localsHandler,
-        inTryStatement);
+        inTryStatement,
+        allInlinedFunctionsCalledOnce && inferrer.isCalledOnce(function));
     inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the
@@ -5994,6 +6056,9 @@ class StringBuilderVisitor extends ast.Visitor {
  * This class visits the method that is a candidate for inlining and
  * finds whether it is too difficult to inline.
  */
+// TODO(karlklose): refactor to make it possible to distinguish between
+// implementation restrictions (for example, we *can't* inline multiple returns)
+// and heuristics (we *shouldn't* inline large functions).
 class InlineWeeder extends ast.Visitor {
   // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
   static const INLINING_NODES_OUTSIDE_LOOP = 18;
@@ -6006,14 +6071,18 @@ class InlineWeeder extends ast.Visitor {
   int nodeCount = 0;
   final int maxInliningNodes;
   final bool useMaxInliningNodes;
+  final bool allowLoops;
 
-  InlineWeeder(this.maxInliningNodes, this.useMaxInliningNodes);
+  InlineWeeder(this.maxInliningNodes,
+               this.useMaxInliningNodes,
+               this.allowLoops);
 
   static bool canBeInlined(ast.FunctionExpression functionExpression,
                            int maxInliningNodes,
-                           bool useMaxInliningNodes) {
+                           bool useMaxInliningNodes,
+                           {bool allowLoops: false}) {
     InlineWeeder weeder =
-        new InlineWeeder(maxInliningNodes, useMaxInliningNodes);
+        new InlineWeeder(maxInliningNodes, useMaxInliningNodes, allowLoops);
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     return !weeder.tooDifficult;
@@ -6061,7 +6130,7 @@ class InlineWeeder extends ast.Visitor {
     // It's actually not difficult to inline a method with a loop, but
     // our measurements show that it's currently better to not inline a
     // method that contains a loop.
-    tooDifficult = true;
+    if (!allowLoops) tooDifficult = true;
   }
 
   void visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
@@ -6116,6 +6185,7 @@ class AstInliningState extends InliningState {
   final List<HInstruction> oldStack;
   final LocalsHandler oldLocalsHandler;
   final bool inTryStatement;
+  final bool allFunctionsCalledOnce;
 
   AstInliningState(FunctionElement function,
                    this.oldReturnLocal,
@@ -6123,7 +6193,9 @@ class AstInliningState extends InliningState {
                    this.oldElements,
                    this.oldStack,
                    this.oldLocalsHandler,
-                   this.inTryStatement): super(function);
+                   this.inTryStatement,
+                   this.allFunctionsCalledOnce)
+      : super(function);
 }
 
 class SsaBranch {
@@ -6366,9 +6438,9 @@ class SsaBranchBuilder {
 }
 
 class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
-  final World world;
+  final ClassWorld classWorld;
 
-  TypeBuilder(this.world);
+  TypeBuilder(this.classWorld);
 
   void visitType(DartType type, _) {
     throw 'Internal error $type';
@@ -6376,13 +6448,13 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
 
   void visitVoidType(VoidType type, SsaBuilder builder) {
     ClassElement cls = builder.backend.findHelper('VoidRuntimeType');
-    builder.push(new HVoidType(type, new TypeMask.exact(cls)));
+    builder.push(new HVoidType(type, new TypeMask.exact(cls, classWorld)));
   }
 
   void visitTypeVariableType(TypeVariableType type,
                              SsaBuilder builder) {
     ClassElement cls = builder.backend.findHelper('RuntimeType');
-    TypeMask instructionType = new TypeMask.subclass(cls, world);
+    TypeMask instructionType = new TypeMask.subclass(cls, classWorld);
     if (!builder.sourceElement.enclosingElement.isClosure &&
         builder.sourceElement.isInstanceMember) {
       HInstruction receiver = builder.localsHandler.readThis();
@@ -6420,7 +6492,8 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
     }
 
     ClassElement cls = builder.backend.findHelper('RuntimeFunctionType');
-    builder.push(new HFunctionType(inputs, type, new TypeMask.exact(cls)));
+    builder.push(new HFunctionType(inputs, type,
+        new TypeMask.exact(cls, classWorld)));
   }
 
   void visitMalformedType(MalformedType type, SsaBuilder builder) {
@@ -6447,7 +6520,8 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
     } else {
       cls = builder.backend.findHelper('RuntimeTypeGeneric');
     }
-    builder.push(new HInterfaceType(inputs, type, new TypeMask.exact(cls)));
+    builder.push(new HInterfaceType(inputs, type,
+        new TypeMask.exact(cls, classWorld)));
   }
 
   void visitTypedefType(TypedefType type, SsaBuilder builder) {
@@ -6459,6 +6533,6 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   void visitDynamicType(DynamicType type, SsaBuilder builder) {
     JavaScriptBackend backend = builder.compiler.backend;
     ClassElement cls = backend.findHelper('DynamicRuntimeType');
-    builder.push(new HDynamicType(type, new TypeMask.exact(cls)));
+    builder.push(new HDynamicType(type, new TypeMask.exact(cls, classWorld)));
   }
 }

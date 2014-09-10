@@ -65,6 +65,14 @@
             ],
           },
         }],
+        ['OS=="android" and _toolset=="host"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
+              '-lrt',
+            ],
+          },
+        }],
         ['OS=="win"', {
           'sources/' : [
             ['exclude', 'gdbjit.cc'],

@@ -397,6 +397,22 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     });
   }
 
+  /// True if the uris are pointing to a library that is shared between dart2js
+  /// and the core libraries. By construction they must be imported into the
+  /// runtime, and, at the same time, into dart2js. This can lead to
+  /// duplicated imports, like in the docgen.
+  // TODO(johnniwinther): is this necessary, or should we change docgen not
+  //   to include both libraries (compiler and lib) at the same time?
+  bool _isSharedDart2jsLibrary(Uri uri1, Uri uri2) {
+    bool inJsLibShared(Uri uri) {
+      List<String> segments = uri.pathSegments;
+      if (segments.length < 3) return false;
+      if (segments[segments.length - 2] != 'shared') return false;
+      return (segments[segments.length - 3] == 'js_lib');
+    }
+    return inJsLibShared(uri1) && inJsLibShared(uri2);
+  }
+
   void checkDuplicatedLibraryName(LibraryElement library) {
     Uri resourceUri = library.entryCompilationUnit.script.resourceUri;
     LibraryName tag = library.libraryTag;
@@ -422,7 +438,8 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     } else if (tag != null) {
       String name = library.getLibraryOrScriptName();
       existing = libraryNames.putIfAbsent(name, () => library);
-      if (!identical(existing, library)) {
+      if (!identical(existing, library) &&
+          !_isSharedDart2jsLibrary(resourceUri, existing.canonicalUri)) {
         compiler.withCurrentElement(library, () {
           compiler.reportWarning(tag.name,
               MessageKind.DUPLICATED_LIBRARY_NAME,

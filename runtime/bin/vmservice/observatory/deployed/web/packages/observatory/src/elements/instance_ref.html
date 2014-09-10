@@ -22,11 +22,17 @@
         <div title="{{ hoverText }}">{{ ref.valueAsString }}</div>
       </template>
 
-      <template if="{{ ref.isString || ref.isBool || ref.isInt || ref.isDouble || ref.isNull }}">
+      <template if="{{ ref.isBool || ref.isInt ||
+                       ref.isDouble || ref.isNull }}">
         <a on-click="{{ goto }}" _href="{{ url }}">{{ ref.valueAsString }}</a>
       </template>
 
-      <template if="{{ ref.isType }}">
+      <template if="{{ ref.isString }}">
+        <a on-click="{{ goto }}" _href="{{ url }}">{{ asStringLiteral(ref.valueAsString, ref.valueAsStringIsTruncated) }}</a>
+      </template>
+
+
+      <template if="{{ ref.isAbstractType }}">
         <a on-click="{{ goto }}" _href="{{ url }}">{{ ref.name }}</a>
       </template>
 
@@ -37,7 +43,7 @@
         </a>
       </template>
 
-      <template if="{{ ref.isInstance && !ref.isClosure }}">
+      <template if="{{ ref.isPlainInstance }}">
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
@@ -63,10 +69,44 @@
               <div class="memberItem">
                 <div class="memberName">[{{ element['index']}}]</div>
                 <div class="memberValue">
-                  <any-service-ref ref="{{ element['value'] }}"></instance-ref>
+                  <any-service-ref ref="{{ element['value'] }}"></any-service-ref>
                 </div>
               </div>
             </template>
+          </div>
+        </curly-block>
+      </template>
+
+      <template if="{{ ref.isMirrorReference }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
+        <curly-block callback="{{ expander() }}">
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberName">referent</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ ref.referent }}"></any-service-ref>
+              </div>
+            </div>
+          </div>
+        </curly-block>
+      </template>
+
+      <template if="{{ ref.isWeakProperty }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
+        <curly-block callback="{{ expander() }}">
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberName">key</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ ref.key }}"></any-service-ref>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">value</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ ref.value }}"></any-service-ref>
+              </div>
+            </div>
           </div>
         </curly-block>
       </template>

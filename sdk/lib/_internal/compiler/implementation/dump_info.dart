@@ -12,12 +12,18 @@ import 'dart:convert' show
 
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
-import 'dart2jslib.dart' show Backend, CodeBuffer, Compiler, CompilerTask;
+import 'dart2jslib.dart' show
+    Backend,
+    CodeBuffer,
+    Compiler,
+    CompilerTask,
+    MessageKind;
 import 'types/types.dart' show TypeMask;
 import 'deferred_load.dart' show OutputUnit;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js/js.dart' as jsAst;
 import 'universe/universe.dart' show Selector;
+import 'util/util.dart' show NO_LOCATION_SPANNABLE;
 
 /// Maps objects to an id.  Supports lookups in
 /// both directions.
@@ -414,10 +420,15 @@ class DumpInfoTask extends CompilerTask {
 
   final Map<Element, Set<Selector>> selectorsFromElement = {};
   final Map<Element, int> inlineCount = <Element, int>{};
+  // A mapping from an element to a list of elements that are
+  // inlined inside of it.
+  final Map<Element, List<Element>> inlineMap = <Element, List<Element>>{};
 
   void registerInlined(Element element, Element inlinedFrom) {
     inlineCount.putIfAbsent(element, () => 0);
     inlineCount[element] += 1;
+    inlineMap.putIfAbsent(inlinedFrom, () => new List<Element>());
+    inlineMap[inlinedFrom].add(element);
   }
 
   /**
@@ -567,7 +578,8 @@ class DumpInfoTask extends CompilerTask {
     JsonEncoder encoder = const JsonEncoder();
     DateTime startToJsonTime = new DateTime.now();
 
-    Map<String, List<String>> holding = <String, List<String>>{};
+    Map<String, List<Map<String, String>>> holding =
+        <String, List<Map<String, String>>>{};
     for (Element fn in infoCollector.mapper.functions) {
       Iterable<Selection> pulling = getRetaining(fn);
       // Don't bother recording an empty list of dependencies.
@@ -586,6 +598,23 @@ class DumpInfoTask extends CompilerTask {
             // Filter non-null ids for the same reason as above.
             .where((a) => a['id'] != null)
             .toList();
+        }
+      }
+    }
+
+    // Track dependencies that come from inlining.
+    for (Element element in inlineMap.keys) {
+      String keyId = infoCollector.idOf(element);
+      if (keyId != null) {
+        for (Element held in inlineMap[element]) {
+          String valueId = infoCollector.idOf(held);
+          if (valueId != null) {
+            holding.putIfAbsent(keyId, () => new List<Map<String, String>>())
+              .add(<String, String>{
+                "id": valueId,
+                "mask": "inlined"
+              });
+          }
         }
       }
     }
@@ -630,5 +659,9 @@ class DumpInfoTask extends CompilerTask {
       encoder.startChunkedConversion(
           new StringConversionSink.fromStringSink(buffer));
     sink.add(outJson);
+    compiler.reportInfo(NO_LOCATION_SPANNABLE,
+        const MessageKind(
+            "View the dumped .info.json file at "
+            "https://dart-lang.github.io/dump-info-visualizer"));
   }
 }

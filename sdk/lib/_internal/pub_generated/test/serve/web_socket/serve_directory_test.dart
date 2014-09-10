@@ -1,0 +1,30 @@
+library pub_tests;
+import 'package:scheduled_test/scheduled_test.dart';
+import '../../descriptor.dart' as d;
+import '../../test_pub.dart';
+import '../utils.dart';
+main() {
+  initConfig();
+  integration("binds a directory to a new port", () {
+    d.dir(
+        appPath,
+        [
+            d.appPubspec(),
+            d.dir("test", [d.file("index.html", "<test body>")]),
+            d.dir("web", [d.file("index.html", "<body>")])]).create();
+    pubServe(args: ["web"]);
+    expectWebSocketResult("serveDirectory", {
+      "path": "test"
+    }, {
+      "url": matches(r"http://localhost:\d+")
+    }).then((response) {
+      var url = Uri.parse(response["url"]);
+      registerServerPort("test", url.port);
+    });
+    requestShouldSucceed("index.html", "<test body>", root: "test");
+    d.dir(appPath, [d.dir("test", [d.file("index.html", "after")])]).create();
+    waitForBuildSuccess();
+    requestShouldSucceed("index.html", "after", root: "test");
+    endPubServe();
+  });
+}

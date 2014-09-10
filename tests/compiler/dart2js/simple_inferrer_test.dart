@@ -709,6 +709,7 @@ void main() {
   asyncTest(() => compiler.runCompiler(uri).then((_) {
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
+    var world = compiler.world;
 
     checkReturn(String name, type) {
       var element = findElement(compiler, name);
@@ -828,14 +829,14 @@ void main() {
     checkFactoryConstructor(String className, String factoryName) {
       var cls = findElement(compiler, className);
       var element = cls.localLookup(factoryName);
-      Expect.equals(new TypeMask.nonNullExact(cls),
+      Expect.equals(new TypeMask.nonNullExact(cls, world),
                     typesInferrer.getReturnTypeOfElement(element));
     }
     checkFactoryConstructor('A', '');
 
     checkReturn('testCascade1', typesTask.growableListType);
     checkReturn('testCascade2', new TypeMask.nonNullExact(
-        findElement(compiler, 'CascadeHelper')));
+        findElement(compiler, 'CascadeHelper'), world));
     checkReturn('testSpecialization1', typesTask.numType);
     checkReturn('testSpecialization2', typesTask.dynamicType);
     checkReturn('testSpecialization3', typesTask.uint31Type.nullable());

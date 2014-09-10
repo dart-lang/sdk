@@ -14,7 +14,6 @@ Usage:
   $ get_chromium_build.py -r <revision> -t <target>
 """
 
-import json
 import logging
 import optparse
 import os
@@ -50,7 +49,7 @@ class BuildUpdater(object):
     self._zipfiles = platform_data['zipfiles']
     self._folder = platform_data['folder']
     self._archive_path = platform_data['archive_path']
-    self._revision = options.revision
+    self._revision = int(options.revision)
     self._target_dir = options.target_dir
     self._download_dir = os.path.join(self._target_dir, 'downloads')
 
@@ -58,9 +57,12 @@ class BuildUpdater(object):
     return CHROMIUM_URL_FMT % (self._archive_path, revision, filename)
 
   def _FindBuildRevision(self, revision, filename):
-    git_hash = json.loads(revision)[platform.system()]
-    if self._DoesBuildExist(git_hash, filename):
-      return git_hash
+    MAX_REVISIONS_PER_BUILD = 100
+    for revision_guess in xrange(revision, revision + MAX_REVISIONS_PER_BUILD):
+      if self._DoesBuildExist(revision_guess, filename):
+        return revision_guess
+      else:
+        time.sleep(.1)
     return None
 
   def _DoesBuildExist(self, revision_guess, filename):

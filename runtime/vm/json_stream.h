@@ -20,6 +20,7 @@ class JSONArray;
 class JSONObject;
 class Object;
 class SourceBreakpoint;
+class String;
 class Metric;
 class Zone;
 
@@ -84,6 +85,7 @@ class JSONStream : ValueObject {
   void PrintValue64(int64_t i);
   void PrintValue(double d);
   void PrintValue(const char* s);
+  void PrintValue(const char* s, intptr_t len);
   void PrintValueNoEscape(const char* s);
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
@@ -97,6 +99,7 @@ class JSONStream : ValueObject {
   void PrintProperty64(const char* name, int64_t i);
   void PrintProperty(const char* name, double d);
   void PrintProperty(const char* name, const char* s);
+  void PrintProperty(const char* name, const char* s, intptr_t len);
   void PrintPropertyNoEscape(const char* name, const char* s);
   void PrintfProperty(const char* name, const char* format, ...)
   PRINTF_ATTRIBUTE(3, 4);
@@ -111,6 +114,7 @@ class JSONStream : ValueObject {
   bool NeedComma();
 
   void AddEscapedUTF8String(const char* s);
+  void AddEscapedUTF8String(const char* s, intptr_t len);
 
   intptr_t nesting_level() const { return open_objects_; }
 
@@ -158,6 +162,9 @@ class JSONObject : public ValueObject {
   }
   void AddProperty(const char* name, const char* s) const {
     stream_->PrintProperty(name, s);
+  }
+  void AddProperty(const char* name, const char* s, intptr_t len) const {
+    stream_->PrintProperty(name, s, len);
   }
   void AddPropertyNoEscape(const char* name, const char* s) const {
     stream_->PrintPropertyNoEscape(name, s);

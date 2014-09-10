@@ -9,14 +9,15 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analysis_testing/abstract_context.dart';
-import 'package:analysis_testing/abstract_single_unit.dart';
-import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../abstract_context.dart';
+import '../../abstract_single_unit.dart';
+import '../../reflective_tests.dart';
 
 
 main() {
@@ -1023,7 +1024,6 @@ main() {
   }
 
   void test_importLibrarySdk_withTopLevelVariable() {
-    _ensureSdkMathLibraryResolved();
     _indexTestUnit('''
 main() {
   print(PI);
@@ -1040,7 +1040,6 @@ main() {
   }
 
   void test_importLibrarySdk_withType_invocationTarget() {
-    _ensureSdkAsyncLibraryResolved();
     _indexTestUnit('''
 main() {
   Future.wait(null);
@@ -1056,7 +1055,6 @@ main() {
   }
 
   void test_importLibrarySdk_withType_typeAnnotation() {
-    _ensureSdkAsyncLibraryResolved();
     _indexTestUnit('''
 main() {
   Future f = null;
@@ -1072,7 +1070,6 @@ main() {
   }
 
   void test_importLibrarySdk_withType_typeAnnotation_PrefixedIdentifier() {
-    _ensureSdkAsyncLibraryResolved();
     _indexTestUnit('''
 main() {
   Future.wait;
@@ -1810,22 +1807,6 @@ main() {
     if (expectedSuggestions != null) {
       expect(group.suggestions, unorderedEquals(expectedSuggestions));
     }
-  }
-
-  /**
-   * We search for elements only already resolved lbiraries, and we use
-   * `dart:async` elements in tests.
-   */
-  void _ensureSdkAsyncLibraryResolved() {
-    resolveLibraryUnit(addSource('/other.dart', 'import "dart:async";'));
-  }
-
-  /**
-   * We search for elements only already resolved lbiraries, and we use
-   * `dart:async` elements in tests.
-   */
-  void _ensureSdkMathLibraryResolved() {
-    resolveLibraryUnit(addSource('/other.dart', 'import "dart:math";'));
   }
 
   AnalysisError _findErrorToFix() {

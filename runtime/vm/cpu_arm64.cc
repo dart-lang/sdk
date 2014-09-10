@@ -24,17 +24,13 @@ void CPU::FlushICache(uword start, uword size) {
     return;
   }
 
-  // ARM recommends using the gcc intrinsic __clear_cache on Linux, and the
-  // library call cacheflush from unistd.h on Android:
+  // ARM recommends using the gcc intrinsic __clear_cache on Linux and Android.
   // blogs.arm.com/software-enablement/141-caches-and-self-modifying-code/
-  #if defined(__linux__) && !defined(ANDROID)
+  #if defined(__linux__) || defined(ANDROID)
     extern void __clear_cache(char*, char*);
     char* beg = reinterpret_cast<char*>(start);
     char* end = reinterpret_cast<char*>(start + size);
     ::__clear_cache(beg, end);
-  #elif defined(ANDROID)
-    // TODO(zra): Verify that this is correct for arm64 in addition to arm.
-    cacheflush(start, start + size, 0);
   #else
     #error FlushICache only tested/supported on Linux and Android
   #endif

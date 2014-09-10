@@ -205,8 +205,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         //
         // This object is a survivor of a previous scavenge. Attempt to promote
         // the object.
-        new_addr = page_space_->TryAllocateDataLocked(size,
-                                                      PageSpace::kForceGrowth);
+        new_addr =
+            page_space_->TryAllocatePromoLocked(size, PageSpace::kForceGrowth);
         if (new_addr != 0) {
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.

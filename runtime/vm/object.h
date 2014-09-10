@@ -136,8 +136,8 @@ class Symbols;
   /* Object is printed as JSON into stream. If ref is true only a header */    \
   /* with an object id is printed. If ref is false the object is fully   */    \
   /* printed.                                                            */    \
-  virtual const char* JSONType(bool ref) const {                               \
-    return ref ? "@"#object : ""#object;                                       \
+  virtual const char* JSONType() const {                                       \
+    return ""#object;                                                          \
   }                                                                            \
   static const ClassId kClassId = k##object##Cid;                              \
  protected:  /* NOLINT */                                                      \
@@ -281,7 +281,7 @@ class Object {
 
   void PrintJSON(JSONStream* stream, bool ref = true) const;
 
-  virtual const char* JSONType(bool ref) const {
+  virtual const char* JSONType() const {
     return IsNull() ? "null" : "Object";
   }
 
@@ -1030,6 +1030,7 @@ class Class : public Object {
   RawFunction* LookupConstructor(const String& name) const;
   RawFunction* LookupConstructorAllowPrivate(const String& name) const;
   RawFunction* LookupFactory(const String& name) const;
+  RawFunction* LookupFactoryAllowPrivate(const String& name) const;
   RawFunction* LookupFunction(const String& name) const;
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupGetterFunction(const String& name) const;
@@ -3012,7 +3013,7 @@ class Instructions : public Object {
     return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
   }
 
-  static const intptr_t kMaxElements = (kIntptrMax -
+  static const intptr_t kMaxElements = (kMaxInt32 -
                                         (sizeof(RawInstructions) +
                                          sizeof(RawObject) +
                                          (2 * OS::kMaxPreferredCodeAlignment)));
@@ -3078,7 +3079,7 @@ class LocalVarDescriptors : public Object {
 
   static const intptr_t kBytesPerElement =
       sizeof(RawLocalVarDescriptors::VarInfo);
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static const intptr_t kMaxElements = RawLocalVarDescriptors::kMaxIndex;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawLocalVarDescriptors) ==
@@ -3092,6 +3093,8 @@ class LocalVarDescriptors : public Object {
   }
 
   static RawLocalVarDescriptors* New(intptr_t num_variables);
+
+  static const char* KindToStr(intptr_t kind);
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors, Object);
@@ -3123,7 +3126,7 @@ class PcDescriptors : public Object {
 
   static const intptr_t kMaxBytesPerElement =
       sizeof(RawPcDescriptors::PcDescriptorRec);
-  static const intptr_t kMaxElements = kSmiMax / kMaxBytesPerElement;
+  static const intptr_t kMaxElements = kMaxInt32 / kMaxBytesPerElement;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawPcDescriptors) ==
@@ -3146,7 +3149,7 @@ class PcDescriptors : public Object {
 
   static void PrintHeaderString();
 
-  void PrintToJSONObject(JSONObject* jsobj) const;
+  void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
 
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
@@ -3251,11 +3254,15 @@ class Stackmap : public Object {
 
   intptr_t Length() const { return raw_ptr()->length_; }
 
-  uword PC() const { return raw_ptr()->pc_; }
-  void SetPC(uword value) const { raw_ptr()->pc_ = value; }
+  uint32_t PcOffset() const { return raw_ptr()->pc_offset_; }
+  void SetPcOffset(uint32_t value) const {
+    ASSERT(value <= kMaxUint32);
+    raw_ptr()->pc_offset_ = value;
+  }
 
   intptr_t RegisterBitCount() const { return raw_ptr()->register_bit_count_; }
   void SetRegisterBitCount(intptr_t register_bit_count) const {
+    ASSERT(register_bit_count < kMaxInt32);
     raw_ptr()->register_bit_count_ = register_bit_count;
   }
 
@@ -3501,9 +3508,6 @@ class ICData : public Object {
   // possibly issue) a Javascript compatibility warning.
   bool MayCheckForJSWarning() const;
 
-  bool IsClosureCall() const;
-  void SetIsClosureCall() const;
-
   intptr_t NumberOfChecks() const;
 
   // Discounts any checks with usage of zero.
@@ -3634,7 +3638,6 @@ class ICData : public Object {
     kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
     kDeoptReasonSize = kDeoptNumReasons,
     kIssuedJSWarningBit = kDeoptReasonPos + kDeoptReasonSize,
-    kIsClosureCallBit = kIssuedJSWarningBit + 1,
   };
 
   class NumArgsTestedBits : public BitField<uint32_t,
@@ -3642,7 +3645,6 @@ class ICData : public Object {
   class DeoptReasonBits : public BitField<uint32_t,
       ICData::kDeoptReasonPos, ICData::kDeoptReasonSize> {};  // NOLINT
   class IssuedJSWarningBit : public BitField<bool, kIssuedJSWarningBit, 1> {};
-  class IsClosureCallBit : public BitField<bool, kIsClosureCallBit, 1> {};
 
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.
@@ -3664,7 +3666,7 @@ class Code : public Object {
     return OFFSET_OF(RawCode, instructions_);
   }
   intptr_t pointer_offsets_length() const {
-    return raw_ptr()->pointer_offsets_length_;
+    return PtrOffBits::decode(raw_ptr()->state_bits_);
   }
 
   bool is_optimized() const {
@@ -3720,7 +3722,8 @@ class Code : public Object {
     return raw_ptr()->stackmaps_;
   }
   void set_stackmaps(const Array& maps) const;
-  RawStackmap* GetStackmap(uword pc, Array* stackmaps, Stackmap* map) const;
+  RawStackmap* GetStackmap(
+      uint32_t pc_offset, Array* stackmaps, Stackmap* map) const;
 
   enum {
     kSCallTableOffsetEntry = 0,
@@ -3894,14 +3897,18 @@ class Code : public Object {
  private:
   void set_state_bits(intptr_t bits) const;
 
+  friend class RawObject;  // For RawObject::SizeFromClass().
   friend class RawCode;
   enum {
     kOptimizedBit = 0,
     kAliveBit = 1,
+    kPtrOffBit = 2,
+    kPtrOffSize = 30,
   };
 
   class OptimizedBit : public BitField<bool, kOptimizedBit, 1> {};
   class AliveBit : public BitField<bool, kAliveBit, 1> {};
+  class PtrOffBits : public BitField<intptr_t, kPtrOffBit, kPtrOffSize> {};
 
   // An object finder visitor interface.
   class FindRawCodeVisitor : public FindObjectVisitor {
@@ -3932,9 +3939,11 @@ class Code : public Object {
     // store buffer update is not needed here.
     raw_ptr()->instructions_ = instructions;
   }
+
   void set_pointer_offsets_length(intptr_t value) {
-    ASSERT(value >= 0);
-    raw_ptr()->pointer_offsets_length_ = value;
+    // The number of fixups is limited to 1-billion.
+    ASSERT(Utils::IsUint(30, value));
+    set_state_bits(PtrOffBits::update(value, raw_ptr()->state_bits_));
   }
   int32_t* PointerOffsetAddrAt(int index) const {
     ASSERT(index >= 0);
@@ -5110,8 +5119,8 @@ class Number : public Instance {
 class Integer : public Number {
  public:
   static RawInteger* New(const String& str, Heap::Space space = Heap::kNew);
-  static RawInteger* NewFromUint64(
-      uint64_t value, Heap::Space space = Heap::kNew);
+  static RawInteger* NewFromUint64(uint64_t value,
+                                   Heap::Space space = Heap::kNew);
 
   // Returns a canonical Integer object allocated in the old gen space.
   static RawInteger* NewCanonical(const String& str);
@@ -5127,26 +5136,18 @@ class Integer : public Number {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
-  virtual bool Equals(const Instance& other) const {
-    UNREACHABLE();
-    return false;
-  }
+  virtual bool Equals(const Instance& other) const;
 
   virtual RawObject* HashCode() const { return raw(); }
 
-  // Integer is an abstract class.
-  virtual bool IsZero() const {
-    UNREACHABLE();
-    return false;
-  }
-  virtual bool IsNegative() const {
-    // Number is an abstract class.
-    UNREACHABLE();
-    return false;
-  }
+  virtual bool IsZero() const;
+  virtual bool IsNegative() const;
+
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
   virtual uint32_t AsTruncatedUint32Value() const;
+
+  virtual bool FitsIntoSmi() const;
 
   // Returns 0, -1 or 1.
   virtual int CompareWith(const Integer& other) const;
@@ -5154,6 +5155,7 @@ class Integer : public Number {
   // Return the most compact presentation of an integer.
   RawInteger* AsValidInteger() const;
 
+  // Returns null to indicate that a bigint operation is required.
   RawInteger* ArithmeticOp(Token::Kind operation, const Integer& other) const;
   RawInteger* BitOp(Token::Kind operation, const Integer& other) const;
 
@@ -5161,9 +5163,6 @@ class Integer : public Number {
   bool CheckJavascriptIntegerOverflow() const;
 
  private:
-  // Return an integer in the form of a RawBigint.
-  RawBigint* AsBigint() const;
-
   OBJECT_IMPLEMENTATION(Integer, Number);
   friend class Class;
 };
@@ -5190,6 +5189,8 @@ class Smi : public Integer {
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
   virtual uint32_t AsTruncatedUint32Value() const;
+
+  virtual bool FitsIntoSmi() const { return true; }
 
   virtual int CompareWith(const Integer& other) const;
 
@@ -5277,6 +5278,8 @@ class Mint : public Integer {
   virtual int64_t AsInt64Value() const;
   virtual uint32_t AsTruncatedUint32Value() const;
 
+  virtual bool FitsIntoSmi() const;
+
   virtual int CompareWith(const Integer& other) const;
 
   static intptr_t InstanceSize() {
@@ -5300,15 +5303,9 @@ class Mint : public Integer {
 
 
 class Bigint : public Integer {
- private:
-  typedef uint32_t Chunk;
-  typedef uint64_t DoubleChunk;
-  static const int kChunkSize = sizeof(Chunk);
-
  public:
-  virtual bool IsZero() const { return raw_ptr()->signed_length_ == 0; }
-  virtual bool IsNegative() const { return raw_ptr()->signed_length_ < 0; }
-
+  virtual bool IsZero() const { return Used() == 0;}
+  virtual bool IsNegative() const { return Neg(); }
   virtual bool Equals(const Instance& other) const;
 
   virtual double AsDoubleValue() const;
@@ -5317,71 +5314,79 @@ class Bigint : public Integer {
 
   virtual int CompareWith(const Integer& other) const;
 
-  static const intptr_t kBytesPerElement = kChunkSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  virtual bool CheckAndCanonicalizeFields(const char** error_str) const;
 
-  static intptr_t InstanceSize() { return 0; }
+  virtual bool FitsIntoSmi() const;
+  bool FitsIntoInt64() const;
+  bool FitsIntoUint64() const;
+  uint64_t AsUint64Value() const;
 
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(sizeof(RawBigint) + (len * kBytesPerElement));
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawBigint));
   }
 
- protected:
-  // Only Integer::NewXXX is allowed to call Bigint::NewXXX directly.
-  friend class Integer;
+  // Accessors used by native calls from Dart.
+  RawBool* neg() const { return raw_ptr()->neg_; }
+  void set_neg(const Bool& value) const;
+  static intptr_t neg_offset() { return OFFSET_OF(RawBigint, neg_); }
+  RawSmi* used() const { return raw_ptr()->used_; }
+  void set_used(const Smi& value) const;
+  static intptr_t used_offset() { return OFFSET_OF(RawBigint, used_); }
+  RawTypedData* digits() const { return raw_ptr()->digits_; }
+  void set_digits(const TypedData& value) const;
+  static intptr_t digits_offset() { return OFFSET_OF(RawBigint, digits_); }
 
-  RawBigint* BigArithmeticOp(Token::Kind operation, const Bigint& other) const;
+  // Accessors used by runtime calls from C++.
+  bool Neg() const;
+  void SetNeg(bool value) const;
+  intptr_t Used() const;
+  void SetUsed(intptr_t value) const;
+  uint32_t DigitAt(intptr_t index) const;
+  void SetDigitAt(intptr_t index, uint32_t value) const;
 
-  static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
+  const char* ToDecCString(uword (*allocator)(intptr_t size)) const;
+  const char* ToHexCString(uword (*allocator)(intptr_t size)) const;
+
+  static const intptr_t kExtraDigits = 4;  // Same as _Bigint.EXTRA_DIGITS
+  static const intptr_t kBitsPerDigit = 32;  // Same as _Bigint.DIGIT_BITS
+  static const int64_t kDigitBase = 1LL << kBitsPerDigit;
+  static const int64_t kDigitMask = kDigitBase - 1;
+
+  static RawBigint* New(Heap::Space space = Heap::kNew);
+
+  static RawBigint* NewFromInt64(int64_t value,
+                                  Heap::Space space = Heap::kNew);
+
+  static RawBigint* NewFromUint64(uint64_t value,
+                                   Heap::Space space = Heap::kNew);
+
+  static RawBigint* NewFromShiftedInt64(int64_t value, intptr_t shift,
+                                         Heap::Space space = Heap::kNew);
+
+  static RawBigint* NewFromCString(const char* str,
+                                    Heap::Space space = Heap::kNew);
 
   // Returns a canonical Bigint object allocated in the old gen space.
   static RawBigint* NewCanonical(const String& str);
 
  private:
-  Chunk GetChunkAt(intptr_t i) const {
-    return *ChunkAddr(i);
-  }
+  static RawBigint* NewFromHexCString(const char* str,
+                                       Heap::Space space = Heap::kNew);
+  static RawBigint* NewFromDecCString(const char* str,
+                                       Heap::Space space = Heap::kNew);
 
-  void SetChunkAt(intptr_t i, Chunk newValue) const {
-    *ChunkAddr(i) = newValue;
-  }
+  // Make sure at least 'length' _digits are allocated.
+  // Copy existing _digits if reallocation is necessary.
+  void EnsureLength(intptr_t length, Heap::Space space = Heap::kNew) const;
 
-  // Returns the number of chunks in use.
-  intptr_t Length() const {
-    intptr_t signed_length = raw_ptr()->signed_length_;
-    return Utils::Abs(signed_length);
-  }
+  // Do not count zero high digits as used.
+  void Clamp() const;
 
-  // SetLength does not change the sign.
-  void SetLength(intptr_t length) const {
-    ASSERT(length >= 0);
-    bool is_negative = IsNegative();
-    raw_ptr()->signed_length_ = length;
-    if (is_negative) ToggleSign();
-  }
-
-  void SetSign(bool is_negative) const {
-    if (is_negative != IsNegative()) {
-      ToggleSign();
-    }
-  }
-
-  void ToggleSign() const {
-    raw_ptr()->signed_length_ = -raw_ptr()->signed_length_;
-  }
-
-  Chunk* ChunkAddr(intptr_t index) const {
-    ASSERT(0 <= index);
-    ASSERT(index < Length());
-    uword digits_start = reinterpret_cast<uword>(raw_ptr()) + sizeof(RawBigint);
-    return &(reinterpret_cast<Chunk*>(digits_start)[index]);
-  }
+  bool IsClamped() const;
 
   static RawBigint* Allocate(intptr_t length, Heap::Space space = Heap::kNew);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Bigint, Integer);
-  friend class BigintOperations;
   friend class Class;
 };
 
@@ -5578,8 +5583,15 @@ class String : public Instance {
 
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
 
-  // Produces a quoted, escaped, (possibly) truncated string.
-  const char* ToUserCString(intptr_t max_len) const;
+  // Creates a UTF-8, NUL-terminated string in the current zone. The size of the
+  // created string in UTF-8 code units (bytes) is answered in 'length'; this
+  // can be longer than strlen of the result when the string has internal NULs.
+  // For the truncating version, 'max_length' is in UTF-16 code units, and will
+  // be rounded down if necessary to prevent splitting a surrogate pair.
+  const char* ToCString(intptr_t *length) const;
+  const char* ToCStringTruncated(intptr_t max_len,
+                                 bool* did_truncate,
+                                 intptr_t *length) const;
 
   // Copies the string characters into the provided external array
   // and morphs the string object into an external string object.
@@ -5724,9 +5736,6 @@ class String : public Instance {
                            intptr_t tags,
                            CallbackType new_symbol,
                            Snapshot::Kind kind);
-
-  intptr_t EscapedString(char* buffer, int max_len) const;
-  intptr_t EscapedStringLen(intptr_t tooLong) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(String, Instance);
 
@@ -6242,6 +6251,10 @@ class Array : public Instance {
   // set to an empty array.
   static RawArray* MakeArray(const GrowableObjectArray& growable_array);
 
+  RawArray* Slice(intptr_t start,
+                  intptr_t count,
+                  bool with_type_argument) const;
+
  protected:
   static RawArray* New(intptr_t class_id,
                        intptr_t len,
@@ -6590,6 +6603,8 @@ class TypedData : public Instance {
            ((byte_offset > 0) && (byte_offset < LengthInBytes())));
     return reinterpret_cast<void*>(raw_ptr()->data() + byte_offset);
   }
+
+  virtual bool CanonicalizeEquals(const Instance& other) const;
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
@@ -7102,8 +7117,8 @@ class JSRegExp : public Instance {
   // kComplex: A complex pattern to match.
   enum RegExType {
     kUnitialized = 0,
-    kSimple,
-    kComplex,
+    kSimple = 1,
+    kComplex = 2,
   };
 
   // Flags are passed to a regex object as follows:
@@ -7115,13 +7130,23 @@ class JSRegExp : public Instance {
     kMultiLine = 4,
   };
 
-  bool is_initialized() const { return (raw_ptr()->type_ != kUnitialized); }
-  bool is_simple() const { return (raw_ptr()->type_ == kSimple); }
-  bool is_complex() const { return (raw_ptr()->type_ == kComplex); }
+  enum {
+    kTypePos = 0,
+    kTypeSize = 2,
+    kFlagsPos = 2,
+    kFlagsSize = 4,
+  };
 
-  bool is_global() const { return (raw_ptr()->flags_ & kGlobal); }
-  bool is_ignore_case() const { return (raw_ptr()->flags_ & kIgnoreCase); }
-  bool is_multi_line() const { return (raw_ptr()->flags_ & kMultiLine); }
+  class TypeBits : public BitField<RegExType, kTypePos, kTypeSize> {};
+  class FlagsBits : public BitField<intptr_t, kFlagsPos, kFlagsSize> {};
+
+  bool is_initialized() const { return (type() != kUnitialized); }
+  bool is_simple() const { return (type() == kSimple); }
+  bool is_complex() const { return (type() == kComplex); }
+
+  bool is_global() const { return (flags() & kGlobal); }
+  bool is_ignore_case() const { return (flags() & kIgnoreCase); }
+  bool is_multi_line() const { return (flags() & kMultiLine); }
 
   RawString* pattern() const { return raw_ptr()->pattern_; }
   RawSmi* num_bracket_expressions() const {
@@ -7130,11 +7155,11 @@ class JSRegExp : public Instance {
 
   void set_pattern(const String& pattern) const;
   void set_num_bracket_expressions(intptr_t value) const;
-  void set_is_global() const { raw_ptr()->flags_ |= kGlobal; }
-  void set_is_ignore_case() const { raw_ptr()->flags_ |= kIgnoreCase; }
-  void set_is_multi_line() const { raw_ptr()->flags_ |= kMultiLine; }
-  void set_is_simple() const { raw_ptr()->type_ = kSimple; }
-  void set_is_complex() const { raw_ptr()->type_ = kComplex; }
+  void set_is_global() const { set_flags(flags() | kGlobal); }
+  void set_is_ignore_case() const { set_flags(flags() | kIgnoreCase); }
+  void set_is_multi_line() const { set_flags(flags() | kMultiLine); }
+  void set_is_simple() const { set_type(kSimple); }
+  void set_is_complex() const { set_type(kComplex); }
 
   void* GetDataStartAddress() const;
   static RawJSRegExp* FromDataStartAddress(void* data);
@@ -7159,8 +7184,19 @@ class JSRegExp : public Instance {
   static RawJSRegExp* New(intptr_t length, Heap::Space space = Heap::kNew);
 
  private:
-  void set_type(RegExType type) const { raw_ptr()->type_ = type; }
-  void set_flags(intptr_t value) const { raw_ptr()->flags_ = value; }
+  void set_type(RegExType type) const {
+    raw_ptr()->type_flags_ = TypeBits::update(type, raw_ptr()->type_flags_);
+  }
+  void set_flags(intptr_t value) const {
+    raw_ptr()->type_flags_ = FlagsBits::update(value, raw_ptr()->type_flags_);
+  }
+
+  RegExType type() const {
+    return TypeBits::decode(raw_ptr()->type_flags_);
+  }
+  intptr_t flags() const {
+    return FlagsBits::decode(raw_ptr()->type_flags_);
+  }
 
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause

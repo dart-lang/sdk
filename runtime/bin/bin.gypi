@@ -165,6 +165,13 @@
             ],
           },
         }],
+        ['OS=="android"', {
+          'link_settings': {
+            'libraries': [
+              '-ldl',
+            ],
+          },
+        }],
       ],
     },
     {
@@ -285,14 +292,6 @@
             'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
           },
         }],
-        # Normally, we should not have flags conditional on OS==android, but
-        # here we must because gen_snapshot is compiled for the host during
-        # and Android cross-build, and these flags are not set anywhere else.
-        ['OS=="android"', {
-          'link_settings': {
-            'libraries': [ '-ldl', '-lrt' ],
-          },
-        }]
       ],
     },
     {

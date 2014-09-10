@@ -6,7 +6,7 @@ library test.integration.server.set.subscriptions;
 
 import 'dart:async';
 
-import 'package:analysis_testing/reflective_tests.dart';
+import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import '../integration_tests.dart';

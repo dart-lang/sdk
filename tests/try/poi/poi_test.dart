@@ -35,7 +35,7 @@ void main() {
       new PoiTest(Platform.script, position),
   ];
 
-  poi.enableDartMind = false;
+  poi.isDartMindEnabled = false;
 
   asyncTest(() => Future.forEach(tests, (PoiTest test) => test.run()));
 }

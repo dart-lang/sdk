@@ -4,7 +4,7 @@
 
 library test.integration.analysis.get.errors.before.analysis;
 
-import 'package:analysis_testing/reflective_tests.dart';
+import '../../reflective_tests.dart';
 
 import 'get_errors.dart';
 

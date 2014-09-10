@@ -7,6 +7,8 @@ library polymer.test.build.common;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:code_transformers/messages/build_logger.dart'
+  show LOG_EXTENSION;
 import 'package:polymer/src/build/common.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/unittest.dart';
@@ -72,7 +74,12 @@ class TestHelper implements PackageProvider {
       // We only check messages when an expectation is provided.
       if (messages == null) return;
 
-      var msg = '${entry.level.name.toLowerCase()}: ${entry.message}';
+      var errorLink = new RegExp(
+          ' See http://goo.gl/5HPeuP#polymer_[0-9]* for details.');
+      var text = entry.message;
+      var newText = text.replaceFirst(errorLink, '');
+      expect(text != newText, isTrue);
+      var msg = '${entry.level.name.toLowerCase()}: ${newText}';
       var span = entry.span;
       var spanInfo = span == null ? '' :
           ' (${span.sourceUrl} ${span.start.line} ${span.start.column})';

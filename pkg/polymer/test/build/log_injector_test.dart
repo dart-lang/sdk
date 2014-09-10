@@ -14,11 +14,38 @@ main() {
   useHtmlConfiguration();
 
   setUp(() => new LogInjector().injectLogs(
-      '''[
-          {"level": "Info", "message": "foo"},
-          {"level": "Warning", "message": "bar"},
-          {"level": "Error", "message": "baz"}
-      ]'''
+      '''{
+        "polymer#0":[{
+            "level":"Info",
+            "message":{"id":"polymer#0","snippet":"foo"}}
+        ],
+        "polymer#1":[{
+            "level":"Info",
+            "message":{"id":"polymer#1","snippet":"foo"},
+            "span":{
+              "start":{
+                "url":"web/test.html",
+                "offset":22,
+                "line":1,
+                "column":0
+              },
+              "end":{
+                "url":"web/test.html",
+                "offset":50,
+                "line":1,
+                "column":28
+              },
+              "text":"<polymer-element name=\\"x-a\\">"
+            }
+          }],
+        "polymer#2":[
+            {"level":"Warning","message":{"id":"polymer#2","snippet":"bar"}},
+            {"level":"Warning","message":{"id":"polymer#2",
+             "snippet":"bar again"}},
+            {"level":"Error","message":{"id":"polymer#2","snippet":"baz1"}}
+        ],
+        "foo#44":[{"level":"Error","message":{"id":"foo#44","snippet":"baz2"}}]
+      }'''
   ));
 
   test('can inject a functioning log widget', () {
@@ -38,7 +65,7 @@ main() {
       expect(menuElements[i].classes.contains('active'), false);
       expect(contentElements[i].classes.contains(expectedClasses[i]), true);
       expect(contentElements[i].classes.contains('active'), false);
-      expect(contentElements[i].querySelectorAll('.log').length, 1);
+      expect(contentElements[i].querySelectorAll('.log').length, 2);
     }
 
     // Test clicking each of the tabs.

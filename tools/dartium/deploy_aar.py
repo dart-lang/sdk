@@ -17,7 +17,9 @@ import utils
 RESOURCE_AAR_PATTERN = 'content_shell_apk/resource_aar/*.aar'
 CONTENT_SHELL_APK_AAR = 'content_shell_apk/content_shell_apk.aar'
 
-SRC_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SRC_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "..", "..", "..")
+
 DART_DIR = os.path.join(SRC_PATH, 'dart')
 CHROME_VERSION_PATH = os.path.join(SRC_PATH, 'chrome', 'VERSION')
 

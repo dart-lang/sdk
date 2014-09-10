@@ -7,7 +7,7 @@ library http.server;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/channel/web_socket_channel.dart';
 import 'package:analysis_server/src/get_handler.dart';
 import 'package:analysis_server/src/socket_server.dart';
 

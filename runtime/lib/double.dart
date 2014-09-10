@@ -134,6 +134,7 @@ class _Double extends _Num implements double {
   }
 
   int toInt() native "Double_toInt";
+  _Bigint _toBigint() { return toInt()._toBigint(); }
   double toDouble() { return this; }
 
   static const int CACHE_SIZE_LOG2 = 3;

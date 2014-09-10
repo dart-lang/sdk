@@ -43,6 +43,9 @@ DEFINE_FLAG(bool, pause_isolates_on_start, false,
             "Pause isolates before starting.");
 DEFINE_FLAG(bool, pause_isolates_on_exit, false,
             "Pause isolates exiting.");
+DEFINE_FLAG(bool, break_at_isolate_spawn, false,
+            "Insert a one-time breakpoint at the entrypoint for all spawned "
+            "isolates");
 
 
 // Quick access to the locally defined isolate() method.
@@ -835,6 +838,14 @@ static bool RunIsolate(uword parameter) {
     Function& func = Function::Handle(isolate);
     func ^= result.raw();
     func = func.ImplicitClosureFunction();
+
+    // TODO(turnidge): Currently we need a way to force a one-time
+    // breakpoint for all spawned isolates to support isolate
+    // debugging.  Remove this once the vmservice becomes the standard
+    // way to debug.
+    if (FLAG_break_at_isolate_spawn) {
+      isolate->debugger()->OneTimeBreakAtEntry(func);
+    }
 
     const Array& capabilities = Array::Handle(Array::New(2));
     Capability& capability = Capability::Handle();

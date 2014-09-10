@@ -25,7 +25,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoModel] = "model name";
   fields_[kCpuInfoHardware] = "model name";
   fields_[kCpuInfoFeatures] = "flags";
-#elif defined(HOST_ARCH_ARM)
+#elif defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
   fields_[kCpuInfoProcessor] = "Processor";
   fields_[kCpuInfoModel] = "model name";
   fields_[kCpuInfoHardware] = "Hardware";

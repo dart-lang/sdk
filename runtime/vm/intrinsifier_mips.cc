@@ -1049,6 +1049,51 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Bigint_getNeg(Assembler* assembler) {
+  __ lw(V0, Address(SP, 0 * kWordSize));
+  __ Ret();
+  __ delay_slot()->lw(V0, FieldAddress(V0, Bigint::neg_offset()));
+}
+
+
+void Intrinsifier::Bigint_setNeg(Assembler* assembler) {
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(T1, Address(SP, 1 * kWordSize));
+  __ StoreIntoObject(T1, FieldAddress(T1, Bigint::neg_offset()), T0, false);
+  __ Ret();
+}
+
+
+void Intrinsifier::Bigint_getUsed(Assembler* assembler) {
+  __ lw(V0, Address(SP, 0 * kWordSize));
+  __ Ret();
+  __ delay_slot()->lw(V0, FieldAddress(V0, Bigint::used_offset()));
+}
+
+
+void Intrinsifier::Bigint_setUsed(Assembler* assembler) {
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(T1, Address(SP, 1 * kWordSize));
+  __ StoreIntoObject(T1, FieldAddress(T1, Bigint::used_offset()), T0);
+  __ Ret();
+}
+
+
+void Intrinsifier::Bigint_getDigits(Assembler* assembler) {
+  __ lw(V0, Address(SP, 0 * kWordSize));
+  __ Ret();
+  __ delay_slot()->lw(V0, FieldAddress(V0, Bigint::digits_offset()));
+}
+
+
+void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(T1, Address(SP, 1 * kWordSize));
+  __ StoreIntoObject(T1, FieldAddress(T1, Bigint::digits_offset()), T0, false);
+  __ Ret();
+}
+
+
 // Check if the last argument is a double, jump to label 'is_smi' if smi
 // (easy to convert to double), otherwise jump to label 'not_double_smi',
 // Returns the last argument in T0.

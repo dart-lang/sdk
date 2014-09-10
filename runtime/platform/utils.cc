@@ -34,6 +34,7 @@ int Utils::CountOneBits(uint32_t x) {
 }
 
 
+// TODO(koda): Compare to flsll call/intrinsic.
 int Utils::HighestBit(int64_t v) {
   uint64_t x = static_cast<uint64_t>((v > 0) ? v : -v);
   uint64_t t;

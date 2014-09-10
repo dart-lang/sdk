@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_testing/mock_sdk.dart';
+import 'mock_sdk.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:compiler/implementation/dart2jslib.dart' show NullSink;
 import 'package:unittest/unittest.dart';
 
 import '../lib/src/closed_world.dart';
@@ -176,7 +177,7 @@ class TreeShakerTestHelper {
   TreeShakerTestHelper(String contents) {
     MemoryResourceProvider provider = new MemoryResourceProvider();
     DartSdk sdk = new MockSdk();
-    Driver driver = new Driver(provider, sdk);
+    Driver driver = new Driver(provider, sdk, NullSink.outputProvider);
     provider.newFile(rootFile, contents);
     Source rootSource = driver.setRoot(rootFile);
     FunctionElement entryPoint = driver.resolveEntryPoint(rootSource);

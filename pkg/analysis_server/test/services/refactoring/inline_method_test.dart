@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import '../../reflective_tests.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
@@ -37,10 +37,13 @@ main() {
   var res = test(1, 2);
 }
 ''');
-    _createRefactoring('test(a, b)');
+    _createRefactoring('test(1, 2)');
     // validate state
     return refactoring.checkInitialConditions().then((_) {
       expect(refactoring.refactoringName, 'Inline Function');
+      expect(refactoring.className, isNull);
+      expect(refactoring.methodName, 'test');
+      expect(refactoring.isDeclaration, isFalse);
     });
   }
 
@@ -59,6 +62,9 @@ class A {
     // validate state
     return refactoring.checkInitialConditions().then((_) {
       expect(refactoring.refactoringName, 'Inline Method');
+      expect(refactoring.className, 'A');
+      expect(refactoring.methodName, 'test');
+      expect(refactoring.isDeclaration, isTrue);
     });
   }
 

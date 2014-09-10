@@ -12,3 +12,18 @@ import '../dart_backend/dart_backend.dart' show DartBackend,
                                                 PlaceholderCollector;
 
 part 'renamer.dart';
+
+class MirrorRenamer {
+  const MirrorRenamer();
+
+  LibraryElement get helperLibrary => null;
+
+  FunctionElement get getNameFunction => null;
+
+  bool isMirrorHelperLibrary(LibraryElement element) => false;
+
+  void registerStaticSend(Element currentElement, Element target, Node node) {}
+
+  void addRenames(Map<Node, String> renames, List<Node> topLevelNodes,
+                  PlaceholderCollector placeholderCollector) {}
+}

@@ -19,24 +19,10 @@ DEFINE_NATIVE_ENTRY(String_fromEnvironment, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
   GET_NATIVE_ARGUMENT(String, default_value, arguments->NativeArgAt(2));
   // Call the embedder to supply us with the environment.
-  Api::Scope api_scope(isolate);
-  Dart_EnvironmentCallback callback = isolate->environment_callback();
-  if (callback != NULL) {
-    Dart_Handle result = callback(Api::NewHandle(isolate, name.raw()));
-    if (Dart_IsString(result)) {
-      const Object& value =
-          Object::Handle(isolate, Api::UnwrapHandle(result));
-      return Symbols::New(String::Cast(value));
-    } else if (Dart_IsError(result)) {
-      const Object& error =
-          Object::Handle(isolate, Api::UnwrapHandle(result));
-      Exceptions::ThrowArgumentError(
-          String::Handle(
-              String::New(Error::Cast(error).ToErrorCString())));
-    } else if (!Dart_IsNull(result)) {
-      Exceptions::ThrowArgumentError(
-          String::Handle(String::New("Illegal environment value")));
-    }
+  const String& env_value =
+      String::Handle(Api::CallEnvironmentCallback(isolate, name));
+  if (!env_value.IsNull()) {
+    return Symbols::New(env_value);
   }
   return default_value.raw();
 }
@@ -234,21 +220,15 @@ DEFINE_NATIVE_ENTRY(String_getLength, 1) {
 
 static int32_t StringValueAt(const String& str, const Integer& index) {
   if (index.IsSmi()) {
-    const Smi& smi = Smi::Cast(index);
-    intptr_t index = smi.Value();
-    if ((index < 0) || (index >= str.Length())) {
-      const Array& args = Array::Handle(Array::New(1));
-      args.SetAt(0, smi);
-      Exceptions::ThrowByType(Exceptions::kRange, args);
+    const intptr_t index_value = Smi::Cast(index).Value();
+    if ((0 <= index_value) && (index_value < str.Length())) {
+      return str.CharAt(index_value);
     }
-    return str.CharAt(index);
-  } else {
-    // An index larger than Smi is always illegal.
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, index);
-    Exceptions::ThrowByType(Exceptions::kRange, args);
-    return 0;
   }
+
+  // An index larger than Smi is always illegal.
+  Exceptions::ThrowRangeError("index", index, 0, str.Length());
+  return 0;
 }
 
 
@@ -336,9 +316,7 @@ DEFINE_NATIVE_ENTRY(StringBuffer_createStringFromUint16Array, 3) {
   intptr_t array_length = codeUnits.Length();
   intptr_t length_value = length.Value();
   if (length_value < 0 || length_value > array_length) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, length);
-    Exceptions::ThrowByType(Exceptions::kRange, args);
+    Exceptions::ThrowRangeError("length", length, 0, array_length + 1);
   }
   const String& result = isLatin1.value()
       ? String::Handle(OneByteString::New(length_value, Heap::kNew))

@@ -26,10 +26,7 @@ const Map<String, List<String>> WHITE_LIST = const {
 
   // dart2js uses only the encoding functions, the decoding functions are used
   // from the generated code.
-  "implementation/runtime_data.dart": const [" is never "],
-
-  // Setlet implements the Set interface: Issue 18959.
-  "implementation/util/setlet.dart": const [" is never "],
+  "js_lib/shared/runtime_data.dart": const [" is never "],
 
   // MethodElement
   // TODO(20377): Why is MethodElement unused?

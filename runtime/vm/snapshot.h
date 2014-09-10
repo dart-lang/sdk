@@ -54,6 +54,7 @@ class RawLinkedHashMap;
 class RawLiteralToken;
 class RawMint;
 class RawMixinAppType;
+class RawBigint;
 class RawNamespace;
 class RawObject;
 class RawOneByteString;
@@ -93,8 +94,8 @@ enum SerializedHeaderType {
   kObjectId = 0x3,
 };
 static const int8_t kHeaderTagBits = 2;
-static const int8_t kObjectIdBits = (kBitsPerWord - (kHeaderTagBits + 1));
-static const intptr_t kMaxObjectId = (kUwordMax >> (kHeaderTagBits + 1));
+static const int8_t kObjectIdBits = (kBitsPerInt32 - (kHeaderTagBits + 1));
+static const intptr_t kMaxObjectId = (kMaxUint32 >> (kHeaderTagBits + 1));
 
 
 class SerializedHeaderTag : public BitField<enum SerializedHeaderType,
@@ -185,13 +186,6 @@ class BaseReader {
   template <typename T>
   T Read() {
     return ReadStream::Raw<sizeof(T), T>::Read(&stream_);
-  }
-
-  // Reads an intptr_t type value.
-  intptr_t ReadIntptrValue() {
-    int64_t value = Read<int64_t>();
-    ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
-    return static_cast<intptr_t>(value);
   }
 
   intptr_t ReadRawPointerValue() {
@@ -297,7 +291,7 @@ class SnapshotReader : public BaseReader {
   RawClass* NewClass(intptr_t class_id);
   RawInstance* NewInstance();
   RawMint* NewMint(int64_t value);
-  RawBigint* NewBigint(const char* hex_string);
+  RawBigint* NewBigint();
   RawTypedData* NewTypedData(intptr_t class_id, intptr_t len);
   RawDouble* NewDouble(double value);
   RawUnresolvedClass* NewUnresolvedClass();
@@ -411,6 +405,7 @@ class SnapshotReader : public BaseReader {
   friend class Library;
   friend class LibraryPrefix;
   friend class Namespace;
+  friend class Bigint;
   friend class LiteralToken;
   friend class PatchClass;
   friend class Script;
@@ -440,12 +435,6 @@ class BaseWriter : public StackResource {
     WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
 
-  // Writes an intptr_t type value out.
-  void WriteIntptrValue(intptr_t value) {
-    ASSERT((value >= kMinInt32) && (value <= kMaxInt32));
-    Write<int64_t>(value);
-  }
-
   void WriteRawPointerValue(intptr_t value) {
     Write<int64_t>(value);
   }
@@ -457,7 +446,7 @@ class BaseWriter : public StackResource {
     intptr_t value = 0;
     value = SerializedHeaderTag::update(kObjectId, value);
     value = SerializedHeaderData::update(object_id, value);
-    WriteIntptrValue(value);
+    Write<int32_t>(value);
   }
 
   // Write a VM Isolateobject that is serialized as an Id.
@@ -466,7 +455,7 @@ class BaseWriter : public StackResource {
     intptr_t value = 0;
     value = SerializedHeaderTag::update(kObjectId, value);
     value = SerializedHeaderData::update(object_id, value);
-    WriteIntptrValue(-value);  // Write as a negative value.
+    Write<int32_t>(-value);  // Write as a negative value.
   }
 
   // Write serialization header information for an object.
@@ -475,7 +464,7 @@ class BaseWriter : public StackResource {
     intptr_t value = 0;
     value = SerializedHeaderTag::update(kInlined, value);
     value = SerializedHeaderData::update(id, value);
-    WriteIntptrValue(value);
+    Write<int32_t>(value);
   }
 
   void WriteTags(intptr_t tags) {

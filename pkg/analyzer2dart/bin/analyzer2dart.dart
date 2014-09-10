@@ -5,15 +5,19 @@
 /** The entry point for the command-line version analyzer2dart. */
 library analyzer2dart.cmdline;
 
+import 'dart:io';
+
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:compiler/implementation/source_file_provider.dart';
 
 import '../lib/src/closed_world.dart';
 import '../lib/src/driver.dart';
+import '../lib/src/converted_world.dart';
+import '../lib/src/dart_backend.dart';
 
 void main(List<String> args) {
   // TODO(paulberry): hacky
@@ -21,7 +25,19 @@ void main(List<String> args) {
 
   PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
   DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
-  Driver analyzer2Dart = new Driver(provider, sdk);
+  // TODO(johnniwinther): Support user specified output Uri.
+  // TODO(johnniwinther): Integrate messaging.
+  RandomAccessFileOutputProvider outputProvider =
+      new RandomAccessFileOutputProvider(
+          Uri.base.resolve('out.dart'),
+          Uri.base.resolve('out.dart.map'),
+          onInfo: (message) => print(message),
+          onFailure: (message) {
+            print(message);
+            exit(1);
+          });
+
+  Driver analyzer2Dart = new Driver(provider, sdk, outputProvider);
 
   // Tell the analysis server about the root
   Source source = analyzer2Dart.setRoot(path);
@@ -35,15 +51,12 @@ void main(List<String> args) {
 
   // TODO(brianwilkerson,paulberry,johnniwinther): Convert the ast into cps by
   // visiting the ast and invoking the ir builder.
-  new CpsGeneratingVisitor();
-
   // TODO(johnniwinther): Convert the analyzer element model into the dart2js
   // element model to fit the needs of the cps encoding above.
+  ConvertedWorld convertedWorld = convertWorld(world);
 
   // TODO(johnniwinther): Feed the cps ir into the new dart2dart backend to
   // generate dart file(s).
+  compileToDart(analyzer2Dart, convertedWorld);
 }
 
-class CpsGeneratingVisitor extends RecursiveAstVisitor {
-  // TODO(johnniwinther)
-}

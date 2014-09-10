@@ -20,6 +20,8 @@ import 'util/util.dart' as util;
 
 import 'elements/elements.dart' as elements;
 
+import 'elements/modelx.dart' as modelx;
+
 import 'elements/visitor.dart' as elements_visitor;
 
 import 'js/js.dart' as js;
@@ -55,6 +57,7 @@ void main(List<String> arguments) {
   useNode(null);
   useUtil(null);
   useSetlet(null);
+  useImmutableEmptySet(null);
   useElementVisitor(new ElementVisitor());
   useJs(new js.Program(null));
   useJs(new js.Blob(null));
@@ -65,8 +68,8 @@ void main(List<String> arguments) {
   useSsa(null);
   useCodeBuffer(null);
   usedByTests();
-  useElements(null, null);
-  useIr(null, null);
+  useElements(null, null, null);
+  useIr(null, null, null);
   useCompiler(null);
 }
 
@@ -130,6 +133,11 @@ void useUtil(util.Link link) {
 
 void useSetlet(util.Setlet setlet) {
   setlet.difference(setlet);
+  setlet.retainWhere(null);
+}
+
+void useImmutableEmptySet(util.ImmutableEmptySet set) {
+  set.retainWhere(null);
 }
 
 void useElementVisitor(ElementVisitor visitor) {
@@ -205,14 +213,16 @@ usedByTests() {
   sourceFileProvider.readStringFromUri(null);
 }
 
-useElements(elements.ClassElement e, elements.Name n) {
+useElements(elements.ClassElement e, elements.Name n, modelx.FieldElementX f) {
   e.lookupClassMember(null);
   e.lookupInterfaceMember(null);
   n.isAccessibleFrom(null);
+  f.reuseElement();
 }
 
 useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
-      ir_builder.IrBuilderTask task) {
+      ir_builder.IrBuilderTask task,
+      ir_builder.IrBuilder builder) {
   new cps_ir_nodes_sexpr.SExpressionStringifier();
   stringifier
     ..newContinuationName()
@@ -229,6 +239,8 @@ useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
   task
     ..hasIr(null)
     ..getIr(null);
+  builder
+    ..buildIntegerLiteral(null);
 }
 
 useCompiler(dart2jslib.Compiler compiler) {

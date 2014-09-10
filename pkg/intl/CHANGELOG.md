@@ -1,6 +1,10 @@
-## 0.11.7-dev
+## 0.11.7
+  * Moved petitparser into a regular dependency so pub run works.
 
   * Improved code layout of the package.
+
+  * Added a DateFormat.parseStrict method that rejects DateTimes with invalid
+    values and requires it to be the whole string.
 
 ## 0.11.6
 

@@ -70,6 +70,7 @@ class CustomElementsAnalysis {
     classElement.ensureResolved(compiler);
     if (!Elements.isNativeOrExtendsNative(classElement)) return;
     if (classElement.isMixinApplication) return;
+    if (classElement.isAbstract) return;
     joinFor(enqueuer).instantiatedClasses.add(classElement);
   }
 

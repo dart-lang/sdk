@@ -1,0 +1,100 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="class_ref.html">
+<link rel="import" href="error_view.html">
+<link rel="import" href="field_ref.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="inbound_reference.html">
+<link rel="import" href="instance_ref.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="eval_link.html">
+
+<polymer-element name="object-common" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <div class="memberList">
+
+      <div class="memberItem">
+        <div class="memberName">class</div>
+        <div class="memberValue">
+          <class-ref ref="{{ object.clazz }}"></class-ref>
+        </div>
+      </div>
+
+      <div class="memberItem" title="Space for this object in memory">
+        <div class="memberName">size</div>
+        <div class="memberValue">{{ object.size | formatSize }}</div>
+      </div>
+
+      <div class="memberItem" title="Space that would be reclaimed if references to this object were replaced with null">
+        <div class="memberName">retained size</div>
+        <div class="memberValue">
+          <template if="{{ retainedBytes == null }}">
+            <eval-link callback="{{ retainedSize }}"
+                       label="[calculate]">
+            </eval-link>
+          </template>
+          <template if="{{ retainedBytes != null }}">
+            {{ retainedBytes | formatSize }}
+          </template>
+        </div>
+      </div>
+
+      <div class="memberItem">
+        <div class="memberName">retaining path</div>
+        <div class="memberValue">
+          <template if="{{ path == null }}">
+            <eval-link callback="{{ retainingPath }}"
+                       label="[find]"
+                       expr="10">
+            </eval-link>
+          </template>
+          <template if="{{ path != null }}">
+            <template repeat="{{ element in path['elements'] }}">
+            <div class="memberItem">
+              <div class="memberName">[{{ element['index']}}]</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ element['value'] }}"></any-service-ref>
+                <template if="{{ element['parentField'] != null }}">
+                  in <field-ref ref="{{ element['parentField'] }}"></field-ref> of
+                </template>
+                <template if="{{ element['parentListIndex'] != null }}">
+                  in [{{ element['parentListIndex'] }}] of
+                </template>
+              </div>
+              </div>
+            </template>
+            <template if="{{ path['length'] > path['elements'].length }}">
+              showing {{ path['elements'].length }} of {{ path['length'] }}
+              <eval-link
+                callback="{{ retainingPath }}"
+                label="[find more]"
+                expr="{{ path['elements'].length * 2 }}">
+              </eval-link>
+            </template>
+          </template>
+        </div>
+      </div>
+
+      <div class="memberItem" title="Objects which directly reference this object">
+        <div class="memberName">inbound references</div>
+        <div class="memberValue">
+          <template if="{{ inboundReferences == null }}">
+            <eval-link callback="{{ fetchInboundReferences }}"
+                       label="[find]"
+                       expr="100">
+            </eval-link>
+          </template>
+          <template if="{{ inboundReferences != null }}">
+            <template repeat="{{ reference in inboundReferences['references'] }}">
+              <inbound-reference ref="{{ reference }}"></inbound-reference>
+            </template>
+          </template>
+        </div>
+      </div>
+
+   </div>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="object_common.dart"></script>

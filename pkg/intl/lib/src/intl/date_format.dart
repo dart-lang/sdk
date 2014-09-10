@@ -234,7 +234,7 @@ class DateFormat {
 
   /**
    * NOT YET IMPLEMENTED.
-   * 
+   *
    * Returns a date string indicating how long ago (3 hours, 2 minutes)
    * something has happened or how long in the future something will happen
    * given a [reference] DateTime relative to the current time.
@@ -243,7 +243,7 @@ class DateFormat {
 
   /**
    * NOT YET IMPLEMENTED.
-   * 
+   *
    * Formats a string indicating how long ago (negative [duration]) or how far
    * in the future (positive [duration]) some time is with respect to a
    * reference [date].
@@ -253,15 +253,38 @@ class DateFormat {
   /**
    * Given user input, attempt to parse the [inputString] into the anticipated
    * format, treating it as being in the local timezone. If [inputString] does
-   * not match our format, throws a [FormatException].
+   * not match our format, throws a [FormatException]. This will accept dates
+   * whose values are not strictly valid, or strings with additional characters
+   * (including whitespace) after a valid date. For stricter parsing, use
+   * [parseStrict].
    */
-  DateTime parse(String inputString, [utc = false]) {
+  DateTime parse(String inputString, [utc = false]) =>
+      _parse(inputString, utc: utc, strict: false);
+
+  /**
+   * Given user input, attempt to parse the [inputString] into the anticipated
+   * format, treating it as being in the local timezone. If [inputString] does
+   * not match our format, throws a [FormatException]. This will reject dates
+   * whose values are not strictly valid, even if the
+   * DateTime constructor will accept them. It will also rejct strings with
+   * additional characters (including whitespace) after a valid date. For
+   * looser parsing, use [parse].
+   */
+  DateTime parseStrict(String inputString, [utc = false]) =>
+      _parse(inputString, utc: utc, strict: true);
+
+  DateTime _parse(String inputString, {utc : false, strict : false}) {
     // TODO(alanknight): The Closure code refers to special parsing of numeric
     // values with no delimiters, which we currently don't do. Should we?
     var dateFields = new _DateBuilder();
     if (utc) dateFields.utc = true;
     var stream = new _Stream(inputString);
     _formatFields.forEach((f) => f.parse(stream, dateFields));
+    if (strict && !stream.atEnd()) {
+      throw new FormatException(
+          "Characters remaining after date parsing in $inputString");
+    }
+    if (strict) dateFields.verify(inputString);
     return dateFields.asDate();
   }
 

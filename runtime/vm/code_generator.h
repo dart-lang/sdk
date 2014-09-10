@@ -35,7 +35,7 @@ DECLARE_RUNTIME_ENTRY(BadTypeError);
 DECLARE_RUNTIME_ENTRY(NonBoolTypeError);
 DECLARE_RUNTIME_ENTRY(InstantiateType);
 DECLARE_RUNTIME_ENTRY(InstantiateTypeArguments);
-DECLARE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction);
+DECLARE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod);
 DECLARE_RUNTIME_ENTRY(MegamorphicCacheMissHandler);
 DECLARE_RUNTIME_ENTRY(OptimizeInvokedFunction);
 DECLARE_RUNTIME_ENTRY(TraceICCall);

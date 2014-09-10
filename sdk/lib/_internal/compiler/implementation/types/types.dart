@@ -111,7 +111,7 @@ class TypesTask extends CompilerTask {
   TypeMask get uint31Type {
     if (uint31TypeCache == null) {
       uint31TypeCache = new TypeMask.nonNullExact(
-          compiler.backend.uint31Implementation);
+          compiler.backend.uint31Implementation, compiler.world);
     }
     return uint31TypeCache;
   }
@@ -127,7 +127,7 @@ class TypesTask extends CompilerTask {
   TypeMask get doubleType {
     if (doubleTypeCache == null) {
       doubleTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.doubleImplementation);
+          compiler.backend.doubleImplementation, compiler.world);
     }
     return doubleTypeCache;
   }
@@ -143,7 +143,7 @@ class TypesTask extends CompilerTask {
   TypeMask get boolType {
     if (boolTypeCache == null) {
       boolTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.boolImplementation);
+          compiler.backend.boolImplementation, compiler.world);
     }
     return boolTypeCache;
   }
@@ -159,7 +159,7 @@ class TypesTask extends CompilerTask {
   TypeMask get listType {
     if (listTypeCache == null) {
       listTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.listImplementation);
+          compiler.backend.listImplementation, compiler.world);
     }
     return listTypeCache;
   }
@@ -167,7 +167,7 @@ class TypesTask extends CompilerTask {
   TypeMask get constListType {
     if (constListTypeCache == null) {
       constListTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.constListImplementation);
+          compiler.backend.constListImplementation, compiler.world);
     }
     return constListTypeCache;
   }
@@ -175,7 +175,7 @@ class TypesTask extends CompilerTask {
   TypeMask get fixedListType {
     if (fixedListTypeCache == null) {
       fixedListTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.fixedListImplementation);
+          compiler.backend.fixedListImplementation, compiler.world);
     }
     return fixedListTypeCache;
   }
@@ -183,7 +183,7 @@ class TypesTask extends CompilerTask {
   TypeMask get growableListType {
     if (growableListTypeCache == null) {
       growableListTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.growableListImplementation);
+          compiler.backend.growableListImplementation, compiler.world);
     }
     return growableListTypeCache;
   }
@@ -207,7 +207,7 @@ class TypesTask extends CompilerTask {
   TypeMask get stringType {
     if (stringTypeCache == null) {
       stringTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.stringImplementation);
+          compiler.backend.stringImplementation, compiler.world);
     }
     return stringTypeCache;
   }
@@ -215,7 +215,7 @@ class TypesTask extends CompilerTask {
   TypeMask get typeType {
     if (typeTypeCache == null) {
       typeTypeCache = new TypeMask.nonNullExact(
-          compiler.backend.typeImplementation);
+          compiler.backend.typeImplementation, compiler.world);
     }
     return typeTypeCache;
   }

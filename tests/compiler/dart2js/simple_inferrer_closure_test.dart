@@ -146,6 +146,7 @@ void main() {
           simplify(typesInferrer.getReturnTypeOfElement(element), compiler));
     }
     var cls = findElement(compiler, 'A');
-    checkReturnInClass('A', 'foo', new TypeMask.nonNullExact(cls));
+    checkReturnInClass('A', 'foo', new TypeMask.nonNullExact(cls,
+        compiler.world));
   }));
 }

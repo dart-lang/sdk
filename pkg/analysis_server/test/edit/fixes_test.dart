@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import '../reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
@@ -27,6 +27,25 @@ class FixesTest extends AbstractAnalysisTest {
     super.setUp();
     createProject();
     handler = new EditDomainHandler(server);
+  }
+
+  Future test_fixUndefinedClass() {
+    addTestFile('''
+main() {
+  Future<String> x = null;
+}
+''');
+    return waitForTasksFinished().then((_) {
+      List<AnalysisErrorFixes> errorFixes = _getFixesAt('Future<String>');
+      expect(errorFixes, hasLength(1));
+      AnalysisError error = errorFixes[0].error;
+      expect(error.severity, AnalysisErrorSeverity.WARNING);
+      expect(error.type, AnalysisErrorType.STATIC_WARNING);
+      List<SourceChange> fixes = errorFixes[0].fixes;
+      expect(fixes, hasLength(2));
+      expect(fixes[0].message, matches('Import library'));
+      expect(fixes[1].message, matches('Create class'));
+    });
   }
 
   Future test_hasFixes() {

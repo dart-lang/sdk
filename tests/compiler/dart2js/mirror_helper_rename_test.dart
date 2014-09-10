@@ -36,18 +36,18 @@ void testWithMirrorHelperLibrary({bool minify}) {
   asyncTest(() => runCompiler(useMirrorHelperLibrary: true, minify: minify).
       then((Compiler compiler) {
     DartBackend backend = compiler.backend;
-    MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
+    MirrorRenamerImpl mirrorRenamer = backend.mirrorRenamer;
     Map<Node, String> renames = backend.placeholderRenamer.renames;
     Map<String, String> symbols = mirrorRenamer.symbols;
 
-    Expect.isFalse(null == backend.mirrorHelperLibrary);
-    Expect.isFalse(null == backend.mirrorHelperGetNameFunction);
+    Expect.isFalse(null == mirrorRenamer.helperLibrary);
+    Expect.isFalse(null == mirrorRenamer.getNameFunction);
 
     for (Node n in renames.keys) {
       if (symbols.containsKey(renames[n])) {
         if(n.toString() == 'getName') {
           Expect.equals(
-              MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION,
+              MirrorRenamerImpl.MIRROR_HELPER_GET_NAME_FUNCTION,
               symbols[renames[n]]);
         } else {
           Expect.equals(n.toString(), symbols[renames[n]]);
@@ -56,7 +56,7 @@ void testWithMirrorHelperLibrary({bool minify}) {
     }
 
     String output = compiler.assembledCode;
-    String getNameMatch = MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION;
+    String getNameMatch = MirrorRenamerImpl.MIRROR_HELPER_GET_NAME_FUNCTION;
     Iterable i = getNameMatch.allMatches(output);
     print(output);
     if (minify) {
@@ -76,10 +76,10 @@ void testWithoutMirrorHelperLibrary({bool minify}) {
   asyncTest(() => runCompiler(useMirrorHelperLibrary: false, minify: minify).
       then((Compiler compiler) {
     DartBackend backend = compiler.backend;
+    MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
 
-    Expect.equals(null, backend.mirrorHelperLibrary);
-    Expect.equals(null, backend.mirrorHelperGetNameFunction);
-    Expect.equals(null, backend.mirrorRenamer);
+    Expect.equals(null, mirrorRenamer.helperLibrary);
+    Expect.equals(null, mirrorRenamer.getNameFunction);
   }));
 }
 

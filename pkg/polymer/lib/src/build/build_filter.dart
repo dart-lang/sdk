@@ -9,6 +9,7 @@ library polymer.src.build.build_filter;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:code_transformers/messages/build_logger.dart';
 import 'common.dart';
 
 /// Removes any files not needed for deployment, such as internal build
@@ -17,27 +18,27 @@ class BuildFilter extends Transformer with PolymerTransformer {
   final TransformOptions options;
   BuildFilter(this.options);
 
-  // TODO(nweiz): This should just take an AssetId when barback <0.13.0 support
-  // is dropped.
-  Future<bool> isPrimary(idOrAsset) {
-    var id = idOrAsset is AssetId ? idOrAsset : idOrAsset.id;
-    return new Future.value(
-      // nothing is filtered in debug mode
-      options.releaseMode &&
+  isPrimary(AssetId id) {
+    // nothing is filtered in debug mode
+    return options.releaseMode &&
       // TODO(sigmund): remove this exclusion once we have dev_transformers
       // (dartbug.com/14187)
-      id.path.startsWith('web/') &&
+      !id.path.startsWith('lib/') &&
       // may filter non-entry HTML files and internal artifacts
-      (id.extension == '.html' || id.extension == '.scriptUrls') &&
+      (id.extension == '.html' || id.extension == _DATA_EXTENSION) &&
       // keep any entry points
-      !options.isHtmlEntryPoint(id));
+      !options.isHtmlEntryPoint(id);
   }
 
-  Future apply(Transform transform) {
-    if (transform.primaryInput.id.extension == '.scriptUrls') {
-      return new Future.value(null);
+  apply(Transform transform) {
+    transform.consumePrimary();
+    if (transform.primaryInput.id.extension == _DATA_EXTENSION) {
+      return null;
     }
-    return readPrimaryAsHtml(transform).then((document) {
+    var logger = new BuildLogger(transform,
+        convertErrorsToWarnings: !options.releaseMode,
+          detailsUri: 'http://goo.gl/5HPeuP');
+    return readPrimaryAsHtml(transform, logger).then((document) {
       // Keep .html files that don't use polymer, since the app developer might
       // have non-polymer entrypoints.
       if (document.querySelectorAll('polymer-element').isEmpty) {
@@ -46,3 +47,5 @@ class BuildFilter extends Transformer with PolymerTransformer {
     });
   }
 }
+
+const String _DATA_EXTENSION = '._data';

@@ -739,24 +739,24 @@ static void DisassembleCode(const Function& function, bool optimized) {
     var_name = var_descriptors.GetName(i);
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors.GetInfo(i, &var_info);
-    if (var_info.kind == RawLocalVarDescriptors::kSavedEntryContext) {
-      OS::Print("  saved caller's CTX reg offset %" Pd "\n", var_info.index);
-    } else if (var_info.kind == RawLocalVarDescriptors::kSavedCurrentContext) {
-      OS::Print("  saved current CTX reg offset %" Pd "\n", var_info.index);
+    const int8_t kind = var_info.kind();
+    if (kind == RawLocalVarDescriptors::kSavedEntryContext) {
+      OS::Print("  saved caller's CTX reg offset %d\n", var_info.index());
+    } else if (kind == RawLocalVarDescriptors::kSavedCurrentContext) {
+      OS::Print("  saved current CTX reg offset %d\n", var_info.index());
     } else {
-      if (var_info.kind == RawLocalVarDescriptors::kContextLevel) {
-        OS::Print("  context level %" Pd " scope %d",
-                  var_info.index, var_info.scope_id);
-      } else if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
-        OS::Print("  stack var '%s' offset %" Pd "",
-                  var_name.ToCString(), var_info.index);
+      if (kind == RawLocalVarDescriptors::kContextLevel) {
+        OS::Print("  context level %d scope %d", var_info.index(),
+            var_info.scope_id);
+      } else if (kind == RawLocalVarDescriptors::kStackVar) {
+        OS::Print("  stack var '%s' offset %d",
+          var_name.ToCString(), var_info.index());
       } else {
-        ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
-        OS::Print("  context var '%s' level %d offset %" Pd "",
-                  var_name.ToCString(), var_info.scope_id, var_info.index);
+        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+        OS::Print("  context var '%s' level %d offset %d",
+            var_name.ToCString(), var_info.scope_id, var_info.index());
       }
-      OS::Print(" (valid %" Pd "-%" Pd ")\n",
-                var_info.begin_pos, var_info.end_pos);
+      OS::Print(" (valid %d-%d)\n", var_info.begin_pos, var_info.end_pos);
     }
   }
   OS::Print("}\n");

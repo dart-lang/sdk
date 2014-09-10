@@ -28,7 +28,7 @@ class DebuggerConnectionImpl {
   static int wakeup_fds_[2];
 
   // File descriptor for the polling queue.
-  static int epoll_fd_;
+  static intptr_t epoll_fd_;
 };
 
 }  // namespace bin

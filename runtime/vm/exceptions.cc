@@ -667,6 +667,23 @@ void Exceptions::ThrowArgumentError(const Instance& arg) {
 }
 
 
+void Exceptions::ThrowRangeError(const char* argument_name,
+                                 const Integer& argument_value,
+                                 intptr_t expected_from,
+                                 intptr_t expected_to) {
+  const String& error = String::Handle(String::NewFormatted(
+      "%s (%s) must be in the range [%" Pd "..%" Pd ")",
+      argument_name,
+      argument_value.ToCString(),
+      expected_from,
+      expected_to));
+
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, error);
+  Exceptions::ThrowByType(Exceptions::kRange, args);
+}
+
+
 RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
   Library& library = Library::Handle();
   const String* class_name = NULL;

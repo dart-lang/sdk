@@ -43,7 +43,7 @@ void set onlyAnalyze(bool b) {
 }
 
 const BooleanUserOption _enableDartMind =
-    const BooleanUserOption('enableDartMind');
+    const BooleanUserOption('enableDartMind', isHidden: true);
 
 bool get enableDartMind => _enableDartMind.value;
 
@@ -101,6 +101,9 @@ const BooleanUserOption alwaysRunInIframe =
 const BooleanUserOption communicateViaBlobs =
     const BooleanUserOption('communicateViaBlobs', isHidden: true);
 
+const BooleanUserOption hasSelectionModify =
+    const BooleanUserOption('hasSelectionModify', isHidden: true);
+
 const List<UserOption> options = const <UserOption>[
     _alwaysRunInWorker,
     _verboseCompiler,
@@ -116,4 +119,5 @@ const List<UserOption> options = const <UserOption>[
     _currentSample,
     alwaysRunInIframe,
     communicateViaBlobs,
+    hasSelectionModify,
   ];

@@ -5,6 +5,13 @@
 [ $compiler == none && $runtime == drt ]
 *: Skip # running co19 tests on content_shell would make our dartium cycle-times very long
 
+[ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+LayoutTests/fast/canvas/canvas-lineDash-input-sequence_t01: Skip # Issue 20867
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: Skip # Issue 20540
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: Skip # Issue 20540
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: Skip # Issue 20540
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip # Issue 20540
+
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 LibTest/html/Window/document_A01_t01: RuntimeError # Issue 20146
 LibTest/html/Window/postMessage_A01_t02: RuntimeError # Issue 20146

@@ -43,6 +43,57 @@ For example, an isolate reference may look like this...
       ...
     }
 
+## Type Hierarchy
+
+The types returned by the VM Service fit into a type hierarchy, with a
+subtyping relationship as indicated by the following indented list:
+
+<pre>
+Object
+    ClassHeapStats
+    Class
+    Code
+    Context
+    Counter
+    Error
+    Field
+    FrameVar
+    Frame
+    Function
+    Gauge
+    Instance
+        AbstractType
+	    BoundedType
+	    TypeParameter
+	    TypeRef
+	    Type
+        List
+        Sentinel  // TODO - subtype of Instance or not?
+        String
+        bool
+        double
+        int
+        null
+    Isolate
+    Library
+    Location
+    Script
+    ServiceError
+    ServiceEvent
+    Socket
+    TypeArguments  // TODO - expose?
+    VM
+</pre>
+
+TODO: How to put links in a pre in markdown?
+
+A subtype is guaranteed to provide all of the properties of its
+parent type.  For example, an [int](#int) can be used as an
+[Instance](#Instance).
+
+The subtyping relationship also holds for reference types.  For
+example, [@int](#int) can be used as an [@Instance](#Instance).
+
 ## IDs
 
 Most responses returned by the VM Service have an <code>id</code>
@@ -86,12 +137,20 @@ language programmer would find sensible.
 Note that names are not in any way unique.  Many objects will have the
 same name.
 
-Occasionally responses will have the <code>vmName</code> property.
-This represents the internal names used to refer to an object inside
-the VM itself.  The <code>vmName</code> of an object is only provided
-when it differs from the <code>name</code> property; when
-<code>vmName</code> is not present, the client may assume the
-<code>name</code> and <code>vmName</code> are the same.
+## Private Properties
+
+Some properties returned by the VM Service begin with an underscore
+(<code>_</code>) character.  These properties are called _private
+properties_.  Private properties provide private information about the
+VM's implementation.  Private properties may be added, removed, or
+changed at any time with any release of the VM.  They are provided for
+those tools that need this level of internal access, such as the
+Observatory.
+
+For example, some responses will have the <code>_vmType</code>
+nnnproperty.  This provides the VM-internal type name of an object, and
+is provided only when this type name differs from the
+<code>type</code> property.
 
 ## Events
 
@@ -125,7 +184,7 @@ Reference properties:
 | type | "@Class", "Class" |
 | id | String |
 | name | String |
-| vmName? | String |
+| _vmName? | String |
 
 Object properties:
 
@@ -185,7 +244,7 @@ Reference properties:
 | type | "@Code", "Code"|
 | id | String |
 | name | String |
-| vmName? | String |
+| _vmName? | String |
 | start | String | starting address of code
 | end | String | ending address of code
 | isOptimized | bool |
@@ -217,19 +276,6 @@ Object properties:
 | 1 + (3 * K) | String | Hex encoding of instruction of Kth instruction
 | 2 + (3 * K) | String | Human encoding of instruction of Kth instruction
 
-### <a name="DebuggerEvent"></a>DebuggerEvent
-
-Object properties:
-
-| keys | values | comments
-| --- | --- | ---
-| type | "DebuggerEvent" |
-| id | String | TODO: Remove |
-| eventType | String | "BreakpointReached", "BreakpointResolved", "ExceptionThrown", "IsolateCreated", "IsolateShutdown", "IsolateInterrupted" |
-| isolate | [@Isolate](#Isolate) |
-| breakpoint? | [Breakpoint](#Breakpoint) | for eventTypes "BreakpointResolved" and "BreakpointReached<br><br>TODO: Maybe make this @Breakpoint?
-| exception? | [@Instance](#Instance) | for eventType "ExceptionThrown"
-
 ### <a name="Error"></a>Error
 
 TODO: Drop id from Error.<br>
@@ -239,6 +285,7 @@ Object properties:
 | keys | values | comments
 | --- | --- | ---
 | type | "Error" |
+| _vmType? | String | VM internal name for this type.  Provided only when different from 'type'
 | id | String | always empty
 | kind | String |
 | message | String |
@@ -252,7 +299,7 @@ Reference properties:
 | type | "@Field", "Field" |
 | id | String |
 | name | String |
-| vmName? | String |
+| _vmName? | String |
 | value? | Instance | value associated with static field <-- do we want to include this in a field reference?
 | owner | [@Library](#Library),[@Class](#Class) | Owning library or class <-- handling of owner is inconsistent with Function
 | declared_type | [@AbstractType](#AbstractType) |
@@ -302,7 +349,7 @@ Reference properties:
 | type | "@Function", "Function" |
 | id | String |
 | name | String |
-| vmName? | String |
+| _vmName? | String |
 | owningLibrary? | [@Library](#Library) | Set for non-top level functions
 | owningClass? | [@Class](#Class) | Set for non-top level functions
 | parent? | [@Function](#Function) | Parent function
@@ -363,7 +410,7 @@ Reference properties:
 | type | "@Library", "Library" |
 | id | String |
 | name | String |
-| vmName? | String | Internal vm name.  Provided only when different from 'name'.
+| _vmName? | String | VM-internal name.  Provided only when different from 'name'.
 | url | String
 
 Object properties:
@@ -386,19 +433,35 @@ Object properties:
 | script | [@Script](#Script) |
 | tokenPos | int |
 
-### <a name="Null"></a>Null
+### <a name="null"></a>null
 
 Reference properties:
 
 | keys | values | comments
 | --- | --- | ---
-| type | "@Null", "Null" |
+| type | "@null", "null" |
 | id | String | |
 | valueAsString | String |
 
 Object properties:<br>
 
 TODO.
+
+### <a name="Object"></a>Object
+
+[Object](#Object) is the supertype of all responses returned by the VM
+Service.  It does not necessarily refer to an Object at the Dart
+language level (see [Instance](#Instance)).
+
+Reference properties:
+
+| keys | values | comments
+| --- | --- | ---
+| type | "@Object", "Object" or subtype |
+| _vmType? | String | VM internal name for this type.  Provided only when different from 'type'
+| id | String |
+
+Object properties: none<br>
 
 ### <a name="PcDescriptor"></a>PcDescriptor
 
@@ -411,7 +474,7 @@ Reference properties:
 | type | "@Script", "Script" |
 | id | String
 | name | String
-| vmName? | String | Internal vm name.  Provided only when different from 'name'.
+| _vmName? | String | VM-internal name.  Provided only when different from 'name'.
 | kind | String
 
 Object properties:
@@ -445,6 +508,19 @@ Object properties:
 | type | "Sentinel" |
 | id | String | |
 | valueAsString | String |
+
+### <a name="ServiceEvent"></a>ServiceEvent
+
+Object properties:
+
+| keys | values | comments
+| --- | --- | ---
+| type | "ServiceEvent" |
+| id | String | TODO: Remove |
+| eventType | String | "BreakpointReached", "BreakpointResolved", "ExceptionThrown", "IsolateCreated", "IsolateShutdown", "IsolateInterrupted" |
+| isolate | [@Isolate](#Isolate) |
+| breakpoint? | [Breakpoint](#Breakpoint) | for eventTypes "BreakpointResolved" and "BreakpointReached<br><br>TODO: Maybe make this @Breakpoint?
+| exception? | [@Instance](#Instance) | for eventType "ExceptionThrown"
 
 ### <a name="VM"></a>VM
 

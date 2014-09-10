@@ -173,6 +173,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
   CorrectionUtils utils;
   SourceChange change;
 
+  bool isDeclaration = false;
   bool deleteSource = false;
   bool inlineAll = true;
 
@@ -191,6 +192,26 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
   InlineMethodRefactoringImpl(this.searchEngine, this.unit, this.offset) {
     file = unit.element.source.fullName;
     utils = new CorrectionUtils(unit);
+  }
+
+  @override
+  String get className {
+    if (_methodElement == null) {
+      return null;
+    }
+    Element classElement = _methodElement.enclosingElement;
+    if (classElement is ClassElement) {
+      return classElement.displayName;
+    }
+    return null;
+  }
+
+  @override
+  String get methodName {
+    if (_methodElement == null) {
+      return null;
+    }
+    return _methodElement.displayName;
   }
 
   @override
@@ -304,7 +325,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
       _methodParameters = methodDeclaration.parameters;
       _methodBody = methodDeclaration.body;
       // prepare mode
-      deleteSource = selectedNode == methodDeclaration.name;
+      isDeclaration = selectedNode == methodDeclaration.name;
+      deleteSource = isDeclaration;
       inlineAll = deleteSource;
     }
     if (selectedElement is FunctionElement) {
@@ -314,7 +336,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
       _methodParameters = functionDeclaration.functionExpression.parameters;
       _methodBody = functionDeclaration.functionExpression.body;
       // prepare mode
-      deleteSource = selectedNode == functionDeclaration.name;
+      isDeclaration = selectedNode == functionDeclaration.name;
+      deleteSource = isDeclaration;
       inlineAll = deleteSource;
     }
     // OK

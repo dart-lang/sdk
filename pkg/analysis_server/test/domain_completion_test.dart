@@ -11,7 +11,7 @@ import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import 'reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';

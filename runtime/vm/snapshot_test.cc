@@ -6,7 +6,6 @@
 
 #include "include/dart_debugger_api.h"
 #include "platform/assert.h"
-#include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_message.h"
@@ -87,9 +86,14 @@ static void CompareDartCObjects(Dart_CObject* first, Dart_CObject* second) {
     case Dart_CObject_kInt64:
       EXPECT_EQ(first->value.as_int64, second->value.as_int64);
       break;
-    case Dart_CObject_kBigint:
-      EXPECT_STREQ(first->value.as_bigint, second->value.as_bigint);
+    case Dart_CObject_kBigint: {
+      char* first_hex_value = TestCase::BigintToHexValue(first);
+      char* second_hex_value = TestCase::BigintToHexValue(second);
+      EXPECT_STREQ(first_hex_value, second_hex_value);
+      free(first_hex_value);
+      free(second_hex_value);
       break;
+    }
     case Dart_CObject_kDouble:
       EXPECT_EQ(first->value.as_double, second->value.as_double);
       break;
@@ -397,17 +401,17 @@ TEST_CASE(SerializeBigint) {
   Bigint& obj = Bigint::Handle();
   obj ^= reader.ReadObject();
 
-  EXPECT_STREQ(BigintOperations::ToHexCString(bigint, &allocator),
-               BigintOperations::ToHexCString(obj, &allocator));
+  EXPECT_STREQ(bigint.ToHexCString(allocator), obj.ToHexCString(allocator));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
-  // Bigint not supported.
   EXPECT_NOTNULL(root);
   EXPECT_EQ(Dart_CObject_kBigint, root->type);
-  EXPECT_STREQ("270FFFFFFFFFFFFFD8F0", root->value.as_bigint);
+  char* hex_value = TestCase::BigintToHexValue(root);
+  EXPECT_STREQ(cstr, hex_value);
+  free(hex_value);
   CheckEncodeDecodeMessage(root);
 }
 
@@ -424,9 +428,8 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
                         Snapshot::kMessage, Isolate::Current());
   Bigint& serialized_bigint = Bigint::Handle();
   serialized_bigint ^= reader.ReadObject();
-  const char* str1 = BigintOperations::ToHexCString(bigint, allocator);
-  const char* str2 =
-      BigintOperations::ToHexCString(serialized_bigint, allocator);
+  const char* str1 = bigint.ToHexCString(allocator);
+  const char* str2 = serialized_bigint.ToHexCString(allocator);
   EXPECT_STREQ(str1, str2);
   free(const_cast<char*>(str1));
   free(const_cast<char*>(str2));
@@ -446,16 +449,12 @@ void CheckBigint(const char* bigint_value) {
   ApiNativeScope scope;
 
   Bigint& bigint = Bigint::Handle();
-  bigint ^= BigintOperations::NewFromCString(bigint_value);
+  bigint ^= Bigint::NewFromCString(bigint_value);
   Dart_CObject* bigint_cobject = SerializeAndDeserializeBigint(bigint);
   EXPECT_EQ(Dart_CObject_kBigint, bigint_cobject->type);
-  if (bigint_value[0] == '0') {
-    EXPECT_STREQ(bigint_value + 2, bigint_cobject->value.as_bigint);
-  } else {
-    EXPECT_EQ('-', bigint_value[0]);
-    EXPECT_EQ('-', bigint_cobject->value.as_bigint[0]);
-    EXPECT_STREQ(bigint_value + 3, bigint_cobject->value.as_bigint + 1);
-  }
+  char* hex_value = TestCase::BigintToHexValue(bigint_cobject);
+  EXPECT_STREQ(bigint_value, hex_value);
+  free(hex_value);
 }
 
 
@@ -1638,8 +1637,9 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       Dart_CObject* root = api_reader.ReadMessage();
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kBigint, root->type);
-      EXPECT_STREQ("-424242424242424242424242424242424242",
-                   root->value.as_bigint);
+      char* hex_value = TestCase::BigintToHexValue(root);
+      EXPECT_STREQ("-0x424242424242424242424242424242424242", hex_value);
+      free(hex_value);
       CheckEncodeDecodeMessage(root);
     }
     CheckString(ascii_string_result, "Hello, world!");
@@ -2085,8 +2085,9 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject_kBigint, element->type);
-        EXPECT_STREQ("1234567890123456789012345678901234567890",
-                     element->value.as_bigint);
+        char* hex_value = TestCase::BigintToHexValue(element);
+        EXPECT_STREQ("0x1234567890123456789012345678901234567890", hex_value);
+        free(hex_value);
       }
     }
     {
@@ -2300,8 +2301,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject_kBigint, element->type);
-        EXPECT_STREQ("1234567890123456789012345678901234567890",
-                     element->value.as_bigint);
+        char* hex_value = TestCase::BigintToHexValue(element);
+        EXPECT_STREQ("0x1234567890123456789012345678901234567890", hex_value);
+        free(hex_value);
       }
     }
     {

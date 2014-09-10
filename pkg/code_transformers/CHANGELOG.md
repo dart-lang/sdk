@@ -1,3 +1,11 @@
+## 0.2.3
+
+* Added support for logging stable error messages from transformers.
+
+## 0.2.2
+
+* Added two transformers, 'delete_file' and 'remove_sourcemap_comment'.
+
 ## 0.2.0+3
 
 * Raise the lower bound on the source_maps constraint to exclude incompatible

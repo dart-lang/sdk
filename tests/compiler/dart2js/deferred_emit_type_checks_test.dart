@@ -63,14 +63,10 @@ void main() {
 // it with a type argument, and testing for the type. The extra support should
 // go to the deferred hunk.
 const Map MEMORY_SOURCE_FILES = const {"main.dart": """
-import "dart:async";
-
-@def import 'lib.dart' as lib show f, A, instance;
-
-const def = const DeferredLibrary("deferred");
+import 'lib.dart' deferred as lib show f, A, instance;
 
 void main() {
-  def.load().then((_) {
+  lib.loadLibrary().then((_) {
     print(lib.f(lib.instance));
   });
 }

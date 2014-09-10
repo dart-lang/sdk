@@ -15,7 +15,7 @@ import 'package:compiler/implementation/tree/tree.dart' show
 import 'package:compiler/implementation/dart_backend/dart_backend.dart' show
     DartBackend, ElementAst;
 import 'package:compiler/implementation/mirror_renamer/mirror_renamer.dart' show
-    MirrorRenamer;
+    MirrorRenamerImpl;
 
 main() {
   testWithMirrorRenaming(minify: true);
@@ -41,7 +41,7 @@ void testWithMirrorRenaming({bool minify}) {
       then((Compiler compiler) {
 
     DartBackend backend = compiler.backend;
-    MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
+    MirrorRenamerImpl mirrorRenamer = backend.mirrorRenamer;
     Map<Node, String> renames = backend.placeholderRenamer.renames;
     Set<LibraryElement> imports =
         backend.placeholderRenamer.platformImports;
@@ -51,7 +51,7 @@ void testWithMirrorRenaming({bool minify}) {
     ExpressionStatement getNameFunctionNode = block.statements.nodes.head;
     Send send = getNameFunctionNode.expression;
 
-    Expect.equals(renames[mirrorRenamer.mirrorHelperGetNameFunctionNode.name],
+    Expect.equals(renames[mirrorRenamer.getNameFunctionNode.name],
                   renames[send.selector]);
     Expect.equals("",
                   renames[send.receiver]);

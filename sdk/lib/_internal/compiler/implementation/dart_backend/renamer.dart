@@ -76,7 +76,7 @@ class PlaceholderRenamer {
   /// libraries.
   final Set<LibraryElement> platformImports = new Set<LibraryElement>();
 
-  final Compiler _compiler;
+  final bool enableMinification;
   final Set<String> fixedMemberNames;
   final Map<Element, LibraryElement> reexportingLibraries;
   final bool cutDeclarationTypes;
@@ -92,8 +92,9 @@ class PlaceholderRenamer {
 
   Generator _generator;
 
-  PlaceholderRenamer(this._compiler, this.fixedMemberNames,
-      this.reexportingLibraries, {this.cutDeclarationTypes}) ;
+  PlaceholderRenamer(this.fixedMemberNames,
+                     this.reexportingLibraries,
+                     {this.enableMinification, this.cutDeclarationTypes});
 
   void _renameNodes(Iterable<Node> nodes, String renamer(Node node)) {
     for (Node node in sorted(nodes, _compareNodes)) {
@@ -141,7 +142,7 @@ class PlaceholderRenamer {
         library = reexportingLibraries[entity];
       }
       if (library.isPlatformLibrary) {
-        if (library != _compiler.coreLibrary) {
+        if (library.canonicalUri != Compiler.DART_CORE) {
           platformImports.add(library);
         }
         if (library.isInternalLibrary) {
@@ -264,7 +265,7 @@ class PlaceholderRenamer {
     _forbiddenIdentifiers.addAll(Keyword.keywords.keys);
     _forbiddenIdentifiers.add('main');
 
-    if (_compiler.enableMinification) {
+    if (enableMinification) {
       _computeMinifiedRenames(placeholderCollector);
     } else {
       _computeNonMinifiedRenames(placeholderCollector);

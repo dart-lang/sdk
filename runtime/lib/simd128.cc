@@ -13,12 +13,8 @@ namespace dart {
 
 static void ThrowMaskRangeException(int64_t m) {
   if ((m < 0) || (m > 255)) {
-    const String& error = String::Handle(
-      String::NewFormatted("mask (%" Pd64 ") must be in the range [0..256)",
-                           m));
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, error);
-    Exceptions::ThrowByType(Exceptions::kRange, args);
+    Exceptions::ThrowRangeError(
+        "mask", Integer::Handle(Integer::New(m)), 0, 256);
   }
 }
 

@@ -36,7 +36,7 @@ TEST_CASE(TraceJSWarning) {
                        "\"message\":{\"type\":\"@String\"",
                        js.ToCString());
       // Skip private _OneByteString.
-      EXPECT_SUBSTRING("\"valueAsString\":\"\\\"High Voltage\\\"\"}}",
+      EXPECT_SUBSTRING("\"valueAsString\":\"High Voltage\"",
                        js.ToCString());
     }
   }
@@ -53,7 +53,7 @@ TEST_CASE(TraceJSWarning) {
                    "\"message\":{\"type\":\"@String\"",
                    trace_buffer->At(0)->message);
   // Skip private _OneByteString.
-  EXPECT_SUBSTRING("\"valueAsString\":\"\\\"High Voltage\\\"\"}}",
+  EXPECT_SUBSTRING("\"valueAsString\":\"High Voltage\"",
                    trace_buffer->At(0)->message);
 
   EXPECT_SUBSTRING("{\"type\":\"JSCompatibilityWarning\",\"script\":{\"type\":"
@@ -63,7 +63,7 @@ TEST_CASE(TraceJSWarning) {
                    "\"message\":{\"type\":\"@String\"",
                    trace_buffer->At(1)->message);
   // Skip private _OneByteString.
-  EXPECT_SUBSTRING("\"valueAsString\":\"\\\"Low Voltage\\\"\"}}",
+  EXPECT_SUBSTRING("\"valueAsString\":\"Low Voltage\"",
                    trace_buffer->At(1)->message);
 
   delete trace_buffer;

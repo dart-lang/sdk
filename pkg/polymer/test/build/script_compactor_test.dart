@@ -8,6 +8,7 @@ import 'dart:convert';
 
 import 'package:code_transformers/tests.dart' show testingDartSdkDirectory;
 import 'package:polymer/src/build/common.dart';
+import 'package:polymer/src/build/messages.dart';
 import 'package:polymer/src/build/script_compactor.dart';
 import 'package:smoke/codegen/generator.dart' show DEFAULT_IMPORTS;
 import 'package:unittest/compact_vm_config.dart';
@@ -504,7 +505,7 @@ initializerTestsExperimental(phases) {
       }, {}, [
         'warning: The parameter to @CustomTag seems to be invalid. '
         '(web/a.dart 2 11)',
-        'warning: $NO_INITIALIZERS_ERROR',
+        'warning: ${NO_INITIALIZATION.snippet}',
       ]);
 
   testPhases(
@@ -557,7 +558,7 @@ initializerTestsExperimental(phases) {
             '}\n'
             'main(){}',
       }, {}, [
-        'warning: $NO_INITIALIZERS_ERROR',
+        'warning: ${NO_INITIALIZATION.snippet}',
       ]);
 
   testPhases(

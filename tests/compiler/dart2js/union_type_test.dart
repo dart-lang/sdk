@@ -11,10 +11,12 @@ import "package:compiler/implementation/types/types.dart";
 import "package:compiler/implementation/dart_types.dart";
 
 main() {
-  asyncTest(() => MockCompiler.create((MockCompiler compiler) {
-    compiler.intClass.ensureResolved(compiler);
-    compiler.stringClass.ensureResolved(compiler);
-
+  MockCompiler compiler = new MockCompiler.internal(analyzeOnly: true);
+  asyncTest(() => compiler.runCompiler(null, """
+      main() {
+        print(2); print("Hello");
+      }
+    """).then((_) {
     FlatTypeMask mask1 =
         new FlatTypeMask.exact(compiler.intClass);
     FlatTypeMask mask2 =

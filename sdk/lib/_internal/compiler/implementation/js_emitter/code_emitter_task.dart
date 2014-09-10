@@ -161,6 +161,21 @@ class CodeEmitterTask extends CompilerTask {
   String get makeConstListProperty
       => namer.getMappedInstanceName('makeConstantList');
 
+  /// For deferred loading we communicate the initializers via this global var.
+  final String deferredInitializers = r"$dart_deferred_initializers";
+
+  /// All the global state can be passed around with this variable.
+  String get globalsHolder => namer.getMappedGlobalName("globalsHolder");
+
+  jsAst.Expression generateEmbeddedGlobalAccess(String global) {
+    return js(generateEmbeddedGlobalAccessString(global));
+  }
+
+  String generateEmbeddedGlobalAccessString(String global) {
+    // TODO(floitsch): don't use 'init' as global embedder storage.
+    return '$initName.$global';
+  }
+
   jsAst.FunctionDeclaration get generateAccessorFunction {
     const RANGE1_SIZE = RANGE1_LAST - RANGE1_FIRST + 1;
     const RANGE2_SIZE = RANGE2_LAST - RANGE2_FIRST + 1;
@@ -320,12 +335,20 @@ class CodeEmitterTask extends CompilerTask {
     // object and copy over the members.
 
     String reflectableField = namer.reflectableField;
+    jsAst.Expression allClassesAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
+    jsAst.Expression metadataAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.METADATA);
+    jsAst.Expression interceptorsByTagAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
+    jsAst.Expression leafTagsAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
 
     return js('''
       function(collectedClasses, isolateProperties, existingIsolateProperties) {
-        var pendingClasses = {};
-        if (!init.allClasses) init.allClasses = {};
-        var allClasses = init.allClasses;
+        var pendingClasses = Object.create(null);
+        if (!#) # = Object.create(null);  // embedded allClasses.
+        var allClasses = #;  // embedded allClasses;
 
         if (#)  // DEBUG_FAST_OBJECTS
           print("Number of classes: " +
@@ -343,66 +366,64 @@ class CodeEmitterTask extends CompilerTask {
         }
 
         for (var cls in collectedClasses) {
-          if (hasOwnProperty.call(collectedClasses, cls)) {
-            var desc = collectedClasses[cls];
-            if (desc instanceof Array) desc = desc[1];
+          var desc = collectedClasses[cls];
+          if (desc instanceof Array) desc = desc[1];
 
-            /* The 'fields' are either a constructor function or a
-             * string encoding fields, constructor and superclass.  Get
-             * the superclass and the fields in the format
-             *   '[name/]Super;field1,field2'
-             * from the CLASS_DESCRIPTOR_PROPERTY property on the descriptor.
-             * The 'name/' is optional and contains the name that should be used
-             * when printing the runtime type string.  It is used, for example,
-             * to print the runtime type JSInt as 'int'.
-             */
-            var classData = desc["${namer.classDescriptorProperty}"],
-                supr, name = cls, fields = classData;
-            if (#)  // backend.hasRetainedMetadata
-              if (typeof classData == "object" &&
-                  classData instanceof Array) {
-                classData = fields = classData[0];
-              }
-            if (typeof classData == "string") {
-              var split = classData.split("/");
-              if (split.length == 2) {
-                name = split[0];
-                fields = split[1];
-              }
+          /* The 'fields' are either a constructor function or a
+           * string encoding fields, constructor and superclass.  Get
+           * the superclass and the fields in the format
+           *   '[name/]Super;field1,field2'
+           * from the CLASS_DESCRIPTOR_PROPERTY property on the descriptor.
+           * The 'name/' is optional and contains the name that should be used
+           * when printing the runtime type string.  It is used, for example,
+           * to print the runtime type JSInt as 'int'.
+           */
+          var classData = desc["${namer.classDescriptorProperty}"],
+              supr, name = cls, fields = classData;
+          if (#)  // backend.hasRetainedMetadata
+            if (typeof classData == "object" &&
+                classData instanceof Array) {
+              classData = fields = classData[0];
             }
-
-            var s = fields.split(";");
-            fields = s[1] == "" ? [] : s[1].split(",");
-            supr = s[0];
-            split = supr.split(":");
+          if (typeof classData == "string") {
+            var split = classData.split("/");
             if (split.length == 2) {
-              supr = split[0];
-              var functionSignature = split[1];
-              if (functionSignature)
-                desc.\$signature = (function(s) {
-                    return function(){ return init.metadata[s]; };
-                  })(functionSignature);
+              name = split[0];
+              fields = split[1];
             }
-
-            if (#)  // needsMixinSupport
-              if (supr && supr.indexOf("+") > 0) {
-                s = supr.split("+");
-                supr = s[0];
-                var mixin = collectedClasses[s[1]];
-                if (mixin instanceof Array) mixin = mixin[1];
-                for(var d in mixin) {
-                  if (hasOwnProperty.call(mixin, d) &&
-                      !hasOwnProperty.call(desc, d))
-                    desc[d] = mixin[d];
-                }
-              }
-
-            if (typeof dart_precompiled != "function") {
-              combinedConstructorFunction += defineClass(name, cls, fields);
-              constructorsList.push(cls);
-            }
-            if (supr) pendingClasses[cls] = supr;
           }
+
+          var s = fields.split(";");
+          fields = s[1] == "" ? [] : s[1].split(",");
+          supr = s[0];
+          split = supr.split(":");
+          if (split.length == 2) {
+            supr = split[0];
+            var functionSignature = split[1];
+            if (functionSignature)
+              desc.\$signature = (function(s) {
+                  return function(){ return #[s]; };  // embedded metadata.
+                })(functionSignature);
+          }
+
+          if (#)  // needsMixinSupport
+            if (supr && supr.indexOf("+") > 0) {
+              s = supr.split("+");
+              supr = s[0];
+              var mixin = collectedClasses[s[1]];
+              if (mixin instanceof Array) mixin = mixin[1];
+              for (var d in mixin) {
+                if (hasOwnProperty.call(mixin, d) &&
+                    !hasOwnProperty.call(desc, d))
+                  desc[d] = mixin[d];
+              }
+            }
+
+          if (typeof dart_precompiled != "function") {
+            combinedConstructorFunction += defineClass(name, cls, fields);
+            constructorsList.push(cls);
+          }
+          if (supr) pendingClasses[cls] = supr;
         }
 
         if (typeof dart_precompiled != "function") {
@@ -431,9 +452,9 @@ class CodeEmitterTask extends CompilerTask {
 
         constructors = null;
 
-        var finishedClasses = {};
-        init.interceptorsByTag = Object.create(null);
-        init.leafTags = {};
+        var finishedClasses = Object.create(null);
+        # = Object.create(null);  // embedded interceptorsByTag.
+        # = Object.create(null);  // embedded leafTags.
 
         #;  // buildFinishClass(),
 
@@ -441,10 +462,15 @@ class CodeEmitterTask extends CompilerTask {
 
         for (var cls in pendingClasses) finishClass(cls);
       }''', [
+          allClassesAccess, allClassesAccess,
+          allClassesAccess,
           DEBUG_FAST_OBJECTS,
           backend.hasRetainedMetadata,
+          metadataAccess,
           needsMixinSupport,
           backend.isTreeShakingDisabled,
+          interceptorsByTagAccess,
+          leafTagsAccess,
           buildFinishClass(),
           nsmEmitter.buildTrivialNsmHandlers()]);
   }
@@ -456,16 +482,15 @@ class CodeEmitterTask extends CompilerTask {
   jsAst.FunctionDeclaration buildFinishClass() {
     String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
 
+    jsAst.Expression interceptorsByTagAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
+    jsAst.Expression leafTagsAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
+
     return js.statement('''
       function finishClass(cls) {
 
-        // TODO(8540): Remove this work around.
-        // Opera does not support 'getOwnPropertyNames'. Therefore we use
-        //   hasOwnProperty instead.
-        var hasOwnProperty = Object.prototype.hasOwnProperty;
-
-        if (hasOwnProperty.call(finishedClasses, cls)) return;
-
+        if (finishedClasses[cls]) return;
         finishedClasses[cls] = true;
 
         var superclass = pendingClasses[cls];
@@ -506,13 +531,13 @@ class CodeEmitterTask extends CompilerTask {
           //
           // The information is used to build tables referenced by
           // getNativeInterceptor and custom element support.
-          if (hasOwnProperty.call(prototype, $specProperty)) {
+          if (Object.prototype.hasOwnProperty.call(prototype, $specProperty)) {
             var nativeSpec = prototype[$specProperty].split(";");
             if (nativeSpec[0]) {
               var tags = nativeSpec[0].split("|");
               for (var i = 0; i < tags.length; i++) {
-                init.interceptorsByTag[tags[i]] = constructor;
-                init.leafTags[tags[i]] = true;
+                #[tags[i]] = constructor;  // embedded interceptorsByTag.
+                #[tags[i]] = true;  // embedded leafTags.
               }
             }
             if (nativeSpec[1]) {
@@ -526,14 +551,19 @@ class CodeEmitterTask extends CompilerTask {
                   }
                 }
                 for (i = 0; i < tags.length; i++) {
-                  init.interceptorsByTag[tags[i]] = constructor;
-                  init.leafTags[tags[i]] = false;
+                  #[tags[i]] = constructor;  // embedded interceptorsByTag.
+                  #[tags[i]] = false;  // embedded leafTags.
                 }
               }
             }
           }
         }
-      }''', [!nativeClasses.isEmpty, true]);
+      }''', [!nativeClasses.isEmpty,
+             interceptorsByTagAccess,
+             leafTagsAccess,
+             true,
+             interceptorsByTagAccess,
+             leafTagsAccess]);
   }
 
   jsAst.Fun get finishIsolateConstructorFunction {
@@ -550,12 +580,34 @@ class CodeEmitterTask extends CompilerTask {
           for (var staticName in isolateProperties)
             if (hasOwnProperty.call(isolateProperties, staticName))
               this[staticName] = isolateProperties[staticName];
+
+          // Reset lazy initializers to null.
+          // When forcing the object to fast mode (below) v8 will consider
+          // functions as part the object's map. Since we will change them
+          // (after the first call to the getter), we would have a map
+          // transition.
+          var lazies = init.lazies;
+          for (var lazyInit in lazies) {
+             var lazyInitName = lazies[lazyInit];
+             if (hasOwnProperty.call(lazies, lazyInitName)) {
+               this[lazyInitName] = null;
+             }
+          }
+
           // Use the newly created object as prototype. In Chrome,
           // this creates a hidden class for the object and makes
           // sure it is fast to access.
           function ForceEfficientMap() {}
           ForceEfficientMap.prototype = this;
           new ForceEfficientMap();
+
+          // Now, after being a fast map we can set the lazies again.
+          for (var lazyInit in lazies) {
+            lazyInitName = lazies[lazyInit];
+            if (hasOwnProperty.call(isolateProperties, lazyInitName)) {
+              this[lazyInitName] = isolateProperties[lazyInitName];
+            }
+          }
         }
         Isolate.prototype = oldIsolate.prototype;
         Isolate.prototype.constructor = Isolate;
@@ -575,13 +627,13 @@ class CodeEmitterTask extends CompilerTask {
     String isolate = namer.currentIsolate;
     jsAst.Expression cyclicThrow =
         namer.elementAccess(backend.getCyclicThrowHelper());
+    jsAst.Expression laziesAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.LAZIES);
 
     return js('''
       function (prototype, staticName, fieldName, getterName, lazyValue) {
-        if (#) {
-          if (!init.lazies) init.lazies = {};
-          init.lazies[fieldName] = getterName;
-        }
+        if (!#) # = Object.create(null);
+        #[fieldName] = getterName;
 
         var sentinelUndefined = {};
         var sentinelInProgress = {};
@@ -612,7 +664,9 @@ class CodeEmitterTask extends CompilerTask {
           }
         }
       }
-    ''', [backend.rememberLazies, cyclicThrow]);
+    ''', [laziesAccess, laziesAccess,
+          laziesAccess,
+          cyclicThrow]);
   }
 
   List buildDefineClassAndFinishClassFunctionsIfNecessary() {
@@ -1022,9 +1076,14 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   /**
-   * Emits code that sets `init.isolateTag` to a unique string.
+   * Emits code that sets the `isolateTag embedded global to a unique string.
    */
   jsAst.Expression generateIsolateAffinityTagInitialization() {
+    jsAst.Expression getIsolateTagAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.GET_ISOLATE_TAG);
+    jsAst.Expression isolateTagAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.ISOLATE_TAG);
+
     return js('''
       !function() {
         // On V8, the 'intern' function converts a string to a symbol, which
@@ -1035,8 +1094,8 @@ class CodeEmitterTask extends CompilerTask {
           return Object.keys(convertToFastObject(o))[0];
         }
 
-        init.getIsolateTag = function(name) {
-          return intern("___dart_" + name + init.isolateTag);
+        # = function(name) {  // embedded getIsolateTag
+          return intern("___dart_" + name + #);  // embedded isolateTag
         };
 
         // To ensure that different programs loaded into the same context (page)
@@ -1051,17 +1110,24 @@ class CodeEmitterTask extends CompilerTask {
           var property = intern(rootProperty + "_" + i + "_");
           if (!(property in usedProperties)) {
             usedProperties[property] = 1;
-            init.isolateTag = property;
+            # = property;  // embedded isolateTag
             break;
           }
         }
       }()
-    ''');
+    ''', [getIsolateTagAccess,
+          isolateTagAccess,
+          isolateTagAccess]);
   }
 
   jsAst.Expression generateDispatchPropertyNameInitialization() {
-    return js(
-        'init.dispatchPropertyName = init.getIsolateTag("dispatch_record")');
+    jsAst.Expression dispatchPropertyNameAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.DISPATCH_PROPERTY_NAME);
+    jsAst.Expression getIsolateTagAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.GET_ISOLATE_TAG);
+    return js('# = #("dispatch_record")',
+        [dispatchPropertyNameAccess,
+         getIsolateTagAccess]);
   }
 
   String generateIsolateTagRoot() {
@@ -1095,6 +1161,9 @@ class CodeEmitterTask extends CompilerTask {
       buffer.write(N);
     }
 
+    jsAst.Expression currentScriptAccess =
+        generateEmbeddedGlobalAccess(embeddedNames.CURRENT_SCRIPT);
+
     addComment('BEGIN invoke [main].', buffer);
     // This code finds the currently executing script by listening to the
     // onload event of all script tags and getting the first script which
@@ -1122,14 +1191,16 @@ class CodeEmitterTask extends CompilerTask {
     scripts[i].addEventListener("load", onLoad, false);
   }
 })(function(currentScript) {
-  init.currentScript = currentScript;
+  # = currentScript;  // embedded currentScript.
 
   if (typeof dartMainRunner === "function") {
-    dartMainRunner(#, []);
+    dartMainRunner(#, []);  // mainCallClosure.
   } else {
-    #([]);
+    #([]);  // mainCallClosure.
   }
-})$N''', [mainCallClosure, mainCallClosure]);
+})$N''', [currentScriptAccess,
+          mainCallClosure,
+          mainCallClosure]);
 
     buffer.write(';');
     buffer.write(jsAst.prettyPrint(invokeMain,
@@ -1276,7 +1347,7 @@ class CodeEmitterTask extends CompilerTask {
   void emitInitFunction(CodeBuffer buffer) {
     jsAst.FunctionDeclaration decl = js.statement('''
       function init() {
-        $isolateProperties = {};
+        $isolateProperties = Object.create(null);
         #; #; #;
       }''', [
           buildDefineClassAndFinishClassFunctionsIfNecessary(),
@@ -1406,30 +1477,56 @@ class CodeEmitterTask extends CompilerTask {
         return;
       }
 
+      // Maps each output unit to a codebuffers with the library descriptors of
+      // the output unit emitted to it.
+      Map<OutputUnit, CodeBuffer> libraryDescriptorBuffers =
+          new Map<OutputUnit, CodeBuffer>();
+
       OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
 
       mainBuffer.add(buildGeneratedBy());
       addComment(HOOKS_API_USAGE, mainBuffer);
 
-      if (!compiler.deferredLoadTask.isProgramSplit) {
-        mainBuffer.add('(function(${namer.currentIsolate})$_{$n');
-      }
+      /// For deferred loading we communicate the initializers via this global
+      /// variable. The deferred hunks will add their initialization to this.
+      /// The semicolon is important in minified mode, without it the
+      /// following parenthesis looks like a call to the object literal.
+      mainBuffer..add(
+          'if$_(typeof(${deferredInitializers})$_===$_"undefined")$_'
+          '${deferredInitializers} = Object.create(null);$n');
 
       // Using a named function here produces easier to read stack traces in
       // Chrome/V8.
-      mainBuffer.add('function dart(){${_}this.x$_=${_}0$_}');
+      mainBuffer.add('(function(${namer.currentIsolate})$_{\n');
+      if (compiler.deferredLoadTask.isProgramSplit) {
+        /// We collect all the global state of the, so it can be passed to the
+        /// initializer of deferred files.
+        mainBuffer.add('var ${globalsHolder}$_=${_}Object.create(null)$N');
+      }
+      mainBuffer.add('function dart()$_{$n'
+          '${_}${_}this.x$_=${_}0$N'
+          '${_}${_}delete this.x$N'
+          '}$n');
       for (String globalObject in Namer.reservedGlobalObjectNames) {
         // The global objects start as so-called "slow objects". For V8, this
         // means that it won't try to make map transitions as we add properties
         // to these objects. Later on, we attempt to turn these objects into
         // fast objects by calling "convertToFastObject" (see
         // [emitConvertToFastObjectFunction]).
-        mainBuffer
-            ..write('var ${globalObject}$_=${_}new dart$N')
-            ..write('delete ${globalObject}.x$N');
+        mainBuffer.write('var ${globalObject}$_=${_}');
+        if(compiler.deferredLoadTask.isProgramSplit) {
+          mainBuffer.add('${globalsHolder}.$globalObject$_=${_}');
+        }
+        mainBuffer.write('new dart$N');
       }
 
       mainBuffer.add('function ${namer.isolateName}()$_{}\n');
+      if (compiler.deferredLoadTask.isProgramSplit) {
+        mainBuffer
+          .write('${globalsHolder}.${namer.isolateName}$_=$_'
+                 '${namer.isolateName}$N'
+                 '${globalsHolder}.init$_=${_}init$N');
+      }
       mainBuffer.add('init()$N$n');
       // Shorten the code by using [namer.currentIsolate] as temporary.
       isolateProperties = namer.currentIsolate;
@@ -1445,7 +1542,7 @@ class CodeEmitterTask extends CompilerTask {
           typedefsNeededForReflection.isEmpty)) {
         // Shorten the code by using "$$" as temporary.
         classesCollector = r"$$";
-        mainBuffer.add('var $classesCollector$_=$_{}$N$n');
+        mainBuffer.add('var $classesCollector$_=${_}Object.create(null)$N$n');
       }
 
       // Emit native classes on [nativeBuffer].
@@ -1477,10 +1574,6 @@ class CodeEmitterTask extends CompilerTask {
       // After this assignment we will produce invalid JavaScript code if we use
       // the classesCollector variable.
       classesCollector = 'classesCollector should not be used from now on';
-
-      // For each output unit, the library descriptors written to it.
-      Map<OutputUnit, CodeBuffer> libraryDescriptorBuffers =
-          new Map<OutputUnit, CodeBuffer>();
 
       // TODO(sigurdm): Need to check this for each outputUnit.
       if (!elementDescriptors.isEmpty) {
@@ -1544,10 +1637,13 @@ class CodeEmitterTask extends CompilerTask {
             var value = js.string('${mangledFieldNames[key]}');
             properties.add(new jsAst.Property(js.string(key), value));
           }
+
+          jsAst.Expression mangledNamesAccess =
+              generateEmbeddedGlobalAccess(embeddedNames.MANGLED_NAMES);
           var map = new jsAst.ObjectInitializer(properties);
           mainBuffer.write(
               jsAst.prettyPrint(
-                  js.statement('init.mangledNames = #', map),
+                  js.statement('# = #', [mangledNamesAccess, map]),
                   compiler,
                   monitor: compiler.dumpInfoTask));
           if (compiler.enableMinification) {
@@ -1562,10 +1658,12 @@ class CodeEmitterTask extends CompilerTask {
             var value = js.string('${mangledGlobalFieldNames[key]}');
             properties.add(new jsAst.Property(js.string(key), value));
           }
+          jsAst.Expression mangledGlobalNamesAccess =
+              generateEmbeddedGlobalAccess(embeddedNames.MANGLED_GLOBAL_NAMES);
           var map = new jsAst.ObjectInitializer(properties);
           mainBuffer.write(
               jsAst.prettyPrint(
-                  js.statement('init.mangledGlobalNames = #', map),
+                  js.statement('# = #', [mangledGlobalNamesAccess, map]),
                   compiler,
                   monitor: compiler.dumpInfoTask));
           if (compiler.enableMinification) {
@@ -1622,26 +1720,90 @@ class CodeEmitterTask extends CompilerTask {
       computeNeededConstants();
       emitCompileTimeConstants(mainBuffer, mainOutputUnit);
 
-      // Write a javascript mapping from Deferred import load ids (derrived from
-      // the import prefix.) to a list of lists of js hunks to load.
-      // TODO(sigurdm): Create a syntax tree for this.
-      // TODO(sigurdm): Also find out where to place it.
-      mainBuffer.write("\$.libraries_to_load = {");
-      for (String loadId in compiler.deferredLoadTask.hunksToLoad.keys) {
-        // TODO(sigurdm): Escape these strings.
-        mainBuffer.write('"$loadId":[');
-        for (List<OutputUnit> outputUnits in
-            compiler.deferredLoadTask.hunksToLoad[loadId]) {
-          mainBuffer.write("[");
+      /// Map from OutputUnit to a hash of its content. The hash uniquely
+      /// identifies the code of the output-unit. It does not include
+      /// boilerplate JS code, like the sourcemap directives or the hash itself.
+      Map<OutputUnit, String> deferredLoadHashes =
+          emitDeferredCode(libraryDescriptorBuffers);
+      if (compiler.deferredLoadTask.isProgramSplit) {
+        mainBuffer.write('$initName.isHunkLoaded$_=${_}'
+            'function(hunkHash)$_{${_}'
+              'return !!$deferredInitializers[hunkHash]'
+            '$_}$N'
+            '$initName.initializeLoadedHunk$_=${_}'
+            'function(hunkHash)$_{$_'
+              '$deferredInitializers[hunkHash]($globalsHolder)'
+            '$_}$N');
+        // Write a javascript mapping from Deferred import load ids (derrived
+        // from the import prefix.) to a list of lists of js hunks to load.
+        // TODO(sigurdm): Create a syntax tree for this.
+        // TODO(sigurdm): Also find out where to place it.
+
+        Map<String, List<String>> deferredLibraryUris =
+            new Map<String, List<String>>();
+        Map<String, List<String>> deferredLibraryHashes =
+            new Map<String, List<String>>();
+
+        compiler.deferredLoadTask.hunksToLoad.forEach(
+                      (String loadId, List<OutputUnit>outputUnits) {
+          List<String> uris = new List<String>();
+          List<String> hashes = new List<String>();
+          deferredLibraryHashes[loadId] = new List<String>();
+          for (OutputUnit outputUnit in outputUnits) {
+            uris.add("${outputUnit.partFileName(compiler)}.part.js");
+            hashes.add(deferredLoadHashes[outputUnit]);
+          }
+
+          deferredLibraryUris[loadId] = uris;
+          deferredLibraryHashes[loadId] = hashes;
+        });
+
+        void emitMapping(String name, Map<String, List<String>> mapping) {
+          List<jsAst.Property> properties = new List<jsAst.Property>();
+          mapping.forEach((String key, List<String> values) {
+            properties.add(new jsAst.Property(js.escapedString(key),
+                new jsAst.ArrayInitializer.from(
+                    values.map(js.escapedString))));
+          });
+          jsAst.Node initializer =
+              new jsAst.ObjectInitializer(properties, isOneLiner: true);
+
+          mainBuffer..write("$name$_=$_")
+                    ..write(jsAst.prettyPrint(
+                        initializer,
+                        compiler, monitor: compiler.dumpInfoTask))
+                    ..write(";$n");
+        }
+
+        emitMapping("$initName.deferredLibraryUris", deferredLibraryUris);
+        emitMapping("$initName.deferredLibraryHashes", deferredLibraryHashes);
+
+
+        mainBuffer.write("$initName.librariesToLoad$_=$_{");
+        compiler.deferredLoadTask.hunksToLoad.forEach(
+            (String loadId, List<OutputUnit>outputUnits) {
+          mainBuffer.write('"$loadId":$_[');
           for (OutputUnit outputUnit in outputUnits) {
             mainBuffer
-              .write('"${outputUnit.partFileName(compiler)}.part.js", ');
+                .write('["${outputUnit.partFileName(compiler)}.part.js",$_'
+                       '"${deferredLoadHashes[outputUnit]}"],$_');
           }
-          mainBuffer.write("],");
-        }
-        mainBuffer.write("],\n");
+          mainBuffer.write("],$_");
+        });
+        mainBuffer.write("}$N");
+        mainBuffer.write("$initName.librariesToLoad$_=$_{");
+        compiler.deferredLoadTask.hunksToLoad.forEach(
+            (String loadId, List<OutputUnit>outputUnits) {
+          mainBuffer.write('"$loadId":$_[');
+          for (OutputUnit outputUnit in outputUnits) {
+            mainBuffer
+                .write('["${outputUnit.partFileName(compiler)}.part.js",$_'
+                       '"${deferredLoadHashes[outputUnit]}"],$_');
+          }
+          mainBuffer.write("],$_");
+        });
+        mainBuffer.write("}$N");
       }
-      mainBuffer.write("}$N");
       // Static field initializations require the classes and compile-time
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
@@ -1710,11 +1872,7 @@ class CodeEmitterTask extends CompilerTask {
           buildPrecompiledFunction();
       emitInitFunction(mainBuffer);
       emitMain(mainBuffer);
-      if (!compiler.deferredLoadTask.isProgramSplit) {
-        mainBuffer.add('})()\n');
-      } else {
-        mainBuffer.add('\n');
-      }
+      mainBuffer.add('})()\n');
 
       if (compiler.useContentSecurityPolicy) {
         mainBuffer.write(
@@ -1766,7 +1924,6 @@ class CodeEmitterTask extends CompilerTask {
             ..add(cspBuffer.getText())
             ..close();
       }
-      emitDeferredCode(libraryDescriptorBuffers);
 
       if (backend.requiresPreamble &&
           !backend.htmlLibraryIsLoaded) {
@@ -1815,7 +1972,14 @@ class CodeEmitterTask extends CompilerTask {
         compiler.deferredLoadTask.outputUnitForElement(element));
   }
 
-  void emitDeferredCode(Map<OutputUnit, CodeBuffer> libraryDescriptorBuffers) {
+  /// Emits code for all output units except the main.
+  /// Returns a mapping from outputUnit to a hash of the corresponding hunk that
+  /// can be used for calling the initializer.
+  Map<OutputUnit, String> emitDeferredCode(
+      Map<OutputUnit, CodeBuffer> libraryDescriptorBuffers) {
+
+    Map<OutputUnit, String> hunkHashes = new Map<OutputUnit, String>();
+
     for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
       if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) continue;
 
@@ -1826,20 +1990,29 @@ class CodeEmitterTask extends CompilerTask {
       var oldClassesCollector = classesCollector;
       classesCollector = r"$$";
 
-      outputBuffer
-        ..write(buildGeneratedBy());
-      if (libraryDescriptorBuffer != null) {
+      String hunkName = "${outputUnit.partFileName(compiler)}.part.js";
+
+      outputBuffer..write(buildGeneratedBy())
+        ..write('${deferredInitializers}.current$_=$_'
+                'function$_(${globalsHolder}) {$N');
+      for (String globalObject in Namer.reservedGlobalObjectNames) {
         outputBuffer
-          ..write('var old${namer.currentIsolate}$_='
-                  '$_${namer.currentIsolate}$N'
+            .write('var $globalObject$_=$_'
+                   '${globalsHolder}.$globalObject$N');
+      }
+      outputBuffer
+          .write('var init$_=$_${globalsHolder}.init$N');
+      if (libraryDescriptorBuffer != null) {
       // TODO(ahe): This defines a lot of properties on the
       // Isolate.prototype object.  We know this will turn it into a
       // slow object in V8, so instead we should do something similar
       // to Isolate.$finishIsolateConstructor.
-                  '${namer.currentIsolate}$_='
-                  '$_${namer.isolateName}.prototype$N$n'
-                  // The classesCollector object ($$).
-                  '$classesCollector$_=$_{};$n')
+         outputBuffer
+             ..write('var ${namer.isolateName}$_=$_'
+                     '${globalsHolder}.${namer.isolateName}$N')
+            ..write('var ${namer.currentIsolate}$_=$_$isolatePropertiesName$N')
+            // The classesCollector object ($$).
+            ..write('$classesCollector$_=${_}Object.create(null);$n')
           ..write('(')
           ..write(
               jsAst.prettyPrint(
@@ -1856,10 +2029,6 @@ class CodeEmitterTask extends CompilerTask {
               '$_$isolatePropertiesName)$N');
         }
 
-        outputBuffer.write(
-          // Reset the classesCollector ($$).
-          '$classesCollector$_=${_}null$N$n'
-          '${namer.currentIsolate}$_=${_}old${namer.currentIsolate}$N');
       }
 
       classesCollector = oldClassesCollector;
@@ -1867,15 +2036,25 @@ class CodeEmitterTask extends CompilerTask {
       typeTestEmitter.emitRuntimeTypeSupport(outputBuffer, outputUnit);
 
       emitCompileTimeConstants(outputBuffer, outputUnit);
-
+      outputBuffer.write('}$N');
       String code = outputBuffer.getText();
+
+      // Make a unique hash of the code (before the sourcemaps are added)
+      // This will be used to retrieve the initializing function from the global
+      // variable.
+      String hash = hashOfString(code);
+
       outputBuffers[outputUnit] = outputBuffer;
       compiler.outputProvider(outputUnit.partFileName(compiler), 'part.js')
         ..add(code)
+        ..add('${deferredInitializers}["$hash"]$_=$_'
+                '${deferredInitializers}.current')
         ..close();
 
+      hunkHashes[outputUnit] = hash;
       // TODO(johnniwinther): Support source maps for deferred code.
     }
+    return hunkHashes;
   }
 
   String buildGeneratedBy() {

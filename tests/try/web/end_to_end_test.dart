@@ -69,6 +69,7 @@ void onIframeLoaded(Event event) {
 }
 
 void main() {
+  document.cookie = 'org-trydart-AutomatedTest=true;path=/';
   asyncStart();
   window.onMessage.listen((MessageEvent e) {
     switch (e.data) {

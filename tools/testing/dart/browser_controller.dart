@@ -9,6 +9,7 @@ import "dart:core";
 import "dart:io";
 
 import 'android.dart';
+import 'http_server.dart';
 import 'utils.dart';
 
 class BrowserOutput {
@@ -810,12 +811,12 @@ class BrowserTestRunner {
   static const Duration NEXT_TEST_TIMEOUT = const Duration(seconds: 60);
   static const Duration RESTART_BROWSER_INTERVAL = const Duration(seconds: 60);
 
-  final Map globalConfiguration;
-  final bool checkedMode; // needed for dartium
+  final Map configuration;
 
-  String localIp;
+  final String localIp;
   String browserName;
-  int maxNumBrowsers;
+  final int maxNumBrowsers;
+  bool checkedMode;
   // Used to send back logs from the browser (start, stop etc)
   Function logger;
   int browserIdCount = 0;
@@ -841,12 +842,13 @@ class BrowserTestRunner {
    * case we wish to have a testing server with different behavior (such as the
    * case for performance testing.
    */
-  BrowserTestRunner(this.globalConfiguration,
+  BrowserTestRunner(this.configuration,
                     this.localIp,
                     this.browserName,
                     this.maxNumBrowsers,
-                    {bool this.checkedMode: false,
-                    BrowserTestingServer this.testingServer});
+                    {BrowserTestingServer this.testingServer}) {
+    checkedMode = configuration['checked'];
+  }
 
   Future<bool> start() {
     // If [browserName] doesn't support opening new windows, we use new iframes
@@ -855,7 +857,7 @@ class BrowserTestRunner {
         !Browser.BROWSERS_WITH_WINDOW_SUPPORT.contains(browserName);
     if (testingServer == null) {
       testingServer = new BrowserTestingServer(
-          globalConfiguration, localIp, useIframe);
+          configuration, localIp, useIframe);
     }
     return testingServer.start().then((_) {
       testingServer.testDoneCallBack = handleResults;
@@ -894,12 +896,12 @@ class BrowserTestRunner {
           device,
           contentShellOnAndroidConfig,
           checkedMode,
-          globalConfiguration['drt']),
+          configuration['drt']),
       'DartiumOnAndroid' : (AdbDevice device) => new AndroidBrowser(
           device,
           dartiumOnAndroidConfig,
           checkedMode,
-          globalConfiguration['dartium']),
+          configuration['dartium']),
     };
     if (androidBrowserCreationMapping.containsKey(browserName)) {
       AdbHelper.listDevices().then((deviceIds) {
@@ -1053,12 +1055,12 @@ class BrowserTestRunner {
       browser = new AndroidBrowser(adbDeviceMapping[id],
                                    contentShellOnAndroidConfig,
                                    checkedMode,
-                                   globalConfiguration['drt']);
+                                   configuration['drt']);
     } else if (browserName == 'DartiumOnAndroid') {
       browser = new AndroidBrowser(adbDeviceMapping[id],
                                    dartiumOnAndroidConfig,
                                    checkedMode,
-                                   globalConfiguration['dartium']);
+                                   configuration['dartium']);
     } else {
       browserStatus.remove(id);
       browser = getInstance();
@@ -1211,7 +1213,6 @@ class BrowserTestRunner {
       }
     }
     return Future.wait(futures).then((values) {
-      testingServer.httpServer.close();
       testingServer.errorReportingServer.close();
       printDoubleReportingTests();
       return !values.contains(false);
@@ -1220,7 +1221,7 @@ class BrowserTestRunner {
 
   Browser getInstance() {
     if (browserName == 'ff') browserName = 'firefox';
-    var path = Locations.getBrowserLocation(browserName, globalConfiguration);
+    var path = Locations.getBrowserLocation(browserName, configuration);
     var browser = new Browser.byName(browserName, path, checkedMode);
     browser.logger = logger;
     return browser;
@@ -1228,7 +1229,7 @@ class BrowserTestRunner {
 }
 
 class BrowserTestingServer {
-  final Map globalConfiguration;
+  final Map configuration;
   /// Interface of the testing server:
   ///
   /// GET /driver/BROWSER_ID -- This will get the driver page to fetch
@@ -1252,7 +1253,6 @@ class BrowserTestingServer {
   static const String terminateSignal = "TERMINATE";
 
   var testCount = 0;
-  var httpServer;
   var errorReportingServer;
   bool underTermination = false;
   bool useIframe = false;
@@ -1262,74 +1262,13 @@ class BrowserTestingServer {
   Function testStartedCallBack;
   Function nextTestCallBack;
 
-  BrowserTestingServer(this.globalConfiguration, this.localIp, this.useIframe);
+  BrowserTestingServer(this.configuration, this.localIp, this.useIframe);
 
   Future start() {
-    var test_driver_port = globalConfiguration['test_driver_port'];
-    var test_driver_error_port = globalConfiguration['test_driver_error_port'];
-    return HttpServer.bind(localIp, test_driver_port)
-      .then(setupDriverServer)
-      .then((_) => HttpServer.bind(localIp, test_driver_error_port))
-      .then(setupErrorServer);
-  }
-
-  void setupDriverServer(HttpServer server) {
-    httpServer = server;
-    void handler(HttpRequest request) {
-      // Don't allow caching of resources from the browser controller, i.e.,
-      // we don't want the browser to cache the result of getNextTest.
-      request.response.headers.set("Cache-Control",
-                                   "no-cache, no-store, must-revalidate");
-      bool isReport = request.uri.path.startsWith(reportPath);
-      bool isStatusUpdate = request.uri.path.startsWith(statusUpdatePath);
-      if (isReport || isStatusUpdate) {
-        var browserId;
-        if (isStatusUpdate) {
-          browserId = request.uri.path.substring(statusUpdatePath.length + 1);
-        } else {
-          browserId = request.uri.path.substring(reportPath.length + 1);
-        }
-        var testId =
-            int.parse(request.uri.queryParameters["id"].split("=")[1]);
-        handleReport(
-            request, browserId, testId, isStatusUpdate: isStatusUpdate);
-        // handleReport will asynchroniously fetch the data and will handle
-        // the closing of the streams.
-        return;
-      }
-      if (request.uri.path.startsWith(startedPath)) {
-        var browserId = request.uri.path.substring(startedPath.length + 1);
-        var testId =
-            int.parse(request.uri.queryParameters["id"].split("=")[1]);
-        handleStarted(request, browserId, testId);
-        return;
-      }
-      var textResponse = "";
-      if (request.uri.path.startsWith(driverPath)) {
-        var browserId = request.uri.path.substring(driverPath.length + 1);
-        textResponse = getDriverPage(browserId);
-        request.response.headers.set('Content-Type', 'text/html');
-      } else if (request.uri.path.startsWith(nextTestPath)) {
-        var browserId = request.uri.path.substring(nextTestPath.length + 1);
-        textResponse = getNextTest(browserId);
-        request.response.headers.set('Content-Type', 'text/plain');
-      } else {
-        // /favicon.ico requests
-      }
-      request.response.write(textResponse);
-      request.listen((_) {}, onDone: request.response.close);
-      request.response.done.catchError((error) {
-          if (!underTermination) {
-            print("URI ${request.uri}");
-            print("Textresponse $textResponse");
-            throw "Error returning content to browser: $error";
-          }
-        });
-    }
-    void errorHandler(e) {
-      if (!underTermination) print("Error occured in httpserver: $e");
-    }
-    httpServer.listen(handler, onError: errorHandler);
+    var test_driver_error_port = configuration['test_driver_error_port'];
+    return HttpServer.bind(localIp, test_driver_error_port)
+      .then(setupErrorServer)
+      .then(setupDispatchingServer);
   }
 
   void setupErrorServer(HttpServer server) {
@@ -1354,6 +1293,59 @@ class BrowserTestingServer {
       if (!underTermination) print("Error occured in httpserver: $e");
     }
     errorReportingServer.listen(errorReportingHandler, onError: errorHandler);
+  }
+
+  void setupDispatchingServer(_) {
+    DispatchingServer server = configuration['_servers_'].server;
+    void noCache(request) {
+        request.response.headers.set("Cache-Control",
+                                     "no-cache, no-store, must-revalidate");
+    }
+    int testId(request) =>
+        int.parse(request.uri.queryParameters["id"].split("=")[1]);
+    String browserId(request, prefix) =>
+        request.uri.path.substring(prefix.length + 1);
+
+
+    server.addHandler(reportPath, (HttpRequest request) {
+      noCache(request);
+      handleReport(request, browserId(request, reportPath),
+                   testId(request), isStatusUpdate: false);
+    });
+    server.addHandler(statusUpdatePath, (HttpRequest request) {
+      noCache(request);
+      handleReport(request, browserId(request, statusUpdatePath),
+                   testId(request), isStatusUpdate: true);
+    });
+    server.addHandler(startedPath, (HttpRequest request) {
+      noCache(request);
+      handleStarted(request, browserId(request, startedPath),
+                   testId(request));
+    });
+
+    makeSendPageHandler(String prefix) => (HttpRequest request) {
+      noCache(request);
+      var textResponse = "";
+      if (prefix == driverPath) {
+        textResponse = getDriverPage(browserId(request, prefix));
+        request.response.headers.set('Content-Type', 'text/html');
+      }
+      if (prefix == nextTestPath) {
+        textResponse = getNextTest(browserId(request, prefix));
+        request.response.headers.set('Content-Type', 'text/plain');
+      }
+      request.response.write(textResponse);
+      request.listen((_) {}, onDone: request.response.close);
+      request.response.done.catchError((error) {
+        if (!underTermination) {
+          print("URI ${request.uri}");
+          print("Textresponse $textResponse");
+          throw "Error returning content to browser: $error";
+        }
+      });
+    };
+    server.addHandler(driverPath, makeSendPageHandler(driverPath));
+    server.addHandler(nextTestPath, makeSendPageHandler(nextTestPath));
   }
 
   void handleReport(HttpRequest request, String browserId, var testId,
@@ -1402,13 +1394,14 @@ class BrowserTestingServer {
   }
 
   String getDriverUrl(String browserId) {
-    if (httpServer == null) {
+    if (errorReportingServer == null) {
       print("Bad browser testing server, you are not started yet. Can't "
             "produce driver url");
       exit(1);
       // This should never happen - exit immediately;
     }
-    return "http://$localIp:${httpServer.port}/driver/$browserId";
+    var port = configuration['_servers_'].port;
+    return "http://$localIp:$port/driver/$browserId";
   }
 
 

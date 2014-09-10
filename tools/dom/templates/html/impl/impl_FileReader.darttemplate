@@ -13,7 +13,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 $if DART2JS
     var res = JS('Null|String|NativeByteBuffer', '#.result', this);
 $else
-    var res = _blink.BlinkFileReader.$result_Getter(this);
+    var res = _blink.BlinkFileReader.result_Getter(this);
 $endif
     if (res is ByteBuffer) {
       return new Uint8List.view(res);

@@ -187,14 +187,19 @@ abstract class InlineLocalRefactoring implements Refactoring {
    * Returns a new [InlineLocalRefactoring] instance.
    */
   factory InlineLocalRefactoring(SearchEngine searchEngine,
-      CompilationUnit unit, LocalVariableElement element) {
-    return new InlineLocalRefactoringImpl(searchEngine, unit, element);
+      CompilationUnit unit, int offset) {
+    return new InlineLocalRefactoringImpl(searchEngine, unit, offset);
   }
 
   /**
    * Returns the number of references to the [VariableElement].
    */
   int get referenceCount;
+
+  /**
+   * Returns the name of the variable being inlined.
+   */
+  String get variableName;
 }
 
 
@@ -211,6 +216,12 @@ abstract class InlineMethodRefactoring implements Refactoring {
   }
 
   /**
+   * The name of the class enclosing the method being inlined.
+   * If not a class member is being inlined, then `null`.
+   */
+  String get className;
+
+  /**
    * True if the method being inlined should be removed.
    * It is an error if this field is `true` and [inlineAll] is `false`.
    */
@@ -221,6 +232,17 @@ abstract class InlineMethodRefactoring implements Refactoring {
    * the invocation site used to create this refactoring should be inlined.
    */
   void set inlineAll(bool inlineAll);
+
+  /**
+   * True if the declaration of the method is selected.
+   * So, all references should be inlined.
+   */
+  bool get isDeclaration;
+
+  /**
+   * The name of the method (or function) being inlined.
+   */
+  String get methodName;
 }
 
 
@@ -310,6 +332,12 @@ abstract class RenameRefactoring implements Refactoring {
     }
     return null;
   }
+
+  /**
+   * Returns the human-readable description of the kind of element being renamed
+   * (such as “class” or “function type alias”).
+   */
+  String get elementKindName;
 
   /**
    * Sets the new name for the [Element].

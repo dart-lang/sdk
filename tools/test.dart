@@ -18,8 +18,12 @@
  * and passses along all command line arguments to this script.)
  *
  * The command line args of this script are documented in
- * "tools/testing/test_options.dart".
+ * "tools/testing/dart/test_options.dart"; they are printed
+ * when this script is run with "--help".
  *
+ * The default test directory layout is documented in
+ * "tools/testing/dart/test_suite.dart", above
+ * "factory StandardTestSuite.forDirectory".
  */
 
 library test;
@@ -66,7 +70,6 @@ final TEST_SUITE_DIRECTORIES = [
     new Path('tests/utils'),
     new Path('utils/tests/css'),
     new Path('utils/tests/peg'),
-    new Path('sdk/lib/_internal/pub'),
 ];
 
 void testConfigurations(List<Map> configurations) {
@@ -129,10 +132,13 @@ void testConfigurations(List<Map> configurations) {
   List<Future> serverFutures = [];
   var testSuites = new List<TestSuite>();
   var maxBrowserProcesses = maxProcesses;
-  // If the server ports are fixed, then we can only have one configuration.
-  assert(((configurations[0]['test_server_port'] == 0) &&
-          (configurations[0]['test_server_cross_origin_port'] == 0)) ||
-         (configurations.length == 1));
+  if (configurations.length > 1 &&
+      (configurations[0]['test_server_port'] != 0 ||
+       configurations[0]['test_server_cross_origin_port'] != 0)) {
+    print("If the http server ports are specified, only one configuration"
+          " may be run at a time");
+    exit(1);
+  }
   for (var conf in configurations) {
     Map<String, RegExp> selectors = conf['selectors'];
     var useContentSecurityPolicy = conf['csp'];
@@ -143,7 +149,9 @@ void testConfigurations(List<Map> configurations) {
       // getCrossOriginPortNumber().
       var servers = new TestingServers(new Path(TestUtils.buildDir(conf)),
                                        useContentSecurityPolicy,
-                                       conf['runtime']);
+                                       conf['runtime'],
+                                       null,
+                                       conf['package_root']);
       serverFutures.add(servers.startServers(conf['local_ip'],
           port: conf['test_server_port'],
           crossOriginPort: conf['test_server_cross_origin_port']));
@@ -178,12 +186,6 @@ void testConfigurations(List<Map> configurations) {
     // If we specifically pass in a suite only run that.
     if (conf['suite_dir'] != null) {
       var suite_path = new Path(conf['suite_dir']);
-
-      // Add a selector if we did not specify a specific one
-      if (conf['default_selector'] != null) {
-        var regexp = new RegExp('.?');
-        conf['selectors'][suite_path.filename] = regexp;
-      }
       testSuites.add(
           new StandardTestSuite.forDirectory(conf, suite_path));
     } else {
@@ -216,6 +218,11 @@ void testConfigurations(List<Map> configurations) {
           }
           testSuites.add(
               new PkgBuildTestSuite(conf, 'pkgbuild', 'pkg/pkgbuild.status'));
+        } else if (key == 'pub') {
+          // TODO(rnystrom): Move pub back into TEST_SUITE_DIRECTORIES once
+          // #104 is fixed.
+          testSuites.add(new StandardTestSuite.forDirectory(conf,
+              new Path('sdk/lib/_internal/pub_generated'), 'pub'));
         }
       }
 

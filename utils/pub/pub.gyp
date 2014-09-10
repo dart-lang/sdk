@@ -29,13 +29,11 @@
             '<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
           ],
           'action': [
-            'python',
-            '../../tools/create_pub_snapshot.py',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '../../sdk/lib/_internal/pub/bin/async_compile.dart',
-            '<(PRODUCT_DIR)/pub_packages/',
-            '<(SHARED_INTERMEDIATE_DIR)',
-          ],
+            '--package-root=<(PRODUCT_DIR)/pub_packages/',
+            '--snapshot=<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
+            '../../sdk/lib/_internal/pub_generated/bin/pub.dart',
+          ]
         },
       ],
     },

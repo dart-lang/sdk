@@ -8,7 +8,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import 'reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 
@@ -112,7 +112,7 @@ class RequestErrorTest {
         'ints': [1, 2, 3]
       }
     };
-    RequestError error = new RequestError.fromJson(new ResponseDecoder(), '',
+    RequestError error = new RequestError.fromJson(new ResponseDecoder(null), '',
         json);
     expect(error.code, RequestErrorCode.INVALID_PARAMETER);
     expect(error.message, "foo");

@@ -102,7 +102,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask nonNullSubclass(ClassElement type)
       => new TypeMask.nonNullSubclass(type.declaration, classWorld);
   TypeMask nonNullExact(ClassElement type)
-      => new TypeMask.nonNullExact(type.declaration);
+      => new TypeMask.nonNullExact(type.declaration, classWorld);
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
 
   TypeMask allocateList(TypeMask type,
@@ -596,6 +596,11 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T visitFunctionExpression(ast.FunctionExpression node) {
+    // We loose track of [this] in closures (see issue 20840). To be on
+    // the safe side, we mark [this] as exposed here. We could do better by
+    // analyzing the closure.
+    // TODO(herhut): Analyze whether closure exposes this.
+    isThisExposed = true;
     LocalFunctionElement element = elements.getFunctionDefinition(node);
     // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
@@ -1005,8 +1010,11 @@ class SimpleTypeInferrerVisitor<T>
     // we have to forward the call to the effective target of the
     // factory.
     if (element.isFactoryConstructor) {
-      ConstructorElement constructor = element;
-      if (constructor.isRedirectingFactory) {
+      // TODO(herhut): Remove the while loop once effectiveTarget forwards to
+      //               patches.
+      while (element.isFactoryConstructor) {
+        ConstructorElement constructor = element;
+        if (!constructor.isRedirectingFactory) break;
         element = constructor.effectiveTarget.implementation;
       }
     }
@@ -1063,7 +1071,7 @@ class SimpleTypeInferrerVisitor<T>
     Selector selector = elements.getSelector(node);
     String name = selector.name;
     handleStaticSend(node, selector, elements[node], arguments);
-    if (name == 'JS') {
+    if (name == 'JS' || name == 'JS_EMBEDDED_GLOBAL') {
       native.NativeBehavior nativeBehavior =
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
       sideEffects.add(nativeBehavior.sideEffects);

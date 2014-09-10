@@ -159,7 +159,8 @@ String html = '''
   } else {
     // There were no transformers at all.
     insertionPoint = pubspecText.length;
-    textToInsert = 'transformers:\n- ';
+    var optionalNewline = pubspecText.endsWith('\n') ? '' : '\n';
+    textToInsert = '${optionalNewline}transformers:\n- ';
     entryPoints = [entryPoint];
   }
 

@@ -35,18 +35,18 @@ class Blink_DOMWindowCrossFrame {
 
   static get_top(_DOMWindowCrossFrame) native "Window_top_Getter";
 
-  static close(_DOMWindowCrossFrame) native "Window_close_Callback_RESOLVER_STRING_0_";
+  static close(_DOMWindowCrossFrame) native "Window_close_Callback";
 
   static postMessage(_DOMWindowCrossFrame, message, targetOrigin, [messagePorts]) native "Window_postMessage_Callback";
 }
 
 class Blink_HistoryCrossFrame {
   // _HistoryCrossFrame native entry points
-  static back(_HistoryCrossFrame) native "History_back_Callback_RESOLVER_STRING_0_";
+  static back(_HistoryCrossFrame) native "History_back_Callback";
 
-  static forward(_HistoryCrossFrame) native "History_forward_Callback_RESOLVER_STRING_0_";
+  static forward(_HistoryCrossFrame) native "History_forward_Callback";
 
-  static go(_HistoryCrossFrame, distance) native "History_go_Callback_RESOLVER_STRING_1_long";
+  static go(_HistoryCrossFrame, distance) native "History_go_Callback_long";
 }
 
 class Blink_LocationCrossFrame {

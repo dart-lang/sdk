@@ -7,10 +7,19 @@ library type_mask2_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
-import 'package:compiler/implementation/dart_types.dart';
 import 'package:compiler/implementation/elements/elements.dart'
        show Element, ClassElement;
 import 'package:compiler/implementation/types/types.dart';
+
+isCheckedMode() {
+  try {
+    var i = 1;
+    String s = i;
+    return false;
+  } catch (e) {
+    return true;
+  }
+}
 
 void main() {
   testUnionTypeMaskFlatten();
@@ -55,9 +64,14 @@ void testUnionTypeMaskFlatten() {
       Expect.listEquals(disjointMasks, disjoint,
           'Unexpected disjoint masks: $disjoint, expected $disjointMasks.');
       if (flattened == null) {
-        Expect.throws(() => UnionTypeMask.flatten(disjoint, classWorld),
-          (e) => e is AssertionError,
-          'Expect assertion failure on flattening of $disjoint.');
+        // We only do the invalid call to flatten in checked mode, as flatten's
+        // brehaviour in unchecked more is not defined and thus cannot be
+        // reliably tested.
+        if (isCheckedMode()) {
+          Expect.throws(() => UnionTypeMask.flatten(disjoint, classWorld),
+            (e) => e is AssertionError,
+            'Expect assertion failure on flattening of $disjoint.');
+        }
       } else {
         TypeMask flattenResult =
             UnionTypeMask.flatten(disjoint, classWorld);
@@ -93,14 +107,14 @@ void testUnionTypeMaskFlatten() {
 
     TypeMask empty = const TypeMask.nonNullEmpty();
     TypeMask subclassObject = new TypeMask.nonNullSubclass(Object_, classWorld);
-    TypeMask exactA = new TypeMask.nonNullExact(A);
+    TypeMask exactA = new TypeMask.nonNullExact(A, classWorld);
     TypeMask subclassA = new TypeMask.nonNullSubclass(A, classWorld);
     TypeMask subtypeA = new TypeMask.nonNullSubtype(A, classWorld);
-    TypeMask exactB = new TypeMask.nonNullExact(B);
+    TypeMask exactB = new TypeMask.nonNullExact(B, classWorld);
     TypeMask subclassB = new TypeMask.nonNullSubclass(B, classWorld);
-    TypeMask exactC = new TypeMask.nonNullExact(C);
-    TypeMask exactD = new TypeMask.nonNullExact(D);
-    TypeMask exactE = new TypeMask.nonNullExact(E);
+    TypeMask exactC = new TypeMask.nonNullExact(C, classWorld);
+    TypeMask exactD = new TypeMask.nonNullExact(D, classWorld);
+    TypeMask exactE = new TypeMask.nonNullExact(E, classWorld);
 
     check([],
           result: empty,

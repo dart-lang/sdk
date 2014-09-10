@@ -29,7 +29,6 @@ const String ANALYSIS_SET_SUBSCRIPTIONS = 'analysis.setSubscriptions';
 const String ANALYSIS_UPDATE_CONTENT = 'analysis.updateContent';
 const String ANALYSIS_UPDATE_OPTIONS = 'analysis.updateOptions';
 
-
 //
 // Analysis notifications
 //
@@ -72,6 +71,19 @@ const String EDIT_GET_ASSISTS = 'edit.getAssists';
 const String EDIT_GET_AVAILABLE_REFACTORINGS = 'edit.getAvailableRefactorings';
 const String EDIT_GET_FIXES = 'edit.getFixes';
 const String EDIT_GET_REFACTORING = 'edit.getRefactoring';
+
+//
+// Execution methods
+//
+const String EXECUTION_CREATE_CONTEXT = 'execution.createContext';
+const String EXECUTION_DELETE_CONTEXT = 'execution.deleteContext';
+const String EXECUTION_MAP_URI = 'execution.mapUri';
+const String EXECUTION_SET_SUBSCRIPTIONS = 'execution.setSubscriptions';
+
+//
+// Execution notifications
+//
+const String EXECUTION_LAUNCH_DATA = 'execution.launchData';
 
 //
 // Analysis option names

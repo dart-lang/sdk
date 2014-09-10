@@ -1407,7 +1407,7 @@ class ResolverTask extends CompilerTask {
       // and the annotated element instead. This will allow the backend to
       // retrieve the backend constant and only register metadata on the
       // elements for which it is needed. (Issue 17732).
-      registry.registerMetadataConstant(annotation.value, annotatedElement);
+      registry.registerMetadataConstant(annotation, annotatedElement);
       annotation.resolutionState = STATE_DONE;
     }));
   }
@@ -2922,6 +2922,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (target != null && target.isForeign(compiler.backend)) {
         if (selector.name == 'JS') {
           registry.registerJsCall(node, this);
+        } else if (selector.name == 'JS_EMBEDDED_GLOBAL') {
+          registry.registerJsEmbeddedGlobalCall(node, this);
         } else if (selector.name == 'JS_INTERCEPTOR_CONSTANT') {
           if (!node.argumentsNode.isEmpty) {
             Node argument = node.argumentsNode.nodes.head;
@@ -4916,6 +4918,10 @@ abstract class AnalyzableElementX implements AnalyzableElement {
     assert(invariant(this, _treeElements !=null,
         message: "TreeElements have not been computed for $this."));
     return _treeElements;
+  }
+
+  void reuseElement() {
+    _treeElements = null;
   }
 }
 

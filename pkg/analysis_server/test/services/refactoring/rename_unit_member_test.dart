@@ -5,7 +5,7 @@
 library test.services.refactoring.rename_unit_member;
 
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'abstract_rename.dart';
@@ -343,6 +343,7 @@ main() {
     // configure refactoring
     createRenameRefactoringAtString('Test implements');
     expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
     expect(refactoring.oldName, 'Test');
     refactoring.newName = 'NewName';
     // validate change
@@ -393,6 +394,7 @@ main(Test t) {
     // configure refactoring
     createRenameRefactoringAtString('Test =');
     expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
     expect(refactoring.oldName, 'Test');
     refactoring.newName = 'NewName';
     // validate change
@@ -417,6 +419,7 @@ main() {
     // configure refactoring
     createRenameRefactoringAtString('test() {}');
     expect(refactoring.refactoringName, 'Rename Top-Level Function');
+    expect(refactoring.elementKindName, 'function');
     expect(refactoring.oldName, 'test');
     refactoring.newName = 'newName';
     // validate change
@@ -506,6 +509,7 @@ main() {
     // configure refactoring
     createRenameRefactoringAtString(search);
     expect(refactoring.refactoringName, 'Rename Top-Level Variable');
+    expect(refactoring.elementKindName, 'top level variable');
     expect(refactoring.oldName, 'test');
     refactoring.newName = 'newName';
     // validate change

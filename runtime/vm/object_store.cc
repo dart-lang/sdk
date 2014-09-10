@@ -28,7 +28,6 @@ ObjectStore::ObjectStore()
     integer_implementation_class_(Class::null()),
     smi_class_(Class::null()),
     mint_class_(Class::null()),
-    bigint_class_(Class::null()),
     double_class_(Class::null()),
     float32x4_type_(Type::null()),
     int32x4_type_(Type::null()),

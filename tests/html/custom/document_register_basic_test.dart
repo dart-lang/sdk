@@ -35,9 +35,13 @@ class Baz extends Foo {
 class BadB {
 }
 
-class BadE implements HtmlElement {
-  static final tag = 'x-tag-e';
-  factory BadE() => new Element.tag(tag);
+abstract class BadC extends HtmlElement {
+  BadC.created() : super.created();
+}
+
+class BadF implements HtmlElement {
+  static final tag = 'x-tag-f';
+  factory BadF() => new Element.tag(tag);
 }
 
 main() {
@@ -56,14 +60,17 @@ main() {
     // Invalid user type.  Doesn't inherit from HtmlElement.
     expect(() => document.registerElement('x-bad-b', BadB), throws);
 
+    // Cannot register abstract class.
+    expect(() => document.registerElement('x-bad-c', BadC), throws);
+
     // Not a type.
-    expect(() => document.registerElement('x-bad-c', null), throws);
+    expect(() => document.registerElement('x-bad-d', null), throws);
 
     // Cannot register system type.
-    expect(() => document.registerElement('x-bad-d', Object), throws);
+    expect(() => document.registerElement('x-bad-e', Object), throws);
 
     // Must extend HtmlElement, not just implement it.
-    expect(() => document.registerElement(BadE.tag, BadE), throws);
+    expect(() => document.registerElement(BadF.tag, BadF), throws);
 
     // Constructor initiated instantiation
     var createdFoo = new Foo();

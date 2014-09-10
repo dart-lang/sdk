@@ -29,14 +29,13 @@ class UpgradeCommand extends PubCommand {
         help: "Report what dependencies would change but don't change any.");
   }
 
-  Future onRun() {
+  Future onRun() async {
     var dryRun = commandOptions['dry-run'];
-    return entrypoint.acquireDependencies(SolveType.UPGRADE,
-        useLatest: commandOptions.rest, dryRun: dryRun).then((_) {
-      if (isOffline) {
-        log.warning("Warning: Upgrading when offline may not update you to the "
-                    "latest versions of your dependencies.");
-      }
-    });
+    await entrypoint.acquireDependencies(SolveType.UPGRADE,
+        useLatest: commandOptions.rest, dryRun: dryRun);
+    if (isOffline) {
+      log.warning("Warning: Upgrading when offline may not update you to the "
+                  "latest versions of your dependencies.");
+    }
   }
 }

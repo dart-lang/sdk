@@ -20,6 +20,11 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
 
+
+# Failures when running with --optimization-counter-threshold=5
+[ $runtime == vm && $mode == debug && $checked ]
+intl/test/number_format_test: Skip # Dart Issue 20875
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
@@ -99,7 +104,6 @@ collection/test/equality_test/none: Pass, Fail # Issue 14348
 docgen/test/*: Skip # Far too slow
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
-math/test/bigint_test: RuntimeError # Requires bigint support.
 
 analysis_server/test/search/element_references_test: Pass, Slow
 analysis_server/test/services/index/store/codec_test: Pass, Slow
@@ -108,6 +112,10 @@ analysis_server/test/services/index/store/codec_test: Pass, Slow
 # dart2js, since the code under test always runs in the Dart vm as a
 # subprocess.
 analysis_server/test/integration: Skip
+
+observe/test/unique_message_test: Skip # Intended only as a vm test.
+polymer/test/build/unique_message_test: Skip # Intended only as a vm test.
+code_transformers/test/unique_message_test: Skip # Intended only as a vm test.
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 http/test/html/client_test: Fail # Issue 19750
@@ -233,6 +241,7 @@ template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
 polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 polymer_expressions/test/syntax_test: Fail, Timeout, Pass # Issue 19138
+observe/test/list_path_observer_test: RuntimeError, Pass # Issue 20849
 
 [ $runtime == ie10 ]
 typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
@@ -262,8 +271,6 @@ third_party/angular_tests/vm_test: Fail # Uses removed APIs. See issue 18733.
 
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
-glob/test/match_test: RuntimeError # Issue 20789
-glob/test/parse_test: RuntimeError # Issue 20789
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 # These tests are runtime negative but statically positive, so we skip
@@ -317,7 +324,11 @@ analysis_server/tool/spec/check_all_test: Skip # Uses dart:io.
 analyzer2dart/*: Skip # Uses dart:io.
 analyzer/test/*: Skip # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
-code_transformers/test/*: Skip # Uses dart:io.
+code_transformers/test/assets_test: Skip # Uses dart:io
+code_transformers/test/entry_point_test: Skip # Uses dart:io
+code_transformers/test/resolver_test: Skip # Uses dart:io
+code_transformers/test/unique_message_test: Skip # Uses dart:io
+code_transformers/test/remove_sourcemap_comment_test: Skip # Uses dart:io.
 http/test/io/*: Fail, OK # Uses dart:io.
 http_parser/test/web_socket_test: Fail, OK # Uses dart:io
 http_multi_server/test/http_multi_server_test: Skip # Uses dart:io
@@ -331,6 +342,7 @@ intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/message_extraction_no_deferred_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
 observe/test/transformer_test: Fail, OK # Uses dart:io.
+observe/test/unique_message_test: Skip # Intended only as a vm test.
 path/test/io_test: Fail, OK # Uses dart:io.
 polymer/test/build/all_phases_test: Fail, OK # Uses dart:io.
 polymer/test/build/polyfill_injector_test: Fail, OK # Uses dart:io.
@@ -340,6 +352,8 @@ polymer/test/build/script_compactor_test: Fail, OK # Uses dart:io.
 polymer/test/build/utils_test: Fail, OK # Uses dart:io.
 polymer/test/build/import_inliner_test: Fail, OK # Uses dart:io.
 polymer/test/build/linter_test: Fail, OK # Uses dart:io.
+polymer/test/build/remove_sourcemap_comment_test: Fail, OK # Uses dart:io.
+polymer/test/build/unique_message_test: Skip # Intended only as a vm test.
 shelf/test/shelf_io_test: Fail, OK # Uses dart:io
 shelf_web_socket/test/*: Fail, OK # Uses dart:io.
 smoke/test/codegen/end_to_end_test: Skip # Uses dart:io.
@@ -430,7 +444,6 @@ http/test/html/*: Skip
 [ $browser ]
 docgen/test/*: Skip  # Uses dart:io
 scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
-glob/test/match_test: RuntimeError # Issue 20788
 
 [ $browser || $runtime == vm ]
 unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.

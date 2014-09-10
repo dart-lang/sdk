@@ -5,7 +5,7 @@
 library test.services.refactoring.rename_library;
 
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import '../../reflective_tests.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
@@ -60,6 +60,7 @@ part 'part.dart';
     // configure refactoring
     _createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Library');
+    expect(refactoring.elementKindName, 'library');
     refactoring.newName = 'the.new.name';
     // validate change
     return assertSuccessfulRefactoring('''

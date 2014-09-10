@@ -5,7 +5,7 @@
 #ifndef VM_UNIT_TEST_H_
 #define VM_UNIT_TEST_H_
 
-#include "include/dart_api.h"
+#include "include/dart_native_api.h"
 
 #include "platform/globals.h"
 
@@ -261,6 +261,7 @@ class TestCase : TestCaseBase {
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url);
+  static char* BigintToHexValue(Dart_CObject* bigint);
 
   virtual void Run();
 

@@ -99,7 +99,9 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     Array maps;
     maps = Array::null();
     Stackmap map;
-    map = code.GetStackmap(pc(), &maps, &map);
+    const uword entry = reinterpret_cast<uword>(code.instructions()->ptr()) +
+                        Instructions::HeaderSize();
+    map = code.GetStackmap(pc() - entry, &maps, &map);
     if (!map.IsNull()) {
       RawObject** first = reinterpret_cast<RawObject**>(sp());
       RawObject** last = reinterpret_cast<RawObject**>(

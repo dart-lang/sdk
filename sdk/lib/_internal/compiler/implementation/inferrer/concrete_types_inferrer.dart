@@ -437,7 +437,7 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
         return new TypeMask.nonNullSubclass(compiler.backend.intImplementation,
                                             compiler.world);
       } else {
-        return new TypeMask.nonNullExact(element.declaration);
+        return new TypeMask.nonNullExact(element.declaration, compiler.world);
       }
     }
   }
@@ -1294,7 +1294,7 @@ class ConcreteTypesInferrer
       Element enclosing = field.enclosingElement;
       if (enclosing.isClass) {
         ClassElement cls = enclosing;
-        TypeMask receiverMask = new TypeMask.exact(cls.declaration);
+        TypeMask receiverMask = new TypeMask.exact(cls.declaration, classWorld);
         TypeMask resultMask = types.concreteTypeToTypeMask(result);
         augmentInferredSelectorType(selector, receiverMask, resultMask);
       }
@@ -1561,7 +1561,8 @@ class ConcreteTypesInferrer
           || receiverType == compiler.backend.intImplementation)
               ? new TypeMask.nonNullSubclass(receiverType.declaration,
                   compiler.world)
-              : new TypeMask.nonNullExact(receiverType.declaration);
+              : new TypeMask.nonNullExact(receiverType.declaration,
+                  compiler.world);
       TypeMask resultMask = types.concreteTypeToTypeMask(result);
       augmentInferredSelectorType(selector, receiverMask, resultMask);
     }

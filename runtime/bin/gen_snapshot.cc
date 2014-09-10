@@ -351,11 +351,17 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(file_path)) {
     return file_path;
   }
-
-  return DartUtils::LoadSource(library,
-                               url,
-                               tag,
-                               DartUtils::GetStringValue(file_path));
+  const char* raw_path = DartUtils::GetStringValue(file_path);
+  Dart_Handle source = DartUtils::ReadStringFromFile(raw_path);
+  if (Dart_IsError(source)) {
+    return source;
+  }
+  if (tag == Dart_kImportTag) {
+    return Dart_LoadLibrary(url, source, 0, 0);
+  } else {
+    ASSERT(tag == Dart_kSourceTag);
+    return Dart_LoadSource(library, url, source, 0, 0);
+  }
 }
 
 

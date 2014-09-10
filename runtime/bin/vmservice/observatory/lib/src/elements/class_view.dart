@@ -26,13 +26,12 @@ class ClassViewElement extends ObservatoryElement {
           instances = obj;
         });
   }
-  
+
   // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
   Future<ServiceObject> retainedSize(var dummy) {
-    return cls.get("retained")
-        .then((ServiceMap obj) {
-          retainedBytes = int.parse(obj['valueAsString']);
-        });
+    return cls.get("retained").then((Instance obj) {
+      retainedBytes = int.parse(obj.valueAsString);
+    });
   }
 
   void refresh(var done) {

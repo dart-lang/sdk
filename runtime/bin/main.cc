@@ -34,7 +34,7 @@ extern const uint8_t* snapshot_buffer;
 
 // Global state that stores a pointer to the application script snapshot.
 static bool generate_script_snapshot = false;
-static File* snapshot_file = NULL;
+static const char* snapshot_filename = NULL;
 
 
 // Global state that indicates whether there is a debug breakpoint.
@@ -274,12 +274,7 @@ static bool ProcessGenScriptSnapshotOption(const char* filename,
                     " dart\n");
       return false;
     }
-    snapshot_file = File::Open(filename, File::kWriteTruncate);
-    if (snapshot_file == NULL) {
-      Log::PrintErr("Unable to open file %s for writing the snapshot\n",
-                    filename);
-      return false;
-    }
+    snapshot_filename = filename;
     generate_script_snapshot = true;
     return true;
   }
@@ -598,10 +593,9 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = DartUtils::LoadScript(isolate_data->script_url, builtin_lib);
   CHECK_RESULT(result);
 
-  if (Dart_IsVMFlagSet("load_async")) {
-    result = Dart_RunLoop();
-    CHECK_RESULT(result);
-  }
+  // Run event-loop and wait for script loading to complete.
+  result = Dart_RunLoop();
+  CHECK_RESULT(result);
 
   Platform::SetPackageRoot(package_root);
   Dart_Handle io_lib_url = DartUtils::NewString(DartUtils::kIOLibURL);
@@ -1074,6 +1068,14 @@ void main(int argc, char** argv) {
     result = Dart_CreateScriptSnapshot(&buffer, &size);
     DartExitOnError(result);
 
+    // Open the snapshot file.
+    File* snapshot_file = File::Open(snapshot_filename, File::kWriteTruncate);
+    if (snapshot_file == NULL) {
+      ErrorExit(kErrorExitCode,
+                "Unable to open file %s for writing the snapshot\n",
+                snapshot_filename);
+    }
+
     // Write the magic number to indicate file is a script snapshot.
     DartUtils::WriteMagicNumber(snapshot_file);
 
@@ -1081,6 +1083,7 @@ void main(int argc, char** argv) {
     bool bytes_written = snapshot_file->WriteFully(buffer, size);
     ASSERT(bytes_written);
     delete snapshot_file;
+    snapshot_file = NULL;
   } else {
     // Lookup the library of the root script.
     Dart_Handle root_lib = Dart_RootLibrary();

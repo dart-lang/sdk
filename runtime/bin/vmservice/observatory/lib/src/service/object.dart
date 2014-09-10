@@ -38,16 +38,57 @@ abstract class ServiceObject extends Observable {
   @reflectable String get vmType => _vmType;
   String _vmType;
 
-  bool get isBool => vmType == 'Bool';
-  bool get isDouble => vmType == 'Double';
-  bool get isError => vmType == 'Error';
-  bool get isInstance => vmType == 'Instance';
-  bool get isInt => vmType == 'Smi' || vmType == 'Mint' || vmType == 'Bigint';
-  bool get isList => vmType == 'GrowableObjectArray' || vmType == 'Array';
-  bool get isNull => vmType == 'Null';
-  bool get isSentinel => vmType == 'Sentinel';
-  bool get isString => vmType == 'String';
-  bool get isType => vmType == 'Type';
+  static bool _isInstanceType(String type) {
+    switch (type) {
+      case 'BoundedType':
+      case 'Instance':
+      case 'List':
+      case 'String':
+      case 'Type':
+      case 'TypeParameter':
+      case 'TypeRef':
+      case 'bool':
+      case 'double':
+      case 'int':
+      case 'null':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  static bool _isTypeType(String type) {
+    switch (type) {
+      case 'BoundedType':
+      case 'Type':
+      case 'TypeParameter':
+      case 'TypeRef':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool get isAbstractType => _isTypeType(type);
+  bool get isBool => type == 'bool';
+  bool get isContext => type == 'Context';
+  bool get isDouble => type == 'double';
+  bool get isError => type == 'Error';
+  bool get isInstance => _isInstanceType(type);
+  bool get isInt => type == 'int';
+  bool get isList => type == 'List';
+  bool get isNull => type == 'null';
+  bool get isSentinel => type == 'Sentinel';
+  bool get isString => type == 'String';
+
+  // Kinds of Instance.
+  bool get isMirrorReference => vmType == 'MirrorReference';
+  bool get isWeakProperty => vmType == 'WeakProperty';
+  bool get isClosure => false;
+  bool get isPlainInstance {
+    return (type == 'Instance' &&
+            !isMirrorReference && !isWeakProperty && !isClosure);
+  }
 
   /// The complete service url of this object.
   @reflectable String get link => _owner.relativeLink(_id);
@@ -91,6 +132,9 @@ abstract class ServiceObject extends Observable {
       case 'Code':
         obj = new Code._empty(owner);
         break;
+      case 'Context':
+        obj = new Context._empty(owner);
+        break;
       case 'Counter':
         obj = new ServiceMetric._empty(owner);
         break;
@@ -102,20 +146,6 @@ abstract class ServiceObject extends Observable {
         break;
       case 'Gauge':
         obj = new ServiceMetric._empty(owner);
-        break;
-      case 'Array':
-      case 'Bigint':
-      case 'Bool':
-      case 'Double':
-      case 'GrowableObjectArray':
-      case 'Instance':
-      case 'Mint':
-      case 'Null':
-      case 'Sentinel':  // TODO(rmacnak): Separate this out.
-      case 'Smi':
-      case 'String':
-      case 'Type':
-        obj = new Instance._empty(owner);
         break;
       case 'Isolate':
         obj = new Isolate._empty(owner.vm);
@@ -139,7 +169,14 @@ abstract class ServiceObject extends Observable {
         obj = new Socket._empty(owner);
         break;
       default:
-        obj = new ServiceMap._empty(owner);
+        if (_isInstanceType(type) ||
+            type == 'Sentinel') {  // TODO(rmacnak): Separate this out.
+          obj = new Instance._empty(owner);
+          break;
+        } else {
+          obj = new ServiceMap._empty(owner);
+          break;
+        }
     }
     obj.update(map);
     return obj;
@@ -176,7 +213,7 @@ abstract class ServiceObject extends Observable {
             // updating the existing one.
             //
             // TODO(turnidge): Check for vmType changing as well?
-            assert(mapType == 'Error' || mapType == 'Null');
+            assert(mapType == 'Error' || mapType == 'null');
             return new ServiceObject._fromMap(owner, map);
           }
           update(map);
@@ -210,8 +247,8 @@ abstract class ServiceObject extends Observable {
     // When the response specifies a specific vmType, use it.
     // Otherwise the vmType of the response is the same as the 'user'
     // type.
-    if (map.containsKey('vmType')) {
-      _vmType = _stripRef(map['vmType']);
+    if (map.containsKey('_vmType')) {
+      _vmType = _stripRef(map['_vmType']);
     } else {
       _vmType = _type;
     }
@@ -787,7 +824,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable String name;
   @observable String vmName;
   @observable String mainPort;
-  @observable Map entry;
+  @observable ServiceFunction entry;
 
   @observable final Map<String, double> timers =
       toObservable(new Map<String, double>());
@@ -1189,7 +1226,7 @@ class DartError extends ServiceObject {
   @observable String kind;
   @observable String message;
   @observable Instance exception;
-  @observable ServiceMap stacktrace;
+  @observable Instance stacktrace;
 
   void _update(ObservableMap map, bool mapIsRef) {
     kind = map['kind'];
@@ -1470,17 +1507,22 @@ class Class extends ServiceObject with Coverage {
 
 class Instance extends ServiceObject {
   @observable Class clazz;
-  @observable String valueAsString;
   @observable int size;
+  @observable String valueAsString;  // If primitive.
+  @observable bool valueAsStringIsTruncated;
   @observable ServiceFunction closureFunc;  // If a closure.
+  @observable Context closureCtxt;  // If a closure.
   @observable String name;  // If a Type.
+  @observable int length; // If a List.
 
   @observable var typeClass;
-  @observable var length;
   @observable var fields;
   @observable var nativeFields;
   @observable var elements;
   @observable var userName;
+  @observable var referent;  // If a MirrorReference.
+  @observable Instance key;  // If a WeakProperty.
+  @observable Instance value;  // If a WeakProperty.
 
   bool get isClosure => closureFunc != null;
 
@@ -1491,10 +1533,14 @@ class Instance extends ServiceObject {
     _upgradeCollection(map, isolate);
 
     clazz = map['class'];
-    valueAsString = map['valueAsString'];
     size = map['size'];
+    valueAsString = map['valueAsString'];
+    // Coerce absence to false.
+    valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
     closureFunc = map['closureFunc'];
+    closureCtxt = map['closureCtxt'];
     name = map['name'];
+    length = map['length'];
 
     if (mapIsRef) {
       return;
@@ -1502,10 +1548,12 @@ class Instance extends ServiceObject {
 
     nativeFields = map['nativeFields'];
     fields = map['fields'];
-    length = map['length'];
     elements = map['elements'];
     typeClass = map['type_class'];
     userName = map['user_name'];
+    referent = map['referent'];
+    key = map['key'];
+    value = map['value'];
 
     // We are fully loaded.
     _loaded = true;
@@ -1515,6 +1563,40 @@ class Instance extends ServiceObject {
 
   String toString() => 'Instance($shortName)';
 }
+
+
+class Context extends ServiceObject {
+  @observable Class clazz;
+  @observable int size;
+
+  @observable var parentContext;
+  @observable int length;
+  @observable var variables;
+
+  Context._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    // Extract full properties.
+    _upgradeCollection(map, isolate);
+
+    size = map['size'];
+    length = map['length'];
+    parentContext = map['parent'];
+
+    if (mapIsRef) {
+      return;
+    }
+
+    clazz = map['class'];
+    variables = map['variables'];
+
+    // We are fully loaded.
+    _loaded = true;
+  }
+
+  String toString() => 'Context($length)';
+}
+
 
 // TODO(koda): Sync this with VM.
 class FunctionKind {
@@ -2003,7 +2085,7 @@ class Code extends ServiceObject {
   @reflectable final addressTicks = new ObservableMap<int, CodeTick>();
   @observable String formattedInclusiveTicks = '';
   @observable String formattedExclusiveTicks = '';
-  @observable ServiceMap objectPool;
+  @observable Instance objectPool;
   @observable ServiceFunction function;
   @observable Script script;
   @observable bool isOptimized = false;

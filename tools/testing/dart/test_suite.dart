@@ -635,12 +635,10 @@ class StandardTestSuite extends TestSuite {
    * instead of having to create a custom [StandardTestSuite] subclass. In
    * particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
    * in test.dart, this will all be set up for you.
-   *
-   * The [StandardTestSuite] also optionally takes a list of servers that have
-   * been started up by the test harness, to be used by browser tests.
    */
-  factory StandardTestSuite.forDirectory(Map configuration, Path directory) {
-    final name = directory.filename;
+  factory StandardTestSuite.forDirectory(Map configuration, Path directory,
+      [String name]) {
+    if (name == null) name = directory.filename;
 
     var status_paths = ['$directory/$name.status',
                         '$directory/.status',
@@ -887,6 +885,11 @@ class StandardTestSuite extends TestSuite {
           }
       }
     }
+    if (configuration['package_root'] != null) {
+      packageRoot = new Path(configuration['package_root']);
+      optionsFromFile['packageRoot'] = packageRoot.toNativePath();
+    }
+
     String testName = buildTestCaseDisplayName(suiteDir, info.originTestPath,
         multitestName: optionsFromFile['isMultitest'] ? info.multitestKey : "");
 
@@ -1285,7 +1288,7 @@ class StandardTestSuite extends TestSuite {
               dartFlags, environmentOverrides));
         } else {
           commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
-              runtime, fullHtmlPath, checkedMode: configuration['checked']));
+              runtime, fullHtmlPath, configuration));
         }
 
         // Create BrowserTestCase and queue it.
@@ -1722,7 +1725,7 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
     // NOTE: We exclude tests and patch files for now.
     return filename.endsWith(".dart") &&
         !filename.endsWith("_test.dart") &&
-        !filename.contains("_internal/lib");
+        !filename.contains("_internal/compiler/js_lib");
   }
 
   bool get listRecursively => true;
@@ -1962,7 +1965,7 @@ class TestUtils {
           if (result.exitCode != 0) {
             throw new Exception('Can\'t delete path $native_path. '
                                 'This path might be too long');
-          }  
+          }
         });
     } else {
       var dir = new Directory(path);

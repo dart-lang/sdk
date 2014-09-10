@@ -7,7 +7,7 @@
   <template>
     <style>
       .textbox {
-        width: 80ex;
+        flex-grow: 1;
         font: 400 16px 'Montserrat', sans-serif;
       }
       .bigtextbox {
@@ -18,9 +18,10 @@
       }
       .radios {
         display: inline;
+        padding-right: 30px;
       }
       .radios label{
-        padding-left: 15px;
+        padding-left: 10px;
       }
       .historyExpr, .historyValue {
         vertical-align: text-top;
@@ -42,7 +43,7 @@
         padding: 6px 6px;
       }
     </style>
-    <form>
+    <form style="display:flex; flex-direction:row; align-items:flex-end">
       <template if="{{ lineMode == '1-line' }}">
         <input class="textbox" type="text" value="{{ text }}">
       </template>
@@ -53,11 +54,13 @@
 
       <input class="button" type="submit" value="Evaluate" on-click="{{ eval }}">
       <div class="radios" on-change="{{ updateLineMode }}">
-        <label for="1-line">1-line
+        <label for="1-line">
           <input type="radio" name="lineMode" value="1-line" checked>
+          1-line
         </label>
-        <label for="N-line">N-line
+        <label for="N-line">
           <input type="radio" name="lineMode" value="N-line">
+          N-line
         </label>
       </div>
     </form>

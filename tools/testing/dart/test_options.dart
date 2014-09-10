@@ -7,6 +7,7 @@ library test_options_parser;
 import "dart:io";
 import "drt_updater.dart";
 import "test_suite.dart";
+import "utils.dart";
 import "compiler_configuration.dart" show CompilerConfiguration;
 import "runtime_configuration.dart" show RuntimeConfiguration;
 
@@ -432,6 +433,12 @@ Note: currently only implemented for dart2js.''',
               [],
               null),
           new _TestOptionSpecification(
+              'package_root',
+              'The package root to use for testing.',
+              ['--package-root'],
+              [],
+              null),
+          new _TestOptionSpecification(
               'exclude_suite',
               'Exclude suites from default selector, only works when no'
               ' selector has been specified on the command line',
@@ -715,8 +722,13 @@ Note: currently only implemented for dart2js.''',
     var selectors = configuration['selectors'];
     if (selectors is !Map) {
       if (selectors == null) {
-        configuration['default_selector'] = true;
-        selectors = new List.from(defaultTestSelectors);
+        if (configuration['suite_dir'] != null) {
+          var suite_path = new Path(configuration['suite_dir']);
+          selectors = [suite_path.filename];
+        } else {
+          selectors = new List.from(defaultTestSelectors);
+        }
+
         var exclude_suites = configuration['exclude_suite'] != null ?
               configuration['exclude_suite'].split(',') : [];
         for (var exclude in exclude_suites) {
@@ -817,7 +829,13 @@ Note: currently only implemented for dart2js.''',
    * Print out usage information.
    */
   void _printHelp() {
-    print('usage: dart test.dart [options]\n');
+    print('usage: dart test.dart [options] [selector]');
+    print('');
+    print('The optional selector limits the tests that will be run.');
+    print('For example, the selector "language/issue", or equivalently');
+    print('"language/*issue*", limits to test files matching the regexp');
+    print('".*issue.*\\.dart" in the "tests/language" directory.');
+    print('');
     print('Options:\n');
     for (var option in _options) {
       print('${option.name}: ${option.description}.');

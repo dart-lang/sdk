@@ -10,15 +10,18 @@ import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
-import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
+import '../reflective_tests.dart';
 
 
 main() {
   groupSep = ' | ';
   runReflectiveTests(ExtractLocalVariableTest);
+  runReflectiveTests(ExtractMethodTest);
+  runReflectiveTests(InlineLocalTest);
+  runReflectiveTests(InlineMethodTest);
   runReflectiveTests(GetAvailableRefactoringsTest);
   runReflectiveTests(RenameTest);
 }
@@ -29,8 +32,8 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendExtractRequest(int offset, int length, String name,
       bool extractAll) {
     RefactoringKind kind = RefactoringKind.EXTRACT_LOCAL_VARIABLE;
-    Map options = name != null ? new ExtractLocalVariableOptions(name,
-        extractAll).toJson() : null;
+    ExtractLocalVariableOptions options =
+        name != null ? new ExtractLocalVariableOptions(name, extractAll) : null;
     return sendRequest(kind, offset, length, options, false);
   }
 
@@ -117,8 +120,7 @@ main() {
     return getRefactoringResult(() {
       return sendStringSuffixRequest('getSelectedItem()', ';', null, true);
     }).then((result) {
-      ExtractLocalVariableFeedback feedback =
-          new ExtractLocalVariableFeedback.fromRefactoringResult(result);
+      ExtractLocalVariableFeedback feedback = result.feedback;
       expect(
           feedback.names,
           unorderedEquals(['treeItem', 'item', 'selectedItem']));
@@ -136,11 +138,201 @@ main() {
     return getRefactoringResult(() {
       return sendStringRequest('1 + 2', 'res', true);
     }).then((result) {
-      ExtractLocalVariableFeedback feedback =
-          new ExtractLocalVariableFeedback.fromRefactoringResult(result);
+      ExtractLocalVariableFeedback feedback = result.feedback;
       expect(feedback.offsets, [findOffset('1 + 2'), findOffset('1 +  2')]);
       expect(feedback.lengths, [5, 6]);
     });
+  }
+}
+
+
+@ReflectiveTestCase()
+class ExtractMethodTest extends _AbstractGetRefactoring_Test {
+  int offset;
+  int length;
+  String name = 'res';
+  ExtractMethodOptions options;
+
+  test_expression() {
+    addTestFile('''
+main() {
+  print(1 + 2);
+  print(1 + 2);
+}
+''');
+    _setOffsetLengthForString('1 + 2');
+    return assertSuccessfulRefactoring(_computeChange, '''
+main() {
+  print(res());
+  print(res());
+}
+
+int res() => 1 + 2;
+''');
+  }
+
+  test_expression_hasParameters() {
+    addTestFile('''
+main() {
+  int a = 1;
+  int b = 2;
+  print(a + b);
+  print(a +  b);
+}
+''');
+    _setOffsetLengthForString('a + b');
+    return assertSuccessfulRefactoring(_computeChange, '''
+main() {
+  int a = 1;
+  int b = 2;
+  print(res(a, b));
+  print(res(a, b));
+}
+
+int res(int a, int b) => a + b;
+''');
+  }
+
+  test_expression_updateParameters() {
+    addTestFile('''
+main() {
+  int a = 1;
+  int b = 2;
+  print(a + b);
+  print(a + b);
+}
+''');
+    _setOffsetLengthForString('a + b');
+    return getRefactoringResult(_computeChange).then((result) {
+      ExtractMethodFeedback feedback = result.feedback;
+      List<RefactoringMethodParameter> parameters = feedback.parameters;
+      parameters[0].name = 'aaa';
+      parameters[1].name = 'bbb';
+      parameters[1].type = 'num';
+      parameters.insert(0, parameters.removeLast());
+      options.parameters = parameters;
+      return assertSuccessfulRefactoring(_sendExtractRequest, '''
+main() {
+  int a = 1;
+  int b = 2;
+  print(res(b, a));
+  print(res(b, a));
+}
+
+int res(num bbb, int aaa) => aaa + bbb;
+''');
+    });
+  }
+
+  test_names() {
+    addTestFile('''
+class TreeItem {}
+TreeItem getSelectedItem() => null;
+main() {
+  var a = getSelectedItem( );
+}
+''');
+    _setOffsetLengthForString('getSelectedItem( )');
+    return _computeInitialFeedback().then((feedback) {
+      expect(
+          feedback.names,
+          unorderedEquals(['treeItem', 'item', 'selectedItem']));
+      expect(feedback.returnType, 'TreeItem');
+    });
+  }
+
+  test_offsetsLengths() {
+    addTestFile('''
+class TreeItem {}
+TreeItem getSelectedItem() => null;
+main() {
+  var a = 1 + 2;
+  var b = 1 +  2;
+}
+''');
+    _setOffsetLengthForString('1 + 2');
+    return _computeInitialFeedback().then((feedback) {
+      expect(feedback.offsets, [findOffset('1 + 2'), findOffset('1 +  2')]);
+      expect(feedback.lengths, [5, 6]);
+    });
+  }
+
+  test_statements() {
+    addTestFile('''
+main() {
+  int a = 1;
+  int b = 2;
+// start
+  print(a + b);
+// end
+  print(a + b);
+}
+''');
+    _setOffsetLengthForStartEnd();
+    return assertSuccessfulRefactoring(_computeChange, '''
+main() {
+  int a = 1;
+  int b = 2;
+// start
+  res(a, b);
+// end
+  res(a, b);
+}
+
+void res(int a, int b) {
+  print(a + b);
+}
+''');
+  }
+
+  Future<Response> _computeChange() {
+    return _prepareOptions().then((_) {
+      // send request with the options
+      return _sendExtractRequest();
+    });
+  }
+
+  Future<ExtractMethodFeedback> _computeInitialFeedback() {
+    return waitForTasksFinished().then((_) {
+      return _sendExtractRequest();
+    }).then((Response response) {
+      var result = new EditGetRefactoringResult.fromResponse(response);
+      return result.feedback;
+    });
+  }
+
+  Future _prepareOptions() {
+    return getRefactoringResult(() {
+      // get initial feedback
+      return _sendExtractRequest();
+    }).then((result) {
+      assertResultProblemsOK(result);
+      // fill options from result
+      ExtractMethodFeedback feedback = result.feedback;
+      options = new ExtractMethodOptions(
+          feedback.returnType,
+          false,
+          name,
+          feedback.parameters,
+          true);
+      // done
+      return new Future.value();
+    });
+  }
+
+  Future<Response> _sendExtractRequest() {
+    RefactoringKind kind = RefactoringKind.EXTRACT_METHOD;
+    return sendRequest(kind, offset, length, options, false);
+  }
+
+  void _setOffsetLengthForStartEnd() {
+    offset = findOffset('// start') + '// start\n'.length;
+    length = findOffset('// end') - offset;
+  }
+
+  void _setOffsetLengthForString(String search) {
+    offset = findOffset(search);
+    length = search.length;
   }
 }
 
@@ -327,16 +519,206 @@ main() {
 
 
 @ReflectiveTestCase()
+class InlineLocalTest extends _AbstractGetRefactoring_Test {
+  test_OK() {
+    addTestFile('''
+main() {
+  int test = 42;
+  int a = test + 2;
+  print(test);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendInlineRequest('test + 2');
+    }, '''
+main() {
+  int a = 42 + 2;
+  print(42);
+}
+''');
+  }
+
+  test_feedback() {
+    addTestFile('''
+main() {
+  int test = 42;
+  print(test);
+  print(test);
+}
+''');
+    return getRefactoringResult(() {
+      return _sendInlineRequest('test =');
+    }).then((result) {
+      InlineLocalVariableFeedback feedback = result.feedback;
+      expect(feedback.name, 'test');
+      expect(feedback.occurrences, 2);
+    });
+  }
+
+  test_init_fatalError_notVariable() {
+    addTestFile('main() {}');
+    return getRefactoringResult(() {
+      return _sendInlineRequest('main() {}');
+    }).then((result) {
+      assertResultProblemsFatal(
+          result,
+          'Local variable declaration or reference must be selected to activate this refactoring.');
+      // ...there is no any change
+      expect(result.change, isNull);
+    });
+  }
+
+  Future<Response> _sendInlineRequest(String search) {
+    Request request = new EditGetRefactoringParams(
+        RefactoringKind.INLINE_LOCAL_VARIABLE,
+        testFile,
+        findOffset(search),
+        0,
+        false).toRequest('0');
+    return serverChannel.sendRequest(request);
+  }
+}
+
+
+@ReflectiveTestCase()
+class InlineMethodTest extends _AbstractGetRefactoring_Test {
+  InlineMethodOptions options = new InlineMethodOptions(true, true);
+
+  test_feedback() {
+    addTestFile('''
+class A {
+  int f;
+  test(int p) {
+    print(f + p);
+  }
+  main() {
+    test(1);
+  }
+}
+''');
+    return getRefactoringResult(() {
+      return _sendInlineRequest('test(int p)');
+    }).then((result) {
+      InlineMethodFeedback feedback = result.feedback;
+      expect(feedback.className, 'A');
+      expect(feedback.methodName, 'test');
+      expect(feedback.isDeclaration, isTrue);
+    });
+  }
+
+  test_init_fatalError_noMethod() {
+    addTestFile('// nothing to inline');
+    return getRefactoringResult(() {
+      return _sendInlineRequest('// nothing');
+    }).then((result) {
+      assertResultProblemsFatal(
+          result,
+          'Method declaration or reference must be selected to activate this refactoring.');
+      // ...there is no any change
+      expect(result.change, isNull);
+    });
+  }
+
+  test_method() {
+    addTestFile('''
+class A {
+  int f;
+  test(int p) {
+    print(f + p);
+  }
+  main() {
+    test(1);
+  }
+}
+main(A a) {
+  a.test(2);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendInlineRequest('test(int p)');
+    }, '''
+class A {
+  int f;
+  main() {
+    print(f + 1);
+  }
+}
+main(A a) {
+  print(a.f + 2);
+}
+''');
+  }
+
+  test_topLevelFunction() {
+    addTestFile('''
+test(a, b) {
+  print(a + b);
+}
+main() {
+  test(1, 2);
+  test(10, 20);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendInlineRequest('test(a');
+    }, '''
+main() {
+  print(1 + 2);
+  print(10 + 20);
+}
+''');
+  }
+
+  test_topLevelFunction_oneInvocation() {
+    addTestFile('''
+test(a, b) {
+  print(a + b);
+}
+main() {
+  test(1, 2);
+  test(10, 20);
+}
+''');
+    options.deleteSource = false;
+    options.inlineAll = false;
+    return assertSuccessfulRefactoring(() {
+      return _sendInlineRequest('test(10,');
+    }, '''
+test(a, b) {
+  print(a + b);
+}
+main() {
+  test(1, 2);
+  print(10 + 20);
+}
+''');
+  }
+
+  Future<Response> _sendInlineRequest(String search) {
+    Request request = new EditGetRefactoringParams(
+        RefactoringKind.INLINE_METHOD,
+        testFile,
+        findOffset(search),
+        0,
+        false,
+        options: options).toRequest('0');
+    return serverChannel.sendRequest(request);
+  }
+}
+
+
+@ReflectiveTestCase()
 class RenameTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendRenameRequest(String search, String newName,
       [bool validateOnly = false]) {
+    RenameOptions options = newName != null ? new RenameOptions(newName) : null;
     Request request = new EditGetRefactoringParams(
         RefactoringKind.RENAME,
         testFile,
         findOffset(search),
         0,
         validateOnly,
-        options: new RenameOptions(newName).toJson()).toRequest('0');
+        options: options).toRequest('0');
     return serverChannel.sendRequest(request);
   }
 
@@ -446,7 +828,10 @@ main() {
     return getRefactoringResult(() {
       return sendRenameRequest('Test {}', 'NewName', true);
     }).then((result) {
+      RenameFeedback feedback = result.feedback;
       assertResultProblemsOK(result);
+      expect(feedback.elementKindName, 'class');
+      expect(feedback.oldName, 'Test');
       expect(result.change, isNull);
     });
   }
@@ -521,8 +906,7 @@ main() {
     return getRefactoringResult(() {
       return sendRenameRequest('st v;', 'NewName');
     }).then((result) {
-      RenameFeedback feedback =
-          new RenameFeedback.fromRefactoringResult(result);
+      RenameFeedback feedback = result.feedback;
       expect(feedback, isNotNull);
       expect(feedback.offset, findOffset('Test v;'));
       expect(feedback.length, 'Test'.length);
@@ -698,7 +1082,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   }
 
   Future<Response> sendRequest(RefactoringKind kind, int offset, int length,
-      Map options, [bool validateOnly = false]) {
+      RefactoringOptions options, [bool validateOnly = false]) {
     Request request = new EditGetRefactoringParams(
         kind,
         testFile,

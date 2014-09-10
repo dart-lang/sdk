@@ -114,7 +114,7 @@
       <li><a href="#domain_completion">Code Completion</a></li>
       <li><a href="#domain_search">Search</a></li>
       <li><a href="#domain_edit">Edit</a></li>
-      <li><a href="#domain_debug">Debugging</a></li>
+      <li><a href="#domain_execution">Execution</a></li>
     </ul>
     <p>
       The specifications of the API’s refer to data structures beyond
@@ -126,15 +126,16 @@
       The command-line arguments that can be passed to the server.
     </p>
     <h4>Options</h4>
+    <blockquote>
     <dl>
       <dt>--no-error-notification</dt>
-      <dd></dd>
-    </dl>
-    <p>
+      <dd>
       Disable notifications about errors (see analysis.error). If this
       flag is not specified then notifications will be sent for all
       errors produced for all files in the actual analysis roots.
-    </p>
+      </dd>
+    </dl>
+    </blockquote>
     <domain name="server">
       <p>
         The server domain contains API’s related to the execution of
@@ -273,6 +274,13 @@
           <b>can</b> apply error information as it becomes available
           should use the information provided by the 'analysis.errors'
           notification.
+        </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>GET_ERRORS_INVALID_FILE</tt> will be generated.
         </p>
         <params>
           <field name="file">
@@ -1158,14 +1166,7 @@
           <field name="fixes">
             <list><ref>AnalysisErrorFixes</ref></list>
             <p>
-              The fixes that are available for each of the analysis
-              errors. There is a one-to-one correspondence between the
-              analysis errors in the request and the lists of changes
-              in the response. In particular, it is always the case
-              that errors.length == fixes.length and that fixes[i] is
-              the list of fixes for the error in errors[i]. The list
-              of changes corresponding to an error can be empty if
-              there are no fixes available for that error.
+              The fixes that are available for the errors at the given offset.
             </p>
           </field>
         </result>
@@ -1208,7 +1209,7 @@
             </p>
           </field>
           <field name="options" optional="true">
-            <ref>object</ref>
+            <ref>RefactoringOptions</ref>
             <p>
               Data used to provide values provided by the user. The
               structure of the data is dependent on the kind of
@@ -1230,7 +1231,7 @@
             </p>
           </field>
           <field name="feedback" optional="true">
-            <ref>object</ref>
+            <ref>RefactoringFeedback</ref>
             <p>
               Data used to provide feedback to the user. The structure
               of the data is dependent on the kind of refactoring
@@ -1266,18 +1267,17 @@
         </result>
       </request>
     </domain>
-    <domain name="debug">
+    <domain name="execution">
       <p>
-        The debugging domain contains commands related to providing a
-        debugging experience.
+        The execution domain contains commands related to providing an execution
+        or debugging experience.
       </p>
       <request method="createContext">
         <p>
-          Create a debugging context for the executable file with the
-          given path. The context that is created will persist until
-          debug.deleteContext is used to delete it. Clients,
-          therefore, are responsible for managing the lifetime of
-          debugging contexts.
+          Create an execution context for the executable file with the given
+          path. The context that is created will persist until
+          execution.deleteContext is used to delete it. Clients, therefore, are
+          responsible for managing the lifetime of execution contexts.
         </p>
         <params>
           <field name="contextRoot">
@@ -1289,45 +1289,44 @@
         </params>
         <result>
           <field name="id">
-            <ref>DebugContextId</ref>
+            <ref>ExecutionContextId</ref>
             <p>
-              The identifier used to refer to the debugging context
-              that was created.
+              The identifier used to refer to the execution context that was
+              created.
             </p>
           </field>
         </result>
       </request>
       <request method="deleteContext">
         <p>
-          Delete the debugging context with the given identifier. The
-          context id is no longer valid after this command. The server
-          is allowed to re-use ids when they are no longer valid.
+          Delete the execution context with the given identifier. The context id
+          is no longer valid after this command. The server is allowed to re-use
+          ids when they are no longer valid.
         </p>
         <params>
           <field name="id">
-            <ref>DebugContextId</ref>
+            <ref>ExecutionContextId</ref>
             <p>
-              The identifier of the debugging context that is to be
-              deleted.
+              The identifier of the execution context that is to be deleted.
             </p>
           </field>
         </params>
       </request>
       <request method="mapUri">
         <p>
-          Map a URI from the debugging context to the file that it
-          corresponds to, or map a file to the URI that it corresponds
-          to in the debugging context.
+          Map a URI from the execution context to the file that it corresponds
+          to, or map a file to the URI that it corresponds to in the execution
+          context.
         </p>
         <p>
           Exactly one of the file and uri fields must be provided.
         </p>
         <params>
           <field name="id">
-            <ref>DebugContextId</ref>
+            <ref>ExecutionContextId</ref>
             <p>
-              The identifier of the debugging context in which the URI
-              is to be mapped.
+              The identifier of the execution context in which the URI is to be
+              mapped.
             </p>
           </field>
           <field name="file" optional="true">
@@ -1347,32 +1346,32 @@
           <field name="file" optional="true">
             <ref>FilePath</ref>
             <p>
-              The file to which the URI was mapped. This field is
-              omitted if the uri field was not given in the request.
+              The file to which the URI was mapped. This field is omitted if the
+              uri field was not given in the request.
             </p>
           </field>
           <field name="uri" optional="true">
             <ref>String</ref>
             <p>
-              The URI to which the file path was mapped. This field is
-              omitted if the file field was not given in the request.
+              The URI to which the file path was mapped. This field is omitted
+              if the file field was not given in the request.
             </p>
           </field>
         </result>
       </request>
       <request method="setSubscriptions">
         <p>
-          Subscribe for services. All previous subscriptions are
-          replaced by the given set of services.
+          Subscribe for services. All previous subscriptions are replaced by the
+          given set of services.
         </p>
         <p>
-          It is an error if any of the elements in the list are not
-          valid services. If there is an error, then the current
-          subscriptions will remain unchanged.
+          It is an error if any of the elements in the list are not valid
+          services. If there is an error, then the current subscriptions will
+          remain unchanged.
         </p>
         <params>
           <field name="subscriptions">
-            <list><ref>DebugService</ref></list>
+            <list><ref>ExecutionService</ref></list>
             <p>
               A list of the services being subscribed to.
             </p>
@@ -1381,21 +1380,19 @@
       </request>
       <notification event="launchData">
         <p>
-          Reports information needed to allow applications within the
-          given context to be launched.
+          Reports information needed to allow applications to be launched.
         </p>
         <p>
-          This notification is not subscribed to by default. Clients
-          can subscribe by including the value "LAUNCH_DATA" in the
-          list of services passed in a debug.setSubscriptions request.
+          This notification is not subscribed to by default. Clients can
+          subscribe by including the value "LAUNCH_DATA" in the list of services
+          passed in an <tt>execution.setSubscriptions</tt> request.
         </p>
         <params>
           <field name="executables">
             <list><ref>ExecutableFile</ref></list>
             <p>
-              A list of the files that are executable in the given
-              context. This list replaces any previous list provided
-              for the given context.
+              A list of the files that are executable. This list replaces any
+              previous list provided.
             </p>
           </field>
           <field name="dartToHtml">
@@ -1406,9 +1403,8 @@
               </value>
             </map>
             <p>
-              A mapping from the paths of Dart files that are
-              referenced by HTML files to a list of the HTML files
-              that reference the Dart files.
+              A mapping from the paths of Dart files that are referenced by HTML
+              files to a list of the HTML files that reference the Dart files.
             </p>
           </field>
           <field name="htmlToDart">
@@ -1419,15 +1415,15 @@
               </value>
             </map>
             <p>
-              A mapping from the paths of HTML files that reference
-              Dart files to a list of the Dart files they reference.
+              A mapping from the paths of HTML files that reference Dart files
+              to a list of the Dart files they reference.
             </p>
           </field>
         </params>
       </notification>
     </domain>
     <types>
-      <h2><a name="types">Types</a></h2>
+      <h2 class="domain"><a name="types">Types</a></h2>
       <p>
         This section contains descriptions of the data types referenced
         in the API’s of the various domains.
@@ -1631,6 +1627,11 @@
           a file content overlay or that has had its overlay removed via
           <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>.
         </p>
+        <p>
+          If any of the edits cannot be applied due to its offset or
+          length being out of range, an INVALID_OVERLAY_CHANGE error
+          will be reported.
+        </p>
         <object>
           <field name="type" value="change"><ref>String</ref></field>
           <field name="edits">
@@ -1824,21 +1825,6 @@
           <value><code>TYPE_PARAMETER</code></value>
         </enum>
       </type>
-      <type name="DebugContextId">
-        <ref>String</ref>
-        <p>
-          The identifier for a debug context.
-        </p>
-      </type>
-      <type name="DebugService">
-        <p>
-          An enumeration of the services provided by the debug
-          domain.
-        </p>
-        <enum>
-          <value><code>LAUNCH_DATA</code></value>
-        </enum>
-      </type>
       <type name="Element">
         <p>
           Information about an element (something that can be declared
@@ -1951,6 +1937,21 @@
           <value><code>CLIENT</code></value>
           <value><code>EITHER</code></value>
           <value><code>SERVER</code></value>
+        </enum>
+      </type>
+      <type name="ExecutionContextId">
+        <ref>String</ref>
+        <p>
+          The identifier for a execution context.
+        </p>
+      </type>
+      <type name="ExecutionService">
+        <p>
+          An enumeration of the services provided by the execution
+          domain.
+        </p>
+        <enum>
+          <value><code>LAUNCH_DATA</code></value>
         </enum>
       </type>
       <type name="FilePath">
@@ -2091,7 +2092,8 @@
             <p>
               The path to the defining compilation unit of the library
               in which the referenced element is declared. This data is
-              omitted if there is no referenced element.
+              omitted if there is no referenced element, or if the
+              element is declared inside an HTML file.
             </p>
           </field>
           <field name="containingLibraryName" optional="true">
@@ -2099,7 +2101,8 @@
             <p>
               The name of the library in which the referenced element is
               declared. This data is omitted if there is no referenced
-              element.
+              element, or if the element is declared inside an HTML
+              file.
             </p>
           </field>
           <field name="dartdoc" optional="true">
@@ -2109,7 +2112,8 @@
               than the removal of the comment delimiters, including
               leading asterisks in the case of a block comment, the
               dartdoc is unprocessed markdown. This data is omitted if
-              there is no referenced element.
+              there is no referenced element, or if the element has no
+              dartdoc.
             </p>
           </field>
           <field name="elementDescription" optional="true">
@@ -2484,6 +2488,20 @@
           </field>
         </object>
       </type>
+      <type name="RefactoringFeedback">
+        <p>
+          An abstract superclass of all refactoring feedbacks.
+        </p>
+        <object>
+        </object>
+      </type>
+      <type name="RefactoringOptions">
+        <p>
+          An abstract superclass of all refactoring options.
+        </p>
+        <object>
+        </object>
+      </type>
       <type name="RefactoringMethodParameterKind">
         <p>
           An enumeration of the kinds of parameters.
@@ -2583,13 +2601,21 @@
         </p>
         <enum>
           <value>
-            <code>GET_ERRORS_ERROR</code>
+            <code>GET_ERRORS_INVALID_FILE</code>
             <p>
-              An error occurred during the processing of an
-              "analysis.getErrors" request.
+              An "analysis.getErrors" request specified a FilePath
+              which does not match a file currently subject to
+              analysis.
             </p>
-            <!-- TODO(paulberry): this is vague.  We should be more
-                 specific about the nature of the error if we can. -->
+          </value>
+          <value>
+            <code>INVALID_OVERLAY_CHANGE</code>
+            <p>
+              An analysis.updateContent request contained a
+              ChangeContentOverlay object which can't be applied, due
+              to an edit having an offset or length that is out of
+              range.
+            </p>
           </value>
           <value>
             <code>INVALID_PARAMETER</code>
@@ -2605,21 +2631,28 @@
           </value>
           <value>
             <code>SERVER_ALREADY_STARTED</code>
-            <!-- TODO(paulberry): this error code doesn't make sense
-                 anymore. -->
             <p>
               The analysis server has already been started (and hence
               won't accept new connections).
             </p>
+            <p>
+              This error is included for future expansion; at present
+              the analysis server can only speak to one client at a
+              time so this error will never occur.
+            </p>
           </value>
           <value>
             <code>UNANALYZED_PRIORITY_FILES</code>
-            <!-- TODO(paulberry): this error shouldn't be issued under
-                 our new "eventual consistency" model. -->
             <p>
               An "analysis.setPriorityFiles" request includes one or
               more files that are not being analyzed.
             </p>
+            <p>
+              This is a legacy error; it will be removed before the
+              API reaches version 1.0.
+            </p>
+            <!-- TODO(paulberry): remove this error and the code that
+                 generates it. -->
           </value>
           <value>
             <code>UNKNOWN_REQUEST</code>
@@ -2635,8 +2668,12 @@
               The analysis server was requested to perform an action
               which is not supported.
             </p>
-            <!-- TODO(paulberry): how does this differ from
-                 UNKNOWN_REQUEST?  Do we really need both? -->
+            <p>
+              This is a legacy error; it will be removed before the
+              API reaches version 1.0.
+            </p>
+            <!-- TODO(paulberry): remove this error and the code that
+                 generates it. -->
           </value>
         </enum>
       </type>
@@ -3083,21 +3120,21 @@
             <list><ref>RefactoringMethodParameter</ref></list>
             <p>
               The parameters that should be defined for the method.
-              <p>
-                It is an error if a REQUIRED or NAMED parameter follows a
-                POSITIONAL parameter.
-                It is an error if a REQUIRED or POSITIONAL parameter follows a
-                NAMED parameter.
-              </p>
-              <ul>
-                <li>
-                  To change the order and/or update proposed paramerers, add
-                  parameters with the same identifiers as proposed.
-                </li>
-                <li>To add new parameters, omit their identifier.</li>
-                <li>To remove some parameters, omit them in this list.</li>
-              </ul>
             </p>
+            <p>
+              It is an error if a REQUIRED or NAMED parameter follows a
+              POSITIONAL parameter.
+              It is an error if a REQUIRED or POSITIONAL parameter follows a
+              NAMED parameter.
+            </p>
+            <ul>
+              <li>
+                To change the order and/or update proposed parameters, add
+                parameters with the same identifiers as proposed.
+              </li>
+              <li>To add new parameters, omit their identifier.</li>
+              <li>To remove some parameters, omit them in this list.</li>
+            </ul>
           </field>
           <field name="extractAll">
             <ref>bool</ref>
@@ -3119,6 +3156,20 @@
           It is an error if the range contains anything other than all
           or part of the name of a single local variable.
         </p>
+        <feedback>
+          <field name="name">
+            <ref>String</ref>
+            <p>
+              The name of the variable being inlined.
+            </p>
+          </field>
+          <field name="occurrences">
+            <ref>int</ref>
+            <p>
+              The number of times the variable occurs.
+            </p>
+          </field>
+        </feedback>
       </refactoring>
       <refactoring kind="INLINE_METHOD">
         <p>
@@ -3129,13 +3180,34 @@
           It is an error if the range contains anything other than all
           or part of the name of a single method.
         </p>
+        <feedback>
+          <field name="className" optional="true">
+            <ref>String</ref>
+            <p>
+              The name of the class enclosing the method being inlined.
+              If not a class member is being inlined, this field will be absent.
+            </p>
+          </field>
+          <field name="methodName">
+            <ref>String</ref>
+            <p>
+              The name of the method (or function) being inlined.
+            </p>
+          </field>
+          <field name="isDeclaration">
+            <ref>bool</ref>
+            <p>
+              True if the declaration of the method is selected.
+              So all references should be inlined.
+            </p>
+          </field>
+        </feedback>
         <options>
           <field name="deleteSource">
             <ref>bool</ref>
             <p>
-              True if the method being inlined should be removed. It
-              is an error if this field is true and inlineAll is
-              false.
+              True if the method being inlined should be removed.
+              It is an error if this field is true and inlineAll is false.
             </p>
           </field>
           <field name="inlineAll">
@@ -3171,6 +3243,20 @@
             <ref>int</ref>
             <p>
               The length of the name selected to be renamed.
+            </p>
+          </field>
+          <field name="elementKindName">
+            <ref>String</ref>
+            <p>
+              The human-readable description of the kind of element being
+              renamed (such as “class” or “function type
+              alias”).
+            </p>
+          </field>
+          <field name="oldName">
+            <ref>String</ref>
+            <p>
+              The old name of the element before the refactoring.
             </p>
           </field>
         </feedback>

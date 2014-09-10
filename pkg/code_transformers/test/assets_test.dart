@@ -66,10 +66,10 @@ main() {
     testAssetUri('does not allow packages from non-dart lib files',
         source: new AssetId('a', 'lib/index.html'),
         uri: 'packages/foo/bar',
-        message: 'warning: Invalid url to reach to another package: '
+        message: 'warning: Invalid URL to reach to another package: '
             'packages/foo/bar. Path reaching to other packages must first '
-            'reach up all the way to the packages folder. For example, try '
-            'changing the url above to: ../../packages/foo/bar');
+            'reach up all the way to the packages directory. For example, try '
+            'changing the URL to: ../../packages/foo/bar');
 
     testAssetUri('allows relative packages from non-dart lib files',
         source: new AssetId('a', 'lib/index.html'),

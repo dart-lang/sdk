@@ -770,17 +770,22 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
 }
 
 
-uword PageSpace::TryAllocateDataBump(intptr_t size,
-                                     GrowthPolicy growth_policy) {
+uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
+                                             GrowthPolicy growth_policy,
+                                             bool is_locked) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   intptr_t remaining = bump_end_ - bump_top_;
   if (remaining < size) {
     // Checking this first would be logical, but needlessly slow.
     if (size >= kAllocatablePageSize) {
-      return TryAllocate(size, HeapPage::kData, growth_policy);
+      return is_locked ?
+          TryAllocateDataLocked(size, growth_policy) :
+          TryAllocate(size, HeapPage::kData, growth_policy);
     }
-    FreeListElement* block = freelist_[HeapPage::kData].TryAllocateLarge(size);
+    FreeListElement* block = is_locked ?
+        freelist_[HeapPage::kData].TryAllocateLargeLocked(size) :
+        freelist_[HeapPage::kData].TryAllocateLarge(size);
     if (block == NULL) {
       // Allocating from a new page (if growth policy allows) will have the
       // side-effect of populating the freelist with a large block. The next
@@ -789,9 +794,16 @@ uword PageSpace::TryAllocateDataBump(intptr_t size,
       return TryAllocateInFreshPage(size,
                                     HeapPage::kData,
                                     growth_policy,
-                                    /* is_locked = */ false);
+                                    is_locked);
     }
     intptr_t block_size = block->Size();
+    if (remaining > 0) {
+      if (is_locked) {
+        freelist_[HeapPage::kData].FreeLocked(bump_top_, remaining);
+      } else {
+        freelist_[HeapPage::kData].Free(bump_top_, remaining);
+      }
+    }
     bump_top_ = reinterpret_cast<uword>(block);
     bump_end_ = bump_top_ + block_size;
     remaining = block_size;
@@ -805,6 +817,32 @@ uword PageSpace::TryAllocateDataBump(intptr_t size,
     FreeListElement::AsElement(bump_top_, remaining);
   }
   return result;
+}
+
+
+uword PageSpace::TryAllocateDataBump(intptr_t size,
+                                     GrowthPolicy growth_policy) {
+  return TryAllocateDataBumpInternal(size, growth_policy, false);
+}
+
+
+uword PageSpace::TryAllocateDataBumpLocked(intptr_t size,
+                                           GrowthPolicy growth_policy) {
+  return TryAllocateDataBumpInternal(size, growth_policy, true);
+}
+
+
+uword PageSpace::TryAllocatePromoLocked(intptr_t size,
+                                        GrowthPolicy growth_policy) {
+  FreeList* freelist = &freelist_[HeapPage::kData];
+  uword result = freelist->TryAllocateSmallLocked(size);
+  if (result != 0) {
+    usage_.used_in_words += size >> kWordSizeLog2;
+    return result;
+  }
+  result = TryAllocateDataBumpLocked(size, growth_policy);
+  if (result != 0) return result;
+  return TryAllocateDataLocked(size, growth_policy);
 }
 
 

@@ -4,12 +4,12 @@
 
 library dart2js.util;
 
-import 'dart:collection';
 import 'util_implementation.dart';
 import 'characters.dart';
 
 export 'setlet.dart';
 export 'maplet.dart';
+export 'emptyset.dart';
 
 part 'indentation.dart';
 part 'link.dart';

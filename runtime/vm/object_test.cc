@@ -5,7 +5,6 @@
 #include "platform/globals.h"
 
 #include "vm/assembler.h"
-#include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
@@ -346,9 +345,9 @@ TEST_CASE(Smi) {
   EXPECT_EQ(-1, c.CompareWith(mint1));
   EXPECT_EQ(1, c.CompareWith(mint2));
 
-  Bigint& big1 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString(
       "10000000000000000000"));
-  Bigint& big2 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big2 = Bigint::Handle(Bigint::NewFromCString(
       "-10000000000000000000"));
   EXPECT_EQ(-1, a.CompareWith(big1));
   EXPECT_EQ(1, a.CompareWith(big2));
@@ -509,9 +508,9 @@ TEST_CASE(Mint) {
   EXPECT_EQ(-1, c.CompareWith(smi1));
   EXPECT_EQ(-1, c.CompareWith(smi2));
 
-  Bigint& big1 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString(
       "10000000000000000000"));
-  Bigint& big2 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big2 = Bigint::Handle(Bigint::NewFromCString(
       "-10000000000000000000"));
   EXPECT_EQ(-1, a.CompareWith(big1));
   EXPECT_EQ(1, a.CompareWith(big2));
@@ -625,17 +624,16 @@ TEST_CASE(Bigint) {
   EXPECT_STREQ(cstr, str);
 
   int64_t t64 = DART_2PART_UINT64_C(1, 0);
-  Bigint& big = Bigint::Handle();
-  big = BigintOperations::NewFromInt64(t64);
+  Bigint& big = Bigint::Handle(Bigint::NewFromInt64(t64));
   EXPECT_EQ(t64, big.AsInt64Value());
-  big = BigintOperations::NewFromCString("10000000000000000000");
+  big = Bigint::NewFromCString("10000000000000000000");
   EXPECT_EQ(1e19, big.AsDoubleValue());
 
-  Bigint& big1 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString(
       "100000000000000000000"));
-  Bigint& big2 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big2 = Bigint::Handle(Bigint::NewFromCString(
       "100000000000000000010"));
-  Bigint& big3 = Bigint::Handle(BigintOperations::NewFromCString(
+  Bigint& big3 = Bigint::Handle(Bigint::NewFromCString(
       "-10000000000000000000"));
 
   EXPECT_EQ(0, big1.CompareWith(big1));
@@ -4111,70 +4109,65 @@ TEST_CASE(SpecialClassesHaveEmptyArrays) {
 }
 
 
-TEST_CASE(ToUserCString) {
+TEST_CASE(ToCStringTruncated) {
   const char* kScriptChars =
-      "var simple = 'simple';\n"
-      "var escapes = 'stuff\\n\\r\\f\\b\\t\\v\\'\"\\$stuff';\n"
-      "var uescapes = 'stuff\\u0001\\u0002stuff';\n"
-      "var toolong = "
-      "'01234567890123456789012345678901234567890123456789howdy';\n"
-      "var toolong2 = "
-      "'0123456789012345678901234567890123\\t567890123456789howdy';\n"
-      "var toolong3 = "
-      "'012345678901234567890123456789\\u0001567890123456789howdy';\n";
+      "var ascii = 'Hello, World!';\n"
+      "var unicode = '\\u00CE\\u00F1\\u0163\\u00E9r\\u00F1\\u00E5\\u0163"
+      "\\u00EE\\u00F6\\u00F1\\u00E5\\u013C\\u00EE\\u017E\\u00E5\\u0163"
+      "\\u00EE\\u1EDD\\u00F1';\n"
+      "var surrogates ='\\u{1D11E}\\u{1D11E}\\u{1D11E}\\u{1D11E}"\
+      "\\u{1D11E}';\n";
+
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
   String& obj = String::Handle();
   Dart_Handle result;
+  bool did_truncate;
+  intptr_t length;
 
-  // Simple string.
-  result = Dart_GetField(lib, NewString("simple"));
+  result = Dart_GetField(lib, NewString("ascii"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"simple\"", obj.ToUserCString(40));
+  EXPECT_STREQ("Hello, World!",
+               obj.ToCStringTruncated(100, &did_truncate, &length));
+  EXPECT(!did_truncate);
+  EXPECT_EQ(13, length);
+  EXPECT_STREQ("Hel", obj.ToCStringTruncated(3, &did_truncate, &length));
+  EXPECT(did_truncate);
+  EXPECT_EQ(3, length);
 
-  // Escaped chars.
-  result = Dart_GetField(lib, NewString("escapes"));
+  result = Dart_GetField(lib, NewString("unicode"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"stuff\\n\\r\\f\\b\\t\\v'\\\"\\$stuff\"",
-               obj.ToUserCString(40));
+  EXPECT_STREQ("\u00CE\u00F1\u0163\u00E9r\u00F1\u00E5\u0163"
+        "\u00EE\u00F6\u00F1\u00E5\u013C\u00EE\u017E\u00E5\u0163"
+        "\u00EE\u1EDD\u00F1",
+        obj.ToCStringTruncated(100, &did_truncate, &length));
+  EXPECT(!did_truncate);
+  EXPECT_EQ(40, length);
+  EXPECT_STREQ("\u00CE\u00F1\u0163",
+               obj.ToCStringTruncated(3, &did_truncate, &length));
+  EXPECT(did_truncate);
+  EXPECT_EQ(6, length);
 
-  // U-escaped chars.
-  result = Dart_GetField(lib, NewString("uescapes"));
+  result = Dart_GetField(lib, NewString("surrogates"));
   EXPECT_VALID(result);
   obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"stuff\\u0001\\u0002stuff\"", obj.ToUserCString(40));
-
-  // Truncation.
-  result = Dart_GetField(lib, NewString("toolong"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"01234567890123456789012345678901234\"...",
-               obj.ToUserCString(40));
-
-  // Truncation, shorter.
-  result = Dart_GetField(lib, NewString("toolong"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"01234\"...", obj.ToUserCString(10));
-
-  // Truncation, limit is in escape.
-  result = Dart_GetField(lib, NewString("toolong2"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"0123456789012345678901234567890123\"...",
-               obj.ToUserCString(40));
-
-  // Truncation, limit is in u-escape
-  result = Dart_GetField(lib, NewString("toolong3"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\"012345678901234567890123456789\"...",
-               obj.ToUserCString(40));
+  EXPECT_STREQ("\U0001D11E\U0001D11E\U0001D11E\U0001D11E\U0001D11E",
+               obj.ToCStringTruncated(100, &did_truncate, &length));
+  EXPECT(!did_truncate);
+  EXPECT_EQ(20, length);
+  EXPECT_STREQ("\U0001D11E",
+               obj.ToCStringTruncated(3, &did_truncate, &length));
+  EXPECT(did_truncate);
+  EXPECT_EQ(4, length);  // 3 code units would be in the middle of a surrogate
+                         // pair, so it gets rounded down 2 code units.
+  EXPECT_STREQ("\U0001D11E\U0001D11E",
+               obj.ToCStringTruncated(4, &did_truncate, &length));
+  EXPECT(did_truncate);
+  EXPECT_EQ(8, length);
 }
-
 
 class ObjectAccumulator : public ObjectVisitor {
  public:
@@ -4210,6 +4203,285 @@ TEST_CASE(PrintJSON) {
     JSONStream js;
     objects[i]->PrintJSON(&js, false);
     EXPECT_SUBSTRING("\"type\":", js.ToCString());
+  }
+}
+
+
+// Elide a substring which starts with some prefix and ends with a ".
+//
+// This is used to remove non-deterministic or fragile substrings from
+// JSON output.
+//
+// For example:
+//
+//    prefix = "classes"
+//    in = "\"id\":\"classes/46\""
+//
+// Yields:
+//
+//    out = "\"id\":\"\""
+//
+static void elideSubstring(const char* prefix, const char* in, char* out) {
+  const char* pos = strstr(in, prefix);
+  while (pos != NULL) {
+    // Copy up to pos into the output buffer.
+    while (in < pos) {
+      *out++ = *in++;
+    }
+
+    // Skip to the close quote.
+    in += strcspn(in, "\"");
+    pos = strstr(in, prefix);
+  }
+  // Copy the remainder of in to out.
+  while (*in != '\0') {
+    *out++ = *in++;
+  }
+  *out = '\0';
+}
+
+
+TEST_CASE(PrintJSONPrimitives) {
+  char buffer[1024];
+  Isolate* isolate = Isolate::Current();
+
+  // Class reference
+  {
+    JSONStream js;
+    Class& cls = Class::Handle(isolate->object_store()->bool_class());
+    cls.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"}",
+        buffer);
+  }
+  // Function reference
+  {
+    JSONStream js;
+    Class& cls = Class::Handle(isolate->object_store()->bool_class());
+    const String& func_name = String::Handle(String::New("toString"));
+    Function& func = Function::Handle(cls.LookupFunction(func_name));
+    ASSERT(!func.IsNull());
+    func.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Function\",\"id\":\"\",\"name\":\"toString\","
+        "\"owningClass\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
+        "\"kind\":\"kRegularFunction\"}",
+        buffer);
+  }
+  // Library reference
+  {
+    JSONStream js;
+    Library& lib = Library::Handle(isolate->object_store()->core_library());
+    lib.PrintJSON(&js, true);
+    elideSubstring("libraries", js.ToCString(), buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Library\",\"id\":\"\",\"name\":\"dart.core\","
+        "\"url\":\"dart:core\"}",
+        buffer);
+  }
+  // Bool reference
+  {
+    JSONStream js;
+    Bool::True().PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@bool\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
+        "\"id\":\"objects\\/bool-true\",\"valueAsString\":\"true\"}",
+        buffer);
+  }
+  // Smi reference
+  {
+    JSONStream js;
+    const Integer& smi = Integer::Handle(Integer::New(7));
+    smi.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("_Smi@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@int\",\"_vmType\":\"@Smi\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Smi\","
+        "\"_vmName\":\"\"},"
+        "\"id\":\"objects\\/int-7\",\"valueAsString\":\"7\"}",
+        buffer);
+  }
+  // Mint reference
+  {
+    JSONStream js;
+    const Integer& smi = Integer::Handle(Integer::New(Mint::kMinValue));
+    smi.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_Mint@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@int\",\"_vmType\":\"@Mint\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Mint\","
+        "\"_vmName\":\"\"},"
+        "\"id\":\"\",\"valueAsString\":\"-9223372036854775808\"}",
+        buffer);
+  }
+  // Bigint reference
+  {
+    JSONStream js;
+    const String& bigint_str =
+        String::Handle(String::New("44444444444444444444444444444444"));
+    const Integer& bigint = Integer::Handle(Integer::New(bigint_str));
+    bigint.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_Bigint@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@int\",\"_vmType\":\"@Bigint\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Bigint\","
+        "\"_vmName\":\"\"},"
+        "\"id\":\"\",\"valueAsString\":\"44444444444444444444444444444444\"}",
+        buffer);
+  }
+  // Double reference
+  {
+    JSONStream js;
+    const Double& dub = Double::Handle(Double::New(0.1234));
+    dub.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_Double@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@double\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Double\","
+        "\"_vmName\":\"\"},"
+        "\"id\":\"\",\"valueAsString\":\"0.1234\"}",
+        buffer);
+  }
+  // String reference
+  {
+    JSONStream js;
+    const String& str = String::Handle(String::New("dw"));
+    str.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_OneByteString@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@String\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\","
+        "\"name\":\"_OneByteString\",\"_vmName\":\"\"},"
+        "\"id\":\"\",\"valueAsString\":\"dw\"}",
+        buffer);
+  }
+  // Array reference
+  {
+    JSONStream js;
+    const Array& array = Array::Handle(Array::New(0));
+    array.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_List@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@List\",\"_vmType\":\"@Array\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_List\","
+        "\"_vmName\":\"\"},"
+        "\"id\":\"\",\"length\":0}",
+        buffer);
+  }
+  // GrowableObjectArray reference
+  {
+    JSONStream js;
+    const GrowableObjectArray& array =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    array.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_GrowableList@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@List\",\"_vmType\":\"@GrowableObjectArray\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_GrowableList\","
+        "\"_vmName\":\"\"},\"id\":\"\",\"length\":0}",
+        buffer);
+  }
+  // LinkedHashMap reference
+  {
+    JSONStream js;
+    const LinkedHashMap& array = LinkedHashMap::Handle(LinkedHashMap::New());
+    array.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_InternalLinkedHashMap@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Instance\",\"_vmType\":\"@LinkedHashMap\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\","
+        "\"name\":\"_InternalLinkedHashMap\",\"_vmName\":\"\"},\"id\":\"\"}",
+        buffer);
+  }
+  // UserTag reference
+  {
+    JSONStream js;
+    Instance& tag = Instance::Handle(isolate->object_store()->default_tag());
+    tag.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_UserTag@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Instance\",\"_vmType\":\"@UserTag\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_UserTag\","
+        "\"_vmName\":\"\"},"
+        "\"id\":\"\"}",
+        buffer);
+  }
+  // Type reference
+  // TODO(turnidge): Add in all of the other Type siblings.
+  {
+    JSONStream js;
+    Instance& type = Instance::Handle(isolate->object_store()->bool_type());
+    type.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_Type@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Type\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Type\","
+        "\"_vmName\":\"\"},\"id\":\"\","
+        "\"typeClass\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
+        "\"name\":\"bool\"}",
+        buffer);
+  }
+  // Null reference
+  {
+    JSONStream js;
+    Object::null_object().PrintJSON(&js, true);
+    EXPECT_STREQ(
+        "{\"type\":\"@null\",\"id\":\"objects\\/null\","
+        "\"valueAsString\":\"null\"}",
+        js.ToCString());
+  }
+  // Sentinel reference
+  {
+    JSONStream js;
+    Object::sentinel().PrintJSON(&js, true);
+    EXPECT_STREQ(
+        "{\"type\":\"Sentinel\",\"id\":\"objects\\/not-initialized\","
+        "\"valueAsString\":\"<not initialized>\"}",
+        js.ToCString());
+  }
+  // Transition sentinel reference
+  {
+    JSONStream js;
+    Object::transition_sentinel().PrintJSON(&js, true);
+    EXPECT_STREQ(
+        "{\"type\":\"Sentinel\",\"id\":\"objects\\/being-initialized\","
+        "\"valueAsString\":\"<being initialized>\"}",
+        js.ToCString());
+  }
+  // LiteralToken reference.  This is meant to be an example of a
+  // "weird" type that isn't usually returned by the VM Service except
+  // when we are doing direct heap inspection.
+  {
+    JSONStream js;
+    LiteralToken& tok = LiteralToken::Handle(LiteralToken::New());
+    tok.PrintJSON(&js, true);
+    elideSubstring("objects", js.ToCString(), buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Object\",\"_vmType\":\"@LiteralToken\",\"id\":\"\"}",
+        buffer);
   }
 }
 

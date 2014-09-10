@@ -253,12 +253,12 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
     for (int i = 0; i < context_scope.num_variables(); i++) {
       VarDesc desc;
       desc.name = &String::Handle(context_scope.NameAt(i));
-      desc.info.kind =  RawLocalVarDescriptors::kContextVar;
+      desc.info.set_kind(RawLocalVarDescriptors::kContextVar);
       desc.info.scope_id = context_scope.ContextLevelAt(i);
       desc.info.begin_pos = begin_token_pos();
       desc.info.end_pos = end_token_pos();
       ASSERT(desc.info.begin_pos <= desc.info.end_pos);
-      desc.info.index = context_scope.ContextIndexAt(i);
+      desc.info.set_index(context_scope.ContextIndexAt(i));
       vars.Add(desc);
     }
   }
@@ -295,11 +295,11 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
     // context level differs from its parent's level.
     VarDesc desc;
     desc.name = &String::Handle();  // No name.
-    desc.info.kind =  RawLocalVarDescriptors::kContextLevel;
+    desc.info.set_kind(RawLocalVarDescriptors::kContextLevel);
     desc.info.scope_id = *scope_id;
     desc.info.begin_pos = begin_token_pos();
     desc.info.end_pos = end_token_pos();
-    desc.info.index = context_level();
+    desc.info.set_index(context_level());
     vars->Add(desc);
   }
   for (int i = 0; i < this->variables_.length(); i++) {
@@ -310,39 +310,39 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         VarDesc desc;
         desc.name = &var->name();
         if (var->is_captured()) {
-          desc.info.kind = RawLocalVarDescriptors::kContextVar;
+          desc.info.set_kind(RawLocalVarDescriptors::kContextVar);
           ASSERT(var->owner() != NULL);
           ASSERT(var->owner()->context_level() >= 0);
           desc.info.scope_id = var->owner()->context_level();
         } else {
-          desc.info.kind = RawLocalVarDescriptors::kStackVar;
+          desc.info.set_kind(RawLocalVarDescriptors::kStackVar);
           desc.info.scope_id = *scope_id;
         }
         desc.info.begin_pos = var->token_pos();
         desc.info.end_pos = var->owner()->end_token_pos();
-        desc.info.index = var->index();
+        desc.info.set_index(var->index());
         vars->Add(desc);
       } else if (var->name().raw() == Symbols::SavedEntryContextVar().raw()) {
         // This is the local variable in which the function saves the
         // caller's chain of closure contexts (caller's CTX register).
         VarDesc desc;
         desc.name = &var->name();
-        desc.info.kind = RawLocalVarDescriptors::kSavedEntryContext;
+        desc.info.set_kind(RawLocalVarDescriptors::kSavedEntryContext);
         desc.info.scope_id = 0;
         desc.info.begin_pos = 0;
         desc.info.end_pos = 0;
-        desc.info.index = var->index();
+        desc.info.set_index(var->index());
         vars->Add(desc);
       } else if (var->name().raw() == Symbols::SavedCurrentContextVar().raw()) {
         // This is the local variable in which the function saves its
         // own context before calling a closure function.
         VarDesc desc;
         desc.name = &var->name();
-        desc.info.kind = RawLocalVarDescriptors::kSavedCurrentContext;
+        desc.info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
         desc.info.scope_id = 0;
         desc.info.begin_pos = 0;
         desc.info.end_pos = 0;
-        desc.info.index = var->index();
+        desc.info.set_index(var->index());
         vars->Add(desc);
       }
     }

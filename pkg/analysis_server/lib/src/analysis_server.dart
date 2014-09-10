@@ -9,13 +9,13 @@ import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analysis_server/src/analysis_logger.dart';
-import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
-import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -63,9 +63,9 @@ class ServerContextManager extends ContextManager {
   @override
   void removeContext(Folder folder) {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
-    analysisServer.sendContextAnalysisCancelledNotifications(
+    analysisServer.sendContextAnalysisDoneNotifications(
         context,
-        'Context was removed');
+        AnalysisDoneReason.CONTEXT_REMOVED);
   }
 
   @override
@@ -89,6 +89,32 @@ class ServerContextManager extends ContextManager {
     return new SourceFactory(resolvers);
   }
 }
+
+
+/**
+ * Enum representing reasons why analysis might be done for a given file.
+ */
+class AnalysisDoneReason {
+  /**
+   * Analysis of the file completed successfully.
+   */
+  static const AnalysisDoneReason COMPLETE =
+      const AnalysisDoneReason._('COMPLETE');
+
+  /**
+   * Analysis of the file was aborted because the context was removed.
+   */
+  static const AnalysisDoneReason CONTEXT_REMOVED =
+      const AnalysisDoneReason._('CONTEXT_REMOVED');
+
+  /**
+   * Textual description of this [AnalysisDoneReason].
+   */
+  final String text;
+
+  const AnalysisDoneReason._(this.text);
+}
+
 
 /**
  * Instances of the class [AnalysisServer] implement a server that listens on a
@@ -177,8 +203,13 @@ class AnalysisServer {
    * A table mapping [AnalysisContext]s to the completers that should be
    * completed when analysis of this context is finished.
    */
-  Map<AnalysisContext, Completer> contextAnalysisDoneCompleters =
-      new HashMap<AnalysisContext, Completer>();
+  Map<AnalysisContext, Completer<AnalysisDoneReason>> contextAnalysisDoneCompleters =
+      new HashMap<AnalysisContext, Completer<AnalysisDoneReason>>();
+
+  /**
+   * The listeners that are listening for lifecycle events from this server.
+   */
+  List<AnalysisServerListener> listeners = <AnalysisServerListener>[];
 
   /**
    * True if any exceptions thrown by analysis should be propagated up the call
@@ -301,6 +332,16 @@ class AnalysisServer {
   }
 
   /**
+   * Add the given [listener] to the list of listeners that are listening for
+   * lifecycle events from this server.
+   */
+  void addAnalysisServerListener(AnalysisServerListener listener) {
+    if (!listeners.contains(listener)) {
+      listeners.add(listener);
+    }
+  }
+
+  /**
    * Adds the given [ServerOperation] to the queue, but does not schedule
    * operations execution.
    */
@@ -382,6 +423,13 @@ class AnalysisServer {
   }
 
   /**
+   * Return `true` if analysis is complete.
+   */
+  bool isAnalysisComplete() {
+    return operationQueue.isEmpty;
+  }
+
+  /**
    * Returns `true` if the given [AnalysisContext] is a priority one.
    */
   bool isPriorityContext(AnalysisContext context) {
@@ -420,8 +468,17 @@ class AnalysisServer {
         _schedulePerformOperation();
       } else {
         sendStatusNotification(null);
+        _notifyAnalysisComplete();
       }
     }
+  }
+
+  /**
+   * Remove the given [listener] from the list of listeners that are listening
+   * for lifecycle events from this server.
+   */
+  void removeAnalysisServerListener(AnalysisServerListener listener) {
+    listeners.remove(listener);
   }
 
   /**
@@ -471,7 +528,7 @@ class AnalysisServer {
   /**
    * Implementation for `analysis.updateContent`.
    */
-  void updateContent(Map<String, dynamic> changes) {
+  void updateContent(String id, Map<String, dynamic> changes) {
     changes.forEach((file, change) {
       AnalysisContext analysisContext = getAnalysisContext(file);
       // TODO(paulberry): handle the case where a file is referred to by more
@@ -487,7 +544,15 @@ class AnalysisServer {
           // currently in the content cache.
           TimestampedData<String> oldContents = analysisContext.getContents(
               source);
-          String newContents = SourceEdit.applySequence(oldContents.data, change.edits);
+          String newContents;
+          try {
+            newContents = SourceEdit.applySequence(oldContents.data,
+                change.edits);
+          } on RangeError {
+            throw new RequestFailure(new Response(id, error: new RequestError(
+                RequestErrorCode.INVALID_OVERLAY_CHANGE,
+                'Invalid overlay change')));
+          }
           // TODO(paulberry): to aid in incremental processing it would be
           // better to use setChangedContents.
           analysisContext.setContents(source, newContents);
@@ -548,6 +613,14 @@ class AnalysisServer {
   }
 
   /**
+   * Return the [AnalysisContext]s that are being used to analyze the analysis
+   * roots.
+   */
+  Iterable<AnalysisContext> getAnalysisContexts() {
+    return folderMap.values;
+  }
+
+  /**
    * Return the [AnalysisContext] that is used to analyze the given [path].
    * Return `null` if there is no such context.
    */
@@ -559,13 +632,11 @@ class AnalysisServer {
       }
     }
     // check if there is a context that analyzed this source
-    {
-      Source source = getSource(path);
-      for (AnalysisContext context in folderMap.values) {
-        SourceKind kind = context.getKindOf(source);
-        if (kind != null) {
-          return context;
-        }
+    Source source = getSource(path);
+    for (AnalysisContext context in folderMap.values) {
+      SourceKind kind = context.getKindOf(source);
+      if (kind != null) {
+        return context;
       }
     }
     return null;
@@ -619,10 +690,11 @@ class AnalysisServer {
    * Return an analysis error info containing the array of all of the errors and
    * the line info associated with [file].
    *
-   * Returns `null` if [file] does not belong to any [AnalysisContext].
+   * Returns `null` if [file] does not belong to any [AnalysisContext], or the
+   * file does not exist.
    *
-   * The array of errors will be empty if [file] does not exist or if there are
-   * no errors in [file]. The errors contained in the array can be incomplete.
+   * The array of errors will be empty if there are no errors in [file]. The
+   * errors contained in the array can be incomplete.
    *
    * This method does not wait for all errors to be computed, and returns just
    * the current state.
@@ -633,8 +705,12 @@ class AnalysisServer {
     if (context == null) {
       return null;
     }
-    // get errors for the file
+    // prepare Source
     Source source = getSource(file);
+    if (context.getKindOf(source) == SourceKind.UNKNOWN) {
+      return null;
+    }
+    // get errors for the file
     return context.getErrors(source);
   }
 
@@ -711,7 +787,11 @@ class AnalysisServer {
 
   /**
    * Returns a [Future] completing when [file] has been completely analyzed, in
-   * particular, all its errors have been computed.
+   * particular, all its errors have been computed.  The future is completed
+   * with an [AnalysisDoneReason] indicating what caused the file's analysis to
+   * be considered complete.
+   *
+   * If the given file doesn't belong to any context, null is returned.
    *
    * TODO(scheglov) this method should be improved.
    *
@@ -720,18 +800,19 @@ class AnalysisServer {
    * 2. We should complete the future as soon as the file is analyzed (not wait
    *    until the context is completely finished)
    */
-  Future onFileAnalysisComplete(String file) {
+  Future<AnalysisDoneReason> onFileAnalysisComplete(String file) {
     // prepare AnalysisContext
     AnalysisContext context = getAnalysisContext(file);
     if (context == null) {
-      return new Future.value();
+      return null;
     }
     // schedule context analysis
     schedulePerformAnalysisOperation(context);
     // associate with the context completer
-    Completer completer = contextAnalysisDoneCompleters[context];
+    Completer<AnalysisDoneReason> completer =
+        contextAnalysisDoneCompleters[context];
     if (completer == null) {
-      completer = new Completer();
+      completer = new Completer<AnalysisDoneReason>();
       contextAnalysisDoneCompleters[context] = completer;
     }
     return completer.future;
@@ -741,21 +822,12 @@ class AnalysisServer {
    * This method is called when analysis of the given [AnalysisContext] is
    * done.
    */
-  void sendContextAnalysisDoneNotifications(AnalysisContext context) {
-    Completer completer = contextAnalysisDoneCompleters.remove(context);
+  void sendContextAnalysisDoneNotifications(AnalysisContext context,
+                                            AnalysisDoneReason reason) {
+    Completer<AnalysisDoneReason> completer =
+        contextAnalysisDoneCompleters.remove(context);
     if (completer != null) {
-      completer.complete();
-    }
-  }
-
-  /**
-   * This method is called when analysis of the given [AnalysisContext] is
-   * cancelled.
-   */
-  void sendContextAnalysisCancelledNotifications(AnalysisContext context, String message) {
-    Completer completer = contextAnalysisDoneCompleters.remove(context);
-    if (completer != null) {
-      completer.completeError(message);
+      completer.complete(reason);
     }
   }
 
@@ -797,6 +869,15 @@ class AnalysisServer {
   }
 
   /**
+   * Notify all listeners that analysis is complete.
+   */
+  void _notifyAnalysisComplete() {
+    listeners.forEach((AnalysisServerListener listener) {
+      listener.analysisComplete();
+    });
+  }
+
+  /**
    * Schedules [performOperation] exection.
    */
   void _schedulePerformOperation() {
@@ -827,5 +908,14 @@ class AnalysisServer {
   }
 }
 
+/**
+ * An object that is listening for lifecycle events from an analysis server.
+ */
+abstract class AnalysisServerListener {
+  /**
+   * Analysis is complete.
+   */
+  void analysisComplete();
+}
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);

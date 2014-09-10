@@ -230,6 +230,7 @@ class DartConstantCompiler extends ConstantCompilerBase {
   }
 }
 
+// TODO(johnniwinther): Change to create [ConstExp] instead of [Constant].
 class CompileTimeConstantEvaluator extends Visitor {
   bool isEvaluatingConstant;
   final ConstantCompilerBase handler;

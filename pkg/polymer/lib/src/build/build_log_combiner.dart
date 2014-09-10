@@ -8,10 +8,10 @@ library polymer.src.build.log_combiner;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:code_transformers/messages/build_logger.dart';
 import 'package:html5lib/parser.dart' show parseFragment;
 
 import 'common.dart';
-import 'wrapped_logger.dart';
 
 /// Logic to combine all the ._buildLog.* logs into one ._buildLog file.
 class BuildLogCombiner extends Transformer with PolymerTransformer {
@@ -29,6 +29,6 @@ class BuildLogCombiner extends Transformer with PolymerTransformer {
 
   Future apply(Transform transform) {
     // Combine all ._buildLogs* files into one ._buildLogs file.
-    return WrappedLogger.combineLogFiles(transform);
+    return BuildLogger.combineLogFiles(transform);
   }
 }

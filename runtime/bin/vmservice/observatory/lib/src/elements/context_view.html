@@ -1,0 +1,69 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="class_ref.html">
+<link rel="import" href="field_ref.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="instance_ref.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="object_common.html">
+<link rel="import" href="context_ref.html">
+
+<polymer-element name="context-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ context.isolate }}"></isolate-nav-menu>
+      <!-- TODO(turnidge): Add library nav menu here. -->
+      <class-nav-menu cls="{{ context.clazz }}"></class-nav-menu>
+      <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
+    </nav-bar>
+
+    <template if="{{ !context.isError }}">
+      <div class="content">
+        <h1>instance of Context</h1>
+
+        <object-common object="{{ context }}"></object-common>
+
+        <div class="memberList">
+          <div class="memberItem">&nbsp;</div>
+
+          <div class="memberItem">
+            <div class="memberName">parent context</div>
+            <div class="memberValue">
+              <any-service-ref ref="{{ context.parentContext }}"></any-service-ref>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="content">
+        <template if="{{ context.variables.isNotEmpty }}">
+          variables ({{ context.variables.length }})
+          <curly-block expand="{{ context.variables.length <= 8 }}">
+            <div class="memberList">
+              <template repeat="{{ variable in context.variables }}">
+                <div class="memberItem">
+                  <div class="memberName">[{{ variable['index']}}]</div>
+                  <div class="memberValue">
+                    <any-service-ref ref="{{ variable['value'] }}"></any-service-ref>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </curly-block><br><br>
+        </template>
+      </div>
+
+      <br><br><br><br>
+      <br><br><br><br>
+
+    </template>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="context_view.dart"></script>

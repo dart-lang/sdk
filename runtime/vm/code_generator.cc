@@ -6,7 +6,6 @@
 
 #include "vm/assembler.h"
 #include "vm/ast.h"
-#include "vm/bigint_operations.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
@@ -706,7 +705,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                      const Class& receiver_class,
                                      const String& target_name,
                                      const Array& arguments_descriptor,
-                                     const ICData& ic_data,
                                      Function* result) {
   // 1. Check if there is a getter with the same name.
   const String& getter_name = String::Handle(Field::GetterName(target_name));
@@ -752,7 +750,6 @@ RawFunction* InlineCacheMissHelper(
                                 receiver_class,
                                 target_name,
                                 args_descriptor,
-                                ic_data,
                                 &result)) {
     ArgumentsDescriptor desc(args_descriptor);
     const Function& target_function =
@@ -787,7 +784,6 @@ static RawFunction* InlineCacheMissHandler(
                    String::Handle(ic_data.target_name()).ToCString(),
                    receiver.ToCString());
     }
-    ic_data.SetIsClosureCall();
     target_function = InlineCacheMissHelper(receiver, ic_data);
   }
   ASSERT(!target_function.IsNull());
@@ -989,7 +985,6 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
                                                name,
                                                args_desc));
   if (target_function.IsNull()) {
-    ic_data.SetIsClosureCall();
     target_function = InlineCacheMissHelper(receiver, ic_data);
   }
 
@@ -1003,24 +998,21 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
 
 
 // Invoke appropriate noSuchMethod function.
-// Arg0: receiver.
-// Arg1: ic-data.
-// Arg2: arguments descriptor array.
-// Arg3: arguments array.
-DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
+// Arg0: receiver (closure object)
+// Arg1: arguments descriptor array.
+// Arg2: arguments array.
+DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
-  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(2));
-  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(3));
+  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(1));
+  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(2));
 
-  String& original_function_name = String::Handle(ic_data.target_name());
-  if (receiver.IsClosure()) {
-    // For closure the function name is always 'call'. Replace it with the
-    // name of the closurized function so that exception contains more
-    // relevant information.
-    const Function& function = Function::Handle(Closure::function(receiver));
-    original_function_name = function.QualifiedUserVisibleName();
-  }
+  // For closure the function name is always 'call'. Replace it with the
+  // name of the closurized function so that exception contains more
+  // relevant information.
+  ASSERT(receiver.IsClosure());
+  const Function& function = Function::Handle(Closure::function(receiver));
+  const String& original_function_name =
+      String::Handle(function.QualifiedUserVisibleName());
   const Object& result = Object::Handle(
       DartEntry::InvokeNoSuchMethod(receiver,
                                     original_function_name,
@@ -1261,12 +1253,11 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
   OS::PrintErr("IC call @%#" Px ": ICData: %p cnt:%" Pd " nchecks: %" Pd
-      " %s %s\n",
+      " %s\n",
       frame->pc(),
       ic_data.raw(),
       function.usage_counter(),
       ic_data.NumberOfChecks(),
-      ic_data.IsClosureCall() ? "closure" : "",
       function.ToFullyQualifiedCString());
 }
 
@@ -1545,7 +1536,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
   HANDLESCOPE(isolate);
   const Bigint& big_left = Bigint::Handle(left);
   const Bigint& big_right = Bigint::Handle(right);
-  return BigintOperations::Compare(big_left, big_right);
+  return big_left.CompareWith(big_right);
 }
 END_LEAF_RUNTIME_ENTRY
 

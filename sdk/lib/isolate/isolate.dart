@@ -84,6 +84,15 @@ class Isolate {
    * Usually the initial [message] contains a [SendPort] so
    * that the spawner and spawnee can communicate with each other.
    *
+   * If the [paused] parameter is set to `true`,
+   * the isolate will start up in a paused state,
+   * as if by an initial call of `isolate.pause(isolate.pauseCapability)`.
+   * This allows setting up error or exit listeners on the isolate
+   * before it starts running.
+   * To resume the isolate, call `isolate.resume(isolate.pauseCapability)`.
+   *
+   * WARNING: The `pause` parameter is not implemented on all platforms yet.
+   *
    * Returns a future that will complete with an [Isolate] instance if the
    * spawning succeeded. It will complete with an error otherwise.
    */
@@ -106,11 +115,39 @@ class Isolate {
    * When present, the parameter `args` is set to the provided [args] list.
    * When present, the parameter `message` is set to the initial [message].
    *
+   * If the [packageRoot] parameter is provided, it is used to find the location
+   * of packages imports in the spawned isolate.
+   * The `packageRoot` URI must be a "file" or "http"/"https" URI that specifies
+   * a directory. If it doesn't end in a slash, one will be added before
+   * using the URI, and any query or fragment parts are ignored.
+   * Package imports (like "package:foo/bar.dart") in the new isolate are
+   * resolved against this location, as by
+   * `packageRoot.resolve("foo/bar.dart")`.
+   * This includes the main entry [uri] if it happens to be a package-URL.
+   * If [packageRoot] is omitted, it defaults to the same URI that
+   * the current isolate is using.
+   *
+   * WARNING: The [packageRoot] parameter is not implemented on any
+   * platform yet.
+   *
+   * If the [paused] parameter is set to `true`,
+   * the isolate will start up in a paused state,
+   * as if by an initial call of `isolate.pause(isolate.pauseCapability)`.
+   * This allows setting up error or exit listeners on the isolate
+   * before it starts running.
+   * To resume the isolate, call `isolate.resume(isolate.pauseCapability)`.
+   *
+   * WARNING: The `pause` parameter is not implemented on all platforms yet.
+   *
    * Returns a future that will complete with an [Isolate] instance if the
    * spawning succeeded. It will complete with an error otherwise.
    */
   external static Future<Isolate> spawnUri(
-      Uri uri, List<String> args, var message, { bool paused: false });
+      Uri uri,
+      List<String> args,
+      var message,
+      {bool paused: false,
+       Uri packageRoot});
 
   /**
    * Requests the isolate to pause.

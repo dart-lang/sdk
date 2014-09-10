@@ -268,6 +268,9 @@ class Api : AllStatic {
   static void SetWeakHandleReturnValue(NativeArguments* args,
                                        Dart_WeakPersistentHandle retval);
 
+  static RawString* CallEnvironmentCallback(Isolate* isolate,
+                                            const String& name);
+
  private:
   static Dart_Handle InitNewHandle(Isolate* isolate, RawObject* raw);
 

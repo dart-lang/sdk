@@ -872,15 +872,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
   uword label_address = 0;
   StubCode* stub_code = isolate()->stub_code();
   if (is_optimizing() && (ic_data.NumberOfUsedChecks() == 0)) {
-    if (ic_data.IsClosureCall()) {
-      // This IC call may be closure call only.
-      label_address = stub_code->ClosureCallInlineCacheEntryPoint();
-      ExternalLabel target_label(label_address);
-      EmitInstanceCall(&target_label,
-                       ICData::ZoneHandle(ic_data.AsUnaryClassChecks()),
-                       argument_count, deopt_id, token_pos, locs);
-      return;
-    }
     // Emit IC call that will count and thus may need reoptimization at
     // function entry.
     ASSERT(!is_optimizing()
@@ -1290,13 +1281,17 @@ bool ParallelMoveResolver::IsScratchLocation(Location loc) {
 
 intptr_t ParallelMoveResolver::AllocateScratchRegister(
     Location::Kind kind,
-    intptr_t blocked,
+    uword blocked_mask,
     intptr_t first_free_register,
     intptr_t last_free_register,
     bool* spilled) {
+  COMPILE_ASSERT(static_cast<intptr_t>(sizeof(blocked_mask)) * kBitsPerByte >=
+                 kNumberOfFpuRegisters);
+  COMPILE_ASSERT(static_cast<intptr_t>(sizeof(blocked_mask)) * kBitsPerByte >=
+                 kNumberOfCpuRegisters);
   intptr_t scratch = -1;
   for (intptr_t reg = first_free_register; reg <= last_free_register; reg++) {
-    if ((blocked != reg) &&
+    if ((((1 << reg) & blocked_mask) == 0) &&
         IsScratchLocation(Location::MachineRegisterLocation(kind, reg))) {
       scratch = reg;
       break;
@@ -1306,7 +1301,7 @@ intptr_t ParallelMoveResolver::AllocateScratchRegister(
   if (scratch == -1) {
     *spilled = true;
     for (intptr_t reg = first_free_register; reg <= last_free_register; reg++) {
-      if (blocked != reg) {
+      if (((1 << reg) & blocked_mask) == 0) {
         scratch = reg;
         break;
       }
@@ -1324,9 +1319,12 @@ ParallelMoveResolver::ScratchFpuRegisterScope::ScratchFpuRegisterScope(
     : resolver_(resolver),
       reg_(kNoFpuRegister),
       spilled_(false) {
+  COMPILE_ASSERT(FpuTMP != kNoFpuRegister);
+  uword blocked_mask = ((blocked != kNoFpuRegister) ? 1 << blocked : 0)
+                     | 1 << FpuTMP;
   reg_ = static_cast<FpuRegister>(
       resolver_->AllocateScratchRegister(Location::kFpuRegister,
-                                         blocked,
+                                         blocked_mask,
                                          0,
                                          kNumberOfFpuRegisters - 1,
                                          &spilled_));
@@ -1344,14 +1342,26 @@ ParallelMoveResolver::ScratchFpuRegisterScope::~ScratchFpuRegisterScope() {
 }
 
 
+static inline intptr_t MaskBit(Register reg) {
+  return (reg != kNoRegister) ? (1 << reg) : 0;
+}
+
+
 ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
     ParallelMoveResolver* resolver, Register blocked)
     : resolver_(resolver),
       reg_(kNoRegister),
       spilled_(false) {
+  uword blocked_mask = MaskBit(blocked)
+                     | MaskBit(CTX)
+                     | MaskBit(SPREG)
+                     | MaskBit(FPREG)
+                     | MaskBit(TMP)
+                     | MaskBit(TMP2)
+                     | MaskBit(PP);
   reg_ = static_cast<Register>(
       resolver_->AllocateScratchRegister(Location::kRegister,
-                                         blocked,
+                                         blocked_mask,
                                          kFirstFreeCpuRegister,
                                          kLastFreeCpuRegister,
                                          &spilled_));

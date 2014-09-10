@@ -14,6 +14,9 @@ import 'package:analyzer/src/generated/element.dart';
  * tree shaking to be reachable by the program being compiled.
  */
 class ClosedWorld {
+  /// Returns the main function of this closed world compilation.
+  final FunctionElement mainFunction;
+
   // TODO(paulberry): is it a problem to hold on to all the AST's for the
   // duration of tree shaking & CPS generation?
 
@@ -38,5 +41,5 @@ class ClosedWorld {
   Map<ClassElement, ClassDeclaration> instantiatedClasses =
       new HashMap<ClassElement, ClassDeclaration>();
 
-  ClosedWorld();
+  ClosedWorld(this.mainFunction);
 }

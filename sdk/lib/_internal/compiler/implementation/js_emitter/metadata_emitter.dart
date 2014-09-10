@@ -95,7 +95,10 @@ class MetadataEmitter extends CodeEmitterHelper {
   }
 
   void emitMetadata(CodeBuffer buffer) {
-    buffer.write('init.metadata$_=$_[');
+    JavaScriptBackend backend = compiler.backend;
+    String metadataAccess = backend.emitter.generateEmbeddedGlobalAccessString(
+          embeddedNames.METADATA);
+    buffer.write('$metadataAccess$_=$_[');
     for (String metadata in globalMetadata) {
       if (metadata is String) {
         if (metadata != 'null') {

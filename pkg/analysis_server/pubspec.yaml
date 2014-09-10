@@ -6,13 +6,12 @@ homepage: http://www.dartlang.org
 environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
-  analyzer: '>=0.22.0-dev <0.23.0'
+  analyzer: '0.23.0-dev.1'
   args: any
   logging: any
   path: any
   watcher: any
 dev_dependencies:
-  analysis_testing: '>=0.4.0 <0.5.0'
   html5lib: any
   mock: '>=0.10.0 <0.11.0'
   typed_mock: '>=0.0.4 <1.0.0'

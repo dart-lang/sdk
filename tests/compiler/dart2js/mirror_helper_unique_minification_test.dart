@@ -13,7 +13,7 @@ import 'package:compiler/implementation/dart_backend/dart_backend.dart' show
 import 'package:compiler/implementation/tree/tree.dart' show
     Identifier, Node, Send;
 import 'package:compiler/implementation/mirror_renamer/mirror_renamer.dart' show
-    MirrorRenamer;
+    MirrorRenamerImpl;
 
 main() {
   testUniqueMinification();
@@ -36,7 +36,7 @@ void testUniqueMinification() {
   asyncTest(() => runCompiler(useMirrorHelperLibrary: true, minify: true).
       then((Compiler compiler) {
     DartBackend backend = compiler.backend;
-    MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
+    MirrorRenamerImpl mirrorRenamer = backend.mirrorRenamer;
     Map<Node, String> renames = backend.placeholderRenamer.renames;
     Map<String, String> symbols = mirrorRenamer.symbols;
 

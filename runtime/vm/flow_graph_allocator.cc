@@ -753,7 +753,10 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
     if (interfere_at_backedge != NULL) interfere_at_backedge->Add(vreg);
 
     range->AddUseInterval(block->start_pos(), pos);
-    range->AddHintedUse(pos, move->src_slot(), move->dest_slot());
+    range->AddHintedUse(
+        pos,
+        move->src_slot(),
+        GetLiveRange(phi->ssa_temp_index())->assigned_location_slot());
 
     move->set_src(Location::PrefersRegister());
     move_idx++;

@@ -29,10 +29,10 @@ main() {
     var classC = findElement(compiler, 'C');
     var classD = findElement(compiler, 'D');
 
-    var exactA = new TypeMask.nonNullExact(classA);
-    var exactB = new TypeMask.nonNullExact(classB);
-    var exactC = new TypeMask.nonNullExact(classC);
-    var exactD = new TypeMask.nonNullExact(classD);
+    var exactA = new TypeMask.nonNullExact(classA, classWorld);
+    var exactB = new TypeMask.nonNullExact(classB, classWorld);
+    var exactC = new TypeMask.nonNullExact(classC, classWorld);
+    var exactD = new TypeMask.nonNullExact(classD, classWorld);
 
     var subclassA = new TypeMask.nonNullSubclass(classA, classWorld);
     var subtypeA = new TypeMask.nonNullSubtype(classA, classWorld);

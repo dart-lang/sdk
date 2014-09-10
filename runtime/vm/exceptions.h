@@ -15,6 +15,7 @@ class Class;
 class DartFrameIterator;
 class Error;
 class Instance;
+class Integer;
 class Object;
 class RawInstance;
 class RawObject;
@@ -72,6 +73,10 @@ class Exceptions : AllStatic {
   static void ThrowOOM();
   static void ThrowStackOverflow();
   static void ThrowArgumentError(const Instance& arg);
+  static void ThrowRangeError(const char* argument_name,
+                              const Integer& argument_value,
+                              intptr_t expected_from,
+                              intptr_t expected_to);
   static void ThrowJavascriptCompatibilityError(const char* msg);
 
   // Returns a RawInstance if the exception is successfully created,

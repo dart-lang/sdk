@@ -83,8 +83,8 @@ class ApiMessageReader : public BaseReader {
   Dart_CObject* AllocateDartCObjectInt32(int32_t value);
   // Allocates a Dart_CObject object for for a 64-bit integer.
   Dart_CObject* AllocateDartCObjectInt64(int64_t value);
-  // Allocates a Dart_CObject object for bigint data.
-  Dart_CObject* AllocateDartCObjectBigint(intptr_t length);
+  // Allocates an empty Dart_CObject object for a bigint to be filled up later.
+  Dart_CObject* AllocateDartCObjectBigint();
   // Allocates a Dart_CObject object for a double.
   Dart_CObject* AllocateDartCObjectDouble(double value);
   // Allocates a Dart_CObject object for string data.

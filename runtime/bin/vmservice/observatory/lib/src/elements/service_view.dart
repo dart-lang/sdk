@@ -20,7 +20,7 @@ class ServiceObjectViewElement extends ObservatoryElement {
   ServiceObjectViewElement.created() : super.created();
 
   ObservatoryElement _constructElementForObject() {
-    var type = object.vmType;
+    var type = object.type;
     switch (type) {
       case 'AllocationProfile':
         HeapProfileElement element = new Element.tag('heap-profile');
@@ -37,6 +37,10 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Code':
         CodeViewElement element = new Element.tag('code-view');
         element.code = object;
+        return element;
+      case 'Context':
+        ContextViewElement element = new Element.tag('context-view');
+        element.context = object;
         return element;
       case 'Error':
         ErrorViewElement element = new Element.tag('error-view');
@@ -57,42 +61,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'HeapMap':
         HeapMapElement element = new Element.tag('heap-map');
         element.fragmentation = object;
-        return element;
-      case 'LibraryPrefix':
-      case 'TypeRef':
-      case 'TypeParameter':
-      case 'BoundedType':
-      case 'Int32x4':
-      case 'Float32x4':
-      case 'Float64x4':
-      case 'TypedData':
-      case 'ExternalTypedData':
-      case 'Capability':
-      case 'ReceivePort':
-      case 'SendPort':
-      case 'Stacktrace':
-      case 'JSRegExp':
-      case 'WeakProperty':
-      case 'MirrorReference':
-      case 'UserTag':
-        // TODO(turnidge): The types above this comment are instance
-        // types and should be handled by the InstanceViewElement.  We
-        // need to go through these and make sure that they print in a
-        // reasonable way.
-      case 'Type':
-      case 'Array':
-      case 'Bool':
-      case 'Closure':
-      case 'Double':
-      case 'GrowableObjectArray':
-      case 'Instance':
-      case 'Smi':
-      case 'Mint':
-      case 'Null':
-      case 'Bigint':
-      case 'String':
-        InstanceViewElement element = new Element.tag('instance-view');
-        element.instance = object;
         return element;
       case 'IO':
         IOViewElement element = new Element.tag('io-view');
@@ -185,9 +153,16 @@ class ServiceObjectViewElement extends ObservatoryElement {
         element.vm = object;
         return element;
       default:
-        JsonViewElement element = new Element.tag('json-view');
-        element.map = object;
-        return element;
+        if (object.isInstance ||
+            object.isSentinel) {  // TODO(rmacnak): Separate this out.
+          InstanceViewElement element = new Element.tag('instance-view');
+          element.instance = object;
+          return element;
+        } else {
+          JsonViewElement element = new Element.tag('json-view');
+          element.map = object;
+          return element;
+        }
     }
   }
 

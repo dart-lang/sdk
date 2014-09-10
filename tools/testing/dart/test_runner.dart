@@ -293,18 +293,18 @@ class ContentShellCommand extends ProcessCommand {
 class BrowserTestCommand extends Command {
   final String browser;
   final String url;
-  final bool checkedMode; // needed for dartium
+  final Map configuration;
 
   BrowserTestCommand._(String _browser,
                        this.url,
-                       {bool this.checkedMode: false})
+                       this.configuration)
       : super._(_browser), browser = _browser;
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.add(browser);
     builder.add(url);
-    builder.add(checkedMode);
+    builder.add(configuration);
   }
 
   bool _equal(Command other) {
@@ -313,7 +313,7 @@ class BrowserTestCommand extends Command {
         super._equal(other) &&
         browser == other.browser &&
         url == other.url &&
-        checkedMode == other.checkedMode;
+        identical(configuration, other.configuration);
   }
 
   String get reproductionCommand {
@@ -598,9 +598,8 @@ class CommandBuilder {
 
   BrowserTestCommand getBrowserTestCommand(String browser,
                                            String url,
-                                           {bool checkedMode: false}) {
-    var command = new BrowserTestCommand._(
-        browser, url, checkedMode: checkedMode);
+                                           Map configuration) {
+    var command = new BrowserTestCommand._(browser, url, configuration);
     return _getUniqueCommand(command);
   }
 
@@ -2462,8 +2461,8 @@ class CommandExecutorImpl implements CommandExecutor {
 
   // For dartanalyzer batch processing we keep a list of batch processes.
   final _batchProcesses = new Map<String, List<BatchRunnerProcess>>();
-  // We keep a BrowserTestRunner for every "browserName-checked" configuration.
-  final _browserTestRunners = new Map<String, BrowserTestRunner>();
+  // We keep a BrowserTestRunner for every configuration.
+  final _browserTestRunners = new Map<Map, BrowserTestRunner>();
 
   bool _finishing = false;
 
@@ -2555,7 +2554,7 @@ class CommandExecutorImpl implements CommandExecutor {
     BrowserTest browserTest = new BrowserTest(browserCommand.url,
                                               callback,
                                               timeout);
-    _getBrowserTestRunner(browserCommand.browser, browserCommand.checkedMode)
+    _getBrowserTestRunner(browserCommand.browser, browserCommand.configuration)
         .then((testRunner) {
       testRunner.queueTest(browserTest);
     });
@@ -2563,20 +2562,17 @@ class CommandExecutorImpl implements CommandExecutor {
     return completer.future;
   }
 
-  Future<BrowserTestRunner> _getBrowserTestRunner(
-      String browser, bool checkedMode) {
-    var browserCheckedString = "$browser-$checkedMode";
-
+  Future<BrowserTestRunner> _getBrowserTestRunner(String browser,
+                                                  Map configuration) {
     var localIp = globalConfiguration['local_ip'];
     var num_browsers = maxBrowserProcesses;
-    if (_browserTestRunners[browserCheckedString] == null) {
+    if (_browserTestRunners[configuration] == null) {
       var testRunner = new BrowserTestRunner(
-            globalConfiguration, localIp, browser, num_browsers,
-            checkedMode: checkedMode);
+            configuration, localIp, browser, num_browsers);
       if (globalConfiguration['verbose']) {
         testRunner.logger = DebugLogger.info;
       }
-      _browserTestRunners[browserCheckedString] = testRunner;
+      _browserTestRunners[configuration] = testRunner;
       return testRunner.start().then((started) {
         if (started) {
           return testRunner;
@@ -2585,7 +2581,7 @@ class CommandExecutorImpl implements CommandExecutor {
         io.exit(1);
       });
     }
-    return new Future.value(_browserTestRunners[browserCheckedString]);
+    return new Future.value(_browserTestRunners[configuration]);
   }
 }
 

@@ -4,6 +4,8 @@
 
 library dart2js.js_emitter;
 
+import '../hash/sha1.dart' show hashOfString;
+
 import '../common.dart';
 
 import '../js/js.dart' as jsAst;
@@ -19,13 +21,11 @@ import '../closure.dart' show
 import '../dart2jslib.dart' show
     CodeBuffer;
 
+import '../elements/elements.dart' show ConstructorBodyElement, ElementKind, ParameterElement, TypeVariableElement;
+
 import '../dart_types.dart' show
     TypedefType;
 
-import '../elements/elements.dart' show
-    ConstructorBodyElement,
-    ParameterElement,
-    TypeVariableElement;
 
 import '../js/js.dart' show
     js, templateManager;
@@ -74,7 +74,10 @@ import '../util/util.dart' show
 import '../deferred_load.dart' show
     OutputUnit;
 
-import '../runtime_data.dart' as encoding;
+import '../../js_lib/shared/runtime_data.dart' as encoding;
+import '../../js_lib/shared/embedded_names.dart' as embeddedNames;
+
+import '../hash/sha1.dart';
 
 part 'class_builder.dart';
 part 'class_emitter.dart';

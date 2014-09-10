@@ -109,7 +109,7 @@ def ProcessOptions(options, args):
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os_name, HOST_OS))
         return False
-      if not arch in ['ia32', 'arm', 'mips']:
+      if not arch in ['ia32', 'arm', 'arm64', 'mips']:
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os_name, arch))
         return False
@@ -129,6 +129,8 @@ def GetToolchainPrefix(target_os, arch, options):
     android_toolchain = GetAndroidToolchainDir(HOST_OS, arch)
     if arch == 'arm':
       return os.path.join(android_toolchain, 'arm-linux-androideabi')
+    if arch == 'arm64':
+      return os.path.join(android_toolchain, 'aarch64-linux-android')
     if arch == 'ia32':
       return os.path.join(android_toolchain, 'i686-linux-android')
 
@@ -180,7 +182,7 @@ def GetAndroidToolchainDir(host_os, target_arch):
   global THIRD_PARTY_ROOT
   if host_os not in ['linux']:
     raise Exception('Unsupported host os %s' % host_os)
-  if target_arch not in ['ia32', 'arm']:
+  if target_arch not in ['ia32', 'arm', 'arm64']:
     raise Exception('Unsupported target architecture %s' % target_arch)
 
   # Set up path to the Android NDK.
@@ -192,6 +194,8 @@ def GetAndroidToolchainDir(host_os, target_arch):
 
   # Set up the directory of the Android NDK cross-compiler toolchain.
   toolchain_arch = 'arm-linux-androideabi-4.6'
+  if target_arch == 'arm64':
+    toolchain_arch = 'aarch64-linux-android-4.9'
   if target_arch == 'ia32':
     toolchain_arch = 'x86-4.6'
   toolchain_dir = 'linux-x86_64'

@@ -6205,6 +6205,7 @@ class LoadOptimizer : public ValueObject {
         out_values_(graph_->preorder().length()),
         phis_(5),
         worklist_(5),
+        congruency_worklist_(6),
         in_worklist_(NULL),
         forwarded_(false) {
     const intptr_t num_blocks = graph_->preorder().length();
@@ -6845,79 +6846,149 @@ class LoadOptimizer : public ValueObject {
     return true;
   }
 
-  bool AddPhiPairToWorklist(PhiInstr* a, PhiInstr* b) {
-    // Can't compare two phis from different blocks.
-    if (a->block() != b->block()) {
+  // Returns true if definitions are congruent assuming their inputs
+  // are congruent.
+  bool CanBeCongruent(Definition* a, Definition* b) {
+    return (a->tag() == b->tag()) &&
+       ((a->IsPhi() && (a->GetBlock() == b->GetBlock())) ||
+        (a->AllowsCSE() && a->Dependencies().IsNone() &&
+         a->AttributesEqual(b)));
+  }
+
+  // Given two definitions check if they are congruent under assumption that
+  // their inputs will be proven congruent. If they are - add them to the
+  // worklist to check their inputs' congruency.
+  // Returns true if pair was added to the worklist or is already in the
+  // worklist and false if a and b are not congruent.
+  bool AddPairToCongruencyWorklist(Definition* a, Definition* b) {
+    if (!CanBeCongruent(a, b)) {
       return false;
     }
 
     // If a is already in the worklist check if it is being compared to b.
     // Give up if it is not.
     if (in_worklist_->Contains(a->ssa_temp_index())) {
-      for (intptr_t i = 0; i < worklist_.length(); i += 2) {
-        if (a == worklist_[i]) {
-          return (b == worklist_[i + 1]);
+      for (intptr_t i = 0; i < congruency_worklist_.length(); i += 2) {
+        if (a == congruency_worklist_[i]) {
+          return (b == congruency_worklist_[i + 1]);
         }
       }
       UNREACHABLE();
+    } else if (in_worklist_->Contains(b->ssa_temp_index())) {
+      return AddPairToCongruencyWorklist(b, a);
     }
 
-    worklist_.Add(a);
-    worklist_.Add(b);
+    congruency_worklist_.Add(a);
+    congruency_worklist_.Add(b);
     in_worklist_->Add(a->ssa_temp_index());
     return true;
   }
 
-  // Replace the given phi with another if they are equal.
+  bool AreInputsCongruent(Definition* a, Definition* b) {
+    ASSERT(a->tag() == b->tag());
+    ASSERT(a->InputCount() == b->InputCount());
+    for (intptr_t j = 0; j < a->InputCount(); j++) {
+      Definition* inputA = a->InputAt(j)->definition();
+      Definition* inputB = b->InputAt(j)->definition();
+
+      if (inputA != inputB) {
+        if (!AddPairToCongruencyWorklist(inputA, inputB)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  // Returns true if instruction dom dominates instruction other.
+  static bool Dominates(Instruction* dom, Instruction* other) {
+    BlockEntryInstr* dom_block = dom->GetBlock();
+    BlockEntryInstr* other_block = other->GetBlock();
+
+    if (dom_block == other_block) {
+      for (Instruction* current = dom->next();
+           current != NULL;
+           current = current->next()) {
+        if (current == other) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    return dom_block->Dominates(other_block);
+  }
+
+  // Replace the given phi with another if they are congruent.
   // Returns true if succeeds.
   bool ReplacePhiWith(PhiInstr* phi, PhiInstr* replacement) {
     ASSERT(phi->InputCount() == replacement->InputCount());
     ASSERT(phi->block() == replacement->block());
 
-    worklist_.Clear();
+    congruency_worklist_.Clear();
     if (in_worklist_ == NULL) {
       in_worklist_ = new(I) BitVector(graph_->current_ssa_temp_index());
     } else {
       in_worklist_->Clear();
     }
 
-    // During the comparison worklist contains pairs of phis to be compared.
-    AddPhiPairToWorklist(phi, replacement);
+    // During the comparison worklist contains pairs of definitions to be
+    // compared.
+    if (!AddPairToCongruencyWorklist(phi, replacement)) {
+      return false;
+    }
 
     // Process the worklist. It might grow during each comparison step.
-    for (intptr_t i = 0; i < worklist_.length(); i += 2) {
-      PhiInstr* a = worklist_[i];
-      PhiInstr* b = worklist_[i + 1];
+    for (intptr_t i = 0; i < congruency_worklist_.length(); i += 2) {
+      if (!AreInputsCongruent(congruency_worklist_[i],
+                              congruency_worklist_[i + 1])) {
+        return false;
+      }
+    }
 
-      // Compare phi inputs.
-      for (intptr_t j = 0; j < a->InputCount(); j++) {
-        Definition* inputA = a->InputAt(j)->definition();
-        Definition* inputB = b->InputAt(j)->definition();
+    // At this point worklist contains pairs of congruent definitions.
+    // Replace the one member of the pair with another maintaining proper
+    // domination relation between definitions and uses.
+    for (intptr_t i = 0; i < congruency_worklist_.length(); i += 2) {
+      Definition* a = congruency_worklist_[i];
+      Definition* b = congruency_worklist_[i + 1];
 
-        if (inputA != inputB) {
-          // If inputs are unequal by they are phis then add them to
-          // the worklist for recursive comparison.
-          if (inputA->IsPhi() && inputB->IsPhi() &&
-              AddPhiPairToWorklist(inputA->AsPhi(), inputB->AsPhi())) {
-            continue;
-          }
-          return false;  // Not equal.
+      // If these definitions are not phis then we need to pick up one
+      // that dominates another as the replacement: if a dominates b swap them.
+      // Note: both a and b are used as a phi input at the same block B which
+      // means a dominates B and b dominates B, which guarantees that either
+      // a dominates b or b dominates a.
+      if (!a->IsPhi()) {
+        if (Dominates(a, b)) {
+          Definition* t = a;
+          a = b;
+          b = t;
         }
+        ASSERT(Dominates(b, a));
+      }
+
+      if (FLAG_trace_load_optimization) {
+        OS::Print("Replacing %s with congruent %s\n",
+                  a->ToCString(),
+                  b->ToCString());
+      }
+
+      a->ReplaceUsesWith(b);
+      if (a->IsPhi()) {
+        // We might be replacing a phi introduced by the load forwarding
+        // that is not inserted in the graph yet.
+        ASSERT(b->IsPhi());
+        PhiInstr* phi_a = a->AsPhi();
+        if (phi_a->is_alive()) {
+          phi_a->mark_dead();
+          phi_a->block()->RemovePhi(phi_a);
+          phi_a->UnuseAllInputs();
+        }
+      } else {
+        a->RemoveFromGraph();
       }
     }
 
-    // At this point worklist contains pairs of equal phis. Replace the first
-    // phi in the pair with the second.
-    for (intptr_t i = 0; i < worklist_.length(); i += 2) {
-      PhiInstr* a = worklist_[i];
-      PhiInstr* b = worklist_[i + 1];
-      a->ReplaceUsesWith(b);
-      if (a->is_alive()) {
-        a->mark_dead();
-        a->block()->RemovePhi(a);
-        a->UnuseAllInputs();
-      }
-    }
     return true;
   }
 
@@ -6996,7 +7067,9 @@ class LoadOptimizer : public ValueObject {
 
   // Auxiliary worklist used by redundant phi elimination.
   GrowableArray<PhiInstr*> worklist_;
+  GrowableArray<Definition*> congruency_worklist_;
   BitVector* in_worklist_;
+
 
   // True if any load was eliminated.
   bool forwarded_;
@@ -8177,7 +8250,7 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
   const Object& left = left_val.definition()->constant_value();
   const Object& right = right_val.definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
-    // TODO(srdjan): Add arithemtic simplifications, e.g, add with 0.
+    // TODO(srdjan): Add arithmetic simplifications, e.g, add with 0.
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
     if (left.IsInteger() && right.IsInteger()) {
@@ -8197,6 +8270,12 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
         case Token::kMUL: {
           Instance& result = Integer::ZoneHandle(I,
               left_int.ArithmeticOp(op_kind, right_int));
+          if (result.IsNull()) {
+            // TODO(regis): A bigint operation is required. Invoke dart?
+            // Punt for now.
+            SetValue(instr, non_constant_);
+            break;
+          }
           result = result.CheckAndCanonicalize(NULL);
           ASSERT(!result.IsNull());
           SetValue(instr, result);
@@ -8207,6 +8286,12 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
           if (left.IsSmi() && right.IsSmi()) {
             Instance& result = Integer::ZoneHandle(I,
                 Smi::Cast(left_int).ShiftOp(op_kind, Smi::Cast(right_int)));
+            if (result.IsNull()) {
+              // TODO(regis): A bigint operation is required. Invoke dart?
+              // Punt for now.
+              SetValue(instr, non_constant_);
+              break;
+            }
             result = result.CheckAndCanonicalize(NULL);
             ASSERT(!result.IsNull());
             SetValue(instr, result);
@@ -8415,8 +8500,31 @@ void ConstantPropagator::VisitBinaryDoubleOp(
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
-    // TODO(kmillikin): Handle binary operation.
-    SetValue(instr, non_constant_);
+    ASSERT(left.IsSmi() || left.IsDouble());
+    ASSERT(right.IsSmi() || right.IsDouble());
+    double left_val = left.IsSmi()
+        ? Smi::Cast(left).AsDoubleValue() : Double::Cast(left).value();
+    double right_val = right.IsSmi()
+        ? Smi::Cast(right).AsDoubleValue() : Double::Cast(right).value();
+    double result_val = 0.0;
+    switch (instr->op_kind()) {
+      case Token::kADD:
+        result_val = left_val + right_val;
+        break;
+      case Token::kSUB:
+        result_val = left_val - right_val;
+        break;
+      case Token::kMUL:
+        result_val = left_val * right_val;
+        break;
+      case Token::kDIV:
+        result_val = left_val / right_val;
+        break;
+      default:
+        UNREACHABLE();
+    }
+    const Double& result = Double::ZoneHandle(Double::NewCanonical(result_val));
+    SetValue(instr, result);
   }
 }
 

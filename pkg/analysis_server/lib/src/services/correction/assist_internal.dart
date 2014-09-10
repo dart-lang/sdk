@@ -125,6 +125,12 @@ class AssistProcessor {
     if (assistFile == null) {
       assistFile = file;
     }
+    // check is there are any edits
+    if (edits.isEmpty) {
+      _coverageMarker();
+      return;
+    }
+    // prepare file edit
     SourceFileEdit fileEdit = new SourceFileEdit(file);
     fileEdit.addAll(edits);
     // prepare Change

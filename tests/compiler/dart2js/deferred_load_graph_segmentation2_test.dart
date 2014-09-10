@@ -11,9 +11,6 @@ import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
 import "dart:async";
 
-import 'package:compiler/implementation/dart2jslib.dart'
-       as dart2js;
-
 class FakeOutputStream<T> extends EventSink<T> {
   void add(T event) {}
   void addError(T event, [StackTrace stackTrace]) {}
@@ -60,14 +57,12 @@ void main() {
 const Map MEMORY_SOURCE_FILES = const {"main.dart": """
 import "dart:async";
 
-@def import 'lib.dart' as lib show f1;
+import 'lib.dart' deferred as lib show f1;
 import 'lib.dart' show f2;
-
-const def = const DeferredLibrary("deferred");
 
 void main() {
   print(f2());
-  def.load().then((_) {
+  lib.loadLibrary().then((_) {
     print(lib.f1());
   });
 }

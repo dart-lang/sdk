@@ -190,6 +190,8 @@ body /deep/ .hazed-suggestion:after {
 
 <!-- Enable Google Analytics -->
 <script type="text/javascript">
+if (document.cookie.split(new RegExp('; *')).indexOf('org-trydart-AutomatedTest=true') == -1) {
+  window.parent && window.parent.postMessage('Enabling Analytics.', '*');
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-26406144-2']);
   _gaq.push(['_trackPageview']);
@@ -199,6 +201,7 @@ body /deep/ .hazed-suggestion:after {
     ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
+}
 </script>
 </head>
 <body>
@@ -275,6 +278,14 @@ Except as otherwise <a href="http://code.google.com/policies.html#restrictions">
 <script type="application/javascript" src="https://dart.googlecode.com/svn/branches/bleeding_edge/dart/pkg/browser/lib/dart.js"></script>
 <script type="application/dart" src="leap.dart"></script>
 -->
+<script type="application/javascript">
+  if (self.localStorage &&
+      !Object.prototype.hasOwnProperty.call(
+          self.localStorage, 'hasSelectionModify')) {
+    self.localStorage.hasSelectionModify =
+        typeof window.getSelection().modify != 'undefined';
+  }
+</script>
 <script type="application/javascript" src="leap.dart.js"></script>
 </body>
 </html>

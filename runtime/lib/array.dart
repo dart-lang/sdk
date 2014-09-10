@@ -18,11 +18,21 @@ class _List<E> implements List<E> {
 
   int get length native "List_getLength";
 
-  void _copyFromObjectArray(_List src,
-                            int srcStart,
-                            int dstStart,
-                            int count)
-      native "List_copyFromObjectArray";
+  List _slice(int start, int count, bool needsTypeArgument) {
+    if (count <= 64) {
+      final result = needsTypeArgument ? new _List<E>(count)
+                                       : new _List(count);
+      for (int i = 0; i < result.length; i++) {
+        result[i] = this[start + i];
+      }
+      return result;
+    } else {
+      return _sliceInternal(start, count, needsTypeArgument);
+    }
+  }
+
+  List _sliceInternal(int start, int count, bool needsTypeArgument)
+      native "List_slice";
 
   void insert(int index, E element) {
     throw NonGrowableListError.add();
@@ -66,22 +76,21 @@ class _List<E> implements List<E> {
     }
     int length = end - start;
     if (length == 0) return;
-
-    if (ClassID.getID(iterable) == ClassID.cidOneByteString) {
-      _copyFromObjectArray(iterable, skipCount, start, length);
+    if (identical(this, iterable)) {
+      Lists.copy(iterable, skipCount, this, start, length);
+    } else if (ClassID.getID(iterable) == ClassID.cidArray) {
+      Lists.copy(iterable, skipCount, this, start, length);
+    } else if (iterable is List) {
+      Lists.copy(iterable, skipCount, this, start, length);
     } else {
-      if (iterable is List) {
-        Lists.copy(iterable, skipCount, this, start, length);
-      } else {
-        Iterator it = iterable.iterator;
-        while (skipCount > 0) {
-          if (!it.moveNext()) return;
-          skipCount--;
-        }
-        for (int i = start; i < end; i++) {
-          if (!it.moveNext()) return;
-          this[i] = it.current;
-        }
+      Iterator it = iterable.iterator;
+      while (skipCount > 0) {
+        if (!it.moveNext()) return;
+        skipCount--;
+      }
+      for (int i = start; i < end; i++) {
+        if (!it.moveNext()) return;
+        this[i] = it.current;
       }
     }
   }
@@ -103,9 +112,7 @@ class _List<E> implements List<E> {
     if (end == null) end = this.length;
     int length = end - start;
     if (start == end) return <E>[];
-    List list = new _List(length);
-    list._copyFromObjectArray(this, start, 0, length);
-    var result = new _GrowableList<E>.withData(list);
+    var result = new _GrowableList<E>.withData(_slice(start, length, false));
     result._setLength(length);
     return result;
   }
@@ -256,8 +263,7 @@ class _List<E> implements List<E> {
   List<E> toList({ bool growable: true }) {
     var length = this.length;
     if (length > 0) {
-      var result = growable ? new _List(length) : new _List<E>(length);
-      result._copyFromObjectArray(this, 0, 0, length);
+      var result = _slice(0, length, !growable);
       if (growable) {
         result = new _GrowableList<E>.withData(result);
         result._setLength(length);

@@ -63,7 +63,7 @@ class ServerGetVersionResult implements HasToJson {
 
   factory ServerGetVersionResult.fromResponse(Response response) {
     return new ServerGetVersionResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -305,7 +305,7 @@ class ServerErrorParams implements HasToJson {
 
   factory ServerErrorParams.fromNotification(Notification notification) {
     return new ServerErrorParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -376,7 +376,7 @@ class ServerStatusParams implements HasToJson {
 
   factory ServerStatusParams.fromNotification(Notification notification) {
     return new ServerStatusParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -510,7 +510,7 @@ class AnalysisGetErrorsResult implements HasToJson {
 
   factory AnalysisGetErrorsResult.fromResponse(Response response) {
     return new AnalysisGetErrorsResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -661,7 +661,7 @@ class AnalysisGetHoverResult implements HasToJson {
 
   factory AnalysisGetHoverResult.fromResponse(Response response) {
     return new AnalysisGetHoverResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -1234,7 +1234,7 @@ class AnalysisErrorsParams implements HasToJson {
 
   factory AnalysisErrorsParams.fromNotification(Notification notification) {
     return new AnalysisErrorsParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1303,7 +1303,7 @@ class AnalysisFlushResultsParams implements HasToJson {
 
   factory AnalysisFlushResultsParams.fromNotification(Notification notification) {
     return new AnalysisFlushResultsParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1381,7 +1381,7 @@ class AnalysisFoldingParams implements HasToJson {
 
   factory AnalysisFoldingParams.fromNotification(Notification notification) {
     return new AnalysisFoldingParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1466,7 +1466,7 @@ class AnalysisHighlightsParams implements HasToJson {
 
   factory AnalysisHighlightsParams.fromNotification(Notification notification) {
     return new AnalysisHighlightsParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1552,7 +1552,7 @@ class AnalysisNavigationParams implements HasToJson {
 
   factory AnalysisNavigationParams.fromNotification(Notification notification) {
     return new AnalysisNavigationParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1633,7 +1633,7 @@ class AnalysisOccurrencesParams implements HasToJson {
 
   factory AnalysisOccurrencesParams.fromNotification(Notification notification) {
     return new AnalysisOccurrencesParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1714,7 +1714,7 @@ class AnalysisOutlineParams implements HasToJson {
 
   factory AnalysisOutlineParams.fromNotification(Notification notification) {
     return new AnalysisOutlineParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1795,7 +1795,7 @@ class AnalysisOverridesParams implements HasToJson {
 
   factory AnalysisOverridesParams.fromNotification(Notification notification) {
     return new AnalysisOverridesParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1945,7 +1945,7 @@ class CompletionGetSuggestionsResult implements HasToJson {
 
   factory CompletionGetSuggestionsResult.fromResponse(Response response) {
     return new CompletionGetSuggestionsResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2069,7 +2069,7 @@ class CompletionResultsParams implements HasToJson {
 
   factory CompletionResultsParams.fromNotification(Notification notification) {
     return new CompletionResultsParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -2259,7 +2259,7 @@ class SearchFindElementReferencesResult implements HasToJson {
 
   factory SearchFindElementReferencesResult.fromResponse(Response response) {
     return new SearchFindElementReferencesResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2398,7 +2398,7 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
 
   factory SearchFindMemberDeclarationsResult.fromResponse(Response response) {
     return new SearchFindMemberDeclarationsResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2530,7 +2530,7 @@ class SearchFindMemberReferencesResult implements HasToJson {
 
   factory SearchFindMemberReferencesResult.fromResponse(Response response) {
     return new SearchFindMemberReferencesResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2663,7 +2663,7 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
 
   factory SearchFindTopLevelDeclarationsResult.fromResponse(Response response) {
     return new SearchFindTopLevelDeclarationsResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2823,7 +2823,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
 
   factory SearchGetTypeHierarchyResult.fromResponse(Response response) {
     return new SearchGetTypeHierarchyResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2916,7 +2916,7 @@ class SearchResultsParams implements HasToJson {
 
   factory SearchResultsParams.fromNotification(Notification notification) {
     return new SearchResultsParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -3084,7 +3084,7 @@ class EditGetAssistsResult implements HasToJson {
 
   factory EditGetAssistsResult.fromResponse(Response response) {
     return new EditGetAssistsResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3246,7 +3246,7 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
 
   factory EditGetAvailableRefactoringsResult.fromResponse(Response response) {
     return new EditGetAvailableRefactoringsResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3368,12 +3368,7 @@ class EditGetFixesParams implements HasToJson {
  */
 class EditGetFixesResult implements HasToJson {
   /**
-   * The fixes that are available for each of the analysis errors. There is a
-   * one-to-one correspondence between the analysis errors in the request and
-   * the lists of changes in the response. In particular, it is always the case
-   * that errors.length == fixes.length and that fixes[i] is the list of fixes
-   * for the error in errors[i]. The list of changes corresponding to an error
-   * can be empty if there are no fixes available for that error.
+   * The fixes that are available for the errors at the given offset.
    */
   List<AnalysisErrorFixes> fixes;
 
@@ -3398,7 +3393,7 @@ class EditGetFixesResult implements HasToJson {
 
   factory EditGetFixesResult.fromResponse(Response response) {
     return new EditGetFixesResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3439,7 +3434,7 @@ class EditGetFixesResult implements HasToJson {
  *   "offset": int
  *   "length": int
  *   "validateOnly": bool
- *   "options": optional object
+ *   "options": optional RefactoringOptions
  * }
  */
 class EditGetRefactoringParams implements HasToJson {
@@ -3476,7 +3471,7 @@ class EditGetRefactoringParams implements HasToJson {
    * as “Options”. This field can be omitted if the refactoring does not
    * require any options or if the values of those options are not known.
    */
-  Map options;
+  RefactoringOptions options;
 
   EditGetRefactoringParams(this.kind, this.file, this.offset, this.length, this.validateOnly, {this.options});
 
@@ -3515,9 +3510,9 @@ class EditGetRefactoringParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "validateOnly");
       }
-      Map options;
+      RefactoringOptions options;
       if (json.containsKey("options")) {
-        options = json["options"];
+        options = new RefactoringOptions.fromJson(jsonDecoder, jsonPath + ".options", json["options"], kind);
       }
       return new EditGetRefactoringParams(kind, file, offset, length, validateOnly, options: options);
     } else {
@@ -3526,8 +3521,10 @@ class EditGetRefactoringParams implements HasToJson {
   }
 
   factory EditGetRefactoringParams.fromRequest(Request request) {
-    return new EditGetRefactoringParams.fromJson(
+    var params = new EditGetRefactoringParams.fromJson(
         new RequestDecoder(request), "params", request._params);
+    REQUEST_ID_REFACTORING_KINDS[request.id] = params.kind;
+    return params;
   }
 
   Map<String, dynamic> toJson() {
@@ -3538,7 +3535,7 @@ class EditGetRefactoringParams implements HasToJson {
     result["length"] = length;
     result["validateOnly"] = validateOnly;
     if (options != null) {
-      result["options"] = options;
+      result["options"] = options.toJson();
     }
     return result;
   }
@@ -3581,7 +3578,7 @@ class EditGetRefactoringParams implements HasToJson {
  *
  * {
  *   "problems": List<RefactoringProblem>
- *   "feedback": optional object
+ *   "feedback": optional RefactoringFeedback
  *   "change": optional SourceChange
  *   "potentialEdits": optional List<String>
  * }
@@ -3599,7 +3596,7 @@ class EditGetRefactoringResult implements HasToJson {
    * returned is documented in the section titled Refactorings, labeled as
    * “Feedback”.
    */
-  Map feedback;
+  RefactoringFeedback feedback;
 
   /**
    * The changes that are to be applied to affect the refactoring. This field
@@ -3636,9 +3633,9 @@ class EditGetRefactoringResult implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "problems");
       }
-      Map feedback;
+      RefactoringFeedback feedback;
       if (json.containsKey("feedback")) {
-        feedback = json["feedback"];
+        feedback = new RefactoringFeedback.fromJson(jsonDecoder, jsonPath + ".feedback", json["feedback"], json);
       }
       SourceChange change;
       if (json.containsKey("change")) {
@@ -3658,14 +3655,14 @@ class EditGetRefactoringResult implements HasToJson {
 
   factory EditGetRefactoringResult.fromResponse(Response response) {
     return new EditGetRefactoringResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["problems"] = problems.map((RefactoringProblem value) => value.toJson()).toList();
     if (feedback != null) {
-      result["feedback"] = feedback;
+      result["feedback"] = feedback.toJson();
     }
     if (change != null) {
       result["change"] = change.toJson();
@@ -3706,21 +3703,21 @@ class EditGetRefactoringResult implements HasToJson {
 }
 
 /**
- * debug.createContext params
+ * execution.createContext params
  *
  * {
  *   "contextRoot": FilePath
  * }
  */
-class DebugCreateContextParams implements HasToJson {
+class ExecutionCreateContextParams implements HasToJson {
   /**
    * The path of the Dart or HTML file that will be launched.
    */
   String contextRoot;
 
-  DebugCreateContextParams(this.contextRoot);
+  ExecutionCreateContextParams(this.contextRoot);
 
-  factory DebugCreateContextParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionCreateContextParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -3731,14 +3728,14 @@ class DebugCreateContextParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "contextRoot");
       }
-      return new DebugCreateContextParams(contextRoot);
+      return new ExecutionCreateContextParams(contextRoot);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.createContext params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.createContext params");
     }
   }
 
-  factory DebugCreateContextParams.fromRequest(Request request) {
-    return new DebugCreateContextParams.fromJson(
+  factory ExecutionCreateContextParams.fromRequest(Request request) {
+    return new ExecutionCreateContextParams.fromJson(
         new RequestDecoder(request), "params", request._params);
   }
 
@@ -3749,7 +3746,7 @@ class DebugCreateContextParams implements HasToJson {
   }
 
   Request toRequest(String id) {
-    return new Request(id, "debug.createContext", toJson());
+    return new Request(id, "execution.createContext", toJson());
   }
 
   @override
@@ -3757,7 +3754,7 @@ class DebugCreateContextParams implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugCreateContextParams) {
+    if (other is ExecutionCreateContextParams) {
       return contextRoot == other.contextRoot;
     }
     return false;
@@ -3772,21 +3769,21 @@ class DebugCreateContextParams implements HasToJson {
 }
 
 /**
- * debug.createContext result
+ * execution.createContext result
  *
  * {
- *   "id": DebugContextId
+ *   "id": ExecutionContextId
  * }
  */
-class DebugCreateContextResult implements HasToJson {
+class ExecutionCreateContextResult implements HasToJson {
   /**
-   * The identifier used to refer to the debugging context that was created.
+   * The identifier used to refer to the execution context that was created.
    */
   String id;
 
-  DebugCreateContextResult(this.id);
+  ExecutionCreateContextResult(this.id);
 
-  factory DebugCreateContextResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionCreateContextResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -3797,15 +3794,15 @@ class DebugCreateContextResult implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
-      return new DebugCreateContextResult(id);
+      return new ExecutionCreateContextResult(id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.createContext result");
+      throw jsonDecoder.mismatch(jsonPath, "execution.createContext result");
     }
   }
 
-  factory DebugCreateContextResult.fromResponse(Response response) {
-    return new DebugCreateContextResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+  factory ExecutionCreateContextResult.fromResponse(Response response) {
+    return new ExecutionCreateContextResult.fromJson(
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3823,7 +3820,7 @@ class DebugCreateContextResult implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugCreateContextResult) {
+    if (other is ExecutionCreateContextResult) {
       return id == other.id;
     }
     return false;
@@ -3838,21 +3835,21 @@ class DebugCreateContextResult implements HasToJson {
 }
 
 /**
- * debug.deleteContext params
+ * execution.deleteContext params
  *
  * {
- *   "id": DebugContextId
+ *   "id": ExecutionContextId
  * }
  */
-class DebugDeleteContextParams implements HasToJson {
+class ExecutionDeleteContextParams implements HasToJson {
   /**
-   * The identifier of the debugging context that is to be deleted.
+   * The identifier of the execution context that is to be deleted.
    */
   String id;
 
-  DebugDeleteContextParams(this.id);
+  ExecutionDeleteContextParams(this.id);
 
-  factory DebugDeleteContextParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionDeleteContextParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -3863,14 +3860,14 @@ class DebugDeleteContextParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
-      return new DebugDeleteContextParams(id);
+      return new ExecutionDeleteContextParams(id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.deleteContext params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.deleteContext params");
     }
   }
 
-  factory DebugDeleteContextParams.fromRequest(Request request) {
-    return new DebugDeleteContextParams.fromJson(
+  factory ExecutionDeleteContextParams.fromRequest(Request request) {
+    return new ExecutionDeleteContextParams.fromJson(
         new RequestDecoder(request), "params", request._params);
   }
 
@@ -3881,7 +3878,7 @@ class DebugDeleteContextParams implements HasToJson {
   }
 
   Request toRequest(String id) {
-    return new Request(id, "debug.deleteContext", toJson());
+    return new Request(id, "execution.deleteContext", toJson());
   }
 
   @override
@@ -3889,7 +3886,7 @@ class DebugDeleteContextParams implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugDeleteContextParams) {
+    if (other is ExecutionDeleteContextParams) {
       return id == other.id;
     }
     return false;
@@ -3903,16 +3900,16 @@ class DebugDeleteContextParams implements HasToJson {
   }
 }
 /**
- * debug.deleteContext result
+ * execution.deleteContext result
  */
-class DebugDeleteContextResult {
+class ExecutionDeleteContextResult {
   Response toResponse(String id) {
     return new Response(id, result: null);
   }
 
   @override
   bool operator==(other) {
-    if (other is DebugDeleteContextResult) {
+    if (other is ExecutionDeleteContextResult) {
       return true;
     }
     return false;
@@ -3920,22 +3917,22 @@ class DebugDeleteContextResult {
 
   @override
   int get hashCode {
-    return 923895626;
+    return 479954425;
   }
 }
 
 /**
- * debug.mapUri params
+ * execution.mapUri params
  *
  * {
- *   "id": DebugContextId
+ *   "id": ExecutionContextId
  *   "file": optional FilePath
  *   "uri": optional String
  * }
  */
-class DebugMapUriParams implements HasToJson {
+class ExecutionMapUriParams implements HasToJson {
   /**
-   * The identifier of the debugging context in which the URI is to be mapped.
+   * The identifier of the execution context in which the URI is to be mapped.
    */
   String id;
 
@@ -3949,9 +3946,9 @@ class DebugMapUriParams implements HasToJson {
    */
   String uri;
 
-  DebugMapUriParams(this.id, {this.file, this.uri});
+  ExecutionMapUriParams(this.id, {this.file, this.uri});
 
-  factory DebugMapUriParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionMapUriParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -3970,14 +3967,14 @@ class DebugMapUriParams implements HasToJson {
       if (json.containsKey("uri")) {
         uri = jsonDecoder._decodeString(jsonPath + ".uri", json["uri"]);
       }
-      return new DebugMapUriParams(id, file: file, uri: uri);
+      return new ExecutionMapUriParams(id, file: file, uri: uri);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.mapUri params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.mapUri params");
     }
   }
 
-  factory DebugMapUriParams.fromRequest(Request request) {
-    return new DebugMapUriParams.fromJson(
+  factory ExecutionMapUriParams.fromRequest(Request request) {
+    return new ExecutionMapUriParams.fromJson(
         new RequestDecoder(request), "params", request._params);
   }
 
@@ -3994,7 +3991,7 @@ class DebugMapUriParams implements HasToJson {
   }
 
   Request toRequest(String id) {
-    return new Request(id, "debug.mapUri", toJson());
+    return new Request(id, "execution.mapUri", toJson());
   }
 
   @override
@@ -4002,7 +3999,7 @@ class DebugMapUriParams implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugMapUriParams) {
+    if (other is ExecutionMapUriParams) {
       return id == other.id &&
           file == other.file &&
           uri == other.uri;
@@ -4021,14 +4018,14 @@ class DebugMapUriParams implements HasToJson {
 }
 
 /**
- * debug.mapUri result
+ * execution.mapUri result
  *
  * {
  *   "file": optional FilePath
  *   "uri": optional String
  * }
  */
-class DebugMapUriResult implements HasToJson {
+class ExecutionMapUriResult implements HasToJson {
   /**
    * The file to which the URI was mapped. This field is omitted if the uri
    * field was not given in the request.
@@ -4041,9 +4038,9 @@ class DebugMapUriResult implements HasToJson {
    */
   String uri;
 
-  DebugMapUriResult({this.file, this.uri});
+  ExecutionMapUriResult({this.file, this.uri});
 
-  factory DebugMapUriResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionMapUriResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -4056,15 +4053,15 @@ class DebugMapUriResult implements HasToJson {
       if (json.containsKey("uri")) {
         uri = jsonDecoder._decodeString(jsonPath + ".uri", json["uri"]);
       }
-      return new DebugMapUriResult(file: file, uri: uri);
+      return new ExecutionMapUriResult(file: file, uri: uri);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.mapUri result");
+      throw jsonDecoder.mismatch(jsonPath, "execution.mapUri result");
     }
   }
 
-  factory DebugMapUriResult.fromResponse(Response response) {
-    return new DebugMapUriResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+  factory ExecutionMapUriResult.fromResponse(Response response) {
+    return new ExecutionMapUriResult.fromJson(
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -4087,7 +4084,7 @@ class DebugMapUriResult implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugMapUriResult) {
+    if (other is ExecutionMapUriResult) {
       return file == other.file &&
           uri == other.uri;
     }
@@ -4104,50 +4101,50 @@ class DebugMapUriResult implements HasToJson {
 }
 
 /**
- * debug.setSubscriptions params
+ * execution.setSubscriptions params
  *
  * {
- *   "subscriptions": List<DebugService>
+ *   "subscriptions": List<ExecutionService>
  * }
  */
-class DebugSetSubscriptionsParams implements HasToJson {
+class ExecutionSetSubscriptionsParams implements HasToJson {
   /**
    * A list of the services being subscribed to.
    */
-  List<DebugService> subscriptions;
+  List<ExecutionService> subscriptions;
 
-  DebugSetSubscriptionsParams(this.subscriptions);
+  ExecutionSetSubscriptionsParams(this.subscriptions);
 
-  factory DebugSetSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionSetSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
-      List<DebugService> subscriptions;
+      List<ExecutionService> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder._decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new DebugService.fromJson(jsonDecoder, jsonPath, json));
+        subscriptions = jsonDecoder._decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ExecutionService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
-      return new DebugSetSubscriptionsParams(subscriptions);
+      return new ExecutionSetSubscriptionsParams(subscriptions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.setSubscriptions params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.setSubscriptions params");
     }
   }
 
-  factory DebugSetSubscriptionsParams.fromRequest(Request request) {
-    return new DebugSetSubscriptionsParams.fromJson(
+  factory ExecutionSetSubscriptionsParams.fromRequest(Request request) {
+    return new ExecutionSetSubscriptionsParams.fromJson(
         new RequestDecoder(request), "params", request._params);
   }
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["subscriptions"] = subscriptions.map((DebugService value) => value.toJson()).toList();
+    result["subscriptions"] = subscriptions.map((ExecutionService value) => value.toJson()).toList();
     return result;
   }
 
   Request toRequest(String id) {
-    return new Request(id, "debug.setSubscriptions", toJson());
+    return new Request(id, "execution.setSubscriptions", toJson());
   }
 
   @override
@@ -4155,8 +4152,8 @@ class DebugSetSubscriptionsParams implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugSetSubscriptionsParams) {
-      return _listEqual(subscriptions, other.subscriptions, (DebugService a, DebugService b) => a == b);
+    if (other is ExecutionSetSubscriptionsParams) {
+      return _listEqual(subscriptions, other.subscriptions, (ExecutionService a, ExecutionService b) => a == b);
     }
     return false;
   }
@@ -4169,16 +4166,16 @@ class DebugSetSubscriptionsParams implements HasToJson {
   }
 }
 /**
- * debug.setSubscriptions result
+ * execution.setSubscriptions result
  */
-class DebugSetSubscriptionsResult {
+class ExecutionSetSubscriptionsResult {
   Response toResponse(String id) {
     return new Response(id, result: null);
   }
 
   @override
   bool operator==(other) {
-    if (other is DebugSetSubscriptionsResult) {
+    if (other is ExecutionSetSubscriptionsResult) {
       return true;
     }
     return false;
@@ -4186,12 +4183,12 @@ class DebugSetSubscriptionsResult {
 
   @override
   int get hashCode {
-    return 36732888;
+    return 287678780;
   }
 }
 
 /**
- * debug.launchData params
+ * execution.launchData params
  *
  * {
  *   "executables": List<ExecutableFile>
@@ -4199,10 +4196,10 @@ class DebugSetSubscriptionsResult {
  *   "htmlToDart": Map<FilePath, List<FilePath>>
  * }
  */
-class DebugLaunchDataParams implements HasToJson {
+class ExecutionLaunchDataParams implements HasToJson {
   /**
-   * A list of the files that are executable in the given context. This list
-   * replaces any previous list provided for the given context.
+   * A list of the files that are executable. This list replaces any previous
+   * list provided.
    */
   List<ExecutableFile> executables;
 
@@ -4218,9 +4215,9 @@ class DebugLaunchDataParams implements HasToJson {
    */
   Map<String, List<String>> htmlToDart;
 
-  DebugLaunchDataParams(this.executables, this.dartToHtml, this.htmlToDart);
+  ExecutionLaunchDataParams(this.executables, this.dartToHtml, this.htmlToDart);
 
-  factory DebugLaunchDataParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+  factory ExecutionLaunchDataParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
@@ -4243,15 +4240,15 @@ class DebugLaunchDataParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "htmlToDart");
       }
-      return new DebugLaunchDataParams(executables, dartToHtml, htmlToDart);
+      return new ExecutionLaunchDataParams(executables, dartToHtml, htmlToDart);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "debug.launchData params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.launchData params");
     }
   }
 
-  factory DebugLaunchDataParams.fromNotification(Notification notification) {
-    return new DebugLaunchDataParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+  factory ExecutionLaunchDataParams.fromNotification(Notification notification) {
+    return new ExecutionLaunchDataParams.fromJson(
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -4263,7 +4260,7 @@ class DebugLaunchDataParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("debug.launchData", toJson());
+    return new Notification("execution.launchData", toJson());
   }
 
   @override
@@ -4271,7 +4268,7 @@ class DebugLaunchDataParams implements HasToJson {
 
   @override
   bool operator==(other) {
-    if (other is DebugLaunchDataParams) {
+    if (other is ExecutionLaunchDataParams) {
       return _listEqual(executables, other.executables, (ExecutableFile a, ExecutableFile b) => a == b) &&
           _mapEqual(dartToHtml, other.dartToHtml, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b)) &&
           _mapEqual(htmlToDart, other.htmlToDart, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b));
@@ -5518,45 +5515,6 @@ class CompletionSuggestionKind {
 }
 
 /**
- * DebugService
- *
- * enum {
- *   LAUNCH_DATA
- * }
- */
-class DebugService {
-  static const LAUNCH_DATA = const DebugService._("LAUNCH_DATA");
-
-  final String name;
-
-  const DebugService._(this.name);
-
-  factory DebugService(String name) {
-    switch (name) {
-      case "LAUNCH_DATA":
-        return LAUNCH_DATA;
-    }
-    throw new Exception('Illegal enum value: $name');
-  }
-
-  factory DebugService.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json is String) {
-      try {
-        return new DebugService(json);
-      } catch(_) {
-        // Fall through
-      }
-    }
-    throw jsonDecoder.mismatch(jsonPath, "DebugService");
-  }
-
-  @override
-  String toString() => "DebugService.$name";
-
-  String toJson() => name;
-}
-
-/**
  * Element
  *
  * {
@@ -5979,6 +5937,45 @@ class ExecutableKind {
 
   @override
   String toString() => "ExecutableKind.$name";
+
+  String toJson() => name;
+}
+
+/**
+ * ExecutionService
+ *
+ * enum {
+ *   LAUNCH_DATA
+ * }
+ */
+class ExecutionService {
+  static const LAUNCH_DATA = const ExecutionService._("LAUNCH_DATA");
+
+  final String name;
+
+  const ExecutionService._(this.name);
+
+  factory ExecutionService(String name) {
+    switch (name) {
+      case "LAUNCH_DATA":
+        return LAUNCH_DATA;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory ExecutionService.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new ExecutionService(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "ExecutionService");
+  }
+
+  @override
+  String toString() => "ExecutionService.$name";
 
   String toJson() => name;
 }
@@ -6457,13 +6454,14 @@ class HoverInformation implements HasToJson {
   /**
    * The path to the defining compilation unit of the library in which the
    * referenced element is declared. This data is omitted if there is no
-   * referenced element.
+   * referenced element, or if the element is declared inside an HTML file.
    */
   String containingLibraryPath;
 
   /**
    * The name of the library in which the referenced element is declared. This
-   * data is omitted if there is no referenced element.
+   * data is omitted if there is no referenced element, or if the element is
+   * declared inside an HTML file.
    */
   String containingLibraryName;
 
@@ -6471,7 +6469,7 @@ class HoverInformation implements HasToJson {
    * The dartdoc associated with the referenced element. Other than the removal
    * of the comment delimiters, including leading asterisks in the case of a
    * block comment, the dartdoc is unprocessed markdown. This data is omitted
-   * if there is no referenced element.
+   * if there is no referenced element, or if the element has no dartdoc.
    */
   String dartdoc;
 
@@ -7750,6 +7748,78 @@ class RefactoringMethodParameter implements HasToJson {
 }
 
 /**
+ * RefactoringFeedback
+ *
+ * {
+ * }
+ */
+class RefactoringFeedback implements HasToJson {
+  RefactoringFeedback();
+
+  factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json, Map responseJson) {
+    return _refactoringFeedbackFromJson(jsonDecoder, jsonPath, json, responseJson);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is RefactoringFeedback) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * RefactoringOptions
+ *
+ * {
+ * }
+ */
+class RefactoringOptions implements HasToJson {
+  RefactoringOptions();
+
+  factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json, RefactoringKind kind) {
+    return _refactoringOptionsFromJson(jsonDecoder, jsonPath, json, kind);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is RefactoringOptions) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * RefactoringMethodParameterKind
  *
  * enum {
@@ -8088,7 +8158,8 @@ class RequestError implements HasToJson {
  * RequestErrorCode
  *
  * enum {
- *   GET_ERRORS_ERROR
+ *   GET_ERRORS_INVALID_FILE
+ *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
  *   SERVER_ALREADY_STARTED
@@ -8099,10 +8170,17 @@ class RequestError implements HasToJson {
  */
 class RequestErrorCode {
   /**
-   * An error occurred during the processing of an "analysis.getErrors"
-   * request.
+   * An "analysis.getErrors" request specified a FilePath which does not match
+   * a file currently subject to analysis.
    */
-  static const GET_ERRORS_ERROR = const RequestErrorCode._("GET_ERRORS_ERROR");
+  static const GET_ERRORS_INVALID_FILE = const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
+
+  /**
+   * An analysis.updateContent request contained a ChangeContentOverlay object
+   * which can't be applied, due to an edit having an offset or length that is
+   * out of range.
+   */
+  static const INVALID_OVERLAY_CHANGE = const RequestErrorCode._("INVALID_OVERLAY_CHANGE");
 
   /**
    * One of the method parameters was invalid.
@@ -8117,12 +8195,19 @@ class RequestErrorCode {
   /**
    * The analysis server has already been started (and hence won't accept new
    * connections).
+   *
+   * This error is included for future expansion; at present the analysis
+   * server can only speak to one client at a time so this error will never
+   * occur.
    */
   static const SERVER_ALREADY_STARTED = const RequestErrorCode._("SERVER_ALREADY_STARTED");
 
   /**
    * An "analysis.setPriorityFiles" request includes one or more files that are
    * not being analyzed.
+   *
+   * This is a legacy error; it will be removed before the API reaches version
+   * 1.0.
    */
   static const UNANALYZED_PRIORITY_FILES = const RequestErrorCode._("UNANALYZED_PRIORITY_FILES");
 
@@ -8135,6 +8220,9 @@ class RequestErrorCode {
   /**
    * The analysis server was requested to perform an action which is not
    * supported.
+   *
+   * This is a legacy error; it will be removed before the API reaches version
+   * 1.0.
    */
   static const UNSUPPORTED_FEATURE = const RequestErrorCode._("UNSUPPORTED_FEATURE");
 
@@ -8144,8 +8232,10 @@ class RequestErrorCode {
 
   factory RequestErrorCode(String name) {
     switch (name) {
-      case "GET_ERRORS_ERROR":
-        return GET_ERRORS_ERROR;
+      case "GET_ERRORS_INVALID_FILE":
+        return GET_ERRORS_INVALID_FILE;
+      case "INVALID_OVERLAY_CHANGE":
+        return INVALID_OVERLAY_CHANGE;
       case "INVALID_PARAMETER":
         return INVALID_PARAMETER;
       case "INVALID_REQUEST":
@@ -9028,7 +9118,7 @@ class ConvertMethodToGetterOptions {
  *   "lengths": List<int>
  * }
  */
-class ExtractLocalVariableFeedback implements HasToJson {
+class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
   /**
    * The proposed names for the local variable.
    */
@@ -9079,11 +9169,6 @@ class ExtractLocalVariableFeedback implements HasToJson {
     }
   }
 
-  factory ExtractLocalVariableFeedback.fromRefactoringResult(EditGetRefactoringResult refactoringResult) {
-    return new ExtractLocalVariableFeedback.fromJson(
-        new ResponseDecoder(), "feedback", refactoringResult.feedback);
-  }
-
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["names"] = names;
@@ -9123,7 +9208,7 @@ class ExtractLocalVariableFeedback implements HasToJson {
  *   "extractAll": bool
  * }
  */
-class ExtractLocalVariableOptions implements HasToJson {
+class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJson {
   /**
    * The name that the local variable should be given.
    */
@@ -9209,7 +9294,7 @@ class ExtractLocalVariableOptions implements HasToJson {
  *   "lengths": List<int>
  * }
  */
-class ExtractMethodFeedback implements HasToJson {
+class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
   /**
    * The offset to the beginning of the expression or statements that will be
    * extracted.
@@ -9317,11 +9402,6 @@ class ExtractMethodFeedback implements HasToJson {
     }
   }
 
-  factory ExtractMethodFeedback.fromRefactoringResult(EditGetRefactoringResult refactoringResult) {
-    return new ExtractMethodFeedback.fromJson(
-        new ResponseDecoder(), "feedback", refactoringResult.feedback);
-  }
-
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["offset"] = offset;
@@ -9379,7 +9459,7 @@ class ExtractMethodFeedback implements HasToJson {
  *   "extractAll": bool
  * }
  */
-class ExtractMethodOptions implements HasToJson {
+class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
   /**
    * The return type that should be defined for the method.
    */
@@ -9403,7 +9483,7 @@ class ExtractMethodOptions implements HasToJson {
    * parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
    * NAMED parameter.
    *
-   * - To change the order and/or update proposed paramerers, add parameters
+   * - To change the order and/or update proposed parameters, add parameters
    *   with the same identifiers as proposed.
    * - To add new parameters, omit their identifier.
    * - To remove some parameters, omit them in this list.
@@ -9501,21 +9581,76 @@ class ExtractMethodOptions implements HasToJson {
     return _JenkinsSmiHash.finish(hash);
   }
 }
+
 /**
  * inlineLocalVariable feedback
+ *
+ * {
+ *   "name": String
+ *   "occurrences": int
+ * }
  */
-class InlineLocalVariableFeedback {
+class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
+  /**
+   * The name of the variable being inlined.
+   */
+  String name;
+
+  /**
+   * The number of times the variable occurs.
+   */
+  int occurrences;
+
+  InlineLocalVariableFeedback(this.name, this.occurrences);
+
+  factory InlineLocalVariableFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "name");
+      }
+      int occurrences;
+      if (json.containsKey("occurrences")) {
+        occurrences = jsonDecoder._decodeInt(jsonPath + ".occurrences", json["occurrences"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "occurrences");
+      }
+      return new InlineLocalVariableFeedback(name, occurrences);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "inlineLocalVariable feedback");
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    result["occurrences"] = occurrences;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
   @override
   bool operator==(other) {
     if (other is InlineLocalVariableFeedback) {
-      return true;
+      return name == other.name &&
+          occurrences == other.occurrences;
     }
     return false;
   }
 
   @override
   int get hashCode {
-    return 247971243;
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, occurrences.hashCode);
+    return _JenkinsSmiHash.finish(hash);
   }
 }
 /**
@@ -9535,21 +9670,93 @@ class InlineLocalVariableOptions {
     return 540364977;
   }
 }
+
 /**
  * inlineMethod feedback
+ *
+ * {
+ *   "className": optional String
+ *   "methodName": String
+ *   "isDeclaration": bool
+ * }
  */
-class InlineMethodFeedback {
+class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
+  /**
+   * The name of the class enclosing the method being inlined. If not a class
+   * member is being inlined, this field will be absent.
+   */
+  String className;
+
+  /**
+   * The name of the method (or function) being inlined.
+   */
+  String methodName;
+
+  /**
+   * True if the declaration of the method is selected. So all references
+   * should be inlined.
+   */
+  bool isDeclaration;
+
+  InlineMethodFeedback(this.methodName, this.isDeclaration, {this.className});
+
+  factory InlineMethodFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String className;
+      if (json.containsKey("className")) {
+        className = jsonDecoder._decodeString(jsonPath + ".className", json["className"]);
+      }
+      String methodName;
+      if (json.containsKey("methodName")) {
+        methodName = jsonDecoder._decodeString(jsonPath + ".methodName", json["methodName"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "methodName");
+      }
+      bool isDeclaration;
+      if (json.containsKey("isDeclaration")) {
+        isDeclaration = jsonDecoder._decodeBool(jsonPath + ".isDeclaration", json["isDeclaration"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "isDeclaration");
+      }
+      return new InlineMethodFeedback(methodName, isDeclaration, className: className);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "inlineMethod feedback");
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    if (className != null) {
+      result["className"] = className;
+    }
+    result["methodName"] = methodName;
+    result["isDeclaration"] = isDeclaration;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
   @override
   bool operator==(other) {
     if (other is InlineMethodFeedback) {
-      return true;
+      return className == other.className &&
+          methodName == other.methodName &&
+          isDeclaration == other.isDeclaration;
     }
     return false;
   }
 
   @override
   int get hashCode {
-    return 882400079;
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, className.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, methodName.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, isDeclaration.hashCode);
+    return _JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -9561,7 +9768,7 @@ class InlineMethodFeedback {
  *   "inlineAll": bool
  * }
  */
-class InlineMethodOptions implements HasToJson {
+class InlineMethodOptions extends RefactoringOptions implements HasToJson {
   /**
    * True if the method being inlined should be removed. It is an error if this
    * field is true and inlineAll is false.
@@ -9638,9 +9845,11 @@ class InlineMethodOptions implements HasToJson {
  * {
  *   "offset": int
  *   "length": int
+ *   "elementKindName": String
+ *   "oldName": String
  * }
  */
-class RenameFeedback implements HasToJson {
+class RenameFeedback extends RefactoringFeedback implements HasToJson {
   /**
    * The offset to the beginning of the name selected to be renamed.
    */
@@ -9651,7 +9860,18 @@ class RenameFeedback implements HasToJson {
    */
   int length;
 
-  RenameFeedback(this.offset, this.length);
+  /**
+   * The human-readable description of the kind of element being renamed (such
+   * as “class” or “function type alias”).
+   */
+  String elementKindName;
+
+  /**
+   * The old name of the element before the refactoring.
+   */
+  String oldName;
+
+  RenameFeedback(this.offset, this.length, this.elementKindName, this.oldName);
 
   factory RenameFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -9670,21 +9890,30 @@ class RenameFeedback implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
-      return new RenameFeedback(offset, length);
+      String elementKindName;
+      if (json.containsKey("elementKindName")) {
+        elementKindName = jsonDecoder._decodeString(jsonPath + ".elementKindName", json["elementKindName"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "elementKindName");
+      }
+      String oldName;
+      if (json.containsKey("oldName")) {
+        oldName = jsonDecoder._decodeString(jsonPath + ".oldName", json["oldName"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "oldName");
+      }
+      return new RenameFeedback(offset, length, elementKindName, oldName);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "rename feedback");
     }
-  }
-
-  factory RenameFeedback.fromRefactoringResult(EditGetRefactoringResult refactoringResult) {
-    return new RenameFeedback.fromJson(
-        new ResponseDecoder(), "feedback", refactoringResult.feedback);
   }
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["offset"] = offset;
     result["length"] = length;
+    result["elementKindName"] = elementKindName;
+    result["oldName"] = oldName;
     return result;
   }
 
@@ -9695,7 +9924,9 @@ class RenameFeedback implements HasToJson {
   bool operator==(other) {
     if (other is RenameFeedback) {
       return offset == other.offset &&
-          length == other.length;
+          length == other.length &&
+          elementKindName == other.elementKindName &&
+          oldName == other.oldName;
     }
     return false;
   }
@@ -9705,6 +9936,8 @@ class RenameFeedback implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = _JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, elementKindName.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, oldName.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -9716,7 +9949,7 @@ class RenameFeedback implements HasToJson {
  *   "newName": String
  * }
  */
-class RenameOptions implements HasToJson {
+class RenameOptions extends RefactoringOptions implements HasToJson {
   /**
    * The name that the element should have after the refactoring.
    */

@@ -449,8 +449,7 @@ class _HttpHeaders implements HttpHeaders {
 
   _updateHostHeader() {
     bool defaultPort = _port == null || _port == _defaultPortForScheme;
-    String portPart = defaultPort ? "" : ":$_port";
-    _set("host", "$host$portPart");
+    _set("host", defaultPort ? host : "$host:$_port");
   }
 
   _foldHeader(String name) {

@@ -8,11 +8,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import 'dart:async';
-
-@lazy import 'deferred_function_library.dart' as lib;
-
-const lazy = const DeferredLibrary('deferred_function_library');
+import 'deferred_function_library.dart' deferred as lib;
 
 isError(e) => e is Error;
 
@@ -25,7 +21,7 @@ main() {
   Expect.throws(readFoo, isError);
   int counter = 0;
   asyncStart();
-  lazy.load().then((_) {
+  lib.loadLibrary().then((_) {
     Expect.equals(1, ++counter);
     print('lazy was loaded');
     Expect.equals(42, lib.foo('b'));
@@ -34,7 +30,7 @@ main() {
   });
   Expect.equals(0, counter);
   asyncStart();
-  lazy.load().then((_) {
+  lib.loadLibrary().then((_) {
     Expect.equals(2, ++counter);
     print('lazy was loaded');
     Expect.equals(42, lib.foo('b'));

@@ -1578,6 +1578,8 @@ testConcreteTypeToTypeMask() {
           .singletonConcreteType(new ClassBaseType(element));
     }
 
+    var world = result.compiler.world;
+
     ClassElement a = findElement(result.compiler, 'A');
     ClassElement b = findElement(result.compiler, 'B');
     ClassElement c = findElement(result.compiler, 'C');
@@ -1585,24 +1587,24 @@ testConcreteTypeToTypeMask() {
 
     for (ClassElement cls in [a, b, c, d]) {
       Expect.equals(convert(singleton(cls)),
-                    new TypeMask.nonNullExact(cls));
+                    new TypeMask.nonNullExact(cls, world));
     }
 
     for (ClassElement cls in [a, b, c, d]) {
       Expect.equals(convert(singleton(cls).union(nullSingleton)),
-                    new TypeMask.exact(cls));
+                    new TypeMask.exact(cls, world));
     }
 
     Expect.equals(convert(singleton(a).union(singleton(b))),
-                  new TypeMask.nonNullSubclass(a, result.compiler.world));
+                  new TypeMask.nonNullSubclass(a, world));
 
     Expect.equals(
         convert(singleton(a).union(singleton(b)).union(nullSingleton)),
-                  new TypeMask.subclass(a, result.compiler.world));
+                  new TypeMask.subclass(a, world));
 
     Expect.equals(
         simplify(convert(singleton(b).union(singleton(d))), result.compiler),
-        new TypeMask.nonNullSubtype(a, result.compiler.world));
+        new TypeMask.nonNullSubtype(a, world));
   });
 }
 
@@ -1631,7 +1633,7 @@ testSelectors() {
       """;
   return analyze(source).then((result) {
 
-
+    var world = result.compiler.world;
 
     ClassElement a = findElement(result.compiler, 'A');
     ClassElement b = findElement(result.compiler, 'B');
@@ -1646,21 +1648,21 @@ testSelectors() {
     result.checkSelectorHasType(
         foo,
         new TypeMask.unionOf([a, b, c]
-            .map((cls) => new TypeMask.nonNullExact(cls)),
+            .map((cls) => new TypeMask.nonNullExact(cls, world)),
             result.compiler.world));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(x, foo, result.compiler.world),
-        new TypeMask.nonNullExact(b));
+        new TypedSelector.subclass(x, foo, world),
+        new TypeMask.nonNullExact(b, world));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(y, foo, result.compiler.world),
-        new TypeMask.nonNullExact(c));
+        new TypedSelector.subclass(y, foo, world),
+        new TypeMask.nonNullExact(c, world));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(z, foo, result.compiler.world),
-        new TypeMask.nonNullExact(a));
+        new TypedSelector.subclass(z, foo, world),
+        new TypeMask.nonNullExact(a, world));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(xy, foo, result.compiler.world),
+        new TypedSelector.subclass(xy, foo, world),
         new TypeMask.unionOf([b, c].map((cls) =>
-            new TypeMask.nonNullExact(cls)), result.compiler.world));
+            new TypeMask.nonNullExact(cls, world)), world));
 
     result.checkSelectorHasType(new Selector.call("bar", null, 0), null);
   });
@@ -1675,7 +1677,8 @@ testEqualsNullSelector() {
   return analyze(source).then((result) {
     ClassElement bool = result.compiler.backend.boolImplementation;
     result.checkSelectorHasType(new Selector.binaryOperator('=='),
-                                new TypeMask.nonNullExact(bool));
+                                new TypeMask.nonNullExact(bool,
+                                    result.compiler.world));
   });
 }
 

@@ -44,10 +44,6 @@
               '-Wa,--noexecstack',
             ],
           }],
-          # Settings for building host targets using the system toolchain.
-          ['_toolset=="host"', {
-            'cflags': [ '-m32', '-pthread' ],
-          }],
         ],
       },
       'Dart_Android_Debug': {
@@ -147,6 +143,7 @@
             ],
           }],
           ['_toolset=="host"', {
+            'cflags': [ '-m32', '-pthread' ],
             'ldflags': [ '-m32', '-pthread' ],
           }],
         ],
@@ -202,10 +199,62 @@
             ],
           }],
           ['_toolset=="host"', {
+            'cflags': [ '-m32', '-pthread' ],
             'ldflags': [ '-m32', '-pthread' ],
           }],
         ],
-      },
+      },  # Dart_Android_arm_Base
+      'Dart_Android_arm64_Base': {
+        'abstract': 1,
+        'variables': {
+          'android_sysroot': '<(android_ndk_root)/platforms/android-L/arch-arm64',
+          'android_ndk_include': '<(android_sysroot)/usr/include',
+          'android_ndk_lib': '<(android_sysroot)/usr/lib',
+        },
+        'target_conditions': [
+          ['_toolset=="target"', {
+            'cflags': [
+              '-fPIE',
+              '--sysroot=<(android_sysroot)',
+              '-I<(android_ndk_include)',
+              '-I<(android_ndk_root)/sources/cxx-stl/stlport/stlport',
+            ],
+            'target_conditions': [
+              ['_type=="executable"', {
+                'ldflags!': ['-Wl,--exclude-libs=ALL,-shared',],
+              }],
+              ['_type=="shared_library"', {
+                'ldflags': ['-Wl,-shared,-Bsymbolic',],
+              }],
+            ],
+            'ldflags': [
+              'arm64', '>(_type)', 'target',
+              '-nostdlib',
+              '-Wl,--no-undefined',
+              # Don't export symbols from statically linked libraries.
+              '-Wl,--exclude-libs=ALL',
+              '-Wl,-rpath-link=<(android_ndk_lib)',
+              '-L<(android_ndk_lib)',
+              '-L<(android_ndk_root)/sources/cxx-stl/stlport/libs/arm64-v8a',
+              '-z',
+              'muldefs',
+              '-Bdynamic',
+              '-pie',
+              '-Wl,-dynamic-linker,/system/bin/linker64',
+              '-Wl,--gc-sections',
+              '-Wl,-z,nocopyreloc',
+              # crtbegin_dynamic.o should be the last item in ldflags.
+              '<(android_ndk_lib)/crtbegin_dynamic.o',
+            ],
+            'ldflags!': [
+              '-pthread',  # Not supported by Android toolchain.
+            ],
+          }],
+          ['_toolset=="host"', {
+            'ldflags': [ '-pthread' ],
+          }],
+        ],
+      },  # Dart_Android_arm64_Base
     },  # configurations
   },  # target_defaults
 }

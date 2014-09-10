@@ -203,7 +203,6 @@ def Main():
   for library in [join('_blink', 'dartium'),
                   join('_chrome', 'dart2js'), join('_chrome', 'dartium'),
                   join('_internal', 'compiler'),
-                  join('_internal', 'lib'),
                   'async', 'collection', 'convert', 'core',
                   'internal', 'io', 'isolate',
                   join('html', 'dart2js'), join('html', 'dartium'),

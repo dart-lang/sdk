@@ -602,6 +602,7 @@ class LocalsHandler<T> {
 
 abstract class InferrerVisitor
     <T, E extends MinimalInferrerEngine<T>> extends ResolvedVisitor<T> {
+  final Compiler compiler;
   final AstElement analyzedElement;
   final TypeSystem<T> types;
   final E inferrer;
@@ -632,12 +633,11 @@ abstract class InferrerVisitor
   InferrerVisitor(AstElement analyzedElement,
                   this.inferrer,
                   this.types,
-                  Compiler compiler,
+                  this.compiler,
                   [LocalsHandler<T> handler])
     : this.analyzedElement = analyzedElement,
       this.locals = handler,
-      super(analyzedElement.resolvedAst.elements,
-            compiler) {
+      super(analyzedElement.resolvedAst.elements) {
     if (handler != null) return;
     Node node = analyzedElement.node;
     FieldInitializationScope<T> fieldScope =

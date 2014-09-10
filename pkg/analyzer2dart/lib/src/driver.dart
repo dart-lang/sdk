@@ -10,6 +10,8 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 
+import 'package:compiler/compiler.dart';
+
 import 'closed_world.dart';
 import 'tree_shaker.dart';
 
@@ -19,8 +21,9 @@ import 'tree_shaker.dart';
 class Driver {
   final ResourceProvider resourceProvider;
   final AnalysisContext context;
+  final CompilerOutputProvider outputProvider;
 
-  Driver(this.resourceProvider, DartSdk sdk)
+  Driver(this.resourceProvider, DartSdk sdk, this.outputProvider)
       : context = AnalysisEngine.instance.createAnalysisContext() {
     // Set up the source factory.
     // TODO(paulberry): do we want to use ExplicitPackageUriResolver?
@@ -36,8 +39,7 @@ class Driver {
    * Compute the closed world that is reachable from an entry point.
    */
   ClosedWorld computeWorld(FunctionElement entryPointElement) {
-    TreeShaker treeShaker = new TreeShaker();
-    treeShaker.addElement(entryPointElement);
+    TreeShaker treeShaker = new TreeShaker(entryPointElement);
     return treeShaker.shake();
   }
 

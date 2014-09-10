@@ -262,13 +262,13 @@ class _GrowableList<T> implements List<T> {
     StringBuffer buffer = new StringBuffer();
     if (separator.isEmpty) {
       for (int i = 0; i < this.length; i++) {
-        buffer.write("${this[i]}");
+        buffer.write(this[i]);
       }
     } else {
-      buffer.write("${this[0]}");
+      buffer.write(this[0]);
       for (int i = 1; i < this.length; i++) {
         buffer.write(separator);
-        buffer.write("${this[i]}");
+        buffer.write(this[i]);
       }
     }
     return buffer.toString();

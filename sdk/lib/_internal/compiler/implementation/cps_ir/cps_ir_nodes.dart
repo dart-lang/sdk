@@ -7,7 +7,7 @@
 library dart2js.ir_nodes;
 
 import '../dart2jslib.dart' as dart2js show Constant, ConstructedConstant,
-  StringConstant, ListConstant, MapConstant;
+  StringConstant, ListConstant, MapConstant, invariant;
 import '../elements/elements.dart';
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
@@ -260,9 +260,16 @@ class InvokeConstructor extends Expression implements Invoke {
                     List<Definition> args)
       : continuation = new Reference(cont),
         arguments = _referenceList(args) {
-    assert(target.isErroneous || target.isConstructor);
-    assert(target.isErroneous || type.isDynamic ||
-           type.element == target.enclosingElement);
+    assert(dart2js.invariant(target,
+        target.isErroneous || target.isConstructor,
+        message: "Constructor invocation target is not a constructor: "
+                 "$target."));
+    assert(dart2js.invariant(target,
+        target.isErroneous ||
+        type.isDynamic ||
+        type.element == target.enclosingClass.declaration,
+        message: "Constructor invocation type ${type} does not match enclosing "
+                 "class of target ${target}."));
   }
 
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);

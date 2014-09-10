@@ -164,6 +164,7 @@ class Entrypoint {
 
     // If the existing executable was compiled with a different SDK, we need to
     // recompile regardless of what changed.
+    // TODO(nweiz): Use the VM to check this when issue 20802 is fixed.
     var sdkMatches = fileExists(sdkVersionPath) &&
         readTextFile(sdkVersionPath) == "${sdk.version}\n";
     if (!sdkMatches) changed = null;

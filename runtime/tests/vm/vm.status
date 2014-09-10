@@ -32,6 +32,7 @@ cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
+cc/ToCStringTruncated: Fail # Issue 20874
 
 [ $system == linux ]
 cc/ThreadInterrupterHigh: Skip

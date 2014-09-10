@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/imported_type_computer.dart';
+import 'package:analysis_server/src/services/completion/imported_computer.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
 import 'package:analysis_server/src/services/completion/keyword_computer.dart';
 import 'package:analysis_server/src/services/completion/local_computer.dart';
@@ -73,9 +73,7 @@ class DartCompletionManager extends CompletionManager {
     CompilationUnit unit = context.parseCompilationUnit(source);
     request.unit = unit;
     request.node = new NodeLocator.con1(offset).searchWithin(unit);
-    if (request.node != null) {
-      request.node.accept(new _ReplacementOffsetBuilder(request));
-    }
+    request.node.accept(new _ReplacementOffsetBuilder(request));
     computers.removeWhere((DartCompletionComputer c) => c.computeFast(request));
     sendResults(computers.isEmpty);
   }
@@ -112,7 +110,7 @@ class DartCompletionManager extends CompletionManager {
       computers = [
           new KeywordComputer(),
           new LocalComputer(),
-          new ImportedTypeComputer(),
+          new ImportedComputer(),
           new InvocationComputer()];
     }
   }

@@ -10,8 +10,8 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_testing/mock_sdk.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import 'mock_sdk.dart';
+import 'reflective_tests.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
@@ -260,6 +260,36 @@ testUpdateContent() {
           });
         });
       });
+    });
+  });
+
+  group('out of range', () {
+    Future outOfRangeTest(SourceEdit edit) {
+      AnalysisTestHelper helper = new AnalysisTestHelper();
+      helper.createSingleFileProject('library A;');
+      return helper.waitForOperationsFinished().then((_) {
+        helper.sendContentChange(new AddContentOverlay('library B;'));
+        return helper.waitForOperationsFinished().then((_) {
+          ChangeContentOverlay contentChange = new ChangeContentOverlay([edit]);
+          Request request = new AnalysisUpdateContentParams({
+            helper.testFile: contentChange}).toRequest('0');
+          Response response = helper.handler.handleRequest(request);
+          expect(response, isResponseFailure('0',
+              RequestErrorCode.INVALID_OVERLAY_CHANGE));
+        });
+      });
+    }
+
+    test('negative length', () {
+      return outOfRangeTest(new SourceEdit(3, -1, 'foo'));
+    });
+
+    test('negative offset', () {
+      return outOfRangeTest(new SourceEdit(-1, 3, 'foo'));
+    });
+
+    test('beyond end', () {
+      return outOfRangeTest(new SourceEdit(6, 6, 'foo'));
     });
   });
 }

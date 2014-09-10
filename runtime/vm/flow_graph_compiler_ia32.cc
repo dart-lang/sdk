@@ -916,17 +916,9 @@ void FlowGraphCompiler::CopyParameters() {
 
   __ Bind(&wrong_num_arguments);
   if (function.IsClosureFunction()) {
-    // Invoke noSuchMethod function passing "call" as the original name.
-    StubCode* stub_code = isolate()->stub_code();
-    const int kNumArgsChecked = 1;
-    const ICData& ic_data = ICData::ZoneHandle(
-        ICData::New(function, Symbols::Call(), Object::empty_array(),
-                    Isolate::kNoDeoptId, kNumArgsChecked));
-    __ LoadObject(ECX, ic_data);
     __ LeaveFrame();  // The arguments are still on the stack.
-    __ jmp(&stub_code->CallNoSuchMethodFunctionLabel());
+    __ jmp(&isolate()->stub_code()->CallClosureNoSuchMethodLabel());
     // The noSuchMethod call may return to the caller, but not here.
-    __ int3();
   } else if (check_correct_named_args) {
     __ Stop("Wrong arguments");
   }
@@ -1058,21 +1050,9 @@ void FlowGraphCompiler::CompileGraph() {
 
       __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction()) {
-        // Invoke noSuchMethod function passing the original function name.
-        // For closure functions, use "call" as the original name.
-        const String& name =
-            String::Handle(function.IsClosureFunction()
-                             ? Symbols::Call().raw()
-                             : function.name());
-        const int kNumArgsChecked = 1;
-        const ICData& ic_data = ICData::ZoneHandle(
-            ICData::New(function, name, Object::empty_array(),
-                        Isolate::kNoDeoptId, kNumArgsChecked));
-        __ LoadObject(ECX, ic_data);
         __ LeaveFrame();  // The arguments are still on the stack.
-        __ jmp(&stub_code->CallNoSuchMethodFunctionLabel());
+        __ jmp(&stub_code->CallClosureNoSuchMethodLabel());
         // The noSuchMethod call may return to the caller, but not here.
-        __ int3();
       } else {
         __ Stop("Wrong number of arguments");
       }
@@ -1741,12 +1721,16 @@ void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
 }
 
 
-void ParallelMoveResolver::Exchange(Register reg, intptr_t stack_offset) {
+void ParallelMoveResolver::Exchange(Register reg,
+                                    Register base_reg,
+                                    intptr_t stack_offset) {
   UNREACHABLE();
 }
 
 
-void ParallelMoveResolver::Exchange(intptr_t stack_offset1,
+void ParallelMoveResolver::Exchange(Register base_reg1,
+                                    intptr_t stack_offset1,
+                                    Register base_reg2,
                                     intptr_t stack_offset2) {
   UNREACHABLE();
 }
