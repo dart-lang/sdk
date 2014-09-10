@@ -159,11 +159,13 @@ list_insert_test: fail
 list_removeat_test: fail
 
 [ $arch == simarm || $arch == simarm64 ]
-big_integer_vm_test: Skip # Timeout
+big_integer_vm_test: Skip # Timeout. Issue 20879
 
 [ $arch == simmips ]
 int_parse_radix_test: Skip # Timeout
-big_integer_vm_test: Skip # Timeout
+
+[ $arch == simmips || $arch == mips ]
+big_integer_vm_test: Skip # Timeout. Issue 20879
 
 [ $arch == simarm && $checked ]
 num_parse_test: Skip  # Pass, Timeout
