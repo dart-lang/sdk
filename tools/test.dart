@@ -221,8 +221,11 @@ void testConfigurations(List<Map> configurations) {
         } else if (key == 'pub') {
           // TODO(rnystrom): Move pub back into TEST_SUITE_DIRECTORIES once
           // #104 is fixed.
-          testSuites.add(new StandardTestSuite.forDirectory(conf,
-              new Path('sdk/lib/_internal/pub_generated'), 'pub'));
+          testSuites.add(new StandardTestSuite(conf, 'pub',
+              new Path('sdk/lib/_internal/pub_generated'),
+              ['sdk/lib/_internal/pub/pub.status'],
+              isTestFilePredicate: (file) => file.endsWith('_test.dart'),
+              recursive: true));
         }
       }
 

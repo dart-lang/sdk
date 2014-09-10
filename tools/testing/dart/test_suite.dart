@@ -636,10 +636,8 @@ class StandardTestSuite extends TestSuite {
    * particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
    * in test.dart, this will all be set up for you.
    */
-  factory StandardTestSuite.forDirectory(Map configuration, Path directory,
-      [String name]) {
-    if (name == null) name = directory.filename;
-
+  factory StandardTestSuite.forDirectory(Map configuration, Path directory) {
+    var name = directory.filename;
     var status_paths = ['$directory/$name.status',
                         '$directory/.status',
                         '$directory/${name}_dart2js.status',
