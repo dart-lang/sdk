@@ -281,12 +281,7 @@ void FlowGraphCompiler::CompactBlocks() {
 
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   if (!is_optimizing()) {
-    if (FLAG_enable_type_checks && instr->IsAssertAssignable()) {
-      AssertAssignableInstr* assert = instr->AsAssertAssignable();
-      AddCurrentDescriptor(RawPcDescriptors::kDeopt,
-                           assert->deopt_id(),
-                           assert->token_pos());
-    } else if (instr->CanBecomeDeoptimizationTarget() && !instr->IsGoto()) {
+    if (instr->CanBecomeDeoptimizationTarget() && !instr->IsGoto()) {
       // Instructions that can be deoptimization targets need to record kDeopt
       // PcDescriptor corresponding to their deopt id. GotoInstr records its
       // own so that it can control the placement.

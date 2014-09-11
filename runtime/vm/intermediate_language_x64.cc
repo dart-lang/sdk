@@ -5730,25 +5730,6 @@ void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ Bind(compiler->GetJumpLabel(this));
-  if (!compiler->is_optimizing()) {
-    if (compiler->NeedsEdgeCounter(this)) {
-      compiler->EmitEdgeCounter();
-    }
-    // The deoptimization descriptor points after the edge counter code for
-    // uniformity with ARM and MIPS, where we can reuse pattern matching
-    // code that matches backwards from the end of the pattern.
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
-                                   deopt_id_,
-                                   Scanner::kNoSourcePos);
-  }
-  if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
-  }
-}
-
-
 LocationSummary* GotoInstr::MakeLocationSummary(Isolate* isolate,
                                                 bool opt) const {
   return new(isolate) LocationSummary(isolate, 0, 0, LocationSummary::kNoCall);

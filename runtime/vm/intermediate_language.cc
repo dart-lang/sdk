@@ -2293,14 +2293,27 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* TargetEntryInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool optimizing) const {
-  // FlowGraphCompiler::EmitInstructionPrologue is not called for block
-  // entry instructions, so this function is unused.  If it becomes
-  // reachable, note that the deoptimization descriptor in unoptimized code
-  // comes after the point of local register allocation due to pattern
-  // matching the edge counter code backwards (as a code reuse convenience
-  // on some platforms).
   UNREACHABLE();
   return NULL;
+}
+
+
+void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
+  if (!compiler->is_optimizing()) {
+    if (compiler->NeedsEdgeCounter(this)) {
+      compiler->EmitEdgeCounter();
+    }
+    // The deoptimization descriptor points after the edge counter code for
+    // uniformity with ARM and MIPS, where we can reuse pattern matching
+    // code that matches backwards from the end of the pattern.
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
+                                   deopt_id_,
+                                   Scanner::kNoSourcePos);
+  }
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
 }
 
 
@@ -2536,9 +2549,6 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     // Unoptimized code.
     ASSERT(!HasICData());
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
-                                   deopt_id(),
-                                   token_pos());
     bool is_smi_two_args_op = false;
     const uword label_address = TwoArgsSmiOpInlineCacheEntry(token_kind());
     if (label_address != 0) {
@@ -2635,13 +2645,6 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                                       num_args_checked);
   } else {
     call_ic_data = &ICData::ZoneHandle(ic_data()->raw());
-  }
-  if (!compiler->is_optimizing()) {
-    // Some static calls can be optimized by the optimizing compiler (e.g. sqrt)
-    // and therefore need a deoptimization descriptor.
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
-                                   deopt_id(),
-                                   token_pos());
   }
   compiler->GenerateStaticCall(deopt_id(),
                                token_pos(),

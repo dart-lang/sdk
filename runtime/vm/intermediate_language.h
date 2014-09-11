@@ -2504,6 +2504,12 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 
   virtual bool CanDeoptimize() const { return true; }
 
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // AssertAssignable instructions that are specialized by the optimizer
+    // (e.g. replaced with CheckClass) need a deoptimization descriptor before.
+    return true;
+  }
+
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
@@ -2670,6 +2676,12 @@ class InstanceCallInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // Instance calls that are specialized by the optimizer need a
+    // deoptimization descriptor before the call.
+    return true;
+  }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
@@ -3142,6 +3154,12 @@ class StaticCallInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // Static calls that are specialized by the optimizer (e.g. sqrt) need a
+    // deoptimization descriptor before the call.
+    return true;
+  }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
