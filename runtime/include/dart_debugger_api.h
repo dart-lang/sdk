@@ -462,6 +462,18 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
                             Dart_Handle* function,
                             Dart_CodeLocation* location);
 
+/**
+ * Returns frame pointer of the given activation frame.
+ *
+ * \frame_pointer receives the frame pointer for the frame.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the True object if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_ActivationFrameGetFramePointer(
+                            Dart_ActivationFrame activation_frame,
+                            uintptr_t* frame_pointer);
 
 /**
  * Returns an array containing all the local variable names and values of
