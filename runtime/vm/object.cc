@@ -16532,7 +16532,7 @@ RawBigint* Bigint::NewFromDecCString(const char* str, Heap::Space space) {
   const int64_t kLog10Dividend = 33219281;
   const int64_t kLog10Divisor = 10000000;
   result.EnsureLength((kLog10Dividend * str_length) /
-                      (kLog10Divisor * kBitsPerDigit), space);
+                      (kLog10Divisor * kBitsPerDigit) + 1, space);
 
   // Read first digit separately. This avoids a multiplication and addition.
   // The first digit might also not have kDecDigitsPerIteration decimal digits.
