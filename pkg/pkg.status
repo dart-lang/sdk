@@ -20,11 +20,6 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
 
-
-# Failures when running with --optimization-counter-threshold=5
-[ $runtime == vm && $mode == debug && $checked ]
-intl/test/number_format_test: Skip # Dart Issue 20875
-
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329

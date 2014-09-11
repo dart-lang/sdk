@@ -1364,6 +1364,24 @@ bool FlowGraphOptimizer::InlineSetIndexed(
                                     stored_value,
                                     NULL,
                                     FlowGraph::kValue);
+  } else if (array_cid == kTypedDataInt32ArrayCid) {
+    stored_value = new(I) UnboxInt32Instr(
+        new(I) Value(stored_value),
+        call->deopt_id());
+    stored_value->AsUnboxIntN()->mark_truncating();
+    cursor = flow_graph()->AppendTo(cursor,
+                                    stored_value,
+                                    call->env(),
+                                    FlowGraph::kValue);
+  } else if (array_cid == kTypedDataUint32ArrayCid) {
+    stored_value = new(I) UnboxUint32Instr(
+        new(I) Value(stored_value),
+        call->deopt_id());
+    ASSERT(stored_value->AsUnboxIntN()->is_truncating());
+    cursor = flow_graph()->AppendTo(cursor,
+                                    stored_value,
+                                    call->env(),
+                                    FlowGraph::kValue);
   }
 
   const intptr_t index_scale = Instance::ElementSizeFor(array_cid);
@@ -1446,17 +1464,10 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                               &ic_data, value_check, entry, last);
     case MethodRecognizer::kInt32ArraySetIndexed:
     case MethodRecognizer::kUint32ArraySetIndexed:
-      if (!CanUnboxInt32()) {
-        return false;
-      }
-      // Check that value is always smi or mint, if the platform has unboxed
-      // mints (ia32 with at least SSE 4.1).
+      // Check that value is always smi or mint. We use Int32/Uint32 unboxing
+      // which can only deal unbox these values.
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
-      if (FlowGraphCompiler::SupportsUnboxedMints()) {
-        if (!HasOnlySmiOrMint(value_check)) {
-          return false;
-        }
-      } else if (!HasOnlyOneSmi(value_check)) {
+      if (!HasOnlySmiOrMint(value_check)) {
         return false;
       }
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
@@ -1570,16 +1581,10 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                       kTypedDataUint16ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt32:
-      if (!CanUnboxInt32()) {
-        return false;
-      }
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt32ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint32:
-      if (!CanUnboxInt32()) {
-        return false;
-      }
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataUint32ArrayCid,
                                       ic_data, entry, last);
@@ -3720,9 +3725,8 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-    // Prevent excessive deoptimization, assume full 32 bits used, and therefore
-    // generate Mint on 32-bit architectures.
-    if (kSmiBits >= 32) {
+      // On 64-bit platforms assume that stored value is always a smi.
+      if (kSmiBits >= 32) {
         value_check = ICData::New(flow_graph_->parsed_function().function(),
                                   i_call->function_name(),
                                   Object::empty_array(),  // Dummy args. descr.
@@ -3779,6 +3783,24 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     cursor = flow_graph()->AppendTo(cursor,
                                     stored_value,
                                     NULL,
+                                    FlowGraph::kValue);
+  } else if (view_cid == kTypedDataInt32ArrayCid) {
+    stored_value = new(I) UnboxInt32Instr(
+        new(I) Value(stored_value),
+        call->deopt_id());
+    stored_value->AsUnboxIntN()->mark_truncating();
+    cursor = flow_graph()->AppendTo(cursor,
+                                    stored_value,
+                                    call->env(),
+                                    FlowGraph::kValue);
+  } else if (view_cid == kTypedDataUint32ArrayCid) {
+    stored_value = new(I) UnboxUint32Instr(
+        new(I) Value(stored_value),
+        call->deopt_id());
+    ASSERT(stored_value->AsUnboxIntN()->is_truncating());
+    cursor = flow_graph()->AppendTo(cursor,
+                                    stored_value,
+                                    call->env(),
                                     FlowGraph::kValue);
   }
 
@@ -8283,15 +8305,11 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
         }
         case Token::kSHL:
         case Token::kSHR:
-          if (left.IsSmi() && right.IsSmi()) {
+          if (left.IsSmi() &&
+              right.IsSmi() &&
+              (Smi::Cast(right).Value() >= 0)) {
             Instance& result = Integer::ZoneHandle(I,
                 Smi::Cast(left_int).ShiftOp(op_kind, Smi::Cast(right_int)));
-            if (result.IsNull()) {
-              // TODO(regis): A bigint operation is required. Invoke dart?
-              // Punt for now.
-              SetValue(instr, non_constant_);
-              break;
-            }
             result = result.CheckAndCanonicalize(NULL);
             ASSERT(!result.IsNull());
             SetValue(instr, result);

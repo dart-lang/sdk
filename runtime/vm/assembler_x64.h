@@ -761,6 +761,10 @@ class Assembler : public ValueObject {
 
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
+  // CheckClassIs fused with optimistic SmiUntag.
+  // Value in the register object is untagged optimistically.
+  void SmiUntagOrCheckClass(Register object, intptr_t class_id, Label* smi);
+
   /*
    * Misc. functionality.
    */

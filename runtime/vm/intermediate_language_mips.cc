@@ -323,25 +323,44 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Isolate* isolate,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = (representation_ == kUnboxedInt32) ? 0 : 1;
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_out(0, Location::RequiresFpuRegister());
-  locs->set_temp(0, Location::RequiresRegister());
+  if (representation_ == kUnboxedInt32) {
+    locs->set_out(0, Location::RequiresRegister());
+  } else {
+    ASSERT(representation_ == kUnboxedDouble);
+    locs->set_out(0, Location::RequiresFpuRegister());
+  }
+  if (kNumTemps > 0) {
+    locs->set_temp(0, Location::RequiresRegister());
+  }
   return locs;
 }
 
 
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(representation_ == kUnboxedDouble);
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
-    ASSERT(value().IsDouble());
-    const Register const_value = locs()->temp(0).reg();
-    const DRegister result = locs()->out(0).fpu_reg();
-    __ LoadObject(const_value, value());
-    __ LoadDFromOffset(result, const_value,
-        Double::value_offset() - kHeapObjectTag);
+    switch (representation_) {
+      case kUnboxedDouble: {
+        ASSERT(value().IsDouble());
+        const Register const_value = locs()->temp(0).reg();
+        const DRegister result = locs()->out(0).fpu_reg();
+        __ LoadObject(const_value, value());
+        __ LoadDFromOffset(result, const_value,
+            Double::value_offset() - kHeapObjectTag);
+        break;
+      }
+
+      case kUnboxedInt32:
+        __ LoadImmediate(locs()->out(0).reg(),
+                         Smi::Cast(value()).Value());
+        break;
+
+      default:
+        UNREACHABLE();
+    }
   }
 }
 
@@ -1259,8 +1278,9 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kTypedDataUint16ArrayCid:
       return kTagged;
     case kTypedDataInt32ArrayCid:
+      return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
-      return value()->IsSmiValue() ? kTagged : kUnboxedMint;
+      return kUnboxedUint32;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1396,14 +1416,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid: {
-      if (value()->IsSmiValue()) {
-        ASSERT(RequiredInputRepresentation(2) == kTagged);
-        Register value = locs()->in(2).reg();
-        __ SmiUntag(TMP, value);
-        __ sw(TMP, element_address);
-      } else {
-        UNIMPLEMENTED();
-      }
+      __ sw(locs()->in(2).reg(), element_address);
       break;
     }
     case kTypedDataFloat32ArrayCid: {
@@ -4582,12 +4595,166 @@ CompileType UnaryUint32OpInstr::ComputeType() const {
 DEFINE_UNIMPLEMENTED_INSTRUCTION(BinaryUint32OpInstr)
 DEFINE_UNIMPLEMENTED_INSTRUCTION(ShiftUint32OpInstr)
 DEFINE_UNIMPLEMENTED_INSTRUCTION(UnaryUint32OpInstr)
-DEFINE_UNIMPLEMENTED_INSTRUCTION(BoxInt32Instr)
-DEFINE_UNIMPLEMENTED_INSTRUCTION(UnboxInt32Instr)
 DEFINE_UNIMPLEMENTED_INSTRUCTION(BinaryInt32OpInstr)
-DEFINE_UNIMPLEMENTED_INSTRUCTION(BoxUint32Instr)
-DEFINE_UNIMPLEMENTED_INSTRUCTION(UnboxUint32Instr)
-DEFINE_UNIMPLEMENTED_INSTRUCTION(UnboxedIntConverterInstr)
+
+
+LocationSummary* BoxIntNInstr::MakeLocationSummary(Isolate* isolate,
+                                                   bool opt) const {
+  ASSERT((from_representation() == kUnboxedInt32) ||
+         (from_representation() == kUnboxedUint32));
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void BoxIntNInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register out = locs()->out(0).reg();
+  ASSERT(value != out);
+
+  Label done;
+  __ SmiTag(out, value);
+  if (!ValueFitsSmi()) {
+    Register temp = locs()->temp(0).reg();
+    if (from_representation() == kUnboxedInt32) {
+      __ SmiUntag(CMPRES1, out);
+      __ BranchEqual(CMPRES1, value, &done);
+    } else {
+      ASSERT(from_representation() == kUnboxedUint32);
+      __ AndImmediate(CMPRES1, value, 0xC0000000);
+      __ BranchEqual(CMPRES1, ZR, &done);
+    }
+    BoxAllocationSlowPath::Allocate(
+        compiler,
+        this,
+        compiler->mint_class(),
+        out,
+        temp);
+    Register hi;
+    if (from_representation() == kUnboxedInt32) {
+      hi = temp;
+      __ sra(hi, value, kBitsPerWord - 1);
+    } else {
+      ASSERT(from_representation() == kUnboxedUint32);
+      hi = ZR;
+    }
+    __ StoreToOffset(value,
+                     out,
+                     Mint::value_offset() - kHeapObjectTag);
+    __ StoreToOffset(hi,
+                     out,
+                     Mint::value_offset() - kHeapObjectTag + kWordSize);
+    __ Bind(&done);
+  }
+}
+
+
+LocationSummary* UnboxIntNInstr::MakeLocationSummary(Isolate* isolate,
+                                                      bool opt) const {
+  ASSERT((representation() == kUnboxedInt32) ||
+         (representation() == kUnboxedUint32));
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+static void LoadInt32FromMint(FlowGraphCompiler* compiler,
+                              Register mint,
+                              Register result,
+                              Label* deopt) {
+  __ LoadFromOffset(result,
+                    mint,
+                    Mint::value_offset() - kHeapObjectTag);
+  if (deopt != NULL) {
+    __ LoadFromOffset(CMPRES1,
+                      mint,
+                      Mint::value_offset() - kHeapObjectTag + kWordSize);
+    __ sra(CMPRES2, result, kBitsPerWord - 1);
+    __ BranchNotEqual(CMPRES1, CMPRES2, deopt);
+  }
+}
+
+
+void UnboxIntNInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const Register value = locs()->in(0).reg();
+  const Register out = locs()->out(0).reg();
+  Label* deopt = CanDeoptimize() ?
+        compiler->AddDeoptStub(deopt_id_, ICData::kDeoptUnboxInteger) : NULL;
+  Label* out_of_range = !is_truncating() ? deopt : NULL;
+  ASSERT(value != out);
+
+  if (value_cid == kSmiCid) {
+    __ SmiUntag(out, value);
+  } else if (value_cid == kMintCid) {
+    LoadInt32FromMint(compiler, value, out, out_of_range);
+  } else {
+    Label done;
+    __ SmiUntag(out, value);
+    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
+    __ beq(CMPRES1, ZR, &done);
+    __ LoadClassId(CMPRES1, value);
+    __ BranchNotEqual(CMPRES1, kMintCid, deopt);
+    LoadInt32FromMint(compiler, value, out, out_of_range);
+    __ Bind(&done);
+  }
+}
+
+
+LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Isolate* isolate,
+                                                               bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  if (from() == kUnboxedMint) {
+    UNREACHABLE();
+  } else if (to() == kUnboxedMint) {
+    UNREACHABLE();
+  } else {
+    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
+    ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_out(0, Location::SameAsFirstInput());
+  }
+  return summary;
+}
+
+
+void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (from() == kUnboxedInt32 && to() == kUnboxedUint32) {
+    const Register out = locs()->out(0).reg();
+    // Representations are bitwise equivalent.
+    ASSERT(out == locs()->in(0).reg());
+  } else if (from() == kUnboxedUint32 && to() == kUnboxedInt32) {
+    const Register out = locs()->out(0).reg();
+    // Representations are bitwise equivalent.
+    ASSERT(out == locs()->in(0).reg());
+    if (CanDeoptimize()) {
+      Label* deopt =
+          compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnboxInteger);
+      __ BranchSignedLess(out, 0, deopt);
+    }
+  } else if (from() == kUnboxedMint) {
+    UNREACHABLE();
+  } else if (to() == kUnboxedMint) {
+    ASSERT(from() == kUnboxedUint32 || from() == kUnboxedInt32);
+    UNREACHABLE();
+  } else {
+    UNREACHABLE();
+  }
+}
 
 
 LocationSummary* ThrowInstr::MakeLocationSummary(Isolate* isolate,

@@ -857,7 +857,9 @@ class Assembler : public ValueObject {
       const uint16_t low = Utils::Low16Bits(value);
       const uint16_t high = Utils::High16Bits(value);
       lui(rd, Immediate(high));
-      ori(rd, rd, Immediate(low));
+      if (low != 0) {
+        ori(rd, rd, Immediate(low));
+      }
     }
   }
 
@@ -1124,6 +1126,10 @@ class Assembler : public ValueObject {
 
   void SmiTag(Register reg) {
     sll(reg, reg, kSmiTagSize);
+  }
+
+  void SmiTag(Register dst, Register src) {
+    sll(dst, src, kSmiTagSize);
   }
 
   void SmiUntag(Register reg) {

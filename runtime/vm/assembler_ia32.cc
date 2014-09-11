@@ -2761,6 +2761,26 @@ void Assembler::CompareClassId(Register object,
 }
 
 
+void Assembler::SmiUntagOrCheckClass(Register object,
+                                     intptr_t class_id,
+                                     Register scratch,
+                                     Label* is_smi) {
+  ASSERT(kSmiTagShift == 1);
+  ASSERT(RawObject::kClassIdTagPos == 16);
+  ASSERT(RawObject::kClassIdTagSize == 16);
+  const intptr_t class_id_offset = Object::tags_offset() +
+      RawObject::kClassIdTagPos / kBitsPerByte;
+
+  // Untag optimistically. Tag bit is shifted into the CARRY.
+  SmiUntag(object);
+  j(NOT_CARRY, is_smi, kNearJump);
+  // Load cid: can't use LoadClassId, object is untagged. Use TIMES_2 scale
+  // factor in the addressing mode to compensate for this.
+  movzxw(scratch, Address(object, TIMES_2, class_id_offset));
+  cmpl(scratch, Immediate(class_id));
+}
+
+
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   ASSERT(result != object);
   static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;

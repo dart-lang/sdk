@@ -168,10 +168,16 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Isolate* isolate,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = (constant_address() == 0) ? 1 : 0;
+  const intptr_t kNumTemps =
+      (constant_address() == 0) && (representation() != kUnboxedInt32) ? 1 : 0;
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_out(0, Location::RequiresFpuRegister());
+  if (representation() == kUnboxedDouble) {
+    locs->set_out(0, Location::RequiresFpuRegister());
+  } else {
+    ASSERT(representation() == kUnboxedInt32);
+    locs->set_out(0, Location::RequiresRegister());
+  }
   if (kNumTemps == 1) {
     locs->set_temp(0, Location::RequiresRegister());
   }
@@ -1228,8 +1234,9 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kTypedDataUint16ArrayCid:
       return kTagged;
     case kTypedDataInt32ArrayCid:
+      return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
-      return value()->IsSmiValue() ? kTagged : kUnboxedMint;
+      return kUnboxedUint32;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1286,16 +1293,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
       break;
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      // For smis, use a writable register because the value must be untagged
-      // before storing. Mints are stored in registers pairs.
-      if (value()->IsSmiValue()) {
-        locs->set_in(2, Location::WritableRegister());
-      } else {
-        // We only move the lower 32-bits so we don't care where the high bits
-        // are located.
-        locs->set_in(2, Location::Pair(Location::RequiresRegister(),
-                                       Location::Any()));
-      }
+      locs->set_in(2, Location::RequiresRegister());
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
@@ -1396,17 +1394,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      if (value()->IsSmiValue()) {
-        ASSERT(RequiredInputRepresentation(2) == kTagged);
-        Register value = locs()->in(2).reg();
-        __ SmiUntag(value);
-        __ movl(element_address, value);
-      } else {
-        ASSERT(RequiredInputRepresentation(2) == kUnboxedMint);
-        PairLocation* value_pair = locs()->in(2).AsPairLocation();
-        Register value1 = value_pair->At(0).reg();
-        __ movl(element_address, value1);
-      }
+      __ movl(element_address, locs()->in(2).reg());
       break;
     case kTypedDataFloat32ArrayCid:
       __ movss(element_address, locs()->in(2).fpu_reg());
@@ -6408,54 +6396,7 @@ void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* BoxUint32Instr::MakeLocationSummary(Isolate* isolate,
-                                                     bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate,
-      kNumInputs,
-      kNumTemps,
-      ValueFitsSmi() ? LocationSummary::kNoCall
-                     : LocationSummary::kCallOnSlowPath);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, ValueFitsSmi() ? Location::SameAsFirstInput()
-                                     : Location::RequiresRegister());
-  return summary;
-}
-
-
-void BoxUint32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  Register out = locs()->out(0).reg();
-
-  Label not_smi, done;
-
-  if (ValueFitsSmi()) {
-    ASSERT(value == out);
-    __ SmiTag(value);
-  } else {
-    ASSERT(value != out);
-    __ cmpl(value, Immediate(kSmiMax));
-    __ j(ABOVE, &not_smi);
-    // Smi.
-    __ movl(out, value);
-    __ SmiTag(out);
-    __ jmp(&done);
-    __ Bind(&not_smi);
-    // Allocate a mint.
-    BoxAllocationSlowPath::Allocate(
-        compiler, this, compiler->mint_class(), out, kNoRegister);
-    // Copy low word into mint.
-    __ movl(FieldAddress(out, Mint::value_offset()), value);
-    // Zero high word.
-    __ movl(FieldAddress(out, Mint::value_offset() + kWordSize), Immediate(0));
-    __ Bind(&done);
-  }
-}
-
-
-LocationSummary* BoxInt32Instr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* BoxIntNInstr::MakeLocationSummary(Isolate* isolate,
                                                     bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -6463,25 +6404,32 @@ LocationSummary* BoxInt32Instr::MakeLocationSummary(Isolate* isolate,
       isolate, kNumInputs, kNumTemps,
       ValueFitsSmi() ? LocationSummary::kNoCall
                      : LocationSummary::kCallOnSlowPath);
-  summary->set_in(0, ValueFitsSmi() ? Location::RequiresRegister()
-                                    : Location::WritableRegister());
+  const bool needs_writable_input = ValueFitsSmi() ||
+      (from_representation() == kUnboxedUint32);
+  summary->set_in(0, needs_writable_input ? Location::RequiresRegister()
+                                          : Location::WritableRegister());
   summary->set_out(0, ValueFitsSmi() ? Location::SameAsFirstInput()
                                      : Location::RequiresRegister());
   return summary;
 }
 
 
-void BoxInt32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  Register out = locs()->out(0).reg();
+void BoxIntNInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register value = locs()->in(0).reg();
+  const Register out = locs()->out(0).reg();
 
-  if (out != value) {
-    __ movl(out, value);
-  }
-  __ shll(out, Immediate(1));
+  __ MoveRegister(out, value);
+  __ shll(out, Immediate(kSmiTagSize));
   if (!ValueFitsSmi()) {
     Label done;
-    __ j(NO_OVERFLOW, &done);
+    ASSERT(value != out);
+    if (from_representation() == kUnboxedInt32) {
+      __ j(NO_OVERFLOW, &done);
+    } else {
+      __ testl(value, Immediate(0xC0000000));
+      __ j(ZERO, &done);
+    }
+
     // Allocate a mint.
     // Value input is writable register and has to be manually preserved
     // on the slow path.
@@ -6489,126 +6437,102 @@ void BoxInt32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     BoxAllocationSlowPath::Allocate(
         compiler, this, compiler->mint_class(), out, kNoRegister);
     __ movl(FieldAddress(out, Mint::value_offset()), value);
-    __ sarl(value, Immediate(31));  // Sign extend.
-    __ movl(FieldAddress(out, Mint::value_offset() + kWordSize), value);
+    if (from_representation() == kUnboxedInt32) {
+      __ sarl(value, Immediate(31));  // Sign extend.
+      __ movl(FieldAddress(out, Mint::value_offset() + kWordSize), value);
+    } else {
+      __ movl(FieldAddress(out, Mint::value_offset() + kWordSize),
+              Immediate(0));
+    }
     __ Bind(&done);
   }
 }
 
 
-LocationSummary* UnboxUint32Instr::MakeLocationSummary(Isolate* isolate,
+LocationSummary* UnboxIntNInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps =
-      ((value_cid == kMintCid) || (value_cid == kSmiCid)) ? 0 : 1;
+  intptr_t kNumTemps = 0;
+
+  if (CanDeoptimize()) {
+    if ((value_cid != kSmiCid) &&
+        (value_cid != kMintCid) &&
+        !is_truncating()) {
+      kNumTemps = 2;
+    } else {
+      kNumTemps = 1;
+    }
+  }
+
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  if (kNumTemps > 0) {
-    summary->set_temp(0, Location::RequiresRegister());
+  for (int i = 0; i < kNumTemps; i++) {
+    summary->set_temp(i, Location::RequiresRegister());
   }
-  summary->set_out(0, Location::SameAsFirstInput());
-  return summary;
-}
-
-
-void UnboxUint32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const Register value = locs()->in(0).reg();
-  ASSERT(value == locs()->out(0).reg());
-
-  // TODO(johnmccutchan): Emit better code for constant inputs.
-  if (value_cid == kMintCid) {
-    __ movl(value, FieldAddress(value, Mint::value_offset()));
-  } else if (value_cid == kSmiCid) {
-    __ SmiUntag(value);
-  } else {
-    Register temp = locs()->temp(0).reg();
-    Label* deopt = compiler->AddDeoptStub(deopt_id_,
-                                          ICData::kDeoptUnboxInteger);
-    Label is_smi, done;
-    __ testl(value, Immediate(kSmiTagMask));
-    __ j(ZERO, &is_smi);
-    __ CompareClassId(value, kMintCid, temp);
-    __ j(NOT_EQUAL, deopt);
-    __ movl(value, FieldAddress(value, Mint::value_offset()));
-    __ jmp(&done);
-    __ Bind(&is_smi);
-    __ SmiUntag(value);
-    __ Bind(&done);
-  }
-}
-
-
-LocationSummary* UnboxInt32Instr::MakeLocationSummary(Isolate* isolate,
-                                                       bool opt) const {
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = CanDeoptimize() ? 1 : 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  if (kNumTemps > 0) {
-    summary->set_temp(0, Location::RequiresRegister());
-  }
-  summary->set_out(0, (value_cid == kSmiCid) ? Location::SameAsFirstInput()
-                                             : Location::RequiresRegister());
+  summary->set_out(0, ((value_cid == kSmiCid) || (value_cid != kMintCid)) ?
+      Location::SameAsFirstInput() : Location::RequiresRegister());
   return summary;
 }
 
 
 static void LoadInt32FromMint(FlowGraphCompiler* compiler,
-                              Register mint,
                               Register result,
+                              const Address& lo,
+                              const Address& hi,
                               Register temp,
                               Label* deopt) {
-  __ movl(result, FieldAddress(mint, Mint::value_offset()));
+  __ movl(result, lo);
   if (deopt != NULL) {
+    ASSERT(temp != result);
     __ movl(temp, result);
     __ sarl(temp, Immediate(31));
-    __ cmpl(temp, FieldAddress(mint, Mint::value_offset() + kWordSize));
+    __ cmpl(temp, hi);
     __ j(NOT_EQUAL, deopt);
   }
 }
 
 
-void UnboxInt32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnboxIntNInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t value_cid = value()->Type()->ToCid();
-  const Register value = locs()->in(0).reg();
+  Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
+  const Register temp = CanDeoptimize() ? locs()->temp(0).reg() : kNoRegister;
+  Label* deopt = CanDeoptimize() ?
+      compiler->AddDeoptStub(deopt_id_, ICData::kDeoptUnboxInteger) : NULL;
+  Label* out_of_range = !is_truncating() ? deopt : NULL;
 
-  // TODO(johnmccutchan): Emit better code for constant inputs.
-  if (value_cid == kMintCid) {
-    Register temp = CanDeoptimize() ? locs()->temp(0).reg() : kNoRegister;
-    Label* deopt = CanDeoptimize() ?
-        compiler->AddDeoptStub(deopt_id_, ICData::kDeoptUnboxInteger) : NULL;
-    LoadInt32FromMint(compiler,
-                      value,
-                      result,
-                      temp,
-                      deopt);
-  } else if (value_cid == kSmiCid) {
+  const intptr_t lo_offset = Mint::value_offset();
+  const intptr_t hi_offset = Mint::value_offset() + kWordSize;
+
+  if (value_cid == kSmiCid) {
     ASSERT(value == result);
     __ SmiUntag(value);
-  } else {
-    Register temp = locs()->temp(0).reg();
-    Label* deopt = compiler->AddDeoptStub(deopt_id_,
-                                          ICData::kDeoptUnboxInteger);
-    Label is_smi, done;
-    __ testl(value, Immediate(kSmiTagMask));
-    __ j(ZERO, &is_smi);
-    __ CompareClassId(value, kMintCid, temp);
-    __ j(NOT_EQUAL, deopt);
+  } else if (value_cid == kMintCid) {
+    ASSERT((value != result) || (out_of_range == NULL));
     LoadInt32FromMint(compiler,
-                      value,
                       result,
+                      FieldAddress(value, lo_offset),
+                      FieldAddress(value, hi_offset),
                       temp,
-                      deopt);
-    __ movl(value, FieldAddress(value, Mint::value_offset()));
-    __ jmp(&done);
-    __ Bind(&is_smi);
-    __ SmiUntag(value);
+                      out_of_range);
+  } else {
+    ASSERT(value == result);
+    Label done;
+    __ SmiUntagOrCheckClass(value, kMintCid, temp, &done);
+    __ j(NOT_EQUAL, deopt);
+    if (out_of_range != NULL) {
+      Register value_temp = locs()->temp(1).reg();
+      __ movl(value_temp, value);
+      value = value_temp;
+    }
+    LoadInt32FromMint(compiler,
+                      result,
+                      Address(value, TIMES_2, lo_offset),
+                      Address(value, TIMES_2, hi_offset),
+                      temp,
+                      out_of_range);
     __ Bind(&done);
   }
 }

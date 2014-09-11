@@ -719,6 +719,7 @@ class Assembler : public ValueObject {
   void Lsr(Register rd, Register rm, Register rs, Condition cond = AL);
   void Asr(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
   void Asr(Register rd, Register rm, Register rs, Condition cond = AL);
+  void Asrs(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
   void Ror(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
   void Ror(Register rd, Register rm, Register rs, Condition cond = AL);
   void Rrx(Register rd, Register rm, Condition cond = AL);
@@ -736,12 +737,26 @@ class Assembler : public ValueObject {
     Lsl(reg, reg, kSmiTagSize, cond);
   }
 
+  void SmiTag(Register dst, Register src, Condition cond = AL) {
+    Lsl(dst, src, kSmiTagSize, cond);
+  }
+
   void SmiUntag(Register reg, Condition cond = AL) {
     Asr(reg, reg, kSmiTagSize, cond);
   }
 
   void SmiUntag(Register dst, Register src, Condition cond = AL) {
     Asr(dst, src, kSmiTagSize, cond);
+  }
+
+  // Untag the value in the register assuming it is a smi.
+  // Untagging shifts tag bit into the carry flag - if carry is clear
+  // assumption was correct. In this case jump to the is_smi label.
+  // Otherwise fall-through.
+  void SmiUntag(Register dst, Register src, Label* is_smi) {
+    ASSERT(kSmiTagSize == 1);
+    Asrs(dst, src, kSmiTagSize);
+    b(is_smi, CC);
   }
 
   // Function frame setup and tear down.

@@ -2257,8 +2257,20 @@ void Assembler::Lsr(Register rd, Register rm, Register rs, Condition cond) {
 void Assembler::Asr(Register rd, Register rm, uint32_t shift_imm,
                     Condition cond) {
   ASSERT(shift_imm != 0);  // Do not use Asr if no shift is wanted.
-  if (shift_imm == 32) shift_imm = 0;  // Comply to UAL syntax.
+  if (shift_imm == 32) {
+    shift_imm = 0;  // Comply to UAL syntax.
+  }
   mov(rd, Operand(rm, ASR, shift_imm), cond);
+}
+
+
+void Assembler::Asrs(Register rd, Register rm, uint32_t shift_imm,
+                     Condition cond) {
+  ASSERT(shift_imm != 0);  // Do not use Asr if no shift is wanted.
+  if (shift_imm == 32) {
+    shift_imm = 0;  // Comply to UAL syntax.
+  }
+  movs(rd, Operand(rm, ASR, shift_imm), cond);
 }
 
 

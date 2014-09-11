@@ -1043,10 +1043,19 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+void UnboxIntNInstr::PrintOperandsTo(BufferFormatter* f) const {
+  if (is_truncating()) {
+    f->Print("[tr], ");
+  }
+  Definition::PrintOperandsTo(f);
+}
+
+
 void UnboxedIntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s->%s, ",
+  f->Print("%s->%s%s, ",
            RepresentationToCString(from()),
-           RepresentationToCString(to()));
+           RepresentationToCString(to()),
+           is_truncating() ? "[tr]" : "");
   Definition::PrintOperandsTo(f);
 }
 

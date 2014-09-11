@@ -1168,6 +1168,7 @@ void Instruction::Goto(JoinEntryInstr* entry) {
 
 bool UnboxedIntConverterInstr::CanDeoptimize() const {
   return (to() == kUnboxedInt32) &&
+      !is_truncating() &&
       !RangeUtils::Fits(value()->definition()->range(),
                         RangeBoundary::kRangeBoundaryInt32);
 }
@@ -1176,10 +1177,14 @@ bool UnboxedIntConverterInstr::CanDeoptimize() const {
 bool UnboxInt32Instr::CanDeoptimize() const {
   const intptr_t value_cid = value()->Type()->ToCid();
   if (value_cid == kSmiCid) {
-    return false;
+    return (kSmiBits > 32) &&
+        !is_truncating() &&
+        !RangeUtils::Fits(value()->definition()->range(),
+                          RangeBoundary::kRangeBoundaryInt32);
   } else if (value_cid == kMintCid) {
-    return !RangeUtils::Fits(value()->definition()->range(),
-                             RangeBoundary::kRangeBoundaryInt32);
+    return !is_truncating() &&
+        !RangeUtils::Fits(value()->definition()->range(),
+                          RangeBoundary::kRangeBoundaryInt32);
   } else {
     return true;
   }
@@ -1743,6 +1748,9 @@ Definition* UnboxIntNInstr::Canonicalize(FlowGraph* flow_graph) {
           representation(),
           box_defn->value()->CopyWithType(),
           representation() == kUnboxedInt32 ? deopt_id_ : Isolate::kNoDeoptId);
+      if ((representation() == kUnboxedInt32) && is_truncating()) {
+        converter->mark_truncating();
+      }
       flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
       return converter;
     }
@@ -1767,6 +1775,9 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
         representation(),
         box_defn->value()->CopyWithType(),
         to() == kUnboxedInt32 ? deopt_id_ : NULL);
+    if ((representation() == kUnboxedInt32) && is_truncating()) {
+      converter->mark_truncating();
+    }
     flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
     return converter;
   }
@@ -1781,6 +1792,9 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     // these instructions close to each other instead of fusing them.
     Definition* replacement =
         new UnboxInt32Instr(unbox_defn->value()->CopyWithType(), deopt_id_);
+    if (is_truncating()) {
+      replacement->AsUnboxInt32()->mark_truncating();
+    }
     flow_graph->InsertBefore(this,
                              replacement,
                              env(),
@@ -1800,6 +1814,15 @@ Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
 
   ConstantInstr* c = value()->definition()->AsConstant();
   if ((c != NULL) && c->value().IsSmi()) {
+    if (!is_truncating() && (kSmiBits > 32)) {
+      // Check that constant fits into 32-bit integer.
+      const int64_t value =
+          static_cast<int64_t>(Smi::Cast(c->value()).Value());
+      if (!Utils::IsInt(32, value)) {
+        return this;
+      }
+    }
+
     UnboxedConstantInstr* uc =
         new UnboxedConstantInstr(c->value(), kUnboxedInt32);
     flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
