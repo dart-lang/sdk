@@ -16,7 +16,9 @@ import 'transformers_needed_by_transformers.dart';
 Future loadAllTransformers(AssetEnvironment environment,
     BarbackServer transformerServer) {
   var transformersNeededByTransformers =
-      computeTransformersNeededByTransformers(environment.graph);
+      computeTransformersNeededByTransformers(
+          environment.graph,
+          packages: environment.packages);
   var buffer = new StringBuffer();
   buffer.writeln("Transformer dependencies:");
   transformersNeededByTransformers.forEach((id, dependencies) {
