@@ -17,9 +17,6 @@ samples/third_party/angular_todo: Fail # angular needs to be updated
 
 [ $use_public_packages ]
 samples/third_party/angular_todo: Pass, Slow
-pkg/template_binding: Fail # web_components 0.7.0 not published
-pkg/polymer: Fail # web_components 0.7.0/template_binding 0.13.0 not published
-pkg/polymer_expressions: Fail # template_binding 0.13.0 not published
 
 [ $builder_tag == russian ]
 samples/pop_pop_win: Fail # Issue 16356

@@ -1,4 +1,4 @@
-#### Pub version 0.13.0-dev
+#### Pub version 0.13.0
   * Move minimum 'template_binding' constraint to 0.13.0.
   * Additional polyfills are now required when using this package outside of 
     polymer. All the files in the 'template_binding' package under lib/js should

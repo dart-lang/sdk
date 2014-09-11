@@ -1,12 +1,12 @@
 name: polymer_expressions
-version: 0.13.0-dev
+version: 0.13.0
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 description: An expressive custom binding syntax for HTML templates
 homepage: http://www.dartlang.org/polymer-dart/
 dependencies:
   browser: ">=0.10.0 <0.11.0"
   observe: ">=0.11.0 <0.13.0"
-  template_binding: ">=0.13.0-dev <0.14.0"
+  template_binding: ">=0.13.0 <0.14.0"
 dev_dependencies:
   unittest: ">=0.10.0 <0.11.0"
   benchmark_harness: ">=1.0.0 <2.0.0"
