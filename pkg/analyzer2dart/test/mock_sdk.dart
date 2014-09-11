@@ -68,6 +68,8 @@ class Map<K, V> extends Object {}
 external bool identical(Object a, Object b);
 
 void print(Object object) {}
+
+typedef int Comparator<T>(T a, T b);
 ''');
 
   static const _MockSdkLibrary LIB_ASYNC =

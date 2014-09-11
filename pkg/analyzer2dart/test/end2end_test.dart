@@ -200,6 +200,53 @@ main(a, b) $NEW_BACKEND_COMMENT
 ''');
   });
 
+  test('Typed parameters', () {
+    checkResult('''
+void main(args) {
+}
+''', '''
+void main(args) $NEW_BACKEND_COMMENT
+  {}
+
+''');
+
+    checkResult('''
+main(int a, String b) {
+}
+''', '''
+main(int a, String b) $NEW_BACKEND_COMMENT
+  {}
+
+''');
+
+    checkResult('''
+main(Comparator a, List b) {
+}
+''', '''
+main(Comparator a, List b) $NEW_BACKEND_COMMENT
+  {}
+
+''');
+
+    checkResult('''
+main(Comparator<dynamic> a, List<dynamic> b) {
+}
+''', '''
+main(Comparator a, List b) $NEW_BACKEND_COMMENT
+  {}
+
+''');
+
+    checkResult('''
+main(Map a, Map<dynamic, List<int>> b) {
+}
+''', '''
+main(Map a, Map<dynamic, List<int>> b) $NEW_BACKEND_COMMENT
+  {}
+
+''');
+  });
+
   test('Pass arguments', () {
     checkResult('''
 foo(a) {}

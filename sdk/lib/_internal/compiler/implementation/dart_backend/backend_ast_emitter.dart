@@ -629,6 +629,9 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
   TypeAnnotation emitType(DartType type) {
     if (type is GenericType) {
+      if (type.treatAsRaw) {
+        return new TypeAnnotation(type.element.name)..dartType = type;
+      }
       return new TypeAnnotation(
           type.element.name,
           type.typeArguments.map(emitType).toList(growable:false))

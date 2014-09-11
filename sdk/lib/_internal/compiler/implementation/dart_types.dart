@@ -344,16 +344,19 @@ abstract class GenericType extends DartType {
   final TypeDeclarationElement element;
   final List<DartType> typeArguments;
 
-  GenericType(TypeDeclarationElementX element,
+  GenericType(TypeDeclarationElement element,
               this.typeArguments,
               {bool checkTypeArgumentCount: true})
       : this.element = element {
-    assert(invariant(element,
-        !checkTypeArgumentCount ||
-        element.thisTypeCache == null ||
-        typeArguments.length == element.typeVariables.length,
-        message: () => 'Invalid type argument count on ${element.thisType}. '
-                       'Provided type arguments: $typeArguments.'));
+    assert(invariant(element, () {
+        if (!checkTypeArgumentCount) return true;
+        if (element is TypeDeclarationElementX) {
+          return element.thisTypeCache == null ||
+                 typeArguments.length == element.typeVariables.length;
+        }
+        return true;
+    }, message: () => 'Invalid type argument count on ${element.thisType}. '
+                      'Provided type arguments: $typeArguments.'));
   }
 
   /// Creates a new instance of this type using the provided type arguments.
@@ -436,7 +439,7 @@ abstract class GenericType extends DartType {
 }
 
 class InterfaceType extends GenericType {
-  InterfaceType(BaseClassElementX element,
+  InterfaceType(ClassElement element,
                 [List<DartType> typeArguments = const <DartType>[]])
       : super(element, typeArguments) {
     assert(invariant(element, element.isDeclaration));
@@ -755,11 +758,11 @@ class FunctionType extends DartType {
 }
 
 class TypedefType extends GenericType {
-  TypedefType(TypedefElementX element,
+  TypedefType(TypedefElement element,
               [List<DartType> typeArguments = const <DartType>[]])
       : super(element, typeArguments);
 
-  TypedefType.forUserProvidedBadType(TypedefElementX element,
+  TypedefType.forUserProvidedBadType(TypedefElement element,
                                      [List<DartType> typeArguments =
                                          const <DartType>[]])
       : super(element, typeArguments, checkTypeArgumentCount: false);
@@ -788,6 +791,21 @@ class TypedefType extends GenericType {
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitTypedefType(this, argument);
   }
+}
+
+/// A typedef which has already be resolved to its alias.
+class ResolvedTypedefType extends TypedefType {
+  FunctionType alias;
+
+  ResolvedTypedefType(TypedefElement element,
+                      List<DartType> typeArguments,
+                      this.alias)
+        : super(element, typeArguments) {
+    assert(invariant(element, alias != null,
+        message: 'Alias must be non-null on $element.'));
+  }
+
+  FunctionType unalias(Compiler compiler) => alias;
 }
 
 /**
