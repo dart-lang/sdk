@@ -276,7 +276,7 @@ abstract class SdkLibrary {
   String get path;
 
   /**
-   * Return the short name of the library. This is the name used after `dart:` in a URI.
+   * Return the short name of the library. This is the URI of the library, including `dart:`.
    *
    * @return the short name of the library
    */

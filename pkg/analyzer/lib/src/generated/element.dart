@@ -5285,7 +5285,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    *
    * @param element the element representing the declaration of the function type
    */
-  FunctionTypeImpl.con1(ExecutableElement element) : super(element, element == null ? null : element.name);
+  FunctionTypeImpl.con1(ExecutableElement element) : super(element, null);
 
   /**
    * Initialize a newly created function type to be declared by the given element and to have the
@@ -11117,7 +11117,8 @@ abstract class UnionType implements DartType {
 class UnionTypeImpl extends TypeImpl implements UnionType {
   /**
    * Any unions in the `types` will be flattened in the returned union. If there is only one
-   * type after flattening then it will be returned directly, instead of a singleton union.
+   * type after flattening then it will be returned directly, instead of a singleton union. Nulls
+   * are discarded, unless all types are null, in which case an exception is raised.
    *
    * @param types the `Type`s to union
    * @return a `Type` comprising the `Type`s in `types`
@@ -11128,10 +11129,17 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
       if (t is UnionType) {
         set.addAll(t.elements);
       } else {
-        set.add(t);
+        if (t != null) {
+          set.add(t);
+        }
       }
     }
     if (set.length == 0) {
+      // TODO(collinsn): better to return [null] here? The use case is e.g.
+      //
+      //   union(null, null) ==> null;
+      //
+      // instead of raising an exception.
       throw new IllegalArgumentException("No known use case for empty unions.");
     } else if (set.length == 1) {
       return new JavaIterator(set).next();

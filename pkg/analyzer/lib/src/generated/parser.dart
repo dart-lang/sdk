@@ -1760,7 +1760,8 @@ class Parser {
         argument = parseArgument();
         arguments.add(argument);
         if (foundNamedArgument) {
-          if (!generatedError && argument is! NamedExpression) {
+          bool blankArgument = argument is SimpleIdentifier && (argument as SimpleIdentifier).name.isEmpty;
+          if (!generatedError && !(argument is NamedExpression && !blankArgument)) {
             // Report the error, once, but allow the arguments to be in any order in the AST.
             _reportErrorForCurrentToken(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, []);
             generatedError = true;

@@ -63,17 +63,17 @@ class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   static AnalysisContextImpl initContextWithCore(AnalysisContextImpl context) {
-    SourceFactory sourceFactory = new SourceFactory([
-        new DartUriResolver(DirectoryBasedDartSdk.defaultSdk),
-        new FileUriResolver()]);
+    DirectoryBasedDartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
+    SourceFactory sourceFactory = new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
     context.sourceFactory = sourceFactory;
+    AnalysisContext coreContext = sdk.context;
     //
     // dart:core
     //
     TestTypeProvider provider = new TestTypeProvider();
     CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
-    context.setContents(coreSource, "");
+    coreContext.setContents(coreSource, "");
     coreUnit.source = coreSource;
     ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy", []);
     coreUnit.types = <ClassElement> [
@@ -101,14 +101,14 @@ class AnalysisContextFactory {
         deprecatedTopLevelVariableElt.getter,
         deprecatedTopLevelVariableElt.setter];
     coreUnit.topLevelVariables = <TopLevelVariableElement> [proxyTopLevelVariableElt, deprecatedTopLevelVariableElt];
-    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(context, AstFactory.libraryIdentifier2(["dart", "core"]));
+    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(coreContext, AstFactory.libraryIdentifier2(["dart", "core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     //
     // dart:async
     //
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl("async.dart");
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-    context.setContents(asyncSource, "");
+    coreContext.setContents(asyncSource, "");
     asyncUnit.source = asyncSource;
     // Future
     ClassElementImpl futureElement = ElementFactory.classElement2("Future", ["T"]);
@@ -141,14 +141,14 @@ class AnalysisContextFactory {
         completerElement,
         futureElement,
         ElementFactory.classElement2("Stream", ["T"])];
-    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(context, AstFactory.libraryIdentifier2(["dart", "async"]));
+    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
     asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // dart:html
     //
     CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
-    context.setContents(htmlSource, "");
+    coreContext.setContents(htmlSource, "");
     htmlUnit.source = htmlSource;
     ClassElementImpl elementElement = ElementFactory.classElement2("Element", []);
     InterfaceType elementType = elementElement.type;
@@ -178,7 +178,7 @@ class AnalysisContextFactory {
     TopLevelVariableElementImpl document = ElementFactory.topLevelVariableElement3("document", false, true, htmlDocumentElement.type);
     htmlUnit.topLevelVariables = <TopLevelVariableElement> [document];
     htmlUnit.accessors = <PropertyAccessorElement> [document.getter];
-    LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(context, AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
+    LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(coreContext, AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
     htmlLibrary.definingCompilationUnit = htmlUnit;
     HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();
     elementMap[coreSource] = coreLibrary;
@@ -27421,32 +27421,6 @@ class TypePropagationTest extends ResolverTestCase {
         "}"]), null, typeProvider.dynamicType);
   }
 
-  void fail_mergePropagatedTypesAtJoinPoint_6() {
-    // https://code.google.com/p/dart/issues/detail?id=19929
-    //
-    // Labeled [break]s are unsafe for the purposes of [isAbruptTerminationStatement].
-    //
-    // This is tricky: the [break] jumps back above the [if], making
-    // it into a loop of sorts. The [if] type-propagation code assumes
-    // that [break] does not introduce a loop.
-    String code = EngineTestCase.createSource([
-        "f() {",
-        "  var x = 0;",
-        "  var c = false;",
-        "  L: ",
-        "  if (c) {",
-        "  } else {",
-        "    x = '';",
-        "    c = true;",
-        "    break L;",
-        "  }",
-        "  x; // marker",
-        "}"]);
-    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
-    JUnitTestCase.assertTrue(typeProvider.intType.isSubtypeOf(t));
-    JUnitTestCase.assertTrue(typeProvider.stringType.isSubtypeOf(t));
-  }
-
   void fail_mergePropagatedTypesAtJoinPoint_7() {
     // https://code.google.com/p/dart/issues/detail?id=19929
     //
@@ -28340,6 +28314,32 @@ class TypePropagationTest extends ResolverTestCase {
         "}"]), null, typeProvider.intType);
   }
 
+  void test_mergePropagatedTypesAtJoinPoint_6() {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    //
+    // Labeled [break]s are unsafe for the purposes of [isAbruptTerminationStatement].
+    //
+    // This is tricky: the [break] jumps back above the [if], making
+    // it into a loop of sorts. The [if] type-propagation code assumes
+    // that [break] does not introduce a loop.
+    String code = EngineTestCase.createSource([
+        "f() {",
+        "  var x = 0;",
+        "  var c = false;",
+        "  L: ",
+        "  if (c) {",
+        "  } else {",
+        "    x = '';",
+        "    c = true;",
+        "    break L;",
+        "  }",
+        "  x; // marker",
+        "}"]);
+    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
+    JUnitTestCase.assertTrue(typeProvider.intType.isSubtypeOf(t));
+    JUnitTestCase.assertTrue(typeProvider.stringType.isSubtypeOf(t));
+  }
+
   void test_objectMethodOnDynamicExpression_doubleEquals() {
     // https://code.google.com/p/dart/issues/detail?id=20342
     //
@@ -28695,6 +28695,10 @@ class TypePropagationTest extends ResolverTestCase {
       _ut.test('test_mergePropagatedTypesAtJoinPoint_4', () {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_mergePropagatedTypesAtJoinPoint_4);
+      });
+      _ut.test('test_mergePropagatedTypesAtJoinPoint_6', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_mergePropagatedTypesAtJoinPoint_6);
       });
       _ut.test('test_objectMethodOnDynamicExpression_doubleEquals', () {
         final __test = new TypePropagationTest();

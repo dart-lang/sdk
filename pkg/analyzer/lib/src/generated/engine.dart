@@ -78,6 +78,11 @@ class AnalysisCache {
         return _partitions[i].get(source);
       }
     }
+    //
+    // We should never get to this point because the last partition should always be a universal
+    // partition, except in the case of the SDK context, in which case the source should always be
+    // part of the SDK.
+    //
     return null;
   }
 
@@ -87,6 +92,28 @@ class AnalysisCache {
    * @return the number of entries in this cache that have an AST associated with them
    */
   int get astSize => _partitions[_partitions.length - 1].astSize;
+
+  /**
+   * Return context that owns the given source.
+   *
+   * @param source the source whose context is to be returned
+   * @return the context that owns the partition that contains the source
+   */
+  InternalAnalysisContext getContextFor(Source source) {
+    int count = _partitions.length;
+    for (int i = 0; i < count; i++) {
+      if (_partitions[i].contains(source)) {
+        return _partitions[i].context;
+      }
+    }
+    //
+    // We should never get to this point because the last partition should always be a universal
+    // partition, except in the case of the SDK context, in which case the source should always be
+    // part of the SDK.
+    //
+    AnalysisEngine.instance.logger.logInformation2("Could not find context for ${source.fullName}", new JavaException());
+    return null;
+  }
 
   /**
    * Return information about each of the partitions in this cache.
@@ -923,7 +950,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * A set containing information about the tasks that have been performed since the last change
    * notification. Used to detect infinite loops in [performAnalysisTask].
    */
-  HashSet<String> _recentTasks = new HashSet<String>();
+  LinkedHashSet<String> _recentTasks = new LinkedHashSet<String>();
+
+  /**
+   * A flag indicating whether we have already reported an infinite loop in
+   * [performAnalysisTask].
+   */
+  bool _reportedLoop = false;
 
   /**
    * The object used to synchronize access to all of the caches. The rules related to the use of
@@ -967,7 +1000,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   AnalysisContextImpl() : super() {
     _resultRecorder = new AnalysisContextImpl_AnalysisTaskResultRecorder(this);
-    _privatePartition = new UniversalCachePartition(AnalysisOptionsImpl.DEFAULT_CACHE_SIZE, new AnalysisContextImpl_ContextRetentionPolicy(this));
+    _privatePartition = new UniversalCachePartition(this, AnalysisOptionsImpl.DEFAULT_CACHE_SIZE, new AnalysisContextImpl_ContextRetentionPolicy(this));
     _cache = createCacheFromSourceFactory(null);
   }
 
@@ -1005,6 +1038,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return;
     }
     _recentTasks.clear();
+    _reportedLoop = false;
     //
     // First, compute the list of sources that have been removed.
     //
@@ -1300,6 +1334,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return new TimestampedData<String>(_contentCache.getModificationStamp(source), contents);
     }
     return source.contents;
+  }
+
+  @override
+  InternalAnalysisContext getContextFor(Source source) {
+    InternalAnalysisContext context = _cache.getContextFor(source);
+    return context == null ? this : context;
   }
 
   @override
@@ -1731,14 +1771,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisResult(_getChangeNotices(true), getEnd - getStart, null, -1);
     }
     String taskDescription = task.toString();
-    //    if (recentTasks.add(taskDescription)) {
-    //      logInformation("Performing task: " + taskDescription);
-    //    } else {
-    //      if (TRACE_PERFORM_TASK) {
-    //        System.out.print("* ");
-    //      }
-    //      logInformation("*** Performing repeated task: " + taskDescription);
-    //    }
+    if (!_reportedLoop && !_recentTasks.add(taskDescription)) {
+      PrintStringWriter writer = new PrintStringWriter();
+      writer.print("Performing repeated task: ");
+      writer.println(taskDescription);
+      for (String description in _recentTasks) {
+        writer.print("  ");
+        writer.println(description);
+      }
+      _logInformation(writer.toString());
+    }
     _notifyAboutToPerformTask(taskDescription);
     if (_TRACE_PERFORM_TASK) {
       print(taskDescription);
@@ -1785,13 +1827,24 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (dartEntry != null) {
         DartEntryImpl dartCopy = dartEntry.writableCopy;
         _recordElementData(dartCopy, library, library.source, htmlSource);
-        dartCopy.setValue(DartEntry.SCAN_ERRORS, AnalysisError.NO_ERRORS);
+        dartCopy.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
+        dartCopy.setValue(SourceEntry.LINE_INFO, new LineInfo(<int> [0]));
+        dartCopy.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
+        // DartEntry.ELEMENT - set in recordElementData
+        dartCopy.setValue(DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+        dartCopy.setValue(DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+        dartCopy.setValue(DartEntry.INCLUDED_PARTS, Source.EMPTY_ARRAY);
+        // DartEntry.IS_CLIENT - set in recordElementData
+        // DartEntry.IS_LAUNCHABLE - set in recordElementData
         dartCopy.setValue(DartEntry.PARSE_ERRORS, AnalysisError.NO_ERRORS);
         dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+        dartCopy.setState(DartEntry.PUBLIC_NAMESPACE, CacheState.FLUSHED);
+        dartCopy.setValue(DartEntry.SCAN_ERRORS, AnalysisError.NO_ERRORS);
+        dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+        dartCopy.setState(DartEntry.TOKEN_STREAM, CacheState.FLUSHED);
         dartCopy.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource, AnalysisError.NO_ERRORS);
         dartCopy.setStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource, CacheState.FLUSHED);
         dartCopy.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, AnalysisError.NO_ERRORS);
-        dartCopy.setValue(DartEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
         dartCopy.setValueInLibrary(DartEntry.HINTS, librarySource, AnalysisError.NO_ERRORS);
         _cache.put(librarySource, dartCopy);
       }
@@ -1882,6 +1935,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void setChangedContents(Source source, String contents, int offset, int oldLength, int newLength) {
     _recentTasks.clear();
+    _reportedLoop = false;
     String originalContents = _contentCache.setContents(source, contents);
     if (contents != null) {
       if (contents != originalContents) {
@@ -1906,6 +1960,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void setContents(Source source, String contents) {
     _recentTasks.clear();
+    _reportedLoop = false;
     String originalContents = _contentCache.setContents(source, contents);
     if (contents != null) {
       if (contents != originalContents) {
@@ -3731,6 +3786,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     _removeFromPartsUsingMap(oldPartMap);
+    _recentTasks.clear();
+    _reportedLoop = false;
   }
 
   /**
@@ -6761,7 +6818,7 @@ abstract class AnalysisTask {
     } on AnalysisException catch (exception) {
       throw exception;
     } catch (exception, stackTrace) {
-      throw new AnalysisException("Exception", new CaughtException(exception, stackTrace));
+      throw new AnalysisException(exception.toString(), new CaughtException(exception, stackTrace));
     }
   }
 }
@@ -7468,7 +7525,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     _unitElement = new CompilationUnitElementImpl(unitName);
     _unitElement.source = _source;
     // create LibraryElementImpl
-    _libraryElement = new LibraryElementImpl.forNode(_context, null);
+    _libraryElement = new LibraryElementImpl.forNode(_context.getContextFor(_source), null);
     _libraryElement.definingCompilationUnit = _unitElement;
     _libraryElement.angularHtml = true;
     _injectedLibraries.add(_libraryElement);
@@ -7832,9 +7889,10 @@ abstract class AngularXmlExpression extends ht.XmlExpression {
  */
 abstract class CachePartition {
   /**
-   * A table mapping the sources known to the context to the information known about the source.
+   * The context that owns this partition. Multiple contexts can reference a partition, but only one
+   * context can own it.
    */
-  HashMap<Source, SourceEntry> _sourceMap = new HashMap<Source, SourceEntry>();
+  final InternalAnalysisContext context;
 
   /**
    * The maximum number of sources for which AST structures should be kept in the cache.
@@ -7847,6 +7905,12 @@ abstract class CachePartition {
   final CacheRetentionPolicy _retentionPolicy;
 
   /**
+   * A table mapping the sources belonging to this partition to the information known about those
+   * sources.
+   */
+  HashMap<Source, SourceEntry> _sourceMap = new HashMap<Source, SourceEntry>();
+
+  /**
    * A list containing the most recently accessed sources with the most recently used at the end of
    * the list. When more sources are added than the maximum allowed then the least recently used
    * source will be removed and will have it's cached AST structure flushed.
@@ -7857,12 +7921,13 @@ abstract class CachePartition {
    * Initialize a newly created cache to maintain at most the given number of AST structures in the
    * cache.
    *
+   * @param context the context that owns this partition
    * @param maxCacheSize the maximum number of sources for which AST structures should be kept in
    *          the cache
    * @param retentionPolicy the policy used to determine which pieces of data to remove from the
    *          cache
    */
-  CachePartition(int maxCacheSize, this._retentionPolicy) {
+  CachePartition(this.context, int maxCacheSize, this._retentionPolicy) {
     this._maxCacheSize = maxCacheSize;
     _recentlyUsed = new List<Source>();
   }
@@ -11793,6 +11858,18 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   TimestampedData<String> getContents(Source source) => _basis.getContents(source);
 
   @override
+  InternalAnalysisContext getContextFor(Source source) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getContextFor");
+    _checkThread(instrumentation);
+    try {
+      instrumentation.metric3("contextId", _contextId);
+      return _basis.getContextFor(source);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @override
   DeclaredVariables get declaredVariables => _basis.declaredVariables;
 
   @override
@@ -12358,6 +12435,14 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * @return the analysis context that was initialized
    */
   InternalAnalysisContext extractContextInto(SourceContainer container, InternalAnalysisContext newContext);
+
+  /**
+   * Return context that owns the given source.
+   *
+   * @param source the source whose context is to be returned
+   * @return the context that owns the partition that contains the source
+   */
+  InternalAnalysisContext getContextFor(Source source);
 
   /**
    * Return an array containing all of the sources that have been marked as priority sources.
@@ -13142,7 +13227,7 @@ class PartitionManager {
   SdkCachePartition forSdk(DartSdk sdk) {
     SdkCachePartition partition = _sdkPartitions[sdk];
     if (partition == null) {
-      partition = new SdkCachePartition(_DEFAULT_SDK_CACHE_SIZE);
+      partition = new SdkCachePartition(sdk.context as InternalAnalysisContext, _DEFAULT_SDK_CACHE_SIZE);
       _sdkPartitions[sdk] = partition;
     }
     return partition;
@@ -14724,10 +14809,11 @@ class SdkCachePartition extends CachePartition {
   /**
    * Initialize a newly created partition.
    *
+   * @param context the context that owns this partition
    * @param maxCacheSize the maximum number of sources for which AST structures should be kept in
    *          the cache
    */
-  SdkCachePartition(int maxCacheSize) : super(maxCacheSize, DefaultRetentionPolicy.POLICY);
+  SdkCachePartition(InternalAnalysisContext context, int maxCacheSize) : super(context, maxCacheSize, DefaultRetentionPolicy.POLICY);
 
   @override
   bool contains(Source source) => source.isInSystemLibrary;
@@ -15278,12 +15364,13 @@ class UniversalCachePartition extends CachePartition {
   /**
    * Initialize a newly created partition.
    *
+   * @param context the context that owns this partition
    * @param maxCacheSize the maximum number of sources for which AST structures should be kept in
    *          the cache
    * @param retentionPolicy the policy used to determine which pieces of data to remove from the
    *          cache
    */
-  UniversalCachePartition(int maxCacheSize, CacheRetentionPolicy retentionPolicy) : super(maxCacheSize, retentionPolicy);
+  UniversalCachePartition(InternalAnalysisContext context, int maxCacheSize, CacheRetentionPolicy retentionPolicy) : super(context, maxCacheSize, retentionPolicy);
 
   @override
   bool contains(Source source) => true;

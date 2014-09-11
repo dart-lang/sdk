@@ -10193,7 +10193,7 @@ class InstanceCreationExpression extends Expression {
   EvaluationResultImpl get evaluationResult => _result;
 
   @override
-  int get precedence => 15;
+  int get precedence => 16;
 
   /**
    * Return `true` if this creation expression is used to invoke a constant constructor.

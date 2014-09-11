@@ -33,7 +33,7 @@
 //     JUnitTestCase.assertNull(cache.get(source));
 //   }
 //   void test_iterator() {
-//     CachePartition partition = new UniversalCachePartition(8, new DefaultRetentionPolicy());
+//     CachePartition partition = new UniversalCachePartition(null, 8, new DefaultRetentionPolicy());
 //     AnalysisCache cache = new AnalysisCache(<CachePartition> [partition]);
 //     TestSource source = new TestSource();
 //     DartEntryImpl entry = new DartEntryImpl();
@@ -45,7 +45,7 @@
 //     JUnitTestCase.assertFalse(iterator.moveNext());
 //   }
 //   void test_put_noFlush() {
-//     CachePartition partition = new UniversalCachePartition(8, new DefaultRetentionPolicy());
+//     CachePartition partition = new UniversalCachePartition(null, 8, new DefaultRetentionPolicy());
 //     AnalysisCache cache = new AnalysisCache(<CachePartition> [partition]);
 //     TestSource source = new TestSource();
 //     DartEntryImpl entry = new DartEntryImpl();
@@ -53,7 +53,7 @@
 //     JUnitTestCase.assertSame(entry, cache.get(source));
 //   }
 //   void test_setMaxCacheSize() {
-//     CachePartition partition = new UniversalCachePartition(8, new CacheRetentionPolicy_AnalysisCacheTest_test_setMaxCacheSize());
+//     CachePartition partition = new UniversalCachePartition(null, 8, new CacheRetentionPolicy_AnalysisCacheTest_test_setMaxCacheSize());
 //     AnalysisCache cache = new AnalysisCache(<CachePartition> [partition]);
 //     int size = 6;
 //     for (int i = 0; i < size; i++) {
@@ -69,7 +69,7 @@
 //     _assertNonFlushedCount(newSize, cache);
 //   }
 //   void test_size() {
-//     CachePartition partition = new UniversalCachePartition(8, new DefaultRetentionPolicy());
+//     CachePartition partition = new UniversalCachePartition(null, 8, new DefaultRetentionPolicy());
 //     AnalysisCache cache = new AnalysisCache(<CachePartition> [partition]);
 //     int size = 4;
 //     for (int i = 0; i < size; i++) {
@@ -5251,18 +5251,18 @@
 // }
 // class SdkCachePartitionTest extends EngineTestCase {
 //   void test_contains_false() {
-//     SdkCachePartition partition = new SdkCachePartition(8);
+//     SdkCachePartition partition = new SdkCachePartition(null, 8);
 //     Source source = new TestSource();
 //     JUnitTestCase.assertFalse(partition.contains(source));
 //   }
 //   void test_contains_true() {
-//     SdkCachePartition partition = new SdkCachePartition(8);
+//     SdkCachePartition partition = new SdkCachePartition(null, 8);
 //     SourceFactory factory = new SourceFactory([new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
 //     Source source = factory.forUri("dart:core");
 //     JUnitTestCase.assertTrue(partition.contains(source));
 //   }
 //   void test_creation() {
-//     JUnitTestCase.assertNotNull(new SdkCachePartition(8));
+//     JUnitTestCase.assertNotNull(new SdkCachePartition(null, 8));
 //   }
 //   static dartSuite() {
 //     _ut.group('SdkCachePartitionTest', () {
@@ -5395,6 +5395,11 @@
 //   @override
 //   void getContentsToReceiver(Source source, Source_ContentReceiver receiver) {
 //     JUnitTestCase.fail("Unexpected invocation of getContentsToReceiver");
+//   }
+//   @override
+//   InternalAnalysisContext getContextFor(Source source) {
+//     JUnitTestCase.fail("Unexpected invocation of getContextFor");
+//     return null;
 //   }
 //   @override
 //   DeclaredVariables get declaredVariables {
@@ -6541,15 +6546,15 @@
 // }
 // class UniversalCachePartitionTest extends EngineTestCase {
 //   void test_contains() {
-//     UniversalCachePartition partition = new UniversalCachePartition(8, null);
+//     UniversalCachePartition partition = new UniversalCachePartition(null, 8, null);
 //     TestSource source = new TestSource();
 //     JUnitTestCase.assertTrue(partition.contains(source));
 //   }
 //   void test_creation() {
-//     JUnitTestCase.assertNotNull(new UniversalCachePartition(8, null));
+//     JUnitTestCase.assertNotNull(new UniversalCachePartition(null, 8, null));
 //   }
 //   void test_entrySet() {
-//     UniversalCachePartition partition = new UniversalCachePartition(8, null);
+//     UniversalCachePartition partition = new UniversalCachePartition(null, 8, null);
 //     TestSource source = new TestSource();
 //     DartEntryImpl entry = new DartEntryImpl();
 //     partition.put(source, entry);
@@ -6561,19 +6566,19 @@
 //     JUnitTestCase.assertFalse(entries.hasNext);
 //   }
 //   void test_get() {
-//     UniversalCachePartition partition = new UniversalCachePartition(8, null);
+//     UniversalCachePartition partition = new UniversalCachePartition(null, 8, null);
 //     TestSource source = new TestSource();
 //     JUnitTestCase.assertNull(partition.get(source));
 //   }
 //   void test_put_noFlush() {
-//     UniversalCachePartition partition = new UniversalCachePartition(8, null);
+//     UniversalCachePartition partition = new UniversalCachePartition(null, 8, null);
 //     TestSource source = new TestSource();
 //     DartEntryImpl entry = new DartEntryImpl();
 //     partition.put(source, entry);
 //     JUnitTestCase.assertSame(entry, partition.get(source));
 //   }
 //   void test_remove() {
-//     UniversalCachePartition partition = new UniversalCachePartition(8, null);
+//     UniversalCachePartition partition = new UniversalCachePartition(null, 8, null);
 //     TestSource source = new TestSource();
 //     DartEntryImpl entry = new DartEntryImpl();
 //     partition.put(source, entry);
@@ -6582,7 +6587,7 @@
 //     JUnitTestCase.assertNull(partition.get(source));
 //   }
 //   void test_setMaxCacheSize() {
-//     UniversalCachePartition partition = new UniversalCachePartition(8, new CacheRetentionPolicy_UniversalCachePartitionTest_test_setMaxCacheSize());
+//     UniversalCachePartition partition = new UniversalCachePartition(null, 8, new CacheRetentionPolicy_UniversalCachePartitionTest_test_setMaxCacheSize());
 //     int size = 6;
 //     for (int i = 0; i < size; i++) {
 //       Source source = new TestSource.con1(FileUtilities2.createFile("/test${i}.dart"), "");
@@ -6597,7 +6602,7 @@
 //     _assertNonFlushedCount(newSize, partition);
 //   }
 //   void test_size() {
-//     UniversalCachePartition partition = new UniversalCachePartition(8, null);
+//     UniversalCachePartition partition = new UniversalCachePartition(null, 8, null);
 //     int size = 4;
 //     for (int i = 0; i < size; i++) {
 //       Source source = new TestSource.con1(FileUtilities2.createFile("/test${i}.dart"), "");

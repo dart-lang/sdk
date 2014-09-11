@@ -4669,6 +4669,77 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Return a method representing the merge of the given elements. The type of the merged element is
+   * the component-wise union of the types of the given elements. If not all input elements have the
+   * same shape then [null] is returned.
+   *
+   * @param elements the `ExecutableElement`s to merge
+   * @return an `ExecutableElement` representing the merge of `elements`
+   */
+  static ExecutableElement _computeMergedExecutableElement(Set<ExecutableElement> elements) {
+    List<ExecutableElement> elementArrayToMerge = new List.from(elements);
+    if (elementArrayToMerge.length == 0) {
+      return null;
+    } else {
+      // Flatten methods structurally. Based on
+      // [InheritanceManager.computeMergedExecutableElement] and
+      // [InheritanceManager.createSyntheticExecutableElement].
+      //
+      // However, the approach we take here is much simpler, but expected to work
+      // well in the common case. It degrades gracefully in the uncommon case,
+      // by computing the type [dynamic] for the method, preventing any
+      // hints from being generated (TODO: not done yet).
+      //
+      // The approach is: we require that each [ExecutableElement] has the
+      // same shape: the same number of required, optional positional, and optional named
+      // parameters, in the same positions, and with the named parameters in the
+      // same order. We compute a type by unioning pointwise.
+      ExecutableElement e_0 = elementArrayToMerge[0];
+      List<ParameterElement> ps_0 = e_0.parameters;
+      List<ParameterElementImpl> ps_out = new List<ParameterElementImpl>(ps_0.length);
+      for (int j = 0; j < ps_out.length; j++) {
+        ps_out[j] = new ParameterElementImpl(ps_0[j].name, 0);
+        ps_out[j].synthetic = true;
+        ps_out[j].type = ps_0[j].type;
+        ps_out[j].parameterKind = ps_0[j].parameterKind;
+      }
+      DartType r_out = e_0.returnType;
+      for (int i = 1; i < elementArrayToMerge.length; i++) {
+        ExecutableElement e_i = elementArrayToMerge[i];
+        r_out = UnionTypeImpl.union([r_out, e_i.returnType]);
+        List<ParameterElement> ps_i = e_i.parameters;
+        // Each function must have the same number of params.
+        if (ps_0.length != ps_i.length) {
+          return null;
+        } else {
+          // Each function must have the same kind of params, with the same names,
+          // in the same order.
+          for (int j = 0; j < ps_i.length; j++) {
+            if (ps_0[j].parameterKind != ps_i[j].parameterKind || !identical(ps_0[j].name, ps_i[j].name)) {
+              return null;
+            } else {
+              // The output parameter type is the union of the input parameter types.
+              ps_out[j].type = UnionTypeImpl.union([ps_out[j].type, ps_i[j].type]);
+            }
+          }
+        }
+      }
+      // TODO (collinsn): this code should work for functions and methods,
+      // so we may want [FunctionElementImpl]
+      // instead here in some cases? And then there are constructors and property accessors.
+      // Maybe the answer is to create a new subclass of [ExecutableElementImpl] which
+      // is used for merged executable elements, in analogy with [MultiplyInheritedMethodElementImpl]
+      // and [MultiplyInheritedPropertyAcessorElementImpl].
+      ExecutableElementImpl e_out = new MethodElementImpl(e_0.name, 0);
+      e_out.synthetic = true;
+      e_out.returnType = r_out;
+      e_out.parameters = ps_out;
+      e_out.type = new FunctionTypeImpl.con1(e_out);
+      return e_out;
+    }
+  }
+
+  /**
    * Return `true` if the given identifier is the return type of a constructor declaration.
    *
    * @return `true` if the given identifier is the return type of a constructor declaration.
@@ -6237,6 +6308,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
       return _lookUpMethodInInterfaces(interfaceType, false, methodName, new HashSet<ClassElement>());
     }
+    if (type is UnionType) {
+      Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
+      for (DartType t in type.elements) {
+        MethodElement m = _lookUpMethod(target, t, methodName);
+        if (m != null) {
+          methods.add(m);
+        }
+      }
+      // TODO (collinsn): I want [computeMergedExecutableElement] to be general
+      // and work with functions, methods, constructors, and property accessors. However,
+      // I won't be able to assume it returns [MethodElement] here then.
+      return _computeMergedExecutableElement(methods) as MethodElement;
+    }
     return null;
   }
 
@@ -6609,6 +6693,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     List<ParameterElement> resolvedParameters = new List<ParameterElement>(argumentCount);
     int positionalArgumentCount = 0;
     HashSet<String> usedNames = new HashSet<String>();
+    bool noBlankArguments = true;
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
       if (argument is NamedExpression) {
@@ -6626,16 +6711,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           _resolver.reportErrorForNode(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, [name]);
         }
       } else {
+        if (argument is SimpleIdentifier && argument.name.isEmpty) {
+          noBlankArguments = false;
+        }
         positionalArgumentCount++;
         if (unnamedIndex < unnamedParameterCount) {
           resolvedParameters[i] = unnamedParameters[unnamedIndex++];
         }
       }
     }
-    if (positionalArgumentCount < requiredParameters.length) {
+    if (positionalArgumentCount < requiredParameters.length && noBlankArguments) {
       ErrorCode errorCode = (reportError ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
       _resolver.reportErrorForNode(errorCode, argumentList, [requiredParameters.length, positionalArgumentCount]);
-    } else if (positionalArgumentCount > unnamedParameterCount) {
+    } else if (positionalArgumentCount > unnamedParameterCount && noBlankArguments) {
       ErrorCode errorCode = (reportError ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
       _resolver.reportErrorForNode(errorCode, argumentList, [unnamedParameterCount, positionalArgumentCount]);
     }
@@ -6751,14 +6839,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * @return the element being invoked
    */
   Element _resolveInvokedElementWithTarget(Expression target, DartType targetType, SimpleIdentifier methodName) {
-    if (targetType is InterfaceType) {
-      InterfaceType classType = targetType;
-      Element element = _lookUpMethod(target, classType, methodName.name);
+    if (targetType is InterfaceType || targetType is UnionType) {
+      Element element = _lookUpMethod(target, targetType, methodName.name);
       if (element == null) {
         //
         // If there's no method, then it's possible that 'm' is a getter that returns a function.
         //
-        element = _lookUpGetter(target, classType, methodName.name);
+        // TODO (collinsn): need to add union type support here too, in the style of [lookUpMethod].
+        element = _lookUpGetter(target, targetType, methodName.name);
       }
       return element;
     } else if (target is SimpleIdentifier) {
@@ -14028,8 +14116,6 @@ class InheritanceManager {
    * <b>dynamic</b>, <i>h</i> positional parameters of type <b>dynamic</b>, named parameters
    * <i>s</i> of type <b>dynamic</b> and return type <b>dynamic</b>.
    *
-   * TODO (jwren) Associate a propagated type to the synthetic method element using least upper
-   * bounds instead of dynamic
    */
   static ExecutableElement _computeMergedExecutableElement(List<ExecutableElement> elementArrayToMerge) {
     int h = _getNumOfPositionalParameters(elementArrayToMerge[0]);
@@ -15412,7 +15498,7 @@ class LibraryElementBuilder {
     //
     // Create and populate the library element.
     //
-    LibraryElementImpl libraryElement = new LibraryElementImpl.forNode(_analysisContext, libraryNameNode);
+    LibraryElementImpl libraryElement = new LibraryElementImpl.forNode(_analysisContext.getContextFor(librarySource), libraryNameNode);
     libraryElement.definingCompilationUnit = definingCompilationUnitElement;
     if (entryPoint != null) {
       libraryElement.entryPoint = entryPoint;
@@ -15496,7 +15582,7 @@ class LibraryElementBuilder {
     //
     // Create and populate the library element.
     //
-    LibraryElementImpl libraryElement = new LibraryElementImpl.forNode(_analysisContext, libraryNameNode);
+    LibraryElementImpl libraryElement = new LibraryElementImpl.forNode(_analysisContext.getContextFor(librarySource), libraryNameNode);
     libraryElement.definingCompilationUnit = definingCompilationUnitElement;
     if (entryPoint != null) {
       libraryElement.entryPoint = entryPoint;
@@ -18820,7 +18906,7 @@ class ResolverVisitor extends ScopedVisitor {
     try {
       super.visitFieldDeclaration(node);
     } finally {
-      HashMap<Element, DartType> overrides = _overrideManager.captureOverrides(node.fields);
+      Map<Element, DartType> overrides = _overrideManager.captureOverrides(node.fields);
       _overrideManager.exitScope();
       _overrideManager.applyOverrides(overrides);
     }
@@ -18912,7 +18998,7 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitIfStatement(IfStatement node) {
     Expression condition = node.condition;
     safelyVisit(condition);
-    HashMap<Element, DartType> thenOverrides = null;
+    Map<Element, DartType> thenOverrides = null;
     Statement thenStatement = node.thenStatement;
     if (thenStatement != null) {
       _overrideManager.enterScope();
@@ -18934,7 +19020,7 @@ class ResolverVisitor extends ScopedVisitor {
         _overrideManager.exitScope();
       }
     }
-    HashMap<Element, DartType> elseOverrides = null;
+    Map<Element, DartType> elseOverrides = null;
     Statement elseStatement = node.elseStatement;
     if (elseStatement != null) {
       _overrideManager.enterScope();
@@ -18960,10 +19046,16 @@ class ResolverVisitor extends ScopedVisitor {
       if (elseOverrides != null) {
         _overrideManager.applyOverrides(elseOverrides);
       }
+    } else if (!thenIsAbrupt && !elseIsAbrupt) {
+      // It would be more precise to ignore the existing override for any variable that
+      // is overridden in both branches.
+      if (thenOverrides != null) {
+        _overrideManager.mergeOverrides(thenOverrides);
+      }
+      if (elseOverrides != null) {
+        _overrideManager.mergeOverrides(elseOverrides);
+      }
     }
-    // TODO(collinsn): union the [thenOverrides] and [elseOverrides] if both branches
-    // are not abrupt. If both branches are abrupt, then we can mark the
-    // remaining code as dead.
     return null;
   }
 
@@ -19086,7 +19178,7 @@ class ResolverVisitor extends ScopedVisitor {
     try {
       super.visitTopLevelVariableDeclaration(node);
     } finally {
-      HashMap<Element, DartType> overrides = _overrideManager.captureOverrides(node.variables);
+      Map<Element, DartType> overrides = _overrideManager.captureOverrides(node.variables);
       _overrideManager.exitScope();
       _overrideManager.applyOverrides(overrides);
     }
@@ -19475,7 +19567,7 @@ class ResolverVisitor extends ScopedVisitor {
     //
     // In the presence of exceptions things become much more complicated, but while
     // we only use this to propagate at [if]-statement join points, checking for [return]
-    // is probably sound.
+    // may work well enough in the common case.
     if (statement is ReturnStatement) {
       return true;
     } else if (statement is ExpressionStatement) {
@@ -19486,6 +19578,21 @@ class ResolverVisitor extends ScopedVisitor {
       if (size == 0) {
         return false;
       }
+      // This last-statement-is-return heuristic is unsound for adversarial code,
+      // but probably works well in the common case:
+      //
+      //   var x = 123;
+      //   var c = true;
+      //   L: if (c) {
+      //     x = "hello";
+      //     c = false;
+      //     break L;
+      //     return;
+      //   }
+      //   print(x);
+      //
+      // Unsound to assume that [x = "hello";] never executed after the if-statement.
+      // Of course, a dead-code analysis could point out that [return] here is dead.
       return _isAbruptTerminationStatement(statements[size - 1]);
     }
     return false;
@@ -22516,7 +22623,7 @@ class TypeOverrideManager {
    *
    * @param overrides the overrides to be applied
    */
-  void applyOverrides(HashMap<Element, DartType> overrides) {
+  void applyOverrides(Map<Element, DartType> overrides) {
     if (_currentScope == null) {
       throw new IllegalStateException("Cannot apply overrides without a scope");
     }
@@ -22529,7 +22636,7 @@ class TypeOverrideManager {
    *
    * @return the overrides in the current scope
    */
-  HashMap<Element, DartType> captureLocalOverrides() {
+  Map<Element, DartType> captureLocalOverrides() {
     if (_currentScope == null) {
       throw new IllegalStateException("Cannot capture local overrides without a scope");
     }
@@ -22543,7 +22650,7 @@ class TypeOverrideManager {
    * @param variableList the list of variables whose overriding types are to be captured
    * @return a table mapping elements to their overriding types
    */
-  HashMap<Element, DartType> captureOverrides(VariableDeclarationList variableList) {
+  Map<Element, DartType> captureOverrides(VariableDeclarationList variableList) {
     if (_currentScope == null) {
       throw new IllegalStateException("Cannot capture overrides without a scope");
     }
@@ -22582,6 +22689,15 @@ class TypeOverrideManager {
   }
 
   /**
+   * Merge new overrides with existing overrides using union types.
+   *
+   * @param overrides the new overrides to merge in.
+   */
+  void mergeOverrides(Map<Element, DartType> overrides) {
+    _currentScope.mergeOverrides(overrides);
+  }
+
+  /**
    * Set the overridden type of the given element to the given type
    *
    * @param element the element whose type might have been overridden
@@ -22608,7 +22724,7 @@ class TypeOverrideManager_TypeOverrideScope {
   /**
    * A table mapping elements to the overridden type of that element.
    */
-  HashMap<Element, DartType> _overridenTypes = new HashMap<Element, DartType>();
+  Map<Element, DartType> _overridenTypes = new HashMap<Element, DartType>();
 
   /**
    * Initialize a newly created scope to be an empty child of the given scope.
@@ -22622,7 +22738,7 @@ class TypeOverrideManager_TypeOverrideScope {
    *
    * @param overrides the overrides to be applied
    */
-  void applyOverrides(HashMap<Element, DartType> overrides) {
+  void applyOverrides(Map<Element, DartType> overrides) {
     for (MapEntry<Element, DartType> entry in getMapEntrySet(overrides)) {
       _overridenTypes[entry.getKey()] = entry.getValue();
     }
@@ -22634,7 +22750,7 @@ class TypeOverrideManager_TypeOverrideScope {
    *
    * @return the overrides in the current scope
    */
-  HashMap<Element, DartType> captureLocalOverrides() => _overridenTypes;
+  Map<Element, DartType> captureLocalOverrides() => _overridenTypes;
 
   /**
    * Return a map from the elements for the variables in the given list that have their types
@@ -22643,8 +22759,8 @@ class TypeOverrideManager_TypeOverrideScope {
    * @param variableList the list of variables whose overriding types are to be captured
    * @return a table mapping elements to their overriding types
    */
-  HashMap<Element, DartType> captureOverrides(VariableDeclarationList variableList) {
-    HashMap<Element, DartType> overrides = new HashMap<Element, DartType>();
+  Map<Element, DartType> captureOverrides(VariableDeclarationList variableList) {
+    Map<Element, DartType> overrides = new HashMap<Element, DartType>();
     if (variableList.isConst || variableList.isFinal) {
       for (VariableDeclaration variable in variableList.variables) {
         Element element = variable.element;
@@ -22677,6 +22793,18 @@ class TypeOverrideManager_TypeOverrideScope {
       return _outerScope.getType(element);
     }
     return null;
+  }
+
+  /**
+   * Merge new overrides with existing overrides using union types.
+   *
+   * @param overrides the new overrides to merge in.
+   */
+  void mergeOverrides(Map<Element, DartType> overrides) {
+    for (MapEntry<Element, DartType> entry in getMapEntrySet(overrides)) {
+      Element key = entry.getKey();
+      _overridenTypes[key] = UnionTypeImpl.union([_overridenTypes[key], entry.getValue()]);
+    }
   }
 
   /**
