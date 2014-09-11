@@ -102,6 +102,22 @@ class FixProcessor {
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE) {
       _addFix_replaceWithConstInstanceCreation();
     }
+    if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION) {
+      if (node is Annotation) {
+        Annotation annotation = node;
+        Identifier name = annotation.name;
+        if (name != null && name.staticElement == null) {
+          node = name;
+          if (annotation.arguments == null) {
+            _addFix_importLibrary_withTopLevelVariable();
+          } else {
+            _addFix_importLibrary_withType();
+            _addFix_createClass();
+            _addFix_undefinedClass_useSimilar();
+          }
+        }
+      }
+    }
     if (errorCode ==
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT) {
       _addFix_createConstructorSuperExplicit();
@@ -1831,6 +1847,9 @@ class FixProcessor {
   static bool _mayBeTypeIdentifier(AstNode node) {
     if (node is SimpleIdentifier) {
       AstNode parent = node.parent;
+      if (parent is Annotation) {
+        return true;
+      }
       if (parent is TypeName) {
         return true;
       }

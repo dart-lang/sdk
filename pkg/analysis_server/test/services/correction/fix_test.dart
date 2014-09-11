@@ -960,6 +960,28 @@ main() {
 ''');
   }
 
+  void test_importLibraryProject_withType_annotation() {
+    addSource('/lib.dart', '''
+library lib;
+class Test {
+  const Test(int p);
+}
+''');
+    _indexTestUnit('''
+@Test(0)
+main() {
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import 'lib.dart';
+
+@Test(0)
+main() {
+}
+''');
+  }
+
   void test_importLibraryProject_withType_inParentFolder() {
     testFile = '/project/bin/test.dart';
     addSource('/project/lib.dart', '''
@@ -1035,6 +1057,22 @@ import 'dart:math';
 
 main() {
   print(PI);
+}
+''');
+  }
+
+  void test_importLibrarySdk_withTopLevelVariable_annotation() {
+    _indexTestUnit('''
+@PI
+main() {
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:math';
+
+@PI
+main() {
 }
 ''');
   }
