@@ -40,7 +40,7 @@ abstract class SourceFileProvider {
   Future<List<int>> readUtf8BytesFromUri(Uri resourceUri) {
     if (resourceUri.scheme == 'file') {
       return _readFromFile(resourceUri);
-    } else if (resourceUri.scheme == 'http') {
+    } else if (resourceUri.scheme == 'http' || resourceUri.scheme == 'https') {
       return _readFromHttp(resourceUri);
     } else {
       throw new ArgumentError("Unknown scheme in uri '$resourceUri'");

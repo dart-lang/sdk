@@ -16,7 +16,6 @@ import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
 Uri pathOfData = Platform.script.resolve('http_launch_data/');
-int port;
 Directory tempDir;
 String outFilePath;
 
@@ -77,18 +76,18 @@ Future testNonHttp() {
       .then((_) { cleanup(); });
 }
 
-Future testHttp() {
-  String inFilePath = 'http://127.0.0.1:$port/http_launch_main.dart';
+Future testHttpMain(String serverUrl) {
+  String inFilePath = '$serverUrl/http_launch_main.dart';
   List<String> args = [inFilePath, "--out=" + outFilePath];
   return launchDart2Js(args)
       .then(check)
       .then((_) { cleanup(); });
 }
 
-Future testHttpLib() {
+Future testHttpLib(String serverUrl) {
   File file = new File(path.join(tempDir.path, "in.dart"));
   file.writeAsStringSync("""
-  import 'http://127.0.0.1:$port/lib1.dart';
+  import '$serverUrl/lib1.dart';
   main() { print(foo()); }
   """);
   String inFilePath = file.path;
@@ -99,10 +98,10 @@ Future testHttpLib() {
       .then((_) { cleanup(); });
 }
 
-Future testHttpPackage() {
+Future testHttpPackage(String serverUrl) {
   String inFilePath =
       pathOfData.resolve('http_launch_main_package.dart').toFilePath();
-  String packageRoot = 'http://127.0.0.1:$port/packages/';
+  String packageRoot = '$serverUrl/packages/';
   List<String> args = [inFilePath,
                        "--out=" + outFilePath,
                        "--package-root=" + packageRoot];
@@ -111,10 +110,10 @@ Future testHttpPackage() {
       .then((_) { cleanup(); });
 }
 
-Future testBadHttp() {
+Future testBadHttp(String serverUrl) {
   File file = new File(path.join(tempDir.path, "in_bad.dart"));
   file.writeAsStringSync("""
-  import 'http://127.0.0.1:$port/not_existing.dart';
+  import '$serverUrl/not_existing.dart';
   main() { print(foo()); }
   """);
   String inFilePath = file.path;
@@ -125,34 +124,58 @@ Future testBadHttp() {
       .then((_) { cleanup(); });
 }
 
-Future testBadHttp2() {
-  String inFilePath = 'http://127.0.0.1:$port/not_found.dart';
+Future testBadHttp2(String serverUrl) {
+  String inFilePath = '$serverUrl/not_found.dart';
   List<String> args = [inFilePath, "--out=" + outFilePath];
   return launchDart2Js(args)
       .then((processResult) => checkNotFound(processResult, "not_found.dart"))
       .then((_) { cleanup(); });
 }
 
-serverRunning(HttpServer server) {
-  port = server.port;
+serverRunning(HttpServer server, String scheme) {
   tempDir = Directory.systemTemp.createTempSync('directory_test');
   outFilePath = path.join(tempDir.path, "out.js");
+  int port = server.port;
+  String serverUrl = "$scheme://127.0.0.1:$port";
 
   asyncStart();
   server.listen(handleRequest);
-  new Future.value()
+  return new Future.value()
        .then((_) => cleanup())  // Make sure we start fresh.
        .then((_) => testNonHttp())
-       .then((_) => testHttp())
-       .then((_) => testHttpLib())
-       .then((_) => testHttpPackage())
-       .then((_) => testBadHttp())
-       .then((_) => testBadHttp2())
+       .then((_) => testHttpMain(serverUrl))
+       .then((_) => testHttpLib(serverUrl))
+       .then((_) => testHttpPackage(serverUrl))
+       .then((_) => testBadHttp(serverUrl))
+       .then((_) => testBadHttp2(serverUrl))
        .whenComplete(() => tempDir.delete(recursive: true))
        .whenComplete(server.close)
        .then((_) => asyncEnd());
 }
 
+Future testHttp() {
+  return HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 0)
+      .then((HttpServer server) => serverRunning(server, "http"));
+}
+
+void initializeSSL() {
+  Uri pathOfPkcert = pathOfData.resolve('pkcert');
+  String testPkcertDatabase = pathOfPkcert.toFilePath();
+  SecureSocket.initialize(database: testPkcertDatabase,
+                          password: 'dartdart');
+}
+
+Future testHttps() {
+  initializeSSL();
+  return HttpServer.bindSecure(InternetAddress.LOOPBACK_IP_V4,
+                               0,
+                               certificateName: 'localhost_cert')
+      .then((HttpServer server) => serverRunning(server, "https"));
+}
+
 main() {
-  HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 0).then(serverRunning);
+  asyncStart();
+  testHttp()
+    .then((_) => testHttps)
+    .whenComplete(asyncEnd);
 }
