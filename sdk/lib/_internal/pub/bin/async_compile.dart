@@ -95,11 +95,13 @@ void main(List<String> arguments) {
   var numCompiled = 0;
 
   // Compile any modified or missing files.
+  var sources = new Set();
   for (var entry in new Directory(sourceDir).listSync(recursive: true)) {
     if (p.extension(entry.path) != ".dart") continue;
 
     numFiles++;
     var relative = p.relative(entry.path, from: sourceDir);
+    sources.add(relative);
 
     var sourceFile = entry as File;
     var destPath = p.join(generatedDir, relative);
@@ -114,15 +116,28 @@ void main(List<String> arguments) {
     }
   }
 
+  // Delete any previously compiled files whose source no longer exists.
+  for (var entry in new Directory(generatedDir).listSync(recursive: true)) {
+    if (p.extension(entry.path) != ".dart") continue;
+
+    var relative = p.relative(entry.path, from: generatedDir);
+
+    if (!sources.contains(relative)) {
+      _deleteFile(entry.path);
+      if (verbose) print("Deleted  $relative");
+    }
+  }
+
   // Update the README.
   if (currentCommit != lastCommit) {
     readme = readme.replaceAll(_commitPattern, currentCommit);
     _writeFile(readmePath, readme);
+    if (verbose) print("Updated README.md");
   }
 
-  if (verbose) print("Compiled $numCompiled out of $numFiles files");
-
   if (numCompiled > 0) _generateSnapshot(buildDir);
+
+  if (verbose) print("Compiled $numCompiled out of $numFiles files");
 
   if (hadFailure) exit(1);
 }
