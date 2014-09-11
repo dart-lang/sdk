@@ -435,6 +435,29 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 }
 
 
+// Called from object allocate instruction when the allocation stub has been
+// disabled.
+void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
+  __ TraceSimMsg("FixAllocationStubTarget");
+  __ EnterStubFrame();
+  // Setup space on stack for return value.
+  __ addiu(SP, SP, Immediate(-1 * kWordSize));
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  // Get Code object result.
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ addiu(SP, SP, Immediate(1 * kWordSize));
+
+  // Jump to the dart function.
+  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
+  __ AddImmediate(T0, T0, Instructions::HeaderSize() - kHeapObjectTag);
+
+  // Remove the stub frame.
+  __ LeaveStubFrameAndReturn(T0);
+}
+
+
 // Input parameters:
 //   A1: Smi-tagged argument count, may be zero.
 //   FP[kParamEndSlotFromFp + 1]: Last argument.
@@ -1167,7 +1190,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Input parameters:
 //   RA : return address.
 //   SP + 0 : type arguments object (only if class is parameterized).
-void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
+// Returns patch_code_pc offset where patching code for disabling the stub
+// has been generated (similar to regularly generated Dart code).
+uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
   __ TraceSimMsg("AllocationStubForClass");
   // The generated code is different if the class is parameterized.
@@ -1290,6 +1315,10 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   // V0: new object
   // Restore the frame pointer and return.
   __ LeaveStubFrameAndReturn(RA);
+  uword patch_code_pc_offset = assembler->CodeSize();
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  __ BranchPatchable(&stub_code->FixAllocationStubTargetLabel());
+  return patch_code_pc_offset;
 }
 
 

@@ -4,6 +4,7 @@
 
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
+#include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/object.h"
@@ -65,6 +66,37 @@ TEST_CASE(CompileFunction) {
   function_source = function_moo.GetSource();
   EXPECT_STREQ("static moo() {\n    // A.foo();\n  }\n",
                function_source.ToCString());
+}
+
+
+TEST_CASE(RegenerateAllocStubs) {
+  const char* kScriptChars =
+            "class A {\n"
+            "}\n"
+            "unOpt() => new A(); \n"
+            "optIt() => new A(); \n"
+            "main() {\n"
+            "  return unOpt();\n"
+            "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(lib));
+  Library& lib_handle = Library::ZoneHandle(raw_library);
+  Class& cls = Class::Handle(
+      lib_handle.LookupClass(String::Handle(Symbols::New("A"))));
+  EXPECT(!cls.IsNull());
+
+  Isolate* isolate = Isolate::Current();
+  StubCode* stub_code = isolate->stub_code();
+  const Code& stub = Code::Handle(isolate,
+                                  stub_code->GetAllocationStubForClass(cls));
+  Class& owner = Class::Handle();
+  owner ^= stub.owner();
+  owner.DisableAllocationStub();
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
 }
 
 

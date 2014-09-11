@@ -3633,6 +3633,15 @@ void Class::set_allocation_stub(const Code& value) const {
 }
 
 
+void Class::DisableAllocationStub() const {
+  const Code& alloc_stub = Code::Handle(allocation_stub());
+  if (!alloc_stub.IsNull()) {
+    CodePatcher::PatchEntry(alloc_stub);
+    StorePointer(&raw_ptr()->allocation_stub_, Code::null());
+  }
+}
+
+
 bool Class::IsFunctionClass() const {
   return raw() == Type::Handle(Type::Function()).type_class();
 }

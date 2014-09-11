@@ -1137,6 +1137,8 @@ class Class : public Object {
   }
   void set_allocation_stub(const Code& value) const;
 
+  void DisableAllocationStub() const;
+
   RawArray* constants() const;
 
   intptr_t FindInvocationDispatcherFunctionIndex(const Function& needle) const;

@@ -418,6 +418,24 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 }
 
 
+// Called from object allocate instruction when the allocation stub has been
+// disabled.
+void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Setup space on stack for return value.
+  __ PushObject(Object::null_object(), PP);
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  // Get Code object result.
+  __ Pop(R0);
+  // Remove the stub frame.
+  __ LeaveStubFrame();
+  // Jump to the dart function.
+  __ LoadFieldFromOffset(R0, R0, Code::instructions_offset(), kNoPP);
+  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag, kNoPP);
+  __ br(R0);
+}
+
+
 // Input parameters:
 //   R2: smi-tagged argument count, may be zero.
 //   FP[kParamEndSlotFromFp + 1]: last argument.
@@ -1113,8 +1131,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Input parameters:
 //   LR : return address.
 //   SP + 0 : type arguments object (only if class is parameterized).
-void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
-                                              const Class& cls) {
+uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
+                                               const Class& cls) {
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
   ASSERT(!is_cls_parameterized ||
@@ -1232,6 +1250,10 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   // Restore the frame pointer.
   __ LeaveStubFrame();
   __ ret();
+  uword patch_code_pc_offset = assembler->CodeSize();
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  __ BranchPatchable(&stub_code->FixAllocationStubTargetLabel());
+  return patch_code_pc_offset;
 }
 
 
