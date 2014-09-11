@@ -7,7 +7,7 @@ name: barback
 #
 # When the minor or patch version of this is upgraded, you *must* update that
 # version constraint in pub to stay in sync with this.
-version: 0.15.2
+version: 0.15.2+1
 
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
