@@ -1847,7 +1847,7 @@ bool FlowGraphOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
       const String& str = String::Cast(left_const->value());
       ASSERT(str.Length() == 1);
       ConstantInstr* char_code_left = flow_graph()->GetConstant(
-          Smi::ZoneHandle(I, Smi::New(str.CharAt(0))));
+          Smi::ZoneHandle(I, Smi::New(static_cast<intptr_t>(str.CharAt(0)))));
       left_val = new(I) Value(char_code_left);
     } else if (left->IsStringFromCharCode()) {
       // Use input of string-from-charcode as left value.
@@ -8013,7 +8013,8 @@ void ConstantPropagator::VisitStringToCharCode(StringToCharCodeInstr* instr) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(o)) {
     const String& str = String::Cast(o);
-    const intptr_t result = (str.Length() == 1) ? str.CharAt(0) : -1;
+    const intptr_t result =
+        (str.Length() == 1) ? static_cast<intptr_t>(str.CharAt(0)) : -1;
     SetValue(instr, Smi::ZoneHandle(I, Smi::New(result)));
   }
 }
@@ -8044,7 +8045,8 @@ void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
       if (array_obj.IsString()) {
         const String& str = String::Cast(array_obj);
         if (str.Length() > index) {
-          SetValue(instr, Smi::Handle(I, Smi::New(str.CharAt(index))));
+          SetValue(instr, Smi::Handle(I,
+              Smi::New(static_cast<intptr_t>(str.CharAt(index)))));
           return;
         }
       } else if (array_obj.IsArray()) {

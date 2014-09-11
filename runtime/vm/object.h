@@ -5524,7 +5524,7 @@ class String : public Instance {
 
   virtual RawObject* HashCode() const { return Integer::New(Hash()); }
 
-  int32_t CharAt(intptr_t index) const;
+  uint16_t CharAt(intptr_t index) const;
 
   Scanner::CharAtFunc CharAtFunc() const;
 
@@ -5754,12 +5754,12 @@ class String : public Instance {
 
 class OneByteString : public AllStatic {
  public:
-  static int32_t CharAt(const String& str, intptr_t index) {
+  static uint16_t CharAt(const String& str, intptr_t index) {
     return *CharAddr(str, index);
   }
 
-  static void SetCharAt(const String& str, intptr_t index, uint8_t code_point) {
-    *CharAddr(str, index) = code_point;
+  static void SetCharAt(const String& str, intptr_t index, uint8_t code_unit) {
+    *CharAddr(str, index) = code_unit;
   }
   static RawOneByteString* EscapeSpecialCharacters(const String& str);
   // We use the same maximum elements for all strings.
@@ -5883,7 +5883,7 @@ class OneByteString : public AllStatic {
 
 class TwoByteString : public AllStatic {
  public:
-  static int32_t CharAt(const String& str, intptr_t index) {
+  static uint16_t CharAt(const String& str, intptr_t index) {
     return *CharAddr(str, index);
   }
 
@@ -5983,7 +5983,7 @@ class TwoByteString : public AllStatic {
 
 class ExternalOneByteString : public AllStatic {
  public:
-  static int32_t CharAt(const String& str, intptr_t index) {
+  static uint16_t CharAt(const String& str, intptr_t index) {
     return *CharAddr(str, index);
   }
 
@@ -6060,7 +6060,7 @@ class ExternalOneByteString : public AllStatic {
 
 class ExternalTwoByteString : public AllStatic {
  public:
-  static int32_t CharAt(const String& str, intptr_t index) {
+  static uint16_t CharAt(const String& str, intptr_t index) {
     return *CharAddr(str, index);
   }
 

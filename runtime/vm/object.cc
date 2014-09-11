@@ -17073,7 +17073,7 @@ intptr_t String::Hash(const int32_t* characters, intptr_t len) {
 }
 
 
-int32_t String::CharAt(intptr_t index) const {
+uint16_t String::CharAt(intptr_t index) const {
   intptr_t class_id = raw()->GetClassId();
   ASSERT(RawObject::IsStringClassId(class_id));
   NoGCScope no_gc;
@@ -17230,12 +17230,12 @@ intptr_t String::CompareTo(const String& other) const {
   const intptr_t other_len = other.IsNull() ? 0 : other.Length();
   const intptr_t len = (this_len < other_len) ? this_len : other_len;
   for (intptr_t i = 0; i < len; i++) {
-    int32_t this_code_point = this->CharAt(i);
-    int32_t other_code_point = other.CharAt(i);
-    if (this_code_point < other_code_point) {
+    uint16_t this_code_unit = this->CharAt(i);
+    uint16_t other_code_unit = other.CharAt(i);
+    if (this_code_unit < other_code_unit) {
       return -1;
     }
-    if (this_code_point > other_code_point) {
+    if (this_code_unit > other_code_unit) {
       return 1;
     }
   }

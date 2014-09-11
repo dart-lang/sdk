@@ -2306,7 +2306,7 @@ DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
   intptr_t str_len = str_obj.Length();
   intptr_t copy_len = (str_len > *length) ? *length : str_len;
   for (intptr_t i = 0; i < copy_len; i++) {
-    utf16_array[i] = static_cast<uint16_t>(str_obj.CharAt(i));
+    utf16_array[i] = str_obj.CharAt(i);
   }
   *length = copy_len;
   return Api::Success();
@@ -2373,7 +2373,7 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
       ASSERT(length >= (copy_len * str_obj.CharSize()));
       uint16_t* utf16_array = reinterpret_cast<uint16_t*>(array);
       for (intptr_t i = 0; i < copy_len; i++) {
-        utf16_array[i] = static_cast<uint16_t>(str_obj.CharAt(i));
+        utf16_array[i] = str_obj.CharAt(i);
       }
       TwoByteString::SetPeer(str_obj, peer, cback);
     }
