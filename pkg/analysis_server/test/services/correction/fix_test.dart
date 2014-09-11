@@ -31,6 +31,8 @@ class FixProcessorTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
 
+  bool checkHasSingleError = true;
+
   Fix fix;
   SourceChange change;
   String resultCode;
@@ -1286,6 +1288,20 @@ main() {
 ''');
   }
 
+  void test_replaceVarWithDynamic() {
+    checkHasSingleError = false;
+    _indexTestUnit('''
+class A {
+  Map<String, var> m;
+}
+''');
+    assertHasFix(FixKind.REPLACE_VAR_WITH_DYNAMIC, '''
+class A {
+  Map<String, dynamic> m;
+}
+''');
+  }
+
   void test_replaceWithConstInstanceCreation() {
     _indexTestUnit('''
 class A {
@@ -1849,11 +1865,9 @@ main() {
 
   AnalysisError _findErrorToFix() {
     List<AnalysisError> errors = context.computeErrors(testSource);
-    expect(
-        errors,
-        hasLength(1),
-        reason: 'Exactly 1 error expected, but ${errors.length} found:\n' +
-            errors.join('\n'));
+    if (checkHasSingleError) {
+      expect(errors, hasLength(1));
+    }
     return errors[0];
   }
 

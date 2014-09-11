@@ -151,6 +151,9 @@ class FixProcessor {
     if (errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS) {
       _addFix_removeParameters_inGetterDeclaration();
     }
+    if (errorCode == ParserErrorCode.VAR_AS_TYPE_NAME) {
+      _addFix_replaceVarWithDynamic();
+    }
     if (errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER) {
       _addFix_makeEnclosingClassAbstract();
     }
@@ -968,6 +971,12 @@ class FixProcessor {
     _addRemoveEdit(utils.getLinesRange(rf.rangeNode(importDirective)));
     // done
     _addFix(FixKind.REMOVE_UNUSED_IMPORT, []);
+  }
+
+  void _addFix_replaceVarWithDynamic() {
+    SourceRange range = rf.rangeError(error);
+    _addReplaceEdit(range, "dynamic");
+    _addFix(FixKind.REPLACE_VAR_WITH_DYNAMIC, []);
   }
 
   void _addFix_replaceWithConstInstanceCreation() {
