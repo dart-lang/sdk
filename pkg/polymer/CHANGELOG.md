@@ -1,4 +1,4 @@
-#### 0.14.0
+#### 0.14.0-dev
   * Upgraded to polymer 0.4.0 ([polymer-dev#d66a86e][d66a86e]).
   * The platform.js script is no longer required in Chrome or Dartium
     (version 36). You can now remove this from your projects for development,
@@ -10,7 +10,7 @@
 #### 0.13.1
   * Upgraded error messages to have a unique and stable identifier. This
     requires a version of `code_transformers` newer than `0.2.3`.
-  * Upgraded minimum version constraint on `args` to `0.11.0`.
+  * Upgraded minimum version constraint on 'args' to '0.11.0'.
 
 #### 0.13.0+3
   * Added a warning about flashes of unstyled content if we can detect a

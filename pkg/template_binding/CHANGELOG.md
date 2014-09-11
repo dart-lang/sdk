@@ -1,4 +1,4 @@
-#### Pub version 0.13.0
+#### Pub version 0.13.0-dev
   * Up to date with [TemplateBinding#41e95ea][41e95ea] (release 0.4.0)
   * Using this package now requires some additional javascript polyfills, that
     were moved out of platform.js. These files are listed under lib/js, and all
