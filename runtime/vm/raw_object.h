@@ -1102,6 +1102,8 @@ class RawLocalVarDescriptors : public RawObject {
 
   // Variable info with [length_] entries.
   VarInfo* data() { OPEN_ARRAY_START(VarInfo, int32_t); }
+
+  friend class Object;
 };
 
 

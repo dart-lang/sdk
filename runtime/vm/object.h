@@ -393,6 +393,11 @@ class Object {
     return *empty_descriptors_;
   }
 
+  static const LocalVarDescriptors& empty_var_descriptors() {
+    ASSERT(empty_var_descriptors_ != NULL);
+    return *empty_var_descriptors_;
+  }
+
   // The sentinel is a value that cannot be produced by Dart code.
   // It can be used to mark special values, for example to distinguish
   // "uninitialized" fields.
@@ -670,6 +675,7 @@ class Object {
   static Array* empty_array_;
   static Array* zero_array_;
   static PcDescriptors* empty_descriptors_;
+  static LocalVarDescriptors* empty_var_descriptors_;
   static Instance* sentinel_;
   static Instance* transition_sentinel_;
   static Instance* unknown_constant_;
@@ -3099,6 +3105,7 @@ class LocalVarDescriptors : public Object {
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors, Object);
   friend class Class;
+  friend class Object;
 };
 
 

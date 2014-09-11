@@ -266,6 +266,9 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
   int16_t scope_id = 0;
   CollectLocalVariables(&vars, &scope_id);
 
+  if (vars.length() == 0) {
+    return Object::empty_var_descriptors().raw();
+  }
   const LocalVarDescriptors& var_desc =
       LocalVarDescriptors::Handle(LocalVarDescriptors::New(vars.length()));
   for (int i = 0; i < vars.length(); i++) {
@@ -294,7 +297,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
     // This is the outermost scope with a context level or this scope's
     // context level differs from its parent's level.
     VarDesc desc;
-    desc.name = &String::Handle();  // No name.
+    desc.name = &Object::null_string();  // No name.
     desc.info.set_kind(RawLocalVarDescriptors::kContextLevel);
     desc.info.scope_id = *scope_id;
     desc.info.begin_pos = begin_token_pos();

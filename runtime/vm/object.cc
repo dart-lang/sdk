@@ -98,6 +98,7 @@ TypeArguments* Object::null_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
 Array* Object::zero_array_ = NULL;
 PcDescriptors* Object::empty_descriptors_ = NULL;
+LocalVarDescriptors* Object::empty_var_descriptors_ = NULL;
 Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
 Instance* Object::unknown_constant_ = NULL;
@@ -435,6 +436,7 @@ void Object::InitOnce() {
   empty_array_ = Array::ReadOnlyHandle();
   zero_array_ = Array::ReadOnlyHandle();
   empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
+  empty_var_descriptors_ = LocalVarDescriptors::ReadOnlyHandle();
   sentinel_ = Instance::ReadOnlyHandle();
   transition_sentinel_ = Instance::ReadOnlyHandle();
   unknown_constant_ =  Instance::ReadOnlyHandle();
@@ -665,6 +667,20 @@ void Object::InitOnce() {
     empty_descriptors_->raw_ptr()->length_ = 0;
   }
 
+  // Allocate and initialize the canonical empty variable descriptor object.
+  {
+    uword address = heap->Allocate(
+        LocalVarDescriptors::InstanceSize(0), Heap::kOld);
+    InitializeObject(address, kLocalVarDescriptorsCid,
+        LocalVarDescriptors::InstanceSize(0));
+    LocalVarDescriptors::initializeHandle(
+        empty_var_descriptors_,
+        reinterpret_cast<RawLocalVarDescriptors*>(address + kHeapObjectTag));
+    empty_var_descriptors_->raw_ptr()->length_ = 0;
+    // Can't use instance mentod StorePointer() here, but this pointer
+    // assignment is safe (from old space to old space).
+    empty_var_descriptors_->raw_ptr()->names_ = empty_array_->raw_ptr();
+  }
 
   cls = Class::New<Instance>(kDynamicCid);
   cls.set_is_abstract();
