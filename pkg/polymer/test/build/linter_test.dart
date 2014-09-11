@@ -438,6 +438,14 @@ void main() {
             '''.replaceAll('            ', ''),
       }, []);
 
+    _testLinter('no longer warn about on-foo for auto-binding templates', {
+        'a|lib/test.html': '''<html><body>
+            <template is="auto-binding-dart">
+              <div on-foo="{{something}}"></div>
+            </template>
+            '''.replaceAll('            ', ''),
+      }, []);
+
     _testLinter('on-foo is only supported in polymer elements', {
         'a|lib/test.html': '''<html><body>
             <div on-foo="something"></div>

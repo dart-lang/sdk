@@ -169,6 +169,7 @@ class _LinterVisitor extends TreeVisitor {
   BuildLogger _logger;
   AssetId _sourceId;
   bool _inPolymerElement = false;
+  bool _inAutoBindingElement = false;
   bool _dartTagSeen = false;
   bool _polymerHtmlSeen = false;
   bool _polymerExperimentalHtmlSeen = false;
@@ -192,10 +193,19 @@ class _LinterVisitor extends TreeVisitor {
       case 'element': _validateElementElement(node); break;
       case 'polymer-element': _validatePolymerElement(node); break;
       case 'script': _validateScriptElement(node); break;
+      case 'template':
+        var isTag = node.attributes['is'];
+        if (isTag != null && AUTO_BINDING_ELEMENTS.contains(isTag)) {
+          _inAutoBindingElement = true;
+        }
+        _validateNormalElement(node);
+        super.visitElement(node);
+        _inAutoBindingElement = false;
+        break;
       default:
-         _validateNormalElement(node);
-         super.visitElement(node);
-         break;
+        _validateNormalElement(node);
+        super.visitElement(node);
+        break;
     }
   }
 
@@ -409,7 +419,7 @@ class _LinterVisitor extends TreeVisitor {
   void _validateEventHandler(Element node, String name, String value) {
     if (!name.startsWith('on-')) return;
 
-    if (!_inPolymerElement) {
+    if (!_inPolymerElement && !_inAutoBindingElement) {
       _logger.warning(EVENT_HANDLERS_ONLY_WITHIN_POLYMER,
           span: node.attributeSpans[name]);
       return;
@@ -443,3 +453,5 @@ Message usePolymerHtmlMessageFrom(AssetId id) {
 
 const List<String> INTERNALLY_DEFINED_ELEMENTS = 
     const ['auto-binding-dart', 'polymer-element'];
+const List<String> AUTO_BINDING_ELEMENTS =
+    const ['auto-binding-dart', 'auto-binding'];
