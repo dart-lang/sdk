@@ -10,7 +10,7 @@ library analyzer2dart.element_converter;
 import 'package:compiler/implementation/elements/elements.dart' as dart2js;
 import 'package:compiler/implementation/elements/modelx.dart' as modelx;
 import 'package:compiler/implementation/util/util.dart' as util;
-import 'package:compiler/implementation/dart_types.dart';
+import 'package:compiler/implementation/dart_types.dart' as dart2js;
 import 'package:analyzer/src/generated/element.dart' as analyzer;
 
 class ElementConverter {
@@ -63,6 +63,12 @@ class ElementConverterVisitor
   @override
   dart2js.FunctionElement visitFunctionElement(analyzer.FunctionElement input) {
     return new TopLevelFunctionElementY(converter, input);
+  }
+
+  @override
+  dart2js.ParameterElement visitParameterElement(
+      analyzer.ParameterElement input) {
+    return new ParameterElementY(converter, input);
   }
 }
 
@@ -234,6 +240,8 @@ class ElementY extends dart2js.Element {
 
   @override
   void setNative(String name) => unsupported('setNative');
+
+  String toString() => '$kind($name)';
 }
 
 class LibraryElementY extends ElementY implements dart2js.LibraryElement {
@@ -360,12 +368,34 @@ class TopLevelFunctionElementY extends ElementY
     implements dart2js.FunctionElement {
   analyzer.FunctionElement get element => super.element;
 
-  final dart2js.FunctionSignature functionSignature =
-      new modelx.FunctionSignatureX(
-          const util.Link<dart2js.Element>(),
-          const util.Link<dart2js.Element>(),
-          0, 0, false, const <dart2js.Element>[],
-          new FunctionType.synthesized());
+  dart2js.FunctionSignature _functionSignature;
+
+  // TODO(johnniwinther): Avoid the need for this.
+  dart2js.FunctionSignature get functionSignature {
+    if (_functionSignature == null) {
+      util.LinkBuilder<dart2js.Element> parameterBuilder =
+          new util.LinkBuilder<dart2js.Element>();
+      element.parameters.forEach((analyzer.ParameterElement parameter) {
+        if (parameter.parameterKind.isOptional) {
+          unsupported('Optional parameter.');
+        } else {
+          parameterBuilder.addLast(converter.convertElement(parameter));
+        }
+      });
+      // TODO(johnniwinther): Convert parameter and return types.
+      util.Link<dart2js.Element> parameters = parameterBuilder.toLink();
+      _functionSignature = new modelx.FunctionSignatureX(
+            parameters,
+            const util.Link<dart2js.Element>(),
+            parameterBuilder.length, 0, false,
+            parameters.toList(),
+            new dart2js.FunctionType.synthesized(
+                const dart2js.DynamicType(),
+                new List<dart2js.DartType>.filled(
+                    parameterBuilder.length, const dart2js.DynamicType())));
+    }
+    return _functionSignature;
+  }
 
 
   // TODO(johnniwinther): Ensure the correct semantics of this.
@@ -428,5 +458,53 @@ class TopLevelFunctionElementY extends ElementY
   get treeElements => unsupported('treeElements');
 
   @override
-  FunctionType get type => functionSignature.type;
+  dart2js.FunctionType get type => functionSignature.type;
+}
+
+class ParameterElementY extends ElementY implements dart2js.ParameterElement {
+  analyzer.ParameterElement get element => super.element;
+
+  dart2js.ElementKind get kind => dart2js.ElementKind.PARAMETER;
+
+  // TODO(johnniwinther): Convert the type from [element].
+  dart2js.DartType get type => const dart2js.DynamicType();
+
+  // TODO(johnniwinther): Avoid the need for this.
+  dart2js.FunctionSignature get functionSignature => null;
+
+  ParameterElementY(ElementConverter converter,
+                    analyzer.ParameterElement element)
+      : super(converter, element) {
+    assert(!element.isInitializingFormal);
+  }
+
+  @override
+  get executableContext => unsupported('executableContext');
+
+  @override
+  get functionDeclaration => unsupported('functionDeclaration');
+
+  @override
+  bool get hasNode => unsupported('hasNode');
+
+  @override
+  bool get hasResolvedAst => unsupported('hasResolvedAst');
+
+  @override
+  bool get hasTreeElements => unsupported('hasTreeElements');
+
+  @override
+  get initializer => unsupported('initializer');
+
+  @override
+  get memberContext => unsupported('memberContext');
+
+  @override
+  get node => unsupported('node');
+
+  @override
+  get resolvedAst => unsupported('resolvedAst');
+
+  @override
+  get treeElements => unsupported('treeElements');
 }

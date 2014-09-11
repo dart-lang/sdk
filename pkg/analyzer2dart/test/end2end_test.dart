@@ -118,6 +118,126 @@ main() $NEW_BACKEND_COMMENT
   }
 
 ''');
+
+    checkResult('''
+main() {
+  return 1.5;
+}
+''', '''
+main() $NEW_BACKEND_COMMENT
+  {
+    return 1.5;
+  }
+
+''');
+
+    checkResult('''
+main() {
+  return true;
+}
+''', '''
+main() $NEW_BACKEND_COMMENT
+  {
+    return true;
+  }
+
+''');
+
+    checkResult('''
+main() {
+  return false;
+}
+''', '''
+main() $NEW_BACKEND_COMMENT
+  {
+    return false;
+  }
+
+''');
+
+    checkResult('''
+main() {
+  return "a";
+}
+''', '''
+main() $NEW_BACKEND_COMMENT
+  {
+    return "a";
+  }
+
+''');
+
+    checkResult('''
+main() {
+  return "a" "b";
+}
+''', '''
+main() $NEW_BACKEND_COMMENT
+  {
+    return "ab";
+  }
+
+''');
+  });
+
+  test('Parameters', () {
+    checkResult('''
+main(args) {
+}
+''', '''
+main(args) $NEW_BACKEND_COMMENT
+  {}
+
+''');
+
+    checkResult('''
+main(a, b) {
+}
+''', '''
+main(a, b) $NEW_BACKEND_COMMENT
+  {}
+
+''');
+  });
+
+  test('Pass arguments', () {
+    checkResult('''
+foo(a) {}
+main() {
+  foo(null);
+}
+''', '''
+foo(a) $NEW_BACKEND_COMMENT
+  {}
+
+main() $NEW_BACKEND_COMMENT
+  {
+    foo(null);
+  }
+
+''');
+
+    checkResult('''
+bar(b, c) {}
+foo(a) {}
+main() {
+  foo(null);
+  bar(0, "");
+}
+''', '''
+bar(b, c) $NEW_BACKEND_COMMENT
+  {}
+
+foo(a) $NEW_BACKEND_COMMENT
+  {}
+
+main() $NEW_BACKEND_COMMENT
+  {
+    foo(null);
+    bar(0, "");
+  }
+
+''');
   });
 }
 
@@ -141,7 +261,6 @@ class CollectingOutputProvider {
   StringBufferSink output;
 
   EventSink<String> call(String name, String extension) {
-    print('outputProvider($name,$extension)');
     return output = new StringBufferSink();
   }
 }
