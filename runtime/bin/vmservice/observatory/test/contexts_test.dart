@@ -52,8 +52,8 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
-    ServiceMap field = lib.variables.singleWhere((v) => v.name == 'cleanBlock');
-    return field['value'].load().then((Instance block) {
+    Field field = lib.variables.singleWhere((v) => v.name == 'cleanBlock');
+    return field.value.load().then((Instance block) {
       expect(block.isClosure, isTrue);
       expect(block.closureCtxt.isContext, isTrue);
       expect(block.closureCtxt.length, equals(0));
@@ -65,8 +65,8 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
-    ServiceMap field = lib.variables.singleWhere((v) => v.name == 'copyingBlock');
-    return field['value'].load().then((Instance block) {
+    Field field = lib.variables.singleWhere((v) => v.name == 'copyingBlock');
+    return field.value.load().then((Instance block) {
       expect(block.isClosure, isTrue);
       expect(block.closureCtxt.isContext, isTrue);
       expect(block.closureCtxt.length, equals(1));
@@ -80,8 +80,8 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
-    ServiceMap field = lib.variables.singleWhere((v) => v.name == 'fullBlock');
-    return field['value'].load().then((Instance block) {
+    Field field = lib.variables.singleWhere((v) => v.name == 'fullBlock');
+    return field.value.load().then((Instance block) {
       expect(block.isClosure, isTrue);
       expect(block.closureCtxt.isContext, isTrue);
       expect(block.closureCtxt.length, equals(1));
@@ -95,8 +95,8 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
-    ServiceMap field = lib.variables.singleWhere((v) => v.name == 'fullBlockWithChain');
-    return field['value'].load().then((Instance block) {
+    Field field = lib.variables.singleWhere((v) => v.name == 'fullBlockWithChain');
+    return field.value.load().then((Instance block) {
       expect(block.isClosure, isTrue);
       expect(block.closureCtxt.isContext, isTrue);
       expect(block.closureCtxt.length, equals(1));

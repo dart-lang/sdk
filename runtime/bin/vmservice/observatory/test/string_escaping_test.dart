@@ -49,14 +49,14 @@ var tests = [
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
     expectFullString(String varName, String varValueAsString) {
-      ServiceMap field = lib.variables.singleWhere((v) => v.name == varName);
-      Instance value = field['value'];
+      Field field = lib.variables.singleWhere((v) => v.name == varName);
+      Instance value = field.value;
       expect(value.valueAsString, equals(varValueAsString));
       expect(value.valueAsStringIsTruncated, isFalse);
     }
     expectTruncatedString(String varName, String varValueAsString) {
-      ServiceMap field = lib.variables.singleWhere((v) => v.name == varName);
-      Instance value = field['value'];
+      Field field = lib.variables.singleWhere((v) => v.name == varName);
+      Instance value = field.value;
       expect(varValueAsString, startsWith(value.valueAsString));
       expect(value.valueAsStringIsTruncated, isTrue);
     }

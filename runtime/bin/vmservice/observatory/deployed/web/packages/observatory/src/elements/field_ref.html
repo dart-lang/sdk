@@ -7,15 +7,15 @@
   <template>
   <link rel="stylesheet" href="css/shared.css">
     <span>
-      <template if="{{ ref['static'] }}">static</template>
-      <template if="{{ ref['final'] }}">final</template>
-      <template if="{{ ref['const'] }}">const</template>
-      <template if="{{ (ref['declaredType'].name == 'dynamic' &&
-                        !ref['final'] && !ref['const']) }}">
+      <template if="{{ ref.isStatic] }}">static</template>
+      <template if="{{ ref.isFinal }}">final</template>
+      <template if="{{ ref.isConst }}">const</template>
+      <template if="{{ (ref.declaredType.name == 'dynamic' &&
+                        !ref.isFinal && !ref.isConst) }}">
         var
       </template>
-      <template if="{{ (ref['declaredType'].name != 'dynamic') }}">
-        <instance-ref ref="{{ ref['declaredType'] }}"></instance-ref>
+      <template if="{{ (ref.declaredType.name != 'dynamic') }}">
+        <instance-ref ref="{{ ref.declaredType }}"></instance-ref>
       </template>
       <a on-click="{{ goto }}" title="{{ hoverText }}" _href="{{ url }}">{{ name }}</a>
     </span>

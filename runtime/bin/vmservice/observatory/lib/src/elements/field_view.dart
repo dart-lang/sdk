@@ -10,7 +10,7 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('field-view')
 class FieldViewElement extends ObservatoryElement {
-  @published ServiceMap field;
+  @published Field field;
   FieldViewElement.created() : super.created();
 
   void refresh(var done) {

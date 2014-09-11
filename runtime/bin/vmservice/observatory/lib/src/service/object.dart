@@ -142,6 +142,9 @@ abstract class ServiceObject extends Observable {
       case 'Error':
         obj = new DartError._empty(owner);
         break;
+      case 'Field':
+        obj = new Field._empty(owner);
+        break;
       case 'Function':
         obj = new ServiceFunction._empty(owner);
         break;
@@ -1331,7 +1334,7 @@ class Library extends ServiceObject with Coverage {
   @reflectable final imports = new ObservableList<Library>();
   @reflectable final scripts = new ObservableList<Script>();
   @reflectable final classes = new ObservableList<Class>();
-  @reflectable final variables = new ObservableList<ServiceMap>();
+  @reflectable final variables = new ObservableList<Field>();
   @reflectable final functions = new ObservableList<ServiceFunction>();
 
   bool get canCache => true;
@@ -1432,7 +1435,7 @@ class Class extends ServiceObject with Coverage {
 
   bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
 
-  @reflectable final fields = new ObservableList<ServiceMap>();
+  @reflectable final fields = new ObservableList<Field>();
   @reflectable final functions = new ObservableList<ServiceFunction>();
 
   @observable Class superclass;
@@ -1715,6 +1718,55 @@ class ServiceFunction extends ServiceObject with Coverage {
 
   }
 }
+
+
+class Field extends ServiceObject {
+  @observable var /* Library or Class */ owner;
+  @observable Instance declaredType;
+  @observable bool isStatic;
+  @observable bool isFinal;
+  @observable bool isConst;
+  @observable Instance value;
+  @observable String name;
+  @observable String vmName;
+
+  @observable bool guardNullable;
+  @observable String guardClass;
+  @observable String guardLength;
+  @observable Script script;
+  @observable int tokenPos;
+
+  Field._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    // Extract full properties.
+    _upgradeCollection(map, isolate);
+
+    name = map['name'];
+    vmName = (map.containsKey('vmName') ? map['vmName'] : name);
+    owner = map['owner'];
+    declaredType = map['declaredType'];
+    isStatic = map['static'];
+    isFinal = map['final'];
+    isConst = map['const'];
+    value = map['value'];
+
+    if (mapIsRef) {
+      return;
+    }
+
+    guardNullable = map['guardNullable'];
+    guardClass = map['guardClass'];
+    guardLength = map['guardLength'];
+    script = map['script'];
+    tokenPos = map['tokenPos'];
+
+    _loaded = true;
+  }
+
+  String toString() => 'Field(${owner.name}.$name)';
+}
+
 
 class ScriptLine extends Observable {
   final Script script;

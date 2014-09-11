@@ -27,10 +27,10 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
-    ServiceMap fooField = lib.variables.singleWhere((v) => v.name == 'foo');
-    Instance foo = fooField['value'];
-    ServiceMap refField = lib.variables.singleWhere((v) => v.name == 'ref');
-    Instance ref = refField['value'];
+    Field fooField = lib.variables.singleWhere((v) => v.name == 'foo');
+    Instance foo = fooField.value;
+    Field refField = lib.variables.singleWhere((v) => v.name == 'ref');
+    Instance ref = refField.value;
 
     expect(foo.isMirrorReference, isFalse);
     expect(ref.isMirrorReference, isTrue);
