@@ -93,13 +93,14 @@ class JSONStream : ValueObject {
   void PrintValue(const DebuggerEvent* event);
   void PrintValue(Metric* metric);
   void PrintValue(Isolate* isolate, bool ref = true);
+  bool PrintValueStr(const String& s, intptr_t limit);
 
   void PrintPropertyBool(const char* name, bool b);
   void PrintProperty(const char* name, intptr_t i);
   void PrintProperty64(const char* name, int64_t i);
   void PrintProperty(const char* name, double d);
   void PrintProperty(const char* name, const char* s);
-  void PrintProperty(const char* name, const char* s, intptr_t len);
+  bool PrintPropertyStr(const char* name, const String& s, intptr_t limit);
   void PrintPropertyNoEscape(const char* name, const char* s);
   void PrintfProperty(const char* name, const char* format, ...)
   PRINTF_ATTRIBUTE(3, 4);
@@ -113,6 +114,7 @@ class JSONStream : ValueObject {
   void PrintCommaIfNeeded();
   bool NeedComma();
 
+  bool AddDartString(const String& s, intptr_t limit);
   void AddEscapedUTF8String(const char* s);
   void AddEscapedUTF8String(const char* s, intptr_t len);
 
@@ -163,8 +165,10 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, const char* s) const {
     stream_->PrintProperty(name, s);
   }
-  void AddProperty(const char* name, const char* s, intptr_t len) const {
-    stream_->PrintProperty(name, s, len);
+  bool AddPropertyStr(const char* name,
+                      const String& s,
+                      intptr_t limit = -1) const {
+    return stream_->PrintPropertyStr(name, s, limit);
   }
   void AddPropertyNoEscape(const char* name, const char* s) const {
     stream_->PrintPropertyNoEscape(name, s);

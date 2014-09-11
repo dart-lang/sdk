@@ -217,11 +217,12 @@ void JSONStream::PrintValue(const char* s) {
 }
 
 
-void JSONStream::PrintValue(const char* s, intptr_t len) {
+bool JSONStream::PrintValueStr(const String& s, intptr_t limit) {
   PrintCommaIfNeeded();
   buffer_.AddChar('"');
-  AddEscapedUTF8String(s, len);
+  bool did_truncate = AddDartString(s, limit);
   buffer_.AddChar('"');
+  return did_truncate;
 }
 
 
@@ -310,9 +311,11 @@ void JSONStream::PrintProperty(const char* name, const char* s) {
 }
 
 
-void JSONStream::PrintProperty(const char* name, const char* s, intptr_t len) {
+bool JSONStream::PrintPropertyStr(const char* name,
+                                  const String& s,
+                                  intptr_t limit) {
   PrintPropertyName(name);
-  PrintValue(s, len);
+  return PrintValueStr(s, limit);
 }
 
 
@@ -441,11 +444,31 @@ void JSONStream::AddEscapedUTF8String(const char* s, intptr_t len) {
     int32_t ch = 0;
     int32_t ch_len = Utf8::Decode(&s8[i], len - i, &ch);
     ASSERT(ch_len != 0);
-    buffer_.AddEscapedChar(ch);
+    buffer_.EscapeAndAddCodeUnit(ch);
     // Move i forward.
     i += ch_len;
   }
   ASSERT(i == len);
+}
+
+
+bool JSONStream::AddDartString(const String& s, intptr_t limit) {
+  bool did_truncate = false;
+  intptr_t length = s.Length();
+  if (limit == -1) {
+    limit = length;
+  }
+  if (length <= limit) {
+    limit = length;
+  } else {
+    did_truncate = true;
+  }
+
+  for (intptr_t i = 0; i < limit; i++) {
+    intptr_t code_unit = s.CharAt(i);
+    buffer_.EscapeAndAddCodeUnit(code_unit);
+  }
+  return did_truncate;
 }
 
 

@@ -23,6 +23,8 @@ var nullInTheMiddle;
 var escapedUnicodeEscape;
 var longStringEven;
 var longStringOdd;
+var malformedWithLeadSurrogate;
+var malformedWithTrailSurrogate;
 
 void script() {
   ascii = "Hello, World!";
@@ -42,6 +44,9 @@ void script() {
   for (int i = 0; i < 512; i++) longStringEven += "𝄞";
   longStringOdd = ".";
   for (int i = 0; i < 512; i++) longStringOdd += "𝄞";
+
+  malformedWithLeadSurrogate = "before" + "𝄞"[0] + "after";
+  malformedWithTrailSurrogate = "before" + "𝄞"[1] + "after";
 }
 
 var tests = [
@@ -71,9 +76,11 @@ var tests = [
     expectFullString('newLines', newLines);
     expectFullString('tabs', tabs);
     expectFullString('suggrogatePairs', suggrogatePairs);
-    expectFullString('nullInTheMiddle', nullInTheMiddle);  /// 01: ok
+    expectFullString('nullInTheMiddle', nullInTheMiddle);
     expectTruncatedString('longStringEven', longStringEven);
     expectTruncatedString('longStringOdd', longStringOdd);
+    expectFullString('malformedWithLeadSurrogate', malformedWithLeadSurrogate);
+    expectFullString('malformedWithTrailSurrogate', malformedWithTrailSurrogate);
   }),
 
 ];

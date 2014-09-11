@@ -1295,6 +1295,8 @@ class ServiceException extends ServiceObject {
     name = 'ServiceException $kind';
     vmName = name;
   }
+
+  String toString() => 'ServiceException($message)';
 }
 
 /// A [ServiceEvent] is an asynchronous event notification from the vm.

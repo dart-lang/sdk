@@ -125,8 +125,10 @@ class ObservatoryElement extends PolymerElement {
       else if (codeUnit == '\$'.codeUnitAt(0)) result.addAll('\\\$'.codeUnits);
       else if (codeUnit == '\\'.codeUnitAt(0)) result.addAll('\\\\'.codeUnits);
       else if (codeUnit == "'".codeUnitAt(0)) result.addAll("'".codeUnits);
-      else if (codeUnit < 32) result.addAll("\\u$codeUnit".codeUnits);
-      else result.add(codeUnit);
+      else if (codeUnit < 32) {
+         var escapeSequence = "\\u" + codeUnit.toRadixString(16).padLeft(4, "0");
+         result.addAll(escapeSequence.codeUnits);
+      } else result.add(codeUnit);
     }
     if (wasTruncated) {
       result.addAll("...".codeUnits);

@@ -479,6 +479,9 @@ for(z=a,y="";!0;){if((b&1)===1)y=z+y
 b=b>>>1
 if(b===0)break
 z+=z}return y},
+YX:function(a,b,c){var z=b-a.length
+if(z<=0)return a
+return this.U(c,z)+a},
 gNq:function(a){return new J.IA(a)},
 XU:function(a,b,c){var z,y,x,w
 if(b==null)H.vh(P.u(null))
@@ -2269,7 +2272,7 @@ case"BreakpointReached":case"IsolateInterrupted":case"ExceptionThrown":this.pZ(z
 J.bi(this.cC,a)
 break
 case"GC":break
-default:N.QM("").YX("Unrecognized event: "+H.d(a))
+default:N.QM("").hh("Unrecognized event: "+H.d(a))
 break}},"$1","gR7",2,0,86,87],
 kj:[function(a){this.Pv=a
 this.aX("error/",null)},"$1","gtb",2,0,88,23],
@@ -2303,7 +2306,7 @@ this.fN.oV()
 J.Wf(this.bn)}N.QM("").To("Installing page: "+H.d(a))
 try{a.ak()}catch(y){x=H.Ru(y)
 z=x
-N.QM("").YX("Failed to install page: "+H.d(z))}x=this.bn
+N.QM("").hh("Failed to install page: "+H.d(z))}x=this.bn
 x.appendChild(a.gyF())
 w=W.r3("trace-view",null)
 this.HJ=w
@@ -2406,7 +2409,7 @@ $1:[function(a){J.h9(this.a.yF,a)},"$1",null,2,0,null,96,"call"],
 $isEH:true},
 Go5:{
 "^":"TpZ:12;",
-$1:[function(a){N.QM("").YX("ServiceObjectPage visit error: "+H.d(a))},"$1",null,2,0,null,2,"call"],
+$1:[function(a){N.QM("").hh("ServiceObjectPage visit error: "+H.d(a))},"$1",null,2,0,null,2,"call"],
 $isEH:true},
 t9:{
 "^":"OS;i6,yF,fz,Vg,fn",
@@ -2423,7 +2426,7 @@ if(z!=null)J.Rp(z,a)},"$1",null,2,0,null,97,"call"],
 $isEH:true},
 ZaW:{
 "^":"TpZ:12;",
-$1:[function(a){N.QM("").YX("ClassTreePage visit error: "+H.d(a))},"$1",null,2,0,null,2,"call"],
+$1:[function(a){N.QM("").hh("ClassTreePage visit error: "+H.d(a))},"$1",null,2,0,null,2,"call"],
 $isEH:true},
 Sy:{
 "^":"OS;i6,yF,fz,Vg,fn",
@@ -13983,7 +13986,7 @@ To:function(a){return this.DH(a,null,null)},
 r0:function(a,b,c){return this.Y6(C.nT,a,b,c)},
 j2:function(a){return this.r0(a,null,null)},
 WB:function(a,b,c){return this.Y6(C.cd,a,b,c)},
-YX:function(a){return this.WB(a,null,null)},
+hh:function(a){return this.WB(a,null,null)},
 qX:function(){if($.RL||this.eT==null){var z=this.z3
 if(z==null){z=P.bK(null,null,!0,N.HV)
 this.z3=z}z.toString
@@ -14061,7 +14064,7 @@ $1:[function(a){var z,y,x
 N.QM("").To("Initializing Polymer")
 try{A.Zw()}catch(y){x=H.Ru(y)
 z=x
-N.QM("").YX("Error initializing polymer: "+H.d(z))}},"$1",null,2,0,null,13,"call"],
+N.QM("").hh("Error initializing polymer: "+H.d(z))}},"$1",null,2,0,null,13,"call"],
 $isEH:true}}],["","",,N,{
 "^":"",
 qn:{
@@ -14694,7 +14697,7 @@ else if(w.n(x,"\u000b".charCodeAt(0)))C.Nm.FV(z,new J.IA("\\v"))
 else if(w.n(x,"$".charCodeAt(0)))C.Nm.FV(z,new J.IA("\\$"))
 else if(w.n(x,"\\".charCodeAt(0)))C.Nm.FV(z,new J.IA("\\\\"))
 else if(w.n(x,"'".charCodeAt(0)))C.Nm.FV(z,new J.IA("'"))
-else if(w.C(x,32))C.Nm.FV(z,new J.IA("\\u"+H.d(x)))
+else if(w.C(x,32))C.Nm.FV(z,new J.IA("\\u"+C.yo.YX(w.WZ(x,16),4,"0")))
 else z.push(x)}if(c===!0)C.Nm.FV(z,new J.IA("..."))
 else z.push(C.yo.j("'",0))
 return P.HM(z)},function(a,b){return this.Rms(a,b,!1)},"hD","$2","$1","gRO",2,2,176,69,20,177],
@@ -18274,7 +18277,7 @@ Nl:function(a,b){var z,y,x,w,v,u,t,s,r,q,p,o,n,m,l
 if(b==null)return
 z=J.U6(b)
 z=z.t(b,"id")!=null&&z.t(b,"type")!=null
-if(!z)N.QM("").YX("Malformed service object: "+H.d(b))
+if(!z)N.QM("").hh("Malformed service object: "+H.d(b))
 z=J.U6(b)
 y=z.t(b,"type")
 x=J.Qe(y)
@@ -18562,8 +18565,8 @@ z.a=null
 try{y=this.hb(a)
 z.a=y
 if(b!=null)J.kW(y,"_data",b)}catch(x){H.Ru(x)
-N.QM("").YX("Ignoring malformed event message: "+H.d(a))
-return}if(!J.xC(J.UQ(z.a,"type"),"ServiceEvent")){N.QM("").YX("Expected 'ServiceEvent' but found '"+H.d(J.UQ(z.a,"type"))+"'")
+N.QM("").hh("Ignoring malformed event message: "+H.d(a))
+return}if(!J.xC(J.UQ(z.a,"type"),"ServiceEvent")){N.QM("").hh("Expected 'ServiceEvent' but found '"+H.d(J.UQ(z.a,"type"))+"'")
 return}w=J.UQ(J.UQ(z.a,"isolate"),"id")
 this.wD(w).ml(new D.jy(z,this,w))},
 EM:function(a){return this.hQ(a,null)},
@@ -18653,7 +18656,7 @@ $isd3:true},
 jy:{
 "^":"TpZ:12;a,b,c",
 $1:[function(a){var z,y
-if(a==null)N.QM("").YX("Ignoring event with unknown isolate id: "+H.d(this.c))
+if(a==null)N.QM("").hh("Ignoring event with unknown isolate id: "+H.d(this.c))
 else{z=D.Nl(a,this.a.a)
 y=this.b.Rk
 if(y.YM>=4)H.vh(y.Pq())
@@ -18892,7 +18895,7 @@ this.qu=!0
 this.yP=F.Wi(this,C.DY,this.yP,!1)
 this.Xb()
 D.kT(b,this)
-if(z.t(b,"rootLib")==null||z.t(b,"timers")==null||z.t(b,"heaps")==null){N.QM("").YX("Malformed 'Isolate' response: "+H.d(b))
+if(z.t(b,"rootLib")==null||z.t(b,"timers")==null||z.t(b,"heaps")==null){N.QM("").hh("Malformed 'Isolate' response: "+H.d(b))
 return}y=z.t(b,"rootLib")
 this.v9=F.Wi(this,C.eN,this.v9,y)
 if(z.t(b,"entry")!=null){y=z.t(b,"entry")
@@ -19084,7 +19087,7 @@ $isEH:true},
 fw:{
 "^":"TpZ:12;a,b",
 $1:[function(a){var z,y
-if(!!J.x(a).$iscn)N.QM("").YX(a.LD)
+if(!!J.x(a).$iscn)N.QM("").hh(a.LD)
 z=this.a
 y=z.Jr
 if(y!=null&&y.gQ1()!=null&&J.xC(J.UQ(z.Jr.gQ1(),"id"),J.UQ(this.b,"id")))return z.VD(0)
@@ -19092,34 +19095,34 @@ else return z.Xb()},"$1",null,2,0,null,121,"call"],
 $isEH:true},
 G4:{
 "^":"TpZ:12;a",
-$1:[function(a){if(!!J.x(a).$iscn)N.QM("").YX(a.LD)
+$1:[function(a){if(!!J.x(a).$iscn)N.QM("").hh(a.LD)
 return this.a.VD(0)},"$1",null,2,0,null,121,"call"],
 $isEH:true},
 LO:{
 "^":"TpZ:12;a",
-$1:[function(a){if(!!J.x(a).$iscn)N.QM("").YX(a.LD)
+$1:[function(a){if(!!J.x(a).$iscn)N.QM("").hh(a.LD)
 return this.a.VD(0)},"$1",null,2,0,null,121,"call"],
 $isEH:true},
 qD:{
 "^":"TpZ:12;a",
-$1:[function(a){if(!!J.x(a).$iscn)N.QM("").YX(a.LD)
+$1:[function(a){if(!!J.x(a).$iscn)N.QM("").hh(a.LD)
 return this.a.VD(0)},"$1",null,2,0,null,121,"call"],
 $isEH:true},
 A6:{
 "^":"TpZ:12;a",
-$1:[function(a){if(!!J.x(a).$iscn)N.QM("").YX(a.LD)
+$1:[function(a){if(!!J.x(a).$iscn)N.QM("").hh(a.LD)
 return this.a.VD(0)},"$1",null,2,0,null,121,"call"],
 $isEH:true},
 xK:{
 "^":"TpZ:12;a",
-$1:[function(a){if(!!J.x(a).$iscn)N.QM("").YX(a.LD)
+$1:[function(a){if(!!J.x(a).$iscn)N.QM("").hh(a.LD)
 return this.a.VD(0)},"$1",null,2,0,null,121,"call"],
 $isEH:true},
 oq:{
 "^":"TpZ:12;a",
 $1:[function(a){var z,y,x
 z=J.x(a)
-if(!!z.$iscn){N.QM("").YX(a.LD)
+if(!!z.$iscn){N.QM("").hh(a.LD)
 return}y=this.a
 y.V1(0)
 for(z=J.mY(z.t(a,"members"));z.G();){x=z.gl()
@@ -19249,6 +19252,7 @@ z="ServiceException "+H.d(this.I0)
 z=this.ct(this,C.YS,this.bN,z)
 this.bN=z
 this.GR=this.ct(this,C.KS,this.GR,z)},
+bu:[function(a){return"ServiceException("+H.d(this.LD)+")"},"$0","gCR",0,0,73],
 $isIx:true},
 w8F:{
 "^":"af+Pi;",
@@ -19977,13 +19981,13 @@ z=this.u0
 if(!J.co(z,"j"))return
 y=this.lF()
 x=J.x(y)
-if(x.n(y,0)){N.QM("").YX("Could not determine jump address for "+H.d(z))
+if(x.n(y,0)){N.QM("").hh("Could not determine jump address for "+H.d(z))
 return}for(z=a.XG,w=0;w<z.length;++w){v=z[w]
 if(J.xC(v.gYu(),y)){z=this.dh
 if(this.gnz(this)&&!J.xC(z,v)){z=new T.qI(this,C.b5,z,v)
 z.$builtinTypeInfo=[null]
 this.nq(this,z)}this.dh=v
-return}}N.QM("").YX("Could not find instruction at "+x.WZ(y,16))},
+return}}N.QM("").hh("Could not find instruction at "+x.WZ(y,16))},
 $isQ4:true,
 static:{Tn:function(a,b){return C.CD.Sy(100*J.L9(a,b),2)+"%"}}},
 WAE:{
@@ -20328,7 +20332,7 @@ y.Xf(this)}},"$0","gkQ",0,0,17],
 PW:[function(a){var z,y,x,w,v
 if(typeof a!=="string"){this.Ra.OI(a).ml(new L.jF(this))
 return}z=C.xr.iQ(a)
-if(z==null){N.QM("").YX("WebSocketVM got empty message")
+if(z==null){N.QM("").hh("WebSocketVM got empty message")
 return}if(this.N.gA9()===!0){y=J.U6(z)
 if(!J.xC(y.t(z,"method"),"Dart.observatoryData"))return
 x=J.AG(J.UQ(y.t(z,"params"),"id"))
@@ -20336,7 +20340,7 @@ w=J.UQ(y.t(z,"params"),"data")}else{y=J.U6(z)
 x=y.t(z,"seq")
 w=y.t(z,"response")}if(x==null){this.EM(w)
 return}v=this.Td.Rz(0,x)
-if(v==null){N.QM("").YX("Received unexpected message: "+H.d(z))
+if(v==null){N.QM("").hh("Received unexpected message: "+H.d(z))
 return}y=v.gqT().MM
 if(y.YM!==0)H.vh(P.w("Future already completed"))
 y.Xf(w)},"$1","gM3",2,0,19],

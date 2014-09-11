@@ -8553,14 +8553,14 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   intptr_t lib_index = (lib.IsNull()) ? -1 : lib.index();
   jsobj.AddPropertyF("id", "libraries/%" Pd "/scripts/%s",
       lib_index, encoded_url.ToCString());
-  jsobj.AddProperty("name", name.ToCString());
+  jsobj.AddPropertyStr("name", name);
   jsobj.AddProperty("kind", GetKindAsCString());
   if (ref) {
     return;
   }
   jsobj.AddProperty("owningLibrary", lib);
   const String& source = String::Handle(Source());
-  jsobj.AddProperty("source", source.ToCString());
+  jsobj.AddPropertyStr("source", source);
 
   // Print the line number table
   {
@@ -9840,8 +9840,8 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   AddTypeProperties(&jsobj, "Library", JSONType(), ref);
   jsobj.AddPropertyF("id", "libraries/%" Pd "", id);
   jsobj.AddProperty("name", library_name);
-  const char* library_url = String::Handle(url()).ToCString();
-  jsobj.AddProperty("url", library_url);
+  const String& library_url = String::Handle(url());
+  jsobj.AddPropertyStr("url", library_url);
   if (ref) {
     return;
   }
@@ -17760,17 +17760,10 @@ RawString* String::SubString(const String& str,
 
 
 const char* String::ToCString() const {
-  intptr_t length;
-  return ToCString(&length);
-}
-
-
-const char* String::ToCString(intptr_t* length) const {
   if (IsOneByteString()) {
     // Quick conversion if OneByteString contains only ASCII characters.
     intptr_t len = Length();
     if (len == 0) {
-      *length = 0;
       return "";
     }
     Zone* zone = Isolate::Current()->current_zone();
@@ -17787,7 +17780,6 @@ const char* String::ToCString(intptr_t* length) const {
     }
     if (len > 0) {
       result[len] = 0;
-      *length = len;
       return reinterpret_cast<const char*>(result);
     }
   }
@@ -17796,30 +17788,7 @@ const char* String::ToCString(intptr_t* length) const {
   uint8_t* result = zone->Alloc<uint8_t>(len + 1);
   ToUTF8(result, len);
   result[len] = 0;
-  *length = len;
   return reinterpret_cast<const char*>(result);
-}
-
-
-const char* String::ToCStringTruncated(intptr_t max_len,
-                                       bool* did_truncate,
-                                       intptr_t* length) const {
-  if (Length() <= max_len) {
-    *did_truncate = false;
-    return ToCString(length);
-  }
-
-  intptr_t aligned_limit = max_len;
-  if (Utf16::IsLeadSurrogate(CharAt(max_len - 1))) {
-    // Don't let truncation split a surrogate pair.
-    aligned_limit--;
-  }
-  ASSERT(!Utf16::IsLeadSurrogate(CharAt(aligned_limit - 1)));
-
-  *did_truncate = true;
-  const String& truncated =
-      String::Handle(String::SubString(*this, 0, aligned_limit));
-  return truncated.ToCString(length);
 }
 
 
@@ -17840,17 +17809,13 @@ void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   if (ref) {
-    bool did_truncate = false;
-    intptr_t length = 0;
-    const char* cstr = ToCStringTruncated(128, &did_truncate, &length);
-    jsobj.AddProperty("valueAsString", cstr, length);
+    bool did_truncate = jsobj.AddPropertyStr("valueAsString", *this, 128);
     if (did_truncate) {
       jsobj.AddProperty("valueAsStringIsTruncated", did_truncate);
     }
   } else {
-    intptr_t length = 0;
-    const char* cstr = ToCString(&length);
-    jsobj.AddProperty("valueAsString", cstr, length);
+    bool did_truncate = jsobj.AddPropertyStr("valueAsString", *this);
+    ASSERT(!did_truncate);
   }
 }
 

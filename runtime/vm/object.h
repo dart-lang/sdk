@@ -5592,16 +5592,6 @@ class String : public Instance {
 
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
 
-  // Creates a UTF-8, NUL-terminated string in the current zone. The size of the
-  // created string in UTF-8 code units (bytes) is answered in 'length'; this
-  // can be longer than strlen of the result when the string has internal NULs.
-  // For the truncating version, 'max_length' is in UTF-16 code units, and will
-  // be rounded down if necessary to prevent splitting a surrogate pair.
-  const char* ToCString(intptr_t *length) const;
-  const char* ToCStringTruncated(intptr_t max_len,
-                                 bool* did_truncate,
-                                 intptr_t *length) const;
-
   // Copies the string characters into the provided external array
   // and morphs the string object into an external string object.
   // The remaining unused part of the original string object is marked as
