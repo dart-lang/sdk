@@ -18,9 +18,15 @@ import 'package:template_binding/template_binding.dart';
  * a model. It stamps its content in the dom adjacent to itself. When the
  * content is stamped, the `template-bound` event is fired.
  *
+ * **NOTE**: It is a good idea to use an id to select these elements. During
+ * code transformation it is likely that other template elements will be
+ * inserted at the top of the body above yours, so something like
+ * querySelector('template') is likely to break when built.
+ * See http://dartbug.com/20911.
+ *
  * Example:
  *
- *     <template is="auto-binding-dart">
+ *     <template id="my-template" is="auto-binding-dart">
  *       <div>Say something: <input value="{{value}}"></div>
  *       <div>You said: {{value}}</div>
  *       <button on-tap="{{buttonTap}}">Tap me!</button>
@@ -30,7 +36,7 @@ import 'package:template_binding/template_binding.dart';
  *       import 'package:polymer/polymer.dart';
  *
  *       main() {
- *         var template = document.querySelector('template');
+ *         var template = document.querySelector('#my-template');
  *         template.model = new MyModel();
  *       }
  *
