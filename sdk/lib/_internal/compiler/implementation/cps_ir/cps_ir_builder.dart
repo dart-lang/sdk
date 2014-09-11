@@ -370,6 +370,12 @@ class IrBuilder {
         constantSystem.createString(new ast.DartString.literal(value)));
   }
 
+  /// Create a get access of [local].
+  ir.Primitive buildGetLocal(Element local) {
+    assert(isOpen);
+    return environment.lookup(local);
+  }
+
   /**
    * Add an explicit `return null` for functions that don't have a return
    * statement on each branch. This includes functions with an empty body,
@@ -1337,7 +1343,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
       add(new ir.LetPrim(result));
     } else if (Elements.isLocal(element)) {
       // Reference to local variable
-      result = environment.lookup(element);
+      result = buildGetLocal(element);
     } else if (element == null ||
                Elements.isInstanceField(element) ||
                Elements.isInstanceMethod(element) ||

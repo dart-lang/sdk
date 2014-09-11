@@ -285,6 +285,30 @@ main() $NEW_BACKEND_COMMENT
   }
 
 ''');
+
+    checkResult('''
+bar(b) {}
+foo(a) {
+  bar(a);
+}
+main() {
+  foo(null);
+}
+''', '''
+bar(b) $NEW_BACKEND_COMMENT
+  {}
+
+foo(a) $NEW_BACKEND_COMMENT
+  {
+    bar(a);
+  }
+
+main() $NEW_BACKEND_COMMENT
+  {
+    foo(null);
+  }
+
+''');
   });
 }
 

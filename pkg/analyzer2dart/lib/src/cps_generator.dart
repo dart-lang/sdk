@@ -35,7 +35,8 @@ class CpsGeneratingVisitor extends RecursiveAstVisitor<ir.Node> {
       irBuilder.createParameter(converter.convertElement(parameter),
                                 isClosureVariable: false);
     });
-    super.visitFunctionDeclaration(node);
+    // Visit the body directly to avoid processing the signature as expressions.
+    node.functionExpression.body.accept(this);
     return irBuilder.buildFunctionDefinition(
         converter.convertElement(function), const [], const []);
   }
@@ -47,7 +48,11 @@ class CpsGeneratingVisitor extends RecursiveAstVisitor<ir.Node> {
       dart2js.Element element = converter.convertElement(staticElement);
       List<ir.Definition> arguments = <ir.Definition>[];
       for (Expression argument in node.argumentList.arguments) {
-        arguments.add(argument.accept(this));
+        ir.Definition value = argument.accept(this);
+        if (value == null) {
+          giveUp('Unsupported argument: $argument (${argument.runtimeType}).');
+        }
+        arguments.add(value);
       }
       return irBuilder.buildStaticInvocation(
           element, createSelectorFromMethodInvocation(node), arguments);
@@ -100,5 +105,19 @@ class CpsGeneratingVisitor extends RecursiveAstVisitor<ir.Node> {
     } else {
       irBuilder.buildReturn();
     }
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    analyzer.Element element = node.staticElement;
+    if (element != null) {
+      dart2js.Element target = converter.convertElement(element);
+      if (dart2js.Elements.isLocal(target)) {
+        return irBuilder.buildGetLocal(target);
+      }
+      giveUp('Unhandled static reference: '
+             '$node -> $target (${target.runtimeType})');
+    }
+    giveUp('Unresolved identifier: $node.');
   }
 }

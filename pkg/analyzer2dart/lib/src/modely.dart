@@ -47,6 +47,9 @@ class ElementY extends dart2js.Element {
     return converter.convertElement(element.library);
   }
 
+  @override
+  bool get isLocal => false;
+
   unsupported(String method) {
     throw new UnsupportedError(
         "'$method' is unsupported on $this ($runtimeType)");
@@ -404,12 +407,21 @@ class ParameterElementY extends ElementY
 
   analyzer.ParameterElement get element => super.element;
 
+  @override
   dart2js.ElementKind get kind => dart2js.ElementKind.PARAMETER;
 
+  @override
   dart2js.DartType get type => converter.convertType(element.type);
 
   // TODO(johnniwinther): Avoid the need for this.
+  @override
   dart2js.FunctionSignature get functionSignature => null;
+
+  @override
+  bool get isLocal => true;
+
+  @override
+  bool get isStatic => false;
 
   ParameterElementY(ElementConverter converter,
                     analyzer.ParameterElement element)

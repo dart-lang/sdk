@@ -305,7 +305,7 @@ class DeferredLoadTask extends CompilerTask {
       assert(treeElements != null);
 
       for (Element dependency in treeElements.allElements) {
-        if (Elements.isLocal(dependency) && !dependency.isFunction) continue;
+        if (dependency.isLocal && !dependency.isFunction) continue;
         if (dependency.isErroneous) continue;
         if (dependency.isTypeVariable) continue;
 

@@ -333,6 +333,10 @@ abstract class Element implements Entity {
   /// is declared `static`.
   bool get isStatic;
 
+  /// `true` if this element is local element, that is, a local variable,
+  /// local function or parameter.
+  bool get isLocal;
+
   bool get impliesType;
 
   Token get position;
@@ -443,13 +447,7 @@ class Elements {
   }
 
   static bool isLocal(Element element) {
-    return !Elements.isUnresolved(element)
-            && !element.isInstanceMember
-            && !isStaticOrTopLevelField(element)
-            && !isStaticOrTopLevelFunction(element)
-            && (identical(element.kind, ElementKind.VARIABLE) ||
-                identical(element.kind, ElementKind.PARAMETER) ||
-                identical(element.kind, ElementKind.FUNCTION));
+    return !Elements.isUnresolved(element) && element.isLocal;
   }
 
   static bool isInstanceField(Element element) {
@@ -1050,6 +1048,10 @@ abstract class FormalElement extends Element
 /// the form `this.x`, are modeled by [InitializingFormalParameter].
 abstract class ParameterElement extends Element
     implements VariableElement, FormalElement, LocalElement {
+  /// Use [functionDeclaration] instead.
+  @deprecated
+  get enclosingElement;
+
   /// The function on which this parameter is declared.
   FunctionElement get functionDeclaration;
 }

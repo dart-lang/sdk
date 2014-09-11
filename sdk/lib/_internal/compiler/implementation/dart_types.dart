@@ -793,7 +793,7 @@ class TypedefType extends GenericType {
   }
 }
 
-/// A typedef which has already be resolved to its alias.
+/// A typedef which has already been resolved to its alias.
 class ResolvedTypedefType extends TypedefType {
   FunctionType alias;
 

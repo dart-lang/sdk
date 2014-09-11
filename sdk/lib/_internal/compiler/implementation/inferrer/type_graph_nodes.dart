@@ -481,6 +481,8 @@ class MemberTypeInformation extends ElementTypeInformation
  * the [ElementTypeInformation] factory.
  */
 class ParameterTypeInformation extends ElementTypeInformation {
+  ParameterElement get element => super.element;
+
   ParameterTypeInformation._internal(ParameterElement element,
                                      TypeInformationSystem types)
       : super._internal(types.getInferredTypeOf(element.functionDeclaration),
@@ -517,8 +519,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
     // initializing formals.
     if (element.isInitializingFormal) return null;
 
-    Element enclosing = element.enclosingElement;
-    if ((isTearOffClosureParameter || Elements.isLocal(enclosing)) &&
+    FunctionElement function = element.functionDeclaration;
+    if ((isTearOffClosureParameter || function.isLocal) &&
         disableInferenceForClosures) {
       // Do not infer types for parameters of closures. We do not
       // clear the assignments in case the closure is successfully
@@ -526,16 +528,16 @@ class ParameterTypeInformation extends ElementTypeInformation {
       giveUp(inferrer, clearAssignments: false);
       return safeType(inferrer);
     }
-    if (enclosing.isInstanceMember &&
-        (enclosing.name == Compiler.NO_SUCH_METHOD ||
-        (enclosing.name == Compiler.CALL_OPERATOR_NAME &&
+    if (function.isInstanceMember &&
+        (function.name == Compiler.NO_SUCH_METHOD ||
+        (function.name == Compiler.CALL_OPERATOR_NAME &&
          disableInferenceForClosures))) {
       // Do not infer types for parameters of [noSuchMethod] and
       // [call] instance methods.
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (enclosing == inferrer.mainElement) {
+    if (function == inferrer.mainElement) {
       // The implicit call to main is not seen by the inferrer,
       // therefore we explicitly set the type of its parameters as
       // dynamic.
@@ -557,7 +559,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   bool hasStableType(TypeGraphInferrerEngine inferrer) {
     // The number of assignments of parameters of instance methods is
     // not stable. Therefore such a parameter cannot be stable.
-    if (element.enclosingElement.isInstanceMember) {
+    if (element.functionDeclaration.isInstanceMember) {
       return false;
     }
     return super.hasStableType(inferrer);

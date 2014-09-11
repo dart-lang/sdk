@@ -118,6 +118,8 @@ abstract class ElementX extends Element {
 
   bool get isMixinApplication => false;
 
+  bool get isLocal => false;
+
   // TODO(johnniwinther): This breaks for libraries (for which enclosing
   // elements are null) and is invalid for top level variable declarations for
   // which the enclosing element is a VariableDeclarations and not a compilation
@@ -1229,6 +1231,8 @@ class LocalVariableElementX extends VariableElementX
   ExecutableElement get executableContext => enclosingElement;
 
   ExecutableElement get memberContext => executableContext.memberContext;
+
+  bool get isLocal => true;
 }
 
 class FieldElementX extends VariableElementX
@@ -1335,6 +1339,8 @@ abstract class ParameterElementX extends FormalElementX
   MemberElement get memberContext => executableContext.memberContext;
 
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
+
+  bool get isLocal => true;
 }
 
 class LocalParameterElementX extends ParameterElementX
@@ -1364,6 +1370,8 @@ class InitializingFormalElementX extends ParameterElementX
   accept(ElementVisitor visitor) => visitor.visitFieldParameterElement(this);
 
   MemberElement get memberContext => enclosingElement;
+
+  bool get isLocal => false;
 }
 
 
@@ -1639,6 +1647,8 @@ class LocalFunctionElementX extends BaseFunctionElementX
       return node.getBeginToken();
     }
   }
+
+  bool get isLocal => true;
 }
 
 abstract class ConstructorElementX extends FunctionElementX
