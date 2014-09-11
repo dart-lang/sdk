@@ -858,20 +858,10 @@ main() {
   }
 
   void test_importLibraryPackage_withType() {
-    provider.newFile('/packages/my_pkg/lib/my_lib.dart', '''
+    _configureMyPkg('''
 library my_lib;
 class Test {}
 ''');
-    {
-      Folder myPkgFolder = provider.getResource('/packages/my_pkg/lib');
-      UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-        'my_pkg': [myPkgFolder]
-      });
-      context.sourceFactory = new SourceFactory(
-          [AbstractContextTest.SDK_RESOLVER, resourceResolver, pkgResolver]);
-    }
-    // force 'my_pkg' resolution
-    addSource('/tmp/other.dart', "import 'package:my_pkg/my_lib.dart';");
     // try to find a fix
     _indexTestUnit('''
 main() {
@@ -1299,6 +1289,29 @@ class A {
 class A {
   Map<String, dynamic> m;
 }
+''');
+  }
+
+  void test_replaceImportUri_inProject() {
+    testFile = '/project/bin/test.dart';
+    addSource('/project/foo/bar/lib.dart', '');
+    _indexTestUnit('''
+import 'no/matter/lib.dart';
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.REPLACE_IMPORT_URI, '''
+import '../foo/bar/lib.dart';
+''');
+  }
+
+  void test_replaceImportUri_package() {
+    _configureMyPkg('');
+    _indexTestUnit('''
+import 'no/matter/my_lib.dart';
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.REPLACE_IMPORT_URI, '''
+import 'package:my_pkg/my_lib.dart';
 ''');
   }
 
@@ -1861,6 +1874,23 @@ main() {
     if (expectedSuggestions != null) {
       expect(group.suggestions, unorderedEquals(expectedSuggestions));
     }
+  }
+
+  /**
+   * Configures the [SourceFactory] to have the `my_pkg` package in
+   * `/packages/my_pkg/lib` folder.
+   */
+  void _configureMyPkg(String myLibCode) {
+    provider.newFile('/packages/my_pkg/lib/my_lib.dart', myLibCode);
+    // configure SourceFactory
+    Folder myPkgFolder = provider.getResource('/packages/my_pkg/lib');
+    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+      'my_pkg': [myPkgFolder]
+    });
+    context.sourceFactory = new SourceFactory(
+        [AbstractContextTest.SDK_RESOLVER, resourceResolver, pkgResolver]);
+    // force 'my_pkg' resolution
+    addSource('/tmp/other.dart', "import 'package:my_pkg/my_lib.dart';");
   }
 
   AnalysisError _findErrorToFix() {

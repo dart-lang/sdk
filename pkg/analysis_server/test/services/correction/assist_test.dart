@@ -911,6 +911,13 @@ import 'dart:math';
     assertNoAssistAt('import ', AssistKind.IMPORT_ADD_SHOW);
   }
 
+  void test_importAddShow_BAD_unresolvedUri() {
+    _indexTestUnit('''
+import '/no/such/lib.dart';
+''');
+    assertNoAssistAt('import ', AssistKind.IMPORT_ADD_SHOW);
+  }
+
   void test_importAddShow_OK_hasUnresolvedIdentifier() {
     _indexTestUnit('''
 import 'dart:math';

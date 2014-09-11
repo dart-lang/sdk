@@ -125,3 +125,22 @@ String repeat(String s, int n) {
   }
   return sb.toString();
 }
+
+
+/**
+ * Gets the substring after the last occurrence of a separator.
+ * The separator is not returned.
+ */
+String substringAfterLast(String str, String separator) {
+  if (isEmpty(str)) {
+    return str;
+  }
+  if (isEmpty(separator)) {
+    return '';
+  }
+  int pos = str.lastIndexOf(separator);
+  if (pos == -1) {
+    return str;
+  }
+  return str.substring(pos + separator.length);
+}

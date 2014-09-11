@@ -106,6 +106,8 @@ class FixKind {
       const FixKind('REMOVE_UNUSED_IMPORT', 50, "Remove unused import");
   static const REPLACE_BOOLEAN_WITH_BOOL =
       const FixKind('REPLACE_BOOLEAN_WITH_BOOL', 50, "Replace 'boolean' with 'bool'");
+  static const REPLACE_IMPORT_URI =
+      const FixKind('REPLACE_IMPORT_URI', 50, "Replace with '{0}'");
   static const REPLACE_VAR_WITH_DYNAMIC =
       const FixKind('REPLACE_VAR_WITH_DYNAMIC', 50, "Replace 'var' with 'dynamic'");
   static const USE_CONST = const FixKind('USE_CONST', 50, "Change to constant");

@@ -130,6 +130,9 @@ class FixProcessor {
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
       _addFix_createConstructorSuperExplicit();
     }
+    if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
+      _addFix_replaceImportUri();
+    }
     if (errorCode == HintCode.DIVISION_OPTIMIZATION) {
       _addFix_useEffectiveIntegerDivision();
     }
@@ -977,6 +980,33 @@ class FixProcessor {
     SourceRange range = rf.rangeError(error);
     _addReplaceEdit(range, "dynamic");
     _addFix(FixKind.REPLACE_VAR_WITH_DYNAMIC, []);
+  }
+
+  void _addFix_replaceImportUri() {
+    if (node is SimpleStringLiteral) {
+      SimpleStringLiteral stringLiteral = node;
+      String uri = stringLiteral.value;
+      String uriName = substringAfterLast(uri, '/');
+      AnalysisContext context = unitLibraryElement.context;
+      for (Source libSource in context.librarySources) {
+        String libFile = libSource.fullName;
+        if (substringAfterLast(libFile, '/') == uriName) {
+          String fixedUri;
+          // may be "package:" URI
+          String libPackageUri = _findPackageUri(context, libFile);
+          if (libPackageUri != null) {
+            fixedUri = libPackageUri;
+          } else {
+            String relativeFile = relative(libFile, from: unitLibraryFolder);
+            fixedUri = split(relativeFile).join('/');
+          }
+          // add fix
+          SourceRange range = rf.rangeNode(node);
+          _addReplaceEdit(range, "'$fixedUri'");
+          _addFix(FixKind.REPLACE_IMPORT_URI, [fixedUri]);
+        }
+      }
+    }
   }
 
   void _addFix_replaceWithConstInstanceCreation() {
@@ -1828,7 +1858,6 @@ class FixProcessor {
    * Returns the "package" URI, may be `null`.
    */
   static String _findPackageUri(AnalysisContext context, String path) {
-//    Source fileSource = new FileBasedSource.con1(path);
     Source fileSource = new NonExistingSource(path, UriKind.FILE_URI);
     Uri uri = context.sourceFactory.restoreUri(fileSource);
     if (uri == null) {

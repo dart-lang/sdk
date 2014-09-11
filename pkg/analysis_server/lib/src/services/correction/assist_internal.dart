@@ -524,6 +524,10 @@ class AssistProcessor {
     }
     // prepare whole import namespace
     ImportElement importElement = importDirective.element;
+    if (importElement == null) {
+      _coverageMarker();
+      return;
+    }
     Map<String, Element> namespace = getImportNamespace(importElement);
     // prepare names of referenced elements (from this import)
     SplayTreeSet<String> referencedNames = new SplayTreeSet<String>();
