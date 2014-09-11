@@ -423,6 +423,9 @@ class ParameterElementY extends ElementY
   @override
   bool get isStatic => false;
 
+  @override
+  bool get isConst => false;
+
   ParameterElementY(ElementConverter converter,
                     analyzer.ParameterElement element)
       : super(converter, element) {
