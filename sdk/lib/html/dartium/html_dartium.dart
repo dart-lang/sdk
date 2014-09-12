@@ -2983,6 +2983,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   @DomName('CanvasRenderingContext2D.arc')
   void arc(num x,  num y,  num radius,  num startAngle, num endAngle,
       [bool anticlockwise = false]) {
+    // TODO(terry): This should not be needed: dartbug.com/20939.
     _arc(x, y, radius, startAngle, endAngle, anticlockwise);
   }
 

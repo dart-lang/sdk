@@ -50,7 +50,13 @@ $!MEMBERS
   @DomName('CanvasRenderingContext2D.arc')
   void arc(num x,  num y,  num radius,  num startAngle, num endAngle,
       [bool anticlockwise = false]) {
+    // TODO(terry): This should not be needed: dartbug.com/20939.
+$if DART2JS
+    JS('void', '#.arc(#, #, #, #, #, #)', this, x, y, radius, startAngle,
+       endAngle, anticlockwise);
+$else
     _arc(x, y, radius, startAngle, endAngle, anticlockwise);
+$endif
   }
 
   /**

@@ -17,9 +17,6 @@ mouse_event_test: Fail # Issue 20437
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540
 
-[ $compiler == dart2js ]
-canvasrenderingcontext2d_test/arc: Fail # Issue 20939
-
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
 custom/element_upgrade_test: Fail # Issue 17298

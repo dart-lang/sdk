@@ -2040,7 +2040,9 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @DomName('CanvasRenderingContext2D.arc')
   void arc(num x,  num y,  num radius,  num startAngle, num endAngle,
       [bool anticlockwise = false]) {
-    _arc(x, y, radius, startAngle, endAngle, anticlockwise);
+    // TODO(terry): This should not be needed: dartbug.com/20939.
+    JS('void', '#.arc(#, #, #, #, #, #)', this, x, y, radius, startAngle,
+       endAngle, anticlockwise);
   }
 
   /**
