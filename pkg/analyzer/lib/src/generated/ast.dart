@@ -6021,25 +6021,6 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
         return annotation.element;
       }
     }
-    // Type name in InstanceCreationExpression
-    {
-      AstNode typeNameCandidate = parent;
-      // new prefix.node[.constructorName]()
-      if (typeNameCandidate is PrefixedIdentifier) {
-        PrefixedIdentifier prefixedIdentifier = typeNameCandidate as PrefixedIdentifier;
-        if (identical(prefixedIdentifier.identifier, node)) {
-          typeNameCandidate = prefixedIdentifier.parent;
-        }
-      }
-      // new typeName[.constructorName]()
-      if (typeNameCandidate is TypeName) {
-        TypeName typeName = typeNameCandidate as TypeName;
-        if (typeName.parent is ConstructorName) {
-          ConstructorName constructorName = typeName.parent as ConstructorName;
-          return constructorName.staticElement;
-        }
-      }
-    }
     // Extra work to map Constructor Declarations to their associated Constructor Elements
     if (parent is ConstructorDeclaration) {
       ConstructorDeclaration decl = parent;

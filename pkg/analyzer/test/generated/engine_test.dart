@@ -5141,9 +5141,9 @@
 //     Source source = new TestSource.con1(FileUtilities2.createFile("/test.html"), content);
 //     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
 //     ParseHtmlTask parseTask = new ParseHtmlTask(context, source, modificationStamp, content);
-//     parseTask.perform(new TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid_2());
+//     parseTask.perform(new TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid());
 //     ResolveHtmlTask task = new ResolveHtmlTask(context, source, parseTask.modificationTime, parseTask.htmlUnit);
-//     task.perform(new TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid(modificationStamp, source));
+//     task.perform(new TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid_2(modificationStamp, source));
 //   }
 //   static dartSuite() {
 //     _ut.group('ResolveHtmlTaskTest', () {
@@ -6502,9 +6502,13 @@
 //   }
 // }
 // class TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid extends TestTaskVisitor<Object> {
+//   @override
+//   Object visitParseHtmlTask(ParseHtmlTask task) => null;
+// }
+// class TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid_2 extends TestTaskVisitor<Object> {
 //   long modificationStamp;
 //   Source source;
-//   TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid(this.modificationStamp, this.source) : super();
+//   TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid_2(this.modificationStamp, this.source) : super();
 //   @override
 //   Object visitResolveHtmlTask(ResolveHtmlTask task) {
 //     CaughtException exception = task.exception;
@@ -6517,10 +6521,6 @@
 //     JUnitTestCase.assertSame(source, task.source);
 //     return null;
 //   }
-// }
-// class TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid_2 extends TestTaskVisitor<Object> {
-//   @override
-//   Object visitParseHtmlTask(ParseHtmlTask task) => null;
 // }
 // class TestTaskVisitor_ScanDartTaskTest_test_accept extends TestTaskVisitor<Boolean> {
 //   @override

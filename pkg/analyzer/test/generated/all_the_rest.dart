@@ -9128,25 +9128,29 @@
 //     SimpleIdentifier identifier = AstFactory.identifier3("A");
 //     PrefixedIdentifier prefixedIdentifier = AstFactory.identifier4("pref", identifier);
 //     InstanceCreationExpression creation = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName3(prefixedIdentifier, []), []);
-//     // set ConstructorElement
+//     // set ClassElement
 //     ClassElement classElement = ElementFactory.classElement2("A", []);
+//     identifier.staticElement = classElement;
+//     // set ConstructorElement
 //     ConstructorElement constructorElement = ElementFactory.constructorElement2(classElement, null, []);
 //     creation.constructorName.staticElement = constructorElement;
 //     // verify that "A" is resolved to ConstructorElement
 //     Element element = ElementLocator.locate(identifier);
-//     JUnitTestCase.assertSame(constructorElement, element);
+//     JUnitTestCase.assertSame(classElement, element);
 //   }
 //   void test_locate_InstanceCreationExpression_type_simpleIdentifier() {
 //     // prepare: new A()
 //     SimpleIdentifier identifier = AstFactory.identifier3("A");
 //     InstanceCreationExpression creation = AstFactory.instanceCreationExpression2(Keyword.NEW, AstFactory.typeName3(identifier, []), []);
-//     // set ConstructorElement
+//     // set ClassElement
 //     ClassElement classElement = ElementFactory.classElement2("A", []);
+//     identifier.staticElement = classElement;
+//     // set ConstructorElement
 //     ConstructorElement constructorElement = ElementFactory.constructorElement2(classElement, null, []);
 //     creation.constructorName.staticElement = constructorElement;
 //     // verify that "A" is resolved to ConstructorElement
 //     Element element = ElementLocator.locate(identifier);
-//     JUnitTestCase.assertSame(constructorElement, element);
+//     JUnitTestCase.assertSame(classElement, element);
 //   }
 //   void test_locate_LibraryDirective() {
 //     AstNode id = _findNodeIn("library", ["library foo;"]);

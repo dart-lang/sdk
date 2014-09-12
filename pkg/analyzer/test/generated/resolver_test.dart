@@ -16331,6 +16331,52 @@ class NonErrorResolverTest extends ResolverTestCase {
 }
 
 class NonHintCodeTest extends ResolverTestCase {
+  void fail_issue20904BuggyTypePromotionAtIfJoin_1() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(EngineTestCase.createSource([
+        "f(var message, var dynamic_) {",
+        "  if (message is Function) {",
+        "    message = dynamic_;",
+        "  }",
+        "  int s = message;",
+        "}",
+        ""]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void fail_issue20904BuggyTypePromotionAtIfJoin_2() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(EngineTestCase.createSource([
+        "f(var message) {",
+        "  if (message is Function) {",
+        "    message = '';",
+        "  }",
+        "  int s = message;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void fail_issue20904BuggyTypePromotionAtIfJoin_3() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(EngineTestCase.createSource([
+        "f(var message) {",
+        "  var dynamic_;",
+        "  if (message is Function) {",
+        "    message = dynamic_;",
+        "  } else {",
+        "    return;",
+        "  }",
+        "  int s = message;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_deadCode_deadBlock_conditionalElse_debugConst() {
     Source source = addSource(EngineTestCase.createSource([
         "const bool DEBUG = true;",
@@ -16540,6 +16586,22 @@ class NonHintCodeTest extends ResolverTestCase {
         "library root;",
         "import 'lib1.dart' deferred as lib1;",
         "main() { lib1.f(); }"])], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> []);
+  }
+
+  void test_issue20904BuggyTypePromotionAtIfJoin_4() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(EngineTestCase.createSource([
+        "f(var message) {",
+        "  if (message is Function) {",
+        "    message = '';",
+        "  } else {",
+        "    return;",
+        "  }",
+        "  String s = message;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
   }
 
   void test_missingReturn_emptyFunctionBody() {
@@ -17132,6 +17194,10 @@ class NonHintCodeTest extends ResolverTestCase {
       _ut.test('test_importDeferredLibraryWithLoadFunction', () {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_importDeferredLibraryWithLoadFunction);
+      });
+      _ut.test('test_issue20904BuggyTypePromotionAtIfJoin_4', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_issue20904BuggyTypePromotionAtIfJoin_4);
       });
       _ut.test('test_missingReturn_emptyFunctionBody', () {
         final __test = new NonHintCodeTest();
@@ -27358,6 +27424,20 @@ class TypeOverrideManagerTest extends EngineTestCase {
 }
 
 class TypePropagationTest extends ResolverTestCase {
+  void fail_issue20904BuggyTypePromotionAtIfJoin_2() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    String code = EngineTestCase.createSource([
+        "f(var message) {",
+        "  if (message is Function) {",
+        "    message = '';",
+        "  }",
+        "  message; // marker",
+        "}"]);
+    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
+    JUnitTestCase.assertFalse(typeProvider.stringType == t);
+    JUnitTestCase.assertFalse(typeProvider.functionType == t);
+  }
+
   void fail_mergePropagatedTypesAtJoinPoint_1() {
     // https://code.google.com/p/dart/issues/detail?id=19929
     _assertTypeOfMarkedExpression(EngineTestCase.createSource([
