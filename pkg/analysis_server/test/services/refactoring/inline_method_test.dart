@@ -999,6 +999,22 @@ main() {
 ''');
   }
 
+  test_reference_expressionBody() {
+    indexTestUnit(r'''
+String message() => 'Hello, World!';
+main() {
+  print(message);
+}
+''');
+    _createRefactoring('message()');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+main() {
+  print(() => 'Hello, World!');
+}
+''');
+  }
+
   test_singleExpression_oneUsage() {
     indexTestUnit(r'''
 test(a, b) {

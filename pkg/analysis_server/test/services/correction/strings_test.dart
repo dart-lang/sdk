@@ -131,6 +131,14 @@ class StringsTest {
     expect(remove('abc abbc abbbc', 'bc'), 'a ab abb');
   }
 
+  void test_removeEnd() {
+    expect(removeEnd(null, 'x'), null);
+    expect(removeEnd('abc', null), 'abc');
+    expect(removeEnd('www.domain.com', '.com.'), 'www.domain.com');
+    expect(removeEnd('www.domain.com', 'domain'), 'www.domain.com');
+    expect(removeEnd('www.domain.com', '.com'), 'www.domain');
+  }
+
   void test_removeStart() {
     expect(removeStart(null, 'x'), null);
     expect(removeStart('abc', null), 'abc');

@@ -107,6 +107,16 @@ String remove(String str, String remove) {
   return str.replaceAll(remove, '');
 }
 
+String removeEnd(String str, String remove) {
+  if (isEmpty(str) || isEmpty(remove)) {
+    return str;
+  }
+  if (str.endsWith(remove)) {
+    return str.substring(0, str.length - remove.length);
+  }
+  return str;
+}
+
 String removeStart(String str, String remove) {
   if (isEmpty(str) || isEmpty(remove)) {
     return str;

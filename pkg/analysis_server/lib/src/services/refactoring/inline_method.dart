@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
@@ -595,6 +596,7 @@ class _ReferenceProcessor {
         source =
             _refUtils.replaceSourceIndent(source, methodPrefix, _refPrefix);
         source = source.trim();
+        source = removeEnd(source, ';');
       }
       // do insert
       SourceRange range = rangeNode(_node);
