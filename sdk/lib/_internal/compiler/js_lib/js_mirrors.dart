@@ -48,7 +48,8 @@ import 'dart:_js_helper' show
     runtimeTypeToString,
     setRuntimeTypeInfo,
     throwInvalidReflectionError,
-    TypeImpl;
+    TypeImpl,
+    deferredLoadHook;
 
 import 'dart:_interceptors' show
     Interceptor,
@@ -97,8 +98,25 @@ class JsMirrorSystem implements MirrorSystem {
       new JsTypeMirror(const Symbol('dynamic'));
   static final JsTypeMirror _voidType = new JsTypeMirror(const Symbol('void'));
 
-  static final Map<String, List<LibraryMirror>> librariesByName =
-      computeLibrariesByName();
+  static Map<String, List<LibraryMirror>> _librariesByName;
+
+  // Will be set to `true` when we have installed a hook on [deferredLoadHook]
+  // to avoid installing it multiple times.
+  static bool _hasInstalledDeferredLoadHook = false;
+
+  static Map<String, List<LibraryMirror>> get librariesByName {
+    if (_librariesByName == null) {
+      _librariesByName = computeLibrariesByName();
+      if (!_hasInstalledDeferredLoadHook) {
+        _hasInstalledDeferredLoadHook = true;
+        // After a deferred import has been loaded new libraries might have
+        // been created, so in the hook we erase _librariesByName, so it will be
+        // recomputed on the next access.
+        deferredLoadHook = () => _librariesByName = null;
+      }
+    }
+    return _librariesByName;
+  }
 
   Map<Uri, LibraryMirror> get libraries {
     if (_cachedLibraries != null) return _cachedLibraries;

@@ -3261,6 +3261,11 @@ LoadLibraryFunctionType _loadLibraryWrapper(String loadId) {
 final Map<String, Future<Null>> _loadingLibraries = <String, Future<Null>>{};
 final Set<String> _loadedLibraries = new Set<String>();
 
+typedef void DeferredLoadCallback();
+
+// Function that will be called every time a new deferred import is loaded.
+DeferredLoadCallback deferredLoadHook;
+
 Future<Null> loadDeferredLibrary(String loadId) {
   // For each loadId there is a list of hunk-uris to load, and a corresponding
   // list of hashes. These are stored in the app-global scope.
@@ -3282,7 +3287,10 @@ Future<Null> loadDeferredLibrary(String loadId) {
       var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
       JS('void', '#(#)', initializer, hash);
     }
-    _loadedLibraries.add(loadId);
+    bool updated = _loadedLibraries.add(loadId);
+    if (updated && deferredLoadHook != null) {
+      deferredLoadHook();
+    }
   });
 }
 
