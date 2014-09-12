@@ -91,9 +91,8 @@ _generateMessage(MessageTemplate template, bool forSite, StringBuffer sb) {
         ..write('\n{: #$hashTag}\n')
         ..write(body);
   } else {
-    var html = markdownToHtml('$title$body')
-        .replaceFirst('<h3>', '<h3 id="$hashTag">');
-    sb.write('\n\n$html');
+    var html = markdownToHtml('$title$body').replaceFirst('<hr', '</div><hr');
+    sb.write('\n\n<div id="$hashTag">$html');
   }
 }
 
@@ -190,6 +189,7 @@ body {
   width: 80vw;
   margin: 20px;
   font-family: Roboto, sans-serif;
+  background-color: #f0f0f0;
 }
 
 h2 {
@@ -202,6 +202,16 @@ h2 {
   font-weight: normal;
 }
 
+div:target {
+  background-color: #fff;
+  border: 1px solid #888;
+  border-radius: 5px;
+  padding: 0px 10px 2px 10px;
+  box-shadow: 7px 7px 5px #888888;
+  margin-bottom: 15px;
+}
+
+
 h3 {
   font-family: Montserrat, sans-serif;
   box-sizing: border-box;
@@ -210,6 +220,10 @@ h3 {
   font-style: normal;
   font-variant: normal;
   font-weight: normal;
+}
+
+div:target > h3 {
+  font-weight: bold;
 }
 
 pre {

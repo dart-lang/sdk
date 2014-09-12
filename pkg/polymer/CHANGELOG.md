@@ -1,3 +1,6 @@
+#### 0.14.0+1
+  * Small style improvements on error/warnings page.
+
 #### 0.14.0
   * Upgraded to polymer 0.4.0 ([polymer-dev#d66a86e][d66a86e]).
   * The platform.js script is no longer required in Chrome or Dartium

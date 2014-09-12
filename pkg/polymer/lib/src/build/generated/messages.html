@@ -33,6 +33,7 @@ body {
   width: 80vw;
   margin: 20px;
   font-family: Roboto, sans-serif;
+  background-color: #f0f0f0;
 }
 
 h2 {
@@ -45,6 +46,16 @@ h2 {
   font-weight: normal;
 }
 
+div:target {
+  background-color: #fff;
+  border: 1px solid #888;
+  border-radius: 5px;
+  padding: 0px 10px 2px 10px;
+  box-shadow: 7px 7px 5px #888888;
+  margin-bottom: 15px;
+}
+
+
 h3 {
   font-family: Montserrat, sans-serif;
   box-sizing: border-box;
@@ -53,6 +64,10 @@ h3 {
   font-style: normal;
   font-variant: normal;
   font-weight: normal;
+}
+
+div:target > h3 {
+  font-weight: bold;
 }
 
 pre {
@@ -101,12 +116,12 @@ h3:hover > a {
 <h2>Messages from package <code>code_transformers</code></h2>
 <hr />
 
-<h3 id="code_transformers_1">Absolute paths not allowed <a href="#code_transformers_1">#1</a></h3>
+<div id="code_transformers_1"><h3>Absolute paths not allowed <a href="#code_transformers_1">#1</a></h3>
 <p>The transformers processing your code were trying to resolve a URL and identify
 a file that they correspond to. Currently only relative paths can be resolved.</p>
-<hr />
+</div><hr />
 
-<h3 id="code_transformers_2">Invalid URL to reach another package <a href="#code_transformers_2">#2</a></h3>
+<div id="code_transformers_2"><h3>Invalid URL to reach another package <a href="#code_transformers_2">#2</a></h3>
 <p>To reach an asset that belongs to another package, use <code>package:</code> URLs in
 Dart code, but in any other language (like HTML or CSS) use relative URLs.</p>
 <p>These are the rules you must follow to write URLs that refer to files in other
@@ -216,9 +231,9 @@ Technically this could be done automatically with pub transformers, but to
 make sure that code works also in Dartium with a simple HTTP Server,
 existing transformers do not fix URLs, they just detect inconsistencies and
 produce an error message like this one, instead.</p></li></ul>
-<hr />
+</div><hr />
 
-<h3 id="code_transformers_3">Incomplete URL to asset in another package <a href="#code_transformers_3">#3</a></h3>
+<div id="code_transformers_3"><h3>Incomplete URL to asset in another package <a href="#code_transformers_3">#3</a></h3>
 <p>URLs that refer to assets in other packages need to explicitly mention the
 <code>packages/</code> directory. In the future this requirement might be removed, but for
 now you must use a canonical URL form for it.</p>
@@ -226,86 +241,86 @@ now you must use a canonical URL form for it.</p>
 you might expect a.html to import <code>../b/b.html</code>. Instead, it must import
 <code>../../packages/b/b.html</code>.
 See <a href="http://dartbug.com/15797">issue 15797</a>.</p>
-<hr /><h2>Messages from package <code>observe</code></h2>
+</div><hr /><h2>Messages from package <code>observe</code></h2>
 <hr />
 
-<h3 id="observe_1"><code>@observable</code> not supported on libraries <a href="#observe_1">#1</a></h3>
+<div id="observe_1"><h3><code>@observable</code> not supported on libraries <a href="#observe_1">#1</a></h3>
 <p>Only instance fields on <code>Observable</code> classes can be observable,
 and you must explicitly annotate each observable field as <code>@observable</code>.</p>
 <p>Support for using the <code>@observable</code> annotation in libraries, classes, and
 elsewhere is deprecated.</p>
-<hr />
+</div><hr />
 
-<h3 id="observe_2"><code>@observable</code> not supported on top-level fields <a href="#observe_2">#2</a></h3>
+<div id="observe_2"><h3><code>@observable</code> not supported on top-level fields <a href="#observe_2">#2</a></h3>
 <p>Only instance fields on <code>Observable</code> classes can be observable,
 and you must explicitly annotate each observable field as <code>@observable</code>.</p>
 <p>Support for using the <code>@observable</code> annotation in libraries, classes, and
 elsewhere is deprecated.</p>
-<hr />
+</div><hr />
 
-<h3 id="observe_3"><code>@observable</code> not supported on classes <a href="#observe_3">#3</a></h3>
+<div id="observe_3"><h3><code>@observable</code> not supported on classes <a href="#observe_3">#3</a></h3>
 <p>Only instance fields on <code>Observable</code> classes can be observable,
 and you must explicitly annotate each observable field as <code>@observable</code>.</p>
 <p>Support for using the <code>@observable</code> annotation in libraries, classes, and
 elsewhere is deprecated.</p>
-<hr />
+</div><hr />
 
-<h3 id="observe_4"><code>@observable</code> not supported on static fields <a href="#observe_4">#4</a></h3>
+<div id="observe_4"><h3><code>@observable</code> not supported on static fields <a href="#observe_4">#4</a></h3>
 <p>Only instance fields on <code>Observable</code> classes can be observable,
 and you must explicitly annotate each observable field as <code>@observable</code>.</p>
 <p>Support for using the <code>@observable</code> annotation in libraries, classes, and
 elsewhere is deprecated.</p>
-<hr />
+</div><hr />
 
-<h3 id="observe_5"><code>@observable</code> field not in an <code>Observable</code> class <a href="#observe_5">#5</a></h3>
+<div id="observe_5"><h3><code>@observable</code> field not in an <code>Observable</code> class <a href="#observe_5">#5</a></h3>
 <p>Only instance fields on <code>Observable</code> classes can be observable,
 and you must explicitly annotate each observable field as <code>@observable</code>.</p>
 <p>Support for using the <code>@observable</code> annotation in libraries, classes, and
 elsewhere is deprecated.</p>
-<hr /><h2>Messages from package <code>polymer</code></h2>
+</div><hr /><h2>Messages from package <code>polymer</code></h2>
 <hr />
 
-<h3 id="polymer_1">Import not found <a href="#polymer_1">#1</a></h3>
+<div id="polymer_1"><h3>Import not found <a href="#polymer_1">#1</a></h3>
 <p>An HTML import seems to be broken. This could be because the file doesn't exist
 or because the link URL is incorrect.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_2">Duplicate definition <a href="#polymer_2">#2</a></h3>
+<div id="polymer_2"><h3>Duplicate definition <a href="#polymer_2">#2</a></h3>
 <p>Custom element names are global and can only be defined once. Some common
 reasons why you might get two definitions:</p><ul><li>Two different elements are declared with the same name.</li><li>
 <p>A single HTML file defining an element, has been imported using two different
 URLs.</p></li></ul>
-<hr />
+</div><hr />
 
-<h3 id="polymer_3">Missing import to polymer.html <a href="#polymer_3">#3</a></h3>
+<div id="polymer_3"><h3>Missing import to polymer.html <a href="#polymer_3">#3</a></h3>
 <p>Starting with polymer 0.11.0, each file that uses the definition
 of polymer-element must import it either directly or transitively.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_4">Invalid import inside &lt;polymer-element> <a href="#polymer_4">#4</a></h3>
+<div id="polymer_4"><h3>Invalid import inside &lt;polymer-element> <a href="#polymer_4">#4</a></h3>
 <p>HTML imports are expected at the top of each document, outside of any
 polymer-element definitions. The polymer build process combines all your HTML
 files together so you can deploy a single HTML file with your application. This
 build process ignores imports that appear to be in the wrong location.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_5">Missing call to <code>initPolymer()</code> <a href="#polymer_5">#5</a></h3>
+<div id="polymer_5"><h3>Missing call to <code>initPolymer()</code> <a href="#polymer_5">#5</a></h3>
 <p>Your application entry point didn't have any Dart script tags, so it's missing
 some initialization needed for polymer.dart.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_6">Script tags with experimental bootstrap <a href="#polymer_6">#6</a></h3>
+<div id="polymer_6"><h3>Script tags with experimental bootstrap <a href="#polymer_6">#6</a></h3>
 <p>This experimental feature is no longer supported.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_7">Multiple Dart script tags per document <a href="#polymer_7">#7</a></h3>
+<div id="polymer_7"><h3>Multiple Dart script tags per document <a href="#polymer_7">#7</a></h3>
 <p>Dartium currently allows only one script tag per document. Any
 additional script tags might be ignored or result in an error. This will
 likely change in the future, but for now, combine the script tags together into
 a single Dart library.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_8">Imports before script tags <a href="#polymer_8">#8</a></h3>
+<div id="polymer_8"><h3>Imports before script tags <a href="#polymer_8">#8</a></h3>
 <p>It is good practice to put all your HTML imports at the beginning of the
 document, above any Dart script tags. Today, the execution of Dart script tags
 is not synchronous in Dartium, so the difference is not noticeable. However,
@@ -313,47 +328,47 @@ Dartium that will eventually change and make the timing of script tags execution
 match how they are in JavaScript. At that point the order of your imports with
 respect to script tags will be important. Following the practice of putting
 imports first protects your app from a future breaking change in this respect.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_9">Missing href on a <code>&lt;link&gt;</code> tag <a href="#polymer_9">#9</a></h3>
+<div id="polymer_9"><h3>Missing href on a <code>&lt;link&gt;</code> tag <a href="#polymer_9">#9</a></h3>
 <p>All <code>&lt;link&gt;</code> tags should have a valid URL to a resource.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_10"><code>&lt;element&gt;</code> is deprecated <a href="#polymer_10">#10</a></h3>
+<div id="polymer_10"><h3><code>&lt;element&gt;</code> is deprecated <a href="#polymer_10">#10</a></h3>
 <p>Long ago <code>&lt;polymer-element&gt;</code> used to be called <code>&lt;element&gt;</code>. You probably ran
 into this error if you were migrating code that was written on a very early
 version of polymer.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_11">Definition of a custom element not found <a href="#polymer_11">#11</a></h3>
+<div id="polymer_11"><h3>Definition of a custom element not found <a href="#polymer_11">#11</a></h3>
 <p>The polymer build was not able to find the definition of a custom element. This
 can happen if an element is defined with a <code>&lt;polymer-element&gt;</code> tag, but you are
 missing an HTML import or the import link is incorrect.</p>
 <p>This warning can also be a false alarm. For instance, when an element is defined
 programatically using <code>document.registerElement</code>. In that case the polymer build
 will not be able to see the definition and will produce this warning.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_12">Empty script tag <a href="#polymer_12">#12</a></h3>
+<div id="polymer_12"><h3>Empty script tag <a href="#polymer_12">#12</a></h3>
 <p>Script tags should either have a <code>src</code> attribute or a non-empty body.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_13">Expected Dart mime-type <a href="#polymer_13">#13</a></h3>
+<div id="polymer_13"><h3>Expected Dart mime-type <a href="#polymer_13">#13</a></h3>
 <p>You seem to have a <code>.dart</code> extension on a script tag, but the mime-type
 doesn't match <code>application/dart</code>.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_14">Expected Dart file extension <a href="#polymer_14">#14</a></h3>
+<div id="polymer_14"><h3>Expected Dart file extension <a href="#polymer_14">#14</a></h3>
 <p>You are using the <code>application/dart</code> mime-type on a script tag, so
 the URL to the script source URL should have a <code>.dart</code> extension.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_15">Script with both src and inline text <a href="#polymer_15">#15</a></h3>
+<div id="polymer_15"><h3>Script with both src and inline text <a href="#polymer_15">#15</a></h3>
 <p>You have a script tag that includes both a <code>src</code> attribute and inline script
 text. You must choose one or the other.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_16">Incorrect instantiation: missing base tag in instantiation <a href="#polymer_16">#16</a></h3>
+<div id="polymer_16"><h3>Incorrect instantiation: missing base tag in instantiation <a href="#polymer_16">#16</a></h3>
 <p>When you declare that a custom element extends from a base tag, for example:</p>
 <pre><code>&lt;polymer-element name="my-example" extends="ul"&gt;
 </code></pre>
@@ -373,9 +388,9 @@ the latter form.</p>
 have the extra functionality of your custom element. In the example above, using
 <code>&lt;ul&gt;</code> tells the browser which base type it must create before
 doing the upgrade.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_17">Incorrect instantiation: extra <code>is</code> attribute or missing <code>extends</code> in declaration <a href="#polymer_17">#17</a></h3>
+<div id="polymer_17"><h3>Incorrect instantiation: extra <code>is</code> attribute or missing <code>extends</code> in declaration <a href="#polymer_17">#17</a></h3>
 <p>Creating a custom element using the syntax:</p>
 <pre><code>&lt;ul is="my-example"&gt;
 </code></pre>
@@ -389,9 +404,9 @@ case the fix is to change the instantiation to:</p>
 <code>extends</code> attribute, for example:</p>
 <pre><code>&lt;polymer-element name="my-example" extends="ul"&gt;
 </code></pre>
-<hr />
+</div><hr />
 
-<h3 id="polymer_18">Incorrect instantiation: base tag seems wrong <a href="#polymer_18">#18</a></h3>
+<div id="polymer_18"><h3>Incorrect instantiation: base tag seems wrong <a href="#polymer_18">#18</a></h3>
 <p>It seems you have a declaration like:</p>
 <pre><code>&lt;polymer-element name="my-example" extends="div"&gt;
 </code></pre>
@@ -405,9 +420,9 @@ either the instantiation needs to be fixed to be more like:</p>
 <p>or the declaration should be fixed to be like:</p>
 <pre><code>&lt;polymer-element name="my-example" extends="span"&gt;
 </code></pre>
-<hr />
+</div><hr />
 
-<h3 id="polymer_19">No dashes allowed in custom attributes <a href="#polymer_19">#19</a></h3>
+<div id="polymer_19"><h3>No dashes allowed in custom attributes <a href="#polymer_19">#19</a></h3>
 <p>Polymer used to recognize attributes with dashes like <code>my-name</code> and convert them
 to match properties where dashes were removed, and words follow the camelCase
 style (for example <code>myName</code>). This feature is no longer available. Now simply
@@ -415,59 +430,59 @@ use the same name as the property.</p>
 <p>Because HTML attributes are case-insensitive, you can also write the name of
 your property entirely in lowercase. Just be sure that your custom-elements
 don't declare two properties with the same name but different capitalization.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_20">Event handlers not supported here <a href="#polymer_20">#20</a></h3>
+<div id="polymer_20"><h3>Event handlers not supported here <a href="#polymer_20">#20</a></h3>
 <p>Bindings of the form <code>{{ }}</code> are supported inside <code>&lt;template&gt;</code> nodes, even outside
 of <code>&lt;polymer-element&gt;</code> declarations. However, those bindings only support binding
 values into the content of a node or an attribute.</p>
 <p>Inline event handlers of the form <code>on-click="{{method}}"</code> are a special feature
 of polymer elements, so they are only supported inside <code>&lt;polymer-element&gt;</code>
 definitions.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_21">No expressions allowed in event handler bindings <a href="#polymer_21">#21</a></h3>
+<div id="polymer_21"><h3>No expressions allowed in event handler bindings <a href="#polymer_21">#21</a></h3>
 <p>Unlike data bindings, event handler bindings of the form <code>on-click="{{method}}"</code>
 are not evaluated as expressions. They are meant to just contain a simple name
 that resolves to a method in your polymer element's class definition.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_22">Nested polymer element definitions not allowed <a href="#polymer_22">#22</a></h3>
+<div id="polymer_22"><h3>Nested polymer element definitions not allowed <a href="#polymer_22">#22</a></h3>
 <p>Because custom element names are global, there is no need to have a
 <code>&lt;polymer-element&gt;</code> definition nested within a <code>&lt;polymer-element&gt;</code>. If you have
 a definition inside another, move the second definition out.</p>
 <p>You might see this error if you have an HTML import within a polymer element.
 You should be able to move the import out of the element definition.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_23">Polymer element definitions without a name <a href="#polymer_23">#23</a></h3>
+<div id="polymer_23"><h3>Polymer element definitions without a name <a href="#polymer_23">#23</a></h3>
 <p>Polymer element definitions must have a name. You can include a name by using
 the <code>name</code> attribute in <code>&lt;polymer-element&gt;</code> for example:</p>
 <pre><code>&lt;polymer-element name="my-example"&gt;
 </code></pre>
-<hr />
+</div><hr />
 
-<h3 id="polymer_24">Custom element name missing a dash <a href="#polymer_24">#24</a></h3>
+<div id="polymer_24"><h3>Custom element name missing a dash <a href="#polymer_24">#24</a></h3>
 <p>Custom element names must have a dash (<code>-</code>) and can't be any of the following
 reserved names:</p><ul><li><code>annotation-xml</code></li><li><code>color-profile</code></li><li><code>font-face</code></li><li><code>font-face-src</code></li><li><code>font-face-uri</code></li><li><code>font-face-format</code></li><li><code>font-face-name</code></li><li><code>missing-glyph</code></li></ul>
-<hr />
+</div><hr />
 
-<h3 id="polymer_25">Error while inlining an import <a href="#polymer_25">#25</a></h3>
+<div id="polymer_25"><h3>Error while inlining an import <a href="#polymer_25">#25</a></h3>
 <p>An error occurred while inlining an import in the polymer build. This is often
 the result of a broken HTML import.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_26">Error while inlining a stylesheet <a href="#polymer_26">#26</a></h3>
+<div id="polymer_26"><h3>Error while inlining a stylesheet <a href="#polymer_26">#26</a></h3>
 <p>An error occurred while inlining a stylesheet in the polymer build. This is
 often the result of a broken URL in a <code>&lt;link rel="stylesheet" href="..."&gt;</code>.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_27">URL to a script file might be incorrect <a href="#polymer_27">#27</a></h3>
+<div id="polymer_27"><h3>URL to a script file might be incorrect <a href="#polymer_27">#27</a></h3>
 <p>An error occurred trying to read a script tag on a given URL. This is often the
 result of a broken URL in a <code>&lt;script src="..."&gt;</code>.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_28">Attribute missing "_" prefix <a href="#polymer_28">#28</a></h3>
+<div id="polymer_28"><h3>Attribute missing "_" prefix <a href="#polymer_28">#28</a></h3>
 <p>Not all browsers support bindings to certain attributes, especially URL
 attributes. Some browsers might sanitize attributes and result in an
 incorrect value. For this reason polymer provides a special set of attributes
@@ -480,94 +495,94 @@ For example, instead of writing:</p>
 <pre><code>&lt;img _src="{{binding}}"&gt;
 </code></pre>
 <p>For more information, see <a href="http://goo.gl/5av8cU">http://goo.gl/5av8cU</a>.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_29">Attribute with extra "_" prefix <a href="#polymer_29">#29</a></h3>
+<div id="polymer_29"><h3>Attribute with extra "_" prefix <a href="#polymer_29">#29</a></h3>
 <p>A special attribute exists to support bindings on URL attributes. For example,
 this correctly binds the <code>src</code> attribute in an image:</p>
 <pre><code>&lt;img _src="{{binding}}"&gt;
 </code></pre>
 <p>However, this special <code>_src</code> attribute is only available for bindings. If you
 just have a URL, use the normal <code>src</code> attribute instead.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_30">Internal error: don't know how to include a URL <a href="#polymer_30">#30</a></h3>
+<div id="polymer_30"><h3>Internal error: don't know how to include a URL <a href="#polymer_30">#30</a></h3>
 <p>Sorry, you just ran into a bug in the polymer transformer code. Please file a
 bug at <a href="http://dartbug.com/new">http://dartbug.com/new</a> including, if possible, some example code that
 can help the team reproduce the issue.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_31">Internal error: phases run out of order <a href="#polymer_31">#31</a></h3>
+<div id="polymer_31"><h3>Internal error: phases run out of order <a href="#polymer_31">#31</a></h3>
 <p>Sorry, you just ran into a bug in the polymer transformer code. Please file a
 bug at <a href="http://dartbug.com/new">http://dartbug.com/new</a> including, if possible, some example code that
 can help the team reproduce the issue.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_32"><code>@CustomTag</code> used on a private class <a href="#polymer_32">#32</a></h3>
+<div id="polymer_32"><h3><code>@CustomTag</code> used on a private class <a href="#polymer_32">#32</a></h3>
 <p>The <code>@CustomTag</code> annotation is currently only supported on public classes. If
 you need to register a custom element whose implementation is a private class
 (that is, a class whose name starts with <code>_</code>), you can still do so by invoking
 <code>Polymer.register</code> within a public method marked with <code>@initMethod</code>.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_33"><code>@initMethod</code> is on a private function <a href="#polymer_33">#33</a></h3>
+<div id="polymer_33"><h3><code>@initMethod</code> is on a private function <a href="#polymer_33">#33</a></h3>
 <p>The <code>@initMethod</code> annotation is currently only supported on public top-level
 functions.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_34">Missing argument in annotation <a href="#polymer_34">#34</a></h3>
+<div id="polymer_34"><h3>Missing argument in annotation <a href="#polymer_34">#34</a></h3>
 <p>The annotation expects one argument, but the argument was not provided.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_35">Invalid argument in annotation <a href="#polymer_35">#35</a></h3>
+<div id="polymer_35"><h3>Invalid argument in annotation <a href="#polymer_35">#35</a></h3>
 <p>The polymer transformer was not able to extract a constant value for the
 annotation argument. This can happen if your code is currently in a state that
 can't be analyzed (for example, it has parse errors) or if the expression passed
 as an argument is invalid (for example, it is not a compile-time constant).</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_36">No polymer initializers found <a href="#polymer_36">#36</a></h3>
+<div id="polymer_36"><h3>No polymer initializers found <a href="#polymer_36">#36</a></h3>
 <p>No polymer initializers were found. Make sure to either 
 annotate your polymer elements with @CustomTag or include a 
 top level method annotated with @initMethod that registers your 
 elements. Both annotations are defined in the polymer library (
 package:polymer/polymer.dart).</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_37">Event bindings with @ are no longer supported <a href="#polymer_37">#37</a></h3>
+<div id="polymer_37"><h3>Event bindings with @ are no longer supported <a href="#polymer_37">#37</a></h3>
 <p>For a while there was an undocumented feature that allowed users to include
 expressions in event bindings using the <code>@</code> prefix, for example:</p>
 <pre><code>&lt;div on-click="{{@a.b.c}}"&gt;
 
 </code></pre>
 <p>This feature is no longer supported.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_38">Private symbol in event handler <a href="#polymer_38">#38</a></h3>
+<div id="polymer_38"><h3>Private symbol in event handler <a href="#polymer_38">#38</a></h3>
 <p>Currently private members can't be used in event handler bindings. So you can't
 write:</p>
 <pre><code>&lt;div on-click="{{_method}}"&gt;
 </code></pre>
 <p>This restriction might be removed in the future, but for now, you need to make
 your event handlers public.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_39">Private symbol in binding expression <a href="#polymer_39">#39</a></h3>
+<div id="polymer_39"><h3>Private symbol in binding expression <a href="#polymer_39">#39</a></h3>
 <p>Private members can't be used in binding expressions. For example, you can't
 write:</p>
 <pre><code>&lt;div&gt;{{a.b._c}}&lt;/div&gt;
 </code></pre>
-<hr />
+</div><hr />
 
-<h3 id="polymer_40">A warning was found while parsing the HTML document <a href="#polymer_40">#40</a></h3>
+<div id="polymer_40"><h3>A warning was found while parsing the HTML document <a href="#polymer_40">#40</a></h3>
 <p>The polymer transformer uses a parser that implements the HTML5 spec
 (<code>html5lib</code>). This message reports a
 warning that the parser detected.</p>
-<hr />
+</div><hr />
 
-<h3 id="polymer_41">Possible flash of unstyled content <a href="#polymer_41">#41</a></h3>
+<div id="polymer_41"><h3>Possible flash of unstyled content <a href="#polymer_41">#41</a></h3>
 <p>Custom element found in document body without an "unresolved" attribute on it or
 one of its parents. This means your app probably has a flash of unstyled content
 before it finishes loading. See <a href="http://goo.gl/iN03Pj">http://goo.gl/iN03Pj</a> for more info.</p>
-<hr /></body>
+</div><hr /></body>
 </html>
