@@ -70,7 +70,7 @@ class FixKind {
   static const CREATE_METHOD =
       const FixKind('CREATE_METHOD', 50, "Create method '{0}'");
   static const CREATE_MISSING_OVERRIDES =
-      const FixKind('CREATE_MISSING_OVERRIDES', 50, "Create %d missing override(s)");
+      const FixKind('CREATE_MISSING_OVERRIDES', 50, "Create {0} missing override(s)");
   static const CREATE_NO_SUCH_METHOD =
       const FixKind('CREATE_NO_SUCH_METHOD', 49, "Create 'noSuchMethod' method");
   static const CREATE_PART =

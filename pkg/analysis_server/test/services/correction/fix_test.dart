@@ -499,6 +499,37 @@ class B extends A {
 ''');
   }
 
+  void test_createMissingOverrides_mergeToField_getterSetter() {
+    _indexTestUnit('''
+class A {
+  int ma;
+  void mb() {}
+  double mc;
+}
+
+class B implements A {
+}
+''');
+    assertHasFix(FixKind.CREATE_MISSING_OVERRIDES, '''
+class A {
+  int ma;
+  void mb() {}
+  double mc;
+}
+
+class B implements A {
+  int ma;
+
+  double mc;
+
+  @override
+  void mb() {
+    // TODO: implement mb
+  }
+}
+''');
+  }
+
   void test_createMissingOverrides_method() {
     _indexTestUnit('''
 abstract class A {
@@ -1278,20 +1309,6 @@ main() {
 ''');
   }
 
-  void test_replaceVarWithDynamic() {
-    checkHasSingleError = false;
-    _indexTestUnit('''
-class A {
-  Map<String, var> m;
-}
-''');
-    assertHasFix(FixKind.REPLACE_VAR_WITH_DYNAMIC, '''
-class A {
-  Map<String, dynamic> m;
-}
-''');
-  }
-
   void test_replaceImportUri_inProject() {
     testFile = '/project/bin/test.dart';
     addSource('/project/foo/bar/lib.dart', '');
@@ -1312,6 +1329,20 @@ import 'no/matter/my_lib.dart';
     performAllAnalysisTasks();
     assertHasFix(FixKind.REPLACE_IMPORT_URI, '''
 import 'package:my_pkg/my_lib.dart';
+''');
+  }
+
+  void test_replaceVarWithDynamic() {
+    checkHasSingleError = false;
+    _indexTestUnit('''
+class A {
+  Map<String, var> m;
+}
+''');
+    assertHasFix(FixKind.REPLACE_VAR_WITH_DYNAMIC, '''
+class A {
+  Map<String, dynamic> m;
+}
 ''');
   }
 

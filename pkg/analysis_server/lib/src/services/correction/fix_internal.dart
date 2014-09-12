@@ -596,46 +596,77 @@ class FixProcessor {
     }
   }
 
-  void
-      _addFix_createMissingOverrides(List<ExecutableElement> missingOverrides) {
-    // sort by name
-    missingOverrides.sort((Element firstElement, Element secondElement) {
-      return compareStrings(
-          firstElement.displayName,
-          secondElement.displayName);
+  void _addFix_createMissingOverrides(List<ExecutableElement> elements) {
+    elements = elements.toList();
+    int numElements = elements.length;
+    // sort by name, getters before setters
+    elements.sort((Element a, Element b) {
+      int names = compareStrings(a.displayName, b.displayName);
+      if (names != 0) {
+        return names;
+      }
+      if (a.kind == ElementKind.GETTER) {
+        return -1;
+      }
+      return 1;
     });
     ClassDeclaration targetClass = node.parent as ClassDeclaration;
     int insertOffset = targetClass.end - 1;
     SourceBuilder sb = new SourceBuilder(file, insertOffset);
-    // add elements
+    // EOL management
     bool isFirst = true;
-    for (ExecutableElement missingOverride in missingOverrides) {
+    void addEolIfNotFirst() {
       if (!isFirst || !targetClass.members.isEmpty) {
         sb.append(eol);
       }
-      _addFix_createMissingOverrides_single(sb, targetClass, missingOverride);
       isFirst = false;
+    }
+    // merge getter/setter pairs into fields
+    for (int i = 0; i < elements.length; i++) {
+      ExecutableElement element = elements[i];
+      if (element.kind == ElementKind.GETTER && i + 1 < elements.length) {
+        ExecutableElement nextElement = elements[i + 1];
+        if (nextElement.kind == ElementKind.SETTER) {
+          // remove this and the next elements, adjust iterator
+          elements.removeAt(i + 1);
+          elements.removeAt(i);
+          i--;
+          numElements--;
+          // add field
+          addEolIfNotFirst();
+          sb.append(utils.getIndent(1));
+          _appendType(sb, element.type.returnType);
+          sb.append(element.name);
+          sb.append(';');
+          sb.append(eol);
+        }
+      }
+    }
+    // add elements
+    for (ExecutableElement element in elements) {
+      addEolIfNotFirst();
+      _addFix_createMissingOverrides_single(sb, targetClass, element);
     }
     // add proposal
     exitPosition = new Position(file, insertOffset);
     _insertBuilder(sb);
-    _addFix(FixKind.CREATE_MISSING_OVERRIDES, [missingOverrides.length]);
+    _addFix(FixKind.CREATE_MISSING_OVERRIDES, [numElements]);
   }
 
   void _addFix_createMissingOverrides_single(SourceBuilder sb,
-      ClassDeclaration targetClass, ExecutableElement missingOverride) {
+      ClassDeclaration targetClass, ExecutableElement element) {
     // prepare environment
     String prefix = utils.getIndent(1);
     String prefix2 = utils.getIndent(2);
     // may be property
-    ElementKind elementKind = missingOverride.kind;
+    ElementKind elementKind = element.kind;
     bool isGetter = elementKind == ElementKind.GETTER;
     bool isSetter = elementKind == ElementKind.SETTER;
     bool isMethod = elementKind == ElementKind.METHOD;
-    bool isOperator = isMethod && (missingOverride as MethodElement).isOperator;
+    bool isOperator = isMethod && (element as MethodElement).isOperator;
     sb.append(prefix);
     if (isGetter) {
-      sb.append('// TODO: implement ${missingOverride.displayName}');
+      sb.append('// TODO: implement ${element.displayName}');
       sb.append(eol);
       sb.append(prefix);
     }
@@ -646,7 +677,7 @@ class FixProcessor {
       sb.append(prefix);
     }
     // return type
-    _appendType(sb, missingOverride.type.returnType);
+    _appendType(sb, element.type.returnType);
     if (isGetter) {
       sb.append('get ');
     } else if (isSetter) {
@@ -655,18 +686,18 @@ class FixProcessor {
       sb.append('operator ');
     }
     // name
-    sb.append(missingOverride.displayName);
+    sb.append(element.displayName);
     // parameters + body
     if (isGetter) {
       sb.append(' => null;');
     } else {
-      List<ParameterElement> parameters = missingOverride.parameters;
+      List<ParameterElement> parameters = element.parameters;
       _appendParameters(sb, parameters, _getDefaultValueMap(parameters));
       sb.append(' {');
       // TO-DO
       sb.append(eol);
       sb.append(prefix2);
-      sb.append('// TODO: implement ${missingOverride.displayName}');
+      sb.append('// TODO: implement ${element.displayName}');
       sb.append(eol);
       // close method
       sb.append(prefix);
@@ -976,12 +1007,6 @@ class FixProcessor {
     _addFix(FixKind.REMOVE_UNUSED_IMPORT, []);
   }
 
-  void _addFix_replaceVarWithDynamic() {
-    SourceRange range = rf.rangeError(error);
-    _addReplaceEdit(range, "dynamic");
-    _addFix(FixKind.REPLACE_VAR_WITH_DYNAMIC, []);
-  }
-
   void _addFix_replaceImportUri() {
     if (node is SimpleStringLiteral) {
       SimpleStringLiteral stringLiteral = node;
@@ -1007,6 +1032,12 @@ class FixProcessor {
         }
       }
     }
+  }
+
+  void _addFix_replaceVarWithDynamic() {
+    SourceRange range = rf.rangeError(error);
+    _addReplaceEdit(range, "dynamic");
+    _addFix(FixKind.REPLACE_VAR_WITH_DYNAMIC, []);
   }
 
   void _addFix_replaceWithConstInstanceCreation() {
