@@ -263,6 +263,7 @@ WebPlatformTest/html/semantics/forms/the-fieldset-element/disabled_t01: StaticWa
 # co19-roll r761
 LayoutTests/fast/animation/request-animation-frame-missing-arguments_t01: StaticWarning # co19-roll r761: Please triage this failure.
 LayoutTests/fast/backgrounds/001_t01: StaticWarning # co19-roll r761: Please triage this failure.
+LayoutTests/fast/canvas/canvas-arc-negative-radius_t01: StaticWarning # Issue 20939
 LayoutTests/fast/canvas/canvas-createImageBitmap-animated_t01: StaticWarning # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: StaticWarning # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: StaticWarning # co19-roll r761: Please triage this failure.

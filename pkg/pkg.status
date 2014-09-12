@@ -273,6 +273,7 @@ polymer/e2e_test/experimental_boot: Skip
 # This test uses third_party/pkg/perf_api/lib/perf_api.dart, which
 # contains illegal constant constructors.
 third_party/angular_tests/browser_test: CompileTimeError
+custom_element/test/analyzer_test: StaticWarning # Issue 20939
 
 [ $compiler == dart2js && $runtime == none]
 polymer/e2e_test/canonicalization: Skip
