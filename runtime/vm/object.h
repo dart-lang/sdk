@@ -3091,13 +3091,14 @@ class LocalVarDescriptors : public Object {
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawLocalVarDescriptors) ==
-        OFFSET_OF_RETURNED_VALUE(RawLocalVarDescriptors, data));
+        OFFSET_OF_RETURNED_VALUE(RawLocalVarDescriptors, names));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(RawLocalVarDescriptors) + (len * kBytesPerElement));
+    return RoundedAllocationSize(sizeof(RawLocalVarDescriptors)
+        + (len * kWordSize)  // RawStrings for names.
+        + (len * sizeof(RawLocalVarDescriptors::VarInfo)));
   }
 
   static RawLocalVarDescriptors* New(intptr_t num_variables);

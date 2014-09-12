@@ -669,17 +669,15 @@ void Object::InitOnce() {
 
   // Allocate and initialize the canonical empty variable descriptor object.
   {
-    uword address = heap->Allocate(
-        LocalVarDescriptors::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, kLocalVarDescriptorsCid,
-        LocalVarDescriptors::InstanceSize(0));
+    uword address =
+        heap->Allocate(LocalVarDescriptors::InstanceSize(0), Heap::kOld);
+    InitializeObject(address,
+                     kLocalVarDescriptorsCid,
+                     LocalVarDescriptors::InstanceSize(0));
     LocalVarDescriptors::initializeHandle(
         empty_var_descriptors_,
         reinterpret_cast<RawLocalVarDescriptors*>(address + kHeapObjectTag));
-    empty_var_descriptors_->raw_ptr()->length_ = 0;
-    // Can't use instance mentod StorePointer() here, but this pointer
-    // assignment is safe (from old space to old space).
-    empty_var_descriptors_->raw_ptr()->names_ = empty_array_->raw_ptr();
+    empty_var_descriptors_->raw_ptr()->num_entries_ = 0;
   }
 
   cls = Class::New<Instance>(kDynamicCid);
@@ -10800,11 +10798,8 @@ void Stackmap::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
   ASSERT(var_index < Length());
-  const Array& names = Array::Handle(raw_ptr()->names_);
-  ASSERT(Length() == names.Length());
-  String& name = String::Handle();
-  name ^= names.At(var_index);
-  return name.raw();
+  ASSERT(Object::Handle(*raw()->nameAddrAt(var_index)).IsString());
+  return *raw()->nameAddrAt(var_index);
 }
 
 
@@ -10812,17 +10807,15 @@ void LocalVarDescriptors::SetVar(intptr_t var_index,
                                  const String& name,
                                  RawLocalVarDescriptors::VarInfo* info) const {
   ASSERT(var_index < Length());
-  const Array& names = Array::Handle(raw_ptr()->names_);
-  ASSERT(Length() == names.Length());
-  names.SetAt(var_index, name);
-  raw_ptr()->data()[var_index] = *info;
+  StorePointer(raw()->nameAddrAt(var_index), name.raw());
+  raw()->data()[var_index] = *info;
 }
 
 
 void LocalVarDescriptors::GetInfo(intptr_t var_index,
                                   RawLocalVarDescriptors::VarInfo* info) const {
   ASSERT(var_index < Length());
-  *info = raw_ptr()->data()[var_index];
+  *info = raw()->data()[var_index];
 }
 
 
@@ -10994,17 +10987,14 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->length_ = num_variables;
+    result.raw_ptr()->num_entries_ = num_variables;
   }
-  const Array& names = (num_variables == 0) ? Object::empty_array() :
-      Array::Handle(Array::New(num_variables, Heap::kOld));
-  result.raw_ptr()->names_ = names.raw();
   return result.raw();
 }
 
 
 intptr_t LocalVarDescriptors::Length() const {
-  return raw_ptr()->length_;
+  return raw_ptr()->num_entries_;
 }
 
 
