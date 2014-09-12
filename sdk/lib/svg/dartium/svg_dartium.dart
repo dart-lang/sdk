@@ -45,8 +45,6 @@ final svgBlinkMap = {
   'SVGDescElement': () => DescElement,
   'SVGDiscardElement': () => DiscardElement,
   'SVGElement': () => SvgElement,
-  'SVGElementInstance': () => ElementInstance,
-  'SVGElementInstanceList': () => _ElementInstanceList,
   'SVGEllipseElement': () => EllipseElement,
   'SVGFEBlendElement': () => FEBlendElement,
   'SVGFEColorMatrixElement': () => FEColorMatrixElement,
@@ -926,687 +924,6 @@ class DiscardElement extends SvgElement {
    * This can only be called by subclasses from their created constructor.
    */
   DiscardElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGElementInstance')
-@Unstable()
-class ElementInstance extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory ElementInstance._() { throw new UnsupportedError("Not supported"); }
-
-  /**
-   * Static factory designed to expose `abort` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.abortEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
-
-  /**
-   * Static factory designed to expose `beforecopy` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.beforecopyEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
-
-  /**
-   * Static factory designed to expose `beforecut` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.beforecutEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
-
-  /**
-   * Static factory designed to expose `beforepaste` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.beforepasteEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
-
-  /**
-   * Static factory designed to expose `blur` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.blurEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
-
-  /**
-   * Static factory designed to expose `change` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.changeEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
-
-  /**
-   * Static factory designed to expose `click` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.clickEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
-
-  /**
-   * Static factory designed to expose `contextmenu` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.contextmenuEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
-
-  /**
-   * Static factory designed to expose `copy` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.copyEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
-
-  /**
-   * Static factory designed to expose `cut` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.cutEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
-
-  /**
-   * Static factory designed to expose `doubleclick` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.dblclickEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
-
-  /**
-   * Static factory designed to expose `drag` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.dragEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
-
-  /**
-   * Static factory designed to expose `dragend` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.dragendEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
-
-  /**
-   * Static factory designed to expose `dragenter` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.dragenterEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
-
-  /**
-   * Static factory designed to expose `dragleave` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.dragleaveEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
-
-  /**
-   * Static factory designed to expose `dragover` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.dragoverEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
-
-  /**
-   * Static factory designed to expose `dragstart` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.dragstartEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
-
-  /**
-   * Static factory designed to expose `drop` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.dropEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
-
-  /**
-   * Static factory designed to expose `error` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.errorEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  /**
-   * Static factory designed to expose `focus` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.focusEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
-
-  /**
-   * Static factory designed to expose `input` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.inputEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
-
-  /**
-   * Static factory designed to expose `keydown` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.keydownEvent')
-  @DocsEditable()
-  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
-
-  /**
-   * Static factory designed to expose `keypress` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.keypressEvent')
-  @DocsEditable()
-  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
-
-  /**
-   * Static factory designed to expose `keyup` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.keyupEvent')
-  @DocsEditable()
-  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
-
-  /**
-   * Static factory designed to expose `load` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.loadEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  /**
-   * Static factory designed to expose `mousedown` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.mousedownEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
-
-  /**
-   * Static factory designed to expose `mouseenter` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.mouseenterEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<MouseEvent> mouseEnterEvent = const EventStreamProvider<MouseEvent>('mouseenter');
-
-  /**
-   * Static factory designed to expose `mouseleave` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.mouseleaveEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<MouseEvent> mouseLeaveEvent = const EventStreamProvider<MouseEvent>('mouseleave');
-
-  /**
-   * Static factory designed to expose `mousemove` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.mousemoveEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
-
-  /**
-   * Static factory designed to expose `mouseout` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.mouseoutEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
-
-  /**
-   * Static factory designed to expose `mouseover` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.mouseoverEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
-
-  /**
-   * Static factory designed to expose `mouseup` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.mouseupEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
-
-  /**
-   * Static factory designed to expose `mousewheel` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.mousewheelEvent')
-  @DocsEditable()
-  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
-
-  /**
-   * Static factory designed to expose `paste` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.pasteEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
-
-  /**
-   * Static factory designed to expose `reset` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.resetEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
-
-  /**
-   * Static factory designed to expose `resize` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.resizeEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
-
-  /**
-   * Static factory designed to expose `scroll` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.scrollEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
-
-  /**
-   * Static factory designed to expose `search` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.searchEvent')
-  @DocsEditable()
-  // http://www.w3.org/TR/html-markup/input.search.html
-  @Experimental()
-  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
-
-  /**
-   * Static factory designed to expose `select` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.selectEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
-
-  /**
-   * Static factory designed to expose `selectstart` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.selectstartEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
-
-  /**
-   * Static factory designed to expose `submit` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.submitEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
-
-  /**
-   * Static factory designed to expose `unload` events to event
-   * handlers that are not necessarily instances of [ElementInstance].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('SVGElementInstance.unloadEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
-
-  @DomName('SVGElementInstance.correspondingElement')
-  @DocsEditable()
-  SvgElement get correspondingElement => _blink.BlinkSVGElementInstance.correspondingElement_Getter(this);
-
-  @DomName('SVGElementInstance.correspondingUseElement')
-  @DocsEditable()
-  UseElement get correspondingUseElement => _blink.BlinkSVGElementInstance.correspondingUseElement_Getter(this);
-
-  @DomName('SVGElementInstance.firstChild')
-  @DocsEditable()
-  ElementInstance get firstChild => _blink.BlinkSVGElementInstance.firstChild_Getter(this);
-
-  @DomName('SVGElementInstance.lastChild')
-  @DocsEditable()
-  ElementInstance get lastChild => _blink.BlinkSVGElementInstance.lastChild_Getter(this);
-
-  @DomName('SVGElementInstance.nextSibling')
-  @DocsEditable()
-  ElementInstance get nextSibling => _blink.BlinkSVGElementInstance.nextSibling_Getter(this);
-
-  @DomName('SVGElementInstance.parentNode')
-  @DocsEditable()
-  ElementInstance get parentNode => _blink.BlinkSVGElementInstance.parentNode_Getter(this);
-
-  @DomName('SVGElementInstance.previousSibling')
-  @DocsEditable()
-  ElementInstance get previousSibling => _blink.BlinkSVGElementInstance.previousSibling_Getter(this);
-
-  /// Stream of `abort` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onabort')
-  @DocsEditable()
-  Stream<Event> get onAbort => abortEvent.forTarget(this);
-
-  /// Stream of `beforecopy` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onbeforecopy')
-  @DocsEditable()
-  Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
-
-  /// Stream of `beforecut` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onbeforecut')
-  @DocsEditable()
-  Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
-
-  /// Stream of `beforepaste` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onbeforepaste')
-  @DocsEditable()
-  Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
-
-  /// Stream of `blur` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onblur')
-  @DocsEditable()
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
-
-  /// Stream of `change` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onchange')
-  @DocsEditable()
-  Stream<Event> get onChange => changeEvent.forTarget(this);
-
-  /// Stream of `click` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onclick')
-  @DocsEditable()
-  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
-
-  /// Stream of `contextmenu` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.oncontextmenu')
-  @DocsEditable()
-  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
-
-  /// Stream of `copy` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.oncopy')
-  @DocsEditable()
-  Stream<Event> get onCopy => copyEvent.forTarget(this);
-
-  /// Stream of `cut` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.oncut')
-  @DocsEditable()
-  Stream<Event> get onCut => cutEvent.forTarget(this);
-
-  /// Stream of `doubleclick` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.ondblclick')
-  @DocsEditable()
-  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
-
-  /// Stream of `drag` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.ondrag')
-  @DocsEditable()
-  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
-
-  /// Stream of `dragend` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.ondragend')
-  @DocsEditable()
-  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
-
-  /// Stream of `dragenter` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.ondragenter')
-  @DocsEditable()
-  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
-
-  /// Stream of `dragleave` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.ondragleave')
-  @DocsEditable()
-  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
-
-  /// Stream of `dragover` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.ondragover')
-  @DocsEditable()
-  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
-
-  /// Stream of `dragstart` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.ondragstart')
-  @DocsEditable()
-  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
-
-  /// Stream of `drop` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.ondrop')
-  @DocsEditable()
-  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
-
-  /// Stream of `error` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onerror')
-  @DocsEditable()
-  Stream<Event> get onError => errorEvent.forTarget(this);
-
-  /// Stream of `focus` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onfocus')
-  @DocsEditable()
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
-
-  /// Stream of `input` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.oninput')
-  @DocsEditable()
-  Stream<Event> get onInput => inputEvent.forTarget(this);
-
-  /// Stream of `keydown` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onkeydown')
-  @DocsEditable()
-  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
-
-  /// Stream of `keypress` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onkeypress')
-  @DocsEditable()
-  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
-
-  /// Stream of `keyup` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onkeyup')
-  @DocsEditable()
-  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
-
-  /// Stream of `load` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onload')
-  @DocsEditable()
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
-
-  /// Stream of `mousedown` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onmousedown')
-  @DocsEditable()
-  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
-
-  /// Stream of `mouseenter` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onmouseenter')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<MouseEvent> get onMouseEnter => mouseEnterEvent.forTarget(this);
-
-  /// Stream of `mouseleave` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onmouseleave')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<MouseEvent> get onMouseLeave => mouseLeaveEvent.forTarget(this);
-
-  /// Stream of `mousemove` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onmousemove')
-  @DocsEditable()
-  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
-
-  /// Stream of `mouseout` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onmouseout')
-  @DocsEditable()
-  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
-
-  /// Stream of `mouseover` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onmouseover')
-  @DocsEditable()
-  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
-
-  /// Stream of `mouseup` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onmouseup')
-  @DocsEditable()
-  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
-
-  /// Stream of `mousewheel` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onmousewheel')
-  @DocsEditable()
-  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
-
-  /// Stream of `paste` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onpaste')
-  @DocsEditable()
-  Stream<Event> get onPaste => pasteEvent.forTarget(this);
-
-  /// Stream of `reset` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onreset')
-  @DocsEditable()
-  Stream<Event> get onReset => resetEvent.forTarget(this);
-
-  /// Stream of `resize` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onresize')
-  @DocsEditable()
-  Stream<Event> get onResize => resizeEvent.forTarget(this);
-
-  /// Stream of `scroll` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onscroll')
-  @DocsEditable()
-  Stream<Event> get onScroll => scrollEvent.forTarget(this);
-
-  /// Stream of `search` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onsearch')
-  @DocsEditable()
-  // http://www.w3.org/TR/html-markup/input.search.html
-  @Experimental()
-  Stream<Event> get onSearch => searchEvent.forTarget(this);
-
-  /// Stream of `select` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onselect')
-  @DocsEditable()
-  Stream<Event> get onSelect => selectEvent.forTarget(this);
-
-  /// Stream of `selectstart` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onselectstart')
-  @DocsEditable()
-  Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
-
-  /// Stream of `submit` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onsubmit')
-  @DocsEditable()
-  Stream<Event> get onSubmit => submitEvent.forTarget(this);
-
-  /// Stream of `unload` events handled by this [ElementInstance].
-  @DomName('SVGElementInstance.onunload')
-  @DocsEditable()
-  Stream<Event> get onUnload => unloadEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3631,6 +2948,11 @@ class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, Immuta
   // To suppress missing implicit constructor warnings.
   factory LengthList._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SVGLengthList.length')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get length => _blink.BlinkSVGLengthList.length_Getter(this);
+
   @DomName('SVGLengthList.numberOfItems')
   @DocsEditable()
   int get numberOfItems => _blink.BlinkSVGLengthList.numberOfItems_Getter(this);
@@ -3647,8 +2969,6 @@ class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, Immuta
   // -- start List<Length> mixins.
   // Length is the element type.
 
-  // SVG Collections expose numberOfItems rather than length.
-  int get length => numberOfItems;
 
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
@@ -3680,6 +3000,11 @@ class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, Immuta
 
   Length elementAt(int index) => this[index];
   // -- end List<Length> mixins.
+
+  @DomName('SVGLengthList.__setter__')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void __setter__(int index, Length value) => _blink.BlinkSVGLengthList.$__setter___Callback_ul_SVGLength(this, index, value);
 
   @DomName('SVGLengthList.appendItem')
   @DocsEditable()
@@ -4115,6 +3440,11 @@ class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, Immuta
   // To suppress missing implicit constructor warnings.
   factory NumberList._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SVGNumberList.length')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get length => _blink.BlinkSVGNumberList.length_Getter(this);
+
   @DomName('SVGNumberList.numberOfItems')
   @DocsEditable()
   int get numberOfItems => _blink.BlinkSVGNumberList.numberOfItems_Getter(this);
@@ -4131,8 +3461,6 @@ class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, Immuta
   // -- start List<Number> mixins.
   // Number is the element type.
 
-  // SVG Collections expose numberOfItems rather than length.
-  int get length => numberOfItems;
 
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
@@ -4164,6 +3492,11 @@ class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, Immuta
 
   Number elementAt(int index) => this[index];
   // -- end List<Number> mixins.
+
+  @DomName('SVGNumberList.__setter__')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void __setter__(int index, Number value) => _blink.BlinkSVGNumberList.$__setter___Callback_ul_SVGNumber(this, index, value);
 
   @DomName('SVGNumberList.appendItem')
   @DocsEditable()
@@ -5131,6 +4464,11 @@ class PathSegList extends NativeFieldWrapperClass2 with ListMixin<PathSeg>, Immu
   // To suppress missing implicit constructor warnings.
   factory PathSegList._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SVGPathSegList.length')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get length => _blink.BlinkSVGPathSegList.length_Getter(this);
+
   @DomName('SVGPathSegList.numberOfItems')
   @DocsEditable()
   int get numberOfItems => _blink.BlinkSVGPathSegList.numberOfItems_Getter(this);
@@ -5147,8 +4485,6 @@ class PathSegList extends NativeFieldWrapperClass2 with ListMixin<PathSeg>, Immu
   // -- start List<PathSeg> mixins.
   // PathSeg is the element type.
 
-  // SVG Collections expose numberOfItems rather than length.
-  int get length => numberOfItems;
 
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
@@ -5180,6 +4516,11 @@ class PathSegList extends NativeFieldWrapperClass2 with ListMixin<PathSeg>, Immu
 
   PathSeg elementAt(int index) => this[index];
   // -- end List<PathSeg> mixins.
+
+  @DomName('SVGPathSegList.__setter__')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void __setter__(int index, PathSeg value) => _blink.BlinkSVGPathSegList.$__setter___Callback_ul_SVGPathSeg(this, index, value);
 
   @DomName('SVGPathSegList.appendItem')
   @DocsEditable()
@@ -5402,9 +4743,19 @@ class PointList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PointList._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SVGPointList.length')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get length => _blink.BlinkSVGPointList.length_Getter(this);
+
   @DomName('SVGPointList.numberOfItems')
   @DocsEditable()
   int get numberOfItems => _blink.BlinkSVGPointList.numberOfItems_Getter(this);
+
+  @DomName('SVGPointList.__setter__')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void __setter__(int index, Point value) => _blink.BlinkSVGPointList.$__setter___Callback_ul_SVGPoint(this, index, value);
 
   @DomName('SVGPointList.appendItem')
   @DocsEditable()
@@ -5883,6 +5234,11 @@ class StringList extends NativeFieldWrapperClass2 with ListMixin<String>, Immuta
   // To suppress missing implicit constructor warnings.
   factory StringList._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SVGStringList.length')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get length => _blink.BlinkSVGStringList.length_Getter(this);
+
   @DomName('SVGStringList.numberOfItems')
   @DocsEditable()
   int get numberOfItems => _blink.BlinkSVGStringList.numberOfItems_Getter(this);
@@ -5899,8 +5255,6 @@ class StringList extends NativeFieldWrapperClass2 with ListMixin<String>, Immuta
   // -- start List<String> mixins.
   // String is the element type.
 
-  // SVG Collections expose numberOfItems rather than length.
-  int get length => numberOfItems;
 
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
@@ -5932,6 +5286,11 @@ class StringList extends NativeFieldWrapperClass2 with ListMixin<String>, Immuta
 
   String elementAt(int index) => this[index];
   // -- end List<String> mixins.
+
+  @DomName('SVGStringList.__setter__')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void __setter__(int index, String value) => _blink.BlinkSVGStringList.$__setter___Callback_ul_DOMString(this, index, value);
 
   @DomName('SVGStringList.appendItem')
   @DocsEditable()
@@ -6453,6 +5812,16 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DocsEditable()
   @Experimental() // untriaged
   CssStyleDeclaration get style => _blink.BlinkSVGElement.style_Getter(this);
+
+  @DomName('SVGElement.tabIndex')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get tabIndex => _blink.BlinkSVGElement.tabIndex_Getter(this);
+
+  @DomName('SVGElement.tabIndex')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set tabIndex(int value) => _blink.BlinkSVGElement.tabIndex_Setter_long(this, value);
 
   @DomName('SVGElement.viewportElement')
   @DocsEditable()
@@ -7372,6 +6741,11 @@ class TransformList extends NativeFieldWrapperClass2 with ListMixin<Transform>, 
   // To suppress missing implicit constructor warnings.
   factory TransformList._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SVGTransformList.length')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get length => _blink.BlinkSVGTransformList.length_Getter(this);
+
   @DomName('SVGTransformList.numberOfItems')
   @DocsEditable()
   int get numberOfItems => _blink.BlinkSVGTransformList.numberOfItems_Getter(this);
@@ -7388,8 +6762,6 @@ class TransformList extends NativeFieldWrapperClass2 with ListMixin<Transform>, 
   // -- start List<Transform> mixins.
   // Transform is the element type.
 
-  // SVG Collections expose numberOfItems rather than length.
-  int get length => numberOfItems;
 
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
@@ -7421,6 +6793,11 @@ class TransformList extends NativeFieldWrapperClass2 with ListMixin<Transform>, 
 
   Transform elementAt(int index) => this[index];
   // -- end List<Transform> mixins.
+
+  @DomName('SVGTransformList.__setter__')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void __setter__(int index, Transform value) => _blink.BlinkSVGTransformList.$__setter___Callback_ul_SVGTransform(this, index, value);
 
   @DomName('SVGTransformList.appendItem')
   @DocsEditable()
@@ -7515,7 +6892,7 @@ abstract class UriReference extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGUseElement')
 @Unstable()
-class UseElement extends GraphicsElement implements UriReference, Tests {
+class UseElement extends GraphicsElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory UseElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -7529,17 +6906,9 @@ class UseElement extends GraphicsElement implements UriReference, Tests {
    */
   UseElement.created() : super.created();
 
-  @DomName('SVGUseElement.animatedInstanceRoot')
-  @DocsEditable()
-  ElementInstance get animatedInstanceRoot => _blink.BlinkSVGUseElement.animatedInstanceRoot_Getter(this);
-
   @DomName('SVGUseElement.height')
   @DocsEditable()
   AnimatedLength get height => _blink.BlinkSVGUseElement.height_Getter(this);
-
-  @DomName('SVGUseElement.instanceRoot')
-  @DocsEditable()
-  ElementInstance get instanceRoot => _blink.BlinkSVGUseElement.instanceRoot_Getter(this);
 
   @DomName('SVGUseElement.width')
   @DocsEditable()
@@ -7552,22 +6921,6 @@ class UseElement extends GraphicsElement implements UriReference, Tests {
   @DomName('SVGUseElement.y')
   @DocsEditable()
   AnimatedLength get y => _blink.BlinkSVGUseElement.y_Getter(this);
-
-  @DomName('SVGUseElement.requiredExtensions')
-  @DocsEditable()
-  StringList get requiredExtensions => _blink.BlinkSVGUseElement.requiredExtensions_Getter(this);
-
-  @DomName('SVGUseElement.requiredFeatures')
-  @DocsEditable()
-  StringList get requiredFeatures => _blink.BlinkSVGUseElement.requiredFeatures_Getter(this);
-
-  @DomName('SVGUseElement.systemLanguage')
-  @DocsEditable()
-  StringList get systemLanguage => _blink.BlinkSVGUseElement.systemLanguage_Getter(this);
-
-  @DomName('SVGUseElement.hasExtension')
-  @DocsEditable()
-  bool hasExtension(String extension) => _blink.BlinkSVGUseElement.hasExtension_Callback_DOMString(this, extension);
 
   @DomName('SVGUseElement.href')
   @DocsEditable()
@@ -7746,75 +7099,6 @@ class ZoomEvent extends UIEvent {
   @DomName('SVGZoomEvent.zoomRectScreen')
   @DocsEditable()
   Rect get zoomRectScreen => _blink.BlinkSVGZoomEvent.zoomRectScreen_Getter(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGElementInstanceList')
-@Unstable()
-class _ElementInstanceList extends NativeFieldWrapperClass2 with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List<ElementInstance> {
-  // To suppress missing implicit constructor warnings.
-  factory _ElementInstanceList._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGElementInstanceList.length')
-  @DocsEditable()
-  int get length => _blink.BlinkSVGElementInstanceList.length_Getter(this);
-
-  ElementInstance operator[](int index) {
-    if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
-    return _blink.BlinkSVGElementInstanceList.item_Callback_ul(this, index);
-  }
-
-  ElementInstance _nativeIndexedGetter(int index) => _blink.BlinkSVGElementInstanceList.item_Callback_ul(this, index);
-
-  void operator[]=(int index, ElementInstance value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<ElementInstance> mixins.
-  // ElementInstance is the element type.
-
-
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  ElementInstance get first {
-    if (this.length > 0) {
-      return _nativeIndexedGetter(0);
-    }
-    throw new StateError("No elements");
-  }
-
-  ElementInstance get last {
-    int len = this.length;
-    if (len > 0) {
-      return _nativeIndexedGetter(len - 1);
-    }
-    throw new StateError("No elements");
-  }
-
-  ElementInstance get single {
-    int len = this.length;
-    if (len == 1) {
-      return _nativeIndexedGetter(0);
-    }
-    if (len == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  ElementInstance elementAt(int index) => this[index];
-  // -- end List<ElementInstance> mixins.
-
-  @DomName('SVGElementInstanceList.item')
-  @DocsEditable()
-  ElementInstance item(int index) => _blink.BlinkSVGElementInstanceList.item_Callback_ul(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

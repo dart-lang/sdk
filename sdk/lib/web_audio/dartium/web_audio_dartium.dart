@@ -78,7 +78,7 @@ class AnalyserNode extends AudioNode {
 
   @DomName('AnalyserNode.maxDecibels')
   @DocsEditable()
-  void set maxDecibels(num value) => _blink.BlinkAnalyserNode.maxDecibels_Setter_float(this, value);
+  void set maxDecibels(num value) => _blink.BlinkAnalyserNode.maxDecibels_Setter_double(this, value);
 
   @DomName('AnalyserNode.minDecibels')
   @DocsEditable()
@@ -86,7 +86,7 @@ class AnalyserNode extends AudioNode {
 
   @DomName('AnalyserNode.minDecibels')
   @DocsEditable()
-  void set minDecibels(num value) => _blink.BlinkAnalyserNode.minDecibels_Setter_float(this, value);
+  void set minDecibels(num value) => _blink.BlinkAnalyserNode.minDecibels_Setter_double(this, value);
 
   @DomName('AnalyserNode.smoothingTimeConstant')
   @DocsEditable()
@@ -94,7 +94,7 @@ class AnalyserNode extends AudioNode {
 
   @DomName('AnalyserNode.smoothingTimeConstant')
   @DocsEditable()
-  void set smoothingTimeConstant(num value) => _blink.BlinkAnalyserNode.smoothingTimeConstant_Setter_float(this, value);
+  void set smoothingTimeConstant(num value) => _blink.BlinkAnalyserNode.smoothingTimeConstant_Setter_double(this, value);
 
   @DomName('AnalyserNode.getByteFrequencyData')
   @DocsEditable()
@@ -107,6 +107,11 @@ class AnalyserNode extends AudioNode {
   @DomName('AnalyserNode.getFloatFrequencyData')
   @DocsEditable()
   void getFloatFrequencyData(Float32List array) => _blink.BlinkAnalyserNode.getFloatFrequencyData_Callback_Float32Array(this, array);
+
+  @DomName('AnalyserNode.getFloatTimeDomainData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void getFloatTimeDomainData(Float32List array) => _blink.BlinkAnalyserNode.getFloatTimeDomainData_Callback_Float32Array(this, array);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -184,22 +189,6 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  @DomName('AudioBufferSourceNode.FINISHED_STATE')
-  @DocsEditable()
-  static const int FINISHED_STATE = 3;
-
-  @DomName('AudioBufferSourceNode.PLAYING_STATE')
-  @DocsEditable()
-  static const int PLAYING_STATE = 2;
-
-  @DomName('AudioBufferSourceNode.SCHEDULED_STATE')
-  @DocsEditable()
-  static const int SCHEDULED_STATE = 1;
-
-  @DomName('AudioBufferSourceNode.UNSCHEDULED_STATE')
-  @DocsEditable()
-  static const int UNSCHEDULED_STATE = 0;
-
   @DomName('AudioBufferSourceNode.buffer')
   @DocsEditable()
   AudioBuffer get buffer => _blink.BlinkAudioBufferSourceNode.buffer_Getter(this);
@@ -235,18 +224,6 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DomName('AudioBufferSourceNode.playbackRate')
   @DocsEditable()
   AudioParam get playbackRate => _blink.BlinkAudioBufferSourceNode.playbackRate_Getter(this);
-
-  @DomName('AudioBufferSourceNode.noteGrainOn')
-  @DocsEditable()
-  void noteGrainOn(num when, num grainOffset, num grainDuration) => _blink.BlinkAudioBufferSourceNode.noteGrainOn_Callback_double_double_double(this, when, grainOffset, grainDuration);
-
-  @DomName('AudioBufferSourceNode.noteOff')
-  @DocsEditable()
-  void noteOff(num when) => _blink.BlinkAudioBufferSourceNode.noteOff_Callback_double(this, when);
-
-  @DomName('AudioBufferSourceNode.noteOn')
-  @DocsEditable()
-  void noteOn(num when) => _blink.BlinkAudioBufferSourceNode.noteOn_Callback_double(this, when);
 
   void start([num when, num grainOffset, num grainDuration]) {
     if (grainDuration != null) {
@@ -676,6 +653,11 @@ class AudioProcessingEvent extends Event {
   @DocsEditable()
   AudioBuffer get outputBuffer => _blink.BlinkAudioProcessingEvent.outputBuffer_Getter(this);
 
+  @DomName('AudioProcessingEvent.playbackTime')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get playbackTime => _blink.BlinkAudioProcessingEvent.playbackTime_Getter(this);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -707,38 +689,6 @@ class AudioSourceNode extends AudioNode {
 class BiquadFilterNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory BiquadFilterNode._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('BiquadFilterNode.ALLPASS')
-  @DocsEditable()
-  static const int ALLPASS = 7;
-
-  @DomName('BiquadFilterNode.BANDPASS')
-  @DocsEditable()
-  static const int BANDPASS = 2;
-
-  @DomName('BiquadFilterNode.HIGHPASS')
-  @DocsEditable()
-  static const int HIGHPASS = 1;
-
-  @DomName('BiquadFilterNode.HIGHSHELF')
-  @DocsEditable()
-  static const int HIGHSHELF = 4;
-
-  @DomName('BiquadFilterNode.LOWPASS')
-  @DocsEditable()
-  static const int LOWPASS = 0;
-
-  @DomName('BiquadFilterNode.LOWSHELF')
-  @DocsEditable()
-  static const int LOWSHELF = 3;
-
-  @DomName('BiquadFilterNode.NOTCH')
-  @DocsEditable()
-  static const int NOTCH = 6;
-
-  @DomName('BiquadFilterNode.PEAKING')
-  @DocsEditable()
-  static const int PEAKING = 5;
 
   @DomName('BiquadFilterNode.Q')
   @DocsEditable()
@@ -1042,22 +992,6 @@ class OscillatorNode extends AudioSourceNode {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  @DomName('OscillatorNode.FINISHED_STATE')
-  @DocsEditable()
-  static const int FINISHED_STATE = 3;
-
-  @DomName('OscillatorNode.PLAYING_STATE')
-  @DocsEditable()
-  static const int PLAYING_STATE = 2;
-
-  @DomName('OscillatorNode.SCHEDULED_STATE')
-  @DocsEditable()
-  static const int SCHEDULED_STATE = 1;
-
-  @DomName('OscillatorNode.UNSCHEDULED_STATE')
-  @DocsEditable()
-  static const int UNSCHEDULED_STATE = 0;
-
   @DomName('OscillatorNode.detune')
   @DocsEditable()
   AudioParam get detune => _blink.BlinkOscillatorNode.detune_Getter(this);
@@ -1234,38 +1168,14 @@ class ScriptProcessorNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ScriptProcessorNode._() { throw new UnsupportedError("Not supported"); }
 
-  /**
-   * Static factory designed to expose `audioprocess` events to event
-   * handlers that are not necessarily instances of [ScriptProcessorNode].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('ScriptProcessorNode.audioprocessEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<AudioProcessingEvent> audioProcessEvent = const EventStreamProvider<AudioProcessingEvent>('audioprocess');
-
   @DomName('ScriptProcessorNode.bufferSize')
   @DocsEditable()
   int get bufferSize => _blink.BlinkScriptProcessorNode.bufferSize_Getter(this);
 
-  @DomName('ScriptProcessorNode._setEventListener')
-  @DocsEditable()
-  @Experimental() // non-standard
-  void _setEventListener(EventListener eventListener) => _blink.BlinkScriptProcessorNode.$_setEventListener_Callback_EventListener(this, eventListener);
-
-  /// Stream of `audioprocess` events handled by this [ScriptProcessorNode].
-/**
-   * Get a Stream that fires events when AudioProcessingEvents occur.
-   * This particular stream is special in that it only allows one listener to a
-   * given stream. Converting the returned Stream [asBroadcast] will likely ruin
-   * the soft-real-time properties which which these events are fired and can
-   * be processed.
-   */
-  @DomName('ScriptProcessorNode.onaudioprocess')
+  @DomName('ScriptProcessorNode.setEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<AudioProcessingEvent> get onAudioProcess => audioProcessEvent.forTarget(this);
+  void setEventListener(EventListener eventListener) => _blink.BlinkScriptProcessorNode.setEventListener_Callback_EventListener(this, eventListener);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -45,6 +45,14 @@
     },
     "support_level": "untriaged"
   },
+  "AesKeyAlgorithm": {
+    "members": {
+      "length": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "AesKeyGenParams": {
     "members": {
       "length": {
@@ -69,6 +77,9 @@
       "getByteFrequencyData": {},
       "getByteTimeDomainData": {},
       "getFloatFrequencyData": {},
+      "getFloatTimeDomainData": {
+        "support_level": "untriaged"
+      },
       "maxDecibels": {},
       "minDecibels": {},
       "smoothingTimeConstant": {}
@@ -78,6 +89,102 @@
   "Animation": {
     "members": {
       "Animation": {}
+    },
+    "support_level": "untriaged"
+  },
+  "AnimationEffect": {
+    "members": {},
+    "support_level": "untriaged"
+  },
+  "AnimationNode": {
+    "members": {
+      "activeDuration": {
+        "support_level": "untriaged"
+      },
+      "currentIteration": {
+        "support_level": "untriaged"
+      },
+      "duration": {
+        "support_level": "untriaged"
+      },
+      "endTime": {
+        "support_level": "untriaged"
+      },
+      "localTime": {
+        "support_level": "untriaged"
+      },
+      "player": {
+        "support_level": "untriaged"
+      },
+      "startTime": {
+        "support_level": "untriaged"
+      },
+      "timing": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "AnimationPlayer": {
+    "members": {
+      "cancel": {
+        "support_level": "untriaged"
+      },
+      "currentTime": {
+        "support_level": "untriaged"
+      },
+      "finish": {
+        "support_level": "untriaged"
+      },
+      "finished": {
+        "support_level": "untriaged"
+      },
+      "pause": {
+        "support_level": "untriaged"
+      },
+      "paused": {
+        "support_level": "untriaged"
+      },
+      "play": {
+        "support_level": "untriaged"
+      },
+      "playbackRate": {
+        "support_level": "untriaged"
+      },
+      "reverse": {
+        "support_level": "untriaged"
+      },
+      "source": {
+        "support_level": "untriaged"
+      },
+      "startTime": {
+        "support_level": "untriaged"
+      },
+      "timeLag": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "AnimationPlayerEvent": {
+    "members": {
+      "currentTime": {
+        "support_level": "untriaged"
+      },
+      "timelineTime": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "AnimationTimeline": {
+    "members": {
+      "currentTime": {
+        "support_level": "untriaged"
+      },
+      "play": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "untriaged"
   },
@@ -109,6 +216,23 @@
     },
     "support_level": "stable"
   },
+  "ApplicationCacheErrorEvent": {
+    "members": {
+      "message": {
+        "support_level": "untriaged"
+      },
+      "reason": {
+        "support_level": "untriaged"
+      },
+      "status": {
+        "support_level": "untriaged"
+      },
+      "url": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "ArrayBuffer": {
     "comment": "http://www.khronos.org/registry/typedarray/specs/latest/",
     "members": {
@@ -137,6 +261,9 @@
       "namespaceURI": {
         "support_level": "untriaged"
       },
+      "nodeValue": {
+        "support_level": "untriaged"
+      },
       "ownerElement": {
         "dart_action": "suppress",
         "support_level": "deprecated"
@@ -144,6 +271,9 @@
       "specified": {
         "dart_action": "suppress",
         "support_level": "deprecated"
+      },
+      "textContent": {
+        "support_level": "untriaged"
       },
       "value": {}
     },
@@ -301,7 +431,10 @@
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioProcessingEvent-section",
     "members": {
       "inputBuffer": {},
-      "outputBuffer": {}
+      "outputBuffer": {},
+      "playbackTime": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
@@ -309,6 +442,43 @@
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html",
     "members": {},
     "support_level": "experimental"
+  },
+  "AudioTrack": {
+    "members": {
+      "enabled": {
+        "support_level": "untriaged"
+      },
+      "id": {
+        "support_level": "untriaged"
+      },
+      "kind": {
+        "support_level": "untriaged"
+      },
+      "label": {
+        "support_level": "untriaged"
+      },
+      "language": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "AudioTrackList": {
+    "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
+      "getTrackById": {
+        "support_level": "untriaged"
+      },
+      "length": {
+        "support_level": "untriaged"
+      },
+      "onchange": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "AutocompleteErrorEvent": {
     "comment": "http://wiki.whatwg.org/wiki/RequestAutocomplete",
@@ -380,6 +550,9 @@
     "comment": "http://www.w3.org/TR/FileAPI/#dfn-Blob",
     "members": {
       "Blob": {},
+      "close": {
+        "support_level": "untriaged"
+      },
       "size": {},
       "slice": {},
       "type": {}
@@ -735,7 +908,10 @@
   "Canvas2DContextAttributes": {
     "comment": "http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL",
     "members": {
-      "alpha": {}
+      "alpha": {},
+      "storage": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
@@ -745,6 +921,38 @@
       "addColorStop": {}
     },
     "support_level": "stable"
+  },
+  "CanvasPathMethods": {
+    "members": {
+      "arc": {
+        "support_level": "untriaged"
+      },
+      "arcTo": {
+        "support_level": "untriaged"
+      },
+      "bezierCurveTo": {
+        "support_level": "untriaged"
+      },
+      "closePath": {
+        "support_level": "untriaged"
+      },
+      "ellipse": {
+        "support_level": "untriaged"
+      },
+      "lineTo": {
+        "support_level": "untriaged"
+      },
+      "moveTo": {
+        "support_level": "untriaged"
+      },
+      "quadraticCurveTo": {
+        "support_level": "untriaged"
+      },
+      "rect": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "CanvasPattern": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern",
@@ -769,6 +977,9 @@
       "arcTo": {},
       "beginPath": {},
       "bezierCurveTo": {},
+      "canvas": {
+        "support_level": "untriaged"
+      },
       "clearRect": {},
       "clearShadow": {
         "support_level": "nonstandard"
@@ -790,6 +1001,9 @@
         "support_level": "untriaged"
       },
       "drawCustomFocusRing": {
+        "support_level": "untriaged"
+      },
+      "drawFocusIfNeeded": {
         "support_level": "untriaged"
       },
       "drawImage": {},
@@ -816,6 +1030,9 @@
       "imageSmoothingEnabled": {
         "support_level": "untriaged"
       },
+      "isContextLost": {
+        "support_level": "untriaged"
+      },
       "isPointInPath": {},
       "isPointInStroke": {},
       "lineCap": {},
@@ -836,6 +1053,9 @@
       "rotate": {},
       "save": {},
       "scale": {},
+      "scrollPathIntoView": {
+        "support_level": "untriaged"
+      },
       "setAlpha": {
         "support_level": "nonstandard"
       },
@@ -945,6 +1165,17 @@
         "support_level": "untriaged"
       },
       "remove": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "Client": {
+    "members": {
+      "id": {
+        "support_level": "untriaged"
+      },
+      "postMessage": {
         "support_level": "untriaged"
       }
     },
@@ -1293,6 +1524,7 @@
   "DOMError": {
     "comment": "http://www.w3.org/TR/dom/#interface-domerror",
     "members": {
+      "DOMError": {},
       "message": {
         "support_level": "untriaged"
       },
@@ -1480,13 +1712,51 @@
   "DOMTokenList": {
     "comment": "http://dev.w3.org/html5/spec-LC/common-dom-interfaces.html#domtokenlist-0",
     "members": {
+      "add": {
+        "support_level": "untriaged"
+      },
       "contains": {},
       "item": {},
       "length": {},
+      "remove": {
+        "support_level": "untriaged"
+      },
       "toString": {},
       "toggle": {}
     },
     "support_level": "stable"
+  },
+  "DataTransfer": {
+    "members": {
+      "clearData": {
+        "support_level": "untriaged"
+      },
+      "dropEffect": {
+        "support_level": "untriaged"
+      },
+      "effectAllowed": {
+        "support_level": "untriaged"
+      },
+      "files": {
+        "support_level": "untriaged"
+      },
+      "getData": {
+        "support_level": "untriaged"
+      },
+      "items": {
+        "support_level": "untriaged"
+      },
+      "setData": {
+        "support_level": "untriaged"
+      },
+      "setDragImage": {
+        "support_level": "untriaged"
+      },
+      "types": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "DataTransferItem": {
     "comment": "http://www.w3.org/TR/2011/WD-html5-20110113/dnd.html#the-datatransferitem-interface",
@@ -1635,6 +1905,14 @@
     },
     "support_level": "experimental"
   },
+  "DeviceLightEvent": {
+    "members": {
+      "value": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "DeviceMotionEvent": {
     "comment": "http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion",
     "members": {
@@ -1736,6 +2014,9 @@
       "compatMode": {
         "dart_action": "suppress"
       },
+      "contentType": {
+        "support_level": "untriaged"
+      },
       "cookie": {},
       "createAttribute": {
         "comment": "http://dom.spec.whatwg.org/#dom-document-createattribute",
@@ -1806,6 +2087,9 @@
         "dart_action": "suppress"
       },
       "execCommand": {},
+      "exitPointerLock": {
+        "support_level": "untriaged"
+      },
       "firstElementChild": {
         "comment": "http://dom.spec.whatwg.org/#parentnode"
       },
@@ -2020,6 +2304,9 @@
       "onwheel": {
         "support_level": "untriaged"
       },
+      "pointerLockElement": {
+        "support_level": "untriaged"
+      },
       "preferredStylesheetSet": {
         "comment": "http://dev.w3.org/csswg/cssom/#widl-Document-preferredStyleSheetSet"
       },
@@ -2136,6 +2423,9 @@
       "firstElementChild": {
         "comment": "http://dom.spec.whatwg.org/#parentnode"
       },
+      "getElementById": {
+        "support_level": "untriaged"
+      },
       "lastElementChild": {
         "comment": "http://dom.spec.whatwg.org/#parentnode"
       },
@@ -2190,10 +2480,25 @@
     },
     "support_level": "experimental"
   },
+  "EXTBlendMinMax": {
+    "members": {
+      "MAX_EXT": {
+        "support_level": "untriaged"
+      },
+      "MIN_EXT": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "EXTFragDepth": {
     "comment": "http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/",
     "members": {},
     "support_level": "experimental"
+  },
+  "EXTShaderTextureLOD": {
+    "members": {},
+    "support_level": "untriaged"
   },
   "EXTTextureFilterAnisotropic": {
     "comment": "http://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic/",
@@ -2529,6 +2834,9 @@
         "comment": "http://dom.spec.whatwg.org/#dom-element-removeattributenode",
         "dart_action": "suppress",
         "support_level": "deprecated"
+      },
+      "requestPointerLock": {
+        "support_level": "untriaged"
       },
       "scrollByLines": {},
       "scrollByPages": {},
@@ -2918,6 +3226,17 @@
     },
     "support_level": "stable"
   },
+  "FetchEvent": {
+    "members": {
+      "request": {
+        "support_level": "untriaged"
+      },
+      "respondWith": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "File": {
     "comment": "http://www.w3.org/TR/FileAPI/#dfn-file",
     "members": {
@@ -3242,11 +3561,36 @@
     "members": {
       "axes": {},
       "buttons": {},
+      "connected": {
+        "support_level": "untriaged"
+      },
       "id": {},
       "index": {},
+      "mapping": {
+        "support_level": "untriaged"
+      },
       "timestamp": {}
     },
     "support_level": "experimental"
+  },
+  "GamepadButton": {
+    "members": {
+      "pressed": {
+        "support_level": "untriaged"
+      },
+      "value": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "GamepadEvent": {
+    "members": {
+      "gamepad": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "GamepadList": {
     "comment": "https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html",
@@ -3473,6 +3817,9 @@
       "hostname": {},
       "href": {},
       "hreflang": {},
+      "integrity": {
+        "support_level": "untriaged"
+      },
       "name": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLAnchorElement-partial",
         "dart_action": "suppress",
@@ -4099,6 +4446,9 @@
         "support_level": "deprecated"
       },
       "height": {},
+      "integrity": {
+        "support_level": "untriaged"
+      },
       "name": {},
       "src": {},
       "type": {},
@@ -4314,6 +4664,9 @@
         "support_level": "deprecated"
       },
       "height": {},
+      "integrity": {
+        "support_level": "untriaged"
+      },
       "longDesc": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLIFrameElement-partial",
         "dart_action": "suppress",
@@ -4359,11 +4712,17 @@
       },
       "complete": {},
       "crossOrigin": {},
+      "currentSrc": {
+        "support_level": "untriaged"
+      },
       "height": {},
       "hspace": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLImageElement-partial",
         "dart_action": "suppress",
         "support_level": "deprecated"
+      },
+      "integrity": {
+        "support_level": "untriaged"
       },
       "isMap": {},
       "longDesc": {
@@ -4378,6 +4737,9 @@
       "name": {},
       "naturalHeight": {},
       "naturalWidth": {},
+      "sizes": {
+        "support_level": "untriaged"
+      },
       "src": {},
       "srcset": {
         "support_level": "untriaged"
@@ -4584,6 +4946,9 @@
         "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/imports/index.html#interface-import",
         "support_level": "experimental"
       },
+      "integrity": {
+        "support_level": "untriaged"
+      },
       "media": {},
       "rel": {},
       "rev": {
@@ -4648,6 +5013,9 @@
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#dom-media-addtexttrack",
         "support_level": "experimental"
       },
+      "audioTracks": {
+        "support_level": "untriaged"
+      },
       "autoplay": {},
       "buffered": {},
       "canPlayType": {
@@ -4669,6 +5037,9 @@
       "initialTime": {
         "comment": "http://www.w3.org/TR/2011/WD-html5-20110113/video.html#dom-media-initialtime",
         "support_level": "experimental"
+      },
+      "integrity": {
+        "support_level": "untriaged"
       },
       "load": {},
       "loop": {},
@@ -4776,6 +5147,9 @@
       "textTracks": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#dom-media-texttracks",
         "support_level": "experimental"
+      },
+      "videoTracks": {
+        "support_level": "untriaged"
       },
       "volume": {},
       "webkitAddKey": {
@@ -4938,6 +5312,9 @@
         "dart_action": "suppress",
         "support_level": "deprecated"
       },
+      "integrity": {
+        "support_level": "untriaged"
+      },
       "name": {},
       "setCustomValidity": {},
       "standby": {
@@ -5049,6 +5426,10 @@
     },
     "support_level": "stable"
   },
+  "HTMLPictureElement": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "HTMLPreElement": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/grouping-content.html#the-pre-element",
     "members": {
@@ -5107,6 +5488,9 @@
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLScriptElement-partial",
         "dart_action": "suppress",
         "support_level": "deprecated"
+      },
+      "integrity": {
+        "support_level": "untriaged"
       },
       "nonce": {
         "comment": "https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#interaction-with-the-script-src-directive",
@@ -5172,8 +5556,17 @@
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#the-source-element",
     "members": {
       "HTMLSourceElement": {},
+      "integrity": {
+        "support_level": "untriaged"
+      },
       "media": {},
+      "sizes": {
+        "support_level": "untriaged"
+      },
       "src": {},
+      "srcset": {
+        "support_level": "untriaged"
+      },
       "type": {}
     },
     "support_level": "stable"
@@ -5515,6 +5908,9 @@
       "defaultValue": {
         "support_level": "untriaged"
       },
+      "integrity": {
+        "support_level": "untriaged"
+      },
       "kind": {},
       "label": {},
       "readyState": {},
@@ -5604,6 +6000,37 @@
     },
     "support_level": "stable"
   },
+  "HeaderMap": {
+    "members": {
+      "HeaderMap": {},
+      "clear": {
+        "support_level": "untriaged"
+      },
+      "delete": {
+        "support_level": "untriaged"
+      },
+      "forEach": {
+        "support_level": "untriaged"
+      },
+      "get": {
+        "support_level": "untriaged"
+      },
+      "has": {
+        "support_level": "untriaged"
+      },
+      "set": {
+        "support_level": "untriaged"
+      },
+      "size": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "HeaderMapForEachCallback": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "History": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html#the-history-interface",
     "members": {
@@ -5616,6 +6043,17 @@
       "state": {}
     },
     "support_level": "stable"
+  },
+  "HmacKeyAlgorithm": {
+    "members": {
+      "hash": {
+        "support_level": "untriaged"
+      },
+      "length": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "HmacKeyParams": {
     "members": {
@@ -5870,6 +6308,7 @@
   "ImageData": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#imagedata",
     "members": {
+      "ImageData": {},
       "data": {},
       "height": {},
       "width": {}
@@ -5976,6 +6415,14 @@
         "support_level": "untriaged"
       },
       "usages": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "KeyAlgorithm": {
+    "members": {
+      "name": {
         "support_level": "untriaged"
       }
     },
@@ -6099,7 +6546,10 @@
       "onconnect": {},
       "ondisconnect": {},
       "outputs": {},
-      "removeEventListener": {}
+      "removeEventListener": {},
+      "sysexEnabled": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
@@ -6187,6 +6637,27 @@
       "volume": {}
     },
     "support_level": "experimental"
+  },
+  "MediaDeviceInfo": {
+    "members": {
+      "deviceId": {
+        "support_level": "untriaged"
+      },
+      "groupId": {
+        "support_level": "untriaged"
+      },
+      "kind": {
+        "support_level": "untriaged"
+      },
+      "label": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "MediaDeviceInfoCallback": {
+    "members": {},
+    "support_level": "untriaged"
   },
   "MediaElementAudioSourceNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaElementAudioSourceNode",
@@ -6294,6 +6765,9 @@
     "members": {
       "MediaKeys": {},
       "createSession": {},
+      "isTypeSupported": {
+        "support_level": "untriaged"
+      },
       "keySystem": {}
     },
     "support_level": "experimental"
@@ -6353,6 +6827,9 @@
       "MediaStream": {},
       "addEventListener": {},
       "addTrack": {},
+      "clone": {
+        "support_level": "untriaged"
+      },
       "dispatchEvent": {},
       "ended": {},
       "getAudioTracks": {},
@@ -6396,6 +6873,9 @@
     "comment": "http://dev.w3.org/2011/webrtc/editor/getusermedia.html#mediastreamtrack",
     "members": {
       "addEventListener": {},
+      "clone": {
+        "support_level": "untriaged"
+      },
       "dispatchEvent": {},
       "enabled": {},
       "getSources": {
@@ -6529,6 +7009,12 @@
       },
       "initMouseEvent": {},
       "metaKey": {},
+      "movementX": {
+        "support_level": "untriaged"
+      },
+      "movementY": {
+        "support_level": "untriaged"
+      },
       "offsetX": {
         "dart_action": "unstable",
         "support_level": "nonstandard"
@@ -6637,10 +7123,16 @@
       "appVersion": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorid"
       },
+      "connection": {
+        "support_level": "untriaged"
+      },
       "cookieEnabled": {
         "comment": "https://developer.mozilla.org/en-US/docs/DOM/window.navigator.cookieEnabled",
         "dart_action": "unstable",
         "support_level": "nonstandard"
+      },
+      "dartEnabled": {
+        "support_level": "untriaged"
       },
       "doNotTrack": {
         "comment": "http://www.w3.org/2011/tracking-protection/drafts/tracking-dnt.html#js-dom",
@@ -6651,6 +7143,12 @@
         "comment": "http://dev.w3.org/geo/api/spec-source.html#navi-geo",
         "dart_action": "unstable",
         "support_level": "stable"
+      },
+      "getGamepads": {
+        "support_level": "untriaged"
+      },
+      "getMediaDevices": {
+        "support_level": "untriaged"
       },
       "getStorageUpdates": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorstorageutils",
@@ -6665,6 +7163,9 @@
       },
       "language": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorlanguage"
+      },
+      "languages": {
+        "support_level": "untriaged"
       },
       "maxTouchPoints": {
         "support_level": "untriaged"
@@ -6693,11 +7194,17 @@
         "dart_action": "unstable",
         "support_level": "nonstandard"
       },
+      "push": {
+        "support_level": "untriaged"
+      },
       "registerProtocolHandler": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorcontentutils",
         "dart_action": "unstable"
       },
       "requestMIDIAccess": {
+        "support_level": "untriaged"
+      },
+      "sendBeacon": {
         "support_level": "untriaged"
       },
       "serviceWorker": {
@@ -6743,6 +7250,14 @@
     },
     "support_level": "stable"
   },
+  "NavigatorCPU": {
+    "members": {
+      "hardwareConcurrency": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "NavigatorID": {
     "members": {
       "appCodeName": {
@@ -6754,6 +7269,9 @@
       "appVersion": {
         "support_level": "untriaged"
       },
+      "dartEnabled": {
+        "support_level": "untriaged"
+      },
       "platform": {
         "support_level": "untriaged"
       },
@@ -6761,6 +7279,17 @@
         "support_level": "untriaged"
       },
       "userAgent": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "NavigatorLanguage": {
+    "members": {
+      "language": {
+        "support_level": "untriaged"
+      },
+      "languages": {
         "support_level": "untriaged"
       }
     },
@@ -6804,6 +7333,14 @@
       "handleEvent": {}
     },
     "support_level": "experimental"
+  },
+  "NetworkInformation": {
+    "members": {
+      "type": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "Node": {
     "comment": "http://dom.spec.whatwg.org/#interface-node",
@@ -7236,6 +7773,12 @@
       },
       "lastElementChild": {
         "support_level": "untriaged"
+      },
+      "querySelector": {
+        "support_level": "untriaged"
+      },
+      "querySelectorAll": {
+        "support_level": "untriaged"
       }
     },
     "support_level": "untriaged"
@@ -7254,6 +7797,42 @@
       "rect": {}
     },
     "support_level": "experimental"
+  },
+  "Path2D": {
+    "members": {
+      "Path2D": {},
+      "addPath": {
+        "support_level": "untriaged"
+      },
+      "arc": {
+        "support_level": "untriaged"
+      },
+      "arcTo": {
+        "support_level": "untriaged"
+      },
+      "bezierCurveTo": {
+        "support_level": "untriaged"
+      },
+      "closePath": {
+        "support_level": "untriaged"
+      },
+      "ellipse": {
+        "support_level": "untriaged"
+      },
+      "lineTo": {
+        "support_level": "untriaged"
+      },
+      "moveTo": {
+        "support_level": "untriaged"
+      },
+      "quadraticCurveTo": {
+        "support_level": "untriaged"
+      },
+      "rect": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "Performance": {
     "comment": "http://www.w3.org/TR/navigation-timing/#performance",
@@ -7589,6 +8168,29 @@
     },
     "support_level": "untriaged"
   },
+  "PushEvent": {
+    "members": {
+      "data": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "PushManager": {
+    "members": {},
+    "support_level": "untriaged"
+  },
+  "PushRegistration": {
+    "members": {
+      "pushEndpoint": {
+        "support_level": "untriaged"
+      },
+      "pushRegistrationId": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "RGBColor": {
     "comment": "http://dev.w3.org/csswg/cssom/",
     "dart_action": "suppress",
@@ -7881,6 +8483,21 @@
     },
     "support_level": "deprecated"
   },
+  "Request": {
+    "members": {
+      "Request": {},
+      "headers": {
+        "support_level": "untriaged"
+      },
+      "origin": {
+        "support_level": "untriaged"
+      },
+      "url": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "RequestAnimationFrameCallback": {
     "comment": "http://www.w3.org/TR/animation-timing/#FrameRequestCallback",
     "members": {
@@ -7895,6 +8512,37 @@
       "url": {}
     },
     "support_level": "experimental"
+  },
+  "Response": {
+    "members": {
+      "Response": {},
+      "headers": {
+        "support_level": "untriaged"
+      },
+      "status": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "RsaHashedKeyAlgorithm": {
+    "members": {
+      "hash": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "RsaKeyAlgorithm": {
+    "members": {
+      "modulusLength": {
+        "support_level": "untriaged"
+      },
+      "publicExponent": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "RsaKeyGenParams": {
     "members": {
@@ -8697,6 +9345,9 @@
       },
       "ownerSVGElement": {},
       "style": {
+        "support_level": "untriaged"
+      },
+      "tabIndex": {
         "support_level": "untriaged"
       },
       "viewportElement": {},
@@ -9830,11 +10481,17 @@
     "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLengthList",
     "dart_action": "unstable",
     "members": {
+      "__setter__": {
+        "support_level": "untriaged"
+      },
       "appendItem": {},
       "clear": {},
       "getItem": {},
       "initialize": {},
       "insertItemBefore": {},
+      "length": {
+        "support_level": "untriaged"
+      },
       "numberOfItems": {},
       "removeItem": {},
       "replaceItem": {}
@@ -10048,11 +10705,17 @@
     "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGNumberList",
     "dart_action": "unstable",
     "members": {
+      "__setter__": {
+        "support_level": "untriaged"
+      },
       "appendItem": {},
       "clear": {},
       "getItem": {},
       "initialize": {},
       "insertItemBefore": {},
+      "length": {
+        "support_level": "untriaged"
+      },
       "numberOfItems": {},
       "removeItem": {},
       "replaceItem": {}
@@ -10362,11 +11025,17 @@
     "comment": "http://www.w3.org/TR/SVG/paths.html#InterfaceSVGPathSegList",
     "dart_action": "unstable",
     "members": {
+      "__setter__": {
+        "support_level": "untriaged"
+      },
       "appendItem": {},
       "clear": {},
       "getItem": {},
       "initialize": {},
       "insertItemBefore": {},
+      "length": {
+        "support_level": "untriaged"
+      },
       "numberOfItems": {},
       "removeItem": {},
       "replaceItem": {}
@@ -10450,11 +11119,17 @@
     "comment": "http://www.w3.org/TR/SVG/coords.html#InterfaceSVGPointList",
     "dart_action": "unstable",
     "members": {
+      "__setter__": {
+        "support_level": "untriaged"
+      },
       "appendItem": {},
       "clear": {},
       "getItem": {},
       "initialize": {},
       "insertItemBefore": {},
+      "length": {
+        "support_level": "untriaged"
+      },
       "numberOfItems": {},
       "removeItem": {},
       "replaceItem": {}
@@ -10814,11 +11489,17 @@
     "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGStringList",
     "dart_action": "unstable",
     "members": {
+      "__setter__": {
+        "support_level": "untriaged"
+      },
       "appendItem": {},
       "clear": {},
       "getItem": {},
       "initialize": {},
       "insertItemBefore": {},
+      "length": {
+        "support_level": "untriaged"
+      },
       "numberOfItems": {},
       "removeItem": {},
       "replaceItem": {}
@@ -11096,6 +11777,9 @@
     "comment": "http://www.w3.org/TR/SVG/coords.html#InterfaceSVGTransformList",
     "dart_action": "unstable",
     "members": {
+      "__setter__": {
+        "support_level": "untriaged"
+      },
       "appendItem": {},
       "clear": {},
       "consolidate": {},
@@ -11103,6 +11787,9 @@
       "getItem": {},
       "initialize": {},
       "insertItemBefore": {},
+      "length": {
+        "support_level": "untriaged"
+      },
       "numberOfItems": {},
       "removeItem": {},
       "replaceItem": {}
@@ -11336,6 +12023,9 @@
       "bufferSize": {},
       "onaudioprocess": {
         "support_level": "untriaged"
+      },
+      "setEventListener": {
+        "support_level": "untriaged"
       }
     },
     "support_level": "experimental"
@@ -11435,19 +12125,45 @@
     "members": {},
     "support_level": "untriaged"
   },
+  "ServiceWorkerClients": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "ServiceWorkerContainer": {
     "members": {
+      "active": {
+        "support_level": "untriaged"
+      },
+      "controller": {
+        "support_level": "untriaged"
+      },
+      "installing": {
+        "support_level": "untriaged"
+      },
       "register": {
         "support_level": "untriaged"
       },
       "unregister": {
+        "support_level": "untriaged"
+      },
+      "waiting": {
         "support_level": "untriaged"
       }
     },
     "support_level": "untriaged"
   },
   "ServiceWorkerGlobalScope": {
-    "members": {},
+    "members": {
+      "clients": {
+        "support_level": "untriaged"
+      },
+      "onmessage": {
+        "support_level": "untriaged"
+      },
+      "scope": {
+        "support_level": "untriaged"
+      }
+    },
     "support_level": "untriaged"
   },
   "ShadowRoot": {
@@ -12000,6 +12716,39 @@
   "TextMetrics": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#textmetrics",
     "members": {
+      "actualBoundingBoxAscent": {
+        "support_level": "untriaged"
+      },
+      "actualBoundingBoxDescent": {
+        "support_level": "untriaged"
+      },
+      "actualBoundingBoxLeft": {
+        "support_level": "untriaged"
+      },
+      "actualBoundingBoxRight": {
+        "support_level": "untriaged"
+      },
+      "alphabeticBaseline": {
+        "support_level": "untriaged"
+      },
+      "emHeightAscent": {
+        "support_level": "untriaged"
+      },
+      "emHeightDescent": {
+        "support_level": "untriaged"
+      },
+      "fontBoundingBoxAscent": {
+        "support_level": "untriaged"
+      },
+      "fontBoundingBoxDescent": {
+        "support_level": "untriaged"
+      },
+      "hangingBaseline": {
+        "support_level": "untriaged"
+      },
+      "ideographicBaseline": {
+        "support_level": "untriaged"
+      },
       "width": {}
     },
     "support_level": "stable"
@@ -12612,6 +13361,46 @@
     },
     "support_level": "untriaged"
   },
+  "VideoTrack": {
+    "members": {
+      "id": {
+        "support_level": "untriaged"
+      },
+      "kind": {
+        "support_level": "untriaged"
+      },
+      "label": {
+        "support_level": "untriaged"
+      },
+      "language": {
+        "support_level": "untriaged"
+      },
+      "selected": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "VideoTrackList": {
+    "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
+      "getTrackById": {
+        "support_level": "untriaged"
+      },
+      "length": {
+        "support_level": "untriaged"
+      },
+      "onchange": {
+        "support_level": "untriaged"
+      },
+      "selectedIndex": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "VoidCallback": {
     "comment": "http://www.w3.org/TR/file-system-api/#the-voidcallback-interface",
     "members": {
@@ -12656,6 +13445,14 @@
       "COMPRESSED_RGB_ATC_WEBGL": {}
     },
     "support_level": "experimental"
+  },
+  "WebGLCompressedTextureETC1": {
+    "members": {
+      "COMPRESSED_RGB_ETC1_WEBGL": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "WebGLCompressedTexturePVRTC": {
     "comment": "http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_pvrtc/",
@@ -13118,6 +13915,9 @@
       "bufferSubByteData": {},
       "bufferSubData": {},
       "bufferSubDataTyped": {},
+      "canvas": {
+        "support_level": "untriaged"
+      },
       "checkFramebufferStatus": {},
       "clear": {},
       "clearColor": {},
@@ -13260,6 +14060,1355 @@
       "viewport": {}
     },
     "support_level": "stable"
+  },
+  "WebGLRenderingContextBase": {
+    "members": {
+      "ACTIVE_ATTRIBUTES": {
+        "support_level": "untriaged"
+      },
+      "ACTIVE_TEXTURE": {
+        "support_level": "untriaged"
+      },
+      "ACTIVE_UNIFORMS": {
+        "support_level": "untriaged"
+      },
+      "ALIASED_LINE_WIDTH_RANGE": {
+        "support_level": "untriaged"
+      },
+      "ALIASED_POINT_SIZE_RANGE": {
+        "support_level": "untriaged"
+      },
+      "ALPHA": {
+        "support_level": "untriaged"
+      },
+      "ALPHA_BITS": {
+        "support_level": "untriaged"
+      },
+      "ALWAYS": {
+        "support_level": "untriaged"
+      },
+      "ARRAY_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "ARRAY_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "ATTACHED_SHADERS": {
+        "support_level": "untriaged"
+      },
+      "BACK": {
+        "support_level": "untriaged"
+      },
+      "BLEND": {
+        "support_level": "untriaged"
+      },
+      "BLEND_COLOR": {
+        "support_level": "untriaged"
+      },
+      "BLEND_DST_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "BLEND_DST_RGB": {
+        "support_level": "untriaged"
+      },
+      "BLEND_EQUATION": {
+        "support_level": "untriaged"
+      },
+      "BLEND_EQUATION_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "BLEND_EQUATION_RGB": {
+        "support_level": "untriaged"
+      },
+      "BLEND_SRC_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "BLEND_SRC_RGB": {
+        "support_level": "untriaged"
+      },
+      "BLUE_BITS": {
+        "support_level": "untriaged"
+      },
+      "BOOL": {
+        "support_level": "untriaged"
+      },
+      "BOOL_VEC2": {
+        "support_level": "untriaged"
+      },
+      "BOOL_VEC3": {
+        "support_level": "untriaged"
+      },
+      "BOOL_VEC4": {
+        "support_level": "untriaged"
+      },
+      "BROWSER_DEFAULT_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "BUFFER_SIZE": {
+        "support_level": "untriaged"
+      },
+      "BUFFER_USAGE": {
+        "support_level": "untriaged"
+      },
+      "BYTE": {
+        "support_level": "untriaged"
+      },
+      "CCW": {
+        "support_level": "untriaged"
+      },
+      "CLAMP_TO_EDGE": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT0": {
+        "support_level": "untriaged"
+      },
+      "COLOR_BUFFER_BIT": {
+        "support_level": "untriaged"
+      },
+      "COLOR_CLEAR_VALUE": {
+        "support_level": "untriaged"
+      },
+      "COLOR_WRITEMASK": {
+        "support_level": "untriaged"
+      },
+      "COMPILE_STATUS": {
+        "support_level": "untriaged"
+      },
+      "COMPRESSED_TEXTURE_FORMATS": {
+        "support_level": "untriaged"
+      },
+      "CONSTANT_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "CONSTANT_COLOR": {
+        "support_level": "untriaged"
+      },
+      "CONTEXT_LOST_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "CULL_FACE": {
+        "support_level": "untriaged"
+      },
+      "CULL_FACE_MODE": {
+        "support_level": "untriaged"
+      },
+      "CURRENT_PROGRAM": {
+        "support_level": "untriaged"
+      },
+      "CURRENT_VERTEX_ATTRIB": {
+        "support_level": "untriaged"
+      },
+      "CW": {
+        "support_level": "untriaged"
+      },
+      "DECR": {
+        "support_level": "untriaged"
+      },
+      "DECR_WRAP": {
+        "support_level": "untriaged"
+      },
+      "DELETE_STATUS": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_BITS": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_BUFFER_BIT": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_CLEAR_VALUE": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_COMPONENT": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_COMPONENT16": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_FUNC": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_RANGE": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_STENCIL": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_STENCIL_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_TEST": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_WRITEMASK": {
+        "support_level": "untriaged"
+      },
+      "DITHER": {
+        "support_level": "untriaged"
+      },
+      "DONT_CARE": {
+        "support_level": "untriaged"
+      },
+      "DST_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "DST_COLOR": {
+        "support_level": "untriaged"
+      },
+      "DYNAMIC_DRAW": {
+        "support_level": "untriaged"
+      },
+      "ELEMENT_ARRAY_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "ELEMENT_ARRAY_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "EQUAL": {
+        "support_level": "untriaged"
+      },
+      "FASTEST": {
+        "support_level": "untriaged"
+      },
+      "FLOAT": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT3": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT4": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_VEC2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_VEC3": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_VEC4": {
+        "support_level": "untriaged"
+      },
+      "FRAGMENT_SHADER": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_OBJECT_NAME": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_COMPLETE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_INCOMPLETE_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_INCOMPLETE_DIMENSIONS": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_UNSUPPORTED": {
+        "support_level": "untriaged"
+      },
+      "FRONT": {
+        "support_level": "untriaged"
+      },
+      "FRONT_AND_BACK": {
+        "support_level": "untriaged"
+      },
+      "FRONT_FACE": {
+        "support_level": "untriaged"
+      },
+      "FUNC_ADD": {
+        "support_level": "untriaged"
+      },
+      "FUNC_REVERSE_SUBTRACT": {
+        "support_level": "untriaged"
+      },
+      "FUNC_SUBTRACT": {
+        "support_level": "untriaged"
+      },
+      "GENERATE_MIPMAP_HINT": {
+        "support_level": "untriaged"
+      },
+      "GEQUAL": {
+        "support_level": "untriaged"
+      },
+      "GREATER": {
+        "support_level": "untriaged"
+      },
+      "GREEN_BITS": {
+        "support_level": "untriaged"
+      },
+      "HIGH_FLOAT": {
+        "support_level": "untriaged"
+      },
+      "HIGH_INT": {
+        "support_level": "untriaged"
+      },
+      "IMPLEMENTATION_COLOR_READ_FORMAT": {
+        "support_level": "untriaged"
+      },
+      "IMPLEMENTATION_COLOR_READ_TYPE": {
+        "support_level": "untriaged"
+      },
+      "INCR": {
+        "support_level": "untriaged"
+      },
+      "INCR_WRAP": {
+        "support_level": "untriaged"
+      },
+      "INT": {
+        "support_level": "untriaged"
+      },
+      "INT_VEC2": {
+        "support_level": "untriaged"
+      },
+      "INT_VEC3": {
+        "support_level": "untriaged"
+      },
+      "INT_VEC4": {
+        "support_level": "untriaged"
+      },
+      "INVALID_ENUM": {
+        "support_level": "untriaged"
+      },
+      "INVALID_FRAMEBUFFER_OPERATION": {
+        "support_level": "untriaged"
+      },
+      "INVALID_OPERATION": {
+        "support_level": "untriaged"
+      },
+      "INVALID_VALUE": {
+        "support_level": "untriaged"
+      },
+      "INVERT": {
+        "support_level": "untriaged"
+      },
+      "KEEP": {
+        "support_level": "untriaged"
+      },
+      "LEQUAL": {
+        "support_level": "untriaged"
+      },
+      "LESS": {
+        "support_level": "untriaged"
+      },
+      "LINEAR": {
+        "support_level": "untriaged"
+      },
+      "LINEAR_MIPMAP_LINEAR": {
+        "support_level": "untriaged"
+      },
+      "LINEAR_MIPMAP_NEAREST": {
+        "support_level": "untriaged"
+      },
+      "LINES": {
+        "support_level": "untriaged"
+      },
+      "LINE_LOOP": {
+        "support_level": "untriaged"
+      },
+      "LINE_STRIP": {
+        "support_level": "untriaged"
+      },
+      "LINE_WIDTH": {
+        "support_level": "untriaged"
+      },
+      "LINK_STATUS": {
+        "support_level": "untriaged"
+      },
+      "LOW_FLOAT": {
+        "support_level": "untriaged"
+      },
+      "LOW_INT": {
+        "support_level": "untriaged"
+      },
+      "LUMINANCE": {
+        "support_level": "untriaged"
+      },
+      "LUMINANCE_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "MAX_COMBINED_TEXTURE_IMAGE_UNITS": {
+        "support_level": "untriaged"
+      },
+      "MAX_CUBE_MAP_TEXTURE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_FRAGMENT_UNIFORM_VECTORS": {
+        "support_level": "untriaged"
+      },
+      "MAX_RENDERBUFFER_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_TEXTURE_IMAGE_UNITS": {
+        "support_level": "untriaged"
+      },
+      "MAX_TEXTURE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_VARYING_VECTORS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_ATTRIBS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_TEXTURE_IMAGE_UNITS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_UNIFORM_VECTORS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VIEWPORT_DIMS": {
+        "support_level": "untriaged"
+      },
+      "MEDIUM_FLOAT": {
+        "support_level": "untriaged"
+      },
+      "MEDIUM_INT": {
+        "support_level": "untriaged"
+      },
+      "MIRRORED_REPEAT": {
+        "support_level": "untriaged"
+      },
+      "NEAREST": {
+        "support_level": "untriaged"
+      },
+      "NEAREST_MIPMAP_LINEAR": {
+        "support_level": "untriaged"
+      },
+      "NEAREST_MIPMAP_NEAREST": {
+        "support_level": "untriaged"
+      },
+      "NEVER": {
+        "support_level": "untriaged"
+      },
+      "NICEST": {
+        "support_level": "untriaged"
+      },
+      "NONE": {
+        "support_level": "untriaged"
+      },
+      "NOTEQUAL": {
+        "support_level": "untriaged"
+      },
+      "NO_ERROR": {
+        "support_level": "untriaged"
+      },
+      "ONE": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_CONSTANT_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_CONSTANT_COLOR": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_DST_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_DST_COLOR": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_SRC_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_SRC_COLOR": {
+        "support_level": "untriaged"
+      },
+      "OUT_OF_MEMORY": {
+        "support_level": "untriaged"
+      },
+      "PACK_ALIGNMENT": {
+        "support_level": "untriaged"
+      },
+      "POINTS": {
+        "support_level": "untriaged"
+      },
+      "POLYGON_OFFSET_FACTOR": {
+        "support_level": "untriaged"
+      },
+      "POLYGON_OFFSET_FILL": {
+        "support_level": "untriaged"
+      },
+      "POLYGON_OFFSET_UNITS": {
+        "support_level": "untriaged"
+      },
+      "RED_BITS": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_ALPHA_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_BLUE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_DEPTH_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_GREEN_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_HEIGHT": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_INTERNAL_FORMAT": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_RED_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_STENCIL_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_WIDTH": {
+        "support_level": "untriaged"
+      },
+      "RENDERER": {
+        "support_level": "untriaged"
+      },
+      "REPEAT": {
+        "support_level": "untriaged"
+      },
+      "REPLACE": {
+        "support_level": "untriaged"
+      },
+      "RGB": {
+        "support_level": "untriaged"
+      },
+      "RGB565": {
+        "support_level": "untriaged"
+      },
+      "RGB5_A1": {
+        "support_level": "untriaged"
+      },
+      "RGBA": {
+        "support_level": "untriaged"
+      },
+      "RGBA4": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_2D": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_CUBE": {
+        "support_level": "untriaged"
+      },
+      "SAMPLES": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_ALPHA_TO_COVERAGE": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_BUFFERS": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_COVERAGE": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_COVERAGE_INVERT": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_COVERAGE_VALUE": {
+        "support_level": "untriaged"
+      },
+      "SCISSOR_BOX": {
+        "support_level": "untriaged"
+      },
+      "SCISSOR_TEST": {
+        "support_level": "untriaged"
+      },
+      "SHADER_TYPE": {
+        "support_level": "untriaged"
+      },
+      "SHADING_LANGUAGE_VERSION": {
+        "support_level": "untriaged"
+      },
+      "SHORT": {
+        "support_level": "untriaged"
+      },
+      "SRC_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "SRC_ALPHA_SATURATE": {
+        "support_level": "untriaged"
+      },
+      "SRC_COLOR": {
+        "support_level": "untriaged"
+      },
+      "STATIC_DRAW": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_FAIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_FUNC": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_PASS_DEPTH_FAIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_PASS_DEPTH_PASS": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_REF": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_VALUE_MASK": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_WRITEMASK": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BITS": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BUFFER_BIT": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_CLEAR_VALUE": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_FAIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_FUNC": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_INDEX": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_INDEX8": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_PASS_DEPTH_FAIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_PASS_DEPTH_PASS": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_REF": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_TEST": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_VALUE_MASK": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_WRITEMASK": {
+        "support_level": "untriaged"
+      },
+      "STREAM_DRAW": {
+        "support_level": "untriaged"
+      },
+      "SUBPIXEL_BITS": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE0": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE1": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE10": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE11": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE12": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE13": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE14": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE15": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE16": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE17": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE18": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE19": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE2": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE20": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE21": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE22": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE23": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE24": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE25": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE26": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE27": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE28": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE29": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE3": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE30": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE31": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE4": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE5": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE6": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE7": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE8": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE9": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_2D": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BINDING_2D": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BINDING_CUBE_MAP": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_NEGATIVE_X": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_NEGATIVE_Y": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_NEGATIVE_Z": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_POSITIVE_X": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_POSITIVE_Y": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_POSITIVE_Z": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MAG_FILTER": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MIN_FILTER": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_WRAP_S": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_WRAP_T": {
+        "support_level": "untriaged"
+      },
+      "TRIANGLES": {
+        "support_level": "untriaged"
+      },
+      "TRIANGLE_FAN": {
+        "support_level": "untriaged"
+      },
+      "TRIANGLE_STRIP": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_ALIGNMENT": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_COLORSPACE_CONVERSION_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_FLIP_Y_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_PREMULTIPLY_ALPHA_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_BYTE": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_SHORT": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_SHORT_4_4_4_4": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_SHORT_5_5_5_1": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_SHORT_5_6_5": {
+        "support_level": "untriaged"
+      },
+      "VALIDATE_STATUS": {
+        "support_level": "untriaged"
+      },
+      "VENDOR": {
+        "support_level": "untriaged"
+      },
+      "VERSION": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_ENABLED": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_NORMALIZED": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_POINTER": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_SIZE": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_STRIDE": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_TYPE": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_SHADER": {
+        "support_level": "untriaged"
+      },
+      "VIEWPORT": {
+        "support_level": "untriaged"
+      },
+      "ZERO": {
+        "support_level": "untriaged"
+      },
+      "activeTexture": {
+        "support_level": "untriaged"
+      },
+      "attachShader": {
+        "support_level": "untriaged"
+      },
+      "bindAttribLocation": {
+        "support_level": "untriaged"
+      },
+      "bindBuffer": {
+        "support_level": "untriaged"
+      },
+      "bindFramebuffer": {
+        "support_level": "untriaged"
+      },
+      "bindRenderbuffer": {
+        "support_level": "untriaged"
+      },
+      "bindTexture": {
+        "support_level": "untriaged"
+      },
+      "blendColor": {
+        "support_level": "untriaged"
+      },
+      "blendEquation": {
+        "support_level": "untriaged"
+      },
+      "blendEquationSeparate": {
+        "support_level": "untriaged"
+      },
+      "blendFunc": {
+        "support_level": "untriaged"
+      },
+      "blendFuncSeparate": {
+        "support_level": "untriaged"
+      },
+      "bufferByteData": {
+        "support_level": "untriaged"
+      },
+      "bufferData": {
+        "support_level": "untriaged"
+      },
+      "bufferDataTyped": {
+        "support_level": "untriaged"
+      },
+      "bufferSubByteData": {
+        "support_level": "untriaged"
+      },
+      "bufferSubData": {
+        "support_level": "untriaged"
+      },
+      "bufferSubDataTyped": {
+        "support_level": "untriaged"
+      },
+      "canvas": {
+        "support_level": "untriaged"
+      },
+      "checkFramebufferStatus": {
+        "support_level": "untriaged"
+      },
+      "clear": {
+        "support_level": "untriaged"
+      },
+      "clearColor": {
+        "support_level": "untriaged"
+      },
+      "clearDepth": {
+        "support_level": "untriaged"
+      },
+      "clearStencil": {
+        "support_level": "untriaged"
+      },
+      "colorMask": {
+        "support_level": "untriaged"
+      },
+      "compileShader": {
+        "support_level": "untriaged"
+      },
+      "compressedTexImage2D": {
+        "support_level": "untriaged"
+      },
+      "compressedTexSubImage2D": {
+        "support_level": "untriaged"
+      },
+      "copyTexImage2D": {
+        "support_level": "untriaged"
+      },
+      "copyTexSubImage2D": {
+        "support_level": "untriaged"
+      },
+      "createBuffer": {
+        "support_level": "untriaged"
+      },
+      "createFramebuffer": {
+        "support_level": "untriaged"
+      },
+      "createProgram": {
+        "support_level": "untriaged"
+      },
+      "createRenderbuffer": {
+        "support_level": "untriaged"
+      },
+      "createShader": {
+        "support_level": "untriaged"
+      },
+      "createTexture": {
+        "support_level": "untriaged"
+      },
+      "cullFace": {
+        "support_level": "untriaged"
+      },
+      "deleteBuffer": {
+        "support_level": "untriaged"
+      },
+      "deleteFramebuffer": {
+        "support_level": "untriaged"
+      },
+      "deleteProgram": {
+        "support_level": "untriaged"
+      },
+      "deleteRenderbuffer": {
+        "support_level": "untriaged"
+      },
+      "deleteShader": {
+        "support_level": "untriaged"
+      },
+      "deleteTexture": {
+        "support_level": "untriaged"
+      },
+      "depthFunc": {
+        "support_level": "untriaged"
+      },
+      "depthMask": {
+        "support_level": "untriaged"
+      },
+      "depthRange": {
+        "support_level": "untriaged"
+      },
+      "detachShader": {
+        "support_level": "untriaged"
+      },
+      "disable": {
+        "support_level": "untriaged"
+      },
+      "disableVertexAttribArray": {
+        "support_level": "untriaged"
+      },
+      "drawArrays": {
+        "support_level": "untriaged"
+      },
+      "drawElements": {
+        "support_level": "untriaged"
+      },
+      "drawingBufferHeight": {
+        "support_level": "untriaged"
+      },
+      "drawingBufferWidth": {
+        "support_level": "untriaged"
+      },
+      "enable": {
+        "support_level": "untriaged"
+      },
+      "enableVertexAttribArray": {
+        "support_level": "untriaged"
+      },
+      "finish": {
+        "support_level": "untriaged"
+      },
+      "flush": {
+        "support_level": "untriaged"
+      },
+      "framebufferRenderbuffer": {
+        "support_level": "untriaged"
+      },
+      "framebufferTexture2D": {
+        "support_level": "untriaged"
+      },
+      "frontFace": {
+        "support_level": "untriaged"
+      },
+      "generateMipmap": {
+        "support_level": "untriaged"
+      },
+      "getActiveAttrib": {
+        "support_level": "untriaged"
+      },
+      "getActiveUniform": {
+        "support_level": "untriaged"
+      },
+      "getAttachedShaders": {
+        "support_level": "untriaged"
+      },
+      "getAttribLocation": {
+        "support_level": "untriaged"
+      },
+      "getBufferParameter": {
+        "support_level": "untriaged"
+      },
+      "getContextAttributes": {
+        "support_level": "untriaged"
+      },
+      "getError": {
+        "support_level": "untriaged"
+      },
+      "getExtension": {
+        "support_level": "untriaged"
+      },
+      "getFramebufferAttachmentParameter": {
+        "support_level": "untriaged"
+      },
+      "getParameter": {
+        "support_level": "untriaged"
+      },
+      "getProgramInfoLog": {
+        "support_level": "untriaged"
+      },
+      "getProgramParameter": {
+        "support_level": "untriaged"
+      },
+      "getRenderbufferParameter": {
+        "support_level": "untriaged"
+      },
+      "getShaderInfoLog": {
+        "support_level": "untriaged"
+      },
+      "getShaderParameter": {
+        "support_level": "untriaged"
+      },
+      "getShaderPrecisionFormat": {
+        "support_level": "untriaged"
+      },
+      "getShaderSource": {
+        "support_level": "untriaged"
+      },
+      "getSupportedExtensions": {
+        "support_level": "untriaged"
+      },
+      "getTexParameter": {
+        "support_level": "untriaged"
+      },
+      "getUniform": {
+        "support_level": "untriaged"
+      },
+      "getUniformLocation": {
+        "support_level": "untriaged"
+      },
+      "getVertexAttrib": {
+        "support_level": "untriaged"
+      },
+      "getVertexAttribOffset": {
+        "support_level": "untriaged"
+      },
+      "hint": {
+        "support_level": "untriaged"
+      },
+      "isBuffer": {
+        "support_level": "untriaged"
+      },
+      "isContextLost": {
+        "support_level": "untriaged"
+      },
+      "isEnabled": {
+        "support_level": "untriaged"
+      },
+      "isFramebuffer": {
+        "support_level": "untriaged"
+      },
+      "isProgram": {
+        "support_level": "untriaged"
+      },
+      "isRenderbuffer": {
+        "support_level": "untriaged"
+      },
+      "isShader": {
+        "support_level": "untriaged"
+      },
+      "isTexture": {
+        "support_level": "untriaged"
+      },
+      "lineWidth": {
+        "support_level": "untriaged"
+      },
+      "linkProgram": {
+        "support_level": "untriaged"
+      },
+      "pixelStorei": {
+        "support_level": "untriaged"
+      },
+      "polygonOffset": {
+        "support_level": "untriaged"
+      },
+      "readPixels": {
+        "support_level": "untriaged"
+      },
+      "renderbufferStorage": {
+        "support_level": "untriaged"
+      },
+      "sampleCoverage": {
+        "support_level": "untriaged"
+      },
+      "scissor": {
+        "support_level": "untriaged"
+      },
+      "shaderSource": {
+        "support_level": "untriaged"
+      },
+      "stencilFunc": {
+        "support_level": "untriaged"
+      },
+      "stencilFuncSeparate": {
+        "support_level": "untriaged"
+      },
+      "stencilMask": {
+        "support_level": "untriaged"
+      },
+      "stencilMaskSeparate": {
+        "support_level": "untriaged"
+      },
+      "stencilOp": {
+        "support_level": "untriaged"
+      },
+      "stencilOpSeparate": {
+        "support_level": "untriaged"
+      },
+      "texImage2D": {
+        "support_level": "untriaged"
+      },
+      "texImage2DCanvas": {
+        "support_level": "untriaged"
+      },
+      "texImage2DImage": {
+        "support_level": "untriaged"
+      },
+      "texImage2DImageData": {
+        "support_level": "untriaged"
+      },
+      "texImage2DVideo": {
+        "support_level": "untriaged"
+      },
+      "texParameterf": {
+        "support_level": "untriaged"
+      },
+      "texParameteri": {
+        "support_level": "untriaged"
+      },
+      "texSubImage2D": {
+        "support_level": "untriaged"
+      },
+      "texSubImage2DCanvas": {
+        "support_level": "untriaged"
+      },
+      "texSubImage2DImage": {
+        "support_level": "untriaged"
+      },
+      "texSubImage2DImageData": {
+        "support_level": "untriaged"
+      },
+      "texSubImage2DVideo": {
+        "support_level": "untriaged"
+      },
+      "uniform1f": {
+        "support_level": "untriaged"
+      },
+      "uniform1fv": {
+        "support_level": "untriaged"
+      },
+      "uniform1i": {
+        "support_level": "untriaged"
+      },
+      "uniform1iv": {
+        "support_level": "untriaged"
+      },
+      "uniform2f": {
+        "support_level": "untriaged"
+      },
+      "uniform2fv": {
+        "support_level": "untriaged"
+      },
+      "uniform2i": {
+        "support_level": "untriaged"
+      },
+      "uniform2iv": {
+        "support_level": "untriaged"
+      },
+      "uniform3f": {
+        "support_level": "untriaged"
+      },
+      "uniform3fv": {
+        "support_level": "untriaged"
+      },
+      "uniform3i": {
+        "support_level": "untriaged"
+      },
+      "uniform3iv": {
+        "support_level": "untriaged"
+      },
+      "uniform4f": {
+        "support_level": "untriaged"
+      },
+      "uniform4fv": {
+        "support_level": "untriaged"
+      },
+      "uniform4i": {
+        "support_level": "untriaged"
+      },
+      "uniform4iv": {
+        "support_level": "untriaged"
+      },
+      "uniformMatrix2fv": {
+        "support_level": "untriaged"
+      },
+      "uniformMatrix3fv": {
+        "support_level": "untriaged"
+      },
+      "uniformMatrix4fv": {
+        "support_level": "untriaged"
+      },
+      "useProgram": {
+        "support_level": "untriaged"
+      },
+      "validateProgram": {
+        "support_level": "untriaged"
+      },
+      "vertexAttrib1f": {
+        "support_level": "untriaged"
+      },
+      "vertexAttrib1fv": {
+        "support_level": "untriaged"
+      },
+      "vertexAttrib2f": {
+        "support_level": "untriaged"
+      },
+      "vertexAttrib2fv": {
+        "support_level": "untriaged"
+      },
+      "vertexAttrib3f": {
+        "support_level": "untriaged"
+      },
+      "vertexAttrib3fv": {
+        "support_level": "untriaged"
+      },
+      "vertexAttrib4f": {
+        "support_level": "untriaged"
+      },
+      "vertexAttrib4fv": {
+        "support_level": "untriaged"
+      },
+      "vertexAttribPointer": {
+        "support_level": "untriaged"
+      },
+      "viewport": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "WebGLShader": {
     "comment": "http://www.khronos.org/registry/webgl/specs/latest/#5.8",
@@ -14239,6 +16388,9 @@
   },
   "WorkerPerformance": {
     "members": {
+      "memory": {
+        "support_level": "untriaged"
+      },
       "now": {
         "support_level": "untriaged"
       }
@@ -14282,6 +16434,9 @@
       "response": {},
       "responseText": {},
       "responseType": {},
+      "responseURL": {
+        "support_level": "untriaged"
+      },
       "responseXML": {},
       "send": {},
       "setRequestHeader": {},

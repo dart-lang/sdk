@@ -354,6 +354,10 @@ class HtmlDartGenerator(object):
 
     def GenerateChecksAndCall(signature_index, argument_count):
       checks = []
+      typechecked_interface = \
+          ('TypeChecking' in self._interface.ext_attrs) and \
+          ('Interface' in self._interface.ext_attrs['TypeChecking'])
+
       for i in reversed(range(0, argument_count)):
         argument = signatures[signature_index][i]
         parameter_name = parameter_names[i]
@@ -363,8 +367,19 @@ class HtmlDartGenerator(object):
         if test_type in ['dynamic', 'Object']:
           checks.append('%s != null' % parameter_name)
         elif not can_omit_type_check(test_type, i):
-          checks.append('(%s is %s || %s == null)' % (
-              parameter_name, test_type, parameter_name))
+          typechecked = typechecked_interface or \
+              ('TypeChecking' in argument.ext_attrs) and \
+              ('Interface' in argument.ext_attrs['TypeChecking'])
+          converts_null = \
+              ('TreatNullAs' in argument.ext_attrs) or \
+              (argument.default_value is not None) or \
+              (argument.default_value_is_null)
+          if argument.type.nullable or converts_null or not typechecked:
+            checks.append('(%s is %s || %s == null)' % (
+                parameter_name, test_type, parameter_name))
+          else:
+            checks.append('(%s is %s)' % (
+                parameter_name, test_type))
         elif i >= number_of_required_in_dart:
           checks.append('%s != null' % parameter_name)
 

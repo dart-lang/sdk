@@ -397,6 +397,27 @@ class DatabaseBuilder(object):
 
             if self._merge_ext_attrs(old_arg.ext_attrs, new_arg.ext_attrs):
               changed = True
+
+            # Merge in [Default=Undefined] and DOMString a = null handling in
+            # IDL.  The IDL model (IDLArgument) coalesces these two different
+            # default value syntaxes into the default_value* models.
+            old_default_value = old_arg.default_value
+            new_default_value = new_arg.default_value
+            old_default_value_is_null = old_arg.default_value_is_null
+            new_default_value_is_null = new_arg.default_value_is_null
+            if old_default_value != new_default_value:
+              old_arg.default_value = new_default_value
+              changed = True
+            if old_default_value_is_null != new_default_value_is_null:
+              old_arg.default_value_is_null = new_default_value_is_null
+              changed = True
+
+            # Merge in any optional argument differences.
+            old_optional = old_arg.optional
+            new_optional = new_arg.optional
+            if old_optional != new_optional:
+              old_arg.optional = new_optional
+              changed = True
         # Maybe merge annotations:
         if (isinstance(old_node, IDLAttribute) or
             isinstance(old_node, IDLOperation)):
@@ -530,6 +551,21 @@ class DatabaseBuilder(object):
     self._impl_stmts = []
     self._imported_interfaces = []
 
+  def _compute_dart_idl_implements(self, idl_filename):
+    full_path = os.path.realpath(idl_filename)
+
+    with open(full_path) as f:
+        idl_file_contents = f.read()
+
+    implements_re = (r'^\s*'
+                     r'(\w+)\s+'
+                     r'implements\s+'
+                     r'(\w+)\s*'
+                     r';')
+
+    implements_matches = re.finditer(implements_re, idl_file_contents, re.MULTILINE)
+    return [match.groups() for match in implements_matches]
+
   # Compile the IDL file with the Blink compiler and remember each AST for the
   # IDL.
   def _blink_compile_idl_files(self, file_paths, import_options, parallel, is_dart_idl):
@@ -538,14 +574,20 @@ class DatabaseBuilder(object):
 
       # 2-stage computation: individual, then overall
       for file_path in file_paths:
-        filename = os.path.splitext(os.path.basename(file_path))[0]
         compute_info_individual(file_path, 'dart')
       info_individuals = [info_individual()]
       compute_interfaces_info_overall(info_individuals)
 
       end_time = time.time()
-      print 'Compute dependencies %s seconds' % round((end_time - start_time),
-                                                      2)
+      print 'Compute dependencies %s seconds' % round((end_time - start_time), 2)
+    else:
+      # Compute the interface_info for dart.idl for implements defined.  This
+      # file is special in that more than one interface can exist in this file.
+      implement_pairs = self._compute_dart_idl_implements(file_paths[0])
+
+      interfaces_info['__dart_idl___'] = {
+        'implement_pairs': implement_pairs,
+      }
 
     # use --parallel for async on a pool.  Look at doing it like Blink
     blink_compiler = _new_compile_idl_file

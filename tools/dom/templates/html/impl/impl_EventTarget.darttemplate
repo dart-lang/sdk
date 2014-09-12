@@ -100,5 +100,24 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * used when an explicit accessor is not available.
    */
   Events get on => new Events(this);
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]) {
+    // TODO(leafp): This check is avoid a bug in our dispatch code when
+    // listener is null.  The browser treats this call as a no-op in this
+    // case, so it's fine to short-circuit it, but we should not have to.
+    if (listener != null) {
+      _addEventListener(type, listener, useCapture);
+    }
+  }
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) {
+    // TODO(leafp): This check is avoid a bug in our dispatch code when
+    // listener is null.  The browser treats this call as a no-op in this
+    // case, so it's fine to short-circuit it, but we should not have to.
+    if (listener != null) {
+      _removeEventListener(type, listener, useCapture);
+    }
+  }
+
 $!MEMBERS
 }

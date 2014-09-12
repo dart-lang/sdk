@@ -17,6 +17,9 @@ mouse_event_test: Fail # Issue 20437
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540
 
+[ $compiler == dart2js ]
+canvasrenderingcontext2d_test/arc: Fail # Issue 20939
+
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
 custom/element_upgrade_test: Fail # Issue 17298
@@ -59,16 +62,6 @@ fileapi_test/getFile: RuntimeError # Issue 20488
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
 touchevent_test/supported: Pass, Fail # Issue 17061
-
-[ $compiler == none && $runtime == drt && $system == windows && $checked ]
-fileapi_test/getDirectory: RuntimeError # Issue 20366
-fileapi_test/getFile: RuntimeError # Issue 20366
-fileapi_test/directoryReader: RuntimeError # Issue 20366
-fileapi_test/entry: RuntimeError # Issue 20366
-fileapi_test/fileEntry: RuntimeError # Issue 20366
-indexeddb_2_test: RuntimeError # Issue 20366
-indexeddb_5_test: RuntimeError # Issue 20366
-xhr_test/xhr_requestBlob: RuntimeError # Issue 20366
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 crypto_test/functional: Pass, Slow # TODO(dart2js-team): Please triage this failure.

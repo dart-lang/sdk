@@ -43,20 +43,6 @@ interface ScriptProcessorNode {
   [Custom] void _setEventListener(EventListener eventListener);
 };
 
-/*
-// TODO(vsm): How should this interact with the new ChildNode and
-// ParentNode interfaces?
-// Force ElementTraversal. WebKit defines these directly.
-interface ElementTraversal : ChildNode, ParentNode {
-  readonly attribute unsigned long childElementCount;
-  readonly attribute Element firstElementChild;
-  readonly attribute Element lastElementChild;
-  readonly attribute Element nextElementSibling;
-  readonly attribute Element previousElementSibling;
-};
-Element implements ElementTraversal;
-*/
-
 [DartSupplemental]
 interface Element {
   readonly attribute Element nextElementSibling;
@@ -229,8 +215,8 @@ interface IDBObjectStore {
     [CallWith=ScriptState, RaisesException] IDBRequest put(any value, [DartForceOptional] optional any key);
     [CallWith=ScriptState, RaisesException] IDBRequest add(any value, [DartForceOptional] optional any key);
     // [CallWith=ExecutionContext, ImplementedAs=deleteFunction, RaisesException] IDBRequest delete(any key);
-    [CallWith=ExecutionContext, RaisesException] IDBRequest openCursor(any key, [DartForceOptional] optional DOMString direction);
-    [CallWith=ExecutionContext, RaisesException] IDBRequest count(any key);
+    [CallWith=ExecutionContext, RaisesException] IDBRequest openCursor([Default=Undefined] optional any range, [DartForceOptional] optional DOMString direction);
+    [CallWith=ExecutionContext, RaisesException] IDBRequest count([Default=Undefined] any key);
 };
 
 interface EntrySync {
@@ -238,7 +224,6 @@ interface EntrySync {
   [DartSuppress] DirectoryEntrySync getParent();
   EntrySync getParent();
 };
-
 
 [DartSupplemental,
   CustomConstructor,

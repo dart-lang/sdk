@@ -160,7 +160,8 @@ class IDLNode(object):
     # TODO(terry): Seems bogus to check for so many things probably better to just
     #              pass in blink_compile and drive it off from that...
     elif (ast and not(isinstance(ast, dict)) and
-          not(isinstance(ast, str)) and ast.__module__ == "idl_definitions"):
+          not(isinstance(ast, str)) and
+          (ast.__module__ == "idl_definitions" or ast.__module__ == "idl_types")):
       field_name = self._convert_label_to_field(label)
       if hasattr(ast, field_name):
         field_value = getattr(ast, field_name)
@@ -370,8 +371,23 @@ class IDLFile(IDLNode):
       for interface in self.interfaces:
         blink_interface = ast.interfaces.get(interface.id)
         if filename_basename == self.DART_IDL:
-          # TODO(terry): Does this seem right?
+          # Special handling for dart.idl we need to remember the interface,
+          # since we could have many (not one interface / file). Then build up
+          # the IDLImplementsStatement for any implements in dart.idl.
+          interface_info = interfaces_info['__dart_idl___'];
+
           self.implementsStatements = []
+
+          implement_pairs = interface_info['implement_pairs']
+          for implement_pair in implement_pairs:
+            interface_name = implement_pair[0]
+            implemented_name = implement_pair[1]
+
+            implementor = new_asts[interface_name].interfaces.get(interface_name)
+            implement_statement = self._createImplementsStatement(implementor,
+                                                                  implemented_name)
+
+            self.implementsStatements.append(implement_statement)
         else:
           interface_info = interfaces_info[interface.id]
 
@@ -383,13 +399,8 @@ class IDLFile(IDLNode):
 
             # TODO(terry): Need to handle more than one implements.
             for implemented_name in implements:
-              implemented = new_asts[implemented_name].interfaces.get(implemented_name)
-
-              implement_statement = IDLImplementsStatement(implemented)
-
-              implement_statement.implementor = IDLType(implementor)
-              implement_statement.implemented = IDLType(implemented)
-
+              implement_statement = self._createImplementsStatement(implementor,
+                                                                    implemented_name)
               self.implementsStatements.append(implement_statement)
           else:
             self.implementsStatements = []
@@ -401,6 +412,16 @@ class IDLFile(IDLNode):
     self.typeDefs = [] if is_blink else self._convert_all(ast, 'TypeDef', IDLTypeDef)
 
     self.enums = self._convert_all(ast, 'Enum', IDLEnum)
+
+  def _createImplementsStatement(self, implementor, implemented_name):
+    implemented = new_asts[implemented_name].interfaces.get(implemented_name)
+
+    implement_statement = IDLImplementsStatement(implemented)
+
+    implement_statement.implementor = IDLType(implementor)
+    implement_statement.implemented = IDLType(implemented)
+
+    return implement_statement
 
 
 class IDLModule(IDLNode):
@@ -559,7 +580,18 @@ class IDLType(IDLNode):
       else:
         # IdlUnionType
         assert ast.is_union_type
-        self.id = self._label_to_type('UnionType', ast)
+        # TODO(terry): For union types use any otherwise type is unionType is
+        #              not found and is removed during merging.
+        self.id = 'any'
+        # TODO(terry): Any union type e.g. 'type1 or type2 or type2',
+        #                            'typedef (Type1 or Type2) UnionType'
+        # Is a problem we need to extend IDLType and IDLTypeDef to handle more
+        # than one type.
+        #
+        # Also for typedef's e.g.,
+        #                 typedef (Type1 or Type2) UnionType
+        # should consider synthesizing a new interface (e.g., UnionType) that's
+        # both Type1 and Type2.
     if not self.id:
       print '>>>> __module__ %s' % ast.__module__
       raise SyntaxError('Could not parse type %s' % (ast))
