@@ -146,7 +146,7 @@ class CodeGenerator {
  * the License.
  * 
  * This file has been automatically generated.  Please do not edit it manually.
- * To regenerate the file, use the script "pkg/analysis_server/spec/generate_files".
+ * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */''';
     } else {
       header = '''
@@ -156,7 +156,7 @@ class CodeGenerator {
 //
 // This file has been automatically generated.  Please do not edit it manually.
 // To regenerate the file, use the script
-// "pkg/analysis_server/spec/generate_files".
+// "pkg/analysis_server/tool/spec/generate_files".
 ''';
     }
     writeln(header.trim());
