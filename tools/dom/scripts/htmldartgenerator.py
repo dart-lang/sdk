@@ -8,7 +8,7 @@ dart:html APIs from the IDL database."""
 
 import emitter
 from generator import AnalyzeOperation, ConstantOutputOrder, \
-    DartDomNameOfAttribute, FindMatchingAttribute, \
+    DartDomNameOfAttribute, FindMatchingAttribute, IsPureInterface, \
     TypeOrNothing, ConvertToFuture, GetCallbackInfo
 from copy import deepcopy
 from htmlrenamer import convert_to_future_members, custom_html_constructors, \
@@ -143,9 +143,16 @@ class HtmlDartGenerator(object):
     if not interface.parents:
       return
 
-    parent = self._database.GetInterface(interface.parents[0].type.id)
+    parent_name = interface.parents[0].type.id
+    parent = self._database.GetInterface(parent_name)
     if parent == self._interface or parent == interface:
       return
+
+    # Never remove operations that are added as a result of an implements they
+    # are pure interfaces (mixins to this interface).
+    if (IsPureInterface(parent_name)):
+      return
+
     for operation in parent.operations:
       if operation.id in operationsByName:
         operations = operationsByName[operation.id]

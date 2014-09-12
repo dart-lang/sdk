@@ -182,25 +182,6 @@ class IDLNode(object):
 
     return res
 
-  def _convert_from_blink(self, object, label):
-    field_name = self._convert_label_to_field(label)
-    if hasattr(object, field_name):
-      field_value = getattr(object, field_name)
-      if field_value:
-        if label == 'Interface' or label == 'Enum':
-          for key in field_value:
-            value = field_value[key]
-            res.append(value)
-        elif isinstance(field_value, list):
-          for item in field_value:
-            res.append(item)
-        elif label == 'ParentInterface' or label == 'InterfaceType':
-          # Fetch the AST for the parent interface.
-          parent_idlnode = new_asts[field_value]
-          res.append(parent_idlnode.interfaces[field_value])
-        else:
-          res.append(field_value)
-
   def _find_first(self, ast, label):
     """Convenience method for _find_all(..., max_results=1).
     Returns a single element instead of a list, or None if nothing

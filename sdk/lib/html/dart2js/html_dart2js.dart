@@ -2000,6 +2000,46 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @DocsEditable()
   void translate(num x, num y) native;
 
+  // From CanvasPathMethods
+
+  @JSName('arc')
+  @DomName('CanvasRenderingContext2D.arc')
+  @DocsEditable()
+  void _arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
+
+  @DomName('CanvasRenderingContext2D.arcTo')
+  @DocsEditable()
+  void arcTo(num x1, num y1, num x2, num y2, num radius) native;
+
+  @DomName('CanvasRenderingContext2D.bezierCurveTo')
+  @DocsEditable()
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
+
+  @DomName('CanvasRenderingContext2D.closePath')
+  @DocsEditable()
+  void closePath() native;
+
+  @DomName('CanvasRenderingContext2D.ellipse')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void ellipse(num x, num y, num radiusX, num radiusY, num rotation, num startAngle, num endAngle, bool anticlockwise) native;
+
+  @DomName('CanvasRenderingContext2D.lineTo')
+  @DocsEditable()
+  void lineTo(num x, num y) native;
+
+  @DomName('CanvasRenderingContext2D.moveTo')
+  @DocsEditable()
+  void moveTo(num x, num y) native;
+
+  @DomName('CanvasRenderingContext2D.quadraticCurveTo')
+  @DocsEditable()
+  void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
+
+  @DomName('CanvasRenderingContext2D.rect')
+  @DocsEditable()
+  void rect(num x, num y, num width, num height) native;
+
 
   /**
    * Sets the color used inside shapes.
@@ -22128,6 +22168,53 @@ class Path2D extends Interceptor implements _CanvasPathMethods {
   @DocsEditable()
   @Experimental() // untriaged
   void addPath(Path2D path, [Matrix transform]) native;
+
+  // From CanvasPathMethods
+
+  @DomName('Path2D.arc')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
+
+  @DomName('Path2D.arcTo')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void arcTo(num x1, num y1, num x2, num y2, num radius) native;
+
+  @DomName('Path2D.bezierCurveTo')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
+
+  @DomName('Path2D.closePath')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void closePath() native;
+
+  @DomName('Path2D.ellipse')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void ellipse(num x, num y, num radiusX, num radiusY, num rotation, num startAngle, num endAngle, bool anticlockwise) native;
+
+  @DomName('Path2D.lineTo')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void lineTo(num x, num y) native;
+
+  @DomName('Path2D.moveTo')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void moveTo(num x, num y) native;
+
+  @DomName('Path2D.quadraticCurveTo')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
+
+  @DomName('Path2D.rect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void rect(num x, num y, num width, num height) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27841,6 +27928,11 @@ class Url extends Interceptor implements UrlUtils {
   @DocsEditable()
   @Experimental() // untriaged
   String username;
+
+  @DomName('URL.toString')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String toString() native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

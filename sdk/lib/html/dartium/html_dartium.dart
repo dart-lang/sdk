@@ -30154,11 +30154,11 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.createObjectURL_Callback_Blob(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
-      return _blink.BlinkURL.createObjectURL_Callback_MediaSource(blob_OR_source_OR_stream);
-    }
     if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.createObjectURL_Callback_MediaStream(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is MediaSource)) {
+      return _blink.BlinkURL.createObjectURL_Callback_MediaSource(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
