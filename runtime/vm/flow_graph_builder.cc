@@ -3275,6 +3275,41 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
             new CreateArrayInstr(node->token_pos(), element_type, length);
         return ReturnDefinition(create_array);
       }
+      case MethodRecognizer::kBigint_getDigits: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LoadFieldInstr* load = new(I) LoadFieldInstr(
+            receiver,
+            Bigint::digits_offset(),
+            Type::ZoneHandle(I, Type::DynamicType()),
+            node->token_pos());
+        // TODO(srdjan): Enabling the correct result type throws an NPE.
+        // load->set_result_cid(kTypedDataUint32ArrayCid);
+        load->set_result_cid(kDynamicCid);
+        load->set_recognized_kind(kind);
+        return ReturnDefinition(load);
+      }
+      case MethodRecognizer::kBigint_getUsed: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LoadFieldInstr* load = new(I) LoadFieldInstr(
+            receiver,
+            Bigint::used_offset(),
+            Type::ZoneHandle(I, Type::SmiType()),
+            node->token_pos());
+        load->set_result_cid(kSmiCid);
+        load->set_recognized_kind(kind);
+        return ReturnDefinition(load);
+      }
+      case MethodRecognizer::kBigint_getNeg: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LoadFieldInstr* load = new(I) LoadFieldInstr(
+            receiver,
+            Bigint::neg_offset(),
+            Type::ZoneHandle(I, Type::BoolType()),
+            node->token_pos());
+        load->set_result_cid(kBoolCid);
+        load->set_recognized_kind(kind);
+        return ReturnDefinition(load);
+      }
       default:
         break;
     }

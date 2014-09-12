@@ -887,13 +887,6 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Bigint_getNeg(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, Bigint::neg_offset()));
-  __ ret();
-}
-
-
 void Intrinsifier::Bigint_setNeg(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ movl(ECX, Address(ESP, + 2 * kWordSize));
@@ -902,24 +895,10 @@ void Intrinsifier::Bigint_setNeg(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Bigint_getUsed(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, Bigint::used_offset()));
-  __ ret();
-}
-
-
 void Intrinsifier::Bigint_setUsed(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ movl(ECX, Address(ESP, + 2 * kWordSize));
   __ StoreIntoObject(ECX, FieldAddress(ECX, Bigint::used_offset()), EAX);
-  __ ret();
-}
-
-
-void Intrinsifier::Bigint_getDigits(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, Bigint::digits_offset()));
   __ ret();
 }
 

@@ -142,17 +142,17 @@ namespace dart {
   V(_Int32x4Array, []=, Int32x4ArraySetIndexed, 1021474038)                    \
   V(_Float64x2Array, [], Float64x2ArrayGetIndexed, 288114492)                  \
   V(_Float64x2Array, []=, Float64x2ArraySetIndexed, 941746736)                 \
+  V(_Bigint, get:_neg, Bigint_getNeg, 1151514099)                              \
+  V(_Bigint, get:_used, Bigint_getUsed, 1308529543)                            \
+  V(_Bigint, get:_digits, Bigint_getDigits, 1408062672)                        \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, 105519892)                                         \
   V(_Smi, get:bitLength, Smi_bitLength, 869956497)                             \
-  V(_Bigint, get:_neg, Bigint_getNeg, 1151514099)                              \
   V(_Bigint, set:_neg, Bigint_setNeg, 920204960)                               \
-  V(_Bigint, get:_used, Bigint_getUsed, 1308529543)                            \
   V(_Bigint, set:_used, Bigint_setUsed, 1857576743)                            \
-  V(_Bigint, get:_digits, Bigint_getDigits, 1408062672)                        \
   V(_Bigint, set:_digits, Bigint_setDigits, 1633805112)                        \
   V(_Double, >, Double_greaterThan, 381325711)                                 \
   V(_Double, >=, Double_greaterEqualThan, 1409267140)                          \
@@ -360,7 +360,10 @@ namespace dart {
   V(::, sin, MathSin, 1741396147)                                              \
   V(::, sqrt, MathSqrt, 101545548)                                             \
   V(::, tan, MathTan, 982072809)                                               \
-  V(Lists, copy, ListsCopy, 902244797)
+  V(Lists, copy, ListsCopy, 902244797)                                         \
+  V(_Bigint, get:_neg, Bigint_getNeg, 1151514099)                              \
+  V(_Bigint, get:_used, Bigint_getUsed, 1308529543)                            \
+  V(_Bigint, get:_digits, Bigint_getDigits, 1408062672)                        \
 
 
 // A list of core functions that internally dispatch based on received id.

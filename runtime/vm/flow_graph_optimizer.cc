@@ -2962,6 +2962,57 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         GrowableObjectArray::length_offset(),
         new(I) Value(array),
         new(I) Value(value),
+        kNoStoreBarrier,
+        call->token_pos());
+    ReplaceCall(call, store);
+    return true;
+  }
+
+  if ((recognized_kind == MethodRecognizer::kBigint_setUsed) &&
+      (ic_data.NumberOfChecks() == 1) &&
+      (class_ids[0] == kBigintCid)) {
+    // This is an internal method, no need to check argument types nor
+    // range.
+    Definition* bigint = call->ArgumentAt(0);
+    Definition* value = call->ArgumentAt(1);
+    StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
+        Bigint::used_offset(),
+        new(I) Value(bigint),
+        new(I) Value(value),
+        kNoStoreBarrier,
+        call->token_pos());
+    ReplaceCall(call, store);
+    return true;
+  }
+
+  if ((recognized_kind == MethodRecognizer::kBigint_setDigits) &&
+      (ic_data.NumberOfChecks() == 1) &&
+      (class_ids[0] == kBigintCid)) {
+    // This is an internal method, no need to check argument types nor
+    // range.
+    Definition* bigint = call->ArgumentAt(0);
+    Definition* value = call->ArgumentAt(1);
+    StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
+        Bigint::digits_offset(),
+        new(I) Value(bigint),
+        new(I) Value(value),
+        kEmitStoreBarrier,
+        call->token_pos());
+    ReplaceCall(call, store);
+    return true;
+  }
+
+  if ((recognized_kind == MethodRecognizer::kBigint_setNeg) &&
+      (ic_data.NumberOfChecks() == 1) &&
+      (class_ids[0] == kBigintCid)) {
+    // This is an internal method, no need to check argument types nor
+    // range.
+    Definition* bigint = call->ArgumentAt(0);
+    Definition* value = call->ArgumentAt(1);
+    StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
+        Bigint::neg_offset(),
+        new(I) Value(bigint),
+        new(I) Value(value),
         kEmitStoreBarrier,
         call->token_pos());
     ReplaceCall(call, store);

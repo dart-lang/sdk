@@ -797,13 +797,6 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Bigint_getNeg(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ movq(RAX, FieldAddress(RAX, Bigint::neg_offset()));
-  __ ret();
-}
-
-
 void Intrinsifier::Bigint_setNeg(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RCX, Address(RSP, + 2 * kWordSize));
@@ -812,24 +805,10 @@ void Intrinsifier::Bigint_setNeg(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Bigint_getUsed(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ movq(RAX, FieldAddress(RAX, Bigint::used_offset()));
-  __ ret();
-}
-
-
 void Intrinsifier::Bigint_setUsed(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RCX, Address(RSP, + 2 * kWordSize));
   __ StoreIntoObject(RCX, FieldAddress(RCX, Bigint::used_offset()), RAX);
-  __ ret();
-}
-
-
-void Intrinsifier::Bigint_getDigits(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ movq(RAX, FieldAddress(RAX, Bigint::digits_offset()));
   __ ret();
 }
 
