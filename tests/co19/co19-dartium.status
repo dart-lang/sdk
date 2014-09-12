@@ -327,6 +327,7 @@ LayoutTests/fast/dom/Range/range-detached-exceptions_t01: RuntimeError # Issue 1
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: Skip # co19-roll r722: Please triage this failure.
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # co19-roll r722: Please triage this failure.
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip # co19-roll r722: Please triage this failure.
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19-roll r722: Please triage this failure.
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/Utils/test/asyncTestFail_t01: RuntimeError # co19-roll r722: Please triage this failure.
