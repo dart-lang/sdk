@@ -27,3 +27,7 @@ const LAZIES = 'lazies';
 const GET_ISOLATE_TAG = 'getIsolateTag';
 const ISOLATE_TAG = 'isolateTag';
 const CURRENT_SCRIPT = 'currentScript';
+const DEFERRED_LIBRARY_URIS = 'deferredLibraryUris';
+const DEFERRED_LIBRARY_HASHES = 'deferredLibraryHashes';
+const INITIALIZE_LOADED_HUNK = 'initializeLoadedHunk';
+const IS_HUNK_LOADED = 'isHunkLoaded';

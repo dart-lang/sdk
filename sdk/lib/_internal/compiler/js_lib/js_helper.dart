@@ -10,7 +10,11 @@ import 'shared/embedded_names.dart' show
     INTERCEPTED_NAMES,
     INTERCEPTORS_BY_TAG,
     LEAF_TAGS,
-    METADATA;
+    METADATA,
+    DEFERRED_LIBRARY_URIS,
+    DEFERRED_LIBRARY_HASHES,
+    INITIALIZE_LOADED_HUNK,
+    IS_HUNK_LOADED;
 
 import 'dart:collection';
 import 'dart:_isolate_helper' show
@@ -3260,22 +3264,23 @@ final Set<String> _loadedLibraries = new Set<String>();
 Future<Null> loadDeferredLibrary(String loadId) {
   // For each loadId there is a list of hunk-uris to load, and a corresponding
   // list of hashes. These are stored in the app-global scope.
-  List<String> uris = JS('JSExtendableArray|Null',
-      'init.deferredLibraryUris[#]', loadId);
-  List<String> hashes = JS('JSExtendableArray|Null',
-      'init.deferredLibraryHashes[#]', loadId);
+  var urisMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_URIS);
+  List<String> uris = JS('JSExtendableArray|Null', '#[#]', urisMap, loadId);
+  var hashesMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_HASHES);
+  List<String> hashes = JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId);
   if (uris == null) return new Future.value(null);
   // The indices into `uris` and `hashes` that we want to load.
   List<int> indices = new List.generate(uris.length, (i) => i);
+  var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
   return Future.wait(indices
       // Filter away indices for hunks that have already been loaded.
-      .where((int i) => !JS('bool','init.isHunkLoaded(#)', hashes[i]))
+      .where((int i) => !JS('bool','#(#)', isHunkLoaded, hashes[i]))
       // Load the rest.
       .map((int i) => _loadHunk(uris[i]))).then((_) {
     // Now all hunks have been loaded, we call all their initializers
     for (String hash in hashes) {
-      // TODO(floitsch): Replace unsafe access to embedded global.
-      JS('void', 'init.initializeLoadedHunk(#)', hash);
+      var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
+      JS('void', '#(#)', initializer, hash);
     }
     _loadedLibraries.add(loadId);
   });
