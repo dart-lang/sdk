@@ -389,23 +389,32 @@ class AnalysisServer {
    * Handle a [request] that was read from the communication channel.
    */
   void handleRequest(Request request) {
-    int count = handlers.length;
-    for (int i = 0; i < count; i++) {
-      try {
-        Response response = handlers[i].handleRequest(request);
-        if (response == Response.DELAYED_RESPONSE) {
+    runZoned(() {
+      int count = handlers.length;
+      for (int i = 0; i < count; i++) {
+        try {
+          Response response = handlers[i].handleRequest(request);
+          if (response == Response.DELAYED_RESPONSE) {
+            return;
+          }
+          if (response != null) {
+            channel.sendResponse(response);
+            return;
+          }
+        } on RequestFailure catch (exception) {
+          channel.sendResponse(exception.response);
           return;
-        }
-        if (response != null) {
+        } catch (exception, stackTrace) {
+          _sendServerErrorNotification(exception, stackTrace);
+          RequestError error =
+              new RequestError(RequestErrorCode.SERVER_ERROR, 'Server Error');
+          Response response = new Response(request.id, error: error);
           channel.sendResponse(response);
           return;
         }
-      } on RequestFailure catch (exception) {
-        channel.sendResponse(exception.response);
-        return;
       }
-    }
-    channel.sendResponse(new Response.unknownRequest(request));
+      channel.sendResponse(new Response.unknownRequest(request));
+    }, onError: _sendServerErrorNotification);
   }
 
   /**

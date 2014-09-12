@@ -1641,6 +1641,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
  *   SERVER_ALREADY_STARTED
+ *   SERVER_ERROR
  *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
  *   UNSUPPORTED_FEATURE
@@ -1652,6 +1653,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "INVALID_PARAMETER",
   "INVALID_REQUEST",
   "SERVER_ALREADY_STARTED",
+  "SERVER_ERROR",
   "UNANALYZED_PRIORITY_FILES",
   "UNKNOWN_REQUEST",
   "UNSUPPORTED_FEATURE"

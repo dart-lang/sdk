@@ -8173,6 +8173,7 @@ class RequestError implements HasToJson {
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
  *   SERVER_ALREADY_STARTED
+ *   SERVER_ERROR
  *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
  *   UNSUPPORTED_FEATURE
@@ -8211,6 +8212,12 @@ class RequestErrorCode {
    * occur.
    */
   static const SERVER_ALREADY_STARTED = const RequestErrorCode._("SERVER_ALREADY_STARTED");
+
+  /**
+   * An internal error occurred in the analysis server. Also see the
+   * server.error notification.
+   */
+  static const SERVER_ERROR = const RequestErrorCode._("SERVER_ERROR");
 
   /**
    * An "analysis.setPriorityFiles" request includes one or more files that are
@@ -8252,6 +8259,8 @@ class RequestErrorCode {
         return INVALID_REQUEST;
       case "SERVER_ALREADY_STARTED":
         return SERVER_ALREADY_STARTED;
+      case "SERVER_ERROR":
+        return SERVER_ERROR;
       case "UNANALYZED_PRIORITY_FILES":
         return UNANALYZED_PRIORITY_FILES;
       case "UNKNOWN_REQUEST":

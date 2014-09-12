@@ -20,6 +20,9 @@ main() {
         SocketServerTest.createAnalysisServer_successful);
     test('createAnalysisServer_alreadyStarted',
         SocketServerTest.createAnalysisServer_alreadyStarted);
+    test('requestHandler_exception', SocketServerTest.requestHandler_exception);
+    test('requestHandler_futureException',
+        SocketServerTest.requestHandler_futureException);
   });
 }
 
@@ -60,5 +63,55 @@ class SocketServerTest {
           RequestErrorCode.SERVER_ALREADY_STARTED));
       channel2.expectMsgCount(responseCount: 2);
     });
+  }
+
+  static Future requestHandler_exception() {
+    SocketServer server = new SocketServer(DirectoryBasedDartSdk.defaultSdk);
+    MockServerChannel channel = new MockServerChannel();
+    server.createAnalysisServer(channel);
+    _MockRequestHandler handler = new _MockRequestHandler(false);
+    server.analysisServer.handlers = [handler];
+    var request = new ServerGetVersionParams().toRequest('0');
+    return channel.sendRequest(request).then((Response response) {
+      expect(response.id, equals('0'));
+      expect(response.error, isNotNull);
+      expect(response.error.code, equals(RequestErrorCode.SERVER_ERROR));
+      channel.expectMsgCount(responseCount: 1, notificationCount: 2);
+      expect(channel.notificationsReceived[1].event, SERVER_ERROR);
+    });
+  }
+
+  static Future requestHandler_futureException() {
+    SocketServer server = new SocketServer(DirectoryBasedDartSdk.defaultSdk);
+    MockServerChannel channel = new MockServerChannel();
+    server.createAnalysisServer(channel);
+    _MockRequestHandler handler = new _MockRequestHandler(true);
+    server.analysisServer.handlers = [handler];
+    var request = new ServerGetVersionParams().toRequest('0');
+    return channel.sendRequest(request).then((Response response) {
+      expect(response.id, equals('0'));
+      expect(response.error, isNull);
+      channel.expectMsgCount(responseCount: 1, notificationCount: 2);
+      expect(channel.notificationsReceived[1].event, SERVER_ERROR);
+    });
+  }
+}
+
+class _MockRequestHandler implements RequestHandler {
+  final bool futureException;
+
+  _MockRequestHandler(this.futureException);
+
+  @override
+  Response handleRequest(Request request) {
+    if (futureException) {
+      new Future(throwException);
+      return new Response(request.id);
+    }
+    throw 'mock request exception';
+  }
+
+  void throwException() {
+    throw 'mock future exception';
   }
 }
