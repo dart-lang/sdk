@@ -155,20 +155,11 @@ type_check_const_function_typedef2_test/00: MissingCompileTimeError, OK
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == ie9 || $runtime == safari || $runtime == safarimobilesim)]
+[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == safari || $runtime == safarimobilesim)]
 round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
-
-[ $compiler == dart2js && $runtime == ie9 ]
-double_to_string_as_exponential3_test: Fail # Issue 12750
-double_to_string_as_fixed_test: Fail # Issue 12750
-double_to_string_as_precision3_test: Fail # Issue 12750
-expect_test: Fail # Issue 13080
-stack_overflow_test: Fail
-stack_overflow_stacktrace_test: Fail
-
 
 [ $runtime == opera ]
 null_access_error_test: Fail # Issue: 7413
@@ -258,14 +249,6 @@ super_call4_test: Fail, OK # hardcoded names.
 
 [ $minified ]
 stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
-
-[ $runtime == ie9 ]
-stack_trace_test: Fail, OK # Stack traces not available in IE9.
-deferred_constraints_type_annotation_test/*: Fail, Pass # http://dartbug.com/12635
-deferred_constraints_constants_test/*: Fail, Pass # http://dartbug.com/12635
-deferred_no_such_method_test*: Fail, Pass # http://dartbug.com/12635
-deferred_shadow_load_library_test: Fail, Pass # Issue 17807
-deferred_closurize_load_library_test: Fail, Pass # Issue 17807
 
 [ ($compiler == dart2js && $csp)]
 deferred_constraints_type_annotation_test/*: Skip # Issue 16898

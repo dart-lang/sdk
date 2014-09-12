@@ -54,5 +54,5 @@ show_package_warnings_test: Pass, Slow
 analyze_api_test: Pass, Slow # DON'T CHANGE THIS LINE -- SEE ABOVE.
 analyze_dart2js_test: Pass, Slow # DON'T CHANGE THIS LINE -- SEE ABOVE.
 
-[ $jscl || $runtime == drt || $runtime == dartium || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari || $runtime == ie9 || $runtime == opera ]
+[ $jscl || $runtime == drt || $runtime == dartium || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari || $runtime == opera ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
