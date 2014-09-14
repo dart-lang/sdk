@@ -179,6 +179,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
   bool inlineAll = true;
 
   ExecutableElement _methodElement;
+  bool _isAccessor;
   String _methodFile;
   CompilationUnit _methodUnit;
   CorrectionUtils _methodUtils;
@@ -301,48 +302,53 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
     _methodBody = null;
     deleteSource = false;
     inlineAll = false;
+    // prepare for failure
+    RefactoringStatus fatalStatus = new RefactoringStatus.fatal(
+        'Method declaration or reference must be selected to activate this refactoring.');
     // prepare selected SimpleIdentifier
-    AstNode selectedNode = new NodeLocator.con1(offset).searchWithin(unit);
-    if (selectedNode is! SimpleIdentifier) {
-      return new RefactoringStatus.fatal(
-          'Method declaration or reference must be selected to activate this refactoring.');
+    AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
+    if (node is! SimpleIdentifier) {
+      return fatalStatus;
     }
-    SimpleIdentifier selectedIdentifier = selectedNode as SimpleIdentifier;
+    SimpleIdentifier identifier = node as SimpleIdentifier;
     // prepare selected ExecutableElement
-    Element selectedElement = selectedIdentifier.bestElement;
-    if (selectedElement is! ExecutableElement) {
-      return new RefactoringStatus.fatal(
-          'Method declaration or reference must be selected to activate this refactoring.');
+    Element element = identifier.bestElement;
+    if (element is! ExecutableElement) {
+      return fatalStatus;
     }
-    _methodElement = selectedElement as ExecutableElement;
+    _methodElement = element as ExecutableElement;
+    _isAccessor = element is PropertyAccessorElement;
     _methodFile = _methodElement.source.fullName;
-    _methodUnit = selectedElement.unit;
+    _methodUnit = element.unit;
     _methodUtils = new CorrectionUtils(_methodUnit);
-    if (selectedElement is MethodElement ||
-        selectedElement is PropertyAccessorElement) {
-      MethodDeclaration methodDeclaration =
-          _methodElement.node as MethodDeclaration;
+    // class member
+    bool isClassMember = element.enclosingElement is ClassElement;
+    if (element is MethodElement || _isAccessor && isClassMember) {
+      MethodDeclaration methodDeclaration = element.node;
       _methodNode = methodDeclaration;
       _methodParameters = methodDeclaration.parameters;
       _methodBody = methodDeclaration.body;
       // prepare mode
-      isDeclaration = selectedNode == methodDeclaration.name;
+      isDeclaration = node == methodDeclaration.name;
       deleteSource = isDeclaration;
       inlineAll = deleteSource;
+      return new RefactoringStatus();
     }
-    if (selectedElement is FunctionElement) {
-      FunctionDeclaration functionDeclaration =
-          _methodElement.node as FunctionDeclaration;
+    // unit member
+    bool isUnitMember = element.enclosingElement is CompilationUnitElement;
+    if (element is FunctionElement || _isAccessor && isUnitMember) {
+      FunctionDeclaration functionDeclaration = element.node;
       _methodNode = functionDeclaration;
       _methodParameters = functionDeclaration.functionExpression.parameters;
       _methodBody = functionDeclaration.functionExpression.body;
       // prepare mode
-      isDeclaration = selectedNode == functionDeclaration.name;
+      isDeclaration = node == functionDeclaration.name;
       deleteSource = isDeclaration;
       inlineAll = deleteSource;
+      return new RefactoringStatus();
     }
     // OK
-    return new RefactoringStatus();
+    return fatalStatus;
   }
 
   /**
@@ -401,7 +407,7 @@ class _ReferenceProcessor {
 
   String _refFile;
   CorrectionUtils _refUtils;
-  AstNode _node;
+  SimpleIdentifier _node;
   SourceRange _refLineRange;
   String _refPrefix;
 
@@ -465,23 +471,23 @@ class _ReferenceProcessor {
     return false;
   }
 
-  void _inlineMethodInvocation(RefactoringStatus status, Expression methodUsage,
+  void _inlineMethodInvocation(RefactoringStatus status, Expression usage,
       bool cascaded, Expression target, List<Expression> arguments) {
     // we don't support cascade
     if (cascaded) {
       status.addError(
           'Cannot inline cascade invocation.',
-          new Location.fromNode(methodUsage));
+          new Location.fromNode(usage));
     }
     // can we inline method body into "methodUsage" block?
-    if (_canInlineBody(methodUsage)) {
+    if (_canInlineBody(usage)) {
       // insert non-return statements
       if (ref._methodStatementsPart != null) {
         // prepare statements source for invocation
         String source = _getMethodSourceForInvocation(
             ref._methodStatementsPart,
             _refUtils,
-            methodUsage,
+            usage,
             target,
             arguments);
         source = _refUtils.replaceSourceIndent(
@@ -499,15 +505,15 @@ class _ReferenceProcessor {
         String source = _getMethodSourceForInvocation(
             ref._methodExpressionPart,
             _refUtils,
-            methodUsage,
+            usage,
             target,
             arguments);
         if (getExpressionPrecedence(ref._methodExpression) <
-            getExpressionParentPrecedence(methodUsage)) {
+            getExpressionParentPrecedence(usage)) {
           source = "(${source})";
         }
         // do replace
-        SourceRange methodUsageRange = rangeNode(methodUsage);
+        SourceRange methodUsageRange = rangeNode(usage);
         SourceEdit edit = new SourceEdit.range(methodUsageRange, source);
         ref.change.addEdit(_refFile, edit);
       } else {
@@ -559,31 +565,30 @@ class _ReferenceProcessor {
       }
       // PropertyAccessorElement
       if (ref._methodElement is PropertyAccessorElement) {
+        Expression usage = _node;
         Expression target = null;
         bool cascade = false;
         if (nodeParent is PrefixedIdentifier) {
           PrefixedIdentifier propertyAccess = nodeParent;
+          usage = propertyAccess;
           target = propertyAccess.prefix;
           cascade = false;
         }
         if (nodeParent is PropertyAccess) {
           PropertyAccess propertyAccess = nodeParent;
+          usage = propertyAccess;
           target = propertyAccess.realTarget;
           cascade = propertyAccess.isCascaded;
         }
         // prepare arguments
         List<Expression> arguments = [];
-        if ((_node as SimpleIdentifier).inSetterContext()) {
-          arguments.add(
-              (nodeParent.parent as AssignmentExpression).rightHandSide);
+        if (_node.inSetterContext()) {
+          AssignmentExpression assignment =
+              _node.getAncestor((node) => node is AssignmentExpression);
+          arguments.add(assignment.rightHandSide);
         }
         // inline body
-        _inlineMethodInvocation(
-            status,
-            nodeParent as Expression,
-            cascade,
-            target,
-            arguments);
+        _inlineMethodInvocation(status, usage, cascade, target, arguments);
         return;
       }
       // not invocation, just reference to function
