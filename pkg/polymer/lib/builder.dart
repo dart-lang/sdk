@@ -83,6 +83,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:path/path.dart' as path;
+import 'package:yaml/yaml.dart';
 
 import 'src/build/linter.dart';
 import 'src/build/runner.dart';
@@ -116,6 +118,8 @@ Future build({List<String> entryPoints, CommandLineOptions options,
         ' options to build(). Running as if no options were passed.');
     options = parseOptions([]);
   }
+  if (entryPoints == null) entryPoints = _parseEntryPointsFromPubspec();
+
   return options.forceDeploy
       ? deploy(entryPoints: entryPoints, options: options,
             currentPackage: currentPackage, packageDirs: packageDirs)
@@ -145,8 +149,10 @@ Future lint({List<String> entryPoints, CommandLineOptions options,
     options = parseOptions([]);
   }
   if (currentPackage == null) currentPackage = readCurrentPackageFromPubspec();
+  if (entryPoints == null) entryPoints = _parseEntryPointsFromPubspec();
   var linterOptions = new TransformOptions(entryPoints: entryPoints);
   var linter = new Linter(linterOptions);
+
   return runBarback(new BarbackOptions([[linter]], null,
       currentPackage: currentPackage, packageDirs: packageDirs,
       machineFormat: options.machineFormat));
@@ -177,6 +183,7 @@ Future deploy({List<String> entryPoints, CommandLineOptions options,
     options = parseOptions([]);
   }
   if (currentPackage == null) currentPackage = readCurrentPackageFromPubspec();
+  if (entryPoints == null) entryPoints = _parseEntryPointsFromPubspec();
 
   var transformOptions = new TransformOptions(
       entryPoints: entryPoints,
@@ -317,4 +324,32 @@ CommandLineOptions parseOptions([List<String> args]) {
   return new CommandLineOptions(res['changed'], res['removed'], res['clean'],
       res['full'], res['machine'], res['deploy'], res['out'], res['js'],
       res['csp'], !res['debug']);
+}
+
+List<String> _parseEntryPointsFromPubspec() {
+  var entryPoints = [];
+  var pubspec = new File(path.join(
+      path.dirname(Platform.script.path), 'pubspec.yaml'));
+  if (!pubspec.existsSync()) {
+    print('error: pubspec.yaml file not found.');
+    return null;
+  }
+  var transformers = loadYaml(pubspec.readAsStringSync())['transformers'];
+  if (transformers == null) return null;
+  if (transformers is! List) {
+    print('Unexpected value for transformers, expected a List.');
+    return null;
+  }
+
+  transformers.forEach((t) {
+    if (t is! Map) return;
+    var polymer = t['polymer'];
+    if (polymer == null || polymer is! Map) return;
+
+    var parsedEntryPoints = readEntrypoints(polymer['entry_points']);
+    if (parsedEntryPoints == null) return;
+
+    entryPoints.addAll(parsedEntryPoints);
+  });
+  return entryPoints.isEmpty ? null : entryPoints;
 }
