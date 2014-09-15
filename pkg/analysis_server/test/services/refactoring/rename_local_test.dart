@@ -5,9 +5,9 @@
 library test.services.refactoring.rename_local;
 
 import 'package:analysis_server/src/protocol.dart';
-import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import 'abstract_rename.dart';
 
 
@@ -124,6 +124,20 @@ main2() {
     // check status
     refactoring.newName = 'newName';
     return assertRefactoringConditionsOK();
+  }
+
+  test_checkFinalConditions_shadows_OK_namedParameterReference() {
+    indexTestUnit('''
+void f({newName}) {}
+main() {
+  var test = 0;
+  f(newName: test);
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return assertRefactoringFinalConditionsOK();
   }
 
   test_checkFinalConditions_shadows_classMember() {
