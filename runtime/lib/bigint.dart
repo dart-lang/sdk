@@ -736,15 +736,39 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // Accumulate multiply.
   // this[i..i+n-1]: bigint multiplicand.
-  // x: digit multiplier.
+  // x: digit multiplier, 0 <= x < DIGIT_BASE (i.e. 32-bit multiplier).
+  // w[j..j+n-1]: bigint accumulator.
+  // Returns carry out.
+  // w[j..j+n-1] += this[i..i+n-1] * x.
+  // Returns carry out.
+  int _am(int i, int x, _Bigint w, int j, int n) {
+    if (x == 0) {
+      // No-op if x is 0.
+      return 0;
+    }
+    int c = 0;
+    int xl = x & DIGIT2_MASK;
+    int xh = x >> DIGIT2_BITS;
+    while (--n >= 0) {
+      int l = _digits[i] & DIGIT2_MASK;
+      int h = _digits[i++] >> DIGIT2_BITS;
+      int m = xh*l + h*xl;
+      l = xl*l + ((m & DIGIT2_MASK) << DIGIT2_BITS) + w._digits[j] + c;
+      c = (l >> DIGIT_BITS) + (m >> DIGIT2_BITS) + xh*h;
+      w._digits[j++] = l & DIGIT_MASK;
+    }
+    return c;
+  }
+
+  // Accumulate multiply with carry.
+  // this[i..i+n-1]: bigint multiplicand.
+  // x: digit multiplier, 0 <= x < 2*DIGIT_BASE  (i.e. 33-bit multiplier).
   // w[j..j+n-1]: bigint accumulator.
   // c: int carry in.
   // Returns carry out.
   // w[j..j+n-1] += this[i..i+n-1] * x + c.
   // Returns carry out.
-  // TODO(regis): _sqrTo is the only caller passing an x possibly larger than
-  // a digit (2*digit) and passing a non-zero carry in. Refactor?
-  int _am(int i, int x, _Bigint w, int j, int c, int n) {
+  int _amc(int i, int x, _Bigint w, int j, int c, int n) {
     if (x == 0 && c == 0) {
       // No-op if both x and c are 0.
       return 0;
@@ -772,8 +796,7 @@ class _Bigint extends _IntegerImplementation implements int {
       r._digits[i] = 0;
     }
     for (i = 0; i < a._used; ++i) {
-      // TODO(regis): Replace _am with addMulVVW.
-      r._digits[i + _used] = _am(0, a._digits[i], r, i, 0, _used);
+      r._digits[i + _used] = _am(0, a._digits[i], r, i, _used);
     }
     r._clamp();
     r._neg = r._used > 0 && _neg != a._neg;  // Zero cannot be negative.
@@ -788,9 +811,9 @@ class _Bigint extends _IntegerImplementation implements int {
       r._digits[i] = 0;
     }
     for (i = 0; i < _used - 1; ++i) {
-      var c = _am(i, _digits[i], r, 2*i, 0, 1);
+      var c = _am(i, _digits[i], r, 2*i, 1);
       var d = r._digits[i + _used];
-      d += _am(i + 1, _digits[i] << 1, r, 2*i + 1, c, _used - i - 1);
+      d += _amc(i + 1, _digits[i] << 1, r, 2*i + 1, c, _used - i - 1);
       if (d >= DIGIT_BASE) {
         r._digits[i + _used] = d - DIGIT_BASE;
         r._digits[i + _used + 1] = 1;
@@ -799,7 +822,7 @@ class _Bigint extends _IntegerImplementation implements int {
       }
     }
     if (r._used > 0) {
-      r._digits[r._used - 1] += _am(i, _digits[i], r, 2*i, 0, 1);
+      r._digits[r._used - 1] += _am(i, _digits[i], r, 2*i, 1);
     }
     r._neg = false;
     r._clamp();
@@ -864,7 +887,7 @@ class _Bigint extends _IntegerImplementation implements int {
       var qd = (r._digits[--i] == y0)
           ? DIGIT_MASK
           : (r._digits[i]*d1 + (r._digits[i - 1] + e)*d2).floor();
-      if ((r._digits[i] += y._am(0, qd, r, j, 0, y_used)) < qd) {  // Try it out
+      if ((r._digits[i] += y._amc(0, qd, r, j, 0, y_used)) < qd) {  // Try it out
         y._dlShiftTo(j, t);
         r._subTo(t, r);
         while (r._digits[i] < --qd) {
@@ -938,10 +961,6 @@ class _Bigint extends _IntegerImplementation implements int {
     _Bigint result = new _Bigint();
     other._toBigint()._lShiftTo(shift, result);
     return result._toValidInt();
-  }
-
-  int pow(int exponent) {
-    throw "Bigint.pow not implemented";
   }
 
   // Overriden operators and methods.
@@ -1074,31 +1093,137 @@ class _Bigint extends _IntegerImplementation implements int {
     return other._toBigint()._compareTo(this) == 0;
   }
 
-  // New method to support crypto.
+  // Return -1/this % DIGIT_BASE, useful for Montgomery reduction.
+  //
+  //         xy == 1 (mod m)
+  //         xy =  1+km
+  //   xy(2-xy) = (1+km)(1-km)
+  // x(y(2-xy)) = 1-k^2 m^2
+  // x(y(2-xy)) == 1 (mod m^2)
+  // if y is 1/x mod m, then y(2-xy) is 1/x mod m^2
+  // Should reduce x and y(2-xy) by m^2 at each step to keep size bounded.
+  int _invDigit() {
+    if (_used == 0) return 0;
+    var x = _digits[0];
+    if ((x & 1) == 0) return 0;
+    var y = x & 3;    // y == 1/x mod 2^2
+    y = (y*(2 - (x & 0xf)*y)) & 0xf;  // y == 1/x mod 2^4
+    y = (y*(2 - (x & 0xff)*y)) & 0xff;  // y == 1/x mod 2^8
+    y = (y*(2 - (((x & 0xffff)*y) & 0xffff))) & 0xffff; // y == 1/x mod 2^16
+    // Last step - calculate inverse mod DIGIT_BASE directly;
+    // Assumes 16 < DIGIT_BITS <= 32 and assumes ability to handle 48-bit ints.
+    y = (y*(2 - x*y % DIGIT_BASE)) % DIGIT_BASE;    // y == 1/x mod DIGIT_BASE
+    // We really want the negative inverse, and - DIGIT_BASE < y < DIGIT_BASE.
+    return (y > 0) ? DIGIT_BASE - y : -y;
+  }
 
-  // Return this.pow(e) mod m, with 256 <= e < 1<<32.
+  // TODO(regis): Make this method private once the plumbing to invoke it from
+  // dart:math is in place.
+  // Return pow(this, e) % m.
   int modPow(int e, int m) {
+    // TODO(regis): Where/how do we handle values of e smaller than 256?
+    // TODO(regis): Where/how do we handle even values of m?
     assert(e >= 256 && !m.isEven());
-    if (e >= (1 << 32)) {
-      throw "Bigint.modPow with exponent larger than 32-bit not implemented";
+    if (e is! _Bigint) {
+      _Reduction z = new _Montgomery(m);
+      var r = new _Bigint();
+      var r2 = new _Bigint();
+      var g = z._convert(this);
+      int i = _nbits(e) - 1;
+      g._copyTo(r);
+      while (--i >= 0) {
+        z._sqrTo(r, r2);
+        if ((e & (1 << i)) > 0) {
+          z._mulTo(r2, g, r);
+        } else {
+          var t = r;
+          r = r2;
+          r2 = t;
+        }
+      }
+      return z._revert(r)._toValidInt();
     }
+    var i = e.bitLength;
+    var k;
+    var r = new _Bigint()._setInt(1);
+    if (i <= 0) return r;
+    // TODO(regis): Are these values of k really optimal for our implementation?
+    else if (i < 18) k = 1;
+    else if (i < 48) k = 3;
+    else if (i < 144) k = 4;
+    else if (i < 768) k = 5;
+    else k = 6;
     _Reduction z = new _Montgomery(m);
-    var r = new _Bigint();
-    var r2 = new _Bigint();
-    var g = z.convert(this);
-    int i = _nbits(e) - 1;
-    g._copyTo(r);
-    while (--i >= 0) {
-      z.sqrTo(r, r2);
-      if ((e & (1 << i)) > 0) {
-        z.mulTo(r2, g, r);
-      } else {
-        var t = r;
-        r = r2;
-        r2 = t;
+    var n = 3;
+    var k1 = k - 1;
+    var km = (1 << k) - 1;
+    List g = new List(km + 1);
+    g[1] = z._convert(this);
+    if (k > 1) {
+      var g2 = new _Bigint();
+      z._sqrTo(g[1], g2);
+      while (n <= km) {
+        g[n] = new _Bigint();
+        z._mulTo(g2, g[n - 2], g[n]);
+        n += 2;
       }
     }
-    return z.revert(r)._toValidInt();
+    var j = e._used - 1;
+    var w;
+    var is1 = true;
+    var r2 = new _Bigint();
+    var t;
+    i = _nbits(e._digits[j]) - 1;
+    while (j >= 0) {
+      if (i >= k1) {
+        w = (e._digits[j] >> (i - k1)) & km;
+      } else {
+        w = (e._digits[j] & ((1 << (i + 1)) - 1)) << (k1 - i);
+        if (j > 0) {
+          w |= e._digits[j - 1] >> (DIGIT_BITS + i - k1);
+        }
+      }
+      n = k;
+      while ((w & 1) == 0) {
+        w >>= 1;
+        --n;
+      }
+      if ((i -= n) < 0) {
+        i += DIGIT_BITS;
+        --j;
+      }
+      if (is1) {  // r == 1, don't bother squaring or multiplying it.
+        g[w]._copyTo(r);
+        is1 = false;
+      }
+      else {
+        while (n > 1) {
+          z._sqrTo(r, r2);
+          z._sqrTo(r2, r);
+          n -= 2;
+        }
+        if (n > 0) {
+          z._sqrTo(r, r2);
+        } else {
+          t = r;
+          r = r2;
+          r2 = t;
+        }
+        z._mulTo(r2,g[w], r);
+      }
+
+      while (j >= 0 && (e._digits[j] & (1 << i)) == 0) {
+        z._sqrTo(r, r2);
+        t = r;
+        r = r2;
+        r2 = t;
+        if (--i < 0) {
+          i = DIGIT_BITS - 1;
+          --j;
+        }
+      }
+    }
+    return z._revert(r)._toValidInt();
   }
 }
 
@@ -1168,8 +1293,8 @@ class _Montgomery implements _Reduction {
       // Use _am to combine the multiply-shift-add into one call.
       j = i + _m._used;
       var digit = x._digits[j];
-      digit += _m ._am(0, u0, x, i, 0, _m ._used);
-      // propagate carry
+      digit += _m ._am(0, u0, x, i, _m._used);
+      // Propagate carry.
       while (digit >= _Bigint.DIGIT_BASE) {
         digit -= _Bigint.DIGIT_BASE;
         x._digits[j++] = digit;
