@@ -7,9 +7,9 @@ library test.search.element_references;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
-import '../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../reflective_tests.dart';
 import 'abstract_search_domain.dart';
 
 
@@ -22,6 +22,11 @@ main() {
 @ReflectiveTestCase()
 class ElementReferencesTest extends AbstractSearchDomainTest {
   Element searchElement;
+
+  void assertHasRef(SearchResultKind kind, String search, bool isPotential) {
+    assertHasResult(kind, search);
+    expect(result.isPotential, isPotential);
+  }
 
   Future findElementReferences(String search, bool includePotential) {
     int offset = findOffset(search);
@@ -563,6 +568,30 @@ main(A a, p) {
         assertHasResult(SearchResultKind.INVOCATION, 'test(2);');
         expect(result.isPotential, isTrue);
       }
+    });
+  }
+
+  test_potential_method_definedInSubclass() {
+    addTestFile('''
+class Base {
+  methodInBase() {
+    test(1);
+  }
+}
+class Derived extends Base {
+  test(_) {} // of Derived
+  methodInDerived() {
+    test(2);
+  }
+}
+globalFunction(Base b) {
+  b.test(3);
+}
+''');
+    return findElementReferences('test(_) {} // of Derived', true).then((_) {
+      assertHasRef(SearchResultKind.INVOCATION, 'test(1);', true);
+      assertHasRef(SearchResultKind.INVOCATION, 'test(2);', false);
+      assertHasRef(SearchResultKind.INVOCATION, 'test(3);', true);
     });
   }
 
