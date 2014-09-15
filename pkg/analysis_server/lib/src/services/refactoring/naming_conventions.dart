@@ -114,6 +114,16 @@ RefactoringStatus validateImportPrefixName(String name) {
  *   WARNING if the name is discouraged;
  *   ERROR if the name is illegal.
  */
+RefactoringStatus validateLabelName(String name) {
+  return _validateLowerCamelCase(name, "Label");
+}
+
+/**
+ * Returns the [RefactoringStatus] with severity:
+ *   OK if the name is valid;
+ *   WARNING if the name is discouraged;
+ *   ERROR if the name is illegal.
+ */
 RefactoringStatus validateLibraryName(String name) {
   // null
   if (name == null) {

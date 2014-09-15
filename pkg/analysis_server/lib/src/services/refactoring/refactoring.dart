@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_constructor.dart';
 import 'package:analysis_server/src/services/refactoring/rename_import.dart';
+import 'package:analysis_server/src/services/refactoring/rename_label.dart';
 import 'package:analysis_server/src/services/refactoring/rename_library.dart';
 import 'package:analysis_server/src/services/refactoring/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
@@ -320,6 +321,9 @@ abstract class RenameRefactoring implements Refactoring {
     }
     if (element is ImportElement) {
       return new RenameImportRefactoringImpl(searchEngine, element);
+    }
+    if (element is LabelElement) {
+      return new RenameLabelRefactoringImpl(searchEngine, element);
     }
     if (element is LibraryElement) {
       return new RenameLibraryRefactoringImpl(searchEngine, element);

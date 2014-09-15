@@ -8,9 +8,9 @@ import 'package:analysis_server/src/protocol.dart' show
     RefactoringProblemSeverity;
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
 
 
@@ -461,6 +461,72 @@ class NamingConventionsTest extends RefactoringTest {
         validateImportPrefixName("newName "),
         RefactoringProblemSeverity.ERROR,
         expectedMessage: "Import prefix name must not start or end with a blank.");
+  }
+
+  void test_validateLabelName_OK() {
+    assertRefactoringStatusOK(validateLabelName("newName"));
+  }
+
+  void test_validateLabelName_OK_leadingDollar() {
+    assertRefactoringStatusOK(validateLabelName("\$newName"));
+  }
+
+  void test_validateLabelName_OK_leadingUnderscore() {
+    assertRefactoringStatusOK(validateLabelName("_newName"));
+  }
+
+  void test_validateLabelName_OK_middleUnderscore() {
+    assertRefactoringStatusOK(validateLabelName("new_name"));
+  }
+
+  void test_validateLabelName_doesNotStartWithLowerCase() {
+    assertRefactoringStatus(
+        validateLabelName("NewName"),
+        RefactoringProblemSeverity.WARNING,
+        expectedMessage: "Label name should start with a lowercase letter.");
+  }
+
+  void test_validateLabelName_empty() {
+    assertRefactoringStatus(
+        validateLabelName(""),
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Label name must not be empty.");
+  }
+
+  void test_validateLabelName_leadingBlanks() {
+    assertRefactoringStatus(
+        validateLabelName(" newName"),
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Label name must not start or end with a blank.");
+  }
+
+  void test_validateLabelName_notIdentifierMiddle() {
+    assertRefactoringStatus(
+        validateLabelName("new-Name"),
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Label name must not contain '-'.");
+  }
+
+  void test_validateLabelName_notIdentifierStart() {
+    assertRefactoringStatus(
+        validateLabelName("2newName"),
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Label name must begin with a lowercase letter or underscore.");
+  }
+
+  void test_validateLabelName_null() {
+    assertRefactoringStatus(
+        validateLabelName(null),
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: "Label name must not be null.");
+  }
+
+  void test_validateLabelName_trailingBlanks() {
+    assertRefactoringStatus(
+        validateLabelName("newName "),
+        RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Label name must not start or end with a blank.");
   }
 
   void test_validateLibraryName_OK_oneIdentifier() {
