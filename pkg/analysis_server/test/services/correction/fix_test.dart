@@ -1145,6 +1145,21 @@ main() {
 ''');
   }
 
+  void test_importLibrarySdk_withType_typeArgument() {
+    _indexTestUnit('''
+main() {
+  List<Future> futures = [];
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+main() {
+  List<Future> futures = [];
+}
+''');
+  }
+
   void test_importLibraryShow() {
     _indexTestUnit('''
 import 'dart:async' show Stream;

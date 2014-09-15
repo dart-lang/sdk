@@ -205,6 +205,10 @@ class FixProcessor {
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
       _addFix_removeParentheses_inGetterInvocation();
     }
+    if (errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT) {
+      _addFix_importLibrary_withType();
+      _addFix_createClass();
+    }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
       _addFix_importLibrary_withFunction();
       _addFix_undefinedFunction_useSimilar();
