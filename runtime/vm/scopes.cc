@@ -297,7 +297,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
     // This is the outermost scope with a context level or this scope's
     // context level differs from its parent's level.
     VarDesc desc;
-    desc.name = &Object::null_string();  // No name.
+    desc.name = &Symbols::Empty();  // No name.
     desc.info.set_kind(RawLocalVarDescriptors::kContextLevel);
     desc.info.scope_id = *scope_id;
     desc.info.begin_pos = begin_token_pos();
