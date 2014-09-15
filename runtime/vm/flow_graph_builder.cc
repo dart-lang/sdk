@@ -2386,10 +2386,18 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
 void EffectGraphVisitor::VisitStringInterpolateNode(
     StringInterpolateNode* node) {
   ValueGraphVisitor for_argument(owner());
-  node->value()->Visit(&for_argument);
+  ArrayNode* arguments = node->value();
+  bool is_singleton = false;
+  if (arguments->length() == 1) {
+    arguments->ElementAt(0)->Visit(&for_argument);
+    is_singleton = true;
+  } else {
+    arguments->Visit(&for_argument);
+  }
   Append(for_argument);
   StringInterpolateInstr* instr =
-      new(I) StringInterpolateInstr(for_argument.value(), node->token_pos());
+      new(I) StringInterpolateInstr(for_argument.value(), node->token_pos(),
+                                    is_singleton);
   ReturnDefinition(instr);
 }
 

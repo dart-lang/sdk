@@ -2885,7 +2885,9 @@ const Function& StringInterpolateInstr::CallFunction() const {
     function_ =
         Resolver::ResolveStatic(
             cls,
-            Library::PrivateCoreLibName(Symbols::Interpolate()),
+            is_singleton_
+                ? Library::PrivateCoreLibName(Symbols::InterpolateSingle())
+                : Library::PrivateCoreLibName(Symbols::Interpolate()),
             kNumberOfArguments,
             kNoArgumentNames);
   }
@@ -2904,12 +2906,35 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   //   StoreIndexed(v2, v3, v4)   -- v3:constant index, v4: value.
   //   ..
   //   v8 <- StringInterpolate(v2)
+  // or for a single element:
+  //   v2 <- StringInterpolateSingle(v0)
 
   // Don't compile-time fold when optimizing the interpolation function itself.
   if (flow_graph->parsed_function().function().raw() == CallFunction().raw()) {
     return this;
   }
 
+  if (is_singleton_) {
+    Value* value = this->value();
+    if (!value->definition()->IsConstant()) return this;
+    const Object& obj = value->definition()->AsConstant()->value();
+    if (!obj.IsNumber() && !obj.IsString() && !obj.IsBool() && !obj.IsNull()) {
+      return this;
+    }
+    // This is only really useful for numbers, so we don't bother optimizing
+    // for strings, bool or null.
+    const Array& interpolate_arg = Array::Handle(Array::New(1));
+    interpolate_arg.SetAt(0, obj);
+    const Object& result = Object::Handle(
+        DartEntry::InvokeFunction(CallFunction(), interpolate_arg));
+    if (result.IsUnhandledException()) {
+      return this;
+    }
+    ASSERT(result.IsString());
+    const String& converted =
+        String::ZoneHandle(Symbols::New(String::Cast(result)));
+    return flow_graph->GetConstant(converted);
+  }
   CreateArrayInstr* create_array = value()->definition()->AsCreateArray();
   ASSERT(create_array != NULL);
   // Check if the string interpolation has only constant inputs.
