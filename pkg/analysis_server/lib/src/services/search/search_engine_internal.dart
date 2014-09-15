@@ -81,6 +81,8 @@ class SearchEngineImpl implements SearchEngine {
           element as PropertyAccessorElement);
     } else if (element.kind == ElementKind.IMPORT) {
       return _searchReferences_Import(element as ImportElement);
+    } else if (element.kind == ElementKind.LABEL) {
+      return _searchReferences_Label(element as LabelElement);
     } else if (element.kind == ElementKind.LIBRARY) {
       return _searchReferences_Library(element as LibraryElement);
     } else if (element.kind == ElementKind.LOCAL_VARIABLE) {
@@ -142,7 +144,6 @@ class SearchEngineImpl implements SearchEngine {
 
   Future<List<SearchMatch>>
       _searchReferences_CompilationUnit(CompilationUnitElement unit) {
-    // TODO(merge?)
     _Requestor requestor = new _Requestor(_index);
     requestor.add(unit, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
     return requestor.merge();
@@ -203,6 +204,15 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> _searchReferences_Import(ImportElement imp) {
     _Requestor requestor = new _Requestor(_index);
     requestor.add(imp, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
+    return requestor.merge();
+  }
+
+  Future<List<SearchMatch>> _searchReferences_Label(LabelElement variable) {
+    _Requestor requestor = new _Requestor(_index);
+    requestor.add(
+        variable,
+        IndexConstants.IS_REFERENCED_BY,
+        MatchKind.REFERENCE);
     return requestor.merge();
   }
 
