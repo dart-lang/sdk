@@ -1,4 +1,5 @@
-<!DOCTYPE html><html><head>
+<!DOCTYPE html><html><head><script src="packages/web_components/dart_support.js"></script>
+
   <title>Dart VM Observatory</title>
   <meta charset="utf-8">
   
@@ -73,15 +74,23 @@ html /deep/ [layout][wrap-reverse] {
 }
 
 html /deep/ [flex] {
-  -ms-flex: 1;
+  -ms-flex: 1 1 0.000000001px;
   -webkit-flex: 1;
   flex: 1;
+  -webkit-flex-basis: 0.000000001px;
+  flex-basis: 0.000000001px;
+}
+
+html /deep/ [vertical][layout] > [flex][auto-vertical], html /deep/ [vertical][layout]::shadow [flex][auto-vertical] {
+  -ms-flex: 1 1 auto;
+  -webkit-flex-basis: auto;
+  flex-basis: auto;
 }
 
 html /deep/ [flex][auto] {
   -ms-flex: 1 1 auto;
-  -webkit-flex: 1 1 auto;
-  flex: 1 1 auto;
+  -webkit-flex-basis: auto;
+  flex-basis: auto;
 }
 
 html /deep/ [flex][none] {
@@ -203,7 +212,7 @@ html /deep/ [layout][end-justified] {
 }
 
 html /deep/ [layout][around-justified] {
-  -ms-flex-pack: around;
+  -ms-flex-pack: distribute;
   -webkit-justify-content: space-around;
   justify-content: space-around;
 }
@@ -1908,6 +1917,13 @@ hr {
         </action-link>
         <action-link callback="{{ stepOver }}" label="step&nbsp;over" color="white"></action-link>
         <action-link callback="{{ stepOut }}" label="step&nbsp;out" color="white"></action-link>
+        <a class="boxclose" on-click="{{ closeItem }}">×</a>
+      </div>
+    </template>
+    <template if="{{ event.eventType == 'VMDisconnected' }}">
+      <div class="item">
+        Disconnected from VM
+        <br><br>
         <a class="boxclose" on-click="{{ closeItem }}">×</a>
       </div>
     </template>

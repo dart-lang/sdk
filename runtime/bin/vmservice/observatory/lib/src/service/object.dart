@@ -1303,6 +1303,10 @@ class ServiceException extends ServiceObject {
 class ServiceEvent extends ServiceObject {
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
+  ServiceEvent.vmDisconencted() : super._empty(null) {
+    eventType = 'VMDisconnected';
+  }
+
   @observable String eventType;
   @observable ServiceMap breakpoint;
   @observable ServiceMap exception;
