@@ -1667,6 +1667,52 @@ class StandardTestSuite extends TestSuite {
   }
 }
 
+/// Used for testing packages in on off settings, i.e., we pass in the actual
+/// directory that we want to test.
+class PKGTestSuite extends StandardTestSuite {
+
+  PKGTestSuite(Map configuration, Path directoryPath)
+      : super(configuration,
+              directoryPath.filename,
+              directoryPath,
+              ["$directoryPath/.status"],
+              isTestFilePredicate: (f) => f.endsWith('_test.dart'),
+              recursive: true);
+
+    void enqueueBrowserTest(List<Command> baseCommands,
+                          Path packageRoot,
+                          TestInformation info,
+                          String testName,
+                          expectations) {
+      String runtime = configuration['runtime'];
+      Path filePath = info.filePath;
+      Path dir = filePath.directoryPath;
+      String nameNoExt = filePath.filenameWithoutExtension;
+      Path customHtmlPath = dir.append('$nameNoExt.html');
+      File customHtml = new File(customHtmlPath.toNativePath());
+      if (!customHtml.existsSync()) {
+        super.enqueueBrowserTest(baseCommands, packageRoot,
+                                 info, testName, expectations);
+      } else {
+        Path relativeHtml = customHtmlPath.relativeTo(TestUtils.dartDir);
+        List<Command> commands = []..addAll(baseCommands);
+        var fullPath = _createUrlPathFromFile(customHtmlPath);
+
+        commands.add(CommandBuilder.instance.getBrowserTestCommand(
+            runtime, fullPath, configuration));
+        String testDisplayName = '$suiteName/$testName';
+        enqueueNewTestCase(new BrowserTestCase(testDisplayName,
+                                               commands,
+                                               configuration,
+                                               expectations,
+                                               info,
+                                               isNegative(info),
+                                               relativeHtml.toNativePath()));
+
+      }
+    }
+}
+
 
 /// A DartcCompilationTestSuite will run dartc on all of the tests.
 ///

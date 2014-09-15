@@ -186,8 +186,7 @@ void testConfigurations(List<Map> configurations) {
     // If we specifically pass in a suite only run that.
     if (conf['suite_dir'] != null) {
       var suite_path = new Path(conf['suite_dir']);
-      testSuites.add(
-          new StandardTestSuite.forDirectory(conf, suite_path));
+      testSuites.add(new PKGTestSuite(conf, suite_path));
     } else {
       for (String key in selectors.keys) {
         if (key == 'co19') {
