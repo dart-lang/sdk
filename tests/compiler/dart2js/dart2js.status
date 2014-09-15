@@ -29,6 +29,7 @@ mirrors/library_imports_shown_test: Fail
 exit_code_test: Skip # This tests requires checked mode.
 
 [ $checked ]
+uri_retention_test: Pass, Slow
 deferred_mirrors_test: Pass, Slow
 mirror_final_field_inferrer2_test: Pass, Slow
 
