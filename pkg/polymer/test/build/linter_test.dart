@@ -164,8 +164,7 @@ void main() {
             '</script>'
             '<script src="packages/browser/dart.js"></script>',
       }, [
-        'warning: Only one "application/dart" script tag per document is'
-        ' allowed. (web/test.html 1 0)',
+        'warning: ${ONLY_ONE_TAG.snippet} (web/test.html 1 0)',
       ]);
 
     _testLinter('two top-level tags, non entrypoint', {
@@ -176,8 +175,7 @@ void main() {
             '</script>'
             '<script src="packages/browser/dart.js"></script>'
       }, [
-        'warning: Only one "application/dart" script tag per document is'
-        ' allowed. (lib/test.html 1 0)',
+        'warning: ${ONLY_ONE_TAG.snippet} (lib/test.html 1 0)',
       ]);
 
     _testLinter('tags inside elements', {
@@ -191,8 +189,7 @@ void main() {
             '</script>'
             '<script src="packages/browser/dart.js"></script>',
       }, [
-        'warning: Only one "application/dart" script tag per document is'
-        ' allowed. (web/test.html 1 0)',
+        'warning: ${ONLY_ONE_TAG.snippet} (web/test.html 1 0)',
       ]);
   });
 
@@ -201,7 +198,7 @@ void main() {
         'a|web/test.html': '<html></html>',
       }, [
         'warning: (from html5lib) Unexpected start tag (html). '
-        'Expected DOCTYPE. (web/test.html 0 0)',
+            'Expected DOCTYPE. (web/test.html 0 0)',
         'warning: ${MISSING_INIT_POLYMER.snippet}',
       ]);
 
@@ -218,10 +215,11 @@ void main() {
             <polymer-element name="x-a"></polymer-element>
             </html>'''.replaceAll('            ', ''),
       }, [
-        'warning: duplicate definition for custom tag "x-a". '
-        '(lib/test.html 2 0)',
-        'warning: duplicate definition for custom tag "x-a". '
-        '(second definition). (lib/test.html 3 0)'
+        'warning: ${DUPLICATE_DEFINITION.create(
+            {'name': 'x-a', 'second': ''}).snippet} (lib/test.html 2 0)',
+        'warning: ${DUPLICATE_DEFINITION.create(
+            {'name': 'x-a', 'second': ' (second definition).'}).snippet} '
+            '(lib/test.html 3 0)',
       ]);
 
     _testLinter('other file', {
@@ -234,10 +232,11 @@ void main() {
             <polymer-element name="x-a"></polymer-element>
             </html>'''.replaceAll('            ', ''),
       }, [
-        'warning: duplicate definition for custom tag "x-a". '
-        '(lib/b.html 2 0)',
-        'warning: duplicate definition for custom tag "x-a". '
-        '(second definition). (lib/test.html 2 0)'
+        'warning: ${DUPLICATE_DEFINITION.create(
+            {'name': 'x-a', 'second': ''}).snippet} (lib/b.html 2 0)',
+        'warning: ${DUPLICATE_DEFINITION.create(
+            {'name': 'x-a', 'second': ' (second definition).'}).snippet} '
+            '(lib/test.html 2 0)',
       ]);
 
     _testLinter('non existing file', {
@@ -247,8 +246,9 @@ void main() {
             <polymer-element name="x-a"></polymer-element>
             </html>'''.replaceAll('            ', ''),
       }, [
-        'warning: couldn\'t find imported asset "lib/b.html" in package '
-        '"a". (lib/test.html 2 0)'
+        'warning: ${IMPORT_NOT_FOUND.create(
+            {'path': 'lib/b.html', 'package': 'a'}).snippet} '
+            '(lib/test.html 2 0)'
       ]);
 
     _testLinter('other package', {
@@ -261,10 +261,11 @@ void main() {
             <polymer-element name="x-a"></polymer-element>
             </html>'''.replaceAll('            ', ''),
       }, [
-        'warning: duplicate definition for custom tag "x-a". '
-        '(package:b/b.html 2 0)',
-        'warning: duplicate definition for custom tag "x-a". '
-        '(second definition). (lib/test.html 2 0)'
+        'warning: ${DUPLICATE_DEFINITION.create(
+            {'name': 'x-a', 'second': ''}).snippet} (package:b/b.html 2 0)',
+        'warning: ${DUPLICATE_DEFINITION.create(
+            {'name': 'x-a', 'second': ' (second definition).'}).snippet} '
+            '(lib/test.html 2 0)',
       ]);
   });
 
@@ -276,9 +277,12 @@ void main() {
           <link rel="import" href="">
           </html>'''.replaceAll('          ', ''),
     }, [
-      'warning: link rel="import" missing href. (lib/test.html 1 0)',
-      'warning: link rel="stylesheet" missing href. (lib/test.html 2 0)',
-      'warning: link rel="import" missing href. (lib/test.html 4 0)'
+      'warning: ${MISSING_HREF.create({'rel': 'import'}).snippet} '
+          '(lib/test.html 1 0)',
+      'warning: ${MISSING_HREF.create({'rel': 'stylesheet'}).snippet} '
+          '(lib/test.html 2 0)',
+      'warning: ${MISSING_HREF.create({'rel': 'import'}).snippet} '
+          '(lib/test.html 4 0)',
     ]);
 
   _testLinter('<element> is not supported', {
@@ -286,8 +290,7 @@ void main() {
           <element name="x-a"></element>
           </html>'''.replaceAll('          ', ''),
     }, [
-      'warning: <element> elements are not supported, use <polymer-element>'
-      ' instead. (lib/test.html 1 0)'
+      'warning: ${ELEMENT_DEPRECATED_EONS_AGO.snippet} (lib/test.html 1 0)'
     ]);
 
   _testLinter('do not nest <polymer-element>', {
@@ -300,8 +303,7 @@ void main() {
           </polymer-element>
           </html>'''.replaceAll('          ', ''),
     }, [
-      'error: Nested polymer element definitions are not allowed.'
-      ' (lib/test.html 4 4)'
+      'error: ${NESTED_POLYMER_ELEMENT.snippet} (lib/test.html 4 4)'
     ]);
 
   _testLinter('do put import inside <polymer-element>', {
@@ -324,8 +326,7 @@ void main() {
           <polymer-element></polymer-element>
           </html>'''.replaceAll('          ', ''),
     }, [
-      'error: Missing tag name of the custom element. Please include an '
-      'attribute like \'name="your-tag-name"\'. (lib/test.html 2 0)'
+      'error: ${MISSING_TAG_NAME.snippet} (lib/test.html 2 0)'
     ]);
 
   _testLinter('name for <polymer-element> should have dashes', {
@@ -334,10 +335,8 @@ void main() {
           <polymer-element name="a"></polymer-element>
           </html>'''.replaceAll('          ', ''),
     }, [
-      'error: Invalid name "a". Custom element names must have at least one'
-      ' dash (-) and can\'t be any of the following names: annotation-xml, '
-      'color-profile, font-face, font-face-src, font-face-uri, '
-      'font-face-format, font-face-name, missing-glyph. (lib/test.html 2 0)'
+      'error: ${INVALID_TAG_NAME.create({'name': 'a'}).snippet} '
+          '(lib/test.html 2 0)'
     ]);
 
   _testLinter('extend is a valid element or existing tag', {
@@ -353,7 +352,8 @@ void main() {
           <polymer-element name="x-a" extends="x-b"></polymer-element>
           </html>'''.replaceAll('          ', ''),
     }, [
-      'warning: custom element with name "x-b" not found. (lib/test.html 2 0)'
+      'warning: ${CUSTOM_ELEMENT_NOT_FOUND.create({'tag': 'x-b'}).snippet} '
+          '(lib/test.html 2 0)'
     ]);
 
 
@@ -375,8 +375,7 @@ void main() {
             </polymer-element>
             </html>'''.replaceAll('            ', ''),
       }, [
-        'warning: Wrong script type, expected type="application/dart".'
-        ' (lib/test.html 3 0)'
+        'warning: ${EXPECTED_DART_MIME_TYPE.snippet} (lib/test.html 3 0)'
       ]);
 
     _testLinter('in polymer-element, .js url', {
@@ -408,8 +407,7 @@ void main() {
             <script type="application/dart" src="foo.js"></script>
             </html>'''.replaceAll('            ', ''),
       }, [
-        'warning: "application/dart" scripts should use the .dart file '
-        'extension. (lib/test.html 1 0)'
+        'warning: ${EXPECTED_DART_EXTENSION.snippet} (lib/test.html 1 0)'
       ]);
   });
 
@@ -418,8 +416,7 @@ void main() {
           <script type="application/dart"></script>
           </html>'''.replaceAll('          ', ''),
     }, [
-      'warning: script tag seems empty. '
-      '(lib/test.html 1 0)'
+      'warning: ${SCRIPT_TAG_SEEMS_EMPTY.snippet} (lib/test.html 1 0)'
     ]);
 
   _testLinter('script tags should have only src url or inline code', {
@@ -427,8 +424,7 @@ void main() {
           <script type="application/dart" src="foo.dart">more</script>
           </html>'''.replaceAll('          ', ''),
     }, [
-      'warning: script tag has "src" attribute and also has script text. '
-      '(lib/test.html 1 0)'
+      'warning: ${FOUND_BOTH_SCRIPT_SRC_AND_TEXT.snippet} (lib/test.html 1 0)'
     ]);
 
   group('event handlers', () {
@@ -451,9 +447,8 @@ void main() {
             <div on-foo="something"></div>
             '''.replaceAll('            ', ''),
       }, [
-        'warning: Inline event handlers are only supported inside '
-        'declarations of <polymer-element>. '
-        '(lib/test.html 1 5)'
+        'warning: ${EVENT_HANDLERS_ONLY_WITHIN_POLYMER.snippet} '
+            '(lib/test.html 1 5)'
       ]);
 
     _testLinter('on-foo uses the {{ binding }} syntax', {
@@ -463,10 +458,8 @@ void main() {
             </polymer-element>
             '''.replaceAll('            ', ''),
       }, [
-        'warning: Invalid event handler body "bar". Declare a method '
-        'in your custom element "void handlerName(event, detail, target)" '
-        'and use the form on-foo="{{handlerName}}". '
-        '(lib/test.html 2 33)'
+        'warning: ${INVALID_EVENT_HANDLER_BODY.create(
+            {'value': 'bar', 'name': 'on-foo'}).snippet} (lib/test.html 2 33)'
       ]);
 
     _testLinter('on-foo is not an expression', {
@@ -476,10 +469,9 @@ void main() {
             </polymer-element>
             '''.replaceAll('            ', ''),
       }, [
-        'warning: Invalid event handler body "{{bar()}}". Declare a method '
-        'in your custom element "void handlerName(event, detail, target)" '
-        'and use the form on-foo="{{handlerName}}". '
-        '(lib/test.html 2 33)'
+        'warning: ${INVALID_EVENT_HANDLER_BODY.create(
+            {'value': '{{bar()}}', 'name': 'on-foo'}).snippet} '
+            '(lib/test.html 2 33)'
       ]);
 
     _testLinter('on-foo can\'t be empty', {
@@ -489,10 +481,8 @@ void main() {
             </polymer-element>
             '''.replaceAll('            ', ''),
       }, [
-        'warning: Invalid event handler body "{{}}". Declare a method '
-        'in your custom element "void handlerName(event, detail, target)" '
-        'and use the form on-foo="{{handlerName}}". '
-        '(lib/test.html 2 33)'
+        'warning: ${INVALID_EVENT_HANDLER_BODY.create(
+            {'value': '{{}}', 'name': 'on-foo'}).snippet} (lib/test.html 2 33)'
       ]);
 
     _testLinter('on-foo can\'t be just space', {
@@ -502,10 +492,8 @@ void main() {
             </polymer-element>
             '''.replaceAll('            ', ''),
       }, [
-        'warning: Invalid event handler body "{{ }}". Declare a method '
-        'in your custom element "void handlerName(event, detail, target)" '
-        'and use the form on-foo="{{handlerName}}". '
-        '(lib/test.html 2 33)'
+        'warning: ${INVALID_EVENT_HANDLER_BODY.create(
+            {'value': '{{ }}', 'name': 'on-foo'}).snippet} (lib/test.html 2 33)'
       ]);
 
     _testLinter('on-foo-bar is supported as a custom event name', {
@@ -521,15 +509,15 @@ void main() {
     _testLinter('tag exists (x-tag)', {
         'a|lib/test.html': '<x-foo></x-foo>',
       }, [
-        'warning: custom element with name "x-foo" not found. '
-        '(lib/test.html 0 0)'
+        'warning: ${CUSTOM_ELEMENT_NOT_FOUND.create({'tag': 'x-foo'}).snippet} '
+            '(lib/test.html 0 0)'
       ]);
 
     _testLinter('tag exists (type extension)', {
         'a|lib/test.html': '<div is="x-foo"></div>',
       }, [
-        'warning: custom element with name "x-foo" not found. '
-        '(lib/test.html 0 0)'
+        'warning: ${CUSTOM_ELEMENT_NOT_FOUND.create({'tag': 'x-foo'}).snippet} '
+            '(lib/test.html 0 0)'
       ]);
     
     _testLinter('tag exists (internally defined in code)', {
@@ -551,10 +539,8 @@ void main() {
             <div is="x-a"></div>
             '''.replaceAll('            ', ''),
       }, [
-        'warning: custom element "x-a" doesn\'t declare any type '
-        'extensions. To fix this, either rewrite this tag as '
-        '<x-a> or add \'extends="div"\' to '
-        'the custom element declaration. (lib/test.html 2 0)'
+        'warning: ${BAD_INSTANTIATION_BOGUS_BASE_TAG.create(
+            {'tag': 'x-a', 'base': 'div'}).snippet} (lib/test.html 2 0)'
       ]);
 
     _testLinter('used incorrectly, imported def (no base tag)', {
@@ -566,10 +552,8 @@ void main() {
             <div is="x-a"></div>
             '''.replaceAll('            ', ''),
       }, [
-        'warning: custom element "x-a" doesn\'t declare any type '
-        'extensions. To fix this, either rewrite this tag as '
-        '<x-a> or add \'extends="div"\' to '
-        'the custom element declaration. (lib/test.html 1 0)'
+        'warning: ${BAD_INSTANTIATION_BOGUS_BASE_TAG.create(
+            {'tag': 'x-a', 'base': 'div'}).snippet} (lib/test.html 1 0)'
       ]);
 
     _testLinter('used correctly (base tag)', {
@@ -595,10 +579,8 @@ void main() {
             <x-a></x-a>
             '''.replaceAll('            ', ''),
       }, [
-        'warning: custom element "x-a" extends from "div", but this tag '
-        'will not include the default properties of "div". To fix this, '
-        'either write this tag as <div is="x-a"> or remove the "extends" '
-        'attribute from the custom element declaration. (lib/test.html 1 0)'
+        'warning: ${BAD_INSTANTIATION_MISSING_BASE_TAG.create(
+            {'tag': 'x-a', 'base': 'div'}).snippet} (lib/test.html 1 0)'
       ]);
 
     _testLinter('used incorrectly (wrong base tag)', {
@@ -612,8 +594,8 @@ void main() {
             <span is="x-a"></span>
             '''.replaceAll('            ', ''),
       }, [
-        'warning: custom element "x-a" extends from "div". Did you mean '
-        'to write <div is="x-a">? (lib/test.html 1 0)'
+        'warning: ${BAD_INSTANTIATION_WRONG_BASE_TAG.create(
+            {'tag': 'x-a', 'base': 'div'}).snippet} (lib/test.html 1 0)'
       ]);
 
     _testLinter('used incorrectly (wrong base tag, transitive)', {
@@ -636,8 +618,8 @@ void main() {
             <span is="x-a"></span>
             '''.replaceAll('            ', ''),
       }, [
-        'warning: custom element "x-a" extends from "li". Did you mean '
-        'to write <li is="x-a">? (lib/test.html 2 0)'
+        'warning: ${BAD_INSTANTIATION_WRONG_BASE_TAG.create(
+            {'tag': 'x-a', 'base': 'li'}).snippet} (lib/test.html 2 0)'
       ]);
 
     _testLinter('FOUC warning works', {
@@ -710,9 +692,9 @@ void main() {
             </polymer-element>
             '''.replaceAll('            ', ''),
       }, [
-        'warning: PolymerElement no longer recognizes attribute names with '
-        'dashes such as "foo-bar". Use "fooBar" or "foobar" instead (both '
-        'forms are equivalent in HTML). (lib/test.html 2 28)'
+        'warning: ${NO_DASHES_IN_CUSTOM_ATTRIBUTES.create(
+            {'name': 'foo-bar', 'alternative': '"fooBar" or "foobar"'})
+                .snippet} (lib/test.html 2 28)'
       ]);
   });
 

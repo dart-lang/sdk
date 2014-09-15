@@ -177,7 +177,8 @@ void main() {
       'warning: ${ONLY_ONE_TAG.snippet} (web/test.html 2 0)',
       'warning: ${ONLY_ONE_TAG.snippet} (web/test.html 18 0)',
       'warning: ${ONLY_ONE_TAG.snippet} (web/test.html 34 0)',
-      'warning: Script file at "d.dart" not found. (web/test.html 34 0)',
+      'warning: ${SCRIPT_FILE_NOT_FOUND.create({'url': 'd.dart'}).snippet} '
+          '(web/test.html 34 0)',
     ]);
 
   testPhases('with imports', phases, {

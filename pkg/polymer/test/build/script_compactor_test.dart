@@ -173,8 +173,8 @@ initializerTests(phases) {
             '}\n'
             'main(){}',
       }, {}, [
-        'warning: The parameter to @CustomTag seems to be invalid. '
-        '(web/a.dart 2 11)',
+        'warning: ${INVALID_ANNOTATION_ARGUMENT.create(
+            {'name': 'CustomTag'}).snippet} (web/a.dart 2 11)',
       ]);
 
   testPhases(
@@ -503,8 +503,8 @@ initializerTestsExperimental(phases) {
             '}\n'
             'main(){}',
       }, {}, [
-        'warning: The parameter to @CustomTag seems to be invalid. '
-        '(web/a.dart 2 11)',
+        'warning: ${INVALID_ANNOTATION_ARGUMENT.create(
+            {'name': 'CustomTag'}).snippet} (web/a.dart 2 11)',
         'warning: ${NO_INITIALIZATION.snippet}',
       ]);
 
