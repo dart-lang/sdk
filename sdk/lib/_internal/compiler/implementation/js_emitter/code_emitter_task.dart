@@ -1975,8 +1975,6 @@ class CodeEmitterTask extends CompilerTask {
       var oldClassesCollector = classesCollector;
       classesCollector = r"$$";
 
-      String hunkName = "${outputUnit.partFileName(compiler)}.part.js";
-
       outputBuffer..write(buildGeneratedBy())
         ..write('${deferredInitializers}.current$_=$_'
                 'function$_(${globalsHolder}) {$N');
