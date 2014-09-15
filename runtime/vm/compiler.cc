@@ -157,6 +157,27 @@ RawError* Compiler::CompileClass(const Class& cls) {
   if (cls.is_marked_for_parsing()) {
     return Error::null();
   }
+  // If the class is a signature class there is no need to try and
+  // compile it. Just finalize it directly.
+  if (cls.IsSignatureClass()) {
+#if defined(DEBUG)
+    const Type& type = Type::Handle(
+        Isolate::Current()->object_store()->function_impl_type());
+    const Class& type_cls = Class::Handle(type.type_class());
+    ASSERT(type_cls.is_finalized());
+#endif
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
+      ClassFinalizer::FinalizeClass(cls);
+      return Error::null();
+    } else {
+      Isolate* isolate = Isolate::Current();
+      Error& error = Error::Handle(isolate);
+      error = isolate->object_store()->sticky_error();
+      isolate->object_store()->clear_sticky_error();
+      return error.raw();
+    }
+  }
 
   Isolate* isolate = Isolate::Current();
   // We remember all the classes that are being compiled in these lists. This
