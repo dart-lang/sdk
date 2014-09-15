@@ -162,6 +162,13 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     });
   }
 
+  test_import_dart() {
+    addTestSource('import "dart^"; main() {}');
+    return computeFull().then((_) {
+      assertNotSuggested('T1');
+    });
+  }
+
   test_topLevelVar() {
     addSource('/testA.dart', 'String T1; var _T2;');
     addTestSource('import "/testA.dart"; class C {foo(){^}}');

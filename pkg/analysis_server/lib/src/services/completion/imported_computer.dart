@@ -109,20 +109,23 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
       // and the list of names that should be shown or hidden
       request.unit.directives.forEach((Directive directive) {
         if (directive is ImportDirective) {
-          LibraryElement lib = directive.element.importedLibrary;
-          if (directive.prefix == null) {
-            visibleLibs.add(lib);
-            directive.combinators.forEach((Combinator combinator) {
-              if (combinator is ShowCombinator) {
-                showNames[lib] =
-                    combinator.shownNames.map((SimpleIdentifier id) => id.name).toSet();
-              } else if (combinator is HideCombinator) {
-                hideNames[lib] =
-                    combinator.hiddenNames.map((SimpleIdentifier id) => id.name).toSet();
-              }
-            });
-          } else {
-            excludedLibs.add(lib);
+          ImportElement element = directive.element;
+          if (element != null) {
+            LibraryElement lib = element.importedLibrary;
+            if (directive.prefix == null) {
+              visibleLibs.add(lib);
+              directive.combinators.forEach((Combinator combinator) {
+                if (combinator is ShowCombinator) {
+                  showNames[lib] =
+                      combinator.shownNames.map((SimpleIdentifier id) => id.name).toSet();
+                } else if (combinator is HideCombinator) {
+                  hideNames[lib] =
+                      combinator.hiddenNames.map((SimpleIdentifier id) => id.name).toSet();
+                }
+              });
+            } else {
+              excludedLibs.add(lib);
+            }
           }
         }
       });
