@@ -727,6 +727,24 @@ int test(double a, String b) {
 ''');
   }
 
+  void test_creationFunction_forFunctionType_coreFunction() {
+    _indexTestUnit('''
+main() {
+  useFunction(g: test);
+}
+useFunction({Function g}) {}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  useFunction(g: test);
+}
+useFunction({Function g}) {}
+
+test() {
+}
+''');
+  }
+
   void test_creationFunction_forFunctionType_dynamicArgument() {
     _indexTestUnit('''
 main() {
@@ -757,6 +775,24 @@ main() {
   useFunction(test);
 }
 useFunction(int g(double a, String b)) {}
+
+int test(double a, String b) {
+}
+''');
+  }
+
+  void test_creationFunction_forFunctionType_function_namedArgument() {
+    _indexTestUnit('''
+main() {
+  useFunction(g: test);
+}
+useFunction({int g(double a, String b)}) {}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  useFunction(g: test);
+}
+useFunction({int g(double a, String b)}) {}
 
 int test(double a, String b) {
 }

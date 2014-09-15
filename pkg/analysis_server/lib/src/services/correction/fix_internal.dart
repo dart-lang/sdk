@@ -580,6 +580,7 @@ class FixProcessor {
           argument = nameNode;
         }
       }
+      argument = stepUpNamedExpression(argument);
       // should be argument of some invocation
       ParameterElement parameterElement = argument.bestParameterElement;
       if (parameterElement == null) {
@@ -587,6 +588,10 @@ class FixProcessor {
       }
       // should be parameter of function type
       DartType parameterType = parameterElement.type;
+      if (parameterType is InterfaceType && parameterType.isDartCoreFunction) {
+        ExecutableElement element = new MethodElementImpl('', -1);
+        parameterType = new FunctionTypeImpl.con1(element);
+      }
       if (parameterType is! FunctionType) {
         return;
       }
