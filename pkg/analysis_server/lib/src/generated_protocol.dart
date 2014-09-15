@@ -5398,6 +5398,7 @@ class CompletionSuggestion implements HasToJson {
  *   GETTER
  *   IMPORT
  *   KEYWORD
+ *   LABEL
  *   LIBRARY_PREFIX
  *   LOCAL_VARIABLE
  *   METHOD
@@ -5430,6 +5431,8 @@ class CompletionSuggestionKind {
   static const IMPORT = const CompletionSuggestionKind._("IMPORT");
 
   static const KEYWORD = const CompletionSuggestionKind._("KEYWORD");
+
+  static const LABEL = const CompletionSuggestionKind._("LABEL");
 
   static const LIBRARY_PREFIX = const CompletionSuggestionKind._("LIBRARY_PREFIX");
 
@@ -5477,6 +5480,8 @@ class CompletionSuggestionKind {
         return IMPORT;
       case "KEYWORD":
         return KEYWORD;
+      case "LABEL":
+        return LABEL;
       case "LIBRARY_PREFIX":
         return LIBRARY_PREFIX;
       case "LOCAL_VARIABLE":
@@ -5712,6 +5717,7 @@ class Element implements HasToJson {
  *   FUNCTION
  *   FUNCTION_TYPE_ALIAS
  *   GETTER
+ *   LABEL
  *   LIBRARY
  *   LOCAL_VARIABLE
  *   METHOD
@@ -5740,6 +5746,8 @@ class ElementKind {
   static const FUNCTION_TYPE_ALIAS = const ElementKind._("FUNCTION_TYPE_ALIAS");
 
   static const GETTER = const ElementKind._("GETTER");
+
+  static const LABEL = const ElementKind._("LABEL");
 
   static const LIBRARY = const ElementKind._("LIBRARY");
 
@@ -5783,6 +5791,8 @@ class ElementKind {
         return FUNCTION_TYPE_ALIAS;
       case "GETTER":
         return GETTER;
+      case "LABEL":
+        return LABEL;
       case "LIBRARY":
         return LIBRARY;
       case "LOCAL_VARIABLE":
@@ -6245,6 +6255,7 @@ class HighlightRegion implements HasToJson {
  *   IDENTIFIER_DEFAULT
  *   IMPORT_PREFIX
  *   KEYWORD
+ *   LABEL
  *   LITERAL_BOOLEAN
  *   LITERAL_DOUBLE
  *   LITERAL_INTEGER
@@ -6300,6 +6311,8 @@ class HighlightRegionType {
   static const IMPORT_PREFIX = const HighlightRegionType._("IMPORT_PREFIX");
 
   static const KEYWORD = const HighlightRegionType._("KEYWORD");
+
+  static const LABEL = const HighlightRegionType._("LABEL");
 
   static const LITERAL_BOOLEAN = const HighlightRegionType._("LITERAL_BOOLEAN");
 
@@ -6377,6 +6390,8 @@ class HighlightRegionType {
         return IMPORT_PREFIX;
       case "KEYWORD":
         return KEYWORD;
+      case "LABEL":
+        return LABEL;
       case "LITERAL_BOOLEAN":
         return LITERAL_BOOLEAN;
       case "LITERAL_DOUBLE":

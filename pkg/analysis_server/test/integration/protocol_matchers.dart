@@ -1009,6 +1009,7 @@ final Matcher isCompletionSuggestion = new LazyMatcher(() => new MatchesJsonObje
  *   GETTER
  *   IMPORT
  *   KEYWORD
+ *   LABEL
  *   LIBRARY_PREFIX
  *   LOCAL_VARIABLE
  *   METHOD
@@ -1032,6 +1033,7 @@ final Matcher isCompletionSuggestionKind = new MatchesEnum("CompletionSuggestion
   "GETTER",
   "IMPORT",
   "KEYWORD",
+  "LABEL",
   "LIBRARY_PREFIX",
   "LOCAL_VARIABLE",
   "METHOD",
@@ -1079,6 +1081,7 @@ final Matcher isElement = new LazyMatcher(() => new MatchesJsonObject(
  *   FUNCTION
  *   FUNCTION_TYPE_ALIAS
  *   GETTER
+ *   LABEL
  *   LIBRARY
  *   LOCAL_VARIABLE
  *   METHOD
@@ -1100,6 +1103,7 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "FUNCTION",
   "FUNCTION_TYPE_ALIAS",
   "GETTER",
+  "LABEL",
   "LIBRARY",
   "LOCAL_VARIABLE",
   "METHOD",
@@ -1239,6 +1243,7 @@ final Matcher isHighlightRegion = new LazyMatcher(() => new MatchesJsonObject(
  *   IDENTIFIER_DEFAULT
  *   IMPORT_PREFIX
  *   KEYWORD
+ *   LABEL
  *   LITERAL_BOOLEAN
  *   LITERAL_DOUBLE
  *   LITERAL_INTEGER
@@ -1277,6 +1282,7 @@ final Matcher isHighlightRegionType = new MatchesEnum("HighlightRegionType", [
   "IDENTIFIER_DEFAULT",
   "IMPORT_PREFIX",
   "KEYWORD",
+  "LABEL",
   "LITERAL_BOOLEAN",
   "LITERAL_DOUBLE",
   "LITERAL_INTEGER",
