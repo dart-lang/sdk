@@ -69,6 +69,8 @@ class SocketServerTest {
     SocketServer server = new SocketServer(DirectoryBasedDartSdk.defaultSdk);
     MockServerChannel channel = new MockServerChannel();
     server.createAnalysisServer(channel);
+    channel.expectMsgCount(notificationCount: 1);
+    expect(channel.notificationsReceived[0].event, SERVER_CONNECTED);
     _MockRequestHandler handler = new _MockRequestHandler(false);
     server.analysisServer.handlers = [handler];
     var request = new ServerGetVersionParams().toRequest('0');
@@ -76,8 +78,10 @@ class SocketServerTest {
       expect(response.id, equals('0'));
       expect(response.error, isNotNull);
       expect(response.error.code, equals(RequestErrorCode.SERVER_ERROR));
-      channel.expectMsgCount(responseCount: 1, notificationCount: 2);
-      expect(channel.notificationsReceived[1].event, SERVER_ERROR);
+      expect(response.error.message, equals('mock request exception'));
+      expect(response.error.stackTrace, isNotNull);
+      expect(response.error.stackTrace, isNot(isEmpty));
+      channel.expectMsgCount(responseCount: 1, notificationCount: 1);
     });
   }
 

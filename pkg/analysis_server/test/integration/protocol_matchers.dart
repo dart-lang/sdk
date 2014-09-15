@@ -1621,7 +1621,7 @@ final Matcher isRemoveContentOverlay = new LazyMatcher(() => new MatchesJsonObje
  * {
  *   "code": RequestErrorCode
  *   "message": String
- *   "data": optional object
+ *   "stackTrace": optional String
  * }
  */
 final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
@@ -1629,7 +1629,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
     "code": isRequestErrorCode,
     "message": isString
   }, optionalFields: {
-    "data": isObject
+    "stackTrace": isString
   }));
 
 /**

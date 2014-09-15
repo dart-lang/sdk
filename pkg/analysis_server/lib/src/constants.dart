@@ -114,7 +114,6 @@ const String CONTAINING_LIBRARY_PATH = 'containingLibraryPath';
 const String CONTENT = 'content';
 const String CORRECTION = 'correction';
 const String DART_DOC = 'dartdoc';
-const String DATA = 'data';
 const String DEFAULT = 'default';
 const String DISPLAY_NAME = 'displayName';
 const String EDITS = 'edits';

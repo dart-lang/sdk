@@ -8082,7 +8082,7 @@ class RemoveContentOverlay implements HasToJson {
  * {
  *   "code": RequestErrorCode
  *   "message": String
- *   "data": optional object
+ *   "stackTrace": optional String
  * }
  */
 class RequestError implements HasToJson {
@@ -8097,12 +8097,12 @@ class RequestError implements HasToJson {
   String message;
 
   /**
-   * Additional data related to the error. This field is omitted if there is no
-   * additional data available.
+   * The stack trace associated with processing the request, used for debugging
+   * the server.
    */
-  Map data;
+  String stackTrace;
 
-  RequestError(this.code, this.message, {this.data});
+  RequestError(this.code, this.message, {this.stackTrace});
 
   factory RequestError.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8121,11 +8121,11 @@ class RequestError implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "message");
       }
-      Map data;
-      if (json.containsKey("data")) {
-        data = json["data"];
+      String stackTrace;
+      if (json.containsKey("stackTrace")) {
+        stackTrace = jsonDecoder._decodeString(jsonPath + ".stackTrace", json["stackTrace"]);
       }
-      return new RequestError(code, message, data: data);
+      return new RequestError(code, message, stackTrace: stackTrace);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RequestError");
     }
@@ -8135,8 +8135,8 @@ class RequestError implements HasToJson {
     Map<String, dynamic> result = {};
     result["code"] = code.toJson();
     result["message"] = message;
-    if (data != null) {
-      result["data"] = data;
+    if (stackTrace != null) {
+      result["stackTrace"] = stackTrace;
     }
     return result;
   }
@@ -8149,7 +8149,7 @@ class RequestError implements HasToJson {
     if (other is RequestError) {
       return code == other.code &&
           message == other.message &&
-          data == other.data;
+          stackTrace == other.stackTrace;
     }
     return false;
   }
@@ -8159,7 +8159,7 @@ class RequestError implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, code.hashCode);
     hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, data.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, stackTrace.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
