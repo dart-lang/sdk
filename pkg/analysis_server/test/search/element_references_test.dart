@@ -297,6 +297,27 @@ main(A a, B b, C c) {
     });
   }
 
+  test_label() {
+    addTestFile('''
+main() {
+myLabel:
+  for (int i = 0; i < 10; i++) {
+    if (i == 2) {
+      continue myLabel; // continue
+    }
+    break myLabel; // break
+  }
+}
+''');
+    return findElementReferences('myLabel; // break', false).then((_) {
+      expect(searchElement.kind, ElementKind.LABEL);
+      expect(results, hasLength(3));
+      assertHasResult(SearchResultKind.DECLARATION, 'myLabel:');
+      assertHasResult(SearchResultKind.REFERENCE, 'myLabel; // continue');
+      assertHasResult(SearchResultKind.REFERENCE, 'myLabel; // break');
+    });
+  }
+
   test_localVariable() {
     addTestFile('''
 main() {
