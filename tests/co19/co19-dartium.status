@@ -635,6 +635,8 @@ WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: S
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 Language/14_Libraries_and_Scripts/3_Parts_A01_t05: Skip # Times out flakily. Issue 20881
+LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # Times out flakily. Issue 20956
+LibTest/core/List/List_class_A01_t02: Skip # Times out flakily. Issue 20956
 LibTest/math/log_A01_t01: Pass, Fail # co19 issue 44.
 LibTest/html/Element/getBoundingClientRect_A01_t02: RuntimeError # Issue 19127.
 LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: RuntimeError # co19-roll r761: Please triage this failure.
