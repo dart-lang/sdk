@@ -1097,27 +1097,11 @@ class RawLocalVarDescriptors : public RawObject {
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors);
-  int32_t num_entries_;  // Number of descriptors.
+  RawArray* names_;  // Array of [length_] variable names.
+  int32_t length_;  // Number of descriptors.
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->names()[0]);
-  }
-  RawString** names() {
-    // Array of [num_entries_] variable names.
-    OPEN_ARRAY_START(RawString*, RawString*);
-  }
-  RawString** nameAddrAt(intptr_t i) {
-    return &(ptr()->names()[i]);
-  }
-
-  RawObject** to(intptr_t num_entries) {
-    return reinterpret_cast<RawObject**>(nameAddrAt(num_entries - 1));
-  }
-
-  // Variable info with [num_entries_] entries.
-  VarInfo* data() {
-    return reinterpret_cast<VarInfo*>(nameAddrAt(ptr()->num_entries_));
-  }
+  // Variable info with [length_] entries.
+  VarInfo* data() { OPEN_ARRAY_START(VarInfo, int32_t); }
 
   friend class Object;
 };
