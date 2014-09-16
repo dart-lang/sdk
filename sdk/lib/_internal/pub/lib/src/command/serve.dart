@@ -46,6 +46,9 @@ class ServeCommand extends BarbackCommand {
   /// `true` if Dart entrypoints should be compiled to JavaScript.
   bool get useDart2JS => commandOptions['dart2js'];
 
+  /// `true` if the admin server URL should be displayed on startup.
+  bool get logAdminUrl => commandOptions['log-admin-url'];
+
   BarbackMode get defaultMode => BarbackMode.DEBUG;
 
   List<String> get defaultSourceDirectories => ["web", "test"];
@@ -60,8 +63,11 @@ class ServeCommand extends BarbackCommand {
     commandParser.addOption('port', defaultsTo: '8080',
         help: 'The base port to listen on.');
 
-    // TODO(nweiz): Remove once editor also removes this. This is now a NOOP.
-    // Check on http://dartbug.com/20960
+    // TODO(rnystrom): A hidden option to print the URL that the admin server
+    // is bound to on startup. Since this is currently only used for the Web
+    // Socket interface, we don't want to show it to users, but the tests and
+    // Editor need this logged to know what port to bind to.
+    // Remove this (and always log) when #16954 is fixed.
     commandParser.addFlag('log-admin-url', defaultsTo: false, hide: true);
 
     // TODO(nweiz): Make this public when issue 16954 is fixed.
@@ -87,13 +93,13 @@ class ServeCommand extends BarbackCommand {
     var directoryLength = sourceDirectories.map((dir) => dir.length)
         .reduce(math.max);
 
-    if (adminPort != null) {
-      var server = await environment.startAdminServer(adminPort);
-      server.results.listen((_) {
-        // The admin server produces no result values.
-        assert(false);
-      }, onError: _fatalError);
+    var server = await environment.startAdminServer(adminPort);
+    server.results.listen((_) {
+      // The admin server produces no result values.
+      assert(false);
+    }, onError: _fatalError);
 
+    if (logAdminUrl) {
       log.message("Running admin server on "
           "${log.bold('http://$hostname:${server.port}')}");
     }
