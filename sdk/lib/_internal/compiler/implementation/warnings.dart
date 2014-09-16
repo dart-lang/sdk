@@ -320,34 +320,6 @@ main() {}""",
   static const MessageKind DUPLICATE_EXPORT_DECL = const MessageKind(
       "The exported '#{name}' from export #{uriString} is defined here.");
 
-  static const MessageKind HIDDEN_IMPLICIT_EXPORT = const MessageKind(
-      "'#{name}' from library '#{hiddenUri}' is hidden by '#{name}' "
-      "from library '#{hidingUri}'.",
-      howToFix: "Try adding an explicit "
-                "'export \"#{hiddenUri}\" hide #{name}'.",
-      examples: const [
-          const {
-'conflictsWithDartHtml.dart':
-"""
-typedef CanvasElement();
-""",
-
-'reexport.dart':
-r"""
-export 'dart:html';
-export 'conflictsWithDartHtml.dart';
-""",
-
-'main.dart':
-r"""
-import 'reexport.dart';
-
-main() {
-  print(main is CanvasElement);
-}
-"""}]);
-
-
   static const MessageKind NOT_A_TYPE = const MessageKind(
       "'#{node}' is not a type.");
 
@@ -1283,9 +1255,6 @@ main() => A.A = 1;
 
   static const MessageKind IMPORTED_HERE = const MessageKind(
       "'#{name}' is imported here.");
-
-  static const MessageKind EXPORTED_HERE = const MessageKind(
-      "'#{name}' from '#{uri}' is exported here.");
 
   static const MessageKind OVERRIDE_EQUALS_NOT_HASH_CODE = const MessageKind(
       "The class '#{class}' overrides 'operator==', "

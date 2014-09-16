@@ -21,9 +21,7 @@ import 'elements/modelx.dart'
          DeferredLoaderGetterElementX,
          ErroneousElementX,
          LibraryElementX,
-         PrefixElementX,
-         WarnOnUseElementX,
-         WrappedMessage;
+         PrefixElementX;
 import 'helpers/helpers.dart';  // Included for debug helpers.
 import 'native_handler.dart' as native;
 import 'tree/tree.dart';
@@ -810,119 +808,69 @@ class LibraryDependencyNode {
   }
 
   /**
-   * Adds [newElement] to the export scope for this node. If the [newElement]
-   * name is a duplicate, an error element is inserted into the export scope.
+   * Adds [element] to the export scope for this node. If the [element] name
+   * is a duplicate, an error element is inserted into the export scope.
    */
-  Element addElementToExportScope(Compiler compiler, Element newElement,
+  Element addElementToExportScope(Compiler compiler, Element element,
                                   Link<Export> exports) {
-    return compiler.withCurrentElement(library, () {
-      String name = newElement.name;
-      exporters[newElement] = exports;
+    String name = element.name;
 
-      void reportDuplicateExport(Element duplicate,
-                                 Link<Export> duplicateExports,
-                                 {bool reportError: true}) {
-        assert(invariant(library, !duplicateExports.isEmpty,
-            message: "No export for $duplicate from ${duplicate.library} "
-                     "in $library."));
-        compiler.withCurrentElement(library, () {
-          for (Export export in duplicateExports) {
-            if (reportError) {
-              compiler.reportError(export,
-                  MessageKind.DUPLICATE_EXPORT, {'name': name});
-              reportError = false;
-            } else {
-              compiler.reportInfo(export,
-                  MessageKind.DUPLICATE_EXPORT_CONT, {'name': name});
-            }
-          }
-        });
-      }
-
-      void reportDuplicateExportDecl(Element duplicate,
-                                     Link<Export> duplicateExports) {
-        assert(invariant(library, !duplicateExports.isEmpty,
-            message: "No export for $duplicate from ${duplicate.library} "
-                     "in $library."));
-        compiler.reportInfo(duplicate, MessageKind.DUPLICATE_EXPORT_DECL,
-            {'name': name, 'uriString': duplicateExports.head.uri});
-      }
-
-
-      Element createWarnOnUseElement(MessageKind messageKind,
-                                     Element hidingElement,
-                                     Element hiddenElement) {
-        Uri hiddenUri = hiddenElement.library.canonicalUri;
-        Uri hidingUri = hidingElement.library.canonicalUri;
-        Element exportedElement = new WarnOnUseElementX(
-            new WrappedMessage(
-                null, // Report on reference to [hidingElement].
-                messageKind,
-                {'name': name, 'hiddenUri': hiddenUri, 'hidingUri': hidingUri}),
-            new WrappedMessage(
-                compiler.spanFromSpannable(exporters[hiddenElement].head),
-                MessageKind.EXPORTED_HERE,
-                {'name': name,
-                 'uri': hiddenUri}),
-            hidingElement.enclosingElement, hidingElement);
-        exporters[exportedElement] = exports;
-        return exportedElement;
-      }
-
-      bool fromPlatform(Element e) => e.library.isPlatformLibrary;
-
-      Element computeExportedElement(Element existingElement) {
-        if (existingElement != null && existingElement != newElement) {
-          if (existingElement.isErroneous) {
-            if (!fromPlatform(newElement)) {
-              reportDuplicateExport(newElement, exports);
-              reportDuplicateExportDecl(newElement, exports);
-            }
-            return existingElement;
-          } else if (existingElement.library == library) {
-            // Do nothing. [existingElement] hides [newElement].
-            return existingElement;
-          } else if (newElement.library == library) {
-            // [newElement] hides [existingElement].
-            return newElement;
+    void reportDuplicateExport(Element duplicate,
+                               Link<Export> duplicateExports,
+                               {bool reportError: true}) {
+      assert(invariant(library, !duplicateExports.isEmpty,
+          message: "No export for $duplicate from ${duplicate.library} "
+                   "in $library."));
+      compiler.withCurrentElement(library, () {
+        for (Export export in duplicateExports) {
+          if (reportError) {
+            compiler.reportError(export,
+                MessageKind.DUPLICATE_EXPORT, {'name': name});
+            reportError = false;
           } else {
-            if (fromPlatform(existingElement) &&
-                !fromPlatform(newElement)) {
-              // [existingElement] is implicitly hidden.
-              return createWarnOnUseElement(
-                  MessageKind.HIDDEN_IMPLICIT_EXPORT,
-                  newElement,
-                  existingElement);
-            } else if (!fromPlatform(existingElement) &&
-                       fromPlatform(newElement)) {
-              // [element] is implicitly hidden.
-              return createWarnOnUseElement(
-                  MessageKind.HIDDEN_IMPLICIT_EXPORT,
-                  existingElement,
-                  newElement);
-            } else {
-              // Declared elements hide exported elements.
-              Link<Export> existingExports = exporters[existingElement];
-              reportDuplicateExport(existingElement, existingExports);
-              reportDuplicateExport(newElement, exports, reportError: false);
-              reportDuplicateExportDecl(existingElement, existingExports);
-              reportDuplicateExportDecl(newElement, exports);
-              Element exportedElement = new ErroneousElementX(
-                  MessageKind.DUPLICATE_EXPORT, {'name': name}, name, library);
-              exporters[exportedElement] = existingExports;
-              return exportedElement;
-            }
+            compiler.reportInfo(export,
+                MessageKind.DUPLICATE_EXPORT_CONT, {'name': name});
           }
-        } else {
-          return newElement;
         }
-      }
+      });
+    }
 
-      Element existingElement = exportScope[name];
-      Element exportedElement = computeExportedElement(existingElement);
-      exportScope[name] = exportedElement;
-      return exportedElement;
-    });
+    void reportDuplicateExportDecl(Element duplicate,
+                                   Link<Export> duplicateExports) {
+      assert(invariant(library, !duplicateExports.isEmpty,
+          message: "No export for $duplicate from ${duplicate.library} "
+                   "in $library."));
+      compiler.reportInfo(duplicate, MessageKind.DUPLICATE_EXPORT_DECL,
+          {'name': name, 'uriString': duplicateExports.head.uri});
+    }
+
+    Element existingElement = exportScope[name];
+    if (existingElement != null && existingElement != element) {
+      if (existingElement.isErroneous) {
+        reportDuplicateExport(element, exports);
+        reportDuplicateExportDecl(element, exports);
+        element = existingElement;
+      } else if (existingElement.library == library) {
+        // Do nothing. [existingElement] hides [element].
+      } else if (element.library == library) {
+        // [element] hides [existingElement].
+        exportScope[name] = element;
+        exporters[element] = exports;
+      } else {
+        // Declared elements hide exported elements.
+        Link<Export> existingExports = exporters[existingElement];
+        reportDuplicateExport(existingElement, existingExports);
+        reportDuplicateExport(element, exports, reportError: false);
+        reportDuplicateExportDecl(existingElement, existingExports);
+        reportDuplicateExportDecl(element, exports);
+        element = exportScope[name] = new ErroneousElementX(
+            MessageKind.DUPLICATE_EXPORT, {'name': name}, name, library);
+      }
+    } else {
+      exportScope[name] = element;
+      exporters[element] = exports;
+    }
+    return element;
   }
 
   /**
