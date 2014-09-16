@@ -1747,7 +1747,8 @@ Definition* UnboxIntNInstr::Canonicalize(FlowGraph* flow_graph) {
           box_defn->value()->definition()->representation(),
           representation(),
           box_defn->value()->CopyWithType(),
-          representation() == kUnboxedInt32 ? deopt_id_ : Isolate::kNoDeoptId);
+          (representation() == kUnboxedInt32) ?
+              deopt_id_ : Isolate::kNoDeoptId);
       if ((representation() == kUnboxedInt32) && is_truncating()) {
         converter->mark_truncating();
       }
@@ -1774,7 +1775,7 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
         box_defn->from(),
         representation(),
         box_defn->value()->CopyWithType(),
-        to() == kUnboxedInt32 ? deopt_id_ : NULL);
+        (to() == kUnboxedInt32) ? deopt_id_ : Isolate::kNoDeoptId);
     if ((representation() == kUnboxedInt32) && is_truncating()) {
       converter->mark_truncating();
     }
