@@ -100,6 +100,8 @@ const bool PRINT_SCOPE_INFO =
 
 Stopwatch wallClock = new Stopwatch();
 
+Compiler cachedCompiler;
+
 /// Iterator for reading lines from [io.stdin].
 class StdinIterator implements Iterator<String> {
   String current;
@@ -183,7 +185,7 @@ main(List<String> arguments) {
 /// [simulateMutation].
 api.CompilerInputProvider simulateMutation(
     String fileName,
-    SourceFileProvider inputProvider) {
+    api.CompilerInputProvider inputProvider) {
   Uri script = Uri.base.resolveUri(new Uri.file(fileName));
   int count = poiCount;
   Future cache;
@@ -266,7 +268,7 @@ Future parseUserInput(
   Uri script = Uri.base.resolveUri(new Uri.file(fileName));
   if (positionString == null) return null;
   int position = int.parse(
-      positionString, onError: (_) => print('Please enter an integer.'));
+      positionString, onError: (_) { print('Please enter an integer.'); });
   if (position == null) return repeat();
 
   inputProvider(script);
@@ -326,16 +328,16 @@ Future parseUserInput(
 /// Find the token corresponding to [position] in [element].  The method only
 /// works for instances of [PartialElement] or [LibraryElement].  Support for
 /// [LibraryElement] is currently limited, and works only for named libraries.
-Token findToken(Element element, int position) {
+Token findToken(modelx.ElementX element, int position) {
   Token beginToken;
   if (element is PartialElement) {
-    beginToken = element.beginToken;
+    beginToken = (element as PartialElement).beginToken;
   } else if (element is PartialClassElement) {
     beginToken = element.beginToken;
   } else if (element.isLibrary) {
     // TODO(ahe): Generalize support for library elements (and update above
     // documentation).
-    LibraryElement lib = element;
+    modelx.LibraryElementX lib = element;
     var tag = lib.libraryTag;
     if (tag != null) {
       beginToken = tag.libraryKeyword;
@@ -352,13 +354,11 @@ Token findToken(Element element, int position) {
   return null;
 }
 
-Compiler cachedCompiler;
-
 Future<Element> runPoi(
-    Uri script, int position,
+    Uri script,
+    int position,
     api.CompilerInputProvider inputProvider,
     api.DiagnosticHandler handler) {
-
   Uri libraryRoot = Uri.base.resolve('sdk/');
   Uri packageRoot = Uri.base.resolveUri(
       new Uri.file('${Platform.packageRoot}/'));
@@ -373,18 +373,27 @@ Future<Element> runPoi(
       '--disable-type-inference',
   ];
 
-  cachedCompiler = reuseCompiler(
+  return reuseCompiler(
       diagnosticHandler: handler,
       inputProvider: inputProvider,
       options: options,
       cachedCompiler: cachedCompiler,
       libraryRoot: libraryRoot,
       packageRoot: packageRoot,
-      packagesAreImmutable: true);
+      packagesAreImmutable: true).then((Compiler newCompiler) {
+    var filter = new ScriptOnlyFilter(script);
+    newCompiler.enqueuerFilter = filter;
+    return runPoiInternal(newCompiler, script, position);
+  });
+}
 
-  cachedCompiler.enqueuerFilter = new ScriptOnlyFilter(script);
+Future<Element> runPoiInternal(
+    Compiler newCompiler,
+    Uri uri,
+    int position) {
+  cachedCompiler = newCompiler;
 
-  return cachedCompiler.run(script).then((success) {
+  return cachedCompiler.run(uri).then((success) {
     if (success != true) {
       throw 'Compilation failed';
     }
@@ -413,8 +422,8 @@ class FindPositionVisitor extends ElementVisitor {
 
   visitElement(Element e) {
     if (e is PartialElement) {
-      if (e.beginToken.charOffset <= position &&
-          position < e.endToken.next.charOffset) {
+      if ((e as PartialElement).beginToken.charOffset <= position &&
+          position < (e as PartialElement).endToken.next.charOffset) {
         element = e;
       }
     }

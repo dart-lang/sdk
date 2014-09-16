@@ -249,8 +249,10 @@ useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
 }
 
 useCompiler(dart2jslib.Compiler compiler) {
-  compiler.libraryLoader.reset();
-  compiler.libraryLoader.lookupLibrary(null);
+  compiler.libraryLoader
+      ..reset()
+      ..resetAsync(null)
+      ..lookupLibrary(null);
 }
 
 useTypes() {

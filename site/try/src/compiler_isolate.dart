@@ -107,16 +107,17 @@ compile(source, SendPort replyTo) {
     }
   }
   Stopwatch compilationTimer = new Stopwatch()..start();
-  cachedCompiler = reuseCompiler(
+  reuseCompiler(
       diagnosticHandler: handler,
       inputProvider: inputProvider,
       options: options,
       cachedCompiler: cachedCompiler,
       libraryRoot: sdkLocation,
       packageRoot: Uri.base.resolve('/packages/'),
-      packagesAreImmutable: true);
-
-  cachedCompiler.run(Uri.parse('$PRIVATE_SCHEME:/main.dart')).then((success) {
+      packagesAreImmutable: true).then((Compiler newCompiler) {
+    cachedCompiler = newCompiler;
+    return cachedCompiler.run(Uri.parse('$PRIVATE_SCHEME:/main.dart'));
+  }).then((success) {
     compilationTimer.stop();
     print('Compilation took ${compilationTimer.elapsed}');
     if (cachedCompiler.libraryLoader

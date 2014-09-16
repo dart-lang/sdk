@@ -145,6 +145,9 @@ abstract class LibraryLoaderTask implements CompilerTask {
   ///
   /// This method is used for incremental compilation.
   void reset({bool reuseLibrary(LibraryElement library)});
+
+  /// Asynchronous version of [reset].
+  Future resetAsync(Future<bool> reuseLibrary(LibraryElement library));
 }
 
 /// Handle for creating synthesized/patch libraries during library loading.
@@ -268,17 +271,54 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   void reset({bool reuseLibrary(LibraryElement library)}) {
     measure(() {
       assert(currentHandler == null);
-      Iterable<LibraryElement> libraries =
-          new List.from(libraryCanonicalUriMap.values);
 
+      Iterable<LibraryElement> reusedLibraries = null;
+      if (reuseLibrary != null) {
+        reusedLibraries = compiler.reuseLibraryTask.measure(() {
+          // Call [toList] to force eager calls to [reuseLibrary].
+          return libraryCanonicalUriMap.values.where(reuseLibrary).toList();
+        });
+      }
+
+      resetImplementation(reusedLibraries);
+    });
+  }
+
+  void resetImplementation(Iterable<LibraryElement> reusedLibraries) {
+    measure(() {
       libraryCanonicalUriMap.clear();
       libraryResourceUriMap.clear();
       libraryNames.clear();
 
-      if (reuseLibrary == null) return;
+      if (reusedLibraries != null) {
+        reusedLibraries.forEach(mapLibrary);
+      }
+    });
+  }
 
-      compiler.reuseLibraryTask.measure(
-          () => libraries.where(reuseLibrary).toList()).forEach(mapLibrary);
+  Future resetAsync(Future<bool> reuseLibrary(LibraryElement library)) {
+    return measure(() {
+      assert(currentHandler == null);
+
+      Future<LibraryElement> wrapper(LibraryElement library) {
+        try {
+          return reuseLibrary(library).then(
+              (bool reuse) => reuse ? library : null);
+        } catch (exception, trace) {
+          compiler.diagnoseCrashInUserCode(
+              'Uncaught exception in reuseLibrary', exception, trace);
+          rethrow;
+        }
+      }
+
+      List<Future<LibraryElement>> reusedLibrariesFuture =
+          compiler.reuseLibraryTask.measure(
+              () => libraryCanonicalUriMap.values.map(wrapper).toList());
+
+      return Future.wait(reusedLibrariesFuture).then(
+          (List<LibraryElement> reusedLibraries) {
+            resetImplementation(reusedLibraries.where((e) => e != null));
+          });
     });
   }
 
