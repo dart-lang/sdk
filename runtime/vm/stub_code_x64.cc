@@ -1067,8 +1067,14 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Input parameters:
 //   RSP + 8 : type arguments object (only if class is parameterized).
 //   RSP : points to return address.
-uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
-                                              const Class& cls) {
+void StubCode::GenerateAllocationStubForClass(
+    Assembler* assembler, const Class& cls,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+  // Must load pool pointer before being able to patch.
+  Register new_pp = R13;
+  __ LoadPoolPointer(new_pp);
+  *entry_patch_offset = assembler->CodeSize();
+
   const intptr_t kObjectTypeArgumentsOffset = 1 * kWordSize;
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
@@ -1180,10 +1186,9 @@ uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   // Restore the frame pointer.
   __ LeaveStubFrame();
   __ ret();
-  uword patch_code_pc_offset = assembler->CodeSize();
+  *patch_code_pc_offset = assembler->CodeSize();
   StubCode* stub_code = Isolate::Current()->stub_code();
-  __ JmpPatchable(&stub_code->FixAllocationStubTargetLabel(), R13);
-  return patch_code_pc_offset;
+  __ JmpPatchable(&stub_code->FixAllocationStubTargetLabel(), new_pp);
 }
 
 

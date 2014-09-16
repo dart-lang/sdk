@@ -101,6 +101,15 @@ TEST_CASE(RegenerateAllocStubs) {
   owner.SwitchAllocationStub();
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
+
+  owner.SwitchAllocationStub();
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  owner.SwitchAllocationStub();
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
   FLAG_enable_type_checks = old_enable_type_checks;
 }
 

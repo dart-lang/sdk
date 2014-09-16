@@ -1095,8 +1095,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Uses EAX, EBX, ECX, EDX, EDI as temporary registers.
 // Returns patch_code_pc offset where patching code for disabling the stub
 // has been generated (similar to regularly generated Dart code).
-uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
-                                               const Class& cls) {
+void StubCode::GenerateAllocationStubForClass(
+    Assembler* assembler, const Class& cls,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+  *entry_patch_offset = assembler->CodeSize();
   const intptr_t kObjectTypeArgumentsOffset = 1 * kWordSize;
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -1211,10 +1213,9 @@ uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ ret();
   // Emit function patching code. This will be swapped with the first 5 bytes
   // at entry point.
-  uword patch_code_pc_offset = assembler->CodeSize();
+  *patch_code_pc_offset = assembler->CodeSize();
   StubCode* stub_code = Isolate::Current()->stub_code();
   __ jmp(&stub_code->FixAllocationStubTargetLabel());
-  return patch_code_pc_offset;
 }
 
 

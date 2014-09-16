@@ -200,8 +200,9 @@ class StubCode {
                            void (*GenerateStub)(Assembler* assembler));
 
   static void GenerateMegamorphicMissStub(Assembler* assembler);
-  static uword GenerateAllocationStubForClass(Assembler* assembler,
-                                              const Class& cls);
+  static void GenerateAllocationStubForClass(
+      Assembler* assembler, const Class& cls,
+      uword* entry_patch_offset, uword* patch_code_pc_offset);
   static void GenerateNArgsCheckInlineCacheStub(
       Assembler* assembler,
       intptr_t num_args,
