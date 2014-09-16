@@ -238,8 +238,7 @@ class _ClassMemberValidator {
     if (element is ClassMemberElement) {
       return getHierarchyMembers(
           searchEngine,
-          element,
-          false).then((Set<Element> elements) {
+          element).then((Set<Element> elements) {
         this.elements = elements;
       });
     } else {

@@ -244,145 +244,56 @@ main() {
     });
   }
 
-  test_hierarchy_whenExtends_field() {
+  test_hierarchy_field_explicit() {
     addTestFile('''
-class A {
-  int mmm;
-  use_mmm_a() {
-    mmm = 1;
+  class A {
+    int fff; // in A
   }
-}
-class B extends A {
-  int mmm;
-  use_mmm_b() {
-    mmm = 2;
+  class B extends A {
+    int fff; // in B
   }
-}
-class C extends B {
-  int mmm; // of C
-  use_mmm_c() {
-    mmm = 3;
+  class C extends B {
+    int fff; // in C
   }
-}
-class D extends A {
-  int mmm;
-  use_mmm_d() {
-    mmm = 4;
+  main(A a, B b, C c) {
+    a.fff = 10;
+    b.fff = 20;
+    c.fff = 30;
   }
-}
-class E extends C {
-  use_mmm_e() {
-    mmm = 5;
-  }
-}
-class F extends C {
-  int mmm;
-  use_mmm_f() {
-    mmm = 6;
-    mmm(6);
-  }
-}
-main(A a, B b, C c, D d, E e, F f) {
-  a.mmm = 10;
-  b.mmm = 20;
-  c.mmm = 30;
-  d.mmm = 40;
-  e.mmm = 50;
-  f.mmm = 60;
-}
-''');
-    return findElementReferences('mmm; // of C', false).then((_) {
+  ''');
+    return findElementReferences('fff; // in B', false).then((_) {
       expect(searchElement.kind, ElementKind.FIELD);
-      // unqualified
-      {
-        assertHasResult(SearchResultKind.WRITE, 'mmm = 1');
-        assertHasResult(SearchResultKind.WRITE, 'mmm = 2');
-        assertHasResult(SearchResultKind.WRITE, 'mmm = 3');
-        assertNoResult(SearchResultKind.WRITE, 'mmm = 4');
-        assertHasResult(SearchResultKind.WRITE, 'mmm = 5');
-        assertNoResult(SearchResultKind.WRITE, 'mmm = 6');
-      }
-      // qualified
-      {
-        assertHasResult(SearchResultKind.WRITE, 'mmm = 10');
-        assertHasResult(SearchResultKind.WRITE, 'mmm = 20');
-        assertHasResult(SearchResultKind.WRITE, 'mmm = 30');
-        assertNoResult(SearchResultKind.WRITE, 'mmm = 40');
-        assertHasResult(SearchResultKind.WRITE, 'mmm = 50');
-        assertNoResult(SearchResultKind.WRITE, 'mmm = 60');
-      }
+      assertHasResult(SearchResultKind.DECLARATION, 'fff; // in A');
+      assertHasResult(SearchResultKind.DECLARATION, 'fff; // in B');
+      assertHasResult(SearchResultKind.DECLARATION, 'fff; // in C');
+      assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
+      assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
+      assertHasResult(SearchResultKind.WRITE, 'fff = 30;');
     });
   }
 
-  test_hierarchy_whenExtends_method() {
-    // TODO(scheglov) ideally we need to remove D.mmm() declaration
-    // to actually test that we have fixed
-    // https://code.google.com/p/dart/issues/detail?id=19697
+  test_hierarchy_method() {
     addTestFile('''
 class A {
-  mmm(_) {}
-  use_mmm_a() {
-    mmm(1);
-  }
+  mmm() {} // in A
 }
 class B extends A {
-  mmm(_) {}
-  use_mmm_b() {
-    mmm(2);
-  }
+  mmm() {} // in B
 }
 class C extends B {
-  mmm(_) {} // of C
-  use_mmm_c() {
-    mmm(3);
-  }
+  mmm() {} // in C
 }
-class D extends A {
-  mmm(_) {}
-  use_mmm_d() {
-    mmm(4);
-  }
-}
-class E extends C {
-  use_mmm_e() {
-    mmm(5);
-  }
-}
-class F extends C {
-  mmm(_) {}
-  use_mmm_f() {
-    mmm(6);
-  }
-}
-main(A a, B b, C c, D d, E e, F f) {
+main(A a, B b, C c) {
   a.mmm(10);
   b.mmm(20);
   c.mmm(30);
-  d.mmm(40);
-  e.mmm(50);
-  f.mmm(60);
 }
 ''');
-    return findElementReferences('mmm(_) {} // of C', false).then((_) {
+    return findElementReferences('mmm() {} // in B', false).then((_) {
       expect(searchElement.kind, ElementKind.METHOD);
-      // unqualified
-      {
-        assertHasResult(SearchResultKind.INVOCATION, 'mmm(1)');
-        assertHasResult(SearchResultKind.INVOCATION, 'mmm(2)');
-        assertHasResult(SearchResultKind.INVOCATION, 'mmm(3)');
-        assertNoResult(SearchResultKind.INVOCATION, 'mmm(4)');
-        assertHasResult(SearchResultKind.INVOCATION, 'mmm(5)');
-        assertNoResult(SearchResultKind.INVOCATION, 'mmm(6)');
-      }
-      // qualified
-      {
-        assertHasResult(SearchResultKind.INVOCATION, 'mmm(10)');
-        assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
-        assertHasResult(SearchResultKind.INVOCATION, 'mmm(30)');
-        assertNoResult(SearchResultKind.INVOCATION, 'mmm(40)');
-        assertHasResult(SearchResultKind.INVOCATION, 'mmm(50)');
-        assertNoResult(SearchResultKind.INVOCATION, 'mmm(60)');
-      }
+      assertHasResult(SearchResultKind.INVOCATION, 'mmm(10)');
+      assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
+      assertHasResult(SearchResultKind.INVOCATION, 'mmm(30)');
     });
   }
 

@@ -83,7 +83,7 @@ class ElementReferencesComputer {
    */
   Future<Iterable<Element>> _getRefElements(Element element) {
     if (element is ClassMemberElement) {
-      return getHierarchyMembers(searchEngine, element, true);
+      return getHierarchyMembers(searchEngine, element);
     }
     return new Future.value([element]);
   }
