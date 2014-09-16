@@ -3577,7 +3577,9 @@ class EditGetRefactoringParams implements HasToJson {
  * edit.getRefactoring result
  *
  * {
- *   "problems": List<RefactoringProblem>
+ *   "initialProblems": List<RefactoringProblem>
+ *   "optionsProblems": List<RefactoringProblem>
+ *   "finalProblems": List<RefactoringProblem>
  *   "feedback": optional RefactoringFeedback
  *   "change": optional SourceChange
  *   "potentialEdits": optional List<String>
@@ -3585,10 +3587,25 @@ class EditGetRefactoringParams implements HasToJson {
  */
 class EditGetRefactoringResult implements HasToJson {
   /**
-   * The status of the refactoring. The array will be empty if there are no
-   * known problems.
+   * The initial status of the refactoring, i.e. problems related to the
+   * context in which the refactoring is requested. The array will be empty if
+   * there are no known problems.
    */
-  List<RefactoringProblem> problems;
+  List<RefactoringProblem> initialProblems;
+
+  /**
+   * The options validation status, i.e. problems in the given options, such as
+   * light-weight validation of a new name, flags compatibility, etc. The array
+   * will be empty if there are no known problems.
+   */
+  List<RefactoringProblem> optionsProblems;
+
+  /**
+   * The final status of the refactoring, i.e. problems identified in the
+   * result of a full, potentially expensive validation and / or change
+   * creation. The array will be empty if there are no known problems.
+   */
+  List<RefactoringProblem> finalProblems;
 
   /**
    * Data used to provide feedback to the user. The structure of the data is
@@ -3616,7 +3633,7 @@ class EditGetRefactoringResult implements HasToJson {
    */
   List<String> potentialEdits;
 
-  EditGetRefactoringResult(this.problems, {this.feedback, this.change, this.potentialEdits}) {
+  EditGetRefactoringResult(this.initialProblems, this.optionsProblems, this.finalProblems, {this.feedback, this.change, this.potentialEdits}) {
     if (potentialEdits == null) {
       potentialEdits = <String>[];
     }
@@ -3627,11 +3644,23 @@ class EditGetRefactoringResult implements HasToJson {
       json = {};
     }
     if (json is Map) {
-      List<RefactoringProblem> problems;
-      if (json.containsKey("problems")) {
-        problems = jsonDecoder._decodeList(jsonPath + ".problems", json["problems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+      List<RefactoringProblem> initialProblems;
+      if (json.containsKey("initialProblems")) {
+        initialProblems = jsonDecoder._decodeList(jsonPath + ".initialProblems", json["initialProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "problems");
+        throw jsonDecoder.missingKey(jsonPath, "initialProblems");
+      }
+      List<RefactoringProblem> optionsProblems;
+      if (json.containsKey("optionsProblems")) {
+        optionsProblems = jsonDecoder._decodeList(jsonPath + ".optionsProblems", json["optionsProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "optionsProblems");
+      }
+      List<RefactoringProblem> finalProblems;
+      if (json.containsKey("finalProblems")) {
+        finalProblems = jsonDecoder._decodeList(jsonPath + ".finalProblems", json["finalProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "finalProblems");
       }
       RefactoringFeedback feedback;
       if (json.containsKey("feedback")) {
@@ -3647,7 +3676,7 @@ class EditGetRefactoringResult implements HasToJson {
       } else {
         potentialEdits = <String>[];
       }
-      return new EditGetRefactoringResult(problems, feedback: feedback, change: change, potentialEdits: potentialEdits);
+      return new EditGetRefactoringResult(initialProblems, optionsProblems, finalProblems, feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring result");
     }
@@ -3660,7 +3689,9 @@ class EditGetRefactoringResult implements HasToJson {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["problems"] = problems.map((RefactoringProblem value) => value.toJson()).toList();
+    result["initialProblems"] = initialProblems.map((RefactoringProblem value) => value.toJson()).toList();
+    result["optionsProblems"] = optionsProblems.map((RefactoringProblem value) => value.toJson()).toList();
+    result["finalProblems"] = finalProblems.map((RefactoringProblem value) => value.toJson()).toList();
     if (feedback != null) {
       result["feedback"] = feedback.toJson();
     }
@@ -3683,7 +3714,9 @@ class EditGetRefactoringResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetRefactoringResult) {
-      return _listEqual(problems, other.problems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+      return _listEqual(initialProblems, other.initialProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+          _listEqual(optionsProblems, other.optionsProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+          _listEqual(finalProblems, other.finalProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
           feedback == other.feedback &&
           change == other.change &&
           _listEqual(potentialEdits, other.potentialEdits, (String a, String b) => a == b);
@@ -3694,7 +3727,9 @@ class EditGetRefactoringResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, problems.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, initialProblems.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, optionsProblems.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, finalProblems.hashCode);
     hash = _JenkinsSmiHash.combine(hash, feedback.hashCode);
     hash = _JenkinsSmiHash.combine(hash, change.hashCode);
     hash = _JenkinsSmiHash.combine(hash, potentialEdits.hashCode);

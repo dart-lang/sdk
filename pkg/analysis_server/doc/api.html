@@ -1398,7 +1398,9 @@ dt.typeDefinition {
   "id": String
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
-    "<b>problems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
+    "<b>initialProblems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
+    "<b>optionsProblems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
+    "<b>finalProblems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
     "<b>feedback</b>": <span style="color:#999999">optional</span> <a href="#type_RefactoringFeedback">RefactoringFeedback</a>
     "<b>change</b>": <span style="color:#999999">optional</span> <a href="#type_SourceChange">SourceChange</a>
     "<b>potentialEdits</b>": <span style="color:#999999">optional</span> List&lt;String&gt;
@@ -1447,11 +1449,28 @@ dt.typeDefinition {
               does not require any options or if the values of those
               options are not known.
             </p>
-          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>problems ( List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt; )</i></b></dt><dd>
+          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>initialProblems ( List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt; )</i></b></dt><dd>
             
             <p>
-              The status of the refactoring. The array will be empty
-              if there are no known problems.
+              The initial status of the refactoring, i.e. problems related to
+              the context in which the refactoring is requested.
+              The array will be empty if there are no known problems.
+            </p>
+          </dd><dt class="field"><b><i>optionsProblems ( List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt; )</i></b></dt><dd>
+            
+            <p>
+              The options validation status, i.e. problems in the given options,
+              such as light-weight validation of a new name, flags
+              compatibility, etc.
+              The array will be empty if there are no known problems.
+            </p>
+          </dd><dt class="field"><b><i>finalProblems ( List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt; )</i></b></dt><dd>
+            
+            <p>
+              The final status of the refactoring, i.e. problems identified in
+              the result of a full, potentially expensive validation and / or
+              change creation.
+              The array will be empty if there are no known problems.
             </p>
           </dd><dt class="field"><b><i>feedback ( <span style="color:#999999">optional</span> <a href="#type_RefactoringFeedback">RefactoringFeedback</a> )</i></b></dt><dd>
             

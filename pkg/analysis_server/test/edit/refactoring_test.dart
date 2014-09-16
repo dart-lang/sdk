@@ -97,7 +97,7 @@ main() {
       return sendStringRequest('1 + 2', 'Name', true);
     }).then((result) {
       assertResultProblemsWarning(
-          result,
+          result.optionsProblems,
           'Variable name should start with a lowercase letter.');
       // ...but there is still a change
       assertTestRefactoringResult(result, '''
@@ -561,7 +561,7 @@ main() {
       return _sendInlineRequest('main() {}');
     }).then((result) {
       assertResultProblemsFatal(
-          result,
+          result.initialProblems,
           'Local variable declaration or reference must be selected to activate this refactoring.');
       // ...there is no any change
       expect(result.change, isNull);
@@ -612,7 +612,7 @@ class A {
       return _sendInlineRequest('// nothing');
     }).then((result) {
       assertResultProblemsFatal(
-          result,
+          result.initialProblems,
           'Method declaration or reference must be selected to activate this refactoring.');
       // ...there is no any change
       expect(result.change, isNull);
@@ -837,7 +837,9 @@ main() {
     return getRefactoringResult(() {
       return sendRenameRequest('Test {}', '');
     }).then((result) {
-      assertResultProblemsFatal(result, 'Class name must not be empty.');
+      assertResultProblemsFatal(
+          result.optionsProblems,
+          'Class name must not be empty.');
       // ...there is no any change
       expect(result.change, isNull);
     });
@@ -872,7 +874,7 @@ main() {
       return sendRenameRequest('Test {}', 'newName');
     }).then((result) {
       assertResultProblemsWarning(
-          result,
+          result.optionsProblems,
           'Class name should start with an uppercase letter.');
       // ...but there is still a change
       assertTestRefactoringResult(result, '''
@@ -962,7 +964,9 @@ main() {
     return getRefactoringResult(() {
       return sendRenameRequest('// nothing', null);
     }).then((result) {
-      assertResultProblemsFatal(result, 'Unable to create a refactoring');
+      assertResultProblemsFatal(
+          result.initialProblems,
+          'Unable to create a refactoring');
       // ...there is no any change
       expect(result.change, isNull);
     });
@@ -1000,7 +1004,9 @@ main() {
     return getRefactoringResult(() {
       return sendRenameRequest('test = 0', 'newName');
     }).then((result) {
-      assertResultProblemsError(result, "Duplicate local variable 'newName'.");
+      assertResultProblemsError(
+          result.finalProblems,
+          "Duplicate local variable 'newName'.");
     });
   }
 }
@@ -1009,11 +1015,10 @@ main() {
 @ReflectiveTestCase()
 class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   /**
-   * Asserts that [result] has a single ERROR problem.
+   * Asserts that [problems] has a single ERROR problem.
    */
-  void assertResultProblemsError(EditGetRefactoringResult result,
+  void assertResultProblemsError(List<RefactoringProblem> problems,
       [String message]) {
-    List<RefactoringProblem> problems = result.problems;
     RefactoringProblem problem = problems[0];
     expect(problems, hasLength(1));
     expect(
@@ -1028,9 +1033,8 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   /**
    * Asserts that [result] has a single FATAL problem.
    */
-  void assertResultProblemsFatal(EditGetRefactoringResult result,
+  void assertResultProblemsFatal(List<RefactoringProblem> problems,
       [String message]) {
-    List<RefactoringProblem> problems = result.problems;
     RefactoringProblem problem = problems[0];
     expect(problems, hasLength(1));
     expect(
@@ -1046,15 +1050,16 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
    * Asserts that [result] has no problems at all.
    */
   void assertResultProblemsOK(EditGetRefactoringResult result) {
-    expect(result.problems, isEmpty);
+    expect(result.initialProblems, isEmpty);
+    expect(result.optionsProblems, isEmpty);
+    expect(result.finalProblems, isEmpty);
   }
 
   /**
    * Asserts that [result] has a single WARNING problem.
    */
-  void assertResultProblemsWarning(EditGetRefactoringResult result,
+  void assertResultProblemsWarning(List<RefactoringProblem> problems,
       [String message]) {
-    List<RefactoringProblem> problems = result.problems;
     RefactoringProblem problem = problems[0];
     expect(problems, hasLength(1));
     expect(

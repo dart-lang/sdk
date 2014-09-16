@@ -1137,10 +1137,23 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * problems ( List<RefactoringProblem> )
+   * initialProblems ( List<RefactoringProblem> )
    *
-   *   The status of the refactoring. The array will be empty if there are no
-   *   known problems.
+   *   The initial status of the refactoring, i.e. problems related to the
+   *   context in which the refactoring is requested. The array will be empty
+   *   if there are no known problems.
+   *
+   * optionsProblems ( List<RefactoringProblem> )
+   *
+   *   The options validation status, i.e. problems in the given options, such
+   *   as light-weight validation of a new name, flags compatibility, etc. The
+   *   array will be empty if there are no known problems.
+   *
+   * finalProblems ( List<RefactoringProblem> )
+   *
+   *   The final status of the refactoring, i.e. problems identified in the
+   *   result of a full, potentially expensive validation and / or change
+   *   creation. The array will be empty if there are no known problems.
    *
    * feedback ( optional RefactoringFeedback )
    *

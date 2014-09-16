@@ -159,6 +159,10 @@ class EditDomainHandler implements RequestHandler {
  * is invalidated and a new one is created and initialized.
  */
 class _RefactoringManager {
+  static const List<RefactoringProblem> EMPTY_PROBLEM_LIST = const
+      <RefactoringProblem>[
+      ];
+
   final AnalysisServer server;
   final SearchEngine searchEngine;
 
@@ -198,7 +202,10 @@ class _RefactoringManager {
   void getRefactoring(Request request) {
     // prepare for processing the request
     requestId = request.id;
-    result = new EditGetRefactoringResult(<RefactoringProblem>[]);
+    result = new EditGetRefactoringResult(
+        EMPTY_PROBLEM_LIST,
+        EMPTY_PROBLEM_LIST,
+        EMPTY_PROBLEM_LIST);
     // process the request
     var params = new EditGetRefactoringParams.fromRequest(request);
     _init(params.kind, params.file, params.offset, params.length).then((_) {
@@ -361,13 +368,9 @@ class _RefactoringManager {
       result.feedback = feedback;
     }
     // set problems
-    {
-      RefactoringStatus status = new RefactoringStatus();
-      status.addStatus(initStatus);
-      status.addStatus(optionsStatus);
-      status.addStatus(finalStatus);
-      result.problems = status.problems;
-    }
+    result.initialProblems = initStatus.problems;
+    result.optionsProblems = optionsStatus.problems;
+    result.finalProblems = finalStatus.problems;
     // send the response
     server.sendResponse(result.toResponse(requestId));
     // done with this request
