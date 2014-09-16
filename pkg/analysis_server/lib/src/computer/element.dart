@@ -64,8 +64,12 @@ String _getParametersString(engine.Element element) {
 }
 
 String _getReturnTypeString(engine.Element element) {
-  if ((element is engine.ExecutableElement)) {
-    return element.returnType.toString();
+  if (element is engine.ExecutableElement) {
+    if (element.kind == engine.ElementKind.SETTER) {
+      return null;
+    } else {
+      return element.returnType.toString();
+    }
   } else {
     return null;
   }

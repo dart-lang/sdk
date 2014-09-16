@@ -283,6 +283,32 @@ class A {
     expect(element.flags, Element.FLAG_STATIC);
   }
 
+  void test_fromElement_SETTER() {
+    Source source = addSource('/test.dart', '''
+class A {
+  set mySetter(String x) {}
+}''');
+    CompilationUnit unit = resolveLibraryUnit(source);
+    engine.FieldElement engineFieldElement =
+        findElementInUnit(unit, 'mySetter', engine.ElementKind.FIELD);
+    engine.PropertyAccessorElement engineElement = engineFieldElement.setter;
+    // create notification Element
+    Element element = new Element.fromEngine(engineElement);
+    expect(element.kind, ElementKind.SETTER);
+    expect(element.name, 'mySetter');
+    {
+      Location location = element.location;
+      expect(location.file, '/test.dart');
+      expect(location.offset, 16);
+      expect(location.length, 'mySetter'.length);
+      expect(location.startLine, 2);
+      expect(location.startColumn, 7);
+    }
+    expect(element.parameters, '(String x)');
+    expect(element.returnType, isNull);
+    expect(element.flags, 0);
+  }
+
   void test_fromElement_dynamic() {
     var engineElement = engine.DynamicElementImpl.instance;
     // create notification Element
