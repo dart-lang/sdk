@@ -373,7 +373,9 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   }
 
   processClass(ClassElementX classElement, cause) {
-    assert(!registeredClasses.contains(classElement));
+    // TODO(ahe): Fix this assertion to work in incremental compilation.
+    assert(compiler.hasIncrementalSupport ||
+           !registeredClasses.contains(classElement));
 
     bool firstTime = registeredClasses.isEmpty;
     pendingClasses.remove(classElement);
