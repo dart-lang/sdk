@@ -1855,9 +1855,10 @@ class ConstExpBuilder extends ast.Visitor<ConstExp> {
 
   ConstExp visitNewExpression(ast.NewExpression node) {
     FunctionElement element = elements[node.send];
-    if (Elements.isUnresolved(element)) {
-      throw parent.giveup(node, 'const NewExpression: unresolved constructor');
-    }
+    // The resolver will already have thrown an error if the constructor was
+    // unresolved.
+    assert(invariant(node, !Elements.isUnresolved(element)));
+
     Selector selector = elements.getSelector(node.send);
     ast.Node selectorNode = node.send.selector;
     GenericType type = elements.getType(node);
