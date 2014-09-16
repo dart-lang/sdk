@@ -6163,7 +6163,11 @@ class InlineWeeder extends ast.Visitor {
     if (!registerNode()) return;
     // For now, we don't want to handle throw after a return even if
     // it is in an "if".
-    if (seenReturn) tooDifficult = true;
+    if (seenReturn) {
+      tooDifficult = true;
+    } else {
+      node.visitChildren(this);
+    }
   }
 }
 
