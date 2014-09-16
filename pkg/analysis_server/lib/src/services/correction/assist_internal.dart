@@ -524,13 +524,17 @@ class AssistProcessor {
     }
     // prepare whole import namespace
     ImportElement importElement = importDirective.element;
+    if (importElement == null) {
+      _coverageMarker();
+      return;
+    }
     Map<String, Element> namespace = getImportNamespace(importElement);
     // prepare names of referenced elements (from this import)
     SplayTreeSet<String> referencedNames = new SplayTreeSet<String>();
     _SimpleIdentifierRecursiveAstVisitor visitor =
         new _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
       Element element = node.staticElement;
-      if (namespace[node.name] == element) {
+      if (element != null && namespace[node.name] == element) {
         referencedNames.add(element.displayName);
       }
     });

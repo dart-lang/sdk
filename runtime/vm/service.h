@@ -38,6 +38,10 @@ class Service : public AllStatic {
     return port_ != ILLEGAL_PORT;
   }
 
+  static void set_port(Dart_Port port) {
+    port_ = port;
+  }
+
   static void SetEventMask(uint32_t mask);
 
   // Is the service interested in debugger events?

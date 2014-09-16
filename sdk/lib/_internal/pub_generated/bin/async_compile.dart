@@ -52,10 +52,12 @@ void main(List<String> arguments) {
   lastCommit = match[0];
   var numFiles = 0;
   var numCompiled = 0;
+  var sources = new Set<String>();
   for (var entry in new Directory(sourceDir).listSync(recursive: true)) {
     if (p.extension(entry.path) != ".dart") continue;
     numFiles++;
     var relative = p.relative(entry.path, from: sourceDir);
+    sources.add(relative);
     var sourceFile = entry as File;
     var destPath = p.join(generatedDir, relative);
     var destFile = new File(destPath);
@@ -68,12 +70,21 @@ void main(List<String> arguments) {
       if (verbose) print("Compiled $relative");
     }
   }
+  for (var entry in new Directory(generatedDir).listSync(recursive: true)) {
+    if (p.extension(entry.path) != ".dart") continue;
+    var relative = p.relative(entry.path, from: generatedDir);
+    if (!sources.contains(relative)) {
+      _deleteFile(entry.path);
+      if (verbose) print("Deleted  $relative");
+    }
+  }
   if (currentCommit != lastCommit) {
     readme = readme.replaceAll(_commitPattern, currentCommit);
     _writeFile(readmePath, readme);
+    if (verbose) print("Updated README.md");
   }
-  if (verbose) print("Compiled $numCompiled out of $numFiles files");
   if (numCompiled > 0) _generateSnapshot(buildDir);
+  if (verbose) print("Compiled $numCompiled out of $numFiles files");
   if (hadFailure) exit(1);
 }
 void _compile(String sourcePath, String source, String destPath) {

@@ -23,6 +23,7 @@ const String SERVER_STATUS = 'server.status';
 //
 const String ANALYSIS_GET_ERRORS = 'analysis.getErrors';
 const String ANALYSIS_GET_HOVER = 'analysis.getHover';
+const String ANALYSIS_REANALYZE = 'analysis.reanalyze';
 const String ANALYSIS_SET_ANALYSIS_ROOTS = 'analysis.setAnalysisRoots';
 const String ANALYSIS_SET_PRIORITY_FILES = 'analysis.setPriorityFiles';
 const String ANALYSIS_SET_SUBSCRIPTIONS = 'analysis.setSubscriptions';
@@ -113,7 +114,6 @@ const String CONTAINING_LIBRARY_PATH = 'containingLibraryPath';
 const String CONTENT = 'content';
 const String CORRECTION = 'correction';
 const String DART_DOC = 'dartdoc';
-const String DATA = 'data';
 const String DEFAULT = 'default';
 const String DISPLAY_NAME = 'displayName';
 const String EDITS = 'edits';

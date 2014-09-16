@@ -45,7 +45,7 @@ TransformOptions _parseSettings(BarbackSettings settings) {
   bool injectBuildLogs =
       !releaseMode && args['inject_build_logs_in_output'] != false;
   return new TransformOptions(
-      entryPoints: _readEntrypoints(args['entry_points']),
+      entryPoints: readEntrypoints(args['entry_points']),
       inlineStylesheets: _readInlineStylesheets(args['inline_stylesheets']),
       directlyIncludeJS: jsOption == null ? releaseMode : jsOption,
       contentSecurityPolicy: csp,
@@ -54,7 +54,7 @@ TransformOptions _parseSettings(BarbackSettings settings) {
       injectBuildLogsInOutput: injectBuildLogs);
 }
 
-_readEntrypoints(value) {
+readEntrypoints(value) {
   if (value == null) return null;
   var entryPoints = [];
   bool error;

@@ -29,6 +29,9 @@ class VmService {
                                   const char* prefix);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
                                        Dart_Handle url);
+
+  friend void TriggerResourceLoad(Dart_NativeArguments args);
+
   static void ThreadMain(uword parameters);
   static const char* error_msg_;
   DISALLOW_ALLOCATION();

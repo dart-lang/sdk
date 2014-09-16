@@ -393,6 +393,11 @@ class Object {
     return *empty_descriptors_;
   }
 
+  static const LocalVarDescriptors& empty_var_descriptors() {
+    ASSERT(empty_var_descriptors_ != NULL);
+    return *empty_var_descriptors_;
+  }
+
   // The sentinel is a value that cannot be produced by Dart code.
   // It can be used to mark special values, for example to distinguish
   // "uninitialized" fields.
@@ -670,6 +675,7 @@ class Object {
   static Array* empty_array_;
   static Array* zero_array_;
   static PcDescriptors* empty_descriptors_;
+  static LocalVarDescriptors* empty_var_descriptors_;
   static Instance* sentinel_;
   static Instance* transition_sentinel_;
   static Instance* unknown_constant_;
@@ -1130,6 +1136,8 @@ class Class : public Object {
     return raw_ptr()->allocation_stub_;
   }
   void set_allocation_stub(const Code& value) const;
+
+  void DisableAllocationStub() const;
 
   RawArray* constants() const;
 
@@ -3083,13 +3091,14 @@ class LocalVarDescriptors : public Object {
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawLocalVarDescriptors) ==
-        OFFSET_OF_RETURNED_VALUE(RawLocalVarDescriptors, data));
+        OFFSET_OF_RETURNED_VALUE(RawLocalVarDescriptors, names));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(RawLocalVarDescriptors) + (len * kBytesPerElement));
+    return RoundedAllocationSize(sizeof(RawLocalVarDescriptors)
+        + (len * kWordSize)  // RawStrings for names.
+        + (len * sizeof(RawLocalVarDescriptors::VarInfo)));
   }
 
   static RawLocalVarDescriptors* New(intptr_t num_variables);
@@ -3099,6 +3108,7 @@ class LocalVarDescriptors : public Object {
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors, Object);
   friend class Class;
+  friend class Object;
 };
 
 
@@ -5515,7 +5525,7 @@ class String : public Instance {
 
   virtual RawObject* HashCode() const { return Integer::New(Hash()); }
 
-  int32_t CharAt(intptr_t index) const;
+  uint16_t CharAt(intptr_t index) const;
 
   Scanner::CharAtFunc CharAtFunc() const;
 
@@ -5582,16 +5592,6 @@ class String : public Instance {
   void* GetPeer() const;
 
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
-
-  // Creates a UTF-8, NUL-terminated string in the current zone. The size of the
-  // created string in UTF-8 code units (bytes) is answered in 'length'; this
-  // can be longer than strlen of the result when the string has internal NULs.
-  // For the truncating version, 'max_length' is in UTF-16 code units, and will
-  // be rounded down if necessary to prevent splitting a surrogate pair.
-  const char* ToCString(intptr_t *length) const;
-  const char* ToCStringTruncated(intptr_t max_len,
-                                 bool* did_truncate,
-                                 intptr_t *length) const;
 
   // Copies the string characters into the provided external array
   // and morphs the string object into an external string object.
@@ -5755,12 +5755,12 @@ class String : public Instance {
 
 class OneByteString : public AllStatic {
  public:
-  static int32_t CharAt(const String& str, intptr_t index) {
+  static uint16_t CharAt(const String& str, intptr_t index) {
     return *CharAddr(str, index);
   }
 
-  static void SetCharAt(const String& str, intptr_t index, uint8_t code_point) {
-    *CharAddr(str, index) = code_point;
+  static void SetCharAt(const String& str, intptr_t index, uint8_t code_unit) {
+    *CharAddr(str, index) = code_unit;
   }
   static RawOneByteString* EscapeSpecialCharacters(const String& str);
   // We use the same maximum elements for all strings.
@@ -5884,7 +5884,7 @@ class OneByteString : public AllStatic {
 
 class TwoByteString : public AllStatic {
  public:
-  static int32_t CharAt(const String& str, intptr_t index) {
+  static uint16_t CharAt(const String& str, intptr_t index) {
     return *CharAddr(str, index);
   }
 
@@ -5984,7 +5984,7 @@ class TwoByteString : public AllStatic {
 
 class ExternalOneByteString : public AllStatic {
  public:
-  static int32_t CharAt(const String& str, intptr_t index) {
+  static uint16_t CharAt(const String& str, intptr_t index) {
     return *CharAddr(str, index);
   }
 
@@ -6061,7 +6061,7 @@ class ExternalOneByteString : public AllStatic {
 
 class ExternalTwoByteString : public AllStatic {
  public:
-  static int32_t CharAt(const String& str, intptr_t index) {
+  static uint16_t CharAt(const String& str, intptr_t index) {
     return *CharAddr(str, index);
   }
 

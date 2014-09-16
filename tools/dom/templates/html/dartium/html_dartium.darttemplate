@@ -149,9 +149,6 @@ final htmlBlinkMap = {
   'JsFunction': () => js.JsFunction,
   'JsArray': () => js.JsArray,
 $!TYPE_MAP
-  // FIXME: Temporary workaround.  The Blink name matches the Dart name
-  // post Chrome 35.  We still generate the old mapping from 'Clipboard'.
-  'DataTransfer': () => DataTransfer,
 };
 
 // TODO(leafp): We may want to move this elsewhere if html becomes

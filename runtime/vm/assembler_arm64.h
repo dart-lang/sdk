@@ -1147,6 +1147,13 @@ class Assembler : public ValueObject {
     kNotPatchable,
   };
 
+  bool allow_constant_pool() const {
+    return allow_constant_pool_;
+  }
+  void set_allow_constant_pool(bool b) {
+    allow_constant_pool_ = b;
+  }
+
   void LoadWordFromPoolOffset(Register dst, Register pp, uint32_t offset);
   void LoadWordFromPoolOffsetFixed(Register dst, Register pp, uint32_t offset);
   intptr_t FindExternalLabel(const ExternalLabel* label,
@@ -1314,6 +1321,8 @@ class Assembler : public ValueObject {
   };
 
   GrowableArray<CodeComment*> comments_;
+
+  bool allow_constant_pool_;
 
   void AddSubHelper(OperandSize os, bool set_flags, bool subtract,
                     Register rd, Register rn, Operand o) {

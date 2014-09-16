@@ -16,7 +16,8 @@ import 'package:analyzer/src/generated/scanner.dart';
 class DartUnitNavigationComputer {
   final CompilationUnit _unit;
 
-  final List<protocol.NavigationRegion> _regions = <protocol.NavigationRegion>[];
+  final List<protocol.NavigationRegion> _regions = <protocol.NavigationRegion>[
+      ];
 
   DartUnitNavigationComputer(this._unit);
 
@@ -136,10 +137,32 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
     Element element = node.staticElement;
-    if (element != null && element.isSynthetic) {
-      element = element.enclosingElement;
+    ConstructorName constructorName = node.constructorName;
+    if (element != null && constructorName != null) {
+      ClassElement classElement = element.enclosingElement;
+      if (element.isSynthetic) {
+        element = classElement;
+        computer._addRegion_nodeStart_nodeStart(
+            node,
+            node.argumentList,
+            element);
+      } else {
+        // add region for "type" first, so that it is found before "new "
+        computer._addRegionForNode(constructorName.type, classElement);
+        // "new "
+        computer._addRegion_nodeStart_nodeStart(
+            node,
+            constructorName.type,
+            element);
+        // optional ".name"
+        if (constructorName.period != null) {
+          computer._addRegion_tokenStart_nodeEnd(
+              constructorName.period,
+              constructorName,
+              element);
+        }
+      }
     }
-    computer._addRegion_nodeStart_nodeStart(node, node.argumentList, element);
     return super.visitInstanceCreationExpression(node);
   }
 

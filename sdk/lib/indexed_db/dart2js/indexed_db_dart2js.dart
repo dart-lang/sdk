@@ -1071,40 +1071,40 @@ class ObjectStore extends Interceptor {
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
   Index _createIndex(String name, keyPath, [Map options]) {
-    if ((keyPath is List<String> || keyPath == null) && options == null) {
-      List keyPath_1 = convertDartToNative_StringArray(keyPath);
-      return _createIndex_1(name, keyPath_1);
-    }
-    if (options != null && (keyPath is List<String> || keyPath == null)) {
-      List keyPath_2 = convertDartToNative_StringArray(keyPath);
-      var options_3 = convertDartToNative_Dictionary(options);
-      return _createIndex_2(name, keyPath_2, options_3);
-    }
     if ((keyPath is String || keyPath == null) && options == null) {
-      return _createIndex_3(name, keyPath);
+      return _createIndex_1(name, keyPath);
     }
     if (options != null && (keyPath is String || keyPath == null)) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _createIndex_2(name, keyPath, options_1);
+    }
+    if ((keyPath is List<String> || keyPath == null) && options == null) {
+      List keyPath_2 = convertDartToNative_StringArray(keyPath);
+      return _createIndex_3(name, keyPath_2);
+    }
+    if (options != null && (keyPath is List<String> || keyPath == null)) {
+      List keyPath_3 = convertDartToNative_StringArray(keyPath);
       var options_4 = convertDartToNative_Dictionary(options);
-      return _createIndex_4(name, keyPath, options_4);
+      return _createIndex_4(name, keyPath_3, options_4);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _createIndex_1(name, List keyPath) native;
+  Index _createIndex_1(name, String keyPath) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _createIndex_2(name, List keyPath, options) native;
+  Index _createIndex_2(name, String keyPath, options) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _createIndex_3(name, String keyPath) native;
+  Index _createIndex_3(name, List keyPath) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _createIndex_4(name, String keyPath, options) native;
+  Index _createIndex_4(name, List keyPath, options) native;
 
   @JSName('delete')
   @DomName('IDBObjectStore.delete')
@@ -1133,7 +1133,7 @@ class ObjectStore extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor(Object key, [String direction]) native;
+  Request _openCursor(Object range, [String direction]) native;
 
   @DomName('IDBObjectStore.openKeyCursor')
   @DocsEditable()
@@ -1443,11 +1443,11 @@ class VersionChangeEvent extends Event {
   @DocsEditable()
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  final Object newVersion;
+  final int newVersion;
 
   @DomName('IDBVersionChangeEvent.oldVersion')
   @DocsEditable()
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  final Object oldVersion;
+  final int oldVersion;
 }

@@ -10,7 +10,7 @@ import emitter
 import os
 from generator import *
 from htmldartgenerator import *
-from idlnode import IDLArgument, IDLAttribute, IDLEnum
+from idlnode import IDLArgument, IDLAttribute, IDLEnum, IDLMember
 from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
 # This is an ugly hack to get things working on the M35 roll.  Once we
@@ -519,7 +519,7 @@ class DartiumBackend(HtmlDartGenerator):
           FUNCTION=function_name,
           PARAMETERS=', '.join(parameters))
 
-      if 'Custom' in operation.ext_attrs:
+      if _IsCustom(operation):
         continue
 
       cpp_impl_includes |= set(conversion_includes)
@@ -989,9 +989,8 @@ class DartiumBackend(HtmlDartGenerator):
     return_type = self.SecureOutputType(attr.type.id, False, read_only)
     parameters = []
     dart_declaration = '%s get %s' % (return_type, html_name)
-    is_custom = ('Custom' in attr.ext_attrs and
-                 (attr.ext_attrs['Custom'] == None or
-                  attr.ext_attrs['Custom'] == 'Getter'))
+    is_custom = _IsCustom(attr) and (_IsCustomValue(attr, None) or
+                                     _IsCustomValue(attr, 'Getter'))
     # This seems to have been replaced with Custom=Getter (see above), but
     # check to be sure we don't see the old syntax
     assert(not ('CustomGetter' in attr.ext_attrs))
@@ -1044,9 +1043,8 @@ class DartiumBackend(HtmlDartGenerator):
     parameters = ['value']
     ptype = self._DartType(attr.type.id)
     dart_declaration = 'void set %s(%s value)' % (html_name, ptype)
-    is_custom = ('Custom' in attr.ext_attrs and
-                 (attr.ext_attrs['Custom'] == None or
-                  attr.ext_attrs['Custom'] == 'Setter'))
+    is_custom = _IsCustom(attr) and (_IsCustomValue(attr, None) or
+                                     _IsCustomValue(attr, 'Setter'))
     # This seems to have been replaced with Custom=Setter (see above), but
     # check to be sure we don't see the old syntax
     assert(not ('CustomSetter' in attr.ext_attrs))
@@ -1113,7 +1111,7 @@ class DartiumBackend(HtmlDartGenerator):
     elif self._HasExplicitIndexedGetter():
       self._EmitExplicitIndexedGetter(dart_element_type)
     else:
-      is_custom = any((op.id == 'item' and 'Custom' in op.ext_attrs) for op in self._interface.operations)
+      is_custom = any((op.id == 'item' and _IsCustom(op)) for op in self._interface.operations)
       # First emit a toplevel function to do the native call
       # Calls to this are emitted elsewhere,
       dart_native_name, resolver_string = \
@@ -1223,7 +1221,7 @@ class DartiumBackend(HtmlDartGenerator):
         formals)
 
     operation = info.operations[0]
-    is_custom = 'Custom' in operation.ext_attrs
+    is_custom = _IsCustom(operation)
     has_optional_arguments = any(self._IsArgumentOptionalInWebCore(operation, argument) for argument in operation.arguments)
     needs_dispatcher = not is_custom and (len(info.operations) > 1 or has_optional_arguments)
 
@@ -1259,7 +1257,7 @@ class DartiumBackend(HtmlDartGenerator):
       formals=actuals
       return_type = self.SecureOutputType(operation.type.id)
       native_suffix = 'Callback'
-      is_custom = 'Custom' in operation.ext_attrs
+      is_custom = _IsCustom(operation)
       base_name = '_%s_%s' % (operation.id, version)
       static = True
       if not operation.is_static:
@@ -2000,3 +1998,13 @@ def _IsOptionalStringArgumentInInitEventMethod(interface, operation, argument):
       operation.id.startswith('init') and
       argument.default_value == 'Undefined' and
       argument.type.id == 'DOMString')
+
+def _IsCustom(op_or_attr):
+  assert(isinstance(op_or_attr, IDLMember))
+  return 'Custom' in op_or_attr.ext_attrs or 'DartCustom' in op_or_attr.ext_attrs
+
+def _IsCustomValue(op_or_attr, value):
+  if _IsCustom(op_or_attr):
+    return op_or_attr.ext_attrs.get('Custom') == value \
+           or op_or_attr.ext_attrs.get('DartCustom') == value
+  return False

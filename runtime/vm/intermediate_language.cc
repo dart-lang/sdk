@@ -1168,6 +1168,7 @@ void Instruction::Goto(JoinEntryInstr* entry) {
 
 bool UnboxedIntConverterInstr::CanDeoptimize() const {
   return (to() == kUnboxedInt32) &&
+      !is_truncating() &&
       !RangeUtils::Fits(value()->definition()->range(),
                         RangeBoundary::kRangeBoundaryInt32);
 }
@@ -1176,10 +1177,14 @@ bool UnboxedIntConverterInstr::CanDeoptimize() const {
 bool UnboxInt32Instr::CanDeoptimize() const {
   const intptr_t value_cid = value()->Type()->ToCid();
   if (value_cid == kSmiCid) {
-    return false;
+    return (kSmiBits > 32) &&
+        !is_truncating() &&
+        !RangeUtils::Fits(value()->definition()->range(),
+                          RangeBoundary::kRangeBoundaryInt32);
   } else if (value_cid == kMintCid) {
-    return !RangeUtils::Fits(value()->definition()->range(),
-                             RangeBoundary::kRangeBoundaryInt32);
+    return !is_truncating() &&
+        !RangeUtils::Fits(value()->definition()->range(),
+                          RangeBoundary::kRangeBoundaryInt32);
   } else {
     return true;
   }
@@ -1743,6 +1748,9 @@ Definition* UnboxIntNInstr::Canonicalize(FlowGraph* flow_graph) {
           representation(),
           box_defn->value()->CopyWithType(),
           representation() == kUnboxedInt32 ? deopt_id_ : Isolate::kNoDeoptId);
+      if ((representation() == kUnboxedInt32) && is_truncating()) {
+        converter->mark_truncating();
+      }
       flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
       return converter;
     }
@@ -1767,6 +1775,9 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
         representation(),
         box_defn->value()->CopyWithType(),
         to() == kUnboxedInt32 ? deopt_id_ : NULL);
+    if ((representation() == kUnboxedInt32) && is_truncating()) {
+      converter->mark_truncating();
+    }
     flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
     return converter;
   }
@@ -1781,6 +1792,9 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     // these instructions close to each other instead of fusing them.
     Definition* replacement =
         new UnboxInt32Instr(unbox_defn->value()->CopyWithType(), deopt_id_);
+    if (is_truncating()) {
+      replacement->AsUnboxInt32()->mark_truncating();
+    }
     flow_graph->InsertBefore(this,
                              replacement,
                              env(),
@@ -1800,6 +1814,15 @@ Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
 
   ConstantInstr* c = value()->definition()->AsConstant();
   if ((c != NULL) && c->value().IsSmi()) {
+    if (!is_truncating() && (kSmiBits > 32)) {
+      // Check that constant fits into 32-bit integer.
+      const int64_t value =
+          static_cast<int64_t>(Smi::Cast(c->value()).Value());
+      if (!Utils::IsInt(32, value)) {
+        return this;
+      }
+    }
+
     UnboxedConstantInstr* uc =
         new UnboxedConstantInstr(c->value(), kUnboxedInt32);
     flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
@@ -2270,14 +2293,27 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* TargetEntryInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool optimizing) const {
-  // FlowGraphCompiler::EmitInstructionPrologue is not called for block
-  // entry instructions, so this function is unused.  If it becomes
-  // reachable, note that the deoptimization descriptor in unoptimized code
-  // comes after the point of local register allocation due to pattern
-  // matching the edge counter code backwards (as a code reuse convenience
-  // on some platforms).
   UNREACHABLE();
   return NULL;
+}
+
+
+void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
+  if (!compiler->is_optimizing()) {
+    if (compiler->NeedsEdgeCounter(this)) {
+      compiler->EmitEdgeCounter();
+    }
+    // The deoptimization descriptor points after the edge counter code for
+    // uniformity with ARM and MIPS, where we can reuse pattern matching
+    // code that matches backwards from the end of the pattern.
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
+                                   deopt_id_,
+                                   Scanner::kNoSourcePos);
+  }
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
 }
 
 
@@ -2513,9 +2549,6 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     // Unoptimized code.
     ASSERT(!HasICData());
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
-                                   deopt_id(),
-                                   token_pos());
     bool is_smi_two_args_op = false;
     const uword label_address = TwoArgsSmiOpInlineCacheEntry(token_kind());
     if (label_address != 0) {
@@ -2612,13 +2645,6 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                                       num_args_checked);
   } else {
     call_ic_data = &ICData::ZoneHandle(ic_data()->raw());
-  }
-  if (!compiler->is_optimizing()) {
-    // Some static calls can be optimized by the optimizing compiler (e.g. sqrt)
-    // and therefore need a deoptimization descriptor.
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
-                                   deopt_id(),
-                                   token_pos());
   }
   compiler->GenerateStaticCall(deopt_id(),
                                token_pos(),
@@ -2859,7 +2885,9 @@ const Function& StringInterpolateInstr::CallFunction() const {
     function_ =
         Resolver::ResolveStatic(
             cls,
-            Library::PrivateCoreLibName(Symbols::Interpolate()),
+            is_singleton_
+                ? Library::PrivateCoreLibName(Symbols::InterpolateSingle())
+                : Library::PrivateCoreLibName(Symbols::Interpolate()),
             kNumberOfArguments,
             kNoArgumentNames);
   }
@@ -2878,12 +2906,35 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   //   StoreIndexed(v2, v3, v4)   -- v3:constant index, v4: value.
   //   ..
   //   v8 <- StringInterpolate(v2)
+  // or for a single element:
+  //   v2 <- StringInterpolateSingle(v0)
 
   // Don't compile-time fold when optimizing the interpolation function itself.
   if (flow_graph->parsed_function().function().raw() == CallFunction().raw()) {
     return this;
   }
 
+  if (is_singleton_) {
+    Value* value = this->value();
+    if (!value->definition()->IsConstant()) return this;
+    const Object& obj = value->definition()->AsConstant()->value();
+    if (!obj.IsNumber() && !obj.IsString() && !obj.IsBool() && !obj.IsNull()) {
+      return this;
+    }
+    // This is only really useful for numbers, so we don't bother optimizing
+    // for strings, bool or null.
+    const Array& interpolate_arg = Array::Handle(Array::New(1));
+    interpolate_arg.SetAt(0, obj);
+    const Object& result = Object::Handle(
+        DartEntry::InvokeFunction(CallFunction(), interpolate_arg));
+    if (result.IsUnhandledException()) {
+      return this;
+    }
+    ASSERT(result.IsString());
+    const String& converted =
+        String::ZoneHandle(Symbols::New(String::Cast(result)));
+    return flow_graph->GetConstant(converted);
+  }
   CreateArrayInstr* create_array = value()->definition()->AsCreateArray();
   ASSERT(create_array != NULL);
   // Check if the string interpolation has only constant inputs.

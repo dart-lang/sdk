@@ -252,12 +252,12 @@ static RawError* LoadPatchFiles(Isolate* isolate,
 
 RawError* Bootstrap::LoadandCompileScripts() {
   Isolate* isolate = Isolate::Current();
-  String& uri = String::Handle();
-  String& patch_uri = String::Handle();
-  String& source = String::Handle();
-  Script& script = Script::Handle();
-  Library& lib = Library::Handle();
-  Error& error = Error::Handle();
+  String& uri = String::Handle(isolate);
+  String& patch_uri = String::Handle(isolate);
+  String& source = String::Handle(isolate);
+  Script& script = Script::Handle(isolate);
+  Library& lib = Library::Handle(isolate);
+  Error& error = Error::Handle(isolate);
   Dart_LibraryTagHandler saved_tag_handler = isolate->library_tag_handler();
 
   // Set the library tag handler for the isolate to the bootstrap
@@ -316,6 +316,15 @@ RawError* Bootstrap::LoadandCompileScripts() {
     SetupNativeResolver();
     ClassFinalizer::ProcessPendingClasses();
   }
+
+  Class& cls = Class::Handle(isolate);
+  // Eagerly compile the function implementation class as it is the super
+  // class of signature classes. This allows us to just finalize signature
+  // classes without going through the hoops of trying to compile them.
+  const Type& type =
+      Type::Handle(isolate, isolate->object_store()->function_impl_type());
+  cls = type.type_class();
+  Compiler::CompileClass(cls);
 
   // Restore the library tag handler for the isolate.
   isolate->set_library_tag_handler(saved_tag_handler);

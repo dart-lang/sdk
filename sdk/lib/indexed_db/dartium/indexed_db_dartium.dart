@@ -239,14 +239,14 @@ class Database extends EventTarget {
   void deleteObjectStore(String name) => _blink.BlinkIDBDatabase.deleteObjectStore_Callback_DOMString(this, name);
 
   Transaction transaction(storeName_OR_storeNames, String mode) {
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null)) {
-      return _blink.BlinkIDBDatabase.transaction_Callback_DOMStringList_DOMString(this, storeName_OR_storeNames, mode);
+    if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
+      return _blink.BlinkIDBDatabase.transaction_Callback_DOMString_DOMString(this, storeName_OR_storeNames, mode);
     }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
       return _blink.BlinkIDBDatabase.transaction_Callback_SEQ_DOMString_SEQ_DOMString(this, storeName_OR_storeNames, mode);
     }
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
-      return _blink.BlinkIDBDatabase.transaction_Callback_DOMString_DOMString(this, storeName_OR_storeNames, mode);
+    if ((mode is String || mode == null) && (storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null)) {
+      return _blink.BlinkIDBDatabase.transaction_Callback_DOMStringList_DOMString(this, storeName_OR_storeNames, mode);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -789,11 +789,11 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   Request _count(Object key) => _blink.BlinkIDBObjectStore.count_Callback_ScriptValue(this, key);
 
   Index _createIndex(String name, keyPath, [Map options]) {
-    if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
-      return _blink.BlinkIDBObjectStore.createIndex_Callback_DOMString_SEQ_DOMString_SEQ_Dictionary(this, name, keyPath, options);
-    }
     if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
       return _blink.BlinkIDBObjectStore.createIndex_Callback_DOMString_DOMString_Dictionary(this, name, keyPath, options);
+    }
+    if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
+      return _blink.BlinkIDBObjectStore.createIndex_Callback_DOMString_SEQ_DOMString_SEQ_Dictionary(this, name, keyPath, options);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -816,7 +816,7 @@ class ObjectStore extends NativeFieldWrapperClass2 {
 
   @DomName('IDBObjectStore.openCursor')
   @DocsEditable()
-  Request _openCursor(Object key, [String direction]) => _blink.BlinkIDBObjectStore.openCursor_Callback_ScriptValue_DOMString(this, key, direction);
+  Request _openCursor(Object range, [String direction]) => _blink.BlinkIDBObjectStore.openCursor_Callback_ScriptValue_DOMString(this, range, direction);
 
   @DomName('IDBObjectStore.openKeyCursor')
   @DocsEditable()
@@ -1097,10 +1097,10 @@ class VersionChangeEvent extends Event {
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable()
-  Object get newVersion => _blink.BlinkIDBVersionChangeEvent.newVersion_Getter(this);
+  int get newVersion => _blink.BlinkIDBVersionChangeEvent.newVersion_Getter(this);
 
   @DomName('IDBVersionChangeEvent.oldVersion')
   @DocsEditable()
-  Object get oldVersion => _blink.BlinkIDBVersionChangeEvent.oldVersion_Getter(this);
+  int get oldVersion => _blink.BlinkIDBVersionChangeEvent.oldVersion_Getter(this);
 
 }

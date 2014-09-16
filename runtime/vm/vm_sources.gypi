@@ -44,6 +44,7 @@
     'base_isolate.h',
     'benchmark_test.cc',
     'benchmark_test.h',
+    'bigint_test.cc',
     'bit_set_test.cc',
     'bit_vector.cc',
     'bit_vector.h',

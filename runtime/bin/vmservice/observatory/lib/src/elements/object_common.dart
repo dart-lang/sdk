@@ -21,8 +21,8 @@ class ObjectCommonElement extends ObservatoryElement {
   // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
   Future<ServiceObject> retainedSize(var dummy) {
     return object.isolate.get(object.id + "/retained")
-        .then((ServiceMap obj) {
-          retainedBytes = int.parse(obj['valueAsString']);
+        .then((Instance obj) {
+          retainedBytes = int.parse(obj.valueAsString);
         });
   }
 

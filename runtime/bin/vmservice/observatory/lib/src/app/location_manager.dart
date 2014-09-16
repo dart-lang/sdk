@@ -33,6 +33,10 @@ abstract class LocationManager extends Observable {
   /// Go to a specific url.
   void go(String url) {
     if (_app.vm == null) {
+      if (!window.confirm('Connection with VM has been lost. '
+                          'Proceeding will lose current page.')) {
+        return;
+      }
       url = makeLink('/vm-connect/');
     }
     _pushUrl(url);

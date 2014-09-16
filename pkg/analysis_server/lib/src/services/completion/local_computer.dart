@@ -56,13 +56,18 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
 //            _addSuggestion(label.label, CompletionSuggestionKind.LABEL);
           });
         } else if (stmt is VariableDeclarationStatement) {
-          stmt.variables.variables.forEach((VariableDeclaration varDecl) {
-            if (varDecl.end < request.offset) {
-              _addSuggestion(
-                  varDecl.name,
-                  CompletionSuggestionKind.LOCAL_VARIABLE);
-            }
-          });
+          VariableDeclarationList varList = stmt.variables;
+          if (varList != null) {
+            varList.variables.forEach((VariableDeclaration varDecl) {
+              if (varDecl.end < request.offset) {
+                _addSuggestion(
+                    varDecl.name,
+                    CompletionSuggestionKind.LOCAL_VARIABLE,
+                    varList.type,
+                    null);
+              }
+            });
+          }
         }
       }
     });
@@ -71,8 +76,17 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
 
   @override
   visitCatchClause(CatchClause node) {
-    _addSuggestion(node.exceptionParameter, CompletionSuggestionKind.PARAMETER);
-    _addSuggestion(node.stackTraceParameter, CompletionSuggestionKind.PARAMETER);
+    _addSuggestion(
+        node.exceptionParameter,
+        CompletionSuggestionKind.PARAMETER,
+        node.exceptionType,
+        null);
+    // TODO (danrubel) add stack trace types
+    _addSuggestion(
+        node.stackTraceParameter,
+        CompletionSuggestionKind.PARAMETER,
+        null,
+        null);
     visitNode(node);
   }
 
@@ -80,9 +94,16 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   visitClassDeclaration(ClassDeclaration node) {
     node.members.forEach((ClassMember classMbr) {
       if (classMbr is FieldDeclaration) {
-        _addSuggestions(classMbr.fields, CompletionSuggestionKind.FIELD);
+        _addVarListSuggestions(
+            classMbr.fields,
+            CompletionSuggestionKind.FIELD,
+            node);
       } else if (classMbr is MethodDeclaration) {
-        _addSuggestion(classMbr.name, CompletionSuggestionKind.METHOD_NAME);
+        _addSuggestion(
+            classMbr.name,
+            CompletionSuggestionKind.METHOD_NAME,
+            classMbr.returnType,
+            node);
       }
     });
     visitNode(node);
@@ -94,39 +115,77 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       if (directive is ImportDirective) {
         _addSuggestion(
             directive.prefix,
-            CompletionSuggestionKind.LIBRARY_PREFIX);
+            CompletionSuggestionKind.LIBRARY_PREFIX,
+            null,
+            null);
       }
     });
     node.declarations.forEach((Declaration declaration) {
       if (declaration is ClassDeclaration) {
-        _addSuggestion(declaration.name, CompletionSuggestionKind.CLASS);
+        _addSuggestion(
+            declaration.name,
+            CompletionSuggestionKind.CLASS,
+            null,
+            null);
       } else if (declaration is EnumDeclaration) {
 //        _addSuggestion(d.name, CompletionSuggestionKind.ENUM);
       } else if (declaration is FunctionDeclaration) {
-        _addSuggestion(declaration.name, CompletionSuggestionKind.FUNCTION);
+        _addSuggestion(
+            declaration.name,
+            CompletionSuggestionKind.FUNCTION,
+            declaration.returnType,
+            null);
       } else if (declaration is TopLevelVariableDeclaration) {
-        _addSuggestions(
+        _addVarListSuggestions(
             declaration.variables,
-            CompletionSuggestionKind.TOP_LEVEL_VARIABLE);
+            CompletionSuggestionKind.TOP_LEVEL_VARIABLE,
+            null);
       } else if (declaration is ClassTypeAlias) {
-        _addSuggestion(declaration.name, CompletionSuggestionKind.CLASS_ALIAS);
+        _addSuggestion(
+            declaration.name,
+            CompletionSuggestionKind.CLASS_ALIAS,
+            null,
+            null);
       } else if (declaration is FunctionTypeAlias) {
         _addSuggestion(
             declaration.name,
-            CompletionSuggestionKind.FUNCTION_TYPE_ALIAS);
+            CompletionSuggestionKind.FUNCTION_TYPE_ALIAS,
+            declaration.returnType,
+            null);
       }
     });
   }
 
   @override
+  visitExpressionStatement(ExpressionStatement node) {
+    Expression expression = node.expression;
+    if (expression is SimpleIdentifier) {
+      if (expression.end < request.offset) {
+        // TODO (danrubel) suggest possible names for variable declaration
+        // based upon variable type
+        return;
+      }
+    }
+    visitNode(node);
+  }
+
+  @override
   visitForEachStatement(ForEachStatement node) {
-    _addSuggestion(node.identifier, CompletionSuggestionKind.LOCAL_VARIABLE);
+    // TODO (danrubel) supply type of local variable
+    _addSuggestion(
+        node.identifier,
+        CompletionSuggestionKind.LOCAL_VARIABLE,
+        null,
+        null);
     visitNode(node);
   }
 
   @override
   visitForStatement(ForStatement node) {
-    _addSuggestions(node.variables, CompletionSuggestionKind.LOCAL_VARIABLE);
+    _addVarListSuggestions(
+        node.variables,
+        CompletionSuggestionKind.LOCAL_VARIABLE,
+        null);
     visitNode(node);
   }
 
@@ -139,19 +198,13 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
 
   @override
   visitFunctionExpression(FunctionExpression node) {
-    node.parameters.parameters.forEach((FormalParameter param) {
-      _addSuggestion(param.identifier, CompletionSuggestionKind.PARAMETER);
-    });
+    _addParamListSuggestions(node.parameters);
     visitNode(node);
   }
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
-    node.parameters.parameters.forEach((FormalParameter param) {
-      if (param.identifier != null) {
-        _addSuggestion(param.identifier, CompletionSuggestionKind.PARAMETER);
-      }
-    });
+    _addParamListSuggestions(node.parameters);
     visitNode(node);
   }
 
@@ -171,27 +224,72 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
   }
 
-  void _addSuggestion(SimpleIdentifier id, CompletionSuggestionKind kind) {
+  void _addParamListSuggestions(FormalParameterList paramList) {
+    if (paramList != null) {
+      paramList.parameters.forEach((FormalParameter param) {
+        NormalFormalParameter normalParam;
+        if (param is DefaultFormalParameter) {
+          normalParam = param.parameter;
+        } else if (param is NormalFormalParameter) {
+          normalParam = param;
+        }
+        TypeName type = null;
+        if (normalParam is FieldFormalParameter) {
+          type = normalParam.type;
+        } else if (normalParam is FunctionTypedFormalParameter) {
+          type = normalParam.returnType;
+        } else if (normalParam is SimpleFormalParameter) {
+          type = normalParam.type;
+        }
+        _addSuggestion(
+            param.identifier,
+            CompletionSuggestionKind.PARAMETER,
+            type,
+            null);
+      });
+    }
+  }
+
+  void _addSuggestion(SimpleIdentifier id, CompletionSuggestionKind kind,
+      TypeName typeName, ClassDeclaration classDecl) {
     if (id != null) {
       String completion = id.name;
       if (completion != null && completion.length > 0) {
-        request.suggestions.add(
-            new CompletionSuggestion(
-                kind,
-                CompletionRelevance.DEFAULT,
-                completion,
-                completion.length,
-                0,
-                false,
-                false));
+        CompletionSuggestion suggestion = new CompletionSuggestion(
+            kind,
+            CompletionRelevance.DEFAULT,
+            completion,
+            completion.length,
+            0,
+            false,
+            false);
+        if (classDecl != null) {
+          SimpleIdentifier identifier = classDecl.name;
+          if (identifier != null) {
+            String name = identifier.name;
+            if (name != null && name.length > 0) {
+              suggestion.declaringType = name;
+            }
+          }
+        }
+        if (typeName != null) {
+          Identifier identifier = typeName.name;
+          if (identifier != null) {
+            String name = identifier.name;
+            if (name != null && name.length > 0) {
+              suggestion.returnType = name;
+            }
+          }
+        }
+        request.suggestions.add(suggestion);
       }
     }
   }
 
-  void _addSuggestions(VariableDeclarationList variables,
-      CompletionSuggestionKind kind) {
+  void _addVarListSuggestions(VariableDeclarationList variables,
+      CompletionSuggestionKind kind, ClassDeclaration classDecl) {
     variables.variables.forEach((VariableDeclaration varDecl) {
-      _addSuggestion(varDecl.name, kind);
+      _addSuggestion(varDecl.name, kind, variables.type, classDecl);
     });
   }
 }

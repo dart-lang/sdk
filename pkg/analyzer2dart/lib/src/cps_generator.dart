@@ -17,33 +17,85 @@ import 'tree_shaker.dart';
 
 
 class CpsGeneratingVisitor extends RecursiveAstVisitor<ir.Node> {
-  final ElementConverter elementConverter;
+  final ElementConverter converter;
   final IrBuilder irBuilder = new IrBuilder();
 
-  CpsGeneratingVisitor(this.elementConverter);
+  CpsGeneratingVisitor(this.converter);
+
+  giveUp(String reason) {
+    throw new UnsupportedError(reason);
+  }
 
   @override
   ir.FunctionDefinition visitFunctionDeclaration(FunctionDeclaration node) {
     analyzer.FunctionElement function = node.element;
-    super.visitFunctionDeclaration(node);
+    function.parameters.forEach((analyzer.ParameterElement parameter) {
+      // TODO(johnniwinther): Support "closure variables", that is variables
+      // accessed from an inner function.
+      irBuilder.createParameter(converter.convertElement(parameter),
+                                isClosureVariable: false);
+    });
+    // Visit the body directly to avoid processing the signature as expressions.
+    node.functionExpression.body.accept(this);
     return irBuilder.buildFunctionDefinition(
-        elementConverter.convertElement(function),
-            const [], const [], const []);
+        converter.convertElement(function), const [], const []);
   }
 
   @override
   visitMethodInvocation(MethodInvocation node) {
     analyzer.Element staticElement = node.methodName.staticElement;
     if (staticElement != null) {
-      dart2js.Element element = elementConverter.convertElement(staticElement);
+      dart2js.Element element = converter.convertElement(staticElement);
+      List<ir.Definition> arguments = <ir.Definition>[];
+      for (Expression argument in node.argumentList.arguments) {
+        ir.Definition value = argument.accept(this);
+        if (value == null) {
+          giveUp('Unsupported argument: $argument (${argument.runtimeType}).');
+        }
+        arguments.add(value);
+      }
       return irBuilder.buildStaticInvocation(
-          element, createSelectorFromMethodInvocation(node), []);
+          element, createSelectorFromMethodInvocation(node), arguments);
     }
   }
 
   @override
-  visitIntegerLiteral(IntegerLiteral node) {
+  ir.Constant visitNullLiteral(NullLiteral node) {
+    return irBuilder.buildNullLiteral();
+  }
+
+  @override
+  ir.Constant visitBooleanLiteral(BooleanLiteral node) {
+    return irBuilder.buildBooleanLiteral(node.value);
+  }
+
+  @override
+  ir.Constant visitDoubleLiteral(DoubleLiteral node) {
+    return irBuilder.buildDoubleLiteral(node.value);
+  }
+
+  @override
+  ir.Constant visitIntegerLiteral(IntegerLiteral node) {
     return irBuilder.buildIntegerLiteral(node.value);
+  }
+
+  @override
+  visitAdjacentStrings(AdjacentStrings node) {
+    String value = node.stringValue;
+    if (value != null) {
+      return irBuilder.buildStringLiteral(value);
+    }
+    giveUp("Non constant adjacent strings.");
+  }
+
+  @override
+  ir.Constant visitSimpleStringLiteral(SimpleStringLiteral node) {
+    return irBuilder.buildStringLiteral(node.value);
+  }
+
+  @override
+  visitStringInterpolation(StringInterpolation node) {
+    giveUp("String interpolation.");
   }
 
   @override
@@ -53,5 +105,19 @@ class CpsGeneratingVisitor extends RecursiveAstVisitor<ir.Node> {
     } else {
       irBuilder.buildReturn();
     }
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    analyzer.Element element = node.staticElement;
+    if (element != null) {
+      dart2js.Element target = converter.convertElement(element);
+      if (dart2js.Elements.isLocal(target)) {
+        return irBuilder.buildGetLocal(target);
+      }
+      giveUp('Unhandled static reference: '
+             '$node -> $target (${target.runtimeType})');
+    }
+    giveUp('Unresolved identifier: $node.');
   }
 }

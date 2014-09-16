@@ -1,6 +1,10 @@
-# changelog
-
-This file contains highlights of what changes on each version of this package.
+#### Pub version 0.7.0
+  * Updated to 0.4.0-5a7353d release, with same cherry pick as 0.6.0+1.
+  * Many features were moved into the polymer package, this package is now
+    purely focused on polyfills.
+  * Change Platform.deliverDeclarations to 
+    Platform.consumeDeclarations(callback).
+  * Cherry pick https://github.com/Polymer/ShadowDOM/pull/505 to fix mem leak.
 
 #### Pub version 0.6.0+1
   * Cherry pick https://github.com/Polymer/ShadowDOM/pull/500 to fix

@@ -34,24 +34,41 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   @override
   visitFieldElement(FieldElement element) {
-    _addSuggestion(element, CompletionSuggestionKind.FIELD);
+    _addSuggestion(
+        element,
+        CompletionSuggestionKind.FIELD,
+        element.type,
+        element.enclosingElement);
   }
 
   @override
   visitMethodElement(MethodElement element) {
-    _addSuggestion(element, CompletionSuggestionKind.METHOD);
+    _addSuggestion(
+        element,
+        CompletionSuggestionKind.METHOD,
+        element.returnType,
+        element.enclosingElement);
   }
 
   @override
   visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (element.isGetter) {
-      _addSuggestion(element, CompletionSuggestionKind.GETTER);
+      _addSuggestion(
+          element,
+          CompletionSuggestionKind.GETTER,
+          element.returnType,
+          element.enclosingElement);
     } else if (element.isSetter) {
-      _addSuggestion(element, CompletionSuggestionKind.SETTER);
+      _addSuggestion(
+          element,
+          CompletionSuggestionKind.SETTER,
+          element.returnType,
+          element.enclosingElement);
     }
   }
 
-  void _addSuggestion(Element element, CompletionSuggestionKind kind) {
+  void _addSuggestion(Element element, CompletionSuggestionKind kind,
+      DartType type, ClassElement enclosingElement) {
     if (element.isSynthetic) {
       return;
     }
@@ -70,15 +87,24 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
         !_completions.add(completion)) {
       return;
     }
-    request.suggestions.add(
-        new CompletionSuggestion(
-            kind,
-            CompletionRelevance.DEFAULT,
-            completion,
-            completion.length,
-            0,
-            element.isDeprecated,
-            false));
+    var suggestion = new CompletionSuggestion(
+        kind,
+        CompletionRelevance.DEFAULT,
+        completion,
+        completion.length,
+        0,
+        element.isDeprecated,
+        false);
+    if (enclosingElement != null) {
+      suggestion.declaringType = enclosingElement.displayName;
+    }
+    if (type != null) {
+      String typeName = type.displayName;
+      if (typeName != null && typeName.length > 0 && typeName != 'dynamic') {
+        suggestion.returnType = typeName;
+      }
+    }
+    request.suggestions.add(suggestion);
   }
 
   /**

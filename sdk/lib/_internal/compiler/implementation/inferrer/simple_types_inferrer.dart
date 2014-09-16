@@ -497,9 +497,9 @@ class SimpleTypeInferrerVisitor<T>
       // TODO(johnniwinther): Remove once function signatures are fixed.
       SimpleTypeInferrerVisitor visitor = this;
       if (inferrer.hasAlreadyComputedTypeOfParameterDefault(element)) return;
-      if (element.enclosingElement != analyzedElement) {
-        visitor = new SimpleTypeInferrerVisitor(element.enclosingElement,
-            compiler, inferrer);
+      if (element.functionDeclaration != analyzedElement) {
+        visitor = new SimpleTypeInferrerVisitor(
+            element.functionDeclaration, compiler, inferrer);
       }
       T type =
           (defaultValue == null) ? types.nullType : visitor.visit(defaultValue);
@@ -870,7 +870,7 @@ class SimpleTypeInferrerVisitor<T>
             node, operatorSelector, getterType, operatorArguments);
         handleDynamicSend(node, setterSelector, receiverType,
                           new ArgumentsTypes<T>([newType], null));
-      } else if (Elements.isLocal(element)) {
+      } else if (element.isLocal) {
         LocalElement local = element;
         getterType = locals.use(local);
         newType = handleDynamicSend(
@@ -936,7 +936,7 @@ class SimpleTypeInferrerVisitor<T>
               node, setterSelector, receiverType, arguments);
         }
       }
-    } else if (Elements.isLocal(element)) {
+    } else if (element.isLocal) {
       locals.update(element, rhsType, node);
     }
     return rhsType;
@@ -1119,7 +1119,7 @@ class SimpleTypeInferrerVisitor<T>
       return handleStaticSend(node, selector, element, null);
     } else if (Elements.isErroneousElement(element)) {
       return types.dynamicType;
-    } else if (Elements.isLocal(element)) {
+    } else if (element.isLocal) {
       LocalElement local = element;
       assert(locals.use(local) != null);
       return locals.use(local);
@@ -1136,7 +1136,7 @@ class SimpleTypeInferrerVisitor<T>
     Element element = elements[node];
     Selector selector = elements.getSelector(node);
     if (element != null && element.isFunction) {
-      assert(Elements.isLocal(element));
+      assert(element.isLocal);
       // This only works for function statements. We need a
       // more sophisticated type system with function types to support
       // more.

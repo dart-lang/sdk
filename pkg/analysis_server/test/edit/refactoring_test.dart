@@ -802,6 +802,31 @@ class A {
 ''');
   }
 
+  test_class_fromInstanceCreation() {
+    addTestFile('''
+class Test {
+  Test() {}
+  Test.named() {}
+}
+main() {
+  new Test();
+  new Test.named();
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('Test();', 'NewName');
+    }, '''
+class NewName {
+  NewName() {}
+  NewName.named() {}
+}
+main() {
+  new NewName();
+  new NewName.named();
+}
+''');
+  }
+
   test_class_options_fatalError() {
     addTestFile('''
 class Test {}
@@ -873,7 +898,7 @@ main() {
     });
   }
 
-  test_constructor() {
+  test_constructor_fromInstanceCreation() {
     addTestFile('''
 class A {
   A.test() {}

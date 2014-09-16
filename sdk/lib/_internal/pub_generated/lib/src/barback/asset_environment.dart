@@ -132,7 +132,6 @@ class AssetEnvironment {
           if (result.success) {
             log.message("Precompiled ${_formatExecutable(id)}.");
           } else {
-            deleteEntry(snapshotPath);
             throw new ApplicationException(
                 log.yellow("Failed to precompile " "${_formatExecutable(id)}:\n") +
                     result.stderr.join('\n'));

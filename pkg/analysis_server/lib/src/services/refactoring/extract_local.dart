@@ -129,22 +129,52 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     {
       String declarationSource;
       if (stringLiteralPart != null) {
-        declarationSource = "var ${name} = '${stringLiteralPart}';";
+        declarationSource = "var $name = '$stringLiteralPart';";
       } else {
         String keyword = _declarationKeyword;
         String initializerSource = utils.getRangeText(selectionRange);
-        declarationSource = "${keyword} ${name} = ${initializerSource};";
+        declarationSource = "$keyword $name = $initializerSource;";
       }
-      // prepare location for declaration
-      Statement targetStatement = _findTargetStatement(occurrences);
-      String prefix = utils.getNodePrefix(targetStatement);
-      // insert variable declaration
       String eol = utils.endOfLine;
-      SourceEdit edit = new SourceEdit(
-          targetStatement.offset,
-          0,
-          '${declarationSource}${eol}${prefix}');
-      change.addEdit(file, edit);
+      // prepare location for declaration
+      AstNode target_;
+      {
+        List<AstNode> nodes = _findNodes(occurrences);
+        AstNode commonParent = getNearestCommonAncestor(nodes);
+        if (commonParent is Block) {
+          List<AstNode> firstParents = getParents(nodes[0]);
+          int commonIndex = firstParents.indexOf(commonParent);
+          target_ = firstParents[commonIndex + 1];
+        } else {
+          target_ = _getEnclosingExpressionBody(commonParent);
+          if (target_ == null) {
+            target_ = commonParent.getAncestor((node) => node is Statement);
+          }
+        }
+      }
+      AstNode target = target_;
+      // insert variable declaration
+      if (target is Statement) {
+        String prefix = utils.getNodePrefix(target);
+        SourceEdit edit =
+            new SourceEdit(target.offset, 0, declarationSource + eol + prefix);
+        change.addEdit(file, edit);
+      } else if (target is ExpressionFunctionBody) {
+        String prefix = utils.getNodePrefix(target.parent);
+        String indent = utils.getIndent(1);
+        String declStatement = prefix + indent + declarationSource + eol;
+        String exprStatement = prefix + indent + 'return ';
+        Expression expr = target.expression;
+        change.addEdit(
+            file,
+            new SourceEdit(
+                target.offset,
+                expr.offset - target.offset,
+                '{' + eol + declStatement + exprStatement));
+        change.addEdit(
+            file,
+            new SourceEdit(expr.end, 0, ';' + eol + prefix + '}'));
+      }
     }
     // prepare replacement
     String occurrenceReplacement = name;
@@ -241,19 +271,20 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
   }
 
   /**
-   * Returns the [Statement] such that variable declaration added before it is
-   * visible at all given occurrences.
+   * Returns the [ExpressionFunctionBody] that encloses [node], or `null`
+   * if [node] is not enclosed with an [ExpressionFunctionBody].
    */
-  Statement _findTargetStatement(List<SourceRange> occurrences) {
-    List<AstNode> nodes = _findNodes(occurrences);
-    List<AstNode> firstParents = getParents(nodes[0]);
-    AstNode commonParent = getNearestCommonAncestor(nodes);
-    if (commonParent is Block) {
-      int commonIndex = firstParents.indexOf(commonParent);
-      return firstParents[commonIndex + 1] as Statement;
-    } else {
-      return commonParent.getAncestor((node) => node is Statement);
+  ExpressionFunctionBody _getEnclosingExpressionBody(AstNode node) {
+    while (node != null) {
+      if (node is Statement) {
+        return null;
+      }
+      if (node is ExpressionFunctionBody) {
+        return node;
+      }
+      node = node.parent;
     }
+    return null;
   }
 
   /**

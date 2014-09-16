@@ -568,13 +568,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       return null;
     }
     if (result != null) {
-      if (Platform.isMacOS) {
-        // Mac includes the header size, so we need to query the actual
-        // available.
-        available = nativeAvailable();
-      } else {
-        available -= result.data.length;
-      }
+      // Read the next available. Available is only for the next datagram, not
+      // the sum of all datagrams pending, so we need to call after each
+      // receive. If available becomes > 0, the _NativeSocket will continue to
+      // emit read events.
+      available = nativeAvailable();
       totalRead += result.data.length;
     }
     readCount++;

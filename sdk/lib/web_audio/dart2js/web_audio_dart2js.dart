@@ -65,6 +65,11 @@ class AnalyserNode extends AudioNode {
   @DomName('AnalyserNode.getFloatFrequencyData')
   @DocsEditable()
   void getFloatFrequencyData(Float32List array) native;
+
+  @DomName('AnalyserNode.getFloatTimeDomainData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void getFloatTimeDomainData(Float32List array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -167,22 +172,6 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  @DomName('AudioBufferSourceNode.FINISHED_STATE')
-  @DocsEditable()
-  static const int FINISHED_STATE = 3;
-
-  @DomName('AudioBufferSourceNode.PLAYING_STATE')
-  @DocsEditable()
-  static const int PLAYING_STATE = 2;
-
-  @DomName('AudioBufferSourceNode.SCHEDULED_STATE')
-  @DocsEditable()
-  static const int SCHEDULED_STATE = 1;
-
-  @DomName('AudioBufferSourceNode.UNSCHEDULED_STATE')
-  @DocsEditable()
-  static const int UNSCHEDULED_STATE = 0;
-
   @DomName('AudioBufferSourceNode.buffer')
   @DocsEditable()
   AudioBuffer buffer;
@@ -202,18 +191,6 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DomName('AudioBufferSourceNode.playbackRate')
   @DocsEditable()
   final AudioParam playbackRate;
-
-  @DomName('AudioBufferSourceNode.noteGrainOn')
-  @DocsEditable()
-  void noteGrainOn(num when, num grainOffset, num grainDuration) native;
-
-  @DomName('AudioBufferSourceNode.noteOff')
-  @DocsEditable()
-  void noteOff(num when) native;
-
-  @DomName('AudioBufferSourceNode.noteOn')
-  @DocsEditable()
-  void noteOn(num when) native;
 
   /// Stream of `ended` events handled by this [AudioBufferSourceNode].
   @DomName('AudioBufferSourceNode.onended')
@@ -575,6 +552,11 @@ class AudioProcessingEvent extends Event {
   @DomName('AudioProcessingEvent.outputBuffer')
   @DocsEditable()
   final AudioBuffer outputBuffer;
+
+  @DomName('AudioProcessingEvent.playbackTime')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double playbackTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -603,38 +585,6 @@ class AudioSourceNode extends AudioNode {
 class BiquadFilterNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory BiquadFilterNode._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('BiquadFilterNode.ALLPASS')
-  @DocsEditable()
-  static const int ALLPASS = 7;
-
-  @DomName('BiquadFilterNode.BANDPASS')
-  @DocsEditable()
-  static const int BANDPASS = 2;
-
-  @DomName('BiquadFilterNode.HIGHPASS')
-  @DocsEditable()
-  static const int HIGHPASS = 1;
-
-  @DomName('BiquadFilterNode.HIGHSHELF')
-  @DocsEditable()
-  static const int HIGHSHELF = 4;
-
-  @DomName('BiquadFilterNode.LOWPASS')
-  @DocsEditable()
-  static const int LOWPASS = 0;
-
-  @DomName('BiquadFilterNode.LOWSHELF')
-  @DocsEditable()
-  static const int LOWSHELF = 3;
-
-  @DomName('BiquadFilterNode.NOTCH')
-  @DocsEditable()
-  static const int NOTCH = 6;
-
-  @DomName('BiquadFilterNode.PEAKING')
-  @DocsEditable()
-  static const int PEAKING = 5;
 
   @DomName('BiquadFilterNode.Q')
   @DocsEditable()
@@ -903,22 +853,6 @@ class OscillatorNode extends AudioSourceNode {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  @DomName('OscillatorNode.FINISHED_STATE')
-  @DocsEditable()
-  static const int FINISHED_STATE = 3;
-
-  @DomName('OscillatorNode.PLAYING_STATE')
-  @DocsEditable()
-  static const int PLAYING_STATE = 2;
-
-  @DomName('OscillatorNode.SCHEDULED_STATE')
-  @DocsEditable()
-  static const int SCHEDULED_STATE = 1;
-
-  @DomName('OscillatorNode.UNSCHEDULED_STATE')
-  @DocsEditable()
-  static const int UNSCHEDULED_STATE = 0;
-
   @DomName('OscillatorNode.detune')
   @DocsEditable()
   final AudioParam detune;
@@ -1043,33 +977,14 @@ class ScriptProcessorNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ScriptProcessorNode._() { throw new UnsupportedError("Not supported"); }
 
-  /**
-   * Static factory designed to expose `audioprocess` events to event
-   * handlers that are not necessarily instances of [ScriptProcessorNode].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('ScriptProcessorNode.audioprocessEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<AudioProcessingEvent> audioProcessEvent = const EventStreamProvider<AudioProcessingEvent>('audioprocess');
-
   @DomName('ScriptProcessorNode.bufferSize')
   @DocsEditable()
   final int bufferSize;
 
-  /// Stream of `audioprocess` events handled by this [ScriptProcessorNode].
-/**
-   * Get a Stream that fires events when AudioProcessingEvents occur.
-   * This particular stream is special in that it only allows one listener to a
-   * given stream. Converting the returned Stream [asBroadcast] will likely ruin
-   * the soft-real-time properties which which these events are fired and can
-   * be processed.
-   */
-  @DomName('ScriptProcessorNode.onaudioprocess')
+  @DomName('ScriptProcessorNode.setEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<AudioProcessingEvent> get onAudioProcess => audioProcessEvent.forTarget(this);
+  void setEventListener(EventListener eventListener) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

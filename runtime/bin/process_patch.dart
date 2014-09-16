@@ -120,6 +120,8 @@ class _SignalController {
       native "Process_ClearSignalHandler";
 }
 
+Function _getWatchSignalInternal() => _ProcessUtils._watchSignalInternal;
+
 
 patch class _ProcessUtils {
   /* patch */ static void _exit(int status) native "Process_Exit";

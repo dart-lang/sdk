@@ -44,3 +44,5 @@ void _addResource(String name, List<int> data) {
   Resource resource = new Resource(name, mimeType, data);
   Resource.resources[name] = resource;
 }
+
+void _triggerResourceLoad() native "VMServiceIO_TriggerResourceLoad";

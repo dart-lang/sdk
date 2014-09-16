@@ -31,7 +31,8 @@ Assembler::Assembler(bool use_far_branches)
       patchable_pool_entries_(),
       prologue_offset_(-1),
       use_far_branches_(use_far_branches),
-      comments_() {
+      comments_(),
+      allow_constant_pool_(true) {
   if (Isolate::Current() != Dart::vm_isolate()) {
     object_pool_ = GrowableObjectArray::New(Heap::kOld);
 
@@ -487,7 +488,20 @@ intptr_t Assembler::FindImmediate(int64_t imm) {
 }
 
 
+// A set of VM objects that are present in every constant pool.
+static bool IsAlwaysInConstantPool(const Object& object) {
+  // TODO(zra): Evaluate putting all VM heap objects into the pool.
+  return (object.raw() == Object::null())
+      || (object.raw() == Bool::True().raw())
+      || (object.raw() == Bool::False().raw());
+}
+
+
 bool Assembler::CanLoadObjectFromPool(const Object& object) {
+  if (!allow_constant_pool()) {
+    return IsAlwaysInConstantPool(object);
+  }
+
   // TODO(zra, kmillikin): Also load other large immediates from the object
   // pool
   if (object.IsSmi()) {
@@ -500,14 +514,14 @@ bool Assembler::CanLoadObjectFromPool(const Object& object) {
   return (Isolate::Current() != Dart::vm_isolate()) &&
          // Not in the VMHeap, OR is one of the VMHeap objects we put in every
          // object pool.
-         // TODO(zra): Evaluate putting all VM heap objects into the pool.
-         (!object.InVMHeap() || (object.raw() == Object::null()) ||
-                                (object.raw() == Bool::True().raw()) ||
-                                (object.raw() == Bool::False().raw()));
+         (!object.InVMHeap() || IsAlwaysInConstantPool(object));
 }
 
 
 bool Assembler::CanLoadImmediateFromPool(int64_t imm, Register pp) {
+  if (!allow_constant_pool()) {
+    return false;
+  }
   return !Utils::IsInt(32, imm) &&
          (pp != kNoPP) &&
          // We *could* put constants in the pool in a VM isolate, but it is
@@ -567,7 +581,9 @@ void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
 
 
 void Assembler::LoadDecodableImmediate(Register reg, int64_t imm, Register pp) {
-  if ((pp != kNoPP) && (Isolate::Current() != Dart::vm_isolate())) {
+  if ((pp != kNoPP) &&
+      (Isolate::Current() != Dart::vm_isolate()) &&
+      allow_constant_pool()) {
     int64_t val_smi_tag = imm & kSmiTagMask;
     imm &= ~kSmiTagMask;  // Mask off the tag bits.
     const int32_t offset = Array::element_offset(FindImmediate(imm));

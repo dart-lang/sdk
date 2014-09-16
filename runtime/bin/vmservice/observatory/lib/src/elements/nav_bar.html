@@ -343,6 +343,13 @@
         <a class="boxclose" on-click="{{ closeItem }}">&times;</a>
       </div>
     </template>
+    <template if="{{ event.eventType == 'VMDisconnected' }}">
+      <div class="item">
+        Disconnected from VM
+        <br><br>
+        <a class="boxclose" on-click="{{ closeItem }}">&times;</a>
+      </div>
+    </template>
   </template>
 </polymer-element>
 

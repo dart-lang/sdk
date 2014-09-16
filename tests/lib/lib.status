@@ -8,13 +8,6 @@ mirrors/regress_16321_test/01: CompileTimeError # Issue 16351
 [ $checked && $compiler == none && ($runtime == dartium || $runtime == drt) ]
 mirrors/regress_16321_test/01: RunTimeError # Issue 16351
 
-[ $compiler == dart2js && $checked && $runtime == ie9 ]
-convert/ascii_test: Skip # http://dartbug.com/15498
-convert/streamed_conversion_json_utf8_encode_test: Skip # http://dartbug.com/15498
-convert/streamed_conversion_utf8_encode_test: Skip # http://dartbug.com/15498
-
-mirrors/mirrors_reader_test: Skip # Issue 16589
-
 [ $unchecked ]
 mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
 
@@ -124,7 +117,7 @@ convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
-[ $compiler == dart2js && $runtime != jsshell && $runtime != safarimobilesim && $runtime != safari && $runtime != ff && $runtime != ie9 && $runtime != ie10]
+[ $compiler == dart2js && $runtime != jsshell && $runtime != safarimobilesim && $runtime != safari && $runtime != ff &&  $runtime != ie10]
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
@@ -212,18 +205,6 @@ mirrors/mirrors_used_get_name2_test: RuntimeError
 convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
 convert/streamed_conversion_utf8_encode_test: Pass, Slow # Issue 12029
 mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
-
-[ $runtime == ie9 ]
-# IE9 doesn't support typed arrays.
-typed_data/*: Fail # Issue 11971
-convert/chunked_conversion_utf88_test: Skip  # Issue 12029
-convert/streamed_conversion_json_utf8_decode_test: Skip # Issue 12029
-async/deferred/*: Skip # http://dartbug.com/12635
-mirrors/deferred*: Pass, Fail # http://dartbug.com/12635
-convert/streamed_conversion_utf8_decode_test: Skip # http://dartbug.com/12768
-convert/utf85_test: Skip # Issue 12029.
-convert/json_util_test: Fail # Issue 16109
-mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 
 [ $compiler == dart2js ]
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275

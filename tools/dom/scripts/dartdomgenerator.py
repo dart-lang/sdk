@@ -10,10 +10,27 @@ import os
 import sys
 
 # Setup all paths to find our PYTHON code
+
+# dart_dir is the location of dart's enlistment dartium (dartium-git/src/dart)
+# and Dart (dart-git/dart).
 dart_dir = os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 sys.path.insert(1, os.path.join(dart_dir, 'tools/dom/new_scripts'))
 sys.path.insert(1, os.path.join(dart_dir, 'third_party/WebCore/bindings/scripts'))
-sys.path.insert(1, os.path.join(dart_dir, 'third_party'))
+
+# Dartium's third_party directory location is dartium-git/src/third_party
+# and Dart's third_party directory location is dart-git/dart/third_party.
+third_party_dir = os.path.join(dart_dir, 'third_party')
+
+ply_dir = os.path.join(third_party_dir, 'ply')
+# If ply directory found then we're a Dart enlistment; third_party location
+# is dart-git/dart/third_party
+if not os.path.exists(ply_dir):
+  # For Dartium (ply directory is dartium-git/src/third_party/ply) third_party
+  # location is dartium-git/src/third_party 
+  third_party_dir = os.path.join(dart_dir, '..', 'third_party')
+  assert(os.path.exists(third_party_dir))
+sys.path.insert(1, third_party_dir)
+
 sys.path.insert(1, os.path.join(dart_dir, 'tools/dom/scripts'))
 
 import dartgenerator

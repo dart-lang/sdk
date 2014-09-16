@@ -564,15 +564,21 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 
 
 // Functions required in all concrete instruction classes.
-#define DECLARE_INSTRUCTION(type)                                              \
+#define DECLARE_INSTRUCTION_NO_BACKEND(type)                                   \
   virtual Tag tag() const { return k##type; }                                  \
   virtual void Accept(FlowGraphVisitor* visitor);                              \
   virtual type##Instr* As##type() { return this; }                             \
   virtual const char* DebugName() const { return #type; }                      \
+
+#define DECLARE_INSTRUCTION_BACKEND(type)                                      \
   virtual LocationSummary* MakeLocationSummary(Isolate* isolate,               \
                                                bool optimizing) const;         \
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);                    \
 
+// Functions required in all concrete instruction classes.
+#define DECLARE_INSTRUCTION(type)                                              \
+  DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
+  DECLARE_INSTRUCTION_BACKEND(type)                                            \
 
 class Instruction : public ZoneAllocated {
  public:
@@ -1909,12 +1915,15 @@ class PhiInstr : public Definition {
 
 class ParameterInstr : public Definition {
  public:
-  ParameterInstr(intptr_t index, BlockEntryInstr* block)
-      : index_(index), block_(block) { }
+  ParameterInstr(intptr_t index,
+                 BlockEntryInstr* block,
+                 Register base_reg = FPREG)
+      : index_(index), base_reg_(base_reg), block_(block) { }
 
   DECLARE_INSTRUCTION(Parameter)
 
   intptr_t index() const { return index_; }
+  Register base_reg() const { return base_reg_; }
 
   // Get the block entry for that instruction.
   virtual BlockEntryInstr* GetBlock() const { return block_; }
@@ -1947,6 +1956,7 @@ class ParameterInstr : public Definition {
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   const intptr_t index_;
+  const Register base_reg_;
   BlockEntryInstr* block_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
@@ -2494,6 +2504,12 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 
   virtual bool CanDeoptimize() const { return true; }
 
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // AssertAssignable instructions that are specialized by the optimizer
+    // (e.g. replaced with CheckClass) need a deoptimization descriptor before.
+    return true;
+  }
+
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
@@ -2660,6 +2676,12 @@ class InstanceCallInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // Instance calls that are specialized by the optimizer need a
+    // deoptimization descriptor before the call.
+    return true;
+  }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
@@ -3132,6 +3154,12 @@ class StaticCallInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // Static calls that are specialized by the optimizer (e.g. sqrt) need a
+    // deoptimization descriptor before the call.
+    return true;
+  }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
@@ -3772,8 +3800,10 @@ class StringToCharCodeInstr : public TemplateDefinition<1> {
 
 class StringInterpolateInstr : public TemplateDefinition<1> {
  public:
-  StringInterpolateInstr(Value* value, intptr_t token_pos)
-      : token_pos_(token_pos), function_(Function::Handle()) {
+  StringInterpolateInstr(Value* value, intptr_t token_pos, bool is_singleton)
+      : token_pos_(token_pos),
+        function_(Function::Handle()),
+        is_singleton_(is_singleton) {
     SetInputAt(0, value);
   }
 
@@ -3795,6 +3825,7 @@ class StringInterpolateInstr : public TemplateDefinition<1> {
  private:
   const intptr_t token_pos_;
   Function& function_;
+  const bool is_singleton_;
 
   DISALLOW_COPY_AND_ASSIGN(StringInterpolateInstr);
 };
@@ -7675,7 +7706,6 @@ class CheckSmiInstr : public TemplateInstruction<1> {
  public:
   CheckSmiInstr(Value* value, intptr_t original_deopt_id, intptr_t token_pos)
       : token_pos_(token_pos) {
-    ASSERT(original_deopt_id != Isolate::kNoDeoptId);
     SetInputAt(0, value);
     deopt_id_ = original_deopt_id;
   }
@@ -7963,9 +7993,11 @@ class UnaryUint32OpInstr : public TemplateDefinition<1> {
 class BoxIntNInstr : public TemplateDefinition<1> {
  public:
   BoxIntNInstr(Representation representation, Value* value)
-      : representation_(representation) {
+      : from_representation_(representation) {
     SetInputAt(0, value);
   }
+
+  Representation from_representation() const { return from_representation_; }
 
   Value* value() const { return inputs_[0]; }
   virtual bool ValueFitsSmi() const;
@@ -7981,14 +8013,14 @@ class BoxIntNInstr : public TemplateDefinition<1> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return representation_;
+    return from_representation_;
   }
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsBoxIntN()->representation_ == representation_;
+    return other->AsBoxIntN()->from_representation_ == from_representation_;
   }
 
   virtual bool MayThrow() const { return false; }
@@ -7997,8 +8029,10 @@ class BoxIntNInstr : public TemplateDefinition<1> {
 
   virtual BoxIntNInstr* AsBoxIntN() { return this; }
 
+  DECLARE_INSTRUCTION_BACKEND(BoxIntN)
+
  private:
-  const Representation representation_;
+  const Representation from_representation_;
 
   DISALLOW_COPY_AND_ASSIGN(BoxIntNInstr);
 };
@@ -8009,7 +8043,7 @@ class BoxUint32Instr : public BoxIntNInstr {
   explicit BoxUint32Instr(Value* value)
       : BoxIntNInstr(kUnboxedUint32, value) { }
 
-  DECLARE_INSTRUCTION(BoxUint32)
+  DECLARE_INSTRUCTION_NO_BACKEND(BoxUint32)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxUint32Instr);
@@ -8023,7 +8057,7 @@ class BoxInt32Instr : public BoxIntNInstr {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  DECLARE_INSTRUCTION(BoxInt32)
+  DECLARE_INSTRUCTION_NO_BACKEND(BoxInt32)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxInt32Instr);
@@ -8035,12 +8069,16 @@ class UnboxIntNInstr : public TemplateDefinition<1> {
   UnboxIntNInstr(Representation representation,
                  Value* value,
                  intptr_t deopt_id)
-      : representation_(representation) {
+      : representation_(representation),
+        is_truncating_(representation == kUnboxedUint32) {
     SetInputAt(0, value);
     deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
+
+  bool is_truncating() const { return is_truncating_; }
+  void mark_truncating() { is_truncating_ = true; }
 
   virtual Representation representation() const {
     return representation_;
@@ -8052,7 +8090,9 @@ class UnboxIntNInstr : public TemplateDefinition<1> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsUnboxIntN()->representation_ == representation_;
+    UnboxIntNInstr* other_unbox = other->AsUnboxIntN();
+    return (other_unbox->representation_ == representation_) &&
+        (other_unbox->is_truncating_ == is_truncating_);
   }
 
   virtual bool MayThrow() const { return false; }
@@ -8061,8 +8101,13 @@ class UnboxIntNInstr : public TemplateDefinition<1> {
 
   virtual UnboxIntNInstr* AsUnboxIntN() { return this; }
 
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_INSTRUCTION_BACKEND(UnboxIntNInstr);
+
  private:
   const Representation representation_;
+  bool is_truncating_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxIntNInstr);
 };
@@ -8072,6 +8117,7 @@ class UnboxUint32Instr : public UnboxIntNInstr {
  public:
   UnboxUint32Instr(Value* value, intptr_t deopt_id)
       : UnboxIntNInstr(kUnboxedUint32, value, deopt_id) {
+    ASSERT(is_truncating());
   }
 
   virtual bool CanDeoptimize() const {
@@ -8079,7 +8125,7 @@ class UnboxUint32Instr : public UnboxIntNInstr {
         && (value()->Type()->ToCid() != kMintCid);
   }
 
-  DECLARE_INSTRUCTION(UnboxUint32)
+  DECLARE_INSTRUCTION_NO_BACKEND(UnboxUint32)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxUint32Instr);
@@ -8098,7 +8144,7 @@ class UnboxInt32Instr : public UnboxIntNInstr {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  DECLARE_INSTRUCTION(UnboxInt32)
+  DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt32)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxInt32Instr);
@@ -8112,7 +8158,8 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1> {
                            Value* value,
                            intptr_t deopt_id)
       : from_representation_(from),
-        to_representation_(to) {
+        to_representation_(to),
+        is_truncating_(to == kUnboxedUint32) {
     ASSERT(from != to);
     ASSERT((from == kUnboxedMint) ||
            (from == kUnboxedUint32) ||
@@ -8129,6 +8176,9 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1> {
 
   Representation from() const { return from_representation_; }
   Representation to() const { return to_representation_; }
+  bool is_truncating() const { return is_truncating_; }
+
+  void mark_truncating() { is_truncating_ = true; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -8148,7 +8198,9 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1> {
   virtual bool AttributesEqual(Instruction* other) const {
     ASSERT(other->IsUnboxedIntConverter());
     UnboxedIntConverterInstr* converter = other->AsUnboxedIntConverter();
-    return (converter->from() == from()) && (converter->to() == to());
+    return (converter->from() == from()) &&
+        (converter->to() == to()) &&
+        (converter->is_truncating() == is_truncating());
   }
 
   virtual bool MayThrow() const { return false; }
@@ -8162,6 +8214,8 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1> {
  private:
   const Representation from_representation_;
   const Representation to_representation_;
+  bool is_truncating_;
+
   DISALLOW_COPY_AND_ASSIGN(UnboxedIntConverterInstr);
 };
 

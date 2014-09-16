@@ -4109,66 +4109,6 @@ TEST_CASE(SpecialClassesHaveEmptyArrays) {
 }
 
 
-TEST_CASE(ToCStringTruncated) {
-  const char* kScriptChars =
-      "var ascii = 'Hello, World!';\n"
-      "var unicode = '\\u00CE\\u00F1\\u0163\\u00E9r\\u00F1\\u00E5\\u0163"
-      "\\u00EE\\u00F6\\u00F1\\u00E5\\u013C\\u00EE\\u017E\\u00E5\\u0163"
-      "\\u00EE\\u1EDD\\u00F1';\n"
-      "var surrogates ='\\u{1D11E}\\u{1D11E}\\u{1D11E}\\u{1D11E}"\
-      "\\u{1D11E}';\n";
-
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT_VALID(lib);
-
-  String& obj = String::Handle();
-  Dart_Handle result;
-  bool did_truncate;
-  intptr_t length;
-
-  result = Dart_GetField(lib, NewString("ascii"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("Hello, World!",
-               obj.ToCStringTruncated(100, &did_truncate, &length));
-  EXPECT(!did_truncate);
-  EXPECT_EQ(13, length);
-  EXPECT_STREQ("Hel", obj.ToCStringTruncated(3, &did_truncate, &length));
-  EXPECT(did_truncate);
-  EXPECT_EQ(3, length);
-
-  result = Dart_GetField(lib, NewString("unicode"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\u00CE\u00F1\u0163\u00E9r\u00F1\u00E5\u0163"
-        "\u00EE\u00F6\u00F1\u00E5\u013C\u00EE\u017E\u00E5\u0163"
-        "\u00EE\u1EDD\u00F1",
-        obj.ToCStringTruncated(100, &did_truncate, &length));
-  EXPECT(!did_truncate);
-  EXPECT_EQ(40, length);
-  EXPECT_STREQ("\u00CE\u00F1\u0163",
-               obj.ToCStringTruncated(3, &did_truncate, &length));
-  EXPECT(did_truncate);
-  EXPECT_EQ(6, length);
-
-  result = Dart_GetField(lib, NewString("surrogates"));
-  EXPECT_VALID(result);
-  obj ^= Api::UnwrapHandle(result);
-  EXPECT_STREQ("\U0001D11E\U0001D11E\U0001D11E\U0001D11E\U0001D11E",
-               obj.ToCStringTruncated(100, &did_truncate, &length));
-  EXPECT(!did_truncate);
-  EXPECT_EQ(20, length);
-  EXPECT_STREQ("\U0001D11E",
-               obj.ToCStringTruncated(3, &did_truncate, &length));
-  EXPECT(did_truncate);
-  EXPECT_EQ(4, length);  // 3 code units would be in the middle of a surrogate
-                         // pair, so it gets rounded down 2 code units.
-  EXPECT_STREQ("\U0001D11E\U0001D11E",
-               obj.ToCStringTruncated(4, &did_truncate, &length));
-  EXPECT(did_truncate);
-  EXPECT_EQ(8, length);
-}
-
 class ObjectAccumulator : public ObjectVisitor {
  public:
   explicit ObjectAccumulator(GrowableArray<Object*>* objects)

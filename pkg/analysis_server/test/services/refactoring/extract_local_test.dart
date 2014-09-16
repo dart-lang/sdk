@@ -9,9 +9,9 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
 
 
@@ -714,6 +714,24 @@ main() {
   A a = new A();
   var res = a.foo;
   int b = 1 + res; // marker
+}
+''');
+  }
+
+  test_singleExpression_inExpressionBody() {
+    indexTestUnit('''
+main() {
+  print((x) => x.y * x.y + 1);
+}
+''');
+    _createRefactoringForString('x.y');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  print((x) {
+    var res = x.y;
+    return res * res + 1;
+  });
 }
 ''');
   }

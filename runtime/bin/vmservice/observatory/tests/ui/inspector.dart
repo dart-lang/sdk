@@ -46,6 +46,8 @@ var string;
 var stringEscapedUnicodeEscape;
 var stringHebrew;
 var stringLatin1;
+var stringMalformedLead;
+var stringMalformedTrail;
 var stringNewLinesAndTabs;
 var stringNullInTheMiddle;
 var stringSnowflake;
@@ -135,6 +137,8 @@ main() {
   stringEscapedUnicodeEscape = "Should not be A: \\u0041";
   stringHebrew = "שלום רב שובך צפורה נחמדת";  // Right-to-left text.
   stringLatin1 = "blåbærgrød";
+  stringMalformedLead = "before" + "𝄞"[0] + "after";
+  stringMalformedTrail = "before" + "𝄞"[1] + "after";
   stringNewLinesAndTabs = "One fish\ttwo fish\nRed fish\tBlue fish\n";
   stringNullInTheMiddle = "There are four\u0000 words.";
   stringSnowflake = "❄";

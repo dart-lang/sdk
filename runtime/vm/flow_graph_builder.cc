@@ -239,8 +239,7 @@ FlowGraphBuilder::FlowGraphBuilder(
     ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     InlineExitCollector* exit_collector,
-    intptr_t osr_id,
-    bool is_optimizing) :
+    intptr_t osr_id) :
         parsed_function_(parsed_function),
         ic_data_array_(ic_data_array),
         num_copied_params_(parsed_function->num_copied_params()),
@@ -260,7 +259,6 @@ FlowGraphBuilder::FlowGraphBuilder(
         args_pushed_(0),
         nesting_stack_(NULL),
         osr_id_(osr_id),
-        is_optimizing_(is_optimizing),
         jump_cnt_(0),
         await_joins_(new(I) ZoneGrowableArray<JoinEntryInstr*>()),
         await_levels_(new(I) ZoneGrowableArray<intptr_t>()) { }
@@ -2388,10 +2386,18 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
 void EffectGraphVisitor::VisitStringInterpolateNode(
     StringInterpolateNode* node) {
   ValueGraphVisitor for_argument(owner());
-  node->value()->Visit(&for_argument);
+  ArrayNode* arguments = node->value();
+  bool is_singleton = false;
+  if (arguments->length() == 1) {
+    arguments->ElementAt(0)->Visit(&for_argument);
+    is_singleton = true;
+  } else {
+    arguments->Visit(&for_argument);
+  }
   Append(for_argument);
   StringInterpolateInstr* instr =
-      new(I) StringInterpolateInstr(for_argument.value(), node->token_pos());
+      new(I) StringInterpolateInstr(for_argument.value(), node->token_pos(),
+                                    is_singleton);
   ReturnDefinition(instr);
 }
 
@@ -3276,6 +3282,41 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         CreateArrayInstr* create_array =
             new CreateArrayInstr(node->token_pos(), element_type, length);
         return ReturnDefinition(create_array);
+      }
+      case MethodRecognizer::kBigint_getDigits: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LoadFieldInstr* load = new(I) LoadFieldInstr(
+            receiver,
+            Bigint::digits_offset(),
+            Type::ZoneHandle(I, Type::DynamicType()),
+            node->token_pos());
+        // TODO(srdjan): Enabling the correct result type throws an NPE.
+        // load->set_result_cid(kTypedDataUint32ArrayCid);
+        load->set_result_cid(kDynamicCid);
+        load->set_recognized_kind(kind);
+        return ReturnDefinition(load);
+      }
+      case MethodRecognizer::kBigint_getUsed: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LoadFieldInstr* load = new(I) LoadFieldInstr(
+            receiver,
+            Bigint::used_offset(),
+            Type::ZoneHandle(I, Type::SmiType()),
+            node->token_pos());
+        load->set_result_cid(kSmiCid);
+        load->set_recognized_kind(kind);
+        return ReturnDefinition(load);
+      }
+      case MethodRecognizer::kBigint_getNeg: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LoadFieldInstr* load = new(I) LoadFieldInstr(
+            receiver,
+            Bigint::neg_offset(),
+            Type::ZoneHandle(I, Type::BoolType()),
+            node->token_pos());
+        load->set_result_cid(kBoolCid);
+        load->set_recognized_kind(kind);
+        return ReturnDefinition(load);
       }
       default:
         break;

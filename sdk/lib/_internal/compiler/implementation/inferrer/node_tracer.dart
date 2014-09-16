@@ -368,8 +368,8 @@ abstract class TracerVisitor<T extends TypeInformation>
   }
 
   void visitParameterTypeInformation(ParameterTypeInformation info) {
-    Element element = info.element;
-    if (inferrer.isNativeElement(element.enclosingElement)) {
+    ParameterElement element = info.element;
+    if (inferrer.isNativeElement(element.functionDeclaration)) {
       bailout('Passed to a native method');
     }
     if (!inferrer.compiler.backend

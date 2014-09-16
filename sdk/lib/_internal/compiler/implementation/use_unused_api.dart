@@ -71,6 +71,7 @@ void main(List<String> arguments) {
   useElements(null, null, null);
   useIr(null, null, null);
   useCompiler(null);
+  useTypes();
 }
 
 useApi() {
@@ -240,10 +241,18 @@ useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
     ..hasIr(null)
     ..getIr(null);
   builder
-    ..buildIntegerLiteral(null);
+    ..buildIntegerLiteral(null)
+    ..buildDoubleLiteral(null)
+    ..buildBooleanLiteral(null)
+    ..buildNullLiteral()
+    ..buildStringLiteral(null);
 }
 
 useCompiler(dart2jslib.Compiler compiler) {
   compiler.libraryLoader.reset();
   compiler.libraryLoader.lookupLibrary(null);
+}
+
+useTypes() {
+  new dart_types.ResolvedTypedefType(null, null, null).unalias(null);
 }

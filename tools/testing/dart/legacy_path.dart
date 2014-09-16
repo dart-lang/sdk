@@ -17,6 +17,10 @@ class Path {
 
   static String _clean(String source) {
     if (Platform.operatingSystem == 'windows') return _cleanWindows(source);
+    // Remove trailing slash from directories:
+    if (source.length > 1 && source.endsWith('/')) {
+      return source.substring(0, source.length - 1);
+    }
     return source;
   }
 

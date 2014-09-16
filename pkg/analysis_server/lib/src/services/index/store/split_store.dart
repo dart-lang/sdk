@@ -258,12 +258,11 @@ class IndexNode {
    */
   List<Location> getRelationships(Element element, Relationship relationship) {
     // prepare key
-    RelationKeyData key =
-        new RelationKeyData.forObject(
-            _elementCodec,
-            _relationshipCodec,
-            element,
-            relationship);
+    RelationKeyData key = new RelationKeyData.forObject(
+        _elementCodec,
+        _relationshipCodec,
+        element,
+        relationship);
     // find LocationData(s)
     List<LocationData> locationDatas = _relations[key];
     if (locationDatas == null) {
@@ -289,12 +288,11 @@ class IndexNode {
    */
   void recordRelationship(Element element, Relationship relationship,
       Location location) {
-    RelationKeyData key =
-        new RelationKeyData.forObject(
-            _elementCodec,
-            _relationshipCodec,
-            element,
-            relationship);
+    RelationKeyData key = new RelationKeyData.forObject(
+        _elementCodec,
+        _relationshipCodec,
+        element,
+        relationship);
     // prepare LocationData(s)
     List<LocationData> locationDatas = _relations[key];
     if (locationDatas == null) {
@@ -462,8 +460,7 @@ class SplitIndexStore implements IndexStore {
    *
    * Order of keys: contextId, nodeId, Relationship.
    */
-  Map<int, Map<int, Map<Relationship, List<LocationData>>>>
-      _contextNodeRelations =
+  Map<int, Map<int, Map<Relationship, List<LocationData>>>> _contextNodeRelations =
       new HashMap<int, Map<int, Map<Relationship, List<LocationData>>>>();
 
   /**
@@ -495,7 +492,8 @@ class SplitIndexStore implements IndexStore {
    * A table mapping element names to the node names that may have relations with elements with
    * these names.
    */
-  IntToIntSetMap _nameToNodeNames = new IntToIntSetMap();
+  Map<Relationship, IntToIntSetMap> _relToNameMap =
+      new HashMap<Relationship, IntToIntSetMap>();
 
   /**
    * The [NodeManager] to get/put [IndexNode]s.
@@ -519,8 +517,19 @@ class SplitIndexStore implements IndexStore {
   }
 
   @override
-  String get statistics =>
-      '[${_nodeManager.locationCount} locations, ${_sources.length} sources, ${_nameToNodeNames.length} names]';
+  String get statistics {
+    StringBuffer buf = new StringBuffer();
+    buf.write('[');
+    buf.write(_nodeManager.locationCount);
+    buf.write(' locations, ');
+    buf.write(_sources.length);
+    buf.write(' sources, ');
+    int namesCount = _relToNameMap.values.fold(0, (c, m) => c + m.length);
+    buf.write(namesCount);
+    buf.write(' names');
+    buf.write(']');
+    return buf.toString();
+  }
 
   @override
   bool aboutToIndexDart(AnalysisContext context,
@@ -618,7 +627,7 @@ class SplitIndexStore implements IndexStore {
   void clear() {
     _contextNodeRelations.clear();
     _nodeManager.clear();
-    _nameToNodeNames.clear();
+    _relToNameMap.clear();
   }
 
   @override
@@ -640,8 +649,16 @@ class SplitIndexStore implements IndexStore {
       return new Future.value(locations);
     }
     // prepare node names
-    int nameId = _elementCodec.encodeHash(element);
-    List<int> nodeNameIds = _nameToNodeNames.get(nameId);
+    List<int> nodeNameIds;
+    {
+      int nameId = _elementCodec.encodeHash(element);
+      IntToIntSetMap nameToNodeNames = _relToNameMap[relationship];
+      if (nameToNodeNames != null) {
+        nodeNameIds = nameToNodeNames.get(nameId);
+      } else {
+        nodeNameIds = <int>[];
+      }
+    }
     // prepare Future(s) for reading each IndexNode
     List<Future<List<Location>>> nodeFutures = <Future<List<Location>>>[];
     for (int nodeNameId in nodeNameIds) {
@@ -678,7 +695,7 @@ class SplitIndexStore implements IndexStore {
       return;
     }
     // other elements
-    _recordNodeNameForElement(element);
+    _recordNodeNameForElement(element, relationship);
     _currentNode.recordRelationship(element, relationship, location);
   }
 
@@ -756,8 +773,6 @@ class SplitIndexStore implements IndexStore {
     }
   }
 
-  String _getElementName(Element element) => element.name;
-
   List<Location> _getRelationshipsUniverse(Relationship relationship) {
     List<Location> locations = <Location>[];
     _contextNodeRelations.forEach((contextId, contextRelations) {
@@ -796,9 +811,14 @@ class SplitIndexStore implements IndexStore {
     units.add(unit);
   }
 
-  void _recordNodeNameForElement(Element element) {
+  void _recordNodeNameForElement(Element element, Relationship relationship) {
+    IntToIntSetMap nameToNodeNames = _relToNameMap[relationship];
+    if (nameToNodeNames == null) {
+      nameToNodeNames = new IntToIntSetMap();
+      _relToNameMap[relationship] = nameToNodeNames;
+    }
     int nameId = _elementCodec.encodeHash(element);
-    _nameToNodeNames.add(nameId, _currentNodeNameId);
+    nameToNodeNames.add(nameId, _currentNodeNameId);
   }
 
   void _recordRelationshipUniverse(Relationship relationship,

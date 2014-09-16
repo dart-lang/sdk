@@ -308,6 +308,19 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
   return Api::Success();
 }
 
+DART_EXPORT Dart_Handle Dart_ActivationFrameGetFramePointer(
+                            Dart_ActivationFrame activation_frame,
+                            uintptr_t* frame_pointer) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
+
+  if (frame_pointer != NULL) {
+    *frame_pointer = static_cast<uintptr_t>(frame->fp());
+  }
+  return Api::Success();
+}
+
 
 DART_EXPORT Dart_Handle Dart_GetFunctionOrigin(Dart_Handle function_in) {
   Isolate* isolate = Isolate::Current();

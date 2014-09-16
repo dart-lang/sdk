@@ -152,5 +152,9 @@ typed_data_view_test: StaticWarning
 javascript_compatibility_errors_test: Skip
 javascript_compatibility_warnings_test: Skip
 
+[ $compiler == dart2analyzer ]
+package/package1_test: CompileTimeError
+package/package_test: CompileTimeError
+
 [ $system == windows ]
 io/skipping_dart2js_compilations_test: Fail # Issue 19551.

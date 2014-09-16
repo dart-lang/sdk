@@ -697,6 +697,11 @@ class Assembler : public ValueObject {
   void LoadTaggedClassIdMayBeSmi(Register result,
                                  Register object);
 
+  void SmiUntagOrCheckClass(Register object,
+                            intptr_t class_id,
+                            Register scratch,
+                            Label* is_smi);
+
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,
                                            intptr_t index_scale,

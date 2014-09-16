@@ -518,6 +518,14 @@ class _StringBase {
     return buffer.toString();
   }
 
+  // Convert single object to string.
+  static String _interpolateSingle(Object o) {
+    final s = o.toString();
+    if (s is! String) {
+      throw new ArgumentError(o);
+    }
+    return s;
+  }
 
   /**
    * Convert all objects in [values] to strings and concat them

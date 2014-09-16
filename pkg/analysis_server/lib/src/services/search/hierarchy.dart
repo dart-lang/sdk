@@ -74,11 +74,11 @@ Future<Set<ClassElement>> getDirectSubClasses(SearchEngine searchEngine,
 
 
 /**
- * @return all implementations of the given {@link ClassMemberElement} is its superclasses and
- *         their subclasses.
+ * Returns all the declarations of the given [ClassMemberElement] in
+ * superclasses of the declaring class, and its subclasses if not [onlySuper].
  */
 Future<Set<ClassMemberElement>> getHierarchyMembers(SearchEngine searchEngine,
-    ClassMemberElement member) {
+    ClassMemberElement member, bool onlySuper) {
   Set<ClassMemberElement> result = new HashSet<ClassMemberElement>();
   // constructor
   if (member is ConstructorElement) {
@@ -92,21 +92,22 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(SearchEngine searchEngine,
   Set<ClassElement> searchClasses = getSuperClasses(memberClass);
   searchClasses.add(memberClass);
   for (ClassElement superClass in searchClasses) {
+    List<Element> superClassMembers = getChildren(superClass, name);
     // ignore if super- class does not declare member
-    if (getClassMembers(superClass, name).isEmpty) {
+    if (superClassMembers.isEmpty) {
+      continue;
+    }
+    // add super- class members
+    _addClassMembers(result, superClassMembers);
+    if (onlySuper) {
       continue;
     }
     // check all sub- classes
     var subClassFuture = getSubClasses(searchEngine, superClass);
     var membersFuture = subClassFuture.then((Set<ClassElement> subClasses) {
-      subClasses.add(superClass);
       for (ClassElement subClass in subClasses) {
         List<Element> subClassMembers = getChildren(subClass, name);
-        for (Element member in subClassMembers) {
-          if (member is ClassMemberElement) {
-            result.add(member);
-          }
-        }
+        _addClassMembers(result, subClassMembers);
       }
     });
     futures.add(membersFuture);
@@ -114,6 +115,17 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(SearchEngine searchEngine,
   return Future.wait(futures).then((_) {
     return result;
   });
+}
+
+/**
+ * Adds [ClassMemberElement]s from [elements] to [result].
+ */
+void _addClassMembers(Set<ClassMemberElement> result, List<Element> elements) {
+  for (Element member in elements) {
+    if (member is ClassMemberElement) {
+      result.add(member);
+    }
+  }
 }
 
 

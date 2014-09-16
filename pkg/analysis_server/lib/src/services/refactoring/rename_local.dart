@@ -103,7 +103,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 }
 
 
-class _ConflictValidatorVisitor extends RecursiveAstVisitor<Object> {
+class _ConflictValidatorVisitor extends RecursiveAstVisitor {
   final RenameLocalRefactoringImpl refactoring;
   final RefactoringStatus result;
   final SourceRange elementRange;
@@ -111,7 +111,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<Object> {
   _ConflictValidatorVisitor(this.refactoring, this.result, this.elementRange);
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) {
+  visitSimpleIdentifier(SimpleIdentifier node) {
     Element nodeElement = node.bestElement;
     String newName = refactoring.newName;
     if (nodeElement != null && nodeElement.name == newName) {
@@ -120,10 +120,12 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<Object> {
         String nodeKind = nodeElement.kind.displayName;
         String message = "Duplicate ${nodeKind} '$newName'.";
         result.addError(message, new Location.fromElement(nodeElement));
-        return null;
+        return;
       }
       // shadowing referenced element
-      if (elementRange.contains(node.offset) && !node.isQualified) {
+      if (elementRange.contains(node.offset) &&
+          !node.isQualified &&
+          !_isNamedExpressionName(node)) {
         nodeElement = getSyntheticAccessorVariable(nodeElement);
         String nodeKind = nodeElement.kind.displayName;
         String nodeName = getElementQualifiedName(nodeElement);
@@ -135,6 +137,9 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<Object> {
         result.addError(message, new Location.fromNode(node));
       }
     }
-    return null;
+  }
+
+  static bool _isNamedExpressionName(SimpleIdentifier node) {
+    return node.parent is Label && node.parent.parent is NamedExpression;
   }
 }

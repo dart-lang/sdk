@@ -156,7 +156,7 @@ intptr_t RawObject::SizeFromClass() const {
       case kLocalVarDescriptorsCid: {
         const RawLocalVarDescriptors* raw_descriptors =
             reinterpret_cast<const RawLocalVarDescriptors*>(this);
-        intptr_t num_descriptors = raw_descriptors->ptr()->length_;
+        intptr_t num_descriptors = raw_descriptors->ptr()->num_entries_;
         instance_size = LocalVarDescriptors::InstanceSize(num_descriptors);
         break;
       }
@@ -522,10 +522,9 @@ intptr_t RawStackmap::VisitStackmapPointers(RawStackmap* raw_obj,
 
 intptr_t RawLocalVarDescriptors::VisitLocalVarDescriptorsPointers(
     RawLocalVarDescriptors* raw_obj, ObjectPointerVisitor* visitor) {
-  RawLocalVarDescriptors* obj = raw_obj->ptr();
-  intptr_t len = obj->length_;
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->names_));
-  return LocalVarDescriptors::InstanceSize(len);
+  intptr_t num_entries = raw_obj->ptr()->num_entries_;
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to(num_entries));
+  return LocalVarDescriptors::InstanceSize(num_entries);
 }
 
 

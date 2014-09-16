@@ -48,7 +48,7 @@ import 'util/util.dart' show Link, LinkBuilder;
  * 'http://example.com/bar.dart', but such URIs cannot necessarily be used for
  * locating source files, since the scheme must be supported by the input
  * provider. The standard input provider for dart2js only supports the 'file'
- * scheme.
+ * and 'http' scheme.
  *
  * ## Resolved URI ##
  *

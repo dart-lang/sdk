@@ -527,44 +527,6 @@ void TextBuffer::AddChar(char ch) {
 }
 
 
-void TextBuffer::AddUTF8(uint32_t ch) {
-  static const uint32_t kMaxOneByteChar   = 0x7F;
-  static const uint32_t kMaxTwoByteChar   = 0x7FF;
-  static const uint32_t kMaxThreeByteChar = 0xFFFF;
-  static const uint32_t kMaxFourByteChar  = 0x10FFFF;
-  static const uint32_t kMask = ~(1 << 6);
-
-  if (ch <= kMaxOneByteChar) {
-    EnsureCapacity(1);
-    buf_[msg_len_++] = ch;
-    buf_[msg_len_] = '\0';
-    return;
-  }
-  if (ch <= kMaxTwoByteChar) {
-    EnsureCapacity(2);
-    buf_[msg_len_++] = 0xC0 | (ch >> 6);
-    buf_[msg_len_++] = 0x80 | (ch & kMask);
-    buf_[msg_len_] = '\0';
-    return;
-  }
-  if (ch <= kMaxThreeByteChar) {
-    EnsureCapacity(3);
-    buf_[msg_len_++] = 0xE0 | (ch >> 12);
-    buf_[msg_len_++] = 0x80 | ((ch >> 6) & kMask);
-    buf_[msg_len_++] = 0x80 | (ch & kMask);
-    buf_[msg_len_] = '\0';
-    return;
-  }
-  ASSERT(ch <= kMaxFourByteChar);
-  EnsureCapacity(4);
-  buf_[msg_len_++] = 0xF0 | (ch >> 18);
-  buf_[msg_len_++] = 0x80 | ((ch >> 12) & kMask);
-  buf_[msg_len_++] = 0x80 | ((ch >> 6) & kMask);
-  buf_[msg_len_++] = 0x80 | (ch & kMask);
-  buf_[msg_len_] = '\0';
-}
-
-
 intptr_t TextBuffer::Printf(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -588,8 +550,10 @@ intptr_t TextBuffer::Printf(const char* format, ...) {
 }
 
 
-void TextBuffer::AddEscapedChar(uint32_t cp) {
-  switch (cp) {
+// Write a UTF-16 code unit so it can be read by a JSON parser in a string
+// literal. Use escape sequences for characters other than printable ASCII.
+void TextBuffer::EscapeAndAddCodeUnit(uint32_t codeunit) {
+  switch (codeunit) {
     case '"':
       Printf("%s", "\\\"");
       break;
@@ -615,15 +579,26 @@ void TextBuffer::AddEscapedChar(uint32_t cp) {
       Printf("%s", "\\t");
       break;
     default:
-      if (cp < 0x20) {
+      if (codeunit < 0x20) {
         // Encode character as \u00HH.
-        uint32_t digit2 = (cp >> 4) & 0xf;
-        uint32_t digit3 = (cp & 0xf);
+        uint32_t digit2 = (codeunit >> 4) & 0xf;
+        uint32_t digit3 = (codeunit & 0xf);
         Printf("\\u00%c%c",
                digit2 > 9 ? 'A' + (digit2 - 10) : '0' + digit2,
                digit3 > 9 ? 'A' + (digit3 - 10) : '0' + digit3);
+      } else if (codeunit > 127) {
+        // Encode character as \uHHHH.
+        uint32_t digit0 = (codeunit >> 12) & 0xf;
+        uint32_t digit1 = (codeunit >> 8) & 0xf;
+        uint32_t digit2 = (codeunit >> 4) & 0xf;
+        uint32_t digit3 = (codeunit & 0xf);
+        Printf("\\u%c%c%c%c",
+               digit0 > 9 ? 'A' + (digit0 - 10) : '0' + digit0,
+               digit1 > 9 ? 'A' + (digit1 - 10) : '0' + digit1,
+               digit2 > 9 ? 'A' + (digit2 - 10) : '0' + digit2,
+               digit3 > 9 ? 'A' + (digit3 - 10) : '0' + digit3);
       } else {
-        AddUTF8(cp);
+        AddChar(codeunit);
       }
   }
 }
@@ -637,7 +612,7 @@ void TextBuffer::AddString(const char* s) {
 void TextBuffer::AddEscapedString(const char* s) {
   intptr_t len = strlen(s);
   for (int i = 0; i < len; i++) {
-    AddEscapedChar(s[i]);
+    EscapeAndAddCodeUnit(s[i]);
   }
 }
 

@@ -68,6 +68,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
 # Interfaces that are suppressed, but need to still exist for Dartium and to
 # properly wrap DOM objects if/when encountered.
 _removed_html_interfaces = [
+  'CanvasPathMethods',
   'CDataSection',
   'CSSPrimitiveValue',
   'CSSUnknownRule',
@@ -99,6 +100,7 @@ _removed_html_interfaces = [
   'RGBColor',
   'RadioNodeList',  # Folded onto NodeList in dart2js.
   'Rect',
+  'Response', # TODO: Symbol conflicts with Angular: dartbug.com/20937
   'ServiceWorker',
   'SQLTransactionSync', # Workers
   'SQLTransactionSyncCallback', # Workers
@@ -253,6 +255,8 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Element.scrollHeight',
 
   'Event.initEvent',
+  'EventTarget.addEventListener',
+  'EventTarget.removeEventListener',
   'FileReader.result',
   'Geolocation.clearWatch',
   'Geolocation.getCurrentPosition',
@@ -295,6 +299,8 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'MouseEvent.initMouseEvent',
   'MouseEvent.clientX',
   'MouseEvent.clientY',
+  'MouseEvent.movementX',
+  'MouseEvent.movementY',
   'MouseEvent.webkitMovementX',
   'MouseEvent.webkitMovementY',
   'MouseEvent.offsetX',
@@ -423,37 +429,37 @@ renamed_overloads = monitored.Dict('htmldartgenerator.renamed_overloads', {
       '_createObjectUrlFromWebKitSource',
   'URL.createObjectURL(MediaStream stream)': 'createObjectUrlFromStream',
   'URL.createObjectURL(Blob blob)': 'createObjectUrlFromBlob',
-  'WebGLRenderingContext.texImage2D(unsigned long target, long level, '
+  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
       'unsigned long internalformat, unsigned long format, unsigned long '
       'type, ImageData pixels)': 'texImage2DImageData',
-  'WebGLRenderingContext.texImage2D(unsigned long target, long level, '
+  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
       'unsigned long internalformat, unsigned long format, unsigned long '
       'type, HTMLImageElement image)': 'texImage2DImage',
-  'WebGLRenderingContext.texImage2D(unsigned long target, long level, '
+  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
       'unsigned long internalformat, unsigned long format, unsigned long '
       'type, HTMLCanvasElement canvas)': 'texImage2DCanvas',
-  'WebGLRenderingContext.texImage2D(unsigned long target, long level, '
+  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
       'unsigned long internalformat, unsigned long format, unsigned long '
       'type, HTMLVideoElement video)': 'texImage2DVideo',
-  'WebGLRenderingContext.texSubImage2D(unsigned long target, long level, '
+  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
       'long xoffset, long yoffset, unsigned long format, unsigned long type, '
       'ImageData pixels)': 'texSubImage2DImageData',
-  'WebGLRenderingContext.texSubImage2D(unsigned long target, long level, '
+  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
       'long xoffset, long yoffset, unsigned long format, unsigned long type, '
       'HTMLImageElement image)': 'texSubImage2DImage',
-  'WebGLRenderingContext.texSubImage2D(unsigned long target, long level, '
+  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
       'long xoffset, long yoffset, unsigned long format, unsigned long type, '
       'HTMLCanvasElement canvas)': 'texSubImage2DCanvas',
-  'WebGLRenderingContext.texSubImage2D(unsigned long target, long level, '
+  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
       'long xoffset, long yoffset, unsigned long format, unsigned long type, '
       'HTMLVideoElement video)': 'texSubImage2DVideo',
-  'WebGLRenderingContext.bufferData(unsigned long target, ArrayBuffer data, '
-      'unsigned long usage)': 'bufferByteData',
-  'WebGLRenderingContext.bufferData(unsigned long target, '
+  'WebGLRenderingContextBase.bufferData(unsigned long target, '
+      'ArrayBuffer data, unsigned long usage)': 'bufferByteData',
+  'WebGLRenderingContextBase.bufferData(unsigned long target, '
       'ArrayBufferView data, unsigned long usage)': 'bufferDataTyped',
-  'WebGLRenderingContext.bufferSubData(unsigned long target, '
+  'WebGLRenderingContextBase.bufferSubData(unsigned long target, '
       'long long offset, ArrayBuffer data)': 'bufferSubByteData',
-  'WebGLRenderingContext.bufferSubData(unsigned long target, '
+  'WebGLRenderingContextBase.bufferSubData(unsigned long target, '
       'long long offset, ArrayBufferView data)': 'bufferSubDataTyped',
   'WebSocket.send(ArrayBuffer data)': 'sendByteBuffer',
   'WebSocket.send(ArrayBufferView data)': 'sendTypedData',

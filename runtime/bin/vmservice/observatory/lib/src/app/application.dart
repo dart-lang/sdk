@@ -87,6 +87,7 @@ class ObservatoryApplication extends Observable {
         notifications.add(event);
         break;
 
+
       case 'GC':
         // Ignore GC events for now.
         break;
@@ -201,10 +202,17 @@ class ObservatoryApplication extends Observable {
     _initOnce(false);
   }
 
+  void _removeDisconnectEvents() {
+    notifications.removeWhere((oldEvent) {
+        return (oldEvent.eventType == 'VMDisconnected');
+      });
+  }
+
   _vmConnected(VM vm) {
     if (vm is WebSocketVM) {
       targets.add(vm.target);
     }
+    _removeDisconnectEvents();
   }
 
   _vmDisconnected(VM vm) {
@@ -213,6 +221,6 @@ class ObservatoryApplication extends Observable {
       return;
     }
     this.vm = null;
-    locationManager.go(locationManager.makeLink('/vm-connect/'));
+    notifications.add(new ServiceEvent.vmDisconencted());
   }
 }

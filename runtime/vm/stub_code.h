@@ -27,6 +27,7 @@ class RawCode;
   V(CallNativeCFunction)                                                       \
   V(CallStaticFunction)                                                        \
   V(FixCallersTarget)                                                          \
+  V(FixAllocationStubTarget)                                                   \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazy)                                                            \
   V(ICCallBreakpoint)                                                          \
@@ -199,8 +200,8 @@ class StubCode {
                            void (*GenerateStub)(Assembler* assembler));
 
   static void GenerateMegamorphicMissStub(Assembler* assembler);
-  static void GenerateAllocationStubForClass(Assembler* assembler,
-                                             const Class& cls);
+  static uword GenerateAllocationStubForClass(Assembler* assembler,
+                                              const Class& cls);
   static void GenerateNArgsCheckInlineCacheStub(
       Assembler* assembler,
       intptr_t num_args,

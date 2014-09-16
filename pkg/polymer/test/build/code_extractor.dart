@@ -251,7 +251,8 @@ validateUriTests() {
     }, {
       'a|web/test.html._data': EMPTY_DATA,
     }, [
-      'warning: Script file at "a.dart" not found. (web/test.html 1 0)',
+      'warning: ${SCRIPT_FILE_NOT_FOUND.create({'url': 'a.dart'}).snippet} '
+          '(web/test.html 1 0)',
     ]);
 
   testPhases('many script src around, valid and invalid', phases, {
@@ -267,7 +268,9 @@ validateUriTests() {
     }, {
       'a|web/test.html._data': expectedData(['web/a.dart', 'web/c.dart']),
     }, [
-      'warning: Script file at "b.dart" not found. (web/test.html 1 0)',
-      'warning: Script file at "d.dart" not found. (web/test.html 3 0)',
+      'warning: ${SCRIPT_FILE_NOT_FOUND.create({'url': 'b.dart'}).snippet} '
+          '(web/test.html 1 0)',
+      'warning: ${SCRIPT_FILE_NOT_FOUND.create({'url': 'd.dart'}).snippet} '
+          '(web/test.html 3 0)',
     ]);
 }

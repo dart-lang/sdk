@@ -13,10 +13,6 @@
     'json.h',
     'floating_point.h',
     'floating_point_win.h',
-    'thread.h',
-    'thread_linux.h',
-    'thread_macos.h',
-    'thread_win.h',
     'utils.h',
   ],
 }

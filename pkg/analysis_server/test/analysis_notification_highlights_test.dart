@@ -8,10 +8,10 @@ import 'dart:async';
 
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
+import 'reflective_tests.dart';
 
 
 main() {
@@ -37,7 +37,8 @@ class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
             '${regions.join('\n')}');
   }
 
-  void assertHasRegion(HighlightRegionType type, String search, [int length = -1]) {
+  void assertHasRegion(HighlightRegionType type, String search, [int length =
+      -1]) {
     int offset = findOffset(search);
     length = findRegionLength(search, length);
     assertHasRawRegion(type, offset, length);
@@ -62,7 +63,8 @@ class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
   }
 
 
-  void assertNoRegion(HighlightRegionType type, String search, [int length = -1]) {
+  void assertNoRegion(HighlightRegionType type, String search, [int length =
+      -1]) {
     int offset = findOffset(search);
     length = findRegionLength(search, length);
     assertNoRawRegion(type, offset, length);
@@ -343,7 +345,10 @@ main() {
 }''');
     _addLibraryForTestPart();
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.BUILT_IN, 'part of', 'part of'.length);
+      assertHasRegion(
+          HighlightRegionType.BUILT_IN,
+          'part of',
+          'part of'.length);
       assertNoRegion(HighlightRegionType.BUILT_IN, 'part = 1');
       assertNoRegion(HighlightRegionType.BUILT_IN, 'of = 2');
     });
@@ -483,8 +488,12 @@ part 'part.dart';
 ''');
     return prepareHighlights().then((_) {
       assertHasStringRegion(HighlightRegionType.DIRECTIVE, "library lib;");
-      assertHasStringRegion(HighlightRegionType.DIRECTIVE, "import 'dart:math';");
-      assertHasStringRegion(HighlightRegionType.DIRECTIVE, "export 'dart:math';");
+      assertHasStringRegion(
+          HighlightRegionType.DIRECTIVE,
+          "import 'dart:math';");
+      assertHasStringRegion(
+          HighlightRegionType.DIRECTIVE,
+          "export 'dart:math';");
       assertHasStringRegion(HighlightRegionType.DIRECTIVE, "part 'part.dart';");
     });
   }
@@ -706,6 +715,21 @@ void main() {
     });
   }
 
+  test_LABEL() {
+    addTestFile('''
+main() {
+myLabel:
+  while (true) {
+    break myLabel;
+  }
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.LABEL, 'myLabel:');
+      assertHasRegion(HighlightRegionType.LABEL, 'myLabel;');
+    });
+  }
+
   test_LITERAL_BOOLEAN() {
     addTestFile('var V = true;');
     return prepareHighlights().then((_) {
@@ -746,7 +770,10 @@ void main() {
   test_LITERAL_STRING() {
     addTestFile('var V = "abc";');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.LITERAL_STRING, '"abc";', '"abc"'.length);
+      assertHasRegion(
+          HighlightRegionType.LITERAL_STRING,
+          '"abc";',
+          '"abc"'.length);
     });
   }
 
@@ -759,7 +786,9 @@ main() {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.LOCAL_VARIABLE_DECLARATION, 'vvv = 0');
+      assertHasRegion(
+          HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
+          'vvv = 0');
       assertHasRegion(HighlightRegionType.LOCAL_VARIABLE, 'vvv;');
       assertHasRegion(HighlightRegionType.LOCAL_VARIABLE, 'vvv = 1;');
     });
@@ -780,7 +809,9 @@ main(A a) {
 ''');
     return prepareHighlights().then((_) {
       assertHasRegion(HighlightRegionType.METHOD_DECLARATION, 'aaa() {}');
-      assertHasRegion(HighlightRegionType.METHOD_DECLARATION_STATIC, 'bbb() {}');
+      assertHasRegion(
+          HighlightRegionType.METHOD_DECLARATION_STATIC,
+          'bbb() {}');
       assertHasRegion(HighlightRegionType.METHOD, 'aaa();');
       assertHasRegion(HighlightRegionType.METHOD, 'aaa;');
       assertHasRegion(HighlightRegionType.METHOD_STATIC, 'bbb();');
@@ -845,7 +876,9 @@ main() {
 ''');
     return prepareHighlights().then((_) {
       assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV = 0');
-      assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV // annotation');
+      assertHasRegion(
+          HighlightRegionType.TOP_LEVEL_VARIABLE,
+          'VVV // annotation');
       assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV);');
       assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV = 1');
     });
@@ -890,14 +923,14 @@ part 'test.dart';
 
 @ReflectiveTestCase()
 class HighlightTypeTest {
-  void test_toString() {
-    expect(HighlightRegionType.CLASS.toString(), 'HighlightRegionType.CLASS');
-  }
-
   void test_constructor() {
     expect(
         HighlightRegionType.CLASS,
         new HighlightRegionType(HighlightRegionType.CLASS.name));
+  }
+
+  void test_toString() {
+    expect(HighlightRegionType.CLASS.toString(), 'HighlightRegionType.CLASS');
   }
 
   void test_valueOf_unknown() {

@@ -53,7 +53,7 @@ class ServiceRefElement extends ObservatoryElement {
 
   // Workaround isEmpty not being useable due to missing @MirrorsUsed.
   bool get nameIsEmpty {
-    return name.isEmpty;
+    return (name == null) || name.isEmpty;
   }
 }
 
@@ -94,6 +94,14 @@ class AnyServiceRefElement extends ObservatoryElement {
         ServiceRefElement element = new Element.tag('library-ref');
         element.ref = ref;
         return element;
+      case 'Object':
+        ServiceRefElement element = new Element.tag('object-ref');
+        element.ref = ref;
+        return element;
+      case 'Script':
+        ServiceRefElement element = new Element.tag('script-ref');
+        element.ref = ref;
+        return element;
       default:
         if (ref.isInstance ||
             ref.isSentinel) {  // TODO(rmacnak): Separate this out.
@@ -124,4 +132,9 @@ class AnyServiceRefElement extends ObservatoryElement {
     children.add(element);
     Logger.root.info('Viewing object of \'${type}\'');
   }
+}
+
+@CustomTag('object-ref')
+class ObjectRefElement extends ServiceRefElement {
+  ObjectRefElement.created() : super.created();
 }

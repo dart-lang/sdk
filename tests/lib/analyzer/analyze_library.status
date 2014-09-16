@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2analyzer ]
-lib/_internal: Skip # Slow like a hell - timeouts.
-
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 lib/html/dart2js/html_dart2js: CompileTimeError # Issue 16522
 lib/html/html_common/html_common_dart2js: CompileTimeError # Issue 16522

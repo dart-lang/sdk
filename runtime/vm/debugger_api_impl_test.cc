@@ -271,10 +271,20 @@ static void VerifyStackTrace(Dart_StackTrace trace,
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
   EXPECT_TRUE(res);
+  uintptr_t last_frame_pointer = 0;
+  uintptr_t frame_pointer;
   for (int i = 0; i < trace_len; i++) {
     Dart_ActivationFrame frame;
     res = Dart_GetActivationFrame(trace, i, &frame);
     EXPECT_TRUE(res);
+
+    res = Dart_ActivationFrameGetFramePointer(frame, &frame_pointer);
+    EXPECT_TRUE(res);
+    if (i > 0) {
+      // We expect the stack to grow from high to low addresses.
+      EXPECT_GT(frame_pointer, last_frame_pointer);
+    }
+    last_frame_pointer = frame_pointer;
     if (i < expected_frames) {
       VerifyStackFrame(frame, func_names[i], local_vars[i], skip_null_expects);
     } else {

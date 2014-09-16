@@ -164,6 +164,40 @@ main() {
 ''');
   }
 
+  test_OK_parenthesis_instanceCreation_intoList() {
+    indexTestUnit('''
+class A {}
+main() {
+  var test = new A();
+  var list = [test];
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    return assertSuccessfulRefactoring('''
+class A {}
+main() {
+  var list = [new A()];
+}
+''');
+  }
+
+  test_OK_parenthesis_plus_intoMultiply() {
+    indexTestUnit('''
+main() {
+  var test = 1 + 2;
+  print(test * 3);
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    return assertSuccessfulRefactoring('''
+main() {
+  print((1 + 2) * 3);
+}
+''');
+  }
+
   test_OK_twoUsages() {
     indexTestUnit('''
 main() {

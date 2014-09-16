@@ -98,6 +98,7 @@ TypeArguments* Object::null_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
 Array* Object::zero_array_ = NULL;
 PcDescriptors* Object::empty_descriptors_ = NULL;
+LocalVarDescriptors* Object::empty_var_descriptors_ = NULL;
 Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
 Instance* Object::unknown_constant_ = NULL;
@@ -435,6 +436,7 @@ void Object::InitOnce() {
   empty_array_ = Array::ReadOnlyHandle();
   zero_array_ = Array::ReadOnlyHandle();
   empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
+  empty_var_descriptors_ = LocalVarDescriptors::ReadOnlyHandle();
   sentinel_ = Instance::ReadOnlyHandle();
   transition_sentinel_ = Instance::ReadOnlyHandle();
   unknown_constant_ =  Instance::ReadOnlyHandle();
@@ -665,6 +667,18 @@ void Object::InitOnce() {
     empty_descriptors_->raw_ptr()->length_ = 0;
   }
 
+  // Allocate and initialize the canonical empty variable descriptor object.
+  {
+    uword address =
+        heap->Allocate(LocalVarDescriptors::InstanceSize(0), Heap::kOld);
+    InitializeObject(address,
+                     kLocalVarDescriptorsCid,
+                     LocalVarDescriptors::InstanceSize(0));
+    LocalVarDescriptors::initializeHandle(
+        empty_var_descriptors_,
+        reinterpret_cast<RawLocalVarDescriptors*>(address + kHeapObjectTag));
+    empty_var_descriptors_->raw_ptr()->num_entries_ = 0;
+  }
 
   cls = Class::New<Instance>(kDynamicCid);
   cls.set_is_abstract();
@@ -3614,6 +3628,15 @@ void Class::set_allocation_stub(const Code& value) const {
   ASSERT(!value.IsNull());
   ASSERT(raw_ptr()->allocation_stub_ == Code::null());
   StorePointer(&raw_ptr()->allocation_stub_, value.raw());
+}
+
+
+void Class::DisableAllocationStub() const {
+  const Code& alloc_stub = Code::Handle(allocation_stub());
+  if (!alloc_stub.IsNull()) {
+    CodePatcher::PatchEntry(alloc_stub);
+    StorePointer(&raw_ptr()->allocation_stub_, Code::null());
+  }
 }
 
 
@@ -7982,6 +8005,9 @@ void TokenStream::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
+  Class& cls = Class::Handle(this->clazz());
+  jsobj.AddProperty("class", cls);
+  jsobj.AddProperty("size", raw()->Size());
   const String& private_key = String::Handle(PrivateKey());
   jsobj.AddProperty("privateKey", private_key);
   // TODO(johnmccutchan): Add support for printing LiteralTokens and add
@@ -8525,14 +8551,14 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   intptr_t lib_index = (lib.IsNull()) ? -1 : lib.index();
   jsobj.AddPropertyF("id", "libraries/%" Pd "/scripts/%s",
       lib_index, encoded_url.ToCString());
-  jsobj.AddProperty("name", name.ToCString());
+  jsobj.AddPropertyStr("name", name);
   jsobj.AddProperty("kind", GetKindAsCString());
   if (ref) {
     return;
   }
   jsobj.AddProperty("owningLibrary", lib);
   const String& source = String::Handle(Source());
-  jsobj.AddProperty("source", source.ToCString());
+  jsobj.AddPropertyStr("source", source);
 
   // Print the line number table
   {
@@ -9812,8 +9838,8 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   AddTypeProperties(&jsobj, "Library", JSONType(), ref);
   jsobj.AddPropertyF("id", "libraries/%" Pd "", id);
   jsobj.AddProperty("name", library_name);
-  const char* library_url = String::Handle(url()).ToCString();
-  jsobj.AddProperty("url", library_url);
+  const String& library_url = String::Handle(url());
+  jsobj.AddPropertyStr("url", library_url);
   if (ref) {
     return;
   }
@@ -10605,6 +10631,9 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
   if (ref) {
     return;
   }
+  Class& cls = Class::Handle(this->clazz());
+  jsobj->AddProperty("class", cls);
+  jsobj->AddProperty("size", raw()->Size());
   JSONArray members(jsobj, "members");
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
@@ -10769,11 +10798,8 @@ void Stackmap::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
   ASSERT(var_index < Length());
-  const Array& names = Array::Handle(raw_ptr()->names_);
-  ASSERT(Length() == names.Length());
-  String& name = String::Handle();
-  name ^= names.At(var_index);
-  return name.raw();
+  ASSERT(Object::Handle(*raw()->nameAddrAt(var_index)).IsString());
+  return *raw()->nameAddrAt(var_index);
 }
 
 
@@ -10781,17 +10807,16 @@ void LocalVarDescriptors::SetVar(intptr_t var_index,
                                  const String& name,
                                  RawLocalVarDescriptors::VarInfo* info) const {
   ASSERT(var_index < Length());
-  const Array& names = Array::Handle(raw_ptr()->names_);
-  ASSERT(Length() == names.Length());
-  names.SetAt(var_index, name);
-  raw_ptr()->data()[var_index] = *info;
+  ASSERT(!name.IsNull());
+  StorePointer(raw()->nameAddrAt(var_index), name.raw());
+  raw()->data()[var_index] = *info;
 }
 
 
 void LocalVarDescriptors::GetInfo(intptr_t var_index,
                                   RawLocalVarDescriptors::VarInfo* info) const {
   ASSERT(var_index < Length());
-  *info = raw_ptr()->data()[var_index];
+  *info = raw()->data()[var_index];
 }
 
 
@@ -10870,9 +10895,6 @@ const char* LocalVarDescriptors::ToCString() const {
   for (intptr_t i = 0; i < Length(); i++) {
     RawLocalVarDescriptors::VarInfo info;
     var_name = GetName(i);
-    if (var_name.IsNull()) {
-      var_name = Symbols::Empty().raw();
-    }
     GetInfo(i, &info);
     len += PrintVarInfo(NULL, 0, i, var_name, info);
   }
@@ -10882,9 +10904,6 @@ const char* LocalVarDescriptors::ToCString() const {
   for (intptr_t i = 0; i < Length(); i++) {
     RawLocalVarDescriptors::VarInfo info;
     var_name = GetName(i);
-    if (var_name.IsNull()) {
-      var_name = Symbols::Empty().raw();
-    }
     GetInfo(i, &info);
     num_chars += PrintVarInfo((buffer + num_chars),
                               (len - num_chars),
@@ -10906,14 +10925,14 @@ void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
   if (ref) {
     return;
   }
+  Class& cls = Class::Handle(this->clazz());
+  jsobj.AddProperty("class", cls);
+  jsobj.AddProperty("size", raw()->Size());
   JSONArray members(&jsobj, "members");
   String& var_name = String::Handle();
   for (intptr_t i = 0; i < Length(); i++) {
     RawLocalVarDescriptors::VarInfo info;
     var_name = GetName(i);
-    if (var_name.IsNull()) {
-      var_name = Symbols::Empty().raw();
-    }
     GetInfo(i, &info);
     JSONObject var(&members);
     var.AddProperty("name", var_name.ToCString());
@@ -10960,17 +10979,14 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->length_ = num_variables;
+    result.raw_ptr()->num_entries_ = num_variables;
   }
-  const Array& names = (num_variables == 0) ? Object::empty_array() :
-      Array::Handle(Array::New(num_variables, Heap::kOld));
-  result.raw_ptr()->names_ = names.raw();
   return result.raw();
 }
 
 
 intptr_t LocalVarDescriptors::Length() const {
-  return raw_ptr()->length_;
+  return raw_ptr()->num_entries_;
 }
 
 
@@ -16498,7 +16514,7 @@ RawBigint* Bigint::NewFromDecCString(const char* str, Heap::Space space) {
   const int64_t kLog10Dividend = 33219281;
   const int64_t kLog10Divisor = 10000000;
   result.EnsureLength((kLog10Dividend * str_length) /
-                      (kLog10Divisor * kBitsPerDigit), space);
+                      (kLog10Divisor * kBitsPerDigit) + 1, space);
 
   // Read first digit separately. This avoids a multiplication and addition.
   // The first digit might also not have kDecDigitsPerIteration decimal digits.
@@ -16819,8 +16835,7 @@ const char* Bigint::ToDecCString(uword (*allocator)(intptr_t size)) const {
   intptr_t pos = 0;
   const intptr_t kDivisor = 100000000;
   const intptr_t kDigits = 8;
-  // TODO(regis): Fix Windows error reported for ambiguous call to 'pow'.
-  // ASSERT(pow(10.0, kDigits) == kDivisor);
+  ASSERT(pow(10.0, 1.0 * kDigits) == kDivisor);
   ASSERT(kDivisor < kDigitBase);
   ASSERT(Smi::IsValid(kDivisor));
   // Allocate a copy of the digits.
@@ -17040,7 +17055,7 @@ intptr_t String::Hash(const int32_t* characters, intptr_t len) {
 }
 
 
-int32_t String::CharAt(intptr_t index) const {
+uint16_t String::CharAt(intptr_t index) const {
   intptr_t class_id = raw()->GetClassId();
   ASSERT(RawObject::IsStringClassId(class_id));
   NoGCScope no_gc;
@@ -17197,12 +17212,12 @@ intptr_t String::CompareTo(const String& other) const {
   const intptr_t other_len = other.IsNull() ? 0 : other.Length();
   const intptr_t len = (this_len < other_len) ? this_len : other_len;
   for (intptr_t i = 0; i < len; i++) {
-    int32_t this_code_point = this->CharAt(i);
-    int32_t other_code_point = other.CharAt(i);
-    if (this_code_point < other_code_point) {
+    uint16_t this_code_unit = this->CharAt(i);
+    uint16_t other_code_unit = other.CharAt(i);
+    if (this_code_unit < other_code_unit) {
       return -1;
     }
-    if (this_code_point > other_code_point) {
+    if (this_code_unit > other_code_unit) {
       return 1;
     }
   }
@@ -17727,17 +17742,10 @@ RawString* String::SubString(const String& str,
 
 
 const char* String::ToCString() const {
-  intptr_t length;
-  return ToCString(&length);
-}
-
-
-const char* String::ToCString(intptr_t* length) const {
   if (IsOneByteString()) {
     // Quick conversion if OneByteString contains only ASCII characters.
     intptr_t len = Length();
     if (len == 0) {
-      *length = 0;
       return "";
     }
     Zone* zone = Isolate::Current()->current_zone();
@@ -17754,7 +17762,6 @@ const char* String::ToCString(intptr_t* length) const {
     }
     if (len > 0) {
       result[len] = 0;
-      *length = len;
       return reinterpret_cast<const char*>(result);
     }
   }
@@ -17763,30 +17770,7 @@ const char* String::ToCString(intptr_t* length) const {
   uint8_t* result = zone->Alloc<uint8_t>(len + 1);
   ToUTF8(result, len);
   result[len] = 0;
-  *length = len;
   return reinterpret_cast<const char*>(result);
-}
-
-
-const char* String::ToCStringTruncated(intptr_t max_len,
-                                       bool* did_truncate,
-                                       intptr_t* length) const {
-  if (Length() <= max_len) {
-    *did_truncate = false;
-    return ToCString(length);
-  }
-
-  intptr_t aligned_limit = max_len;
-  if (Utf16::IsLeadSurrogate(CharAt(max_len - 1))) {
-    // Don't let truncation split a surrogate pair.
-    aligned_limit--;
-  }
-  ASSERT(!Utf16::IsLeadSurrogate(CharAt(aligned_limit - 1)));
-
-  *did_truncate = true;
-  const String& truncated =
-      String::Handle(String::SubString(*this, 0, aligned_limit));
-  return truncated.ToCString(length);
 }
 
 
@@ -17807,17 +17791,13 @@ void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   if (ref) {
-    bool did_truncate = false;
-    intptr_t length = 0;
-    const char* cstr = ToCStringTruncated(128, &did_truncate, &length);
-    jsobj.AddProperty("valueAsString", cstr, length);
+    bool did_truncate = jsobj.AddPropertyStr("valueAsString", *this, 128);
     if (did_truncate) {
       jsobj.AddProperty("valueAsStringIsTruncated", did_truncate);
     }
   } else {
-    intptr_t length = 0;
-    const char* cstr = ToCString(&length);
-    jsobj.AddProperty("valueAsString", cstr, length);
+    bool did_truncate = jsobj.AddPropertyStr("valueAsString", *this);
+    ASSERT(!did_truncate);
   }
 }
 

@@ -250,7 +250,7 @@ class AnalyzerImpl {
         PubPackageMapProvider pubPackageMapProvider =
             new PubPackageMapProvider(PhysicalResourceProvider.INSTANCE, sdk);
         PackageMapInfo packageMapInfo = pubPackageMapProvider.computePackageMap(
-            PhysicalResourceProvider.INSTANCE.getResource(''));
+            PhysicalResourceProvider.INSTANCE.getResource('.'));
         resolvers.add(
             new PackageMapUriResolver(
                 PhysicalResourceProvider.INSTANCE,

@@ -338,25 +338,34 @@ List<Uri> _findLibrariesToDocument(List<String> args, bool
 
 /// Given a package name, explore the directory and pull out all top level
 /// library files in the "lib" directory to document.
-List<Uri> _findFilesToDocumentInPackage(String packageName) {
+List<Uri> _findFilesToDocumentInPackage(String packageDir) {
   var libraries = [];
   // To avoid anaylzing package files twice, only files with paths not
   // containing '/packages' will be added. The only exception is if the file
   // to analyze already has a '/package' in its path.
-  var files = listDir(packageName, recursive: true, listDir: _packageDirList)
+  var files = listDir(packageDir, recursive: true, listDir: _packageDirList)
       .where((f) => f.endsWith('.dart') &&
         (!f.contains('${path.separator}packages') ||
-            packageName.contains('${path.separator}packages')))
+            packageDir.contains('${path.separator}packages')))
       .toList();
 
+  var packageLibDir = path.join(packageDir, 'lib');
+  var packageLibSrcDir = path.join(packageLibDir, 'src');
+
   files.forEach((String lib) {
-    // Only include libraries at the top level of "lib"
-    if (path.basename(path.dirname(lib)) == 'lib') {
+    // Only include libraries within the lib dir that are not in lib/src
+    if (path.isWithin(packageLibDir, lib) &&
+        !path.isWithin(packageLibSrcDir, lib)) {
       // Only add the file if it does not contain 'part of'
       // TODO(janicejl): Remove when Issue(12406) is resolved.
       var contents = new File(lib).readAsStringSync();
-      if (!(contents.contains(new RegExp('\npart of ')) ||
-          contents.startsWith(new RegExp('part of ')))) {
+
+
+      if (contents.contains(new RegExp('\npart of ')) ||
+          contents.startsWith(new RegExp('part of '))) {
+        logger.warning('Skipping part "$lib". '
+            'Part files should be in "lib/src".');
+      } else {
         libraries.add(new Uri.file(path.normalize(path.absolute(lib))));
         logger.info('Added to libraries: $lib');
       }

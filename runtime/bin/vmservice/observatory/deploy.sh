@@ -20,5 +20,6 @@ EXCLUDE="$EXCLUDE --exclude *.scriptUrls"
 EXCLUDE="$EXCLUDE --exclude *.precompiled.js"
 EXCLUDE="$EXCLUDE --exclude main.*"
 EXCLUDE="$EXCLUDE --exclude unittest"
+EXCLUDE="$EXCLUDE --exclude *_buildLogs*"
 
 rsync -av --progress build/web/ deployed/web/ $EXCLUDE

@@ -103,12 +103,11 @@ class ExecutionDomainHandler implements RequestHandler {
             'Either file or uri must be provided, but not both');
       }
       Source source = server.getSource(path);
-      // TODO(brianwilkerson) Figure out how to perform the mapping.
-      String uri = '';
+      String uri = context.sourceFactory.restoreUri(source).toString();
       return new ExecutionMapUriResult(uri: uri).toResponse(request.id);
     } else if (params.uri != null) {
-      // TODO(brianwilkerson) Figure out how to perform the mapping.
-      String file = '';
+      Source source = context.sourceFactory.forUri(params.uri);
+      String file = source.fullName;
       return new ExecutionMapUriResult(file: file).toResponse(request.id);
     }
     return new Response.invalidParameter(

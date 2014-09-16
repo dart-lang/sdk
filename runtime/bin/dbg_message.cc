@@ -132,20 +132,20 @@ static void FormatEncodedCharsTrunc(dart::TextBuffer* buf,
   Dart_Handle res = Dart_StringLength(str, &str_len);
   ASSERT_NOT_ERROR(res);
   intptr_t num_chars = (str_len > max_chars) ? max_chars : str_len;
-  uint16_t* codepoints =
+  uint16_t* codeunits =
       reinterpret_cast<uint16_t*>(malloc(num_chars * sizeof(uint16_t)));
-  ASSERT(codepoints != NULL);
+  ASSERT(codeunits != NULL);
   intptr_t actual_len = num_chars;
-  res = Dart_StringToUTF16(str, codepoints, &actual_len);
+  res = Dart_StringToUTF16(str, codeunits, &actual_len);
   ASSERT_NOT_ERROR(res);
   ASSERT(num_chars == actual_len);
   for (int i = 0; i < num_chars; i++) {
-    buf->AddEscapedChar(codepoints[i]);
+    buf->EscapeAndAddCodeUnit(codeunits[i]);
   }
   if (str_len > max_chars) {
     buf->Printf("...");
   }
-  free(codepoints);
+  free(codeunits);
 }
 
 
@@ -153,17 +153,17 @@ static void FormatEncodedChars(dart::TextBuffer* buf, Dart_Handle str) {
   intptr_t str_len = 0;
   Dart_Handle res = Dart_StringLength(str, &str_len);
   ASSERT_NOT_ERROR(res);
-  uint16_t* codepoints =
+  uint16_t* codeunits =
       reinterpret_cast<uint16_t*>(malloc(str_len * sizeof(uint16_t)));
-  ASSERT(codepoints != NULL);
+  ASSERT(codeunits != NULL);
   intptr_t actual_len = str_len;
-  res = Dart_StringToUTF16(str, codepoints, &actual_len);
+  res = Dart_StringToUTF16(str, codeunits, &actual_len);
   ASSERT_NOT_ERROR(res);
   ASSERT(str_len == actual_len);
   for (int i = 0; i < str_len; i++) {
-    buf->AddEscapedChar(codepoints[i]);
+    buf->EscapeAndAddCodeUnit(codeunits[i]);
   }
-  free(codepoints);
+  free(codeunits);
 }
 
 

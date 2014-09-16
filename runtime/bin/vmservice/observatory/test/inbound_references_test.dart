@@ -30,7 +30,7 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
-    Instance e = lib.variables.where((v) => v.name == 'e').single['value'];
+    Instance e = lib.variables.where((v) => v.name == 'e').single.value;
     var id = e.id;
     return isolate.get('/$id/inbound_references?limit=100').then(
         (ServiceMap response) {
@@ -41,15 +41,14 @@ var tests = [
 
           // Assert e is referenced by at least n, array, and the top-level
           // field e.
-          hasReferenceSuchThat((r) => r['slot'] is Map &&
-                                      r['slot']['type']=='@Field' &&
-                                      r['slot']['name']=='edge' &&
+          hasReferenceSuchThat((r) => r['slot'] is Field &&
+                                      r['slot'].name=='edge' &&
                                       r['source'].isInstance &&
                                       r['source'].clazz.name=='Node');
           hasReferenceSuchThat((r) => r['slot'] == 1 &&
                                       r['source'].isList);
           hasReferenceSuchThat((r) => r['slot']=='<unknown>' &&
-                                      r['source']['type']=='@Field');
+                                      r['source'] is Field);
     });
 }),
 

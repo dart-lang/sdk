@@ -36,12 +36,12 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
-    ServiceMap keyField = lib.variables.singleWhere((v) => v.name == 'key');
-    Instance key = keyField['value'];
-    ServiceMap valueField = lib.variables.singleWhere((v) => v.name == 'value');
-    Instance value = valueField['value'];
-    ServiceMap propField = lib.variables.singleWhere((v) => v.name == 'weak_property');
-    Instance prop = propField['value'];
+    Field keyField = lib.variables.singleWhere((v) => v.name == 'key');
+    Instance key = keyField.value;
+    Field valueField = lib.variables.singleWhere((v) => v.name == 'value');
+    Instance value = valueField.value;
+    Field propField = lib.variables.singleWhere((v) => v.name == 'weak_property');
+    Instance prop = propField.value;
 
     expect(key.isWeakProperty, isFalse);
     expect(value.isWeakProperty, isFalse);

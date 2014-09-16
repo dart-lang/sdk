@@ -86,6 +86,48 @@ class Resources {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Resources);
 };
 
+
+void TriggerResourceLoad(Dart_NativeArguments args) {
+  Dart_Handle library = Dart_RootLibrary();
+  ASSERT(!Dart_IsError(library));
+  Dart_Handle result = VmService::LoadResources(library);
+  ASSERT(!Dart_IsError(result));
+}
+
+
+struct VmServiceIONativeEntry {
+  const char* name;
+  int num_arguments;
+  Dart_NativeFunction function;
+};
+
+
+static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
+  {"VMServiceIO_TriggerResourceLoad", 0, TriggerResourceLoad},
+};
+
+
+static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
+                                                     int num_arguments,
+                                                     bool* auto_setup_scope) {
+  const char* function_name = NULL;
+  Dart_Handle result = Dart_StringToCString(name, &function_name);
+  ASSERT(!Dart_IsError(result));
+  ASSERT(function_name != NULL);
+  *auto_setup_scope = true;
+  intptr_t n =
+      sizeof(_VmServiceIONativeEntries) / sizeof(_VmServiceIONativeEntries[0]);
+  for (intptr_t i = 0; i < n; i++) {
+    VmServiceIONativeEntry entry = _VmServiceIONativeEntries[i];
+    if ((strcmp(function_name, entry.name) == 0) &&
+        (num_arguments == entry.num_arguments)) {
+      return entry.function;
+    }
+  }
+  return NULL;
+}
+
+
 const char* VmService::error_msg_ = NULL;
 
 bool VmService::Start(const char *server_ip, intptr_t server_port) {
@@ -103,7 +145,7 @@ bool VmService::_Start(const char *server_ip, intptr_t server_port) {
   ASSERT(Dart_CurrentIsolate() == NULL);
   Dart_Isolate isolate = Dart_GetServiceIsolate(NULL);
   if (isolate == NULL) {
-    error_msg_ = "Internal error.";
+    error_msg_ = "Dart_GetServiceIsolate failed.";
     return false;
   }
   Dart_EnterIsolate(isolate);
@@ -111,7 +153,8 @@ bool VmService::_Start(const char *server_ip, intptr_t server_port) {
   // Install our own library tag handler.
   Dart_SetLibraryTagHandler(LibraryTagHandler);
   Dart_Handle result;
-  Dart_Handle library = LoadScript(kVMServiceIOLibraryScriptResourceName);
+  Dart_Handle library;
+  library = LoadScript(kVMServiceIOLibraryScriptResourceName);
   // Expect a library.
   ASSERT(library != Dart_Null());
   SHUTDOWN_ON_ERROR(library);
@@ -130,6 +173,8 @@ bool VmService::_Start(const char *server_ip, intptr_t server_port) {
   Dart_EnterIsolate(isolate);
   Dart_EnterScope();
   library = Dart_RootLibrary();
+  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
+  ASSERT(!Dart_IsError(result));
   // Set requested TCP port.
   DartUtils::SetStringField(library, "_ip", server_ip);
   // If we have a port specified, start the server immediately.
@@ -146,19 +191,21 @@ bool VmService::_Start(const char *server_ip, intptr_t server_port) {
                 Dart_NewBoolean(auto_start));
   // We cannot register for signals on windows.
 #if defined(TARGET_OS_WINDOWS)
-  const bool is_windows = true;
+  Dart_Handle is_windows = Dart_True();
 #else
-  const bool is_windows = false;
+  Dart_Handle is_windows = Dart_False();
 #endif
-  Dart_SetField(library,
-                DartUtils::NewString("_isWindows"),
-                Dart_NewBoolean(is_windows));
+  Dart_SetField(library, DartUtils::NewString("_isWindows"), is_windows);
 
+
+  // Get _getWatchSignalInternal from dart:io.
+  Dart_Handle dart_io_str = Dart_NewStringFromCString(DartUtils::kIOLibURL);
+  Dart_Handle io_lib = Dart_LookupLibrary(dart_io_str);
+  Dart_Handle function_name =
+      Dart_NewStringFromCString("_getWatchSignalInternal");
+  Dart_Handle signal_watch = Dart_Invoke(io_lib, function_name, 0, NULL);
   // Invoke main.
-  result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
-  SHUTDOWN_ON_ERROR(result);
-  // Load resources.
-  result = LoadResources(library);
+  result = Dart_Invoke(library, DartUtils::NewString("main"), 1, &signal_watch);
   SHUTDOWN_ON_ERROR(result);
 
   Dart_ExitScope();

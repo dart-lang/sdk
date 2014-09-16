@@ -8,7 +8,7 @@ dart:html APIs from the IDL database."""
 
 import emitter
 from generator import AnalyzeOperation, ConstantOutputOrder, \
-    DartDomNameOfAttribute, FindMatchingAttribute, \
+    DartDomNameOfAttribute, FindMatchingAttribute, IsPureInterface, \
     TypeOrNothing, ConvertToFuture, GetCallbackInfo
 from copy import deepcopy
 from htmlrenamer import convert_to_future_members, custom_html_constructors, \
@@ -143,9 +143,16 @@ class HtmlDartGenerator(object):
     if not interface.parents:
       return
 
-    parent = self._database.GetInterface(interface.parents[0].type.id)
+    parent_name = interface.parents[0].type.id
+    parent = self._database.GetInterface(parent_name)
     if parent == self._interface or parent == interface:
       return
+
+    # Never remove operations that are added as a result of an implements they
+    # are pure interfaces (mixins to this interface).
+    if (IsPureInterface(parent_name)):
+      return
+
     for operation in parent.operations:
       if operation.id in operationsByName:
         operations = operationsByName[operation.id]
@@ -354,6 +361,10 @@ class HtmlDartGenerator(object):
 
     def GenerateChecksAndCall(signature_index, argument_count):
       checks = []
+      typechecked_interface = \
+          ('TypeChecking' in self._interface.ext_attrs) and \
+          ('Interface' in self._interface.ext_attrs['TypeChecking'])
+
       for i in reversed(range(0, argument_count)):
         argument = signatures[signature_index][i]
         parameter_name = parameter_names[i]
@@ -363,8 +374,19 @@ class HtmlDartGenerator(object):
         if test_type in ['dynamic', 'Object']:
           checks.append('%s != null' % parameter_name)
         elif not can_omit_type_check(test_type, i):
-          checks.append('(%s is %s || %s == null)' % (
-              parameter_name, test_type, parameter_name))
+          typechecked = typechecked_interface or \
+              ('TypeChecking' in argument.ext_attrs) and \
+              ('Interface' in argument.ext_attrs['TypeChecking'])
+          converts_null = \
+              ('TreatNullAs' in argument.ext_attrs) or \
+              (argument.default_value is not None) or \
+              (argument.default_value_is_null)
+          if argument.type.nullable or converts_null or not typechecked:
+            checks.append('(%s is %s || %s == null)' % (
+                parameter_name, test_type, parameter_name))
+          else:
+            checks.append('(%s is %s)' % (
+                parameter_name, test_type))
         elif i >= number_of_required_in_dart:
           checks.append('%s != null' % parameter_name)
 

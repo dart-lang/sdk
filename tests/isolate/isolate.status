@@ -40,9 +40,6 @@ pause_test: Fail  # non-zero timer not supported.
 [ $compiler == dart2js ]
 serialization_test: RuntimeError # Issue 1882, tries to access class TestingOnly declared in isolate_patch.dart
 
-[ $compiler == dart2js && $runtime == ie9 ]
-browser/typed_data_message_test: Fail # Issue 12624
-
 [ $compiler == dart2js && $runtime == safari ]
 cross_isolate_message_test: Skip # Issue 12627
 message_test: Skip # Issue 12627
@@ -53,9 +50,6 @@ spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
 
 [ $compiler == dart2js && $jscl ]
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
-
-[ $compiler == dart2js && $runtime == ie9 ]
-spawn_uri_test: Fail # Issue 12630
 
 [ $compiler == dart2js && $runtime == none ]
 serialization_test: Pass # Issue 12628
@@ -81,7 +75,7 @@ unresolved_ports_test: Pass, Timeout # Issue 15610
 [ $compiler == none && $runtime == drt ]
 spawn_uri_nested_vm_test: Skip # Issue 14463
 
-[ $jscl || $runtime == ie9 ]
+[ $jscl ]
 spawn_uri_multi_test/none: RuntimeError # http://dartbug.com/13544
 
 [ ($compiler == none || $compiler == dart2dart) && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]

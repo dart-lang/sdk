@@ -95,6 +95,8 @@ class AnalysisDomainHandler implements RequestHandler {
         return getErrors(request);
       } else if (requestName == ANALYSIS_GET_HOVER) {
         return getHover(request);
+      } else if (requestName == ANALYSIS_REANALYZE) {
+        return reanalyze(request);
       } else if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {
         return setAnalysisRoots(request);
       } else if (requestName == ANALYSIS_SET_PRIORITY_FILES) {
@@ -110,6 +112,14 @@ class AnalysisDomainHandler implements RequestHandler {
       return exception.response;
     }
     return null;
+  }
+
+  /**
+   * Implement the 'analysis.reanalyze' request.
+   */
+  Response reanalyze(Request request) {
+    server.reanalyze();
+    return new AnalysisReanalyzeResult().toResponse(request.id);
   }
 
   /**

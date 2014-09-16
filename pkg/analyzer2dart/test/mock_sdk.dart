@@ -68,6 +68,8 @@ class Map<K, V> extends Object {}
 external bool identical(Object a, Object b);
 
 void print(Object object) {}
+
+typedef int Comparator<T>(T a, T b);
 ''');
 
   static const _MockSdkLibrary LIB_ASYNC =
@@ -105,6 +107,11 @@ class HtmlElement {}
   final resource.MemoryResourceProvider provider =
       new resource.MemoryResourceProvider();
 
+  /**
+   * The [AnalysisContext] which is used for all of the sources.
+   */
+  InternalAnalysisContext _analysisContext;
+
   MockSdk() {
     LIBRARIES.forEach((_MockSdkLibrary library) {
       provider.newFile(library.path, library.content);
@@ -112,7 +119,20 @@ class HtmlElement {}
   }
 
   @override
-  AnalysisContext get context => throw unimplemented;
+  AnalysisContext get context {
+    if (_analysisContext == null) {
+      _analysisContext = new SdkAnalysisContext();
+      SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
+      _analysisContext.sourceFactory = factory;
+      ChangeSet changeSet = new ChangeSet();
+      for (String uri in uris) {
+        Source source = factory.forUri(uri);
+        changeSet.addedSource(source);
+      }
+      _analysisContext.applyChanges(changeSet);
+    }
+    return _analysisContext;
+  }
 
   @override
   List<SdkLibrary> get sdkLibraries => LIBRARIES;
@@ -123,7 +143,13 @@ class HtmlElement {}
   UnimplementedError get unimplemented => new UnimplementedError();
 
   @override
-  List<String> get uris => throw unimplemented;
+  List<String> get uris {
+    List<String> uris = <String>[];
+    for (SdkLibrary library in LIBRARIES) {
+      uris.add('dart:' + library.shortName);
+    }
+    return uris;
+  }
 
   @override
   Source fromFileUri(Uri uri) {

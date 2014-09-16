@@ -63,17 +63,17 @@ class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   static AnalysisContextImpl initContextWithCore(AnalysisContextImpl context) {
-    SourceFactory sourceFactory = new SourceFactory([
-        new DartUriResolver(DirectoryBasedDartSdk.defaultSdk),
-        new FileUriResolver()]);
+    DirectoryBasedDartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
+    SourceFactory sourceFactory = new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
     context.sourceFactory = sourceFactory;
+    AnalysisContext coreContext = sdk.context;
     //
     // dart:core
     //
     TestTypeProvider provider = new TestTypeProvider();
     CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
-    context.setContents(coreSource, "");
+    coreContext.setContents(coreSource, "");
     coreUnit.source = coreSource;
     ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy", []);
     coreUnit.types = <ClassElement> [
@@ -101,14 +101,14 @@ class AnalysisContextFactory {
         deprecatedTopLevelVariableElt.getter,
         deprecatedTopLevelVariableElt.setter];
     coreUnit.topLevelVariables = <TopLevelVariableElement> [proxyTopLevelVariableElt, deprecatedTopLevelVariableElt];
-    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(context, AstFactory.libraryIdentifier2(["dart", "core"]));
+    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(coreContext, AstFactory.libraryIdentifier2(["dart", "core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     //
     // dart:async
     //
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl("async.dart");
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-    context.setContents(asyncSource, "");
+    coreContext.setContents(asyncSource, "");
     asyncUnit.source = asyncSource;
     // Future
     ClassElementImpl futureElement = ElementFactory.classElement2("Future", ["T"]);
@@ -141,14 +141,14 @@ class AnalysisContextFactory {
         completerElement,
         futureElement,
         ElementFactory.classElement2("Stream", ["T"])];
-    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(context, AstFactory.libraryIdentifier2(["dart", "async"]));
+    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
     asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // dart:html
     //
     CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
-    context.setContents(htmlSource, "");
+    coreContext.setContents(htmlSource, "");
     htmlUnit.source = htmlSource;
     ClassElementImpl elementElement = ElementFactory.classElement2("Element", []);
     InterfaceType elementType = elementElement.type;
@@ -178,7 +178,7 @@ class AnalysisContextFactory {
     TopLevelVariableElementImpl document = ElementFactory.topLevelVariableElement3("document", false, true, htmlDocumentElement.type);
     htmlUnit.topLevelVariables = <TopLevelVariableElement> [document];
     htmlUnit.accessors = <PropertyAccessorElement> [document.getter];
-    LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(context, AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
+    LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(coreContext, AstFactory.libraryIdentifier2(["dart", "dom", "html"]));
     htmlLibrary.definingCompilationUnit = htmlUnit;
     HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();
     elementMap[coreSource] = coreLibrary;
@@ -16331,6 +16331,20 @@ class NonErrorResolverTest extends ResolverTestCase {
 }
 
 class NonHintCodeTest extends ResolverTestCase {
+  void fail_issue20904BuggyTypePromotionAtIfJoin_2() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(EngineTestCase.createSource([
+        "f(var message) {",
+        "  if (message is Function) {",
+        "    message = '';",
+        "  }",
+        "  int s = message;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_deadCode_deadBlock_conditionalElse_debugConst() {
     Source source = addSource(EngineTestCase.createSource([
         "const bool DEBUG = true;",
@@ -16540,6 +16554,53 @@ class NonHintCodeTest extends ResolverTestCase {
         "library root;",
         "import 'lib1.dart' deferred as lib1;",
         "main() { lib1.f(); }"])], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> []);
+  }
+
+  void test_issue20904BuggyTypePromotionAtIfJoin_1() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(EngineTestCase.createSource([
+        "f(var message, var dynamic_) {",
+        "  if (message is Function) {",
+        "    message = dynamic_;",
+        "  }",
+        "  int s = message;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_issue20904BuggyTypePromotionAtIfJoin_3() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(EngineTestCase.createSource([
+        "f(var message) {",
+        "  var dynamic_;",
+        "  if (message is Function) {",
+        "    message = dynamic_;",
+        "  } else {",
+        "    return;",
+        "  }",
+        "  int s = message;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_issue20904BuggyTypePromotionAtIfJoin_4() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(EngineTestCase.createSource([
+        "f(var message) {",
+        "  if (message is Function) {",
+        "    message = '';",
+        "  } else {",
+        "    return;",
+        "  }",
+        "  String s = message;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
   }
 
   void test_missingReturn_emptyFunctionBody() {
@@ -17132,6 +17193,18 @@ class NonHintCodeTest extends ResolverTestCase {
       _ut.test('test_importDeferredLibraryWithLoadFunction', () {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_importDeferredLibraryWithLoadFunction);
+      });
+      _ut.test('test_issue20904BuggyTypePromotionAtIfJoin_1', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_issue20904BuggyTypePromotionAtIfJoin_1);
+      });
+      _ut.test('test_issue20904BuggyTypePromotionAtIfJoin_3', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_issue20904BuggyTypePromotionAtIfJoin_3);
+      });
+      _ut.test('test_issue20904BuggyTypePromotionAtIfJoin_4', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_issue20904BuggyTypePromotionAtIfJoin_4);
       });
       _ut.test('test_missingReturn_emptyFunctionBody', () {
         final __test = new NonHintCodeTest();
@@ -18501,7 +18574,6 @@ class SimpleResolverTest extends ResolverTestCase {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    JUnitTestCase.assertNull(rhs.propagatedParameterElement);
     ParameterElement parameter = rhs.staticParameterElement;
     JUnitTestCase.assertNotNull(parameter);
     JUnitTestCase.assertEquals("x", parameter.displayName);
@@ -18536,7 +18608,6 @@ class SimpleResolverTest extends ResolverTestCase {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    JUnitTestCase.assertNull(rhs.propagatedParameterElement);
     ParameterElement parameter = rhs.staticParameterElement;
     JUnitTestCase.assertNotNull(parameter);
     JUnitTestCase.assertEquals("x", parameter.displayName);
@@ -27358,6 +27429,20 @@ class TypeOverrideManagerTest extends EngineTestCase {
 }
 
 class TypePropagationTest extends ResolverTestCase {
+  void fail_issue20904BuggyTypePromotionAtIfJoin_2() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    String code = EngineTestCase.createSource([
+        "f(var message) {",
+        "  if (message is Function) {",
+        "    message = '';",
+        "  }",
+        "  message; // marker",
+        "}"]);
+    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
+    JUnitTestCase.assertFalse(typeProvider.stringType == t);
+    JUnitTestCase.assertFalse(typeProvider.functionType == t);
+  }
+
   void fail_mergePropagatedTypesAtJoinPoint_1() {
     // https://code.google.com/p/dart/issues/detail?id=19929
     _assertTypeOfMarkedExpression(EngineTestCase.createSource([
@@ -27419,32 +27504,6 @@ class TypePropagationTest extends ResolverTestCase {
         "  // Best we can do is [Object]?",
         "  return z; // marker",
         "}"]), null, typeProvider.dynamicType);
-  }
-
-  void fail_mergePropagatedTypesAtJoinPoint_6() {
-    // https://code.google.com/p/dart/issues/detail?id=19929
-    //
-    // Labeled [break]s are unsafe for the purposes of [isAbruptTerminationStatement].
-    //
-    // This is tricky: the [break] jumps back above the [if], making
-    // it into a loop of sorts. The [if] type-propagation code assumes
-    // that [break] does not introduce a loop.
-    String code = EngineTestCase.createSource([
-        "f() {",
-        "  var x = 0;",
-        "  var c = false;",
-        "  L: ",
-        "  if (c) {",
-        "  } else {",
-        "    x = '';",
-        "    c = true;",
-        "    break L;",
-        "  }",
-        "  x; // marker",
-        "}"]);
-    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
-    JUnitTestCase.assertTrue(typeProvider.intType.isSubtypeOf(t));
-    JUnitTestCase.assertTrue(typeProvider.stringType.isSubtypeOf(t));
   }
 
   void fail_mergePropagatedTypesAtJoinPoint_7() {
@@ -28249,6 +28308,59 @@ class TypePropagationTest extends ResolverTestCase {
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
   }
 
+  void test_issue20904BuggyTypePromotionAtIfJoin_5() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    //
+    // This is not an example of the 20904 bug, but rather,
+    // an example of something that one obvious fix changes inadvertently: we
+    // want to avoid using type information from is-checks when it
+    // loses precision. I can't see how to get a bad hint this way, since
+    // it seems the propagated type is not used to generate hints when a
+    // more precise type would cause no hint. For example, for code like the
+    // following, when the propagated type of [x] is [A] -- as happens for the
+    // fix these tests aim to warn against -- there is no warning for
+    // calling a method defined on [B] but not [A] (there aren't any, but pretend),
+    // but there is for calling a method not defined on either.
+    // By not overriding the propagated type via an is-check that loses
+    // precision, we get more precise completion under an is-check. However,
+    // I can only imagine strange code would make use of this feature.
+    //
+    // Here the is-check improves precision, so we use it.
+    String code = EngineTestCase.createSource([
+        "class A {}",
+        "class B extends A {}",
+        "f() {",
+        "  var a = new A();",
+        "  var b = new B();",
+        "  b; // B",
+        "  if (a is B) {",
+        "    return a; // marker",
+        "  }",
+        "}"]);
+    DartType tB = _findMarkedIdentifier(code, "; // B").propagatedType;
+    _assertTypeOfMarkedExpression(code, null, tB);
+  }
+
+  void test_issue20904BuggyTypePromotionAtIfJoin_6() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    //
+    // The other half of the *_5() test.
+    //
+    // Here the is-check loses precision, so we don't use it.
+    String code = EngineTestCase.createSource([
+        "class A {}",
+        "class B extends A {}",
+        "f() {",
+        "  var b = new B();",
+        "  b; // B",
+        "  if (b is A) {",
+        "    return b; // marker",
+        "  }",
+        "}"]);
+    DartType tB = _findMarkedIdentifier(code, "; // B").propagatedType;
+    _assertTypeOfMarkedExpression(code, null, tB);
+  }
+
   void test_listLiteral_different() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  var v = [0, '1', 2];", "  return v[2];", "}"]));
     LibraryElement library = resolve(source);
@@ -28338,6 +28450,32 @@ class TypePropagationTest extends ResolverTestCase {
         "  // Propagated type is [int] here: correct.",
         "  return y; // marker",
         "}"]), null, typeProvider.intType);
+  }
+
+  void test_mergePropagatedTypesAtJoinPoint_6() {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    //
+    // Labeled [break]s are unsafe for the purposes of [isAbruptTerminationStatement].
+    //
+    // This is tricky: the [break] jumps back above the [if], making
+    // it into a loop of sorts. The [if] type-propagation code assumes
+    // that [break] does not introduce a loop.
+    String code = EngineTestCase.createSource([
+        "f() {",
+        "  var x = 0;",
+        "  var c = false;",
+        "  L: ",
+        "  if (c) {",
+        "  } else {",
+        "    x = '';",
+        "    c = true;",
+        "    break L;",
+        "  }",
+        "  x; // marker",
+        "}"]);
+    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
+    JUnitTestCase.assertTrue(typeProvider.intType.isSubtypeOf(t));
+    JUnitTestCase.assertTrue(typeProvider.stringType.isSubtypeOf(t));
   }
 
   void test_objectMethodOnDynamicExpression_doubleEquals() {
@@ -28496,10 +28634,10 @@ class TypePropagationTest extends ResolverTestCase {
   void _assertTypeOfMarkedExpression(String code, DartType expectedStaticType, DartType expectedPropagatedType) {
     SimpleIdentifier identifier = _findMarkedIdentifier(code, "; // marker");
     if (expectedStaticType != null) {
-      JUnitTestCase.assertSame(expectedStaticType, identifier.staticType);
+      JUnitTestCase.assertEquals(expectedStaticType, identifier.staticType);
     }
     if (expectedPropagatedType != null) {
-      JUnitTestCase.assertSame(expectedPropagatedType, identifier.propagatedType);
+      JUnitTestCase.assertEquals(expectedPropagatedType, identifier.propagatedType);
     }
   }
 
@@ -28676,6 +28814,14 @@ class TypePropagationTest extends ResolverTestCase {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_is_while);
       });
+      _ut.test('test_issue20904BuggyTypePromotionAtIfJoin_5', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_issue20904BuggyTypePromotionAtIfJoin_5);
+      });
+      _ut.test('test_issue20904BuggyTypePromotionAtIfJoin_6', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_issue20904BuggyTypePromotionAtIfJoin_6);
+      });
       _ut.test('test_listLiteral_different', () {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_listLiteral_different);
@@ -28695,6 +28841,10 @@ class TypePropagationTest extends ResolverTestCase {
       _ut.test('test_mergePropagatedTypesAtJoinPoint_4', () {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_mergePropagatedTypesAtJoinPoint_4);
+      });
+      _ut.test('test_mergePropagatedTypesAtJoinPoint_6', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_mergePropagatedTypesAtJoinPoint_6);
       });
       _ut.test('test_objectMethodOnDynamicExpression_doubleEquals', () {
         final __test = new TypePropagationTest();

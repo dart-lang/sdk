@@ -31,6 +31,8 @@ class FixProcessorTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
 
+  bool checkHasSingleError = true;
+
   Fix fix;
   SourceChange change;
   String resultCode;
@@ -497,6 +499,37 @@ class B extends A {
 ''');
   }
 
+  void test_createMissingOverrides_mergeToField_getterSetter() {
+    _indexTestUnit('''
+class A {
+  int ma;
+  void mb() {}
+  double mc;
+}
+
+class B implements A {
+}
+''');
+    assertHasFix(FixKind.CREATE_MISSING_OVERRIDES, '''
+class A {
+  int ma;
+  void mb() {}
+  double mc;
+}
+
+class B implements A {
+  int ma;
+
+  double mc;
+
+  @override
+  void mb() {
+    // TODO: implement mb
+  }
+}
+''');
+  }
+
   void test_createMissingOverrides_method() {
     _indexTestUnit('''
 abstract class A {
@@ -694,6 +727,24 @@ int test(double a, String b) {
 ''');
   }
 
+  void test_creationFunction_forFunctionType_coreFunction() {
+    _indexTestUnit('''
+main() {
+  useFunction(g: test);
+}
+useFunction({Function g}) {}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  useFunction(g: test);
+}
+useFunction({Function g}) {}
+
+test() {
+}
+''');
+  }
+
   void test_creationFunction_forFunctionType_dynamicArgument() {
     _indexTestUnit('''
 main() {
@@ -724,6 +775,24 @@ main() {
   useFunction(test);
 }
 useFunction(int g(double a, String b)) {}
+
+int test(double a, String b) {
+}
+''');
+  }
+
+  void test_creationFunction_forFunctionType_function_namedArgument() {
+    _indexTestUnit('''
+main() {
+  useFunction(g: test);
+}
+useFunction({int g(double a, String b)}) {}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  useFunction(g: test);
+}
+useFunction({int g(double a, String b)}) {}
 
 int test(double a, String b) {
 }
@@ -856,20 +925,10 @@ main() {
   }
 
   void test_importLibraryPackage_withType() {
-    provider.newFile('/packages/my_pkg/lib/my_lib.dart', '''
+    _configureMyPkg('''
 library my_lib;
 class Test {}
 ''');
-    {
-      Folder myPkgFolder = provider.getResource('/packages/my_pkg/lib');
-      UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-        'my_pkg': [myPkgFolder]
-      });
-      context.sourceFactory = new SourceFactory(
-          [AbstractContextTest.SDK_RESOLVER, resourceResolver, pkgResolver]);
-    }
-    // force 'my_pkg' resolution
-    addSource('/tmp/other.dart', "import 'package:my_pkg/my_lib.dart';");
     // try to find a fix
     _indexTestUnit('''
 main() {
@@ -960,6 +1019,28 @@ main() {
 ''');
   }
 
+  void test_importLibraryProject_withType_annotation() {
+    addSource('/lib.dart', '''
+library lib;
+class Test {
+  const Test(int p);
+}
+''');
+    _indexTestUnit('''
+@Test(0)
+main() {
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import 'lib.dart';
+
+@Test(0)
+main() {
+}
+''');
+  }
+
   void test_importLibraryProject_withType_inParentFolder() {
     testFile = '/project/bin/test.dart';
     addSource('/project/lib.dart', '''
@@ -1039,6 +1120,22 @@ main() {
 ''');
   }
 
+  void test_importLibrarySdk_withTopLevelVariable_annotation() {
+    _indexTestUnit('''
+@PI
+main() {
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:math';
+
+@PI
+main() {
+}
+''');
+  }
+
   void test_importLibrarySdk_withType_invocationTarget() {
     _indexTestUnit('''
 main() {
@@ -1080,6 +1177,21 @@ import 'dart:async';
 
 main() {
   Future.wait;
+}
+''');
+  }
+
+  void test_importLibrarySdk_withType_typeArgument() {
+    _indexTestUnit('''
+main() {
+  List<Future> futures = [];
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+main() {
+  List<Future> futures = [];
 }
 ''');
   }
@@ -1244,6 +1356,43 @@ main() {
 ''');
     assertHasFix(FixKind.REMOVE_UNUSED_IMPORT, '''
 main() {
+}
+''');
+  }
+
+  void test_replaceImportUri_inProject() {
+    testFile = '/project/bin/test.dart';
+    addSource('/project/foo/bar/lib.dart', '');
+    _indexTestUnit('''
+import 'no/matter/lib.dart';
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.REPLACE_IMPORT_URI, '''
+import '../foo/bar/lib.dart';
+''');
+  }
+
+  void test_replaceImportUri_package() {
+    _configureMyPkg('');
+    _indexTestUnit('''
+import 'no/matter/my_lib.dart';
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.REPLACE_IMPORT_URI, '''
+import 'package:my_pkg/my_lib.dart';
+''');
+  }
+
+  void test_replaceVarWithDynamic() {
+    checkHasSingleError = false;
+    _indexTestUnit('''
+class A {
+  Map<String, var> m;
+}
+''');
+    assertHasFix(FixKind.REPLACE_VAR_WITH_DYNAMIC, '''
+class A {
+  Map<String, dynamic> m;
 }
 ''');
   }
@@ -1809,13 +1958,28 @@ main() {
     }
   }
 
+  /**
+   * Configures the [SourceFactory] to have the `my_pkg` package in
+   * `/packages/my_pkg/lib` folder.
+   */
+  void _configureMyPkg(String myLibCode) {
+    provider.newFile('/packages/my_pkg/lib/my_lib.dart', myLibCode);
+    // configure SourceFactory
+    Folder myPkgFolder = provider.getResource('/packages/my_pkg/lib');
+    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+      'my_pkg': [myPkgFolder]
+    });
+    context.sourceFactory = new SourceFactory(
+        [AbstractContextTest.SDK_RESOLVER, resourceResolver, pkgResolver]);
+    // force 'my_pkg' resolution
+    addSource('/tmp/other.dart', "import 'package:my_pkg/my_lib.dart';");
+  }
+
   AnalysisError _findErrorToFix() {
     List<AnalysisError> errors = context.computeErrors(testSource);
-    expect(
-        errors,
-        hasLength(1),
-        reason: 'Exactly 1 error expected, but ${errors.length} found:\n' +
-            errors.join('\n'));
+    if (checkHasSingleError) {
+      expect(errors, hasLength(1));
+    }
     return errors[0];
   }
 

@@ -6,6 +6,7 @@
 #include "platform/json.h"
 #include "vm/json_stream.h"
 #include "vm/unit_test.h"
+#include "vm/dart_api_impl.h"
 
 namespace dart {
 
@@ -312,6 +313,80 @@ TEST_CASE(JSON_JSONStream_EscapedString) {
     jsarr.AddValue("Hel\"\"lo\r\n\t");
   }
   EXPECT_STREQ("[\"Hel\\\"\\\"lo\\r\\n\\t\"]", js.ToCString());
+}
+
+
+TEST_CASE(JSON_JSONStream_DartString) {
+  const char* kScriptChars =
+      "var ascii = 'Hello, World!';\n"
+      "var unicode = '\\u00CE\\u00F1\\u0163\\u00E9r\\u00F1\\u00E5\\u0163"
+      "\\u00EE\\u00F6\\u00F1\\u00E5\\u013C\\u00EE\\u017E\\u00E5\\u0163"
+      "\\u00EE\\u1EDD\\u00F1';\n"
+      "var surrogates = '\\u{1D11E}\\u{1D11E}\\u{1D11E}\\u{1D11E}"
+      "\\u{1D11E}';\n"
+      "var nullInMiddle = 'This has\\u0000 four words.';";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  Dart_Handle result;
+  String& obj = String::Handle();
+
+  {
+    result = Dart_GetField(lib, NewString("ascii"));
+    EXPECT_VALID(result);
+    obj ^= Api::UnwrapHandle(result);
+
+    JSONStream js;
+    {
+      JSONObject jsobj(&js);
+      jsobj.AddPropertyStr("ascci", obj);;
+    }
+    EXPECT_STREQ("{\"ascci\":\"Hello, World!\"}", js.ToCString());
+  }
+
+  {
+    result = Dart_GetField(lib, NewString("unicode"));
+    EXPECT_VALID(result);
+    obj ^= Api::UnwrapHandle(result);
+
+    JSONStream js;
+    {
+      JSONObject jsobj(&js);
+      jsobj.AddPropertyStr("unicode", obj);
+    }
+    EXPECT_STREQ("{\"unicode\":\"\\u00CE\\u00F1\\u0163\\u00E9r\\u00F1\\u00E5"
+                 "\\u0163\\u00EE\\u00F6\\u00F1\\u00E5\\u013C\\u00EE\\u017E"
+                 "\\u00E5\\u0163\\u00EE\\u1EDD\\u00F1\"}", js.ToCString());
+  }
+
+  {
+    result = Dart_GetField(lib, NewString("surrogates"));
+    EXPECT_VALID(result);
+    obj ^= Api::UnwrapHandle(result);
+
+    JSONStream js;
+    {
+      JSONObject jsobj(&js);
+      jsobj.AddPropertyStr("surrogates", obj);
+    }
+    EXPECT_STREQ("{\"surrogates\":\"\\uD834\\uDD1E\\uD834\\uDD1E\\uD834\\uDD1E"
+                 "\\uD834\\uDD1E\\uD834\\uDD1E\"}", js.ToCString());
+  }
+
+  {
+    result = Dart_GetField(lib, NewString("nullInMiddle"));
+    EXPECT_VALID(result);
+    obj ^= Api::UnwrapHandle(result);
+
+    JSONStream js;
+    {
+      JSONObject jsobj(&js);
+      jsobj.AddPropertyStr("nullInMiddle", obj);
+    }
+    EXPECT_STREQ("{\"nullInMiddle\":\"This has\\u0000 four words.\"}",
+                 js.ToCString());
+  }
 }
 
 

@@ -12,12 +12,12 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ field.isolate }}"></isolate-nav-menu>
-      <template if="{{ field['owner'].type == 'Class' }}">
+      <template if="{{ field.owner.type == 'Class' }}">
         <!-- TODO(turnidge): Add library nav menu here. -->
-        <class-nav-menu cls="{{ field['owner'] }}"></class-nav-menu>
+        <class-nav-menu cls="{{ field.owner }}"></class-nav-menu>
       </template>
-      <template if="{{ field['owner'].type == 'Library' }}">
-        <library-nav-menu library="{{ field['owner'] }}"></library-nav-menu>
+      <template if="{{ field.owner.type == 'Library' }}">
+        <library-nav-menu library="{{ field.owner }}"></library-nav-menu>
       </template>
       <nav-menu link="{{ field.link }}" anchor="{{ field.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
@@ -26,15 +26,15 @@
 
     <div class="content">
       <h1>
-        <template if="{{ field['static'] }}">static</template>
-        <template if="{{ field['final'] }}">final</template>
-        <template if="{{ field['const'] }}">const</template>
-        <template if="{{ (field['declaredType'].name == 'dynamic' &&
-                         !field['final'] && !field['const']) }}">
+        <template if="{{ field.isStatic }}">static</template>
+        <template if="{{ field.isFinal }}">final</template>
+        <template if="{{ field.isConst }}">const</template>
+        <template if="{{ (field.declaredType.name == 'dynamic' &&
+                         !field.isFinal && !field.isConst) }}">
           var
         </template>
-        <template if="{{ (field['declaredType'].name != 'dynamic') }}">
-          {{ field['declaredType'].name }}
+        <template if="{{ (field.declaredType.name != 'dynamic') }}">
+          {{ field.declaredType.name }}
         </template>
         {{ field.name }}
       </h1>
@@ -42,49 +42,49 @@
         <div class="memberItem">
           <div class="memberName">owner</div>
           <div class="memberValue">
-            <template if="{{ field['owner'].type == 'Class' }}">
-              <class-ref ref="{{ field['owner'] }}"></class-ref>
+            <template if="{{ field.owner.type == 'Class' }}">
+              <class-ref ref="{{ field.owner }}"></class-ref>
             </template>
-            <template if="{{ field['owner'].type != 'Class' }}">
-              <library-ref ref="{{ field['owner'] }}"></library-ref>
+            <template if="{{ field.owner.type != 'Class' }}">
+              <library-ref ref="{{ field.owner }}"></library-ref>
             </template>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">
-            <script-ref ref="{{ field['script'] }}"></script-ref>
+            <script-ref ref="{{ field.script }}"></script-ref>
           </div>
         </div>
-        <template if="{{ !field['static'] }}">
+        <template if="{{ !field.isStatic }}">
           <div class="memberItem"
                title="The types observed for this field at runtime.  Fields that are observed to have a single type at runtime or to never be null may allow for additional optimization.">
             <div class="memberName">observed types</div>
             <div class="memberValue">
-              <template if="{{ field['guardClass'] == 'dynamic' }}">
+              <template if="{{ field.guardClass == 'dynamic' }}">
                 various
               </template>
-              <template if="{{ field['guardClass'] == 'unknown' }}">
+              <template if="{{ field.guardClass == 'unknown' }}">
                 none
               </template>
-              <template if="{{ field['guardClass'] != 'unknown' &&
-                            field['guardClass'] != 'dynamic' }}">
-                <class-ref ref="{{ field['guardClass'] }}"></class-ref>
-                <template if="{{ field['guardNullable'] }}">
+              <template if="{{ field.guardClass != 'unknown' &&
+                            field.guardClass != 'dynamic' }}">
+                <class-ref ref="{{ field.guardClass }}"></class-ref>
+                <template if="{{ field.guardNullable }}">
                   &mdash; null observed
                 </template>
-                <template if="{{ !field['guardNullable'] }}">
+                <template if="{{ !field.guardNullable }}">
                   &mdash; null not observed
                 </template>
               </template>
             </div>
           </div>
         </template>
-        <template if="{{ field['value'] != null }}">
+        <template if="{{ field.value != null }}">
           <div class="memberItem">
             <div class="memberName">static value</div>
             <div class="memberValue">
-              <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
+              <any-service-ref ref="{{ field.value }}"></any-service-ref>
             </div>
           </div>
         </template>

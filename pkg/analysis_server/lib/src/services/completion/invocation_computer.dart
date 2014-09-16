@@ -102,11 +102,6 @@ class _InvocationElementVisitor extends GeneralizingElementVisitor<Future<bool>>
         }
       }
     });
-
-    element.importedLibraries.forEach((LibraryElement library) {
-      modified = true;
-      library.accept(new ClassElementSuggestionBuilder(request));
-    });
     return new Future.value(modified);
   }
 
@@ -114,8 +109,7 @@ class _InvocationElementVisitor extends GeneralizingElementVisitor<Future<bool>>
   Future<bool> visitVariableElement(VariableElement element) {
     DartType type = element.type;
     if (type != null) {
-      Element typeElement = type.element;
-      ClassElementSuggestionBuilder.suggestionsFor(request, typeElement);
+      ClassElementSuggestionBuilder.suggestionsFor(request, type.element);
     }
     return new Future.value(true);
   }

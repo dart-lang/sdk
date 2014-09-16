@@ -105,32 +105,27 @@ class RequestErrorTest {
   }
 
   void test_fromJson() {
+    var trace = 'a stack trace\r\nfoo';
     var json = {
       CODE: RequestErrorCode.INVALID_PARAMETER.name,
       MESSAGE: 'foo',
-      DATA: {
-        'ints': [1, 2, 3]
-      }
+      STACK_TRACE: trace
     };
     RequestError error = new RequestError.fromJson(new ResponseDecoder(null), '',
         json);
     expect(error.code, RequestErrorCode.INVALID_PARAMETER);
     expect(error.message, "foo");
-    expect(error.data['ints'], [1, 2, 3]);
+    expect(error.stackTrace, trace);
   }
 
   void test_toJson() {
+    var trace = 'a stack trace\r\nbar';
     RequestError error = new RequestError(
-        RequestErrorCode.UNKNOWN_REQUEST, 'msg', data: {});
-    error.data['answer'] = 42;
-    error.data['question'] = 'unknown';
+        RequestErrorCode.UNKNOWN_REQUEST, 'msg', stackTrace: trace);
     expect(error.toJson(), {
       CODE: 'UNKNOWN_REQUEST',
       MESSAGE: 'msg',
-      DATA: {
-        'answer': 42,
-        'question': 'unknown'
-      }
+      STACK_TRACE: trace
     });
   }
 }

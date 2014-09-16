@@ -59,6 +59,18 @@ bool FlowGraphCompiler::SupportsSinCos() {
 }
 
 
+void FlowGraphCompiler::EnterIntrinsicMode() {
+  ASSERT(!intrinsic_mode());
+  intrinsic_mode_ = true;
+}
+
+
+void FlowGraphCompiler::ExitIntrinsicMode() {
+  ASSERT(intrinsic_mode());
+  intrinsic_mode_ = false;
+}
+
+
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {

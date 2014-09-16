@@ -355,6 +355,7 @@ void Assembler::Bind(Label* label) {
 
 
 void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
+  ASSERT(allow_constant_pool());
   ASSERT(!in_delay_slot_);
   ASSERT(rd != PP);
   if (Address::CanHoldOffset(offset)) {
@@ -460,7 +461,7 @@ void Assembler::LoadObject(Register rd, const Object& object) {
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()));
-  } else if (object.InVMHeap()) {
+  } else if (object.InVMHeap() || !allow_constant_pool()) {
     // Make sure that class CallPattern is able to decode this load immediate.
     int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
     const uint16_t object_low = Utils::Low16Bits(object_raw);

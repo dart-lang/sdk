@@ -73,7 +73,7 @@ static bool start_vm_service = false;
 static const char* vm_service_server_ip = DEFAULT_VM_SERVICE_SERVER_IP;
 // The 0 port is a magic value which results in the first available port
 // being allocated.
-static int vm_service_server_port = 0;
+static int vm_service_server_port = -1;
 
 // The environment provided through the command line using -D options.
 static dart::HashMap* environment = NULL;
@@ -690,21 +690,7 @@ static Dart_Isolate CreateServiceIsolate(void* data, char** error) {
   // closures and setting up 'package root' for URI resolution.
   result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
   CHECK_RESULT(result);
-  Platform::SetPackageRoot(package_root);
-  Dart_Handle io_lib_url = DartUtils::NewString(DartUtils::kIOLibURL);
-  CHECK_RESULT(io_lib_url);
-  Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
-  CHECK_RESULT(io_lib);
-  Dart_Handle platform_type = DartUtils::GetDartType(DartUtils::kIOLibURL,
-                                                     "_Platform");
-  CHECK_RESULT(platform_type);
-  Dart_Handle script_name = DartUtils::NewString("_nativeScript");
-  CHECK_RESULT(script_name);
-  Dart_Handle dart_script = DartUtils::NewString(script_uri);
-  CHECK_RESULT(dart_script);
-  Dart_Handle set_script_name =
-      Dart_SetField(platform_type, script_name, dart_script);
-  CHECK_RESULT(set_script_name);
+
   Dart_ExitScope();
   Dart_ExitIsolate();
   return isolate;

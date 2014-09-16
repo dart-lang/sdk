@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS implements CanvasRenderingContext {
 $!MEMBERS
 
   /**

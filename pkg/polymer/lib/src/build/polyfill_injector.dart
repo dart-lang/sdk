@@ -37,7 +37,8 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
         convertErrorsToWarnings: !options.releaseMode,
         detailsUri: 'http://goo.gl/5HPeuP');
     return readPrimaryAsHtml(transform, logger).then((document) {
-      bool webComponentsFound = false;
+      bool dartSupportFound = false;
+      bool platformJsFound = false;
       Element dartJs;
       final dartScripts = <Element>[];
 
@@ -45,8 +46,10 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
         var src = tag.attributes['src'];
         if (src != null) {
           var last = src.split('/').last;
-          if (_webComponentsJS.hasMatch(last)) {
-            webComponentsFound = true;
+          if (_platformJS.hasMatch(last)) {
+            platformJsFound = true;
+          } else if (_dartSupportJS.hasMatch(last)) {
+            dartSupportFound = true;
           } else if (last == 'dart.js') {
             dartJs = tag;
           }
@@ -95,12 +98,9 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
       }
 
       var suffix = options.releaseMode ? '.js' : '.concat.js';
-      if (!webComponentsFound) {
-        _addScriptFirst('web_components/dart_support.js');
-
-        // platform.js should come before all other scripts.
-        _addScriptFirst('web_components/platform$suffix');
-      }
+      if (!dartSupportFound) _addScriptFirst('web_components/dart_support.js');
+      // platform.js should come before all other scripts.
+      if (!platformJsFound) _addScriptFirst('web_components/platform$suffix');
 
       transform.addOutput(
           new Asset.fromString(transform.primaryInput.id, document.outerHtml));
@@ -108,5 +108,5 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
   }
 }
 
-final _webComponentsJS = new RegExp(r'platform.*\.js',
-    caseSensitive: false);
+final _platformJS = new RegExp(r'platform.*\.js', caseSensitive: false);
+final _dartSupportJS = new RegExp(r'dart_support.js', caseSensitive: false);

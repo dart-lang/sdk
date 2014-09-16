@@ -1364,6 +1364,24 @@ bool FlowGraphOptimizer::InlineSetIndexed(
                                     stored_value,
                                     NULL,
                                     FlowGraph::kValue);
+  } else if (array_cid == kTypedDataInt32ArrayCid) {
+    stored_value = new(I) UnboxInt32Instr(
+        new(I) Value(stored_value),
+        call->deopt_id());
+    stored_value->AsUnboxIntN()->mark_truncating();
+    cursor = flow_graph()->AppendTo(cursor,
+                                    stored_value,
+                                    call->env(),
+                                    FlowGraph::kValue);
+  } else if (array_cid == kTypedDataUint32ArrayCid) {
+    stored_value = new(I) UnboxUint32Instr(
+        new(I) Value(stored_value),
+        call->deopt_id());
+    ASSERT(stored_value->AsUnboxIntN()->is_truncating());
+    cursor = flow_graph()->AppendTo(cursor,
+                                    stored_value,
+                                    call->env(),
+                                    FlowGraph::kValue);
   }
 
   const intptr_t index_scale = Instance::ElementSizeFor(array_cid);
@@ -1446,17 +1464,10 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                               &ic_data, value_check, entry, last);
     case MethodRecognizer::kInt32ArraySetIndexed:
     case MethodRecognizer::kUint32ArraySetIndexed:
-      if (!CanUnboxInt32()) {
-        return false;
-      }
-      // Check that value is always smi or mint, if the platform has unboxed
-      // mints (ia32 with at least SSE 4.1).
+      // Check that value is always smi or mint. We use Int32/Uint32 unboxing
+      // which can only deal unbox these values.
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
-      if (FlowGraphCompiler::SupportsUnboxedMints()) {
-        if (!HasOnlySmiOrMint(value_check)) {
-          return false;
-        }
-      } else if (!HasOnlyOneSmi(value_check)) {
+      if (!HasOnlySmiOrMint(value_check)) {
         return false;
       }
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
@@ -1570,16 +1581,10 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                       kTypedDataUint16ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt32:
-      if (!CanUnboxInt32()) {
-        return false;
-      }
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt32ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint32:
-      if (!CanUnboxInt32()) {
-        return false;
-      }
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataUint32ArrayCid,
                                       ic_data, entry, last);
@@ -1842,7 +1847,7 @@ bool FlowGraphOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
       const String& str = String::Cast(left_const->value());
       ASSERT(str.Length() == 1);
       ConstantInstr* char_code_left = flow_graph()->GetConstant(
-          Smi::ZoneHandle(I, Smi::New(str.CharAt(0))));
+          Smi::ZoneHandle(I, Smi::New(static_cast<intptr_t>(str.CharAt(0)))));
       left_val = new(I) Value(char_code_left);
     } else if (left->IsStringFromCharCode()) {
       // Use input of string-from-charcode as left value.
@@ -2957,6 +2962,57 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         GrowableObjectArray::length_offset(),
         new(I) Value(array),
         new(I) Value(value),
+        kNoStoreBarrier,
+        call->token_pos());
+    ReplaceCall(call, store);
+    return true;
+  }
+
+  if ((recognized_kind == MethodRecognizer::kBigint_setUsed) &&
+      (ic_data.NumberOfChecks() == 1) &&
+      (class_ids[0] == kBigintCid)) {
+    // This is an internal method, no need to check argument types nor
+    // range.
+    Definition* bigint = call->ArgumentAt(0);
+    Definition* value = call->ArgumentAt(1);
+    StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
+        Bigint::used_offset(),
+        new(I) Value(bigint),
+        new(I) Value(value),
+        kNoStoreBarrier,
+        call->token_pos());
+    ReplaceCall(call, store);
+    return true;
+  }
+
+  if ((recognized_kind == MethodRecognizer::kBigint_setDigits) &&
+      (ic_data.NumberOfChecks() == 1) &&
+      (class_ids[0] == kBigintCid)) {
+    // This is an internal method, no need to check argument types nor
+    // range.
+    Definition* bigint = call->ArgumentAt(0);
+    Definition* value = call->ArgumentAt(1);
+    StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
+        Bigint::digits_offset(),
+        new(I) Value(bigint),
+        new(I) Value(value),
+        kEmitStoreBarrier,
+        call->token_pos());
+    ReplaceCall(call, store);
+    return true;
+  }
+
+  if ((recognized_kind == MethodRecognizer::kBigint_setNeg) &&
+      (ic_data.NumberOfChecks() == 1) &&
+      (class_ids[0] == kBigintCid)) {
+    // This is an internal method, no need to check argument types nor
+    // range.
+    Definition* bigint = call->ArgumentAt(0);
+    Definition* value = call->ArgumentAt(1);
+    StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
+        Bigint::neg_offset(),
+        new(I) Value(bigint),
+        new(I) Value(value),
         kEmitStoreBarrier,
         call->token_pos());
     ReplaceCall(call, store);
@@ -3720,9 +3776,8 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-    // Prevent excessive deoptimization, assume full 32 bits used, and therefore
-    // generate Mint on 32-bit architectures.
-    if (kSmiBits >= 32) {
+      // On 64-bit platforms assume that stored value is always a smi.
+      if (kSmiBits >= 32) {
         value_check = ICData::New(flow_graph_->parsed_function().function(),
                                   i_call->function_name(),
                                   Object::empty_array(),  // Dummy args. descr.
@@ -3779,6 +3834,24 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     cursor = flow_graph()->AppendTo(cursor,
                                     stored_value,
                                     NULL,
+                                    FlowGraph::kValue);
+  } else if (view_cid == kTypedDataInt32ArrayCid) {
+    stored_value = new(I) UnboxInt32Instr(
+        new(I) Value(stored_value),
+        call->deopt_id());
+    stored_value->AsUnboxIntN()->mark_truncating();
+    cursor = flow_graph()->AppendTo(cursor,
+                                    stored_value,
+                                    call->env(),
+                                    FlowGraph::kValue);
+  } else if (view_cid == kTypedDataUint32ArrayCid) {
+    stored_value = new(I) UnboxUint32Instr(
+        new(I) Value(stored_value),
+        call->deopt_id());
+    ASSERT(stored_value->AsUnboxIntN()->is_truncating());
+    cursor = flow_graph()->AppendTo(cursor,
+                                    stored_value,
+                                    call->env(),
                                     FlowGraph::kValue);
   }
 
@@ -7991,7 +8064,8 @@ void ConstantPropagator::VisitStringToCharCode(StringToCharCodeInstr* instr) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(o)) {
     const String& str = String::Cast(o);
-    const intptr_t result = (str.Length() == 1) ? str.CharAt(0) : -1;
+    const intptr_t result =
+        (str.Length() == 1) ? static_cast<intptr_t>(str.CharAt(0)) : -1;
     SetValue(instr, Smi::ZoneHandle(I, Smi::New(result)));
   }
 }
@@ -8022,7 +8096,8 @@ void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
       if (array_obj.IsString()) {
         const String& str = String::Cast(array_obj);
         if (str.Length() > index) {
-          SetValue(instr, Smi::Handle(I, Smi::New(str.CharAt(index))));
+          SetValue(instr, Smi::Handle(I,
+              Smi::New(static_cast<intptr_t>(str.CharAt(index)))));
           return;
         }
       } else if (array_obj.IsArray()) {
@@ -8283,15 +8358,11 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
         }
         case Token::kSHL:
         case Token::kSHR:
-          if (left.IsSmi() && right.IsSmi()) {
+          if (left.IsSmi() &&
+              right.IsSmi() &&
+              (Smi::Cast(right).Value() >= 0)) {
             Instance& result = Integer::ZoneHandle(I,
                 Smi::Cast(left_int).ShiftOp(op_kind, Smi::Cast(right_int)));
-            if (result.IsNull()) {
-              // TODO(regis): A bigint operation is required. Invoke dart?
-              // Punt for now.
-              SetValue(instr, non_constant_);
-              break;
-            }
             result = result.CheckAndCanonicalize(NULL);
             ASSERT(!result.IsNull());
             SetValue(instr, result);

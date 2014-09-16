@@ -83,17 +83,12 @@ main_test: Fail  # Dartium needs to check for both main() and main(args).
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 core_runtime_types_test: Pass, Fail # Issue 20525
 
-[ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
+[ $runtime == ff || $runtime == jsshell ]
 unicode_test: Fail
 
-[ $runtime == ff || $runtime == ie9 || $runtime == jsshell || $runtime == safari || $runtime == safarimobilesim ]
+[ $runtime == ff || $runtime == jsshell || $runtime == safari || $runtime == safarimobilesim ]
 double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
-
-[ $runtime == ie9 ]
-double_round4_test: Fail, OK # IE bug: Math.round(4503599627370497) != 4503599627370497.
-double_round_to_double3_test: Fail, OK # IE bug: Math.round(4503599627370497) != 4503599627370497.
-collection_length_test: Skip # Issue 12844
 
 [ $runtime == opera ]
 core_runtime_types_test: Fail
@@ -117,11 +112,6 @@ nan_infinity_test/01: Fail # Issue 11551
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $runtime == ie9 ]
-string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
-list_test: Fail # IE doesn't support typed data.
-shuffle_test: Fail # IE doesn't support typed data.
-
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 
@@ -130,7 +120,7 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim) ]
 string_trimlr_test/none: Fail
 
-[ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10) ]
+[ $compiler == dart2js && $runtime == ie10 ]
 string_case_test/01: Fail, OK  # Bug in IE.
 string_case_test/02: Fail, OK  # Bug in IE.
 
@@ -179,7 +169,7 @@ string_test: StaticWarning, OK # Test generates error on purpose.
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim) ]
 list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
 
-[ $runtime == ie9 || $runtime == ie10 ]
+[ $runtime == ie10 ]
 num_parse_test: RuntimeError  # Issue 15316
 num_parse_test/01: RuntimeError  # Issue 15316
 

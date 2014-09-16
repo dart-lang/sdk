@@ -218,7 +218,7 @@ DEFINE_NATIVE_ENTRY(String_getLength, 1) {
 }
 
 
-static int32_t StringValueAt(const String& str, const Integer& index) {
+static uint16_t StringValueAt(const String& str, const Integer& index) {
   if (index.IsSmi()) {
     const intptr_t index_value = Smi::Cast(index).Value();
     if ((0 <= index_value) && (index_value < str.Length())) {
@@ -235,20 +235,17 @@ static int32_t StringValueAt(const String& str, const Integer& index) {
 DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
-  uint32_t value = StringValueAt(receiver, index);
-  ASSERT(value <= 0x10FFFF);
-  return Symbols::FromCharCode(value);
+  uint16_t value = StringValueAt(receiver, index);
+  return Symbols::FromCharCode(static_cast<int32_t>(value));
 }
 
 
+// Returns the 16-bit UTF-16 code unit at the given index.
 DEFINE_NATIVE_ENTRY(String_codeUnitAt, 2) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
-
-  int32_t value = StringValueAt(receiver, index);
-  ASSERT(value >= 0);
-  ASSERT(value <= 0xFFFF);
-  return Smi::New(value);
+  uint16_t value = StringValueAt(receiver, index);
+  return Smi::New(static_cast<intptr_t>(value));
 }
 
 

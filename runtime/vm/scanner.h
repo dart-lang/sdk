@@ -26,7 +26,7 @@ class String;
 // GetStream() scans the entire source text and returns a stream of tokens.
 class Scanner : ValueObject {
  public:
-  typedef int32_t (*CharAtFunc)(const String& str, intptr_t index);
+  typedef uint16_t (*CharAtFunc)(const String& str, intptr_t index);
 
   // SourcePosition describes a text location in user friendly
   // terms of line number and column.

@@ -588,10 +588,7 @@ class CodeEmitterTask extends CompilerTask {
           // transition.
           var lazies = init.lazies;
           for (var lazyInit in lazies) {
-             var lazyInitName = lazies[lazyInit];
-             if (hasOwnProperty.call(lazies, lazyInitName)) {
-               this[lazyInitName] = null;
-             }
+             this[lazies[lazyInit]] = null;
           }
 
           // Use the newly created object as prototype. In Chrome,
@@ -603,10 +600,8 @@ class CodeEmitterTask extends CompilerTask {
 
           // Now, after being a fast map we can set the lazies again.
           for (var lazyInit in lazies) {
-            lazyInitName = lazies[lazyInit];
-            if (hasOwnProperty.call(isolateProperties, lazyInitName)) {
-              this[lazyInitName] = isolateProperties[lazyInitName];
-            }
+            var lazyInitName = lazies[lazyInit];
+            this[lazyInitName] = isolateProperties[lazyInitName];
           }
         }
         Isolate.prototype = oldIsolate.prototype;
@@ -1525,7 +1520,7 @@ class CodeEmitterTask extends CompilerTask {
         mainBuffer
           .write('${globalsHolder}.${namer.isolateName}$_=$_'
                  '${namer.isolateName}$N'
-                 '${globalsHolder}.init$_=${_}init$N');
+                 '${globalsHolder}.$initName$_=${_}$initName$N');
       }
       mainBuffer.add('init()$N$n');
       // Shorten the code by using [namer.currentIsolate] as temporary.
@@ -1720,90 +1715,16 @@ class CodeEmitterTask extends CompilerTask {
       computeNeededConstants();
       emitCompileTimeConstants(mainBuffer, mainOutputUnit);
 
-      /// Map from OutputUnit to a hash of its content. The hash uniquely
-      /// identifies the code of the output-unit. It does not include
-      /// boilerplate JS code, like the sourcemap directives or the hash itself.
-      Map<OutputUnit, String> deferredLoadHashes =
-          emitDeferredCode(libraryDescriptorBuffers);
       if (compiler.deferredLoadTask.isProgramSplit) {
-        mainBuffer.write('$initName.isHunkLoaded$_=${_}'
-            'function(hunkHash)$_{${_}'
-              'return !!$deferredInitializers[hunkHash]'
-            '$_}$N'
-            '$initName.initializeLoadedHunk$_=${_}'
-            'function(hunkHash)$_{$_'
-              '$deferredInitializers[hunkHash]($globalsHolder)'
-            '$_}$N');
-        // Write a javascript mapping from Deferred import load ids (derrived
-        // from the import prefix.) to a list of lists of js hunks to load.
-        // TODO(sigurdm): Create a syntax tree for this.
-        // TODO(sigurdm): Also find out where to place it.
-
-        Map<String, List<String>> deferredLibraryUris =
-            new Map<String, List<String>>();
-        Map<String, List<String>> deferredLibraryHashes =
-            new Map<String, List<String>>();
-
-        compiler.deferredLoadTask.hunksToLoad.forEach(
-                      (String loadId, List<OutputUnit>outputUnits) {
-          List<String> uris = new List<String>();
-          List<String> hashes = new List<String>();
-          deferredLibraryHashes[loadId] = new List<String>();
-          for (OutputUnit outputUnit in outputUnits) {
-            uris.add("${outputUnit.partFileName(compiler)}.part.js");
-            hashes.add(deferredLoadHashes[outputUnit]);
-          }
-
-          deferredLibraryUris[loadId] = uris;
-          deferredLibraryHashes[loadId] = hashes;
-        });
-
-        void emitMapping(String name, Map<String, List<String>> mapping) {
-          List<jsAst.Property> properties = new List<jsAst.Property>();
-          mapping.forEach((String key, List<String> values) {
-            properties.add(new jsAst.Property(js.escapedString(key),
-                new jsAst.ArrayInitializer.from(
-                    values.map(js.escapedString))));
-          });
-          jsAst.Node initializer =
-              new jsAst.ObjectInitializer(properties, isOneLiner: true);
-
-          mainBuffer..write("$name$_=$_")
-                    ..write(jsAst.prettyPrint(
-                        initializer,
-                        compiler, monitor: compiler.dumpInfoTask))
-                    ..write(";$n");
-        }
-
-        emitMapping("$initName.deferredLibraryUris", deferredLibraryUris);
-        emitMapping("$initName.deferredLibraryHashes", deferredLibraryHashes);
-
-
-        mainBuffer.write("$initName.librariesToLoad$_=$_{");
-        compiler.deferredLoadTask.hunksToLoad.forEach(
-            (String loadId, List<OutputUnit>outputUnits) {
-          mainBuffer.write('"$loadId":$_[');
-          for (OutputUnit outputUnit in outputUnits) {
-            mainBuffer
-                .write('["${outputUnit.partFileName(compiler)}.part.js",$_'
-                       '"${deferredLoadHashes[outputUnit]}"],$_');
-          }
-          mainBuffer.write("],$_");
-        });
-        mainBuffer.write("}$N");
-        mainBuffer.write("$initName.librariesToLoad$_=$_{");
-        compiler.deferredLoadTask.hunksToLoad.forEach(
-            (String loadId, List<OutputUnit>outputUnits) {
-          mainBuffer.write('"$loadId":$_[');
-          for (OutputUnit outputUnit in outputUnits) {
-            mainBuffer
-                .write('["${outputUnit.partFileName(compiler)}.part.js",$_'
-                       '"${deferredLoadHashes[outputUnit]}"],$_');
-          }
-          mainBuffer.write("],$_");
-        });
-        mainBuffer.write("}$N");
+        /// Map from OutputUnit to a hash of its content. The hash uniquely
+        /// identifies the code of the output-unit. It does not include
+        /// boilerplate JS code, like the sourcemap directives or the hash
+        /// itself.
+        Map<OutputUnit, String> deferredLoadHashes =
+            emitDeferredCode(libraryDescriptorBuffers);
+        emitDeferredBoilerPlate(mainBuffer, deferredLoadHashes);
       }
+
       // Static field initializations require the classes and compile-time
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
@@ -1972,6 +1893,70 @@ class CodeEmitterTask extends CompilerTask {
         compiler.deferredLoadTask.outputUnitForElement(element));
   }
 
+  /// Emits support-code for deferred loading into [buffer].
+  void emitDeferredBoilerPlate(CodeBuffer buffer,
+                               Map<OutputUnit, String> deferredLoadHashes) {
+    // Function for checking if a hunk is loaded given its hash.
+    buffer.write(jsAst.prettyPrint(
+        js('# = function(hunkHash) {'
+           '  return !!$deferredInitializers[hunkHash];'
+           '}', generateEmbeddedGlobalAccess(embeddedNames.IS_HUNK_LOADED)),
+        compiler, monitor: compiler.dumpInfoTask));
+    buffer.write('$N');
+    // Function for initializing a loaded hunk, given its hash.
+    buffer.write(jsAst.prettyPrint(
+        js('# = function(hunkHash) {'
+           '  $deferredInitializers[hunkHash]($globalsHolder)'
+           '}',
+           generateEmbeddedGlobalAccess(
+               embeddedNames.INITIALIZE_LOADED_HUNK)),
+        compiler, monitor: compiler.dumpInfoTask));
+    buffer.write('$N');
+    // Write a javascript mapping from Deferred import load ids (derrived
+    // from the import prefix.) to a list of lists of uris of hunks to load,
+    // and a corresponding mapping to a list of hashes used by
+    // INITIALIZE_LOADED_HUNK and IS_HUNK_LOADED.
+    Map<String, List<String>> deferredLibraryUris =
+        new Map<String, List<String>>();
+    Map<String, List<String>> deferredLibraryHashes =
+        new Map<String, List<String>>();
+    compiler.deferredLoadTask.hunksToLoad.forEach(
+                  (String loadId, List<OutputUnit>outputUnits) {
+      List<String> uris = new List<String>();
+      List<String> hashes = new List<String>();
+      deferredLibraryHashes[loadId] = new List<String>();
+      for (OutputUnit outputUnit in outputUnits) {
+        uris.add("${outputUnit.partFileName(compiler)}.part.js");
+        hashes.add(deferredLoadHashes[outputUnit]);
+      }
+
+      deferredLibraryUris[loadId] = uris;
+      deferredLibraryHashes[loadId] = hashes;
+    });
+
+    void emitMapping(String name, Map<String, List<String>> mapping) {
+      List<jsAst.Property> properties = new List<jsAst.Property>();
+      mapping.forEach((String key, List<String> values) {
+        properties.add(new jsAst.Property(js.escapedString(key),
+            new jsAst.ArrayInitializer.from(
+                values.map(js.escapedString))));
+      });
+      jsAst.Node initializer =
+          new jsAst.ObjectInitializer(properties, isOneLiner: true);
+
+      jsAst.Node globalName = generateEmbeddedGlobalAccess(name);
+      buffer.write(jsAst.prettyPrint(
+          js("# = #", [globalName, initializer]),
+          compiler, monitor: compiler.dumpInfoTask));
+      buffer.write('$N');
+
+    }
+
+    emitMapping(embeddedNames.DEFERRED_LIBRARY_URIS, deferredLibraryUris);
+    emitMapping(embeddedNames.DEFERRED_LIBRARY_HASHES,
+                deferredLibraryHashes);
+  }
+
   /// Emits code for all output units except the main.
   /// Returns a mapping from outputUnit to a hash of the corresponding hunk that
   /// can be used for calling the initializer.
@@ -1989,8 +1974,6 @@ class CodeEmitterTask extends CompilerTask {
 
       var oldClassesCollector = classesCollector;
       classesCollector = r"$$";
-
-      String hunkName = "${outputUnit.partFileName(compiler)}.part.js";
 
       outputBuffer..write(buildGeneratedBy())
         ..write('${deferredInitializers}.current$_=$_'

@@ -112,16 +112,19 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
 
 
 void CompileType::PrintTo(BufferFormatter* f) const {
-  f->Print("T{");
-  f->Print("%s, ", is_nullable_ ? "null" : "not-null");
-  if (cid_ != kIllegalCid) {
+  const char* type_name = "?";
+  if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
     const Class& cls =
       Class::Handle(Isolate::Current()->class_table()->At(cid_));
-    f->Print("%s, ", String::Handle(cls.Name()).ToCString());
-  } else {
-    f->Print("?, ");
+    type_name = String::Handle(cls.PrettyName()).ToCString();
+  } else if (type_ != NULL &&
+             !type_->Equals(Type::Handle(Type::DynamicType()))) {
+    type_name = type_->ToCString();
+  } else if (!is_nullable()) {
+    type_name = "!null";
   }
-  f->Print("%s}", (type_ != NULL) ? type_->ToCString() : "?");
+
+  f->Print("T{%s%s}", type_name, is_nullable_ ? "?" : "");
 }
 
 
@@ -223,7 +226,8 @@ void Definition::PrintTo(BufferFormatter* f) const {
     range_->PrintTo(f);
   }
 
-  if (type_ != NULL) {
+  if (type_ != NULL &&
+      ((type_->ToNullableCid() != kDynamicCid) || !type_->is_nullable())) {
     f->Print(" ");
     type_->PrintTo(f);
   }
@@ -1043,10 +1047,19 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+void UnboxIntNInstr::PrintOperandsTo(BufferFormatter* f) const {
+  if (is_truncating()) {
+    f->Print("[tr], ");
+  }
+  Definition::PrintOperandsTo(f);
+}
+
+
 void UnboxedIntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s->%s, ",
+  f->Print("%s->%s%s, ",
            RepresentationToCString(from()),
-           RepresentationToCString(to()));
+           RepresentationToCString(to()),
+           is_truncating() ? "[tr]" : "");
   Definition::PrintOperandsTo(f);
 }
 

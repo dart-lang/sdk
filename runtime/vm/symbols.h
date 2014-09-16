@@ -55,6 +55,7 @@ class ObjectPointerVisitor;
   V(ImmutableMapConstructor, "ImmutableMap._create")                           \
   V(StringBase, "_StringBase")                                                 \
   V(Interpolate, "_interpolate")                                               \
+  V(InterpolateSingle, "_interpolateSingle")                                   \
   V(GetIterator, "iterator")                                                   \
   V(NoSuchMethod, "noSuchMethod")                                              \
   V(SavedCurrentContextVar, ":saved_current_context_var")                      \

@@ -11,6 +11,7 @@ import '../io.dart';
 import '../package.dart';
 import '../package_graph.dart';
 import '../utils.dart';
+import 'asset_environment.dart';
 import 'cycle_exception.dart';
 import 'transformer_config.dart';
 import 'transformer_id.dart';
@@ -25,11 +26,16 @@ import 'transformer_id.dart';
 /// The returned graph is transitively closed. That is, if there's an edge from
 /// `T1` to `T2` and an edge from `T2` to `T3`, there's also an edge from `T1`
 /// to `T2`.
+///
+/// If [packages] is passed, only transformers in those packages will be
+/// inspected.
 Map<TransformerId, Set<TransformerId>> computeTransformersNeededByTransformers(
-    PackageGraph graph) {
+    PackageGraph graph, {Iterable<String> packages}) {
+  if (packages == null) packages = graph.packages.keys;
+
   var result = {};
   var computer = new _DependencyComputer(graph);
-  for (var packageName in ordered(graph.packages.keys)) {
+  for (var packageName in ordered(packages)) {
     var package = graph.packages[packageName];
     for (var phase in package.pubspec.transformers) {
       for (var config in phase) {

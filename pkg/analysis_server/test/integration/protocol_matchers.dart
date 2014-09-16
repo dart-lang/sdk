@@ -4,7 +4,7 @@
 //
 // This file has been automatically generated.  Please do not edit it manually.
 // To regenerate the file, use the script
-// "pkg/analysis_server/spec/generate_files".
+// "pkg/analysis_server/tool/spec/generate_files".
 
 /**
  * Matchers for data types defined in the analysis server API
@@ -837,8 +837,10 @@ final Matcher isAnalysisErrorSeverity = new MatchesEnum("AnalysisErrorSeverity",
  * AnalysisErrorType
  *
  * enum {
+ *   ANGULAR
  *   COMPILE_TIME_ERROR
  *   HINT
+ *   POLYMER
  *   STATIC_TYPE_WARNING
  *   STATIC_WARNING
  *   SYNTACTIC_ERROR
@@ -846,8 +848,10 @@ final Matcher isAnalysisErrorSeverity = new MatchesEnum("AnalysisErrorSeverity",
  * }
  */
 final Matcher isAnalysisErrorType = new MatchesEnum("AnalysisErrorType", [
+  "ANGULAR",
   "COMPILE_TIME_ERROR",
   "HINT",
+  "POLYMER",
   "STATIC_TYPE_WARNING",
   "STATIC_WARNING",
   "SYNTACTIC_ERROR",
@@ -1005,6 +1009,7 @@ final Matcher isCompletionSuggestion = new LazyMatcher(() => new MatchesJsonObje
  *   GETTER
  *   IMPORT
  *   KEYWORD
+ *   LABEL
  *   LIBRARY_PREFIX
  *   LOCAL_VARIABLE
  *   METHOD
@@ -1028,6 +1033,7 @@ final Matcher isCompletionSuggestionKind = new MatchesEnum("CompletionSuggestion
   "GETTER",
   "IMPORT",
   "KEYWORD",
+  "LABEL",
   "LIBRARY_PREFIX",
   "LOCAL_VARIABLE",
   "METHOD",
@@ -1075,6 +1081,7 @@ final Matcher isElement = new LazyMatcher(() => new MatchesJsonObject(
  *   FUNCTION
  *   FUNCTION_TYPE_ALIAS
  *   GETTER
+ *   LABEL
  *   LIBRARY
  *   LOCAL_VARIABLE
  *   METHOD
@@ -1096,6 +1103,7 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "FUNCTION",
   "FUNCTION_TYPE_ALIAS",
   "GETTER",
+  "LABEL",
   "LIBRARY",
   "LOCAL_VARIABLE",
   "METHOD",
@@ -1235,6 +1243,7 @@ final Matcher isHighlightRegion = new LazyMatcher(() => new MatchesJsonObject(
  *   IDENTIFIER_DEFAULT
  *   IMPORT_PREFIX
  *   KEYWORD
+ *   LABEL
  *   LITERAL_BOOLEAN
  *   LITERAL_DOUBLE
  *   LITERAL_INTEGER
@@ -1273,6 +1282,7 @@ final Matcher isHighlightRegionType = new MatchesEnum("HighlightRegionType", [
   "IDENTIFIER_DEFAULT",
   "IMPORT_PREFIX",
   "KEYWORD",
+  "LABEL",
   "LITERAL_BOOLEAN",
   "LITERAL_DOUBLE",
   "LITERAL_INTEGER",
@@ -1617,7 +1627,7 @@ final Matcher isRemoveContentOverlay = new LazyMatcher(() => new MatchesJsonObje
  * {
  *   "code": RequestErrorCode
  *   "message": String
- *   "data": optional object
+ *   "stackTrace": optional String
  * }
  */
 final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
@@ -1625,7 +1635,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
     "code": isRequestErrorCode,
     "message": isString
   }, optionalFields: {
-    "data": isObject
+    "stackTrace": isString
   }));
 
 /**
@@ -1637,6 +1647,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
  *   SERVER_ALREADY_STARTED
+ *   SERVER_ERROR
  *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
  *   UNSUPPORTED_FEATURE
@@ -1648,6 +1659,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "INVALID_PARAMETER",
   "INVALID_REQUEST",
   "SERVER_ALREADY_STARTED",
+  "SERVER_ERROR",
   "UNANALYZED_PRIORITY_FILES",
   "UNKNOWN_REQUEST",
   "UNSUPPORTED_FEATURE"

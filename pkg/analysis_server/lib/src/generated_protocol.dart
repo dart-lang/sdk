@@ -4,7 +4,7 @@
 //
 // This file has been automatically generated.  Please do not edit it manually.
 // To regenerate the file, use the script
-// "pkg/analysis_server/spec/generate_files".
+// "pkg/analysis_server/tool/spec/generate_files".
 
 part of protocol;
 /**
@@ -4618,8 +4618,10 @@ class AnalysisErrorSeverity {
  * AnalysisErrorType
  *
  * enum {
+ *   ANGULAR
  *   COMPILE_TIME_ERROR
  *   HINT
+ *   POLYMER
  *   STATIC_TYPE_WARNING
  *   STATIC_WARNING
  *   SYNTACTIC_ERROR
@@ -4627,9 +4629,13 @@ class AnalysisErrorSeverity {
  * }
  */
 class AnalysisErrorType {
+  static const ANGULAR = const AnalysisErrorType._("ANGULAR");
+
   static const COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
 
   static const HINT = const AnalysisErrorType._("HINT");
+
+  static const POLYMER = const AnalysisErrorType._("POLYMER");
 
   static const STATIC_TYPE_WARNING = const AnalysisErrorType._("STATIC_TYPE_WARNING");
 
@@ -4645,10 +4651,14 @@ class AnalysisErrorType {
 
   factory AnalysisErrorType(String name) {
     switch (name) {
+      case "ANGULAR":
+        return ANGULAR;
       case "COMPILE_TIME_ERROR":
         return COMPILE_TIME_ERROR;
       case "HINT":
         return HINT;
+      case "POLYMER":
+        return POLYMER;
       case "STATIC_TYPE_WARNING":
         return STATIC_TYPE_WARNING;
       case "STATIC_WARNING":
@@ -5388,6 +5398,7 @@ class CompletionSuggestion implements HasToJson {
  *   GETTER
  *   IMPORT
  *   KEYWORD
+ *   LABEL
  *   LIBRARY_PREFIX
  *   LOCAL_VARIABLE
  *   METHOD
@@ -5420,6 +5431,8 @@ class CompletionSuggestionKind {
   static const IMPORT = const CompletionSuggestionKind._("IMPORT");
 
   static const KEYWORD = const CompletionSuggestionKind._("KEYWORD");
+
+  static const LABEL = const CompletionSuggestionKind._("LABEL");
 
   static const LIBRARY_PREFIX = const CompletionSuggestionKind._("LIBRARY_PREFIX");
 
@@ -5467,6 +5480,8 @@ class CompletionSuggestionKind {
         return IMPORT;
       case "KEYWORD":
         return KEYWORD;
+      case "LABEL":
+        return LABEL;
       case "LIBRARY_PREFIX":
         return LIBRARY_PREFIX;
       case "LOCAL_VARIABLE":
@@ -5702,6 +5717,7 @@ class Element implements HasToJson {
  *   FUNCTION
  *   FUNCTION_TYPE_ALIAS
  *   GETTER
+ *   LABEL
  *   LIBRARY
  *   LOCAL_VARIABLE
  *   METHOD
@@ -5730,6 +5746,8 @@ class ElementKind {
   static const FUNCTION_TYPE_ALIAS = const ElementKind._("FUNCTION_TYPE_ALIAS");
 
   static const GETTER = const ElementKind._("GETTER");
+
+  static const LABEL = const ElementKind._("LABEL");
 
   static const LIBRARY = const ElementKind._("LIBRARY");
 
@@ -5773,6 +5791,8 @@ class ElementKind {
         return FUNCTION_TYPE_ALIAS;
       case "GETTER":
         return GETTER;
+      case "LABEL":
+        return LABEL;
       case "LIBRARY":
         return LIBRARY;
       case "LOCAL_VARIABLE":
@@ -6235,6 +6255,7 @@ class HighlightRegion implements HasToJson {
  *   IDENTIFIER_DEFAULT
  *   IMPORT_PREFIX
  *   KEYWORD
+ *   LABEL
  *   LITERAL_BOOLEAN
  *   LITERAL_DOUBLE
  *   LITERAL_INTEGER
@@ -6290,6 +6311,8 @@ class HighlightRegionType {
   static const IMPORT_PREFIX = const HighlightRegionType._("IMPORT_PREFIX");
 
   static const KEYWORD = const HighlightRegionType._("KEYWORD");
+
+  static const LABEL = const HighlightRegionType._("LABEL");
 
   static const LITERAL_BOOLEAN = const HighlightRegionType._("LITERAL_BOOLEAN");
 
@@ -6367,6 +6390,8 @@ class HighlightRegionType {
         return IMPORT_PREFIX;
       case "KEYWORD":
         return KEYWORD;
+      case "LABEL":
+        return LABEL;
       case "LITERAL_BOOLEAN":
         return LITERAL_BOOLEAN;
       case "LITERAL_DOUBLE":
@@ -8072,7 +8097,7 @@ class RemoveContentOverlay implements HasToJson {
  * {
  *   "code": RequestErrorCode
  *   "message": String
- *   "data": optional object
+ *   "stackTrace": optional String
  * }
  */
 class RequestError implements HasToJson {
@@ -8087,12 +8112,12 @@ class RequestError implements HasToJson {
   String message;
 
   /**
-   * Additional data related to the error. This field is omitted if there is no
-   * additional data available.
+   * The stack trace associated with processing the request, used for debugging
+   * the server.
    */
-  Map data;
+  String stackTrace;
 
-  RequestError(this.code, this.message, {this.data});
+  RequestError(this.code, this.message, {this.stackTrace});
 
   factory RequestError.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8111,11 +8136,11 @@ class RequestError implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "message");
       }
-      Map data;
-      if (json.containsKey("data")) {
-        data = json["data"];
+      String stackTrace;
+      if (json.containsKey("stackTrace")) {
+        stackTrace = jsonDecoder._decodeString(jsonPath + ".stackTrace", json["stackTrace"]);
       }
-      return new RequestError(code, message, data: data);
+      return new RequestError(code, message, stackTrace: stackTrace);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RequestError");
     }
@@ -8125,8 +8150,8 @@ class RequestError implements HasToJson {
     Map<String, dynamic> result = {};
     result["code"] = code.toJson();
     result["message"] = message;
-    if (data != null) {
-      result["data"] = data;
+    if (stackTrace != null) {
+      result["stackTrace"] = stackTrace;
     }
     return result;
   }
@@ -8139,7 +8164,7 @@ class RequestError implements HasToJson {
     if (other is RequestError) {
       return code == other.code &&
           message == other.message &&
-          data == other.data;
+          stackTrace == other.stackTrace;
     }
     return false;
   }
@@ -8149,7 +8174,7 @@ class RequestError implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, code.hashCode);
     hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, data.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, stackTrace.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -8163,6 +8188,7 @@ class RequestError implements HasToJson {
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
  *   SERVER_ALREADY_STARTED
+ *   SERVER_ERROR
  *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
  *   UNSUPPORTED_FEATURE
@@ -8201,6 +8227,12 @@ class RequestErrorCode {
    * occur.
    */
   static const SERVER_ALREADY_STARTED = const RequestErrorCode._("SERVER_ALREADY_STARTED");
+
+  /**
+   * An internal error occurred in the analysis server. Also see the
+   * server.error notification.
+   */
+  static const SERVER_ERROR = const RequestErrorCode._("SERVER_ERROR");
 
   /**
    * An "analysis.setPriorityFiles" request includes one or more files that are
@@ -8242,6 +8274,8 @@ class RequestErrorCode {
         return INVALID_REQUEST;
       case "SERVER_ALREADY_STARTED":
         return SERVER_ALREADY_STARTED;
+      case "SERVER_ERROR":
+        return SERVER_ERROR;
       case "UNANALYZED_PRIORITY_FILES":
         return UNANALYZED_PRIORITY_FILES;
       case "UNKNOWN_REQUEST":

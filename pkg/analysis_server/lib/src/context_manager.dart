@@ -49,9 +49,16 @@ abstract class ContextManager {
   pathos.Context pathContext;
 
   /**
-   * A list of excluded paths - folders and files.
+   * The list of excluded paths (folders and files) most recently passed to
+   * [setRoots].
    */
   List<String> excludedPaths = <String>[];
+
+  /**
+   * The list of included paths (folders and files) most recently passed to
+   * [setRoots].
+   */
+  List<String> includedPaths = <String>[];
 
   /**
    * Provider which is used to determine the mapping from package name to
@@ -100,6 +107,19 @@ abstract class ContextManager {
   void removeContext(Folder folder);
 
   /**
+   * Rebuild the set of contexts from scratch based on the data last sent to
+   * setRoots().
+   */
+  void refresh() {
+    // Destroy old contexts
+    List<Folder> contextFolders = _contexts.keys.toList();
+    contextFolders.forEach(_destroyContext);
+
+    // Rebuild contexts based on the data last sent to setRoots().
+    setRoots(includedPaths, excludedPaths);
+  }
+
+  /**
    * Change the set of paths which should be used as starting points to
    * determine the context directories.
    */
@@ -119,6 +139,7 @@ abstract class ContextManager {
                 'Only support for folder analysis is implemented currently.');
       }
     }
+    this.includedPaths = includedPaths;
     // excluded
     List<String> oldExcludedPaths = this.excludedPaths;
     this.excludedPaths = excludedPaths;

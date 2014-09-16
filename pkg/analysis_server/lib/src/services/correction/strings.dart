@@ -107,6 +107,16 @@ String remove(String str, String remove) {
   return str.replaceAll(remove, '');
 }
 
+String removeEnd(String str, String remove) {
+  if (isEmpty(str) || isEmpty(remove)) {
+    return str;
+  }
+  if (str.endsWith(remove)) {
+    return str.substring(0, str.length - remove.length);
+  }
+  return str;
+}
+
 String removeStart(String str, String remove) {
   if (isEmpty(str) || isEmpty(remove)) {
     return str;
@@ -124,4 +134,23 @@ String repeat(String s, int n) {
     sb.write(s);
   }
   return sb.toString();
+}
+
+
+/**
+ * Gets the substring after the last occurrence of a separator.
+ * The separator is not returned.
+ */
+String substringAfterLast(String str, String separator) {
+  if (isEmpty(str)) {
+    return str;
+  }
+  if (isEmpty(separator)) {
+    return '';
+  }
+  int pos = str.lastIndexOf(separator);
+  if (pos == -1) {
+    return str;
+  }
+  return str.substring(pos + separator.length);
 }

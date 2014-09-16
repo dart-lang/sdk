@@ -26,59 +26,58 @@ class InvocationComputerTest extends AbstractCompletionTest {
   }
 
   test_field() {
-    addTestSource('class A {var b; var _c;} main() {A a; a.^}');
+    addTestSource('class A {var b; X _c;} class X{} main() {A a; a.^}');
     return computeFull().then((_) {
-      assertSuggestField('b');
-      assertSuggestField('_c');
+      assertSuggestField('b', 'A', null);
+      assertSuggestField('_c', 'A', 'X');
     });
   }
 
   test_field_imported() {
-    addSource('/testB.dart', 'lib B; class X {var y; var _z;}');
+    addSource('/testB.dart', 'lib B; class X {M y; var _z;} class M{}');
     addTestSource('import "/testB.dart"; main() {X x; x.^}');
     return computeFull().then((_) {
-      assertSuggestField('y');
+      assertSuggestField('y', 'X', 'M');
       assertNotSuggested('_z');
     });
   }
 
   test_field_superclass() {
     addTestSource(
-        'class A {var b; var _c;} class B extends A {} main() {B b; b.^}');
+        'class A {X b; var _c;} class X{} class B extends A {} main() {B b; b.^}');
     return computeFull().then((_) {
-      assertSuggestField('b');
-      assertSuggestField('_c');
+      assertSuggestField('b', 'A', 'X');
+      assertSuggestField('_c', 'A', null);
     });
   }
 
   test_getter() {
     addTestSource(
-        'class A {A get b => new A();A get _c => new A();} main() {A a; a.^}');
+        'class A {X get b => new A();get _c => new A();} class X{} main() {A a; a.^}');
     return computeFull().then((_) {
-      assertSuggestGetter('b');
-      assertSuggestGetter('_c');
+      assertSuggestGetter('b', 'X');
+      assertSuggestGetter('_c', null);
     });
   }
 
   test_getter_imported() {
     addSource(
         '/testB.dart',
-        'lib B; class X {X get y => new X(); X get _z => new X();}');
+        'lib B; class S{} class X {S get y => new X(); X get _z => new X();}');
     addTestSource('import "/testB.dart"; main() {X x; x.^}');
     return computeFull().then((_) {
-      assertSuggestGetter('y');
+      assertSuggestGetter('y', 'S');
       assertNotSuggested('_z');
     });
   }
 
   test_getter_interface() {
-    addTestSource(
-        '''class A {A get b => new A();A get _c => new A();}
-           class B implements A {A get b => new A();}
+    addTestSource('''class A {S get b => new A();A get _c => new A();}
+           class B implements A {S get b => new A();} class S{}
            main() {B b; b.^}''');
     return computeFull().then((_) {
-      assertSuggestGetter('b');
-      assertSuggestGetter('_c');
+      assertSuggestGetter('b', 'S');
+      assertSuggestGetter('_c', 'A');
     });
   }
 
@@ -91,29 +90,29 @@ class InvocationComputerTest extends AbstractCompletionTest {
   }
 
   test_method() {
-    addTestSource('class A {b(X x) {} _c(X x) {}} main() {A a; a.^}');
+    addTestSource('class S{} class A {b(X x) {} S _c(X x) {}} main() {A a; a.^}');
     return computeFull().then((_) {
-      assertSuggestMethod('b');
-      assertSuggestMethod('_c');
+      assertSuggestMethod('b', 'A', null);
+      assertSuggestMethod('_c', 'A', 'S');
     });
   }
 
   test_method_imported() {
-    addSource('/testB.dart', 'lib B; class X {y(X x) {} _z(X x) {}}');
+    addSource('/testB.dart', 'lib B; class X {T y(X x) {} _z(X x) {}} class T{}');
     addTestSource('import "/testB.dart"; main() {X x; x.^}');
     return computeFull().then((_) {
-      assertSuggestMethod('y');
+      assertSuggestMethod('y', 'X', 'T');
       assertNotSuggested('_z');
     });
   }
 
   test_method_imported_mixin() {
-    addSource('/testB.dart', 'lib B; class X {y(X x) {} _z(X x) {}}');
+    addSource('/testB.dart', 'lib B; class X {T y(X x) {} _z(X x) {}} class T{}');
     addTestSource('''import "/testB.dart";
       class A extends Object with X {}
       main() {A a; a.^}''');
     return computeFull().then((_) {
-      assertSuggestMethod('y');
+      assertSuggestMethod('y', 'X', 'T');
       assertNotSuggested('_z');
     });
   }

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html><head>
+<!DOCTYPE html><html><head><script src="packages/web_components/dart_support.js"></script>
+
   <meta charset="utf-8">
   <title>Dart VM Observatory</title>
   
@@ -73,15 +74,23 @@ html /deep/ [layout][wrap-reverse] {
 }
 
 html /deep/ [flex] {
-  -ms-flex: 1;
+  -ms-flex: 1 1 0.000000001px;
   -webkit-flex: 1;
   flex: 1;
+  -webkit-flex-basis: 0.000000001px;
+  flex-basis: 0.000000001px;
+}
+
+html /deep/ [vertical][layout] > [flex][auto-vertical], html /deep/ [vertical][layout]::shadow [flex][auto-vertical] {
+  -ms-flex: 1 1 auto;
+  -webkit-flex-basis: auto;
+  flex-basis: auto;
 }
 
 html /deep/ [flex][auto] {
   -ms-flex: 1 1 auto;
-  -webkit-flex: 1 1 auto;
-  flex: 1 1 auto;
+  -webkit-flex-basis: auto;
+  flex-basis: auto;
 }
 
 html /deep/ [flex][none] {
@@ -203,7 +212,7 @@ html /deep/ [layout][end-justified] {
 }
 
 html /deep/ [layout][around-justified] {
-  -ms-flex-pack: around;
+  -ms-flex-pack: distribute;
   -webkit-justify-content: space-around;
   justify-content: space-around;
 }
@@ -597,6 +606,8 @@ hr {
 
 
 
+
+
 <polymer-element name="curly-block">
   <template>
     <style>
@@ -650,6 +661,271 @@ hr {
 </polymer-element>
 
 <polymer-element name="any-service-ref" extends="observatory-element">
+</polymer-element>
+
+<polymer-element name="object-ref" extends="service-ref">
+  <template><style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <template if="{{ nameIsEmpty }}">
+      <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.vmType }}</em></a>
+    </template>
+    <template if="{{ !nameIsEmpty }}">
+      <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ name }}</em></a>
+    </template>
+  </template>
 </polymer-element>
 
 <polymer-element name="instance-ref" extends="service-ref">
@@ -1641,6 +1917,13 @@ hr {
         </action-link>
         <action-link callback="{{ stepOver }}" label="step&nbsp;over" color="white"></action-link>
         <action-link callback="{{ stepOut }}" label="step&nbsp;out" color="white"></action-link>
+        <a class="boxclose" on-click="{{ closeItem }}">×</a>
+      </div>
+    </template>
+    <template if="{{ event.eventType == 'VMDisconnected' }}">
+      <div class="item">
+        Disconnected from VM
+        <br><br>
         <a class="boxclose" on-click="{{ closeItem }}">×</a>
       </div>
     </template>
@@ -3238,15 +3521,15 @@ hr {
 }
 </style>
     <span>
-      <template if="{{ ref['static'] }}">static</template>
-      <template if="{{ ref['final'] }}">final</template>
-      <template if="{{ ref['const'] }}">const</template>
-      <template if="{{ (ref['declaredType'].name == 'dynamic' &amp;&amp;
-                        !ref['final'] &amp;&amp; !ref['const']) }}">
+      <template if="{{ ref.isStatic] }}">static</template>
+      <template if="{{ ref.isFinal }}">final</template>
+      <template if="{{ ref.isConst }}">const</template>
+      <template if="{{ (ref.declaredType.name == 'dynamic' &amp;&amp;
+                        !ref.isFinal &amp;&amp; !ref.isConst) }}">
         var
       </template>
-      <template if="{{ (ref['declaredType'].name != 'dynamic') }}">
-        <instance-ref ref="{{ ref['declaredType'] }}"></instance-ref>
+      <template if="{{ (ref.declaredType.name != 'dynamic') }}">
+        <instance-ref ref="{{ ref.declaredType }}"></instance-ref>
       </template>
       <a on-click="{{ goto }}" title="{{ hoverText }}" _href="{{ url }}">{{ name }}</a>
     </span>
@@ -4561,8 +4844,8 @@ hr {
                   <field-ref ref="{{ field }}"></field-ref>
                 </div>
                 <div class="memberValue">
-                  <template if="{{ field['value'] != null }}">
-                    <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
+                  <template if="{{ field.value != null }}">
+                    <any-service-ref ref="{{ field.value }}"></any-service-ref>
                   </template>
                 </div>
               </div>
@@ -5885,12 +6168,12 @@ hr {
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ field.isolate }}"></isolate-nav-menu>
-      <template if="{{ field['owner'].type == 'Class' }}">
+      <template if="{{ field.owner.type == 'Class' }}">
         <!-- TODO(turnidge): Add library nav menu here. -->
-        <class-nav-menu cls="{{ field['owner'] }}"></class-nav-menu>
+        <class-nav-menu cls="{{ field.owner }}"></class-nav-menu>
       </template>
-      <template if="{{ field['owner'].type == 'Library' }}">
-        <library-nav-menu library="{{ field['owner'] }}"></library-nav-menu>
+      <template if="{{ field.owner.type == 'Library' }}">
+        <library-nav-menu library="{{ field.owner }}"></library-nav-menu>
       </template>
       <nav-menu link="{{ field.link }}" anchor="{{ field.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
@@ -5899,15 +6182,15 @@ hr {
 
     <div class="content">
       <h1>
-        <template if="{{ field['static'] }}">static</template>
-        <template if="{{ field['final'] }}">final</template>
-        <template if="{{ field['const'] }}">const</template>
-        <template if="{{ (field['declaredType'].name == 'dynamic' &amp;&amp;
-                         !field['final'] &amp;&amp; !field['const']) }}">
+        <template if="{{ field.isStatic }}">static</template>
+        <template if="{{ field.isFinal }}">final</template>
+        <template if="{{ field.isConst }}">const</template>
+        <template if="{{ (field.declaredType.name == 'dynamic' &amp;&amp;
+                         !field.isFinal &amp;&amp; !field.isConst) }}">
           var
         </template>
-        <template if="{{ (field['declaredType'].name != 'dynamic') }}">
-          {{ field['declaredType'].name }}
+        <template if="{{ (field.declaredType.name != 'dynamic') }}">
+          {{ field.declaredType.name }}
         </template>
         {{ field.name }}
       </h1>
@@ -5915,48 +6198,48 @@ hr {
         <div class="memberItem">
           <div class="memberName">owner</div>
           <div class="memberValue">
-            <template if="{{ field['owner'].type == 'Class' }}">
-              <class-ref ref="{{ field['owner'] }}"></class-ref>
+            <template if="{{ field.owner.type == 'Class' }}">
+              <class-ref ref="{{ field.owner }}"></class-ref>
             </template>
-            <template if="{{ field['owner'].type != 'Class' }}">
-              <library-ref ref="{{ field['owner'] }}"></library-ref>
+            <template if="{{ field.owner.type != 'Class' }}">
+              <library-ref ref="{{ field.owner }}"></library-ref>
             </template>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">
-            <script-ref ref="{{ field['script'] }}"></script-ref>
+            <script-ref ref="{{ field.script }}"></script-ref>
           </div>
         </div>
-        <template if="{{ !field['static'] }}">
+        <template if="{{ !field.isStatic }}">
           <div class="memberItem" title="The types observed for this field at runtime.  Fields that are observed to have a single type at runtime or to never be null may allow for additional optimization.">
             <div class="memberName">observed types</div>
             <div class="memberValue">
-              <template if="{{ field['guardClass'] == 'dynamic' }}">
+              <template if="{{ field.guardClass == 'dynamic' }}">
                 various
               </template>
-              <template if="{{ field['guardClass'] == 'unknown' }}">
+              <template if="{{ field.guardClass == 'unknown' }}">
                 none
               </template>
-              <template if="{{ field['guardClass'] != 'unknown' &amp;&amp;
-                            field['guardClass'] != 'dynamic' }}">
-                <class-ref ref="{{ field['guardClass'] }}"></class-ref>
-                <template if="{{ field['guardNullable'] }}">
+              <template if="{{ field.guardClass != 'unknown' &amp;&amp;
+                            field.guardClass != 'dynamic' }}">
+                <class-ref ref="{{ field.guardClass }}"></class-ref>
+                <template if="{{ field.guardNullable }}">
                   — null observed
                 </template>
-                <template if="{{ !field['guardNullable'] }}">
+                <template if="{{ !field.guardNullable }}">
                   — null not observed
                 </template>
               </template>
             </div>
           </div>
         </template>
-        <template if="{{ field['value'] != null }}">
+        <template if="{{ field.value != null }}">
           <div class="memberItem">
             <div class="memberName">static value</div>
             <div class="memberValue">
-              <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
+              <any-service-ref ref="{{ field.value }}"></any-service-ref>
             </div>
           </div>
         </template>
@@ -14854,10 +15137,19 @@ hr {
         </div>
       </div>
 
-      <div class="memberItem" title="Space for this object in memory">
-        <div class="memberName">size</div>
-        <div class="memberValue">{{ object.size | formatSize }}</div>
-      </div>
+      <template if="{{ object.size != null }}">
+        <div class="memberItem" title="Space for this object in memory">
+          <div class="memberName">size</div>
+          <div class="memberValue">{{ object.size | formatSize }}</div>
+        </div>
+      </template>
+
+      <template if="{{ object.size == null }}">
+        <div class="memberItem" title="Space for this object in memory">
+          <div class="memberName">size</div>
+          <div class="memberValue">0</div>
+        </div>
+      </template>
 
       <div class="memberItem" title="Space that would be reclaimed if references to this object were replaced with null">
         <div class="memberName">retained size</div>
@@ -15601,7 +15893,7 @@ hr {
                     <field-ref ref="{{ field['decl'] }}"></field-ref>
                   </div>
                   <div class="memberValue">
-                    <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
+                    <any-service-ref ref="{{ field.value }}"></any-service-ref>
                   </div>
                 </div>
               </template>
@@ -16012,8 +16304,8 @@ hr {
                   <field-ref ref="{{ field }}"></field-ref>
                 </div>
                 <div class="memberValue">
-                  <template if="{{ field['value'] != null }}">
-                    <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
+                  <template if="{{ field.value != null }}">
+                    <any-service-ref ref="{{ field.value }}"></any-service-ref>
                   </template>
                 </div>
               </div>
@@ -16946,6 +17238,292 @@ hr {
     </style>
     <div id="graph" class="graph">
     </div>
+  </template>
+</polymer-element>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<polymer-element name="object-view" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <isolate-nav-menu isolate="{{ object.isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="object" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
+    </nav-bar>
+
+    <div class="content">
+      <object-common object="{{ object }}"></object-common>
+    </div>
+
+    <hr>
   </template>
 </polymer-element>
 

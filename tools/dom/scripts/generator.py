@@ -17,6 +17,7 @@ from htmlrenamer import custom_html_constructors, html_interface_renames, \
 _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     # TODO(sra): DOMStringMap should be a class implementing Map<String,String>.
     'DOMStringMap',
+    'CanvasPathMethods',
     'ChildNode',
     'EventListener',
     'GlobalEventHandlers',
@@ -34,6 +35,7 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'TimeoutHandler',
     'URLUtils',
     'URLUtilsReadOnly',
+    'WebGLRenderingContextBase',
     'WindowBase64',
     'WindowEventHandlers',
     'WindowTimers',

@@ -813,7 +813,7 @@ class ParameterElementHandle extends VariableElementHandle implements ParameterE
   ParameterElementHandle(ParameterElement element) : super(element);
 
   @override
-  SourceRange get defaultValueRange => actualElement.defaultValueRange;
+  String get defaultValueCode => actualElement.defaultValueCode;
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;

@@ -126,8 +126,7 @@ class TextBuffer : ValueObject {
 
   intptr_t Printf(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void AddChar(char ch);
-  void AddUTF8(uint32_t ch);
-  void AddEscapedChar(uint32_t ch);
+  void EscapeAndAddCodeUnit(uint32_t cu);
   void AddString(const char* s);
   void AddEscapedString(const char* s);
 

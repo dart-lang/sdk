@@ -7,6 +7,7 @@ library polymer.test.build.import_inliner_test;
 import 'dart:convert';
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/import_inliner.dart';
+import 'package:polymer/src/build/messages.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 import 'common.dart';
@@ -704,8 +705,9 @@ void importTests() {
             '}'
           '}]}',
       }, [
-        'error: Failed to inline HTML import: '
-            'Could not find asset a|web/foo.html. (web/test.html 0 27)',
+        'error: ${INLINE_IMPORT_FAIL.create({
+            'error': 'Could not find asset a|web/foo.html.'}).snippet} '
+            '(web/test.html 0 27)',
       ]);
 }
 

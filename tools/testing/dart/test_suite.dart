@@ -636,10 +636,8 @@ class StandardTestSuite extends TestSuite {
    * particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
    * in test.dart, this will all be set up for you.
    */
-  factory StandardTestSuite.forDirectory(Map configuration, Path directory,
-      [String name]) {
-    if (name == null) name = directory.filename;
-
+  factory StandardTestSuite.forDirectory(Map configuration, Path directory) {
+    var name = directory.filename;
     var status_paths = ['$directory/$name.status',
                         '$directory/.status',
                         '$directory/${name}_dart2js.status',
@@ -1667,6 +1665,52 @@ class StandardTestSuite extends TestSuite {
       "containsDomImport": false,
     };
   }
+}
+
+/// Used for testing packages in on off settings, i.e., we pass in the actual
+/// directory that we want to test.
+class PKGTestSuite extends StandardTestSuite {
+
+  PKGTestSuite(Map configuration, Path directoryPath)
+      : super(configuration,
+              directoryPath.filename,
+              directoryPath,
+              ["$directoryPath/.status"],
+              isTestFilePredicate: (f) => f.endsWith('_test.dart'),
+              recursive: true);
+
+    void enqueueBrowserTest(List<Command> baseCommands,
+                          Path packageRoot,
+                          TestInformation info,
+                          String testName,
+                          expectations) {
+      String runtime = configuration['runtime'];
+      Path filePath = info.filePath;
+      Path dir = filePath.directoryPath;
+      String nameNoExt = filePath.filenameWithoutExtension;
+      Path customHtmlPath = dir.append('$nameNoExt.html');
+      File customHtml = new File(customHtmlPath.toNativePath());
+      if (!customHtml.existsSync()) {
+        super.enqueueBrowserTest(baseCommands, packageRoot,
+                                 info, testName, expectations);
+      } else {
+        Path relativeHtml = customHtmlPath.relativeTo(TestUtils.dartDir);
+        List<Command> commands = []..addAll(baseCommands);
+        var fullPath = _createUrlPathFromFile(customHtmlPath);
+
+        commands.add(CommandBuilder.instance.getBrowserTestCommand(
+            runtime, fullPath, configuration));
+        String testDisplayName = '$suiteName/$testName';
+        enqueueNewTestCase(new BrowserTestCase(testDisplayName,
+                                               commands,
+                                               configuration,
+                                               expectations,
+                                               info,
+                                               isNegative(info),
+                                               relativeHtml.toNativePath()));
+
+      }
+    }
 }
 
 

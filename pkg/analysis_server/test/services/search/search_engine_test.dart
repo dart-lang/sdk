@@ -10,13 +10,14 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import '../../abstract_single_unit.dart';
-import '../../mocks.dart';
-import '../../reflective_tests.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../abstract_single_unit.dart';
+import '../../mocks.dart';
+import '../../reflective_tests.dart';
 
 
 main() {
@@ -415,6 +416,26 @@ main() {
         _expectId(mainElement, MatchKind.READ_WRITE, 'v += 2;'),
         _expectId(mainElement, MatchKind.READ, 'v);'),
         _expectId(mainElement, MatchKind.INVOCATION, 'v();')];
+    return _verifyReferences(element, expected);
+  }
+
+  Future test_searchReferences_LabelElement() {
+    _indexTestUnit('''
+main() {
+label:
+  while (true) {
+    if (true) {
+      break label; // 1
+    }
+    break label; // 2
+  }
+}
+''');
+    LabelElement element = findElement('label');
+    Element mainElement = findElement('main');
+    var expected = [
+        _expectId(mainElement, MatchKind.REFERENCE, 'label; // 1'),
+        _expectId(mainElement, MatchKind.REFERENCE, 'label; // 2')];
     return _verifyReferences(element, expected);
   }
 

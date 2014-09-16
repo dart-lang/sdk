@@ -12,40 +12,92 @@ import 'package:compiler/implementation/universe/universe.dart';
 
 import 'closed_world.dart';
 
-class TreeShaker {
-  List<Element> _queue = <Element>[];
-  Set<Element> _alreadyEnqueued = new HashSet<Element>();
-  ClosedWorld _world;
-  Set<Selector> _selectors = new HashSet<Selector>();
+/**
+ * The result of performing local reachability analysis on a method.
+ */
+class MethodAnalysis {
+  /**
+   * The AST for the method.
+   */
+  final Declaration declaration;
 
-  TreeShaker(FunctionElement mainFunction)
-      : _world = new ClosedWorld(mainFunction) {
-    addElement(mainFunction);
+  /**
+   * The functions statically called by the method.
+   */
+  final List<LocalElement> calls = <LocalElement>[];
+
+  /**
+   * The selectors used by the method to perform dynamic invocation.
+   */
+  final List<Selector> invokes = <Selector>[];
+
+  /**
+   * The classes that are instantiated by the method.
+   */
+  final List<ClassElement> instantiates = <ClassElement>[];
+
+  MethodAnalysis(this.declaration);
+}
+
+/**
+ * The result of performing local reachability analysis on a class.
+ *
+ * TODO(paulberry): Do we need to do any other analysis of classes?  (For
+ * example, detect annotations that are relevant to mirrors, detect that a
+ * class might be used for custom HTML elements, or collect inherited and
+ * mixed-in classes).
+ */
+class ClassAnalysis {
+  /**
+   * The AST for the class.
+   */
+  final ClassDeclaration declaration;
+
+  ClassAnalysis(this.declaration);
+}
+
+/**
+ * This class is responsible for performing local analysis of the source code
+ * to provide the information needed to do tree shaking.
+ */
+class LocalReachabilityComputer {
+  /**
+   * Perform local reachability analysis of [method].
+   */
+  MethodAnalysis analyzeMethod(ExecutableElement method) {
+    MethodAnalysis analysis = new MethodAnalysis(method.node);
+    analysis.declaration.accept(new TreeShakingVisitor(analysis));
+    return analysis;
   }
 
-  void addElement(Element element) {
-    if (_alreadyEnqueued.add(element)) {
-      _queue.add(element);
-    }
+  /**
+   * Perform local reachability analysis of [classElement].
+   */
+  ClassAnalysis analyzeClass(ClassElement classElement) {
+    return new ClassAnalysis(classElement.node);
   }
 
-  void addSelector(Selector selector) {
-    if (_selectors.add(selector)) {
-      // New selector, so match it against all class methods.
-      _world.instantiatedClasses.forEach((ClassElement element, AstNode node) {
-        matchClassToSelector(element, selector);
-      });
-    }
-  }
-
-  void matchClassToSelector(ClassElement classElement, Selector selector) {
-    // TODO(paulberry): walk through superclasses and mixins as well.  Consider
-    // using InheritanceManager to do this.
+  /**
+   * Determine which members of [classElement] are matched by the given
+   * [selector].
+   *
+   * [methods] is populated with all the class methods which are matched by the
+   * selector, [accessors] with all the getters and setters which are matched
+   * by the selector, and [fields] with all the fields which are matched by the
+   * selector.
+   */
+  void getMatchingClassMembers(ClassElement classElement, Selector selector,
+      List<MethodElement> methods, List<PropertyAccessorElement> accessors,
+      List<PropertyInducingElement> fields) {
+    // TODO(paulberry): should we walk through superclasses and mixins as well
+    // here?  Or would it be better to make [TreeShaker] responsible for those
+    // relationships (since they are non-local)?  Consider making use of
+    // InheritanceManager to do this.
     for (MethodElement method in classElement.methods) {
       // TODO(paulberry): account for arity and named arguments when matching
       // the selector against the method.
       if (selector.name == method.name) {
-        addElement(method);
+        methods.add(method);
       }
     }
     if (selector.kind == SelectorKind.GETTER) {
@@ -53,41 +105,79 @@ class TreeShaker {
         if (accessor.isGetter && selector.name == accessor.name) {
           if (accessor.isSynthetic) {
             // This accessor is implied by the corresponding field declaration.
-            addElement(accessor.variable);
+            fields.add(accessor.variable);
           } else {
-            addElement(accessor);
+            accessors.add(accessor);
           }
         }
       }
     }
   }
+}
+
+/**
+ * This class is responsible for driving the tree shaking process, and
+ * and performing the global inferences necessary to determine which methods
+ * in the source program are reachable.  It makes use of
+ * [LocalReachabilityComputer] to do local analysis of individual classes and
+ * methods.
+ */
+class TreeShaker {
+  List<Element> _queue = <Element>[];
+  Set<Element> _alreadyEnqueued = new HashSet<Element>();
+  ClosedWorld _world;
+  Set<Selector> _selectors = new HashSet<Selector>();
+  final LocalReachabilityComputer _localComputer = new LocalReachabilityComputer();
+
+  TreeShaker(FunctionElement mainFunction)
+      : _world = new ClosedWorld(mainFunction);
+
+  void _addElement(Element element) {
+    if (_alreadyEnqueued.add(element)) {
+      _queue.add(element);
+    }
+  }
+
+  void _addSelector(Selector selector) {
+    if (_selectors.add(selector)) {
+      // New selector, so match it against all class methods.
+      _world.instantiatedClasses.forEach((ClassElement element, AstNode node) {
+        _matchClassToSelector(element, selector);
+      });
+    }
+  }
+
+  void _matchClassToSelector(ClassElement classElement, Selector selector) {
+    List<MethodElement> methods = <MethodElement>[];
+    List<PropertyAccessorElement> accessors = <PropertyAccessorElement>[];
+    List<PropertyInducingElement> fields = <PropertyInducingElement>[];
+    _localComputer.getMatchingClassMembers(
+        classElement,
+        selector,
+        methods,
+        accessors,
+        fields);
+    methods.forEach(_addElement);
+    accessors.forEach(_addElement);
+    fields.forEach(_addElement);
+  }
 
   ClosedWorld shake() {
+    _addElement(_world.mainFunction);
     while (_queue.isNotEmpty) {
       Element element = _queue.removeLast();
       print('Tree shaker handling $element');
-      if (element is FunctionElement) {
-        FunctionDeclaration declaration = element.node;
-        _world.executableElements[element] = declaration;
-        declaration.accept(new TreeShakingVisitor(this));
+      if (element is ExecutableElement) {
+        MethodAnalysis analysis = _localComputer.analyzeMethod(element);
+        _world.executableElements[element] = analysis.declaration;
+        analysis.calls.forEach(_addElement);
+        analysis.invokes.forEach(_addSelector);
+        analysis.instantiates.forEach(_addElement);
       } else if (element is ClassElement) {
-        ClassDeclaration declaration = element.node;
-        _world.instantiatedClasses[element] = declaration;
+        ClassAnalysis analysis = _localComputer.analyzeClass(element);
+        _world.instantiatedClasses[element] = analysis.declaration;
         for (Selector selector in _selectors) {
-          matchClassToSelector(element, selector);
-        }
-      } else if (element is MethodElement) {
-        MethodDeclaration declaration = element.node;
-        _world.executableElements[element] = declaration;
-        declaration.accept(new TreeShakingVisitor(this));
-      } else if (element is PropertyAccessorElement) {
-        if (element.isGetter) {
-          MethodDeclaration declaration = element.node;
-          _world.executableElements[element] = declaration;
-          declaration.accept(new TreeShakingVisitor(this));
-        } else {
-          // TODO(paulberry): handle setters.
-          throw new UnimplementedError();
+          _matchClassToSelector(element, selector);
         }
       } else if (element is FieldElement) {
         VariableDeclaration declaration = element.node;
@@ -115,16 +205,16 @@ Selector createSelectorFromMethodInvocation(MethodInvocation node) {
 }
 
 class TreeShakingVisitor extends RecursiveAstVisitor {
-  final TreeShaker treeShaker;
+  final MethodAnalysis analysis;
 
-  TreeShakingVisitor(this.treeShaker);
+  TreeShakingVisitor(this.analysis);
 
   /**
    * Handle a true method call (a MethodInvocation that represents a call to
    * a non-static method).
    */
   void handleMethodCall(MethodInvocation node) {
-    treeShaker.addSelector(createSelectorFromMethodInvocation(node));
+    analysis.invokes.add(createSelectorFromMethodInvocation(node));
   }
 
   @override
@@ -139,7 +229,7 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
       // TODO(paulberry): Really we should enqueue the constructor, and then
       // when we visit it add the class to the class bucket.
       ClassElement classElement = staticElement.enclosingElement;
-      treeShaker.addElement(classElement);
+      analysis.instantiates.add(classElement);
     } else {
       // TODO(paulberry): deal with this situation.  This can happen, for
       // example, in the case "main() => new Unresolved();" (which is a
@@ -232,7 +322,7 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
       //   }
       // TODO(paulberry): for the moment we are assuming it's a toplevel
       // function.
-      treeShaker.addElement(staticElement);
+      analysis.calls.add(staticElement);
     } else if (staticElement is MultiplyDefinedElement) {
       // TODO(paulberry): do we have to deal with this case?
       throw new UnimplementedError();
@@ -254,6 +344,6 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
     // TODO(paulberry): handle cases where the property access is represented
     // as a PrefixedIdentifier.
     super.visitPropertyAccess(node);
-    treeShaker.addSelector(new Selector.getter(node.propertyName.name, null));
+    analysis.invokes.add(new Selector.getter(node.propertyName.name, null));
   }
 }

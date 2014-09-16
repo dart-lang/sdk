@@ -351,6 +351,22 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 }
 
 
+// Called from object allocate instruction when the allocation stub has been
+// disabled.
+void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Setup space on stack for return value.
+  __ PushObject(Object::null_object(), PP);
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  __ popq(RAX);  // Get Code object.
+  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
+  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ LeaveStubFrame();
+  __ jmp(RAX);
+  __ int3();
+}
+
+
 // Input parameters:
 //   R10: smi-tagged argument count, may be zero.
 //   RBP[kParamEndSlotFromFp + 1]: last argument.
@@ -1051,7 +1067,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Input parameters:
 //   RSP + 8 : type arguments object (only if class is parameterized).
 //   RSP : points to return address.
-void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
+uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
   const intptr_t kObjectTypeArgumentsOffset = 1 * kWordSize;
   // The generated code is different if the class is parameterized.
@@ -1164,6 +1180,10 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   // Restore the frame pointer.
   __ LeaveStubFrame();
   __ ret();
+  uword patch_code_pc_offset = assembler->CodeSize();
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  __ JmpPatchable(&stub_code->FixAllocationStubTargetLabel(), R13);
+  return patch_code_pc_offset;
 }
 
 

@@ -5,8 +5,9 @@
 library test.services.correction.strings;
 
 import 'package:analysis_server/src/services/correction/strings.dart';
-import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide isEmpty;
+
+import '../../reflective_tests.dart';
 
 
 
@@ -130,6 +131,14 @@ class StringsTest {
     expect(remove('abc abbc abbbc', 'bc'), 'a ab abb');
   }
 
+  void test_removeEnd() {
+    expect(removeEnd(null, 'x'), null);
+    expect(removeEnd('abc', null), 'abc');
+    expect(removeEnd('www.domain.com', '.com.'), 'www.domain.com');
+    expect(removeEnd('www.domain.com', 'domain'), 'www.domain.com');
+    expect(removeEnd('www.domain.com', '.com'), 'www.domain');
+  }
+
   void test_removeStart() {
     expect(removeStart(null, 'x'), null);
     expect(removeStart('abc', null), 'abc');
@@ -141,5 +150,12 @@ class StringsTest {
     expect(repeat('x', 0), '');
     expect(repeat('x', 5), 'xxxxx');
     expect(repeat('abc', 3), 'abcabcabc');
+  }
+
+  void test_substringAfterLast() {
+    expect(substringAfterLast('', '/'), '');
+    expect(substringAfterLast('abc', ''), '');
+    expect(substringAfterLast('abc', 'd'), 'abc');
+    expect(substringAfterLast('abcbde', 'b'), 'de');
   }
 }

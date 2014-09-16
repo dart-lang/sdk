@@ -17,6 +17,7 @@ import '../package_provider.dart';
 import '../utils.dart';
 import 'asset_cascade.dart';
 import 'node_status.dart';
+import 'static_asset_cascade.dart';
 
 /// The collection of [AssetCascade]s for an entire application.
 ///
@@ -95,9 +96,26 @@ class PackageGraph {
         });
       }
 
+      if (provider is StaticPackageProvider) {
+        StaticPackageProvider staticProvider = provider;
+        for (var package in staticProvider.staticPackages) {
+          if (_cascades.containsKey(package)) {
+            throw new StateError('Package "$package" is in both '
+                'PackageProvider.packages and PackageProvider.staticPackages.');
+          }
+
+          var cascade = new StaticAssetCascade(this, package);
+          _cascades[package] = cascade;
+        }
+      }
+
       _errors = mergeStreams(_cascades.values.map((cascade) => cascade.errors),
           broadcast: true);
       _errors.listen(_accumulatedErrors.add);
+
+      // Make sure a result gets scheduled even if there are no cascades or all
+      // of them are static.
+      if (provider.packages.isEmpty) _tryScheduleResult();
     });
   }
 
@@ -147,10 +165,12 @@ class PackageGraph {
     }
 
     // Otherwise, return all of the final output assets.
-    var assets = unionAll(_cascades.values.map(
-        (cascade) => cascade.availableOutputs.toSet()));
-
-    return new Future.value(new AssetSet.from(assets));
+    return Future.wait(_cascades.values.map(
+            (cascade) => cascade.availableOutputs))
+          .then((assetSets) {
+      var assets = unionAll(assetSets.map((assetSet) => assetSet.toSet()));
+      return new Future.value(new AssetSet.from(assets));
+    });
   }
 
   /// Adds [sources] to the graph's known set of source assets.

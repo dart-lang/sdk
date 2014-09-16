@@ -1,34 +1,35 @@
 BUILD LOG
 ---------
-Build Time: 2014-08-12T15:26:59
+Build Time: 2014-09-10T09:11:24
 
 NODEJS INFORMATION
 ==================
 nodejs: v0.10.29
-chai: 1.9.1
 grunt: 0.4.5
-grunt-audit: 0.0.3
+chai: 1.9.1
 grunt-concat-sourcemap: 0.4.3
-grunt-contrib-concat: 0.5.0
-grunt-contrib-uglify: 0.4.1
-grunt-contrib-yuidoc: 0.5.2
+grunt-audit: 0.0.3
+grunt-contrib-concat: 0.4.0
+grunt-contrib-uglify: 0.5.1
 grunt-karma: 0.8.3
 grunt-string-replace: 0.2.7
-karma: 0.12.21
+karma: 0.12.23
 karma-crbot-reporter: 0.0.4
 karma-firefox-launcher: 0.1.3
 karma-ie-launcher: 0.1.5
-karma-mocha: 0.1.7
+karma-mocha: 0.1.9
 karma-safari-launcher: 0.1.1
 karma-script-launcher: 0.1.0
 mocha: 1.21.4
 
 REPO REVISIONS
 ==============
-polymer-expressions: 92f860ef9ff871e4b51fc5da38b2b76ba13ebdbe
-polymer-gestures: a21142376f0c8a9541a2919d3f77ca557d13afe9
-polymer-dev: 5d00e4b0252e443e2ed6d5c4a04a568e72ef3b25
+polymer-expressions: 30afaf9fffe647bbe53e67f4ac12596acaca77ca
+polymer-gestures: 3534e23ccc0f50ee24e47fd915579a5ebc770a76
+polymer-dev: d66a86eac545ff8115f781ec6b1466024f49c0c0
+HTMLImports: d0c8d08f23ed407288bcac385e19747a3fbeba96
+TemplateBinding: 41e95ea0e4b45543a29ea5240cd4f0defc7208c1
 
 BUILD HASHES
 ============
-build/polymer.js: 23408455239101d17426ef7448361730103cb2cf
+build/polymer.js: 5eb34c0f8e6abe9984a5a2811c022fca4d1098b6

@@ -49,7 +49,10 @@ abstract class BaseTransform {
       // If the log isn't already associated with an asset, use the primary.
       if (asset == null) asset = _node.info.primaryId;
       var entry = new LogEntry(_node.info, asset, level, message, span);
-      _onLogController.add(entry);
+
+      // The log controller can be closed while log entries are still coming in
+      // if the transformer is removed during [apply].
+      if (!_onLogController.isClosed) _onLogController.add(entry);
     });
   }
 

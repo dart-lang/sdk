@@ -26,10 +26,6 @@ bound_closure_interceptor_type_test: Fail, Pass # v8 issue 3084. https://code.go
 operator_test: Skip
 string_interpolation_test: Skip
 
-[ $compiler == dart2js && $runtime == ie9 ]
-class_test: Fail
-deferred/*: Skip # http://dartbug.com/12635
-
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 no_such_method_mirrors_test: Pass, Slow # TODO(kasperl): Please triage.
 

@@ -1527,8 +1527,10 @@
           An enumeration of the possible types of analysis errors.
         </p>
         <enum>
+          <value><code>ANGULAR</code></value>
           <value><code>COMPILE_TIME_ERROR</code></value>
           <value><code>HINT</code></value>
+          <value><code>POLYMER</code></value>
           <value><code>STATIC_TYPE_WARNING</code></value>
           <value><code>STATIC_WARNING</code></value>
           <value><code>SYNTACTIC_ERROR</code></value>
@@ -1813,6 +1815,7 @@
           <value><code>GETTER</code></value>
           <value><code>IMPORT</code></value>
           <value><code>KEYWORD</code></value>
+          <value><code>LABEL</code></value>
           <value><code>LIBRARY_PREFIX</code></value>
           <value><code>LOCAL_VARIABLE</code></value>
           <value><code>METHOD</code></value>
@@ -1898,6 +1901,7 @@
           <value><code>FUNCTION</code></value>
           <value><code>FUNCTION_TYPE_ALIAS</code></value>
           <value><code>GETTER</code></value>
+          <value><code>LABEL</code></value>
           <value><code>LIBRARY</code></value>
           <value><code>LOCAL_VARIABLE</code></value>
           <value><code>METHOD</code></value>
@@ -2047,6 +2051,7 @@
           <value><code>IDENTIFIER_DEFAULT</code></value>
           <value><code>IMPORT_PREFIX</code></value>
           <value><code>KEYWORD</code></value>
+          <value><code>LABEL</code></value>
           <value><code>LITERAL_BOOLEAN</code></value>
           <value><code>LITERAL_DOUBLE</code></value>
           <value><code>LITERAL_INTEGER</code></value>
@@ -2585,11 +2590,11 @@
               A short description of the error.
             </p>
           </field>
-          <field name="data" optional="true">
-            <ref>object</ref>
+          <field name="stackTrace" optional="true">
+            <ref>String</ref>
             <p>
-              Additional data related to the error. This field is
-              omitted if there is no additional data available.
+              The stack trace associated with processing the request,
+              used for debugging the server.
             </p>
           </field>
         </object>
@@ -2639,6 +2644,13 @@
               This error is included for future expansion; at present
               the analysis server can only speak to one client at a
               time so this error will never occur.
+            </p>
+          </value>
+          <value>
+            <code>SERVER_ERROR</code>
+            <p>
+              An internal error occurred in the analysis server.
+              Also see the server.error notification.
             </p>
           </value>
           <value>

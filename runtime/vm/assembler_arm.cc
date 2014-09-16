@@ -1507,6 +1507,7 @@ void Assembler::Drop(intptr_t stack_elements) {
 void Assembler::LoadWordFromPoolOffset(Register rd,
                                        int32_t offset,
                                        Condition cond) {
+  ASSERT(allow_constant_pool());
   ASSERT(rd != PP);
   int32_t offset_mask = 0;
   if (Address::CanHoldLoadOffset(kWord, offset, &offset_mask)) {
@@ -1539,7 +1540,7 @@ void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()), cond);
-  } else if (object.InVMHeap()) {
+  } else if (object.InVMHeap() || !allow_constant_pool()) {
     // Make sure that class CallPattern is able to decode this load immediate.
     const int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
     LoadImmediate(rd, object_raw, cond);
@@ -2256,8 +2257,20 @@ void Assembler::Lsr(Register rd, Register rm, Register rs, Condition cond) {
 void Assembler::Asr(Register rd, Register rm, uint32_t shift_imm,
                     Condition cond) {
   ASSERT(shift_imm != 0);  // Do not use Asr if no shift is wanted.
-  if (shift_imm == 32) shift_imm = 0;  // Comply to UAL syntax.
+  if (shift_imm == 32) {
+    shift_imm = 0;  // Comply to UAL syntax.
+  }
   mov(rd, Operand(rm, ASR, shift_imm), cond);
+}
+
+
+void Assembler::Asrs(Register rd, Register rm, uint32_t shift_imm,
+                     Condition cond) {
+  ASSERT(shift_imm != 0);  // Do not use Asr if no shift is wanted.
+  if (shift_imm == 32) {
+    shift_imm = 0;  // Comply to UAL syntax.
+  }
+  movs(rd, Operand(rm, ASR, shift_imm), cond);
 }
 
 
@@ -2726,7 +2739,7 @@ void Assembler::AddImmediate(Register rd, Register rn, int32_t value,
 
 
 void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
-                                    Condition cond) {
+                                     Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {
     // Handles value == kMinInt32.

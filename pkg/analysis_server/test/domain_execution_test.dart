@@ -70,64 +70,64 @@ main() {
       });
     });
 
-    group('mapUri', () {
-      String contextId;
-
-      setUp(() {
-        Request request =
-            new ExecutionCreateContextParams('/a/b.dart').toRequest('0');
-        Response response = handler.handleRequest(request);
-        expect(response, isResponseSuccess('0'));
-        ExecutionCreateContextResult result =
-            new ExecutionCreateContextResult.fromResponse(response);
-        contextId = result.id;
-      });
-
-      tearDown(() {
-        Request request =
-            new ExecutionDeleteContextParams(contextId).toRequest('1');
-        Response response = handler.handleRequest(request);
-        expect(response, isResponseSuccess('1'));
-      });
-
-      test('file to URI', () {
-        Request request =
-            new ExecutionMapUriParams(contextId, file: '/a/b.dart').toRequest('2');
-        Response response = handler.handleRequest(request);
-        expect(response, isResponseSuccess('2'));
-        ExecutionMapUriResult result =
-            new ExecutionMapUriResult.fromResponse(response);
-        expect(result.file, isNull);
-        expect(result.uri, isNotNull);
-        // TODO(brianwilkerson) Test for the correct result.
-      });
-
-      test('URI to file', () {
-        Request request =
-            new ExecutionMapUriParams(contextId, uri: '/a/b.dart').toRequest('3');
-        Response response = handler.handleRequest(request);
-        expect(response, isResponseSuccess('3'));
-        ExecutionMapUriResult result =
-            new ExecutionMapUriResult.fromResponse(response);
-        expect(result.file, isNotNull);
-        expect(result.uri, isNull);
-        // TODO(brianwilkerson) Test for the correct result.
-      });
-
-      test('invalid context id', () {
-        Request request =
-            new ExecutionMapUriParams('xxx', uri: '').toRequest('4');
-        Response response = handler.handleRequest(request);
-        expect(response, isResponseFailure('4'));
-      });
-
-      test('both file and uri', () {
-        Request request =
-            new ExecutionMapUriParams('xxx', file: '', uri: '').toRequest('5');
-        Response response = handler.handleRequest(request);
-        expect(response, isResponseFailure('5'));
-      });
-    });
+//    group('mapUri', () {
+//      String contextId;
+//
+//      setUp(() {
+//        Request request =
+//            new ExecutionCreateContextParams('/a/b.dart').toRequest('0');
+//        Response response = handler.handleRequest(request);
+//        expect(response, isResponseSuccess('0'));
+//        ExecutionCreateContextResult result =
+//            new ExecutionCreateContextResult.fromResponse(response);
+//        contextId = result.id;
+//      });
+//
+//      tearDown(() {
+//        Request request =
+//            new ExecutionDeleteContextParams(contextId).toRequest('1');
+//        Response response = handler.handleRequest(request);
+//        expect(response, isResponseSuccess('1'));
+//      });
+//
+//      test('file to URI', () {
+//        Request request =
+//            new ExecutionMapUriParams(contextId, file: '/a/b.dart').toRequest('2');
+//        Response response = handler.handleRequest(request);
+//        expect(response, isResponseSuccess('2'));
+//        ExecutionMapUriResult result =
+//            new ExecutionMapUriResult.fromResponse(response);
+//        expect(result.file, isNull);
+//        expect(result.uri, isNotNull);
+//        // TODO(brianwilkerson) Test for the correct result.
+//      });
+//
+//      test('URI to file', () {
+//        Request request =
+//            new ExecutionMapUriParams(contextId, uri: '/a/b.dart').toRequest('3');
+//        Response response = handler.handleRequest(request);
+//        expect(response, isResponseSuccess('3'));
+//        ExecutionMapUriResult result =
+//            new ExecutionMapUriResult.fromResponse(response);
+//        expect(result.file, isNotNull);
+//        expect(result.uri, isNull);
+//        // TODO(brianwilkerson) Test for the correct result.
+//      });
+//
+//      test('invalid context id', () {
+//        Request request =
+//            new ExecutionMapUriParams('xxx', uri: '').toRequest('4');
+//        Response response = handler.handleRequest(request);
+//        expect(response, isResponseFailure('4'));
+//      });
+//
+//      test('both file and uri', () {
+//        Request request =
+//            new ExecutionMapUriParams('xxx', file: '', uri: '').toRequest('5');
+//        Response response = handler.handleRequest(request);
+//        expect(response, isResponseFailure('5'));
+//      });
+//    });
 
     group('setSubscriptions', () {
       test('failure - invalid service name', () {

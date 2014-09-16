@@ -1292,10 +1292,11 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = iterator.NextFrame();
-  while (frame != NULL && (frame->IsStubFrame() || frame->IsExitFrame())) {
-    frame = iterator.NextFrame();
-  }
   ASSERT(frame != NULL);
+  while (frame->IsStubFrame() || frame->IsExitFrame()) {
+    frame = iterator.NextFrame();
+    ASSERT(frame != NULL);
+  }
   if (frame->IsEntryFrame()) {
     // Since function's current code is always unpatched, the entry frame always
     // calls to unpatched code.
@@ -1338,6 +1339,51 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
         current_target_code.EntryPoint());
   }
   arguments.SetReturn(current_target_code);
+}
+
+
+// The caller tried to allocate an instance via an invalidated allocation
+// stub.
+DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
+  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
+  StackFrame* frame = iterator.NextFrame();
+  ASSERT(frame != NULL);
+  while (frame->IsStubFrame() || frame->IsExitFrame()) {
+    frame = iterator.NextFrame();
+    ASSERT(frame != NULL);
+  }
+  if (frame->IsEntryFrame()) {
+    // There must be a valid Dart frame.
+    UNREACHABLE();
+  }
+  ASSERT(frame->IsDartFrame());
+  const Code& caller_code = Code::Handle(isolate, frame->LookupDartCode());
+  ASSERT(!caller_code.IsNull());
+  const uword target =
+      CodePatcher::GetStaticCallTargetAt(frame->pc(), caller_code);
+  const Code& stub = Code::Handle(isolate, Code::LookupCode(target));
+  Class& alloc_class = Class::ZoneHandle(isolate);
+  alloc_class ^= stub.owner();
+  Code& alloc_stub = Code::Handle(isolate, alloc_class.allocation_stub());
+  if (alloc_stub.IsNull()) {
+    alloc_stub = isolate->stub_code()->GetAllocationStubForClass(alloc_class);
+    ASSERT(!CodePatcher::IsEntryPatched(alloc_stub));
+  }
+  const Instructions& instrs =
+      Instructions::Handle(isolate, caller_code.instructions());
+  {
+    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    CodePatcher::PatchStaticCallAt(frame->pc(),
+                                   caller_code,
+                                   alloc_stub.EntryPoint());
+  }
+  if (FLAG_trace_patching) {
+    OS::PrintErr("FixAllocationStubTarget: caller %#" Px " "
+        " -> %#" Px "\n",
+        frame->pc(),
+        alloc_stub.EntryPoint());
+  }
+  arguments.SetReturn(alloc_stub);
 }
 
 

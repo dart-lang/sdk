@@ -219,6 +219,9 @@ ElementKind _elementKindFromEngine(engine.ElementKind kind) {
   if (kind == engine.ElementKind.GETTER) {
     return ElementKind.GETTER;
   }
+  if (kind == engine.ElementKind.LABEL) {
+    return ElementKind.LABEL;
+  }
   if (kind == engine.ElementKind.LIBRARY) {
     return ElementKind.LIBRARY;
   }
