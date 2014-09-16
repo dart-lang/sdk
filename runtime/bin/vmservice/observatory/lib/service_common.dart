@@ -87,6 +87,7 @@ abstract class CommonWebSocketVM extends VM {
       new Map<String, _WebSocketRequest>();
   int _requestSerial = 0;
   bool _hasInitiatedConnect = false;
+  bool _hasFinishedConnect = false;
   Utf8Decoder _utf8Decoder = new Utf8Decoder();
 
   CommonWebSocket _webSocket;
@@ -96,6 +97,7 @@ abstract class CommonWebSocketVM extends VM {
   }
 
   void _notifyConnect() {
+    _hasFinishedConnect = true;
     if (!_connected.isCompleted) {
       Logger.root.info('WebSocketVM connection opened: ${target.networkAddress}');
       _connected.complete(this);
@@ -103,6 +105,9 @@ abstract class CommonWebSocketVM extends VM {
   }
   Future get onConnect => _connected.future;
   void _notifyDisconnect() {
+    if (!_hasFinishedConnect) {
+      return;
+    }
     if (!_disconnected.isCompleted) {
       Logger.root.info('WebSocketVM connection error: ${target.networkAddress}');
       _disconnected.complete(this);

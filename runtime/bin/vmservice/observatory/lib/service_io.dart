@@ -29,6 +29,8 @@ class _IOWebSocket implements CommonWebSocket {
           onDone: onClose,
           cancelOnError: true);
       onOpen();
+    }).catchError((e, st) {
+      onError();
     });
   }
   
@@ -40,7 +42,9 @@ class _IOWebSocket implements CommonWebSocket {
   }
   
   void close() {
-    _webSocket.close();
+    if (_webSocket != null) {
+      _webSocket.close();
+    }
   }
   
   Future<ByteData> nonStringToByteData(dynamic data) {
