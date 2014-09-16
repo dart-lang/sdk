@@ -25,7 +25,7 @@ import 'package:compiler/implementation/elements/elements.dart' show
     Element,
     LibraryElement;
 
-import 'package:try/poi/diff.dart' show
+import 'package:dart2js_incremental/diff.dart' show
     Difference,
     computeDifference;
 
