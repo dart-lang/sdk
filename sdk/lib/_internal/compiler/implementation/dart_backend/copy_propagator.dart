@@ -179,9 +179,10 @@ class CopyPropagator extends RecursiveVisitor {
   }
 
   Statement visitFunctionDeclaration(FunctionDeclaration node) {
+    // Unlike var declarations, function declarations are not hoisted, so we
+    // can't do copy propagation of the variable.
     new CopyPropagator().rewrite(node.definition);
     node.next = visitStatement(node.next);
-    node.variable = copyPropagateVariable(node.variable);
     return node;
   }
 
