@@ -16,7 +16,18 @@ abstract class _Completer<T> implements Completer<T> {
 
   void complete([value]);
 
-  void completeError(Object error, [StackTrace stackTrace]);
+  void completeError(Object error, [StackTrace stackTrace]) {
+    if (error == null) throw new ArgumentError("Error must not be null");
+    if (!future._mayComplete) throw new StateError("Future already completed");
+    AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
+    if (replacement != null) {
+      error = replacement.error;
+      stackTrace = replacement.stackTrace;
+    }
+    _completeError(error, stackTrace);
+  }
+
+  void _completeError(Object error, StackTrace stackTrace);
 
   // The future's _isComplete doesn't take into account pending completions.
   // We therefore use _mayComplete.
@@ -30,9 +41,7 @@ class _AsyncCompleter<T> extends _Completer<T> {
     future._asyncComplete(value);
   }
 
-  void completeError(Object error, [StackTrace stackTrace]) {
-    if (error == null) throw new ArgumentError("Error must not be null");
-    if (!future._mayComplete) throw new StateError("Future already completed");
+  void _completeError(Object error, StackTrace stackTrace) {
     future._asyncCompleteError(error, stackTrace);
   }
 }
@@ -44,8 +53,7 @@ class _SyncCompleter<T> extends _Completer<T> {
     future._complete(value);
   }
 
-  void completeError(Object error, [StackTrace stackTrace]) {
-    if (!future._mayComplete) throw new StateError("Future already completed");
+  void _completeError(Object error, StackTrace stackTrace) {
     future._completeError(error, stackTrace);
   }
 }
@@ -213,7 +221,7 @@ class _Future<T> implements Future<T> {
     return _resultOrListeners;
   }
 
-  _AsyncError get _error {
+  AsyncError get _error {
     assert(_isComplete && _hasError);
     return _resultOrListeners;
   }
@@ -227,7 +235,7 @@ class _Future<T> implements Future<T> {
   void _setError(Object error, StackTrace stackTrace) {
     assert(!_isComplete);  // But may have a completion pending.
     _state = _ERROR;
-    _resultOrListeners = new _AsyncError(error, stackTrace);
+    _resultOrListeners = new AsyncError(error, stackTrace);
   }
 
   void _addListener(_Future listener) {
@@ -437,7 +445,7 @@ class _Future<T> implements Future<T> {
       if (!source._isComplete) return;  // Chained future.
       bool hasError = source._hasError;
       if (hasError && listeners == null) {
-        _AsyncError asyncError = source._error;
+        AsyncError asyncError = source._error;
         source._zone.handleUncaughtError(
             asyncError.error, asyncError.stackTrace);
         return;
@@ -471,7 +479,7 @@ class _Future<T> implements Future<T> {
         Zone zone = listener._zone;
         if (hasError && !source._zone.inSameErrorZone(zone)) {
           // Don't cross zone boundaries with errors.
-          _AsyncError asyncError = source._error;
+          AsyncError asyncError = source._error;
           source._zone.handleUncaughtError(
               asyncError.error, asyncError.stackTrace);
           return;
@@ -489,13 +497,13 @@ class _Future<T> implements Future<T> {
                                                  sourceValue);
             return true;
           } catch (e, s) {
-            listenerValueOrError = new _AsyncError(e, s);
+            listenerValueOrError = new AsyncError(e, s);
             return false;
           }
         }
 
         void handleError() {
-          _AsyncError asyncError = source._error;
+          AsyncError asyncError = source._error;
           _FutureErrorTest test = listener._errorTest;
           bool matchesTest = true;
           if (test != null) {
@@ -504,7 +512,7 @@ class _Future<T> implements Future<T> {
             } catch (e, s) {
               // TODO(ajohnsen): Should we suport rethrow for test throws?
               listenerValueOrError = identical(asyncError.error, e) ?
-                  asyncError : new _AsyncError(e, s);
+                  asyncError : new AsyncError(e, s);
               listenerHasValue = false;
               return;
             }
@@ -522,7 +530,7 @@ class _Future<T> implements Future<T> {
               }
             } catch (e, s) {
               listenerValueOrError = identical(asyncError.error, e) ?
-                  asyncError : new _AsyncError(e, s);
+                  asyncError : new AsyncError(e, s);
               listenerHasValue = false;
               return;
             }
@@ -542,7 +550,7 @@ class _Future<T> implements Future<T> {
             if (hasError && identical(source._error.error, e)) {
               listenerValueOrError = source._error;
             } else {
-              listenerValueOrError = new _AsyncError(e, s);
+              listenerValueOrError = new AsyncError(e, s);
             }
             listenerHasValue = false;
           }
@@ -614,7 +622,7 @@ class _Future<T> implements Future<T> {
         listener._setValue(listenerValueOrError);
       } else {
         listeners = listener._removeListeners();
-        _AsyncError asyncError = listenerValueOrError;
+        AsyncError asyncError = listenerValueOrError;
         listener._setError(asyncError.error, asyncError.stackTrace);
       }
       // Prepare for next round.

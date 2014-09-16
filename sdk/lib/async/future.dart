@@ -117,7 +117,7 @@ abstract class Future<T> {
       try {
         result._complete(computation());
       } catch (e, s) {
-        result._completeError(e, s);
+        _completeWithErrorCallback(result, e, s);
       }
     });
     return result;
@@ -143,7 +143,7 @@ abstract class Future<T> {
       try {
         result._complete(computation());
       } catch (e, s) {
-        result._completeError(e, s);
+        _completeWithErrorCallback(result, e, s);
       }
     });
     return result;
@@ -190,6 +190,13 @@ abstract class Future<T> {
    * Use [Completer] to create a Future and complete it later.
    */
   factory Future.error(Object error, [StackTrace stackTrace]) {
+    if (!identical(Zone.current, _ROOT_ZONE)) {
+      AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
+      if (replacement != null) {
+        error = replacement.error;
+        stackTrace = replacement.stackTrace;
+      }
+    }
     return new _Future<T>.immediateError(error, stackTrace);
   }
 
@@ -212,12 +219,14 @@ abstract class Future<T> {
    * later time that isn't necessarily after a known fixed duration.
    */
   factory Future.delayed(Duration duration, [T computation()]) {
-    Completer completer = new Completer.sync();
-    Future result = completer.future;
-    if (computation != null) {
-      result = result.then((ignored) => computation());
-    }
-    new Timer(duration, completer.complete);
+    _Future result = new _Future<T>();
+    new Timer(duration, () {
+      try {
+        result._complete(computation == null ? null : computation());
+      } catch (e, s) {
+        _completeWithErrorCallback(result, e, s);
+      }
+    });
     return result;
   }
 
@@ -235,7 +244,7 @@ abstract class Future<T> {
    * error to occur, the remaining errors are silently dropped).
    */
   static Future<List> wait(Iterable<Future> futures, {bool eagerError: false}) {
-    Completer completer;  // Completer for the returned future.
+    final _Future<List> result = new _Future<List>();
     List values;  // Collects the values. Set to null on error.
     int remaining = 0;  // How many futures are we waiting for.
     var error;   // The first error from a future.
@@ -243,18 +252,18 @@ abstract class Future<T> {
 
     // Handle an error from any of the futures.
     handleError(theError, theStackTrace) {
-      bool isFirstError = values != null;
+      final bool isFirstError = (values != null);
       values = null;
       remaining--;
       if (isFirstError) {
         if (remaining == 0 || eagerError) {
-          completer.completeError(theError, theStackTrace);
+          result._completeError(theError, theStackTrace);
         } else {
           error = theError;
           stackTrace = theStackTrace;
         }
       } else if (remaining == 0 && !eagerError) {
-        completer.completeError(error, stackTrace);
+        result._completeError(error, stackTrace);
       }
     }
 
@@ -267,10 +276,10 @@ abstract class Future<T> {
         if (values != null) {
           values[pos] = value;
           if (remaining == 0) {
-            completer.complete(values);
+            result._completeWithValue(values);
           }
         } else if (remaining == 0 && !eagerError) {
-          completer.completeError(error, stackTrace);
+          result._completeError(error, stackTrace);
         }
       }, onError: handleError);
     }
@@ -278,8 +287,7 @@ abstract class Future<T> {
       return new Future.value(const []);
     }
     values = new List(remaining);
-    completer = new Completer<List>();
-    return completer.future;
+    return result;
   }
 
   /**
@@ -650,3 +658,15 @@ abstract class Completer<T> {
    */
   bool get isCompleted;
 }
+
+// Helper function completing a _Future with error, but checking the zone
+// for error replacement first.
+void _completeWithErrorCallback(_Future result, error, stackTrace) {
+  AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
+  if (replacement == null) {
+    result._completeError(error, stackTrace);
+  } else {
+    result._completeError(replacement.error, replacement.stackTrace);
+  }
+}
+
