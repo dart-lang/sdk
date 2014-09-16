@@ -4,27 +4,6 @@
 
 library trydart.poi.diff;
 
-import 'dart:async' show
-    Completer,
-    Future,
-    Stream;
-
-import 'dart:convert' show
-    LineSplitter,
-    UTF8;
-
-import 'package:compiler/compiler.dart' as api;
-
-import 'package:compiler/implementation/dart2jslib.dart' show
-    Compiler,
-    Enqueuer,
-    QueueFilter,
-    Script,
-    WorkItem;
-
-import 'package:compiler/implementation/elements/visitor.dart' show
-    ElementVisitor;
-
 import 'package:compiler/implementation/elements/elements.dart' show
     AbstractFieldElement,
     ClassElement,
@@ -37,8 +16,8 @@ import 'package:compiler/implementation/elements/elements.dart' show
 
 import 'package:compiler/implementation/elements/modelx.dart' as modelx;
 
-import 'package:compiler/implementation/dart_types.dart' show
-    DartType;
+import 'package:compiler/implementation/elements/modelx.dart' show
+    DeclarationSite;
 
 import 'package:compiler/implementation/scanner/scannerlib.dart' show
     EOF_TOKEN,
@@ -49,12 +28,9 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
     PartialElement,
     Token;
 
-import 'package:compiler/implementation/source_file.dart' show
-    StringSourceFile;
-
 class Difference {
-  final Element before;
-  final Element after;
+  final DeclarationSite before;
+  final DeclarationSite after;
   Token token;
 
   Difference(this.before, this.after);
@@ -69,23 +45,26 @@ class Difference {
 List<Difference> computeDifference(
     ScopeContainerElement before,
     ScopeContainerElement after) {
-  Map<String, Element> beforeMap = <String, Element>{};
-  before.forEachLocalMember((Element element) {
-    beforeMap[element.name] = element;
+  Map<String, DeclarationSite> beforeMap = <String, DeclarationSite>{};
+  before.forEachLocalMember((modelx.ElementX element) {
+    DeclarationSite site = element.declarationSite;
+    assert(site != null);
+    beforeMap[element.name] = site;
   });
   List<Difference> modifications = <Difference>[];
   List<Difference> potentiallyChanged = <Difference>[];
-  after.forEachLocalMember((Element element) {
-    Element existing = beforeMap.remove(element.name);
+  after.forEachLocalMember((modelx.ElementX element) {
+    DeclarationSite existing = beforeMap.remove(element.name);
     if (existing == null) {
-      modifications.add(new Difference(null, element));
+      modifications.add(new Difference(null, element.declarationSite));
     } else {
-      potentiallyChanged.add(new Difference(existing, element));
+      potentiallyChanged.add(new Difference(existing, element.declarationSite));
     }
   });
 
   modifications.addAll(
-      beforeMap.values.map((Element element) => new Difference(element, null)));
+      beforeMap.values.map(
+          (DeclarationSite site) => new Difference(site, null)));
 
   modifications.addAll(
       potentiallyChanged.where(areDifferentElements));
@@ -94,12 +73,8 @@ List<Difference> computeDifference(
 }
 
 bool areDifferentElements(Difference diff) {
-  Element beforeElement = diff.before;
-  Element afterElement = diff.after;
-  var before = (beforeElement is modelx.VariableElementX)
-      ? beforeElement.variables : beforeElement;
-  var after = (afterElement is modelx.VariableElementX)
-      ? afterElement.variables : afterElement;
+  DeclarationSite before = diff.before;
+  DeclarationSite after = diff.after;
   if (before is PartialElement && after is PartialElement) {
     Token beforeToken = before.beginToken;
     Token afterToken = after.beginToken;

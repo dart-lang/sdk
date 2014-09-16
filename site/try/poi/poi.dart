@@ -53,6 +53,9 @@ import 'package:compiler/implementation/elements/elements.dart' show
 
 import 'package:compiler/implementation/elements/modelx.dart' as modelx;
 
+import 'package:compiler/implementation/elements/modelx.dart' show
+    DeclarationSite;
+
 import 'package:compiler/implementation/dart_types.dart' show
     DartType;
 
@@ -330,10 +333,9 @@ Future parseUserInput(
 /// [LibraryElement] is currently limited, and works only for named libraries.
 Token findToken(modelx.ElementX element, int position) {
   Token beginToken;
-  if (element is PartialElement) {
-    beginToken = (element as PartialElement).beginToken;
-  } else if (element is PartialClassElement) {
-    beginToken = element.beginToken;
+  DeclarationSite site = element.declarationSite;
+  if (site is PartialElement) {
+    beginToken = site.beginToken;
   } else if (element.isLibrary) {
     // TODO(ahe): Generalize support for library elements (and update above
     // documentation).
@@ -420,10 +422,11 @@ class FindPositionVisitor extends ElementVisitor {
 
   FindPositionVisitor(this.position, this.element);
 
-  visitElement(Element e) {
-    if (e is PartialElement) {
-      if ((e as PartialElement).beginToken.charOffset <= position &&
-          position < (e as PartialElement).endToken.next.charOffset) {
+  visitElement(modelx.ElementX e) {
+    DeclarationSite site = e.declarationSite;
+    if (site is PartialElement) {
+      if (site.beginToken.charOffset <= position &&
+          position < site.endToken.next.charOffset) {
         element = e;
       }
     }
