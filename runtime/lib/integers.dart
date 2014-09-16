@@ -263,6 +263,31 @@ class _IntegerImplementation extends _Num {
   }
 
   _leftShiftWithMask32(count, mask)  native "Integer_leftShiftWithMask32";
+
+  // TODO(regis): Make this method private once the plumbing to invoke it from
+  // dart:math is in place. Move the argument checking to dart:math.
+  // Return pow(this, e) % m.
+  int modPow(int e, int m) {
+    if (e is! int) throw new ArgumentError(e);
+    if (m is! int) throw new ArgumentError(m);
+    if (e is _Bigint || m is _Bigint) {
+      return _toBigint().modPow(e, m);
+    }
+    if (e < 1) return 1;
+    int b = this;
+    if (b < 0 || b > m) {
+      b = b % m;
+    }
+    int r = 1;
+    while (e > 0) {
+     if ((e & 1) != 0) {
+       r = (r * b) % m;
+     }
+     e >>= 1;
+     b = (b * b) % m;
+    }
+    return r;
+  }
 }
 
 class _Smi extends _IntegerImplementation implements int {

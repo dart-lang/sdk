@@ -1118,22 +1118,24 @@ class _Bigint extends _IntegerImplementation implements int {
   }
 
   // TODO(regis): Make this method private once the plumbing to invoke it from
-  // dart:math is in place.
+  // dart:math is in place. Move the argument checking to dart:math.
   // Return pow(this, e) % m.
   int modPow(int e, int m) {
-    // TODO(regis): Where/how do we handle values of e smaller than 256?
-    // TODO(regis): Where/how do we handle even values of m?
-    assert(e >= 256 && !m.isEven());
-    if (e is! _Bigint) {
-      _Reduction z = new _Montgomery(m);
+    if (e is! int) throw new ArgumentError(e);
+    if (m is! int) throw new ArgumentError(m);
+    int i = e.bitLength;
+    if (i <= 0) return 1;
+    if ((e is! _Bigint) || m.isEven) {
+      _Reduction z = (i < 8 || m.isEven) ? new _Classic(m) : new _Montgomery(m);
+      // TODO(regis): Should we use Barrett reduction for an even modulus?
       var r = new _Bigint();
       var r2 = new _Bigint();
       var g = z._convert(this);
-      int i = _nbits(e) - 1;
+      i--;
       g._copyTo(r);
       while (--i >= 0) {
         z._sqrTo(r, r2);
-        if ((e & (1 << i)) > 0) {
+        if ((e & (1 << i)) != 0) {
           z._mulTo(r2, g, r);
         } else {
           var t = r;
@@ -1143,12 +1145,9 @@ class _Bigint extends _IntegerImplementation implements int {
       }
       return z._revert(r)._toValidInt();
     }
-    var i = e.bitLength;
     var k;
-    var r = new _Bigint()._setInt(1);
-    if (i <= 0) return r;
     // TODO(regis): Are these values of k really optimal for our implementation?
-    else if (i < 18) k = 1;
+    if (i < 18) k = 1;
     else if (i < 48) k = 3;
     else if (i < 144) k = 4;
     else if (i < 768) k = 5;
@@ -1171,6 +1170,7 @@ class _Bigint extends _IntegerImplementation implements int {
     var j = e._used - 1;
     var w;
     var is1 = true;
+    var r = new _Bigint()._setInt(1);
     var r2 = new _Bigint();
     var t;
     i = _nbits(e._digits[j]) - 1;
@@ -1227,32 +1227,25 @@ class _Bigint extends _IntegerImplementation implements int {
   }
 }
 
-// New classes to support crypto (modPow method).
-
+// Interface for modular reduction.
 class _Reduction {
-  const _Reduction();
-  _Bigint _convert(_Bigint x) => x;
-  _Bigint _revert(_Bigint x) => x;
-
-  void _mulTo(_Bigint x, _Bigint y, _Bigint r) {
-    x._mulTo(y, r);
-  }
-
-  void _sqrTo(_Bigint x, _Bigint r) {
-    x._sqrTo(r);
-  }
+  _Bigint _convert(_Bigint x);
+  _Bigint _revert(_Bigint x);
+  void _mulTo(_Bigint x, _Bigint y, _Bigint r);
+  void _sqrTo(_Bigint x, _Bigint r);
 }
 
 // Montgomery reduction on _Bigint.
 class _Montgomery implements _Reduction {
-  final _Bigint _m;
+  _Bigint _m;
   var _mp;
   var _mpl;
   var _mph;
   var _um;
   var _mused2;
 
-  _Montgomery(this._m) {
+  _Montgomery(m) {
+    _m = m._toBigint();
     _mp = _m._invDigit();
     _mpl = _mp & _Bigint.DIGIT2_MASK;
     _mph = _mp >> _Bigint.DIGIT2_BITS;
@@ -1323,3 +1316,41 @@ class _Montgomery implements _Reduction {
   }
 }
 
+// Modular reduction using "classic" algorithm.
+class _Classic implements _Reduction {
+  _Bigint _m;
+
+  _Classic(int m) {
+    _m = m._toBigint();
+  }
+
+  _Bigint _convert(_Bigint x) {
+    if (x._neg || x._compareTo(_m) >= 0) {
+      var r = new _Bigint();
+      x._divRemTo(_m, null, r);
+      if (x._neg && !r._neg && r._used > 0) {
+        _m._subTo(r, r);
+      }
+      return r;
+    }
+    return x;
+  }
+
+  _Bigint _revert(_Bigint x) {
+    return x;
+  }
+
+  void _reduce(_Bigint x) {
+    x._divRemTo(_m, null, x);
+  }
+
+  void _sqrTo(_Bigint x, _Bigint r) {
+    x._sqrTo(r);
+    _reduce(r);
+  }
+
+  void _mulTo(_Bigint x, _Bigint y, _Bigint r) {
+    x._mulTo(y, r);
+    _reduce(r);
+  }
+}
