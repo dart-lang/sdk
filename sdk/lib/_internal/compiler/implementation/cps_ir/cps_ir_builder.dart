@@ -1043,6 +1043,122 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
     return null;
   }
 
+  ir.Primitive visitForIn(ast.ForIn node) {
+    // The for-in loop
+    //
+    // for (a in e) s;
+    //
+    // Is compiled analogously to:
+    //
+    // a = e.iterator;
+    // while (a.moveNext()) {
+    //   var n0 = a.current;
+    //   s;
+    // }
+
+    // The condition and body are delimited.
+    IrBuilderVisitor condBuilder = new IrBuilderVisitor.recursive(this);
+
+    ir.Primitive expressionReceiver = visit(node.expression);
+    List<ir.Primitive> emptyArguments = new List<ir.Primitive>();
+
+    ir.Parameter iterator = new ir.Parameter(null);
+    ir.Continuation iteratorInvoked = new ir.Continuation([iterator]);
+    add(new ir.LetCont(iteratorInvoked,
+        new ir.InvokeMethod(expressionReceiver,
+            new Selector.getter("iterator", null), iteratorInvoked,
+            emptyArguments)));
+
+    ir.Parameter condition = new ir.Parameter(null);
+    ir.Continuation moveNextInvoked = new ir.Continuation([condition]);
+    condBuilder.add(new ir.LetCont(moveNextInvoked,
+        new ir.InvokeMethod(iterator,
+            new Selector.call("moveNext", null, 0),
+            moveNextInvoked, emptyArguments)));
+
+    JumpTarget target = elements.getTargetDefinition(node);
+    JumpCollector breakCollector = new JumpCollector(target);
+    JumpCollector continueCollector = new JumpCollector(target);
+    breakCollectors.add(breakCollector);
+    continueCollectors.add(continueCollector);
+
+    IrBuilderVisitor bodyBuilder = new IrBuilderVisitor.delimited(condBuilder);
+    ast.Node identifier = node.declaredIdentifier;
+    Element variableElement = elements.getForInVariable(node);
+    Selector selector = elements.getSelector(identifier);
+
+    // node.declaredIdentifier can be either an ast.VariableDefinitions
+    // (defining a new local variable) or a send designating some existing
+    // variable.
+    ast.Node declaredIdentifier = node.declaredIdentifier;
+
+    if (declaredIdentifier is ast.VariableDefinitions) {
+      bodyBuilder.visit(declaredIdentifier);
+    }
+
+    ir.Parameter currentValue = new ir.Parameter(null);
+    ir.Continuation currentInvoked = new ir.Continuation([currentValue]);
+    bodyBuilder.add(new ir.LetCont(currentInvoked,
+        new ir.InvokeMethod(iterator, new Selector.getter("current", null),
+            currentInvoked, emptyArguments)));
+    if (Elements.isLocal(variableElement)) {
+      bodyBuilder.setLocal(variableElement, currentValue);
+    } else if (Elements.isStaticOrTopLevel(variableElement)) {
+      bodyBuilder.setStatic(variableElement, selector, currentValue);
+    } else {
+      ir.Primitive receiver = bodyBuilder.lookupThis();
+      bodyBuilder.setDynamic(null, receiver, selector, currentValue);
+    }
+
+    bodyBuilder.visit(node.body);
+    assert(breakCollectors.last == breakCollector);
+    assert(continueCollectors.last == continueCollector);
+    breakCollectors.removeLast();
+    continueCollectors.removeLast();
+
+    // Create body entry and loop exit continuations and a branch to them.
+    ir.Continuation bodyContinuation = new ir.Continuation([]);
+    ir.Continuation exitContinuation = new ir.Continuation([]);
+    ir.LetCont branch =
+        new ir.LetCont(exitContinuation,
+            new ir.LetCont(bodyContinuation,
+                new ir.Branch(new ir.IsTrue(condition),
+                              bodyContinuation,
+                              exitContinuation)));
+    // If there are breaks in the body, then there must be a join-point
+    // continuation for the normal exit and the breaks.
+    bool hasBreaks = !breakCollector.isEmpty;
+    ir.LetCont letJoin;
+    if (hasBreaks) {
+      letJoin = new ir.LetCont(null, branch);
+      condBuilder.add(letJoin);
+      condBuilder._current = branch;
+    } else {
+      condBuilder.add(branch);
+    }
+    ir.Continuation loopContinuation =
+        new ir.Continuation(condBuilder._parameters);
+    if (bodyBuilder.isOpen) continueCollector.addJump(bodyBuilder);
+    invokeFullJoin(loopContinuation, continueCollector, recursive: true);
+    bodyContinuation.body = bodyBuilder._root;
+
+    loopContinuation.body = condBuilder._root;
+    add(new ir.LetCont(loopContinuation,
+            new ir.InvokeContinuation(loopContinuation,
+                                      environment.index2value)));
+    if (hasBreaks) {
+      _current = branch;
+      environment = condBuilder.environment;
+      breakCollector.addJump(this);
+      letJoin.continuation = createJoin(environment.length, breakCollector);
+      _current = letJoin;
+    } else {
+      _current = condBuilder._current;
+      environment = condBuilder.environment;
+    }
+    return null;
+  }
+
   ir.Primitive visitVariableDefinitions(ast.VariableDefinitions node) {
     assert(isOpen);
     if (node.modifiers.isConst) {
@@ -1311,7 +1427,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
                              ir.Definition receiver,
                              ir.Continuation k,
                              List<ir.Definition> arguments) {
-    return node.receiver != null && node.receiver.isSuper()
+    return node != null && node.receiver != null && node.receiver.isSuper()
         ? new ir.InvokeSuperMethod(selector, k, arguments)
         : new ir.InvokeMethod(receiver, selector, k, arguments);
   }
@@ -1599,6 +1715,42 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
     return closureLocals.isClosureVariable(element);
   }
 
+  void setLocal(Element element, ir.Primitive valueToStore) {
+    if (isClosureVariable(element)) {
+      LocalElement local = element;
+      add(new ir.SetClosureVariable(local, valueToStore));
+    } else {
+      valueToStore.useElementAsHint(element);
+      environment.update(element, valueToStore);
+    }
+  }
+
+  void setStatic(Element element,
+                 Selector selector,
+                 ir.Primitive valueToStore) {
+    assert(element.isErroneous || element.isField || element.isSetter);
+    continueWithExpression(
+        (k) => new ir.InvokeStatic(element, selector, k, [valueToStore]));
+  }
+
+  void setDynamic(ast.Node node,
+                  ir.Primitive receiver, Selector selector,
+                  ir.Primitive valueToStore) {
+    List<ir.Definition> arguments = [valueToStore];
+    continueWithExpression(
+        (k) => createDynamicInvoke(node, selector, receiver, k, arguments));
+  }
+
+  void setIndex(ast.Node node,
+                ir.Primitive receiver,
+                Selector selector,
+                ir.Primitive index,
+                ir.Primitive valueToStore) {
+    List<ir.Definition> arguments = [index, valueToStore];
+    continueWithExpression(
+        (k) => createDynamicInvoke(node, selector, receiver, k, arguments));
+  }
+
   ir.Primitive visitSendSet(ast.SendSet node) {
     assert(isOpen);
     Element element = elements[node];
@@ -1663,29 +1815,21 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
       add(new ir.LetCont(k, invoke));
     }
 
-    // Set the value
-    if (isClosureVariable(element)) {
-      LocalElement local = element;
-      add(new ir.SetClosureVariable(local, valueToStore));
-    } else if (Elements.isLocal(element)) {
-      valueToStore.useElementAsHint(element);
-      environment.update(element, valueToStore);
+    if (Elements.isLocal(element)) {
+      setLocal(element, valueToStore);
     } else if ((!node.isSuperCall && Elements.isErroneousElement(element)) ||
                 Elements.isStaticOrTopLevel(element)) {
-      assert(element.isErroneous || element.isField || element.isSetter);
-      Selector selector = elements.getSelector(node);
-      continueWithExpression(
-          (k) => new ir.InvokeStatic(element, selector, k, [valueToStore]));
+      setStatic(element, elements.getSelector(node), valueToStore);
     } else {
       // Setter or index-setter invocation
       Selector selector = elements.getSelector(node);
       assert(selector.kind == SelectorKind.SETTER ||
           selector.kind == SelectorKind.INDEX);
-      List<ir.Definition> arguments = selector.isIndexSet
-          ? [index, valueToStore]
-          : [valueToStore];
-      continueWithExpression(
-          (k) => createDynamicInvoke(node, selector, receiver, k, arguments));
+      if (selector.isIndexSet) {
+        setIndex(node, receiver, selector, index, valueToStore);
+      } else {
+        setDynamic(node, receiver, selector, valueToStore);
+      }
     }
 
     if (node.isPostfix) {
