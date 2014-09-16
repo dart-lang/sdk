@@ -74,7 +74,7 @@ class DescriptorList : public ZoneAllocated {
 
 class StackmapTableBuilder : public ZoneAllocated {
  public:
-  explicit StackmapTableBuilder()
+  StackmapTableBuilder()
       : stack_map_(Stackmap::ZoneHandle()),
         list_(GrowableObjectArray::ZoneHandle(
             GrowableObjectArray::New(Heap::kOld))) { }
@@ -162,6 +162,9 @@ class ExceptionHandlerList : public ZoneAllocated {
 
   RawExceptionHandlers* FinalizeExceptionHandlers(uword entry_point) {
     intptr_t num_handlers = Length();
+    if (num_handlers == 0) {
+      return Object::empty_exception_handlers().raw();
+    }
     const ExceptionHandlers& handlers =
         ExceptionHandlers::Handle(ExceptionHandlers::New(num_handlers));
     for (intptr_t i = 0; i < num_handlers; i++) {

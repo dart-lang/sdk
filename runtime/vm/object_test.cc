@@ -2751,7 +2751,7 @@ TEST_CASE(ExceptionHandlers) {
   // Verify the exception handler table entries by accessing them.
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(code.exception_handlers());
-  EXPECT_EQ(kNumEntries, handlers.Length());
+  EXPECT_EQ(kNumEntries, handlers.num_entries());
   RawExceptionHandlers::HandlerInfo info;
   handlers.GetHandlerInfo(0, &info);
   EXPECT_EQ(-1, handlers.OuterTryIndex(0));

@@ -398,6 +398,11 @@ class Object {
     return *empty_var_descriptors_;
   }
 
+  static const ExceptionHandlers& empty_exception_handlers() {
+    ASSERT(empty_exception_handlers_ != NULL);
+    return *empty_exception_handlers_;
+  }
+
   // The sentinel is a value that cannot be produced by Dart code.
   // It can be used to mark special values, for example to distinguish
   // "uninitialized" fields.
@@ -676,6 +681,7 @@ class Object {
   static Array* zero_array_;
   static PcDescriptors* empty_descriptors_;
   static LocalVarDescriptors* empty_var_descriptors_;
+  static ExceptionHandlers* empty_exception_handlers_;
   static Instance* sentinel_;
   static Instance* transition_sentinel_;
   static Instance* unknown_constant_;
@@ -3309,7 +3315,7 @@ class Stackmap : public Object {
 
 class ExceptionHandlers : public Object {
  public:
-  intptr_t Length() const;
+  intptr_t num_entries() const;
 
   void GetHandlerInfo(intptr_t try_index,
                       RawExceptionHandlers::HandlerInfo* info) const;
@@ -3354,6 +3360,7 @@ class ExceptionHandlers : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers, Object);
   friend class Class;
+  friend class Object;
 };
 
 

@@ -99,6 +99,7 @@ Array* Object::empty_array_ = NULL;
 Array* Object::zero_array_ = NULL;
 PcDescriptors* Object::empty_descriptors_ = NULL;
 LocalVarDescriptors* Object::empty_var_descriptors_ = NULL;
+ExceptionHandlers* Object::empty_exception_handlers_ = NULL;
 Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
 Instance* Object::unknown_constant_ = NULL;
@@ -437,6 +438,7 @@ void Object::InitOnce() {
   zero_array_ = Array::ReadOnlyHandle();
   empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
   empty_var_descriptors_ = LocalVarDescriptors::ReadOnlyHandle();
+  empty_exception_handlers_ = ExceptionHandlers::ReadOnlyHandle();
   sentinel_ = Instance::ReadOnlyHandle();
   transition_sentinel_ = Instance::ReadOnlyHandle();
   unknown_constant_ =  Instance::ReadOnlyHandle();
@@ -678,6 +680,21 @@ void Object::InitOnce() {
         empty_var_descriptors_,
         reinterpret_cast<RawLocalVarDescriptors*>(address + kHeapObjectTag));
     empty_var_descriptors_->raw_ptr()->num_entries_ = 0;
+  }
+
+  // Allocate and initialize the canonical empty exception handler info object.
+  // The vast majority of all functions do not contain an exception handler
+  // and can share this canonical descriptor.
+  {
+    uword address =
+        heap->Allocate(ExceptionHandlers::InstanceSize(0), Heap::kOld);
+    InitializeObject(address,
+                     kExceptionHandlersCid,
+                     ExceptionHandlers::InstanceSize(0));
+    ExceptionHandlers::initializeHandle(
+        empty_exception_handlers_,
+        reinterpret_cast<RawExceptionHandlers*>(address + kHeapObjectTag));
+    empty_exception_handlers_->raw_ptr()->num_entries_ = 0;
   }
 
   cls = Class::New<Instance>(kDynamicCid);
@@ -10990,8 +11007,8 @@ intptr_t LocalVarDescriptors::Length() const {
 }
 
 
-intptr_t ExceptionHandlers::Length() const {
-  return raw_ptr()->length_;
+intptr_t ExceptionHandlers::num_entries() const {
+  return raw_ptr()->num_entries_;
 }
 
 
@@ -11000,7 +11017,7 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        intptr_t handler_pc,
                                        bool needs_stacktrace,
                                        bool has_catch_all) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   RawExceptionHandlers::HandlerInfo* info = &raw_ptr()->data()[try_index];
   info->outer_try_index = outer_try_index;
   info->handler_pc = handler_pc;
@@ -11011,39 +11028,39 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
 void ExceptionHandlers::GetHandlerInfo(
     intptr_t try_index,
     RawExceptionHandlers::HandlerInfo* info) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   ASSERT(info != NULL);
   *info = raw_ptr()->data()[try_index];
 }
 
 
 intptr_t ExceptionHandlers::HandlerPC(intptr_t try_index) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   return raw_ptr()->data()[try_index].handler_pc;
 }
 
 
 intptr_t ExceptionHandlers::OuterTryIndex(intptr_t try_index) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   return raw_ptr()->data()[try_index].outer_try_index;
 }
 
 
 bool ExceptionHandlers::NeedsStacktrace(intptr_t try_index) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   return raw_ptr()->data()[try_index].needs_stacktrace;
 }
 
 
 bool ExceptionHandlers::HasCatchAll(intptr_t try_index) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   return raw_ptr()->data()[try_index].has_catch_all;
 }
 
 
 void ExceptionHandlers::SetHandledTypes(intptr_t try_index,
                                         const Array& handled_types) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   const Array& handled_types_data =
       Array::Handle(raw_ptr()->handled_types_data_);
   handled_types_data.SetAt(try_index, handled_types);
@@ -11051,7 +11068,7 @@ void ExceptionHandlers::SetHandledTypes(intptr_t try_index,
 
 
 RawArray* ExceptionHandlers::GetHandledTypes(intptr_t try_index) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   Array& array = Array::Handle(raw_ptr()->handled_types_data_);
   array ^= array.At(try_index);
   return array.raw();
@@ -11078,7 +11095,7 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->length_ = num_handlers;
+    result.raw_ptr()->num_entries_ = num_handlers;
   }
   const Array& handled_types_data = (num_handlers == 0) ?
       Object::empty_array() :
@@ -11089,7 +11106,7 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
 
 
 const char* ExceptionHandlers::ToCString() const {
-  if (Length() == 0) {
+  if (num_entries() == 0) {
     return "No exception handlers\n";
   }
   Array& handled_types = Array::Handle();
@@ -11100,7 +11117,7 @@ const char* ExceptionHandlers::ToCString() const {
                         " types) (outer %" Pd ")\n";
   const char* kFormat2 = "  %d. %s\n";
   intptr_t len = 1;  // Trailing '\0'.
-  for (intptr_t i = 0; i < Length(); i++) {
+  for (intptr_t i = 0; i < num_entries(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
     ASSERT(!handled_types.IsNull());
@@ -11120,7 +11137,7 @@ const char* ExceptionHandlers::ToCString() const {
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
   intptr_t num_chars = 0;
-  for (intptr_t i = 0; i < Length(); i++) {
+  for (intptr_t i = 0; i < num_entries(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
     const intptr_t num_types = handled_types.Length();

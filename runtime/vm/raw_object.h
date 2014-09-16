@@ -1138,14 +1138,16 @@ class RawExceptionHandlers : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
 
   // Number of exception handler entries.
-  int32_t length_;
+  int32_t num_entries_;
 
-  // Array with [length_] entries. Each entry is an array of all handled
+  // Array with [num_entries_] entries. Each entry is an array of all handled
   // exception types.
   RawArray* handled_types_data_;
 
-  // Exception handler info of length [length_].
+  // Exception handler info of length [num_entries_].
   HandlerInfo* data() { OPEN_ARRAY_START(HandlerInfo, intptr_t); }
+
+  friend class Object;
 };
 
 

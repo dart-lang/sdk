@@ -218,7 +218,7 @@ bool StackFrame::FindExceptionHandler(Isolate* isolate,
   REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(isolate);
   ExceptionHandlers& handlers = reused_exception_handlers_handle.Handle();
   handlers = code.exception_handlers();
-  if (handlers.Length() == 0) {
+  if (handlers.num_entries() == 0) {
     return false;
   }
 

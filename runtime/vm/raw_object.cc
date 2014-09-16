@@ -163,7 +163,7 @@ intptr_t RawObject::SizeFromClass() const {
       case kExceptionHandlersCid: {
         const RawExceptionHandlers* raw_handlers =
             reinterpret_cast<const RawExceptionHandlers*>(this);
-        intptr_t num_handlers = raw_handlers->ptr()->length_;
+        intptr_t num_handlers = raw_handlers->ptr()->num_entries_;
         instance_size = ExceptionHandlers::InstanceSize(num_handlers);
         break;
       }
@@ -531,7 +531,7 @@ intptr_t RawLocalVarDescriptors::VisitLocalVarDescriptorsPointers(
 intptr_t RawExceptionHandlers::VisitExceptionHandlersPointers(
     RawExceptionHandlers* raw_obj, ObjectPointerVisitor* visitor) {
   RawExceptionHandlers* obj = raw_obj->ptr();
-  intptr_t len = obj->length_;
+  intptr_t len = obj->num_entries_;
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&obj->handled_types_data_));
   return ExceptionHandlers::InstanceSize(len);
