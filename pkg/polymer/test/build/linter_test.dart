@@ -623,63 +623,103 @@ void main() {
       ]);
 
     _testLinter('FOUC warning works', {
-        'a|lib/a.html': '''
+        'a|web/a.html': '''
+            <!DOCTYPE html>
             <html><body>
               <link rel="import" href="../../packages/polymer/polymer.html">
               <polymer-element name="my-element" noscript></polymer-element>
               <my-element>hello!</my-element>
+              <script type="application/dart">
+                export "package:polymer/init.dart";
+              </script>
             </body></html>
             ''',
-        'a|lib/b.html': '''
+        'a|web/b.html': '''
+            <!DOCTYPE html>
             <html><body>
               <link rel="import" href="../../packages/polymer/polymer.html">
               <polymer-element name="my-element" noscript></polymer-element>
               <div><my-element>hello!</my-element></div>
+              <script type="application/dart">
+                export "package:polymer/init.dart";
+              </script>
             </body></html>
             ''',
-        'a|lib/c.html': '''
+        'a|web/c.html': '''
+            <!DOCTYPE html>
             <html unresolved><body>
               <link rel="import" href="../../packages/polymer/polymer.html">
               <polymer-element name="my-element" noscript></polymer-element>
               <my-element>hello!</my-element>
+              <script type="application/dart">
+                export "package:polymer/init.dart";
+              </script>
             </body></html>
             '''
       }, [
-        'warning: ${POSSIBLE_FUOC.snippet} (lib/a.html 3 14)',
-        'warning: ${POSSIBLE_FUOC.snippet} (lib/b.html 3 19)',
-        'warning: ${POSSIBLE_FUOC.snippet} (lib/c.html 3 14)',
+        'warning: ${POSSIBLE_FUOC.snippet} (web/a.html 4 14)',
+        'warning: ${POSSIBLE_FUOC.snippet} (web/b.html 4 19)',
+        'warning: ${POSSIBLE_FUOC.snippet} (web/c.html 4 14)',
       ]);
 
     _testLinter('FOUC, no false positives.', {
-        'a|lib/a.html': '''
-            <html><body><div unresolved>
-              <link rel="import" href="../../packages/polymer/polymer.html">
-              <polymer-element name="my-element" noscript></polymer-element>
-              <my-element>hello!</my-element>
-            </div></body></html>
+        // Parent has unresolved attribute.
+        'a|web/a.html': '''
+            <!DOCTYPE html>
+            <html><body>
+              <div unresolved>
+                <link rel="import" href="../../packages/polymer/polymer.html">
+                <polymer-element name="my-element" noscript></polymer-element>
+                <my-element>hello!</my-element>
+              </div>
+              <script type="application/dart">
+                export "package:polymer/init.dart";
+              </script>
+            </body></html>
             ''',
-        'a|lib/b.html': '''
+        // Body has unresolved attribute.
+        'a|web/b.html': '''
+            <!DOCTYPE html>
             <html><body unresolved>
               <link rel="import" href="../../packages/polymer/polymer.html">
               <polymer-element name="my-element" noscript></polymer-element>
               <my-element>hello!</my-element>
+              <script type="application/dart">
+                export "package:polymer/init.dart";
+              </script>
             </body></html>
             ''',
-        'a|lib/c.html': '''
+        // Inside polymer-element tags its fine.
+        'a|web/c.html': '''
+            <!DOCTYPE html>
             <html><body>
               <link rel="import" href="../../packages/polymer/polymer.html">
               <polymer-element name="my-element" noscript></polymer-element>
               <polymer-element name="foo-element">
                 <template><my-element>hello!</my-element></template>
               </polymer-element>
+              <script type="application/dart">
+                export "package:polymer/init.dart";
+              </script>
             </body></html>
             ''',
-        'a|lib/d.html': '''
+        // Empty custom elements are fine.
+        'a|web/d.html': '''
+            <!DOCTYPE html>
             <html><body>
               <link rel="import" href="../../packages/polymer/polymer.html">
               <polymer-element name="my-element" noscript></polymer-element>
               <my-element></my-element>
+              <script type="application/dart">
+                export "package:polymer/init.dart";
+              </script>
             </body></html>
+            ''',
+        // Entry points only!
+        'a|lib/a.html': '''
+            <link rel="import" href="../../packages/polymer/polymer.html">
+            <polymer-element name="my-element" noscript></polymer-element>
+            <my-element>hello!</my-element>
             ''',
       }, []);
   });

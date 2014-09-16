@@ -388,7 +388,7 @@ class _LinterVisitor extends TreeVisitor {
     }
 
     // FOUC check, if content is supplied
-    if (!node.innerHtml.isEmpty) {
+    if (_isEntryPoint && !node.innerHtml.isEmpty) {
       var parent = node;
       var hasFoucFix = false;
       while (parent != null && !hasFoucFix) {

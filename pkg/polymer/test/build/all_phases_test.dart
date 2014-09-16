@@ -201,7 +201,10 @@ void main() {
       'a|web/index.html':
           '<!DOCTYPE html><html><head>'
           '$WEB_COMPONENTS_TAG'
-          '</head><body><polymer-element name="x-a">1</polymer-element>'
+          '</head><body>'
+          '<div hidden="">'
+          '<polymer-element name="x-a">1</polymer-element>'
+          '</div>'
           '<script src="index.html_bootstrap.dart.js" async=""></script>'
           '</body></html>',
       'a|web/index.html_bootstrap.dart':
@@ -260,7 +263,10 @@ void main() {
       'a|web/index.html':
           '<!DOCTYPE html><html><head>'
           '$WEB_COMPONENTS_TAG'
-          '</head><body><polymer-element name="x-a">1</polymer-element>'
+          '</head><body>'
+          '<div hidden="">'
+          '<polymer-element name="x-a">1</polymer-element>'
+          '</div>'
           '<script src="index.html_bootstrap.dart.js" async=""></script>'
           '</body></html>',
       'a|web/index.html_bootstrap.dart':

@@ -33,6 +33,7 @@ class _HtmlInliner extends PolymerTransformer {
   final scriptIds = <AssetId>[];
   final extractedFiles = new Set<AssetId>();
   bool experimentalBootstrap = false;
+  final Element importsWrapper = new Element.html('<div hidden></div>');
 
   /// The number of extracted inline Dart scripts. Used as a counter to give
   /// unique-ish filenames.
@@ -54,6 +55,11 @@ class _HtmlInliner extends PolymerTransformer {
 
     return readPrimaryAsHtml(transform, logger).then((doc) {
       document = doc;
+
+      // Insert our importsWrapper. This may be removed later if not needed, but
+      // it makes the logic simpler to have it in the document.
+      document.body.insertBefore(importsWrapper, document.body.firstChild);
+
       changed = new _UrlNormalizer(transform, docId, logger).visit(document)
         || changed;
       
@@ -61,12 +67,22 @@ class _HtmlInliner extends PolymerTransformer {
           link.attributes['rel'] == 'import' &&
           link.attributes['href'] == POLYMER_EXPERIMENTAL_HTML);
       changed = _extractScripts(document) || changed;
+
+      // We only need to move the head into the body for the entry point.
+      _moveHeadToBody(document);
+
       return _visitImports(document);
     }).then((importsFound) {
       changed = changed || importsFound;
+
       return _removeScripts(document);
     }).then((scriptsRemoved) {
       changed = changed || scriptsRemoved;
+
+      // Remove the importsWrapper if it contains nothing. Wait until now to do
+      // this since it might have a script that got removed, and thus no longer
+      // have any children.
+      if (importsWrapper.children.isEmpty) importsWrapper.remove();
 
       var output = transform.primaryInput;
       if (changed) output = new Asset.fromString(docId, document.outerHtml);
@@ -95,8 +111,6 @@ class _HtmlInliner extends PolymerTransformer {
   /// written out.
   Future<bool> _visitImports(Document document) {
     bool changed = false;
-
-    _moveHeadToBody(document);
 
     // Note: we need to preserve the import order in the generated output.
     return Future.forEach(document.querySelectorAll('link'), (Element tag) {
@@ -138,7 +152,6 @@ class _HtmlInliner extends PolymerTransformer {
   // Should we do the same? Alternatively could we inline head into head and
   // body into body and avoid this whole thing?
   void _moveHeadToBody(Document doc) {
-    var insertionPoint = doc.body.firstChild;
     for (var node in doc.head.nodes.toList(growable: false)) {
       if (node is! Element) continue;
       var tag = node.localName;
@@ -147,8 +160,10 @@ class _HtmlInliner extends PolymerTransformer {
       if (tag == 'style' || tag == 'script' &&
             (type == null || type == TYPE_JS || type == TYPE_DART) ||
           tag == 'link' && (rel == 'stylesheet' || rel == 'import')) {
-        // Move the node into the body, where its contents will be placed.
-        doc.body.insertBefore(node, insertionPoint);
+        // Move the node into the importsWrapper, where its contents will be
+        // placed. This wrapper is a hidden div to prevent inlined html from
+        // causing a FOUC.
+        importsWrapper.append(node);
       }
     }
   }

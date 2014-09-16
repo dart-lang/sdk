@@ -85,7 +85,9 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>2</polymer-element>'
+          '</div>'
           '</body></html>',
       'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.html':
@@ -111,11 +113,13 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<script type="text/javascript">/*first*/</script>'
           '<script src="second.js"></script>'
           '<script>/*third*/</script>'
           '<polymer-element>2</polymer-element>'
           '<script>/*forth*/</script>'
+          '</div>'
           '</body></html>',
       'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.html':
@@ -143,18 +147,24 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<script type="text/javascript">/*first*/</script>'
           '<script src="second.js"></script>'
           '<script>/*third*/</script>'
           '<polymer-element>2</polymer-element>'
+          '</div>'
           '</body></html>',
       'a|web/test.html._data': expectedData([
           'web/test.html.1.dart','web/test.html.0.dart']),
       'a|web/test.html.1.dart': 'library a.web.test2_html_0;\n/*forth*/',
       'a|web/test.html.0.dart': 'library a.web.test_html_0;\n/*fifth*/',
       'a|web/test2.html':
-          '<!DOCTYPE html><html><head></head><body><script>/*third*/</script>'
-          '<polymer-element>2</polymer-element></body></html>',
+          '<!DOCTYPE html><html><head></head><body>'
+          '<div hidden="">'
+          '<script>/*third*/</script>'
+          '</div>'
+          '<polymer-element>2</polymer-element>'
+          '</body></html>',
       'a|web/test2.html._data': expectedData(['web/test2.html.0.dart']),
       'a|web/test2.html.0.dart': 'library a.web.test2_html_0;\n/*forth*/',
       'a|web/second.js': '/*second*/'
@@ -180,10 +190,12 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<script type="text/javascript" src="test.html.0.js"></script>'
           '<script src="second.js"></script>'
           '<script src="test.html.2.js"></script>'
           '<polymer-element>2</polymer-element>'
+          '</div>'
           '</body></html>',
       'a|web/test.html._data': expectedData([
           'web/test.html.3.dart','web/test.html.1.dart']),
@@ -193,7 +205,9 @@ void importTests() {
       'a|web/test.html.2.js': '/*third*/',
       'a|web/test2.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '<div hidden="">'
           '<script src="test2.html.0.js"></script>'
+          '</div>'
           '<polymer-element>2</polymer-element></body></html>',
       'a|web/test2.html._data': expectedData(['web/test2.html.1.dart']),
       'a|web/test2.html.0.js': '/*third*/',
@@ -272,8 +286,10 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>2</polymer-element>'
           '<polymer-element>3</polymer-element>'
+          '</div>'
           '</body></html>',
       'a|web/test2.html':
           '<!DOCTYPE html><html><head>'
@@ -303,15 +319,21 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>4</polymer-element>'
           '<polymer-element>3</polymer-element>'
-          '<polymer-element>2</polymer-element></body></html>',
+          '<polymer-element>2</polymer-element>'
+          '</div>'
+          '</body></html>',
       'a|web/test2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>4</polymer-element>'
           '<polymer-element>3</polymer-element>'
-          '<polymer-element>2</polymer-element></body></html>',
+          '</div>'
+          '<polymer-element>2</polymer-element>'
+          '</body></html>',
       'b|asset/test3.html':
           '<!DOCTYPE html><html><head>'
           '<link rel="import" href="../../packages/c/test4.html">'
@@ -353,25 +375,31 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>3a</polymer-element>'
           '<polymer-element>3b</polymer-element>'
           '<polymer-element>2a</polymer-element>'
           '<polymer-element>4a</polymer-element>'
           '<polymer-element>4b</polymer-element>'
           '<polymer-element>2b</polymer-element>'
+          '</div>'
           '</body></html>',
       'a|web/test2a.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>3a</polymer-element>'
           '<polymer-element>3b</polymer-element>'
+          '</div>'
           '<polymer-element>2a</polymer-element>'
           '</body></html>',
       'a|web/test2b.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>4a</polymer-element>'
           '<polymer-element>4b</polymer-element>'
+          '</div>'
           '<polymer-element>2b</polymer-element>'
           '</body></html>',
       'a|web/test3a.html':
@@ -413,17 +441,24 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>2</polymer-element>'
-          '<polymer-element>1</polymer-element></body></html>',
+          '<polymer-element>1</polymer-element>'
+          '</div>'
+          '</body></html>',
       'a|web/test_1.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>2</polymer-element>'
+          '</div>'
           '<polymer-element>1</polymer-element></body></html>',
       'a|web/test_2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>1</polymer-element>'
+          '</div>'
           '<polymer-element>2</polymer-element></body></html>',
     });
 
@@ -446,24 +481,31 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>2</polymer-element>'
           '<script src="s2"></script>'
           '<polymer-element>1</polymer-element>'
-          '<script src="s1"></script></body></html>',
+          '<script src="s1"></script>'
+          '</div>'
+          '</body></html>',
       'a|web/test.html._data': EMPTY_DATA,
       'a|web/test_1.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>2</polymer-element>'
           '<script src="s2"></script>'
+          '</div>'
           '<polymer-element>1</polymer-element>'
           '<script src="s1"></script></body></html>',
       'a|web/test_1.html._data': EMPTY_DATA,
       'a|web/test_2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>1</polymer-element>'
           '<script src="s1"></script>'
+          '</div>'
           '<polymer-element>2</polymer-element>'
           '<script src="s2"></script></body></html>',
       'a|web/test_2.html._data': EMPTY_DATA,
@@ -493,21 +535,27 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>2</polymer-element>'
           '<polymer-element>1</polymer-element>'
+          '</div>'
           '</body></html>',
       'a|web/test.html._data': expectedData(['web/s2.dart', 'web/s1.dart']),
       'a|web/test_1.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>2</polymer-element>'
+          '</div>'
           '<polymer-element>1</polymer-element>'
           '</body></html>',
       'a|web/test_1.html._data': expectedData(['web/s2.dart', 'web/s1.dart']),
       'a|web/test_2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>1</polymer-element>'
+          '</div>'
           '<polymer-element>2'
           '</polymer-element>'
           '</body></html>',
@@ -534,11 +582,14 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<foo>42</foo><bar-baz></bar-baz>'
           '<polymer-element>1'
           '<script src="s1.js"></script>'
           '</polymer-element>'
-          'FOO</body></html>',
+          'FOO'
+          '</div>'
+          '</body></html>',
       'a|web/test.html._data': expectedData(['web/s1.dart']),
       'a|web/test_1.html':
           '<!DOCTYPE html><html><head>'
@@ -572,26 +623,35 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>3</polymer-element>'
           '<polymer-element>2</polymer-element>'
-          '<polymer-element>1</polymer-element></body></html>',
+          '<polymer-element>1</polymer-element>'
+          '</div>'
+          '</body></html>',
       'a|web/test_1.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>3</polymer-element>'
           '<polymer-element>2</polymer-element>'
+          '</div>'
           '<polymer-element>1</polymer-element></body></html>',
       'a|web/test_2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>1</polymer-element>'
           '<polymer-element>3</polymer-element>'
+          '</div>'
           '<polymer-element>2</polymer-element></body></html>',
       'a|web/test_3.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>2</polymer-element>'
           '<polymer-element>1</polymer-element>'
+          '</div>'
           '<polymer-element>3</polymer-element></body></html>',
     });
 
@@ -608,7 +668,10 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
-          '<polymer-element>1</polymer-element></body></html>',
+          '<div hidden="">'
+          '<polymer-element>1</polymer-element>'
+          '</div>'
+          '</body></html>',
       'a|web/test_1.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
@@ -636,18 +699,25 @@ void importTests() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>3</polymer-element>'
           '<polymer-element>1</polymer-element>'
-          '<polymer-element>2</polymer-element></body></html>',
+          '<polymer-element>2</polymer-element>'
+          '</div>'
+          '</body></html>',
       'a|web/test_1.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>3</polymer-element>'
+          '</div>'
           '<polymer-element>1</polymer-element></body></html>',
       'a|web/test_2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
+          '<div hidden="">'
           '<polymer-element>3</polymer-element>'
+          '</div>'
           '<polymer-element>2</polymer-element></body></html>',
       'a|web/test_3.html':
           '<!DOCTYPE html><html><head>'
@@ -665,7 +735,9 @@ void importTests() {
       }, {
         'a|web/test.html':
             '<!DOCTYPE html><html><head></head><body>'
+            '<div hidden="">'
             '<link rel="stylesheet" href="foo.css">'
+            '</div>'
             '</body></html>',
       }, [
         'warning: Failed to inline stylesheet: '
@@ -767,7 +839,9 @@ void stylesheetTests() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '<div hidden="">'
           '<style>h1 { font-size: 70px; }</style>'
+          '</div>'
           '</body></html>',
       'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.css':
@@ -791,12 +865,14 @@ void stylesheetTests() {
     }, {
       'a|web/test.html':
         '<!DOCTYPE html><html><head></head><body>'
+        '<div hidden="">'
         '<polymer-element>2'
         '<style>'
         'body {\n  background: #eaeaea url(assets/b/test4.png);\n}\n'
         '.foo {\n  background: url(packages/c/test5.png);\n}'
         '</style>'
         '</polymer-element>'
+        '</div>'
         '</body></html>',
       'a|web/test2.html':
           '<html><head></head><body>'
@@ -820,7 +896,9 @@ void stylesheetTests() {
           '<link rel="import" href="foo/test2.html">'
           '</head></html>',
       'a|web/foo/test2.html':
+          // When parsed, this is in the <head>.
           '<link rel="import" href="bar/test3.html">'
+          // This is where the parsed <body> starts.
           '<polymer-element>2'
           '<link rel="stylesheet" href="test.css">'
           '</polymer-element>',
@@ -832,20 +910,26 @@ void stylesheetTests() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '<div hidden="">'
           '<img src="foo/bar/qux.png">'
           '<polymer-element>2'
           '<style>'
           'body {\n  background: #eaeaea url(foo/test4.png);\n}\n'
           '.foo {\n  background: url(foo/test5.png);\n}'
-          '</style></polymer-element></body></html>',
+          '</style></polymer-element>'
+          '</div>'
+          '</body></html>',
       'a|web/foo/test2.html':
           '<html><head></head><body>'
+          '<div hidden="">'
           '<img src="bar/qux.png">'
+          '</div>'
           '<polymer-element>2'
           '<style>'
           'body {\n  background: #eaeaea url(test4.png);\n}\n'
           '.foo {\n  background: url(test5.png);\n}'
-          '</style></polymer-element></body></html>',
+          '</style></polymer-element>'
+          '</body></html>',
       'a|web/foo/bar/test3.html':
           '<img src="qux.png">',
       'a|web/foo/test.css':
@@ -865,9 +949,11 @@ void stylesheetTests() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '<div hidden="">'
           '<style>.first { color: black }</style>'
           '<style>h1 { font-size: 70px; }</style>'
           '<style>.second { color: black }</style>'
+          '</div>'
           '</body></html>',
       'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.css':
@@ -887,8 +973,10 @@ void stylesheetTests() {
      }, {
        'a|web/test.html':
            '<!DOCTYPE html><html><head></head><body>'
+           '<div hidden="">'
            '<style no-shim="">h1 { font-size: 70px; }</style>'
            '<style shim-shadow="" foo="">h2 { font-size: 35px; }</style>'
+           '</div>'
            '</body></html>',
        'a|web/foo.css':
            'h1 { font-size: 70px; }',
@@ -963,8 +1051,10 @@ void urlAttributeTests() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '<div hidden="">'
           '<script src="foo/baz.jpg"></script>'        // normalized
           '<foo-element src="baz.jpg"></foo-element>'  // left alone (custom)
+          '</div>'
           '</body></html>',
       'a|web/foo/test_1.html':
           '<script src="baz.jpg"></script>',
@@ -983,8 +1073,10 @@ void urlAttributeTests() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '<div hidden="">'
           '<img src="{{bar}}">'
           '<img src="[[bar]]">'
+          '</div>'
           '</body></html>',
       'a|web/foo/test.html':
           '<img src="{{bar}}">'
@@ -1002,8 +1094,10 @@ void urlAttributeTests() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '<div hidden="">'
           '<img src="foo/baz/{{bar}}">'
           '<img src="foo/{{bar}}">'
+          '</div>'
           '</body></html>',
     });
 
@@ -1018,8 +1112,10 @@ void urlAttributeTests() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '<div hidden="">'
           '<img _src="foo/{{bar}}">'
           '<a _href="foo/{{bar}}">test</a>'
+          '</div>'
           '</body></html>',
     });
 
@@ -1083,7 +1179,9 @@ void entryPointTests() {
     }, {
       'a|web/test/test.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '<div hidden="">'
           '<script rel="import" href="../packages/b/bar/bar.js"></script>'
+          '</div>'
           '</body></html>',
     });
 
@@ -1097,7 +1195,9 @@ void entryPointTests() {
     }, {
       'a|web/test/test.html':
           '<!DOCTYPE html><html><head></head><body>'
+          '<div hidden="">'
           '<script src="../packages/a/foo/bar.js"></script>'
+          '</div>'
           '</body></html>',
     });
 
@@ -1113,7 +1213,9 @@ void entryPointTests() {
   }, {
     'a|web/test/well/test.html':
         '<!DOCTYPE html><html><head></head><body>'
+        '<div hidden="">'
         '<script rel="import" href="../../packages/b/bar/bar.js"></script>'
+        '</div>'
         '</body></html>',
   });
 }
