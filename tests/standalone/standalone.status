@@ -47,7 +47,8 @@ full_coverage_test: Skip
 http_launch_test: Skip
 vmservice/*: Skip # Do not run standalone vm service tests in browser.
 issue14236_test: Skip # Issue 14236 Script snapshots do not work in the browser.
-
+javascript_compatibility_errors_test: Skip
+javascript_compatibility_warnings_test: Skip
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 javascript_int_overflow_literal_test/01: Fail, OK
@@ -58,7 +59,6 @@ io/file_constructor_test: fail
 
 # This is runtime test.
 io/process_exit_negative_test: Skip
-
 
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.
@@ -136,8 +136,6 @@ assert_test: Fail # Issue 13719: Please triage this failure.
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 javascript_int_overflow_literal_test/01: Fail # Issue 13719: Please triage this failure.
 javascript_int_overflow_test: Fail # Issue 13719: Please triage this failure.
-javascript_compatibility_errors_test: Skip
-javascript_compatibility_warnings_test: Skip
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 io/directory_invalid_arguments_test: StaticWarning
