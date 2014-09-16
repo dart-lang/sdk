@@ -6885,11 +6885,22 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ xorl(ECX, ECX);
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ call(EBX);
-  compiler->RecordCallInfo(token_pos(),
-                           RawPcDescriptors::kClosureCall,
-                           deopt_id(),
-                           locs(),
-                           locs()->input_count());
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kClosureCall,
+                                 deopt_id(),
+                                 token_pos());
+  compiler->RecordSafepoint(locs());
+  // Marks either the continuation point in unoptimized code or the
+  // deoptimization point in optimized code, after call.
+  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id());
+  if (compiler->is_optimizing()) {
+    compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
+                                   deopt_id_after,
+                                   token_pos());
+  }
   __ Drop(argument_count);
 }
 

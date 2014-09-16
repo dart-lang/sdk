@@ -2722,15 +2722,12 @@ void Environment::DeepCopyTo(Isolate* isolate, Instruction* instr) const {
 
 // Copies the environment as outer on an inlined instruction and updates the
 // environment use lists.
-void Environment::DeepCopyToOuter(Isolate* isolate,
-                                  Instruction* instr,
-                                  intptr_t input_count) const {
+void Environment::DeepCopyToOuter(Isolate* isolate, Instruction* instr) const {
   // Create a deep copy removing caller arguments from the environment.
   ASSERT(this != NULL);
   ASSERT(instr->env()->outer() == NULL);
   intptr_t argument_count = instr->env()->fixed_parameter_count();
-  Environment* copy = DeepCopy(isolate,
-                               values_.length() - argument_count - input_count);
+  Environment* copy = DeepCopy(isolate, values_.length() - argument_count);
   instr->env()->outer_ = copy;
   intptr_t use_index = instr->env()->Length();  // Start index after inner.
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {

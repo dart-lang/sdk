@@ -299,8 +299,7 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
       // optimizations need deoptimization info for non-deoptable instructions,
       // eg, LICM on GOTOs.
       if (instr->env() != NULL) {
-        call_->env()->DeepCopyToOuter(
-            callee_graph->isolate(), instr, call_->InputCount());
+        call_->env()->DeepCopyToOuter(callee_graph->isolate(), instr);
       }
     }
     if (instr->IsGoto()) {

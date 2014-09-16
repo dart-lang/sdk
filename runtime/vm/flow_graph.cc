@@ -766,6 +766,16 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
                         *env,
                         num_non_copied_params_,
                         &parsed_function_);
+  // TODO(fschneider): Add predicates CanEagerlyDeoptimize and
+  // CanLazilyDeoptimize to instructions to generally deal with instructions
+  // that have pushed arguments and input operands.
+  // Right now, closure calls are the only instructions that have both. They
+  // also don't have an eager deoptimziation point, so the environment attached
+  // here is only used for after the call.
+  if (instr->IsClosureCall()) {
+    deopt_env = deopt_env->DeepCopy(isolate(),
+                                    deopt_env->Length() - instr->InputCount());
+  }
   instr->SetEnvironment(deopt_env);
   for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
     Value* use = it.CurrentValue();

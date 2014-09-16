@@ -14,6 +14,9 @@ import "package:expect/expect.dart";
 // method in the invocation chain. The test is run during warmup to ensure
 // unoptimized code produces the correct result and is then run
 // in a loop to ensure optimization kicks in and some inlining is done.
+// Note: it appears that functions which have a throw are not inlined (func4)
+//       and functions that have try/catch in them are not optimized (func1).
+//       func2 is not inlined as func1 has not been optimized.
 
 class Test {
   String func1(var k) {

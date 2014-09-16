@@ -541,16 +541,13 @@ void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
 
 
 void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
-                                            intptr_t token_pos,
-                                            intptr_t input_count) {
+                                            intptr_t token_pos) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
-  Environment* env = pending_deoptimization_env_->DeepCopy(
-      isolate(), pending_deoptimization_env_->Length() - input_count);
   CompilerDeoptInfo* info =
       new CompilerDeoptInfo(deopt_id,
                             ICData::kDeoptAtCall,
-                            env);
+                            pending_deoptimization_env_);
   info->set_pc_offset(assembler()->CodeSize());
   deopt_infos_.Add(info);
 }
@@ -872,29 +869,6 @@ void FlowGraphCompiler::TryIntrinsify() {
   // before any deoptimization point.
   ASSERT(!intrinsic_slow_path_label_.IsBound());
   assembler()->Bind(&intrinsic_slow_path_label_);
-}
-
-
-// Record safe point and deoptimization info if applicable.
-void FlowGraphCompiler::RecordCallInfo(intptr_t token_pos,
-                                       RawPcDescriptors::Kind kind,
-                                       intptr_t deopt_id,
-                                       LocationSummary* locs,
-                                       intptr_t input_count_adjustment) {
-  AddCurrentDescriptor(kind, deopt_id, token_pos);
-  RecordSafepoint(locs);
-  if (deopt_id != Isolate::kNoDeoptId) {
-    // Marks either the continuation point in unoptimized code or the
-    // deoptimization point in optimized code, after call.
-    const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
-    if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after, token_pos, input_count_adjustment);
-    } else {
-      // Add deoptimization continuation point after the call and before the
-      // arguments are removed.
-      AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
-    }
-  }
 }
 
 

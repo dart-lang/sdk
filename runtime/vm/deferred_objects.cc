@@ -88,11 +88,9 @@ void DeferredObjectRef::Materialize(DeoptContext* deopt_context) {
   DeferredObject* obj = deopt_context->GetDeferredObject(index());
   *slot() = obj->object();
   if (FLAG_trace_deoptimization_verbose) {
-    const Class& cls = Class::Handle(Isolate::Current()->class_table()->At(
-        Object::Handle(obj->object()).GetClassId()));
-    OS::PrintErr("writing instance of class %s ref at %" Px ".\n",
-                 cls.ToCString(),
-                 reinterpret_cast<uword>(slot()));
+    OS::PrintErr("writing instance ref at %" Px ": %s\n",
+                 reinterpret_cast<uword>(slot()),
+                 Instance::Handle(obj->object()).ToCString());
   }
 }
 

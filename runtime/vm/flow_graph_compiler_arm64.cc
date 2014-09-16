@@ -1113,7 +1113,8 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
   __ BranchLinkPatchable(label);
-  RecordCallInfo(token_pos, kind, Isolate::kNoDeoptId, locs, 0);
+  AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
 }
 
 
@@ -1123,7 +1124,18 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          RawPcDescriptors::Kind kind,
                                          LocationSummary* locs) {
   __ BranchLinkPatchable(label);
-  RecordCallInfo(token_pos, kind, deopt_id, locs, locs->input_count());
+  AddCurrentDescriptor(kind, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  // Marks either the continuation point in unoptimized code or the
+  // deoptimization point in optimized code, after call.
+  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+  }
 }
 
 
@@ -1133,7 +1145,20 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
                                             intptr_t argument_count,
                                             LocationSummary* locs) {
   __ CallRuntime(entry, argument_count);
-  RecordCallInfo(token_pos, RawPcDescriptors::kOther, deopt_id, locs, 0);
+  AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  if (deopt_id != Isolate::kNoDeoptId) {
+    // Marks either the continuation point in unoptimized code or the
+    // deoptimization point in optimized code, after call.
+    const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+    if (is_optimizing()) {
+      AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    } else {
+      // Add deoptimization continuation point after the call and before the
+      // arguments are removed.
+      AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+    }
+  }
 }
 
 
@@ -1253,8 +1278,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ LoadObject(R4, arguments_descriptor, PP);
   __ AddImmediate(R1, R1, Instructions::HeaderSize() - kHeapObjectTag, PP);
   __ blr(R1);
-  RecordCallInfo(
-      token_pos, RawPcDescriptors::kOther, deopt_id, locs, locs->input_count());
+  AddCurrentDescriptor(RawPcDescriptors::kOther,
+      Isolate::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
+  AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);
   __ Drop(argument_count);
 }
 
