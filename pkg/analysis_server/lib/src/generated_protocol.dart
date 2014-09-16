@@ -5106,6 +5106,7 @@ class CompletionRelevance {
  *   "docSummary": optional String
  *   "docComplete": optional String
  *   "declaringType": optional String
+ *   "element": optional Element
  *   "returnType": optional String
  *   "parameterNames": optional List<String>
  *   "parameterTypes": optional List<String>
@@ -5176,6 +5177,11 @@ class CompletionSuggestion implements HasToJson {
   String declaringType;
 
   /**
+   * Information about the element reference being suggested.
+   */
+  Element element;
+
+  /**
    * The return type of the getter, function or method being suggested. This
    * field is omitted if the suggested element is not a getter, function or
    * method.
@@ -5220,7 +5226,7 @@ class CompletionSuggestion implements HasToJson {
    */
   String parameterType;
 
-  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.positionalParameterCount, this.parameterName, this.parameterType}) {
+  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.element, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.positionalParameterCount, this.parameterName, this.parameterType}) {
     if (parameterNames == null) {
       parameterNames = <String>[];
     }
@@ -5288,6 +5294,10 @@ class CompletionSuggestion implements HasToJson {
       if (json.containsKey("declaringType")) {
         declaringType = jsonDecoder._decodeString(jsonPath + ".declaringType", json["declaringType"]);
       }
+      Element element;
+      if (json.containsKey("element")) {
+        element = new Element.fromJson(jsonDecoder, jsonPath + ".element", json["element"]);
+      }
       String returnType;
       if (json.containsKey("returnType")) {
         returnType = jsonDecoder._decodeString(jsonPath + ".returnType", json["returnType"]);
@@ -5320,7 +5330,7 @@ class CompletionSuggestion implements HasToJson {
       if (json.containsKey("parameterType")) {
         parameterType = jsonDecoder._decodeString(jsonPath + ".parameterType", json["parameterType"]);
       }
-      return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, positionalParameterCount: positionalParameterCount, parameterName: parameterName, parameterType: parameterType);
+      return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, element: element, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, positionalParameterCount: positionalParameterCount, parameterName: parameterName, parameterType: parameterType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestion");
     }
@@ -5343,6 +5353,9 @@ class CompletionSuggestion implements HasToJson {
     }
     if (declaringType != null) {
       result["declaringType"] = declaringType;
+    }
+    if (element != null) {
+      result["element"] = element.toJson();
     }
     if (returnType != null) {
       result["returnType"] = returnType;
@@ -5384,6 +5397,7 @@ class CompletionSuggestion implements HasToJson {
           docSummary == other.docSummary &&
           docComplete == other.docComplete &&
           declaringType == other.declaringType &&
+          element == other.element &&
           returnType == other.returnType &&
           _listEqual(parameterNames, other.parameterNames, (String a, String b) => a == b) &&
           _listEqual(parameterTypes, other.parameterTypes, (String a, String b) => a == b) &&
@@ -5408,6 +5422,7 @@ class CompletionSuggestion implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, docSummary.hashCode);
     hash = _JenkinsSmiHash.combine(hash, docComplete.hashCode);
     hash = _JenkinsSmiHash.combine(hash, declaringType.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, element.hashCode);
     hash = _JenkinsSmiHash.combine(hash, returnType.hashCode);
     hash = _JenkinsSmiHash.combine(hash, parameterNames.hashCode);
     hash = _JenkinsSmiHash.combine(hash, parameterTypes.hashCode);

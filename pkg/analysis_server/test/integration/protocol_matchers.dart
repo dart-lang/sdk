@@ -968,6 +968,7 @@ final Matcher isCompletionRelevance = new MatchesEnum("CompletionRelevance", [
  *   "docSummary": optional String
  *   "docComplete": optional String
  *   "declaringType": optional String
+ *   "element": optional Element
  *   "returnType": optional String
  *   "parameterNames": optional List<String>
  *   "parameterTypes": optional List<String>
@@ -990,6 +991,7 @@ final Matcher isCompletionSuggestion = new LazyMatcher(() => new MatchesJsonObje
     "docSummary": isString,
     "docComplete": isString,
     "declaringType": isString,
+    "element": isElement,
     "returnType": isString,
     "parameterNames": isListOf(isString),
     "parameterTypes": isListOf(isString),
