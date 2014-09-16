@@ -16331,44 +16331,12 @@ class NonErrorResolverTest extends ResolverTestCase {
 }
 
 class NonHintCodeTest extends ResolverTestCase {
-  void fail_issue20904BuggyTypePromotionAtIfJoin_1() {
-    // https://code.google.com/p/dart/issues/detail?id=20904
-    Source source = addSource(EngineTestCase.createSource([
-        "f(var message, var dynamic_) {",
-        "  if (message is Function) {",
-        "    message = dynamic_;",
-        "  }",
-        "  int s = message;",
-        "}",
-        ""]));
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void fail_issue20904BuggyTypePromotionAtIfJoin_2() {
     // https://code.google.com/p/dart/issues/detail?id=20904
     Source source = addSource(EngineTestCase.createSource([
         "f(var message) {",
         "  if (message is Function) {",
         "    message = '';",
-        "  }",
-        "  int s = message;",
-        "}"]));
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void fail_issue20904BuggyTypePromotionAtIfJoin_3() {
-    // https://code.google.com/p/dart/issues/detail?id=20904
-    Source source = addSource(EngineTestCase.createSource([
-        "f(var message) {",
-        "  var dynamic_;",
-        "  if (message is Function) {",
-        "    message = dynamic_;",
-        "  } else {",
-        "    return;",
         "  }",
         "  int s = message;",
         "}"]));
@@ -16586,6 +16554,37 @@ class NonHintCodeTest extends ResolverTestCase {
         "library root;",
         "import 'lib1.dart' deferred as lib1;",
         "main() { lib1.f(); }"])], <ErrorCode> [ParserErrorCode.DEFERRED_IMPORTS_NOT_SUPPORTED], <ErrorCode> []);
+  }
+
+  void test_issue20904BuggyTypePromotionAtIfJoin_1() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(EngineTestCase.createSource([
+        "f(var message, var dynamic_) {",
+        "  if (message is Function) {",
+        "    message = dynamic_;",
+        "  }",
+        "  int s = message;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_issue20904BuggyTypePromotionAtIfJoin_3() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    Source source = addSource(EngineTestCase.createSource([
+        "f(var message) {",
+        "  var dynamic_;",
+        "  if (message is Function) {",
+        "    message = dynamic_;",
+        "  } else {",
+        "    return;",
+        "  }",
+        "  int s = message;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
   }
 
   void test_issue20904BuggyTypePromotionAtIfJoin_4() {
@@ -17194,6 +17193,14 @@ class NonHintCodeTest extends ResolverTestCase {
       _ut.test('test_importDeferredLibraryWithLoadFunction', () {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_importDeferredLibraryWithLoadFunction);
+      });
+      _ut.test('test_issue20904BuggyTypePromotionAtIfJoin_1', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_issue20904BuggyTypePromotionAtIfJoin_1);
+      });
+      _ut.test('test_issue20904BuggyTypePromotionAtIfJoin_3', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_issue20904BuggyTypePromotionAtIfJoin_3);
       });
       _ut.test('test_issue20904BuggyTypePromotionAtIfJoin_4', () {
         final __test = new NonHintCodeTest();
@@ -18567,7 +18574,6 @@ class SimpleResolverTest extends ResolverTestCase {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    JUnitTestCase.assertNull(rhs.propagatedParameterElement);
     ParameterElement parameter = rhs.staticParameterElement;
     JUnitTestCase.assertNotNull(parameter);
     JUnitTestCase.assertEquals("x", parameter.displayName);
@@ -18602,7 +18608,6 @@ class SimpleResolverTest extends ResolverTestCase {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    JUnitTestCase.assertNull(rhs.propagatedParameterElement);
     ParameterElement parameter = rhs.staticParameterElement;
     JUnitTestCase.assertNotNull(parameter);
     JUnitTestCase.assertEquals("x", parameter.displayName);
@@ -28303,6 +28308,59 @@ class TypePropagationTest extends ResolverTestCase {
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
   }
 
+  void test_issue20904BuggyTypePromotionAtIfJoin_5() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    //
+    // This is not an example of the 20904 bug, but rather,
+    // an example of something that one obvious fix changes inadvertently: we
+    // want to avoid using type information from is-checks when it
+    // loses precision. I can't see how to get a bad hint this way, since
+    // it seems the propagated type is not used to generate hints when a
+    // more precise type would cause no hint. For example, for code like the
+    // following, when the propagated type of [x] is [A] -- as happens for the
+    // fix these tests aim to warn against -- there is no warning for
+    // calling a method defined on [B] but not [A] (there aren't any, but pretend),
+    // but there is for calling a method not defined on either.
+    // By not overriding the propagated type via an is-check that loses
+    // precision, we get more precise completion under an is-check. However,
+    // I can only imagine strange code would make use of this feature.
+    //
+    // Here the is-check improves precision, so we use it.
+    String code = EngineTestCase.createSource([
+        "class A {}",
+        "class B extends A {}",
+        "f() {",
+        "  var a = new A();",
+        "  var b = new B();",
+        "  b; // B",
+        "  if (a is B) {",
+        "    return a; // marker",
+        "  }",
+        "}"]);
+    DartType tB = _findMarkedIdentifier(code, "; // B").propagatedType;
+    _assertTypeOfMarkedExpression(code, null, tB);
+  }
+
+  void test_issue20904BuggyTypePromotionAtIfJoin_6() {
+    // https://code.google.com/p/dart/issues/detail?id=20904
+    //
+    // The other half of the *_5() test.
+    //
+    // Here the is-check loses precision, so we don't use it.
+    String code = EngineTestCase.createSource([
+        "class A {}",
+        "class B extends A {}",
+        "f() {",
+        "  var b = new B();",
+        "  b; // B",
+        "  if (b is A) {",
+        "    return b; // marker",
+        "  }",
+        "}"]);
+    DartType tB = _findMarkedIdentifier(code, "; // B").propagatedType;
+    _assertTypeOfMarkedExpression(code, null, tB);
+  }
+
   void test_listLiteral_different() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  var v = [0, '1', 2];", "  return v[2];", "}"]));
     LibraryElement library = resolve(source);
@@ -28576,10 +28634,10 @@ class TypePropagationTest extends ResolverTestCase {
   void _assertTypeOfMarkedExpression(String code, DartType expectedStaticType, DartType expectedPropagatedType) {
     SimpleIdentifier identifier = _findMarkedIdentifier(code, "; // marker");
     if (expectedStaticType != null) {
-      JUnitTestCase.assertSame(expectedStaticType, identifier.staticType);
+      JUnitTestCase.assertEquals(expectedStaticType, identifier.staticType);
     }
     if (expectedPropagatedType != null) {
-      JUnitTestCase.assertSame(expectedPropagatedType, identifier.propagatedType);
+      JUnitTestCase.assertEquals(expectedPropagatedType, identifier.propagatedType);
     }
   }
 
@@ -28755,6 +28813,14 @@ class TypePropagationTest extends ResolverTestCase {
       _ut.test('test_is_while', () {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_is_while);
+      });
+      _ut.test('test_issue20904BuggyTypePromotionAtIfJoin_5', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_issue20904BuggyTypePromotionAtIfJoin_5);
+      });
+      _ut.test('test_issue20904BuggyTypePromotionAtIfJoin_6', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_issue20904BuggyTypePromotionAtIfJoin_6);
       });
       _ut.test('test_listLiteral_different', () {
         final __test = new TypePropagationTest();

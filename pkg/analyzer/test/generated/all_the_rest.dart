@@ -8631,7 +8631,7 @@
 //     ElementHolder holder = new ElementHolder();
 //     ElementBuilder builder = new ElementBuilder(holder);
 //     String parameterName = "p";
-//     DefaultFormalParameter formalParameter = AstFactory.namedFormalParameter(AstFactory.simpleFormalParameter3(parameterName), AstFactory.identifier3("b"));
+//     DefaultFormalParameter formalParameter = AstFactory.namedFormalParameter(AstFactory.simpleFormalParameter3(parameterName), AstFactory.identifier3("42"));
 //     _useParameterInMethod(formalParameter, 100, 110);
 //     formalParameter.accept(builder);
 //     List<ParameterElement> parameters = holder.parameters;
@@ -8644,6 +8644,7 @@
 //     JUnitTestCase.assertFalse(parameter.isSynthetic);
 //     JUnitTestCase.assertEquals(ParameterKind.NAMED, parameter.parameterKind);
 //     JUnitTestCase.assertEquals(SourceRangeFactory.rangeStartEnd(100, 110), parameter.visibleRange);
+//     JUnitTestCase.assertEquals("42", parameter.defaultValueCode);
 //     FunctionElement initializer = parameter.initializer;
 //     JUnitTestCase.assertNotNull(initializer);
 //     JUnitTestCase.assertTrue(initializer.isSynthetic);

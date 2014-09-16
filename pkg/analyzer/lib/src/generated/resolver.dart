@@ -3605,7 +3605,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       initializer.parameters = holder.parameters;
       initializer.synthetic = true;
       parameter.initializer = initializer;
-      parameter.setDefaultValueRange(defaultValue.offset, defaultValue.length);
+      parameter.defaultValueCode = defaultValue.toSource();
     }
     // visible range
     _setParameterVisibleRange(node, parameter);
@@ -18593,7 +18593,10 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
-    overrideExpression(node.expression, node.type.type);
+    // Since an as-statement doesn't actually change the type, we don't
+    // let it affect the propagated type when it would result in a loss
+    // of precision.
+    overrideExpression(node.expression, node.type.type, false);
     return null;
   }
 
@@ -19306,32 +19309,36 @@ class ResolverVisitor extends ScopedVisitor {
    * @param expression the expression used to access the static and propagated elements whose types
    *          might be overridden
    * @param potentialType the potential type of the elements
+   * @param allowPrecisionLoss see @{code overrideVariable} docs
    */
-  void overrideExpression(Expression expression, DartType potentialType) {
+  void overrideExpression(Expression expression, DartType potentialType, bool allowPrecisionLoss) {
     VariableElement element = getOverridableStaticElement(expression);
     if (element != null) {
-      overrideVariable(element, potentialType);
+      overrideVariable(element, potentialType, allowPrecisionLoss);
     }
     element = getOverridablePropagatedElement(expression);
     if (element != null) {
-      overrideVariable(element, potentialType);
+      overrideVariable(element, potentialType, allowPrecisionLoss);
     }
   }
 
   /**
    * If it is appropriate to do so, override the current type of the given element with the given
-   * type. Generally speaking, it is appropriate if the given type is more specific than the current
    * type.
    *
    * @param element the element whose type might be overridden
    * @param potentialType the potential type of the element
+   * @param allowPrecisionLoss true if `potentialType` is allowed to be less precise than the
+   *          current best type
    */
-  void overrideVariable(VariableElement element, DartType potentialType) {
+  void overrideVariable(VariableElement element, DartType potentialType, bool allowPrecisionLoss) {
     if (potentialType == null || potentialType.isBottom) {
       return;
     }
     DartType currentType = _getBestType(element);
-    if (currentType == null || !currentType.isMoreSpecificThan(potentialType)) {
+    // If we aren't allowing precision loss then the third condition checks that we
+    // aren't losing precision.
+    if (currentType == null || allowPrecisionLoss || !currentType.isMoreSpecificThan(potentialType)) {
       if (element is PropertyInducingElement) {
         PropertyInducingElement variable = element;
         if (!variable.isConst && !variable.isFinal) {
@@ -19363,14 +19370,14 @@ class ResolverVisitor extends ScopedVisitor {
           LocalVariableElement loopElement = loopVariable.element;
           if (loopElement != null) {
             DartType iteratorElementType = _getIteratorElementType(iterator);
-            overrideVariable(loopElement, iteratorElementType);
+            overrideVariable(loopElement, iteratorElementType, true);
             _recordPropagatedType(loopVariable.identifier, iteratorElementType);
           }
         } else if (identifier != null && iterator != null) {
           Element identifierElement = identifier.staticElement;
           if (identifierElement is VariableElement) {
             DartType iteratorElementType = _getIteratorElementType(iterator);
-            overrideVariable(identifierElement, iteratorElementType);
+            overrideVariable(identifierElement, iteratorElementType, true);
             _recordPropagatedType(identifier, iteratorElementType);
           }
         }
@@ -19704,7 +19711,10 @@ class ResolverVisitor extends ScopedVisitor {
     } else if (condition is IsExpression) {
       IsExpression is2 = condition;
       if (is2.notOperator != null) {
-        overrideExpression(is2.expression, is2.type.type);
+        // Since an is-statement doesn't actually change the type, we don't
+        // let it affect the propagated type when it would result in a loss
+        // of precision.
+        overrideExpression(is2.expression, is2.type.type, false);
       }
     } else if (condition is PrefixExpression) {
       PrefixExpression prefix = condition;
@@ -19741,7 +19751,10 @@ class ResolverVisitor extends ScopedVisitor {
     } else if (condition is IsExpression) {
       IsExpression is2 = condition;
       if (is2.notOperator == null) {
-        overrideExpression(is2.expression, is2.type.type);
+        // Since an is-statement doesn't actually change the type, we don't
+        // let it affect the propagated type when it would result in a loss
+        // of precision.
+        overrideExpression(is2.expression, is2.type.type, false);
       }
     } else if (condition is PrefixExpression) {
       PrefixExpression prefix = condition;
@@ -20938,7 +20951,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         }
         overrideType = propagatedType;
       }
-      _resolver.overrideExpression(node.leftHandSide, overrideType);
+      _resolver.overrideExpression(node.leftHandSide, overrideType, true);
     } else {
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
@@ -21939,7 +21952,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       _recordPropagatedType(name, rightType);
       VariableElement element = name.staticElement as VariableElement;
       if (element != null) {
-        _resolver.overrideVariable(element, rightType);
+        _resolver.overrideVariable(element, rightType, true);
       }
     }
     return null;

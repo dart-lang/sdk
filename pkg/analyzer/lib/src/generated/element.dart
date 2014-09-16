@@ -9103,12 +9103,11 @@ abstract class NamespaceCombinator {
  */
 abstract class ParameterElement implements LocalElement, VariableElement {
   /**
-   * Return a source range that covers the portion of the source in which the default value for this
-   * parameter is specified, or `null` if there is no default value.
+   * Return the Dart code of the default value, or `null` if no default value.
    *
-   * @return the range of characters in which the default value of this parameter is specified
+   * @return the Dart code of the default value
    */
-  SourceRange get defaultValueRange;
+  String get defaultValueCode;
 
   /**
    * Return the kind of this parameter.
@@ -9149,15 +9148,9 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
   ParameterKind parameterKind;
 
   /**
-   * The offset to the beginning of the default value range for this element.
+   * The Dart code of the default value.
    */
-  int _defaultValueRangeOffset = 0;
-
-  /**
-   * The length of the default value range for this element, or `-1` if this element does not
-   * have a default value.
-   */
-  int _defaultValueRangeLength = -1;
+  String _defaultValueCode;
 
   /**
    * The offset to the beginning of the visible range for this element.
@@ -9205,12 +9198,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
   }
 
   @override
-  SourceRange get defaultValueRange {
-    if (_defaultValueRangeLength < 0) {
-      return null;
-    }
-    return new SourceRange(_defaultValueRangeOffset, _defaultValueRangeLength);
-  }
+  String get defaultValueCode => _defaultValueCode;
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;
@@ -9250,16 +9238,10 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
   }
 
   /**
-   * Set the range of the default value for this parameter to the range starting at the given offset
-   * with the given length.
-   *
-   * @param offset the offset to the beginning of the default value range for this element
-   * @param length the length of the default value range for this element, or `-1` if this
-   *          element does not have a default value
+   * Set Dart code of the default value.
    */
-  void setDefaultValueRange(int offset, int length) {
-    _defaultValueRangeOffset = offset;
-    _defaultValueRangeLength = length;
+  void set defaultValueCode(String defaultValueCode) {
+    this._defaultValueCode = StringUtilities.intern(defaultValueCode);
   }
 
   /**
@@ -9322,6 +9304,15 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
     builder.append(type);
     builder.append(" ");
     builder.append(displayName);
+    if (_defaultValueCode != null) {
+      if (parameterKind == ParameterKind.NAMED) {
+        builder.append(": ");
+      }
+      if (parameterKind == ParameterKind.POSITIONAL) {
+        builder.append(" = ");
+      }
+      builder.append(_defaultValueCode);
+    }
   }
 }
 
@@ -9397,7 +9388,7 @@ class ParameterMember extends VariableMember implements ParameterElement {
   ParameterElement get baseElement => super.baseElement as ParameterElement;
 
   @override
-  SourceRange get defaultValueRange => baseElement.defaultValueRange;
+  String get defaultValueCode => baseElement.defaultValueCode;
 
   @override
   Element get enclosingElement => baseElement.enclosingElement;

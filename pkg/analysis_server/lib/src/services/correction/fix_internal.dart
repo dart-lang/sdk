@@ -701,7 +701,7 @@ class FixProcessor {
       sb.append(' => null;');
     } else {
       List<ParameterElement> parameters = element.parameters;
-      _appendParameters(sb, parameters, _getDefaultValueMap(parameters));
+      _appendParameters(sb, parameters);
       sb.append(' {');
       // TO-DO
       sb.append(eol);
@@ -1538,8 +1538,7 @@ class FixProcessor {
     sb.append(parameterSource);
   }
 
-  void _appendParameters(SourceBuilder sb, List<ParameterElement> parameters,
-      Map<ParameterElement, String> defaultValueMap) {
+  void _appendParameters(SourceBuilder sb, List<ParameterElement> parameters) {
     sb.append("(");
     bool firstParameter = true;
     bool sawNamed = false;
@@ -1567,16 +1566,14 @@ class FixProcessor {
       // parameter
       _appendParameterSource(sb, parameter.type, parameter.name);
       // default value
-      if (defaultValueMap != null) {
-        String defaultSource = defaultValueMap[parameter];
-        if (defaultSource != null) {
-          if (sawPositional) {
-            sb.append(" = ");
-          } else {
-            sb.append(": ");
-          }
-          sb.append(defaultSource);
+      String defaultCode = parameter.defaultValueCode;
+      if (defaultCode != null) {
+        if (sawPositional) {
+          sb.append(" = ");
+        } else {
+          sb.append(": ");
         }
+        sb.append(defaultCode);
       }
     }
     // close parameters
@@ -1616,7 +1613,7 @@ class FixProcessor {
       proposalNameBuffer.append(constructorName);
     }
     // parameters
-    _appendParameters(proposalNameBuffer, constructor.parameters, null);
+    _appendParameters(proposalNameBuffer, constructor.parameters);
     // done
     return proposalNameBuffer.toString();
   }
@@ -1636,27 +1633,6 @@ class FixProcessor {
       }
     }
     return null;
-  }
-
-  Map<ParameterElement, String>
-      _getDefaultValueMap(List<ParameterElement> parameters) {
-    Map<ParameterElement, String> defaultSourceMap = {};
-    Map<Source, String> sourceContentMap = {};
-    for (ParameterElement parameter in parameters) {
-      SourceRange valueRange = parameter.defaultValueRange;
-      if (valueRange != null) {
-        Source source = parameter.source;
-        String sourceContent = sourceContentMap[source];
-        if (sourceContent == null) {
-          sourceContent = getSourceContent(parameter.context, source);
-          sourceContentMap[source] = sourceContent;
-        }
-        String valueSource =
-            sourceContent.substring(valueRange.offset, valueRange.end);
-        defaultSourceMap[parameter] = valueSource;
-      }
-    }
-    return defaultSourceMap;
   }
 
   /**
