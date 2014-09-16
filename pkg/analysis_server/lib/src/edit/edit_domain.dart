@@ -234,6 +234,7 @@ class _RefactoringManager {
         if (_hasFatalError) {
           return _sendResultResponse();
         }
+        // create change
         return refactoring.createChange().then((change) {
           result.change = new SourceChange(change.message, edits: change.edits);
           return _sendResultResponse();

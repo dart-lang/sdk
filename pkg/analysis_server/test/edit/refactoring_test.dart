@@ -1002,10 +1002,12 @@ main() {
 }
 ''');
     return getRefactoringResult(() {
-      return sendRenameRequest('test = 0', 'newName');
+      return sendRenameRequest('test = 0', 'newName', false);
     }).then((result) {
+      List<RefactoringProblem> problems = result.finalProblems;
+      expect(problems, hasLength(1));
       assertResultProblemsError(
-          result.finalProblems,
+          problems,
           "Duplicate local variable 'newName'.");
     });
   }
@@ -1020,7 +1022,6 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   void assertResultProblemsError(List<RefactoringProblem> problems,
       [String message]) {
     RefactoringProblem problem = problems[0];
-    expect(problems, hasLength(1));
     expect(
         problem.severity,
         RefactoringProblemSeverity.ERROR,

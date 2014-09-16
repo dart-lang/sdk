@@ -107,6 +107,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
   final RenameLocalRefactoringImpl refactoring;
   final RefactoringStatus result;
   final SourceRange elementRange;
+  final Set<Element> conflictingLocals = new Set<Element>();
 
   _ConflictValidatorVisitor(this.refactoring, this.result, this.elementRange);
 
@@ -116,10 +117,15 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
     String newName = refactoring.newName;
     if (nodeElement != null && nodeElement.name == newName) {
       // duplicate declaration
-      if (haveIntersectingRanges(refactoring.element, nodeElement)) {
+      if (node.inDeclarationContext() &&
+          haveIntersectingRanges(refactoring.element, nodeElement)) {
+        conflictingLocals.add(nodeElement);
         String nodeKind = nodeElement.kind.displayName;
         String message = "Duplicate ${nodeKind} '$newName'.";
         result.addError(message, new Location.fromElement(nodeElement));
+        return;
+      }
+      if (conflictingLocals.contains(nodeElement)) {
         return;
       }
       // shadowing referenced element
