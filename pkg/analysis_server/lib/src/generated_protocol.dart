@@ -8675,8 +8675,8 @@ class SourceChange implements HasToJson {
   /**
    * Adds [edit] to the [FileEdit] for the given [file].
    */
-  void addEdit(String file, SourceEdit edit) =>
-      _addEditToSourceChange(this, file, edit);
+  void addEdit(String file, int fileStamp, SourceEdit edit) =>
+      _addEditToSourceChange(this, file, fileStamp, edit);
 
   /**
    * Adds the given [FileEdit].
@@ -8860,6 +8860,7 @@ class SourceEdit implements HasToJson {
  *
  * {
  *   "file": FilePath
+ *   "fileStamp": long
  *   "edits": List<SourceEdit>
  * }
  */
@@ -8870,11 +8871,20 @@ class SourceFileEdit implements HasToJson {
   String file;
 
   /**
+   * The modification stamp of the file at the moment when the change was
+   * created, in milliseconds since the "Unix epoch". Will be -1 if the file
+   * did not exist and should be created. The client may use this field to make
+   * sure that the file was not changed since then, so it is safe to apply the
+   * change.
+   */
+  int fileStamp;
+
+  /**
    * A list of the edits used to effect the change.
    */
   List<SourceEdit> edits;
 
-  SourceFileEdit(this.file, {this.edits}) {
+  SourceFileEdit(this.file, this.fileStamp, {this.edits}) {
     if (edits == null) {
       edits = <SourceEdit>[];
     }
@@ -8891,13 +8901,19 @@ class SourceFileEdit implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
+      int fileStamp;
+      if (json.containsKey("fileStamp")) {
+        fileStamp = jsonDecoder._decodeInt(jsonPath + ".fileStamp", json["fileStamp"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "fileStamp");
+      }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
         edits = jsonDecoder._decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
-      return new SourceFileEdit(file, edits: edits);
+      return new SourceFileEdit(file, fileStamp, edits: edits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SourceFileEdit");
     }
@@ -8906,6 +8922,7 @@ class SourceFileEdit implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
+    result["fileStamp"] = fileStamp;
     result["edits"] = edits.map((SourceEdit value) => value.toJson()).toList();
     return result;
   }
@@ -8928,6 +8945,7 @@ class SourceFileEdit implements HasToJson {
   bool operator==(other) {
     if (other is SourceFileEdit) {
       return file == other.file &&
+          fileStamp == other.fileStamp &&
           _listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
     }
     return false;
@@ -8937,6 +8955,7 @@ class SourceFileEdit implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, fileStamp.hashCode);
     hash = _JenkinsSmiHash.combine(hash, edits.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }

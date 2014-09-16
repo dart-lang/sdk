@@ -8,10 +8,10 @@ import 'dart:async';
 
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
-import '../reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
+import '../reflective_tests.dart';
 
 
 main() {
@@ -74,11 +74,11 @@ bar() {
     });
   }
 
-  void _isSyntacticErrorWithSingleFix(AnalysisErrorFixes fixes) {
-    AnalysisError error = fixes.error;
-    expect(error.severity, AnalysisErrorSeverity.ERROR);
-    expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
-    expect(fixes.fixes, hasLength(1));
+  List<AnalysisErrorFixes> _getFixes(int offset) {
+    Request request = new EditGetFixesParams(testFile, offset).toRequest('0');
+    Response response = handleSuccessfulRequest(request);
+    var result = new EditGetFixesResult.fromResponse(response);
+    return result.fixes;
   }
 
   List<AnalysisErrorFixes> _getFixesAt(String search) {
@@ -87,10 +87,10 @@ bar() {
   }
 
 
-  List<AnalysisErrorFixes> _getFixes(int offset) {
-    Request request = new EditGetFixesParams(testFile, offset).toRequest('0');
-    Response response = handleSuccessfulRequest(request);
-    var result = new EditGetFixesResult.fromResponse(response);
-    return result.fixes;
+  void _isSyntacticErrorWithSingleFix(AnalysisErrorFixes fixes) {
+    AnalysisError error = fixes.error;
+    expect(error.severity, AnalysisErrorSeverity.ERROR);
+    expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
+    expect(fixes.fixes, hasLength(1));
   }
 }

@@ -170,7 +170,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
   final SearchEngine searchEngine;
   final CompilationUnit unit;
   final int offset;
-  String file;
   CorrectionUtils utils;
   SourceChange change;
 
@@ -192,7 +191,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
   List<_ReferenceProcessor> _referenceProcessors = [];
 
   InlineMethodRefactoringImpl(this.searchEngine, this.unit, this.offset) {
-    file = unit.element.source.fullName;
     utils = new CorrectionUtils(unit);
   }
 
@@ -241,7 +239,10 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
     if (deleteSource && inlineAll) {
       SourceRange methodRange = rangeNode(_methodNode);
       SourceRange linesRange = _methodUtils.getLinesRange(methodRange);
-      change.addEdit(_methodFile, new SourceEdit.range(linesRange, ""));
+      addElementSourceChange(
+          change,
+          _methodElement,
+          new SourceEdit.range(linesRange, ''));
     }
     // done
     return new Future.value(result);
@@ -405,16 +406,14 @@ class _ParameterOccurrence {
 class _ReferenceProcessor {
   final InlineMethodRefactoringImpl ref;
 
-  String _refFile;
+  Element refElement;
   CorrectionUtils _refUtils;
   SimpleIdentifier _node;
   SourceRange _refLineRange;
   String _refPrefix;
 
   _ReferenceProcessor(this.ref, SearchMatch reference) {
-    // prepare SourceChange to update
-    Element refElement = reference.element;
-    _refFile = refElement.source.fullName;
+    refElement = reference.element;
     // prepare CorrectionUtils
     CompilationUnit refUnit = refElement.unit;
     _refUtils = new CorrectionUtils(refUnit);
@@ -497,7 +496,7 @@ class _ReferenceProcessor {
         // do insert
         SourceRange range = rangeStartLength(_refLineRange, 0);
         SourceEdit edit = new SourceEdit.range(range, source);
-        ref.change.addEdit(_refFile, edit);
+        _addRefEdit(edit);
       }
       // replace invocation with return expression
       if (ref._methodExpressionPart != null) {
@@ -515,10 +514,10 @@ class _ReferenceProcessor {
         // do replace
         SourceRange methodUsageRange = rangeNode(usage);
         SourceEdit edit = new SourceEdit.range(methodUsageRange, source);
-        ref.change.addEdit(_refFile, edit);
+        _addRefEdit(edit);
       } else {
         SourceEdit edit = new SourceEdit.range(_refLineRange, "");
-        ref.change.addEdit(_refFile, edit);
+        _addRefEdit(edit);
       }
       return;
     }
@@ -535,7 +534,7 @@ class _ReferenceProcessor {
     // do insert
     SourceRange range = rangeNode(_node);
     SourceEdit edit = new SourceEdit.range(range, source);
-    ref.change.addEdit(_refFile, edit);
+    _addRefEdit(edit);
   }
 
   void _process(RefactoringStatus status) {
@@ -606,8 +605,12 @@ class _ReferenceProcessor {
       // do insert
       SourceRange range = rangeNode(_node);
       SourceEdit edit = new SourceEdit.range(range, source);
-      ref.change.addEdit(_refFile, edit);
+      _addRefEdit(edit);
     }
+  }
+
+  void _addRefEdit(SourceEdit edit) {
+    addElementSourceChange(ref.change, refElement, edit);
   }
 
   bool _shouldProcess() {

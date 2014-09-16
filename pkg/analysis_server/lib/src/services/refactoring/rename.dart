@@ -8,11 +8,12 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/protocol.dart' hide Element;
-import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
+import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -170,9 +171,9 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
    */
   void addDeclarationEdit(SourceChange change, Element element) {
     if (element != null) {
-      String file = getElementFile(element);
-      SourceEdit edit = new SourceEdit.range(rangeElementName(element), newName);
-      change.addEdit(file, edit);
+      SourceEdit edit =
+          new SourceEdit.range(rangeElementName(element), newName);
+      addElementSourceChange(change, element, edit);
     }
   }
 
@@ -181,7 +182,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
    */
   void addReferenceEdit(SourceChange change, SourceReference reference) {
     SourceEdit edit = createReferenceEdit(reference, newName);
-    change.addEdit(reference.file, edit);
+    addElementSourceChange(change, reference.element, edit);
   }
 
   @override

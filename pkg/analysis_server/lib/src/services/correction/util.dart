@@ -6,7 +6,8 @@ library services.src.correction.util;
 
 import 'dart:math';
 
-import 'package:analysis_server/src/protocol.dart' show SourceEdit;
+import 'package:analysis_server/src/protocol.dart' show SourceChange,
+    SourceEdit;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -15,6 +16,22 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+
+
+void addElementSourceChange(SourceChange change, Element element,
+    SourceEdit edit) {
+  AnalysisContext context = element.context;
+  Source source = element.source;
+  addSourceChange(change, context, source, edit);
+}
+
+
+void addSourceChange(SourceChange change, AnalysisContext context,
+    Source source, SourceEdit edit) {
+  String file = source.fullName;
+  int fileStamp = context.getModificationStamp(source);
+  change.addEdit(file, fileStamp, edit);
+}
 
 
 /**
@@ -80,6 +97,7 @@ String getElementKindName(Element element) {
 }
 
 
+
 /**
  * Returns the name to display in the UI for the given [Element].
  */
@@ -91,7 +109,6 @@ String getElementQualifiedName(Element element) {
     return element.displayName;
   }
 }
-
 
 /**
  * If the given [AstNode] is in a [ClassDeclaration], returns the
@@ -105,7 +122,6 @@ ClassElement getEnclosingClassElement(AstNode node) {
   }
   return null;
 }
-
 
 
 /**
@@ -125,6 +141,7 @@ AstNode getEnclosingClassOrUnitMember(AstNode node) {
   }
   return null;
 }
+
 
 /**
  * @return the [ExecutableElement] of the enclosing executable [AstNode].
@@ -166,6 +183,7 @@ AstNode getEnclosingExecutableNode(AstNode node) {
 }
 
 
+
 /**
  * Returns [getExpressionPrecedence] for the parent of [node],
  * or `0` if the parent node is [ParenthesizedExpression].
@@ -190,7 +208,6 @@ int getExpressionPrecedence(AstNode node) {
   }
   return -1000;
 }
-
 
 
 /**
@@ -219,7 +236,6 @@ String getLinePrefix(String line) {
   return line.substring(0, index);
 }
 
-
 /**
  * @return the [LocalVariableElement] or [ParameterElement] if given
  *         [SimpleIdentifier] is the reference to local variable or parameter, or
@@ -236,7 +252,6 @@ VariableElement getLocalOrParameterVariableElement(SimpleIdentifier node) {
   return null;
 }
 
-
 /**
  * @return the [LocalVariableElement] if given [SimpleIdentifier] is the reference to
  *         local variable, or <code>null</code> in the other case.
@@ -248,6 +263,7 @@ LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
   }
   return null;
 }
+
 
 /**
  * @return the nearest common ancestor [AstNode] of the given [AstNode]s.
@@ -276,6 +292,7 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
   }
   return parents[0][i - 1];
 }
+
 
 /**
  * Returns the [Expression] qualifier if given node is the name part of a
@@ -395,7 +412,6 @@ String getSourceContent(AnalysisContext context, Source source) {
   return context.getContents(source).data;
 }
 
-
 /**
  * Returns the given [Statement] if not a [Block], or all the children
  * [Statement]s if a [Block].
@@ -417,6 +433,7 @@ bool hasDisplayName(Element element, String name) {
   }
   return element.displayName == name;
 }
+
 
 /**
  * Checks if the given [PropertyAccessorElement] is an accessor of a

@@ -125,6 +125,7 @@ const String ERROR = 'error';
 const String ERRORS = 'errors';
 const String FATAL = 'fatal';
 const String FILE = 'file';
+const String FILE_STAMP = 'fileStamp';
 const String FILES = 'files';
 const String FIXES = 'fixes';
 const String FLAGS = 'flags';

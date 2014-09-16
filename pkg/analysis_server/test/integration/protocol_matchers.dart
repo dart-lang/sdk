@@ -1771,12 +1771,14 @@ final Matcher isSourceEdit = new LazyMatcher(() => new MatchesJsonObject(
  *
  * {
  *   "file": FilePath
+ *   "fileStamp": long
  *   "edits": List<SourceEdit>
  * }
  */
 final Matcher isSourceFileEdit = new LazyMatcher(() => new MatchesJsonObject(
   "SourceFileEdit", {
     "file": isFilePath,
+    "fileStamp": isInt,
     "edits": isListOf(isSourceEdit)
   }));
 

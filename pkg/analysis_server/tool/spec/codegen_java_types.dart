@@ -597,6 +597,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
       return 'getAsBoolean';
     } else if (name == 'int' || name == 'Integer') {
       return 'getAsInt';
+    } else if (name == 'long' || name == 'Long') {
+      return 'getAsLong';
     } else if (name.startsWith('List')) {
       return 'getAsJsonArray';
     } else {

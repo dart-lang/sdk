@@ -158,7 +158,11 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   void visitTypeReference(TypeReference typeReference) {
-    write(camelJoin(['is', typeReference.typeName]));
+    String typeName = typeReference.typeName;
+    if (typeName == 'long') {
+      typeName = 'int';
+    }
+    write(camelJoin(['is', typeName]));
   }
 
   @override

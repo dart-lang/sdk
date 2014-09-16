@@ -30,7 +30,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
   final SearchEngine searchEngine;
   final CompilationUnit unit;
   final int offset;
-  String file;
+  CompilationUnitElement unitElement;
   CorrectionUtils utils;
 
   Element _variableElement;
@@ -38,7 +38,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
   List<SearchMatch> _references;
 
   InlineLocalRefactoringImpl(this.searchEngine, this.unit, this.offset) {
-    file = unit.element.source.fullName;
+    unitElement = unit.element;
     utils = new CorrectionUtils(unit);
   }
 
@@ -131,7 +131,10 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
       Statement declarationStatement =
           _variableNode.getAncestor((node) => node is VariableDeclarationStatement);
       SourceRange range = utils.getLinesRangeStatements([declarationStatement]);
-      change.addEdit(file, new SourceEdit.range(range, ''));
+      addElementSourceChange(
+          change,
+          unitElement,
+          new SourceEdit.range(range, ''));
     }
     // prepare initializer
     Expression initializer = _variableNode.initializer;
@@ -142,7 +145,10 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
       SourceRange range = reference.sourceRange;
       String sourceForReference =
           _getSourceForReference(range, initializerSource, initializerPrecedence);
-      change.addEdit(file, new SourceEdit.range(range, sourceForReference));
+      addElementSourceChange(
+          change,
+          unitElement,
+          new SourceEdit.range(range, sourceForReference));
     }
     // done
     return new Future.value(change);

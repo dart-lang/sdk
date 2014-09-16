@@ -181,7 +181,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   bool isPrimitive(TypeDecl type) {
     if (type is TypeReference) {
       String typeStr = javaType(type);
-      return typeStr == 'int' || typeStr == 'boolean';
+      return typeStr == 'boolean' || typeStr == 'int' || typeStr == 'long';
     }
     return false;
   }

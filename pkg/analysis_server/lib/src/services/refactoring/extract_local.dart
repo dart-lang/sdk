@@ -35,6 +35,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
   final CompilationUnit unit;
   final int selectionOffset;
   final int selectionLength;
+  CompilationUnitElement unitElement;
   String file;
   SourceRange selectionRange;
   CorrectionUtils utils;
@@ -54,7 +55,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
 
   ExtractLocalRefactoringImpl(this.unit, this.selectionOffset,
       this.selectionLength) {
-    file = unit.element.source.fullName;
+    unitElement = unit.element;
     selectionRange = new SourceRange(selectionOffset, selectionLength);
     utils = new CorrectionUtils(unit);
   }
@@ -122,7 +123,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
       String declarationSource = '$keyword $name = ';
       SourceEdit edit =
           new SourceEdit(singleExpression.offset, 0, declarationSource);
-      change.addEdit(file, edit);
+      addElementSourceChange(change, unitElement, edit);
       return new Future.value(change);
     }
     // add variable declaration
@@ -158,21 +159,23 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
         String prefix = utils.getNodePrefix(target);
         SourceEdit edit =
             new SourceEdit(target.offset, 0, declarationSource + eol + prefix);
-        change.addEdit(file, edit);
+        addElementSourceChange(change, unitElement, edit);
       } else if (target is ExpressionFunctionBody) {
         String prefix = utils.getNodePrefix(target.parent);
         String indent = utils.getIndent(1);
         String declStatement = prefix + indent + declarationSource + eol;
         String exprStatement = prefix + indent + 'return ';
         Expression expr = target.expression;
-        change.addEdit(
-            file,
+        addElementSourceChange(
+            change,
+            unitElement,
             new SourceEdit(
                 target.offset,
                 expr.offset - target.offset,
                 '{' + eol + declStatement + exprStatement));
-        change.addEdit(
-            file,
+        addElementSourceChange(
+            change,
+            unitElement,
             new SourceEdit(expr.end, 0, ';' + eol + prefix + '}'));
       }
     }
@@ -184,7 +187,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     // replace occurrences with variable reference
     for (SourceRange range in occurrences) {
       SourceEdit edit = new SourceEdit.range(range, occurrenceReplacement);
-      change.addEdit(file, edit);
+      addElementSourceChange(change, unitElement, edit);
     }
     // done
     return new Future.value(change);

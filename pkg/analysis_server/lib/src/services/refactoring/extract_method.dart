@@ -61,7 +61,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   final CompilationUnit unit;
   final int selectionOffset;
   final int selectionLength;
-  String file;
+  CompilationUnitElement unitElement;
   SourceRange selectionRange;
   CorrectionUtils utils;
 
@@ -91,7 +91,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
 
   ExtractMethodRefactoringImpl(this.searchEngine, this.unit,
       this.selectionOffset, this.selectionLength) {
-    file = unit.element.source.fullName;
+    unitElement = unit.element;
     selectionRange = new SourceRange(selectionOffset, selectionLength);
     utils = new CorrectionUtils(unit);
   }
@@ -276,7 +276,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       }
       // add replace edit
       SourceEdit edit = new SourceEdit.range(range, invocationSource);
-      change.addEdit(file, edit);
+      addElementSourceChange(change, unitElement, edit);
     }
     // add method declaration
     {
@@ -333,7 +333,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         int offset = _parentMember.end;
         SourceEdit edit =
             new SourceEdit(offset, 0, '${eol}${eol}${prefix}${declarationSource}');
-        change.addEdit(file, edit);
+        addElementSourceChange(change, unitElement, edit);
       }
     }
     // done

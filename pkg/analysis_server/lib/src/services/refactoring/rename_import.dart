@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
@@ -70,7 +71,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         }
       }
       if (edit != null) {
-        change.addEdit(file, edit);
+        addElementSourceChange(change, element, edit);
       }
     }
     // update references
@@ -83,7 +84,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         } else {
           edit = createReferenceEdit(reference, "${newName}.");
         }
-        change.addEdit(reference.file, edit);
+        addElementSourceChange(change, reference.element, edit);
       }
       return change;
     });

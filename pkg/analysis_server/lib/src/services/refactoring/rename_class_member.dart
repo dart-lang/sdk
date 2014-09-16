@@ -120,7 +120,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         // add edit
         SourceEdit edit =
             createReferenceEdit(reference, newName, id: _newPotentialId());
-        change.addEdit(reference.file, edit);
+        addElementSourceChange(change, reference.element, edit);
       }
     }).then((_) => change);
   }

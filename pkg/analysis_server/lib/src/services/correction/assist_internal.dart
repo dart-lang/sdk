@@ -34,6 +34,7 @@ class AssistProcessor {
   final SearchEngine searchEngine;
   final Source source;
   final String file;
+  int fileStamp;
   final CompilationUnit unit;
   final int selectionOffset;
   final int selectionLength;
@@ -58,6 +59,7 @@ class AssistProcessor {
     unitLibraryElement = unitElement.library;
     unitLibraryFile = unitLibraryElement.source.fullName;
     unitLibraryFolder = dirname(unitLibraryFile);
+    fileStamp = unitElement.context.getModificationStamp(source);
     selectionEnd = selectionOffset + selectionLength;
   }
 
@@ -131,7 +133,7 @@ class AssistProcessor {
       return;
     }
     // prepare file edit
-    SourceFileEdit fileEdit = new SourceFileEdit(file);
+    SourceFileEdit fileEdit = new SourceFileEdit(file, fileStamp);
     fileEdit.addAll(edits);
     // prepare Change
     String message = formatList(kind.message, args);

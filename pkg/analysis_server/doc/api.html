@@ -2840,6 +2840,15 @@ dt.typeDefinition {
             <p>
               The file containing the code to be modified.
             </p>
+          </dd><dt class="field"><b><i>fileStamp ( long )</i></b></dt><dd>
+            
+            <p>
+              The modification stamp of the file at the moment when the change
+              was created, in milliseconds since the "Unix epoch". Will be -1 if
+              the file did not exist and should be created. The client may use
+              this field to make sure that the file was not changed since then,
+              so it is safe to apply the change.
+            </p>
           </dd><dt class="field"><b><i>edits ( List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt; )</i></b></dt><dd>
             
             <p>

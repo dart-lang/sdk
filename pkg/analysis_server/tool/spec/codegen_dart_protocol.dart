@@ -190,6 +190,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
    * Type references in the spec that are named something else in Dart.
    */
   static const Map<String, String> _typeRenames = const {
+    'long': 'int',
     'object': 'Map',
   };
 
@@ -559,8 +560,8 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       case 'SourceChange':
         docComment(
             [new dom.Text('Adds [edit] to the [FileEdit] for the given [file].')]);
-        writeln('void addEdit(String file, SourceEdit edit) =>');
-        writeln('    _addEditToSourceChange(this, file, edit);');
+        writeln('void addEdit(String file, int fileStamp, SourceEdit edit) =>');
+        writeln('    _addEditToSourceChange(this, file, fileStamp, edit);');
         writeln();
         docComment([new dom.Text('Adds the given [FileEdit].')]);
         writeln('void addFileEdit(SourceFileEdit edit) {');
@@ -1121,6 +1122,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
           case 'bool':
             return new FromJsonFunction('jsonDecoder._decodeBool');
           case 'int':
+          case 'long':
             return new FromJsonFunction('jsonDecoder._decodeInt');
           case 'object':
             return new FromJsonIdentity();

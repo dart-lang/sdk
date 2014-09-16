@@ -68,10 +68,11 @@ void _addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
 /**
  * Adds [edit] to the [FileEdit] for the given [file].
  */
-void _addEditToSourceChange(SourceChange change, String file, SourceEdit edit) {
+void _addEditToSourceChange(SourceChange change, String file, int fileStamp,
+                            SourceEdit edit) {
   SourceFileEdit fileEdit = change.getFileEdit(file);
   if (fileEdit == null) {
-    fileEdit = new SourceFileEdit(file);
+    fileEdit = new SourceFileEdit(file, fileStamp);
     change.addFileEdit(fileEdit);
   }
   fileEdit.add(edit);
