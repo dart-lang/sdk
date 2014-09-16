@@ -8376,7 +8376,9 @@ class Environment : public ZoneAllocated {
   }
 
   void DeepCopyTo(Isolate* isolate, Instruction* instr) const;
-  void DeepCopyToOuter(Isolate* isolate, Instruction* instr) const;
+  void DeepCopyToOuter(Isolate* isolate,
+                       Instruction* instr,
+                       intptr_t input_count) const;
 
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;

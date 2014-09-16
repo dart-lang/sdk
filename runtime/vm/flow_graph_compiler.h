@@ -320,6 +320,12 @@ class FlowGraphCompiler : public ValueObject {
 
   void TryIntrinsify();
 
+  void RecordCallInfo(intptr_t token_pos,
+                      RawPcDescriptors::Kind kind,
+                      intptr_t deopt_id,
+                      LocationSummary* locs,
+                      intptr_t input_count_adjustment);
+
   void GenerateRuntimeCall(intptr_t token_pos,
                            intptr_t deopt_id,
                            const RuntimeEntry& entry,
@@ -445,11 +451,7 @@ class FlowGraphCompiler : public ValueObject {
                             intptr_t deopt_id,
                             intptr_t token_pos);
 
-  void RecordSafepoint(LocationSummary* locs);
-
   Label* AddDeoptStub(intptr_t deopt_id, ICData::DeoptReasonId reason);
-
-  void AddDeoptIndexAtCall(intptr_t deopt_id, intptr_t token_pos);
 
   void AddSlowPathCode(SlowPathCode* slow_path);
 
@@ -506,7 +508,13 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitFrameEntry();
 
+  void RecordSafepoint(LocationSummary* locs);
+
   void AddStaticCallTarget(const Function& function);
+
+  void AddDeoptIndexAtCall(intptr_t deopt_id,
+                           intptr_t token_pos,
+                           intptr_t input_count);
 
   void GenerateDeferredCode();
 
