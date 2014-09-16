@@ -24,19 +24,21 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, verbose_gc, false, "Enables verbose GC.");
-DEFINE_FLAG(int, verbose_gc_hdr, 40, "Print verbose GC header interval.");
-DEFINE_FLAG(bool, verify_before_gc, false,
-            "Enables heap verification before GC.");
-DEFINE_FLAG(bool, verify_after_gc, false,
-            "Enables heap verification after GC.");
+DEFINE_FLAG(bool, disable_alloc_stubs_after_gc, false, "Stress testing flag.");
 DEFINE_FLAG(bool, gc_at_alloc, false, "GC at every allocation.");
 DEFINE_FLAG(int, new_gen_ext_limit, 64,
             "maximum total external size (MB) in new gen before triggering GC");
-DEFINE_FLAG(int, pretenure_threshold, 98,
-            "Trigger pretenuring when this many percent are promoted.");
 DEFINE_FLAG(int, pretenure_interval, 10,
             "Back off pretenuring after this many cycles.");
+DEFINE_FLAG(int, pretenure_threshold, 98,
+            "Trigger pretenuring when this many percent are promoted.");
+DEFINE_FLAG(bool, verbose_gc, false, "Enables verbose GC.");
+DEFINE_FLAG(int, verbose_gc_hdr, 40, "Print verbose GC header interval.");
+DEFINE_FLAG(bool, verify_after_gc, false,
+            "Enables heap verification after GC.");
+DEFINE_FLAG(bool, verify_before_gc, false,
+            "Enables heap verification before GC.");
+
 
 Heap::Heap(Isolate* isolate,
            intptr_t max_new_gen_semi_words,
@@ -363,6 +365,15 @@ bool Heap::ShouldPretenure(intptr_t class_id) const {
 
 
 void Heap::UpdatePretenurePolicy() {
+  if (FLAG_disable_alloc_stubs_after_gc) {
+    ClassTable* table = isolate_->class_table();
+    for (intptr_t cid = kNumPredefinedCids; cid < table->NumCids(); ++cid) {
+      if (table->IsValidIndex(cid) && table->HasValidClassAt(cid)) {
+        const Class& cls = Class::Handle(isolate_, table->At(cid));
+        cls.SwitchAllocationStub();
+      }
+    }
+  }
   ClassHeapStats* stats =
       isolate_->class_table()->StatsWithUpdatedSize(kOneByteStringCid);
   int allocated = stats->pre_gc.new_count;

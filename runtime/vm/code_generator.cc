@@ -1378,9 +1378,10 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
                                    alloc_stub.EntryPoint());
   }
   if (FLAG_trace_patching) {
-    OS::PrintErr("FixAllocationStubTarget: caller %#" Px " "
+    OS::PrintErr("FixAllocationStubTarget: caller %#" Px " alloc-class %s "
         " -> %#" Px "\n",
         frame->pc(),
+        alloc_class.ToCString(),
         alloc_stub.EntryPoint());
   }
   arguments.SetReturn(alloc_stub);

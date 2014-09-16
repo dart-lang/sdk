@@ -3642,17 +3642,27 @@ RawType* Class::CanonicalTypeFromIndex(intptr_t idx) const {
 
 
 void Class::set_allocation_stub(const Code& value) const {
+  // Never clear the stub as it may still be a target, but will be GC-d if
+  // not referenced.
   ASSERT(!value.IsNull());
   ASSERT(raw_ptr()->allocation_stub_ == Code::null());
   StorePointer(&raw_ptr()->allocation_stub_, value.raw());
 }
 
 
-void Class::DisableAllocationStub() const {
+void Class::SwitchAllocationStub() const {
   const Code& alloc_stub = Code::Handle(allocation_stub());
   if (!alloc_stub.IsNull()) {
     CodePatcher::PatchEntry(alloc_stub);
-    StorePointer(&raw_ptr()->allocation_stub_, Code::null());
+    const Code& spare_alloc_stub = Code::Handle(spare_allocation_stub());
+    if (spare_alloc_stub.IsNull()) {
+      StorePointer(&raw_ptr()->allocation_stub_, Code::null());
+    } else {
+      ASSERT(CodePatcher::IsEntryPatched(spare_alloc_stub));
+      CodePatcher::RestoreEntry(spare_alloc_stub);
+      StorePointer(&raw_ptr()->allocation_stub_, spare_alloc_stub.raw());
+    }
+    StorePointer(&raw_ptr()->spare_allocation_stub_, alloc_stub.raw());
   }
 }
 

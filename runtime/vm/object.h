@@ -1143,7 +1143,7 @@ class Class : public Object {
   }
   void set_allocation_stub(const Code& value) const;
 
-  void DisableAllocationStub() const;
+  void SwitchAllocationStub() const;
 
   RawArray* constants() const;
 
@@ -1275,6 +1275,10 @@ class Class : public Object {
 
   void set_canonical_types(const Object& value) const;
   RawObject* canonical_types() const;
+
+  RawCode* spare_allocation_stub() const {
+    return raw_ptr()->spare_allocation_stub_;
+  }
 
   RawArray* invocation_dispatcher_cache() const;
   void set_invocation_dispatcher_cache(const Array& cache) const;

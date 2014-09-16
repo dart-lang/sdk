@@ -13,6 +13,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_type_checks);
+
 TEST_CASE(CompileScript) {
   const char* kScriptChars =
       "class A {\n"
@@ -75,10 +77,12 @@ TEST_CASE(RegenerateAllocStubs) {
             "}\n"
             "unOpt() => new A(); \n"
             "optIt() => new A(); \n"
-            "main() {\n"
+            "A main() {\n"
             "  return unOpt();\n"
             "}\n";
 
+  bool old_enable_type_checks = FLAG_enable_type_checks;
+  FLAG_enable_type_checks = true;
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
@@ -94,9 +98,10 @@ TEST_CASE(RegenerateAllocStubs) {
                                   stub_code->GetAllocationStubForClass(cls));
   Class& owner = Class::Handle();
   owner ^= stub.owner();
-  owner.DisableAllocationStub();
+  owner.SwitchAllocationStub();
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
+  FLAG_enable_type_checks = old_enable_type_checks;
 }
 
 
