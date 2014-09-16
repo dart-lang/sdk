@@ -40,7 +40,7 @@ particular pub command. Each command is encapsulated in files in
 To run pub from the Dart repository, first [build Dart][building]. From the root
 of the repo:
 
-    ./tools/build.py -m release
+    ./tools/build.py -m release create_sdk
 
 You'll need to re-build whenever you sync the repository, but not when you
 modify pub or any packages it depends on. To run pub, just run `sdk/bin/pub` (or

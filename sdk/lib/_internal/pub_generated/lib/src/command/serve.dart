@@ -23,7 +23,6 @@ class ServeCommand extends BarbackCommand {
     return adminPort == null ? null : parseInt(adminPort, 'admin port');
   }
   bool get useDart2JS => commandOptions['dart2js'];
-  bool get logAdminUrl => commandOptions['log-admin-url'];
   BarbackMode get defaultMode => BarbackMode.DEBUG;
   List<String> get defaultSourceDirectories => ["web", "test"];
   final _completer = new Completer();
@@ -67,77 +66,77 @@ class ServeCommand extends BarbackCommand {
                 var environment = x2;
                 var directoryLength =
                     sourceDirectories.map(((dir) => dir.length)).reduce(math.max);
-                environment.startAdminServer(adminPort).then((x3) {
-                  try {
-                    var server = x3;
-                    server.results.listen(((_) {
-                      assert(false);
+                join2() {
+                  environment.pauseUpdates();
+                  var it0 = sourceDirectories.iterator;
+                  break0(x6) {
+                    environment.barback.errors.listen(((error) {
+                      log.error(log.red("Build error:\n$error"));
+                    }));
+                    environment.barback.results.listen(((result) {
+                      if (result.succeeded) {
+                        log.message(
+                            "Build completed ${log.green('successfully')}");
+                      } else {
+                        log.message(
+                            "Build completed with " "${log.red(result.errors.length)} errors.");
+                      }
                     }), onError: _fatalError);
-                    join2() {
-                      environment.pauseUpdates();
-                      var it0 = sourceDirectories.iterator;
-                      break0(x7) {
-                        environment.barback.errors.listen(((error) {
-                          log.error(log.red("Build error:\n$error"));
-                        }));
-                        environment.barback.results.listen(((result) {
-                          if (result.succeeded) {
-                            log.message(
-                                "Build completed ${log.green('successfully')}");
-                          } else {
-                            log.message(
-                                "Build completed with " "${log.red(result.errors.length)} errors.");
-                          }
-                        }), onError: _fatalError);
-                        environment.resumeUpdates();
-                        _completer.future.then((x4) {
+                    environment.resumeUpdates();
+                    _completer.future.then((x3) {
+                      try {
+                        x3;
+                        completer0.complete(null);
+                      } catch (e1) {
+                        completer0.completeError(e1);
+                      }
+                    }, onError: (e2) {
+                      completer0.completeError(e2);
+                    });
+                  }
+                  continue0(x7) {
+                    if (it0.moveNext()) {
+                      Future.wait([]).then((x5) {
+                        var directory = it0.current;
+                        _startServer(
+                            environment,
+                            directory,
+                            directoryLength).then((x4) {
                           try {
                             x4;
-                            completer0.complete(null);
-                          } catch (e2) {
-                            completer0.completeError(e2);
+                            continue0(null);
+                          } catch (e3) {
+                            completer0.completeError(e3);
                           }
-                        }, onError: (e3) {
-                          completer0.completeError(e3);
+                        }, onError: (e4) {
+                          completer0.completeError(e4);
                         });
-                      }
-                      continue0(x8) {
-                        if (it0.moveNext()) {
-                          Future.wait([]).then((x6) {
-                            var directory = it0.current;
-                            _startServer(
-                                environment,
-                                directory,
-                                directoryLength).then((x5) {
-                              try {
-                                x5;
-                                continue0(null);
-                              } catch (e4) {
-                                completer0.completeError(e4);
-                              }
-                            }, onError: (e5) {
-                              completer0.completeError(e5);
-                            });
-                          });
-                        } else {
-                          break0(null);
-                        }
-                      }
-                      continue0(null);
+                      });
+                    } else {
+                      break0(null);
                     }
-                    if (logAdminUrl) {
+                  }
+                  continue0(null);
+                }
+                if (adminPort != null) {
+                  environment.startAdminServer(adminPort).then((x8) {
+                    try {
+                      var server = x8;
+                      server.results.listen(((_) {
+                        assert(false);
+                      }), onError: _fatalError);
                       log.message(
                           "Running admin server on " "${log.bold('http://${hostname}:${server.port}')}");
                       join2();
-                    } else {
-                      join2();
+                    } catch (e5) {
+                      completer0.completeError(e5);
                     }
-                  } catch (e1) {
-                    completer0.completeError(e1);
-                  }
-                }, onError: (e6) {
-                  completer0.completeError(e6);
-                });
+                  }, onError: (e6) {
+                    completer0.completeError(e6);
+                  });
+                } else {
+                  join2();
+                }
               } catch (e0) {
                 completer0.completeError(e0);
               }
