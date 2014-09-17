@@ -293,14 +293,20 @@ class GlobalPackages {
   /// recompiled if the SDK has been upgraded since it was first compiled and
   /// then run. Otherwise, it will be run from source.
   ///
+  /// If [mode] is passed, it's used as the barback mode; it defaults to
+  /// [BarbackMode.RELEASE].
+  ///
   /// Returns the exit code from the executable.
   Future<int> runExecutable(String package, String executable,
-      Iterable<String> args) {
+      Iterable<String> args, {BarbackMode mode}) {
+    if (mode == null) mode = BarbackMode.RELEASE;
+
     var binDir = p.join(_directory, package, 'bin');
-    if (!fileExists(p.join(binDir, '$executable.dart.snapshot'))) {
+    if (mode != BarbackMode.RELEASE ||
+        !fileExists(p.join(binDir, '$executable.dart.snapshot'))) {
       return find(package).then((entrypoint) {
         return exe.runExecutable(entrypoint, package, executable, args,
-            isGlobal: true);
+            mode: mode, isGlobal: true);
       });
     }
 

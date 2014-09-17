@@ -27,9 +27,15 @@ import 'utils.dart';
 ///
 /// Arguments from [args] will be passed to the spawned Dart application.
 ///
+/// If [mode] is passed, it's used as the barback mode; it defaults to
+/// [BarbackMode.RELEASE].
+///
 /// Returns the exit code of the spawned app.
 Future<int> runExecutable(Entrypoint entrypoint, String package,
-    String executable, Iterable<String> args, {bool isGlobal: false}) async {
+    String executable, Iterable<String> args, {bool isGlobal: false,
+    BarbackMode mode}) async {
+  if (mode == null) mode = BarbackMode.RELEASE;
+
   // Unless the user overrides the verbosity, we want to filter out the
   // normal pub output shown while loading the environment.
   if (log.verbosity == log.Verbosity.NORMAL) {
@@ -38,7 +44,11 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
 
   var localSnapshotPath = p.join(".pub", "bin", package,
       "$executable.dart.snapshot");
-  if (!isGlobal && fileExists(localSnapshotPath)) {
+  if (!isGlobal && fileExists(localSnapshotPath) &&
+      // Dependencies are only snapshotted in release mode, since that's the
+      // default mode for them to run. We can't run them in a different mode
+      // using the snapshot.
+      mode == BarbackMode.RELEASE) {
     return _runCachedExecutable(entrypoint, localSnapshotPath, args);
   }
 
@@ -56,8 +66,8 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
 
   // TODO(nweiz): Use [packages] to only load assets from packages that the
   // executable might load.
-  var environment = await AssetEnvironment.create(entrypoint,
-      BarbackMode.RELEASE, useDart2JS: false);
+  var environment = await AssetEnvironment.create(entrypoint, mode,
+      useDart2JS: false);
   environment.barback.errors.listen((error) {
     log.error(log.red("Build error:\n$error"));
   });
