@@ -46,17 +46,10 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // Bits per half digit.
   static const int DIGIT2_BITS = DIGIT_BITS >> 1;
-  static const int DIGIT2_BASE = 1 << DIGIT2_BITS;
   static const int DIGIT2_MASK = (1 << DIGIT2_BITS) - 1;
 
   // Allocate extra digits so the bigint can be reused.
   static const int EXTRA_DIGITS = 4;
-
-  // Floating-point unit integer precision.
-  static const int FP_BITS = 52;
-  static const int FP_BASE = 1 << FP_BITS;
-  static const int FP_D1 = FP_BITS - DIGIT_BITS;
-  static const int FP_D2 = 2 * DIGIT_BITS - FP_BITS;
 
   // Min and max of non bigint values.
   static const int MIN_INT64 = (-1) << 63;
@@ -847,8 +840,8 @@ class _Bigint extends _IntegerImplementation implements int {
     if (r == null) {
       r = new _Bigint();
     }
-    var y = new _Bigint();
-    var nsh = DIGIT_BITS - _nbits(a._digits[a._used - 1]);  // normalize modulus
+    var y = new _Bigint();  // Normalized modulus.
+    var nsh = DIGIT_BITS - _nbits(a._digits[a._used - 1]);
     if (nsh > 0) {
       a._lShiftTo(nsh, y);
       _lShiftTo(nsh, r);
@@ -863,10 +856,7 @@ class _Bigint extends _IntegerImplementation implements int {
     var y_used = y._used;
     var y0 = y._digits[y_used - 1];
     if (y0 == 0) return;
-    var yt = y0*(1 << FP_D1) + ((y_used > 1) ? y._digits[y_used - 2] >> FP_D2 : 0);
-    var d1 = FP_BASE/yt;
-    var d2 = (1 << FP_D1)/yt;
-    var e = 1 << FP_D2;
+    var yt = y0 >> 1;  // Chop off one bit, see below. y is normalized: yt != 0.
     var i = r._used;
     var j = i - y_used;
     _Bigint t = (q == null) ? new _Bigint() : q;
@@ -878,16 +868,24 @@ class _Bigint extends _IntegerImplementation implements int {
       r._subTo(t, r);
     }
     ONE._dlShiftTo(y_used, t);
-    t._subTo(y, y);  // "negative" y so we can replace sub with _am later
+    t._subTo(y, y);  // Negate y so we can replace sub with _am later.
     while (y._used < y_used) {
       y._digits[y._used++] = 0;
     }
     while (--j >= 0) {
-      // Estimate quotient digit
-      var qd = (r._digits[--i] == y0)
-          ? DIGIT_MASK
-          : (r._digits[i]*d1 + (r._digits[i - 1] + e)*d2).floor();
-      if ((r._digits[i] += y._amc(0, qd, r, j, 0, y_used)) < qd) {  // Try it out
+      // Estimate quotient digit.
+      var qd;
+      if (r._digits[--i] == y0) {
+        qd = DIGIT_MASK;
+      } else {
+        // Chop off one bit, since a Mint cannot hold 2 DIGITs.
+        qd = ((r._digits[i] << (DIGIT_BITS - 1)) |
+              (r._digits[i - 1] >> 1)) ~/ yt;
+        if (qd > DIGIT_MASK) {
+          qd = DIGIT_MASK;
+        }
+      }
+      if ((r._digits[i] += y._am(0, qd, r, j, y_used)) < qd) {  // Try it out.
         y._dlShiftTo(j, t);
         r._subTo(t, r);
         while (r._digits[i] < --qd) {
@@ -904,7 +902,7 @@ class _Bigint extends _IntegerImplementation implements int {
     r._used = y_used;
     r._clamp();
     if (nsh > 0) {
-      r._rShiftTo(nsh, r);  // Denormalize remainder
+      r._rShiftTo(nsh, r);  // Denormalize remainder.
     }
     if (_neg) {
       ZERO._subTo(r, r);
