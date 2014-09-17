@@ -38,6 +38,19 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     });
   }
 
+  test_function() {
+    addSource('/testA.dart', '@deprecated A() {int x;} _B() {}');
+    addTestSource('import "/testA.dart"; class C {foo(){^}}');
+    return computeFull().then((_) {
+      assertSuggestFunction('A', null, true);
+      assertNotSuggested('x');
+      assertNotSuggested('_B');
+      // Should not suggest compilation unit elements
+      // which are returned by the LocalComputer
+      assertNotSuggested('C');
+    });
+  }
+
   test_class_importHide() {
     addSource('/testA.dart', 'class A { } class B { }');
     addTestSource('import "/testA.dart" hide ^; class C {}');

@@ -4,7 +4,8 @@
 
 library services.completion.suggestion.builder;
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol.dart' as protocol show Element, ElementKind;
+import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -36,7 +37,7 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
   visitFieldElement(FieldElement element) {
     _addSuggestion(
         element,
-        CompletionSuggestionKind.FIELD,
+        CompletionSuggestionKind.GETTER,
         element.type,
         element.enclosingElement);
   }
@@ -87,7 +88,7 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
         !_completions.add(completion)) {
       return;
     }
-    var suggestion = new CompletionSuggestion(
+    CompletionSuggestion suggestion = new CompletionSuggestion(
         kind,
         CompletionRelevance.DEFAULT,
         completion,
@@ -95,6 +96,14 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
         0,
         element.isDeprecated,
         false);
+    suggestion.element = new protocol.Element.fromEngine(element);
+    if (suggestion.element != null) {
+      if (element is FieldElement) {
+        suggestion.element.kind = protocol.ElementKind.GETTER;
+        suggestion.element.returnType =
+            element.type != null ? element.type.displayName : 'dynamic';
+      }
+    }
     if (enclosingElement != null) {
       suggestion.declaringType = enclosingElement.displayName;
     }
@@ -157,15 +166,18 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
     if (element != null) {
       String completion = element.name;
       if (completion != null && completion.length > 0) {
-        request.suggestions.add(
-            new CompletionSuggestion(
-                new CompletionSuggestionKind.fromElementKind(element.kind),
-                CompletionRelevance.DEFAULT,
-                completion,
-                completion.length,
-                0,
-                element.isDeprecated,
-                false));
+        CompletionSuggestion suggestion = new CompletionSuggestion(
+            new CompletionSuggestionKind.fromElementKind(element.kind),
+            CompletionRelevance.DEFAULT,
+            completion,
+            completion.length,
+            0,
+            element.isDeprecated,
+            false);
+
+        suggestion.element = new protocol.Element.fromEngine(element);
+
+        request.suggestions.add(suggestion);
       }
     }
   }

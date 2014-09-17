@@ -6,9 +6,11 @@ library services.completion.computer.dart.local;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol.dart' as protocol show Element, ElementKind;
+import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * A computer for calculating `completion.getSuggestions` request results
@@ -43,6 +45,16 @@ class LocalComputer extends DartCompletionComputer {
  * that contains the completion offset to the [CompilationUnit].
  */
 class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
+  static const DYNAMIC = 'dynamic';
+
+  static final TypeName NO_RETURN_TYPE = new TypeName(
+      new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, '', 0)),
+      null);
+
+  static final TypeName STACKTRACE_TYPE = new TypeName(
+      new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)),
+      null);
+
   final DartCompletionRequest request;
 
   _LocalVisitor(this.request);
@@ -56,15 +68,11 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
 //            _addSuggestion(label.label, CompletionSuggestionKind.LABEL);
           });
         } else if (stmt is VariableDeclarationStatement) {
-          VariableDeclarationList varList = stmt.variables;
+          var varList = stmt.variables;
           if (varList != null) {
             varList.variables.forEach((VariableDeclaration varDecl) {
               if (varDecl.end < request.offset) {
-                _addSuggestion(
-                    varDecl.name,
-                    CompletionSuggestionKind.LOCAL_VARIABLE,
-                    varList.type,
-                    null);
+                _addLocalVarSuggestion(varDecl.name, varList.type);
               }
             });
           }
@@ -76,17 +84,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
 
   @override
   visitCatchClause(CatchClause node) {
-    _addSuggestion(
-        node.exceptionParameter,
-        CompletionSuggestionKind.PARAMETER,
-        node.exceptionType,
-        null);
-    // TODO (danrubel) add stack trace types
-    _addSuggestion(
-        node.stackTraceParameter,
-        CompletionSuggestionKind.PARAMETER,
-        null,
-        null);
+    _addParamSuggestion(node.exceptionParameter, node.exceptionType);
+    CompletionSuggestion suggestion =
+        _addParamSuggestion(node.stackTraceParameter, STACKTRACE_TYPE);
     visitNode(node);
   }
 
@@ -94,16 +94,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   visitClassDeclaration(ClassDeclaration node) {
     node.members.forEach((ClassMember classMbr) {
       if (classMbr is FieldDeclaration) {
-        _addVarListSuggestions(
-            classMbr.fields,
-            CompletionSuggestionKind.FIELD,
-            node);
+        _addFieldSuggestions(node, classMbr);
       } else if (classMbr is MethodDeclaration) {
-        _addSuggestion(
-            classMbr.name,
-            CompletionSuggestionKind.METHOD_NAME,
-            classMbr.returnType,
-            node);
+        _addMethodSuggestion(node, classMbr);
       }
     });
     visitNode(node);
@@ -113,33 +106,18 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   visitCompilationUnit(CompilationUnit node) {
     node.directives.forEach((Directive directive) {
       if (directive is ImportDirective) {
-        _addSuggestion(
-            directive.prefix,
-            CompletionSuggestionKind.LIBRARY_PREFIX,
-            null,
-            null);
+        _addLibraryPrefixSuggestion(directive);
       }
     });
     node.declarations.forEach((Declaration declaration) {
       if (declaration is ClassDeclaration) {
-        _addSuggestion(
-            declaration.name,
-            CompletionSuggestionKind.CLASS,
-            null,
-            null);
+        _addClassSuggestion(declaration);
       } else if (declaration is EnumDeclaration) {
 //        _addSuggestion(d.name, CompletionSuggestionKind.ENUM);
       } else if (declaration is FunctionDeclaration) {
-        _addSuggestion(
-            declaration.name,
-            CompletionSuggestionKind.FUNCTION,
-            declaration.returnType,
-            null);
+        _addFunctionSuggestion(declaration);
       } else if (declaration is TopLevelVariableDeclaration) {
-        _addVarListSuggestions(
-            declaration.variables,
-            CompletionSuggestionKind.TOP_LEVEL_VARIABLE,
-            null);
+        _addTopLevelVarSuggestions(declaration.variables);
       } else if (declaration is ClassTypeAlias) {
         _addSuggestion(
             declaration.name,
@@ -171,21 +149,28 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
 
   @override
   visitForEachStatement(ForEachStatement node) {
-    // TODO (danrubel) supply type of local variable
-    _addSuggestion(
-        node.identifier,
-        CompletionSuggestionKind.LOCAL_VARIABLE,
-        null,
-        null);
+    SimpleIdentifier id;
+    TypeName type;
+    DeclaredIdentifier loopVar = node.loopVariable;
+    if (loopVar != null) {
+      id = loopVar.identifier;
+      type = loopVar.type;
+    } else {
+      id = node.identifier;
+      type = null;
+    }
+    _addLocalVarSuggestion(id, type);
     visitNode(node);
   }
 
   @override
   visitForStatement(ForStatement node) {
-    _addVarListSuggestions(
-        node.variables,
-        CompletionSuggestionKind.LOCAL_VARIABLE,
-        null);
+    var varList = node.variables;
+    if (varList != null) {
+      varList.variables.forEach((VariableDeclaration varDecl) {
+        _addLocalVarSuggestion(varDecl.name, varList.type);
+      });
+    }
     visitNode(node);
   }
 
@@ -224,6 +209,106 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
   }
 
+  void _addClassSuggestion(ClassDeclaration declaration) {
+    CompletionSuggestion suggestion =
+        _addSuggestion(declaration.name, CompletionSuggestionKind.CLASS, null, null);
+    if (suggestion != null) {
+      suggestion.element = _createElement(
+          protocol.ElementKind.CLASS,
+          declaration.name,
+          NO_RETURN_TYPE,
+          declaration.isAbstract,
+          _isDeprecated(declaration.metadata));
+    }
+  }
+
+  void _addFieldSuggestions(ClassDeclaration node, FieldDeclaration fieldDecl) {
+    bool isDeprecated = _isDeprecated(fieldDecl.metadata);
+    fieldDecl.fields.variables.forEach((VariableDeclaration varDecl) {
+      CompletionSuggestion suggestion = _addSuggestion(
+          varDecl.name,
+          CompletionSuggestionKind.GETTER,
+          fieldDecl.fields.type,
+          node);
+      if (suggestion != null) {
+        suggestion.element = _createElement(
+            protocol.ElementKind.GETTER,
+            varDecl.name,
+            fieldDecl.fields.type,
+            false,
+            isDeprecated || _isDeprecated(varDecl.metadata));
+      }
+    });
+  }
+
+  void _addFunctionSuggestion(FunctionDeclaration declaration) {
+    CompletionSuggestion suggestion = _addSuggestion(
+        declaration.name,
+        CompletionSuggestionKind.FUNCTION,
+        declaration.returnType,
+        null);
+    if (suggestion != null) {
+      suggestion.element = _createElement(
+          protocol.ElementKind.FUNCTION,
+          declaration.name,
+          declaration.returnType,
+          false,
+          _isDeprecated(declaration.metadata));
+    }
+  }
+
+  void _addLibraryPrefixSuggestion(ImportDirective directive) {
+    CompletionSuggestion suggestion = _addSuggestion(
+        directive.prefix,
+        CompletionSuggestionKind.LIBRARY_PREFIX,
+        null,
+        null);
+    if (suggestion != null) {
+      suggestion.element = _createElement(
+          protocol.ElementKind.LIBRARY,
+          directive.prefix,
+          NO_RETURN_TYPE,
+          false,
+          false);
+    }
+  }
+
+  void _addLocalVarSuggestion(SimpleIdentifier id, TypeName returnType) {
+    CompletionSuggestion suggestion =
+        _addSuggestion(id, CompletionSuggestionKind.LOCAL_VARIABLE, returnType, null);
+    if (suggestion != null) {
+      suggestion.element = _createElement(
+          protocol.ElementKind.LOCAL_VARIABLE,
+          id,
+          returnType,
+          false,
+          false);
+    }
+  }
+
+  void _addMethodSuggestion(ClassDeclaration node, MethodDeclaration classMbr) {
+    protocol.ElementKind kind;
+    CompletionSuggestionKind csKind;
+    if (classMbr.isGetter) {
+      kind = protocol.ElementKind.GETTER;
+      csKind = CompletionSuggestionKind.GETTER;
+    } else if (classMbr.isSetter) {
+      kind = protocol.ElementKind.SETTER;
+      csKind = CompletionSuggestionKind.SETTER;
+    } else {
+      kind = protocol.ElementKind.METHOD;
+      csKind = CompletionSuggestionKind.METHOD;
+    }
+    CompletionSuggestion suggestion =
+        _addSuggestion(classMbr.name, csKind, classMbr.returnType, node);
+    suggestion.element = _createElement(
+        kind,
+        classMbr.name,
+        classMbr.returnType,
+        classMbr.isAbstract,
+        _isDeprecated(classMbr.metadata));
+  }
+
   void _addParamListSuggestions(FormalParameterList paramList) {
     if (paramList != null) {
       paramList.parameters.forEach((FormalParameter param) {
@@ -241,17 +326,24 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
         } else if (normalParam is SimpleFormalParameter) {
           type = normalParam.type;
         }
-        _addSuggestion(
-            param.identifier,
-            CompletionSuggestionKind.PARAMETER,
-            type,
-            null);
+        _addParamSuggestion(param.identifier, type);
       });
     }
   }
 
-  void _addSuggestion(SimpleIdentifier id, CompletionSuggestionKind kind,
-      TypeName typeName, ClassDeclaration classDecl) {
+  CompletionSuggestion _addParamSuggestion(SimpleIdentifier identifier,
+      TypeName type) {
+    CompletionSuggestion suggestion =
+        _addSuggestion(identifier, CompletionSuggestionKind.PARAMETER, type, null);
+    if (suggestion != null) {
+      suggestion.element =
+          _createElement(protocol.ElementKind.PARAMETER, identifier, type, false, false);
+    }
+    return suggestion;
+  }
+
+  CompletionSuggestion _addSuggestion(SimpleIdentifier id,
+      CompletionSuggestionKind kind, TypeName typeName, ClassDeclaration classDecl) {
     if (id != null) {
       String completion = id.name;
       if (completion != null && completion.length > 0) {
@@ -282,14 +374,80 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
           }
         }
         request.suggestions.add(suggestion);
+        return suggestion;
       }
+    }
+    return null;
+  }
+
+  void _addTopLevelVarSuggestions(VariableDeclarationList varList) {
+    if (varList != null) {
+      bool isDeprecated = _isDeprecated(varList.metadata);
+      varList.variables.forEach((VariableDeclaration varDecl) {
+        CompletionSuggestion suggestion = _addSuggestion(
+            varDecl.name,
+            CompletionSuggestionKind.TOP_LEVEL_VARIABLE,
+            varList.type,
+            null);
+        if (suggestion != null) {
+          suggestion.element = _createElement(
+              protocol.ElementKind.TOP_LEVEL_VARIABLE,
+              varDecl.name,
+              varList.type,
+              false,
+              isDeprecated || _isDeprecated(varDecl.metadata));
+        }
+      });
     }
   }
 
-  void _addVarListSuggestions(VariableDeclarationList variables,
-      CompletionSuggestionKind kind, ClassDeclaration classDecl) {
-    variables.variables.forEach((VariableDeclaration varDecl) {
-      _addSuggestion(varDecl.name, kind, variables.type, classDecl);
-    });
+  /**
+   * Create a new protocol Element for inclusion in a completion suggestion.
+   */
+  protocol.Element _createElement(protocol.ElementKind kind,
+      SimpleIdentifier id, TypeName returnType, bool isAbstract, bool isDeprecated) {
+    String name = id.name;
+    int flags = protocol.Element.makeFlags(
+        isAbstract: isAbstract,
+        isDeprecated: isDeprecated,
+        isPrivate: Identifier.isPrivateName(name));
+    return new protocol.Element(
+        kind,
+        name,
+        flags,
+        returnType: _nameForType(returnType));
+  }
+
+  /**
+   * Return `true` if the @deprecated annotation is present
+   */
+  bool _isDeprecated(NodeList<Annotation> metadata) =>
+      metadata != null &&
+          metadata.any(
+              (Annotation a) => a.name is SimpleIdentifier && a.name.name == 'deprecated');
+
+  /**
+   * Return the name for the given type.
+   */
+  String _nameForType(TypeName type) {
+    if (type == NO_RETURN_TYPE) {
+      return null;
+    }
+    if (type == null) {
+      return DYNAMIC;
+    }
+    Identifier id = type.name;
+    if (id == null) {
+      return DYNAMIC;
+    }
+    String name = id.name;
+    if (name == null || name.length <= 0) {
+      return DYNAMIC;
+    }
+    TypeArgumentList typeArgs = type.typeArguments;
+    if (typeArgs != null) {
+      //TODO (danrubel) include type arguments
+    }
+    return name;
   }
 }

@@ -6,7 +6,8 @@ library test.services.completion.util;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol.dart' as protocol show Element, ElementKind;
+import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -84,83 +85,139 @@ class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
-  void assertSuggestClass(String className, [CompletionRelevance relevance =
+  CompletionSuggestion assertSuggestClass(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.CLASS, name, relevance);
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.CLASS));
+    expect(element.name, equals(name));
+    expect(element.returnType, isNull);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestFunction(String name, String returnType,
+      bool isDeprecated, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
-    assertSuggest(CompletionSuggestionKind.CLASS, className, relevance);
-  }
-
-  void assertSuggestField(String completion, String declaringType, String type,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
-    CompletionSuggestion cs =
-        assertSuggest(CompletionSuggestionKind.FIELD, completion, relevance);
-    expect(cs.declaringType, equals(declaringType));
-    expect(cs.returnType, equals(type));
-  }
-
-  void assertSuggestFunction(String completion, String returnType,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
-    CompletionSuggestion cs =
-        assertSuggest(CompletionSuggestionKind.FUNCTION, completion, relevance);
-    expect(cs.returnType, equals(returnType));
-  }
-
-  void assertSuggestGetter(String className, String returnType,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
-    CompletionSuggestion cs =
-        assertSuggest(CompletionSuggestionKind.GETTER, className, relevance);
-    expect(cs.returnType, equals(returnType));
-  }
-
-  void assertSuggestLibraryPrefix(String completion,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
-    assertSuggest(
-        CompletionSuggestionKind.LIBRARY_PREFIX,
-        completion,
-        relevance);
-  }
-
-  void assertSuggestLocalVariable(String completion, String returnType,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
-    CompletionSuggestion cs =
-        assertSuggest(CompletionSuggestionKind.LOCAL_VARIABLE, completion, relevance);
-    expect(cs.returnType, equals(returnType));
-  }
-
-  void assertSuggestMethod(String className, String declaringType,
-      String returnType, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
-    CompletionSuggestion cs =
-        assertSuggest(CompletionSuggestionKind.METHOD, className, relevance);
-    expect(cs.declaringType, equals(declaringType));
-    expect(cs.returnType, equals(returnType));
-  }
-
-  void assertSuggestMethodName(String completion, String declaringType,
-      String returnType, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
-    CompletionSuggestion cs =
-        assertSuggest(CompletionSuggestionKind.METHOD_NAME, completion, relevance);
-    expect(cs.declaringType, equals(declaringType));
-    expect(cs.returnType, equals(returnType));
-  }
-
-  void assertSuggestParameter(String completion, String returnType,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
-    assertSuggest(CompletionSuggestionKind.PARAMETER, completion, relevance);
-  }
-
-  void assertSuggestSetter(String className, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
-    assertSuggest(CompletionSuggestionKind.SETTER, className, relevance);
-  }
-
-  void assertSuggestTopLevelVar(String completion, String returnType,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
     CompletionSuggestion cs = assertSuggest(
-        CompletionSuggestionKind.TOP_LEVEL_VARIABLE,
-        completion,
-        relevance);
+        CompletionSuggestionKind.FUNCTION,
+        name,
+        relevance,
+        isDeprecated);
     expect(cs.returnType, equals(returnType));
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.FUNCTION));
+    expect(element.name, equals(name));
+    expect(element.isDeprecated, equals(isDeprecated));
+    expect(
+        element.returnType,
+        equals(returnType != null ? returnType : 'dynamic'));
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestGetter(String name, String returnType,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.GETTER, name, relevance);
+    expect(cs.returnType, equals(returnType));
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.GETTER));
+    expect(element.name, equals(name));
+    expect(
+        element.returnType,
+        equals(returnType != null ? returnType : 'dynamic'));
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestLibraryPrefix(String prefix,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.LIBRARY_PREFIX, prefix, relevance);
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.LIBRARY));
+    expect(element.name, equals(prefix));
+    expect(element.returnType, isNull);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestLocalVariable(String name,
+      String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.LOCAL_VARIABLE, name, relevance);
+    expect(cs.returnType, equals(returnType));
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.LOCAL_VARIABLE));
+    expect(element.name, equals(name));
+    expect(
+        element.returnType,
+        equals(returnType != null ? returnType : 'dynamic'));
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestMethod(String name, String declaringType,
+      String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.METHOD, name, relevance);
+    expect(cs.declaringType, equals(declaringType));
+    expect(cs.returnType, equals(returnType));
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.METHOD));
+    expect(element.name, equals(name));
+    expect(
+        element.returnType,
+        equals(returnType != null ? returnType : 'dynamic'));
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestParameter(String name, String returnType,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.PARAMETER, name, relevance);
+    expect(cs.returnType, equals(returnType));
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.PARAMETER));
+    expect(element.name, equals(name));
+    expect(
+        element.returnType,
+        equals(returnType != null ? returnType : 'dynamic'));
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestSetter(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.SETTER, name, relevance);
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.SETTER));
+    expect(element.name, equals(name));
+    expect(element.returnType, isNull);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestTopLevelVar(String name, String returnType,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.TOP_LEVEL_VARIABLE, name, relevance);
+    expect(cs.returnType, equals(returnType));
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.TOP_LEVEL_VARIABLE));
+    expect(element.name, equals(name));
+    //TODO (danrubel) return type level variable 'type' but not as 'returnType'
+//    expect(
+//        element.returnType,
+//        equals(returnType != null ? returnType : 'dynamic'));
+    return cs;
   }
 
   bool computeFast() {

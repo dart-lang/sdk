@@ -6,7 +6,8 @@ library services.completion.computer.dart.toplevel;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol.dart' as protocol show Element, ElementKind;
+import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -160,6 +161,8 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
                   0,
                   element.isDeprecated,
                   false);
+
+              suggestion.element = new protocol.Element.fromEngine(element);
 
               DartType type;
               if (element is TopLevelVariableElement) {

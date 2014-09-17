@@ -42,14 +42,18 @@ class LocalComputerTest extends AbstractCompletionTest {
     addTestSource('class A {a() {try{} catch (e, s) {^}}}');
     expect(computeFast(), isTrue);
     assertSuggestParameter('e', null);
-    assertSuggestParameter('s', null);
+    assertSuggestParameter('s', 'StackTrace');
   }
 
   test_compilationUnit_declarations() {
-    addTestSource('class A {^} class B {} A T;');
+    addTestSource('@deprecated class A {^} class _B {} A T;');
     expect(computeFast(), isTrue);
-    assertSuggestClass('A');
-    assertSuggestClass('B');
+    var a = assertSuggestClass('A');
+    expect(a.element.isDeprecated, isTrue);
+    expect(a.element.isPrivate, isFalse);
+    var b = assertSuggestClass('_B');
+    expect(b.element.isDeprecated, isFalse);
+    expect(b.element.isPrivate, isTrue);
     assertSuggestTopLevelVar('T', 'A');
   }
 
@@ -83,12 +87,33 @@ class LocalComputerTest extends AbstractCompletionTest {
     assertSuggestLocalVariable('foo', null);
   }
 
+  test_forEach2() {
+    addTestSource('main(args) {for (int foo in bar) {^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalVariable('foo', 'int');
+  }
+
   test_function() {
     addTestSource('String foo(List args) {x.then((R b) {^});}');
     expect(computeFast(), isTrue);
-    assertSuggestFunction('foo', 'String');
+    var f = assertSuggestFunction('foo', 'String', false);
+    expect(f.element.isPrivate, isFalse);
     assertSuggestParameter('args', 'List');
     assertSuggestParameter('b', 'R');
+  }
+
+  test_getters() {
+    addTestSource('class A {@deprecated X get f => 0; Z a() {^} get _g => 1;}');
+    expect(computeFast(), isTrue);
+    var a = assertSuggestMethod('a', 'A', 'Z');
+    expect(a.element.isDeprecated, isFalse);
+    expect(a.element.isPrivate, isFalse);
+    var f = assertSuggestGetter('f', 'X');
+    expect(f.element.isDeprecated, isTrue);
+    expect(f.element.isPrivate, isFalse);
+    var g = assertSuggestGetter('_g', null);
+    expect(g.element.isDeprecated, isFalse);
+    expect(g.element.isPrivate, isTrue);
   }
 
   test_local_name() {
@@ -100,7 +125,7 @@ class LocalComputerTest extends AbstractCompletionTest {
   }
 
   test_local_name2() {
-    addTestSource('class A {a() {var f; var ^}}');
+    addTestSource('class _A {a() {var f; var ^}}');
     expect(computeFast(), isTrue);
     assertNotSuggested('A');
     assertNotSuggested('a');
@@ -108,25 +133,33 @@ class LocalComputerTest extends AbstractCompletionTest {
   }
 
   test_members() {
-    addTestSource('class A {X f; Z a() {^} var g;}');
+    addTestSource('class A {@deprecated X f; Z _a() {^} var _g;}');
     expect(computeFast(), isTrue);
-    assertSuggestMethodName('a', 'A', 'Z');
-    assertSuggestField('f', 'A', 'X');
-    assertSuggestField('g', 'A', null);
+    var a = assertSuggestMethod('_a', 'A', 'Z');
+    expect(a.element.isDeprecated, isFalse);
+    expect(a.element.isPrivate, isTrue);
+    var f = assertSuggestGetter('f', 'X');
+    expect(f.element.isDeprecated, isTrue);
+    expect(f.element.isPrivate, isFalse);
+    var g = assertSuggestGetter('_g', null);
+    expect(g.element.isDeprecated, isFalse);
+    expect(g.element.isPrivate, isTrue);
   }
 
   test_methodParam_named() {
-    addTestSource('class A {Z a(X x, {y: boo}) {^}}');
+    addTestSource('class A {@deprecated Z a(X x, {y: boo}) {^}}');
     expect(computeFast(), isTrue);
-    assertSuggestMethodName('a', 'A', 'Z');
+    var a = assertSuggestMethod('a', 'A', 'Z');
+    expect(a.element.isDeprecated, isTrue);
+    expect(a.element.isPrivate, isFalse);
     assertSuggestParameter('x', 'X');
-    assertSuggestParameter('y', 'boo');
+    assertSuggestParameter('y', null);
   }
 
   test_methodParam_positional() {
     addTestSource('class A {Z a(X x, [int y=1]) {^}}');
     expect(computeFast(), isTrue);
-    assertSuggestMethodName('a', 'A', 'Z');
+    assertSuggestMethod('a', 'A', 'Z');
     assertSuggestParameter('x', 'X');
     assertSuggestParameter('y', 'int');
   }
