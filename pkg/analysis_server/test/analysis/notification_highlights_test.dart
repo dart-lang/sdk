@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.domain.analysis.notification.highlights;
+library test.analysis.notification.highlights;
 
 import 'dart:async';
 
@@ -10,8 +10,8 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
-import 'analysis_abstract.dart';
-import 'reflective_tests.dart';
+import '../analysis_abstract.dart';
+import '../reflective_tests.dart';
 
 
 main() {

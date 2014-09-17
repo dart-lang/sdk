@@ -7,10 +7,10 @@ library test.analysis.notification_errors;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
-import '../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
+import '../reflective_tests.dart';
 
 
 main() {

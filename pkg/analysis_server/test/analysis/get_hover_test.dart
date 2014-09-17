@@ -7,10 +7,10 @@ library test.domain.analysis.hover;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
-import 'reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
-import 'analysis_abstract.dart';
+import '../analysis_abstract.dart';
+import '../reflective_tests.dart';
 
 
 main() {
@@ -28,8 +28,8 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
 
   Future<HoverInformation> prepareHoverAt(int offset) {
     return waitForTasksFinished().then((_) {
-      Request request = new AnalysisGetHoverParams(testFile,
-          offset).toRequest('0');
+      Request request =
+          new AnalysisGetHoverParams(testFile, offset).toRequest('0');
       Response response = handleSuccessfulRequest(request);
       var result = new AnalysisGetHoverResult.fromResponse(response);
       List<HoverInformation> hovers = result.hovers;
