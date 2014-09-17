@@ -592,30 +592,20 @@ void ExtractNthOutputInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void BinarySmiOpInstr::PrintTo(BufferFormatter* f) const {
-  Definition::PrintTo(f);
-  f->Print(" %co", overflow_ ? '+' : '-');
-  f->Print(" %ct", IsTruncating() ? '+' : '-');
+void UnaryIntegerOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  value()->PrintTo(f);
 }
 
 
-void BinarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", Token::Str(op_kind()));
-  left()->PrintTo(f);
+void BinaryIntegerOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", Token::Str(op_kind()));
+  if (is_truncating()) {
+    f->Print(" [tr]");
+  } else if (!can_overflow()) {
+    f->Print(" [-o]");
+  }
   f->Print(", ");
-  right()->PrintTo(f);
-}
-
-
-void BinaryInt32OpInstr::PrintTo(BufferFormatter* f) const {
-  Definition::PrintTo(f);
-  f->Print(" %co", overflow_ ? '+' : '-');
-  f->Print(" %ct", IsTruncating() ? '+' : '-');
-}
-
-
-void BinaryInt32OpInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);
   f->Print(", ");
   right()->PrintTo(f);
@@ -868,56 +858,6 @@ void BinaryInt32x4OpInstr::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(", ");
   right()->PrintTo(f);
-}
-
-
-void BinaryMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", Token::Str(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  right()->PrintTo(f);
-}
-
-
-void ShiftMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", Token::Str(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  right()->PrintTo(f);
-}
-
-
-void UnaryMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", Token::Str(op_kind()));
-  value()->PrintTo(f);
-}
-
-
-void BinaryUint32OpInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", Token::Str(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  right()->PrintTo(f);
-}
-
-
-void ShiftUint32OpInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", Token::Str(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  right()->PrintTo(f);
-}
-
-
-void UnaryUint32OpInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", Token::Str(op_kind()));
-  value()->PrintTo(f);
-}
-
-
-void UnarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", Token::Str(op_kind()));
-  value()->PrintTo(f);
 }
 
 

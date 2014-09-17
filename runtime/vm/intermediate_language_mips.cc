@@ -2629,7 +2629,6 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                              BinarySmiOpInstr* shift_left) {
-  const bool is_truncating = shift_left->IsTruncating();
   const LocationSummary& locs = *shift_left->locs();
   Register left = locs.in(0).reg();
   Register result = locs.out(0).reg();
@@ -2645,36 +2644,22 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // Immediate shift operation takes 5 bits for the count.
     const intptr_t kCountLimit = 0x1F;
     const intptr_t value = Smi::Cast(constant).Value();
-    if (value == 0) {
-      if (result != left) {
-        __ mov(result, left);
-      }
-    } else if ((value < 0) || (value >= kCountLimit)) {
-      // This condition may not be known earlier in some cases because
-      // of constant propagation, inlining, etc.
-      if ((value >= kCountLimit) && is_truncating) {
-        __ mov(result, ZR);
-      } else {
-        // Result is Mint or exception.
-        __ b(deopt);
-      }
-    } else {
-      if (!is_truncating) {
-        // Check for overflow (preserve left).
-        __ sll(TMP, left, value);
-        __ sra(CMPRES1, TMP, value);
-        __ bne(CMPRES1, left, deopt);  // Overflow.
-      }
-      // Shift for result now we know there is no overflow.
-      __ sll(result, left, value);
+    ASSERT((0 < value) && (value < kCountLimit));
+    if (shift_left->can_overflow()) {
+      // Check for overflow (preserve left).
+      __ sll(TMP, left, value);
+      __ sra(CMPRES1, TMP, value);
+      __ bne(CMPRES1, left, deopt);  // Overflow.
     }
+    // Shift for result now we know there is no overflow.
+    __ sll(result, left, value);
     return;
   }
 
   // Right (locs.in(1)) is not constant.
   Register right = locs.in(1).reg();
   Range* right_range = shift_left->right()->definition()->range();
-  if (shift_left->left()->BindsToConstant() && !is_truncating) {
+  if (shift_left->left()->BindsToConstant() && shift_left->can_overflow()) {
     // TODO(srdjan): Implement code below for is_truncating().
     // If left is constant, we know the maximal allowed size for right.
     const Object& obj = shift_left->left()->BoundConstant();
@@ -2700,7 +2685,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
   const bool right_needs_check =
       !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
-  if (is_truncating) {
+  if (!shift_left->can_overflow()) {
     if (right_needs_check) {
       const bool right_may_be_negative =
           (right_range == NULL) || !right_range->IsPositive();
@@ -2748,7 +2733,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
       ((op_kind() == Token::kADD) ||
        (op_kind() == Token::kMOD) ||
        (op_kind() == Token::kTRUNCDIV) ||
-       (((op_kind() == Token::kSHL) && !IsTruncating()) ||
+       (((op_kind() == Token::kSHL) && can_overflow()) ||
          (op_kind() == Token::kSHR))) ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -2773,7 +2758,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
   }
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RegisterOrSmiConstant(right()));
-  if (((op_kind() == Token::kSHL) && !IsTruncating()) ||
+  if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
   } else if (op_kind() == Token::kADD) {
@@ -2829,24 +2814,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kMUL: {
         // Keep left value tagged and untag right value.
         const intptr_t value = Smi::Cast(constant).Value();
-        if (deopt == NULL) {
-          if (value == 2) {
-            __ sll(result, left, 1);
-          } else {
-            __ LoadImmediate(TMP, value);
-            __ mult(left, TMP);
-            __ mflo(result);
-          }
-        } else {
-          if (value == 2) {
-            __ sra(CMPRES2, left, 31);  // CMPRES2 = sign of left.
-            __ sll(result, left, 1);
-          } else {
-            __ LoadImmediate(TMP, value);
-            __ mult(left, TMP);
-            __ mflo(result);
-            __ mfhi(CMPRES2);
-          }
+        __ LoadImmediate(TMP, value);
+        __ mult(left, TMP);
+        __ mflo(result);
+        if (deopt != NULL) {
+          __ mfhi(CMPRES2);
           __ sra(CMPRES1, result, 31);
           __ bne(CMPRES1, CMPRES2, deopt);
         }
@@ -2854,18 +2826,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       case Token::kTRUNCDIV: {
         const intptr_t value = Smi::Cast(constant).Value();
-        if (value == 1) {
-          if (result != left) {
-            __ mov(result, left);
-          }
-          break;
-        } else if (value == -1) {
-          // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-          // case we cannot negate the result.
-          __ BranchEqual(left, 0x80000000, deopt);
-          __ subu(result, ZR, left);
-          break;
-        }
         ASSERT(Utils::IsPowerOfTwo(Utils::Abs(value)));
         const intptr_t shift_count =
             Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
@@ -2916,28 +2876,9 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kSHR: {
         // sarl operation masks the count to 5 bits.
         const intptr_t kCountLimit = 0x1F;
-        intptr_t value = Smi::Cast(constant).Value();
-
+        const intptr_t value = Smi::Cast(constant).Value();
         __ TraceSimMsg("kSHR");
-
-        if (value == 0) {
-          // TODO(vegorov): should be handled outside.
-          if (result != left) {
-            __ mov(result, left);
-          }
-          break;
-        } else if (value < 0) {
-          // TODO(vegorov): should be handled outside.
-          __ b(deopt);
-          break;
-        }
-
-        value = value + kSmiTagSize;
-        if (value >= kCountLimit) {
-          value = kCountLimit;
-        }
-
-        __ sra(result, left, value);
+        __ sra(result, left, Utils::Minimum(value + kSmiTagSize, kCountLimit));
         __ SmiTag(result);
         break;
       }

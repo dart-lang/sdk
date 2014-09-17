@@ -302,21 +302,12 @@ bool MathMinMaxInstr::AttributesEqual(Instruction* other) const {
 }
 
 
-bool BinarySmiOpInstr::AttributesEqual(Instruction* other) const {
-  BinarySmiOpInstr* other_op = other->AsBinarySmiOp();
-  ASSERT(other_op != NULL);
+bool BinaryIntegerOpInstr::AttributesEqual(Instruction* other) const {
+  ASSERT(other->tag() == tag());
+  BinaryIntegerOpInstr* other_op = other->AsBinaryIntegerOp();
   return (op_kind() == other_op->op_kind()) &&
-      (overflow_ == other_op->overflow_) &&
-      (is_truncating_ == other_op->is_truncating_);
-}
-
-
-bool BinaryInt32OpInstr::AttributesEqual(Instruction* other) const {
-  BinaryInt32OpInstr* other_op = other->AsBinaryInt32Op();
-  ASSERT(other_op != NULL);
-  return (op_kind() == other_op->op_kind()) &&
-      (overflow_ == other_op->overflow_) &&
-      (is_truncating_ == other_op->is_truncating_);
+      (can_overflow() == other_op->can_overflow()) &&
+      (is_truncating() == other_op->is_truncating());
 }
 
 
@@ -1209,7 +1200,7 @@ bool BinaryInt32OpInstr::CanDeoptimize() const {
     }
 
     default:
-      return overflow_;
+      return can_overflow();
   }
 }
 
@@ -1232,7 +1223,7 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
     }
     case Token::kSHL: {
       Range* right_range = this->right()->definition()->range();
-      if ((right_range != NULL) && IsTruncating()) {
+      if ((right_range != NULL) && !can_overflow()) {
         // Can deoptimize if right can be negative.
         return !right_range->IsPositive();
       }
@@ -1243,12 +1234,12 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
       return (right_range == NULL) || right_range->Overlaps(0, 0);
     }
     default:
-      return overflow_;
+      return can_overflow();
   }
 }
 
 
-bool BinarySmiOpInstr::RightIsPowerOfTwoConstant() const {
+bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
   if (!right()->definition()->IsConstant()) return false;
   const Object& constant = right()->definition()->AsConstant()->value();
   if (!constant.IsSmi()) return false;
@@ -1283,27 +1274,22 @@ static bool ToIntegerConstant(Value* value, int64_t* result) {
 }
 
 
-static Definition* CanonicalizeCommutativeArithmetic(
+static Definition* CanonicalizeCommutativeDoubleArithmetic(
     Token::Kind op,
-    intptr_t cid,
     Value* left,
-    Value* right,
-    int64_t mask = static_cast<int64_t>(0xFFFFFFFFFFFFFFFFLL)) {
-  ASSERT((cid == kSmiCid) || (cid == kDoubleCid) || (cid == kMintCid));
-
+    Value* right) {
   int64_t left_value;
   if (!ToIntegerConstant(left, &left_value)) {
     return NULL;
   }
 
-  // Apply truncation mask to left_value.
-  left_value &= mask;
-
+  // Can't apply 0.0 * x -> 0.0 equivalence to double operation because
+  // 0.0 * NaN is NaN not 0.0.
+  // Can't apply 0.0 + x -> x to double because 0.0 + (-0.0) is 0.0 not -0.0.
   switch (op) {
     case Token::kMUL:
       if (left_value == 1) {
-        if ((cid == kDoubleCid) &&
-            (right->definition()->representation() != kUnboxedDouble)) {
+        if (right->definition()->representation() != kUnboxedDouble) {
           // Can't yet apply the equivalence because representation selection
           // did not run yet. We need it to guarantee that right value is
           // correctly coerced to double. The second canonicalization pass
@@ -1312,39 +1298,6 @@ static Definition* CanonicalizeCommutativeArithmetic(
         } else {
           return right->definition();
         }
-      } else if ((left_value == 0) && (cid != kDoubleCid)) {
-        // Can't apply this equivalence to double operation because
-        // 0.0 * NaN is NaN not 0.0.
-        return left->definition();
-      }
-      break;
-    case Token::kADD:
-      if ((left_value == 0) && (cid != kDoubleCid)) {
-        // Can't apply this equivalence to double operations because
-        // 0.0 + (-0.0) is 0.0 not -0.0.
-        return right->definition();
-      }
-      break;
-    case Token::kBIT_AND:
-      ASSERT(cid != kDoubleCid);
-      if (left_value == 0) {
-        return left->definition();
-      } else if (left_value == mask) {
-        return right->definition();
-      }
-      break;
-    case Token::kBIT_OR:
-      ASSERT(cid != kDoubleCid);
-      if (left_value == 0) {
-        return right->definition();
-      } else if (left_value == mask) {
-        return left->definition();
-      }
-      break;
-    case Token::kBIT_XOR:
-      ASSERT(cid != kDoubleCid);
-      if (left_value == 0) {
-        return right->definition();
       }
       break;
     default:
@@ -1389,16 +1342,12 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
 
   Definition* result = NULL;
 
-  result = CanonicalizeCommutativeArithmetic(op_kind(),
-                                             kDoubleCid,
-                                             left(),
-                                             right());
-  if (result == NULL) {
-    result = CanonicalizeCommutativeArithmetic(op_kind(),
-                                               kDoubleCid,
-                                               right(),
-                                               left());
+  result = CanonicalizeCommutativeDoubleArithmetic(op_kind(), left(), right());
+  if (result != NULL) {
+    return result;
   }
+
+  result = CanonicalizeCommutativeDoubleArithmetic(op_kind(), right(), left());
   if (result != NULL) {
     return result;
   }
@@ -1417,96 +1366,337 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
-Definition* BinarySmiOpInstr::Canonicalize(FlowGraph* flow_graph) {
-  Definition* result = NULL;
-
-  result = CanonicalizeCommutativeArithmetic(op_kind(),
-                                             kSmiCid,
-                                             left(),
-                                             right());
-  if (result != NULL) {
-    return result;
+static bool IsCommutative(Token::Kind op) {
+  switch (op) {
+    case Token::kMUL:
+    case Token::kADD:
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+      return true;
+    default:
+      return false;
   }
-
-  result = CanonicalizeCommutativeArithmetic(op_kind(),
-                                             kSmiCid,
-                                             right(),
-                                             left());
-  if (result != NULL) {
-    return result;
-  }
-
-  return this;
 }
 
 
-Definition* BinaryMintOpInstr::Canonicalize(FlowGraph* flow_graph) {
-  Definition* result = NULL;
-
-  result = CanonicalizeCommutativeArithmetic(op_kind(),
-                                             kMintCid,
-                                             left(),
-                                             right());
-  if (result != NULL) {
-    return result;
+static intptr_t RepresentationBits(Representation r) {
+  switch (r) {
+    case kTagged:
+      return kBitsPerWord - 1;
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+      return 32;
+    case kUnboxedMint:
+      return 64;
+    default:
+      UNREACHABLE();
+      return 0;
   }
-
-  result = CanonicalizeCommutativeArithmetic(op_kind(),
-                                             kMintCid,
-                                             right(),
-                                             left());
-  if (result != NULL) {
-    return result;
-  }
-
-  return this;
 }
 
 
-Definition* BinaryUint32OpInstr::Canonicalize(FlowGraph* flow_graph) {
-  Definition* result = NULL;
-
-  const int64_t truncation_mask = static_cast<int64_t>(0xFFFFFFFF);
-
-  result = CanonicalizeCommutativeArithmetic(op_kind(),
-                                             kMintCid,
-                                             left(),
-                                             right(),
-                                             truncation_mask);
-  if (result != NULL) {
-    return result;
-  }
-
-  result = CanonicalizeCommutativeArithmetic(op_kind(),
-                                             kMintCid,
-                                             right(),
-                                             left(),
-                                             truncation_mask);
-  if (result != NULL) {
-    return result;
-  }
-
-  return this;
+static int64_t RepresentationMask(Representation r) {
+  return static_cast<int64_t>(
+      static_cast<uint64_t>(-1) >> (64 - RepresentationBits(r)));
 }
 
 
-Definition* BinaryInt32OpInstr::Canonicalize(FlowGraph* flow_graph) {
-  Definition* result = NULL;
-
-  result = CanonicalizeCommutativeArithmetic(op_kind(),
-                                             kSmiCid,
-                                             left(),
-                                             right());
-  if (result != NULL) {
-    return result;
+UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
+                                               Token::Kind op_kind,
+                                               Value* value,
+                                               intptr_t deopt_id,
+                                               Range* range) {
+  UnaryIntegerOpInstr* op = NULL;
+  switch (representation) {
+    case kTagged:
+      op = new UnarySmiOpInstr(op_kind, value, deopt_id);
+      break;
+    case kUnboxedInt32:
+      return NULL;
+    case kUnboxedUint32:
+      op = new UnaryUint32OpInstr(op_kind, value, deopt_id);
+      break;
+    case kUnboxedMint:
+      op = new UnaryMintOpInstr(op_kind, value, deopt_id);
+      break;
+    default:
+      UNREACHABLE();
+      return NULL;
   }
 
-  result = CanonicalizeCommutativeArithmetic(op_kind(),
-                                             kSmiCid,
-                                             right(),
-                                             left());
-  if (result != NULL) {
-    return result;
+  if (op == NULL) {
+    return op;
+  }
+
+  if (!Range::IsUnknown(range)) {
+    op->set_range(*range);
+  }
+
+  ASSERT(op->representation() == representation);
+  return op;
+}
+
+
+BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(Representation representation,
+                                                 Token::Kind op_kind,
+                                                 Value* left,
+                                                 Value* right,
+                                                 intptr_t deopt_id,
+                                                 bool can_overflow,
+                                                 bool is_truncating,
+                                                 Range* range) {
+  BinaryIntegerOpInstr* op = NULL;
+  switch (representation) {
+    case kTagged:
+      op = new BinarySmiOpInstr(op_kind, left, right, deopt_id);
+      break;
+    case kUnboxedInt32:
+      if (!BinaryInt32OpInstr::IsSupported(op_kind, left, right)) {
+        return NULL;
+      }
+      op = new BinaryInt32OpInstr(op_kind, left, right, deopt_id);
+      break;
+    case kUnboxedUint32:
+      if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
+        op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id);
+      } else {
+        op = new BinaryUint32OpInstr(op_kind, left, right, deopt_id);
+      }
+      break;
+    case kUnboxedMint:
+      if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
+        op = new ShiftMintOpInstr(op_kind, left, right, deopt_id);
+      } else {
+        op = new BinaryMintOpInstr(op_kind, left, right, deopt_id);
+      }
+      break;
+    default:
+      UNREACHABLE();
+      return NULL;
+  }
+
+  if (!Range::IsUnknown(range)) {
+    op->set_range(*range);
+  }
+
+  op->set_can_overflow(can_overflow);
+  if (is_truncating) {
+    op->mark_truncating();
+  }
+
+  ASSERT(op->representation() == representation);
+  return op;
+}
+
+
+RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
+                                           const Integer& right) const {
+  Integer& result = Integer::Handle();
+
+  switch (op_kind()) {
+    case Token::kTRUNCDIV:
+    case Token::kMOD:
+      // Check right value for zero.
+      if (right.AsInt64Value() == 0) {
+        break;  // Will throw.
+      }
+      // Fall through.
+    case Token::kADD:
+    case Token::kSUB:
+    case Token::kMUL: {
+      result = left.ArithmeticOp(op_kind(), right);
+      break;
+    }
+    case Token::kSHL:
+    case Token::kSHR:
+      if (left.IsSmi() && right.IsSmi() && (Smi::Cast(right).Value() >= 0)) {
+        result = Smi::Cast(left).ShiftOp(op_kind(), Smi::Cast(right));
+      }
+      break;
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR: {
+      result = left.BitOp(op_kind(), right);
+      break;
+    }
+    case Token::kDIV:
+      break;
+    default:
+      UNREACHABLE();
+  }
+
+  if (!result.IsNull()) {
+    if (is_truncating()) {
+      int64_t truncated = result.AsTruncatedInt64Value();
+      truncated &= RepresentationMask(representation());
+      result = Integer::New(truncated);
+    }
+    result ^= result.CheckAndCanonicalize(NULL);
+  }
+
+  return result.raw();
+}
+
+
+Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
+  // If both operands are constants evaluate this expression. Might
+  // occur due to load forwarding after constant propagation pass
+  // have already been run.
+  if (left()->BindsToConstant() &&
+      left()->BoundConstant().IsInteger() &&
+      right()->BindsToConstant() &&
+      right()->BoundConstant().IsInteger()) {
+    const Integer& result = Integer::Handle(
+        Evaluate(Integer::Cast(left()->BoundConstant()),
+                 Integer::Cast(right()->BoundConstant())));
+    if (!result.IsNull()) {
+      return flow_graph->GetConstant(result);
+    }
+  }
+
+  if (left()->BindsToConstant() &&
+      !right()->BindsToConstant() &&
+      IsCommutative(op_kind())) {
+    Value* l = left();
+    Value* r = right();
+    SetInputAt(0, r);
+    SetInputAt(1, l);
+  }
+
+  int64_t rhs;
+  if (!ToIntegerConstant(right(), &rhs)) {
+    return this;
+  }
+
+  const int64_t range_mask = RepresentationMask(representation());
+  if (is_truncating()) {
+    switch (op_kind()) {
+      case Token::kMUL:
+      case Token::kSUB:
+      case Token::kADD:
+      case Token::kBIT_AND:
+      case Token::kBIT_OR:
+      case Token::kBIT_XOR:
+        rhs = (rhs & range_mask);
+        break;
+      default:
+        break;
+    }
+  }
+
+  switch (op_kind()) {
+    case Token::kMUL:
+      if (rhs == 1) {
+        return left()->definition();
+      } else if (rhs == 0) {
+        return right()->definition();
+      } else if (rhs == 2) {
+        ConstantInstr* constant_1 =
+            flow_graph->GetConstant(Smi::Handle(Smi::New(1)));
+        BinaryIntegerOpInstr* shift =
+            BinaryIntegerOpInstr::Make(representation(),
+                                       Token::kSHL,
+                                       left()->CopyWithType(),
+                                       new Value(constant_1),
+                                       deopt_id_,
+                                       can_overflow(),
+                                       is_truncating(),
+                                       range());
+        if (shift != NULL) {
+          flow_graph->InsertBefore(this, shift, env(), FlowGraph::kValue);
+          return shift;
+        }
+      }
+
+      break;
+    case Token::kADD:
+      if (rhs == 0) {
+        return left()->definition();
+      }
+      break;
+    case Token::kBIT_AND:
+      if (rhs == 0) {
+        return right()->definition();
+      } else if (rhs == range_mask) {
+        return left()->definition();
+      }
+      break;
+    case Token::kBIT_OR:
+      if (rhs == 0) {
+        return left()->definition();
+      } else if (rhs == range_mask) {
+        return right()->definition();
+      }
+      break;
+    case Token::kBIT_XOR:
+      if (rhs == 0) {
+        return left()->definition();
+      } else if (rhs == range_mask) {
+        UnaryIntegerOpInstr* bit_not =
+            UnaryIntegerOpInstr::Make(representation(),
+                                      Token::kBIT_NOT,
+                                      left()->CopyWithType(),
+                                      deopt_id_,
+                                      range());
+        if (bit_not != NULL) {
+          flow_graph->InsertBefore(this, bit_not, env(), FlowGraph::kValue);
+          return bit_not;
+        }
+      }
+      break;
+
+    case Token::kSUB:
+      if (rhs == 0) {
+        return left()->definition();
+      }
+      break;
+
+    case Token::kTRUNCDIV:
+      if (rhs == 1) {
+        return left()->definition();
+      } else if (rhs == -1) {
+        UnaryIntegerOpInstr* negation =
+            UnaryIntegerOpInstr::Make(representation(),
+                                      Token::kNEGATE,
+                                      left()->CopyWithType(),
+                                      deopt_id_,
+                                      range());
+        if (negation != NULL) {
+          flow_graph->InsertBefore(this, negation, env(), FlowGraph::kValue);
+          return negation;
+        }
+      }
+      break;
+
+    case Token::kSHR:
+      if (rhs == 0) {
+        return left()->definition();
+      } else if (rhs < 0) {
+        DeoptimizeInstr* deopt =
+            new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, deopt_id_);
+        flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
+        return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
+      }
+      break;
+
+    case Token::kSHL: {
+      const intptr_t kMaxShift = RepresentationBits(representation()) - 1;
+      if (rhs == 0) {
+        return left()->definition();
+      } else if ((rhs < 0) || (rhs >= kMaxShift)) {
+        if ((rhs < 0) || !is_truncating()) {
+          DeoptimizeInstr* deopt =
+              new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, deopt_id_);
+          flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
+        }
+        return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
+      }
+      break;
+    }
+
+    default:
+      break;
   }
 
   return this;
@@ -2664,6 +2854,17 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                      dst_name(),
                                      locs());
   ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
+}
+
+
+LocationSummary* DeoptimizeInstr::MakeLocationSummary(Isolate* isolate,
+                                                      bool opt) const {
+  return new(isolate) LocationSummary(isolate, 0, 0, LocationSummary::kNoCall);
+}
+
+
+void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Jump(compiler->AddDeoptStub(deopt_id(), deopt_reason_));
 }
 
 

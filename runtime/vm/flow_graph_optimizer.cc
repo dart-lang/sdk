@@ -291,7 +291,7 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
   if (smi_shift_left == NULL) return;
 
   // Pattern recognized.
-  smi_shift_left->set_is_truncating(true);
+  smi_shift_left->mark_truncating();
   ASSERT(bit_and_instr->IsBinarySmiOp() || bit_and_instr->IsBinaryMintOp());
   if (bit_and_instr->IsBinaryMintOp()) {
     // Replace Mint op with Smi op.
@@ -299,8 +299,7 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
         Token::kBIT_AND,
         new(I) Value(left_instr),
         new(I) Value(right_instr),
-        Isolate::kNoDeoptId,  // BIT_AND cannot deoptimize.
-        Scanner::kNoSourcePos);
+        Isolate::kNoDeoptId);  // BIT_AND cannot deoptimize.
     bit_and_instr->ReplaceWith(smi_op, current_iterator());
   }
 }
@@ -2249,8 +2248,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
             new(I) BinarySmiOpInstr(Token::kBIT_AND,
                                     new(I) Value(left),
                                     new(I) Value(constant),
-                                    call->deopt_id(),
-                                    call->token_pos());
+                                    call->deopt_id());
         ReplaceCall(call, bin_op);
         return true;
       }
@@ -2261,9 +2259,9 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     AddCheckSmi(right, call->deopt_id(), call->env(), call);
     BinarySmiOpInstr* bin_op =
         new(I) BinarySmiOpInstr(op_kind,
-                                        new(I) Value(left),
-                                        new(I) Value(right),
-                                        call->deopt_id(), call->token_pos());
+                                new(I) Value(left),
+                                new(I) Value(right),
+                                call->deopt_id());
     ReplaceCall(call, bin_op);
   } else {
     ASSERT(operands_type == kSmiCid);
@@ -2280,8 +2278,10 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     }
     BinarySmiOpInstr* bin_op =
         new(I) BinarySmiOpInstr(
-            op_kind, new(I) Value(left), new(I) Value(right),
-            call->deopt_id(), call->token_pos());
+            op_kind,
+            new(I) Value(left),
+            new(I) Value(right),
+            call->deopt_id());
     ReplaceCall(call, bin_op);
   }
   return true;
@@ -3222,8 +3222,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
           new(I) BinarySmiOpInstr(Token::kSHL,
                                   new(I) Value(value),
                                   new(I) Value(count),
-                                  call->deopt_id(), call->token_pos());
-      left_shift->set_is_truncating(true);
+                                  call->deopt_id());
+      left_shift->mark_truncating();
       if ((kBitsPerWord == 32) && (mask_value == 0xffffffffLL)) {
         // No BIT_AND operation needed.
         ReplaceCall(call, left_shift);
@@ -3233,8 +3233,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
             new(I) BinarySmiOpInstr(Token::kBIT_AND,
                                     new(I) Value(left_shift),
                                     new(I) Value(int32_mask),
-                                    call->deopt_id(),
-                                    call->token_pos());
+                                    call->deopt_id());
         ReplaceCall(call, bit_and);
       }
       return true;
@@ -3913,7 +3912,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
       new(I) BinarySmiOpInstr(Token::kMUL,
                               new(I) Value(length),
                               new(I) Value(bytes_per_element),
-                              call->deopt_id(), call->token_pos());
+                              call->deopt_id());
   *cursor = flow_graph()->AppendTo(*cursor, len_in_bytes, call->env(),
                                    FlowGraph::kValue);
 
@@ -3927,7 +3926,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
         new(I) BinarySmiOpInstr(Token::kSUB,
                                 new(I) Value(len_in_bytes),
                                 new(I) Value(length_adjustment),
-                                call->deopt_id(), call->token_pos());
+                                call->deopt_id());
     *cursor = flow_graph()->AppendTo(*cursor, adjusted_length, call->env(),
                                      FlowGraph::kValue);
   }
@@ -7748,11 +7747,15 @@ void ConstantPropagator::VisitCheckStackOverflow(
 
 void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) { }
 
+
 void ConstantPropagator::VisitCheckClassId(CheckClassIdInstr* instr) { }
+
 
 void ConstantPropagator::VisitGuardFieldClass(GuardFieldClassInstr* instr) { }
 
+
 void ConstantPropagator::VisitGuardFieldLength(GuardFieldLengthInstr* instr) { }
+
 
 void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) { }
 
@@ -7762,6 +7765,11 @@ void ConstantPropagator::VisitCheckEitherNonSmi(
 
 
 void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) { }
+
+
+void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
+  // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
+}
 
 
 // --------------------------------------------------------------------------
@@ -8071,11 +8079,8 @@ void ConstantPropagator::VisitStringToCharCode(StringToCharCodeInstr* instr) {
 }
 
 
-
-
 void ConstantPropagator::VisitStringInterpolate(StringInterpolateInstr* instr) {
   SetValue(instr, non_constant_);
-  return;
 }
 
 
@@ -8318,107 +8323,53 @@ void ConstantPropagator::VisitCloneContext(CloneContextInstr* instr) {
 }
 
 
-void ConstantPropagator::HandleBinaryOp(Definition* instr,
-                                        Token::Kind op_kind,
-                                        const Value& left_val,
-                                        const Value& right_val) {
-  const Object& left = left_val.definition()->constant_value();
-  const Object& right = right_val.definition()->constant_value();
-  if (IsNonConstant(left) || IsNonConstant(right)) {
-    // TODO(srdjan): Add arithmetic simplifications, e.g, add with 0.
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(left) && IsConstant(right)) {
+void ConstantPropagator::VisitBinaryIntegerOp(BinaryIntegerOpInstr* binary_op) {
+  const Object& left = binary_op->left()->definition()->constant_value();
+  const Object& right = binary_op->right()->definition()->constant_value();
+  if (IsConstant(left) && IsConstant(right)) {
     if (left.IsInteger() && right.IsInteger()) {
       const Integer& left_int = Integer::Cast(left);
       const Integer& right_int = Integer::Cast(right);
-      switch (op_kind) {
-        case Token::kTRUNCDIV:
-        case Token::kMOD:
-          // Check right value for zero.
-          if (right_int.AsInt64Value() == 0) {
-            SetValue(instr, non_constant_);
-            break;
-          }
-          // Fall through.
-        case Token::kADD:
-        case Token::kSUB:
-        case Token::kMUL: {
-          Instance& result = Integer::ZoneHandle(I,
-              left_int.ArithmeticOp(op_kind, right_int));
-          if (result.IsNull()) {
-            // TODO(regis): A bigint operation is required. Invoke dart?
-            // Punt for now.
-            SetValue(instr, non_constant_);
-            break;
-          }
-          result = result.CheckAndCanonicalize(NULL);
-          ASSERT(!result.IsNull());
-          SetValue(instr, result);
-          break;
-        }
-        case Token::kSHL:
-        case Token::kSHR:
-          if (left.IsSmi() &&
-              right.IsSmi() &&
-              (Smi::Cast(right).Value() >= 0)) {
-            Instance& result = Integer::ZoneHandle(I,
-                Smi::Cast(left_int).ShiftOp(op_kind, Smi::Cast(right_int)));
-            result = result.CheckAndCanonicalize(NULL);
-            ASSERT(!result.IsNull());
-            SetValue(instr, result);
-          } else {
-            SetValue(instr, non_constant_);
-          }
-          break;
-        case Token::kBIT_AND:
-        case Token::kBIT_OR:
-        case Token::kBIT_XOR: {
-          Instance& result = Integer::ZoneHandle(I,
-              left_int.BitOp(op_kind, right_int));
-          result = result.CheckAndCanonicalize(NULL);
-          ASSERT(!result.IsNull());
-          SetValue(instr, result);
-          break;
-        }
-        case Token::kDIV:
-          SetValue(instr, non_constant_);
-          break;
-        default:
-          UNREACHABLE();
+      const Integer& result =
+          Integer::Handle(I, binary_op->Evaluate(left_int, right_int));
+      if (!result.IsNull()) {
+        SetValue(binary_op, Integer::ZoneHandle(I, result.raw()));
+        return;
       }
-    } else {
-      // TODO(kmillikin): support other types.
-      SetValue(instr, non_constant_);
     }
   }
-}
 
-
-void ConstantPropagator::TruncateInteger(Definition* defn, int64_t mask) {
-  const Object& value = defn->constant_value();
-  if (IsNonConstant(value)) {
-    return;
-  }
-  ASSERT(IsConstant(value));
-  if (!value.IsInteger()) {
-    return;
-  }
-  const Integer& value_int = Integer::Cast(value);
-  int64_t truncated = value_int.AsInt64Value() & mask;
-  Instance& result = Integer::ZoneHandle(I, Integer::New(truncated));
-  result = result.CheckAndCanonicalize(NULL);
-  ASSERT(!result.IsNull());
-  SetValue(defn, result);
+  SetValue(binary_op, non_constant_);
 }
 
 
 void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
-  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
+  VisitBinaryIntegerOp(instr);
 }
 
 
 void ConstantPropagator::VisitBinaryInt32Op(BinaryInt32OpInstr* instr) {
-  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
+  VisitBinaryIntegerOp(instr);
+}
+
+
+void ConstantPropagator::VisitBinaryUint32Op(BinaryUint32OpInstr* instr) {
+  VisitBinaryIntegerOp(instr);
+}
+
+
+void ConstantPropagator::VisitShiftUint32Op(ShiftUint32OpInstr* instr) {
+  VisitBinaryIntegerOp(instr);
+}
+
+
+void ConstantPropagator::VisitBinaryMintOp(BinaryMintOpInstr* instr) {
+  VisitBinaryIntegerOp(instr);
+}
+
+
+void ConstantPropagator::VisitShiftMintOp(ShiftMintOpInstr* instr) {
+  VisitBinaryIntegerOp(instr);
 }
 
 
@@ -8431,16 +8382,6 @@ void ConstantPropagator::VisitBoxInteger(BoxIntegerInstr* instr) {
 void ConstantPropagator::VisitUnboxInteger(UnboxIntegerInstr* instr) {
   // TODO(kmillikin): Handle unbox operation.
   SetValue(instr, non_constant_);
-}
-
-
-void ConstantPropagator::VisitBinaryMintOp(BinaryMintOpInstr* instr) {
-  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
-}
-
-
-void ConstantPropagator::VisitShiftMintOp(ShiftMintOpInstr* instr) {
-  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
 
 
@@ -8916,18 +8857,6 @@ void ConstantPropagator::VisitUnboxInt32(UnboxInt32Instr* instr) {
 void ConstantPropagator::VisitUnboxedIntConverter(
     UnboxedIntConverterInstr* instr) {
   SetValue(instr, non_constant_);
-}
-
-
-void ConstantPropagator::VisitBinaryUint32Op(BinaryUint32OpInstr* instr) {
-  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
-  TruncateInteger(instr, static_cast<int64_t>(0xFFFFFFFF));
-}
-
-
-void ConstantPropagator::VisitShiftUint32Op(ShiftUint32OpInstr* instr) {
-  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
-  TruncateInteger(instr, static_cast<int64_t>(0xFFFFFFFF));
 }
 
 

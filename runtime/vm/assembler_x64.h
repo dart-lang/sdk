@@ -779,6 +779,7 @@ class Assembler : public ValueObject {
   int PreferredLoopAlignment() { return 16; }
   void Align(int alignment, intptr_t offset);
   void Bind(Label* label);
+  void Jump(Label* label) { jmp(label); }
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   static bool EmittingComments();

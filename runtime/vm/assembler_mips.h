@@ -151,6 +151,7 @@ class Assembler : public ValueObject {
   void PopRegister(Register r) { Pop(r); }
 
   void Bind(Label* label);
+  void Jump(Label* label) { b(label); }
 
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }

@@ -2663,7 +2663,6 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                              BinarySmiOpInstr* shift_left) {
-  const bool is_truncating = shift_left->IsTruncating();
   const LocationSummary& locs = *shift_left->locs();
   Register left = locs.in(0).reg();
   Register result = locs.out(0).reg();
@@ -2677,38 +2676,26 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // shll operation masks the count to 5 bits.
     const intptr_t kCountLimit = 0x1F;
     const intptr_t value = Smi::Cast(constant).Value();
-    if (value == 0) {
-      // No code needed.
-    } else if ((value < 0) || (value >= kCountLimit)) {
-      // This condition may not be known earlier in some cases because
-      // of constant propagation, inlining, etc.
-      if ((value >= kCountLimit) && is_truncating) {
-        __ xorl(result, result);
-      } else {
-        // Result is Mint or exception.
-        __ jmp(deopt);
-      }
-    } else {
-      if (!is_truncating) {
-        // Check for overflow.
-        Register temp = locs.temp(0).reg();
-        __ movl(temp, left);
-        __ shll(left, Immediate(value));
-        __ sarl(left, Immediate(value));
-        __ cmpl(left, temp);
-        __ j(NOT_EQUAL, deopt);  // Overflow.
-      }
-      // Shift for result now we know there is no overflow.
+    ASSERT((0 < value) && (value < kCountLimit));
+    if (shift_left->can_overflow()) {
+      // Check for overflow.
+      Register temp = locs.temp(0).reg();
+      __ movl(temp, left);
       __ shll(left, Immediate(value));
+      __ sarl(left, Immediate(value));
+      __ cmpl(left, temp);
+      __ j(NOT_EQUAL, deopt);  // Overflow.
     }
+    // Shift for result now we know there is no overflow.
+    __ shll(left, Immediate(value));
     return;
   }
 
   // Right (locs.in(1)) is not constant.
   Register right = locs.in(1).reg();
   Range* right_range = shift_left->right()->definition()->range();
-  if (shift_left->left()->BindsToConstant() && !is_truncating) {
-    // TODO(srdjan): Implement code below for is_truncating().
+  if (shift_left->left()->BindsToConstant() && shift_left->can_overflow()) {
+    // TODO(srdjan): Implement code below for can_overflow().
     // If left is constant, we know the maximal allowed size for right.
     const Object& obj = shift_left->left()->BoundConstant();
     if (obj.IsSmi()) {
@@ -2735,7 +2722,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   const bool right_needs_check =
       !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
   ASSERT(right == ECX);  // Count must be in ECX
-  if (is_truncating) {
+  if (!shift_left->can_overflow()) {
     if (right_needs_check) {
       const bool right_may_be_negative =
           (right_range == NULL) || !right_range->IsPositive();
@@ -2824,12 +2811,12 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
     summary->set_out(0, Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
-    const intptr_t kNumTemps = !IsTruncating() ? 1 : 0;
+    const intptr_t kNumTemps = can_overflow() ? 1 : 0;
     LocationSummary* summary = new(isolate) LocationSummary(
         isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), ECX));
-    if (!IsTruncating()) {
+    if (can_overflow()) {
       summary->set_temp(0, Location::RequiresRegister());
     }
     summary->set_out(0, Location::SameAsFirstInput());
@@ -2851,6 +2838,38 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
+template<typename OperandType>
+static void EmitIntegerArithmetic(FlowGraphCompiler* compiler,
+                                  Token::Kind op_kind,
+                                  Register left,
+                                  const OperandType& right,
+                                  Label* deopt) {
+  switch (op_kind) {
+    case Token::kADD:
+      __ addl(left, right);
+      break;
+    case Token::kSUB:
+      __ subl(left, right);
+      break;
+    case Token::kBIT_AND:
+      __ andl(left, right);
+      break;
+    case Token::kBIT_OR:
+      __ orl(left, right);
+      break;
+    case Token::kBIT_XOR:
+      __ xorl(left, right);
+      break;
+    case Token::kMUL:
+      __ imull(left, right);
+      break;
+    default:
+      UNREACHABLE();
+  }
+  if (deopt != NULL) __ j(OVERFLOW, deopt);
+}
+
+
 void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (op_kind() == Token::kSHL) {
     EmitSmiShiftLeft(compiler, this);
@@ -2868,47 +2887,25 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    const int32_t imm = reinterpret_cast<int32_t>(constant.raw());
+    const intptr_t value = Smi::Cast(constant).Value();
     switch (op_kind()) {
-    case Token::kADD:
-        if (imm != 0) {
-          // Checking overflow without emitting an instruction would be wrong.
-          __ addl(left, Immediate(imm));
-          if (deopt != NULL) __ j(OVERFLOW, deopt);
-        }
-        break;
-      case Token::kSUB: {
-        if (imm != 0) {
-          // Checking overflow without emitting an instruction would be wrong.
-          __ subl(left, Immediate(imm));
-          if (deopt != NULL) __ j(OVERFLOW, deopt);
-        }
-        break;
-      }
+      case Token::kADD:
+      case Token::kSUB:
+      case Token::kBIT_AND:
+      case Token::kBIT_OR:
+      case Token::kBIT_XOR:
       case Token::kMUL: {
-        // Keep left value tagged and untag right value.
-        const intptr_t value = Smi::Cast(constant).Value();
-        if (value == 2) {
-          __ shll(left, Immediate(1));
-        } else {
-          __ imull(left, Immediate(value));
-        }
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        const intptr_t imm = (op_kind() == Token::kMUL) ? value
+                                                        : Smi::RawValue(value);
+        EmitIntegerArithmetic(compiler,
+                              op_kind(),
+                              left,
+                              Immediate(imm),
+                              deopt);
         break;
       }
+
       case Token::kTRUNCDIV: {
-        const intptr_t value = Smi::Cast(constant).Value();
-        if (value == 1) {
-          // Do nothing.
-          break;
-        } else if (value == -1) {
-          // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-          // case we cannot negate the result.
-          __ cmpl(left, Immediate(0x80000000));
-          __ j(EQUAL, deopt);
-          __ negl(left);
-          break;
-        }
         ASSERT(Utils::IsPowerOfTwo(Utils::Abs(value)));
         const intptr_t shift_count =
             Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
@@ -2927,39 +2924,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiTag(left);
         break;
       }
-      case Token::kBIT_AND: {
-        // No overflow check.
-        __ andl(left, Immediate(imm));
-        break;
-      }
-      case Token::kBIT_OR: {
-        // No overflow check.
-        __ orl(left, Immediate(imm));
-        break;
-      }
-      case Token::kBIT_XOR: {
-        // No overflow check.
-        __ xorl(left, Immediate(imm));
-        break;
-      }
+
       case Token::kSHR: {
         // sarl operation masks the count to 5 bits.
         const intptr_t kCountLimit = 0x1F;
-        intptr_t value = Smi::Cast(constant).Value();
-
-        if (value == 0) {
-          // TODO(vegorov): should be handled outside.
-          break;
-        } else if (value < 0) {
-          // TODO(vegorov): should be handled outside.
-          __ jmp(deopt);
-          break;
-        }
-
-        value = value + kSmiTagSize;
-        if (value >= kCountLimit) value = kCountLimit;
-
-        __ sarl(left, Immediate(value));
+        __ sarl(left, Immediate(
+            Utils::Minimum(value + kSmiTagSize, kCountLimit)));
         __ SmiTag(left);
         break;
       }
@@ -2973,79 +2943,30 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (locs()->in(1).IsStackSlot()) {
     const Address& right = locs()->in(1).ToStackSlotAddress();
-    switch (op_kind()) {
-      case Token::kADD: {
-        __ addl(left, right);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
-        break;
-      }
-      case Token::kSUB: {
-        __ subl(left, right);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
-        break;
-      }
-      case Token::kMUL: {
-        __ SmiUntag(left);
-        __ imull(left, right);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
-        break;
-      }
-      case Token::kBIT_AND: {
-        // No overflow check.
-        __ andl(left, right);
-        break;
-      }
-      case Token::kBIT_OR: {
-        // No overflow check.
-        __ orl(left, right);
-        break;
-      }
-      case Token::kBIT_XOR: {
-        // No overflow check.
-        __ xorl(left, right);
-        break;
-      }
-      default:
-        UNREACHABLE();
+    if (op_kind() == Token::kMUL) {
+      __ SmiUntag(left);
     }
+    EmitIntegerArithmetic(compiler, op_kind(), left, right, deopt);
     return;
-  }  // if locs()->in(1).IsStackSlot.
+  }
 
   // if locs()->in(1).IsRegister.
   Register right = locs()->in(1).reg();
   Range* right_range = this->right()->definition()->range();
   switch (op_kind()) {
-    case Token::kADD: {
-      __ addl(left, right);
-      if (deopt != NULL) __ j(OVERFLOW, deopt);
+    case Token::kADD:
+    case Token::kSUB:
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+    case Token::kMUL:
+      if (op_kind() == Token::kMUL) {
+        __ SmiUntag(left);
+      }
+      EmitIntegerArithmetic(compiler, op_kind(), left, right, deopt);
       break;
-    }
-    case Token::kSUB: {
-      __ subl(left, right);
-      if (deopt != NULL) __ j(OVERFLOW, deopt);
-      break;
-    }
-    case Token::kMUL: {
-      __ SmiUntag(left);
-      __ imull(left, right);
-      if (deopt != NULL) __ j(OVERFLOW, deopt);
-      break;
-    }
-    case Token::kBIT_AND: {
-      // No overflow check.
-      __ andl(left, right);
-      break;
-    }
-    case Token::kBIT_OR: {
-      // No overflow check.
-      __ orl(left, right);
-      break;
-    }
-    case Token::kBIT_XOR: {
-      // No overflow check.
-      __ xorl(left, right);
-      break;
-    }
+
+
     case Token::kTRUNCDIV: {
       if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
         // Handle divide by zero in runtime.
@@ -3174,12 +3095,12 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Isolate* isolate,
     summary->set_out(0, Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
-    const intptr_t kNumTemps = !IsTruncating() ? 1 : 0;
+    const intptr_t kNumTemps = can_overflow() ? 1 : 0;
     LocationSummary* summary = new(isolate) LocationSummary(
         isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), ECX));
-    if (!IsTruncating()) {
+    if (can_overflow()) {
       summary->set_temp(0, Location::RequiresRegister());
     }
     summary->set_out(0, Location::SameAsFirstInput());
@@ -3203,7 +3124,6 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Isolate* isolate,
 
 static void EmitInt32ShiftLeft(FlowGraphCompiler* compiler,
                                BinaryInt32OpInstr* shift_left) {
-  const bool is_truncating = shift_left->IsTruncating();
   const LocationSummary& locs = *shift_left->locs();
   Register left = locs.in(0).reg();
   Register result = locs.out(0).reg();
@@ -3218,30 +3138,18 @@ static void EmitInt32ShiftLeft(FlowGraphCompiler* compiler,
   // shll operation masks the count to 5 bits.
   const intptr_t kCountLimit = 0x1F;
   const intptr_t value = Smi::Cast(constant).Value();
-  if (value == 0) {
-    // No code needed.
-  } else if ((value < 0) || (value >= kCountLimit)) {
-    // This condition may not be known earlier in some cases because
-    // of constant propagation, inlining, etc.
-    if ((value >= kCountLimit) && is_truncating) {
-      __ xorl(result, result);
-    } else {
-      // Result is Mint or exception.
-      __ jmp(deopt);
-    }
-  } else {
-    if (!is_truncating) {
-      // Check for overflow.
-      Register temp = locs.temp(0).reg();
-      __ movl(temp, left);
-      __ shll(left, Immediate(value));
-      __ sarl(left, Immediate(value));
-      __ cmpl(left, temp);
-      __ j(NOT_EQUAL, deopt);  // Overflow.
-    }
-    // Shift for result now we know there is no overflow.
+  ASSERT((0 < value) && (value < kCountLimit));
+  if (shift_left->can_overflow()) {
+    // Check for overflow.
+    Register temp = locs.temp(0).reg();
+    __ movl(temp, left);
     __ shll(left, Immediate(value));
+    __ sarl(left, Immediate(value));
+    __ cmpl(left, temp);
+    __ j(NOT_EQUAL, deopt);  // Overflow.
   }
+  // Shift for result now we know there is no overflow.
+  __ shll(left, Immediate(value));
 }
 
 
@@ -3264,67 +3172,30 @@ void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(constant.IsSmi());
     const intptr_t value = Smi::Cast(constant).Value();
     switch (op_kind()) {
-    case Token::kADD:
-        if (value != 0) {
-          // Checking overflow without emitting an instruction would be wrong.
-          __ addl(left, Immediate(value));
-          if (deopt != NULL) __ j(OVERFLOW, deopt);
-        }
+      case Token::kADD:
+      case Token::kSUB:
+      case Token::kMUL:
+      case Token::kBIT_AND:
+      case Token::kBIT_OR:
+      case Token::kBIT_XOR:
+        EmitIntegerArithmetic(compiler,
+                              op_kind(),
+                              left,
+                              Immediate(value),
+                              deopt);
         break;
-      case Token::kSUB: {
-        if (value != 0) {
-          // Checking overflow without emitting an instruction would be wrong.
-          __ subl(left, Immediate(value));
-          if (deopt != NULL) __ j(OVERFLOW, deopt);
-        }
-        break;
-      }
-      case Token::kMUL: {
-        if (value == 2) {
-          __ shll(left, Immediate(1));
-        } else {
-          __ imull(left, Immediate(value));
-        }
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
-        break;
-      }
+
+
+
       case Token::kTRUNCDIV: {
         UNREACHABLE();
         break;
       }
-      case Token::kBIT_AND: {
-        // No overflow check.
-        __ andl(left, Immediate(value));
-        break;
-      }
-      case Token::kBIT_OR: {
-        // No overflow check.
-        __ orl(left, Immediate(value));
-        break;
-      }
-      case Token::kBIT_XOR: {
-        // No overflow check.
-        __ xorl(left, Immediate(value));
-        break;
-      }
+
       case Token::kSHR: {
         // sarl operation masks the count to 5 bits.
         const intptr_t kCountLimit = 0x1F;
-        if (value == 0) {
-          // TODO(vegorov): should be handled outside.
-          break;
-        } else if (value < 0) {
-          // TODO(vegorov): should be handled outside.
-          __ jmp(deopt);
-          break;
-        }
-
-        if (value >= kCountLimit) {
-          __ sarl(left, Immediate(kCountLimit));
-        } else {
-          __ sarl(left, Immediate(value));
-        }
-
+        __ sarl(left, Immediate(Utils::Minimum(value, kCountLimit)));
         break;
       }
 
@@ -3337,104 +3208,76 @@ void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (locs()->in(1).IsStackSlot()) {
     const Address& right = locs()->in(1).ToStackSlotAddress();
-    switch (op_kind()) {
-      case Token::kADD: {
-        __ addl(left, right);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
-        break;
-      }
-      case Token::kSUB: {
-        __ subl(left, right);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
-        break;
-      }
-      case Token::kMUL: {
-        __ imull(left, right);
-        if (deopt != NULL) __ j(OVERFLOW, deopt);
-        break;
-      }
-      case Token::kBIT_AND: {
-        // No overflow check.
-        __ andl(left, right);
-        break;
-      }
-      case Token::kBIT_OR: {
-        // No overflow check.
-        __ orl(left, right);
-        break;
-      }
-      case Token::kBIT_XOR: {
-        // No overflow check.
-        __ xorl(left, right);
-        break;
-      }
-      default:
-        UNREACHABLE();
-    }
+    EmitIntegerArithmetic(compiler,
+                          op_kind(),
+                          left,
+                          right,
+                          deopt);
     return;
   }  // if locs()->in(1).IsStackSlot.
 
   // if locs()->in(1).IsRegister.
   Register right = locs()->in(1).reg();
   switch (op_kind()) {
-    case Token::kADD: {
-      __ addl(left, right);
-      if (deopt != NULL) __ j(OVERFLOW, deopt);
+    case Token::kADD:
+    case Token::kSUB:
+    case Token::kMUL:
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+      EmitIntegerArithmetic(compiler,
+                            op_kind(),
+                            left,
+                            right,
+                            deopt);
       break;
-    }
-    case Token::kSUB: {
-      __ subl(left, right);
-      if (deopt != NULL) __ j(OVERFLOW, deopt);
-      break;
-    }
-    case Token::kMUL: {
-      __ imull(left, right);
-      if (deopt != NULL) __ j(OVERFLOW, deopt);
-      break;
-    }
-    case Token::kBIT_AND: {
-      // No overflow check.
-      __ andl(left, right);
-      break;
-    }
-    case Token::kBIT_OR: {
-      // No overflow check.
-      __ orl(left, right);
-      break;
-    }
-    case Token::kBIT_XOR: {
-      // No overflow check.
-      __ xorl(left, right);
-      break;
-    }
-    case Token::kTRUNCDIV: {
-      UNREACHABLE();
-      break;
-    }
-    case Token::kMOD: {
-      UNREACHABLE();
-      break;
-    }
-    case Token::kSHR: {
-      UNREACHABLE();
-      break;
-    }
-    case Token::kDIV: {
-      // Dispatches to 'Double./'.
-      // TODO(srdjan): Implement as conversion to double and double division.
-      UNREACHABLE();
-      break;
-    }
-    case Token::kOR:
-    case Token::kAND: {
-      // Flow graph builder has dissected this operation to guarantee correct
-      // behavior (short-circuit evaluation).
-      UNREACHABLE();
-      break;
-    }
+
     default:
       UNREACHABLE();
       break;
+  }
+}
+
+
+LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Isolate* isolate,
+                                                          bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = (op_kind() == Token::kMUL) ? 1 : 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  if (op_kind() == Token::kMUL) {
+    summary->set_in(0, Location::RegisterLocation(EAX));
+    summary->set_temp(0, Location::RegisterLocation(EDX));
+  } else {
+    summary->set_in(0, Location::RequiresRegister());
+  }
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register out = locs()->out(0).reg();
+  ASSERT(out == left);
+  switch (op_kind()) {
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+    case Token::kADD:
+    case Token::kSUB:
+      EmitIntegerArithmetic(compiler, op_kind(), left, right, NULL);
+      return;
+
+    case Token::kMUL:
+      __ mull(right);  // Result in EDX:EAX.
+      ASSERT(out == EAX);
+      ASSERT(locs()->temp(0).reg() == EDX);
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -6226,56 +6069,6 @@ CompileType ShiftUint32OpInstr::ComputeType() const {
 
 CompileType UnaryUint32OpInstr::ComputeType() const {
   return CompileType::Int();
-}
-
-
-LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Isolate* isolate,
-                                                          bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = (op_kind() == Token::kMUL) ? 1 : 0;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  if (op_kind() == Token::kMUL) {
-    summary->set_in(0, Location::RegisterLocation(EAX));
-    summary->set_temp(0, Location::RegisterLocation(EDX));
-  } else {
-    summary->set_in(0, Location::RequiresRegister());
-  }
-  summary->set_in(1, Location::RequiresRegister());
-  summary->set_out(0, Location::SameAsFirstInput());
-  return summary;
-}
-
-
-void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  Register out = locs()->out(0).reg();
-  ASSERT(out == left);
-  switch (op_kind()) {
-    case Token::kBIT_AND:
-      __ andl(out, right);
-      break;
-    case Token::kBIT_OR:
-      __ orl(out, right);
-      break;
-    case Token::kBIT_XOR:
-      __ xorl(out, right);
-      break;
-    case Token::kADD:
-      __ addl(out, right);
-      break;
-    case Token::kSUB:
-      __ subl(out, right);
-      break;
-    case Token::kMUL:
-      __ mull(right);  // Result in EDX:EAX.
-      ASSERT(out == EAX);
-      ASSERT(locs()->temp(0).reg() == EDX);
-      break;
-    default:
-      UNREACHABLE();
-  }
 }
 
 

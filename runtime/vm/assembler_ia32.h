@@ -728,6 +728,7 @@ class Assembler : public ValueObject {
   intptr_t PreferredLoopAlignment() { return 16; }
   void Align(intptr_t alignment, intptr_t offset);
   void Bind(Label* label);
+  void Jump(Label* label) { jmp(label); }
 
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }

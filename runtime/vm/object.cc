@@ -16780,13 +16780,18 @@ bool Bigint::FitsIntoInt64() const {
 }
 
 
-int64_t Bigint::AsInt64Value() const {
-  ASSERT(FitsIntoInt64());
+int64_t Bigint::AsTruncatedInt64Value() const {
   const intptr_t used = Used();
   if (used == 0) return 0;
   const int64_t digit1 = (used > 1) ? DigitAt(1) : 0;
   const int64_t value = (digit1 << 32) + DigitAt(0);
   return Neg() ? -value : value;
+}
+
+
+int64_t Bigint::AsInt64Value() const {
+  ASSERT(FitsIntoInt64());
+  return AsTruncatedInt64Value();
 }
 
 

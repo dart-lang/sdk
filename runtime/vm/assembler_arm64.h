@@ -394,6 +394,7 @@ class Assembler : public ValueObject {
   }
 
   void Bind(Label* label);
+  void Jump(Label* label) { b(label); }
 
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }

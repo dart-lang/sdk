@@ -5166,6 +5166,9 @@ class Integer : public Number {
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
+  virtual int64_t AsTruncatedInt64Value() const {
+    return AsInt64Value();
+  }
   virtual uint32_t AsTruncatedUint32Value() const;
 
   virtual bool FitsIntoSmi() const;
@@ -5331,6 +5334,7 @@ class Bigint : public Integer {
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
+  virtual int64_t AsTruncatedInt64Value() const;
   virtual uint32_t AsTruncatedUint32Value() const;
 
   virtual int CompareWith(const Integer& other) const;

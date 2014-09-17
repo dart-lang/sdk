@@ -701,7 +701,7 @@ static void NarrowBinaryMintOp(BinaryMintOpInstr* mint_op) {
                                mint_op->right()->CopyWithType(),
                                mint_op->DeoptimizationTarget());
     int32_op->set_range(*mint_op->range());
-    int32_op->set_overflow(false);
+    int32_op->set_can_overflow(false);
     mint_op->ReplaceWith(int32_op, NULL);
   }
 }
@@ -722,7 +722,7 @@ static void NarrowShiftMintOp(ShiftMintOpInstr* mint_op) {
                                mint_op->right()->CopyWithType(),
                                mint_op->DeoptimizationTarget());
     int32_op->set_range(*mint_op->range());
-    int32_op->set_overflow(false);
+    int32_op->set_can_overflow(false);
     mint_op->ReplaceWith(int32_op, NULL);
   }
 }
@@ -1993,14 +1993,26 @@ void IfThenElseInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 
-void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  // TODO(vegorov): canonicalize BinarySmiOp to always have constant on the
+static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
+  switch (r) {
+    case kTagged:
+      return RangeBoundary::kRangeBoundarySmi;
+    case kUnboxedInt32:
+      return RangeBoundary::kRangeBoundaryInt32;
+    case kUnboxedMint:
+      return RangeBoundary::kRangeBoundaryInt64;
+    default:
+      UNREACHABLE();
+      return RangeBoundary::kRangeBoundarySmi;
+  }
+}
+
+
+void BinaryIntegerOpInstr::InferRangeHelper(const Range* left_range,
+                                            const Range* right_range,
+                                            Range* range) {
+  // TODO(vegorov): canonicalize BinaryIntegerOp to always have constant on the
   // right and a non-constant on the left.
-  Definition* left_defn = left()->definition();
-
-  const Range* left_range = analysis->GetSmiRange(left());
-  const Range* right_range = analysis->GetSmiRange(right());
-
   if (Range::IsUnknown(left_range) || Range::IsUnknown(right_range)) {
     return;
   }
@@ -2008,17 +2020,49 @@ void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   Range::BinaryOp(op_kind(),
                   left_range,
                   right_range,
-                  left_defn,
+                  left()->definition(),
                   range);
   ASSERT(!Range::IsUnknown(range));
 
-  // Calculate overflowed status before clamping.
-  const bool overflowed = range->min().LowerBound().OverflowedSmi() ||
-                          range->max().UpperBound().OverflowedSmi();
-  set_overflow(overflowed);
+  const RangeBoundary::RangeSize range_size =
+      RepresentationToRangeSize(representation());
 
-  // Clamp value to be within smi range.
-  range->Clamp(RangeBoundary::kRangeBoundarySmi);
+  // Calculate overflowed status before clamping if operation is
+  // not truncating.
+  if (!is_truncating()) {
+    set_can_overflow(!range->Fits(range_size));
+  }
+
+  range->Clamp(range_size);
+}
+
+
+void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  // TODO(vegorov) completely remove this once GetSmiRange is eliminated.
+  InferRangeHelper(analysis->GetSmiRange(left()),
+                   analysis->GetSmiRange(right()),
+                   range);
+}
+
+
+void BinaryInt32OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  InferRangeHelper(analysis->GetSmiRange(left()),
+                   analysis->GetSmiRange(right()),
+                   range);
+}
+
+
+void BinaryMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  InferRangeHelper(left()->definition()->range(),
+                   right()->definition()->range(),
+                   range);
+}
+
+
+void ShiftMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  InferRangeHelper(left()->definition()->range(),
+                   right()->definition()->range(),
+                   range);
 }
 
 
@@ -2074,86 +2118,6 @@ void UnboxedIntConverterInstr::InferRange(RangeAnalysis* analysis,
       range->Clamp(RangeBoundary::kRangeBoundaryInt32);
     }
   }
-}
-
-
-void BinaryInt32OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  // TODO(vegorov): canonicalize BinarySmiOp to always have constant on the
-  // right and a non-constant on the left.
-  Definition* left_defn = left()->definition();
-
-  const Range* left_range = analysis->GetSmiRange(left());
-  const Range* right_range = analysis->GetSmiRange(right());
-
-  if (Range::IsUnknown(left_range) || Range::IsUnknown(right_range)) {
-    return;
-  }
-
-  Range::BinaryOp(op_kind(),
-                  left_range,
-                  right_range,
-                  left_defn,
-                  range);
-  ASSERT(!Range::IsUnknown(range));
-
-  // Calculate overflowed status before clamping.
-  set_overflow(!range->Fits(RangeBoundary::kRangeBoundaryInt32));
-
-  // Clamp value to be within smi range.
-  range->Clamp(RangeBoundary::kRangeBoundaryInt32);
-}
-
-void BinaryMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  // TODO(vegorov): canonicalize BinaryMintOpInstr to always have constant on
-  // the right and a non-constant on the left.
-  Definition* left_defn = left()->definition();
-
-  const Range* left_range = left_defn->range();
-  const Range* right_range = right()->definition()->range();
-
-  if (Range::IsUnknown(left_range) || Range::IsUnknown(right_range)) {
-    return;
-  }
-
-  Range::BinaryOp(op_kind(),
-                  left_range,
-                  right_range,
-                  left_defn,
-                  range);
-  ASSERT(!Range::IsUnknown(range));
-
-  // Calculate overflowed status before clamping.
-  set_can_overflow(!range->Fits(RangeBoundary::kRangeBoundaryInt64));
-
-  // Clamp value to be within mint range.
-  range->Clamp(RangeBoundary::kRangeBoundaryInt64);
-}
-
-
-void ShiftMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  Definition* left_defn = left()->definition();
-
-  const Range* left_range = left_defn->range();
-  const Range* right_range = right()->definition()->range();
-
-  if (Range::IsUnknown(left_range) || Range::IsUnknown(right_range)) {
-    return;
-  }
-
-  Range::BinaryOp(op_kind(),
-                  left_range,
-                  right_range,
-                  left_defn,
-                  range);
-  ASSERT(!Range::IsUnknown(range));
-
-  // Calculate overflowed status before clamping.
-  const bool overflowed = range->min().LowerBound().OverflowedMint() ||
-                          range->max().UpperBound().OverflowedMint();
-  set_can_overflow(overflowed);
-
-  // Clamp value to be within mint range.
-  range->Clamp(RangeBoundary::kRangeBoundaryInt64);
 }
 
 

@@ -2845,7 +2845,6 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                              BinarySmiOpInstr* shift_left) {
-  const bool is_truncating = shift_left->IsTruncating();
   const LocationSummary& locs = *shift_left->locs();
   const Register left = locs.in(0).reg();
   const Register result = locs.out(0).reg();
@@ -2858,34 +2857,22 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // Immediate shift operation takes 5 bits for the count.
     const intptr_t kCountLimit = 0x1F;
     const intptr_t value = Smi::Cast(constant).Value();
-    if (value == 0) {
-      __ MoveRegister(result, left);
-    } else if ((value < 0) || (value >= kCountLimit)) {
-      // This condition may not be known earlier in some cases because
-      // of constant propagation, inlining, etc.
-      if ((value >= kCountLimit) && is_truncating) {
-        __ mov(result, Operand(0));
-      } else {
-        // Result is Mint or exception.
-        __ b(deopt);
-      }
-    } else {
-      if (!is_truncating) {
-        // Check for overflow (preserve left).
-        __ Lsl(IP, left, value);
-        __ cmp(left, Operand(IP, ASR, value));
-        __ b(deopt, NE);  // Overflow.
-      }
-      // Shift for result now we know there is no overflow.
-      __ Lsl(result, left, value);
+    ASSERT((0 < value) && (value < kCountLimit));
+    if (shift_left->can_overflow()) {
+      // Check for overflow (preserve left).
+      __ Lsl(IP, left, value);
+      __ cmp(left, Operand(IP, ASR, value));
+      __ b(deopt, NE);  // Overflow.
     }
+    // Shift for result now we know there is no overflow.
+    __ Lsl(result, left, value);
     return;
   }
 
   // Right (locs.in(1)) is not constant.
   const Register right = locs.in(1).reg();
   Range* right_range = shift_left->right()->definition()->range();
-  if (shift_left->left()->BindsToConstant() && !is_truncating) {
+  if (shift_left->left()->BindsToConstant() && shift_left->can_overflow()) {
     // TODO(srdjan): Implement code below for is_truncating().
     // If left is constant, we know the maximal allowed size for right.
     const Object& obj = shift_left->left()->BoundConstant();
@@ -2912,7 +2899,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
   const bool right_needs_check =
       !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
-  if (is_truncating) {
+  if (!shift_left->can_overflow()) {
     if (right_needs_check) {
       const bool right_may_be_negative =
           (right_range == NULL) || !right_range->IsPositive();
@@ -2963,7 +2950,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
     }
   } else if (op_kind() == Token::kMOD) {
     num_temps = 2;
-  } else if (((op_kind() == Token::kSHL) && !IsTruncating()) ||
+  } else if (((op_kind() == Token::kSHL) && can_overflow()) ||
              (op_kind() == Token::kSHR)) {
     num_temps = 1;
   } else if ((op_kind() == Token::kMUL) &&
@@ -2996,7 +2983,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
   }
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RegisterOrSmiConstant(right()));
-  if (((op_kind() == Token::kSHL) && !IsTruncating()) ||
+  if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
   }
@@ -3054,55 +3041,32 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // Keep left value tagged and untag right value.
         const intptr_t value = Smi::Cast(constant).Value();
         if (deopt == NULL) {
-          if (value == 2) {
-            __ mov(result, Operand(left, LSL, 1));
-          } else {
-            __ LoadImmediate(IP, value);
-            __ mul(result, left, IP);
-          }
+          __ LoadImmediate(IP, value);
+          __ mul(result, left, IP);
         } else {
-          if (value == 2) {
-            __ mov(IP, Operand(left, ASR, 31));  // IP = sign of left.
-            __ mov(result, Operand(left, LSL, 1));
+          if (TargetCPUFeatures::arm_version() == ARMv7) {
+            __ LoadImmediate(IP, value);
+            __ smull(result, IP, left, IP);
             // IP: result bits 32..63.
             __ cmp(IP, Operand(result, ASR, 31));
             __ b(deopt, NE);
+          } else if (TargetCPUFeatures::can_divide()) {
+            const QRegister qtmp = locs()->temp(0).fpu_reg();
+            const DRegister dtmp0 = EvenDRegisterOf(qtmp);
+            const DRegister dtmp1 = OddDRegisterOf(qtmp);
+            __ LoadImmediate(IP, value);
+            __ CheckMultSignedOverflow(left, IP, result, dtmp0, dtmp1, deopt);
+            __ mul(result, left, IP);
           } else {
-            if (TargetCPUFeatures::arm_version() == ARMv7) {
-              __ LoadImmediate(IP, value);
-              __ smull(result, IP, left, IP);
-              // IP: result bits 32..63.
-              __ cmp(IP, Operand(result, ASR, 31));
-              __ b(deopt, NE);
-            } else if (TargetCPUFeatures::can_divide()) {
-              const QRegister qtmp = locs()->temp(0).fpu_reg();
-              const DRegister dtmp0 = EvenDRegisterOf(qtmp);
-              const DRegister dtmp1 = OddDRegisterOf(qtmp);
-              __ LoadImmediate(IP, value);
-              __ CheckMultSignedOverflow(left, IP, result, dtmp0, dtmp1, deopt);
-              __ mul(result, left, IP);
-            } else {
-             // TODO(vegorov): never emit this instruction if hardware does not
-             // support it! This will lead to deopt cycle penalizing the code.
-              __ b(deopt);
-            }
+           // TODO(vegorov): never emit this instruction if hardware does not
+           // support it! This will lead to deopt cycle penalizing the code.
+            __ b(deopt);
           }
         }
         break;
       }
       case Token::kTRUNCDIV: {
         const intptr_t value = Smi::Cast(constant).Value();
-        if (value == 1) {
-          __ MoveRegister(result, left);
-          break;
-        } else if (value == -1) {
-          // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-          // case we cannot negate the result.
-          __ CompareImmediate(left, 0x80000000);
-          __ b(deopt, EQ);
-          __ rsb(result, left, Operand(0));
-          break;
-        }
         ASSERT(Utils::IsPowerOfTwo(Utils::Abs(value)));
         const intptr_t shift_count =
             Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
@@ -3158,23 +3122,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // sarl operation masks the count to 5 bits.
         const intptr_t kCountLimit = 0x1F;
         intptr_t value = Smi::Cast(constant).Value();
-
-        if (value == 0) {
-          // TODO(vegorov): should be handled outside.
-          __ MoveRegister(result, left);
-          break;
-        } else if (value < 0) {
-          // TODO(vegorov): should be handled outside.
-          __ b(deopt);
-          break;
-        }
-
-        value = value + kSmiTagSize;
-        if (value >= kCountLimit) {
-          value = kCountLimit;
-        }
-
-        __ Asr(result, left, value);
+        __ Asr(result, left, Utils::Minimum(value + kSmiTagSize, kCountLimit));
         __ SmiTag(result);
         break;
       }
@@ -3350,7 +3298,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 static void EmitInt32ShiftLeft(FlowGraphCompiler* compiler,
                                BinaryInt32OpInstr* shift_left) {
-  const bool is_truncating = shift_left->IsTruncating();
   const LocationSummary& locs = *shift_left->locs();
   const Register left = locs.in(0).reg();
   const Register result = locs.out(0).reg();
@@ -3363,27 +3310,15 @@ static void EmitInt32ShiftLeft(FlowGraphCompiler* compiler,
   // Immediate shift operation takes 5 bits for the count.
   const intptr_t kCountLimit = 0x1F;
   const intptr_t value = Smi::Cast(constant).Value();
-  if (value == 0) {
-    __ MoveRegister(result, left);
-  } else if ((value < 0) || (value >= kCountLimit)) {
-    // This condition may not be known earlier in some cases because
-    // of constant propagation, inlining, etc.
-    if ((value >= kCountLimit) && is_truncating) {
-      __ mov(result, Operand(0));
-    } else {
-      // Result is Mint or exception.
-      __ b(deopt);
-    }
-  } else {
-    if (!is_truncating) {
-      // Check for overflow (preserve left).
-      __ Lsl(IP, left, value);
-      __ cmp(left, Operand(IP, ASR, value));
-      __ b(deopt, NE);  // Overflow.
-    }
-    // Shift for result now we know there is no overflow.
-    __ Lsl(result, left, value);
+  ASSERT((0 < value) && (value < kCountLimit));
+  if (shift_left->can_overflow()) {
+    // Check for overflow (preserve left).
+    __ Lsl(IP, left, value);
+    __ cmp(left, Operand(IP, ASR, value));
+    __ b(deopt, NE);  // Overflow.
   }
+  // Shift for result now we know there is no overflow.
+  __ Lsl(result, left, value);
 }
 
 
@@ -3392,7 +3327,7 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Isolate* isolate,
   const intptr_t kNumInputs = 2;
   // Calculate number of temporaries.
   intptr_t num_temps = 0;
-  if (((op_kind() == Token::kSHL) && !IsTruncating()) ||
+  if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     num_temps = 1;
   } else if ((op_kind() == Token::kMUL) &&
@@ -3403,7 +3338,7 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Isolate* isolate,
       isolate, kNumInputs, num_temps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RegisterOrSmiConstant(right()));
-  if (((op_kind() == Token::kSHL) && !IsTruncating()) ||
+  if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
   }
@@ -3459,36 +3394,26 @@ void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       case Token::kMUL: {
         if (deopt == NULL) {
-          if (value == 2) {
-            __ mov(result, Operand(left, LSL, 1));
-          } else {
-            __ LoadImmediate(IP, value);
-            __ mul(result, left, IP);
-          }
+          __ LoadImmediate(IP, value);
+          __ mul(result, left, IP);
         } else {
-          if (value == 2) {
-            __ CompareImmediate(left, 0xC0000000);
-            __ b(deopt, MI);
-            __ mov(result, Operand(left, LSL, 1));
+          if (TargetCPUFeatures::arm_version() == ARMv7) {
+            __ LoadImmediate(IP, value);
+            __ smull(result, IP, left, IP);
+            // IP: result bits 32..63.
+            __ cmp(IP, Operand(result, ASR, 31));
+            __ b(deopt, NE);
+          } else if (TargetCPUFeatures::can_divide()) {
+            const QRegister qtmp = locs()->temp(0).fpu_reg();
+            const DRegister dtmp0 = EvenDRegisterOf(qtmp);
+            const DRegister dtmp1 = OddDRegisterOf(qtmp);
+            __ LoadImmediate(IP, value);
+            __ CheckMultSignedOverflow(left, IP, result, dtmp0, dtmp1, deopt);
+            __ mul(result, left, IP);
           } else {
-            if (TargetCPUFeatures::arm_version() == ARMv7) {
-              __ LoadImmediate(IP, value);
-              __ smull(result, IP, left, IP);
-              // IP: result bits 32..63.
-              __ cmp(IP, Operand(result, ASR, 31));
-              __ b(deopt, NE);
-            } else if (TargetCPUFeatures::can_divide()) {
-              const QRegister qtmp = locs()->temp(0).fpu_reg();
-              const DRegister dtmp0 = EvenDRegisterOf(qtmp);
-              const DRegister dtmp1 = OddDRegisterOf(qtmp);
-              __ LoadImmediate(IP, value);
-              __ CheckMultSignedOverflow(left, IP, result, dtmp0, dtmp1, deopt);
-              __ mul(result, left, IP);
-            } else {
-              // TODO(vegorov): never emit this instruction if hardware does not
-              // support it! This will lead to deopt cycle penalizing the code.
-              __ b(deopt);
-            }
+            // TODO(vegorov): never emit this instruction if hardware does not
+            // support it! This will lead to deopt cycle penalizing the code.
+            __ b(deopt);
           }
         }
         break;
@@ -3531,22 +3456,7 @@ void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kSHR: {
         // sarl operation masks the count to 5 bits.
         const intptr_t kCountLimit = 0x1F;
-
-        if (value == 0) {
-          // TODO(vegorov): should be handled outside.
-          __ MoveRegister(result, left);
-          break;
-        } else if (value < 0) {
-          // TODO(vegorov): should be handled outside.
-          __ b(deopt);
-          break;
-        }
-
-        if (value >= kCountLimit) {
-          __ Asr(result, left, kCountLimit);
-        } else {
-          __ Asr(result, left, value);
-        }
+        __ Asr(result, left, Utils::Minimum(value, kCountLimit));
         break;
       }
 

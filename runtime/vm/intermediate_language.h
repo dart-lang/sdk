@@ -556,21 +556,32 @@ class EmbeddedArray<T, 0> {
   M(BoxInt32)                                                                  \
   M(UnboxInt32)                                                                \
   M(UnboxedIntConverter)                                                       \
+  M(Deoptimize)
 
+#define FOR_EACH_ABSTRACT_INSTRUCTION(M)                                       \
+  M(BlockEntry)                                                                \
+  M(BoxIntN)                                                                   \
+  M(UnboxIntN)                                                                 \
+  M(Comparison)                                                                \
+  M(UnaryIntegerOp)                                                            \
+  M(BinaryIntegerOp)                                                           \
 
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
+FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
+#define DEFINE_INSTRUCTION_TYPE_CHECK(type)                                    \
+  virtual type##Instr* As##type() { return this; }                             \
+  virtual const char* DebugName() const { return #type; }                      \
 
 // Functions required in all concrete instruction classes.
 #define DECLARE_INSTRUCTION_NO_BACKEND(type)                                   \
   virtual Tag tag() const { return k##type; }                                  \
   virtual void Accept(FlowGraphVisitor* visitor);                              \
-  virtual type##Instr* As##type() { return this; }                             \
-  virtual const char* DebugName() const { return #type; }                      \
+  DEFINE_INSTRUCTION_TYPE_CHECK(type)
 
-#define DECLARE_INSTRUCTION_BACKEND(type)                                      \
+#define DECLARE_INSTRUCTION_BACKEND()                                          \
   virtual LocationSummary* MakeLocationSummary(Isolate* isolate,               \
                                                bool optimizing) const;         \
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);                    \
@@ -578,7 +589,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 // Functions required in all concrete instruction classes.
 #define DECLARE_INSTRUCTION(type)                                              \
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
-  DECLARE_INSTRUCTION_BACKEND(type)                                            \
+  DECLARE_INSTRUCTION_BACKEND()                                                \
 
 class Instruction : public ZoneAllocated {
  public:
@@ -608,15 +619,6 @@ class Instruction : public ZoneAllocated {
 
   const ICData* GetICData(
       const ZoneGrowableArray<const ICData*>& ic_data_array) const;
-
-  bool IsBlockEntry() { return (AsBlockEntry() != NULL); }
-  virtual BlockEntryInstr* AsBlockEntry() { return NULL; }
-
-  bool IsDefinition() { return (AsDefinition() != NULL); }
-  virtual Definition* AsDefinition() { return NULL; }
-
-  virtual BoxIntNInstr* AsBoxIntN() { return NULL; }
-  virtual UnboxIntNInstr* AsUnboxIntN() { return NULL; }
 
   virtual intptr_t token_pos() const { return Scanner::kNoSourcePos; }
 
@@ -695,11 +697,18 @@ class Instruction : public ZoneAllocated {
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-#define INSTRUCTION_TYPE_CHECK(type)                                           \
-  bool Is##type() { return (As##type() != NULL); }                             \
-  virtual type##Instr* As##type() { return NULL; }
+#define DECLARE_INSTRUCTION_TYPE_CHECK(Name, Type)                             \
+  bool Is##Name() { return (As##Name() != NULL); }                             \
+  virtual Type* As##Name() { return NULL; }
+#define INSTRUCTION_TYPE_CHECK(Name)                                           \
+  DECLARE_INSTRUCTION_TYPE_CHECK(Name, Name##Instr)
+
+DECLARE_INSTRUCTION_TYPE_CHECK(Definition, Definition)
 FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
+FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
+
 #undef INSTRUCTION_TYPE_CHECK
+#undef DECLARE_INSTRUCTION_TYPE_CHECK
 
   // Returns structure describing location constraints required
   // to emit native code for this instruction.
@@ -873,12 +882,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Int32x4ToFloat32x4Instr;
   friend class BinaryInt32x4OpInstr;
   friend class BinaryFloat64x2OpInstr;
-  friend class BinaryMintOpInstr;
-  friend class BinarySmiOpInstr;
-  friend class UnarySmiOpInstr;
   friend class UnaryDoubleOpInstr;
-  friend class ShiftMintOpInstr;
-  friend class UnaryMintOpInstr;
   friend class MathUnaryInstr;
   friend class MathMinMaxInstr;
   friend class CheckClassInstr;
@@ -910,14 +914,13 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class RelationalOpInstr;
   friend class EqualityCompareInstr;
   friend class TestCidsInstr;
-  friend class BinaryUint32OpInstr;
-  friend class UnaryUint32OpInstr;
-  friend class ShiftUint32OpInstr;
   friend class UnboxIntNInstr;
   friend class UnboxInt32Instr;
   friend class UnboxUint32Instr;
-  friend class BinaryInt32OpInstr;
   friend class UnboxedIntConverterInstr;
+  friend class UnaryIntegerOpInstr;
+  friend class BinaryIntegerOpInstr;
+  friend class DeoptimizeInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -1061,8 +1064,6 @@ class ParallelMoveInstr : public TemplateInstruction<0> {
 // branches.
 class BlockEntryInstr : public Instruction {
  public:
-  virtual BlockEntryInstr* AsBlockEntry() { return this; }
-
   virtual intptr_t PredecessorCount() const = 0;
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
 
@@ -1187,6 +1188,8 @@ class BlockEntryInstr : public Instruction {
   // For all instruction in this block: Remove all inputs (including in the
   // environment) from their definition's use lists for all instructions.
   void ClearAllInstructions();
+
+  DEFINE_INSTRUCTION_TYPE_CHECK(BlockEntry)
 
  protected:
   BlockEntryInstr(intptr_t block_id, intptr_t try_index)
@@ -1591,11 +1594,6 @@ class Definition : public Instruction {
  public:
   Definition();
 
-  virtual Definition* AsDefinition() { return this; }
-
-  bool IsComparison() { return (AsComparison() != NULL); }
-  virtual ComparisonInstr* AsComparison() { return NULL; }
-
   // Overridden by definitions that have pushed arguments.
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -1761,6 +1759,8 @@ class Definition : public Instruction {
   }
 
   Definition* OriginalDefinition();
+
+  virtual Definition* AsDefinition() { return this; }
 
  protected:
   friend class RangeAnalysis;
@@ -2144,8 +2144,6 @@ class ComparisonInstr : public TemplateDefinition<2> {
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
-  virtual ComparisonInstr* AsComparison() { return this; }
-
   virtual intptr_t token_pos() const { return token_pos_; }
   Token::Kind kind() const { return kind_; }
 
@@ -2168,6 +2166,8 @@ class ComparisonInstr : public TemplateDefinition<2> {
   void NegateComparison() {
     kind_ = Token::NegateComparison(kind_);
   }
+
+  DEFINE_INSTRUCTION_TYPE_CHECK(Comparison)
 
  protected:
   ComparisonInstr(intptr_t token_pos,
@@ -2322,6 +2322,35 @@ class StoreContextInstr : public TemplateInstruction<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(StoreContextInstr);
+};
+
+
+class DeoptimizeInstr : public TemplateInstruction<0> {
+ public:
+  DeoptimizeInstr(ICData::DeoptReasonId deopt_reason, intptr_t deopt_id)
+      : deopt_reason_(deopt_reason) {
+    deopt_id_ = deopt_id;
+  }
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return true;
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+  DECLARE_INSTRUCTION(Deoptimize)
+
+ private:
+  const ICData::DeoptReasonId deopt_reason_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptimizeInstr);
 };
 
 
@@ -6686,165 +6715,113 @@ class BinaryFloat64x2OpInstr : public TemplateDefinition<2> {
 };
 
 
-class BinaryMintOpInstr : public TemplateDefinition<2> {
+class UnaryIntegerOpInstr : public TemplateDefinition<1> {
  public:
-  BinaryMintOpInstr(Token::Kind op_kind,
-                    Value* left,
-                    Value* right,
-                    intptr_t deopt_id)
-      : op_kind_(op_kind), can_overflow_(true) {
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
-  }
-
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  Token::Kind op_kind() const { return op_kind_; }
-
-  bool can_overflow() const { return can_overflow_; }
-  void set_can_overflow(bool value) { can_overflow_ = value; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const {
-    return FLAG_throw_on_javascript_int_overflow
-        || (can_overflow() && ((op_kind() == Token::kADD) ||
-                               (op_kind() == Token::kSUB)))
-        || (op_kind() == Token::kMUL);  // Deopt if inputs are not int32.
-  }
-
-  virtual Representation representation() const {
-    return kUnboxedMint;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT((idx == 0) || (idx == 1));
-    return kUnboxedMint;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
-  }
-
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  DECLARE_INSTRUCTION(BinaryMintOp)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const {
-    ASSERT(other->IsBinaryMintOp());
-    return op_kind() == other->AsBinaryMintOp()->op_kind();
-  }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const Token::Kind op_kind_;
-  bool can_overflow_;
-
-  DISALLOW_COPY_AND_ASSIGN(BinaryMintOpInstr);
-};
-
-
-class ShiftMintOpInstr : public TemplateDefinition<2> {
- public:
-  ShiftMintOpInstr(Token::Kind op_kind,
-                   Value* left,
-                   Value* right,
-                   intptr_t deopt_id)
-      : op_kind_(op_kind), can_overflow_(true) {
-    ASSERT(op_kind == Token::kSHR || op_kind == Token::kSHL);
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
-  }
-
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  Token::Kind op_kind() const { return op_kind_; }
-
-  bool can_overflow() const { return can_overflow_; }
-  void set_can_overflow(bool value) { can_overflow_ = value; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  bool has_shift_count_check() const;
-
-  virtual bool CanDeoptimize() const {
-    return FLAG_throw_on_javascript_int_overflow
-        || has_shift_count_check()
-        || (can_overflow() && (op_kind() == Token::kSHL));
-  }
-
-  virtual CompileType ComputeType() const;
-
-  virtual Representation representation() const {
-    return kUnboxedMint;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT((idx == 0) || (idx == 1));
-    return (idx == 0) ? kUnboxedMint : kTagged;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
-  }
-
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
-
-  DECLARE_INSTRUCTION(ShiftMintOp)
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsShiftMintOp()->op_kind();
-  }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const Token::Kind op_kind_;
-  bool can_overflow_;
-
-  DISALLOW_COPY_AND_ASSIGN(ShiftMintOpInstr);
-};
-
-
-class UnaryMintOpInstr : public TemplateDefinition<1> {
- public:
-  UnaryMintOpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
+  UnaryIntegerOpInstr(Token::Kind op_kind,
+                      Value* value,
+                      intptr_t deopt_id)
       : op_kind_(op_kind) {
-    ASSERT(op_kind == Token::kBIT_NOT);
+    ASSERT((op_kind == Token::kNEGATE) ||
+           (op_kind == Token::kBIT_NOT));
     SetInputAt(0, value);
     // Override generated deopt-id.
     deopt_id_ = deopt_id;
   }
 
-  Value* value() const { return inputs_[0]; }
+  static UnaryIntegerOpInstr* Make(Representation representation,
+                                   Token::Kind op_kind,
+                                   Value* value,
+                                   intptr_t deopt_id,
+                                   Range* range);
 
+  Value* value() const { return inputs_[0]; }
   Token::Kind op_kind() const { return op_kind_; }
 
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsUnaryIntegerOp()->op_kind() == op_kind();
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  virtual bool MayThrow() const { return false; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DEFINE_INSTRUCTION_TYPE_CHECK(UnaryIntegerOp)
+
+ private:
+  const Token::Kind op_kind_;
+};
+
+
+// Handles both Smi operations: BIT_OR and NEGATE.
+class UnarySmiOpInstr : public UnaryIntegerOpInstr {
+ public:
+  UnarySmiOpInstr(Token::Kind op_kind,
+                  Value* value,
+                  intptr_t deopt_id)
+      : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
+  }
+
+  virtual bool CanDeoptimize() const { return op_kind() == Token::kNEGATE; }
+
+  virtual CompileType ComputeType() const;
+
+  DECLARE_INSTRUCTION(UnarySmiOp)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnarySmiOpInstr);
+};
+
+
+class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
+ public:
+  UnaryUint32OpInstr(Token::Kind op_kind,
+                     Value* value,
+                     intptr_t deopt_id)
+      : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
+    ASSERT(op_kind == Token::kBIT_NOT);
+  }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual CompileType ComputeType() const;
+
+  virtual Representation representation() const {
+    return kUnboxedUint32;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedUint32;
+  }
+
+  DECLARE_INSTRUCTION(UnaryUint32Op)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnaryUint32OpInstr);
+};
+
+
+class UnaryMintOpInstr : public UnaryIntegerOpInstr {
+ public:
+  UnaryMintOpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
+      : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
+    ASSERT(op_kind == Token::kBIT_NOT);
+  }
 
   virtual bool CanDeoptimize() const {
     return FLAG_throw_on_javascript_int_overflow;
   }
+
+  virtual CompileType ComputeType() const;
 
   virtual Representation representation() const {
     return kUnboxedMint;
@@ -6855,112 +6832,117 @@ class UnaryMintOpInstr : public TemplateDefinition<1> {
     return kUnboxedMint;
   }
 
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
-  }
-
   DECLARE_INSTRUCTION(UnaryMintOp)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsUnaryMintOp()->op_kind();
-  }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
-  const Token::Kind op_kind_;
-
   DISALLOW_COPY_AND_ASSIGN(UnaryMintOpInstr);
 };
 
 
-class BinarySmiOpInstr : public TemplateDefinition<2> {
+class BinaryIntegerOpInstr : public TemplateDefinition<2> {
  public:
-  BinarySmiOpInstr(Token::Kind op_kind,
-                   Value* left,
-                   Value* right,
-                   intptr_t deopt_id,
-                   intptr_t token_pos)
+  BinaryIntegerOpInstr(Token::Kind op_kind,
+                       Value* left,
+                       Value* right,
+                       intptr_t deopt_id)
       : op_kind_(op_kind),
-        overflow_(true),
-        is_truncating_(false),
-        token_pos_(token_pos) {
+        can_overflow_(true),
+        is_truncating_(false) {
     SetInputAt(0, left);
     SetInputAt(1, right);
     // Override generated deopt-id.
     deopt_id_ = deopt_id;
   }
 
+  static BinaryIntegerOpInstr* Make(Representation representation,
+                                    Token::Kind op_kind,
+                                    Value* left,
+                                    Value* right,
+                                    intptr_t deopt_id,
+                                    bool can_overflow,
+                                    bool is_truncating,
+                                    Range* range);
+
+  Token::Kind op_kind() const { return op_kind_; }
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
-  virtual intptr_t token_pos() const { return token_pos_; }
-  Token::Kind op_kind() const { return op_kind_; }
+  bool can_overflow() const { return can_overflow_; }
+  void set_can_overflow(bool overflow) {
+    ASSERT(!is_truncating_ || !overflow);
+    can_overflow_ = overflow;
+  }
 
-  void set_overflow(bool overflow) { overflow_ = overflow; }
+  bool is_truncating() const { return is_truncating_; }
+  void mark_truncating() {
+    is_truncating_ = true;
+    set_can_overflow(false);
+  }
 
-  void set_is_truncating(bool value) { is_truncating_ = value; }
-  bool IsTruncating() const { return is_truncating_ || !overflow_; }
+  // Returns true if right is a non-zero Smi constant which absolute value is
+  // a power of two.
+  bool RightIsPowerOfTwoConstant() const;
 
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  RawInteger* Evaluate(const Integer& left, const Integer& right) const;
 
-  DECLARE_INSTRUCTION(BinarySmiOp)
-  virtual CompileType ComputeType() const;
-
-  virtual bool CanDeoptimize() const;
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
 
-  void PrintTo(BufferFormatter* f) const;
-
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  // Returns true if right is a non-zero Smi constant which absolute value is
-  // a power of two.
-  bool RightIsPowerOfTwoConstant() const;
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
 
   virtual bool MayThrow() const { return false; }
 
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
-  }
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DEFINE_INSTRUCTION_TYPE_CHECK(BinaryIntegerOp)
+
+ protected:
+  void InferRangeHelper(const Range* left_range,
+                        const Range* right_range,
+                        Range* range);
 
  private:
   const Token::Kind op_kind_;
-  bool overflow_;
-  bool is_truncating_;
-  const intptr_t token_pos_;
 
+  bool can_overflow_;
+  bool is_truncating_;
+};
+
+
+class BinarySmiOpInstr : public BinaryIntegerOpInstr {
+ public:
+  BinarySmiOpInstr(Token::Kind op_kind,
+                   Value* left,
+                   Value* right,
+                   intptr_t deopt_id)
+      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {
+  }
+
+  virtual bool CanDeoptimize() const;
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+  virtual CompileType ComputeType() const;
+
+  DECLARE_INSTRUCTION(BinarySmiOp)
+
+ private:
   DISALLOW_COPY_AND_ASSIGN(BinarySmiOpInstr);
 };
 
 
-class BinaryInt32OpInstr : public TemplateDefinition<2> {
+class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
  public:
   BinaryInt32OpInstr(Token::Kind op_kind,
                      Value* left,
                      Value* right,
                      intptr_t deopt_id)
-      : op_kind_(op_kind),
-        overflow_(true),
-        is_truncating_(false) {
+      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
   }
 
   static bool IsSupported(Token::Kind op, Value* left, Value* right) {
@@ -6986,32 +6968,7 @@ class BinaryInt32OpInstr : public TemplateDefinition<2> {
 #endif
   }
 
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  Token::Kind op_kind() const { return op_kind_; }
-
-  void set_overflow(bool overflow) { overflow_ = overflow; }
-
-  void set_is_truncating(bool value) { is_truncating_ = value; }
-  bool IsTruncating() const { return is_truncating_ || !overflow_; }
-
-  void PrintTo(BufferFormatter* f) const;
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  DECLARE_INSTRUCTION(BinaryInt32Op)
-  virtual CompileType ComputeType() const;
-
   virtual bool CanDeoptimize() const;
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual Representation representation() const {
     return kUnboxedInt32;
@@ -7022,59 +6979,147 @@ class BinaryInt32OpInstr : public TemplateDefinition<2> {
     return kUnboxedInt32;
   }
 
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
-  }
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+  virtual CompileType ComputeType() const;
 
-  virtual bool MayThrow() const { return false; }
+  DECLARE_INSTRUCTION(BinaryInt32Op)
 
  private:
-  const Token::Kind op_kind_;
-  bool overflow_;
-  bool is_truncating_;
-
   DISALLOW_COPY_AND_ASSIGN(BinaryInt32OpInstr);
 };
 
 
-// Handles both Smi operations: BIT_OR and NEGATE.
-class UnarySmiOpInstr : public TemplateDefinition<1> {
+class BinaryUint32OpInstr : public BinaryIntegerOpInstr {
  public:
-  UnarySmiOpInstr(Token::Kind op_kind,
-                  Value* value,
-                  intptr_t deopt_id)
-      : op_kind_(op_kind) {
-    ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT));
-    SetInputAt(0, value);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
+  BinaryUint32OpInstr(Token::Kind op_kind,
+                      Value* left,
+                      Value* right,
+                      intptr_t deopt_id)
+      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {
+    mark_truncating();
   }
 
-  Value* value() const { return inputs_[0]; }
-  Token::Kind op_kind() const { return op_kind_; }
+  virtual bool CanDeoptimize() const {
+    return false;
+  }
 
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  virtual Representation representation() const {
+    return kUnboxedUint32;
+  }
 
-  DECLARE_INSTRUCTION(UnarySmiOp)
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedUint32;
+  }
+
   virtual CompileType ComputeType() const;
 
-  virtual bool CanDeoptimize() const { return op_kind() == Token::kNEGATE; }
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsUnarySmiOp()->op_kind() == op_kind();
-  }
-
-  virtual bool MayThrow() const { return false; }
+  DECLARE_INSTRUCTION(BinaryUint32Op)
 
  private:
-  const Token::Kind op_kind_;
+  DISALLOW_COPY_AND_ASSIGN(BinaryUint32OpInstr);
+};
 
-  DISALLOW_COPY_AND_ASSIGN(UnarySmiOpInstr);
+
+class ShiftUint32OpInstr : public BinaryIntegerOpInstr {
+ public:
+  ShiftUint32OpInstr(Token::Kind op_kind,
+                     Value* left,
+                     Value* right,
+                     intptr_t deopt_id)
+      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {
+    ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
+  }
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual Representation representation() const {
+    return kUnboxedUint32;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return (idx == 0) ? kUnboxedUint32 : kTagged;
+  }
+
+  virtual CompileType ComputeType() const;
+
+  DECLARE_INSTRUCTION(ShiftUint32Op)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ShiftUint32OpInstr);
+};
+
+
+class BinaryMintOpInstr : public BinaryIntegerOpInstr {
+ public:
+  BinaryMintOpInstr(Token::Kind op_kind,
+                    Value* left,
+                    Value* right,
+                    intptr_t deopt_id)
+      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {
+  }
+
+  virtual bool CanDeoptimize() const {
+    return FLAG_throw_on_javascript_int_overflow
+        || (can_overflow() && ((op_kind() == Token::kADD) ||
+                               (op_kind() == Token::kSUB)))
+        || (op_kind() == Token::kMUL);  // Deopt if inputs are not int32.
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedMint;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedMint;
+  }
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+  virtual CompileType ComputeType() const;
+
+  DECLARE_INSTRUCTION(BinaryMintOp)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BinaryMintOpInstr);
+};
+
+
+class ShiftMintOpInstr : public BinaryIntegerOpInstr {
+ public:
+  ShiftMintOpInstr(Token::Kind op_kind,
+                   Value* left,
+                   Value* right,
+                   intptr_t deopt_id)
+      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {
+    ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
+  }
+
+  virtual bool CanDeoptimize() const {
+    return FLAG_throw_on_javascript_int_overflow
+        || has_shift_count_check()
+        || (can_overflow() && (op_kind() == Token::kSHL));
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedMint;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return (idx == 0) ? kUnboxedMint : kTagged;
+  }
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+  virtual CompileType ComputeType() const;
+
+  DECLARE_INSTRUCTION(ShiftMintOp)
+
+ private:
+  bool has_shift_count_check() const;
+
+  DISALLOW_COPY_AND_ASSIGN(ShiftMintOpInstr);
 };
 
 
@@ -7810,183 +7855,6 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 };
 
 
-class BinaryUint32OpInstr : public TemplateDefinition<2> {
- public:
-  BinaryUint32OpInstr(Token::Kind op_kind,
-                      Value* left,
-                      Value* right,
-                      intptr_t deopt_id)
-      : op_kind_(op_kind) {
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
-  }
-
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  Token::Kind op_kind() const { return op_kind_; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const {
-    return false;
-  }
-
-  virtual Representation representation() const {
-    return kUnboxedUint32;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT((idx == 0) || (idx == 1));
-    return kUnboxedUint32;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
-  }
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  DECLARE_INSTRUCTION(BinaryUint32Op)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const {
-    ASSERT(other->IsBinaryUint32Op());
-    return op_kind() == other->AsBinaryUint32Op()->op_kind();
-  }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const Token::Kind op_kind_;
-
-  DISALLOW_COPY_AND_ASSIGN(BinaryUint32OpInstr);
-};
-
-
-class ShiftUint32OpInstr : public TemplateDefinition<2> {
- public:
-  ShiftUint32OpInstr(Token::Kind op_kind,
-                     Value* left,
-                     Value* right,
-                     intptr_t deopt_id)
-      : op_kind_(op_kind) {
-    ASSERT(op_kind == Token::kSHR || op_kind == Token::kSHL);
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
-  }
-
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  Token::Kind op_kind() const { return op_kind_; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const {
-    return true;
-  }
-
-  virtual CompileType ComputeType() const;
-
-  virtual Representation representation() const {
-    return kUnboxedUint32;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT((idx == 0) || (idx == 1));
-    return (idx == 0) ? kUnboxedUint32 : kTagged;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
-  }
-
-  DECLARE_INSTRUCTION(ShiftUint32Op)
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsShiftUint32Op()->op_kind();
-  }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const Token::Kind op_kind_;
-
-  DISALLOW_COPY_AND_ASSIGN(ShiftUint32OpInstr);
-};
-
-
-class UnaryUint32OpInstr : public TemplateDefinition<1> {
- public:
-  UnaryUint32OpInstr(Token::Kind op_kind,
-                     Value* value,
-                     intptr_t deopt_id)
-      : op_kind_(op_kind) {
-    ASSERT(op_kind == Token::kBIT_NOT);
-    SetInputAt(0, value);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
-  }
-
-  Value* value() const { return inputs_[0]; }
-
-  Token::Kind op_kind() const { return op_kind_; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const {
-    return false;
-  }
-
-  virtual Representation representation() const {
-    return kUnboxedUint32;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0);
-    return kUnboxedUint32;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
-  }
-
-  DECLARE_INSTRUCTION(UnaryUint32Op)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsUnaryUint32Op()->op_kind();
-  }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const Token::Kind op_kind_;
-
-  DISALLOW_COPY_AND_ASSIGN(UnaryUint32OpInstr);
-};
-
-
 class BoxIntNInstr : public TemplateDefinition<1> {
  public:
   BoxIntNInstr(Representation representation, Value* value)
@@ -8024,9 +7892,8 @@ class BoxIntNInstr : public TemplateDefinition<1> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual BoxIntNInstr* AsBoxIntN() { return this; }
-
-  DECLARE_INSTRUCTION_BACKEND(BoxIntN)
+  DEFINE_INSTRUCTION_TYPE_CHECK(BoxIntN)
+  DECLARE_INSTRUCTION_BACKEND()
 
  private:
   const Representation from_representation_;
@@ -8096,11 +7963,10 @@ class UnboxIntNInstr : public TemplateDefinition<1> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual UnboxIntNInstr* AsUnboxIntN() { return this; }
-
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  DECLARE_INSTRUCTION_BACKEND(UnboxIntNInstr);
+  DEFINE_INSTRUCTION_TYPE_CHECK(UnboxIntN)
+  DECLARE_INSTRUCTION_BACKEND()
 
  private:
   const Representation representation_;
