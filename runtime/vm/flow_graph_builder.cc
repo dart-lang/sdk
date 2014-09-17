@@ -2387,17 +2387,38 @@ void EffectGraphVisitor::VisitStringInterpolateNode(
     StringInterpolateNode* node) {
   ValueGraphVisitor for_argument(owner());
   ArrayNode* arguments = node->value();
-  bool is_singleton = false;
   if (arguments->length() == 1) {
+    ZoneGrowableArray<PushArgumentInstr*>* values =
+        new(I) ZoneGrowableArray<PushArgumentInstr*>(1);
     arguments->ElementAt(0)->Visit(&for_argument);
-    is_singleton = true;
-  } else {
-    arguments->Visit(&for_argument);
+    Append(for_argument);
+    PushArgumentInstr* push_arg = PushArgument(for_argument.value());
+    values->Add(push_arg);
+    const int kNumberOfArguments = 1;
+    const Array& kNoArgumentNames = Object::null_array();
+    const Class& cls =
+        Class::Handle(Library::LookupCoreClass(Symbols::StringBase()));
+    ASSERT(!cls.IsNull());
+    const Function& function = Function::ZoneHandle(
+        isolate(),
+        Resolver::ResolveStatic(
+            cls,
+            Library::PrivateCoreLibName(Symbols::InterpolateSingle()),
+            kNumberOfArguments,
+            kNoArgumentNames));
+    StaticCallInstr* call =
+        new(I) StaticCallInstr(node->token_pos(),
+                               function,
+                               kNoArgumentNames,
+                               values,
+                               owner()->ic_data_array());
+    ReturnDefinition(call);
+    return;
   }
+  arguments->Visit(&for_argument);
   Append(for_argument);
   StringInterpolateInstr* instr =
-      new(I) StringInterpolateInstr(for_argument.value(), node->token_pos(),
-                                    is_singleton);
+      new(I) StringInterpolateInstr(for_argument.value(), node->token_pos());
   ReturnDefinition(instr);
 }
 
