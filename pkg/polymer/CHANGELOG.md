@@ -1,3 +1,8 @@
+#### 0.14.2-dev
+  * Pub will now create helpful index pages in all folders containing entry
+    points and in their parent folders, in debug mode only
+    [20963](http://dartbug.com/20963).
+
 #### 0.14.1
   * The build.dart file no longer requires a list of entry points, and you can
     replace the entire file with `export 'package:polymer/default_build.dart';`

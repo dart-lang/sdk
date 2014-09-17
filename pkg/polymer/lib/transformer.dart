@@ -11,6 +11,7 @@ import 'package:path/path.dart' as path;
 
 import 'src/build/build_filter.dart';
 import 'src/build/common.dart';
+import 'src/build/index_page_builder.dart';
 import 'src/build/import_inliner.dart';
 import 'src/build/linter.dart';
 import 'src/build/build_log_combiner.dart';
@@ -118,7 +119,7 @@ List<List<Transformer>> createDeployPhases(
   // that is reachable and have the option to lint the rest (similar to how
   // dart2js can analyze reachable code or entire libraries).
   var phases = options.lint ? [[new Linter(options)]] : [];
-  return phases..addAll([
+  phases.addAll([
     [new ImportInliner(options)],
     [new ObservableTransformer()],
     [new ScriptCompactor(options, sdkDir: sdkDir)],
@@ -126,6 +127,10 @@ List<List<Transformer>> createDeployPhases(
     [new BuildFilter(options)],
     [new BuildLogCombiner(options)],
   ]);
+  if (!options.releaseMode) {
+    phases.add([new IndexPageBuilder(options)]);
+  }
+  return phases;
 }
 
 final RegExp _PACKAGE_PATH_REGEX = new RegExp(r'packages\/([^\/]+)\/(.*)');
