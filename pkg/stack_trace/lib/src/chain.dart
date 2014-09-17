@@ -35,14 +35,6 @@ typedef void ChainHandler(error, Chain chain);
 ///       print("Caught error $error\n"
 ///             "$stackChain");
 ///     });
-///
-/// For the most part [Chain.capture] will notice when an error is thrown and
-/// associate the correct stack chain with it; the chain can be accessed using
-/// [new Chain.forTrace]. However, there are some cases where exceptions won't
-/// be automatically detected: any [Future] constructor,
-/// [Completer.completeError], [Stream.addError], and libraries that use these.
-/// For these, all you need to do is wrap the Future or Stream in a call to
-/// [Chain.track] and the errors will be tracked correctly.
 class Chain implements StackTrace {
   /// The line used in the string representation of stack chains to represent
   /// the gap between traces.
@@ -68,13 +60,6 @@ class Chain implements StackTrace {
   /// [onError] may be called more than once. If [onError] isn't passed, the
   /// parent Zone's `unhandledErrorHandler` will be called with the error and
   /// its chain.
-  ///
-  /// For the most part an error thrown in the zone will have the correct stack
-  /// chain associated with it. However, there are some cases where exceptions
-  /// won't be automatically detected: any [Future] constructor,
-  /// [Completer.completeError], [Stream.addError], and libraries that use
-  /// these. For these, all you need to do is wrap the Future or Stream in a
-  /// call to [Chain.track] and the errors will be tracked correctly.
   ///
   /// Note that even if [onError] isn't passed, this zone will still be an error
   /// zone. This means that any errors that would cross the zone boundary are

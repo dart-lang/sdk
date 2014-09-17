@@ -22,9 +22,9 @@ import 'chain.dart';
 ///   it can be available to [Chain.current] and to be linked into additional
 ///   chains when more callbacks are scheduled.
 ///
-/// * When a callback throws an error or a [Chain.track]ed Future or Stream
-///   emits an error, the current node is associated with that error's stack
-///   trace using the [_chains] expando.
+/// * When a callback throws an error or a Future or Stream emits an error, the
+///   current node is associated with that error's stack trace using the
+///   [_chains] expando.
 ///
 /// Since [ZoneSpecification] can't be extended or even implemented, in order to
 /// get a real [ZoneSpecification] instance it's necessary to call [toSpec].
