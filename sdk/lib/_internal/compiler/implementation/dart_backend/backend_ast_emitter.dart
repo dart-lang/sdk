@@ -128,7 +128,9 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
         parameters,
         body,
         name: functionElement.name,
-        returnType: emitOptionalType(functionType.returnType))
+        returnType: emitOptionalType(functionType.returnType),
+        isGetter: functionElement.isGetter,
+        isSetter: functionElement.isSetter)
         ..element = functionElement;
   }
 

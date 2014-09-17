@@ -99,11 +99,6 @@ class IrBuilderTask extends CompilerTask {
 
     if (!compiler.backend.shouldOutput(function)) return false;
 
-    // TODO(kmillikin): support getters and setters and static class members.
-    // With the current Dart Tree emitter they just require recognizing them
-    // and generating the correct syntax.
-    if (element.isGetter || element.isSetter) return false;
-
     // TODO(lry): support native functions (also in [visitReturn]).
     if (function.isNative) return false;
 
