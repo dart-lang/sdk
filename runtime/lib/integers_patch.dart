@@ -22,17 +22,17 @@ patch class int {
         return null;  // Empty.
       }
     }
-    int smiLimit = is64Bit() ? 18 : 9;
+    var smiLimit = is64Bit() ? 18 : 9;
     if ((last - ix) >= smiLimit) {
       return null;  // May not fit into a Smi.
     }
     var result = 0;
     for (int i = ix; i <= last; i++) {
-      var c = str.codeUnitAt(i) - 0x30;
-      if ((c > 9) || (c < 0)) {
+      var c = 0x30 ^ str.codeUnitAt(i);
+      if (9 < c) {
         return null;
       }
-      result = result * 10 + c;
+      result = 10 * result + c;
     }
     return sign * result;
   }
@@ -62,6 +62,7 @@ patch class int {
   /* patch */ static int parse(String source,
                                { int radix,
                                  int onError(String str) }) {
+    if (identical(source, null)) throw new ArgumentError(source);
     if (radix == null) {
       int result;
       if (source.isNotEmpty) result = _parse(source);
