@@ -705,6 +705,7 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
         element is TypeParameterElement) {
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     } else if (element is PrefixElement) {
+      recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
       _recordImportElementReferenceWithPrefix(node);
     } else if (element is ParameterElement || element is LocalVariableElement) {
       bool inGetterContext = node.inGetterContext();

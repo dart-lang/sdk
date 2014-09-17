@@ -235,6 +235,9 @@ ElementKind _elementKindFromEngine(engine.ElementKind kind) {
   if (kind == engine.ElementKind.PARAMETER) {
     return ElementKind.PARAMETER;
   }
+  if (kind == engine.ElementKind.PREFIX) {
+    return ElementKind.PREFIX;
+  }
   if (kind == engine.ElementKind.SETTER) {
     return ElementKind.SETTER;
   }

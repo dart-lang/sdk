@@ -45,6 +45,9 @@ class SearchDomainHandler implements protocol.RequestHandler {
     List<Element> elements = server.getElementsAtOffset(params.file,
         params.offset);
     elements = elements.map((Element element) {
+      if (element is ImportElement) {
+        return element.prefix;
+      }
       if (element is FieldFormalParameterElement) {
         return element.field;
       }

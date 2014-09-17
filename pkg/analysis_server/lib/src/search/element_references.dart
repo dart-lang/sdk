@@ -122,6 +122,9 @@ class ElementReferencesComputer {
     if (element is ParameterElement) {
       return true;
     }
+    if (element is PrefixElement) {
+      return true;
+    }
     if (element is PropertyInducingElement) {
       return !element.isSynthetic;
     }

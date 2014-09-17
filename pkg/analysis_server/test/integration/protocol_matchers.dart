@@ -1092,6 +1092,7 @@ final Matcher isElement = new LazyMatcher(() => new MatchesJsonObject(
  *   LOCAL_VARIABLE
  *   METHOD
  *   PARAMETER
+ *   PREFIX
  *   SETTER
  *   TOP_LEVEL_VARIABLE
  *   TYPE_PARAMETER
@@ -1114,6 +1115,7 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "LOCAL_VARIABLE",
   "METHOD",
   "PARAMETER",
+  "PREFIX",
   "SETTER",
   "TOP_LEVEL_VARIABLE",
   "TYPE_PARAMETER",

@@ -297,6 +297,25 @@ main(A a, B b, C c) {
     });
   }
 
+  test_prefix() {
+    addTestFile('''
+import 'dart:async' as ppp;
+main() {
+  ppp.Future a;
+  ppp.Stream b;
+}
+''');
+    return findElementReferences("ppp;", false).then((_) {
+      expect(searchElement.kind, ElementKind.PREFIX);
+      expect(searchElement.name, 'ppp');
+      expect(searchElement.location.startLine, 1);
+      expect(results, hasLength(3));
+      assertHasResult(SearchResultKind.DECLARATION, 'ppp;');
+      assertHasResult(SearchResultKind.REFERENCE, 'ppp.Future');
+      assertHasResult(SearchResultKind.REFERENCE, 'ppp.Stream');
+    });
+  }
+
   test_label() {
     addTestFile('''
 main() {

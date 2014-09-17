@@ -5772,6 +5772,7 @@ class Element implements HasToJson {
  *   LOCAL_VARIABLE
  *   METHOD
  *   PARAMETER
+ *   PREFIX
  *   SETTER
  *   TOP_LEVEL_VARIABLE
  *   TYPE_PARAMETER
@@ -5806,6 +5807,8 @@ class ElementKind {
   static const METHOD = const ElementKind._("METHOD");
 
   static const PARAMETER = const ElementKind._("PARAMETER");
+
+  static const PREFIX = const ElementKind._("PREFIX");
 
   static const SETTER = const ElementKind._("SETTER");
 
@@ -5851,6 +5854,8 @@ class ElementKind {
         return METHOD;
       case "PARAMETER":
         return PARAMETER;
+      case "PREFIX":
+        return PREFIX;
       case "SETTER":
         return SETTER;
       case "TOP_LEVEL_VARIABLE":

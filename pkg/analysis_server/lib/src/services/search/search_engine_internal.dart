@@ -64,10 +64,9 @@ class SearchEngineImpl implements SearchEngine {
         element.kind == ElementKind.ANGULAR_SELECTOR) {
       return _searchReferences_Angular(element as AngularElement);
     } else if (element.kind == ElementKind.CLASS) {
-      return _searchReferences_Class(element as ClassElement);
+      return _searchReferences(element);
     } else if (element.kind == ElementKind.COMPILATION_UNIT) {
-      return _searchReferences_CompilationUnit(
-          element as CompilationUnitElement);
+      return _searchReferences(element);
     } else if (element.kind == ElementKind.CONSTRUCTOR) {
       return _searchReferences_Constructor(element as ConstructorElement);
     } else if (element.kind == ElementKind.FIELD ||
@@ -77,25 +76,25 @@ class SearchEngineImpl implements SearchEngine {
       return _searchReferences_Function(element as FunctionElement);
     } else if (element.kind == ElementKind.GETTER ||
         element.kind == ElementKind.SETTER) {
-      return _searchReferences_PropertyAccessor(
-          element as PropertyAccessorElement);
+      return _searchReferences(element);
     } else if (element.kind == ElementKind.IMPORT) {
-      return _searchReferences_Import(element as ImportElement);
+      return _searchReferences(element);
     } else if (element.kind == ElementKind.LABEL) {
-      return _searchReferences_Label(element as LabelElement);
+      return _searchReferences(element);
     } else if (element.kind == ElementKind.LIBRARY) {
-      return _searchReferences_Library(element as LibraryElement);
+      return _searchReferences(element);
     } else if (element.kind == ElementKind.LOCAL_VARIABLE) {
       return _searchReferences_LocalVariable(element as LocalVariableElement);
     } else if (element.kind == ElementKind.METHOD) {
       return _searchReferences_Method(element as MethodElement);
     } else if (element.kind == ElementKind.PARAMETER) {
       return _searchReferences_Parameter(element as ParameterElement);
+    } else if (element.kind == ElementKind.PREFIX) {
+      return _searchReferences(element);
     } else if (element.kind == ElementKind.FUNCTION_TYPE_ALIAS) {
-      return _searchReferences_FunctionTypeAlias(
-          element as FunctionTypeAliasElement);
+      return _searchReferences(element);
     } else if (element.kind == ElementKind.TYPE_PARAMETER) {
-      return _searchReferences_TypeParameter(element as TypeParameterElement);
+      return _searchReferences(element);
     }
     return new Future.value(<SearchMatch>[]);
   }
@@ -123,6 +122,15 @@ class SearchEngineImpl implements SearchEngine {
     });
   }
 
+  Future<List<SearchMatch>> _searchReferences(Element element) {
+    _Requestor requestor = new _Requestor(_index);
+    requestor.add(
+        element,
+        IndexConstants.IS_REFERENCED_BY,
+        MatchKind.REFERENCE);
+    return requestor.merge();
+  }
+
   Future<List<SearchMatch>> _searchReferences_Angular(AngularElement element) {
     _Requestor requestor = new _Requestor(_index);
     requestor.add(
@@ -133,19 +141,6 @@ class SearchEngineImpl implements SearchEngine {
         element,
         IndexConstants.ANGULAR_CLOSING_TAG_REFERENCE,
         MatchKind.ANGULAR_CLOSING_TAG_REFERENCE);
-    return requestor.merge();
-  }
-
-  Future<List<SearchMatch>> _searchReferences_Class(ClassElement clazz) {
-    _Requestor requestor = new _Requestor(_index);
-    requestor.add(clazz, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
-    return requestor.merge();
-  }
-
-  Future<List<SearchMatch>>
-      _searchReferences_CompilationUnit(CompilationUnitElement unit) {
-    _Requestor requestor = new _Requestor(_index);
-    requestor.add(unit, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
     return requestor.merge();
   }
 
@@ -195,37 +190,6 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   Future<List<SearchMatch>>
-      _searchReferences_FunctionTypeAlias(FunctionTypeAliasElement alias) {
-    _Requestor requestor = new _Requestor(_index);
-    requestor.add(alias, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
-    return requestor.merge();
-  }
-
-  Future<List<SearchMatch>> _searchReferences_Import(ImportElement imp) {
-    _Requestor requestor = new _Requestor(_index);
-    requestor.add(imp, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
-    return requestor.merge();
-  }
-
-  Future<List<SearchMatch>> _searchReferences_Label(LabelElement variable) {
-    _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        variable,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.REFERENCE);
-    return requestor.merge();
-  }
-
-  Future<List<SearchMatch>> _searchReferences_Library(LibraryElement library) {
-    _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        library,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.REFERENCE);
-    return requestor.merge();
-  }
-
-  Future<List<SearchMatch>>
       _searchReferences_LocalVariable(LocalVariableElement variable) {
     _Requestor requestor = new _Requestor(_index);
     requestor.add(variable, IndexConstants.IS_READ_BY, MatchKind.READ);
@@ -265,26 +229,6 @@ class SearchEngineImpl implements SearchEngine {
         parameter,
         IndexConstants.IS_INVOKED_BY,
         MatchKind.INVOCATION);
-    return requestor.merge();
-  }
-
-  Future<List<SearchMatch>>
-      _searchReferences_PropertyAccessor(PropertyAccessorElement accessor) {
-    _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        accessor,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.REFERENCE);
-    return requestor.merge();
-  }
-
-  Future<List<SearchMatch>>
-      _searchReferences_TypeParameter(TypeParameterElement typeParameter) {
-    _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        typeParameter,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.REFERENCE);
     return requestor.merge();
   }
 }
