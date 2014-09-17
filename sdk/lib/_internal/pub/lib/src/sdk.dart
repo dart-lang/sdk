@@ -39,8 +39,36 @@ Version _getVersion() {
   var sdkVersion = Platform.environment["_PUB_TEST_SDK_VERSION"];
   if (sdkVersion != null) return new Version.parse(sdkVersion);
 
-  // Read the "version" file.
-  var revisionPath = path.join(_rootDirectory, "version");
-  var version = readTextFile(revisionPath).trim();
+  if (runningFromSdk) {
+    // Read the "version" file.
+    var version = readTextFile(path.join(_rootDirectory, "version")).trim();
+    return new Version.parse(version);
+  }
+
+  // When running from the repo, read the canonical VERSION file in tools/.
+  // This makes it possible to run pub without having built the SDK first.
+  var contents = readTextFile(path.join(repoRoot, "tools/VERSION"));
+
+  parseField(name) {
+    var pattern = new RegExp("^$name ([a-z0-9]+)", multiLine: true);
+    var match = pattern.firstMatch(contents);
+    return match[1];
+  }
+
+  var channel = parseField("CHANNEL");
+  var major = parseField("MAJOR");
+  var minor = parseField("MINOR");
+  var patch = parseField("PATCH");
+  var prerelease = parseField("PRERELEASE");
+  var prereleasePatch = parseField("PRERELEASE_PATCH");
+
+  var version = "$major.$minor.$patch";
+  if (channel == "be") {
+    // TODO(rnystrom): tools/utils.py includes the svn commit here. Should we?
+    version += "-edge";
+  } else if (channel == "dev") {
+    version += "-dev.$prerelease.$prereleasePatch";
+  }
+
   return new Version.parse(version);
 }
