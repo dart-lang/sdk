@@ -31,7 +31,8 @@ class TransformerId {
   bool operator ==(other) =>
       other is TransformerId && other.package == package && other.path == path;
   int get hashCode => package.hashCode ^ path.hashCode;
-  String toString() => path == null ? package : '$package/$path';
+  String serialize() => path == null ? package : '$package/$path';
+  String toString() => serialize();
   Future<AssetId> getAssetId(Barback barback) {
     if (path != null) {
       return new Future.value(new AssetId(package, 'lib/$path.dart'));

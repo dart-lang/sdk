@@ -12,6 +12,15 @@ import 'package:barback/barback.dart';
 
 import 'serialize.dart';
 
+/// The mirror system.
+///
+/// Cached to avoid re-instantiating each time a transformer is initialized.
+final _mirrors = currentMirrorSystem();
+
+/// The URI of this library.
+final _baseUri = _mirrors.findLibrary(
+    const Symbol('pub.asset.transformer_isolate')).uri;
+
 /// Sets up the initial communication with the host isolate.
 void loadTransformers(SendPort replyTo) {
   var port = new ReceivePort();
@@ -20,10 +29,9 @@ void loadTransformers(SendPort replyTo) {
     // TODO(nweiz): When issue 19228 is fixed, spin up a separate isolate for
     // libraries loaded beyond the first so they can run in parallel.
     respond(wrappedMessage, (message) {
-      var library = Uri.parse(message['library']);
       var configuration = JSON.decode(message['configuration']);
       var mode = new BarbackMode(message['mode']);
-      return _initialize(library, configuration, mode).
+      return _initialize(message['library'], configuration, mode).
           map(serializeTransformerLike).toList();
     });
   });
@@ -33,8 +41,7 @@ void loadTransformers(SendPort replyTo) {
 ///
 /// Loads the library, finds any [Transformer] or [TransformerGroup] subclasses
 /// in it, instantiates them with [configuration] and [mode], and returns them.
-List _initialize(Uri uri, Map configuration, BarbackMode mode) {
-  var mirrors = currentMirrorSystem();
+List _initialize(String uri, Map configuration, BarbackMode mode) {
   var transformerClass = reflectClass(Transformer);
   var aggregateClass = _aggregateTransformerClass;
   var groupClass = reflectClass(TransformerGroup);
@@ -79,7 +86,7 @@ List _initialize(Uri uri, Map configuration, BarbackMode mode) {
     }).where((classMirror) => classMirror != null));
   }
 
-  loadFromLibrary(mirrors.libraries[uri]);
+  loadFromLibrary(_mirrors.libraries[_baseUri.resolve(uri)]);
   return transformers;
 }
 

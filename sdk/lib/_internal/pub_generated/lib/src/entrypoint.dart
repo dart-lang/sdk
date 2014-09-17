@@ -66,6 +66,8 @@ class Entrypoint {
         result.summarizeChanges(type, dryRun: dryRun);
         return loadPackageGraph(result);
       }).then((packageGraph) {
+        packageGraph.loadTransformerCache().clearIfOutdated(
+            result.changedPackages);
         return precompileExecutables(
             changed: result.changedPackages).catchError((error, stackTrace) {
           log.exception(error, stackTrace);

@@ -72,7 +72,11 @@ class TransformerId {
 
   int get hashCode => package.hashCode ^ path.hashCode;
 
-  String toString() => path == null ? package : '$package/$path';
+  /// Returns a serialized form of [this] that can be passed to
+  /// [new TransformerId.parse].
+  String serialize() => path == null ? package : '$package/$path';
+
+  String toString() => serialize();
 
   /// Returns the asset id for the library identified by this transformer id.
   ///

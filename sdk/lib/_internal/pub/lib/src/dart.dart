@@ -6,6 +6,7 @@
 library pub.dart;
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:analyzer/analyzer.dart';
@@ -18,6 +19,7 @@ import '../../../compiler/implementation/filenames.dart'
 
 import '../../asset/dart/serialize.dart';
 import 'io.dart';
+import 'log.dart' as log;
 
 import 'utils.dart';
 /// Interface to communicate with dart2js.
@@ -147,24 +149,46 @@ class _DirectiveCollector extends GeneralizingAstVisitor {
 /// passed to the [main] method of the code being run; the caller is responsible
 /// for using this to establish communication with the isolate.
 ///
+/// If [snapshot] is passed, the isolate will be loaded from that path if it
+/// exists. Otherwise, a snapshot of the isolate's code will be saved to that
+/// path once the isolate is loaded.
+///
 /// Returns a Future that will fire when the isolate has been spawned. If the
 /// isolate fails to spawn, the Future will complete with an error.
-Future runInIsolate(String code, message) {
-  return withTempDir((dir) {
+Future runInIsolate(String code, message, {String snapshot}) {
+  if (snapshot != null && fileExists(snapshot)) {
+    log.fine("Spawning isolate from $snapshot.");
+    return Chain.track(Isolate.spawnUri(path.toUri(snapshot), [], message));
+  }
+
+  return withTempDir((dir) async {
     var dartPath = path.join(dir, 'runInIsolate.dart');
     writeTextFile(dartPath, code, dontLogContents: true);
     var port = new ReceivePort();
-    return Chain.track(Isolate.spawn(_isolateBuffer, {
+    await Chain.track(Isolate.spawn(_isolateBuffer, {
       'replyTo': port.sendPort,
       'uri': path.toUri(dartPath).toString(),
       'message': message
-    })).then((_) => port.first).then((response) {
-      if (response['type'] == 'success') return null;
-      assert(response['type'] == 'error');
-      return new Future.error(
-          new CrossIsolateException.deserialize(response['error']),
-          new Chain.current());
-    });
+    }));
+
+    var response = await port.first;
+    if (response['type'] == 'error') {
+      throw new CrossIsolateException.deserialize(response['error']);
+    }
+
+    if (snapshot == null) return;
+
+    ensureDir(path.dirname(snapshot));
+    var result = await runProcess(Platform.executable, [
+      '--snapshot=$snapshot', dartPath
+    ]);
+
+    if (result.success) return;
+
+    // Don't emit a fatal error here, since we don't want to crash the
+    // otherwise successful isolate load.
+    log.warning("Failed to compile a snapshot to "
+        "${path.relative(snapshot)}:\n" + result.stderr.join("\n"));
   });
 }
 

@@ -144,6 +144,9 @@ class Entrypoint {
         /// have to reload and reparse all the pubspecs.
         return loadPackageGraph(result);
       }).then((packageGraph) {
+        packageGraph.loadTransformerCache()
+            .clearIfOutdated(result.changedPackages);
+
         return precompileExecutables(changed: result.changedPackages)
             .catchError((error, stackTrace) {
           // Just log exceptions here. Since the method is just about acquiring

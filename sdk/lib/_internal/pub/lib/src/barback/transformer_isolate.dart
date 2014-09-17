@@ -45,8 +45,13 @@ class TransformerIsolate {
   /// This doesn't actually instantiate any transformers, since a
   /// [TransformerId] doesn't define the transformers' configuration. The
   /// transformers can be constructed using [create].
+  ///
+  /// If [snapshot] is passed, the isolate will be loaded from that path if it
+  /// exists. Otherwise, a snapshot of the isolate's code will be saved to that
+  /// path once the isolate is loaded.
   static Future<TransformerIsolate> spawn(AssetEnvironment environment,
-      BarbackServer transformerServer, List<TransformerId> ids) {
+      BarbackServer transformerServer, List<TransformerId> ids,
+      {String snapshot}) {
     return mapFromIterableAsync(ids, value: (id) {
       return id.getAssetId(environment.barback);
     }).then((idsToAssetIds) {
@@ -72,7 +77,8 @@ class TransformerIsolate {
       log.fine("Loading transformers from $ids");
 
       var port = new ReceivePort();
-      return dart.runInIsolate(code.toString(), port.sendPort)
+      return dart.runInIsolate(code.toString(), port.sendPort,
+              snapshot: snapshot)
           .then((_) => port.first)
           .then((sendPort) {
         return new TransformerIsolate._(sendPort, environment.mode, idsToUrls);
@@ -107,7 +113,11 @@ class TransformerIsolate {
   /// return an empty set.
   Future<Set<Transformer>> create(TransformerConfig config) {
     return call(_port, {
-      'library': _idsToUrls[config.id].toString(),
+      // TODO(nweiz): Right now, we can load a library either from a running
+      // server or from a snapshot. This means the base URL isn't known except
+      // in the isolate, so we pass just the path.component and let the isolate
+      // resolve it. When issue 12474 is fixed, we can send the full URL.
+      'library': _idsToUrls[config.id].path.toString(),
       'mode': _mode.name,
       'configuration': JSON.encode(config.configuration)
     }).then((transformers) {

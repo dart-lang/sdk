@@ -4,6 +4,7 @@
 
 library pub.package_graph;
 
+import 'barback/transformer_cache.dart';
 import 'entrypoint.dart';
 import 'lock_file.dart';
 import 'package.dart';
@@ -28,7 +29,25 @@ class PackageGraph {
   /// A map of transitive dependencies for each package.
   Map<String, Set<Package>> _transitiveDependencies;
 
+  /// The transformer cache, if it's been loaded.
+  TransformerCache _transformerCache;
+
   PackageGraph(this.entrypoint, this.lockFile, this.packages);
+
+  /// Loads the transformer cache for this graph.
+  ///
+  /// This may only be called if [entrypoint] represents a physical package.
+  /// This may modify the cache.
+  TransformerCache loadTransformerCache() {
+    if (_transformerCache == null) {
+      if (entrypoint.root.dir == null) {
+        throw new StateError("Can't load the transformer cache for virtual "
+            "entrypoint ${entrypoint.root.name}.");
+      }
+      _transformerCache = new TransformerCache.load(this);
+    }
+    return _transformerCache;
+  }
 
   /// Returns all transitive dependencies of [package].
   ///

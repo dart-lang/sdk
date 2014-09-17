@@ -21,7 +21,7 @@ class TransformerIsolate {
   final Map<TransformerId, Uri> _idsToUrls;
   final BarbackMode _mode;
   static Future<TransformerIsolate> spawn(AssetEnvironment environment,
-      BarbackServer transformerServer, List<TransformerId> ids) {
+      BarbackServer transformerServer, List<TransformerId> ids, {String snapshot}) {
     return mapFromIterableAsync(ids, value: (id) {
       return id.getAssetId(environment.barback);
     }).then((idsToAssetIds) {
@@ -43,7 +43,8 @@ class TransformerIsolate {
       var port = new ReceivePort();
       return dart.runInIsolate(
           code.toString(),
-          port.sendPort).then((_) => port.first).then((sendPort) {
+          port.sendPort,
+          snapshot: snapshot).then((_) => port.first).then((sendPort) {
         return new TransformerIsolate._(sendPort, environment.mode, idsToUrls);
       }).catchError((error, stackTrace) {
         if (error is! CrossIsolateException) throw error;
@@ -61,7 +62,7 @@ class TransformerIsolate {
   TransformerIsolate._(this._port, this._mode, this._idsToUrls);
   Future<Set<Transformer>> create(TransformerConfig config) {
     return call(_port, {
-      'library': _idsToUrls[config.id].toString(),
+      'library': _idsToUrls[config.id].path.toString(),
       'mode': _mode.name,
       'configuration': JSON.encode(config.configuration)
     }).then((transformers) {

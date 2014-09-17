@@ -1,5 +1,6 @@
 library pub.dart;
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 import 'package:analyzer/analyzer.dart';
 import 'package:path/path.dart' as path;
@@ -8,6 +9,7 @@ import '../../../compiler/compiler.dart' as compiler;
 import '../../../compiler/implementation/filenames.dart' show appendSlash;
 import '../../asset/dart/serialize.dart';
 import 'io.dart';
+import 'log.dart' as log;
 import 'utils.dart';
 abstract class CompilerProvider {
   Uri get libraryRoot;
@@ -72,22 +74,83 @@ class _DirectiveCollector extends GeneralizingAstVisitor {
   final directives = <UriBasedDirective>[];
   visitUriBasedDirective(UriBasedDirective node) => directives.add(node);
 }
-Future runInIsolate(String code, message) {
+Future runInIsolate(String code, message, {String snapshot}) {
+  if (snapshot != null && fileExists(snapshot)) {
+    log.fine("Spawning isolate from $snapshot.");
+    return Chain.track(Isolate.spawnUri(path.toUri(snapshot), [], message));
+  }
   return withTempDir((dir) {
-    var dartPath = path.join(dir, 'runInIsolate.dart');
-    writeTextFile(dartPath, code, dontLogContents: true);
-    var port = new ReceivePort();
-    return Chain.track(Isolate.spawn(_isolateBuffer, {
-      'replyTo': port.sendPort,
-      'uri': path.toUri(dartPath).toString(),
-      'message': message
-    })).then((_) => port.first).then((response) {
-      if (response['type'] == 'success') return null;
-      assert(response['type'] == 'error');
-      return new Future.error(
-          new CrossIsolateException.deserialize(response['error']),
-          new Chain.current());
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        var dartPath = path.join(dir, 'runInIsolate.dart');
+        writeTextFile(dartPath, code, dontLogContents: true);
+        var port = new ReceivePort();
+        Chain.track(Isolate.spawn(_isolateBuffer, {
+          'replyTo': port.sendPort,
+          'uri': path.toUri(dartPath).toString(),
+          'message': message
+        })).then((x0) {
+          try {
+            x0;
+            port.first.then((x1) {
+              try {
+                var response = x1;
+                join0() {
+                  join1() {
+                    ensureDir(path.dirname(snapshot));
+                    runProcess(
+                        Platform.executable,
+                        ['--snapshot=${snapshot}', dartPath]).then((x2) {
+                      try {
+                        var result = x2;
+                        join2() {
+                          log.warning(
+                              "Failed to compile a snapshot to " "${path.relative(snapshot)}:\n" +
+                                  result.stderr.join("\n"));
+                          completer0.complete(null);
+                        }
+                        if (result.success) {
+                          completer0.complete(null);
+                        } else {
+                          join2();
+                        }
+                      } catch (e2) {
+                        completer0.completeError(e2);
+                      }
+                    }, onError: (e3) {
+                      completer0.completeError(e3);
+                    });
+                  }
+                  if (snapshot == null) {
+                    completer0.complete(null);
+                  } else {
+                    join1();
+                  }
+                }
+                if (response['type'] == 'error') {
+                  completer0.completeError(
+                      new CrossIsolateException.deserialize(response['error']));
+                } else {
+                  join0();
+                }
+              } catch (e1) {
+                completer0.completeError(e1);
+              }
+            }, onError: (e4) {
+              completer0.completeError(e4);
+            });
+          } catch (e0) {
+            completer0.completeError(e0);
+          }
+        }, onError: (e5) {
+          completer0.completeError(e5);
+        });
+      } catch (e6) {
+        completer0.completeError(e6);
+      }
     });
+    return completer0.future;
   });
 }
 void _isolateBuffer(message) {
