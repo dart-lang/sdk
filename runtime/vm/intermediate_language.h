@@ -3800,8 +3800,10 @@ class StringToCharCodeInstr : public TemplateDefinition<1> {
 
 class StringInterpolateInstr : public TemplateDefinition<1> {
  public:
-  StringInterpolateInstr(Value* value, intptr_t token_pos)
-      : token_pos_(token_pos), function_(Function::Handle()) {
+  StringInterpolateInstr(Value* value, intptr_t token_pos, bool is_singleton)
+      : token_pos_(token_pos),
+        function_(Function::Handle()),
+        is_singleton_(is_singleton) {
     SetInputAt(0, value);
   }
 
@@ -3823,6 +3825,7 @@ class StringInterpolateInstr : public TemplateDefinition<1> {
  private:
   const intptr_t token_pos_;
   Function& function_;
+  const bool is_singleton_;
 
   DISALLOW_COPY_AND_ASSIGN(StringInterpolateInstr);
 };
