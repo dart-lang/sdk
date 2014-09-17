@@ -363,10 +363,8 @@ class MockDeferredLoadTask extends DeferredLoadTask {
   }
 }
 
-api.DiagnosticHandler createHandler(MockCompiler compiler, String text,
-                                    {bool verbose: false}) {
+api.DiagnosticHandler createHandler(MockCompiler compiler, String text) {
   return (uri, int begin, int end, String message, kind) {
-    if (kind == api.Diagnostic.VERBOSE_INFO && !verbose) return;
     SourceFile sourceFile;
     if (uri == null) {
       sourceFile = new StringSourceFile('analysis', text);

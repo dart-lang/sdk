@@ -96,11 +96,10 @@ class ContainerBuilder extends CodeEmitterHelper {
           parametersBuffer[optionalParameterStart + index] =
               new jsAst.Parameter(jsName);
         } else {
-          ConstExp constant = handler.getConstantForVariable(element);
-          if (constant == null) {
+          Constant value = handler.getConstantForVariable(element);
+          if (value == null) {
             argumentsBuffer[count] = task.constantReference(new NullConstant());
           } else {
-            Constant value = constant.value;
             if (!value.isNull) {
               // If the value is the null constant, we should not pass it
               // down to the native method.
@@ -517,7 +516,7 @@ class ContainerBuilder extends CodeEmitterHelper {
           Iterable<int> metadataIndices =
               parameter.metadata.map((MetadataAnnotation annotation) {
             Constant constant =
-                backend.constants.getConstantForMetadata(annotation).value;
+                backend.constants.getConstantForMetadata(annotation);
             backend.constants.addCompileTimeConstantForEmission(constant);
             return task.metadataEmitter.reifyMetadata(annotation);
           });

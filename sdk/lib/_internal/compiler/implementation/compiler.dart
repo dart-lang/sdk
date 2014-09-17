@@ -1200,15 +1200,14 @@ abstract class Compiler implements DiagnosticListener {
       functionApplyMethod = functionClass.lookupLocalMember('apply');
 
       proxyConstant =
-          resolver.constantCompiler.compileConstant(
-              coreLibrary.find('proxy')).value;
+          resolver.constantCompiler.compileConstant(coreLibrary.find('proxy'));
 
       // TODO(johnniwinther): Move this to the JavaScript backend.
       LibraryElement jsHelperLibrary =
           loadedLibraries[js_backend.JavaScriptBackend.DART_JS_HELPER];
       if (jsHelperLibrary != null) {
         patchConstant = resolver.constantCompiler.compileConstant(
-            jsHelperLibrary.find('patch')).value;
+            jsHelperLibrary.find('patch'));
       }
 
       if (preserveComments) {
@@ -1272,12 +1271,16 @@ abstract class Compiler implements DiagnosticListener {
     mapClass = lookupCoreClass('Map');
     nullClass = lookupCoreClass('Null');
     stackTraceClass = lookupCoreClass('StackTrace');
-    symbolClass = lookupCoreClass('Symbol');
     if (!missingCoreClasses.isEmpty) {
       internalError(coreLibrary,
           'dart:core library does not contain required classes: '
           '$missingCoreClasses');
     }
+
+    // The Symbol class may not exist during unit testing.
+    // TODO(ahe): It is possible that we have to require the presence
+    // of Symbol as we change how we implement noSuchMethod.
+    symbolClass = lookupCoreClass('Symbol');
   }
 
   Element _unnamedListConstructor;

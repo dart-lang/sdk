@@ -7,7 +7,6 @@ library ssa;
 import 'dart:collection';
 
 import '../closure.dart';
-import '../cps_ir/const_expression.dart';
 import '../js/js.dart' as js;
 import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../dart_types.dart';

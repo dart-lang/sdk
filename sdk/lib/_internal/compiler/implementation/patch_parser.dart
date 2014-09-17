@@ -328,8 +328,7 @@ abstract class EagerAnnotationHandler {
         // [Compiler.onLibrariesLoaded].
         compiler.enqueuer.resolution.addDeferredAction(element, () {
           annotation.ensureResolved(compiler);
-          handler.validate(
-              compiler, element, annotation, annotation.constant.value);
+          handler.validate(compiler, element, annotation, annotation.value);
         });
         return true;
       }

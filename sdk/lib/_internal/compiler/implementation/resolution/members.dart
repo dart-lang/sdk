@@ -11,7 +11,7 @@ abstract class TreeElements {
   /// Iterables of the dependencies that this [TreeElement] records of
   /// [analyzedElement].
   Iterable<Element> get allElements;
-  void forEachConstantNode(f(Node n, ConstExp c));
+  void forEachConstantNode(f(Node n, Constant c));
 
   /// A set of additional dependencies.  See [registerDependency] below.
   Iterable<Element> get otherDependencies;
@@ -35,8 +35,8 @@ abstract class TreeElements {
   void setIteratorSelector(ForIn node, Selector selector);
   void setMoveNextSelector(ForIn node, Selector selector);
   void setCurrentSelector(ForIn node, Selector selector);
-  void setConstant(Node node, ConstExp constant);
-  ConstExp getConstant(Node node);
+  void setConstant(Node node, Constant constant);
+  Constant getConstant(Node node);
   bool isAssert(Send send);
 
   /// Returns the [FunctionElement] defined by [node].
@@ -93,7 +93,7 @@ class TreeElementMapping implements TreeElements {
   Map<Node, DartType> _types;
   Setlet<Node> _superUses;
   Setlet<Element> _otherDependencies;
-  Map<Node, ConstExp> _constants;
+  Map<Node, Constant> _constants;
   Map<VariableElement, List<Node>> _potentiallyMutated;
   Map<Node, Map<VariableElement, List<Node>>> _potentiallyMutatedIn;
   Map<VariableElement, List<Node>> _potentiallyMutatedInClosure;
@@ -236,14 +236,14 @@ class TreeElementMapping implements TreeElements {
     return this[node];
   }
 
-  void setConstant(Node node, ConstExp constant) {
+  void setConstant(Node node, Constant constant) {
     if (_constants == null) {
-      _constants = new Maplet<Node, ConstExp>();
+      _constants = new Maplet<Node, Constant>();
     }
     _constants[node] = constant;
   }
 
-  ConstExp getConstant(Node node) {
+  Constant getConstant(Node node) {
     return _constants != null ? _constants[node] : null;
   }
 
@@ -344,7 +344,7 @@ class TreeElementMapping implements TreeElements {
     return _elements != null ? _elements : const <Element>[];
   }
 
-  void forEachConstantNode(f(Node n, ConstExp c)) {
+  void forEachConstantNode(f(Node n, Constant c)) {
     if (_constants != null) {
       _constants.forEach(f);
     }
@@ -1012,8 +1012,7 @@ class ResolverTask extends CompilerTask {
   void _postProcessClassElement(BaseClassElementX element) {
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
-      if (!element.isProxy &&
-          metadata.constant.value == compiler.proxyConstant) {
+      if (!element.isProxy && metadata.value == compiler.proxyConstant) {
         element.isProxy = true;
       }
     }
@@ -1402,7 +1401,7 @@ class ResolverTask extends CompilerTask {
       node.accept(visitor);
       // TODO(johnniwinther): Avoid passing the [TreeElements] to
       // [compileMetadata].
-      annotation.constant =
+      annotation.value =
           constantCompiler.compileMetadata(annotation, node, registry.mapping);
       // TODO(johnniwinther): Register the relation between the annotation
       // and the annotated element instead. This will allow the backend to
@@ -3309,9 +3308,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (isSymbolConstructor) {
       if (node.isConst) {
         Node argumentNode = node.send.arguments.head;
-        ConstExp constant = compiler.resolver.constantCompiler.compileNode(
+        Constant name = compiler.resolver.constantCompiler.compileNode(
             argumentNode, registry.mapping);
-        Constant name = constant.value;
         if (!name.isString) {
           DartType type = name.computeType(compiler);
           compiler.reportError(argumentNode, MessageKind.STRING_EXPECTED,
@@ -3361,12 +3359,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   void analyzeConstant(Node node) {
     addDeferredAction(enclosingElement, () {
-      ConstExp constant = compiler.resolver.constantCompiler.compileNode(
+      Constant constant = compiler.resolver.constantCompiler.compileNode(
           node, registry.mapping);
 
-      Constant value = constant.value;
-      if (value.isMap) {
-        checkConstMapKeysDontOverrideEquals(node, value);
+      if (constant.isMap) {
+        checkConstMapKeysDontOverrideEquals(node, constant);
       }
 
       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
@@ -3374,8 +3371,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // native class dispatch record referencing the interceptor.
       if (argumentsToJsInterceptorConstant != null &&
           argumentsToJsInterceptorConstant.contains(node)) {
-        if (value.isType) {
-          TypeConstant typeConstant = value;
+        if (constant.isType) {
+          TypeConstant typeConstant = constant;
           if (typeConstant.representedType is InterfaceType) {
             registry.registerInstantiatedType(typeConstant.representedType);
           } else {
@@ -3748,11 +3745,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         if (caseMatch == null) continue;
 
         // Analyze the constant.
-        ConstExp constant = registry.getConstant(caseMatch.expression);
+        Constant constant = registry.getConstant(caseMatch.expression);
         assert(invariant(node, constant != null,
             message: 'No constant computed for $node'));
 
-        DartType caseType = typeOfConstant(constant.value);
+        DartType caseType = typeOfConstant(constant);
 
         if (firstCaseType == null) {
           firstCase = caseMatch;
@@ -3767,7 +3764,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           } else if (caseType.element == compiler.functionClass) {
             compiler.reportError(node, MessageKind.SWITCH_CASE_FORBIDDEN,
                                  {'type': "Function"});
-          } else if (constant.value.isObject && overridesEquals(caseType)) {
+          } else if (constant.isObject && overridesEquals(caseType)) {
             compiler.reportError(firstCase.expression,
                 MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
                 {'type': caseType});

@@ -672,7 +672,7 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
   ASTEmitter parent;
   ConstantEmitter(this.parent);
 
-  Expression handlePrimitiveConstant(dart2js.PrimitiveConstant value) {
+  Expression visitPrimitive(PrimitiveConstExp exp) {
     // Num constants may be negative, while literals must be non-negative:
     // Literals are non-negative in the specification, and a negated literal
     // parses as a call to unary `-`. The AST unparser assumes literals are
@@ -680,18 +680,13 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
     // the predecrement operator.
     // Translate such constants into their positive value wrapped by
     // the unary minus operator.
-    if (value is dart2js.NumConstant) {
-      dart2js.NumConstant numConstant = value;
+    if (exp.constant is dart2js.NumConstant) {
+      dart2js.NumConstant numConstant = exp.constant;
       if (numConstant.value.isNegative) {
         return negatedLiteral(numConstant);
       }
     }
-    return new Literal(value);
-  }
-
-  @override
-  Expression visitPrimitive(PrimitiveConstExp exp) {
-    return handlePrimitiveConstant(exp.value);
+    return new Literal(exp.constant);
   }
 
   /// Given a negative num constant, returns the corresponding positive
@@ -709,7 +704,6 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
     return new UnaryOperator('-', new Literal(positiveConstant));
   }
 
-  @override
   Expression visitList(ListConstExp exp) {
     return new LiteralList(
         exp.values.map(visit).toList(growable: false),
@@ -717,7 +711,6 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
         typeArgument: parent.emitOptionalType(exp.type.typeArguments.single));
   }
 
-  @override
   Expression visitMap(MapConstExp exp) {
     List<LiteralMapEntry> entries = new List<LiteralMapEntry>.generate(
         exp.values.length,
@@ -729,7 +722,6 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
     return new LiteralMap(entries, isConst: true, typeArguments: typeArguments);
   }
 
-  @override
   Expression visitConstructor(ConstructorConstExp exp) {
     int positionalArgumentCount = exp.selector.positionalArgumentCount;
     List<Argument> args = new List<Argument>.generate(
@@ -750,24 +742,20 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
                ..dartType = exp.type;
   }
 
-  @override
   Expression visitConcatenate(ConcatenateConstExp exp) {
     return new StringConcat(exp.arguments.map(visit).toList(growable: false));
   }
 
-  @override
   Expression visitSymbol(SymbolConstExp exp) {
     return new LiteralSymbol(exp.name);
   }
 
-  @override
   Expression visitType(TypeConstExp exp) {
     DartType type = exp.type;
     return new LiteralType(type.name)
                ..type = type;
   }
 
-  @override
   Expression visitVariable(VariableConstExp exp) {
     Element element = exp.element;
     if (element.kind != ElementKind.VARIABLE) {
@@ -778,30 +766,11 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
                ..element = element;
   }
 
-  @override
   Expression visitFunction(FunctionConstExp exp) {
     return new Identifier(exp.element.name)
                ..element = exp.element;
   }
 
-  @override
-  Expression visitBinary(BinaryConstExp exp) {
-    return handlePrimitiveConstant(exp.value);
-  }
-
-  @override
-  Expression visitConditional(ConditionalConstExp exp) {
-    if (exp.condition.value.isTrue) {
-      return exp.trueExp.accept(this);
-    } else {
-      return exp.falseExp.accept(this);
-    }
-  }
-
-  @override
-  Expression visitUnary(UnaryConstExp exp) {
-    return handlePrimitiveConstant(exp.value);
-  }
 }
 
 /// Moves function parameters into a separate variable if one of its uses is

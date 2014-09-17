@@ -65,42 +65,27 @@ class TypeVariableHandler {
     List<int> constants = <int>[];
 
     for (TypeVariableType currentTypeVariable in cls.typeVariables) {
-      TypeVariableElement typeVariableElement = currentTypeVariable.element;
-
-      AstConstant wrapConstant(ConstExp constant) {
-        return new AstConstant(typeVariableElement,
-                                     typeVariableElement.node,
-                                     constant);
+      List<Constant> createArguments(FunctionElement constructor) {
+      if (constructor != typeVariableConstructor) {
+          compiler.internalError(currentTypeVariable.element,
+              'Unexpected constructor $constructor');
+        }
+        Constant name = backend.constantSystem.createString(
+            new DartString.literal(currentTypeVariable.name));
+        Constant bound = backend.constantSystem.createInt(
+            emitter.reifyType(currentTypeVariable.element.bound));
+        Constant type = backend.constants.createTypeConstant(cls);
+        return [type, name, bound];
       }
 
-      ConstExp name = new PrimitiveConstExp(
-          backend.constantSystem.createString(
-              new DartString.literal(currentTypeVariable.name)));
-      ConstExp bound = new PrimitiveConstExp(
-          backend.constantSystem.createInt(
-              emitter.reifyType(typeVariableElement.bound)));
-      ConstExp type = backend.constants.createTypeConstant(cls);
-      List<AstConstant> arguments =
-          [wrapConstant(type), wrapConstant(name), wrapConstant(bound)];
-
-      // TODO(johnniwinther): Support a less front-end specific creation of
-      // constructed constants.
-      AstConstant constant =
-          CompileTimeConstantEvaluator.makeConstructedConstant(
-              compiler,
-              backend.constants,
-              typeVariableElement,
-              typeVariableElement.node,
-              typeVariableType,
-              typeVariableConstructor,
-              new Selector.callConstructor('', null, 3),
-              arguments,
-              arguments);
-      Constant value = constant.value;
-      backend.registerCompileTimeConstant(value, compiler.globalDependencies);
-      backend.constants.addCompileTimeConstantForEmission(value);
+      Constant c = CompileTimeConstantEvaluator.makeConstructedConstant(
+          compiler, backend.constants,
+          currentTypeVariable.element, typeVariableType,
+          typeVariableConstructor, createArguments);
+      backend.registerCompileTimeConstant(c, compiler.globalDependencies);
+      backend.constants.addCompileTimeConstantForEmission(c);
       constants.add(
-          reifyTypeVariableConstant(value, currentTypeVariable.element));
+          reifyTypeVariableConstant(c, currentTypeVariable.element));
     }
     typeVariables[cls] = constants;
   }

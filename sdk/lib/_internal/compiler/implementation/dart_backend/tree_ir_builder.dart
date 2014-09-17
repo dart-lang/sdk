@@ -409,7 +409,7 @@ class Builder extends cps_ir.Visitor<Node> {
   }
 
   Expression visitConstant(cps_ir.Constant node) {
-    return new Constant(node.expression);
+    return new Constant(node.expression, node.value);
   }
 
   Expression visitThis(cps_ir.This node) {

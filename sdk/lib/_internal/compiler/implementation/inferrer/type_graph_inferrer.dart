@@ -5,7 +5,6 @@
 library type_graph_inferrer;
 
 import 'dart:collection' show Queue, IterableBase;
-import '../cps_ir/const_expression.dart';
 import '../dart_types.dart' show DartType, InterfaceType, TypeKind;
 import '../elements/elements.dart';
 import '../tree/tree.dart' as ast show DartString, Node;
@@ -743,10 +742,9 @@ class TypeGraphInferrerEngine
           if (type is! ListTypeInformation && type is! MapTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
-            ConstExp constant = compiler.backend.constants
+            Constant value = compiler.backend.constants
                 .getConstantForVariable(element);
-            if (constant != null) {
-              Constant value = constant.value;
+            if (value != null) {
               if (value.isFunction) {
                 FunctionConstant functionConstant = value;
                 type = types.allocateClosure(node, functionConstant.element);

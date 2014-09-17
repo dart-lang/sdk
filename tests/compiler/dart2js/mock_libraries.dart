@@ -55,12 +55,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
       }''',
   'Map': 'abstract class Map<K,V> {}',
   'Null': 'class Null {}',
-  'num': r'''
-      abstract class num {
-        operator +(_);
-        operator *(_);
-        operator -();
-      }''',
+  'num': 'abstract class num {}',
   'print': 'print(var obj) {}',
   'proxy': 'const proxy = 0;',
   'Object': r'''
@@ -73,7 +68,6 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
       }''',
   'StackTrace': 'abstract class StackTrace {}',
   'String': 'class String implements Pattern {}',
-  'Symbol': 'class Symbol { final name; const Symbol(this.name); }',
   'Type': 'class Type {}',
   'Pattern': 'abstract class Pattern {}',
 };
@@ -122,9 +116,9 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
                              isStatic, jsArguments, name) {}''',
   'computeSignature':
       'computeSignature(var signature, var context, var contextName) {}',
-  'ConstantMap': 'class ConstantMap<K, V> {}',
-  'ConstantProtoMap': 'class ConstantProtoMap<K, V> {}',
-  'ConstantStringMap': 'class ConstantStringMap<K, V> {}',
+  'ConstantMap': 'class ConstantMap {}',
+  'ConstantProtoMap': 'class ConstantProtoMap {}',
+  'ConstantStringMap': 'class ConstantStringMap {}',
   'copyTypeArguments': 'copyTypeArguments(source, target) {}',
   'createInvocationMirror': 'createInvocationMirror(a0, a1, a2, a3, a4, a5) {}',
   'createRuntimeType': 'createRuntimeType(a) {}',

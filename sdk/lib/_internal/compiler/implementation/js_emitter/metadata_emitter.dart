@@ -27,12 +27,12 @@ class MetadataEmitter extends CodeEmitterHelper {
       if (link != null) {
         for (; !link.isEmpty; link = link.tail) {
           MetadataAnnotation annotation = link.head;
-          ConstExp constant =
+          Constant value =
               backend.constants.getConstantForMetadata(annotation);
-          if (constant == null) {
+          if (value == null) {
             compiler.internalError(annotation, 'Annotation value is null.');
           } else {
-            metadata.add(task.constantReference(constant.value));
+            metadata.add(task.constantReference(value));
           }
         }
       }
@@ -47,10 +47,10 @@ class MetadataEmitter extends CodeEmitterHelper {
     if (signature.optionalParameterCount == 0) return const [];
     List<int> defaultValues = <int>[];
     for (Element element in signature.optionalParameters) {
-      ConstExp constant = backend.constants.getConstantForVariable(element);
-      String stringRepresentation = (constant == null)
+      Constant value = backend.constants.getConstantForVariable(element);
+      String stringRepresentation = (value == null)
           ? "null"
-          : jsAst.prettyPrint(task.constantReference(constant.value), compiler)
+          : jsAst.prettyPrint(task.constantReference(value), compiler)
               .getText();
       defaultValues.add(addGlobalMetadata(stringRepresentation));
     }
@@ -58,14 +58,13 @@ class MetadataEmitter extends CodeEmitterHelper {
   }
 
   int reifyMetadata(MetadataAnnotation annotation) {
-    ConstExp constant = backend.constants.getConstantForMetadata(annotation);
-    if (constant == null) {
+    Constant value = backend.constants.getConstantForMetadata(annotation);
+    if (value == null) {
       compiler.internalError(annotation, 'Annotation value is null.');
       return -1;
     }
     return addGlobalMetadata(
-        jsAst.prettyPrint(
-            task.constantReference(constant.value), compiler).getText());
+        jsAst.prettyPrint(task.constantReference(value), compiler).getText());
   }
 
   int reifyType(DartType type) {

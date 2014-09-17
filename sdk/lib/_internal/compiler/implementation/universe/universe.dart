@@ -395,12 +395,12 @@ class Selector {
   }
 
   /**
-   * Fills [list] with the arguments in the normalized order.
+   * Fills [list] with the arguments in a defined order.
    *
    * [compileArgument] is a function that returns a compiled version
    * of an argument located in [arguments].
    *
-   * [compileDefaultValue] is a function that returns a compiled constant
+   * [compileConstant] is a function that returns a compiled constant
    * of an optional argument that is not in [arguments].
    *
    * Returns [:true:] if the selector and the [element] match; [:false:]
@@ -408,29 +408,28 @@ class Selector {
    *
    * Invariant: [element] must be the implementation element.
    */
-  /*<T>*/ bool addArgumentsToList(
-      Link<Node> arguments,
-      List/*<T>*/ list,
-      FunctionElement element,
-      /*T*/ compileArgument(Node argument),
-      /*T*/ compileDefaultValue(ParameterElement element),
-      World world) {
+  bool addArgumentsToList(Link<Node> arguments,
+                          List list,
+                          FunctionElement element,
+                          compileArgument(Node argument),
+                          compileConstant(Element element),
+                          World world) {
     assert(invariant(element, element.isImplementation));
     if (!this.applies(element, world)) return false;
 
     FunctionSignature parameters = element.functionSignature;
-    parameters.forEachRequiredParameter((ParameterElement element) {
+    parameters.forEachRequiredParameter((element) {
       list.add(compileArgument(arguments.head));
       arguments = arguments.tail;
     });
 
     if (!parameters.optionalParametersAreNamed) {
-      parameters.forEachOptionalParameter((ParameterElement element) {
+      parameters.forEachOptionalParameter((element) {
         if (!arguments.isEmpty) {
           list.add(compileArgument(arguments.head));
           arguments = arguments.tail;
         } else {
-          list.add(compileDefaultValue(element));
+          list.add(compileConstant(element));
         }
       });
     } else {
@@ -443,12 +442,12 @@ class Selector {
       // Iterate over the optional parameters of the signature, and try to
       // find them in [compiledNamedArguments]. If found, we use the
       // value in the temporary list, otherwise the default value.
-      parameters.orderedOptionalParameters.forEach((ParameterElement element) {
+      parameters.orderedOptionalParameters.forEach((element) {
         int foundIndex = namedArguments.indexOf(element.name);
         if (foundIndex != -1) {
           list.add(compiledNamedArguments[foundIndex]);
         } else {
-          list.add(compileDefaultValue(element));
+          list.add(compileConstant(element));
         }
       });
     }

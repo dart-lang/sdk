@@ -191,15 +191,15 @@ class ConcatenateStrings extends Expression {
  */
 class Constant extends Expression {
   final ConstExp expression;
+  final dart2js.Constant value;
 
-  Constant(this.expression);
+  Constant(this.expression, this.value);
 
   Constant.primitive(dart2js.PrimitiveConstant primitiveValue)
-      : expression = new PrimitiveConstExp(primitiveValue);
+      : expression = new PrimitiveConstExp(primitiveValue),
+        value = primitiveValue;
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
-
-  dart2js.Constant get value => expression.value;
 }
 
 class This extends Expression {

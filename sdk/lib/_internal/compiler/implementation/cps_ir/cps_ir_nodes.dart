@@ -450,10 +450,9 @@ class Branch extends Expression {
 
 class Constant extends Primitive {
   final ConstExp expression;
+  final dart2js.Constant value;
 
-  Constant(this.expression);
-
-  dart2js.Constant get value => expression.value;
+  Constant(this.expression, this.value);
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
