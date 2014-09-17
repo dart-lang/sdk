@@ -881,9 +881,6 @@ class _Bigint extends _IntegerImplementation implements int {
         // Chop off one bit, since a Mint cannot hold 2 DIGITs.
         qd = ((r._digits[i] << (DIGIT_BITS - 1)) |
               (r._digits[i - 1] >> 1)) ~/ yt;
-        if (qd > DIGIT_MASK) {
-          qd = DIGIT_MASK;
-        }
       }
       if ((r._digits[i] += y._am(0, qd, r, j, y_used)) < qd) {  // Try it out.
         y._dlShiftTo(j, t);
