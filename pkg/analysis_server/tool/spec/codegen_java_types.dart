@@ -632,7 +632,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       TypeDecl listItemType = (field.type as TypeList).itemType;
       String jsonArrayName = 'jsonArray${capitalize(name)}';
       writeln('JsonArray ${jsonArrayName} = new JsonArray();');
-      writeln('for(${javaType(listItemType)} elt : ${name}) {');
+      writeln('for (${javaType(listItemType)} elt : ${name}) {');
       indent(() {
         if (isDeclaredInSpec(listItemType)) {
           writeln('${jsonArrayName}.add(elt.toJson());');
