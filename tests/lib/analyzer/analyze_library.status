@@ -20,27 +20,4 @@ lib/_internal/compiler/samples/compile_loop/compile_loop: CompileTimeError  # Is
 
 # Pub is starting to use the new async syntax, which isn't supported on the
 # analyzer bots yet.
-lib/_internal/pub/bin/pub: CompileTimeError
-lib/_internal/pub/lib/src/command: CompileTimeError
-lib/_internal/pub/lib/src/command/barback: CompileTimeError
-lib/_internal/pub/lib/src/command/build: CompileTimeError
-lib/_internal/pub/lib/src/command/cache: CompileTimeError
-lib/_internal/pub/lib/src/command/cache_add: CompileTimeError
-lib/_internal/pub/lib/src/command/cache_list: CompileTimeError
-lib/_internal/pub/lib/src/command/cache_repair: CompileTimeError
-lib/_internal/pub/lib/src/command/deps: CompileTimeError
-lib/_internal/pub/lib/src/command/downgrade: CompileTimeError
-lib/_internal/pub/lib/src/command/get: CompileTimeError
-lib/_internal/pub/lib/src/command/global: CompileTimeError
-lib/_internal/pub/lib/src/command/global_activate: CompileTimeError
-lib/_internal/pub/lib/src/command/global_deactivate: CompileTimeError
-lib/_internal/pub/lib/src/command/global_list: CompileTimeError
-lib/_internal/pub/lib/src/command/global_run: CompileTimeError
-lib/_internal/pub/lib/src/command/help: CompileTimeError
-lib/_internal/pub/lib/src/command/lish: CompileTimeError
-lib/_internal/pub/lib/src/command/list_package_dirs: CompileTimeError
-lib/_internal/pub/lib/src/command/run: CompileTimeError
-lib/_internal/pub/lib/src/command/serve: CompileTimeError
-lib/_internal/pub/lib/src/command/upgrade: CompileTimeError
-lib/_internal/pub/lib/src/command/uploader: CompileTimeError
-lib/_internal/pub/lib/src/command/version: CompileTimeError
+lib/_internal/pub/*: Pass, CompileTimeError
