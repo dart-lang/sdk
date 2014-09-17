@@ -9,14 +9,6 @@ import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 
 
-/**
- * Returns a JSON correponding to the given Engine element.
- */
-Map<String, Object> engineElementToJson(engine.Element element) {
-  return new Element.fromEngine(element).toJson();
-}
-
-
 Element elementFromEngine(engine.Element element) {
   String name = element.displayName;
   String elementParameters = _getParametersString(element);
