@@ -87,9 +87,11 @@ class CodeEmitterTask extends CompilerTask {
    * negatively. So dart2js will emit these functions to a separate file that
    * can be optionally included to support CSP mode or for faster startup.
    */
-  List<jsAst.Node> precompiledFunction = <jsAst.Node>[];
+  Map<OutputUnit, List<jsAst.Node>> _cspPrecompiledFunctions =
+      new Map<OutputUnit, List<jsAst.Node>>();
 
-  List<jsAst.Expression> precompiledConstructorNames = <jsAst.Expression>[];
+  Map<OutputUnit, List<jsAst.Expression>> _cspPrecompiledConstructorNames =
+      new Map<OutputUnit, List<jsAst.Expression>>();
 
   // True if Isolate.makeConstantList is needed.
   bool hasMakeConstantList = false;
@@ -127,6 +129,26 @@ class CodeEmitterTask extends CompilerTask {
     // TODO(18886): Remove this call (and the show in the import) once the
     // memory-leak in the VM is fixed.
     templateManager.clear();
+  }
+
+  List<jsAst.Node> cspPrecompiledFunctionFor(OutputUnit outputUnit) {
+    return _cspPrecompiledFunctions.putIfAbsent(
+        outputUnit,
+        () => new List<jsAst.Node>());
+  }
+
+  List<jsAst.Expression> cspPrecompiledConstructorNamesFor(
+      OutputUnit outputUnit) {
+    return _cspPrecompiledConstructorNames.putIfAbsent(
+        outputUnit,
+        () => new List<jsAst.Expression>());
+  }
+
+  /// Erases the precompiled information for csp mode for all output units.
+  /// Used by the incremental compiler.
+  void clearCspPrecompiledNodes() {
+    _cspPrecompiledFunctions.clear();
+    _cspPrecompiledConstructorNames.clear();
   }
 
   void addComment(String comment, CodeBuffer buffer) {
@@ -823,16 +845,18 @@ class CodeEmitterTask extends CompilerTask {
     return ':$names';
   }
 
-  jsAst.FunctionDeclaration buildPrecompiledFunction() {
+  jsAst.FunctionDeclaration buildCspPrecompiledFunctionFor(
+      OutputUnit outputUnit) {
     // TODO(ahe): Compute a hash code.
     return js.statement('''
       function dart_precompiled(\$collectedClasses) {
         var \$desc;
         #;
         return #;
-      }''', [
-          precompiledFunction,
-          new jsAst.ArrayInitializer.from(precompiledConstructorNames)]);
+      }''',
+        [cspPrecompiledFunctionFor(outputUnit),
+         new jsAst.ArrayInitializer.from(
+             cspPrecompiledConstructorNamesFor(outputUnit))]);
   }
 
   void generateClass(ClassElement classElement, ClassBuilder properties) {
@@ -1433,13 +1457,14 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
-  void emitPrecompiledConstructor(String constructorName,
+  void emitPrecompiledConstructor(OutputUnit outputUnit,
+                                  String constructorName,
                                   jsAst.Expression constructorAst) {
-    precompiledFunction.add(
+    cspPrecompiledFunctionFor(outputUnit).add(
         new jsAst.FunctionDeclaration(
             new jsAst.VariableDeclaration(constructorName), constructorAst));
-    precompiledFunction.add(
-   js.statement(r'''{
+    cspPrecompiledFunctionFor(outputUnit).add(
+    js.statement(r'''{
           #.builtin$cls = #;
           if (!"name" in #)
               #.name = #;
@@ -1454,7 +1479,7 @@ class CodeEmitterTask extends CompilerTask {
             constructorName
          ]));
 
-    precompiledConstructorNames.add(js('#', constructorName));
+    cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
   }
 
   void assembleProgram() {
@@ -1621,7 +1646,9 @@ class CodeEmitterTask extends CompilerTask {
           // Also emit a trivial constructor for CSP mode.
           String constructorName = mangledName;
           jsAst.Expression constructorAst = js('function() {}');
-          emitPrecompiledConstructor(constructorName, constructorAst);
+          emitPrecompiledConstructor(mainOutputUnit,
+                                     constructorName,
+                                     constructorAst);
         }
 
         if (!mangledFieldNames.isEmpty) {
@@ -1790,7 +1817,7 @@ class CodeEmitterTask extends CompilerTask {
       }
 
       jsAst.FunctionDeclaration precompiledFunctionAst =
-          buildPrecompiledFunction();
+          buildCspPrecompiledFunctionFor(mainOutputUnit);
       emitInitFunction(mainBuffer);
       emitMain(mainBuffer);
       mainBuffer.add('})()\n');
@@ -1798,7 +1825,8 @@ class CodeEmitterTask extends CompilerTask {
       if (compiler.useContentSecurityPolicy) {
         mainBuffer.write(
             jsAst.prettyPrint(
-                precompiledFunctionAst, compiler,
+                precompiledFunctionAst,
+                compiler,
                 monitor: compiler.dumpInfoTask,
                 allowVariableMinification: false).getText());
       }
@@ -2020,6 +2048,18 @@ class CodeEmitterTask extends CompilerTask {
 
       emitCompileTimeConstants(outputBuffer, outputUnit);
       outputBuffer.write('}$N');
+
+      if (compiler.useContentSecurityPolicy) {
+        jsAst.FunctionDeclaration precompiledFunctionAst =
+            buildCspPrecompiledFunctionFor(outputUnit);
+
+        outputBuffer.write(
+            jsAst.prettyPrint(
+                precompiledFunctionAst, compiler,
+                monitor: compiler.dumpInfoTask,
+                allowVariableMinification: false).getText());
+      }
+
       String code = outputBuffer.getText();
 
       // Make a unique hash of the code (before the sourcemaps are added)
@@ -2031,7 +2071,7 @@ class CodeEmitterTask extends CompilerTask {
       compiler.outputProvider(outputUnit.partFileName(compiler), 'part.js')
         ..add(code)
         ..add('${deferredInitializers}["$hash"]$_=$_'
-                '${deferredInitializers}.current')
+                '${deferredInitializers}.current$N')
         ..close();
 
       hunkHashes[outputUnit] = hash;

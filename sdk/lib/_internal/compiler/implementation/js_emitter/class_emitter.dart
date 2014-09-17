@@ -83,7 +83,10 @@ class ClassEmitter extends CodeEmitterHelper {
     jsAst.Expression constructorAst = js('function(#) { #; }',
         [fields,
          fields.map((name) => js('this.# = #', [name, name]))]);
-    task.emitPrecompiledConstructor(constructorName, constructorAst);
+    OutputUnit outputUnit =
+        compiler.deferredLoadTask.outputUnitForElement(classElement);
+    task.emitPrecompiledConstructor(
+        outputUnit, constructorName, constructorAst);
   }
 
   /// Returns `true` if fields added.
@@ -522,11 +525,13 @@ class ClassEmitter extends CodeEmitterHelper {
     String className = namer.getNameOfClass(cls);
     String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
     List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
-    task.precompiledFunction.add(
+    OutputUnit outputUnit =
+        compiler.deferredLoadTask.outputUnitForElement(member);
+    task.cspPrecompiledFunctionFor(outputUnit).add(
         js('#.prototype.# = function(#) { return #.# }',
            [className, getterName, args, receiver, fieldName]));
     if (backend.isAccessibleByReflection(member)) {
-      task.precompiledFunction.add(
+      task.cspPrecompiledFunctionFor(outputUnit).add(
           js('#.prototype.#.${namer.reflectableField} = 1',
               [className, getterName]));
     }
@@ -539,12 +544,14 @@ class ClassEmitter extends CodeEmitterHelper {
     String className = namer.getNameOfClass(cls);
     String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
     List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
-    task.precompiledFunction.add(
+    OutputUnit outputUnit =
+        compiler.deferredLoadTask.outputUnitForElement(member);
+    task.cspPrecompiledFunctionFor(outputUnit).add(
         // TODO: remove 'return'?
         js('#.prototype.# = function(#, v) { return #.# = v; }',
             [className, setterName, args, receiver, fieldName]));
     if (backend.isAccessibleByReflection(member)) {
-      task.precompiledFunction.add(
+      task.cspPrecompiledFunctionFor(outputUnit).add(
           js('#.prototype.#.${namer.reflectableField} = 1',
               [className, setterName]));
     }

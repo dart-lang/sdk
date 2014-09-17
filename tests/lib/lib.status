@@ -12,9 +12,8 @@ mirrors/regress_16321_test/01: RunTimeError # Issue 16351
 mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
 
 [ $csp ]
-async/deferred/deferred_in_isolate_test: RuntimeError # Issue 16898
-mirrors/deferred_mirrors_metadata_test: Fail # Issue 16898
-mirrors/deferred_mirrors_metatarget_test: Fail # Issue 16898
+# Deferred loading does not work from an isolate in CSP-mode
+async/deferred/deferred_in_isolate_test: Skip # Issue 16898
 
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. http://dartbug.com/5958

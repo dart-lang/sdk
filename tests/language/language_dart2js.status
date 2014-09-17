@@ -250,11 +250,6 @@ super_call4_test: Fail, OK # hardcoded names.
 [ $minified ]
 stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
 
-[ ($compiler == dart2js && $csp)]
-deferred_constraints_type_annotation_test/*: Skip # Issue 16898
-deferred_constraints_constants_test/*: Skip # Issue 16898
-deferred_no_such_method_test*: Skip # Issue 16898
-
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 *deferred*: Skip # Issue 17458
 cha_deopt*: Skip # Issue 17458

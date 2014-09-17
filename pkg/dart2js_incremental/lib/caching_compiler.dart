@@ -130,8 +130,7 @@ Future<Compiler> reuseCompiler(
         ..additionalProperties.clear()
         ..readTypeVariables.clear()
         ..instantiatedClasses = null
-        ..precompiledFunction.clear()
-        ..precompiledConstructorNames.clear()
+        ..clearCspPrecompiledNodes()
         ..hasMakeConstantList = false
         ..elementDescriptors.clear();
 
