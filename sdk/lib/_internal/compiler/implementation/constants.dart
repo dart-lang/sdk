@@ -23,6 +23,7 @@ abstract class ConstantVisitor<R> {
   R visitDeferred(DeferredConstant constant);
 }
 
+// TODO(johnniwinther): Rename this to `ConstantValue`.
 abstract class Constant {
   const Constant();
 
@@ -92,6 +93,7 @@ class FunctionConstant extends Constant {
 }
 
 abstract class PrimitiveConstant extends Constant {
+  // TODO(johnniwinther): Rename to `primitiveValue`.
   get value;
   const PrimitiveConstant();
   bool get isPrimitive => true;
@@ -105,10 +107,14 @@ abstract class PrimitiveConstant extends Constant {
 
   int get hashCode => throw new UnsupportedError('PrimitiveConstant.hashCode');
 
-  String toString() => value.toString();
+  String toString() => unparse();
   // Primitive constants don't have dependencies.
   List<Constant> getDependencies() => const <Constant>[];
   DartString toDartString();
+
+  /// This value in Dart syntax.
+  // TODO(johnniwinther): Move this to [Constant].
+  String unparse() => value.toString();
 }
 
 class NullConstant extends PrimitiveConstant {
@@ -341,8 +347,11 @@ class StringConstant extends PrimitiveConstant {
 
   accept(ConstantVisitor visitor) => visitor.visitString(this);
 
+  // TODO(johnniwinther): Ensure correct escaping.
+  String unparse() => '"${value.slowToString()}"';
+
   String toString() {
-    return 'StringConstant("${value.slowToString()}")';
+    return 'StringConstant(${unparse()})';
   }
 }
 
@@ -569,17 +578,14 @@ class ConstructedConstant extends ObjectConstant {
   final List<Constant> fields;
   final int hashCode;
 
-  ConstructedConstant(DartType type, List<Constant> fields,
-      {this.isLiteralSymbol: false})
+  ConstructedConstant(DartType type, List<Constant> fields)
     : this.fields = fields,
       hashCode = computeHash(type, fields),
       super(type) {
     assert(type != null);
   }
-  bool get isConstructedObject => true;
 
-  /// True if this constant is constructed as a literal symbol.
-  final bool isLiteralSymbol;
+  bool get isConstructedObject => true;
 
   static int computeHash(DartType type, List<Constant> fields) {
     // TODO(floitsch): create a better hash.

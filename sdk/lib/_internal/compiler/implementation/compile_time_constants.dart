@@ -8,7 +8,7 @@ part of dart2js;
 /// initializers.
 abstract class ConstantEnvironment {
   /// Returns the constant for the initializer of [element].
-  Constant getConstantForVariable(VariableElement element);
+  ConstExp getConstantForVariable(VariableElement element);
 }
 
 /// A class that can compile and provide constants for variables, nodes and
@@ -21,7 +21,7 @@ abstract class ConstantCompiler extends ConstantEnvironment {
   /// the compile-time constant for the backend interpretation of constants.
   ///
   /// The returned constant is always of the frontend interpretation.
-  Constant compileConstant(VariableElement element);
+  ConstExp compileConstant(VariableElement element);
 
   /// Computes the compile-time constant for the variable initializer,
   /// if possible.
@@ -34,7 +34,7 @@ abstract class ConstantCompiler extends ConstantEnvironment {
   /// the compile-time constant for the backend interpretation of constants.
   ///
   /// The returned constant is always of the frontend interpretation.
-  Constant compileNode(Node node, TreeElements elements);
+  ConstExp compileNode(Node node, TreeElements elements);
 
   /// Compiles the compile-time constant for the value [metadata], or reports an
   /// error if the value is not a compile-time constant.
@@ -43,7 +43,7 @@ abstract class ConstantCompiler extends ConstantEnvironment {
   /// the compile-time constant for the backend interpretation of constants.
   ///
   /// The returned constant is always of the frontend interpretation.
-  Constant compileMetadata(MetadataAnnotation metadata,
+  ConstExp compileMetadata(MetadataAnnotation metadata,
                            Node node, TreeElements elements);
 }
 
@@ -53,10 +53,10 @@ abstract class BackendConstantEnvironment extends ConstantEnvironment {
   /// Returns the compile-time constant associated with [node].
   ///
   /// Depending on implementation, the constant might be stored in [elements].
-  Constant getConstantForNode(Node node, TreeElements elements);
+  ConstExp getConstantForNode(Node node, TreeElements elements);
 
   /// Returns the compile-time constant value of [metadata].
-  Constant getConstantForMetadata(MetadataAnnotation metadata);
+  ConstExp getConstantForMetadata(MetadataAnnotation metadata);
 }
 
 /// Interface for the task that compiles the constant environments for the
@@ -83,32 +83,32 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
    *
    * Invariant: The keys in this map are declarations.
    */
-  final Map<VariableElement, Constant> initialVariableValues =
-      new Map<VariableElement, Constant>();
+  final Map<VariableElement, ConstExp> initialVariableValues =
+      new Map<VariableElement, ConstExp>();
 
   /** The set of variable elements that are in the process of being computed. */
   final Set<VariableElement> pendingVariables = new Set<VariableElement>();
 
   ConstantCompilerBase(this.compiler, this.constantSystem);
 
-  Constant getConstantForVariable(VariableElement element) {
+  ConstExp getConstantForVariable(VariableElement element) {
     return initialVariableValues[element.declaration];
   }
 
-  Constant compileConstant(VariableElement element) {
+  ConstExp compileConstant(VariableElement element) {
     return compileVariable(element, isConst: true);
   }
 
-  Constant compileVariable(VariableElement element, {bool isConst: false}) {
+  ConstExp compileVariable(VariableElement element, {bool isConst: false}) {
 
     if (initialVariableValues.containsKey(element.declaration)) {
-      Constant result = initialVariableValues[element.declaration];
+      ConstExp result = initialVariableValues[element.declaration];
       return result;
     }
     AstElement currentElement = element.analyzableElement;
     return compiler.withCurrentElement(currentElement, () {
       compiler.analyzeElement(currentElement.declaration);
-      Constant constant = compileVariableWithDefinitions(
+      ConstExp constant = compileVariableWithDefinitions(
           element, currentElement.resolvedAst.elements, isConst: isConst);
       return constant;
     });
@@ -120,7 +120,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
    * If the variable is `const` but cannot be compiled eagerly reports an
    * error.
    */
-  Constant compileVariableWithDefinitions(VariableElement element,
+  ConstExp compileVariableWithDefinitions(VariableElement element,
                                           TreeElements definitions,
                                           {bool isConst: false}) {
     Node node = element.node;
@@ -134,10 +134,10 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     pendingVariables.add(element);
 
     Expression initializer = element.initializer;
-    Constant value;
+    ConstExp value;
     if (initializer == null) {
       // No initial value.
-      value = new NullConstant();
+      value = new PrimitiveConstExp(new NullConstant());
     } else {
       value = compileNodeWithDefinitions(
           initializer, definitions, isConst: isConst);
@@ -145,7 +145,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
           value != null &&
           element.isField) {
         DartType elementType = element.type;
-        if (elementType.isMalformed && !value.isNull) {
+        if (elementType.isMalformed && !value.value.isNull) {
           if (isConst) {
             ErroneousElement element = elementType.element;
             compiler.reportFatalError(
@@ -155,7 +155,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
             value = null;
           }
         } else {
-          DartType constantType = value.computeType(compiler);
+          DartType constantType = value.value.computeType(compiler);
           if (!constantSystem.isSubtype(compiler,
                                         constantType, elementType)) {
             if (isConst) {
@@ -174,26 +174,28 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     if (value != null) {
       initialVariableValues[element.declaration] = value;
     } else {
-      assert(!isConst);
+      assert(invariant(element, !isConst,
+             message: "Variable $element does not compile to a constant."));
     }
     pendingVariables.remove(element);
     return value;
   }
 
-  Constant compileNodeWithDefinitions(Node node,
+  ConstExp compileNodeWithDefinitions(Node node,
                                       TreeElements definitions,
                                       {bool isConst: true}) {
     assert(node != null);
     CompileTimeConstantEvaluator evaluator = new CompileTimeConstantEvaluator(
         this, definitions, compiler, isConst: isConst);
-    return evaluator.evaluate(node);
+    AstConstant constant = evaluator.evaluate(node);
+    return constant != null ? constant.expression : null;
   }
 
-  Constant compileNode(Node node, TreeElements elements) {
+  ConstExp compileNode(Node node, TreeElements elements) {
     return compileNodeWithDefinitions(node, elements);
   }
 
-  Constant compileMetadata(MetadataAnnotation metadata,
+  ConstExp compileMetadata(MetadataAnnotation metadata,
                            Node node,
                            TreeElements elements) {
     return compileNodeWithDefinitions(node, elements);
@@ -206,18 +208,18 @@ class DartConstantCompiler extends ConstantCompilerBase {
   DartConstantCompiler(Compiler compiler)
       : super(compiler, const DartConstantSystem());
 
-  Constant getConstantForNode(Node node, TreeElements definitions) {
+  ConstExp getConstantForNode(Node node, TreeElements definitions) {
     return definitions.getConstant(node);
   }
 
-  Constant getConstantForMetadata(MetadataAnnotation metadata) {
-    return metadata.value;
+  ConstExp getConstantForMetadata(MetadataAnnotation metadata) {
+    return metadata.constant;
   }
 
-  Constant compileNodeWithDefinitions(Node node,
+  ConstExp compileNodeWithDefinitions(Node node,
                                       TreeElements definitions,
                                       {bool isConst: true}) {
-    Constant constant = definitions.getConstant(node);
+    ConstExp constant = definitions.getConstant(node);
     if (constant != null) {
       return constant;
     }
@@ -230,12 +232,15 @@ class DartConstantCompiler extends ConstantCompilerBase {
   }
 }
 
-// TODO(johnniwinther): Change to create [ConstExp] instead of [Constant].
-class CompileTimeConstantEvaluator extends Visitor {
+// TODO(johnniwinther): Decouple the creation of [ConstExp] and [Constant] from
+// front-end AST in order to reuse the evaluation for the shared front-end.
+class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   bool isEvaluatingConstant;
   final ConstantCompilerBase handler;
   final TreeElements elements;
   final Compiler compiler;
+
+  Element get context => elements.analyzedElement;
 
   CompileTimeConstantEvaluator(this.handler,
                                this.elements,
@@ -245,129 +250,191 @@ class CompileTimeConstantEvaluator extends Visitor {
 
   ConstantSystem get constantSystem => handler.constantSystem;
 
-  Constant evaluate(Node node) {
+  AstConstant evaluate(Node node) {
     return node.accept(this);
   }
 
-  Constant evaluateConstant(Node node) {
+  AstConstant evaluateConstant(Node node) {
     bool oldIsEvaluatingConstant = isEvaluatingConstant;
     isEvaluatingConstant = true;
-    Constant result = node.accept(this);
+    AstConstant result = node.accept(this);
     isEvaluatingConstant = oldIsEvaluatingConstant;
     assert(result != null);
     return result;
   }
 
-  Constant visitNode(Node node) {
+  AstConstant visitNode(Node node) {
     return signalNotCompileTimeConstant(node);
   }
 
-  Constant visitLiteralBool(LiteralBool node) {
-    return constantSystem.createBool(node.value);
+  AstConstant visitLiteralBool(LiteralBool node) {
+    return new AstConstant(
+        context, node, new PrimitiveConstExp(
+            constantSystem.createBool(node.value)));
   }
 
-  Constant visitLiteralDouble(LiteralDouble node) {
-    return constantSystem.createDouble(node.value);
+  AstConstant visitLiteralDouble(LiteralDouble node) {
+    return new AstConstant(
+        context, node, new PrimitiveConstExp(
+            constantSystem.createDouble(node.value)));
   }
 
-  Constant visitLiteralInt(LiteralInt node) {
-    return constantSystem.createInt(node.value);
+  AstConstant visitLiteralInt(LiteralInt node) {
+    return new AstConstant(
+        context, node, new PrimitiveConstExp(
+            constantSystem.createInt(node.value)));
   }
 
-  Constant visitLiteralList(LiteralList node) {
+  AstConstant visitLiteralList(LiteralList node) {
     if (!node.isConst)  {
       return signalNotCompileTimeConstant(node);
     }
-    List<Constant> arguments = <Constant>[];
+    List<ConstExp> argumentExpressions = <ConstExp>[];
+    List<Constant> argumentValues = <Constant>[];
     for (Link<Node> link = node.elements.nodes;
          !link.isEmpty;
          link = link.tail) {
-      arguments.add(evaluateConstant(link.head));
+      AstConstant argument = evaluateConstant(link.head);
+      if (argument == null) {
+        return null;
+      }
+      argumentExpressions.add(argument.expression);
+      argumentValues.add(argument.value);
     }
     DartType type = elements.getType(node);
-    return new ListConstant(type, arguments);
+    return new AstConstant(
+        context, node, new ListConstExp(
+            new ListConstant(type, argumentValues),
+            type,
+            argumentExpressions));
   }
 
-  Constant visitLiteralMap(LiteralMap node) {
+  AstConstant visitLiteralMap(LiteralMap node) {
     if (!node.isConst) {
       return signalNotCompileTimeConstant(node);
     }
-    List<Constant> keys = <Constant>[];
-    Map<Constant, Constant> map = new Map<Constant, Constant>();
+    List<ConstExp> keyExpressions = <ConstExp>[];
+    List<Constant> keyValues = <Constant>[];
+    Map<Constant, ConstExp> map = new Map<Constant, ConstExp>();
     for (Link<Node> link = node.entries.nodes;
          !link.isEmpty;
          link = link.tail) {
       LiteralMapEntry entry = link.head;
-      Constant key = evaluateConstant(entry.key);
-      if (!map.containsKey(key)) {
-        keys.add(key);
+      AstConstant key = evaluateConstant(entry.key);
+      if (key == null) {
+        return null;
+      }
+      if (!map.containsKey(key.value)) {
+        keyExpressions.add(key.expression);
+        keyValues.add(key.value);
       } else {
         compiler.reportWarning(entry.key, MessageKind.EQUAL_MAP_ENTRY_KEY);
       }
-      map[key] = evaluateConstant(entry.value);
+      AstConstant value = evaluateConstant(entry.value);
+      if (value == null) {
+        return null;
+      }
+      map[key.value] = value.expression;
     }
-    List<Constant> values = map.values.toList();
-    InterfaceType sourceType = elements.getType(node);
-    return constantSystem.createMap(compiler, sourceType, keys, values);
+    List<ConstExp> valueExpressions = map.values.toList();
+    InterfaceType type = elements.getType(node);
+    return new AstConstant(
+        context, node, new MapConstExp(
+            constantSystem.createMap(compiler, type, keyValues,
+                valueExpressions.map((e) => e.value).toList()),
+            type,
+            keyExpressions,
+            valueExpressions));
   }
 
-  Constant visitLiteralNull(LiteralNull node) {
-    return constantSystem.createNull();
+  AstConstant visitLiteralNull(LiteralNull node) {
+    return new AstConstant(
+        context, node, new PrimitiveConstExp(
+            constantSystem.createNull()));
   }
 
-  Constant visitLiteralString(LiteralString node) {
-    return constantSystem.createString(node.dartString);
+  AstConstant visitLiteralString(LiteralString node) {
+    return new AstConstant(
+        context, node, new PrimitiveConstExp(
+            constantSystem.createString(node.dartString)));
   }
 
-  Constant visitStringJuxtaposition(StringJuxtaposition node) {
-    StringConstant left = evaluate(node.first);
-    StringConstant right = evaluate(node.second);
+  AstConstant visitStringJuxtaposition(StringJuxtaposition node) {
+    AstConstant left = evaluate(node.first);
+    AstConstant right = evaluate(node.second);
     if (left == null || right == null) return null;
-    return constantSystem.createString(
-        new DartString.concat(left.value, right.value));
+    StringConstant leftValue = left.value;
+    StringConstant rightValue = right.value;
+    return new AstConstant(
+        context, node, new ConcatenateConstExp(
+            constantSystem.createString(
+                new DartString.concat(leftValue.value, rightValue.value)),
+            [left.expression, right.expression]));
   }
 
-  Constant visitStringInterpolation(StringInterpolation node) {
-    StringConstant initialString = evaluate(node.string);
-    if (initialString == null) return null;
-    DartString accumulator = initialString.value;
+  AstConstant visitStringInterpolation(StringInterpolation node) {
+    List<ConstExp> subexpressions = <ConstExp>[];
+    AstConstant initialString = evaluate(node.string);
+    if (initialString == null) {
+      return null;
+    }
+    subexpressions.add(initialString.expression);
+    StringConstant initialStringValue = initialString.value;
+    DartString accumulator = initialStringValue.value;
     for (StringInterpolationPart part in node.parts) {
-      Constant expression = evaluate(part.expression);
+      AstConstant subexpression = evaluate(part.expression);
+      if (subexpression == null) {
+        return null;
+      }
+      subexpressions.add(subexpression.expression);
+      Constant expression = subexpression.value;
       DartString expressionString;
-      if (expression == null) {
-        return signalNotCompileTimeConstant(part.expression);
-      } else if (expression.isNum || expression.isBool) {
+      if (expression.isNum || expression.isBool) {
         PrimitiveConstant primitive = expression;
         expressionString = new DartString.literal(primitive.value.toString());
       } else if (expression.isString) {
         PrimitiveConstant primitive = expression;
         expressionString = primitive.value;
       } else {
+        // TODO(johnniwinther): Specialize message to indicated that the problem
+        // is not constness but the types of the const expressions.
         return signalNotCompileTimeConstant(part.expression);
       }
       accumulator = new DartString.concat(accumulator, expressionString);
-      StringConstant partString = evaluate(part.string);
+      AstConstant partString = evaluate(part.string);
       if (partString == null) return null;
-      accumulator = new DartString.concat(accumulator, partString.value);
+      subexpressions.add(partString.expression);
+      StringConstant partStringValue = partString.value;
+      accumulator = new DartString.concat(accumulator, partStringValue.value);
     };
-    return constantSystem.createString(accumulator);
+    return new AstConstant(
+        context, node, new ConcatenateConstExp(
+          constantSystem.createString(accumulator),
+          subexpressions));
   }
 
-  Constant visitLiteralSymbol(LiteralSymbol node) {
+  AstConstant visitLiteralSymbol(LiteralSymbol node) {
     InterfaceType type = compiler.symbolClass.rawType;
-    List<Constant> createArguments(_) {
-      return [constantSystem.createString(
-        new DartString.literal(node.slowNameString))];
-    }
-    return makeConstructedConstant(
-        compiler, handler, node, type, compiler.symbolConstructor,
-        createArguments, isLiteralSymbol: true);
+    String text = node.slowNameString;
+    List<AstConstant> arguments =
+        <AstConstant>[new AstConstant(context, node,
+          new PrimitiveConstExp(constantSystem.createString(
+              new DartString.literal(text))))];
+    AstConstant constant = makeConstructedConstant(
+        compiler, handler, context, node, type, compiler.symbolConstructor,
+        new Selector.callConstructor('', null, 1),
+        arguments, arguments);
+    return new AstConstant(
+        context, node, new SymbolConstExp(constant.value, text));
   }
 
-  Constant makeTypeConstant(DartType elementType) {
+  AstConstant makeTypeConstant(Node node, DartType elementType) {
     DartType constantType =
         compiler.backend.typeImplementation.computeType(compiler);
-    return new TypeConstant(elementType, constantType);
+    return new AstConstant(
+        context, node, new TypeConstExp(
+            new TypeConstant(elementType, constantType),
+            elementType));
   }
 
   /// Returns true if the prefix of the send resolves to a deferred import
@@ -378,17 +445,18 @@ class CompileTimeConstantEvaluator extends Visitor {
         .deferredPrefixElement(send, elements) != null;
   }
 
-  Constant visitIdentifier(Identifier node) {
+  AstConstant visitIdentifier(Identifier node) {
     Element element = elements[node];
     if (Elements.isClass(element) || Elements.isTypedef(element)) {
       TypeDeclarationElement typeDeclarationElement = element;
-      return makeTypeConstant(typeDeclarationElement.rawType);
+      DartType type = typeDeclarationElement.rawType;
+      return makeTypeConstant(node, type);
     }
     return signalNotCompileTimeConstant(node);
   }
 
   // TODO(floitsch): provide better error-messages.
-  Constant visitSend(Send send) {
+  AstConstant visitSend(Send send) {
     Element element = elements[send];
     if (send.isPropertyAccess) {
       if (isDeferredUse(send)) {
@@ -396,64 +464,91 @@ class CompileTimeConstantEvaluator extends Visitor {
             message: MessageKind.DEFERRED_COMPILE_TIME_CONSTANT);
       }
       if (Elements.isStaticOrTopLevelFunction(element)) {
-        return new FunctionConstant(element);
+        return new AstConstant(
+            context, send, new FunctionConstExp(
+                new FunctionConstant(element),
+                element));
       } else if (Elements.isStaticOrTopLevelField(element)) {
-        Constant result;
+        ConstExp result;
         if (element.isConst) {
           result = handler.compileConstant(element);
         } else if (element.isFinal && !isEvaluatingConstant) {
           result = handler.compileVariable(element);
         }
-        if (result != null) return result;
+        if (result != null) {
+          return new AstConstant(
+              context, send, new VariableConstExp(result.value, element));
+        }
       } else if (Elements.isClass(element) || Elements.isTypedef(element)) {
         assert(elements.isTypeLiteral(send));
-        return makeTypeConstant(elements.getTypeLiteralType(send));
+        return makeTypeConstant(send, elements.getTypeLiteralType(send));
       } else if (send.receiver != null) {
         // Fall through to error handling.
       } else if (!Elements.isUnresolved(element)
                  && element.isVariable
                  && element.isConst) {
-        Constant result = handler.compileConstant(element);
-        if (result != null) return result;
+        ConstExp result = handler.compileConstant(element);
+        if (result != null) {
+          return new AstConstant(
+              context, send, new VariableConstExp(result.value, element));
+        }
       }
       return signalNotCompileTimeConstant(send);
     } else if (send.isCall) {
       if (identical(element, compiler.identicalFunction)
           && send.argumentCount() == 2) {
-        Constant left = evaluate(send.argumentsNode.nodes.head);
-        Constant right = evaluate(send.argumentsNode.nodes.tail.head);
-        Constant result = constantSystem.identity.fold(left, right);
-        if (result != null) return result;
+        AstConstant left = evaluate(send.argumentsNode.nodes.head);
+        AstConstant right = evaluate(send.argumentsNode.nodes.tail.head);
+        if (left == null || right == null) {
+          return null;
+        }
+        Constant result = constantSystem.identity.fold(left.value, right.value);
+        if (result != null) {
+          return new AstConstant(
+              context, send, new BinaryConstExp(result,
+                  left.expression, 'identical', right.expression));
+        }
       }
       return signalNotCompileTimeConstant(send);
     } else if (send.isPrefix) {
       assert(send.isOperator);
-      Constant receiverConstant = evaluate(send.receiver);
-      if (receiverConstant == null) return null;
+      AstConstant receiverConstant = evaluate(send.receiver);
+      if (receiverConstant == null) {
+        return null;
+      }
       Operator op = send.selector;
       UnaryOperation operation = constantSystem.lookupUnary(op.source);
       if (operation == null) {
         compiler.internalError(op, "Unexpected operator.");
       }
-      Constant folded = operation.fold(receiverConstant);
-      if (folded == null) return signalNotCompileTimeConstant(send);
-      return folded;
+      Constant folded = operation.fold(receiverConstant.value);
+      if (folded == null) {
+        return signalNotCompileTimeConstant(send);
+      }
+      return new AstConstant(
+          context, send, new UnaryConstExp(folded,
+              op.source, receiverConstant.expression));
     } else if (send.isOperator && !send.isPostfix) {
       assert(send.argumentCount() == 1);
-      Constant left = evaluate(send.receiver);
-      Constant right = evaluate(send.argumentsNode.nodes.head);
-      if (left == null || right == null) return null;
+      AstConstant left = evaluate(send.receiver);
+      AstConstant right = evaluate(send.argumentsNode.nodes.head);
+      if (left == null || right == null) {
+        return null;
+      }
+      Constant leftValue = left.value;
+      Constant rightValue = right.value;
       Operator op = send.selector.asOperator();
       Constant folded = null;
       switch (op.source) {
         case "==":
-          if (left.isPrimitive && right.isPrimitive) {
-            folded = constantSystem.equal.fold(left, right);
+          if (leftValue.isPrimitive && rightValue.isPrimitive) {
+            folded = constantSystem.equal.fold(leftValue, rightValue);
           }
           break;
         case "!=":
-          if (left.isPrimitive && right.isPrimitive) {
-            BoolConstant areEquals = constantSystem.equal.fold(left, right);
+          if (leftValue.isPrimitive && rightValue.isPrimitive) {
+            BoolConstant areEquals =
+                constantSystem.equal.fold(leftValue, rightValue);
             if (areEquals == null) {
               folded = null;
             } else {
@@ -464,21 +559,25 @@ class CompileTimeConstantEvaluator extends Visitor {
         default:
           BinaryOperation operation = constantSystem.lookupBinary(op.source);
           if (operation != null) {
-            folded = operation.fold(left, right);
+            folded = operation.fold(leftValue, rightValue);
           }
       }
-      if (folded == null) return signalNotCompileTimeConstant(send);
-      return folded;
+      if (folded == null) {
+        return signalNotCompileTimeConstant(send);
+      }
+      return new AstConstant(
+          context, send, new BinaryConstExp(folded,
+              left.expression, op.source, right.expression));
     }
     return signalNotCompileTimeConstant(send);
   }
 
-  Constant visitConditional(Conditional node) {
-    Constant condition = evaluate(node.condition);
+  AstConstant visitConditional(Conditional node) {
+    AstConstant condition = evaluate(node.condition);
     if (condition == null) {
       return null;
-    } else if (!condition.isBool) {
-      DartType conditionType = condition.computeType(compiler);
+    } else if (!condition.value.isBool) {
+      DartType conditionType = condition.value.computeType(compiler);
       if (isEvaluatingConstant) {
         compiler.reportFatalError(
             node.condition, MessageKind.NOT_ASSIGNABLE,
@@ -486,36 +585,50 @@ class CompileTimeConstantEvaluator extends Visitor {
       }
       return null;
     }
-    Constant thenExpression = evaluate(node.thenExpression);
-    Constant elseExpression = evaluate(node.elseExpression);
-    BoolConstant boolCondition = condition;
-    return boolCondition.value ? thenExpression : elseExpression;
+    AstConstant thenExpression = evaluate(node.thenExpression);
+    AstConstant elseExpression = evaluate(node.elseExpression);
+    if (thenExpression == null || elseExpression == null) {
+      return null;
+    }
+    BoolConstant boolCondition = condition.value;
+    return new AstConstant(
+        context, node, new ConditionalConstExp(
+            boolCondition.value ? thenExpression.value : elseExpression.value,
+            condition.expression,
+            thenExpression.expression,
+            elseExpression.expression));
   }
 
-  Constant visitSendSet(SendSet node) {
+  AstConstant visitSendSet(SendSet node) {
     return signalNotCompileTimeConstant(node);
   }
 
   /**
-   * Returns the list of constants that are passed to the static function.
+   * Returns the normalized list of constant arguments that are passed to the
+   * constructor including both the concrete arguments and default values for
+   * omitted optional arguments.
    *
    * Invariant: [target] must be an implementation element.
    */
-  List<Constant> evaluateArgumentsToConstructor(Node node,
-                                                Selector selector,
-                                                Link<Node> arguments,
-                                                FunctionElement target) {
+  List<AstConstant> evaluateArgumentsToConstructor(
+      Node node,
+      Selector selector,
+      Link<Node> arguments,
+      FunctionElement target,
+      {AstConstant compileArgument(Node node)}) {
     assert(invariant(node, target.isImplementation));
-    List<Constant> compiledArguments = <Constant>[];
+    List<AstConstant> compiledArguments = <AstConstant>[];
 
-    Function compileArgument = evaluateConstant;
-    Function compileConstant = handler.compileConstant;
+    AstConstant compileDefaultValue(VariableElement element) {
+      ConstExp constant = handler.compileConstant(element);
+      return new AstConstant.fromDefaultValue(element, constant);
+    }
     target.computeSignature(compiler);
     bool succeeded = selector.addArgumentsToList(arguments,
                                                  compiledArguments,
                                                  target,
                                                  compileArgument,
-                                                 compileConstant,
+                                                 compileDefaultValue,
                                                  compiler.world);
     if (!succeeded) {
       String name = Elements.constructorNameForDiagnostics(
@@ -528,7 +641,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     return compiledArguments;
   }
 
-  Constant visitNewExpression(NewExpression node) {
+  AstConstant visitNewExpression(NewExpression node) {
     if (!node.isConst) {
       return signalNotCompileTimeConstant(node);
     }
@@ -552,22 +665,47 @@ class CompileTimeConstantEvaluator extends Visitor {
     compiler.analyzeElement(constructor.declaration);
 
     InterfaceType type = elements.getType(node);
-    List<Constant> evaluateArguments(FunctionElement constructor) {
-      Selector selector = elements.getSelector(send);
-      return evaluateArgumentsToConstructor(
-          node, selector, send.arguments, constructor);
+    Selector selector = elements.getSelector(send);
+
+    Map<Node, AstConstant> concreteArgumentMap =
+        <Node, AstConstant>{};
+    for (Link<Node> link = send.arguments; !link.isEmpty; link = link.tail) {
+      Node argument = link.head;
+      NamedArgument namedArgument = argument.asNamedArgument();
+      if (namedArgument != null) {
+        argument = namedArgument.expression;
+      }
+      concreteArgumentMap[argument] = evaluateConstant(argument);
     }
 
-    if (constructor == compiler.intEnvironment
-        || constructor == compiler.boolEnvironment
-        || constructor == compiler.stringEnvironment) {
-      List<Constant> arguments = evaluateArguments(constructor.implementation);
-      var firstArgument = arguments[0];
-      Constant defaultValue = arguments[1];
+    List<AstConstant> normalizedArguments =
+        evaluateArgumentsToConstructor(
+          node, selector, send.arguments, constructor.implementation,
+          compileArgument: (node) => concreteArgumentMap[node]);
+    List<AstConstant> concreteArguments =
+        concreteArgumentMap.values.toList();
+
+    if (constructor == compiler.intEnvironment ||
+        constructor == compiler.boolEnvironment ||
+        constructor == compiler.stringEnvironment) {
+
+      AstConstant createEvaluatedConstant(Constant value) {
+        return new AstConstant(
+            context, node, new ConstructorConstExp(
+                value,
+                type,
+                constructor,
+                elements.getSelector(send),
+                concreteArguments.map((e) => e.expression).toList()));
+      }
+
+      var firstArgument = normalizedArguments[0].value;
+      Constant defaultValue = normalizedArguments[1].value;
 
       if (firstArgument is NullConstant) {
         compiler.reportFatalError(
             send.arguments.head, MessageKind.NULL_NOT_ALLOWED);
+        return null;
       }
 
       if (firstArgument is! StringConstant) {
@@ -575,6 +713,7 @@ class CompileTimeConstantEvaluator extends Visitor {
         compiler.reportFatalError(
             send.arguments.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.stringClass.rawType});
+        return null;
       }
 
       if (constructor == compiler.intEnvironment
@@ -583,6 +722,7 @@ class CompileTimeConstantEvaluator extends Visitor {
         compiler.reportFatalError(
             send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.intClass.rawType});
+        return null;
       }
 
       if (constructor == compiler.boolEnvironment
@@ -591,6 +731,7 @@ class CompileTimeConstantEvaluator extends Visitor {
         compiler.reportFatalError(
             send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.boolClass.rawType});
+        return null;
       }
 
       if (constructor == compiler.stringEnvironment
@@ -600,68 +741,85 @@ class CompileTimeConstantEvaluator extends Visitor {
         compiler.reportFatalError(
             send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE,
             {'fromType': type, 'toType': compiler.stringClass.rawType});
+        return null;
       }
 
       String value =
           compiler.fromEnvironment(firstArgument.value.slowToString());
 
       if (value == null) {
-        return defaultValue;
+        return createEvaluatedConstant(defaultValue);
       } else if (constructor == compiler.intEnvironment) {
         int number = int.parse(value, onError: (_) => null);
-        return (number == null)
-            ? defaultValue
-            : constantSystem.createInt(number);
+        return createEvaluatedConstant(
+            (number == null)
+                ? defaultValue
+                : constantSystem.createInt(number));
       } else if (constructor == compiler.boolEnvironment) {
         if (value == 'true') {
-          return constantSystem.createBool(true);
+          return createEvaluatedConstant(constantSystem.createBool(true));
         } else if (value == 'false') {
-          return constantSystem.createBool(false);
+          return createEvaluatedConstant(constantSystem.createBool(false));
         } else {
-          return defaultValue;
+          return createEvaluatedConstant(defaultValue);
         }
       } else {
         assert(constructor == compiler.stringEnvironment);
-        return constantSystem.createString(new DartString.literal(value));
+        return createEvaluatedConstant(
+            constantSystem.createString(new DartString.literal(value)));
       }
     } else {
       return makeConstructedConstant(
-          compiler, handler, node, type, constructor, evaluateArguments);
+          compiler, handler, context,
+          node, type, constructor, selector,
+          concreteArguments, normalizedArguments);
     }
   }
 
-  static Constant makeConstructedConstant(
+  static AstConstant makeConstructedConstant(
       Compiler compiler,
       ConstantCompilerBase handler,
-      Spannable node,
+      Element context,
+      Node node,
       InterfaceType type,
       ConstructorElement constructor,
-      List<Constant> getArguments(ConstructorElement constructor),
-      {bool isLiteralSymbol: false}) {
+      Selector selector,
+      List<AstConstant> concreteArguments,
+      List<AstConstant> normalizedArguments) {
+    assert(invariant(node, selector.applies(constructor, compiler.world),
+        message: "Selector $selector does not apply to constructor "
+                 "$constructor."));
 
     // The redirection chain of this element may not have been resolved through
     // a post-process action, so we have to make sure it is done here.
     compiler.resolver.resolveRedirectionChain(constructor, node);
     InterfaceType constructedType =
         constructor.computeEffectiveTargetType(type);
-    constructor = constructor.effectiveTarget;
-    ClassElement classElement = constructor.enclosingClass;
+    ConstructorElement target = constructor.effectiveTarget;
+    ClassElement classElement = target.enclosingClass;
     // The constructor must be an implementation to ensure that field
     // initializers are handled correctly.
-    constructor = constructor.implementation;
-    assert(invariant(node, constructor.isImplementation));
+    target = target.implementation;
+    assert(invariant(node, target.isImplementation));
 
-    List<Constant> arguments = getArguments(constructor);
     ConstructorEvaluator evaluator = new ConstructorEvaluator(
-        constructedType, constructor, handler, compiler);
-    evaluator.evaluateConstructorFieldValues(arguments);
-    List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
+        constructedType, target, handler, compiler);
+    evaluator.evaluateConstructorFieldValues(normalizedArguments);
+    List<AstConstant> fieldConstants =
+        evaluator.buildFieldConstants(classElement);
 
-    return new ConstructedConstant(constructedType, jsNewArguments,
-        isLiteralSymbol: isLiteralSymbol);
+    return new AstConstant(
+        context, node, new ConstructorConstExp(
+            new ConstructedConstant(
+                constructedType,
+                fieldConstants.map((e) => e.value).toList()),
+            type,
+            constructor,
+            selector,
+            concreteArguments.map((e) => e.expression).toList()));
   }
 
-  Constant visitParenthesizedExpression(ParenthesizedExpression node) {
+  AstConstant visitParenthesizedExpression(ParenthesizedExpression node) {
     return node.expression.accept(this);
   }
 
@@ -671,7 +829,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     compiler.reportFatalError(node, message);
   }
 
-  Constant signalNotCompileTimeConstant(Node node,
+  AstConstant signalNotCompileTimeConstant(Node node,
       {MessageKind message: MessageKind.NOT_A_COMPILE_TIME_CONSTANT}) {
     if (isEvaluatingConstant) {
       error(node, message);
@@ -688,8 +846,8 @@ class CompileTimeConstantEvaluator extends Visitor {
 class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   final InterfaceType constructedType;
   final ConstructorElement constructor;
-  final Map<Element, Constant> definitions;
-  final Map<Element, Constant> fieldValues;
+  final Map<Element, AstConstant> definitions;
+  final Map<Element, AstConstant> fieldValues;
 
   /**
    * Documentation wanted -- johnniwinther
@@ -701,8 +859,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
                        ConstantCompiler handler,
                        Compiler compiler)
       : this.constructor = constructor,
-        this.definitions = new Map<Element, Constant>(),
-        this.fieldValues = new Map<Element, Constant>(),
+        this.definitions = new Map<Element, AstConstant>(),
+        this.fieldValues = new Map<Element, AstConstant>(),
         super(handler,
               compiler.resolver.resolveMethodElement(constructor.declaration),
               compiler,
@@ -710,10 +868,10 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     assert(invariant(constructor, constructor.isImplementation));
   }
 
-  Constant visitSend(Send send) {
+  AstConstant visitSend(Send send) {
     Element element = elements[send];
     if (Elements.isLocal(element)) {
-      Constant constant = definitions[element];
+      AstConstant constant = definitions[element];
       if (constant == null) {
         compiler.internalError(send, "Local variable without value.");
       }
@@ -724,19 +882,23 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
 
   void potentiallyCheckType(Node node,
                             TypedElement element,
-                            Constant constant) {
+                            AstConstant constant) {
     if (compiler.enableTypeAssertions) {
       DartType elementType = element.type.substByContext(constructedType);
-      DartType constantType = constant.computeType(compiler);
+      DartType constantType = constant.value.computeType(compiler);
       if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
-        compiler.reportFatalError(
-            node, MessageKind.NOT_ASSIGNABLE,
-            {'fromType': constantType, 'toType': elementType});
+        compiler.withCurrentElement(constant.element, () {
+          compiler.reportFatalError(
+              constant.node, MessageKind.NOT_ASSIGNABLE,
+              {'fromType': constantType, 'toType': elementType});
+        });
       }
     }
   }
 
-  void updateFieldValue(Node node, TypedElement element, Constant constant) {
+  void updateFieldValue(Node node,
+                        TypedElement element,
+                        AstConstant constant) {
     potentiallyCheckType(node, element, constant);
     fieldValues[element] = constant;
   }
@@ -746,23 +908,24 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    * updating the definitions map. If the constructor has field-initializer
    * parameters (like [:this.x:]), also updates the [fieldValues] map.
    */
-  void assignArgumentsToParameters(List<Constant> arguments) {
+  void assignArgumentsToParameters(List<AstConstant> arguments) {
     // Assign arguments to parameters.
     FunctionSignature signature = constructor.functionSignature;
     int index = 0;
     signature.orderedForEachParameter((ParameterElement parameter) {
-      Constant argument = arguments[index++];
+      AstConstant argument = arguments[index++];
       Node node = parameter.node;
-      potentiallyCheckType(node, parameter, argument);
-      definitions[parameter] = argument;
       if (parameter.isInitializingFormal) {
         InitializingFormalElement initializingFormal = parameter;
         updateFieldValue(node, initializingFormal.fieldElement, argument);
+      } else {
+        potentiallyCheckType(node, parameter, argument);
+        definitions[parameter] = argument;
       }
     });
   }
 
-  void evaluateSuperOrRedirectSend(List<Constant> compiledArguments,
+  void evaluateSuperOrRedirectSend(List<AstConstant> compiledArguments,
                                    FunctionElement targetConstructor) {
     ConstructorEvaluator evaluator = new ConstructorEvaluator(
         constructedType.asInstanceOf(targetConstructor.enclosingClass),
@@ -780,7 +943,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    */
   void evaluateConstructorInitializers() {
     if (constructor.isSynthesized) {
-      List<Constant> compiledArguments = <Constant>[];
+      List<AstConstant> compiledArguments = <AstConstant>[];
 
       Function compileArgument = (element) => definitions[element];
       Function compileConstant = handler.compileConstant;
@@ -808,8 +971,10 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           // A super initializer or constructor redirection.
           Send call = link.head;
           FunctionElement target = elements[call];
-          List<Constant> compiledArguments = evaluateArgumentsToConstructor(
-              call, elements.getSelector(call), call.arguments, target);
+          List<AstConstant> compiledArguments =
+              evaluateArgumentsToConstructor(
+                  call, elements.getSelector(call), call.arguments, target,
+                  compileArgument: evaluateConstant);
           evaluateSuperOrRedirectSend(compiledArguments, target);
           foundSuperOrRedirect = true;
         } else {
@@ -817,7 +982,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           SendSet init = link.head;
           Link<Node> initArguments = init.arguments;
           assert(!initArguments.isEmpty && initArguments.tail.isEmpty);
-          Constant fieldValue = evaluate(initArguments.head);
+          AstConstant fieldValue = evaluate(initArguments.head);
           updateFieldValue(init, elements[init], fieldValue);
         }
       }
@@ -841,8 +1006,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           compiler.internalError(functionNode,
               "No default constructor available.");
         }
-        List<Constant> compiledArguments = evaluateArgumentsToConstructor(
-            functionNode, selector, const Link<Node>(), targetConstructor);
+        List<AstConstant> compiledArguments =
+            evaluateArgumentsToConstructor(
+                functionNode, selector, const Link<Node>(), targetConstructor);
         evaluateSuperOrRedirectSend(compiledArguments, targetConstructor);
       }
     }
@@ -853,25 +1019,57 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    * [arguments] to obtain the field values that need to be passed to the
    * native JavaScript constructor.
    */
-  void evaluateConstructorFieldValues(List<Constant> arguments) {
+  void evaluateConstructorFieldValues(List<AstConstant> arguments) {
     compiler.withCurrentElement(constructor, () {
       assignArgumentsToParameters(arguments);
       evaluateConstructorInitializers();
     });
   }
 
-  List<Constant> buildJsNewArguments(ClassElement classElement) {
-    List<Constant> jsNewArguments = <Constant>[];
+  /// Builds a normalized list of the constant values for each field in the
+  /// inheritance chain of [classElement].
+  List<AstConstant> buildFieldConstants(ClassElement classElement) {
+    List<AstConstant> fieldConstants = <AstConstant>[];
     classElement.implementation.forEachInstanceField(
-        (ClassElement enclosing, Element field) {
-          Constant fieldValue = fieldValues[field];
+        (ClassElement enclosing, FieldElement field) {
+          AstConstant fieldValue = fieldValues[field];
           if (fieldValue == null) {
             // Use the default value.
-            fieldValue = handler.compileConstant(field);
+            fieldValue = new AstConstant.fromDefaultValue(
+                field, handler.compileConstant(field));
           }
-          jsNewArguments.add(fieldValue);
+          fieldConstants.add(fieldValue);
         },
         includeSuperAndInjectedMembers: true);
-    return jsNewArguments;
+    return fieldConstants;
   }
+}
+
+/// A constant created from the front-end AST.
+///
+/// [element] and [node] point to the source location of the constant.
+/// [expression] holds the symbolic constant expression and [value] its constant
+/// value.
+///
+/// This class differs from [ConstExp] in that it is coupled to the front-end
+/// AST whereas [ConstExp] is only coupled to the element model.
+class AstConstant {
+  final Element element;
+  final Node node;
+  final ConstExp expression;
+
+  AstConstant(this.element, this.node, this.expression);
+
+  factory AstConstant.fromDefaultValue(
+      VariableElement element,
+      ConstExp constant) {
+    return new AstConstant(
+        element,
+        element.initializer != null ? element.initializer : element.node,
+        constant);
+  }
+
+  Constant get value => expression.value;
+
+  String toString() => expression.toString();
 }

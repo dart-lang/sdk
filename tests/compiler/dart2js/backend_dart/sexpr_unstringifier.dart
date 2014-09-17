@@ -8,19 +8,21 @@
 library sexpr_unstringifier;
 
 import 'package:compiler/implementation/dart2jslib.dart' as dart2js
-  show Constant, IntConstant, NullConstant, StringConstant,
-       DoubleConstant, TrueConstant, FalseConstant, MessageKind;
+    show Constant, IntConstant, NullConstant, StringConstant,
+         DoubleConstant, TrueConstant, FalseConstant, MessageKind;
 import 'package:compiler/implementation/dart_types.dart' as dart_types
-  show DartType;
+    show DartType;
 import 'package:compiler/implementation/elements/elements.dart'
-  show Entity, Element, Elements, Local, TypeVariableElement, ErroneousElement,
-       TypeDeclarationElement, ExecutableElement;
+   show Entity, Element, Elements, Local, TypeVariableElement, ErroneousElement,
+         TypeDeclarationElement, ExecutableElement;
 import 'package:compiler/implementation/elements/modelx.dart'
-  show ErroneousElementX, TypeVariableElementX;
-import 'package:compiler/implementation/tree/tree.dart'show LiteralDartString;
+    show ErroneousElementX, TypeVariableElementX;
+import 'package:compiler/implementation/tree/tree.dart' show LiteralDartString;
 import 'package:compiler/implementation/universe/universe.dart'
-  show Selector, SelectorKind;
+    show Selector, SelectorKind;
 import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart';
+import 'package:compiler/implementation/cps_ir/const_expression.dart'
+    show PrimitiveConstExp;
 
 /// Used whenever a node constructed by [SExpressionUnstringifier] needs a
 /// named entity.
@@ -554,16 +556,18 @@ class SExpressionUnstringifier {
     // NullConstant.
     if (tag == "null") {
       tokens.consumeEnd();
-      return new Constant(null, new dart2js.NullConstant());
+      return new Constant(new PrimitiveConstExp(new dart2js.NullConstant()));
     }
 
     // BoolConstant.
     if (tag == "true") {
       tokens.consumeEnd();
-      return new Constant(null, new dart2js.TrueConstant());
+      return new Constant(new PrimitiveConstExp(
+          new dart2js.TrueConstant()));
     } else if (tag == "false") {
       tokens.consumeEnd();
-      return new Constant(null, new dart2js.FalseConstant());
+      return new Constant(new PrimitiveConstExp(
+          new dart2js.FalseConstant()));
     }
 
     // StringConstant.
@@ -582,21 +586,23 @@ class SExpressionUnstringifier {
           new LiteralDartString(string.substring(1, string.length - 1)));
 
       tokens.consumeEnd();
-      return new Constant(null, value);
+      return new Constant(new PrimitiveConstExp(value));
     }
 
     // IntConstant.
     int intValue = int.parse(tag, onError: (_) => null);
     if (intValue != null) {
       tokens.consumeEnd();
-      return new Constant(null, new dart2js.IntConstant(intValue));
+      return new Constant(new PrimitiveConstExp(
+          new dart2js.IntConstant(intValue)));
     }
 
     // DoubleConstant.
     double doubleValue = double.parse(tag, (_) => null);
     if (doubleValue != null) {
       tokens.consumeEnd();
-      return new Constant(null, new dart2js.DoubleConstant(doubleValue));
+      return new Constant(new PrimitiveConstExp(
+          new dart2js.DoubleConstant(doubleValue)));
     }
 
     assert(false);

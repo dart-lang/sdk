@@ -5,6 +5,7 @@
 library elements;
 
 
+import '../cps_ir/const_expression.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';
@@ -1427,7 +1428,7 @@ abstract class TypeVariableElement extends Element
 
 abstract class MetadataAnnotation implements Spannable {
   /// The front-end constant of this metadata annotation.
-  Constant get value;
+  ConstExp get constant;
   Element get annotatedElement;
   int get resolutionState;
   Token get beginToken;

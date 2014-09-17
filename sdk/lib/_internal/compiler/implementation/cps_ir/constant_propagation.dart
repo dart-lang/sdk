@@ -79,7 +79,7 @@ class _TransformingVisitor extends RecursiveVisitor {
 
     dart2js.PrimitiveConstant primitiveConstant = cell.constant;
     ConstExp constExp = new PrimitiveConstExp(primitiveConstant);
-    Constant constant = new Constant(constExp, primitiveConstant);
+    Constant constant = new Constant(constExp);
     LetPrim letPrim = new LetPrim(constant);
     InvokeContinuation invoke =
         new InvokeContinuation(continuation, <Definition>[constant]);

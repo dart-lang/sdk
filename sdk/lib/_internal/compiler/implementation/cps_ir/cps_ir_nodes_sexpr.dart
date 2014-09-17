@@ -127,7 +127,7 @@ class SExpressionStringifier extends Visitor<String> with Indentation {
   }
 
   String visitConstant(Constant node) {
-    return '(Constant ${node.value})';
+    return '(Constant ${node.expression.value})';
   }
 
   String visitThis(This node) {

@@ -332,7 +332,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
          !link.isEmpty;
          link = link.tail) {
       MetadataAnnotation annotation = link.head.ensureResolved(compiler);
-      var value = annotation.value;
+      var value = annotation.constant;
       if (value is! ConstructedConstant) continue;
       if (value.type is! InterfaceType) continue;
       if (!identical(value.type.element, annotationClass)) continue;
@@ -1099,7 +1099,7 @@ class NativeBehavior {
          !link.isEmpty;
          link = link.tail) {
       MetadataAnnotation annotation = link.head.ensureResolved(compiler);
-      var value = annotation.value;
+      var value = annotation.constant;
       if (value is! ConstructedConstant) continue;
       if (value.type is! InterfaceType) continue;
       if (!identical(value.type.element, annotationClass)) continue;

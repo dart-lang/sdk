@@ -959,7 +959,7 @@ class CodeEmitterTask extends CompilerTask {
       // `mapTypeToInterceptor` is handled in [emitMapTypeToInterceptor].
       if (element == backend.mapTypeToInterceptor) continue;
       compiler.withCurrentElement(element, () {
-        Constant initialValue = handler.getInitialValueFor(element);
+        Constant initialValue = handler.getInitialValueFor(element).value;
         jsAst.Expression init =
           js('$isolateProperties.# = #',
               [namer.getNameOfGlobalField(element),

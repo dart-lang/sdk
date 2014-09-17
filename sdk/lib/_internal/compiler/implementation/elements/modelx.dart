@@ -5,6 +5,7 @@
 library elements.modelx;
 
 import 'elements.dart';
+import '../cps_ir/const_expression.dart';
 import '../helpers/helpers.dart';  // Included for debug helpers.
 import '../tree/tree.dart';
 import '../util/util.dart';
@@ -2610,7 +2611,7 @@ class TypeVariableElementX extends ElementX with AstElementMixin
  *
  * In this example, there are three instances of [MetadataAnnotation]
  * and they correspond each to a location in the source code where
- * there is an at-sign, '@'. The [value] of each of these instances
+ * there is an at-sign, '@'. The [constant] of each of these instances
  * are the same compile-time constant, [: const Data() :].
  *
  * The mirror system does not have a concept matching this class.
@@ -2620,7 +2621,7 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
    * The compile-time constant which this annotation resolves to.
    * In the mirror system, this would be an object mirror.
    */
-  Constant value;
+  ConstExp constant;
   Element annotatedElement;
   int resolutionState;
 
@@ -2632,6 +2633,10 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
   MetadataAnnotationX([this.resolutionState = STATE_NOT_STARTED]);
 
   MetadataAnnotation ensureResolved(Compiler compiler) {
+    if (annotatedElement.isClass || annotatedElement.isTypedef) {
+      TypeDeclarationElement typeDeclaration = annotatedElement;
+      typeDeclaration.ensureResolved(compiler);
+    }
     if (resolutionState == STATE_NOT_STARTED) {
       compiler.resolver.resolveMetadataAnnotation(this);
     }
@@ -2640,7 +2645,7 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
 
   Node parseNode(DiagnosticListener listener);
 
-  String toString() => 'MetadataAnnotation($value, $resolutionState)';
+  String toString() => 'MetadataAnnotation($constant, $resolutionState)';
 }
 
 /// Metadata annotation on a parameter.

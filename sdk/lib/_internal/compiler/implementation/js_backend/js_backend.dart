@@ -8,6 +8,7 @@ import 'dart:async' show EventSink, Future;
 import 'dart:collection' show Queue, LinkedHashMap, LinkedHashSet;
 
 import '../closure.dart';
+import '../cps_ir/const_expression.dart';
 import '../elements/elements.dart';
 import '../js_emitter/js_emitter.dart'
     show Emitter, CodeEmitterTask, ClassBuilder, MetadataEmitter;
