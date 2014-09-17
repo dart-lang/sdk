@@ -1,3 +1,10 @@
+#### 0.14.1
+  * The build.dart file no longer requires a list of entry points, and you can
+    replace the entire file with `export 'package:polymer/default_build.dart';`
+    [20396](http://dartbug.com/20396).
+  * Inlined imports from the head of the document now get inserted inside a
+    hidden div, similar to the js vulcanizer [20943](http://dartbug.com/20943).
+
 #### 0.14.0+1
   * Small style improvements on error/warnings page.
 
@@ -9,6 +16,8 @@
     like the option to not inject platform.js at all in the built output (if you
     are deploying to chrome exclusively), please star this bug
     http://dartbug.com/20865.
+  * Fixed invalid linter warning when using event handlers inside an
+    `auto-binding-dart` template, [20913](http://dartbug.com/20913).
 
 #### 0.13.1
   * Upgraded error messages to have a unique and stable identifier. This
