@@ -19336,9 +19336,24 @@ class ResolverVisitor extends ScopedVisitor {
       return;
     }
     DartType currentType = _getBestType(element);
-    // If we aren't allowing precision loss then the third condition checks that we
+    // If we aren't allowing precision loss then the third and fourth conditions check that we
     // aren't losing precision.
-    if (currentType == null || allowPrecisionLoss || !currentType.isMoreSpecificThan(potentialType)) {
+    //
+    // Let [C] be the current type and [P] be the potential type.  When we aren't allowing
+    // precision loss -- which is the case for is-checks -- we check that [! (C << P)] or  [P << C].
+    // The second check, that [P << C], is analogous to part of the Dart Language Spec rule
+    // for type promotion under is-checks (in the analogy [T] is [P] and [S] is [C]):
+    //
+    //   An is-expression of the form [v is T] shows that [v] has type [T] iff [T] is more
+    //   specific than the type [S] of the expression [v] and both [T != dynamic] and
+    //   [S != dynamic].
+    //
+    // It also covers an important case that is not applicable in the spec: for union types, we
+    // want an is-check to promote from an union type to (a subtype of) any of its members.
+    //
+    // The first check, that [! (C << P)], covers the case where [P] and [C] are unrelated types;
+    // This case is not addressed in the spec for static types.
+    if (currentType == null || allowPrecisionLoss || !currentType.isMoreSpecificThan(potentialType) || potentialType.isMoreSpecificThan(currentType)) {
       if (element is PropertyInducingElement) {
         PropertyInducingElement variable = element;
         if (!variable.isConst && !variable.isFinal) {

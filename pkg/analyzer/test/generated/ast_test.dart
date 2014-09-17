@@ -1281,6 +1281,11 @@ class SimpleIdentifierTest extends ParserTestCase {
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
 
+  void test_inDeclarationContext_prefix() {
+    SimpleIdentifier identifier = AstFactory.importDirective3("uri", "pref", []).prefix;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
   void test_inDeclarationContext_simpleFormalParameter() {
     SimpleIdentifier identifier = AstFactory.simpleFormalParameter3("p").identifier;
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
@@ -1493,6 +1498,10 @@ class SimpleIdentifierTest extends ParserTestCase {
       _ut.test('test_inDeclarationContext_methodDeclaration', () {
         final __test = new SimpleIdentifierTest();
         runJUnitTest(__test, __test.test_inDeclarationContext_methodDeclaration);
+      });
+      _ut.test('test_inDeclarationContext_prefix', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_prefix);
       });
       _ut.test('test_inDeclarationContext_simpleFormalParameter', () {
         final __test = new SimpleIdentifierTest();
