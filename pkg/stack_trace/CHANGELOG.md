@@ -1,3 +1,8 @@
+## 1.0.3
+
+* Use `Zone.errorCallback` to attach stack chains to all errors without the need
+  for `Chain.track`, which is now deprecated.
+
 ## 1.0.2
 
 * Remove a workaround for [issue 17083][].

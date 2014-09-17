@@ -102,33 +102,13 @@ class Chain implements StackTrace {
     });
   }
 
-  /// Ensures that any errors emitted by [futureOrStream] have the correct stack
-  /// chain information associated with them.
+  /// Returns [futureOrStream] unmodified.
   ///
-  /// For the most part an error thrown within a [capture] zone will have the
-  /// correct stack chain automatically associated with it. However, there are
-  /// some cases where exceptions won't be automatically detected: any [Future]
-  /// constructor, [Completer.completeError], [Stream.addError], and libraries
-  /// that use these.
-  ///
-  /// This returns a [Future] or [Stream] that will emit the same values and
-  /// errors as [futureOrStream]. The only exception is that if [futureOrStream]
-  /// emits an error without a stack trace, one will be added in the return
-  /// value.
-  ///
-  /// If this is called outside of a [capture] zone, it just returns
-  /// [futureOrStream] as-is.
-  ///
-  /// As the name suggests, [futureOrStream] may be either a [Future] or a
-  /// [Stream].
-  static track(futureOrStream) {
-    if (_currentSpec == null) return futureOrStream;
-    if (futureOrStream is Future) {
-      return _currentSpec.trackFuture(futureOrStream, 1);
-    } else {
-      return _currentSpec.trackStream(futureOrStream, 1);
-    }
-  }
+  /// Prior to Dart 1.7, this was necessary to ensure that stack traces for
+  /// exceptions reported with [Completer.completeError] and
+  /// [StreamController.addError] were tracked correctly.
+  @Deprecated("Chain.track is not necessary in Dart 1.7+.")
+  static track(futureOrStream) => futureOrStream;
 
   /// Returns the current stack chain.
   ///

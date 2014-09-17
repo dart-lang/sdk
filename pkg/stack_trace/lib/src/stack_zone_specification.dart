@@ -56,7 +56,8 @@ class StackZoneSpecification {
         handleUncaughtError: handleUncaughtError,
         registerCallback: registerCallback,
         registerUnaryCallback: registerUnaryCallback,
-        registerBinaryCallback: registerBinaryCallback);
+        registerBinaryCallback: registerBinaryCallback,
+        errorCallback: errorCallback);
   }
 
   /// Returns the current stack chain.
@@ -88,7 +89,9 @@ class StackZoneSpecification {
     var node = _createNode(level + 1);
     future.then(completer.complete).catchError((e, stackTrace) {
       if (stackTrace == null) stackTrace = new Trace.current();
-      if (_chains[stackTrace] == null) _chains[stackTrace] = node;
+      if (stackTrace is! Chain && _chains[stackTrace] == null) {
+        _chains[stackTrace] = node;
+      }
       completer.completeError(e, stackTrace);
     });
     return completer.future;
@@ -105,7 +108,9 @@ class StackZoneSpecification {
     return stream.transform(new StreamTransformer.fromHandlers(
         handleError: (error, stackTrace, sink) {
       if (stackTrace == null) stackTrace = new Trace.current();
-      if (_chains[stackTrace] == null) _chains[stackTrace] = node;
+      if (stackTrace is! Chain && _chains[stackTrace] == null) {
+        _chains[stackTrace] = node;
+      }
       sink.addError(error, stackTrace);
     }));
   }
@@ -161,6 +166,26 @@ class StackZoneSpecification {
         return parent.handleUncaughtError(zone, newError, newStackTrace);
       }
     }
+  }
+
+  /// Attaches the current stack chain to [stackTrace], replacing it if
+  /// necessary.
+  AsyncError errorCallback(Zone self, ZoneDelegate parent, Zone zone,
+      Object error, StackTrace stackTrace) {
+    var asyncError = parent.errorCallback(zone, error, stackTrace);
+    if (asyncError != null) {
+      error = asyncError.error;
+      stackTrace = asyncError.stackTrace;
+    }
+
+    // Go up two levels to get through [_CustomZone.errorCallback].
+    if (stackTrace == null) {
+      stackTrace = _createNode(2).toChain();
+    } else {
+      if (_chains[stackTrace] == null) _chains[stackTrace] = _createNode(2);
+    }
+
+    return new AsyncError(error, stackTrace);
   }
 
   /// Creates a [_Node] with the current stack trace and linked to

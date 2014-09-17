@@ -205,13 +205,4 @@ this:
 
 That's a lot easier to understand!
 
-### `Chain.track`
-
-For the most part `Chain.capture` will notice when an error is thrown and
-associate the correct stack chain with it. However, there are some cases where
-exceptions won't be automatically detected: any `Future` constructor,
-`Completer.completeError`, `Stream.addError`, and libraries that use these such
-as `dart:io` and `dart:async`. For these, all you need to do is wrap the Future
-or Stream in a call to `Chain.track` and the errors will be tracked correctly.
-
 [Zone]: https://api.dartlang.org/apidocs/channels/stable/#dart-async.Zone
