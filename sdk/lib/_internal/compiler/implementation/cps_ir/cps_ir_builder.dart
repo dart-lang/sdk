@@ -57,21 +57,7 @@ class IrBuilderTask extends CompilerTask {
             IrBuilderVisitor builder =
                 new IrBuilderVisitor(elementsMapping, compiler, sourceFile);
             ir.FunctionDefinition function;
-            ElementKind kind = element.kind;
-            if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-              // TODO(lry): build ir for constructors.
-            } else if (element.isDeferredLoaderGetter) {
-              // TODO(sigurdm): Build ir for deferred loader functions.
-            } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
-                kind == ElementKind.FUNCTION ||
-                kind == ElementKind.GETTER ||
-                kind == ElementKind.SETTER) {
-              function = builder.buildFunction(element);
-            } else if (kind == ElementKind.FIELD) {
-              // TODO(lry): build ir for lazy initializers of static fields.
-            } else {
-              compiler.internalError(element, 'Unexpected element kind $kind.');
-            }
+            function = builder.buildFunction(element);
 
             if (function != null) {
               nodes[element] = function;
@@ -85,7 +71,7 @@ class IrBuilderTask extends CompilerTask {
   }
 
   bool irEnabled({bool useNewBackend: false}) {
-    // TODO(lry): support checked-mode checks.
+    // TODO(sigurdm,kmillikin): Support checked-mode checks.
     return (useNewBackend || const bool.fromEnvironment('USE_NEW_BACKEND')) &&
         compiler.backend is DartBackend &&
         !compiler.enableTypeAssertions &&
@@ -93,23 +79,16 @@ class IrBuilderTask extends CompilerTask {
   }
 
   bool canBuild(Element element) {
-    // TODO(lry): support lazy initializers.
     FunctionElement function = element.asFunctionElement();
+    // TODO(kmillikin,sigurdm): support lazy field initializers.
     if (function == null) return false;
 
     if (!compiler.backend.shouldOutput(function)) return false;
 
-    // TODO(lry): support native functions (also in [visitReturn]).
-    if (function.isNative) return false;
+    assert(invariant(element, !function.isNative));
 
-    // TODO(kmillikin,sigurdm): support syntax for redirecting factory
-    if (function is ConstructorElement && function.isRedirectingFactory) {
-      return false;
-    }
-    // TODO(kmillikin,sigurdm): support syntax for factory constructors
-    if (function is ConstructorElement && function.isFactoryConstructor) {
-      return false;
-    }
+    // TODO(kmillikin,sigurdm): Support constructors.
+    if (function is ConstructorElement) return false;
 
     return true;
   }
@@ -1201,8 +1180,8 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
   //
   // Return without a subexpression is translated as if it were return null.
   ir.Primitive visitReturn(ast.Return node) {
-    // TODO(lry): support native returns.
-    if (node.beginToken.value == 'native') return giveup(node, 'Native return');
+    assert(isOpen);
+    assert(invariant(node, node.beginToken.value != 'native'));
     if (node.expression == null) {
       buildReturn();
     } else {
