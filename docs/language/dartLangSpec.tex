@@ -28,7 +28,7 @@ This Ecma standard specifies the syntax and semantics of the Dart programming la
 
 A conforming  implementation of the Dart programming language must provide and support all the  APIs (libraries, types, functions, getters, setters, whether top-level, static, instance or local) mandated in this specification. 
 
-A conforming implementation is permitted to provide additional APIs, but not additional syntax, except for experimental features in support of enumerated types and deferred loading which are expected to be added in the next revision of this specification.
+A conforming implementation is permitted to provide additional APIs, but not additional syntax.
 
 % A claim of conformance with this Ecma Standard shall specify?
 
@@ -2180,8 +2180,10 @@ A constant expression is one of the following:
 \item An expression of one of the forms  \code{$e_1$ == $e_2$} or  \code{$e_1$ != $e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric, string or boolean value or to \NULL{}.
 \item An expression of one of the forms \code{!$e$}, \code{$e_1$ \&\& $e_2$} or \code{$e_1 || e_2$}, where  $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a boolean value.
 \item An expression of one of the forms \~{}$e$, $e_1$ \^{} $e_2$, \code{$e_1$ \& $e_2$}, $e_1 | e_2$, $e_1 >> e_2$ or $e_1 <<  e_2$, where  $e$, $e_1$ and $e_2$ are constant expressions that evaluate to an integer value  or to \NULL{}.
-\item An expression of one of the forms \code{$-e$},  \code{$e_1 + e_2$}, \code{$e_1$ - $e_2$}, \code{$e_1$ * $e_2$}, \code{$e_1$ / $e_2$,} \code{$e_1$ \~{}/ $e_2$},  \code{$e_1  >  e_2$}, \code{$e_1  <  e_2$}, \code{$e_1$ $>$= $e_2$}, \code{$e_1$ $<$= $e_2$} or \code{$e_1$ \% $e_2$},  where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a numeric value  or to \NULL{}.
-\item An expression of the form \code{$e_1$?$e_2$:$e3$} where where $e_1$, $e_2$ and $e_3$ are constant expressions and $e_1$ evaluates to a boolean value.
+\item An expression of the form \code{$e_1 + e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric or string value or to \NULL{}.
+\item An expression of one of the forms \code{$-e$}, \code{$e_1$ - $e_2$}, \code{$e_1$ * $e_2$}, \code{$e_1$ / $e_2$,} \code{$e_1$ \~{}/ $e_2$},  \code{$e_1  >  e_2$}, \code{$e_1  <  e_2$}, \code{$e_1$ $>$= $e_2$}, \code{$e_1$ $<$= $e_2$} or \code{$e_1$ \% $e_2$},  where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a numeric value  or to \NULL{}.
+\item An expression of the form \code{$e_1$?$e_2$:$e3$} where $e_1$, $e_2$ and $e_3$ are constant expressions and $e_1$ evaluates to a boolean value.
+\item An expression of the form \code{$e$.length} where $e$ is a constant expression that evaluates to a string value.
 \end{itemize}
 
 % null in all the expressions
@@ -4040,9 +4042,11 @@ An {\em await expression} allows code to yield control until an asynchronous ope
 Evaluation of an await expression $a$ of the form \AWAIT{} $e$ proceeds as follows:
 First, the expression $e$ is evaluated. Next:
 
-If $e$ evaluates to an instance of \code{Future}, $f$, then execution of the function $m$ immediately enclosing $a$ is suspended until after $f$ completes. The stream associated with the innermost enclosing asynchronous for loop (\ref{asynchronousFor-in}), if any, is paused. At some time after $f$ is completed, control returns to the current invocation. The stream associated with the innermost enclosing asynchronous for loop  (\ref{asynchronousFor-in}), if any, is resumed. If $f$ has completed with an exception $x$, $a$ raises $x$. If $f$ completes with a value $v$, $a$ evaluates to $v$.
+If $e$ raises an exception $x$, then an instance $f$ of class \code{Future} is allocated and later completed with $x$. Otherwise, if $e$ evaluates to an object $o$ that is not an instance of \code{Future}, then let $f$ be the result of calling \code{Future.value()} with $o$ as its argument; otherwise let $f$ be the result of evaluating $e$. 
 
-Otherwise, the value of $a$ is the value of $e$. If evaluation of $e$ raises an exception $x$, $a$ raises $x$.
+Next,  execution of the function $m$ immediately enclosing $a$ is suspended until after $f$ completes. The stream associated with the innermost enclosing asynchronous for loop (\ref{asynchronousFor-in}), if any, is paused. At some time after $f$ is completed, control returns to the current invocation. The stream associated with the innermost enclosing asynchronous for loop  (\ref{asynchronousFor-in}), if any, is resumed. If $f$ has completed with an exception $x$, $a$ raises $x$. If $f$ completes with a value $v$, $a$ evaluates to $v$.
+
+%Otherwise, the value of $a$ is the value of $e$. If evaluation of $e$ raises an exception $x$, $a$ raises $x$.
 
 \commentary{
 It is a compile-time error if  the function  immediately enclosing  $a$  is not declared asynchronous.  However, this error is simply a syntax error, because in the context of a normal function, \AWAIT{} has no special meaning.
