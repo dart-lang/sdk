@@ -874,8 +874,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Cache the new Context pointer into CTX while executing Dart code.
   __ lw(CTX, Address(A3, VMHandles::kOffsetOfRawPtrInHandle));
 
-  // Load Isolate pointer from Context structure into temporary register R8.
-  __ lw(T2, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadImmediate(T2, Isolate::CurrentAddress());
 
   // Save the current VMTag on the stack.
   ASSERT(kSavedVMTagSlotFromEntryFp == -22);
@@ -947,8 +946,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize);
 
-  // Load Isolate pointer from Context structure into CTX. Drop Context.
-  __ lw(CTX, FieldAddress(CTX, Context::isolate_offset()));
+  // Load Isolate pointer into CTX. Drop Context.
+  __ LoadImmediate(CTX, Isolate::CurrentAddress());
 
   // Restore the current VMTag from the stack.
   __ lw(T1, Address(SP, 2 * kWordSize));
@@ -1061,11 +1060,10 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ sw(T1, FieldAddress(V0, Context::num_variables_offset()));
 
     // Setup isolate field.
-    // Load Isolate pointer from Context structure into R2.
     // V0: new object.
     // T1: number of context variables.
-    __ lw(T2, FieldAddress(CTX, Context::isolate_offset()));
     // T2: isolate, not an object.
+    __ LoadImmediate(T2, Isolate::CurrentAddress());
     __ sw(T2, FieldAddress(V0, Context::isolate_offset()));
 
     __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
@@ -1143,10 +1141,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ ori(T2, T2, Immediate(1 << RawObject::kRememberedBit));
   __ sw(T2, FieldAddress(T0, Object::tags_offset()));
 
-  // Load the isolate out of the context.
+  // Load the isolate.
   // Spilled: T1, T2, T3.
   // T0: Address being stored.
-  __ lw(T1, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadImmediate(T1, Isolate::CurrentAddress());
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1177,7 +1175,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(1 * kWordSize);
-  __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadImmediate(A0, Isolate::CurrentAddress());
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ TraceSimMsg("UpdateStoreBufferStub return");
   // Restore callee-saved registers, tear down frame.
@@ -1497,9 +1495,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 #endif  // DEBUG
 
 
-  Label stepping, done_stepping;
   // Check single stepping.
-  __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
+  Label stepping, done_stepping;
+  __ LoadImmediate(T0, Isolate::CurrentAddress());
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchNotEqual(T0, 0, &stepping);
   __ Bind(&done_stepping);
@@ -1755,7 +1753,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadImmediate(T0, Isolate::CurrentAddress());
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchNotEqual(T0, 0, &stepping);
   __ Bind(&done_stepping);

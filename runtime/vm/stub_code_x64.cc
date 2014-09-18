@@ -745,8 +745,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   const Register kIsolateReg = RBX;
 
-  // Load Isolate pointer from Context structure into R8.
-  __ movq(kIsolateReg, FieldAddress(CTX, Context::isolate_offset()));
+  // Load Isolate pointer into kIsolateReg.
+  __ movq(kIsolateReg, Immediate(Isolate::CurrentAddress()));
 
   // Save the current VMTag on the stack.
   __ movq(RAX, Address(kIsolateReg, Isolate::vm_tag_offset()));
@@ -848,20 +848,15 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ leaq(RSP, Address(RSP, RDX, TIMES_4, 0));  // RDX is a Smi.
 
-  // Load Isolate pointer from Context structure into CTX. Drop Context.
-  __ movq(kIsolateReg, FieldAddress(CTX, Context::isolate_offset()));
-
+  __ movq(kIsolateReg, Immediate(Isolate::CurrentAddress()));
   // Restore the saved Context pointer into the Isolate structure.
-  __ popq(RDX);
-  __ movq(Address(kIsolateReg, Isolate::top_context_offset()), RDX);
+  __ popq(Address(kIsolateReg, Isolate::top_context_offset()));
 
   // Restore the saved top exit frame info back into the Isolate structure.
-  __ popq(RDX);
-  __ movq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()), RDX);
+  __ popq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()));
 
   // Restore the current VMTag from the stack.
-  __ popq(RDX);
-  __ movq(Address(kIsolateReg, Isolate::vm_tag_offset()), RDX);
+  __ popq(Address(kIsolateReg, Isolate::vm_tag_offset()));
 
   // Restore C++ ABI callee-saved registers.
   __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
@@ -884,7 +879,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   if (FLAG_inline_alloc) {
     const Class& context_class = Class::ZoneHandle(Object::context_class());
     Label slow_case;
-    Heap* heap = Isolate::Current()->heap();
+    Isolate* isolate = Isolate::Current();
+    Heap* heap = isolate->heap();
     // First compute the rounded instance size.
     // R10: number of context variables.
     intptr_t fixed_size = (sizeof(RawContext) + kObjectAlignment - 1);
@@ -951,12 +947,11 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ movq(FieldAddress(RAX, Context::num_variables_offset()), R10);
 
     // Setup isolate field.
-    // Load Isolate pointer from Context structure into R13.
     // RAX: new object.
     // R10: number of context variables.
-    __ movq(R13, FieldAddress(CTX, Context::isolate_offset()));
     // R13: Isolate, not an object.
-    __ movq(FieldAddress(RAX, Context::isolate_offset()), R13);
+    __ movq(FieldAddress(RAX, Context::isolate_offset()),
+            Immediate(Isolate::CurrentAddress()));
 
     // Setup the parent field.
     // RAX: new object.
@@ -1026,9 +1021,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ orq(RCX, Immediate(1 << RawObject::kRememberedBit));
   __ movq(FieldAddress(RAX, Object::tags_offset()), RCX);
 
-  // Load the isolate out of the context.
+  // Load the isolate.
   // RAX: Address being stored
-  __ movq(RDX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movq(RDX, Immediate(Isolate::CurrentAddress()));
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1055,8 +1050,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Bind(&L);
   // Setup frame, push callee-saved registers.
   __ EnterCallRuntimeFrame(0);
-  __ movq(CallingConventions::kArg1Reg,
-          FieldAddress(CTX, Context::isolate_offset()));
+  __ movq(CallingConventions::kArg1Reg, Immediate(Isolate::CurrentAddress()));
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ LeaveCallRuntimeFrame();
   __ ret();
@@ -1359,9 +1353,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
-  Label stepping, done_stepping;
   // Check single stepping.
-  __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
+  Label stepping, done_stepping;
+  __ movq(RAX, Immediate(Isolate::CurrentAddress()));
   __ cmpb(Address(RAX, Isolate::single_step_offset()), Immediate(0));
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
@@ -1592,7 +1586,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movq(RAX, Immediate(Isolate::CurrentAddress()));
   __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
   __ cmpq(RAX, Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);

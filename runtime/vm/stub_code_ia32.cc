@@ -773,8 +773,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(CTX, Address(EBP, kNewContextOffset));
   __ movl(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
 
-  // Load Isolate pointer from Context structure into EDI.
-  __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
+  __ movl(EDI, Immediate(Isolate::CurrentAddress()));
 
   // Save the current VMTag on the stack.
   ASSERT(kSavedVMTagSlotFromEntryFp == -4);
@@ -860,22 +859,17 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
 
-  // Load Isolate pointer from Context structure into CTX. Drop Context.
-  __ movl(CTX, FieldAddress(CTX, Context::isolate_offset()));
+  // Load Isolate pointer into CTX. Drop Context.
+  __ movl(CTX, Immediate(Isolate::CurrentAddress()));
 
   // Restore the saved Context pointer into the Isolate structure.
-  // Uses ECX as a temporary register for this.
-  __ popl(ECX);
-  __ movl(Address(CTX, Isolate::top_context_offset()), ECX);
+  __ popl(Address(CTX, Isolate::top_context_offset()));
 
   // Restore the saved top exit frame info back into the Isolate structure.
-  // Uses EDX as a temporary register for this.
-  __ popl(EDX);
-  __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), EDX);
+  __ popl(Address(CTX, Isolate::top_exit_frame_info_offset()));
 
   // Restore the current VMTag from the stack.
-  __ popl(ECX);
-  __ movl(Address(CTX, Isolate::vm_tag_offset()), ECX);
+  __ popl(Address(CTX, Isolate::vm_tag_offset()));
 
   // Restore C++ ABI callee-saved registers.
   __ popl(EDI);
@@ -901,7 +895,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   if (FLAG_inline_alloc) {
     const Class& context_class = Class::ZoneHandle(Object::context_class());
     Label slow_case;
-    Heap* heap = Isolate::Current()->heap();
+    Isolate* isolate = Isolate::Current();
+    Heap* heap = isolate->heap();
     // First compute the rounded instance size.
     // EDX: number of context variables.
     intptr_t fixed_size = (sizeof(RawContext) + kObjectAlignment - 1);
@@ -968,9 +963,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // Load Isolate pointer from Context structure into EBX.
     // EAX: new object.
     // EDX: number of context variables.
-    __ movl(EBX, FieldAddress(CTX, Context::isolate_offset()));
-    // EBX: Isolate, not an object.
-    __ movl(FieldAddress(EAX, Context::isolate_offset()), EBX);
+    __ movl(FieldAddress(EAX, Context::isolate_offset()),
+            Immediate(reinterpret_cast<int32_t>(isolate)));
 
     const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -1045,10 +1039,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ orl(ECX, Immediate(1 << RawObject::kRememberedBit));
   __ movl(FieldAddress(EAX, Object::tags_offset()), ECX);
 
-  // Load the isolate out of the context.
+  // Load the isolate.
   // Spilled: EDX, ECX
   // EAX: Address being stored
-  __ movl(EDX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movl(EDX, Immediate(Isolate::CurrentAddress()));
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1079,7 +1073,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(1 * kWordSize);
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movl(EAX, Immediate(Isolate::CurrentAddress()));
   __ movl(Address(ESP, 0), EAX);  // Push the isolate as the only argument.
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
@@ -1383,10 +1377,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
-  Label stepping, done_stepping;
   // Check single stepping.
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
-  __ cmpb(Address(EAX, Isolate::single_step_offset()), Immediate(0));
+  Label stepping, done_stepping;
+  uword single_step_address =
+      Isolate::CurrentAddress() + Isolate::single_step_offset();
+  __ cmpb(Address::Absolute(single_step_address), Immediate(0));
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
 
@@ -1622,9 +1617,9 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 #endif  // DEBUG
   // Check single stepping.
   Label stepping, done_stepping;
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
-  __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
-  __ cmpl(EAX, Immediate(0));
+  uword single_step_address =
+      Isolate::CurrentAddress() + Isolate::single_step_offset();
+  __ cmpb(Address::Absolute(single_step_address), Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
   __ Bind(&done_stepping);
 

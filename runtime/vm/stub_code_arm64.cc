@@ -657,7 +657,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   }
   __ cmp(R2, Operand(0));
   __ b(&slow_case, LT);
-  __ LoadFieldFromOffset(R8, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadImmediate(R8, Isolate::CurrentAddress(), kNoPP);
   __ LoadFromOffset(R8, R8, Isolate::heap_offset(), kNoPP);
   __ LoadFromOffset(R8, R8, Heap::new_space_offset(), kNoPP);
 
@@ -824,8 +824,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Cache the new Context pointer into CTX while executing Dart code.
   __ LoadFromOffset(CTX, R3, VMHandles::kOffsetOfRawPtrInHandle, PP);
 
-  // Load Isolate pointer from Context structure into temporary register R5.
-  __ LoadFieldFromOffset(R5, CTX, Context::isolate_offset(), PP);
+  // Load Isolate pointer into temporary register R5.
+  __ LoadImmediate(R5, Isolate::CurrentAddress(), PP);
 
   // Load the stack limit address into the C stack pointer register.
   __ LoadFromOffset(CSP, R5, Isolate::stack_limit_offset(), PP);
@@ -891,6 +891,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ blr(R0);  // R4 is the arguments descriptor array.
   __ Comment("InvokeDartCodeStub return");
 
+  // Restore constant pool pointer after return.
+  __ LoadPoolPointer(PP);
+
   // Read the saved new Context pointer.
   __ LoadFromOffset(CTX, FP, kNewContextOffsetFromFp, PP);
   __ LoadFromOffset(CTX, CTX, VMHandles::kOffsetOfRawPtrInHandle, PP);
@@ -898,8 +901,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize, PP);
 
-  // Load Isolate pointer from Context structure into CTX. Drop Context.
-  __ LoadFieldFromOffset(CTX, CTX, Context::isolate_offset(), PP);
+  // Load Isolate pointer into CTX. Drop Context.
+  __ LoadImmediate(CTX, Isolate::CurrentAddress(), PP);
 
   // Restore the current VMTag from the stack.
   __ ldr(R4, Address(SP, 2 * kWordSize));
@@ -1012,10 +1015,10 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ StoreFieldToOffset(R1, R0, Context::num_variables_offset(), kNoPP);
 
     // Setup isolate field.
-    // Load Isolate pointer from Context structure into R2.
+    // Load Isolate pointer into R2.
     // R0: new object.
     // R1: number of context variables.
-    __ LoadFieldFromOffset(R2, CTX, Context::isolate_offset(), kNoPP);
+    __ LoadImmediate(R2, Isolate::CurrentAddress(), kNoPP);
     // R2: isolate, not an object.
     __ StoreFieldToOffset(R2, R0, Context::isolate_offset(), kNoPP);
 
@@ -1085,10 +1088,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ orri(R2, TMP, 1 << RawObject::kRememberedBit);
   __ StoreFieldToOffset(R2, R0, Object::tags_offset(), kNoPP);
 
-  // Load the isolate out of the context.
+  // Load the isolate.
   // Spilled: R1, R2, R3.
   // R0: address being stored.
-  __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadImmediate(R1, Isolate::CurrentAddress(), kNoPP);
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1119,7 +1122,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(0 * kWordSize);
-  __ LoadFieldFromOffset(R0, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadImmediate(R0, Isolate::CurrentAddress(), kNoPP);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
@@ -1432,9 +1435,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
-  Label stepping, done_stepping;
   // Check single stepping.
-  __ LoadFieldFromOffset(R6, CTX, Context::isolate_offset(), kNoPP);
+  Label stepping, done_stepping;
+  __ LoadImmediate(R6, Isolate::CurrentAddress(), kNoPP);
   __ LoadFromOffset(
       R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
   __ CompareRegisters(R6, ZR);
@@ -1666,7 +1669,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadFieldFromOffset(R6, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadImmediate(R6, Isolate::CurrentAddress(), kNoPP);
   __ LoadFromOffset(
       R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
   __ CompareImmediate(R6, 0, kNoPP);
@@ -2042,7 +2045,7 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // Return Zero condition flag set if equal.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
-    // Check single stepping.
+  // Check single stepping.
   Label stepping, done_stepping;
   __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset(), kNoPP);
   __ LoadFromOffset(
