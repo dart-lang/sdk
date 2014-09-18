@@ -239,6 +239,61 @@ class Pubspec {
   bool _parsedPublishTo = false;
   String _publishTo;
 
+  /// The executables that should be placed on the user's PATH when this
+  /// package is globally activated.
+  ///
+  /// It is a map of strings to string. Each key is the name of the command
+  /// that will be placed on the user's PATH. The value is the name of the
+  /// .dart script (without extension) in the package's `bin` directory that
+  /// should be run for that command. Both key and value must be "simple"
+  /// strings: alphanumerics, underscores and hypens only. If a value is
+  /// omitted, it is inferred to use the same name as the key.
+  Map<String, String> get executables {
+    if (_executables != null) return _executables;
+
+    _executables = {};
+    var yaml = fields['executables'];
+    if (yaml == null) return _executables;
+
+    if (yaml is! Map) {
+      _error('"executables" field must be a map.',
+          fields.nodes['executables'].span);
+    }
+
+    yaml.nodes.forEach((key, value) {
+      // Don't allow path separators or other stuff meaningful to the shell.
+      validateName(name, description) {
+      }
+
+      if (key.value is! String) {
+        _error('"executables" keys must be strings.', key.span);
+      }
+
+      final keyPattern = new RegExp(r"^[a-zA-Z0-9_-]+$");
+      if (!keyPattern.hasMatch(key.value)) {
+        _error('"executables" keys may only contain letters, '
+            'numbers, hyphens and underscores.', key.span);
+      }
+
+      if (value.value == null) {
+        value = key;
+      } else if (value.value is! String) {
+        _error('"executables" values must be strings or null.', value.span);
+      }
+
+      final valuePattern = new RegExp(r"[/\\]");
+      if (valuePattern.hasMatch(value.value)) {
+        _error('"executables" values may not contain path separators.',
+            value.span);
+      }
+
+      _executables[key.value] = value.value;
+    });
+
+    return _executables;
+  }
+  Map<String, String> _executables;
+
   /// Whether the package is private and cannot be published.
   ///
   /// This is specified in the pubspec by setting "publish_to" to "none".

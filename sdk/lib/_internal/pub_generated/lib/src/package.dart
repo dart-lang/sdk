@@ -37,11 +37,9 @@ class Package {
     return deps.values.toSet();
   }
   List<AssetId> get executableIds {
-    var binDir = path.join(dir, 'bin');
-    if (!dirExists(binDir)) return [];
     return ordered(
         listFiles(
-            beneath: binDir,
+            beneath: "bin",
             recursive: false)).where(
                 (executable) => path.extension(executable) == '.dart').map((executable) {
       return new AssetId(
@@ -70,7 +68,12 @@ class Package {
   static final _blacklistedFiles = createFileFilter(['pubspec.lock']);
   static final _blacklistedDirs = createDirectoryFilter(['packages']);
   List<String> listFiles({String beneath, recursive: true}) {
-    if (beneath == null) beneath = dir;
+    if (beneath == null) {
+      beneath = dir;
+    } else {
+      beneath = path.join(dir, beneath);
+    }
+    if (!dirExists(beneath)) return [];
     var files;
     if (git.isInstalled && dirExists(path.join(dir, '.git'))) {
       var relativeBeneath = path.relative(beneath, from: dir);

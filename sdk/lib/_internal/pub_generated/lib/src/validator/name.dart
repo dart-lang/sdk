@@ -65,9 +65,8 @@ class NameValidator extends Validator {
   }
   List<String> get _libraries {
     var libDir = path.join(entrypoint.root.dir, "lib");
-    if (!dirExists(libDir)) return [];
     return entrypoint.root.listFiles(
-        beneath: libDir).map(
+        beneath: "lib").map(
             (file) =>
                 path.relative(
                     file,

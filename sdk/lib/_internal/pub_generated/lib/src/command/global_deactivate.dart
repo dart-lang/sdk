@@ -16,7 +16,7 @@ class GlobalDeactivateCommand extends PubCommand {
       var arguments = pluralize("argument", unexpected.length);
       usageError("Unexpected $arguments ${toSentence(unexpected)}.");
     }
-    if (!globals.deactivate(commandOptions.rest.first, logDeactivate: true)) {
+    if (!globals.deactivate(commandOptions.rest.first)) {
       dataError("No active package ${log.bold(commandOptions.rest.first)}.");
     }
     return null;

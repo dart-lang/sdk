@@ -79,10 +79,7 @@ class Package {
   /// Returns a list of asset ids for all Dart executables in this package's bin
   /// directory.
   List<AssetId> get executableIds {
-    var binDir = path.join(dir, 'bin');
-    if (!dirExists(binDir)) return [];
-
-    return ordered(listFiles(beneath: binDir, recursive: false))
+    return ordered(listFiles(beneath: "bin", recursive: false))
         .where((executable) => path.extension(executable) == '.dart')
         .map((executable) {
       return new AssetId(
@@ -142,11 +139,18 @@ class Package {
   /// If this is a Git repository, this will respect .gitignore; otherwise, it
   /// will return all non-hidden, non-blacklisted files.
   ///
-  /// If [beneath] is passed, this will only return files beneath that path. If
+  /// If [beneath] is passed, this will only return files beneath that path,
+  /// which is expected to be relative to the package's root directory. If
   /// [recursive] is true, this will return all files beneath that path;
   /// otherwise, it will only return files one level beneath it.
   List<String> listFiles({String beneath, recursive: true}) {
-    if (beneath == null) beneath = dir;
+    if (beneath == null) {
+      beneath = dir;
+    } else {
+      beneath = path.join(dir, beneath);
+    }
+
+    if (!dirExists(beneath)) return [];
 
     // This is used in some performance-sensitive paths and can list many, many
     // files. As such, it leans more havily towards optimization as opposed to

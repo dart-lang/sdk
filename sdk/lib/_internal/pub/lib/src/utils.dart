@@ -167,6 +167,18 @@ String padRight(String source, int length) {
   return result.toString();
 }
 
+/// Returns a labelled sentence fragment starting with [name] listing the
+/// elements [iter].
+///
+/// If [iter] does not have one item, name will be pluralized by adding "s" or
+/// using [plural], if given.
+String namedSequence(String name, Iterable iter, [String plural]) {
+  if (iter.length == 1) return "$name ${iter.single}";
+
+  if (plural == null) plural = "${name}s";
+  return "$plural ${toSentence(iter)}";
+}
+
 /// Returns a sentence fragment listing the elements of [iter].
 ///
 /// This converts each element of [iter] to a string and separates them with

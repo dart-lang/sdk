@@ -333,9 +333,7 @@ class AssetEnvironment {
     }
   }
   Iterable<AssetId> _listDirectorySources(Package package, String dir) {
-    var subdirectory = path.join(package.dir, dir);
-    if (!dirExists(subdirectory)) return [];
-    return package.listFiles(beneath: subdirectory).map((file) {
+    return package.listFiles(beneath: dir).map((file) {
       var relative = path.relative(file, from: package.dir);
       if (Platform.operatingSystem == 'windows') {
         relative = relative.replaceAll("\\", "/");

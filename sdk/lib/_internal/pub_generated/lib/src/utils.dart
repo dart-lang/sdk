@@ -102,6 +102,11 @@ String padRight(String source, int length) {
   }
   return result.toString();
 }
+String namedSequence(String name, Iterable iter, [String plural]) {
+  if (iter.length == 1) return "$name ${iter.single}";
+  if (plural == null) plural = "${name}s";
+  return "$plural ${toSentence(iter)}";
+}
 String toSentence(Iterable iter) {
   if (iter.length == 1) return iter.first.toString();
   return iter.take(iter.length - 1).join(", ") + " and ${iter.last}";

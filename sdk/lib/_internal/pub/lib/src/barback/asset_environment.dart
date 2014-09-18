@@ -583,15 +583,12 @@ class AssetEnvironment {
   /// this is optimized for our needs in here instead of using the more general
   /// but slower [listDir].
   Iterable<AssetId> _listDirectorySources(Package package, String dir) {
-    var subdirectory = path.join(package.dir, dir);
-    if (!dirExists(subdirectory)) return [];
-
     // This is used in some performance-sensitive paths and can list many, many
     // files. As such, it leans more havily towards optimization as opposed to
     // readability than most code in pub. In particular, it avoids using the
     // path package, since re-parsing a path is very expensive relative to
     // string operations.
-    return package.listFiles(beneath: subdirectory).map((file) {
+    return package.listFiles(beneath: dir).map((file) {
       // From profiling, path.relative here is just as fast as a raw substring
       // and is correct in the case where package.dir has a trailing slash.
       var relative = path.relative(file, from: package.dir);
