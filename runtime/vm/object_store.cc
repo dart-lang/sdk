@@ -74,6 +74,7 @@ ObjectStore::ObjectStore()
     preallocated_stack_trace_(Stacktrace::null()),
     lookup_port_handler_(Function::null()),
     handle_message_function_(Function::null()),
+    library_load_error_table_(Array::null()),
     default_tag_(UserTag::null()) {
 }
 

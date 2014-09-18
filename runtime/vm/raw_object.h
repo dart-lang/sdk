@@ -1490,6 +1490,8 @@ class RawString : public RawInstance {
   RawSmi* length_;
   RawSmi* hash_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->hash_); }
+
+  friend class Library;
 };
 
 
