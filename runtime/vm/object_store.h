@@ -435,6 +435,16 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, default_tag_);
   }
 
+  RawArray* library_load_error_table() const {
+    return library_load_error_table_;
+  }
+  void set_library_load_error_table(const Array& table) {
+    library_load_error_table_ = table.raw();
+  }
+  static intptr_t library_load_error_table_offset() {
+    return OFFSET_OF(ObjectStore, library_load_error_table_);
+  }
+
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -522,9 +532,10 @@ class ObjectStore {
   RawStacktrace* preallocated_stack_trace_;
   RawFunction* lookup_port_handler_;
   RawFunction* handle_message_function_;
+  RawArray* library_load_error_table_;
   RawUserTag* default_tag_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&handle_message_function_);
+    return reinterpret_cast<RawObject**>(&library_load_error_table_);
   }
 
   friend class SnapshotReader;

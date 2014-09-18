@@ -2888,6 +2888,8 @@ class Library : public Object {
     return raw() == CoreLibrary();
   }
 
+  inline intptr_t UrlHash() const;
+
   static RawLibrary* LookupLibrary(const String& url);
   static RawLibrary* GetLibrary(intptr_t index);
 
@@ -7449,6 +7451,13 @@ bool String::Equals(const String& str,
     }
   }
   return true;
+}
+
+
+intptr_t Library::UrlHash() const {
+  intptr_t result = Smi::Value(url()->ptr()->hash_);
+  ASSERT(result != 0);
+  return result;
 }
 
 

@@ -8745,19 +8745,46 @@ void Library::SetLoadError(const Instance& error) const {
 }
 
 
+// Traits for looking up Libraries by url in a hash set.
+class LibraryUrlTraits {
+ public:
+  // Called when growing the table.
+  static bool IsMatch(const Object& a, const Object& b) {
+    ASSERT(a.IsLibrary() && b.IsLibrary());
+    // Library objects are always canonical.
+    return a.raw() == b.raw();
+  }
+  static uword Hash(const Object& key) {
+    return Library::Cast(key).UrlHash();
+  }
+};
+
+
+typedef UnorderedHashSet<LibraryUrlTraits> LibraryLoadErrorSet;
+
+
 RawInstance* Library::TransitiveLoadError() const {
   if (LoadError() != Instance::null()) {
     return LoadError();
   }
+  Isolate* isolate = Isolate::Current();
+  ObjectStore* object_store = isolate->object_store();
+  LibraryLoadErrorSet set(object_store->library_load_error_table());
+  bool present = false;
+  if (set.GetOrNull(*this, &present) != Object::null()) {
+    object_store->set_library_load_error_table(set.Release());
+    return Instance::null();
+  }
+  // Ensure we don't repeatedly visit the same library again.
+  set.Insert(*this);
+  object_store->set_library_load_error_table(set.Release());
   intptr_t num_imp = num_imports();
-  Library& lib = Library::Handle();
-  Instance& error = Instance::Handle();
+  Library& lib = Library::Handle(isolate);
+  Instance& error = Instance::Handle(isolate);
   for (intptr_t i = 0; i < num_imp; i++) {
+    HANDLESCOPE(isolate);
     lib = ImportLibraryAt(i);
-    // Break potential import cycles while recursing through imports.
-    set_num_imports(0);
     error = lib.TransitiveLoadError();
-    set_num_imports(num_imp);
     if (!error.IsNull()) {
       break;
     }
@@ -9941,17 +9968,26 @@ RawLibrary* LibraryPrefix::GetLibrary(int index) const {
 
 
 RawInstance* LibraryPrefix::LoadError() const {
-  Library& lib = Library::Handle();
-  Instance& error = Instance::Handle();
+  Isolate* isolate = Isolate::Current();
+  ObjectStore* object_store = isolate->object_store();
+  GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate, object_store->libraries());
+  ASSERT(!libs.IsNull());
+  LibraryLoadErrorSet set(HashTables::New<LibraryLoadErrorSet>(libs.Length()));
+  object_store->set_library_load_error_table(set.Release());
+  Library& lib = Library::Handle(isolate);
+  Instance& error = Instance::Handle(isolate);
   for (int32_t i = 0; i < num_imports(); i++) {
     lib = GetLibrary(i);
     ASSERT(!lib.IsNull());
+    HANDLESCOPE(isolate);
     error = lib.TransitiveLoadError();
     if (!error.IsNull()) {
-      return error.raw();
+      break;
     }
   }
-  return Instance::null();
+  object_store->set_library_load_error_table(Object::empty_array());
+  return error.raw();
 }
 
 
