@@ -3370,7 +3370,7 @@ void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    const int32_t value = Smi::Cast(constant).Value();
+    const intptr_t value = Smi::Cast(constant).Value();
     switch (op_kind()) {
       case Token::kADD: {
         if (deopt == NULL) {
