@@ -717,7 +717,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
   __ CompareImmediate(R3, RawObject::SizeTag::kMaxSizeTag, kNoPP);
   // If no size tag overflow, shift R1 left, else set R1 to zero.
-  __ Lsl(TMP, R3, shift);
+  __ LslImmediate(TMP, R3, shift);
   __ csel(R1, TMP, R1, LS);
   __ csel(R1, ZR, R1, HI);
 
@@ -998,7 +998,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag, kNoPP);
     // If no size tag overflow, shift R2 left, else set R2 to zero.
-    __ Lsl(TMP, R2, shift);
+    __ LslImmediate(TMP, R2, shift);
     __ csel(R2, TMP, R2, LS);
     __ csel(R2, ZR, R2, HI);
 

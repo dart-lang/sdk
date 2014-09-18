@@ -292,7 +292,7 @@ static int GetScaleFactor(intptr_t size) {
   /* R2: untagged array length. */                                             \
   __ CompareImmediate(R2, max_len, kNoPP);                                     \
   __ b(&fall_through, GT);                                                     \
-  __ Lsl(R2, R2, scale_shift);                                                 \
+  __ LslImmediate(R2, R2, scale_shift);                                        \
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ AddImmediate(R2, R2, fixed_size, kNoPP);                                  \
   __ andi(R2, R2, ~(kObjectAlignment - 1));                                    \
@@ -326,7 +326,7 @@ static int GetScaleFactor(intptr_t size) {
   /* R2: allocation size. */                                                   \
   {                                                                            \
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag, kNoPP);           \
-    __ Lsl(R2, R2, RawObject::kSizeTagPos - kObjectAlignmentLog2);             \
+    __ LslImmediate(R2, R2, RawObject::kSizeTagPos - kObjectAlignmentLog2);    \
     __ csel(R2, ZR, R2, HI);                                                   \
                                                                                \
     /* Get the class index and insert it into the tags. */                     \
@@ -522,7 +522,7 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
 
   __ CompareRegisters(R1, ZR);
   __ b(&neg_remainder, LT);
-  __ Lsl(R0, R1, 1);  // Tag and move result to R0.
+  __ SmiTag(R0, R1);  // Tag and move result to R0.
   __ ret();
 
   __ Bind(&neg_remainder);
@@ -632,7 +632,7 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
 
   // Left is not a constant.
   // Check if count too large for handling it inlined.
-  __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+  __ SmiUntag(TMP, right);  // SmiUntag right into TMP.
   // Overflow test (preserve left, right, and TMP);
   __ lslv(temp, left, TMP);
   __ asrv(TMP2, temp, TMP);
@@ -995,7 +995,7 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   __ Bind(&is_zero);
   // Check for negative zero by looking at the sign bit.
   __ fmovrd(R1, V0);
-  __ Lsr(R1, R1, 63);
+  __ LsrImmediate(R1, R1, 63);
   __ tsti(R1, 1);
   __ csel(R0, true_reg, false_reg, NE);  // Sign bit set.
   __ ret();
@@ -1072,7 +1072,7 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
 
   __ LoadImmediate(R0, a_int_value, kNoPP);
   __ LoadFromOffset(R2, R1, disp, kNoPP);
-  __ Lsr(R3, R2, 32);
+  __ LsrImmediate(R3, R2, 32);
   __ andi(R2, R2, 0xffffffff);
   __ mul(R2, R0, R2);
   __ add(R2, R2, Operand(R3));
@@ -1305,7 +1305,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
         Class::Handle(isolate->object_store()->one_byte_string_class());
 
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag, kNoPP);
-    __ Lsl(R2, R2, shift);
+    __ LslImmediate(R2, R2, shift);
     __ csel(R2, R2, ZR, LS);
 
     // Get the class index and insert it into the tags.

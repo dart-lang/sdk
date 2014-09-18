@@ -179,7 +179,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (is_power_of_two_kind) {
     const intptr_t shift =
         Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
-    __ Lsl(result, result, shift + kSmiTagSize);
+    __ LslImmediate(result, result, shift + kSmiTagSize);
   } else {
     __ sub(result, result, Operand(1));
     const int64_t val =
@@ -848,7 +848,7 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       result, reinterpret_cast<uword>(Symbols::PredefinedAddress()), PP);
   __ AddImmediate(
       result, result, Symbols::kNullCharCodeSymbolOffset * kWordSize, PP);
-  __ Asr(TMP, char_code, kSmiTagShift);  // Untag to use scaled adress mode.
+  __ SmiUntag(TMP, char_code);  // Untag to use scaled adress mode.
   __ ldr(result, Address(result, TMP, UXTX, Address::Scaled));
 }
 
@@ -2547,12 +2547,12 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     ASSERT((0 < value) && (value < kCountLimit));
     if (shift_left->can_overflow()) {
       // Check for overflow (preserve left).
-      __ Lsl(TMP, left, value);
+      __ LslImmediate(TMP, left, value);
       __ cmp(left, Operand(TMP, ASR, value));
       __ b(deopt, NE);  // Overflow.
     }
     // Shift for result now we know there is no overflow.
-    __ Lsl(result, left, value);
+    __ LslImmediate(result, left, value);
     if (FLAG_throw_on_javascript_int_overflow) {
       EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
     }
@@ -2733,12 +2733,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         const intptr_t shift_count =
             Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
         ASSERT(kSmiTagSize == 1);
-        __ Asr(TMP, left, 63);
+        __ AsrImmediate(TMP, left, 63);
         ASSERT(shift_count > 1);  // 1, -1 case handled above.
         const Register temp = TMP2;
         __ add(temp, left, Operand(TMP, LSR, 64 - shift_count));
         ASSERT(shift_count > 0);
-        __ Asr(result, temp, shift_count);
+        __ AsrImmediate(result, temp, shift_count);
         if (value < 0) {
           __ sub(result, ZR, Operand(result));
         }
@@ -2761,7 +2761,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // Asr operation masks the count to 6 bits.
         const intptr_t kCountLimit = 0x3F;
         intptr_t value = Smi::Cast(constant).Value();
-        __ Asr(result, left, Utils::Minimum(value + kSmiTagSize, kCountLimit));
+        __ AsrImmediate(
+            result, left, Utils::Minimum(value + kSmiTagSize, kCountLimit));
         __ SmiTag(result);
         break;
       }
@@ -2999,7 +3000,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (value_cid == kDoubleCid) {
     __ LoadDFieldFromOffset(result, value, Double::value_offset(), PP);
   } else if (value_cid == kSmiCid) {
-    __ Asr(TMP, value, kSmiTagSize);  // Untag input before conversion.
+    __ SmiUntag(TMP, value);  // Untag input before conversion.
     __ scvtfd(result, TMP);
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
@@ -3019,7 +3020,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadDFieldFromOffset(result, value, Double::value_offset(), PP);
       __ b(&done);
       __ Bind(&is_smi);
-      __ Asr(TMP, value, kSmiTagSize);  // Copy and untag.
+      __ SmiUntag(TMP, value);  // Copy and untag.
       __ scvtfd(result, TMP);
       __ Bind(&done);
     }
@@ -3374,18 +3375,18 @@ void Simd32x4GetSignMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // X lane.
   __ vmovrs(out, value, 0);
-  __ Lsr(out, out, 31);
+  __ LsrImmediate(out, out, 31);
   // Y lane.
   __ vmovrs(temp, value, 1);
-  __ Lsr(temp, temp, 31);
+  __ LsrImmediate(temp, temp, 31);
   __ orr(out, out, Operand(temp, LSL, 1));
   // Z lane.
   __ vmovrs(temp, value, 2);
-  __ Lsr(temp, temp, 31);
+  __ LsrImmediate(temp, temp, 31);
   __ orr(out, out, Operand(temp, LSL, 2));
   // W lane.
   __ vmovrs(temp, value, 3);
-  __ Lsr(temp, temp, 31);
+  __ LsrImmediate(temp, temp, 31);
   __ orr(out, out, Operand(temp, LSL, 3));
   // Tag.
   __ SmiTag(out);
@@ -3885,10 +3886,10 @@ void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // Bits of X lane.
     __ vmovrd(out, value, 0);
-    __ Lsr(out, out, 63);
+    __ LsrImmediate(out, out, 63);
     // Bits of Y lane.
     __ vmovrd(TMP, value, 1);
-    __ Lsr(TMP, TMP, 63);
+    __ LsrImmediate(TMP, TMP, 63);
     __ orr(out, out, Operand(TMP, LSL, 1));
     // Tag.
     __ SmiTag(out);
@@ -4927,7 +4928,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(cids_.length() > 2);
       Register mask_reg = locs()->temp(1).reg();
       __ LoadImmediate(mask_reg, 1, PP);
-      __ Lsl(mask_reg, mask_reg, temp);
+      __ lslv(mask_reg, mask_reg, temp);
       __ TestImmediate(mask_reg, mask, PP);
       __ b(deopt, EQ);
     }
@@ -5196,12 +5197,12 @@ void BoxIntNInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   ASSERT(kSmiTagSize == 1);
   // TODO(vegorov) implement and use UBFM/SBFM for this.
-  __ Lsl(out, value, 32);
+  __ LslImmediate(out, value, 32);
   if (from_representation() == kUnboxedInt32) {
-    __ Asr(out, out, 32 - kSmiTagSize);
+    __ AsrImmediate(out, out, 32 - kSmiTagSize);
   } else {
     ASSERT(from_representation() == kUnboxedUint32);
-    __ Lsr(out, out, 32 - kSmiTagSize);
+    __ LsrImmediate(out, out, 32 - kSmiTagSize);
   }
 }
 
@@ -5235,8 +5236,8 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // TODO(vegorov) if we ensure that we never use kDoubleWord size
     // with it then we could avoid this.
     // TODO(vegorov) implement and use UBFM for zero extension.
-    __ Lsl(out, value, 32);
-    __ Lsr(out, out, 32);
+    __ LslImmediate(out, value, 32);
+    __ LsrImmediate(out, out, 32);
   } else if (from() == kUnboxedUint32 && to() == kUnboxedInt32) {
     // Representations are bitwise equivalent.
     // TODO(vegorov) if we ensure that we never use kDoubleWord size
@@ -5244,8 +5245,8 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // TODO(vegorov) implement and use SBFM for sign extension.
     const Register value = locs()->in(0).reg();
     const Register out = locs()->out(0).reg();
-    __ Lsl(out, value, 32);
-    __ Asr(out, out, 32);
+    __ LslImmediate(out, value, 32);
+    __ AsrImmediate(out, out, 32);
     if (CanDeoptimize()) {
       Label* deopt =
           compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnboxInteger);

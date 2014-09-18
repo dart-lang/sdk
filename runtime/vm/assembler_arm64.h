@@ -1002,20 +1002,13 @@ class Assembler : public ValueObject {
     andis(ZR, rn, imm);
   }
 
-  void Lsl(Register rd, Register rn, int shift) {
+  void LslImmediate(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, LSL, shift));
   }
-  void Lslw(Register rd, Register rn, int shift) {
-    addw(rd, ZR, Operand(rn, LSL, shift));
-  }
-  void Lsr(Register rd, Register rn, int shift) {
+  void LsrImmediate(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, LSR, shift));
   }
-  void Lsrw(Register rd, Register rn, int shift) {
-    ASSERT((shift >= 0) && (shift < 32));
-    addw(rd, ZR, Operand(rn, LSR, shift));
-  }
-  void Asr(Register rd, Register rn, int shift) {
+  void AsrImmediate(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, ASR, shift));
   }
 
@@ -1023,13 +1016,16 @@ class Assembler : public ValueObject {
   void VRSqrts(VRegister vd, VRegister vn);
 
   void SmiUntag(Register reg) {
-    Asr(reg, reg, kSmiTagSize);
+    AsrImmediate(reg, reg, kSmiTagSize);
   }
   void SmiUntag(Register dst, Register src) {
-    Asr(dst, src, kSmiTagSize);
+    AsrImmediate(dst, src, kSmiTagSize);
   }
   void SmiTag(Register reg) {
-    Lsl(reg, reg, kSmiTagSize);
+    LslImmediate(reg, reg, kSmiTagSize);
+  }
+  void SmiTag(Register dst, Register src) {
+    LslImmediate(dst, src, kSmiTagSize);
   }
 
   // Branching to ExternalLabels.
