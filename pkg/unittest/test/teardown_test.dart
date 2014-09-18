@@ -2,23 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
-
-import 'dart:async';
-import 'dart:isolate';
+library unittest.teardown_test;
 
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+import 'package:metatest/metatest.dart';
 
-var testName = 'teardown test';
+void main() => initTests(_test);
 
-var testFunction = (TestConfiguration testConfig) {
-  group('a', () {
-    tearDown(() { testConfig.teardown = 'teardown'; });
-    test(testName, () {});
+void _test(message) {
+  initMetatest(message);
+
+  expectTestsPass('teardown test', () {
+    var tornDown = false;
+
+    group('a', () {
+      tearDown(() {
+        tornDown = true;
+      });
+      test('test', () {});
+    });
+
+    test('expect teardown', () {
+      expect(tornDown, isTrue);
+    });
   });
-};
-
-var expected = buildStatusString(1, 0, 0, 'a $testName',
-    count: 0, setup: '', teardown: 'teardown');
+}

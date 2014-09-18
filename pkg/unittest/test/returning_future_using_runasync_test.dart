@@ -2,74 +2,90 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
+library unittest.returning_future_using_runasync_test;
 
 import 'dart:async';
-import 'dart:isolate';
 
+import 'package:metatest/metatest.dart';
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+void main() => initTests(_test);
 
-var testName = 'test returning future using scheduleMicrotask';
+void _test(message) {
+  initMetatest(message);
 
-var testFunction = (_) {
-  test("successful", () {
-    return _defer(() {
-      scheduleMicrotask(() {
-        expect(true, true);
+  expectTestResults('test returning future using scheduleMicrotask', () {
+    test("successful", () {
+      return new Future.sync(() {
+        scheduleMicrotask(() {
+          expect(true, true);
+        });
       });
     });
-  });
-  test("fail1", () {
-    var callback = expectAsync(() {});
-    return _defer(() {
-      scheduleMicrotask(() {
-        expect(true, false);
-        callback();
+    test("fail1", () {
+      var callback = expectAsync(() {});
+      return new Future.sync(() {
+        scheduleMicrotask(() {
+          expect(true, false);
+          callback();
+        });
       });
     });
-  });
-  test('error1', () {
-    var callback = expectAsync(() {});
-    var excesscallback = expectAsync(() {});
-    return _defer(() {
-      scheduleMicrotask(() {
-        excesscallback();
-        excesscallback();
-        callback();
+    test('error1', () {
+      var callback = expectAsync(() {});
+      var excesscallback = expectAsync(() {});
+      return new Future.sync(() {
+        scheduleMicrotask(() {
+          excesscallback();
+          excesscallback();
+          callback();
+        });
       });
     });
-  });
-  test("fail2", () {
-    var callback = expectAsync(() {});
-    return _defer(() {
-      scheduleMicrotask(() {
-        fail('failure');
-        callback();
+    test("fail2", () {
+      var callback = expectAsync(() {});
+      return new Future.sync(() {
+        scheduleMicrotask(() {
+          fail('failure');
+          callback();
+        });
       });
     });
-  });
-  test('error2', () {
-    var callback = expectAsync(() {});
-    var excesscallback = expectAsync(() {});
-    return _defer(() {
-      scheduleMicrotask(() {
-        excesscallback();
-        excesscallback();
-        excesscallback();
-        callback();
+    test('error2', () {
+      var callback = expectAsync(() {});
+      var excesscallback = expectAsync(() {});
+      return new Future.sync(() {
+        scheduleMicrotask(() {
+          excesscallback();
+          excesscallback();
+          excesscallback();
+          callback();
+        });
       });
     });
-  });
-  test('foo6', () {
-  });
-};
-
-final expected = buildStatusString(2, 4, 0,
-    'successful::'
-    'fail1:Expected: <false> Actual: <true>:'
-    'error1:Callback called more times than expected (1).:'
-    'fail2:failure:'
-    'error2:Callback called more times than expected (1).:'
-    'foo6');
+    test('foo6', () {
+    });
+  }, [{
+    'description': 'successful',
+    'result': 'pass',
+  }, {
+    'description': 'fail1',
+    'message': 'Expected: <false>\n' '  Actual: <true>\n' '',
+    'result': 'fail',
+  }, {
+    'description': 'error1',
+    'message': 'Callback called more times than expected (1).',
+    'result': 'fail',
+  }, {
+    'description': 'fail2',
+    'message': 'failure',
+    'result': 'fail',
+  }, {
+    'description': 'error2',
+    'message': 'Callback called more times than expected (1).',
+    'result': 'fail',
+  }, {
+    'description': 'foo6',
+    'result': 'pass',
+  }]);
+}

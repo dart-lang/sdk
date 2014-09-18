@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
+library unittest.async_setup_teardown;
 
 import 'dart:async';
-import 'dart:isolate';
 
+import 'package:metatest/metatest.dart';
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+void main() => initTests(_test);
 
-var testName = 'async setup teardown test';
+void _test(message) {
+  initMetatest(message);
 
-var testFunction = (_) {
-  group('good setup/good teardown', () {
+  expectTestsPass('good setup/good teardown', () {
     setUp(() {
       return new Future.value(0);
     });
@@ -23,7 +23,8 @@ var testFunction = (_) {
     });
     test('foo1', () {});
   });
-  group('good setup/bad teardown', () {
+
+  expectTestResults('good setup/bad teardown', () {
     setUp(() {
       return new Future.value(0);
     });
@@ -31,8 +32,12 @@ var testFunction = (_) {
       return new Future.error("Failed to complete tearDown");
     });
     test('foo2', () {});
-  });
-  group('bad setup/good teardown', () {
+  }, [{
+    'result': 'error',
+    'message': 'Teardown failed: Caught Failed to complete tearDown'
+  }]);
+
+  expectTestResults('bad setup/good teardown', () {
     setUp(() {
       return new Future.error("Failed to complete setUp");
     });
@@ -40,8 +45,12 @@ var testFunction = (_) {
       return new Future.value(0);
     });
     test('foo3', () {});
-  });
-  group('bad setup/bad teardown', () {
+  }, [{
+    'result': 'error',
+    'message': 'Setup failed: Caught Failed to complete setUp'
+  }]);
+
+  expectTestResults('bad setup/bad teardown', () {
     setUp(() {
       return new Future.error("Failed to complete setUp");
     });
@@ -49,18 +58,8 @@ var testFunction = (_) {
       return new Future.error("Failed to complete tearDown");
     });
     test('foo4', () {});
-  });
-  // The next test is just to make sure we make steady progress
-  // through the tests.
-  test('post groups', () {});
-};
-
-final expected = buildStatusString(2, 0, 3,
-    'good setup/good teardown foo1::'
-    'good setup/bad teardown foo2:'
-    'Teardown failed: Caught Failed to complete tearDown:'
-    'bad setup/good teardown foo3:'
-    'Setup failed: Caught Failed to complete setUp:'
-    'bad setup/bad teardown foo4:'
-    'Setup failed: Caught Failed to complete setUp:'
-    'post groups');
+  }, [{
+    'result': 'error',
+    'message': 'Setup failed: Caught Failed to complete setUp'
+  }]);
+}

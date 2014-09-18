@@ -2,28 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
+library unittest.middle_exception_test;
 
 import 'dart:async';
-import 'dart:isolate';
 
+import 'package:metatest/metatest.dart';
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+void main() => initTests(_test);
 
-var testName = 'late exception test';
+void _test(message) {
+  initMetatest(message);
 
-var testFunction = (_) {
-  test('testOne', () { expect(true, isTrue); });
-  test('testTwo', () { expect(true, isFalse); });
-  test('testThree', () {
-    var done = expectAsync(() {});
-    _defer(() {
+  expectTestResults('late exception test', () {
+    test('testOne', () {
       expect(true, isTrue);
-      done();
     });
-  });
-};
-
-final expected = buildStatusString(2, 1, 0,
-    'testOne::testTwo:Expected: false Actual: <true>:testThree');
+    test('testTwo', () {
+      expect(true, isFalse);
+    });
+    test('testThree', () {
+      var done = expectAsync(() {});
+      new Future.sync(() {
+        expect(true, isTrue);
+        done();
+      });
+    });
+  }, [{
+    'result': 'pass'
+  }, {
+    'result': 'fail',
+  }, {
+    'result': 'pass'
+  }]);
+}

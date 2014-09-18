@@ -13,10 +13,12 @@ import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'metatest.dart';
+import 'package:metatest/metatest.dart';
 import 'utils.dart';
 
-void main(_, message) {
+void main() => initTests(_test);
+
+void _test(message) {
   initMetatest(message);
 
   setUpTimeout();

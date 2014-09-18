@@ -2,27 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
-
-import 'dart:async';
-import 'dart:isolate';
+library unittest.invalid_ops_test;
 
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+import 'package:metatest/metatest.dart';
 
-var testName = 'invalid ops throw while test is running';
+void main() => initTests(_test);
 
-var testFunction = (_) {
-  test(testName, () {
-    expect(() => test('test', () {}), throwsStateError);
-    expect(() => solo_test('test', () {}), throwsStateError);
-    expect(() => group('test', () {}), throwsStateError);
-    expect(() => solo_group('test', () {}), throwsStateError);
-    expect(() => setUp(() {}), throwsStateError);
-    expect(() => tearDown(() {}), throwsStateError);
-    expect(() => runTests(), throwsStateError);
+void _test(message) {
+  initMetatest(message);
+
+  expectTestsPass('testcases immutable', () {
+    test('test', () {
+      expect(() => test('test', () {}), throwsStateError);
+      expect(() => solo_test('test', () {}), throwsStateError);
+      expect(() => group('test', () {}), throwsStateError);
+      expect(() => solo_group('test', () {}), throwsStateError);
+      expect(() => setUp(() {}), throwsStateError);
+      expect(() => tearDown(() {}), throwsStateError);
+      expect(() => runTests(), throwsStateError);
+    });
   });
-};
-
-var expected = buildStatusString(1, 0, 0, testName);
+}

@@ -2,63 +2,73 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
+library unittest.returning_future_test;
 
 import 'dart:async';
-import 'dart:isolate';
 
+import 'package:metatest/metatest.dart';
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+void main() => initTests(_test);
 
-var testName = 'test returning future';
+void _test(message) {
+  initMetatest(message);
 
-var testFunction = (_) {
-  test("successful", () {
-    return _defer(() {
-      expect(true, true);
+  expectTestResults('returning futures', () {
+    test("successful", () {
+      return new Future.sync(() {
+        expect(true, true);
+      });
     });
-  });
-  // We repeat the fail and error tests, because during development
-  // I had a situation where either worked fine on their own, and
-  // error/fail worked, but fail/error would time out.
-  test("error1", () {
-    var callback = expectAsync(() {});
-    var excesscallback = expectAsync(() {});
-    return _defer(() {
-      excesscallback();
-      excesscallback();
-      excesscallback();
-      callback();
+    // We repeat the fail and error tests, because during development
+    // I had a situation where either worked fine on their own, and
+    // error/fail worked, but fail/error would time out.
+    test("error1", () {
+      var callback = expectAsync(() {});
+      var excesscallback = expectAsync(() {});
+      return new Future.sync(() {
+        excesscallback();
+        excesscallback();
+        excesscallback();
+        callback();
+      });
     });
-  });
-  test("fail1", () {
-    return _defer(() {
-      expect(true, false);
+    test("fail1", () {
+      return new Future.sync(() {
+        expect(true, false);
+      });
     });
-  });
-  test("error2", () {
-    var callback = expectAsync(() {});
-    var excesscallback = expectAsync(() {});
-    return _defer(() {
-      excesscallback();
-      excesscallback();
-      callback();
+    test("error2", () {
+      var callback = expectAsync(() {});
+      var excesscallback = expectAsync(() {});
+      return new Future.sync(() {
+        excesscallback();
+        excesscallback();
+        callback();
+      });
     });
-  });
-  test("fail2", () {
-    return _defer(() {
-      fail('failure');
+    test("fail2", () {
+      return new Future.sync(() {
+        fail('failure');
+      });
     });
-  });
-  test('foo5', () {
-  });
-};
-
-var expected = buildStatusString(2, 4, 0,
-    'successful::'
-    'error1:Callback called more times than expected (1).:'
-    'fail1:Expected: <false> Actual: <true>:'
-    'error2:Callback called more times than expected (1).:'
-    'fail2:failure:'
-    'foo5');
+    test('foo5', () {
+    });
+  }, [{
+    'result': 'pass'
+  }, {
+    'result': 'fail',
+    'message': 'Callback called more times than expected (1).'
+  }, {
+    'result': 'fail',
+    'message': 'Expected: <false>\n  Actual: <true>\n'
+  }, {
+    'result': 'fail',
+    'message': 'Callback called more times than expected (1).'
+  }, {
+    'result': 'fail',
+    'message': 'failure'
+  }, {
+    'result': 'pass'
+  }]);
+}

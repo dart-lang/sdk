@@ -2,19 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
-
-import 'dart:async';
-import 'dart:isolate';
+library unittest.runtests_without_tests;
 
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+import 'package:metatest/metatest.dart';
 
-var testName = 'runTests() without tests';
+void main() => initTests(_test);
 
-var testFunction = (_) {
-  runTests();
-};
+void _test(message) {
+  initMetatest(message);
 
-var expected = buildStatusString(0, 0, 0, null);
+  expectTestResults('runTests() without tests', () {
+    group('no tests', () {});
+  }, []);
+}

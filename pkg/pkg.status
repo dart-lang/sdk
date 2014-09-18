@@ -147,11 +147,11 @@ analyzer/test/generated/element_test: Pass, Slow # Issue 16473
 [ $runtime == d8 || $runtime == jsshell ]
 stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
-unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
 
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
 scheduled_test/test/unittest_compatibility_test: Fail # Issue 7728
+unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
 unittest/test/nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 
 [ $compiler == dart2js && $runtime == drt ]
@@ -343,13 +343,6 @@ third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
 third_party/angular_tests/vm_test: Skip # Uses dart:io
 watcher/test/*: Fail, OK # Uses dart:io.
 
-scheduled_test/test/descriptor/*: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_future_matchers_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_process_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/*: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_stream/stream_matcher_test: Fail # http://dartbug.com/8440
-
-
 */test/analyzer_test: Skip  # No need to run analysis tests on browser bots
 
 # Skip tests on the browser if the test depends on dart:io
@@ -374,6 +367,19 @@ watcher/test/directory_watcher/linux_test: Skip # Issue 16118
 *: Skip
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
+# Skip serialization test that explicitly has no library declaration in the
+# test on Dartium, which requires all tests to have a library.
+polymer/e2e_test/canonicalization/test/deploy1_test: Fail, OK # tests deploy only behavior
+polymer/e2e_test/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
+polymer/e2e_test/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
+polymer/e2e_test/canonicalization/test/dir/dev2_test: RuntimeError # Issue 17596
+polymer/e2e_test/canonicalization/test/dir/deploy1_test: Fail, OK # tests deploy only behavior
+polymer/e2e_test/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
+scheduled_test/test/descriptor/*: RuntimeError # 13921
+scheduled_test/test/scheduled_future_matchers_test: RuntimeError # 13921
+scheduled_test/test/scheduled_process_test: RuntimeError # 13921
+scheduled_test/test/scheduled_stream/stream_matcher_test: RuntimeError # 13921
+scheduled_test/test/scheduled_test/*: RuntimeError # 13921
 unittest/test/async_exception_test: RuntimeError # 13921
 unittest/test/async_exception_with_future_test: RuntimeError # 13921
 unittest/test/async_setup_teardown_test: RuntimeError # 13921
@@ -399,12 +405,7 @@ unittest/test/single_failing_test: RuntimeError # 13921
 unittest/test/skipped_soloed_nested_test: RuntimeError # 13921
 unittest/test/teardown_test: RuntimeError # 13921
 unittest/test/testcases_immutable_test: RuntimeError # 13921
-polymer/e2e_test/canonicalization/test/deploy1_test: Fail, OK # tests deploy only behavior
-polymer/e2e_test/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
-polymer/e2e_test/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
-polymer/e2e_test/canonicalization/test/dir/dev2_test: RuntimeError # Issue 17596
-polymer/e2e_test/canonicalization/test/dir/deploy1_test: Fail, OK # tests deploy only behavior
-polymer/e2e_test/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
+
 
 [ $runtime == vm ]
 # Skip tests on the VM if the package depends on dart:html
@@ -419,10 +420,12 @@ http/test/html/*: Skip
 
 [ $browser ]
 docgen/test/*: Skip  # Uses dart:io
+scheduled_test/test/scheduled_process_test: Skip # Uses dart:io
 scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
+scheduled_test/test/descriptor/*: Skip # Uses dart:io
 
-[ $browser || $runtime == vm ]
-unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
+[ $compiler == none && $browser ]
+unittest/test/missing_tick_test: RuntimeError # Expected to fail, due to timeout.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.
@@ -439,6 +442,12 @@ watcher/test/*/windows_test: Skip
 [ $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == ff || $ie ]
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
+
+[ $runtime == ff ]
+scheduled_test/test/scheduled_stream/stream_matcher_test: Timeout
+scheduled_test/test/scheduled_test/set_up_test: Timeout
+scheduled_test/test/scheduled_test/signal_error_test: Timeout
+scheduled_test/test/scheduled_test/tear_down_test: Timeout
 
 [ $unchecked ]
 third_party/angular_tests/browser_test/angular: Skip # Requires checked mode.

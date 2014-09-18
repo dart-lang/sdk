@@ -2,20 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
-
-import 'dart:async';
-import 'dart:isolate';
+library unittest.single_failing_test;
 
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+import 'package:metatest/metatest.dart';
 
-var testName = 'single failing test';
+void main() => initTests(_test);
 
-var testFunction = (_) {
-  test(testName, () => expect(2 + 2, equals(5)));
-};
+void _test(message) {
+  initMetatest(message);
 
-var expected = buildStatusString(0, 1, 0, testName,
-    message: 'Expected: <5> Actual: <4>');
+  expectTestsFail('single failing test', () {
+    test('test', () => expect(2 + 2, equals(5)));
+  });
+}

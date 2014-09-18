@@ -2,20 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
+library unittest.correct_callback_test;
 
 import 'dart:async';
-import 'dart:isolate';
 
+import 'package:metatest/metatest.dart';
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+void main() => initTests(_test);
 
-var testName = 'correct callback test';
+void _test(message) {
+  initMetatest(message);
 
-var testFunction = (TestConfiguration testConfig) {
-  test(testName,
-      () =>_defer(expectAsync((){ ++testConfig.count;})));
-};
+  expectTestsPass('correct callback test', () {
+    var count = 0;
+    test('test', () => new Future.sync(expectAsync(() {
+      ++count;
+    })));
 
-var expected = buildStatusString(1, 0, 0, testName, count: 1);
+    test('verify count', () {
+      expect(count, 1);
+    });
+  });
+}

@@ -2,23 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
-
-import 'dart:async';
-import 'dart:isolate';
+library unittest.setup_test;
 
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+import 'package:metatest/metatest.dart';
 
-var testName = 'setup test';
+void main() => initTests(_test);
 
-var testFunction = (TestConfiguration testConfig) {
-  group('a', () {
-    setUp(() { testConfig.setup = 'setup'; });
-    test(testName, () {});
+void _test(message) {
+  initMetatest(message);
+
+  expectTestsPass('setup test', () {
+    group('a', () {
+      var hasSetup = false;
+      setUp(() {
+        hasSetup = true;
+      });
+      test('test', () {
+        expect(hasSetup, isTrue);
+      });
+    });
   });
-};
-
-var expected = buildStatusString(1, 0, 0, 'a $testName',
-    count: 0, setup: 'setup');
+}

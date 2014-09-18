@@ -2,28 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
+library unittest.completion_test;
 
 import 'dart:async';
-import 'dart:isolate';
 
+import 'package:metatest/metatest.dart';
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+void main() => initTests(_test);
 
-var testName = 'completion test';
+void _test(message) {
+  initMetatest(message);
 
-var testFunction = (TestConfiguration testConfig) {
-  test(testName, () {
-    var _callback;
-    _callback = expectAsyncUntil(() {
-      if (++testConfig.count < 10) {
-        _defer(_callback);
-      }
-    },
-    () => (testConfig.count == 10));
-    _defer(_callback);
+  expectTestsPass('completion test', () {
+    var count = 0;
+    test('test', () {
+      var _callback;
+      _callback = expectAsyncUntil(() {
+        if (++count < 10) {
+          new Future.sync(_callback);
+        }
+      }, () => (count == 10));
+      new Future.sync(_callback);
+    });
+
+    test('verify count', () {
+      expect(count, 10);
+    });
   });
-};
-
-var expected = buildStatusString(1, 0, 0, testName, count: 10);
+}

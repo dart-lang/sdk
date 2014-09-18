@@ -10,7 +10,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/src/utils.dart';
 import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
 
-import 'metatest.dart';
+import 'package:metatest/metatest.dart';
 
 export 'package:scheduled_test/src/utils.dart';
 

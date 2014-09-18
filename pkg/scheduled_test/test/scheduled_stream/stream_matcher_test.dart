@@ -10,7 +10,7 @@ import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/src/utils.dart';
 
-import '../metatest.dart';
+import 'package:metatest/metatest.dart';
 import '../utils.dart';
 
 /// Returns a [ScheduledStream] that asynchronously emits the numbers 1 through
@@ -31,7 +31,9 @@ ScheduledStream createStream() {
   return stream;
 }
 
-void main(_, message) {
+void main() => initTests(_test);
+
+void _test(message) {
   initMetatest(message);
 
   setUpTimeout();

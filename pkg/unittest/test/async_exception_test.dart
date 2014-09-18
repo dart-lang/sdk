@@ -2,22 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
+library unittest.async_exception_test;
 
 import 'dart:async';
-import 'dart:isolate';
 
+import 'package:metatest/metatest.dart';
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+void main() => initTests(_test);
 
-var testName = 'async exception test';
+void _test(message) {
+  initMetatest(message);
 
-var testFunction = (_) {
-  test(testName, () {
-    expectAsync(() {});
-    _defer(() { throw "error!"; });
+  expectTestsFail('async errors cause tests to fail', () {
+    test('async', () {
+      expectAsync(() {});
+      new Future(() {
+        throw "an error!";
+      });
+    });
+
+    test('sync', () {
+      expectAsync(() {});
+      new Future(() {
+        throw "an error!";
+      });
+    });
   });
-};
-
-final expected = buildStatusString(0, 1, 0, testName, message: 'Caught error!');
+}

@@ -1,0 +1,8 @@
+name: metatest
+version: 0.1.0
+author: Dart Team <misc@dartlang.org>
+description: A package for testing Dart test frameworks.
+environment:
+  sdk: '>=1.0.0 <2.0.0'
+dependencies:
+  unittest: '>=0.11.0 <0.12.0'

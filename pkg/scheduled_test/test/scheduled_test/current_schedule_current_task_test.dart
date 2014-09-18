@@ -4,10 +4,12 @@
 
 import 'package:scheduled_test/scheduled_test.dart';
 
-import '../metatest.dart';
+import 'package:metatest/metatest.dart';
 import '../utils.dart';
 
-void main(_, message) {
+void main() => initTests(_test);
+
+void _test(message) {
   initMetatest(message);
 
   setUpTimeout();

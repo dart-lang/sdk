@@ -2,20 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
-
-import 'dart:async';
-import 'dart:isolate';
+library unittest.exception_test;
 
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+import 'package:metatest/metatest.dart';
 
-var testName = 'exception test';
+void main() => initTests(_test);
 
-var testFunction = (_) {
-  test(testName, () { throw new Exception('Fail.'); });
-};
+void _test(message) {
+  initMetatest(message);
 
-var expected =  buildStatusString(0, 0, 1, testName,
-    message: 'Test failed: Caught Exception: Fail.');
+  expectTestResults('good setup/good teardown', () {
+    test('test', () {
+      throw new Exception('Fail.');
+    });
+  }, [{
+    'result': 'error',
+    'message': 'Test failed: Caught Exception: Fail.'
+  }]);
+}
