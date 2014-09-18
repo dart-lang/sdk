@@ -1,3 +1,8 @@
+#### 0.14.2+1
+  * Fix findController function for js or dart wrapped elements. This fixes
+    event bindings when using paper-dialog and probably some other cases,
+    [20931](http://dartbug.com/20931).
+
 #### 0.14.2
   * Polymer will now create helpful index pages in all folders containing entry
     points and in their parent folders, in debug mode only
