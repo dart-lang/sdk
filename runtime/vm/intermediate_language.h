@@ -7803,6 +7803,8 @@ class CheckClassIdInstr : public TemplateInstruction<1> {
 
   virtual bool MayThrow() const { return false; }
 
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
  private:
   intptr_t cid_;
 

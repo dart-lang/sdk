@@ -867,6 +867,15 @@ void UnaryDoubleOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void CheckClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
+
+  const Class& cls =
+    Class::Handle(Isolate::Current()->class_table()->At(cid()));
+  f->Print(", %s", String::Handle(cls.PrettyName()).ToCString());
+}
+
+
 void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   PrintICDataHelper(f, unary_checks());

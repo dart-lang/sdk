@@ -8505,19 +8505,28 @@ void ConstantPropagator::VisitMaterializeObject(MaterializeObjectInstr* instr) {
 }
 
 
+static bool IsIntegerOrDouble(const Object& value) {
+  return value.IsInteger() || value.IsDouble();
+}
+
+
+static double ToDouble(const Object& value) {
+  return value.IsInteger() ? Integer::Cast(value).AsDoubleValue()
+                           : Double::Cast(value).value();
+}
+
+
 void ConstantPropagator::VisitBinaryDoubleOp(
     BinaryDoubleOpInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
-  } else if (IsConstant(left) && IsConstant(right)) {
-    ASSERT(left.IsSmi() || left.IsDouble());
-    ASSERT(right.IsSmi() || right.IsDouble());
-    double left_val = left.IsSmi()
-        ? Smi::Cast(left).AsDoubleValue() : Double::Cast(left).value();
-    double right_val = right.IsSmi()
-        ? Smi::Cast(right).AsDoubleValue() : Double::Cast(right).value();
+  } else if (left.IsInteger() && right.IsInteger()) {
+    SetValue(instr, non_constant_);
+  } else if (IsIntegerOrDouble(left) && IsIntegerOrDouble(right)) {
+    const double left_val = ToDouble(left);
+    const double right_val = ToDouble(right);
     double result_val = 0.0;
     switch (instr->op_kind()) {
       case Token::kADD:
