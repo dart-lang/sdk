@@ -165,7 +165,9 @@ class DeferredLoadTask extends CompilerTask {
 
   Set<Element> _mainElements = new Set<Element>();
 
-  DeferredLoadTask(Compiler compiler) : super(compiler);
+  DeferredLoadTask(Compiler compiler) : super(compiler) {
+    mainOutputUnit.imports.add(_fakeMainImport);
+  }
 
   Backend get backend => compiler.backend;
 
@@ -210,32 +212,6 @@ class DeferredLoadTask extends CompilerTask {
     OutputUnit outputUnit = new OutputUnit();
     outputUnit.imports.add(prefix.deferredImport);
     _constantToOutputUnit[constant] = outputUnit;
-  }
-
-  /// Mark that [import] is part of the [OutputputUnit] for [element].
-  ///
-  /// [element] can be either a [Constant] or an [Element].
-  void _addImportToOutputUnitOfElement(Element element, Import import) {
-    // Only one file should be loaded when the program starts, so make
-    // sure that only one OutputUnit is created for [fakeMainImport].
-    if (import == _fakeMainImport) {
-      _elementToOutputUnit[element] = mainOutputUnit;
-    }
-    _elementToOutputUnit.putIfAbsent(element, () => new OutputUnit())
-        .imports.add(import);
-  }
-
-  /// Mark that [import] is part of the [OutputputUnit] for [constant].
-  ///
-  /// [constant] can be either a [Constant] or an [Element].
-  void _addImportToOutputUnitOfConstant(Constant constant, Import import) {
-    // Only one file should be loaded when the program starts, so make
-    // sure that only one OutputUnit is created for [fakeMainImport].
-    if (import == _fakeMainImport) {
-      _constantToOutputUnit[constant] = mainOutputUnit;
-    }
-    _constantToOutputUnit.putIfAbsent(constant, () => new OutputUnit())
-        .imports.add(import);
   }
 
   /// Answers whether [element] is explicitly deferred when referred to from
@@ -588,16 +564,36 @@ class DeferredLoadTask extends CompilerTask {
         _addMirrorElements();
       }
 
-      Set<Constant> allConstants = new Set<Constant>();
-      // Reverse the mapping. For each element record an OutputUnit collecting
-      // all deferred imports using this element. Same for constants.
+      // Build the OutputUnits using these two maps.
+      Map<Element, OutputUnit> elementToOutputUnitBuilder =
+          new Map<Element, OutputUnit>();
+      Map<Constant, OutputUnit> constantToOutputUnitBuilder =
+          new Map<Constant, OutputUnit>();
+
+      // Reverse the mappings. For each element record an OutputUnit collecting
+      // all deferred imports mapped to this element. Same for constants.
       for (Import import in _importedDeferredBy.keys) {
         for (Element element in _importedDeferredBy[import]) {
-          _addImportToOutputUnitOfElement(element, import);
+          // Only one file should be loaded when the program starts, so make
+          // sure that only one OutputUnit is created for [fakeMainImport].
+          if (import == _fakeMainImport) {
+            elementToOutputUnitBuilder[element] = mainOutputUnit;
+          } else {
+            elementToOutputUnitBuilder
+                .putIfAbsent(element, () => new OutputUnit())
+                .imports.add(import);
+          }
         }
         for (Constant constant in _constantsDeferredBy[import]) {
-          allConstants.add(constant);
-          _addImportToOutputUnitOfConstant(constant, import);
+          // Only one file should be loaded when the program starts, so make
+          // sure that only one OutputUnit is created for [fakeMainImport].
+          if (import == _fakeMainImport) {
+            constantToOutputUnitBuilder[constant] = mainOutputUnit;
+          } else {
+            constantToOutputUnitBuilder
+                .putIfAbsent(constant, () => new OutputUnit())
+                .imports.add(import);
+          }
         }
       }
 
@@ -605,15 +601,28 @@ class DeferredLoadTask extends CompilerTask {
       _importedDeferredBy = null;
       _constantsDeferredBy = null;
 
-      // Find all the output units we have used.
-      // Also generate a unique name for each OutputUnit.
-      for (OutputUnit outputUnit in _elementToOutputUnit.values) {
-        allOutputUnits.add(outputUnit);
-      }
-      for (OutputUnit outputUnit in _constantToOutputUnit.values) {
-        allOutputUnits.add(outputUnit);
-      }
+      // Find all the output units elements/constants have been mapped to, and
+      // canonicalize them.
+      elementToOutputUnitBuilder.forEach(
+          (Element element, OutputUnit outputUnit) {
+        OutputUnit representative = allOutputUnits.lookup(outputUnit);
+        if (representative == null) {
+          representative = outputUnit;
+          allOutputUnits.add(representative);
+        }
+        _elementToOutputUnit[element] = representative;
+      });
+      constantToOutputUnitBuilder.forEach(
+          (Constant constant, OutputUnit outputUnit) {
+        OutputUnit representative = allOutputUnits.lookup(outputUnit);
+        if (representative == null) {
+          representative = outputUnit;
+          allOutputUnits.add(representative);
+        }
+        _constantToOutputUnit[constant] = representative;
+      });
 
+      // Generate a unique name for each OutputUnit.
       _assignNamesToOutputUnits(allOutputUnits);
     });
   }
