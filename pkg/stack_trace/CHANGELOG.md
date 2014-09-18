@@ -1,3 +1,13 @@
+## 1.1.0
+
+* Unify the parsing of Safari and Firefox stack traces. This fixes an error in
+  Firefox trace parsing.
+
+* Deprecate `Trace.parseSafari6_0`, `Trace.parseSafari6_1`,
+  `Frame.parseSafari6_0`, and `Frame.parseSafari6_1`.
+
+* Add `Frame.parseSafari`.
+
 ## 1.0.3
 
 * Use `Zone.errorCallback` to attach stack chains to all errors without the need
