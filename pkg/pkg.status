@@ -388,7 +388,11 @@ watcher/test/directory_watcher/linux_test: Skip # Issue 16118
 # simulator.
 *: Skip
 
+# Skip serialization test that explicitly has no library declaration in the
+# test on Dartium, which requires all tests to have a library.
 [ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
+serialization/test/no_library_test: Skip # Expected Failure
+serialization/test/serialization_test: Fail # 13921
 unittest/test/async_exception_test: RuntimeError # 13921
 unittest/test/async_exception_with_future_test: RuntimeError # 13921
 unittest/test/async_setup_teardown_test: RuntimeError # 13921
