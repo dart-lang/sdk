@@ -17,7 +17,7 @@ var known_bad_seeds = const [
   59208
 ];
 
-void main(args) {
+void main([args]) {
   // Select a seed either from the argument passed in or
   // otherwise a random seed.
   var seed = -1;
