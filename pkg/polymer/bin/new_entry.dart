@@ -94,7 +94,6 @@ String html = '''
 <!doctype html>
 <html>
   <head>
-    <script src="packages/web_components/platform.js"></script>
     <script src="packages/web_components/dart_support.js"></script>
 
     <!-- link rel="import" href="path_to_html_import.html" -->
