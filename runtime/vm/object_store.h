@@ -415,6 +415,16 @@ class ObjectStore {
     lookup_port_handler_ = function.raw();
   }
 
+  RawTypedData* empty_uint32_array() const {
+    return empty_uint32_array_;
+  }
+  void set_empty_uint32_array(const TypedData& array) {
+    // Only set once.
+    ASSERT(empty_uint32_array_ == TypedData::null());
+    ASSERT(!array.IsNull());
+    empty_uint32_array_ = array.raw();
+  }
+
   RawFunction* handle_message_function() const {
     return handle_message_function_;
   }
@@ -531,6 +541,7 @@ class ObjectStore {
   RawUnhandledException* preallocated_unhandled_exception_;
   RawStacktrace* preallocated_stack_trace_;
   RawFunction* lookup_port_handler_;
+  RawTypedData* empty_uint32_array_;
   RawFunction* handle_message_function_;
   RawArray* library_load_error_table_;
   RawUserTag* default_tag_;

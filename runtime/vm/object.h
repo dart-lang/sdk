@@ -6740,6 +6740,8 @@ class TypedData : public Instance {
     return RawObject::IsTypedDataClassId(cid);
   }
 
+  static RawTypedData* EmptyUint32Array(Isolate* isolate);
+
  protected:
   void SetLength(intptr_t value) const {
     raw_ptr()->length_ = Smi::New(value);

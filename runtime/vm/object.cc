@@ -16264,6 +16264,8 @@ void Bigint::set_used(const Smi& value) const {
 
 
 void Bigint::set_digits(const TypedData& value) const {
+  // The VM expects digits_ to be a Uint32List (not null).
+  ASSERT(!value.IsNull() && (value.GetClassId() == kTypedDataUint32ArrayCid));
   StorePointer(&raw_ptr()->digits_, value.raw());
 }
 
@@ -16341,15 +16343,16 @@ bool Bigint::CheckAndCanonicalizeFields(const char** error_str) const {
     ASSERT(!digits_.IsNull());
     set_digits(digits_);
   } else {
-    ASSERT(digits() == TypedData::null());
+    ASSERT(digits() == TypedData::EmptyUint32Array(Isolate::Current()));
   }
   return true;
 }
 
 
 RawBigint* Bigint::New(Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->bigint_class() != Class::null());
-  Bigint& result = Bigint::Handle();
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->bigint_class() != Class::null());
+  Bigint& result = Bigint::Handle(isolate);
   {
     RawObject* raw = Object::Allocate(Bigint::kClassId,
                                       Bigint::InstanceSize(),
@@ -16358,7 +16361,9 @@ RawBigint* Bigint::New(Heap::Space space) {
     result ^= raw;
   }
   result.set_neg(Bool::Get(false));
-  result.set_used(Smi::Handle(Smi::New(0)));
+  result.set_used(Smi::Handle(isolate, Smi::New(0)));
+  result.set_digits(
+      TypedData::Handle(isolate, TypedData::EmptyUint32Array(isolate)));
   return result.raw();
 }
 
@@ -16423,10 +16428,10 @@ RawBigint* Bigint::NewFromShiftedInt64(int64_t value, intptr_t shift,
 void Bigint::EnsureLength(intptr_t length, Heap::Space space) const {
   ASSERT(length >= 0);
   TypedData& old_digits = TypedData::Handle(digits());
-  if ((length > 0) && (old_digits.IsNull() || (length > old_digits.Length()))) {
+  if ((length > 0) && (length > old_digits.Length())) {
     TypedData& new_digits = TypedData::Handle(
         TypedData::New(kTypedDataUint32ArrayCid, length + kExtraDigits, space));
-    if (!old_digits.IsNull()) {
+    if (old_digits.Length() > 0) {
       TypedData::Copy(new_digits, TypedData::data_offset(),
                       old_digits, TypedData::data_offset(),
                       old_digits.LengthInBytes());
@@ -19632,6 +19637,20 @@ RawTypedData* TypedData::New(intptr_t class_id,
     }
   }
   return result.raw();
+}
+
+
+RawTypedData* TypedData::EmptyUint32Array(Isolate* isolate) {
+  ASSERT(isolate != NULL);
+  ASSERT(isolate->object_store() != NULL);
+  if (isolate->object_store()->empty_uint32_array() != TypedData::null()) {
+    // Already created.
+    return isolate->object_store()->empty_uint32_array();
+  }
+  const TypedData& array = TypedData::Handle(isolate,
+      TypedData::New(kTypedDataUint32ArrayCid, 0, Heap::kOld));
+  isolate->object_store()->set_empty_uint32_array(array);
+  return array.raw();
 }
 
 

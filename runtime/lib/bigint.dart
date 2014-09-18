@@ -70,7 +70,13 @@ class _Bigint extends _IntegerImplementation implements int {
   int get _used native "Bigint_getUsed";
   void set _used(int used) native "Bigint_setUsed";
   Uint32List get _digits native "Bigint_getDigits";
-  void set _digits(Uint32List digits) native "Bigint_setDigits";
+  void set _digits(Uint32List digits) {
+    // The VM expects digits_ to be a Uint32List.
+    assert(digits != null);
+    _set_digits(digits);
+  }
+
+  void _set_digits(Uint32List digits) native "Bigint_setDigits";
 
   // Factory returning an instance initialized to value 0.
   factory _Bigint() native "Bigint_allocate";
@@ -201,12 +207,10 @@ class _Bigint extends _IntegerImplementation implements int {
   // TODO(regis): Check that we are not preserving _digits unnecessarily.
   void _ensureLength(int length) {
     var digits = _digits;
-    if (length > 0 && (digits == null || length > digits.length)) {
+    if (length > 0 && (length > digits.length)) {
       var new_digits = new Uint32List(length + EXTRA_DIGITS);
-      if (digits != null) {
-        for (var i = _used; --i >= 0; ) {
-          new_digits[i] = digits[i];
-        }
+      for (var i = _used; --i >= 0; ) {
+        new_digits[i] = digits[i];
       }
       _digits = new_digits;
     }
@@ -987,7 +991,7 @@ class _Bigint extends _IntegerImplementation implements int {
     if (_neg) throw "negative shift amount";  // TODO(regis): What exception?
     assert(DIGIT_BITS == 32);  // Otherwise this code needs to be revised.
     var shift;
-    if (_used > 2 || (_used == 2 && _digits[1] > 0x10000000)) {
+    if ((_used > 2) || ((_used == 2) && (_digits[1] > 0x10000000))) {
       if (other < 0) {
         return -1;
       } else {

@@ -153,7 +153,7 @@ namespace dart {
   V(_Smi, get:bitLength, Smi_bitLength, 869956497)                             \
   V(_Bigint, set:_neg, Bigint_setNeg, 920204960)                               \
   V(_Bigint, set:_used, Bigint_setUsed, 1857576743)                            \
-  V(_Bigint, set:_digits, Bigint_setDigits, 1633805112)                        \
+  V(_Bigint, _set_digits, Bigint_setDigits, 582835804)                         \
   V(_Double, >, Double_greaterThan, 381325711)                                 \
   V(_Double, >=, Double_greaterEqualThan, 1409267140)                          \
   V(_Double, <, Double_lessThan, 2080387973)                                   \
@@ -364,7 +364,7 @@ namespace dart {
   V(_Bigint, get:_neg, Bigint_getNeg, 1151514099)                              \
   V(_Bigint, get:_used, Bigint_getUsed, 1308529543)                            \
   V(_Bigint, get:_digits, Bigint_getDigits, 1408062672)                        \
-
+  V(_Bigint, set:_digits, Bigint_setDigits, 1135754410)                        \
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \

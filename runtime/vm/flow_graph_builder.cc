@@ -3311,9 +3311,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
             Bigint::digits_offset(),
             Type::ZoneHandle(I, Type::DynamicType()),
             node->token_pos());
-        // TODO(srdjan): Enabling the correct result type throws an NPE.
-        // load->set_result_cid(kTypedDataUint32ArrayCid);
-        load->set_result_cid(kDynamicCid);
+        load->set_result_cid(kTypedDataUint32ArrayCid);
         load->set_recognized_kind(kind);
         return ReturnDefinition(load);
       }
