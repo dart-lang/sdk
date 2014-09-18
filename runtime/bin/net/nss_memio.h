@@ -9,7 +9,7 @@
 
 // This file is a modified copy of Chromium's src/net/base/nss_memio.h.
 // char* has been changed to uint8_t* everywhere, and C++ casts are used.
-// Revision 257452 (this should agree with "nss_rev" in DEPS).
+// Revision 291806 (this should agree with "nss_rev" in DEPS).
 
 #ifndef BIN_NET_NSS_MEMIO_H_
 #define BIN_NET_NSS_MEMIO_H_
@@ -88,12 +88,13 @@ int memio_GetReadableBufferSize(memio_Private *secret);
 void memio_PutReadResult(memio_Private *secret, int bytes_read);
 
 /* Ask memio what data it has to send to the network.
- * Returns up to two buffers of data by writing the positions and lengths into
- * |buf1|, |len1| and |buf2|, |len2|.
+ * If there was previous a write error, the NSPR error code is returned.
+ * Otherwise, it returns 0 and provides up to two buffers of data by
+ * writing the positions and lengths into |buf1|, |len1| and |buf2|, |len2|.
  */
-void memio_GetWriteParams(memio_Private *secret,
-                          const uint8_t **buf1, unsigned int *len1,
-                          const uint8_t **buf2, unsigned int *len2);
+int memio_GetWriteParams(memio_Private *secret,
+                         const uint8_t **buf1, unsigned int *len1,
+                         const uint8_t **buf2, unsigned int *len2);
 
 /* Tell memio how many bytes were sent to the network.
  * If bytes_written is < 0, it is treated as an NSPR error code.

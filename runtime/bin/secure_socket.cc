@@ -942,7 +942,10 @@ intptr_t SSLFilter::ProcessWriteEncryptedBuffer(int start, int end) {
     unsigned int len1;
     unsigned int len2;
     memio_Private* secret = memio_GetSecret(filter_);
-    memio_GetWriteParams(secret, &buf1, &len1, &buf2, &len2);
+    int status = memio_GetWriteParams(secret, &buf1, &len1, &buf2, &len2);
+    if (status != 0) {
+      return -1;
+    }
     int bytes_to_send =
         dart::Utils::Minimum(len1, static_cast<unsigned>(length));
     if (bytes_to_send > 0) {

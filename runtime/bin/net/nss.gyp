@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of Chromium's deps/third_party/nss/nss.gyp.
-# Revision 257452 (this should agree with "nss_rev" in DEPS).
+# Revision 291806 (this should agree with "nss_rev" in DEPS).
 {
   # Added by Dart. All Dart comments refer to the following block or line.
   'includes': [
@@ -325,6 +325,14 @@
       },
       # TODO(wtc): suppress C4244 and C4554 in prdtoa.c.
       'msvs_disabled_warnings': [4018, 4244, 4554, 4267,],
+      'variables': {
+        'clang_warning_flags': [
+          # nspr passes "const char*" through "void*".
+          '-Wno-incompatible-pointer-types',
+          # nspr passes "int*" through "unsigned int*".
+          '-Wno-pointer-sign',
+        ],
+      },
       'conditions': [
         ['OS=="mac" or OS=="ios"', {
           'defines': [
@@ -472,16 +480,8 @@
               # nspr uses a bunch of deprecated functions (NSLinkModule etc) in
               # prlink.c on mac.
               '-Wno-deprecated-declarations',
-              # nspr passes "const char*" through "void*".
-              '-Wno-incompatible-pointer-types',
-              # nspr passes "int*" through "unsigned int*".
-              '-Wno-pointer-sign',
             ],
           },
-          'cflags': [
-            '-Wno-incompatible-pointer-types',
-            '-Wno-pointer-sign',
-          ],
         }],
       ],
     },
@@ -601,6 +601,9 @@
         ],
       },
     },
+    # Removed by Dart: the target nss_static_avx_dart.
+    # This is an optimization of AES on 32 bit Windows using new
+    # Intel assembly instructions.  Not enabling it on Dart.
     {
       'target_name': 'nss_static_dart',  # Added by Dart (the _dart postfix)
       'type': 'static_library',
@@ -708,6 +711,7 @@
         '<(nss_directory)/nss/lib/freebl/dsa.c',
         '<(nss_directory)/nss/lib/freebl/ec.c',
         '<(nss_directory)/nss/lib/freebl/ec.h',
+        '<(nss_directory)/nss/lib/freebl/ecdecode.c',
         '<(nss_directory)/nss/lib/freebl/ecl/ec2.h',
         '<(nss_directory)/nss/lib/freebl/ecl/ecl-curve.h',
         '<(nss_directory)/nss/lib/freebl/ecl/ecl-exp.h',
@@ -729,6 +733,7 @@
         '<(nss_directory)/nss/lib/freebl/ecl/ec_naf.c',
         '<(nss_directory)/nss/lib/freebl/gcm.c',
         '<(nss_directory)/nss/lib/freebl/gcm.h',
+        # Changed by Dart: intel-aes assembly language files dropped.
         '<(nss_directory)/nss/lib/freebl/hmacct.c',
         '<(nss_directory)/nss/lib/freebl/hmacct.h',
         '<(nss_directory)/nss/lib/freebl/jpake.c',
@@ -751,6 +756,7 @@
         '<(nss_directory)/nss/lib/freebl/mpi/mp_gf2m.c',
         '<(nss_directory)/nss/lib/freebl/mpi/mp_gf2m.h',
         '<(nss_directory)/nss/lib/freebl/mpi/primes.c',
+        '<(nss_directory)/nss/lib/freebl/nss_build_config_mac.h',
         '<(nss_directory)/nss/lib/freebl/poly1305/poly1305-donna-x64-sse2-incremental-source.c',
         '<(nss_directory)/nss/lib/freebl/poly1305/poly1305.c',
         '<(nss_directory)/nss/lib/freebl/poly1305/poly1305.h',
@@ -1013,7 +1019,6 @@
         '<(nss_directory)/nss/lib/smime/cmsreclist.h',
         '<(nss_directory)/nss/lib/smime/cmst.h',
         '<(nss_directory)/nss/lib/smime/smime.h',
-        '<(nss_directory)/nss/lib/softoken/ecdecode.c',
         '<(nss_directory)/nss/lib/softoken/fipsaudt.c',
         '<(nss_directory)/nss/lib/softoken/fipstest.c',
         '<(nss_directory)/nss/lib/softoken/fipstokn.c',
@@ -1123,6 +1128,7 @@
       ],
       'dependencies': [
         'nspr_dart',  # Added by Dart (the _dart postfix)
+        # Removed by Dart: nss_static_avx target dependency.
         'sqlite.gyp:sqlite_dart',  # Changed by Dart prefix ../sqllite removed _dart postfix added.
       ],
       'export_dependent_settings': [
@@ -1195,6 +1201,20 @@
         ],
       },
       'msvs_disabled_warnings': [4018, 4101, 4267, ],
+      'variables': {
+        'clang_warning_flags': [
+          # nss doesn't explicitly cast between different enum types.
+          '-Wno-conversion',
+          # nss passes "const char*" through "void*".
+          '-Wno-incompatible-pointer-types',
+          # nss prefers `a && b || c` over `(a && b) || c`.
+          '-Wno-logical-op-parentheses',
+          # nss doesn't use exhaustive switches on enums
+          '-Wno-switch',
+          # nss has some `unsigned < 0` checks.
+          '-Wno-tautological-compare',
+        ],
+      },
       'conditions': [
         ['exclude_nss_root_certs==1', {
           'defines': [
@@ -1286,7 +1306,7 @@
             '<(nss_directory)/nss/lib/freebl/mpi/mpi_x86_asm.c',
           ],
           'variables': {
-            'forced_include_file': '<(DEPTH)/third_party/nss/nss/lib/freebl/build_config_mac.h',
+            'forced_include_file': 'nss_build_config_mac.h',
           },
           'xcode_settings': {
             'conditions': [
@@ -1338,8 +1358,16 @@
           #       'MP_ASSEMBLY_DIV_2DX1D',
           #       'MP_USE_UINT_DIGIT',
           #       'MP_NO_MP_WORD',
+          # Changed by Dart: 'USE_HW_AES' and 'INTEL_GCM' are not enabled.
+          #       'USE_HW_AES',
+          #       'INTEL_GCM',
           #     ],
           #   }],
+          #   'msvs_settings': {
+          #     'MASM': {
+          #       'UseSafeExceptionHandlers': 'true',
+          #     },
+          #   },
           #   ['target_arch=="x64"', {
           #     'defines': [
           #       'NSS_USE_64',
@@ -1361,29 +1389,6 @@
             'os_windows.c',
             # mpi_x86_asm.c contains MSVC inline assembly code.
             '<(nss_directory)/nss/lib/freebl/mpi/mpi_x86_asm.c',
-          ],
-        }],
-        ['clang==1', {
-          'xcode_settings': {
-            'WARNING_CFLAGS': [
-              # nss doesn't explicitly cast between different enum types.
-              '-Wno-conversion',
-              # nss passes "const char*" through "void*".
-              '-Wno-incompatible-pointer-types',
-              # nss prefers `a && b || c` over `(a && b) || c`.
-              '-Wno-logical-op-parentheses',
-              # nss doesn't use exhaustive switches on enums
-              '-Wno-switch',
-              # nss has some `unsigned < 0` checks.
-              '-Wno-tautological-compare',
-            ],
-          },
-          'cflags': [
-            '-Wno-conversion',
-            '-Wno-incompatible-pointer-types',
-            '-Wno-logical-op-parentheses',
-            '-Wno-switch',
-            '-Wno-tautological-compare',
           ],
         }],
       ],
