@@ -17,7 +17,7 @@ class RunCommand extends PubCommand {
     commandParser.addOption(
         "mode",
         help: 'Mode to run transformers in.\n'
-            '(defaults to "release" for dependencies, "debug" for entrypoint)');
+            '(defaults to "release" for dependencies, "debug" for ' 'entrypoint)');
   }
   Future onRun() {
     final completer0 = new Completer();

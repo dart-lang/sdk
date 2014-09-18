@@ -276,6 +276,14 @@ Set setMinus(Iterable minuend, Iterable subtrahend) {
   return minuendSet;
 }
 
+/// Returns whether there's any overlap between [set1] and [set2].
+bool overlaps(Set set1, Set set2) {
+  // Iterate through the smaller set.
+  var smaller = set1.length > set2.length ? set1 : set2;
+  var larger = smaller == set1 ? set2 : set1;
+  return smaller.any(larger.contains);
+}
+
 /// Returns a list containing the sorted elements of [iter].
 List ordered(Iterable<Comparable> iter) {
   var list = iter.toList();

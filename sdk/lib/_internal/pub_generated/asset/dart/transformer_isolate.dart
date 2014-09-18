@@ -13,6 +13,8 @@ import 'package:barback/barback.dart';
 import 'serialize.dart';
 
 /// The mirror system.
+///
+/// Cached to avoid re-instantiating each time a transformer is initialized.
 final _mirrors = currentMirrorSystem();
 
 /// The URI of this library.

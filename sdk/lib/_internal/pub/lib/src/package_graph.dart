@@ -8,6 +8,8 @@ import 'barback/transformer_cache.dart';
 import 'entrypoint.dart';
 import 'lock_file.dart';
 import 'package.dart';
+import 'source/cached.dart';
+import 'source/hosted.dart';
 import 'utils.dart';
 
 /// A holistic view of the entire transitive dependency graph for an entrypoint.
@@ -65,5 +67,29 @@ class PackageGraph {
     }
 
     return _transitiveDependencies[package];
+  }
+
+  /// Returns whether [package] is mutable.
+  ///
+  /// A package is considered to be mutable if it or any of its dependencies
+  /// don't come from a cached source, since the user can change its contents
+  /// without modifying the pub cache. Information generated from mutable
+  /// packages is generally not safe to cache, since it may change frequently.
+  bool isPackageMutable(String package) {
+    var id = lockFile.packages[package];
+    if (id == null) return true;
+
+    var source = entrypoint.cache.sources[id.source];
+    if (source is! CachedSource) return true;
+
+    return transitiveDependencies(package).any((dep) {
+      var depId = lockFile.packages[dep.name];
+
+      // The entrypoint package doesn't have a lockfile entry. It's always
+      // mutable.
+      if (depId == null) return true;
+
+      return entrypoint.cache.sources[depId.source] is! CachedSource;
+    });
   }
 }

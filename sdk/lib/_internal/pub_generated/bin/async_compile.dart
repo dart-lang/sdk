@@ -52,7 +52,7 @@ void main(List<String> arguments) {
   lastCommit = match[0];
   var numFiles = 0;
   var numCompiled = 0;
-  var sources = new Set<String>();
+  var sources = new Set();
   for (var entry in new Directory(sourceDir).listSync(recursive: true)) {
     if (p.extension(entry.path) != ".dart") continue;
     numFiles++;

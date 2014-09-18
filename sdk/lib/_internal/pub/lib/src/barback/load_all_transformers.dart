@@ -94,7 +94,8 @@ Future loadAllTransformers(AssetEnvironment environment,
 
   /// Reset the transformers for each package to get rid of [rewrite], which
   /// is no longer needed.
-  await Future.wait(environment.graph.packages.values.map((package) async {
+  await Future.wait(environment.packages.map((packageName) async {
+    var package = environment.graph.packages[packageName];
     var phases = await loader.transformersForPhases(
         package.pubspec.transformers);
     var transformers = environment.getBuiltInTransformers(package);

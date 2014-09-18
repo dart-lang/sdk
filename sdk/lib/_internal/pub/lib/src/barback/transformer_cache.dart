@@ -64,7 +64,7 @@ class TransformerCache {
 
     // If none of the snapshot's dependencies have changed, then we can reuse
     // it.
-    if (!changedPackages.any(snapshotDependencies.contains)) return;
+    if (!overlaps(changedPackages, snapshotDependencies)) return;
 
     // Otherwise, delete it.
     deleteEntry(_dir);
@@ -78,21 +78,10 @@ class TransformerCache {
   /// it can safely be used to load the stage. Otherwise, a snapshot of the
   /// stage should be written there.
   String snapshotPath(Set<TransformerId> transformers) {
-    // A transformer is considered mutable if it comes from the entrypoint
-    // package or a path dependency.
-    //
-    // TODO(nweiz): Consider git packages with mutable (transitive) dependencies
-    // to be mutable themselves.
-    var usesMutableTransformer = transformers.any((id) {
-      // The entrypoint package doesn't appear in the lockfile.
-      var package = _graph.lockFile.packages[id.package];
-      if (package == null) return true;
-      var source = _graph.entrypoint.cache.sources[package.source];
-      return source is! CachedSource;
-    });
-
     var path = p.join(_dir, "transformers.snapshot");
-    if (usesMutableTransformer) {
+    if (_newTransformers != null) return path;
+
+    if (transformers.any((id) => _graph.isPackageMutable(id.package))) {
       log.fine("Not caching mutable transformers.");
       deleteEntry(_dir);
       return null;

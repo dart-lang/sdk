@@ -24,19 +24,14 @@ class TransformerCache {
       return _graph.transitiveDependencies(
           id.package).map((package) => package.name).toSet();
     }));
-    if (!changedPackages.any(snapshotDependencies.contains)) return;
+    if (!overlaps(changedPackages, snapshotDependencies)) return;
     deleteEntry(_dir);
     _oldTransformers = new Set();
   }
   String snapshotPath(Set<TransformerId> transformers) {
-    var usesMutableTransformer = transformers.any((id) {
-      var package = _graph.lockFile.packages[id.package];
-      if (package == null) return true;
-      var source = _graph.entrypoint.cache.sources[package.source];
-      return source is! CachedSource;
-    });
     var path = p.join(_dir, "transformers.snapshot");
-    if (usesMutableTransformer) {
+    if (_newTransformers != null) return path;
+    if (transformers.any((id) => _graph.isPackageMutable(id.package))) {
       log.fine("Not caching mutable transformers.");
       deleteEntry(_dir);
       return null;

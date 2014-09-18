@@ -44,10 +44,11 @@ Future loadAllTransformers(AssetEnvironment environment,
           var it1 = stagedTransformers.iterator;
           break1(x6) {
             join1() {
-              Future.wait(environment.graph.packages.values.map(((package) {
+              Future.wait(environment.packages.map(((packageName) {
                 final completer0 = new Completer();
                 scheduleMicrotask(() {
                   try {
+                    var package = environment.graph.packages[packageName];
                     loader.transformersForPhases(
                         package.pubspec.transformers).then((x0) {
                       try {

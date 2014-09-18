@@ -161,6 +161,11 @@ Set setMinus(Iterable minuend, Iterable subtrahend) {
   minuendSet.removeAll(subtrahend);
   return minuendSet;
 }
+bool overlaps(Set set1, Set set2) {
+  var smaller = set1.length > set2.length ? set1 : set2;
+  var larger = smaller == set1 ? set2 : set1;
+  return smaller.any(larger.contains);
+}
 List ordered(Iterable<Comparable> iter) {
   var list = iter.toList();
   list.sort();

@@ -3,6 +3,8 @@ import 'barback/transformer_cache.dart';
 import 'entrypoint.dart';
 import 'lock_file.dart';
 import 'package.dart';
+import 'source/cached.dart';
+import 'source/hosted.dart';
 import 'utils.dart';
 class PackageGraph {
   final Entrypoint entrypoint;
@@ -34,5 +36,16 @@ class PackageGraph {
           value: (_, names) => names.map((name) => packages[name]).toSet());
     }
     return _transitiveDependencies[package];
+  }
+  bool isPackageMutable(String package) {
+    var id = lockFile.packages[package];
+    if (id == null) return true;
+    var source = entrypoint.cache.sources[id.source];
+    if (source is! CachedSource) return true;
+    return transitiveDependencies(package).any((dep) {
+      var depId = lockFile.packages[dep.name];
+      if (depId == null) return true;
+      return entrypoint.cache.sources[depId.source] is! CachedSource;
+    });
   }
 }
