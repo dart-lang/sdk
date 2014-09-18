@@ -113,6 +113,9 @@ observe/test/unique_message_test: Skip # Intended only as a vm test.
 polymer/test/build/unique_message_test: Skip # Intended only as a vm test.
 code_transformers/test/unique_message_test: Skip # Intended only as a vm test.
 
+[ $compiler == dart2js && runtime == ff ]
+scheduled_test/test/unittest_compatibility_test: RuntimeError # Issue 20989
+
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 http/test/html/client_test: Fail # Issue 19750
 scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
