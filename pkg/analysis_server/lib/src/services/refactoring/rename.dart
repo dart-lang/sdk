@@ -10,7 +10,6 @@ import 'dart:collection';
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -173,7 +172,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
     if (element != null) {
       SourceEdit edit =
           new SourceEdit.range(rangeElementName(element), newName);
-      addElementSourceChange(change, element, edit);
+      change.addElementEdit(element, edit);
     }
   }
 
@@ -182,7 +181,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
    */
   void addReferenceEdit(SourceChange change, SourceReference reference) {
     SourceEdit edit = createReferenceEdit(reference, newName);
-    addElementSourceChange(change, reference.element, edit);
+    change.addElementEdit(reference.element, edit);
   }
 
   @override

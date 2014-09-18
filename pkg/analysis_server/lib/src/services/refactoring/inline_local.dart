@@ -131,10 +131,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
       Statement declarationStatement =
           _variableNode.getAncestor((node) => node is VariableDeclarationStatement);
       SourceRange range = utils.getLinesRangeStatements([declarationStatement]);
-      addElementSourceChange(
-          change,
-          unitElement,
-          new SourceEdit.range(range, ''));
+      change.addElementEdit(unitElement, new SourceEdit.range(range, ''));
     }
     // prepare initializer
     Expression initializer = _variableNode.initializer;
@@ -145,8 +142,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
       SourceRange range = reference.sourceRange;
       String sourceForReference =
           _getSourceForReference(range, initializerSource, initializerPrecedence);
-      addElementSourceChange(
-          change,
+      change.addElementEdit(
           unitElement,
           new SourceEdit.range(range, sourceForReference));
     }

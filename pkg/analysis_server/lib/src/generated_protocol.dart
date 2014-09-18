@@ -8699,6 +8699,19 @@ class SourceChange implements HasToJson {
       _addEditToSourceChange(this, file, fileStamp, edit);
 
   /**
+   * Adds [edit] to the [FileEdit] for the given [source].
+   */
+  void addSourceEdit(engine.AnalysisContext context,
+      engine.Source source, SourceEdit edit) =>
+      _addSourceEditToSourceChange(this, context, source, edit);
+
+  /**
+   * Adds [edit] to the [FileEdit] for the given [element].
+   */
+  void addElementEdit(engine.Element element, SourceEdit edit) =>
+      _addElementEditToSourceChange(this, element, edit);
+
+  /**
    * Adds the given [FileEdit].
    */
   void addFileEdit(SourceFileEdit edit) {

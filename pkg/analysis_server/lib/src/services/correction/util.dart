@@ -18,22 +18,6 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 
-void addElementSourceChange(SourceChange change, Element element,
-    SourceEdit edit) {
-  AnalysisContext context = element.context;
-  Source source = element.source;
-  addSourceChange(change, context, source, edit);
-}
-
-
-void addSourceChange(SourceChange change, AnalysisContext context,
-    Source source, SourceEdit edit) {
-  String file = source.fullName;
-  int fileStamp = context.getModificationStamp(source);
-  change.addEdit(file, fileStamp, edit);
-}
-
-
 /**
  * @return <code>true</code> if given [List]s are identical at given position.
  */

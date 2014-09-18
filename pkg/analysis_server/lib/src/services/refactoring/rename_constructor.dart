@@ -58,7 +58,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       if (!element.isSynthetic) {
         for (SourceReference reference in references) {
           SourceEdit edit = createReferenceEdit(reference, replacement);
-          addElementSourceChange(change, reference.element, edit);
+          change.addElementEdit(reference.element, edit);
         }
       }
       return change;

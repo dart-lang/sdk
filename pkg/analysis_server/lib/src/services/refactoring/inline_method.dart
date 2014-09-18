@@ -239,8 +239,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
     if (deleteSource && inlineAll) {
       SourceRange methodRange = rangeNode(_methodNode);
       SourceRange linesRange = _methodUtils.getLinesRange(methodRange);
-      addElementSourceChange(
-          change,
+      change.addElementEdit(
           _methodElement,
           new SourceEdit.range(linesRange, ''));
     }
@@ -610,7 +609,7 @@ class _ReferenceProcessor {
   }
 
   void _addRefEdit(SourceEdit edit) {
-    addElementSourceChange(ref.change, refElement, edit);
+    ref.change.addElementEdit(refElement, edit);
   }
 
   bool _shouldProcess() {

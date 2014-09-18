@@ -78,6 +78,22 @@ void _addEditToSourceChange(SourceChange change, String file, int fileStamp,
   fileEdit.add(edit);
 }
 
+
+void _addElementEditToSourceChange(SourceChange change, engine.Element element,
+    SourceEdit edit) {
+  engine.AnalysisContext context = element.context;
+  engine.Source source = element.source;
+  _addSourceEditToSourceChange(change, context, source, edit);
+}
+
+
+void _addSourceEditToSourceChange(SourceChange change,
+    engine.AnalysisContext context, engine.Source source, SourceEdit edit) {
+  String file = source.fullName;
+  int fileStamp = context.getModificationStamp(source);
+  change.addEdit(file, fileStamp, edit);
+}
+
 /**
  * Create an AnalysisError based on error information from the analyzer
  * engine.  Access via AnalysisError.fromEngine().

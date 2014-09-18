@@ -276,7 +276,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       }
       // add replace edit
       SourceEdit edit = new SourceEdit.range(range, invocationSource);
-      addElementSourceChange(change, unitElement, edit);
+      change.addElementEdit(unitElement, edit);
     }
     // add method declaration
     {
@@ -333,7 +333,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         int offset = _parentMember.end;
         SourceEdit edit =
             new SourceEdit(offset, 0, '${eol}${eol}${prefix}${declarationSource}');
-        addElementSourceChange(change, unitElement, edit);
+        change.addElementEdit(unitElement, edit);
       }
     }
     // done

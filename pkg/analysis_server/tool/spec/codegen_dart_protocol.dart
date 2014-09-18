@@ -563,6 +563,17 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         writeln('void addEdit(String file, int fileStamp, SourceEdit edit) =>');
         writeln('    _addEditToSourceChange(this, file, fileStamp, edit);');
         writeln();
+        docComment(
+            [new dom.Text('Adds [edit] to the [FileEdit] for the given [source].')]);
+        writeln('void addSourceEdit(engine.AnalysisContext context,');
+        writeln('    engine.Source source, SourceEdit edit) =>');
+        writeln('    _addSourceEditToSourceChange(this, context, source, edit);');
+        writeln();
+        docComment(
+            [new dom.Text('Adds [edit] to the [FileEdit] for the given [element].')]);
+        writeln('void addElementEdit(engine.Element element, SourceEdit edit) =>');
+        writeln('    _addElementEditToSourceChange(this, element, edit);');
+        writeln();
         docComment([new dom.Text('Adds the given [FileEdit].')]);
         writeln('void addFileEdit(SourceFileEdit edit) {');
         indent(() {

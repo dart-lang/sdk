@@ -123,7 +123,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
       String declarationSource = '$keyword $name = ';
       SourceEdit edit =
           new SourceEdit(singleExpression.offset, 0, declarationSource);
-      addElementSourceChange(change, unitElement, edit);
+      change.addElementEdit(unitElement, edit);
       return new Future.value(change);
     }
     // add variable declaration
@@ -159,22 +159,20 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
         String prefix = utils.getNodePrefix(target);
         SourceEdit edit =
             new SourceEdit(target.offset, 0, declarationSource + eol + prefix);
-        addElementSourceChange(change, unitElement, edit);
+        change.addElementEdit(unitElement, edit);
       } else if (target is ExpressionFunctionBody) {
         String prefix = utils.getNodePrefix(target.parent);
         String indent = utils.getIndent(1);
         String declStatement = prefix + indent + declarationSource + eol;
         String exprStatement = prefix + indent + 'return ';
         Expression expr = target.expression;
-        addElementSourceChange(
-            change,
+        change.addElementEdit(
             unitElement,
             new SourceEdit(
                 target.offset,
                 expr.offset - target.offset,
                 '{' + eol + declStatement + exprStatement));
-        addElementSourceChange(
-            change,
+        change.addElementEdit(
             unitElement,
             new SourceEdit(expr.end, 0, ';' + eol + prefix + '}'));
       }
@@ -187,7 +185,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     // replace occurrences with variable reference
     for (SourceRange range in occurrences) {
       SourceEdit edit = new SourceEdit.range(range, occurrenceReplacement);
-      addElementSourceChange(change, unitElement, edit);
+      change.addElementEdit(unitElement, edit);
     }
     // done
     return new Future.value(change);
