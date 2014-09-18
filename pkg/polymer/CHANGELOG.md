@@ -1,5 +1,5 @@
-#### 0.14.2-dev
-  * Pub will now create helpful index pages in all folders containing entry
+#### 0.14.2
+  * Polymer will now create helpful index pages in all folders containing entry
     points and in their parent folders, in debug mode only
     [20963](http://dartbug.com/20963).
 
