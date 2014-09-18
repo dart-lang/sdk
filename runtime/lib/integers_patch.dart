@@ -62,7 +62,7 @@ patch class int {
   /* patch */ static int parse(String source,
                                { int radix,
                                  int onError(String str) }) {
-    if (identical(source, null)) throw new ArgumentError(source);
+    if (source == null) throw new ArgumentError(source);
     if (radix == null) {
       int result;
       if (source.isNotEmpty) result = _parse(source);
