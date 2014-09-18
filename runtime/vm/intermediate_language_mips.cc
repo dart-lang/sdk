@@ -4235,13 +4235,7 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(
-      deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail);
   __ TraceSimMsg("PolymorphicInstanceCallInstr");
-  if (ic_data().NumberOfChecks() == 0) {
-    __ b(deopt);
-    return;
-  }
   ASSERT(ic_data().NumArgsTested() == 1);
   if (!with_checks()) {
     ASSERT(ic_data().HasOneTarget());
@@ -4259,6 +4253,8 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Load receiver into T0.
   __ lw(T0, Address(SP, (instance_call()->ArgumentCount() - 1) * kWordSize));
 
+  Label* deopt = compiler->AddDeoptStub(
+      deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail);
   LoadValueCid(compiler, T2, T0,
                (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
 

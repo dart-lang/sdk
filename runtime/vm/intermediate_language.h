@@ -2742,6 +2742,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
         ic_data_(ic_data),
         with_checks_(with_checks) {
     ASSERT(instance_call_ != NULL);
+    ASSERT(ic_data.NumberOfChecks() > 0);
     deopt_id_ = instance_call->deopt_id();
   }
 
