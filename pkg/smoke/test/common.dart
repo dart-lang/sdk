@@ -305,7 +305,8 @@ main() {
 
   test('invoke Type instance methods', () {
     var a = new A();
-    expect(smoke.invoke(a.runtimeType, #toString, []), 'A');
+    expect(
+        smoke.invoke(a.runtimeType, #toString, []), a.runtimeType.toString());
   });
 }
 
