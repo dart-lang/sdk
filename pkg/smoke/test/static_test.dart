@@ -22,6 +22,7 @@ final configuration = new StaticConfiguration(
       #inc2: (o) => o.inc2,
       #j: (o) => o.j,
       #j2: (o) => o.j2,
+      #toString: (o) => o.toString,
     },
     setters: {
       #i: (o, v) { o.i = v; },

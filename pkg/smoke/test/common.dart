@@ -302,6 +302,11 @@ main() {
       expect(smoke.nameToSymbol('i'), #i);
     });
   });
+
+  test('invoke Type instance methods', () {
+    var a = new A();
+    expect(smoke.invoke(a.runtimeType, #toString, []), 'A');
+  });
 }
 
 class A {
@@ -315,7 +320,6 @@ class A {
 
   static int staticValue = 42;
   static void staticInc() { staticValue++; }
-
 }
 
 class B {

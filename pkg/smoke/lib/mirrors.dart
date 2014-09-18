@@ -34,7 +34,7 @@ class ReflectiveObjectAccessorService implements ObjectAccessorService {
       {Map namedArgs, bool adjust: false}) {
     var receiverMirror;
     var method;
-    if (receiver is Type) {
+    if (receiver is Type && methodName != #toString) {
       receiverMirror = reflectType(receiver);
       method = receiverMirror.declarations[methodName];
     } else {
