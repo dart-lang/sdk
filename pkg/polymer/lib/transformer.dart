@@ -45,6 +45,7 @@ TransformOptions _parseSettings(BarbackSettings settings) {
   bool lint = args['lint'] != false; // defaults to true
   bool injectBuildLogs =
       !releaseMode && args['inject_build_logs_in_output'] != false;
+  bool injectPlatformJs = args['inject_platform_js'] != false;
   return new TransformOptions(
       entryPoints: readEntrypoints(args['entry_points']),
       inlineStylesheets: _readInlineStylesheets(args['inline_stylesheets']),
@@ -52,7 +53,8 @@ TransformOptions _parseSettings(BarbackSettings settings) {
       contentSecurityPolicy: csp,
       releaseMode: releaseMode,
       lint: lint,
-      injectBuildLogsInOutput: injectBuildLogs);
+      injectBuildLogsInOutput: injectBuildLogs,
+      injectPlatformJs: injectPlatformJs);
 }
 
 readEntrypoints(value) {

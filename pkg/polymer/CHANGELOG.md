@@ -1,6 +1,14 @@
 #### 0.14.3-dev
   * Don't start moving elements from head to body until we find the first
     import, [20826](http://dartbug.com/20826).
+  * Add option to not inject platform.js in the build output
+    [20865](http://dartbug.com/20865). To use, set `inject_platform_js` to
+    false in the polymer transformer config section of your pubspec.yaml:
+
+        transformers:
+        - polymer:
+            inject_platform_js: false
+            ...
 
 #### 0.14.2+1
   * Fix findController function for js or dart wrapped elements. This fixes

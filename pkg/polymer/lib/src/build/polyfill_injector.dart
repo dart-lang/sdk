@@ -100,7 +100,9 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
       var suffix = options.releaseMode ? '.js' : '.concat.js';
       if (!dartSupportFound) _addScriptFirst('web_components/dart_support.js');
       // platform.js should come before all other scripts.
-      if (!platformJsFound) _addScriptFirst('web_components/platform$suffix');
+      if (!platformJsFound && options.injectPlatformJs) {
+        _addScriptFirst('web_components/platform$suffix');
+      }
 
       transform.addOutput(
           new Asset.fromString(transform.primaryInput.id, document.outerHtml));
