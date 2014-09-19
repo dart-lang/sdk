@@ -33,6 +33,7 @@ class Heap {
     kNew,
     kOld,
     kCode,
+    // TODO(koda): Harmonize all old-space allocation and get rid of this.
     kPretenured,
   };
 
@@ -145,10 +146,9 @@ class Heap {
   }
 
   // Accessors for inlined allocation in generated code.
-  uword TopAddress();
-  uword EndAddress();
-  static intptr_t new_space_offset() { return OFFSET_OF(Heap, new_space_); }
-  uword NewSpaceAddress() const { return reinterpret_cast<uword>(new_space_); }
+  uword TopAddress(Space space);
+  uword EndAddress(Space space);
+  Space SpaceForAllocation(intptr_t class_id) const;
 
   // Initialize the heap and register it with the isolate.
   static void Init(Isolate* isolate,

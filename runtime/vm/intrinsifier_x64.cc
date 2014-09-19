@@ -237,8 +237,8 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ leaq(RDI, Address(RDI, scale_factor, fixed_size));                        \
   __ andq(RDI, Immediate(-kObjectAlignment));                                  \
   Heap* heap = Isolate::Current()->heap();                                     \
-                                                                               \
-  __ movq(RAX, Immediate(heap->TopAddress()));                                 \
+  Heap::Space space = heap->SpaceForAllocation(cid);                           \
+  __ movq(RAX, Immediate(heap->TopAddress(space)));                            \
   __ movq(RAX, Address(RAX, 0));                                               \
   __ movq(RCX, RAX);                                                           \
                                                                                \
@@ -251,16 +251,16 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* RCX: potential next object start. */                                      \
   /* RDI: allocation size. */                                                  \
   /* R13: scratch register. */                                                 \
-  __ movq(R13, Immediate(heap->EndAddress()));                                 \
+  __ movq(R13, Immediate(heap->EndAddress(space)));                            \
   __ cmpq(RCX, Address(R13, 0));                                               \
   __ j(ABOVE_EQUAL, &fall_through);                                            \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ movq(R13, Immediate(heap->TopAddress()));                                 \
+  __ movq(R13, Immediate(heap->TopAddress(space)));                            \
   __ movq(Address(R13, 0), RCX);                                               \
   __ addq(RAX, Immediate(kHeapObjectTag));                                     \
-  __ UpdateAllocationStatsWithSize(cid, RDI);                                  \
+  __ UpdateAllocationStatsWithSize(cid, RDI, space);                           \
   /* Initialize the tags. */                                                   \
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
@@ -1311,8 +1311,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
-
-  __ movq(RAX, Immediate(heap->TopAddress()));
+  const intptr_t cid = kOneByteStringCid;
+  Heap::Space space = heap->SpaceForAllocation(cid);
+  __ movq(RAX, Immediate(heap->TopAddress(space)));
   __ movq(RAX, Address(RAX, 0));
 
   // RDI: allocation size.
@@ -1324,16 +1325,16 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // RAX: potential new object start.
   // RCX: potential next object start.
   // RDI: allocation size.
-  __ movq(R13, Immediate(heap->EndAddress()));
+  __ movq(R13, Immediate(heap->EndAddress(space)));
   __ cmpq(RCX, Address(R13, 0));
   __ j(ABOVE_EQUAL, &pop_and_fail);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movq(R13, Immediate(heap->TopAddress()));
+  __ movq(R13, Immediate(heap->TopAddress(space)));
   __ movq(Address(R13, 0), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(kOneByteStringCid, RDI);
+  __ UpdateAllocationStatsWithSize(cid, RDI, space);
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
@@ -1350,9 +1351,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    const Class& cls =
-        Class::Handle(isolate->object_store()->one_byte_string_class());
-    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cid)));
     __ movq(FieldAddress(RAX, String::tags_offset()), RDI);  // Tags.
   }
 

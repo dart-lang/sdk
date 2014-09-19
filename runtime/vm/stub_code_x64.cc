@@ -603,8 +603,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
-
-  __ movq(RAX, Immediate(heap->TopAddress()));
+  const intptr_t cid = kArrayCid;
+  Heap::Space space = heap->SpaceForAllocation(cid);
+  __ movq(RAX, Immediate(heap->TopAddress(space)));
   __ movq(RAX, Address(RAX, 0));
 
   // RDI: allocation size.
@@ -616,16 +617,16 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // RAX: potential new object start.
   // RCX: potential next object start.
   // RDI: allocation size.
-  __ movq(R13, Immediate(heap->EndAddress()));
+  __ movq(R13, Immediate(heap->EndAddress(space)));
   __ cmpq(RCX, Address(R13, 0));
   __ j(ABOVE_EQUAL, &slow_case);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movq(R13, Immediate(heap->TopAddress()));
+  __ movq(R13, Immediate(heap->TopAddress(space)));
   __ movq(Address(R13, 0), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(kArrayCid, RDI);
+  __ UpdateAllocationStatsWithSize(cid, RDI, space);
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
   // RDI: allocation size.
@@ -641,8 +642,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    const Class& cls = Class::Handle(isolate->object_store()->array_class());
-    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cid)));
     __ movq(FieldAddress(RAX, Array::tags_offset()), RDI);  // Tags.
   }
 
@@ -877,7 +877,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ LoadObject(R12, Object::null_object(), PP);
   if (FLAG_inline_alloc) {
-    const Class& context_class = Class::ZoneHandle(Object::context_class());
     Label slow_case;
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
@@ -889,14 +888,16 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 
     // Now allocate the object.
     // R10: number of context variables.
-    __ movq(RAX, Immediate(heap->TopAddress()));
+    const intptr_t cid = kContextCid;
+    Heap::Space space = heap->SpaceForAllocation(cid);
+    __ movq(RAX, Immediate(heap->TopAddress(space)));
     __ movq(RAX, Address(RAX, 0));
     __ addq(R13, RAX);
     // Check if the allocation fits into the remaining space.
     // RAX: potential new object.
     // R13: potential next object start.
     // R10: number of context variables.
-    __ movq(RDI, Immediate(heap->EndAddress()));
+    __ movq(RDI, Immediate(heap->EndAddress(space)));
     __ cmpq(R13, Address(RDI, 0));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
@@ -909,12 +910,12 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // RAX: new object.
     // R13: next object start.
     // R10: number of context variables.
-    __ movq(RDI, Immediate(heap->TopAddress()));
+    __ movq(RDI, Immediate(heap->TopAddress(space)));
     __ movq(Address(RDI, 0), R13);
     __ addq(RAX, Immediate(kHeapObjectTag));
     // R13: Size of allocation in bytes.
     __ subq(R13, RAX);
-    __ UpdateAllocationStatsWithSize(context_class.id(), R13);
+    __ UpdateAllocationStatsWithSize(cid, R13, space);
 
     // Calculate the size tag.
     // RAX: new object.
@@ -937,7 +938,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       // R10: number of context variables.
       // R13: size and bit tags.
       __ orq(R13,
-             Immediate(RawObject::ClassIdTag::encode(context_class.id())));
+             Immediate(RawObject::ClassIdTag::encode(cid)));
       __ movq(FieldAddress(RAX, Context::tags_offset()), R13);  // Tags.
     }
 
@@ -1091,14 +1092,15 @@ void StubCode::GenerateAllocationStubForClass(
     // next object start and initialize the allocated object.
     // RDX: instantiated type arguments (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
-    __ movq(RCX, Immediate(heap->TopAddress()));
+    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    __ movq(RCX, Immediate(heap->TopAddress(space)));
     __ movq(RAX, Address(RCX, 0));
     __ leaq(RBX, Address(RAX, instance_size));
     // Check if the allocation fits into the remaining space.
     // RAX: potential new object start.
     // RBX: potential next object start.
     // RCX: heap top address.
-    __ movq(R13, Immediate(heap->EndAddress()));
+    __ movq(R13, Immediate(heap->EndAddress(space)));
     __ cmpq(RBX, Address(R13, 0));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
@@ -1106,7 +1108,7 @@ void StubCode::GenerateAllocationStubForClass(
       __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movq(Address(RCX, 0), RBX);
-    __ UpdateAllocationStats(cls.id());
+    __ UpdateAllocationStats(cls.id(), space);
 
     // RAX: new object start.
     // RBX: next object start.

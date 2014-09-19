@@ -857,25 +857,28 @@ void Assembler::TryAllocate(const Class& cls,
   ASSERT(!in_delay_slot_);
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
-    Heap* heap = Isolate::Current()->heap();
     const intptr_t instance_size = cls.instance_size();
-
-    LoadImmediate(temp_reg, heap->NewSpaceAddress());
-    lw(instance_reg, Address(temp_reg, Scavenger::top_offset()));
+    Heap* heap = Isolate::Current()->heap();
+    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    const uword top_address = heap->TopAddress(space);
+    LoadImmediate(temp_reg, top_address);
+    lw(instance_reg, Address(temp_reg));
     AddImmediate(instance_reg, instance_size);
 
     // instance_reg: potential next object start.
-    lw(TMP, Address(temp_reg, Scavenger::end_offset()));
+    const uword end_address = heap->EndAddress(space);
+    ASSERT(top_address < end_address);
+    lw(TMP, Address(temp_reg, end_address - top_address));
     // Fail if heap end unsigned less than or equal to instance_reg.
     BranchUnsignedLessEqual(TMP, instance_reg, failure);
 
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    sw(instance_reg, Address(temp_reg, Scavenger::top_offset()));
+    sw(instance_reg, Address(temp_reg));
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
-    UpdateAllocationStats(cls.id(), temp_reg);
+    UpdateAllocationStats(cls.id(), temp_reg, space);
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
@@ -898,8 +901,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
   if (FLAG_inline_alloc) {
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
-
-    LoadImmediate(temp1, heap->TopAddress());
+    Heap::Space space = heap->SpaceForAllocation(cid);
+    LoadImmediate(temp1, heap->TopAddress(space));
     lw(instance, Address(temp1, 0));  // Potential new object start.
     // Potential next object start.
     AddImmediateDetectOverflow(end_address, instance, instance_size, CMPRES1);
@@ -908,7 +911,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // Check if the allocation fits into the remaining space.
     // instance: potential new object start.
     // end_address: potential next object start.
-    LoadImmediate(temp2, heap->EndAddress());
+    LoadImmediate(temp2, heap->EndAddress(space));
     lw(temp2, Address(temp2, 0));
     BranchUnsignedGreaterEqual(end_address, temp2, failure);
 
@@ -918,7 +921,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     sw(end_address, Address(temp1, 0));
     addiu(instance, instance, Immediate(kHeapObjectTag));
     LoadImmediate(temp1, instance_size);
-    UpdateAllocationStatsWithSize(cid, temp1, temp2);
+    UpdateAllocationStatsWithSize(cid, temp1, temp2, space);
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.

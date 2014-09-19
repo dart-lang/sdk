@@ -645,8 +645,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
-
-  __ movl(EAX, Address::Absolute(heap->TopAddress()));
+  const intptr_t cid = kArrayCid;
+  Heap::Space space = heap->SpaceForAllocation(cid);
+  __ movl(EAX, Address::Absolute(heap->TopAddress(space)));
   __ movl(EBX, EAX);
 
   // EDI: allocation size.
@@ -659,14 +660,14 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // EDI: allocation size.
   // ECX: array element type.
   // EDX: array length as Smi).
-  __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
+  __ cmpl(EBX, Address::Absolute(heap->EndAddress(space)));
   __ j(ABOVE_EQUAL, &slow_case);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movl(Address::Absolute(heap->TopAddress()), EBX);
+  __ movl(Address::Absolute(heap->TopAddress(space)), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(kArrayCid, EDI, kNoRegister);
+  __ UpdateAllocationStatsWithSize(cid, EDI, kNoRegister, space);
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -686,8 +687,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    const Class& cls = Class::Handle(isolate->object_store()->array_class());
-    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cid)));
     __ movl(FieldAddress(EAX, Array::tags_offset()), EDI);  // Tags.
   }
   // EAX: new object start as a tagged pointer.
@@ -893,7 +893,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   if (FLAG_inline_alloc) {
-    const Class& context_class = Class::ZoneHandle(Object::context_class());
     Label slow_case;
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
@@ -905,13 +904,15 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 
     // Now allocate the object.
     // EDX: number of context variables.
-    __ movl(EAX, Address::Absolute(heap->TopAddress()));
+    const intptr_t cid = kContextCid;
+    Heap::Space space = heap->SpaceForAllocation(cid);
+    __ movl(EAX, Address::Absolute(heap->TopAddress(space)));
     __ addl(EBX, EAX);
     // Check if the allocation fits into the remaining space.
     // EAX: potential new object.
     // EBX: potential next object start.
     // EDX: number of context variables.
-    __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
+    __ cmpl(EBX, Address::Absolute(heap->EndAddress(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
@@ -923,11 +924,11 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EAX: new object.
     // EBX: next object start.
     // EDX: number of context variables.
-    __ movl(Address::Absolute(heap->TopAddress()), EBX);
+    __ movl(Address::Absolute(heap->TopAddress(space)), EBX);
     __ addl(EAX, Immediate(kHeapObjectTag));
     // EBX: Size of allocation in bytes.
     __ subl(EBX, EAX);
-    __ UpdateAllocationStatsWithSize(context_class.id(), EBX, kNoRegister);
+    __ UpdateAllocationStatsWithSize(cid, EBX, kNoRegister, space);
 
     // Calculate the size tag.
     // EAX: new object.
@@ -950,7 +951,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       // EDX: number of context variables.
       // EBX: size and bit tags.
       __ orl(EBX,
-             Immediate(RawObject::ClassIdTag::encode(context_class.id())));
+             Immediate(RawObject::ClassIdTag::encode(cid)));
       __ movl(FieldAddress(EAX, Context::tags_offset()), EBX);  // Tags.
     }
 
@@ -1116,19 +1117,20 @@ void StubCode::GenerateAllocationStubForClass(
     // next object start and initialize the allocated object.
     // EDX: instantiated type arguments (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
-    __ movl(EAX, Address::Absolute(heap->TopAddress()));
+    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    __ movl(EAX, Address::Absolute(heap->TopAddress(space)));
     __ leal(EBX, Address(EAX, instance_size));
     // Check if the allocation fits into the remaining space.
     // EAX: potential new object start.
     // EBX: potential next object start.
-    __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
+    __ cmpl(EBX, Address::Absolute(heap->EndAddress(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
       __ j(ABOVE_EQUAL, &slow_case);
     }
-    __ movl(Address::Absolute(heap->TopAddress()), EBX);
-    __ UpdateAllocationStats(cls.id(), ECX);
+    __ movl(Address::Absolute(heap->TopAddress(space)), EBX);
+    __ UpdateAllocationStats(cls.id(), ECX, space);
 
     // EAX: new object start.
     // EBX: next object start.

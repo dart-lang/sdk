@@ -297,8 +297,8 @@ static int GetScaleFactor(intptr_t size) {
   __ AddImmediate(R2, R2, fixed_size, kNoPP);                                  \
   __ andi(R2, R2, ~(kObjectAlignment - 1));                                    \
   Heap* heap = Isolate::Current()->heap();                                     \
-                                                                               \
-  __ LoadImmediate(R0, heap->TopAddress(), kNoPP);                             \
+  Heap::Space space = heap->SpaceForAllocation(cid);                           \
+  __ LoadImmediate(R0, heap->TopAddress(space), kNoPP);                        \
   __ ldr(R0, Address(R0, 0));                                                  \
                                                                                \
   /* R2: allocation size. */                                                   \
@@ -309,17 +309,17 @@ static int GetScaleFactor(intptr_t size) {
   /* R0: potential new object start. */                                        \
   /* R1: potential next object start. */                                       \
   /* R2: allocation size. */                                                   \
-  __ LoadImmediate(R3, heap->EndAddress(), kNoPP);                             \
+  __ LoadImmediate(R3, heap->EndAddress(space), kNoPP);                        \
   __ ldr(R3, Address(R3, 0));                                                  \
   __ cmp(R1, Operand(R3));                                                     \
   __ b(&fall_through, CS);                                                     \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ LoadImmediate(R3, heap->TopAddress(), kNoPP);                             \
+  __ LoadImmediate(R3, heap->TopAddress(space), kNoPP);                        \
   __ str(R1, Address(R3, 0));                                                  \
   __ AddImmediate(R0, R0, kHeapObjectTag, kNoPP);                              \
-  __ UpdateAllocationStatsWithSize(cid, R2, kNoPP);                            \
+  __ UpdateAllocationStatsWithSize(cid, R2, kNoPP, space);                     \
   /* Initialize the tags. */                                                   \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
@@ -1276,8 +1276,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
-
-  __ LoadImmediate(R3, heap->TopAddress(), kNoPP);
+  const intptr_t cid = kOneByteStringCid;
+  Heap::Space space = heap->SpaceForAllocation(cid);
+  __ LoadImmediate(R3, heap->TopAddress(space), kNoPP);
   __ ldr(R0, Address(R3));
 
   // length_reg: allocation size.
@@ -1288,8 +1289,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // R0: potential new object start.
   // R1: potential next object start.
   // R2: allocation size.
-  // R3: heap->Top->Address().
-  __ LoadImmediate(R7, heap->EndAddress(), kNoPP);
+  // R3: heap->TopAddress(space).
+  __ LoadImmediate(R7, heap->EndAddress(space), kNoPP);
   __ ldr(R7, Address(R7));
   __ cmp(R1, Operand(R7));
   __ b(&fail, CS);
@@ -1298,7 +1299,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // next object start and initialize the object.
   __ str(R1, Address(R3));
   __ AddImmediate(R0, R0, kHeapObjectTag, kNoPP);
-  __ UpdateAllocationStatsWithSize(kOneByteStringCid, R2, kNoPP);
+  __ UpdateAllocationStatsWithSize(cid, R2, kNoPP, space);
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.
@@ -1306,8 +1307,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // R2: allocation size.
   {
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
-    const Class& cls =
-        Class::Handle(isolate->object_store()->one_byte_string_class());
 
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag, kNoPP);
     __ LslImmediate(R2, R2, shift);
@@ -1315,7 +1314,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
     // Get the class index and insert it into the tags.
     // R2: size and bit tags.
-    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cls.id()), kNoPP);
+    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid), kNoPP);
     __ orr(R2, R2, Operand(TMP));
     __ str(R2, FieldAddress(R0, String::tags_offset()));  // Store tags.
   }

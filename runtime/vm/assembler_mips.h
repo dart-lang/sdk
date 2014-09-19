@@ -202,12 +202,12 @@ class Assembler : public ValueObject {
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,
-                             Heap::Space space = Heap::kNew);
+                             Heap::Space space);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
                                      Register temp_reg,
-                                     Heap::Space space = Heap::kNew);
+                                     Heap::Space space);
 
 
   // Inlined allocation of an instance of class 'cls', code has no runtime

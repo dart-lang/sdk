@@ -2502,15 +2502,16 @@ void Assembler::TryAllocate(const Class& cls,
   if (FLAG_inline_alloc) {
     Heap* heap = Isolate::Current()->heap();
     const intptr_t instance_size = cls.instance_size();
-    movl(instance_reg, Address::Absolute(heap->TopAddress()));
+    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    movl(instance_reg, Address::Absolute(heap->TopAddress(space)));
     addl(instance_reg, Immediate(instance_size));
     // instance_reg: potential next object start.
-    cmpl(instance_reg, Address::Absolute(heap->EndAddress()));
+    cmpl(instance_reg, Address::Absolute(heap->EndAddress(space)));
     j(ABOVE_EQUAL, failure, near_jump);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    movl(Address::Absolute(heap->TopAddress()), instance_reg);
-    UpdateAllocationStats(cls.id(), temp_reg);
+    movl(Address::Absolute(heap->TopAddress(space)), instance_reg);
+    UpdateAllocationStats(cls.id(), temp_reg, space);
     ASSERT(instance_size >= kHeapObjectTag);
     subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
     uword tags = 0;
@@ -2534,7 +2535,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
   if (FLAG_inline_alloc) {
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
-    movl(instance, Address::Absolute(heap->TopAddress()));
+    Heap::Space space = heap->SpaceForAllocation(cid);
+    movl(instance, Address::Absolute(heap->TopAddress(space)));
     movl(end_address, instance);
 
     addl(end_address, Immediate(instance_size));
@@ -2543,14 +2545,14 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // Check if the allocation fits into the remaining space.
     // EAX: potential new object start.
     // EBX: potential next object start.
-    cmpl(end_address, Address::Absolute(heap->EndAddress()));
+    cmpl(end_address, Address::Absolute(heap->EndAddress(space)));
     j(ABOVE_EQUAL, failure);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
-    movl(Address::Absolute(heap->TopAddress()), end_address);
+    movl(Address::Absolute(heap->TopAddress(space)), end_address);
     addl(instance, Immediate(kHeapObjectTag));
-    UpdateAllocationStatsWithSize(cid, instance_size, kNoRegister);
+    UpdateAllocationStatsWithSize(cid, instance_size, kNoRegister, space);
 
     // Initialize the tags.
     uword tags = 0;

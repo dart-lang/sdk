@@ -286,8 +286,8 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ leal(EDI, Address(EDI, scale_factor, fixed_size));                        \
   __ andl(EDI, Immediate(-kObjectAlignment));                                  \
   Heap* heap = Isolate::Current()->heap();                                     \
-                                                                               \
-  __ movl(EAX, Address::Absolute(heap->TopAddress()));                         \
+  Heap::Space space = heap->SpaceForAllocation(cid);                           \
+  __ movl(EAX, Address::Absolute(heap->TopAddress(space)));                    \
   __ movl(EBX, EAX);                                                           \
                                                                                \
   /* EDI: allocation size. */                                                  \
@@ -298,14 +298,14 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* EAX: potential new object start. */                                       \
   /* EBX: potential next object start. */                                      \
   /* EDI: allocation size. */                                                  \
-  __ cmpl(EBX, Address::Absolute(heap->EndAddress()));                         \
+  __ cmpl(EBX, Address::Absolute(heap->EndAddress(space)));                    \
   __ j(ABOVE_EQUAL, &fall_through);                                            \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ movl(Address::Absolute(heap->TopAddress()), EBX);                         \
+  __ movl(Address::Absolute(heap->TopAddress(space)), EBX);                    \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
-  __ UpdateAllocationStatsWithSize(cid, EDI, kNoRegister);                     \
+  __ UpdateAllocationStatsWithSize(cid, EDI, kNoRegister, space);              \
                                                                                \
   /* Initialize the tags. */                                                   \
   /* EAX: new object start as a tagged pointer. */                             \
@@ -1502,8 +1502,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
-
-  __ movl(EAX, Address::Absolute(heap->TopAddress()));
+  const intptr_t cid = kOneByteStringCid;
+  Heap::Space space = heap->SpaceForAllocation(cid);
+  __ movl(EAX, Address::Absolute(heap->TopAddress(space)));
   __ movl(EBX, EAX);
 
   // EDI: allocation size.
@@ -1514,15 +1515,15 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // EAX: potential new object start.
   // EBX: potential next object start.
   // EDI: allocation size.
-  __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
+  __ cmpl(EBX, Address::Absolute(heap->EndAddress(space)));
   __ j(ABOVE_EQUAL, &pop_and_fail, Assembler::kNearJump);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movl(Address::Absolute(heap->TopAddress()), EBX);
+  __ movl(Address::Absolute(heap->TopAddress(space)), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
 
-  __ UpdateAllocationStatsWithSize(kOneByteStringCid, EDI, kNoRegister);
+  __ UpdateAllocationStatsWithSize(cid, EDI, kNoRegister, space);
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -1540,9 +1541,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    const Class& cls =
-        Class::Handle(isolate->object_store()->one_byte_string_class());
-    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cid)));
     __ movl(FieldAddress(EAX, String::tags_offset()), EDI);  // Tags.
   }
 

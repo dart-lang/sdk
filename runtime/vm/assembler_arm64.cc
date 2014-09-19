@@ -1396,26 +1396,31 @@ void Assembler::TryAllocate(const Class& cls,
                             Register pp) {
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
-    Heap* heap = Isolate::Current()->heap();
     const intptr_t instance_size = cls.instance_size();
-    LoadImmediate(temp_reg, heap->NewSpaceAddress(), pp);
-    ldr(instance_reg, Address(temp_reg, Scavenger::top_offset()));
+    Heap* heap = Isolate::Current()->heap();
+    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    const uword top_address = heap->TopAddress(space);
+    LoadImmediate(temp_reg, top_address, pp);
+    ldr(instance_reg, Address(temp_reg));
     AddImmediate(instance_reg, instance_reg, instance_size, pp);
 
     // instance_reg: potential next object start.
-    ldr(TMP, Address(temp_reg, Scavenger::end_offset()));
+    const uword end_address = heap->EndAddress(space);
+    ASSERT(top_address < end_address);
+    // Could use ldm to load (top, end), but no benefit seen experimentally.
+    ldr(TMP, Address(temp_reg, end_address - top_address));
     CompareRegisters(TMP, instance_reg);
     // fail if heap end unsigned less than or equal to instance_reg.
     b(failure, LS);
 
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    str(instance_reg, Address(temp_reg, Scavenger::top_offset()));
+    str(instance_reg, Address(temp_reg));
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(
         instance_reg, instance_reg, -instance_size + kHeapObjectTag, pp);
-    UpdateAllocationStats(cls.id(), pp);
+    UpdateAllocationStats(cls.id(), pp, space);
 
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
@@ -1439,7 +1444,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
   if (FLAG_inline_alloc) {
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
-    LoadImmediate(temp1, heap->TopAddress(), PP);
+    Heap::Space space = heap->SpaceForAllocation(cid);
+    LoadImmediate(temp1, heap->TopAddress(space), PP);
     ldr(instance, Address(temp1, 0));  // Potential new object start.
     AddImmediate(end_address, instance, instance_size, PP);
     b(failure, VS);
@@ -1447,7 +1453,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // Check if the allocation fits into the remaining space.
     // instance: potential new object start.
     // end_address: potential next object start.
-    LoadImmediate(temp2, heap->EndAddress(), PP);
+    LoadImmediate(temp2, heap->EndAddress(space), PP);
     ldr(temp2, Address(temp2, 0));
     cmp(end_address, Operand(temp2));
     b(failure, CS);
@@ -1457,7 +1463,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     str(end_address, Address(temp1, 0));
     add(instance, instance, Operand(kHeapObjectTag));
     LoadImmediate(temp2, instance_size, PP);
-    UpdateAllocationStatsWithSize(cid, temp2, PP);
+    UpdateAllocationStatsWithSize(cid, temp2, PP, space);
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.

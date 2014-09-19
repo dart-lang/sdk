@@ -117,7 +117,8 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
     Exceptions::ThrowArgumentError(error);
   }
 
-  const Array& array = Array::Handle(Array::New(len));
+  Heap::Space space = isolate->heap()->SpaceForAllocation(kArrayCid);
+  const Array& array = Array::Handle(Array::New(len, space));
   arguments.SetReturn(array);
   TypeArguments& element_type =
       TypeArguments::CheckedHandle(arguments.ArgAt(1));
@@ -156,8 +157,8 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
     }
   }
 #endif
-
-  const Instance& instance = Instance::Handle(Instance::New(cls));
+  Heap::Space space = isolate->heap()->SpaceForAllocation(cls.id());
+  const Instance& instance = Instance::Handle(Instance::New(cls, space));
 
   arguments.SetReturn(instance);
   if (cls.NumTypeArguments() == 0) {

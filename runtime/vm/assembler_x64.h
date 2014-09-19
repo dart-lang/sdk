@@ -871,14 +871,14 @@ class Assembler : public ValueObject {
   }
 
   void UpdateAllocationStats(intptr_t cid,
-                             Heap::Space space = Heap::kNew);
+                             Heap::Space space);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
-                                     Heap::Space space = Heap::kNew);
+                                     Heap::Space space);
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      intptr_t instance_size,
-                                     Heap::Space space = Heap::kNew);
+                                     Heap::Space space);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.

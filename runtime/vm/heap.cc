@@ -38,6 +38,7 @@ DEFINE_FLAG(bool, verify_after_gc, false,
             "Enables heap verification after GC.");
 DEFINE_FLAG(bool, verify_before_gc, false,
             "Enables heap verification before GC.");
+DEFINE_FLAG(bool, pretenure_all, false, "Global pretenuring (for testing).");
 
 
 Heap::Heap(Isolate* isolate,
@@ -404,13 +405,28 @@ void Heap::WriteProtect(bool read_only) {
 }
 
 
-uword Heap::TopAddress() {
-  return reinterpret_cast<uword>(new_space_->TopAddress());
+uword Heap::TopAddress(Heap::Space space) {
+  if (space == kNew) {
+    return reinterpret_cast<uword>(new_space_->TopAddress());
+  } else {
+    ASSERT(space == kPretenured);
+    return reinterpret_cast<uword>(old_space_->TopAddress());
+  }
 }
 
 
-uword Heap::EndAddress() {
-  return reinterpret_cast<uword>(new_space_->EndAddress());
+uword Heap::EndAddress(Heap::Space space) {
+  if (space == kNew) {
+    return reinterpret_cast<uword>(new_space_->EndAddress());
+  } else {
+    ASSERT(space == kPretenured);
+    return reinterpret_cast<uword>(old_space_->EndAddress());
+  }
+}
+
+
+Heap::Space Heap::SpaceForAllocation(intptr_t cid) const {
+  return FLAG_pretenure_all ? kPretenured : kNew;
 }
 
 
