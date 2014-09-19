@@ -338,9 +338,9 @@ void LivenessAnalysis::ComputeLiveInAndLiveOutSets() {
 void LivenessAnalysis::Analyze() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
-    live_out_.Add(new(isolate()) BitVector(variable_count_));
-    kill_.Add(new(isolate()) BitVector(variable_count_));
-    live_in_.Add(new(isolate()) BitVector(variable_count_));
+    live_out_.Add(new(isolate()) BitVector(isolate(), variable_count_));
+    kill_.Add(new(isolate()) BitVector(isolate(), variable_count_));
+    live_in_.Add(new(isolate()) BitVector(isolate(), variable_count_));
   }
 
   ComputeInitialSets();
@@ -451,7 +451,7 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
 void VariableLivenessAnalysis::ComputeInitialSets() {
   const intptr_t block_count = postorder_.length();
 
-  BitVector* last_loads = new(isolate()) BitVector(variable_count_);
+  BitVector* last_loads = new(isolate()) BitVector(isolate(), variable_count_);
   for (intptr_t i = 0; i < block_count; i++) {
     BlockEntryInstr* block = postorder_[i];
 
@@ -575,7 +575,7 @@ void FlowGraph::ComputeDominators(
     idom.Add(parent_[i]);
     semi.Add(i);
     label.Add(i);
-    dominance_frontier->Add(new(isolate()) BitVector(size));
+    dominance_frontier->Add(new(isolate()) BitVector(isolate(), size));
   }
 
   // Loop over the blocks in reverse preorder (not including the graph
@@ -1066,7 +1066,7 @@ void FlowGraph::RemoveRedefinitions() {
 // Design & Implementation" (Muchnick) p192.
 BitVector* FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) const {
   GrowableArray<BlockEntryInstr*> stack;
-  BitVector* loop = new(isolate()) BitVector(preorder_.length());
+  BitVector* loop = new(isolate()) BitVector(isolate(), preorder_.length());
 
   loop->Add(n->preorder_number());
   if (n != m) {
@@ -1163,7 +1163,7 @@ BlockEffects::BlockEffects(FlowGraph* flow_graph)
   const intptr_t block_count = flow_graph->postorder().length();
 
   // Set of blocks that contain side-effects.
-  BitVector* kill = new(isolate) BitVector(block_count);
+  BitVector* kill = new(isolate) BitVector(isolate, block_count);
 
   // Per block available-after sets. Block A is available after the block B if
   // and only if A is either equal to B or A is available at B and B contains no
@@ -1189,7 +1189,7 @@ BlockEffects::BlockEffects(FlowGraph* flow_graph)
     }
   }
 
-  BitVector* temp = new(isolate) BitVector(block_count);
+  BitVector* temp = new(isolate) BitVector(isolate, block_count);
 
   // Recompute available-at based on predecessors' available-after until the fix
   // point is reached.
@@ -1222,9 +1222,9 @@ BlockEffects::BlockEffects(FlowGraph* flow_graph)
         // Available-at changed: update it and recompute available-after.
         if (available_at_[block_num] == NULL) {
           current = available_at_[block_num] =
-              new(isolate) BitVector(block_count);
+              new(isolate) BitVector(isolate, block_count);
           available_after[block_num] =
-              new(isolate) BitVector(block_count);
+              new(isolate) BitVector(isolate, block_count);
           // Block is always available after itself.
           available_after[block_num]->Add(block_num);
         }

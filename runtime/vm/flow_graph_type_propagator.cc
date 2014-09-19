@@ -27,9 +27,11 @@ void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
 FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     : FlowGraphVisitor(flow_graph->reverse_postorder()),
       flow_graph_(flow_graph),
-      visited_blocks_(new BitVector(flow_graph->reverse_postorder().length())),
+      visited_blocks_(new(flow_graph->isolate()) BitVector(
+          flow_graph->isolate(), flow_graph->reverse_postorder().length())),
       types_(flow_graph->current_ssa_temp_index()),
-      in_worklist_(new BitVector(flow_graph->current_ssa_temp_index())),
+      in_worklist_(new(flow_graph->isolate()) BitVector(
+          flow_graph->isolate(), flow_graph->current_ssa_temp_index())),
       asserts_(NULL),
       collected_asserts_(NULL) {
   for (intptr_t i = 0; i < flow_graph->current_ssa_temp_index(); i++) {

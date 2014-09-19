@@ -4731,7 +4731,8 @@ class DefinitionWorklist : public ValueObject {
   DefinitionWorklist(FlowGraph* flow_graph,
                      intptr_t initial_capacity)
       : defs_(initial_capacity),
-        contains_vector_(new BitVector(flow_graph->current_ssa_temp_index())) {
+        contains_vector_(new(flow_graph->isolate()) BitVector(
+            flow_graph->isolate(), flow_graph->current_ssa_temp_index())) {
   }
 
   void Add(Definition* defn) {
@@ -4836,7 +4837,8 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
 
   // BitVector containing SSA indexes of all processed definitions. Used to skip
   // those candidates that belong to dependency graph of another candidate.
-  BitVector* processed = new BitVector(flow_graph_->current_ssa_temp_index());
+  BitVector* processed =
+      new(I) BitVector(I, flow_graph_->current_ssa_temp_index());
 
   // Worklist used to collect dependency graph.
   DefinitionWorklist worklist(flow_graph_, candidates.length());
@@ -5703,7 +5705,7 @@ class AliasedSet : public ZoneAllocated {
         aliases_map_(),
         representatives_(),
         killed_(),
-        aliased_by_effects_(new(isolate) BitVector(places->length())) {
+        aliased_by_effects_(new(isolate) BitVector(isolate, places->length())) {
     InsertAlias(Place::CreateAnyInstanceAnyIndexAlias(isolate_,
         kAnyInstanceAnyIndexAlias));
     for (intptr_t i = 0; i < places_.length(); i++) {
@@ -5878,7 +5880,7 @@ class AliasedSet : public ZoneAllocated {
 
     BitVector* set = (*sets)[alias];
     if (set == NULL) {
-      (*sets)[alias] = set = new(isolate_) BitVector(max_place_id());
+      (*sets)[alias] = set = new(isolate_) BitVector(isolate_, max_place_id());
     }
     return set;
   }
@@ -6304,9 +6306,9 @@ class LoadOptimizer : public ValueObject {
     const intptr_t num_blocks = graph_->preorder().length();
     for (intptr_t i = 0; i < num_blocks; i++) {
       out_.Add(NULL);
-      gen_.Add(new(I) BitVector(aliased_set_->max_place_id()));
-      kill_.Add(new(I) BitVector(aliased_set_->max_place_id()));
-      in_.Add(new(I) BitVector(aliased_set_->max_place_id()));
+      gen_.Add(new(I) BitVector(I, aliased_set_->max_place_id()));
+      kill_.Add(new(I) BitVector(I, aliased_set_->max_place_id()));
+      in_.Add(new(I) BitVector(I, aliased_set_->max_place_id()));
 
       exposed_values_.Add(NULL);
       out_values_.Add(NULL);
@@ -6554,9 +6556,10 @@ class LoadOptimizer : public ValueObject {
   // Compute OUT sets by propagating them iteratively until fix point
   // is reached.
   void ComputeOutSets() {
-    BitVector* temp = new(I) BitVector(aliased_set_->max_place_id());
-    BitVector* forwarded_loads = new(I) BitVector(aliased_set_->max_place_id());
-    BitVector* temp_out = new(I) BitVector(aliased_set_->max_place_id());
+    BitVector* temp = new(I) BitVector(I, aliased_set_->max_place_id());
+    BitVector* forwarded_loads =
+        new(I) BitVector(I, aliased_set_->max_place_id());
+    BitVector* temp_out = new(I) BitVector(I, aliased_set_->max_place_id());
 
     bool changed = true;
     while (changed) {
@@ -6608,7 +6611,7 @@ class LoadOptimizer : public ValueObject {
           if ((block_out == NULL) || !block_out->Equals(*temp)) {
             if (block_out == NULL) {
               block_out = out_[preorder_number] =
-                  new(I) BitVector(aliased_set_->max_place_id());
+                  new(I) BitVector(I, aliased_set_->max_place_id());
             }
             block_out->CopyFrom(temp);
             changed = true;
@@ -6745,7 +6748,7 @@ class LoadOptimizer : public ValueObject {
         continue;
       }
 
-      BitVector* loop_gen = new(I) BitVector(aliased_set_->max_place_id());
+      BitVector* loop_gen = new(I) BitVector(I, aliased_set_->max_place_id());
       for (BitVector::Iterator loop_it(header->loop_info());
            !loop_it.Done();
            loop_it.Advance()) {
@@ -6897,7 +6900,7 @@ class LoadOptimizer : public ValueObject {
 
     worklist_.Clear();
     if (in_worklist_ == NULL) {
-      in_worklist_ = new(I) BitVector(graph_->current_ssa_temp_index());
+      in_worklist_ = new(I) BitVector(I, graph_->current_ssa_temp_index());
     } else {
       in_worklist_->Clear();
     }
@@ -7020,7 +7023,7 @@ class LoadOptimizer : public ValueObject {
 
     congruency_worklist_.Clear();
     if (in_worklist_ == NULL) {
-      in_worklist_ = new(I) BitVector(graph_->current_ssa_temp_index());
+      in_worklist_ = new(I) BitVector(I, graph_->current_ssa_temp_index());
     } else {
       in_worklist_->Clear();
     }
@@ -7232,7 +7235,7 @@ class StoreOptimizer : public LivenessAnalysis {
 
   virtual void ComputeInitialSets() {
     Isolate* isolate = graph_->isolate();
-    BitVector* all_places = new(isolate) BitVector(
+    BitVector* all_places = new(isolate) BitVector(isolate,
         aliased_set_->max_place_id());
     all_places->SetAll();
     for (BlockIterator block_it = graph_->postorder_iterator();
@@ -7574,9 +7577,10 @@ ConstantPropagator::ConstantPropagator(
       graph_(graph),
       unknown_(Object::unknown_constant()),
       non_constant_(Object::non_constant()),
-      reachable_(new(graph->isolate()) BitVector(graph->preorder().length())),
+      reachable_(new(graph->isolate()) BitVector(
+          graph->isolate(), graph->preorder().length())),
       definition_marks_(new(graph->isolate()) BitVector(
-          graph->max_virtual_register_number())),
+          graph->isolate(), graph->max_virtual_register_number())),
       block_worklist_(),
       definition_worklist_() {}
 
@@ -8956,7 +8960,7 @@ void ConstantPropagator::EliminateRedundantBranches() {
   // Canonicalize branches that have no side-effects and where true- and
   // false-targets are the same.
   bool changed = false;
-  BitVector* empty_blocks = new(I) BitVector(graph_->preorder().length());
+  BitVector* empty_blocks = new(I) BitVector(I, graph_->preorder().length());
   for (BlockIterator b = graph_->postorder_iterator();
        !b.Done();
        b.Advance()) {
