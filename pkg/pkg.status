@@ -150,8 +150,23 @@ stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
 
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
-scheduled_test/test/unittest_compatibility_test: Fail # Issue 7728
-unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
+scheduled_test/test/scheduled_future_matchers_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_stream/stream_matcher_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/abort_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/current_schedule_current_task_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/current_schedule_errors_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/current_schedule_state_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/nested_task_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/on_complete_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/on_exception_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/set_up_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/simple_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/task_return_value_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/tear_down_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/unhandled_error_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/wrap_future_test: RuntimeError #Issue 21005
+scheduled_test/test/unittest_compatibility_test: RuntimeError #Issue 21005
+unittest/test/missing_tick_test: RuntimeError # Timer interface not supported: dartbug.com/7728
 unittest/test/nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 
 [ $compiler == dart2js && $runtime == drt ]
