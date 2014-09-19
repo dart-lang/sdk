@@ -62,30 +62,24 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
       CompilationUnitElement unitElement =
           context.getCompilationUnitElement(source, librarySource);
       if (unitElement != null) {
-        // update reference to the unit
-        searchEngine.searchReferences(unitElement).then((matches) {
-          List<SourceReference> references = getSourceReferences(matches);
-          for (SourceReference reference in references) {
-            String refDir = pathos.dirname(reference.file);
-            String newUri = pathos.relative(newFile, from: refDir);
-            change.addElementEdit(
-                reference.element,
-                createReferenceEdit(reference, "'$newUri'"));
-          }
-        });
         // if a defining unit, update outgoing references
         library = unitElement.library;
         if (library.definingCompilationUnit == unitElement) {
           oldLibraryDir = pathos.dirname(oldFile);
           newLibraryDir = pathos.dirname(newFile);
-          // update references to the imported/exported libraries
           _updateUriReferences(library.imports);
           _updateUriReferences(library.exports);
-          // update references to the sources units
-          for (CompilationUnitElement unit in library.parts) {
-            _updateUriReference(unit);
-          }
+          _updateUriReferences(library.parts);
         }
+        // update reference to the unit
+        return searchEngine.searchReferences(unitElement).then((matches) {
+          List<SourceReference> references = getSourceReferences(matches);
+          for (SourceReference reference in references) {
+            String newUri = _computeNewUri(reference);
+            SourceEdit edit = createReferenceEdit(reference, "'$newUri'");
+            change.addElementEdit(reference.element, edit);
+          }
+        });
       }
     }).then((_) {
       return change;
@@ -94,6 +88,30 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
 
   @override
   bool requiresPreview() => false;
+
+  /**
+   * Computes the URI to use to reference [newFile] from [reference].
+   */
+  String _computeNewUri(SourceReference reference) {
+    String refDir = pathos.dirname(reference.file);
+    // try to keep package: URI
+    if (_isPackageReference(reference)) {
+      Source newSource = new NonExistingSource(newFile, UriKind.FILE_URI);
+      Uri restoredUri = context.sourceFactory.restoreUri(newSource);
+      if (restoredUri != null) {
+        return restoredUri.toString();
+      }
+    }
+    // if no package: URI, prepare relative
+    return pathos.relative(newFile, from: refDir);
+  }
+
+  bool _isPackageReference(SourceReference reference) {
+    Source source = reference.element.source;
+    int offset = reference.range.offset + "'".length;
+    String content = context.getContents(source).data;
+    return content.startsWith('package:', offset);
+  }
 
   void _updateUriReference(UriReferencedElement element) {
     if (!element.isSynthetic) {

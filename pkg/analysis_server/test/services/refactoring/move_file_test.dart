@@ -8,9 +8,13 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../abstract_context.dart';
 import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
 
@@ -93,6 +97,35 @@ import 'test.dart';
     return _assertSuccessfulRefactoring().then((_) {
       assertFileChangeResult(pathA, '''
 import '22/new_name.dart';
+''');
+      assertNoFileChange(testFile);
+    });
+  }
+
+  test_importedLibrary_package() {
+    // configure packages
+    testFile = '/packages/my_pkg/aaa/test.dart';
+    File testFileRes = provider.newFile(testFile, '');
+    Map<String, List<Folder>> packageMap = {
+      'my_pkg': [provider.getResource('/packages/my_pkg')]
+    };
+    context.sourceFactory = new SourceFactory(
+        [
+            AbstractContextTest.SDK_RESOLVER,
+            resourceResolver,
+            new PackageMapUriResolver(provider, packageMap)]);
+    // do testing
+    String pathA = '/project/bin/a.dart';
+    addSource(pathA, '''
+import 'package:my_pkg/aaa/test.dart';
+''');
+    addTestSource('');
+    _performAnalysis();
+    // perform refactoring
+    _createRefactoring('/packages/my_pkg/bbb/ccc/new_name.dart');
+    return _assertSuccessfulRefactoring().then((_) {
+      assertFileChangeResult(pathA, '''
+import 'package:my_pkg/bbb/ccc/new_name.dart';
 ''');
       assertNoFileChange(testFile);
     });
