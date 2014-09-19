@@ -241,6 +241,11 @@ analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
 polymer/e2e_test/*: Pass, RuntimeError # Issue 19265
 polymer/test/event_handlers_test: Pass, Timeout # Issue 19327
 polymer_expressions/*: Pass, RuntimeError # Issue 19265
+template_binding/test/custom_element_bindings_test: Pass, RuntimeError # Issue 20714
+template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
+typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
+
+[ $runtime == ie10 || $runtime == ie11 ]
 scheduled_test/test/scheduled_test/current_schedule_errors_test: Timeout # Issue 21007
 scheduled_test/test/scheduled_test/nested_task_test: Timeout # Issue 21007
 scheduled_test/test/scheduled_test/out_of_band_task_test: Timeout # Issue 21007
@@ -248,13 +253,6 @@ scheduled_test/test/scheduled_test/signal_error_test: Timeout # Issue 21007
 scheduled_test/test/scheduled_test/task_return_value_test: Timeout # Issue 21007
 scheduled_test/test/scheduled_test/timeout_test: Timeout # Issue 21007
 scheduled_test/test/scheduled_test/wrap_async_test: Timeout # Issue 21007
-scheduled_test/test/scheduled_test/wrap_future_test: Timeout # Issue 21007
-template_binding/test/custom_element_bindings_test: Pass, RuntimeError # Issue 20714
-template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
-typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
-
-[ $runtime == ie11 ]
-scheduled_test/test/scheduled_test/task_return_value_test: Timeout # Issue 21007
 scheduled_test/test/scheduled_test/wrap_future_test: Timeout # Issue 21007
 
 [ $runtime == safari || $runtime == safarimobilesim ]
