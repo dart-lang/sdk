@@ -20,7 +20,6 @@
         'abstract': 1,
         'xcode_settings': {
           'GCC_VERSION': '<(xcode_gcc_version)',
-          'MACOSX_DEPLOYMENT_TARGET': '<(mac_deployment_target)',
           'GCC_C_LANGUAGE_STANDARD': 'ansi',
           'GCC_ENABLE_CPP_EXCEPTIONS': 'NO', # -fno-exceptions
           'GCC_ENABLE_CPP_RTTI': 'NO', # -fno-rtti
