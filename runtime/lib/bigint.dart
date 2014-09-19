@@ -61,6 +61,11 @@ class _Bigint extends _IntegerImplementation implements int {
   static _Bigint ZERO = new _Bigint();
   static _Bigint ONE = new _Bigint()._setInt(1);
 
+  // Argument passing for _mulAdd function preventing Mint allocation.
+  static const int MA_MULTIPLIER = 0;  // Index of multiplier digit.
+  static const int MA_CARRY_OUT = 1;  // Index of carry out digit.
+  static final Uint32List _MulAddArgs = new Uint32List(2);
+
   // Digit conversion table for parsing.
   static final Map<int, int> DIGIT_TABLE = _createDigitTable();
 
@@ -777,58 +782,65 @@ class _Bigint extends _IntegerImplementation implements int {
     return r;
   }
 
-  // Accumulate multiply.
-  // this[i..i+n-1]: bigint multiplicand.
-  // x: digit multiplier, 0 <= x < DIGIT_BASE (i.e. 32-bit multiplier).
-  // w[j..j+n-1]: bigint accumulator.
-  // Returns carry out.
-  // w[j..j+n-1] += this[i..i+n-1] * x.
-  // Returns carry out.
-  int _am(int i, int x, _Bigint w, int j, int n) {
+  // Multiply and accumulate.
+  // Input:
+  //   args[MA_MULTIPLIER]: multiplier digit, 0 <= x < DIGIT_BASE (i.e. 32-bit).
+  //   m_digits[i..i+n-1]: multiplicand digits.
+  //   a_digits[j..j+n-1]: accumulator digits.
+  // Operation:
+  //   a_digits[j..j+n-1] += x*m_digits[i..i+n-1].
+  // Output:
+  //   args[MA_CARRY_OUT].
+  // Note: Passing single digits as elements of args prevents Mint allocation.
+  static void _mulAdd(Uint32List args,
+                      Uint32List m_digits, int i,
+                      Uint32List a_digits, int j, int n) {
+    int x = args[MA_MULTIPLIER];
     if (x == 0) {
       // No-op if x is 0.
-      return 0;
+      args[MA_CARRY_OUT] = 0;
+      return;
     }
     int c = 0;
     int xl = x & DIGIT2_MASK;
     int xh = x >> DIGIT2_BITS;
-    var digits = _digits;
-    var w_digits = w._digits;
     while (--n >= 0) {
-      int l = digits[i] & DIGIT2_MASK;
-      int h = digits[i++] >> DIGIT2_BITS;
+      int l = m_digits[i] & DIGIT2_MASK;
+      int h = m_digits[i++] >> DIGIT2_BITS;
       int m = xh*l + h*xl;
-      l = xl*l + ((m & DIGIT2_MASK) << DIGIT2_BITS) + w_digits[j] + c;
+      l = xl*l + ((m & DIGIT2_MASK) << DIGIT2_BITS) + a_digits[j] + c;
       c = (l >> DIGIT_BITS) + (m >> DIGIT2_BITS) + xh*h;
-      w_digits[j++] = l & DIGIT_MASK;
+      a_digits[j++] = l & DIGIT_MASK;
     }
-    return c;
+    args[MA_CARRY_OUT] = c;
   }
 
-  // Accumulate multiply with carry.
-  // this[i..i+n-1]: bigint multiplicand.
-  // x: digit multiplier, 0 <= x < 2*DIGIT_BASE  (i.e. 33-bit multiplier).
-  // w[j..j+n-1]: bigint accumulator.
-  // c: int carry in.
-  // Returns carry out.
-  // w[j..j+n-1] += this[i..i+n-1] * x + c.
-  // Returns carry out.
-  int _amc(int i, int x, _Bigint w, int j, int c, int n) {
+  // Multiply and accumulate with carry in.
+  // Input:
+  //   x: multiplier digit, 0 <= x < 2*DIGIT_BASE (i.e. 33-bit multiplier).
+  //   m_digits[i..i+n-1]: multiplicand digits.
+  //   a_digits[j..j+n-1]: accumulator digits.
+  //   c: carry in.
+  // Operation:
+  //   a_digits[j..j+n-1] += x*m_digits[i..i+n-1] + c.
+  // Output:
+  //   carry out.
+  // TODO(regis): Use an argument buffer as in _mulAdd.
+  static int _mulAddc(int x, Uint32List m_digits, int i,
+                      Uint32List a_digits, int j, int c, int n) {
     if (x == 0 && c == 0) {
       // No-op if both x and c are 0.
       return 0;
     }
     int xl = x & DIGIT2_MASK;
     int xh = x >> DIGIT2_BITS;
-    var digits = _digits;
-    var w_digits = w._digits;
     while (--n >= 0) {
-      int l = digits[i] & DIGIT2_MASK;
-      int h = digits[i++] >> DIGIT2_BITS;
+      int l = m_digits[i] & DIGIT2_MASK;
+      int h = m_digits[i++] >> DIGIT2_BITS;
       int m = xh*l + h*xl;
-      l = xl*l + ((m & DIGIT2_MASK) << DIGIT2_BITS) + w_digits[j] + c;
+      l = xl*l + ((m & DIGIT2_MASK) << DIGIT2_BITS) + a_digits[j] + c;
       c = (l >> DIGIT_BITS) + (m >> DIGIT2_BITS) + xh*h;
-      w_digits[j++] = l & DIGIT_MASK;
+      a_digits[j++] = l & DIGIT_MASK;
     }
     return c;
   }
@@ -840,6 +852,7 @@ class _Bigint extends _IntegerImplementation implements int {
     var a_used = a._used;
     var i = used;
     r._ensureLength(i + a_used);
+    var digits = _digits;
     var a_digits = a._digits;
     var r_digits = r._digits;
     r._used = i + a_used;
@@ -847,7 +860,9 @@ class _Bigint extends _IntegerImplementation implements int {
       r_digits[i] = 0;
     }
     for (i = 0; i < a_used; ++i) {
-      r_digits[i + used] = _am(0, a_digits[i], r, i, used);
+      _MulAddArgs[MA_MULTIPLIER] = a_digits[i];
+      _mulAdd(_MulAddArgs, digits, 0, r_digits, i, used);
+      r_digits[i + used] = _MulAddArgs[MA_CARRY_OUT];
     }
     r._clamp();
     r._neg = r._used > 0 && _neg != a._neg;  // Zero cannot be negative.
@@ -865,9 +880,12 @@ class _Bigint extends _IntegerImplementation implements int {
       r_digits[i] = 0;
     }
     for (i = 0; i < used - 1; ++i) {
-      var c = _am(i, digits[i], r, 2*i, 1);
+      _MulAddArgs[MA_MULTIPLIER] = digits[i];
+      _mulAdd(_MulAddArgs, digits, i, r_digits, 2*i, 1);
+      var c = _MulAddArgs[MA_CARRY_OUT];
       var d = r_digits[i + used];
-      d += _amc(i + 1, digits[i] << 1, r, 2*i + 1, c, used - i - 1);
+      d += _mulAddc(digits[i] << 1, digits, i + 1,
+                    r_digits, 2*i + 1, c, used - i - 1);
       if (d >= DIGIT_BASE) {
         r_digits[i + used] = d - DIGIT_BASE;
         r_digits[i + used + 1] = 1;
@@ -876,7 +894,9 @@ class _Bigint extends _IntegerImplementation implements int {
       }
     }
     if (r_used > 0) {
-      r_digits[r_used - 1] += _am(i, digits[i], r, 2*i, 1);
+      _MulAddArgs[MA_MULTIPLIER] = digits[i];
+      _mulAdd(_MulAddArgs, digits, i, r_digits, 2*i, 1);
+      r_digits[r_used - 1] += _MulAddArgs[MA_CARRY_OUT];
     }
     r._used = r_used;
     r._neg = false;
@@ -930,7 +950,7 @@ class _Bigint extends _IntegerImplementation implements int {
       r._subTo(t, r);
     }
     ONE._dlShiftTo(y_used, t);
-    t._subTo(y, y);  // Negate y so we can replace sub with _am later.
+    t._subTo(y, y);  // Negate y so we can replace sub with _mulAdd later.
     while (y._used < y_used) {
       y_digits[y._used++] = 0;
     }
@@ -939,14 +959,20 @@ class _Bigint extends _IntegerImplementation implements int {
       // TODO(regis): Move the expensive mint division below to a function that
       // can be intrinsified using an uint64_t by uint32_t division instruction,
       // e.g. qd = _estqd(r_digits, --i, y0).
-      var qd;
+      var qd;  // TODO(regis): Is it more efficient to use
+               //_MulAddArgs[MA_MULTIPLIER] directly instead of qd (Mint)?
       if (r_digits[--i] == y0) {
         qd = DIGIT_MASK;
       } else {
         // Chop off one bit, since a Mint cannot hold 2 DIGITs.
         qd = ((r_digits[i] << (DIGIT_BITS - 1)) | (r_digits[i - 1] >> 1)) ~/ yt;
+        if (qd > DIGIT_MASK) {
+          qd = DIGIT_MASK;
+        }
       }
-      if ((r_digits[i] += y._am(0, qd, r, j, y_used)) < qd) {  // Try it out.
+      _MulAddArgs[MA_MULTIPLIER] = qd;
+      _mulAdd(_MulAddArgs, y_digits, 0, r_digits, j, y_used);
+      if ((r_digits[i] += _MulAddArgs[MA_CARRY_OUT]) < qd) {
         y._dlShiftTo(j, t);
         r._subTo(t, r);
         while (r_digits[i] < --qd) {
@@ -1336,19 +1362,22 @@ class _Montgomery implements _Reduction {
   void _reduce(_Bigint x) {
     x._ensureLength(_mused2 + 1);
     var x_digits = x._digits;
-    while (x._used <= _mused2) {  // Pad x so _am has enough room later.
+    while (x._used <= _mused2) {  // Pad x so _mulAdd has enough room later.
       x_digits[x._used++] = 0;
     }
     var m_used = _m._used;
+    var m_digits = _m._digits;
     for (var i = 0; i < m_used; ++i) {
       // Faster way of calculating u0 = x[i]*mp mod DIGIT_BASE.
       var j = x_digits[i] & _Bigint.DIGIT2_MASK;
       var u0 = (j*_mpl + (((j*_mph + (x_digits[i] >> _Bigint.DIGIT2_BITS)
           *_mpl) & _um) << _Bigint.DIGIT2_BITS)) & _Bigint.DIGIT_MASK;
-      // Use _am to combine the multiply-shift-add into one call.
+      // Use _mulAdd to combine the multiply-shift-add into one call.
       j = i + m_used;
       var digit = x_digits[j];
-      digit += _m ._am(0, u0, x, i, m_used);
+      _Bigint._MulAddArgs[_Bigint.MA_MULTIPLIER] = u0;
+      _Bigint._mulAdd(_Bigint._MulAddArgs, m_digits, 0, x_digits, i, m_used);
+      digit += _Bigint._MulAddArgs[_Bigint.MA_CARRY_OUT];
       // Propagate carry.
       while (digit >= _Bigint.DIGIT_BASE) {
         digit -= _Bigint.DIGIT_BASE;

@@ -43,6 +43,7 @@ var blacklist = [
   'dart.io._FileSystemWatcher._listenOnSocket',
   'dart.io.SystemEncoding.decode',
   'dart.io.SystemEncoding.encode',
+  'dart.core._Bigint._mulAdd',  // TODO(regis): Is this an intrinsic issue?
 ];
 
 bool isBlacklisted(Symbol qualifiedSymbol) {

@@ -894,6 +894,11 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
+  // TODO(regis): Implement.
+}
+
+
 // Check if the last argument is a double, jump to label 'is_smi' if smi
 // (easy to convert to double), otherwise jump to label 'not_double_smi',
 // Returns the last argument in R0.

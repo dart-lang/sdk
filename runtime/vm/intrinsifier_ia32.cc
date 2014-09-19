@@ -912,6 +912,107 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 }
 
 
+// TODO(regis): Once this intrinsic is implemented on all architectures, the
+// corresponding Dart method will be untested. Add a test with --no-intrinsify.
+void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
+  // Pseudo code:
+  // static void _mulAdd(Uint32List args,
+  //                     Uint32List m_digits, int i,
+  //                     Uint32List a_digits, int j, int n) {
+  //   uint32_t x = args[MA_MULTIPLIER];
+  //   if (x == 0) {
+  //     args[MA_CARRY_OUT] = 0;
+  //     return;
+  //   }
+  //   uint32_t* mip = &m_digits[i >> 1];  // i is Smi.
+  //   uint32_t* ajp = &a_digits[j >> 1];  // j is Smi.
+  //   uint32_t c = 0;
+  //   while ((n -= 2) >= 0) {  // n is Smi.
+  //     uint32_t mi = *mip++;
+  //     uint32_t aj = *ajp;
+  //     uint64_t t = x*mi + aj + c;  // 32-bit * 32-bit -> 64-bit.
+  //     *ajp++ = low32(t);
+  //     c = high32(t);
+  //   }
+  //   args[MA_CARRY_OUT] = c;
+  // }
+
+  // TODO(regis): Confirm that it is not required to check arguments (and also
+  // convince invocation_fuzz_test).
+
+  // EBX = x
+  Label x_not_zero;
+  __ movl(ECX, Address(ESP, 6 * kWordSize));  // args
+  __ movl(EBX, FieldAddress(ECX, TypedData::data_offset()));  // x
+  __ cmpl(EBX, Immediate(0));
+  __ j(NOT_EQUAL, &x_not_zero, Assembler::kNearJump);
+  // Set args[MA_CARRY_OUT] to 0 and return.
+  __ movl(FieldAddress(ECX, TypedData::data_offset() + kWordSize), EBX);
+  // TODO(regis): Confirm that returning Object::null() is not required.
+  __ ret();
+  __ Bind(&x_not_zero);
+
+  // Preserve CTX to free ESI.
+  __ pushl(CTX);
+  ASSERT(CTX == ESI);
+
+  // EDI = mip = &m_digits[i >> 1]
+  __ movl(EDI, Address(ESP, 6 * kWordSize));  // m_digits
+  __ movl(EAX, Address(ESP, 5 * kWordSize));  // i is Smi
+  __ leal(EDI, FieldAddress(EDI, EAX, TIMES_2, TypedData::data_offset()));
+
+  // ESI = ajp = &a_digits[j >> 1]
+  __ movl(ESI, Address(ESP, 4 * kWordSize));  // a_digits
+  __ movl(EAX, Address(ESP, 3 * kWordSize));  // j is Smi
+  __ leal(ESI, FieldAddress(ESI, EAX, TIMES_2, TypedData::data_offset()));
+
+  // ECX = c = 0
+  __ xorl(ECX, ECX);
+
+  Label loop, done;
+  __ Bind(&loop);
+  // x:   EBX
+  // mip: EDI
+  // ajp: ESI
+  // c:   ECX
+  // t:   EDX:EAX (not live at loop entry)
+
+  // while ((n -= 2) >= 0), n is on stack, above ret addr and saved CTX.
+  __ movl(EAX, Immediate(2));  // 'sub mem32, imm32' not implemented.
+  __ subl(Address(ESP, 2 * kWordSize), EAX);  // --n, n is Smi.
+  __ j(NEGATIVE, &done);
+
+  // uint32_t mi = *mip++
+  __ movl(EAX, Address(EDI, 0));
+  __ addl(EDI, Immediate(kWordSize));
+
+  // uint64_t t = x*mi
+  __ mull(EBX);  // t = EDX:EAX = EAX * EBX
+  __ addl(EAX, ECX);  // t += c
+  __ adcl(EDX, Immediate(0));
+
+  // uint32_t aj = *ajp; t += aj
+  __ addl(EAX, Address(ESI, 0));
+  __ adcl(EDX, Immediate(0));
+
+  // *ajp++ = low32(t)
+  __ movl(Address(ESI, 0), EAX);
+  __ addl(ESI, Immediate(kWordSize));
+
+  // c = high32(t)
+  __ movl(ECX, EDX);
+  __ jmp(&loop, Assembler::kNearJump);
+
+  __ Bind(&done);
+  // Restore CTX, set args[MA_CARRY_OUT] to c and return.
+  __ popl(CTX);
+  __ movl(EAX, Address(ESP, 6 * kWordSize));  // args
+  __ movl(FieldAddress(EAX, TypedData::data_offset() + kWordSize), ECX);
+  // TODO(regis): Confirm that returning Object::null() is not required.
+  __ ret();
+}
+
+
 // Check if the last argument is a double, jump to label 'is_smi' if smi
 // (easy to convert to double), otherwise jump to label 'not_double_smi',
 // Returns the last argument in EAX.
