@@ -3268,6 +3268,30 @@
           </field>
         </options>
       </refactoring>
+      <refactoring kind="MOVE_FILE">
+        <p>
+          Move the given file and update all of the references to that file
+          and from it. The move operation is supported in general case - for
+          renaming a file in the same folder, moving it to a different folder
+          or both.
+        </p>
+        <p>
+          The refactoring must be activated before an actual file moving
+          operation is performed.
+        </p>
+        <p>
+          The "offset" and "length" fields from the request are ignored, but the
+          file specified in the request specifies the file to be moved.
+        </p>
+        <options>
+          <field name="newFile">
+            <ref>FilePath</ref>
+            <p>
+              The new file path to which the given file is being moved.
+            </p>
+          </field>
+        </options>
+      </refactoring>
       <refactoring kind="RENAME">
         <p>
           Rename a given element and all of the references to that

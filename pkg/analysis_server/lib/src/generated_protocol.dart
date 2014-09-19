@@ -9959,6 +9959,85 @@ class InlineMethodOptions extends RefactoringOptions implements HasToJson {
     return _JenkinsSmiHash.finish(hash);
   }
 }
+/**
+ * moveFile feedback
+ */
+class MoveFileFeedback {
+  @override
+  bool operator==(other) {
+    if (other is MoveFileFeedback) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 438975893;
+  }
+}
+
+/**
+ * moveFile options
+ *
+ * {
+ *   "newFile": FilePath
+ * }
+ */
+class MoveFileOptions extends RefactoringOptions implements HasToJson {
+  /**
+   * The new file path to which the given file is being moved.
+   */
+  String newFile;
+
+  MoveFileOptions(this.newFile);
+
+  factory MoveFileOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String newFile;
+      if (json.containsKey("newFile")) {
+        newFile = jsonDecoder._decodeString(jsonPath + ".newFile", json["newFile"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "newFile");
+      }
+      return new MoveFileOptions(newFile);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "moveFile options");
+    }
+  }
+
+  factory MoveFileOptions.fromRefactoringParams(EditGetRefactoringParams refactoringParams, Request request) {
+    return new MoveFileOptions.fromJson(
+        new RequestDecoder(request), "options", refactoringParams.options);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["newFile"] = newFile;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is MoveFileOptions) {
+      return newFile == other.newFile;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, newFile.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
 
 /**
  * rename feedback

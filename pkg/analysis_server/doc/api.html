@@ -2933,6 +2933,7 @@ dt.typeDefinition {
       
       
       
+      
     <dl><dt class="refactoring">CONVERT_GETTER_TO_METHOD</dt><dd>
         <p>
           Convert a getter into a method by removing the keyword get
@@ -3162,6 +3163,27 @@ dt.typeDefinition {
               True if all invocations of the method should be inlined,
               or false if only the invocation site used to create this
               refactoring should be inlined.
+            </p>
+          </dd></dl></dd><dt class="refactoring">MOVE_FILE</dt><dd>
+        <p>
+          Move the given file and update all of the references to that file
+          and from it. The move operation is supported in general case - for
+          renaming a file in the same folder, moving it to a different folder
+          or both.
+        </p>
+        <p>
+          The refactoring must be activated before an actual file moving
+          operation is performed.
+        </p>
+        <p>
+          The "offset" and "length" fields from the request are ignored, but the
+          file specified in the request specifies the file to be moved.
+        </p>
+        
+      <h4>Feedback</h4><p>none</p><h4>Options</h4><dl><dt class="field"><b><i>newFile ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
+            
+            <p>
+              The new file path to which the given file is being moved.
             </p>
           </dd></dl></dd><dt class="refactoring">RENAME</dt><dd>
         <p>

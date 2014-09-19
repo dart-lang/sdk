@@ -1958,6 +1958,23 @@ final Matcher isInlineMethodOptions = new LazyMatcher(() => new MatchesJsonObjec
   }));
 
 /**
+ * moveFile feedback
+ */
+final Matcher isMoveFileFeedback = isNull;
+
+/**
+ * moveFile options
+ *
+ * {
+ *   "newFile": FilePath
+ * }
+ */
+final Matcher isMoveFileOptions = new LazyMatcher(() => new MatchesJsonObject(
+  "moveFile options", {
+    "newFile": isFilePath
+  }));
+
+/**
  * rename feedback
  *
  * {
