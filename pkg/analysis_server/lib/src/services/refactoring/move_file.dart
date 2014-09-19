@@ -98,7 +98,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
   void _updateUriReference(UriReferencedElement element) {
     if (!element.isSynthetic) {
       String elementUri = element.uri;
-      if (pathos.isRelative(elementUri)) {
+      if (_isRelativeUri(elementUri)) {
         String elementPath = pathos.join(oldLibraryDir, elementUri);
         String newUri = pathos.relative(elementPath, from: newLibraryDir);
         int uriOffset = element.uriOffset;
@@ -114,5 +114,25 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
     for (UriReferencedElement element in elements) {
       _updateUriReference(element);
     }
+  }
+
+  /**
+   * Checks if the given [path] represents a relative URI.
+   *
+   * The following URI's are not relative:
+   *    `/absolute/path/file.dart`
+   *    `dart:math`
+   */
+  static bool _isRelativeUri(String path) {
+    // absolute path
+    if (pathos.isAbsolute(path)) {
+      return false;
+    }
+    // absolute URI
+    if (Uri.parse(path).isAbsolute) {
+      return false;
+    }
+    // OK
+    return true;
   }
 }

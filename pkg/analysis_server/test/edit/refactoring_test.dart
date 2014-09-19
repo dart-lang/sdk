@@ -20,9 +20,10 @@ main() {
   groupSep = ' | ';
   runReflectiveTests(ExtractLocalVariableTest);
   runReflectiveTests(ExtractMethodTest);
+  runReflectiveTests(GetAvailableRefactoringsTest);
   runReflectiveTests(InlineLocalTest);
   runReflectiveTests(InlineMethodTest);
-  runReflectiveTests(GetAvailableRefactoringsTest);
+  runReflectiveTests(MoveFileTest);
   runReflectiveTests(RenameTest);
 }
 
@@ -699,6 +700,38 @@ main() {
         RefactoringKind.INLINE_METHOD,
         testFile,
         findOffset(search),
+        0,
+        false,
+        options: options).toRequest('0');
+    return serverChannel.sendRequest(request);
+  }
+}
+
+
+@ReflectiveTestCase()
+class MoveFileTest extends _AbstractGetRefactoring_Test {
+  MoveFileOptions options = new MoveFileOptions(null);
+
+  test_OK() {
+    resourceProvider.newFile('/project/bin/lib.dart', '');
+    addTestFile('''
+import 'dart:math';
+import 'lib.dart';
+''');
+    options.newFile = '/project/test.dart';
+    return assertSuccessfulRefactoring(() {
+      return _sendMoveRequest();
+    }, '''
+import 'dart:math';
+import 'bin/lib.dart';
+''');
+  }
+
+  Future<Response> _sendMoveRequest() {
+    Request request = new EditGetRefactoringParams(
+        RefactoringKind.MOVE_FILE,
+        testFile,
+        0,
         0,
         false,
         options: options).toRequest('0');

@@ -468,6 +468,9 @@ RefactoringOptions _refactoringOptionsFromJson(JsonDecoder jsonDecoder,
   if (kind == RefactoringKind.INLINE_METHOD) {
     return new InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
   }
+  if (kind == RefactoringKind.MOVE_FILE) {
+    return new MoveFileOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
   if (kind == RefactoringKind.RENAME) {
     return new RenameOptions.fromJson(jsonDecoder, jsonPath, json);
   }

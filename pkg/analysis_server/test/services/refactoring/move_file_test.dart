@@ -38,6 +38,7 @@ class MoveFileTest extends RefactoringTest {
     addSource(pathD, '');
     addTestSource('''
 library lib;
+import 'dart:math';
 import '22/c.dart';
 export '333/d.dart';
 part 'a.dart';
@@ -52,6 +53,7 @@ part '/absolute/uri.dart';
       assertNoFileChange(pathC);
       assertFileChangeResult(testFile, '''
 library lib;
+import 'dart:math';
 import 'c.dart';
 export '../333/d.dart';
 part '../a.dart';

@@ -1516,6 +1516,7 @@ final Matcher isPosition = new LazyMatcher(() => new MatchesJsonObject(
  *   EXTRACT_METHOD
  *   INLINE_LOCAL_VARIABLE
  *   INLINE_METHOD
+ *   MOVE_FILE
  *   RENAME
  * }
  */
@@ -1526,6 +1527,7 @@ final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
   "EXTRACT_METHOD",
   "INLINE_LOCAL_VARIABLE",
   "INLINE_METHOD",
+  "MOVE_FILE",
   "RENAME"
 ]);
 

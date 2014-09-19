@@ -7647,6 +7647,7 @@ class Position implements HasToJson {
  *   EXTRACT_METHOD
  *   INLINE_LOCAL_VARIABLE
  *   INLINE_METHOD
+ *   MOVE_FILE
  *   RENAME
  * }
  */
@@ -7662,6 +7663,8 @@ class RefactoringKind {
   static const INLINE_LOCAL_VARIABLE = const RefactoringKind._("INLINE_LOCAL_VARIABLE");
 
   static const INLINE_METHOD = const RefactoringKind._("INLINE_METHOD");
+
+  static const MOVE_FILE = const RefactoringKind._("MOVE_FILE");
 
   static const RENAME = const RefactoringKind._("RENAME");
 
@@ -7683,6 +7686,8 @@ class RefactoringKind {
         return INLINE_LOCAL_VARIABLE;
       case "INLINE_METHOD":
         return INLINE_METHOD;
+      case "MOVE_FILE":
+        return MOVE_FILE;
       case "RENAME":
         return RENAME;
     }

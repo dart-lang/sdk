@@ -293,6 +293,11 @@ class _RefactoringManager {
             new InlineMethodRefactoring(searchEngine, units[0], offset);
       }
     }
+    if (kind == RefactoringKind.MOVE_FILE) {
+      engine.AnalysisContext context = server.getAnalysisContext(file);
+      Source source = server.getSource(file);
+      refactoring = new MoveFileRefactoring(searchEngine, context, source);
+    }
     if (kind == RefactoringKind.RENAME) {
       List<AstNode> nodes = server.getNodesAtOffset(file, offset);
       List<Element> elements = server.getElementsAtOffset(file, offset);
@@ -404,6 +409,12 @@ class _RefactoringManager {
       InlineMethodOptions inlineOptions = params.options;
       inlineRefactoring.deleteSource = inlineOptions.deleteSource;
       inlineRefactoring.inlineAll = inlineOptions.inlineAll;
+      return new RefactoringStatus();
+    }
+    if (refactoring is MoveFileRefactoring) {
+      MoveFileRefactoring moveRefactoring = this.refactoring;
+      MoveFileOptions moveOptions = params.options;
+      moveRefactoring.newFile = moveOptions.newFile;
       return new RefactoringStatus();
     }
     if (refactoring is RenameRefactoring) {
