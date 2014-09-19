@@ -2523,7 +2523,8 @@ class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
   // TODO(floitsch): Implement this method.
   List<TypeVariableMirror> get typeVariables => throw new UnimplementedError();
 
-  List<TypeMirror> get typeArguments => const <TypeMirror>[];
+  // TODO(floitsch): Implement this method.
+  List<TypeMirror> get typeArguments => throw new UnimplementedError();
 
   bool get isOriginalDeclaration => true;
 
