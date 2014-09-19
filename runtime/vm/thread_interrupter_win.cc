@@ -35,11 +35,13 @@ class ThreadInterrupterWin : public AllStatic {
 #if defined(TARGET_ARCH_IA32)
       state->pc = static_cast<uintptr_t>(context.Eip);
       state->fp = static_cast<uintptr_t>(context.Ebp);
-      state->sp = static_cast<uintptr_t>(context.Esp);
+      state->csp = static_cast<uintptr_t>(context.Esp);
+      state->dsp = static_cast<uintptr_t>(context.Esp);
 #elif defined(TARGET_ARCH_X64)
       state->pc = static_cast<uintptr_t>(context.Rip);
       state->fp = static_cast<uintptr_t>(context.Rbp);
-      state->sp = static_cast<uintptr_t>(context.Rsp);
+      state->csp = static_cast<uintptr_t>(context.Rsp);
+      state->dsp = static_cast<uintptr_t>(context.Rsp);
 #else
       UNIMPLEMENTED();
 #endif
@@ -107,7 +109,6 @@ void ThreadInterrupter::InterruptThread(InterruptableThreadState* state) {
 void ThreadInterrupter::InstallSignalHandler() {
   // Nothing to do on Windows.
 }
-
 
 }  // namespace dart
 

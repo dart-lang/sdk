@@ -52,7 +52,8 @@ class SignalHandler : public AllStatic {
   static void Install(SignalAction action);
   static uintptr_t GetProgramCounter(const mcontext_t& mcontext);
   static uintptr_t GetFramePointer(const mcontext_t& mcontext);
-  static uintptr_t GetStackPointer(const mcontext_t& mcontext);
+  static uintptr_t GetCStackPointer(const mcontext_t& mcontext);
+  static uintptr_t GetDartStackPointer(const mcontext_t& mcontext);
  private:
 };
 

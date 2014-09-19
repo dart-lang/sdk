@@ -38,13 +38,27 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
 }
 
 
-uintptr_t SignalHandler::GetStackPointer(const mcontext_t& mcontext) {
+uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
   uintptr_t sp = 0;
 
 #if defined(TARGET_ARCH_ARM)
   sp = static_cast<uintptr_t>(mcontext.arm_sp);
 #elif defined(TARGET_ARCH_ARM64)
   sp = static_cast<uintptr_t>(mcontext.sp);
+#else
+  UNIMPLEMENTED();
+#endif  // TARGET_ARCH_...
+  return sp;
+}
+
+
+uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
+  uintptr_t sp = 0;
+
+#if defined(TARGET_ARCH_ARM)
+  sp = static_cast<uintptr_t>(mcontext.arm_sp);
+#elif defined(TARGET_ARCH_ARM64)
+  sp = static_cast<uintptr_t>(mcontext.regs[18]);
 #else
   UNIMPLEMENTED();
 #endif  // TARGET_ARCH_...

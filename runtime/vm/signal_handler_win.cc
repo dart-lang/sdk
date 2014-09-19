@@ -20,7 +20,13 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
 }
 
 
-uintptr_t SignalHandler::GetStackPointer(const mcontext_t& mcontext) {
+uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
+  UNIMPLEMENTED();
+  return 0;
+}
+
+
+uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
   UNIMPLEMENTED();
   return 0;
 }

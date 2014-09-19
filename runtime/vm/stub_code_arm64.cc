@@ -93,8 +93,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ add(R2, ZR, Operand(R4, LSL, 3));
   __ add(R2, FP, Operand(R2));  // Compute argv.
   // Set argv in NativeArguments.
-  __ AddImmediate(R2, R2, exitframe_last_param_slot_from_fp * kWordSize,
-                  kNoPP);
+  __ AddImmediate(R2, R2, exitframe_last_param_slot_from_fp * kWordSize, kNoPP);
 
     ASSERT(retval_offset == 3 * kWordSize);
   __ AddImmediate(R3, R2, kWordSize, kNoPP);
@@ -783,13 +782,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   const intptr_t kNewContextOffsetFromFp =
       -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
 
-  // Amount of space to reserve with the system stack pointer before setting it
-  // to the stack limit.
-  const intptr_t kRegSaveSpace = Utils::RoundUp(-kNewContextOffsetFromFp, 16);
-
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
-  // to access the stack.
-  __ SetupDartSP(kRegSaveSpace);
+  // to access the stack, and put the C stack pointer at the stack limit.
+  __ SetupDartSP(Isolate::GetSpecifiedStackSize());
   __ EnterFrame(0);
 
   // Save the callee-saved registers.
@@ -809,6 +804,16 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Push new context.
   __ Push(R3);
+#if defined(DEBUG)
+  {
+    Label ok;
+    __ AddImmediate(R4, FP, kNewContextOffsetFromFp, kNoPP);
+    __ CompareRegisters(R4, SP);
+    __ b(&ok, EQ);
+    __ Stop("kNewContextOffsetFromFp mismatch");
+    __ Bind(&ok);
+  }
+#endif
 
   // We now load the pool pointer(PP) as we are about to invoke dart code and we
   // could potentially invoke some intrinsic functions which need the PP to be
@@ -826,9 +831,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Load Isolate pointer into temporary register R5.
   __ LoadImmediate(R5, Isolate::CurrentAddress(), PP);
-
-  // Load the stack limit address into the C stack pointer register.
-  __ LoadFromOffset(CSP, R5, Isolate::stack_limit_offset(), PP);
 
   // Cache the new Context pointer into CTX while executing Dart code.
   __ LoadFromOffset(CTX, R3, VMHandles::kOffsetOfRawPtrInHandle, PP);
