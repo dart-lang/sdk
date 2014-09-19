@@ -715,7 +715,6 @@ void Object::InitOnce() {
   cls = Class::New<Type>();
   cls.set_is_type_finalized();
   cls.set_is_finalized();
-  isolate->object_store()->set_type_class(cls);
 
   cls = dynamic_class_;
   dynamic_type_ = Type::NewNonParameterizedType(cls);
@@ -952,23 +951,16 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_canonical_type_arguments(array);
 
   // Setup type class early in the process.
-  cls = Class::New<Type>();
-  object_store->set_type_class(cls);
-
-  cls = Class::New<TypeRef>();
-  object_store->set_type_ref_class(cls);
-
-  cls = Class::New<TypeParameter>();
-  object_store->set_type_parameter_class(cls);
-
-  cls = Class::New<BoundedType>();
-  object_store->set_bounded_type_class(cls);
-
-  cls = Class::New<MixinAppType>();
-  object_store->set_mixin_app_type_class(cls);
-
-  cls = Class::New<LibraryPrefix>();
-  object_store->set_library_prefix_class(cls);
+  const Class& type_cls = Class::Handle(isolate, Class::New<Type>());
+  const Class& type_ref_cls = Class::Handle(isolate, Class::New<TypeRef>());
+  const Class& type_parameter_cls = Class::Handle(isolate,
+                                                  Class::New<TypeParameter>());
+  const Class& bounded_type_cls = Class::Handle(isolate,
+                                                Class::New<BoundedType>());
+  const Class& mixin_app_type_cls = Class::Handle(isolate,
+                                                  Class::New<MixinAppType>());
+  const Class& library_prefix_cls = Class::Handle(isolate,
+                                                  Class::New<LibraryPrefix>());
 
   // Pre-allocate the OneByteString class needed by the symbol table.
   cls = Class::NewStringClass(kOneByteStringCid);
@@ -1073,10 +1065,10 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
   pending_classes.Add(cls);
 
-  cls = Class::New<Stacktrace>();
-  object_store->set_stacktrace_class(cls);
-  RegisterClass(cls, Symbols::StackTrace(), core_lib);
-  pending_classes.Add(cls);
+  const Class& stacktrace_cls = Class::Handle(isolate,
+                                              Class::New<Stacktrace>());
+  RegisterClass(stacktrace_cls, Symbols::StackTrace(), core_lib);
+  pending_classes.Add(stacktrace_cls);
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
@@ -1113,30 +1105,24 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterClass(cls, Symbols::Null(), core_lib);
   pending_classes.Add(cls);
 
-  cls = object_store->library_prefix_class();
-  ASSERT(!cls.IsNull());
-  RegisterPrivateClass(cls, Symbols::_LibraryPrefix(), core_lib);
-  pending_classes.Add(cls);
+  ASSERT(!library_prefix_cls.IsNull());
+  RegisterPrivateClass(library_prefix_cls, Symbols::_LibraryPrefix(), core_lib);
+  pending_classes.Add(library_prefix_cls);
 
-  cls = object_store->type_class();
-  RegisterPrivateClass(cls, Symbols::Type(), core_lib);
-  pending_classes.Add(cls);
+  RegisterPrivateClass(type_cls, Symbols::Type(), core_lib);
+  pending_classes.Add(type_cls);
 
-  cls = object_store->type_ref_class();
-  RegisterPrivateClass(cls, Symbols::TypeRef(), core_lib);
-  pending_classes.Add(cls);
+  RegisterPrivateClass(type_ref_cls, Symbols::TypeRef(), core_lib);
+  pending_classes.Add(type_ref_cls);
 
-  cls = object_store->type_parameter_class();
-  RegisterPrivateClass(cls, Symbols::TypeParameter(), core_lib);
-  pending_classes.Add(cls);
+  RegisterPrivateClass(type_parameter_cls, Symbols::TypeParameter(), core_lib);
+  pending_classes.Add(type_parameter_cls);
 
-  cls = object_store->bounded_type_class();
-  RegisterPrivateClass(cls, Symbols::BoundedType(), core_lib);
-  pending_classes.Add(cls);
+  RegisterPrivateClass(bounded_type_cls, Symbols::BoundedType(), core_lib);
+  pending_classes.Add(bounded_type_cls);
 
-  cls = object_store->mixin_app_type_class();
-  RegisterPrivateClass(cls, Symbols::MixinAppType(), core_lib);
-  pending_classes.Add(cls);
+  RegisterPrivateClass(mixin_app_type_cls, Symbols::MixinAppType(), core_lib);
+  pending_classes.Add(mixin_app_type_cls);
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
@@ -1250,44 +1236,29 @@ RawError* Object::Init(Isolate* isolate) {
   }
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::TypedDataLibrary());
-  const intptr_t typed_data_class_array_length =
-      RawObject::NumberOfTypedDataClasses();
-  Array& typed_data_classes =
-      Array::Handle(Array::New(typed_data_class_array_length));
-  int index = 0;
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);                      \
-  index = kTypedData##clazz##Cid - kTypedDataInt8ArrayCid;                     \
-  typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_##clazz(), lib);                         \
 
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
   cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);              \
-  index = kTypedData##clazz##ViewCid - kTypedDataInt8ArrayCid;                 \
-  typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_##clazz##View(), lib);                   \
   pending_classes.Add(cls);                                                    \
 
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
   cls = Class::NewTypedDataViewClass(kByteDataViewCid);
-  index = kByteDataViewCid - kTypedDataInt8ArrayCid;
-  typed_data_classes.SetAt(index, cls);
   RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
   pending_classes.Add(cls);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);      \
-  index = kExternalTypedData##clazz##Cid - kTypedDataInt8ArrayCid;             \
-  typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_External##clazz(), lib);                 \
 
   cls = Class::New<Instance>(kByteBufferCid);
   cls.set_instance_size(0);
   cls.set_next_field_offset(-kWordSize);
-  index = kByteBufferCid - kTypedDataInt8ArrayCid;
-  typed_data_classes.SetAt(index, cls);
   RegisterPrivateClass(cls, Symbols::_ByteBuffer(), lib);
   pending_classes.Add(cls);
 
@@ -1331,13 +1302,10 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_float64x2_type(type);
 
-  object_store->set_typed_data_classes(typed_data_classes);
-
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
-  cls = object_store->stacktrace_class();
   type = object_store->object_type();
-  cls.set_super_type(type);
+  stacktrace_cls.set_super_type(type);
 
   // Abstract class that represents the Dart class Function.
   cls = Class::New<Instance>(kIllegalCid);
@@ -1462,26 +1430,19 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   // Set up empty classes in the object store, these will get
   // initialized correctly when we read from the snapshot.
   // This is done to allow bootstrapping of reading classes from the snapshot.
+  // Some classes are not stored in the object store. Yet we still need to
+  // create their Class object so that they get put into the class_table
+  // (as a side effect of Class::New()).
+
   cls = Class::New<Instance>(kInstanceCid);
   object_store->set_object_class(cls);
 
   cls = Class::New<LibraryPrefix>();
-  object_store->set_library_prefix_class(cls);
-
   cls = Class::New<Type>();
-  object_store->set_type_class(cls);
-
   cls = Class::New<TypeRef>();
-  object_store->set_type_ref_class(cls);
-
   cls = Class::New<TypeParameter>();
-  object_store->set_type_parameter_class(cls);
-
   cls = Class::New<BoundedType>();
-  object_store->set_bounded_type_class(cls);
-
   cls = Class::New<MixinAppType>();
-  object_store->set_mixin_app_type_class(cls);
 
   cls = Class::New<Array>();
   object_store->set_array_class(cls);
@@ -1556,22 +1517,14 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<Capability>();
   cls = Class::New<ReceivePort>();
   cls = Class::New<SendPort>();
-
   cls = Class::New<Stacktrace>();
-  object_store->set_stacktrace_class(cls);
-
   cls = Class::New<JSRegExp>();
-
-  // Some classes are not stored in the object store. Yet we still need to
-  // create their Class object so that they get put into the class_table
-  // (as a side effect of Class::New()).
   cls = Class::New<Number>();
 
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
 
   cls = Class::New<MirrorReference>();
-
   cls = Class::New<UserTag>();
 }
 
@@ -10185,8 +10138,6 @@ void LibraryPrefix::InvalidateDependentCode() const {
 
 
 RawLibraryPrefix* LibraryPrefix::New() {
-  ASSERT(Isolate::Current()->object_store()->library_prefix_class() !=
-      Class::null());
   RawObject* raw = Object::Allocate(LibraryPrefix::kClassId,
                                     LibraryPrefix::InstanceSize(),
                                     Heap::kOld);
@@ -14765,7 +14716,6 @@ void Type::set_arguments(const TypeArguments& value) const {
 
 
 RawType* Type::New(Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->type_class() != Class::null());
   RawObject* raw = Object::Allocate(Type::kClassId,
                                     Type::InstanceSize(),
                                     space);
@@ -14975,7 +14925,6 @@ bool TypeRef::TestAndAddBuddyToTrail(GrowableObjectArray** trail,
 
 
 RawTypeRef* TypeRef::New() {
-  ASSERT(Isolate::Current()->object_store()->type_ref_class() != Class::null());
   RawObject* raw = Object::Allocate(TypeRef::kClassId,
                                     TypeRef::InstanceSize(),
                                     Heap::kOld);
@@ -15173,8 +15122,6 @@ intptr_t TypeParameter::Hash() const {
 
 
 RawTypeParameter* TypeParameter::New() {
-  ASSERT(Isolate::Current()->object_store()->type_parameter_class() !=
-         Class::null());
   RawObject* raw = Object::Allocate(TypeParameter::kClassId,
                                     TypeParameter::InstanceSize(),
                                     Heap::kOld);
@@ -15394,8 +15341,6 @@ intptr_t BoundedType::Hash() const {
 
 
 RawBoundedType* BoundedType::New() {
-  ASSERT(Isolate::Current()->object_store()->bounded_type_class() !=
-         Class::null());
   RawObject* raw = Object::Allocate(BoundedType::kClassId,
                                     BoundedType::InstanceSize(),
                                     Heap::kOld);
@@ -15501,8 +15446,6 @@ void MixinAppType::set_mixin_types(const Array& value) const {
 
 
 RawMixinAppType* MixinAppType::New() {
-  ASSERT(Isolate::Current()->object_store()->mixin_app_type_class() !=
-         Class::null());
   // MixinAppType objects do not survive finalization, so allocate
   // on new heap.
   RawObject* raw = Object::Allocate(MixinAppType::kClassId,
@@ -19886,8 +19829,6 @@ bool Stacktrace::expand_inlined() const {
 RawStacktrace* Stacktrace::New(const Array& code_array,
                                const Array& pc_offset_array,
                                Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->stacktrace_class() !=
-         Class::null());
   Stacktrace& result = Stacktrace::Handle();
   {
     RawObject* raw = Object::Allocate(Stacktrace::kClassId,

@@ -70,32 +70,6 @@ class ObjectStore {
     function_impl_type_ = value.raw();
   }
 
-  RawClass* library_prefix_class() const { return library_prefix_class_; }
-  void set_library_prefix_class(const Class& value) {
-    library_prefix_class_ = value.raw();
-  }
-
-  RawClass* type_class() const { return type_class_; }
-  void set_type_class(const Class& value) { type_class_ = value.raw(); }
-
-  RawClass* type_ref_class() const { return type_ref_class_; }
-  void set_type_ref_class(const Class& value) { type_ref_class_ = value.raw(); }
-
-  RawClass* type_parameter_class() const { return type_parameter_class_; }
-  void set_type_parameter_class(const Class& value) {
-    type_parameter_class_ = value.raw();
-  }
-
-  RawClass* bounded_type_class() const { return bounded_type_class_; }
-  void set_bounded_type_class(const Class& value) {
-    bounded_type_class_ = value.raw();
-  }
-
-  RawClass* mixin_app_type_class() const { return mixin_app_type_class_; }
-  void set_mixin_app_type_class(const Class& value) {
-    mixin_app_type_class_ = value.raw();
-  }
-
   RawType* number_type() const { return number_type_; }
   void set_number_type(const Type& value) {
     number_type_ = value.raw();
@@ -231,13 +205,6 @@ class ObjectStore {
   RawType* float64x2_type() const { return float64x2_type_; }
   void set_float64x2_type(const Type& value) { float64x2_type_ = value.raw(); }
 
-  RawArray* typed_data_classes() const {
-    return typed_data_classes_;
-  }
-  void set_typed_data_classes(const Array& value) {
-    typed_data_classes_ = value.raw();
-  }
-
   RawClass* error_class() const {
     return error_class_;
   }
@@ -246,16 +213,6 @@ class ObjectStore {
   }
   static intptr_t error_class_offset() {
     return OFFSET_OF(ObjectStore, error_class_);
-  }
-
-  RawClass* stacktrace_class() const {
-    return stacktrace_class_;
-  }
-  void set_stacktrace_class(const Class& value) {
-    stacktrace_class_ = value.raw();
-  }
-  static intptr_t stacktrace_class_offset() {
-    return OFFSET_OF(ObjectStore, stacktrace_class_);
   }
 
   RawClass* weak_property_class() const {
@@ -462,12 +419,6 @@ class ObjectStore {
   RawType* null_type_;
   RawType* function_type_;
   RawType* function_impl_type_;
-  RawClass* library_prefix_class_;
-  RawClass* type_class_;
-  RawClass* type_ref_class_;
-  RawClass* type_parameter_class_;
-  RawClass* bounded_type_class_;
-  RawClass* mixin_app_type_class_;
   RawType* number_type_;
   RawType* int_type_;
   RawClass* integer_implementation_class_;
@@ -496,9 +447,7 @@ class ObjectStore {
   RawClass* float32x4_class_;
   RawClass* int32x4_class_;
   RawClass* float64x2_class_;
-  RawArray* typed_data_classes_;
   RawClass* error_class_;
-  RawClass* stacktrace_class_;
   RawClass* weak_property_class_;
   RawArray* symbol_table_;
   RawArray* canonical_type_arguments_;
