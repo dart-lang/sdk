@@ -104,7 +104,7 @@ class SweeperTask : public ThreadPool::Task {
 
   virtual void Run() {
     Isolate::SetCurrent(task_isolate_);
-    GCSweeper sweeper(NULL);
+    GCSweeper sweeper;
 
     HeapPage* page = first_;
     HeapPage* prev_page = NULL;

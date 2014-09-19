@@ -403,43 +403,69 @@ void PageSpace::FreeExternal(intptr_t size) {
 }
 
 
-bool PageSpace::Contains(uword addr) const {
-  MutexLocker ml(pages_lock_);
+// Provides exclusive access to the pages, and ensures they are walkable.
+class ExclusivePageIterator : ValueObject {
+ public:
+  explicit ExclusivePageIterator(const PageSpace* space)
+      : space_(space), ml_(space->pages_lock_) {
+    space_->MakeIterable();
+    page_ = space_->pages_;
+    if (page_ == NULL) {
+      page_ = space_->exec_pages_;
+      if (page_ == NULL) {
+        page_ = space_->large_pages_;
+      }
+    }
+  }
+  HeapPage* page() const { return page_; }
+  bool Done() const { return page_ == NULL; }
+  void Advance() {
+    ASSERT(!Done());
+    page_ = space_->NextPageAnySize(page_);
+  }
+ private:
+  const PageSpace* space_;
+  MutexLocker ml_;
   NoGCScope no_gc;
-  HeapPage* page = pages_;
-  while (page != NULL) {
-    if (page->Contains(addr)) {
+  HeapPage* page_;
+};
+
+
+void PageSpace::MakeIterable() const {
+  // TODO(koda): Assert not called from concurrent sweeper task.
+  if (bump_top_ < bump_end_) {
+    FreeListElement::AsElement(bump_top_, bump_end_ - bump_top_);
+  }
+}
+
+
+bool PageSpace::Contains(uword addr) const {
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    if (it.page()->Contains(addr)) {
       return true;
     }
-    page = NextPageAnySize(page);
   }
   return false;
 }
 
 
 bool PageSpace::Contains(uword addr, HeapPage::PageType type) const {
-  MutexLocker ml(pages_lock_);
-  NoGCScope no_gc;
-  HeapPage* page = pages_;
-  while (page != NULL) {
-    if ((page->type() == type) && page->Contains(addr)) {
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    if ((it.page()->type() == type) && it.page()->Contains(addr)) {
       return true;
     }
-    page = NextPageAnySize(page);
   }
   return false;
 }
 
 
 void PageSpace::StartEndAddress(uword* start, uword* end) const {
-  MutexLocker ml(pages_lock_);
-  NoGCScope no_gc;
   ASSERT((pages_ != NULL) || (exec_pages_ != NULL) || (large_pages_ != NULL));
   *start = static_cast<uword>(~0);
   *end = 0;
-  for (HeapPage* page = pages_; page != NULL; page = NextPageAnySize(page)) {
-    *start = Utils::Minimum(*start, page->object_start());
-    *end = Utils::Maximum(*end, page->object_end());
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    *start = Utils::Minimum(*start, it.page()->object_start());
+    *end = Utils::Maximum(*end, it.page()->object_end());
   }
   ASSERT(*start != static_cast<uword>(~0));
   ASSERT(*end != 0);
@@ -447,53 +473,36 @@ void PageSpace::StartEndAddress(uword* start, uword* end) const {
 
 
 void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
-  MutexLocker ml(pages_lock_);
-  NoGCScope no_gc;
-  HeapPage* page = pages_;
-  while (page != NULL) {
-    page->VisitObjects(visitor);
-    page = NextPageAnySize(page);
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    it.page()->VisitObjects(visitor);
   }
 }
 
 
 void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-  MutexLocker ml(pages_lock_);
-  NoGCScope no_gc;
-  HeapPage* page = pages_;
-  while (page != NULL) {
-    page->VisitObjectPointers(visitor);
-    page = NextPageAnySize(page);
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    it.page()->VisitObjectPointers(visitor);
   }
 }
 
 
 RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
                                  HeapPage::PageType type) const {
-  ASSERT(Isolate::Current()->no_gc_scope_depth() != 0);
-  MutexLocker ml(pages_lock_);
-  NoGCScope no_gc;
-  HeapPage* page = pages_;
-  while (page != NULL) {
-    if (page->type() == type) {
-      RawObject* obj = page->FindObject(visitor);
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    if (it.page()->type() == type) {
+      RawObject* obj = it.page()->FindObject(visitor);
       if (obj != Object::null()) {
         return obj;
       }
     }
-    page = NextPageAnySize(page);
   }
   return Object::null();
 }
 
 
 void PageSpace::WriteProtect(bool read_only) {
-  MutexLocker ml(pages_lock_);
-  NoGCScope no_gc;
-  HeapPage* page = pages_;
-  while (page != NULL) {
-    page->WriteProtect(read_only);
-    page = NextPageAnySize(page);
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    it.page()->WriteProtect(read_only);
   }
 }
 
@@ -554,7 +563,9 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
   {
     // "pages" is an array [page0, page1, ..., pageN], each page of the form
     // {"object_start": "0x...", "objects": [size, class id, size, ...]}
+    // TODO(19445): Use ExclusivePageIterator once HeapMap supports large pages.
     MutexLocker ml(pages_lock_);
+    MakeIterable();
     NoGCScope no_gc;
     JSONArray all_pages(&heap_map, "pages");
     for (HeapPage* page = pages_; page != NULL; page = page->next()) {
@@ -662,6 +673,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   int64_t mid1 = OS::GetCurrentTimeMicros();
 
   // Abandon the remainder of the bump allocation block.
+  MakeIterable();
   bump_top_ = 0;
   bump_end_ = 0;
   // Reset the freelists and setup sweeping.
@@ -672,7 +684,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   int64_t mid3 = 0;
 
   {
-    GCSweeper sweeper(heap_);
+    GCSweeper sweeper;
 
     // During stop-the-world phases we should use bulk lock when adding elements
     // to the free list.
@@ -812,10 +824,14 @@ uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
   uword result = bump_top_;
   bump_top_ += size;
   usage_.used_in_words += size >> kWordSizeLog2;
-  remaining -= size;
-  if (remaining > 0) {
-    FreeListElement::AsElement(bump_top_, remaining);
+  // Note: Remaining block is unwalkable until MakeIterable is called.
+#ifdef DEBUG
+  if (bump_top_ < bump_end_) {
+    // Fail fast if we try to walk the remaining block.
+    COMPILE_ASSERT(kIllegalCid == 0);
+    *reinterpret_cast<uword*>(bump_top_) = 0;
   }
+#endif  // DEBUG
   return result;
 }
 
