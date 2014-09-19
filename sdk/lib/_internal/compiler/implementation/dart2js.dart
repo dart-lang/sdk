@@ -113,6 +113,8 @@ Future compile(List<String> argv) {
   bool stripArgumentSet = false;
   bool analyzeOnly = false;
   bool analyzeAll = false;
+  bool trustTypeAnnotations = false;
+  bool checkedMode = false;
   // List of provided options that imply that output is expected.
   List<String> optionsImplyCompilation = <String>[];
   bool hasDisallowUnsafeEval = false;
@@ -196,6 +198,16 @@ Future compile(List<String> argv) {
     passThrough(argument);
   }
 
+  setTrustTypeAnnotations(String argument) {
+    trustTypeAnnotations = true;
+    implyCompilation(argument);
+  }
+
+  setCheckedMode(String argument) {
+    checkedMode = true;
+    passThrough(argument);
+  }
+
   addInEnvironment(String argument) {
     int eqIndex = argument.indexOf('=');
     String name = argument.substring(2, eqIndex);
@@ -246,7 +258,7 @@ Future compile(List<String> argv) {
           wantHelp = true;
           break;
         case 'c':
-          passThrough('--enable-checked-mode');
+          setCheckedMode('--enable-checked-mode');
           break;
         case 'm':
           implyCompilation('--minify');
@@ -282,12 +294,13 @@ Future compile(List<String> argv) {
     new OptionHandler('--enable-diagnostic-colors',
                       (_) => diagnosticHandler.enableColors = true),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
-                      (_) => passThrough('--enable-checked-mode')),
+                      (_) => setCheckedMode('--enable-checked-mode')),
     new OptionHandler('--enable-concrete-type-inference',
                       (_) => implyCompilation(
                           '--enable-concrete-type-inference')),
     new OptionHandler('--trust-type-annotations',
-                      (_) => implyCompilation('--trust-type-annotations')),
+                      (_) => setTrustTypeAnnotations(
+                          '--trust-type-annotations')),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
     new OptionHandler('--analyze-all', setAnalyzeAll),
@@ -338,6 +351,11 @@ Future compile(List<String> argv) {
   if (arguments.length > 1) {
     var extra = arguments.sublist(1);
     helpAndFail('Extra arguments: ${extra.join(" ")}');
+  }
+
+  if (checkedMode && trustTypeAnnotations) {
+    helpAndFail("Option '--trust-type-annotations' may not be used in "
+                "checked mode.");
   }
 
   Uri uri = currentDirectory.resolve(arguments[0]);

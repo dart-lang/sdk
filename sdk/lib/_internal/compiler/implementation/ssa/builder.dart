@@ -2295,6 +2295,15 @@ class SsaBuilder extends ResolvedVisitor {
     }
   }
 
+  HInstruction potentiallyBuildTypeHint(HInstruction original, DartType type) {
+    if (!compiler.trustTypeAnnotations || type == null) return original;
+    type = localsHandler.substInContext(type);
+    if (!type.isInterfaceType) return original;
+    TypeMask mask = new TypeMask.subtype(type.element, compiler.world);
+    var result = new HTypeKnown.pinned(mask, original);
+    return result;
+  }
+
   HInstruction potentiallyCheckType(HInstruction original, DartType type,
       { int kind: HTypeConversion.CHECKED_MODE_CHECK }) {
     if (!compiler.enableTypeAssertions) return original;
@@ -3200,7 +3209,14 @@ class SsaBuilder extends ResolvedVisitor {
         pop();
         stack.add(checked);
       }
-      localsHandler.updateLocal(local, checked);
+      HInstruction trusted =
+          potentiallyBuildTypeHint(checked, local.type);
+      if (!identical(trusted, checked)) {
+        pop();
+        push(trusted);
+      }
+
+      localsHandler.updateLocal(local, trusted);
     }
   }
 

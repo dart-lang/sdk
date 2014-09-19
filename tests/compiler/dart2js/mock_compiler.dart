@@ -72,6 +72,7 @@ class MockCompiler extends Compiler {
        // Our unit tests check code generation output that is
        // affected by inlining support.
        bool disableInlining: true,
+       bool trustTypeAnnotations: false,
        int this.expectedWarnings,
        int this.expectedErrors})
       : sourceFiles = new Map<String, SourceFile>(),
@@ -84,6 +85,7 @@ class MockCompiler extends Compiler {
               analyzeOnly: analyzeOnly,
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
+              trustTypeAnnotations: trustTypeAnnotations,
               showPackageWarnings: true) {
     this.disableInlining = disableInlining;
 
