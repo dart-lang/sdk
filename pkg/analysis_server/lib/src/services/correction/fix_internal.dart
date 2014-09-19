@@ -45,10 +45,11 @@ class FixProcessor {
   static const int MAX_LEVENSHTEIN_DISTANCE = 3;
 
   final SearchEngine searchEngine;
-  final Source source;
-  final String file;
   final CompilationUnit unit;
   final AnalysisError error;
+  AnalysisContext context;
+  String file;
+  int fileStamp;
   CompilationUnitElement unitElement;
   Source unitSource;
   LibraryElement unitLibraryElement;
@@ -68,10 +69,12 @@ class FixProcessor {
   AstNode node;
   AstNode coveredNode;
 
-  FixProcessor(this.searchEngine, this.source, this.file, this.unit, this.error)
-      {
+  FixProcessor(this.searchEngine, this.unit, this.error) {
     unitElement = unit.element;
+    context = unitElement.context;
     unitSource = unitElement.source;
+    file = unitSource.fullName;
+    fileStamp = context.getModificationStamp(unitSource);
     unitLibraryElement = unitElement.library;
     unitLibraryFile = unitLibraryElement.source.fullName;
     unitLibraryFolder = dirname(unitLibraryFile);
@@ -131,6 +134,7 @@ class FixProcessor {
       _addFix_createConstructorSuperExplicit();
     }
     if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
+      _addFix_createImportUri();
       _addFix_replaceImportUri();
     }
     if (errorCode == HintCode.DIVISION_OPTIMIZATION) {
@@ -227,14 +231,13 @@ class FixProcessor {
     return fixes;
   }
 
-  void _addFix(FixKind kind, List args, {String fixFile}) {
-    if (fixFile == null) {
-      fixFile = file;
+  void _addFix(FixKind kind, List args, {String file, int fileStamp}) {
+    if (file == null || fileStamp == null) {
+      file = this.file;
+      fileStamp = this.fileStamp;
     }
     // prepare SourceFileEdit
-    SourceFileEdit fileEdit = new SourceFileEdit(
-        file,
-        unitElement.context.getModificationStamp(unitElement.source));
+    SourceFileEdit fileEdit = new SourceFileEdit(file, fileStamp);
     fileEdit.addAll(edits);
     // prepare Change
     String message = formatList(kind.message, args);
@@ -250,6 +253,13 @@ class FixProcessor {
     edits.clear();
     linkedPositionGroups.clear();
     exitPosition = null;
+  }
+
+  void _addFixToElement(FixKind kind, List args, Element element) {
+    Source source = element.source;
+    String file = source.fullName;
+    int fileStamp = element.context.getModificationStamp(source);
+    _addFix(kind, args, file: file, fileStamp: fileStamp);
   }
 
   void _addFix_boolInsteadOfBoolean() {
@@ -491,7 +501,10 @@ class FixProcessor {
     // insert source
     _insertBuilder(sb);
     // add proposal
-    _addFix(FixKind.CREATE_CONSTRUCTOR, [constructorName], fixFile: targetFile);
+    _addFixToElement(
+        FixKind.CREATE_CONSTRUCTOR,
+        [constructorName],
+        targetElement);
   }
 
   void _addFix_createConstructor_named() {
@@ -556,7 +569,10 @@ class FixProcessor {
       _addLinkedPosition("NAME", rf.rangeNode(name));
     }
     // add proposal
-    _addFix(FixKind.CREATE_CONSTRUCTOR, [constructorName], fixFile: targetFile);
+    _addFixToElement(
+        FixKind.CREATE_CONSTRUCTOR,
+        [constructorName],
+        targetElement);
   }
 
   void _addFix_createFunction_forFunctionType() {
@@ -604,6 +620,22 @@ class FixProcessor {
         _addProposal_createFunction_method(targetElement, functionType);
       } else {
         _addProposal_createFunction_function(functionType);
+      }
+    }
+  }
+
+  void _addFix_createImportUri() {
+    if (node is SimpleStringLiteral && node.parent is ImportDirective) {
+      ImportDirective importDirective = node.parent;
+      Source source = importDirective.source;
+      if (source != null) {
+        String file = source.fullName;
+        if (isAbsolute(file)) {
+          String libName = removeEnd(source.shortName, '.dart');
+          libName = libName.replaceAll('_', '.');
+          edits.add(new SourceEdit(0, 0, 'library $libName;$eol$eol'));
+        }
+        _addFix(FixKind.CREATE_FILE, [file], file: file, fileStamp: -1);
       }
     }
   }
@@ -776,7 +808,7 @@ class FixProcessor {
     String importSource = "${prefix}import '${importPath}';${suffix}";
     _addInsertEdit(offset, importSource);
     // add proposal
-    _addFix(kind, [importPath], fixFile: libraryUnitElement.source.fullName);
+    _addFixToElement(kind, [importPath], libraryUnitElement);
   }
 
   void _addFix_importLibrary_withElement(String name, ElementKind kind) {
@@ -827,16 +859,15 @@ class FixProcessor {
         // update library
         String newShowCode = "show ${StringUtils.join(showNames, ", ")}";
         _addReplaceEdit(rf.rangeOffsetEnd(showCombinator), newShowCode);
-        _addFix(
+        _addFixToElement(
             FixKind.IMPORT_LIBRARY_SHOW,
             [libraryName],
-            fixFile: unitLibraryFile);
+            unitLibraryElement);
         // we support only one import without prefix
         return;
       }
     }
     // check SDK libraries
-    AnalysisContext context = unitLibraryElement.context;
     {
       DartSdk sdk = context.sourceFactory.dartSdk;
       List<SdkLibrary> sdkLibraries = sdk.sdkLibraries;
@@ -1024,7 +1055,6 @@ class FixProcessor {
       SimpleStringLiteral stringLiteral = node;
       String uri = stringLiteral.value;
       String uriName = substringAfterLast(uri, '/');
-      AnalysisContext context = unitLibraryElement.context;
       for (Source libSource in context.librarySources) {
         String libFile = libSource.fullName;
         if (substringAfterLast(libFile, '/') == uriName) {
@@ -1170,7 +1200,7 @@ class FixProcessor {
       String name = (node as SimpleIdentifier).name;
       MethodInvocation invocation = node.parent as MethodInvocation;
       // prepare environment
-      Source targetSource;
+      Element targetElement;
       String prefix;
       int insertOffset;
       String sourcePrefix;
@@ -1178,7 +1208,7 @@ class FixProcessor {
       bool staticModifier = false;
       Expression target = invocation.realTarget;
       if (target == null) {
-        targetSource = source;
+        targetElement = unitElement;
         ClassMember enclosingMember =
             node.getAncestor((node) => node is ClassMember);
         staticModifier = _inStaticContext();
@@ -1192,24 +1222,24 @@ class FixProcessor {
         if (targetType is! InterfaceType) {
           return;
         }
-        ClassElement targetElement = targetType.element as ClassElement;
-        targetSource = targetElement.source;
+        ClassElement targetClassElement = targetType.element as ClassElement;
+        targetElement = targetClassElement;
         // may be static
         if (target is Identifier) {
           staticModifier = target.bestElement.kind == ElementKind.CLASS;
         }
         // prepare insert offset
-        ClassDeclaration targetClass = targetElement.node;
+        ClassDeclaration targetClassNode = targetClassElement.node;
         prefix = "  ";
-        insertOffset = targetClass.end - 1;
-        if (targetClass.members.isEmpty) {
+        insertOffset = targetClassNode.end - 1;
+        if (targetClassNode.members.isEmpty) {
           sourcePrefix = "";
         } else {
           sourcePrefix = eol;
         }
         sourceSuffix = eol;
       }
-      String targetFile = targetSource.fullName;
+      String targetFile = targetElement.source.fullName;
       // build method source
       SourceBuilder sb = new SourceBuilder(targetFile, insertOffset);
       {
@@ -1234,11 +1264,11 @@ class FixProcessor {
       // insert source
       _insertBuilder(sb);
       // add linked positions
-      if (targetSource == source) {
+      if (targetFile == file) {
         _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
       }
       // add proposal
-      _addFix(FixKind.CREATE_METHOD, [name], fixFile: targetFile);
+      _addFixToElement(FixKind.CREATE_METHOD, [name], targetElement);
     }
   }
 
@@ -1456,7 +1486,7 @@ class FixProcessor {
     // insert source
     _insertBuilder(sb);
     // add linked positions
-    if (targetSource == source) {
+    if (targetSource == unitSource) {
       _addLinkedPosition3("NAME", sb, rf.rangeNode(node));
     }
   }
@@ -1476,14 +1506,14 @@ class FixProcessor {
     _addProposal_createFunction(
         functionType,
         name,
-        source,
+        unitSource,
         insertOffset,
         false,
         prefix,
         sourcePrefix,
         sourceSuffix);
     // add proposal
-    _addFix(FixKind.CREATE_FUNCTION, [name], fixFile: file);
+    _addFix(FixKind.CREATE_FUNCTION, [name]);
   }
 
   /**
@@ -1518,7 +1548,7 @@ class FixProcessor {
         sourcePrefix,
         sourceSuffix);
     // add proposal
-    _addFix(FixKind.CREATE_METHOD, [name], fixFile: targetFile);
+    _addFixToElement(FixKind.CREATE_METHOD, [name], targetClassElement);
   }
 
   /**

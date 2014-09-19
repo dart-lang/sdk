@@ -395,6 +395,23 @@ main() {
 ''');
   }
 
+  void test_createFile_forImport() {
+    testFile = '/my/project/bin/test.dart';
+    _indexTestUnit('''
+import 'my_file.dart';
+''');
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(FixKind.CREATE_FILE, error);
+    change = fix.change;
+    // validate change
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/my/project/bin/my_file.dart');
+    expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits[0].replacement, contains('library my.file;'));
+  }
+
   void test_createMissingOverrides_functionType() {
     _indexTestUnit('''
 abstract class A {
