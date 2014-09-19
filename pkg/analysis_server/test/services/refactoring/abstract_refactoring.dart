@@ -12,10 +12,12 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import '../../abstract_single_unit.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../abstract_single_unit.dart';
 
 
 int findIdentifierLength(String search) {
@@ -43,6 +45,31 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   SourceChange refactoringChange;
 
   Refactoring get refactoring;
+
+  /**
+   * Asserts that [refactoringChange] contains a [FileEdit] for the file
+   * with the given [path], and it results the [expectedCode].
+   */
+  void assertFileChangeResult(String path, String expectedCode) {
+    // prepare FileEdit
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(path);
+    expect(fileEdit, isNotNull, reason: 'No file edit for $path');
+    // validate resulting code
+    File file = provider.getResource(path);
+    Source source = file.createSource();
+    String ini = context.getContents(source).data;
+    String actualCode = SourceEdit.applySequence(ini, fileEdit.edits);
+    expect(actualCode, expectedCode);
+  }
+
+  /**
+   * Asserts that [refactoringChange] does not contain a [FileEdit] for the file
+   * with the given [path].
+   */
+  void assertNoFileChange(String path) {
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(path);
+    expect(fileEdit, isNull);
+  }
 
   /**
    * Asserts that [refactoring] initial/final conditions status is OK.
@@ -99,19 +126,6 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   }
 
   /**
-   * Asserts that [refactoringChange] contains a [FileEdit] for [testFile], and
-   * it results the [expectedCode].
-   */
-  void assertTestChangeResult(String expectedCode) {
-    // prepare FileEdit
-    SourceFileEdit fileEdit = refactoringChange.getFileEdit(testFile);
-    expect(fileEdit, isNotNull);
-    // validate resulting code
-    String actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);
-    expect(actualCode, expectedCode);
-  }
-
-  /**
    * Checks that all conditions of [refactoring] are OK and the result of
    * applying the [Change] to [testUnit] is [expectedCode].
    */
@@ -122,6 +136,19 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
         assertTestChangeResult(expectedCode);
       });
     });
+  }
+
+  /**
+   * Asserts that [refactoringChange] contains a [FileEdit] for [testFile], and
+   * it results the [expectedCode].
+   */
+  void assertTestChangeResult(String expectedCode) {
+    // prepare FileEdit
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(testFile);
+    expect(fileEdit, isNotNull);
+    // validate resulting code
+    String actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);
+    expect(actualCode, expectedCode);
   }
 
   void indexTestUnit(String code) {

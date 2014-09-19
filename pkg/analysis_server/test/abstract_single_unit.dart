@@ -4,13 +4,14 @@
 
 library test.services.src.index.abstract_single_file;
 
-import 'abstract_context.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
+
+import 'abstract_context.dart';
 
 
 class AbstractSingleUnitTest extends AbstractContextTest {
@@ -23,6 +24,11 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
 
+  void addTestSource(String code) {
+    testCode = code;
+    testSource = addSource(testFile, code);
+  }
+
   void assertNoErrorsInSource(Source source) {
     List<AnalysisError> errors = context.getErrors(source).errors;
     expect(errors, isEmpty);
@@ -30,6 +36,10 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   Element findElement(String name, [ElementKind kind]) {
     return findChildElement(testUnitElement, name, kind);
+  }
+
+  int findEnd(String search) {
+    return findOffset(search) + search.length;
   }
 
   /**
@@ -61,10 +71,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return ElementLocator.locate(node);
   }
 
-  int findEnd(String search) {
-    return findOffset(search) + search.length;
-  }
-
   int findOffset(String search) {
     int offset = testCode.indexOf(search);
     expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
@@ -93,8 +99,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   void resolveTestUnit(String code) {
-    testCode = code;
-    testSource = addSource(testFile, code);
+    addTestSource(code);
     testUnit = resolveLibraryUnit(testSource);
     if (verifyNoTestUnitErrors) {
       assertNoErrorsInSource(testSource);

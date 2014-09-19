@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
 import 'package:analysis_server/src/services/refactoring/inline_method.dart';
+import 'package:analysis_server/src/services/refactoring/move_file.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_constructor.dart';
 import 'package:analysis_server/src/services/refactoring/rename_import.dart';
@@ -23,6 +24,8 @@ import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 
 /**
@@ -244,6 +247,25 @@ abstract class InlineMethodRefactoring implements Refactoring {
    * The name of the method (or function) being inlined.
    */
   String get methodName;
+}
+
+
+/**
+ * [Refactoring] to move/rename a file.
+ */
+abstract class MoveFileRefactoring implements Refactoring {
+  /**
+   * Returns a new [MoveFileRefactoring] instance.
+   */
+  factory MoveFileRefactoring(SearchEngine searchEngine,
+      AnalysisContext context, Source source) {
+    return new MoveFileRefactoringImpl(searchEngine, context, source);
+  }
+
+  /**
+   * The new file path to which the given file is being moved.
+   */
+  void set newFile(String newName);
 }
 
 
