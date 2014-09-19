@@ -166,7 +166,7 @@ scheduled_test/test/scheduled_test/tear_down_test: RuntimeError #Issue 21005
 scheduled_test/test/scheduled_test/unhandled_error_test: RuntimeError #Issue 21005
 scheduled_test/test/scheduled_test/wrap_future_test: RuntimeError #Issue 21005
 scheduled_test/test/unittest_compatibility_test: RuntimeError #Issue 21005
-unittest/test/missing_tick_test: RuntimeError # Timer interface not supported: dartbug.com/7728
+unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728
 unittest/test/nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 
 [ $compiler == dart2js && $runtime == drt ]
