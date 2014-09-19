@@ -4406,6 +4406,18 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* MintToDoubleInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void MintToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Isolate* isolate,
                                                            bool opt) const {
   const intptr_t kNumInputs = 1;

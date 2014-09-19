@@ -63,6 +63,18 @@ static bool CanUnboxDouble() {
 }
 
 
+static bool CanConvertUnboxedMintToDouble() {
+#if defined(TARGET_ARCH_IA32)
+  return true;
+#else
+  // ARM does not have a short instruction sequence for converting int64 to
+  // double.
+  // TODO(johnmccutchan): Investigate possibility on MIPS once
+  // mints are implemented there.
+  return false;
+#endif
+}
+
 // Optimize instance calls using ICData.
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -637,21 +649,21 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new UnboxUint32Instr(use->CopyWithType(), deopt_id);
   } else if (from == kUnboxedMint && to == kUnboxedDouble) {
     ASSERT(CanUnboxDouble());
-    // Convert by boxing/unboxing.
-    // TODO(fschneider): Implement direct unboxed mint-to-double conversion.
-    BoxIntegerInstr* boxed =
-        new(I) BoxIntegerInstr(use->CopyWithType());
-    use->BindTo(boxed);
-    InsertBefore(insert_before, boxed, NULL, FlowGraph::kValue);
-
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    converted = new(I) UnboxDoubleInstr(new(I) Value(boxed), deopt_id);
-
+    if (CanConvertUnboxedMintToDouble()) {
+      // Fast path.
+      converted = new MintToDoubleInstr(use->CopyWithType(), deopt_id);
+    } else {
+      // Slow path.
+      BoxIntegerInstr* boxed = new(I) BoxIntegerInstr(use->CopyWithType());
+      use->BindTo(boxed);
+      InsertBefore(insert_before, boxed, NULL, FlowGraph::kValue);
+      converted = new(I) UnboxDoubleInstr(new(I) Value(boxed), deopt_id);
+    }
   } else if ((from == kUnboxedDouble) && (to == kTagged)) {
     ASSERT(CanUnboxDouble());
     converted = new(I) BoxDoubleInstr(use->CopyWithType());
-
   } else if ((from == kTagged) && (to == kUnboxedDouble)) {
     ASSERT(CanUnboxDouble());
     ASSERT((deopt_target != NULL) ||
@@ -3051,14 +3063,21 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
   if (CanUnboxDouble() &&
       (recognized_kind == MethodRecognizer::kIntegerToDouble) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      (class_ids[0] == kSmiCid)) {
-    AddReceiverCheck(call);
-    ReplaceCall(call,
-                new(I) SmiToDoubleInstr(
-                    new(I) Value(call->ArgumentAt(0)),
-                    call->token_pos()));
-    return true;
+      (ic_data.NumberOfChecks() == 1)) {
+    if (class_ids[0] == kSmiCid) {
+      AddReceiverCheck(call);
+      ReplaceCall(call,
+                  new(I) SmiToDoubleInstr(
+                      new(I) Value(call->ArgumentAt(0)),
+                      call->token_pos()));
+      return true;
+    } else if ((class_ids[0] == kMintCid) && CanConvertUnboxedMintToDouble()) {
+      AddReceiverCheck(call);
+      ReplaceCall(call,
+                  new(I) MintToDoubleInstr(new(I) Value(call->ArgumentAt(0)),
+                                           call->deopt_id()));
+      return true;
+    }
   }
 
   if (class_ids[0] == kDoubleCid) {
@@ -4504,18 +4523,20 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
   } else if (recognized_kind == MethodRecognizer::kDoubleFromInteger) {
     if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
       const ICData& ic_data = *call->ic_data();
-      if (CanUnboxDouble() && ArgIsAlways(kSmiCid, ic_data, 0)) {
-        Definition* arg = call->ArgumentAt(0);
-        InsertBefore(call,
-                     new(I) CheckSmiInstr(
-                         new(I) Value(arg),
-                         call->deopt_id(),
-                         call->token_pos()),
-                     call->env(),
-                     FlowGraph::kEffect);
-        ReplaceCall(call,
-                    new(I) SmiToDoubleInstr(new(I) Value(arg),
-                                            call->token_pos()));
+      if (CanUnboxDouble()) {
+        if (ArgIsAlways(kSmiCid, ic_data, 1)) {
+          Definition* arg = call->ArgumentAt(1);
+          AddCheckSmi(arg, call->deopt_id(), call->env(), call);
+          ReplaceCall(call,
+                      new(I) SmiToDoubleInstr(new(I) Value(arg),
+                                              call->token_pos()));
+        } else if (ArgIsAlways(kMintCid, ic_data, 1) &&
+                   CanConvertUnboxedMintToDouble()) {
+          Definition* arg = call->ArgumentAt(1);
+          ReplaceCall(call,
+                      new(I) MintToDoubleInstr(new(I) Value(arg),
+                                               call->deopt_id()));
+        }
       }
     }
   } else if (call->function().IsFactory()) {
@@ -8414,6 +8435,17 @@ void ConstantPropagator::VisitUnaryDoubleOp(UnaryDoubleOpInstr* instr) {
 
 
 void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsConstant(value) && value.IsInteger()) {
+    SetValue(instr, Double::Handle(I,
+        Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
+  } else if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitMintToDouble(MintToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value) && value.IsInteger()) {
     SetValue(instr, Double::Handle(I,

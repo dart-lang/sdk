@@ -2821,8 +2821,6 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     int num_args_checked = 0;
     switch (recognized_kind) {
       case MethodRecognizer::kDoubleFromInteger:
-        num_args_checked = 1;
-        break;
       case MethodRecognizer::kMathMin:
       case MethodRecognizer::kMathMax:
         num_args_checked = 2;

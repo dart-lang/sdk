@@ -476,6 +476,7 @@ class EmbeddedArray<T, 0> {
   M(CheckStackOverflow)                                                        \
   M(SmiToDouble)                                                               \
   M(Int32ToDouble)                                                             \
+  M(MintToDouble)                                                              \
   M(DoubleToInteger)                                                           \
   M(DoubleToSmi)                                                               \
   M(DoubleToDouble)                                                            \
@@ -908,6 +909,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class InstanceOfInstr;
   friend class PolymorphicInstanceCallInstr;
   friend class SmiToDoubleInstr;
+  friend class MintToDoubleInstr;
   friend class DoubleToIntegerInstr;
   friend class BranchSimplifier;
   friend class BlockEntryInstr;
@@ -7223,8 +7225,6 @@ class SmiToDoubleInstr : public TemplateDefinition<1> {
     return kUnboxedDouble;
   }
 
-  virtual intptr_t ArgumentCount() const { return 1; }
-
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool AllowsCSE() const { return true; }
@@ -7272,6 +7272,49 @@ class Int32ToDoubleInstr : public TemplateDefinition<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Int32ToDoubleInstr);
+};
+
+
+class MintToDoubleInstr : public TemplateDefinition<1> {
+ public:
+  MintToDoubleInstr(Value* value, intptr_t deopt_id)
+      : deopt_id_(deopt_id) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  DECLARE_INSTRUCTION(MintToDouble)
+  virtual CompileType ComputeType() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t index) const {
+    ASSERT(index == 0);
+    return kUnboxedMint;
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const intptr_t deopt_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(MintToDoubleInstr);
 };
 
 

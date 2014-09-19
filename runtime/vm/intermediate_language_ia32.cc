@@ -4855,6 +4855,41 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* MintToDoubleInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                   Location::RequiresRegister()));
+  result->set_out(0, Location::RequiresFpuRegister());
+  return result;
+}
+
+
+void MintToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  PairLocation* pair = locs()->in(0).AsPairLocation();
+  Register in_lo = pair->At(0).reg();
+  Register in_hi = pair->At(1).reg();
+
+  FpuRegister result = locs()->out(0).fpu_reg();
+
+  // Push hi.
+  __ pushl(in_hi);
+  // Push lo.
+  __ pushl(in_lo);
+  // Perform conversion from Mint to double.
+  __ fildl(Address(ESP, 0));
+  // Pop FPU stack onto regular stack.
+  __ fstpl(Address(ESP, 0));
+  // Copy into result.
+  __ movsd(result, Address(ESP, 0));
+  // Pop args.
+  __ addl(ESP, Immediate(2 * kWordSize));
+}
+
+
 LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Isolate* isolate,
                                                            bool opt) const {
   const intptr_t kNumInputs = 1;

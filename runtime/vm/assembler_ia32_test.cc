@@ -2048,6 +2048,45 @@ ASSEMBLER_TEST_RUN(IntToDoubleConversion2, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Int64ToDoubleConversion, assembler) {
+  __ movl(EAX, Immediate(0));
+  __ movl(EDX, Immediate(6));
+  __ pushl(EAX);
+  __ pushl(EDX);
+  __ fildl(Address(ESP, 0));
+  __ popl(EAX);
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Int64ToDoubleConversion, test) {
+  typedef double (*Int64ToDoubleConversionCode)();
+  double res = reinterpret_cast<Int64ToDoubleConversionCode>(test->entry())();
+  EXPECT_EQ(6.0, res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(NegativeInt64ToDoubleConversion, assembler) {
+  __ movl(EAX, Immediate(0xFFFFFFFF));
+  __ movl(EDX, Immediate(0xFFFFFFFA));
+  __ pushl(EAX);
+  __ pushl(EDX);
+  __ fildl(Address(ESP, 0));
+  __ popl(EAX);
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(NegativeInt64ToDoubleConversion, test) {
+  typedef double (*NegativeInt64ToDoubleConversionCode)();
+  double res =
+      reinterpret_cast<NegativeInt64ToDoubleConversionCode>(test->entry())();
+  EXPECT_EQ(-6.0, res);
+}
+
+
 ASSEMBLER_TEST_GENERATE(IntToFloatConversion, assembler) {
   __ movl(EDX, Immediate(6));
   __ cvtsi2ss(XMM1, EDX);

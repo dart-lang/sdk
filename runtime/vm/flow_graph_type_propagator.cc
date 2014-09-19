@@ -1336,6 +1336,11 @@ CompileType SmiToDoubleInstr::ComputeType() const {
 }
 
 
+CompileType MintToDoubleInstr::ComputeType() const {
+  return CompileType::FromCid(kDoubleCid);
+}
+
+
 CompileType DoubleToDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
