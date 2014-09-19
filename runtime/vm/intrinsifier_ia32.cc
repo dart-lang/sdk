@@ -1728,8 +1728,7 @@ void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
   Isolate* isolate = Isolate::Current();
   const Address default_tag_addr =
       Address::Absolute(
-          reinterpret_cast<uword>(isolate->object_store()) +
-                                  ObjectStore::default_tag_offset());
+          reinterpret_cast<uword>(isolate) + Isolate::default_tag_offset());
   // Set return value.
   __ movl(EAX, default_tag_addr);
   __ ret();

@@ -1536,8 +1536,8 @@ void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
   // RBX: Address of default tag.
   Isolate* isolate = Isolate::Current();
   const Immediate& default_tag_addr =
-      Immediate(reinterpret_cast<int64_t>(isolate->object_store()) +
-                                          ObjectStore::default_tag_offset());
+      Immediate(reinterpret_cast<int64_t>(isolate) +
+                Isolate::default_tag_offset());
   __ movq(RBX, default_tag_addr);
   // Set return value.
   __ movq(RAX, Address(RBX, 0));

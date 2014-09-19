@@ -20334,16 +20334,15 @@ RawUserTag* UserTag::New(const String& label, Heap::Space space) {
 RawUserTag* UserTag::DefaultTag() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  ASSERT(isolate->object_store() != NULL);
-  if (isolate->object_store()->default_tag() != UserTag::null()) {
+  if (isolate->default_tag() != UserTag::null()) {
     // Already created.
-    return isolate->object_store()->default_tag();
+    return isolate->default_tag();
   }
   // Create default tag.
   const UserTag& result = UserTag::Handle(isolate,
                                           UserTag::New(Symbols::Default()));
   ASSERT(result.tag() == UserTags::kDefaultUserTag);
-  isolate->object_store()->set_default_tag(result);
+  isolate->set_default_tag(result);
   return result.raw();
 }
 

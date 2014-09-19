@@ -4355,7 +4355,7 @@ TEST_CASE(PrintJSONPrimitives) {
   // UserTag reference
   {
     JSONStream js;
-    Instance& tag = Instance::Handle(isolate->object_store()->default_tag());
+    Instance& tag = Instance::Handle(isolate->default_tag());
     tag.PrintJSON(&js, true);
     elideSubstring("classes", js.ToCString(), buffer);
     elideSubstring("objects", buffer, buffer);

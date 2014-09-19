@@ -1516,8 +1516,8 @@ void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
   Isolate* isolate = Isolate::Current();
   // Set return value to default tag address.
   __ LoadImmediate(R0,
-      reinterpret_cast<uword>(isolate->object_store()) +
-                              ObjectStore::default_tag_offset(), kNoPP);
+      reinterpret_cast<uword>(isolate) + Isolate::default_tag_offset(),
+      kNoPP);
   __ ldr(R0, Address(R0));
   __ ret();
 }

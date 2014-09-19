@@ -432,19 +432,6 @@ class ObjectStore {
     handle_message_function_ = function.raw();
   }
 
-  RawUserTag* default_tag() const {
-    return default_tag_;
-  }
-  void set_default_tag(const UserTag& tag) {
-    // Only set once.
-    ASSERT(default_tag_ == UserTag::null());
-    ASSERT(!tag.IsNull());
-    default_tag_ = tag.raw();
-  }
-  static intptr_t default_tag_offset() {
-    return OFFSET_OF(ObjectStore, default_tag_);
-  }
-
   RawArray* library_load_error_table() const {
     return library_load_error_table_;
   }
@@ -544,7 +531,6 @@ class ObjectStore {
   RawTypedData* empty_uint32_array_;
   RawFunction* handle_message_function_;
   RawArray* library_load_error_table_;
-  RawUserTag* default_tag_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&library_load_error_table_);
   }

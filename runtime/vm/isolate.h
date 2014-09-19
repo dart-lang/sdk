@@ -564,6 +564,9 @@ class Isolate : public BaseIsolate {
   static intptr_t current_tag_offset() {
     return OFFSET_OF(Isolate, current_tag_);
   }
+  static intptr_t default_tag_offset() {
+    return OFFSET_OF(Isolate, default_tag_);
+  }
 
 #define ISOLATE_METRIC_ACCESSOR(type, variable, name, unit)                    \
   type* Get##variable##Metric() { return &metric_##variable##_; }
@@ -577,6 +580,9 @@ class Isolate : public BaseIsolate {
 
   RawUserTag* current_tag() const { return current_tag_; }
   void set_current_tag(const UserTag& tag);
+
+  RawUserTag* default_tag() const { return default_tag_; }
+  void set_default_tag(const UserTag& tag);
 
   Metric* metrics_list_head() {
     return metrics_list_head_;
@@ -691,6 +697,7 @@ class Isolate : public BaseIsolate {
   uword user_tag_;
   RawGrowableObjectArray* tag_table_;
   RawUserTag* current_tag_;
+  RawUserTag* default_tag_;
 
   Metric* metrics_list_head_;
 
