@@ -56,7 +56,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
 
   @override
   Future<SourceChange> createChange() {
-    change = new SourceChange(refactoringName);
+    change = new SourceChange('Update File References');
     List<Source> librarySources = context.getLibrariesContaining(source);
     return Future.forEach(librarySources, (Source librarySource) {
       CompilationUnitElement unitElement =
