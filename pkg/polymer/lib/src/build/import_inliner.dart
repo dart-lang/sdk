@@ -62,7 +62,7 @@ class _HtmlInliner extends PolymerTransformer {
 
       changed = new _UrlNormalizer(transform, docId, logger).visit(document)
         || changed;
-      
+
       experimentalBootstrap = document.querySelectorAll('link').any((link) =>
           link.attributes['rel'] == 'import' &&
           link.attributes['href'] == POLYMER_EXPERIMENTAL_HTML);
@@ -142,7 +142,9 @@ class _HtmlInliner extends PolymerTransformer {
 
   /// To preserve the order of scripts with respect to inlined
   /// link rel=import, we move both of those into the body before we do any
-  /// inlining.
+  /// inlining. We do not start doing this until the first import is found
+  /// however, as some scripts do need to be ran in the head to work
+  /// properly (platform.js for instance).
   ///
   /// Note: we do this for stylesheets as well to preserve ordering with
   /// respect to eachother, because stylesheets can be pulled in transitively
@@ -152,11 +154,14 @@ class _HtmlInliner extends PolymerTransformer {
   // Should we do the same? Alternatively could we inline head into head and
   // body into body and avoid this whole thing?
   void _moveHeadToBody(Document doc) {
+    var foundImport = false;
     for (var node in doc.head.nodes.toList(growable: false)) {
       if (node is! Element) continue;
       var tag = node.localName;
       var type = node.attributes['type'];
       var rel = node.attributes['rel'];
+      if (tag == 'link' && rel == 'import') foundImport = true;
+      if (!foundImport) continue;
       if (tag == 'style' || tag == 'script' &&
             (type == null || type == TYPE_JS || type == TYPE_DART) ||
           tag == 'link' && (rel == 'stylesheet' || rel == 'import')) {

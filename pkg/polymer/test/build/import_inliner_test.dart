@@ -112,10 +112,10 @@ void importTests() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '</head><body>'
-          '<div hidden="">'
           '<script type="text/javascript">/*first*/</script>'
           '<script src="second.js"></script>'
+          '</head><body>'
+          '<div hidden="">'
           '<script>/*third*/</script>'
           '<polymer-element>2</polymer-element>'
           '<script>/*forth*/</script>'
@@ -146,10 +146,10 @@ void importTests() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '</head><body>'
-          '<div hidden="">'
           '<script type="text/javascript">/*first*/</script>'
           '<script src="second.js"></script>'
+          '</head><body>'
+          '<div hidden="">'
           '<script>/*third*/</script>'
           '<polymer-element>2</polymer-element>'
           '</div>'
@@ -159,10 +159,9 @@ void importTests() {
       'a|web/test.html.1.dart': 'library a.web.test2_html_0;\n/*forth*/',
       'a|web/test.html.0.dart': 'library a.web.test_html_0;\n/*fifth*/',
       'a|web/test2.html':
-          '<!DOCTYPE html><html><head></head><body>'
-          '<div hidden="">'
+          '<!DOCTYPE html><html><head>'
           '<script>/*third*/</script>'
-          '</div>'
+          '</head><body>'
           '<polymer-element>2</polymer-element>'
           '</body></html>',
       'a|web/test2.html._data': expectedData(['web/test2.html.0.dart']),
@@ -189,10 +188,10 @@ void importTests() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '</head><body>'
-          '<div hidden="">'
           '<script type="text/javascript" src="test.html.0.js"></script>'
           '<script src="second.js"></script>'
+          '</head><body>'
+          '<div hidden="">'
           '<script src="test.html.2.js"></script>'
           '<polymer-element>2</polymer-element>'
           '</div>'
@@ -204,10 +203,9 @@ void importTests() {
       'a|web/test.html.0.js': '/*first*/',
       'a|web/test.html.2.js': '/*third*/',
       'a|web/test2.html':
-          '<!DOCTYPE html><html><head></head><body>'
-          '<div hidden="">'
+          '<!DOCTYPE html><html><head>'
           '<script src="test2.html.0.js"></script>'
-          '</div>'
+          '</head><body>'
           '<polymer-element>2</polymer-element></body></html>',
       'a|web/test2.html._data': expectedData(['web/test2.html.1.dart']),
       'a|web/test2.html.0.js': '/*third*/',
@@ -734,10 +732,9 @@ void importTests() {
             '</head></html>',
       }, {
         'a|web/test.html':
-            '<!DOCTYPE html><html><head></head><body>'
-            '<div hidden="">'
+            '<!DOCTYPE html><html><head>'
             '<link rel="stylesheet" href="foo.css">'
-            '</div>'
+            '</head><body>'
             '</body></html>',
       }, [
         'warning: Failed to inline stylesheet: '
@@ -838,10 +835,9 @@ void stylesheetTests() {
           'h1 { font-size: 70px; }',
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
-          '<div hidden="">'
+          '<!DOCTYPE html><html><head>'
           '<style>h1 { font-size: 70px; }</style>'
-          '</div>'
+          '</head><body>'
           '</body></html>',
       'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.css':
@@ -948,12 +944,11 @@ void stylesheetTests() {
           'h1 { font-size: 70px; }',
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
-          '<div hidden="">'
+          '<!DOCTYPE html><html><head>'
           '<style>.first { color: black }</style>'
           '<style>h1 { font-size: 70px; }</style>'
           '<style>.second { color: black }</style>'
-          '</div>'
+          '</head><body>'
           '</body></html>',
       'a|web/test.html._data': EMPTY_DATA,
       'a|web/test2.css':
@@ -972,11 +967,10 @@ void stylesheetTests() {
            'h2 { font-size: 35px; }',
      }, {
        'a|web/test.html':
-           '<!DOCTYPE html><html><head></head><body>'
-           '<div hidden="">'
+           '<!DOCTYPE html><html><head>'
            '<style no-shim="">h1 { font-size: 70px; }</style>'
            '<style shim-shadow="" foo="">h2 { font-size: 35px; }</style>'
-           '</div>'
+           '</head><body>'
            '</body></html>',
        'a|web/foo.css':
            'h1 { font-size: 70px; }',
@@ -1194,10 +1188,9 @@ void entryPointTests() {
           'console.log("here");',
     }, {
       'a|web/test/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
-          '<div hidden="">'
+          '<!DOCTYPE html><html><head>'
           '<script src="../packages/a/foo/bar.js"></script>'
-          '</div>'
+          '</head><body>'
           '</body></html>',
     });
 

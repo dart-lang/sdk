@@ -1,3 +1,7 @@
+#### 0.14.3-dev
+  * Don't start moving elements from head to body until we find the first
+    import, [20826](http://dartbug.com/20826).
+
 #### 0.14.2+1
   * Fix findController function for js or dart wrapped elements. This fixes
     event bindings when using paper-dialog and probably some other cases,
