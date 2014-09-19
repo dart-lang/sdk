@@ -19,17 +19,17 @@ DECLARE_FLAG(bool, show_invisible_frames);
 
 void DumpFunction(const Library& lib, const char* cname, const char* fname) {
   const String& classname = String::Handle(Symbols::New(cname));
-  Class& cls = Class::Handle(lib.LookupClass(classname));
-  EXPECT(!cls.IsNull());
-
   String& funcname = String::Handle(String::New(fname));
-  Function& function = Function::ZoneHandle(cls.LookupStaticFunction(funcname));
-  EXPECT(!function.IsNull());
 
   bool retval;
   EXPECT(Isolate::Current() != NULL);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    Class& cls = Class::Handle(lib.LookupClass(classname));
+    EXPECT(!cls.IsNull());
+    Function& function =
+      Function::ZoneHandle(cls.LookupStaticFunction(funcname));
+    EXPECT(!function.IsNull());
     ParsedFunction* parsed_function =
         new ParsedFunction(Isolate::Current(), function);
     Parser::ParseFunction(parsed_function);
