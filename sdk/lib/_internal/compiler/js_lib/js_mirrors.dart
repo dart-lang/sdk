@@ -591,8 +591,13 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
   disableTreeShaking();
   int typeArgIndex = mangledName.indexOf("<");
   if (typeArgIndex != -1) {
-    mirror = new JsTypeBoundClassMirror(reflectClassByMangledName(
-        mangledName.substring(0, typeArgIndex)).originalDeclaration,
+    TypeMirror originalDeclaration =
+        reflectClassByMangledName(mangledName.substring(0, typeArgIndex))
+        .originalDeclaration;
+    if (originalDeclaration is JsTypedefMirror) {
+      throw new UnimplementedError();
+    }
+    mirror = new JsTypeBoundClassMirror(originalDeclaration,
         // Remove the angle brackets enclosing the type arguments.
         mangledName.substring(typeArgIndex + 1, mangledName.length - 1));
     JsCache.update(classMirrors, mangledName, mirror);

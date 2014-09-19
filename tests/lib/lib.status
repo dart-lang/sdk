@@ -96,6 +96,7 @@ mirrors/symbol_validation_test/01: RuntimeError # Issue 13597
 mirrors/static_members_test: RuntimeError # Issue 14633, Issue 12164
 mirrors/typedef_test/none: RuntimeError # http://dartbug.com/6490
 mirrors/typedef_metadata_test: RuntimeError # Issue 12785
+mirrors/typedef_reflected_type_test/01: RuntimeError # Issue 12607
 mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
 mirrors/type_variable_is_static_test: RuntimeError # Issue 6335
 mirrors/type_variable_owner_test/01: RuntimeError # Issue 12785

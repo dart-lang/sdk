@@ -21,9 +21,9 @@ main() {
   var m = reflectClass(C).declarations[#fun];
 
   Expect.equals(Bar, m.returnType.reflectedType);
-  Expect.equals("Foo<int>", m.parameters[0].type.reflectedType.toString());
-  Expect.equals(int, m.parameters[0].type.typeArguments[0].reflectedType);
-  Expect.isFalse(m.parameters[0].type.isOriginalDeclaration);
+  Expect.equals("Foo<int>", m.parameters[0].type.reflectedType.toString());   /// 01: ok
+  Expect.equals(int, m.parameters[0].type.typeArguments[0].reflectedType);    /// 01: continued
+  Expect.isFalse(m.parameters[0].type.isOriginalDeclaration);                 /// 01: continued
 
   var lib = currentMirrorSystem().findLibrary(#test);
   Expect.isTrue(lib.declarations[#Foo].isOriginalDeclaration);
