@@ -143,9 +143,7 @@ class Commando {
         break;
 
       case runeTAB:
-        if (_complete(_tabCount > 1)) {
-          _tabCount = 0;
-        }
+        _complete(_tabCount > 1);
         break;
       
       case runeNewline:
@@ -327,57 +325,57 @@ class Commando {
     return shared;
   }
 
-  bool _complete(bool showCompletions) {
+  void _complete(bool showCompletions) {
     if (completer == null) {
-      return false;
+      return;
     }
 
     var linePrefix = _currentLine.take(_cursorPos).toList();
-    List<String> commandParts =
-        _trimLeadingSpaces(new String.fromCharCodes(linePrefix)).split(' ');
+    var lineAsString = new String.fromCharCodes(linePrefix);
+    var commandParts = new List.from(lineAsString.split(' ').where((line) {
+          return line != ' ' && line != '';
+        }));
+    if (lineAsString.endsWith(' ')) {
+      // If the current line ends with a space, they are hoping to
+      // complete the next word in the command.  Add an empty string
+      // to the commandParts to signal this to the completer.
+      commandParts.add('');
+    }
     List<String> completionList = completer(commandParts);
-    var completion = '';
+    var completion = null;
 
     if (completionList.length == 0) {
       // The current line admits no possible completion.
-      return false;
+      return;
 
     } else if (completionList.length == 1) {
       // There is a single, non-ambiguous completion for the current line.
       completion = completionList[0];
 
-      // If we are at the end of the line, add a space to signal that
-      // the completion is unambiguous.
-      if (_currentLine.length == _cursorPos) {
-        completion = completion + ' ';
-      }
     } else {
       // There are ambiguous completions. Find the longest common
       // shared prefix of all of the completions.
       completion = completionList.fold(completionList[0], _sharedPrefix);
     }
 
-    var lastWord = commandParts.last;
-    if (completion == lastWord) {
-      // The completion does not add anything.
-      if (showCompletions) {
-        // User hit double-TAB.  Show them all possible completions.
-        _move(_cursorPos, _currentLine.length);
-        _stdout.writeln();
-        _stdout.writeln(completionList);
-        _writePromptAndLine();
-      }
-      return false;
+    if (showCompletions) {
+      // User hit double-TAB.  Show them all possible completions.
+      completionList.sort((a,b) => a.compareTo(b));
+      _move(_cursorPos, _currentLine.length);
+      _stdout.writeln();
+      _stdout.writeln(completionList);
+      _writePromptAndLine();
+      return;
+
     } else {
       // Apply the current completion.
       var completionRunes = completion.runes.toList();
 
       var newLine = [];
-      newLine..addAll(linePrefix)
-             ..addAll(completionRunes.skip(lastWord.length))
+      newLine..addAll(completionRunes)
              ..addAll(_currentLine.skip(_cursorPos));
-      _update(newLine, _cursorPos + completionRunes.length - lastWord.length);
-      return true;
+      _update(newLine, completionRunes.length);
+      return;
     }
   }
 

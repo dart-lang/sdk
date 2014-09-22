@@ -14,6 +14,8 @@ class Debugger {
   Commando cmdo;
   var _cmdoSubscription;
 
+  CommandList _commands;
+
   VM _vm;
   VM get vm => _vm;
   set vm(VM vm) {
@@ -91,10 +93,16 @@ class Debugger {
   }
 
   Debugger() {
-    cmdo = new Commando(completer: completeCommand);
+    cmdo = new Commando(completer: _completeCommand);
     _cmdoSubscription = cmdo.commands.listen(_processCommand,
                                              onError: _cmdoError,
                                              onDone: _cmdoDone);
+    _commands = new CommandList();
+    _commands.register(new AttachCommand());
+    _commands.register(new DetachCommand());
+    _commands.register(new HelpCommand(_commands));
+    _commands.register(new IsolateCommand());
+    _commands.register(new QuitCommand());
   }
 
   Future _closeCmdo() {
@@ -116,7 +124,7 @@ class Debugger {
       });
   }
 
-  void _cmdoError(self, parent, zone, error, StackTrace trace) {
+  void _cmdoError(error, StackTrace trace) {
     cmdo.print('\n--------\nExiting due to unexpected error:\n'
                '  $error\n$trace\n');
     quit();
@@ -124,6 +132,10 @@ class Debugger {
 
   void _cmdoDone() {
     quit();
+  }
+
+  List<String> _completeCommand(List<String> commandParts) {
+    return _commands.complete(commandParts);
   }
 
   void _processCommand(String cmdLine) {
@@ -138,7 +150,7 @@ class Debugger {
       return;
     }
     var command = args[0];
-    var matches = matchCommand(command, true);
+    var matches  = _commands.match(command, true);
     if (matches.length == 0) {
       huh();
       cmdo.show();
@@ -161,6 +173,10 @@ abstract class Command {
   String get helpShort;
   void printHelp(Debugger debugger, List<String> args);
   Future run(Debugger debugger, List<String> args);
+  List<String> complete(List<String> commandParts) {
+    return ["$name ${commandParts.join(' ')}"];
+
+  }
 }
 
 class AttachCommand extends Command {
@@ -203,11 +219,70 @@ Usage:
   }
 }
 
+class CommandList {
+  List _commands = new List<Command>();
+
+  void register(Command cmd) {
+    _commands.add(cmd);
+  }
+
+  List<Command> match(String commandName, bool exactMatchWins) {
+    var matches = [];
+    for (var command in _commands) {
+      if (command.name.startsWith(commandName)) {
+        if (exactMatchWins && command.name == commandName) {
+          // Exact match
+          return [command];
+        } else {
+          matches.add(command);
+        }
+      }
+    }
+    return matches;
+  }
+
+  List<String> complete(List<String> commandParts) {
+    var completions = new List<String>();
+    String prefix = commandParts[0];
+    for (var command in _commands) {
+      if (command.name.startsWith(prefix)) {
+        completions.addAll(command.complete(commandParts.sublist(1)));
+      }
+    }
+    return completions;
+  }
+
+  void printHelp(Debugger debugger, List<String> args) {
+    var cmdo = debugger.cmdo;
+    if (args.length <= 1) {
+      cmdo.print("\nDebugger commands:\n");
+      for (var command in _commands) {
+        cmdo.print('  ${command.name.padRight(11)} ${command.helpShort}');
+      }
+      cmdo.print("For more information about a particular command, type:\n\n"
+                  "  help <command>\n");
+
+      cmdo.print("Commands may be abbreviated: e.g. type 'h' for 'help.\n");
+    } else {
+      var commandName = args[1];
+      var matches =match(commandName, true);
+      if (matches.length == 0) {
+        cmdo.print("Command '$commandName' not recognized.  "
+                    "Try 'help' for a list of commands.");
+      } else {
+        for (var command in matches) {
+          command.printHelp(debugger, args);
+        }
+      }
+    }
+  }
+}
+
 class DetachCommand extends Command {
   final name = 'detach';
   final helpShort = 'Detach from a running Dart VM';
   void printHelp(Debugger debugger, List<String> args) {
-    cmdo.print('''
+    debugger.cmdo.print('''
 ----- detach -----
 
 Detach from the Dart VM.
@@ -233,6 +308,9 @@ Usage:
 }
 
 class HelpCommand extends Command {
+  HelpCommand(this._commands);
+  final CommandList _commands;
+
   final name = 'help';
   final helpShort = 'Show a list of debugger commands';
   void printHelp(Debugger debugger, List<String> args) {
@@ -249,30 +327,17 @@ Usage:
   }
 
   Future run(Debugger debugger, List<String> args) {
-    var cmdo = debugger.cmdo;
-    if (args.length <= 1) {
-      cmdo.print("\nDebugger commands:\n");
-      for (var command in commandList) {
-        cmdo.print('  ${command.name.padRight(11)} ${command.helpShort}');
-      }
-      cmdo.print("For more information about a particular command, type:\n\n"
-                  "  help <command>\n");
-
-      cmdo.print("Commands may be abbreviated: e.g. type 'h' for 'help.\n");
-    } else {
-      var commandName = args[1];
-      var matches = matchCommand(commandName, true);
-      if (matches.length == 0) {
-        cmdo.print("Command '$commandName' not recognized.  "
-                    "Try 'help' for a list of commands.");
-      } else {
-        for (var command in matches) {
-          command.printHelp(debugger, args);
-        }
-      }
-    }
-
+    _commands.printHelp(debugger, args);
     return new Future.value();
+  }
+
+  List<String> complete(List<String> commandParts) {
+    if (commandParts.isEmpty) {
+      return ['$name '];
+    }
+    return _commands.complete(commandParts).map((value) {
+        return '$name $value';
+      });
   }
 }
 
@@ -375,6 +440,17 @@ Usage:
       });
     return new Future.value();
   }
+
+  List<String> complete(List<String> commandParts) {
+    if (commandParts.isEmpty) {
+      return ['$name ${commandParts.join(" ")}'];
+    } else {
+      var completions =  _commands.complete(commandParts);
+      return completions.map((completion) {
+          return '$name $completion';
+        });
+    }
+  }
 }
 
 class QuitCommand extends Command {
@@ -399,39 +475,4 @@ Usage:
     }
     return debugger.quit();
   }
-}
-
-List<Command> commandList =
-    [ new AttachCommand(),
-      new DetachCommand(),
-      new HelpCommand(),
-      new IsolateCommand(),
-      new QuitCommand() ];
-
-List<Command> matchCommand(String commandName, bool exactMatchWins) {
-  var matches = [];
-  for (var command in commandList) {
-    if (command.name.startsWith(commandName)) {
-      if (exactMatchWins && command.name == commandName) {
-        // Exact match
-        return [command];
-      } else {
-        matches.add(command);
-      }
-    }
-  }
-  return matches;
-}
-
-List<String> completeCommand(List<String> commandParts) {
-  var completions = new List<String>();
-  if (commandParts.length == 1) {
-    String prefix = commandParts[0];
-    for (var command in commandList) {
-      if (command.name.startsWith(prefix)) {
-        completions.add(command.name);
-      }
-    }
-  }
-  return completions;
 }
