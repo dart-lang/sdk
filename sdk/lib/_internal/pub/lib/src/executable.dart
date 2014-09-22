@@ -21,9 +21,9 @@ import 'utils.dart';
 /// Runs [executable] from [package] reachable from [entrypoint].
 ///
 /// The executable string is a relative Dart file path using native path
-/// separators without a trailing ".dart" extension. It is contained within
-/// [package], which should either be the entrypoint package or an immediate
-/// dependency of it.
+/// separators with or without a trailing ".dart" extension. It is contained
+/// within [package], which should either be the entrypoint package or an
+/// immediate dependency of it.
 ///
 /// Arguments from [args] will be passed to the spawned Dart application.
 ///
@@ -40,6 +40,11 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
   // normal pub output shown while loading the environment.
   if (log.verbosity == log.Verbosity.NORMAL) {
     log.verbosity = log.Verbosity.WARNING;
+  }
+
+  // Ignore a trailing extension.
+  if (p.extension(executable) == ".dart") {
+    executable = p.withoutExtension(executable);
   }
 
   var localSnapshotPath = p.join(".pub", "bin", package,
