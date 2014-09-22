@@ -826,7 +826,6 @@ class IsolateSpawnState {
                     const Instance& message);
   IsolateSpawnState(Dart_Port parent_port,
                     const char* script_url,
-                    const char* package_root,
                     const Instance& args,
                     const Instance& message);
   ~IsolateSpawnState();
@@ -836,7 +835,6 @@ class IsolateSpawnState {
 
   Dart_Port parent_port() const { return parent_port_; }
   char* script_url() const { return script_url_; }
-  char* package_root() const { return package_root_; }
   char* library_url() const { return library_url_; }
   char* class_name() const { return class_name_; }
   char* function_name() const { return function_name_; }
@@ -852,7 +850,6 @@ class IsolateSpawnState {
   Isolate* isolate_;
   Dart_Port parent_port_;
   char* script_url_;
-  char* package_root_;
   char* library_url_;
   char* class_name_;
   char* function_name_;

@@ -1442,7 +1442,6 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
     : isolate_(NULL),
       parent_port_(parent_port),
       script_url_(NULL),
-      package_root_(NULL),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
@@ -1470,12 +1469,10 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* script_url,
-                                     const char* package_root,
                                      const Instance& args,
                                      const Instance& message)
     : isolate_(NULL),
       parent_port_(parent_port),
-      package_root_(NULL),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
@@ -1485,9 +1482,6 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_message_(NULL),
       serialized_message_len_(0) {
   script_url_ = strdup(script_url);
-  if (package_root != NULL) {
-    package_root_ = strdup(package_root);
-  }
   library_url_ = NULL;
   function_name_ = strdup("main");
   exception_callback_name_ = strdup("_unhandledExceptionCallback");
@@ -1498,7 +1492,6 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 
 IsolateSpawnState::~IsolateSpawnState() {
   free(script_url_);
-  free(package_root_);
   free(library_url_);
   free(function_name_);
   free(class_name_);
