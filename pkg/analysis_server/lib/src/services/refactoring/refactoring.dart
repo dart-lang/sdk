@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol.dart' show
     RefactoringMethodParameter, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/refactoring/convert_method_to_getter.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
@@ -26,6 +27,21 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+
+
+/**
+ * [Refactoring] to convert normal [MethodDeclaration]s into getters.
+ */
+abstract class ConvertMethodToGetterRefactoring implements Refactoring {
+  /**
+   * Returns a new [ConvertMethodToGetterRefactoring] instance for converting
+   * [element] and all the corresponding hierarchy elements.
+   */
+  factory ConvertMethodToGetterRefactoring(SearchEngine searchEngine,
+      ExecutableElement element) {
+    return new ConvertMethodToGetterRefactoringImpl(searchEngine, element);
+  }
+}
 
 
 /**

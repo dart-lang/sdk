@@ -6,6 +6,7 @@ library test.services.refactoring;
 
 import 'package:unittest/unittest.dart';
 
+import 'convert_method_to_getter_test.dart' as convert_method_to_getter_test;
 import 'extract_local_test.dart' as extract_local_test;
 import 'extract_method_test.dart' as extract_method_test;
 import 'inline_local_test.dart' as inline_local_test;
@@ -24,6 +25,7 @@ import 'rename_unit_member_test.dart' as rename_unit_member_test;
 main() {
   groupSep = ' | ';
   group('refactoring', () {
+    convert_method_to_getter_test.main();
     extract_local_test.main();
     extract_method_test.main();
     inline_local_test.main();
