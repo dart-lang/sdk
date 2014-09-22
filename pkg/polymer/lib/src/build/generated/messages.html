@@ -123,114 +123,12 @@ a file that they correspond to. Currently only relative paths can be resolved.</
 
 <div id="code_transformers_2"><h3>Invalid URL to reach another package <a href="#code_transformers_2">#2</a></h3>
 <p>To reach an asset that belongs to another package, use <code>package:</code> URLs in
-Dart code, but in any other language (like HTML or CSS) use relative URLs.</p>
-<p>These are the rules you must follow to write URLs that refer to files in other
-packages:</p><ul><li>
-<p>If the file containing the relative URL is an entrypoint under <code>web</code>, use
-<code>packages/package_name/path_to_file</code></p></li><li>
-<p>If the file containing the URL is under <code>web</code>, but in a different directory
-than your entrypoint, walk out to the same level as the entrypoint first,
-then enter the <code>packages</code> directory.</p>
-<p><strong>Note</strong>: If two entrypoints include the file under <code>web</code> containing the
-URL, either both entrypoints have to live in the same directory, or you need
-to move the file to the <code>lib</code> directory.</p></li><li>
-<p>If the file containing the URL lives under <code>lib</code>, walk up as many levels as
-directories you have + 1. This is because code in <code>lib/a/b</code> is loaded from
-<code>packages/package_name/a/b</code>.</p></li></ul>
-<p>The rules are easier to follow if you know how the code is laid out for
-Dartium before you build, and how it is laid out after you build it with <code>pub
-build</code>. Consider the following example:</p>
-<p>   package a</p>
-<pre><code>  lib/
-    |- a1.html
-
-  web/
-    |- a2.html
-</code></pre>
-<p>   package b</p>
-<pre><code>  lib/
-    |- b1.html
-    |- b2/
-        |- b3.html
-</code></pre>
-<p>   package c</p>
-<pre><code>  lib/
-    |- c3.html
-
-  web/
-    |- index.html
-    |- index.dart
-    |- c1/
-        |- c2.html
-</code></pre>
-<p>If your app is package <code>c</code>, then <code>pub get</code> generates a packages directory under
-the web directory, like this:</p>
-<pre><code>  web/
-    |- index.html
-    |- index.dart
-    |- c1/
-    |   |- c2.html
-    |- packages/
-        |- a/
-        |   |- a1.html
-        |- b/
-        |   |- b1.html
-        |   |- b2/
-        |       |- b3.html
-        |- c/
-            |- c3.html
-</code></pre>
-<p>Note that no <code>lib</code> directory is under the <code>packages</code> directory.
-When you launch <code>web/index.html</code> in Dartium, Dartium loads <code>package:</code> imports from
-<code>web/packages/</code>.</p>
-<p>If you need to refer to any file in other packages from <code>index.html</code>, you can
-simply do <code>packages/package_name/path_to_file</code>. For example
-<code>packages/b/b2/b3.html</code>. From <code>index.html</code> you can also refer to files under the
-web directory of the same package using a simple relative URL, like
-<code>c1/c2.html</code>.</p>
-<p>However, if you want to load <code>a1.html</code> from <code>c2.html</code>, you need to reach out to
-the packages directory that lives next to your entrypoint and then load the file
-from there, for example <code>../packages/a/a1.html</code>. Because pub generates symlinks
-to the packages directory also under c1, you may be tempted to write
-<code>packages/a/a1.html</code>, but that is incorrect - it would yield a canonicalization
-error (see more below).</p>
-<p>If you want to load a file from the lib directory of your own package, you
-should also use a package URL. For example, <code>packages/c/c3.html</code> and not
-<code>../lib/c3.html</code>. This will allow you to write code in <code>lib</code> in a way that it
-can be used within and outside your package without making any changes to it.</p>
-<p>Because any time you reach inside a <code>lib/</code> directory you do so using a
-<code>packages/</code> URL, the rules for reaching into other files in other packages are
-always consistent: go up to exit the <code>packages</code> directory and go back inside to
-the file you are looking for.  For example, to reach <code>a1.html</code> from <code>b3.html</code>
-you need to write <code>../../../packages/a/a1.html</code>.</p>
-<p>The motivation behind all these rules is that URLs need to work under many
-scenarios at once:</p><ul><li>
-<p>They need to work in Dartium without any code transformation: resolving the
-path in the context of a simple HTTP server, or using <code>file:///</code> URLs,
-should yield a valid path to assets. The <code>packages</code> directory is safe to use
-because pub already creates it next to entrypoints of your application.</p></li><li>
-<p>They need to be canonical. To take advantage of caching, multiple URLs
-reaching the same asset should resolve to the same absolute URL.</p>
-<p>Also, in projects that use HTML imports (like polymer) tools support that
-you reach a library with either Dart imports or HTML imports, and correctly
-resolve them to be the same library. The rules are designed to allow tools
-to support this.</p>
-<p>For example, consider you have an import might like:</p>
-<pre><code>&lt;link rel=import href=packages/a/a.html&gt;
-</code></pre>
-<p>where a.html has <code>&lt;script type="application/dart" src="a.dart"&gt;</code>. If your
-Dart entrypoint also loads <code>"package:a/a.dart"</code>,  then a tool need to make
-sure that both versions of <code>a.dart</code> are loaded from the same URL. Otherwise,
-you may see errors at runtime like: <code>A is not a subtype of A</code>, which can be
-extremely confusing.</p>
-<p>When you follow the rules above, our tools can detect the pattern in the
-HTML-import URL containing <code>packages/</code> and canonicalize the import
-by converting <code>packages/a/a.dart</code> into <code>package:a/a.dart</code> under the hood.</p></li><li>
-<p>They need to continue to be valid after applications are built.
-Technically this could be done automatically with pub transformers, but to
-make sure that code works also in Dartium with a simple HTTP Server,
-existing transformers do not fix URLs, they just detect inconsistencies and
-produce an error message like this one, instead.</p></li></ul>
+Dart code, but in any other language (like HTML or CSS) use relative URLs that
+first go all the way to the <code>packages/</code> directory.</p>
+<p>The rules for correctly writing these imports are subtle and have a lot of
+special cases. Please review
+<a href="https://www.dartlang.org/polymer/app-directories.html">https://www.dartlang.org/polymer/app-directories.html</a> to learn
+more.</p>
 </div><hr />
 
 <div id="code_transformers_3"><h3>Incomplete URL to asset in another package <a href="#code_transformers_3">#3</a></h3>
@@ -239,8 +137,9 @@ produce an error message like this one, instead.</p></li></ul>
 now you must use a canonical URL form for it.</p>
 <p>For example, if <code>packages/a/a.html</code> needs to import <code>packages/b/b.html</code>,
 you might expect a.html to import <code>../b/b.html</code>. Instead, it must import
-<code>../../packages/b/b.html</code>.
-See <a href="http://dartbug.com/15797">issue 15797</a>.</p>
+<code>../../packages/b/b.html</code>.</p>
+<p>See <a href="http://dartbug.com/15797">issue 15797</a> and
+<a href="https://www.dartlang.org/polymer/app-directories.html">https://www.dartlang.org/polymer/app-directories.html</a> to learn more.</p>
 </div><hr /><h2>Messages from package <code>observe</code></h2>
 <hr />
 
