@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // This test reflectively enumerates all the methods in the system and tries to
-// invoke them will all nulls. This may result in Dart exceptions or hangs, but
-// should never result in crashes or JavaScript exceptions.
+// invoke them will various basic values (nulls, ints, etc). This may result in
+// Dart exceptions or hangs, but should never result in crashes or JavaScript
+// exceptions.
 
 library test.invoke_natives;
 
 import 'dart:mirrors';
 import 'dart:async';
-import 'package:expect/expect.dart';
 
 // Methods to be skipped, by qualified name.
 var blacklist = [
@@ -26,11 +26,15 @@ var blacklist = [
   // These prevent the test from exiting.
   'dart.async._scheduleAsyncCallback',
   'dart.async._setTimerFactoryClosure',
-
   'dart.isolate._startMainIsolate',
   'dart.isolate._startIsolate',
   'dart.io.sleep',
   'dart.io.HttpServer.HttpServer.listenOn',
+  new RegExp(r'dart.io.*'),  /// smi: ok
+
+  // Runtime exceptions we can't catch.
+  'dart.isolate._isolateScheduleImmediate',
+  'dart.io._Timer._createTimer',  /// smi: ok
 
   // These either cause the VM to segfault or throw uncatchable API errors.
   // TODO(15274): Fix them and remove from blacklist.
@@ -43,7 +47,7 @@ var blacklist = [
   'dart.io._FileSystemWatcher._listenOnSocket',
   'dart.io.SystemEncoding.decode',
   'dart.io.SystemEncoding.encode',
-  'dart.core._Bigint._mulAdd',  // TODO(regis): Is this an intrinsic issue?
+  'dart.core.StringBuffer.toString',  /// emptyarray: ok
 ];
 
 bool isBlacklisted(Symbol qualifiedSymbol) {
@@ -68,7 +72,8 @@ checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
 
   if (m.isRegularMethod) {
     task.action =
-        () => target.invoke(m.simpleName, new List(m.parameters.length));
+      () => target.invoke(m.simpleName,
+                          new List.filled(m.parameters.length, fuzzArgument));
   } else if (m.isGetter) {
     task.action =
         () => target.getField(m.simpleName);
@@ -107,8 +112,9 @@ checkClass(classMirror) {
     task.name = MirrorSystem.getName(m.qualifiedName);
 
     task.action = () {
-      var instance = classMirror.newInstance(m.constructorName,
-                                             new List(m.parameters.length));
+      var instance = classMirror.newInstance(
+          m.constructorName,
+          new List.filled(m.parameters.length, fuzzArgument));
       checkInstance(instance, task.name);
     };
     queue.add(task);
@@ -149,13 +155,21 @@ doOneTask() {
   testZone.createTimer(Duration.ZERO, doOneTask);
 }
 
+var fuzzArgument;
+
 main([args]) {
+  fuzzArgument = null;
+  fuzzArgument = 1;  /// smi: ok
+  fuzzArgument = false;  /// false: ok
+  fuzzArgument = 'string';  /// string: ok
+  fuzzArgument = new List(0);  /// emptyarray: ok
+
   currentMirrorSystem().libraries.values.forEach(checkLibrary);
 
   var valueObjects =
     [true, false, null,
      0, 0xEFFFFFF, 0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
-     "foo", 'blåbærgrød', 'Îñţérñåţîöñåļîžåţîờñ'];
+     "foo", 'blåbærgrød', 'Îñţérñåţîöñåļîžåţîờñ', "𝄞", #symbol];
   valueObjects.forEach((v) => checkInstance(reflect(v), 'value object'));
 
   uncaughtErrorHandler(self, parent, zone, error, stack) {};
