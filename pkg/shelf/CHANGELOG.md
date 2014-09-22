@@ -1,3 +1,7 @@
+## 0.5.5
+
+* Updated `README` links to point to latest docs on `www.dartdocs.org`. 
+
 ## 0.5.4+3
 
 * Widen the version constraint on the `collection` package.

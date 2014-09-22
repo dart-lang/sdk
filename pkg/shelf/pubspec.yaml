@@ -1,5 +1,5 @@
 name: shelf
-version: 0.5.4+3
+version: 0.5.5-dev
 author: Dart Team <misc@dartlang.org>
 description: Web Server Middleware for Dart
 homepage: http://www.dartlang.org
