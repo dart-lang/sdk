@@ -7649,6 +7649,7 @@ class Position implements HasToJson {
  *   INLINE_METHOD
  *   MOVE_FILE
  *   RENAME
+ *   SORT_MEMBERS
  * }
  */
 class RefactoringKind {
@@ -7667,6 +7668,8 @@ class RefactoringKind {
   static const MOVE_FILE = const RefactoringKind._("MOVE_FILE");
 
   static const RENAME = const RefactoringKind._("RENAME");
+
+  static const SORT_MEMBERS = const RefactoringKind._("SORT_MEMBERS");
 
   final String name;
 
@@ -7690,6 +7693,8 @@ class RefactoringKind {
         return MOVE_FILE;
       case "RENAME":
         return RENAME;
+      case "SORT_MEMBERS":
+        return SORT_MEMBERS;
     }
     throw new Exception('Illegal enum value: $name');
   }
@@ -10206,5 +10211,39 @@ class RenameOptions extends RefactoringOptions implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, newName.hashCode);
     return _JenkinsSmiHash.finish(hash);
+  }
+}
+/**
+ * sortMembers feedback
+ */
+class SortMembersFeedback {
+  @override
+  bool operator==(other) {
+    if (other is SortMembersFeedback) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 173473419;
+  }
+}
+/**
+ * sortMembers options
+ */
+class SortMembersOptions {
+  @override
+  bool operator==(other) {
+    if (other is SortMembersOptions) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 99705880;
   }
 }

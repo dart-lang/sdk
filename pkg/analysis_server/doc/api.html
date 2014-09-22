@@ -2496,7 +2496,7 @@ dt.typeDefinition {
           created.
         </p>
         
-      <dl><dt class="value">CONVERT_GETTER_TO_METHOD</dt><dt class="value">CONVERT_METHOD_TO_GETTER</dt><dt class="value">EXTRACT_LOCAL_VARIABLE</dt><dt class="value">EXTRACT_METHOD</dt><dt class="value">INLINE_LOCAL_VARIABLE</dt><dt class="value">INLINE_METHOD</dt><dt class="value">MOVE_FILE</dt><dt class="value">RENAME</dt></dl></dd><dt class="typeDefinition"><a name="type_RefactoringMethodParameter">RefactoringMethodParameter: object</a></dt><dd>
+      <dl><dt class="value">CONVERT_GETTER_TO_METHOD</dt><dt class="value">CONVERT_METHOD_TO_GETTER</dt><dt class="value">EXTRACT_LOCAL_VARIABLE</dt><dt class="value">EXTRACT_METHOD</dt><dt class="value">INLINE_LOCAL_VARIABLE</dt><dt class="value">INLINE_METHOD</dt><dt class="value">MOVE_FILE</dt><dt class="value">RENAME</dt><dt class="value">SORT_MEMBERS</dt></dl></dd><dt class="typeDefinition"><a name="type_RefactoringMethodParameter">RefactoringMethodParameter: object</a></dt><dd>
         <p>
           A description of a parameter in a method refactoring.
         </p>
@@ -2934,6 +2934,7 @@ dt.typeDefinition {
       
       
       
+      
     <dl><dt class="refactoring">CONVERT_GETTER_TO_METHOD</dt><dd>
         <p>
           Convert a getter into a method by removing the keyword get
@@ -3227,7 +3228,16 @@ dt.typeDefinition {
               The name that the element should have after the
               refactoring.
             </p>
-          </dd></dl></dd></dl>
+          </dd></dl></dd><dt class="refactoring">SORT_MEMBERS</dt><dd>
+        <p>
+          Sort all of the directives, unit and class members
+          of the given Dart file.
+        </p>
+        <p>
+          The "offset" and "length" fields from the request are ignored, but the
+          file specified in the request specifies the file to be sorted.
+        </p>
+      <h4>Feedback</h4><p>none</p><h4>Options</h4><p>none</p></dd></dl>
     <h2>Errors</h2>
     <p>
       This section contains a list of all of the errors that are

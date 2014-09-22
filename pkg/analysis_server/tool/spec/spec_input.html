@@ -2476,6 +2476,7 @@
           <value><code>INLINE_METHOD</code></value>
           <value><code>MOVE_FILE</code></value>
           <value><code>RENAME</code></value>
+          <value><code>SORT_MEMBERS</code></value>
         </enum>
       </type>
       <type name="RefactoringMethodParameter">
@@ -3342,6 +3343,16 @@
             </p>
           </field>
         </options>
+      </refactoring>
+      <refactoring kind=SORT_MEMBERS>
+        <p>
+          Sort all of the directives, unit and class members
+          of the given Dart file.
+        </p>
+        <p>
+          The "offset" and "length" fields from the request are ignored, but the
+          file specified in the request specifies the file to be sorted.
+        </p>
       </refactoring>
     </refactorings>
     <h2>Errors</h2>

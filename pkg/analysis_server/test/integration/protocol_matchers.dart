@@ -1518,6 +1518,7 @@ final Matcher isPosition = new LazyMatcher(() => new MatchesJsonObject(
  *   INLINE_METHOD
  *   MOVE_FILE
  *   RENAME
+ *   SORT_MEMBERS
  * }
  */
 final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
@@ -1528,7 +1529,8 @@ final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
   "INLINE_LOCAL_VARIABLE",
   "INLINE_METHOD",
   "MOVE_FILE",
-  "RENAME"
+  "RENAME",
+  "SORT_MEMBERS"
 ]);
 
 /**
@@ -2005,4 +2007,14 @@ final Matcher isRenameOptions = new LazyMatcher(() => new MatchesJsonObject(
   "rename options", {
     "newName": isString
   }));
+
+/**
+ * sortMembers feedback
+ */
+final Matcher isSortMembersFeedback = isNull;
+
+/**
+ * sortMembers options
+ */
+final Matcher isSortMembersOptions = isNull;
 
