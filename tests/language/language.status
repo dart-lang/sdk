@@ -104,8 +104,6 @@ main_test/04: Fail # http://dartbug.com/20028
 main_test/05: Fail # http://dartbug.com/20028
 main_test/21: Fail # http://dartbug.com/20028
 main_test/42: Fail # http://dartbug.com/20028
-compile_time_constant_c_test: Fail # Issue 21000
-compile_time_constant12_test: Fail # Issue 21000
 
 
 [ $compiler == none && $runtime == drt ]
