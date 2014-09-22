@@ -33,7 +33,6 @@ void main() {
   // Sendables are top-level functions and static functions only.
   testSendable("toplevel", toplevel);
   testSendable("static", C.staticFunc);
-
   // Unsendables are any closure - instance methods or function expression.
   var c = new C();
   testUnsendable("instance method", c.instanceMethod);
@@ -65,6 +64,7 @@ void main() {
   // not a top-level or static function, so it should be blocked, just as
   // a normal method.
   testUnsendable("callable object", new Callable().call);
+
   asyncEnd();
   return;
 }
@@ -142,10 +142,6 @@ Future<SendPort> callPort() {
 void _call(initPort) {
   initPort.send(singleMessagePort(callFunc));
 }
-  // Expect.throws(() {
-  //   noReply.sendPort.send([func]);
-  // }, null, "send wrapped");
-
 
 void testUnsendable(name, func) {
   asyncStart();
@@ -171,8 +167,14 @@ void testUnsendable(name, func) {
 
   // Try sending through other isolate.
   asyncStart();
-  echoPort((_) => throw "unreachable")
-    .then((p) => p.send(func))
+  echoPort((v) { Expect.equals(0, v); })
+    .then((p) {
+      try {
+        p.send(func);
+      } finally {
+        p.send(0);   // Closes echo port.
+      }
+    })
     .then((p) => throw "unreachable 2",
           onError: (e, s) {asyncEnd();});
 }
