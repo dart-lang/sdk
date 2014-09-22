@@ -1325,6 +1325,7 @@ DART_EXPORT bool Dart_IsTypeVariable(Dart_Handle handle);
 DART_EXPORT bool Dart_IsClosure(Dart_Handle object);
 DART_EXPORT bool Dart_IsTypedData(Dart_Handle object);
 DART_EXPORT bool Dart_IsByteBuffer(Dart_Handle object);
+DART_EXPORT bool Dart_IsFuture(Dart_Handle object);
 
 
 /*

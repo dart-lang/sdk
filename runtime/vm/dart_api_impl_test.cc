@@ -1384,6 +1384,32 @@ TEST_CASE(MapAccess) {
 }
 
 
+TEST_CASE(IsFuture) {
+  const char* kScriptChars =
+      "import 'dart:async';"
+      "Future testMain() {"
+      "  return new Completer().future;"
+      "}";
+  Dart_Handle result;
+
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Invoke a function which returns an object of type Future.
+  result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsFuture(result));
+
+  EXPECT(!Dart_IsFuture(lib));  // Non-instance.
+  Dart_Handle anInteger = Dart_NewInteger(0);
+  EXPECT(!Dart_IsFuture(anInteger));
+  Dart_Handle aString = NewString("I am not a Future");
+  EXPECT(!Dart_IsFuture(aString));
+  Dart_Handle null = Dart_Null();
+  EXPECT(!Dart_IsFuture(null));
+}
+
+
 TEST_CASE(TypedDataViewListGetAsBytes) {
   const int kSize = 1000;
 
