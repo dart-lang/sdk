@@ -182,9 +182,6 @@
       "currentTime": {
         "support_level": "untriaged"
       },
-      "getAnimationPlayers": {
-        "support_level": "untriaged"
-      },
       "play": {
         "support_level": "untriaged"
       }
@@ -908,14 +905,6 @@
     },
     "support_level": "untriaged"
   },
-  "Cache": {
-    "members": {},
-    "support_level": "untriaged"
-  },
-  "CacheStorage": {
-    "members": {},
-    "support_level": "untriaged"
-  },
   "Canvas2DContextAttributes": {
     "comment": "http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL",
     "members": {
@@ -984,17 +973,11 @@
   "CanvasRenderingContext2D": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasrenderingcontext2d",
     "members": {
-      "addHitRegion": {
-        "support_level": "untriaged"
-      },
       "arc": {},
       "arcTo": {},
       "beginPath": {},
       "bezierCurveTo": {},
       "canvas": {
-        "support_level": "untriaged"
-      },
-      "clearHitRegions": {
         "support_level": "untriaged"
       },
       "clearRect": {},
@@ -1063,9 +1046,6 @@
       "putImageData": {},
       "quadraticCurveTo": {},
       "rect": {},
-      "removeHitRegion": {
-        "support_level": "untriaged"
-      },
       "resetTransform": {
         "support_level": "untriaged"
       },
@@ -1190,27 +1170,6 @@
     },
     "support_level": "untriaged"
   },
-  "CircularRegion": {
-    "members": {
-      "CircularRegion": {},
-      "MAX_RADIUS": {
-        "support_level": "untriaged"
-      },
-      "MIN_RADIUS": {
-        "support_level": "untriaged"
-      },
-      "latitude": {
-        "support_level": "untriaged"
-      },
-      "longitude": {
-        "support_level": "untriaged"
-      },
-      "radius": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
   "Client": {
     "members": {
       "id": {
@@ -1297,9 +1256,6 @@
         "support_level": "untriaged"
       },
       "data": {},
-      "getSegments": {
-        "support_level": "untriaged"
-      },
       "initCompositionEvent": {}
     },
     "support_level": "stable"
@@ -1468,24 +1424,6 @@
     },
     "support_level": "deprecated"
   },
-  "Credential": {
-    "members": {
-      "avatarURL": {
-        "support_level": "untriaged"
-      },
-      "id": {
-        "support_level": "untriaged"
-      },
-      "name": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
-  "CredentialsContainer": {
-    "members": {},
-    "support_level": "untriaged"
-  },
   "Crypto": {
     "comment": "http://www.w3.org/TR/WebCryptoAPI/",
     "members": {
@@ -1495,23 +1433,6 @@
       }
     },
     "support_level": "experimental"
-  },
-  "CryptoKey": {
-    "members": {
-      "algorithm": {
-        "support_level": "untriaged"
-      },
-      "extractable": {
-        "support_level": "untriaged"
-      },
-      "type": {
-        "support_level": "untriaged"
-      },
-      "usages": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
   },
   "CryptoOperation": {
     "members": {
@@ -1755,245 +1676,12 @@
     },
     "support_level": "stable"
   },
-  "DOMMatrix": {
-    "members": {
-      "DOMMatrix": {},
-      "a": {
-        "support_level": "untriaged"
-      },
-      "b": {
-        "support_level": "untriaged"
-      },
-      "c": {
-        "support_level": "untriaged"
-      },
-      "d": {
-        "support_level": "untriaged"
-      },
-      "e": {
-        "support_level": "untriaged"
-      },
-      "f": {
-        "support_level": "untriaged"
-      },
-      "m11": {
-        "support_level": "untriaged"
-      },
-      "m12": {
-        "support_level": "untriaged"
-      },
-      "m13": {
-        "support_level": "untriaged"
-      },
-      "m14": {
-        "support_level": "untriaged"
-      },
-      "m21": {
-        "support_level": "untriaged"
-      },
-      "m22": {
-        "support_level": "untriaged"
-      },
-      "m23": {
-        "support_level": "untriaged"
-      },
-      "m24": {
-        "support_level": "untriaged"
-      },
-      "m31": {
-        "support_level": "untriaged"
-      },
-      "m32": {
-        "support_level": "untriaged"
-      },
-      "m33": {
-        "support_level": "untriaged"
-      },
-      "m34": {
-        "support_level": "untriaged"
-      },
-      "m41": {
-        "support_level": "untriaged"
-      },
-      "m42": {
-        "support_level": "untriaged"
-      },
-      "m43": {
-        "support_level": "untriaged"
-      },
-      "m44": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
-  "DOMMatrixReadOnly": {
-    "members": {
-      "a": {
-        "support_level": "untriaged"
-      },
-      "b": {
-        "support_level": "untriaged"
-      },
-      "c": {
-        "support_level": "untriaged"
-      },
-      "d": {
-        "support_level": "untriaged"
-      },
-      "e": {
-        "support_level": "untriaged"
-      },
-      "f": {
-        "support_level": "untriaged"
-      },
-      "is2D": {
-        "support_level": "untriaged"
-      },
-      "isIdentity": {
-        "support_level": "untriaged"
-      },
-      "m11": {
-        "support_level": "untriaged"
-      },
-      "m12": {
-        "support_level": "untriaged"
-      },
-      "m13": {
-        "support_level": "untriaged"
-      },
-      "m14": {
-        "support_level": "untriaged"
-      },
-      "m21": {
-        "support_level": "untriaged"
-      },
-      "m22": {
-        "support_level": "untriaged"
-      },
-      "m23": {
-        "support_level": "untriaged"
-      },
-      "m24": {
-        "support_level": "untriaged"
-      },
-      "m31": {
-        "support_level": "untriaged"
-      },
-      "m32": {
-        "support_level": "untriaged"
-      },
-      "m33": {
-        "support_level": "untriaged"
-      },
-      "m34": {
-        "support_level": "untriaged"
-      },
-      "m41": {
-        "support_level": "untriaged"
-      },
-      "m42": {
-        "support_level": "untriaged"
-      },
-      "m43": {
-        "support_level": "untriaged"
-      },
-      "m44": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
   "DOMParser": {
     "members": {
       "DOMParser": {},
       "parseFromString": {}
     },
     "support_level": "stable"
-  },
-  "DOMPoint": {
-    "members": {
-      "DOMPoint": {},
-      "w": {
-        "support_level": "untriaged"
-      },
-      "x": {
-        "support_level": "untriaged"
-      },
-      "y": {
-        "support_level": "untriaged"
-      },
-      "z": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
-  "DOMPointReadOnly": {
-    "members": {
-      "DOMPointReadOnly": {},
-      "w": {
-        "support_level": "untriaged"
-      },
-      "x": {
-        "support_level": "untriaged"
-      },
-      "y": {
-        "support_level": "untriaged"
-      },
-      "z": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
-  "DOMRect": {
-    "members": {
-      "DOMRect": {},
-      "height": {
-        "support_level": "untriaged"
-      },
-      "width": {
-        "support_level": "untriaged"
-      },
-      "x": {
-        "support_level": "untriaged"
-      },
-      "y": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
-  "DOMRectReadOnly": {
-    "members": {
-      "DOMRectReadOnly": {},
-      "bottom": {
-        "support_level": "untriaged"
-      },
-      "height": {
-        "support_level": "untriaged"
-      },
-      "left": {
-        "support_level": "untriaged"
-      },
-      "right": {
-        "support_level": "untriaged"
-      },
-      "top": {
-        "support_level": "untriaged"
-      },
-      "width": {
-        "support_level": "untriaged"
-      },
-      "x": {
-        "support_level": "untriaged"
-      },
-      "y": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
   },
   "DOMSettableTokenList": {
     "comment": "http://dev.w3.org/html5/spec-LC/common-dom-interfaces.html#domsettabletokenlist-0",
@@ -2399,9 +2087,6 @@
         "dart_action": "suppress"
       },
       "execCommand": {},
-      "exitFullscreen": {
-        "support_level": "untriaged"
-      },
       "exitPointerLock": {
         "support_level": "untriaged"
       },
@@ -2416,12 +2101,6 @@
         "support_level": "untriaged"
       },
       "forms": {},
-      "fullscreenElement": {
-        "support_level": "untriaged"
-      },
-      "fullscreenEnabled": {
-        "support_level": "untriaged"
-      },
       "getCSSCanvasContext": {
         "comment": "https://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariCSSRef/Articles/Functions.html",
         "support_level": "nonstandard"
@@ -2885,9 +2564,6 @@
       },
       "firstElementChild": {},
       "focus": {},
-      "getAnimationPlayers": {
-        "support_level": "untriaged"
-      },
       "getAttribute": {
         "support_level": "untriaged"
       },
@@ -3158,9 +2834,6 @@
         "comment": "http://dom.spec.whatwg.org/#dom-element-removeattributenode",
         "dart_action": "suppress",
         "support_level": "deprecated"
-      },
-      "requestFullscreen": {
-        "support_level": "untriaged"
       },
       "requestPointerLock": {
         "support_level": "untriaged"
@@ -3553,24 +3226,8 @@
     },
     "support_level": "stable"
   },
-  "FederatedCredential": {
-    "members": {
-      "FederatedCredential": {},
-      "federation": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
-  "FetchBodyStream": {
-    "members": {},
-    "support_level": "untriaged"
-  },
   "FetchEvent": {
     "members": {
-      "isReload": {
-        "support_level": "untriaged"
-      },
       "request": {
         "support_level": "untriaged"
       },
@@ -3864,14 +3521,6 @@
     "members": {},
     "support_level": "untriaged"
   },
-  "FontFaceSetLoadEvent": {
-    "members": {
-      "fontfaces": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
   "FontLoader": {
     "comment": "http://www.w3.org/TR/css3-fonts/#document-fontloader",
     "members": {
@@ -3950,18 +3599,6 @@
       "length": {}
     },
     "support_level": "experimental"
-  },
-  "Geofencing": {
-    "members": {},
-    "support_level": "untriaged"
-  },
-  "GeofencingRegion": {
-    "members": {
-      "id": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
   },
   "Geolocation": {
     "comment": "http://dev.w3.org/geo/api/spec-source.html#geolocation_interface",
@@ -5014,9 +4651,6 @@
         "dart_action": "suppress",
         "support_level": "deprecated"
       },
-      "allowFullscreen": {
-        "support_level": "untriaged"
-      },
       "contentDocument": {},
       "contentWindow": {},
       "frameBorder": {
@@ -5140,9 +4774,6 @@
       "alt": {},
       "autocomplete": {},
       "autofocus": {},
-      "capture": {
-        "support_level": "untriaged"
-      },
       "checkValidity": {},
       "checked": {},
       "defaultChecked": {},
@@ -5564,38 +5195,9 @@
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLMenuElement-partial",
         "dart_action": "suppress",
         "support_level": "deprecated"
-      },
-      "label": {
-        "support_level": "untriaged"
-      },
-      "type": {
-        "support_level": "untriaged"
       }
     },
     "support_level": "stable"
-  },
-  "HTMLMenuItemElement": {
-    "members": {
-      "checked": {
-        "support_level": "untriaged"
-      },
-      "default": {
-        "support_level": "untriaged"
-      },
-      "defaultValue": {
-        "support_level": "untriaged"
-      },
-      "disabled": {
-        "support_level": "untriaged"
-      },
-      "label": {
-        "support_level": "untriaged"
-      },
-      "type": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
   },
   "HTMLMetaElement": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/semantics.html#the-meta-element",
@@ -6429,22 +6031,6 @@
     "members": {},
     "support_level": "untriaged"
   },
-  "Headers": {
-    "members": {
-      "Headers": {},
-      "forEach": {
-        "support_level": "untriaged"
-      },
-      "size": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
-  "HeadersForEachCallback": {
-    "members": {},
-    "support_level": "untriaged"
-  },
   "History": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html#the-history-interface",
     "members": {
@@ -6897,15 +6483,6 @@
     },
     "support_level": "stable"
   },
-  "LocalCredential": {
-    "members": {
-      "LocalCredential": {},
-      "password": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
   "LocalMediaStream": {
     "comment": "http://dev.w3.org/2011/webrtc/editor/getusermedia.html#idl-def-NavigatorUserMediaSuccessCallback",
     "dart_action": "experimental",
@@ -7257,9 +6834,6 @@
       "ended": {},
       "getAudioTracks": {},
       "getTrackById": {},
-      "getTracks": {
-        "support_level": "untriaged"
-      },
       "getVideoTracks": {},
       "id": {},
       "label": {
@@ -7310,9 +6884,6 @@
       "id": {},
       "kind": {},
       "label": {},
-      "muted": {
-        "support_level": "untriaged"
-      },
       "onended": {},
       "onmute": {},
       "onunmute": {},
@@ -7452,9 +7023,6 @@
         "dart_action": "unstable",
         "support_level": "nonstandard"
       },
-      "region": {
-        "support_level": "untriaged"
-      },
       "relatedTarget": {},
       "screenX": {},
       "screenY": {},
@@ -7563,9 +7131,6 @@
         "dart_action": "unstable",
         "support_level": "nonstandard"
       },
-      "credentials": {
-        "support_level": "untriaged"
-      },
       "dartEnabled": {
         "support_level": "untriaged"
       },
@@ -7573,9 +7138,6 @@
         "comment": "http://www.w3.org/2011/tracking-protection/drafts/tracking-dnt.html#js-dom",
         "dart_action": "experimental",
         "support_level": "experimental"
-      },
-      "geofencing": {
-        "support_level": "untriaged"
       },
       "geolocation": {
         "comment": "http://dev.w3.org/geo/api/spec-source.html#navi-geo",
@@ -8910,10 +8472,6 @@
     },
     "support_level": "deprecated"
   },
-  "ReadableStream": {
-    "members": {},
-    "support_level": "untriaged"
-  },
   "Rect": {
     "comment": "http://dev.w3.org/csswg/cssom/",
     "dart_action": "suppress",
@@ -8925,30 +8483,13 @@
     },
     "support_level": "deprecated"
   },
-  "RelatedEvent": {
-    "members": {
-      "relatedTarget": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
   "Request": {
     "members": {
       "Request": {},
-      "credentials": {
-        "support_level": "untriaged"
-      },
       "headers": {
         "support_level": "untriaged"
       },
-      "mode": {
-        "support_level": "untriaged"
-      },
       "origin": {
-        "support_level": "untriaged"
-      },
-      "referrer": {
         "support_level": "untriaged"
       },
       "url": {
@@ -11972,9 +11513,6 @@
       "SVGStyleElement": {},
       "disabled": {},
       "media": {},
-      "sheet": {
-        "support_level": "untriaged"
-      },
       "title": {},
       "type": {},
       "xmllang": {
@@ -12476,23 +12014,6 @@
     },
     "support_level": "stable"
   },
-  "ScreenOrientation": {
-    "members": {
-      "angle": {
-        "support_level": "untriaged"
-      },
-      "onchange": {
-        "support_level": "untriaged"
-      },
-      "type": {
-        "support_level": "untriaged"
-      },
-      "unlock": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
   "ScriptProcessorNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ScriptProcessorNode",
     "members": {
@@ -12604,17 +12125,6 @@
     "members": {},
     "support_level": "untriaged"
   },
-  "ServiceWorkerClient": {
-    "members": {
-      "id": {
-        "support_level": "untriaged"
-      },
-      "postMessage": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
   "ServiceWorkerClients": {
     "members": {},
     "support_level": "untriaged"
@@ -12647,30 +12157,10 @@
       "clients": {
         "support_level": "untriaged"
       },
-      "nativeCaches": {
-        "support_level": "untriaged"
-      },
       "onmessage": {
         "support_level": "untriaged"
       },
       "scope": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
-  },
-  "ServiceWorkerRegistration": {
-    "members": {
-      "active": {
-        "support_level": "untriaged"
-      },
-      "installing": {
-        "support_level": "untriaged"
-      },
-      "scope": {
-        "support_level": "untriaged"
-      },
-      "waiting": {
         "support_level": "untriaged"
       }
     },
@@ -13466,18 +12956,9 @@
     "members": {
       "clientX": {},
       "clientY": {},
-      "force": {
-        "support_level": "untriaged"
-      },
       "identifier": {},
       "pageX": {},
       "pageY": {},
-      "radiusX": {
-        "support_level": "untriaged"
-      },
-      "radiusY": {
-        "support_level": "untriaged"
-      },
       "screenX": {},
       "screenY": {},
       "target": {},
@@ -13708,9 +13189,6 @@
         "support_level": "untriaged"
       },
       "href": {
-        "support_level": "untriaged"
-      },
-      "origin": {
         "support_level": "untriaged"
       },
       "pathname": {

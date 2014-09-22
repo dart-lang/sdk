@@ -581,6 +581,22 @@ class AudioParam extends NativeFieldWrapperClass2 {
   @DocsEditable()
   double get defaultValue => _blink.BlinkAudioParam.defaultValue_Getter(this);
 
+  @DomName('AudioParam.maxValue')
+  @DocsEditable()
+  double get maxValue => _blink.BlinkAudioParam.maxValue_Getter(this);
+
+  @DomName('AudioParam.minValue')
+  @DocsEditable()
+  double get minValue => _blink.BlinkAudioParam.minValue_Getter(this);
+
+  @DomName('AudioParam.name')
+  @DocsEditable()
+  String get name => _blink.BlinkAudioParam.name_Getter(this);
+
+  @DomName('AudioParam.units')
+  @DocsEditable()
+  int get units => _blink.BlinkAudioParam.units_Getter(this);
+
   @DomName('AudioParam.value')
   @DocsEditable()
   num get value => _blink.BlinkAudioParam.value_Getter(this);

@@ -7,7 +7,7 @@ import os
 import sys
 
 import idl_definitions
-from idl_types import IdlType, IdlUnionType, IdlArrayOrSequenceType
+from idl_types import IdlType, IdlUnionType
 
 from compute_interfaces_info_overall import interfaces_info
 
@@ -547,7 +547,7 @@ class IDLType(IDLNode):
       self.id = ast
     # New blink handling.
     elif ast.__module__ == "idl_types":
-      if isinstance(ast, IdlType) or isinstance(ast, IdlArrayOrSequenceType):
+      if isinstance(ast, IdlType):
         type_name = str(ast)
 
         # TODO(terry): For now don't handle unrestricted types see
@@ -560,8 +560,7 @@ class IDLType(IDLNode):
         self.id = type_name
       else:
         # IdlUnionType
-        if ast.is_union_type:
-          print 'WARNING type %s is union mapped to \'any\'' % self.id
+        assert ast.is_union_type
         # TODO(terry): For union types use any otherwise type is unionType is
         #              not found and is removed during merging.
         self.id = 'any'

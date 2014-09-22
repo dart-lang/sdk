@@ -1339,8 +1339,10 @@ class DartiumBackend(HtmlDartGenerator):
     needs_custom_element_callbacks = False
 
     # TODO(antonm): unify with ScriptState below.
-    call_with = ext_attrs.get('CallWith', '') + ext_attrs.get('ConstructorCallWith', '')
-    requires_stack_info = 'ScriptArguments' in call_with or 'ScriptState' in call_with
+    requires_stack_info = (ext_attrs.get('CallWith') == 'ScriptArguments|ScriptState' or
+                           ext_attrs.get('ConstructorCallWith') == 'ScriptArguments|ScriptState' or
+                           ext_attrs.get('CallWith') == 'ScriptArguments&ScriptState' or
+                           ext_attrs.get('ConstructorCallWith') == 'ScriptArguments&ScriptState')
     if requires_stack_info:
       raises_exceptions = True
       cpp_arguments = ['&state', 'scriptArguments.release()']

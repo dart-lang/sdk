@@ -57,8 +57,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
     var request;
     if (direction == null) {
-      // FIXME: Passing in "next" should be unnecessary.
-      request = _openCursor(key_OR_range, "next");
+      request = _openCursor(key_OR_range);
     } else {
       request = _openCursor(key_OR_range, direction);
     }
@@ -85,8 +84,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
     var request;
     if (direction == null) {
-      // FIXME: Passing in "next" should be unnecessary.
-      request = _openKeyCursor(key_OR_range, "next");
+      request = _openKeyCursor(key_OR_range);
     } else {
       request = _openKeyCursor(key_OR_range, direction);
     }

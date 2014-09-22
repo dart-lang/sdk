@@ -2060,6 +2060,10 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
   @DocsEditable()
   AnimatedNumber get radiusY => _blink.BlinkSVGFEMorphologyElement.radiusY_Getter(this);
 
+  @DomName('SVGFEMorphologyElement.setRadius')
+  @DocsEditable()
+  void setRadius(num radiusX, num radiusY) => _blink.BlinkSVGFEMorphologyElement.setRadius_Callback_float_float(this, radiusX, radiusY);
+
   @DomName('SVGFEMorphologyElement.height')
   @DocsEditable()
   AnimatedLength get height => _blink.BlinkSVGFEMorphologyElement.height_Getter(this);
@@ -5357,11 +5361,6 @@ class StyleElement extends SvgElement {
   @DomName('SVGStyleElement.media')
   @DocsEditable()
   void set media(String value) => _blink.BlinkSVGStyleElement.media_Setter_DOMString(this, value);
-
-  @DomName('SVGStyleElement.sheet')
-  @DocsEditable()
-  @Experimental() // untriaged
-  StyleSheet get sheet => _blink.BlinkSVGStyleElement.sheet_Getter(this);
 
   @DomName('SVGStyleElement.title')
   @DocsEditable()

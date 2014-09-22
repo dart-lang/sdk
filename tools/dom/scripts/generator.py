@@ -114,6 +114,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'ChannelMergerNode': 'ChannelMergerNode,AudioChannelMerger',
     'ChannelSplitterNode': 'ChannelSplitterNode,AudioChannelSplitter',
 
+    'ClientRect': 'ClientRect,DOMRect',
     'ClientRectList': 'ClientRectList,DOMRectList',
 
     'CSSStyleDeclaration':
@@ -238,9 +239,9 @@ def _BuildArguments(args, interface, constructor=False):
     return '_OR_'.join(sorted(set(arg.id for arg in args)))
 
   def DartType(idl_type_name):
-    if idl_type_name in _idl_type_registry:
-      return _idl_type_registry[idl_type_name].dart_type or idl_type_name
-    return idl_type_name
+   if idl_type_name in _idl_type_registry:
+     return _idl_type_registry[idl_type_name].dart_type or idl_type_name
+   return idl_type_name
 
   # Given a list of overloaded arguments, choose a suitable type.
   def OverloadedType(args):
@@ -449,7 +450,7 @@ class OperationInfo(object):
       else:
         if optional:
           raise Exception('Optional parameters cannot precede required ones: '
-                          + str(param_info))
+                          + str(params))
         required.append(FormatParam(param_info))
     needs_named = optional and self.requires_named_arguments and not force_optional
     return (required, optional, needs_named)

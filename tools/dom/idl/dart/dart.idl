@@ -190,6 +190,10 @@ interface IDBCursor {
 };
 [DartSupplemental]
 interface IDBIndex {
+    [CallWith=ExecutionContext, RaisesException] IDBRequest openCursor([Default=Undefined] optional any key, [DartForceOptional] optional DOMString direction);
+
+    [CallWith=ExecutionContext, RaisesException] IDBRequest openKeyCursor([Default=Undefined] optional any key, [DartForceOptional] optional DOMString direction);
+
     [CallWith=ExecutionContext, RaisesException] IDBRequest count([Default=Undefined] optional any key);
 };
 
@@ -356,21 +360,18 @@ interface Window : EventTarget {
 [DartSuppress]
 interface Promise {};
 
-[DartSupplemental]
-interface CanvasRenderingContext2D {
+[DartSupplemental] interface CanvasRenderingContext2D {
     [DartSuppress] void webkitPutImageDataHD(ImageData? imagedata, float dx, float dy);
     [DartSuppress] void webkitPutImageDataHD(ImageData? imagedata, float dx, float dy, float dirtyX, float dirtyY, float dirtyWidth, float dirtyHeight);
     [DartSuppress] ImageData webkitGetImageDataHD(float sx, float sy, float sw, float sh);
 };
 
-[DartSupplemental]
-interface AudioParam {
+[DartSupplemental] interface AudioParam {
     [DartSuppress] void setTargetValueAtTime(float target, double time, double timeConstant);
     void setTargetAtTime(float target, double time, double timeConstant);
 };
 
-[DartSupplemental]
-interface AudioContext {
+[DartSupplemental] interface AudioContext {
     // Number of AudioBufferSourceNodes that are currently playing.
     [DartSuppress] readonly attribute unsigned long activeSourceCount;
     [DartSuppress] ScriptProcessorNode createJavaScriptNode(unsigned long bufferSize, optional unsigned long numberOfInputChannels, optional unsigned long numberOfOutputChannels);
@@ -379,100 +380,72 @@ interface AudioContext {
     [DartSuppress] DelayNode createDelayNode(optional double maxDelayTime);
 };
 
-[DartSupplemental]
-interface HTMLInputElement {
+[DartSupplemental] interface HTMLInputElement {
     [DartSuppress] attribute boolean webkitSpeech;
     [DartSuppress] attribute boolean webkitGrammar;
 };
 
-[DartSupplemental]
-interface ShadowRoot {
+[DartSupplemental] interface ShadowRoot {
     [DartSuppress] attribute boolean applyAuthorStyles;
 };
 
-[DartSupplemental]
-interface BeforeLoadEvent {
+[DartSupplemental] interface BeforeLoadEvent {
     [DartSuppress] readonly attribute DOMString url;
 };
 
-[DartSupplemental]
-interface OscillatorNode {
+[DartSupplemental] interface OscillatorNode {
     [DartSuppress] readonly attribute unsigned short playbackState;
 };
 
-[DartSupplemental]
-interface SVGElementInstance {
+[DartSupplemental] interface SVGElementInstance {
     [DartSuppress] readonly attribute SVGElementInstanceList childNodes;
 };
 
-[DartSupplemental]
-interface DOMImplementation {
+[DartSupplemental] interface DOMImplementation {
     [DartSuppress]
     CSSStyleSheet createCSSStyleSheet([Default=Undefined] optional DOMString title,
                                       [Default=Undefined] optional DOMString media);
 };
 
-[DartSupplemental]
-interface SVGSVGElement {
+[DartSupplemental] interface SVGSVGElement {
     [DartSuppress] attribute DOMString contentStyleType;
     [DartSuppress] attribute DOMString contentScriptType;
 };
 
-[DartSupplemental]
-interface WorkerGlobalScope {
+[DartSupplemental] interface WorkerGlobalScope {
     [DartSuppress] readonly attribute NotificationCenter webkitNotifications;
 };
 
-[DartSupplemental]
-interface AudioBuffer {
+[DartSupplemental] interface AudioBuffer {
     [DartSuppress] attribute float gain;
 };
 
-[DartSupplemental]
-interface WorkerCrypto {
+[DartSupplemental] interface WorkerCrypto {
     [DartSuppress] ArrayBufferView getRandomValues(ArrayBufferView array);
 };
 
-[DartSupplemental]
-interface HTMLFormElement {
+[DartSupplemental] interface HTMLFormElement {
     void requestAutocomplete([Default=Undefined] optional Dictionary details);
     [DartSuppress] void requestAutocomplete();
 };
 
-[DartSupplemental]
-interface AudioBufferSourceNode {
+[DartSupplemental] interface AudioBufferSourceNode {
     [DartSuppress] readonly attribute unsigned short playbackState;
 };
 
-[DartSupplemental]
-interface AudioBufferSourceNode : AudioSourceNode {
+[DartSupplemental] interface AudioBufferSourceNode : AudioSourceNode {
     [DartSuppress] readonly attribute AudioParam gain;
 };
 
-// Remove operations webkitRequestFullscreen replaced w/ requestFullscreen.
-[DartSupplemental]
-interface Element : Node {
-    [DartSuppress] void webkitRequestFullScreen([Default=Undefined] optional unsigned short flags);
-    [DartSuppress] void webkitRequestFullscreen();
+// Remove backward compatible operation requestPointerLock exist now too.
+[DartSupplemental] interface Element : Node {
+    [DartSuppress] void webkitRequestPointerLock();
 };
 
-[DartSupplemental]
-interface CSSStyleDeclaration {
+[DartSupplemental] interface CSSStyleDeclaration {
     // Expose __propertyQuery__  a getter with a special operation in the IDL
     // when used with Custom=PropertyQuery will emit __propertyQuery__.
     [Custom=PropertyQuery] getter boolean (DOMString name);
-};
-
-[DartSupplemental]
-interface MIDIOutput : MIDIPort {
-    // TODO(terry): Need to support both send operations where the first param
-    //              is Uint8Array or sequence<unsigned long>.  For now suppress
-    //              the new operation. Vijay suggestion, and I think this makes
-    //              sense, change dart:html to have a send operation that takes
-    //              a List<int> and have custom handler to call the correct
-    //              method.  The dart:blink library needs to do something else
-    //              postfix the name with send_sequence (?).
-    [DartSuppress] void send(sequence<unsigned long> data, optional double timestamp);
 };
 
 Element implements GlobalEventHandlers;

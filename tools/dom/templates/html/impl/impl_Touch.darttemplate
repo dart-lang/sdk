@@ -17,8 +17,8 @@ $if DART2JS
   int get __screenY => JS('num', '#.screenY', this).round();
   int get __pageX => JS('num', '#.pageX', this).round();
   int get __pageY => JS('num', '#.pageY', this).round();
-  int get __radiusX => JS('num', '#.radiusX', this).round();
-  int get __radiusY => JS('num', '#.radiusY', this).round();
+  int get __webkitRadiusX => JS('num', '#.webkitRadiusX', this).round();
+  int get __webkitRadiusY => JS('num', '#.webkitRadiusY', this).round();
 $else
   int get __clientX => _blink.BlinkTouch.clientX_Getter(this).round();
   int get __clientY => _blink.BlinkTouch.clientY_Getter(this).round();
@@ -26,8 +26,8 @@ $else
   int get __screenY => _blink.BlinkTouch.screenY_Getter(this).round();
   int get __pageX => _blink.BlinkTouch.pageX_Getter(this).round();
   int get __pageY => _blink.BlinkTouch.pageY_Getter(this).round();
-  int get __radiusX => _blink.BlinkTouch.radiusX_Getter(this).round();
-  int get __radiusY => _blink.BlinkTouch.radiusY_Getter(this).round();
+  int get __webkitRadiusX => _blink.BlinkTouch.webkitRadiusX_Getter(this).round();
+  int get __webkitRadiusY => _blink.BlinkTouch.webkitRadiusY_Getter(this).round();
 $endif
 
   @DomName('Touch.clientX')
@@ -42,18 +42,18 @@ $endif
   @DomName('Touch.screenY')
   Point get screen => new Point(__screenX, __screenY);
 
-  @DomName('Touch.radiusX')
+  @DomName('Touch.webkitRadiusX')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get radiusX => __radiusX;
+  int get radiusX => __webkitRadiusX;
 
-  @DomName('Touch.radiusY')
+  @DomName('Touch.webkitRadiusY')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get radiusY => __radiusY;
+  int get radiusY => __webkitRadiusY;
 
 }

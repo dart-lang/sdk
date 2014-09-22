@@ -126,6 +126,14 @@ $endif
     _webkitExitFullscreen();
   }
 
+  @DomName('Document.webkitExitPointerLock')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  void exitPointerLock() {
+    _webkitExitPointerLock();
+  }
+
   /**
    * Returns the element, if any, that is currently displayed in fullscreen.
    *
@@ -174,6 +182,13 @@ $endif
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   bool get hidden => _webkitHidden;
+
+  @DomName('Document.webkitPointerLockElement')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  Element get pointerLockElement =>
+      _webkitPointerLockElement;
 
   @DomName('Document.visibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
