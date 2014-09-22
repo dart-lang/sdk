@@ -17,6 +17,7 @@ import 'operation/operation_queue_test.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'dart:async';
 
 main() {
   group('ExecutionDomainHandler', () {
@@ -131,35 +132,33 @@ main() {
 
     group('setSubscriptions', () {
       test('failure - invalid service name', () {
-        expect(handler.launchDataListener, isNull);
+        expect(handler.onAnalysisSubscription, isNull);
 
         Request request = new Request('0', EXECUTION_SET_SUBSCRIPTIONS, {
           SUBSCRIPTIONS: ['noSuchService']
         });
         Response response = handler.handleRequest(request);
         expect(response, isResponseFailure('0'));
-        expect(handler.launchDataListener, isNull);
+        expect(handler.onAnalysisSubscription, isNull);
       });
 
       test('success - setting and clearing', () {
-        expect(handler.launchDataListener, isNull);
+        expect(handler.onAnalysisSubscription, isNull);
 
         Request request = new ExecutionSetSubscriptionsParams(
             [ExecutionService.LAUNCH_DATA]).toRequest('0');
         Response response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
-        expect(handler.launchDataListener, isNotNull);
+        expect(handler.onAnalysisSubscription, isNotNull);
 
         request = new ExecutionSetSubscriptionsParams([]).toRequest('0');
         response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
-        expect(handler.launchDataListener, isNull);
+        expect(handler.onAnalysisSubscription, isNull);
       });
     });
-  });
 
-  group('LaunchDataNotificationListener', () {
-    test('success - setting and clearing', () {
+    test('onAnalysisComplete - success - setting and clearing', () {
       Source source1 = new TestSource('/a.dart');
       Source source2 = new TestSource('/b.dart');
       Source source3 = new TestSource('/c.dart');
@@ -184,6 +183,16 @@ main() {
 
       AnalysisServer server = new AnalysisServerMock();
       when(server.getAnalysisContexts()).thenReturn([context]);
+      when(server.isAnalysisComplete()).thenReturn(false);
+
+      StreamController controller = new StreamController.broadcast(sync: true);
+      when(server.onAnalysisComplete).thenReturn(controller.stream);
+
+      ExecutionDomainHandler handler = new ExecutionDomainHandler(server);
+      Request request = new ExecutionSetSubscriptionsParams(
+          [ExecutionService.LAUNCH_DATA]).toRequest('0');
+      Response response = handler.handleRequest(request);
+
       bool notificationSent = false;
       when(server.sendNotification(anyObject))
           .thenInvoke((Notification notification) {
@@ -220,9 +229,7 @@ main() {
 
         notificationSent = true;
       });
-      LaunchDataNotificationListener listener =
-          new LaunchDataNotificationListener(server);
-      listener.analysisComplete();
+      controller.add(null);
       expect(notificationSent, isTrue);
     });
   });

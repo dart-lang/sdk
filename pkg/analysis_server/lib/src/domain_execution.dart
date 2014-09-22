@@ -4,6 +4,7 @@
 
 library domain.execution;
 
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_server.dart';
@@ -33,9 +34,10 @@ class ExecutionDomainHandler implements RequestHandler {
   Map<String, String> contextMap = new HashMap<String, String>();
 
   /**
-   * The listener used to send notifications when
+   * The subscription to the 'onAnalysisComplete' events,
+   * used to send notifications when
    */
-  LaunchDataNotificationListener launchDataListener;
+  StreamSubscription onAnalysisSubscription;
 
   /**
    * Initialize a newly created handler to handle requests for the given [server].
@@ -124,42 +126,23 @@ class ExecutionDomainHandler implements RequestHandler {
     List<ExecutionService> subscriptions =
         new ExecutionSetSubscriptionsParams.fromRequest(request).subscriptions;
     if (subscriptions.contains(ExecutionService.LAUNCH_DATA)) {
-      if (launchDataListener == null) {
-        launchDataListener = new LaunchDataNotificationListener(server);
-        server.addAnalysisServerListener(launchDataListener);
+      if (onAnalysisSubscription == null) {
+        onAnalysisSubscription =
+            server.onAnalysisComplete.listen(_analysisComplete);
         if (server.isAnalysisComplete()) {
-          launchDataListener.analysisComplete();
+          _analysisComplete(null);
         }
       }
     } else {
-      if (launchDataListener != null) {
-        server.removeAnalysisServerListener(launchDataListener);
-        launchDataListener = null;
+      if (onAnalysisSubscription != null) {
+        onAnalysisSubscription.cancel();
+        onAnalysisSubscription = null;
       }
     }
     return new ExecutionSetSubscriptionsResult().toResponse(request.id);
   }
-}
 
-/**
- * Instances of the class [LaunchDataNotificationListener] listen for analysis
- * to be complete and then notify the client of the launch data that has been
- * computed.
- */
-class LaunchDataNotificationListener implements AnalysisServerListener {
-  /**
-   * The analysis server used to send notifications.
-   */
-  final AnalysisServer server;
-
-  /**
-   * Initialize a newly created listener to send notifications through the given
-   * [server] when analysis is complete.
-   */
-  LaunchDataNotificationListener(this.server);
-
-  @override
-  void analysisComplete() {
+  void _analysisComplete(_) {
     List<ExecutableFile> executables = [];
     Map<String, List<String>> dartToHtml = new HashMap<String, List<String>>();
     Map<String, List<String>> htmlToDart = new HashMap<String, List<String>>();
@@ -183,7 +166,7 @@ class LaunchDataNotificationListener implements AnalysisServerListener {
         if (files.isNotEmpty) {
           // TODO(brianwilkerson) Handle the case where the same library is
           // being analyzed in multiple contexts.
-          dartToHtml[librarySource.fullName] = getFullNames(files);
+          dartToHtml[librarySource.fullName] = _getFullNames(files);
         }
       }
 
@@ -193,7 +176,7 @@ class LaunchDataNotificationListener implements AnalysisServerListener {
         if (libraries.isNotEmpty) {
           // TODO(brianwilkerson) Handle the case where the same HTML file is
           // being analyzed in multiple contexts.
-          htmlToDart[htmlSource.fullName] = getFullNames(libraries);
+          htmlToDart[htmlSource.fullName] = _getFullNames(libraries);
         }
       }
     }
@@ -204,11 +187,7 @@ class LaunchDataNotificationListener implements AnalysisServerListener {
             htmlToDart).toNotification());
   }
 
-  @override
-  void analysisStarted(AnalysisContext context) {
-  }
-
-  List<String> getFullNames(List<Source> sources) {
+  static List<String> _getFullNames(List<Source> sources) {
     return sources.map((Source source) => source.fullName).toList();
   }
 }

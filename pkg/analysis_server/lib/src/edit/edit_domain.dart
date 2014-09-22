@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/engine.dart';
 
 
 /**
@@ -180,8 +181,7 @@ class _RefactoringManager {
   EditGetRefactoringResult result;
 
   _RefactoringManager(this.server, this.searchEngine) {
-    server.addAnalysisServerListener(
-        new _ResetRefactoringManagerAnalysisServerListener(this));
+    server.onAnalysisStarted.listen(_reset);
     _reset();
   }
 
@@ -374,7 +374,7 @@ class _RefactoringManager {
     });
   }
 
-  void _reset() {
+  void _reset([AnalysisContext context]) {
     kind = null;
     offset = null;
     length = null;
@@ -440,26 +440,5 @@ class _RefactoringManager {
       return renameRefactoring.checkNewName();
     }
     return new RefactoringStatus();
-  }
-}
-
-
-/**
- * A [AnalysisServerListener] that resets [_RefactoringManager] when analysis
- * is started in the [AnalysisServer].
- */
-class _ResetRefactoringManagerAnalysisServerListener implements
-    AnalysisServerListener {
-  final _RefactoringManager refactoringManager;
-
-  _ResetRefactoringManagerAnalysisServerListener(this.refactoringManager);
-
-  @override
-  void analysisComplete() {
-  }
-
-  @override
-  void analysisStarted(engine.AnalysisContext context) {
-    refactoringManager._reset();
   }
 }
