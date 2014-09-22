@@ -291,7 +291,7 @@ namespace dart {
   V(Int32x4_setFlagW, 2)                                                       \
   V(Int32x4_select, 3)                                                         \
   V(Isolate_spawnFunction, 3)                                                  \
-  V(Isolate_spawnUri, 4)                                                       \
+  V(Isolate_spawnUri, 5)                                                       \
   V(Isolate_sendOOB, 2)                                                        \
   V(Mirrors_evalInLibraryWithPrivateKey, 2)                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \

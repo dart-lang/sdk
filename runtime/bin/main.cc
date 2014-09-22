@@ -54,7 +54,7 @@ static const int DEFAULT_DEBUG_PORT = 5858;
 // Value of the --package-root flag.
 // (This pointer points into an argv buffer and does not need to be
 // free'd.)
-static const char* package_root = NULL;
+static const char* commandline_package_root = NULL;
 
 
 // Global flag that is used to indicate that we want to compile all the
@@ -136,7 +136,7 @@ static bool ProcessPackageRootOption(const char* arg,
   if (*arg == '\0' || *arg == '-') {
     return false;
   }
-  package_root = arg;
+  commandline_package_root = arg;
   return true;
 }
 
@@ -549,11 +549,13 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
 // Returns true on success, false on failure.
 static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 const char* main,
-                                                void* data,
+                                                const char* package_root,
                                                 char** error,
                                                 bool* is_compile_error) {
-  Dart_Isolate isolate =
-      Dart_CreateIsolate(script_uri, main, snapshot_buffer, data, error);
+  ASSERT(script_uri != NULL);
+  IsolateData* isolate_data = new IsolateData(script_uri, package_root);
+  Dart_Isolate isolate = Dart_CreateIsolate(
+      script_uri, main, snapshot_buffer, isolate_data, error);
   if (isolate == NULL) {
     return NULL;
   }
@@ -587,10 +589,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
   CHECK_RESULT(result);
 
-  IsolateData* isolate_data = reinterpret_cast<IsolateData*>(data);
-  ASSERT(isolate_data != NULL);
-  ASSERT(isolate_data->script_url != NULL);
-  result = DartUtils::LoadScript(isolate_data->script_url, builtin_lib);
+  result = DartUtils::LoadScript(script_uri, builtin_lib);
   CHECK_RESULT(result);
 
   // Run event-loop and wait for script loading to complete.
@@ -631,24 +630,27 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
 
 static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           const char* main,
+                                          const char* package_root,
                                           void* data, char** error) {
+  IsolateData* parent_isolate_data = reinterpret_cast<IsolateData*>(data);
   bool is_compile_error = false;
   if (script_uri == NULL) {
     if (data == NULL) {
       *error = strdup("Invalid 'callback_data' - Unable to spawn new isolate");
       return NULL;
     }
-    IsolateData* parent_isolate_data = reinterpret_cast<IsolateData*>(data);
     script_uri = parent_isolate_data->script_url;
     if (script_uri == NULL) {
       *error = strdup("Invalid 'callback_data' - Unable to spawn new isolate");
       return NULL;
     }
   }
-  IsolateData* isolate_data = new IsolateData(script_uri);
+  if (package_root == NULL) {
+    package_root = parent_isolate_data->package_root;
+  }
   return CreateIsolateAndSetupHelper(script_uri,
                                      main,
-                                     isolate_data,
+                                     package_root,
                                      error,
                                      &is_compile_error);
 }
@@ -664,7 +666,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
 
 static Dart_Isolate CreateServiceIsolate(void* data, char** error) {
   const char* script_uri = DartUtils::kVMServiceLibURL;
-  IsolateData* isolate_data = new IsolateData(script_uri);
+  IsolateData* isolate_data = new IsolateData(script_uri, NULL);
   Dart_Isolate isolate =
       Dart_CreateIsolate(script_uri, "main", snapshot_buffer, isolate_data,
                          error);
@@ -688,7 +690,7 @@ static Dart_Isolate CreateServiceIsolate(void* data, char** error) {
   CHECK_RESULT(builtin_lib);
   // Prepare for script loading by setting up the 'print' and 'timer'
   // closures and setting up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
+  result = DartUtils::PrepareForScriptLoading(NULL, builtin_lib);
   CHECK_RESULT(result);
 
   Dart_ExitScope();
@@ -1025,10 +1027,9 @@ void main(int argc, char** argv) {
   char* error = NULL;
   bool is_compile_error = false;
   char* isolate_name = BuildIsolateName(script_name, "main");
-  IsolateData* isolate_data = new IsolateData(script_name);
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(script_name,
                                                      "main",
-                                                     isolate_data,
+                                                     commandline_package_root,
                                                      &error,
                                                      &is_compile_error);
   if (isolate == NULL) {

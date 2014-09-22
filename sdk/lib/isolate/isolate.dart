@@ -127,8 +127,8 @@ class Isolate {
    * If [packageRoot] is omitted, it defaults to the same URI that
    * the current isolate is using.
    *
-   * WARNING: The [packageRoot] parameter is not implemented on any
-   * platform yet.
+   * WARNING: The [packageRoot] parameter is not implemented on all
+   * platforms yet.
    *
    * If the [paused] parameter is set to `true`,
    * the isolate will start up in a paused state,

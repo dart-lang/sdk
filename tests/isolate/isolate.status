@@ -99,3 +99,6 @@ spawn_uri_missing_test: Skip # Times out.
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
 serialization_test: StaticWarning
+
+[ $compiler != none || $runtime != vm ]
+package_root_test: SkipByDesign # Uses dart:io.
