@@ -733,8 +733,8 @@ void ActivationFrame::PrintContextMismatchError(
   StackFrame* frame = iterator.NextFrame();
   intptr_t num = 0;
   while ((frame != NULL)) {
-    frame = iterator.NextFrame();
     OS::PrintErr("#%04" Pd " %s\n", num++, frame->ToCString());
+    frame = iterator.NextFrame();
   }
 }
 
