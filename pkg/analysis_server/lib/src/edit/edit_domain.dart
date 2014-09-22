@@ -195,7 +195,8 @@ class _RefactoringManager {
    * Checks if [refactoring] requires options.
    */
   bool get _requiresOptions {
-    if (refactoring is InlineLocalRefactoring) {
+    if (refactoring is ConvertMethodToGetterRefactoring ||
+        refactoring is InlineLocalRefactoring) {
       return false;
     }
     return true;
@@ -265,6 +266,16 @@ class _RefactoringManager {
     this.offset = offset;
     this.length = length;
     // create a new Refactoring instance
+    if (kind == RefactoringKind.CONVERT_METHOD_TO_GETTER) {
+      List<Element> elements = server.getElementsAtOffset(file, offset);
+      if (elements.isNotEmpty) {
+        Element element = elements[0];
+        if (element is ExecutableElement) {
+          refactoring =
+              new ConvertMethodToGetterRefactoring(searchEngine, element);
+        }
+      }
+    }
     if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
       List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
       if (units.isNotEmpty) {

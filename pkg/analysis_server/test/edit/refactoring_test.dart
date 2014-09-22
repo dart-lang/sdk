@@ -18,6 +18,7 @@ import '../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
+  runReflectiveTests(ConvertMethodToGetterTest);
   runReflectiveTests(ExtractLocalVariableTest);
   runReflectiveTests(ExtractMethodTest);
   runReflectiveTests(GetAvailableRefactoringsTest);
@@ -25,6 +26,120 @@ main() {
   runReflectiveTests(InlineMethodTest);
   runReflectiveTests(MoveFileTest);
   runReflectiveTests(RenameTest);
+}
+
+
+@ReflectiveTestCase()
+class ConvertMethodToGetterTest extends _AbstractGetRefactoring_Test {
+  test_function() {
+    addTestFile('''
+int test() => 42;
+main() {
+  var a = 1 + test();
+  var b = 2 + test();
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendConvertRequest('test() =>');
+    }, '''
+int get test => 42;
+main() {
+  var a = 1 + test;
+  var b = 2 + test;
+}
+''');
+  }
+
+  test_init_fatalError_hasParameters() {
+    addTestFile('''
+int test(p) => p + 1;
+main() {
+  var v = test(2);
+}
+''');
+    return getRefactoringResult(() {
+      return _sendConvertRequest('test(p)');
+    }).then((result) {
+      assertResultProblemsFatal(
+          result.initialProblems,
+          'Only methods without parameters can be converted to getters.');
+      // ...there is no any change
+      expect(result.change, isNull);
+    });
+  }
+
+  test_init_fatalError_notExecutableElement() {
+    addTestFile('''
+main() {
+  int abc = 1;
+  print(abc);
+}
+''');
+    return getRefactoringResult(() {
+      return _sendConvertRequest('abc');
+    }).then((result) {
+      assertResultProblemsFatal(
+          result.initialProblems,
+          'Unable to create a refactoring');
+      // ...there is no any change
+      expect(result.change, isNull);
+    });
+  }
+
+  test_method() {
+    addTestFile('''
+class A {
+  int test() => 1;
+}
+class B extends A {
+  int test() => 2;
+}
+class C extends B {
+  int test() => 3;
+}
+class D extends A {
+  int test() => 4;
+}
+main(A a, B b, C c, D d) {
+  var va = a.test();
+  var vb = b.test();
+  var vc = c.test();
+  var vd = d.test();
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendConvertRequest('test() => 2');
+    }, '''
+class A {
+  int get test => 1;
+}
+class B extends A {
+  int get test => 2;
+}
+class C extends B {
+  int get test => 3;
+}
+class D extends A {
+  int get test => 4;
+}
+main(A a, B b, C c, D d) {
+  var va = a.test;
+  var vb = b.test;
+  var vc = c.test;
+  var vd = d.test;
+}
+''');
+  }
+
+  Future<Response> _sendConvertRequest(String search) {
+    Request request = new EditGetRefactoringParams(
+        RefactoringKind.CONVERT_METHOD_TO_GETTER,
+        testFile,
+        findOffset(search),
+        0,
+        false).toRequest('0');
+    return serverChannel.sendRequest(request);
+  }
 }
 
 
