@@ -4,13 +4,11 @@ import 'dart:io';
 import 'dart:isolate';
 import 'package:analyzer/analyzer.dart';
 import 'package:path/path.dart' as path;
-import 'package:stack_trace/stack_trace.dart';
 import '../../../compiler/compiler.dart' as compiler;
 import '../../../compiler/implementation/filenames.dart' show appendSlash;
 import '../../asset/dart/serialize.dart';
 import 'io.dart';
 import 'log.dart' as log;
-import 'utils.dart';
 abstract class CompilerProvider {
   Uri get libraryRoot;
   Future provideInput(Uri uri);
@@ -24,7 +22,7 @@ Future compile(String entrypoint, CompilerProvider provider,
     String packageRoot, bool analyzeAll: false, bool suppressWarnings: false,
     bool suppressHints: false, bool suppressPackageWarnings: true, bool terse:
     false, bool includeSourceMapUrls: false, bool toDart: false}) {
-  return syncFuture(() {
+  return new Future.sync(() {
     var options = <String>['--categories=Client,Server'];
     if (checked) options.add('--enable-checked-mode');
     if (csp) options.add('--csp');
@@ -46,16 +44,15 @@ Future compile(String entrypoint, CompilerProvider provider,
     if (packageRoot == null) {
       packageRoot = path.join(path.dirname(entrypoint), 'packages');
     }
-    return Chain.track(
-        compiler.compile(
-            path.toUri(entrypoint),
-            provider.libraryRoot,
-            path.toUri(appendSlash(packageRoot)),
-            provider.provideInput,
-            provider.handleDiagnostic,
-            options,
-            provider.provideOutput,
-            environment));
+    return compiler.compile(
+        path.toUri(entrypoint),
+        provider.libraryRoot,
+        path.toUri(appendSlash(packageRoot)),
+        provider.provideInput,
+        provider.handleDiagnostic,
+        options,
+        provider.provideOutput,
+        environment);
   });
 }
 bool isEntrypoint(CompilationUnit dart) {
@@ -77,7 +74,7 @@ class _DirectiveCollector extends GeneralizingAstVisitor {
 Future runInIsolate(String code, message, {String snapshot}) {
   if (snapshot != null && fileExists(snapshot)) {
     log.fine("Spawning isolate from $snapshot.");
-    return Chain.track(Isolate.spawnUri(path.toUri(snapshot), [], message));
+    return Isolate.spawnUri(path.toUri(snapshot), [], message);
   }
   return withTempDir((dir) {
     final completer0 = new Completer();
@@ -86,11 +83,11 @@ Future runInIsolate(String code, message, {String snapshot}) {
         var dartPath = path.join(dir, 'runInIsolate.dart');
         writeTextFile(dartPath, code, dontLogContents: true);
         var port = new ReceivePort();
-        Chain.track(Isolate.spawn(_isolateBuffer, {
+        Isolate.spawn(_isolateBuffer, {
           'replyTo': port.sendPort,
           'uri': path.toUri(dartPath).toString(),
           'message': message
-        })).then((x0) {
+        }).then((x0) {
           try {
             x0;
             port.first.then((x1) {
@@ -155,11 +152,10 @@ Future runInIsolate(String code, message, {String snapshot}) {
 }
 void _isolateBuffer(message) {
   var replyTo = message['replyTo'];
-  Chain.track(
-      Isolate.spawnUri(
-          Uri.parse(message['uri']),
-          [],
-          message['message'])).then((_) => replyTo.send({
+  Isolate.spawnUri(
+      Uri.parse(message['uri']),
+      [],
+      message['message']).then((_) => replyTo.send({
     'type': 'success'
   })).catchError((e, stack) {
     replyTo.send({

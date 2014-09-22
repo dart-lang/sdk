@@ -97,7 +97,7 @@ String writeBinaryFile(String file, List<int> contents) {
 Future<String> createFileFromStream(Stream<List<int>> stream, String file) {
   log.io("Creating $file from stream.");
   return _descriptorPool.withResource(() {
-    return Chain.track(stream.pipe(new File(file).openWrite())).then((_) {
+    return stream.pipe(new File(file).openWrite()).then((_) {
       log.fine("Created $file from stream.");
       return file;
     });
@@ -268,7 +268,7 @@ String get repoRoot {
   return path.normalize(path.join(libDir, '..', '..', '..', '..', '..', '..'));
 }
 final Stream<String> stdinLines =
-    streamToLines(new ByteStream(Chain.track(stdin)).toStringStream());
+    streamToLines(new ByteStream(stdin).toStringStream());
 Future<bool> confirm(String message) {
   log.fine('Showing confirm message: $message');
   if (runningAsTest) {
@@ -284,9 +284,7 @@ Future drainStream(Stream stream) {
 }
 Future flushThenExit(int status) {
   return Future.wait(
-      [
-          Chain.track(stdout.close()),
-          Chain.track(stderr.close())]).then((_) => exit(status));
+      [stdout.close(), stderr.close()]).then((_) => exit(status));
 }
 Pair<EventSink, Future> consumerToSink(StreamConsumer consumer) {
   var controller = new StreamController(sync: true);
@@ -364,14 +362,11 @@ class PubProcess {
     var errorGroup = new ErrorGroup();
     var pair = consumerToSink(process.stdin);
     _stdin = pair.first;
-    _stdinClosed = errorGroup.registerFuture(Chain.track(pair.last));
-    _stdout =
-        new ByteStream(errorGroup.registerStream(Chain.track(process.stdout)));
-    _stderr =
-        new ByteStream(errorGroup.registerStream(Chain.track(process.stderr)));
+    _stdinClosed = errorGroup.registerFuture(pair.last);
+    _stdout = new ByteStream(errorGroup.registerStream(process.stdout));
+    _stderr = new ByteStream(errorGroup.registerStream(process.stderr));
     var exitCodeCompleter = new Completer();
-    _exitCode =
-        errorGroup.registerFuture(Chain.track(exitCodeCompleter.future));
+    _exitCode = errorGroup.registerFuture(exitCodeCompleter.future);
     _process.exitCode.then((code) => exitCodeCompleter.complete(code));
   }
   bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]) =>
@@ -415,9 +410,9 @@ Future timeout(Future input, int milliseconds, Uri url, String description) {
   return completer.future;
 }
 Future withTempDir(Future fn(String path)) {
-  return syncFuture(() {
+  return new Future.sync(() {
     var tempDir = createSystemTempDir();
-    return syncFuture(
+    return new Future.sync(
         () => fn(tempDir)).whenComplete(() => deleteEntry(tempDir));
   });
 }
@@ -494,7 +489,7 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream, String destination)
   });
 }
 ByteStream createTarGz(List contents, {baseDir}) {
-  return new ByteStream(futureStream(syncFuture(() {
+  return new ByteStream(futureStream(new Future.sync(() {
     var buffer = new StringBuffer();
     buffer.write('Creating .tag.gz stream containing:\n');
     contents.forEach((file) => buffer.write('$file\n'));
@@ -514,7 +509,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
       return startProcess("tar", args).then((process) => process.stdout);
     }
     var tempDir = createSystemTempDir();
-    return syncFuture(() {
+    return new Future.sync(() {
       var tarFile = path.join(tempDir, "intermediate.tar");
       var args = ["a", "-w$baseDir", tarFile];
       args.addAll(contents.map((entry) => '-i!$entry'));

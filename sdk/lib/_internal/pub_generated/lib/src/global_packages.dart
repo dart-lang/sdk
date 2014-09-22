@@ -302,7 +302,7 @@ class GlobalPackages {
     return true;
   }
   Future<Entrypoint> find(String name) {
-    return syncFuture(() {
+    return new Future.sync(() {
       var lockFilePath = _getLockFilePath(name);
       var lockFile;
       try {

@@ -329,7 +329,7 @@ class Entrypoint {
     if (id.isRoot) return new Future.value(id);
 
     var source = cache.sources[id.source];
-    return syncFuture(() {
+    return new Future.sync(() {
       if (!_packageSymlinks) {
         if (source is! CachedSource) return null;
         return source.downloadToSystemCache(id);
@@ -394,7 +394,7 @@ class Entrypoint {
   /// Gets dependencies if the lockfile is out of date with respect to the
   /// pubspec.
   Future ensureLockFileIsUpToDate() {
-    return syncFuture(() {
+    return new Future.sync(() {
       // If we don't have a current lock file, we definitely need to install.
       if (!_isLockFileUpToDate(lockFile)) {
         if (lockFileExists) {
@@ -435,7 +435,7 @@ class Entrypoint {
   Future<PackageGraph> loadPackageGraph([SolveResult result]) {
     if (_packageGraph != null) return new Future.value(_packageGraph);
 
-    return syncFuture(() {
+    return new Future.sync(() {
       if (result != null) {
         return Future.wait(result.packages.map((id) {
           return cache.sources[id.source].getDirectory(id)

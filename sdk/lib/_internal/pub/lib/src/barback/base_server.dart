@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:barback/barback.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
-import 'package:stack_trace/stack_trace.dart';
 
 import '../log.dart' as log;
 import '../utils.dart';
@@ -43,7 +42,7 @@ abstract class BaseServer<T> {
   final _resultsController = new StreamController<T>.broadcast();
 
   BaseServer(this.environment, this._server) {
-    shelf_io.serveRequests(Chain.track(_server), const shelf.Pipeline()
+    shelf_io.serveRequests(_server, const shelf.Pipeline()
         .addMiddleware(shelf.createMiddleware(errorHandler: _handleError))
         .addMiddleware(shelf.createMiddleware(responseHandler: _disableGzip))
         .addHandler(handleRequest));

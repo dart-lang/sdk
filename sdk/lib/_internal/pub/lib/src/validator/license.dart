@@ -19,7 +19,7 @@ class LicenseValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    return syncFuture(() {
+    return new Future.sync(() {
       var licenseLike = new RegExp(
           r"^([a-zA-Z0-9]+[-_])?(LICENSE|COPYING)(\..*)?$");
       if (listDir(entrypoint.root.dir)

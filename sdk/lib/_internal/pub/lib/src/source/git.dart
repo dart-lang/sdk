@@ -187,7 +187,7 @@ class GitSource extends CachedSource {
   /// Returns a future that completes to the hash of the revision identified by
   /// [id].
   Future<String> _ensureRevision(PackageId id) {
-    return syncFuture(() {
+    return new Future.sync(() {
       var path = _repoCachePath(id);
       if (!entryExists(path)) {
         return _clone(_getUrl(id), path, mirror: true)
@@ -244,7 +244,7 @@ class GitSource extends CachedSource {
   /// for the repository.
   Future _clone(String from, String to, {bool mirror: false,
       bool shallow: false}) {
-    return syncFuture(() {
+    return new Future.sync(() {
       // Git on Windows does not seem to automatically create the destination
       // directory.
       ensureDir(to);

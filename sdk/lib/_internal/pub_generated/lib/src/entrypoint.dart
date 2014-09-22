@@ -353,7 +353,7 @@ class Entrypoint {
   Future<PackageId> _get(PackageId id) {
     if (id.isRoot) return new Future.value(id);
     var source = cache.sources[id.source];
-    return syncFuture(() {
+    return new Future.sync(() {
       if (!_packageSymlinks) {
         if (source is! CachedSource) return null;
         return source.downloadToSystemCache(id);
@@ -387,7 +387,7 @@ class Entrypoint {
     });
   }
   Future ensureLockFileIsUpToDate() {
-    return syncFuture(() {
+    return new Future.sync(() {
       if (!_isLockFileUpToDate(lockFile)) {
         if (lockFileExists) {
           log.message(
@@ -412,7 +412,7 @@ class Entrypoint {
   }
   Future<PackageGraph> loadPackageGraph([SolveResult result]) {
     if (_packageGraph != null) return new Future.value(_packageGraph);
-    return syncFuture(() {
+    return new Future.sync(() {
       if (result != null) {
         return Future.wait(result.packages.map((id) {
           return cache.sources[id.source].getDirectory(

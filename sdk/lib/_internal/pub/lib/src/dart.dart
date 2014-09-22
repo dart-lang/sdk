@@ -11,7 +11,6 @@ import 'dart:isolate';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:path/path.dart' as path;
-import 'package:stack_trace/stack_trace.dart';
 
 import '../../../compiler/compiler.dart' as compiler;
 import '../../../compiler/implementation/filenames.dart'
@@ -21,7 +20,6 @@ import '../../asset/dart/serialize.dart';
 import 'io.dart';
 import 'log.dart' as log;
 
-import 'utils.dart';
 /// Interface to communicate with dart2js.
 ///
 /// This is basically an amalgamation of dart2js's
@@ -73,7 +71,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
     bool terse: false,
     bool includeSourceMapUrls: false,
     bool toDart: false}) {
-  return syncFuture(() {
+  return new Future.sync(() {
     var options = <String>['--categories=Client,Server'];
     if (checked) options.add('--enable-checked-mode');
     if (csp) options.add('--csp');
@@ -101,7 +99,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
       packageRoot = path.join(path.dirname(entrypoint), 'packages');
     }
 
-    return Chain.track(compiler.compile(
+    return compiler.compile(
         path.toUri(entrypoint),
         provider.libraryRoot,
         path.toUri(appendSlash(packageRoot)),
@@ -109,7 +107,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
         provider.handleDiagnostic,
         options,
         provider.provideOutput,
-        environment));
+        environment);
   });
 }
 
@@ -158,18 +156,18 @@ class _DirectiveCollector extends GeneralizingAstVisitor {
 Future runInIsolate(String code, message, {String snapshot}) {
   if (snapshot != null && fileExists(snapshot)) {
     log.fine("Spawning isolate from $snapshot.");
-    return Chain.track(Isolate.spawnUri(path.toUri(snapshot), [], message));
+    return Isolate.spawnUri(path.toUri(snapshot), [], message);
   }
 
   return withTempDir((dir) async {
     var dartPath = path.join(dir, 'runInIsolate.dart');
     writeTextFile(dartPath, code, dontLogContents: true);
     var port = new ReceivePort();
-    await Chain.track(Isolate.spawn(_isolateBuffer, {
+    await Isolate.spawn(_isolateBuffer, {
       'replyTo': port.sendPort,
       'uri': path.toUri(dartPath).toString(),
       'message': message
-    }));
+    });
 
     var response = await port.first;
     if (response['type'] == 'error') {
@@ -200,8 +198,7 @@ Future runInIsolate(String code, message, {String snapshot}) {
 /// Adding an additional isolate in the middle works around this.
 void _isolateBuffer(message) {
   var replyTo = message['replyTo'];
-  Chain.track(Isolate.spawnUri(
-          Uri.parse(message['uri']), [], message['message']))
+  Isolate.spawnUri(Uri.parse(message['uri']), [], message['message'])
       .then((_) => replyTo.send({'type': 'success'}))
       .catchError((e, stack) {
     replyTo.send({

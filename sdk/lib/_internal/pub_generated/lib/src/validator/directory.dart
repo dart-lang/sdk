@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:path/path.dart' as path;
 import '../entrypoint.dart';
 import '../io.dart';
-import '../utils.dart';
 import '../validator.dart';
 class DirectoryValidator extends Validator {
   DirectoryValidator(Entrypoint entrypoint) : super(entrypoint);
@@ -14,7 +13,7 @@ class DirectoryValidator extends Validator {
       "tests",
       "tools"];
   Future validate() {
-    return syncFuture(() {
+    return new Future.sync(() {
       for (var dir in listDir(entrypoint.root.dir)) {
         if (!dirExists(dir)) continue;
         dir = path.basename(dir);

@@ -669,7 +669,7 @@ class AssetEnvironment {
     var subscriptions = streams.map((stream) =>
         stream.listen((_) {}, onError: completer.complete)).toList();
 
-    syncFuture(futureCallback).then((_) {
+    new Future.sync(futureCallback).then((_) {
       if (!completer.isCompleted) completer.complete();
     }).catchError((error, stackTrace) {
       if (!completer.isCompleted) completer.completeError(error, stackTrace);

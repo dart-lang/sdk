@@ -10,7 +10,6 @@ import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';
-import '../utils.dart';
 import '../validator.dart';
 
 /// Validates that a package doesn't contain compiled Dartdoc
@@ -20,7 +19,7 @@ class CompiledDartdocValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    return syncFuture(() {
+    return new Future.sync(() {
       for (var entry in entrypoint.root.listFiles()) {
         if (path.basename(entry) != "nav.json") continue;
         var dir = path.dirname(entry);

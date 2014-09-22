@@ -1,5 +1,4 @@
-import 'package:scheduled_test/scheduled_stream.dart';
-import '../../../lib/src/exit_codes.dart' as exit_codes;
+import 'package:path/path.dart' as p;
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 main() {
@@ -17,8 +16,8 @@ main() {
         'Warning: Executable "missing" runs '
             '"bin/not_here.dart", which was not found in foo.');
     pub.stderr.expect(
-        'Warning: Executable "nope" runs "bin/nope.dart", which '
-            'was not found in foo.');
+        'Warning: Executable "nope" runs '
+            '"${p.join('bin', 'nope.dart')}", which was not found in foo.');
     pub.shouldExit();
   });
 }

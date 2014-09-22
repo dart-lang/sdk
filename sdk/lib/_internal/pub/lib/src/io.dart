@@ -195,7 +195,7 @@ Future<String> createFileFromStream(Stream<List<int>> stream, String file) {
   log.io("Creating $file from stream.");
 
   return _descriptorPool.withResource(() {
-    return Chain.track(stream.pipe(new File(file).openWrite())).then((_) {
+    return stream.pipe(new File(file).openWrite()).then((_) {
       log.fine("Created $file from stream.");
       return file;
     });
@@ -508,7 +508,7 @@ String get repoRoot {
 
 /// A line-by-line stream of standard input.
 final Stream<String> stdinLines = streamToLines(
-    new ByteStream(Chain.track(stdin)).toStringStream());
+    new ByteStream(stdin).toStringStream());
 
 /// Displays a message and reads a yes/no confirmation from the user.
 ///
@@ -543,8 +543,8 @@ Future drainStream(Stream stream) {
 /// after you've decided to exit.
 Future flushThenExit(int status) {
   return Future.wait([
-    Chain.track(stdout.close()),
-    Chain.track(stderr.close())
+    stdout.close(),
+    stderr.close()
   ]).then((_) => exit(status));
 }
 
@@ -703,16 +703,15 @@ class PubProcess {
 
     var pair = consumerToSink(process.stdin);
     _stdin = pair.first;
-    _stdinClosed = errorGroup.registerFuture(Chain.track(pair.last));
+    _stdinClosed = errorGroup.registerFuture(pair.last);
 
     _stdout = new ByteStream(
-        errorGroup.registerStream(Chain.track(process.stdout)));
+        errorGroup.registerStream(process.stdout));
     _stderr = new ByteStream(
-        errorGroup.registerStream(Chain.track(process.stderr)));
+        errorGroup.registerStream(process.stderr));
 
     var exitCodeCompleter = new Completer();
-    _exitCode = errorGroup.registerFuture(
-        Chain.track(exitCodeCompleter.future));
+    _exitCode = errorGroup.registerFuture(exitCodeCompleter.future);
     _process.exitCode.then((code) => exitCodeCompleter.complete(code));
   }
 
@@ -794,9 +793,9 @@ Future timeout(Future input, int milliseconds, Uri url, String description) {
 /// Returns a future that completes to the value that the future returned from
 /// [fn] completes to.
 Future withTempDir(Future fn(String path)) {
-  return syncFuture(() {
+  return new Future.sync(() {
     var tempDir = createSystemTempDir();
-    return syncFuture(() => fn(tempDir))
+    return new Future.sync(() => fn(tempDir))
         .whenComplete(() => deleteEntry(tempDir));
   });
 }
@@ -931,7 +930,7 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
 ///
 /// Returns a [ByteStream] that emits the contents of the archive.
 ByteStream createTarGz(List contents, {baseDir}) {
-  return new ByteStream(futureStream(syncFuture(() {
+  return new ByteStream(futureStream(new Future.sync(() {
     var buffer = new StringBuffer();
     buffer.write('Creating .tag.gz stream containing:\n');
     contents.forEach((file) => buffer.write('$file\n'));
@@ -960,7 +959,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
     // Don't use [withTempDir] here because we don't want to delete the temp
     // directory until the returned stream has closed.
     var tempDir = createSystemTempDir();
-    return syncFuture(() {
+    return new Future.sync(() {
       // Create the tar file.
       var tarFile = path.join(tempDir, "intermediate.tar");
       var args = ["a", "-w$baseDir", tarFile];

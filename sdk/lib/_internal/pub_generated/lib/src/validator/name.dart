@@ -40,7 +40,7 @@ final _RESERVED_WORDS = [
 class NameValidator extends Validator {
   NameValidator(Entrypoint entrypoint) : super(entrypoint);
   Future validate() {
-    return syncFuture(() {
+    return new Future.sync(() {
       _checkName(
           entrypoint.root.name,
           'Package name "${entrypoint.root.name}"',

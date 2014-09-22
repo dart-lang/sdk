@@ -50,7 +50,6 @@ class FutureGroup<T> {
   Future<List> get future => _completer.future;
 }
 Future newFuture(callback()) => new Future.value().then((_) => callback());
-Future syncFuture(callback()) => Chain.track(new Future.sync(callback));
 Future captureErrors(Future callback(), {bool captureStackChains: false}) {
   var completer = new Completer();
   var wrappedCallback = () {
@@ -208,8 +207,8 @@ Future<Map> mapFromIterableAsync(Iterable iter, {key(element), value(element)})
   return Future.wait(iter.map((element) {
     return Future.wait(
         [
-            syncFuture(() => key(element)),
-            syncFuture(() => value(element))]).then((results) {
+            new Future.sync(() => key(element)),
+            new Future.sync(() => value(element))]).then((results) {
       map[results[0]] = results[1];
     });
   })).then((_) => map);

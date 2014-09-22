@@ -285,7 +285,7 @@ class GlobalPackages {
   Future<Entrypoint> find(String name) {
     // TODO(rnystrom): Use async/await here when on __ catch is supported.
     // See: https://github.com/dart-lang/async_await/issues/27
-    return syncFuture(() {
+    return new Future.sync(() {
       var lockFilePath = _getLockFilePath(name);
       var lockFile;
       try {

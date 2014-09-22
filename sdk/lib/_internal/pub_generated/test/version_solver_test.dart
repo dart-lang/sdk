@@ -1356,7 +1356,7 @@ class MockSource extends CachedSource {
     return new Future.value('${id.name}-${id.version}');
   }
   Future<List<Version>> getVersions(String name, String description) {
-    return syncFuture(() {
+    return new Future.sync(() {
       if (_requestedVersions.contains(description)) {
         throw new Exception(
             'Version list for $description was already ' 'requested.');
@@ -1370,7 +1370,7 @@ class MockSource extends CachedSource {
     });
   }
   Future<Pubspec> describeUncached(PackageId id) {
-    return syncFuture(() {
+    return new Future.sync(() {
       if (_requestedPubspecs.containsKey(id.description) &&
           _requestedPubspecs[id.description].contains(id.version)) {
         throw new Exception('Pubspec for $id was already requested.');

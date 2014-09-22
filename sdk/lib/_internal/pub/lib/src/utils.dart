@@ -85,10 +85,6 @@ class FutureGroup<T> {
 /// under the covers.
 Future newFuture(callback()) => new Future.value().then((_) => callback());
 
-/// Like [new Future.sync], but automatically wraps the future in a
-/// [Chain.track] call.
-Future syncFuture(callback()) => Chain.track(new Future.sync(callback));
-
 /// Runs [callback] in an error zone and pipes any unhandled error to the
 /// returned [Future].
 ///
@@ -346,8 +342,8 @@ Future<Map> mapFromIterableAsync(Iterable iter, {key(element),
   var map = new Map();
   return Future.wait(iter.map((element) {
     return Future.wait([
-      syncFuture(() => key(element)),
-      syncFuture(() => value(element))
+      new Future.sync(() => key(element)),
+      new Future.sync(() => value(element))
     ]).then((results) {
       map[results[0]] = results[1];
     });

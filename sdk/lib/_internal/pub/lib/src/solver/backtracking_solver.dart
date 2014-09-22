@@ -559,7 +559,7 @@ class Traverser {
   /// Register [dependency]'s constraints on the package it depends on and
   /// enqueues the package for processing if necessary.
   Future _registerDependency(Dependency dependency) {
-    return syncFuture(() {
+    return new Future.sync(() {
       _validateDependency(dependency);
 
       var dep = dependency.dep;

@@ -35,7 +35,7 @@ class PathSource extends Source {
   final name = 'path';
 
   Future<Pubspec> doDescribe(PackageId id) {
-    return syncFuture(() {
+    return new Future.sync(() {
       var dir = _validatePath(id.name, id.description);
       return new Pubspec.load(dir, systemCache.sources,
           expectedName: id.name);
@@ -50,7 +50,7 @@ class PathSource extends Source {
   }
 
   Future get(PackageId id, String symlink) {
-    return syncFuture(() {
+    return new Future.sync(() {
       var dir = _validatePath(id.name, id.description);
       createPackageSymlink(id.name, dir, symlink,
           relative: id.description["relative"]);

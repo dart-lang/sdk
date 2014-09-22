@@ -9,8 +9,6 @@ import 'dart:async';
 import 'package:path/path.dart' as p;
 
 import '../entrypoint.dart';
-import '../io.dart';
-import '../utils.dart';
 import '../validator.dart';
 
 /// Validates that a package's pubspec doesn't contain executables that

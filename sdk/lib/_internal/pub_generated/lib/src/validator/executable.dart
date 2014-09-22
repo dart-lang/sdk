@@ -2,8 +2,6 @@ library pub.validator.executable;
 import 'dart:async';
 import 'package:path/path.dart' as p;
 import '../entrypoint.dart';
-import '../io.dart';
-import '../utils.dart';
 import '../validator.dart';
 class ExecutableValidator extends Validator {
   ExecutableValidator(Entrypoint entrypoint) : super(entrypoint);

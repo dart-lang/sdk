@@ -110,7 +110,7 @@ abstract class PubCommand {
     _commandOptions = options;
     _cache = new SystemCache.withSources(cacheDir, isOffline: isOffline);
     _globals = new GlobalPackages(_cache);
-    return syncFuture(onRun);
+    return new Future.sync(onRun);
   }
   Future onRun() {
     assert(false);

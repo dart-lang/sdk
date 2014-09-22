@@ -5,7 +5,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:pool/pool.dart';
-import 'package:stack_trace/stack_trace.dart';
 import '../../../../compiler/compiler.dart' as compiler;
 import '../../../../compiler/implementation/dart2js.dart' show AbortLeg;
 import '../../../../compiler/implementation/source_file.dart';
@@ -89,27 +88,26 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
     var id = transform.primaryInput.id;
     var entrypoint =
         path.join(_environment.graph.packages[id.package].dir, id.path);
-    return Chain.track(
-        dart.compile(
-            entrypoint,
-            provider,
-            commandLineOptions: _configCommandLineOptions,
-            csp: _configBool('csp'),
-            checked: _configBool('checked'),
-            minify: _configBool(
-                'minify',
-                defaultsTo: _settings.mode == BarbackMode.RELEASE),
-            verbose: _configBool('verbose'),
-            environment: _configEnvironment,
-            packageRoot: path.join(_environment.rootPackage.dir, "packages"),
-            analyzeAll: _configBool('analyzeAll'),
-            suppressWarnings: _configBool('suppressWarnings'),
-            suppressHints: _configBool('suppressHints'),
-            suppressPackageWarnings: _configBool(
-                'suppressPackageWarnings',
-                defaultsTo: true),
-            terse: _configBool('terse'),
-            includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE));
+    return dart.compile(
+        entrypoint,
+        provider,
+        commandLineOptions: _configCommandLineOptions,
+        csp: _configBool('csp'),
+        checked: _configBool('checked'),
+        minify: _configBool(
+            'minify',
+            defaultsTo: _settings.mode == BarbackMode.RELEASE),
+        verbose: _configBool('verbose'),
+        environment: _configEnvironment,
+        packageRoot: path.join(_environment.rootPackage.dir, "packages"),
+        analyzeAll: _configBool('analyzeAll'),
+        suppressWarnings: _configBool('suppressWarnings'),
+        suppressHints: _configBool('suppressHints'),
+        suppressPackageWarnings: _configBool(
+            'suppressPackageWarnings',
+            defaultsTo: true),
+        terse: _configBool('terse'),
+        includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE);
   }
   List<String> get _configCommandLineOptions {
     if (!_settings.configuration.containsKey('commandLineOptions')) return null;
@@ -244,7 +242,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     }
   }
   Future<String> _readResource(Uri url) {
-    return syncFuture(() {
+    return new Future.sync(() {
       var id = _sourceUrlToId(url);
       if (id != null) return _transform.readInputAsString(id);
       throw new Exception(

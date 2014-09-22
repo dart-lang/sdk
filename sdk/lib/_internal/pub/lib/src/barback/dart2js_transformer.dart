@@ -11,7 +11,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:pool/pool.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 import '../../../../compiler/compiler.dart' as compiler;
 import '../../../../compiler/implementation/dart2js.dart'
@@ -132,7 +131,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
     // to report compile errors to the user in an easily visible way. Need to
     // make sure paths in errors are mapped to the original source path so they
     // can understand them.
-    return Chain.track(dart.compile(
+    return dart.compile(
         entrypoint, provider,
         commandLineOptions: _configCommandLineOptions,
         csp: _configBool('csp'),
@@ -148,7 +147,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
         suppressPackageWarnings: _configBool(
             'suppressPackageWarnings', defaultsTo: true),
         terse: _configBool('terse'),
-        includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE));
+        includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE);
   }
 
   /// Parses and returns the "commandLineOptions" configuration option.
@@ -373,7 +372,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
   }
 
   Future<String> _readResource(Uri url) {
-    return syncFuture(() {
+    return new Future.sync(() {
       // Find the corresponding asset in barback.
       var id = _sourceUrlToId(url);
       if (id != null) return _transform.readInputAsString(id);
