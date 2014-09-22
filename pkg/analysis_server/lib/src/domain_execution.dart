@@ -4,10 +4,11 @@
 
 library domain.execution;
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'dart:collection';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -201,6 +202,10 @@ class LaunchDataNotificationListener implements AnalysisServerListener {
             executables,
             dartToHtml,
             htmlToDart).toNotification());
+  }
+
+  @override
+  void analysisStarted(AnalysisContext context) {
   }
 
   List<String> getFullNames(List<Source> sources) {

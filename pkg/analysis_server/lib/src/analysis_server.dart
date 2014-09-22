@@ -256,6 +256,7 @@ class AnalysisServer {
    * Schedules analysis of the given context.
    */
   void schedulePerformAnalysisOperation(AnalysisContext context) {
+    _notifyAnalysisStarted(context);
     scheduleOperation(new PerformAnalysisOperation(context, false));
   }
 
@@ -903,6 +904,15 @@ class AnalysisServer {
   }
 
   /**
+   * Notify all listeners that analysis of [context] is started.
+   */
+  void _notifyAnalysisStarted(AnalysisContext context) {
+    listeners.forEach((AnalysisServerListener listener) {
+      listener.analysisStarted(context);
+    });
+  }
+
+  /**
    * Notify all listeners that analysis is complete.
    */
   void _notifyAnalysisComplete() {
@@ -953,6 +963,11 @@ abstract class AnalysisServerListener {
    * Analysis is complete.
    */
   void analysisComplete();
+
+  /**
+   * Analysis is started.
+   */
+  void analysisStarted(AnalysisContext context);
 }
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);

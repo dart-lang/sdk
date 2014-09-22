@@ -180,6 +180,8 @@ class _RefactoringManager {
   EditGetRefactoringResult result;
 
   _RefactoringManager(this.server, this.searchEngine) {
+    server.addAnalysisServerListener(
+        new _ResetRefactoringManagerAnalysisServerListener(this));
     _reset();
   }
 
@@ -362,6 +364,9 @@ class _RefactoringManager {
   }
 
   void _reset() {
+    kind = null;
+    offset = null;
+    length = null;
     refactoring = null;
     feedback = null;
     initStatus = new RefactoringStatus();
@@ -424,5 +429,26 @@ class _RefactoringManager {
       return renameRefactoring.checkNewName();
     }
     return new RefactoringStatus();
+  }
+}
+
+
+/**
+ * A [AnalysisServerListener] that resets [_RefactoringManager] when analysis
+ * is started in the [AnalysisServer].
+ */
+class _ResetRefactoringManagerAnalysisServerListener implements
+    AnalysisServerListener {
+  final _RefactoringManager refactoringManager;
+
+  _ResetRefactoringManagerAnalysisServerListener(this.refactoringManager);
+
+  @override
+  void analysisComplete() {
+  }
+
+  @override
+  void analysisStarted(engine.AnalysisContext context) {
+    refactoringManager._reset();
   }
 }

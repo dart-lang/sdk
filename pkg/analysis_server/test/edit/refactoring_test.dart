@@ -1044,6 +1044,39 @@ main() {
           "Duplicate local variable 'newName'.");
     });
   }
+
+  test_resetOnAnalysis() {
+    addTestFile('''
+main() {
+  int initialName = 0;
+  print(initialName);
+}
+''');
+    // send the first request
+    return getRefactoringResult(() {
+      return sendRenameRequest('initialName =', 'newName', true);
+    }).then((result) {
+      RenameFeedback feedback = result.feedback;
+      expect(feedback.oldName, 'initialName');
+      // update the file
+      modifyTestFile('''
+main() {
+  int otherName = 0;
+  print(otherName);
+}
+''');
+      // send the second request, with the same kind, file and offset
+      return waitForTasksFinished().then((_) {
+        return getRefactoringResult(() {
+          return sendRenameRequest('otherName =', 'newName', true);
+        }).then((result) {
+          RenameFeedback feedback = result.feedback;
+          // the refactoring was reset, so we don't get a stale result
+          expect(feedback.oldName, 'otherName');
+        });
+      });
+    });
+  }
 }
 
 
