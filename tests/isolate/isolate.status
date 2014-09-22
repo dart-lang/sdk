@@ -25,7 +25,6 @@ handle_error_test: Fail   # Not implemented yet
 handle_error2_test: Fail  # Not implemented yet
 handle_error3_test: Fail  # Not implemented yet
 function_send_test: Fail   # Not implemented yet
-function_send_test/01 Fail # Not implemented yet
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 *: Skip # Isolate tests are timing out flakily on Android content_shell.  Issue 19795
