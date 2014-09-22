@@ -27,6 +27,22 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';
+
+
+/**
+ * [Refactoring] to convert getters into normal [MethodDeclaration]s.
+ */
+abstract class ConvertGetterToMethodRefactoring implements Refactoring {
+  /**
+   * Returns a new [ConvertMethodToGetterRefactoring] instance for converting
+   * [element] and all the corresponding hierarchy elements.
+   */
+  factory ConvertGetterToMethodRefactoring(SearchEngine searchEngine,
+      PropertyAccessorElement element) {
+    return new ConvertGetterToMethodRefactoringImpl(searchEngine, element);
+  }
+}
 
 
 /**
