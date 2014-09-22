@@ -1,4 +1,6 @@
-#### 0.14.3-dev
+#### 0.14.3
+  * Warn if the same css file is inlined more than once,
+    [19996](http://dartbug.com/19996).
   * Don't start moving elements from head to body until we find the first
     import, [20826](http://dartbug.com/20826).
   * Add option to not inject platform.js in the build output

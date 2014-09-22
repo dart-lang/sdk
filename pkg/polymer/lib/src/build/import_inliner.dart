@@ -31,6 +31,7 @@ class _HtmlInliner extends PolymerTransformer {
   final AssetId docId;
   final seen = new Set<AssetId>();
   final scriptIds = <AssetId>[];
+  final inlinedStylesheetIds = new Set<AssetId>();
   final extractedFiles = new Set<AssetId>();
   bool experimentalBootstrap = false;
   final Element importsWrapper = new Element.html('<div hidden></div>');
@@ -135,6 +136,13 @@ class _HtmlInliner extends PolymerTransformer {
         if (!options.shouldInlineStylesheet(id)) return null;
 
         changed = true;
+        if (inlinedStylesheetIds.contains(id)
+            && !options.stylesheetInliningIsOverridden(id)) {
+          logger.warning(
+              CSS_FILE_INLINED_MULTIPLE_TIMES.create({'url': id.path}),
+              span: tag.sourceSpan);
+        }
+        inlinedStylesheetIds.add(id);
         return _inlineStylesheet(id, tag);
       }
     }).then((_) => changed);

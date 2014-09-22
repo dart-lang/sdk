@@ -131,6 +131,13 @@ class TransformOptions {
     var globalDefault = inlineStylesheets['default'];
     return (globalDefault != null) ? globalDefault : true;
   }
+
+  // Whether a stylesheet with [id] has an overriden inlining setting.
+  bool stylesheetInliningIsOverridden(AssetId id) {
+    return inlineStylesheets != null &&
+        (inlineStylesheets.containsKey(id.toString())
+          || inlineStylesheets.containsKey(id.path));
+  }
 }
 
 /// Mixin for polymer transformers.

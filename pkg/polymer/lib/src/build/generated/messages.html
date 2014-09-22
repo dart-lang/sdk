@@ -483,5 +483,18 @@ warning that the parser detected.</p>
 <p>Custom element found in document body without an "unresolved" attribute on it or
 one of its parents. This means your app probably has a flash of unstyled content
 before it finishes loading. See <a href="http://goo.gl/iN03Pj">http://goo.gl/iN03Pj</a> for more info.</p>
+</div><hr />
+
+<div id="polymer_42"><h3>A css file was inlined multiple times. <a href="#polymer_42">#42</a></h3>
+<p>Css files are inlined by default, but if you import the same one in multiple
+places you probably want to override this behavior to prevent duplicate code.
+To do this, use the following pattern to update your pubspec.yaml:</p>
+<pre><code>transformers:
+- polymer:
+  inline_stylesheets:
+    web/my_file.css: false
+</code></pre>
+<p>If you would like to hide this warning and keep it inlined, do the same thing
+but assign the value to true.</p>
 </div><hr /></body>
 </html>

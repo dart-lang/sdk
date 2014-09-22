@@ -1028,6 +1028,69 @@ void stylesheetTests() {
             '<link rel="stylesheet" href="packages/c/buz.css">'
             '</body></html>',
       });
+
+  testLogOutput(
+      (options) => new ImportInliner(options),
+      'warns about multiple inlinings of the same css', {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head>'
+            '<link rel="stylesheet" href="packages/a/foo.css">'
+            '<link rel="stylesheet" href="packages/a/foo.css">'
+            '</head><body></body></html>',
+        'a|web/test1.html':
+            '<!DOCTYPE html><html><head>'
+            '<link rel="stylesheet" href="packages/a/foo.css">'
+            '<link rel="import" href="packages/a/import1.html">'
+            '</head><body></body></html>',
+        'a|web/test2.html':
+            '<!DOCTYPE html><html><head>'
+            '<link rel="import" href="packages/a/import1.html">'
+            '<link rel="import" href="packages/a/import2.html">'
+            '</head><body></body></html>',
+        'a|lib/import1.html':
+            '<link rel="stylesheet" href="foo.css">',
+        'a|lib/import2.html':
+            '<link rel="stylesheet" href="foo.css">',
+        'a|lib/foo.css':
+            'body {position: relative;}',
+      }, {}, [
+          'warning: ${CSS_FILE_INLINED_MULTIPLE_TIMES.create(
+              {'url': 'lib/foo.css'}).snippet}'
+              ' (web/test.html 0 76)',
+          'warning: ${CSS_FILE_INLINED_MULTIPLE_TIMES.create(
+              {'url': 'lib/foo.css'}).snippet}'
+              ' (lib/import1.html 0 0)',
+          'warning: ${CSS_FILE_INLINED_MULTIPLE_TIMES.create(
+              {'url': 'lib/foo.css'}).snippet}'
+              ' (lib/import2.html 0 0)',
+      ]);
+
+  testPhases(
+        'doesn\'t warn about multiple css inlinings if overriden',
+        [[new ImportInliner(new TransformOptions(
+            inlineStylesheets: {'lib/foo.css': true}))]], {
+            'a|web/test.html':
+                '<!DOCTYPE html><html><head>'
+                '<link rel="stylesheet" href="packages/a/foo.css">'
+                '<link rel="stylesheet" href="packages/a/foo.css">'
+                '</head><body></body></html>',
+            'a|web/test1.html':
+                '<!DOCTYPE html><html><head>'
+                '<link rel="stylesheet" href="packages/a/foo.css">'
+                '<link rel="import" href="packages/a/import1.html">'
+                '</head><body></body></html>',
+            'a|web/test2.html':
+                '<!DOCTYPE html><html><head>'
+                '<link rel="import" href="packages/a/import1.html">'
+                '<link rel="import" href="packages/a/import2.html">'
+                '</head><body></body></html>',
+            'a|lib/import1.html':
+                '<link rel="stylesheet" href="foo.css">',
+            'a|lib/import2.html':
+                '<link rel="stylesheet" href="foo.css">',
+            'a|lib/foo.css':
+                'body {position: relative;}',
+          }, {}, []);
 }
 
 void urlAttributeTests() {
