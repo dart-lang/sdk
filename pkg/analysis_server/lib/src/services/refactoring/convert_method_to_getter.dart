@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
-import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -116,7 +115,6 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implements
   }
 
   Future _updateElementReferences(Element element) {
-    // TODO(scheglov) move SourceReference to refactoring_internal.dart
     return searchEngine.searchReferences(element).then((matches) {
       List<SourceReference> references = getSourceReferences(matches);
       for (SourceReference reference in references) {

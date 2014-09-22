@@ -8,12 +8,13 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
+import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
@@ -49,19 +50,16 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<SourceChange> createChange() {
-    SourceChange change = new SourceChange(refactoringName);
+  Future fillChange() {
     String replacement = newName.isEmpty ? '' : '.${newName}';
     // update references
-    return searchEngine.searchReferences(element).then((refMatches) {
-      List<SourceReference> references = getSourceReferences(refMatches);
+    return searchEngine.searchReferences(element).then((matches) {
+      List<SourceReference> references = getSourceReferences(matches);
       if (!element.isSynthetic) {
         for (SourceReference reference in references) {
-          SourceEdit edit = createReferenceEdit(reference, replacement);
-          change.addElementEdit(reference.element, edit);
+          reference.addEdit(change, replacement);
         }
       }
-      return change;
     });
   }
 

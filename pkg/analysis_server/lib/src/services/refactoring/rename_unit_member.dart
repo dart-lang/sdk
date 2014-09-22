@@ -95,8 +95,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<SourceChange> createChange() {
-    SourceChange change = new SourceChange(refactoringName);
+  Future fillChange() {
     // prepare elements
     List<Element> elements = [];
     if (element is PropertyInducingElement && element.isSynthetic) {
@@ -114,17 +113,8 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     }
     // update each element
     return Future.forEach(elements, (Element element) {
-      // update declaration
-      addDeclarationEdit(change, element);
-      // schedule updating references
-      return searchEngine.searchReferences(element).then((refMatches) {
-        List<SourceReference> references = getSourceReferences(refMatches);
-        for (SourceReference reference in references) {
-          addReferenceEdit(change, reference);
-        }
-      });
-    }).then((_) {
-      return change;
+      addDeclarationEdit(element);
+      return searchEngine.searchReferences(element).then(addReferenceEdits);
     });
   }
 }

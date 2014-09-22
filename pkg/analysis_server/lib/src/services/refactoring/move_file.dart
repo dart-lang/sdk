@@ -10,7 +10,6 @@ import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
-import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -76,8 +75,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
           List<SourceReference> references = getSourceReferences(matches);
           for (SourceReference reference in references) {
             String newUri = _computeNewUri(reference);
-            SourceEdit edit = createReferenceEdit(reference, "'$newUri'");
-            change.addElementEdit(reference.element, edit);
+            reference.addEdit(change, "'$newUri'");
           }
         });
       }

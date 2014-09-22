@@ -71,18 +71,9 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<SourceChange> createChange() {
-    SourceChange change = new SourceChange(refactoringName);
-    // update declaration
-    addDeclarationEdit(change, element);
-    // update references
-    return searchEngine.searchReferences(element).then((refMatches) {
-      List<SourceReference> references = getSourceReferences(refMatches);
-      for (SourceReference reference in references) {
-        addReferenceEdit(change, reference);
-      }
-      return change;
-    });
+  Future fillChange() {
+    addDeclarationEdit(element);
+    return searchEngine.searchReferences(element).then(addReferenceEdits);
   }
 
   void _analyzePossibleConflicts_inLibrary(RefactoringStatus result,

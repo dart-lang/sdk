@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -85,23 +86,18 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<SourceChange> createChange() {
-    SourceChange change = new SourceChange(refactoringName);
+  Future fillChange() {
     // update declarations
     for (Element renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement) {
-        addDeclarationEdit(change, renameElement.getter);
-        addDeclarationEdit(change, renameElement.setter);
+        addDeclarationEdit(renameElement.getter);
+        addDeclarationEdit(renameElement.setter);
       } else {
-        addDeclarationEdit(change, renameElement);
+        addDeclarationEdit(renameElement);
       }
     }
     // update references
-    List<SourceReference> references =
-        getSourceReferences(_validator.references);
-    for (SourceReference reference in references) {
-      addReferenceEdit(change, reference);
-    }
+    addReferenceEdits(_validator.references);
     // potential matches
     return searchEngine.searchMemberReferences(oldName).then((nameMatches) {
       List<SourceReference> nameRefs = getSourceReferences(nameMatches);
@@ -118,11 +114,9 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           }
         }
         // add edit
-        SourceEdit edit =
-            createReferenceEdit(reference, newName, id: _newPotentialId());
-        change.addElementEdit(reference.element, edit);
+        reference.addEdit(change, newName, id: _newPotentialId());
       }
-    }).then((_) => change);
+    });
   }
 
   String _newPotentialId() {

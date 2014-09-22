@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -46,11 +47,9 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<SourceChange> createChange() {
-    SourceChange change = new SourceChange(refactoringName);
+  Future fillChange() {
     // update declaration
     {
-      String file = getElementFile(element);
       PrefixElement prefix = element.prefix;
       SourceEdit edit = null;
       if (newName.isEmpty) {
@@ -77,15 +76,12 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     return searchEngine.searchReferences(element).then((refMatches) {
       List<SourceReference> references = getSourceReferences(refMatches);
       for (SourceReference reference in references) {
-        SourceEdit edit;
         if (newName.isEmpty) {
-          edit = createReferenceEdit(reference, newName);
+          reference.addEdit(change, newName);
         } else {
-          edit = createReferenceEdit(reference, "${newName}.");
+          reference.addEdit(change, "${newName}.");
         }
-        change.addElementEdit(reference.element, edit);
       }
-      return change;
     });
   }
 }
