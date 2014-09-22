@@ -77,9 +77,6 @@ $endif
       event._initMouseEvent(type, canBubble, cancelable, view, detail,
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget);
-      event._initWebKitWheelEvent(deltaX, deltaY,
-          view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
-          metaKey);
 $if DART2JS
     }
 $endif

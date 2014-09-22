@@ -7,6 +7,7 @@ import copy
 import database
 import idlparser
 import logging
+import monitored
 import multiprocessing
 import os
 import os.path
@@ -196,16 +197,23 @@ class DatabaseBuilder(object):
     # Spin up the new IDL parser.
     self.build = Build(None)
 
+    # Global typedef to mapping.
+    self.global_type_defs = monitored.Dict('databasebuilder.global_type_defs', {
+      'Transferable' : 'MessagePort',
+    })
+
+  # TODO(terry): Consider keeping richer type information (e.g.,
+  #              IdlArrayOrSequenceType from the Blink parser) instead of just
+  #              a type name.
   def _resolve_type_defs(self, idl_file):
-    type_def_map = {}
-    # build map
-    for type_def in idl_file.typeDefs:
-      if type_def.type.id != type_def.id: # sanity check
-        type_def_map[type_def.id] = type_def.type.id
-    # use the map
     for type_node in idl_file.all(IDLType):
-      while type_node.id in type_def_map:
-        type_node.id = type_def_map[type_node.id]
+      type_name = type_node.id
+      for typedef in self.global_type_defs:
+        seq_name_typedef = 'sequence<%s>' % typedef
+        if type_name == typedef:
+          type_node.id = self.global_type_defs[typedef]
+        elif type_name == seq_name_typedef:
+          type_node.id = 'sequence<%s>' % self.global_type_defs[typedef]
 
   def _strip_ext_attributes(self, idl_file):
     """Strips unuseful extended attributes."""

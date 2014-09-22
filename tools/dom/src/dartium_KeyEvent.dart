@@ -80,11 +80,10 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       {Window view, bool canBubble: true, bool cancelable: true, int keyCode: 0,
       int charCode: 0, int keyLocation: 1, bool ctrlKey: false,
       bool altKey: false, bool shiftKey: false, bool metaKey: false,
-      bool altGraphKey: false, EventTarget currentTarget}) {
+       EventTarget currentTarget}) {
      var parent = new KeyboardEvent(type, view: view, canBubble: canBubble,
         cancelable: cancelable, keyLocation: keyLocation, ctrlKey: ctrlKey,
-        altKey: altKey, shiftKey: shiftKey, metaKey: metaKey, altGraphKey:
-        altGraphKey);
+        altKey: altKey, shiftKey: shiftKey, metaKey: metaKey);
      var keyEvent = new KeyEvent.wrap(parent);
      keyEvent._shadowAltKey = altKey;
      keyEvent._shadowCharCode = charCode;
@@ -106,8 +105,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The currently registered target for this event. */
   EventTarget get currentTarget => _currentTarget;
 
-  /** True if the altGraphKey is pressed during this event. */
-  bool get altGraphKey => _parent.altGraphKey;
   /** Accessor to the clipboardData available for this event. */
   DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
@@ -139,8 +136,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   }
   void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
       Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
-      bool altKey, bool shiftKey, bool metaKey,
-      bool altGraphKey) {
+      bool altKey, bool shiftKey, bool metaKey) {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }

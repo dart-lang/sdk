@@ -124,7 +124,6 @@ final htmlBlinkMap = {
   'JsFunction': () => js.JsFunction,
   'JsArray': () => js.JsArray,
   'AbstractWorker': () => AbstractWorker,
-  'AesKeyAlgorithm': () => AesKeyAlgorithm,
   'Animation': () => Animation,
   'AnimationEffect': () => AnimationEffect,
   'AnimationNode': () => AnimationNode,
@@ -144,7 +143,6 @@ final htmlBlinkMap = {
   'CDATASection': () => CDataSection,
   'CSS': () => Css,
   'CSSCharsetRule': () => CssCharsetRule,
-  'CSSFontFaceLoadEvent': () => CssFontFaceLoadEvent,
   'CSSFontFaceRule': () => CssFontFaceRule,
   'CSSImportRule': () => CssImportRule,
   'CSSKeyframeRule': () => CssKeyframeRule,
@@ -162,6 +160,8 @@ final htmlBlinkMap = {
   'CSSValue': () => _CSSValue,
   'CSSValueList': () => _CssValueList,
   'CSSViewportRule': () => CssViewportRule,
+  'Cache': () => _Cache,
+  'CacheStorage': () => CacheStorage,
   'Canvas2DContextAttributes': () => Canvas2DContextAttributes,
   'CanvasGradient': () => CanvasGradient,
   'CanvasPathMethods': () => _CanvasPathMethods,
@@ -169,7 +169,7 @@ final htmlBlinkMap = {
   'CanvasRenderingContext2D': () => CanvasRenderingContext2D,
   'CharacterData': () => CharacterData,
   'ChildNode': () => ChildNode,
-  'Client': () => Client,
+  'CircularRegion': () => CircularRegion,
   'ClientRect': () => _ClientRect,
   'ClientRectList': () => _ClientRectList,
   'CloseEvent': () => CloseEvent,
@@ -179,14 +179,23 @@ final htmlBlinkMap = {
   'ConsoleBase': () => ConsoleBase,
   'Coordinates': () => Coordinates,
   'Counter': () => _Counter,
+  'Credential': () => Credential,
+  'CredentialsContainer': () => CredentialsContainer,
   'Crypto': () => Crypto,
+  'CryptoKey': () => CryptoKey,
   'CustomEvent': () => CustomEvent,
   'DOMError': () => DomError,
   'DOMException': () => DomException,
   'DOMFileSystem': () => FileSystem,
   'DOMFileSystemSync': () => _DOMFileSystemSync,
   'DOMImplementation': () => DomImplementation,
+  'DOMMatrix': () => DomMatrix,
+  'DOMMatrixReadOnly': () => DomMatrixReadOnly,
   'DOMParser': () => DomParser,
+  'DOMPoint': () => DomPoint,
+  'DOMPointReadOnly': () => DomPointReadOnly,
+  'DOMRect': () => _DomRect,
+  'DOMRectReadOnly': () => DomRectReadOnly,
   'DOMSettableTokenList': () => DomSettableTokenList,
   'DOMStringList': () => DomStringList,
   'DOMStringMap': () => DomStringMap,
@@ -217,6 +226,8 @@ final htmlBlinkMap = {
   'Event': () => Event,
   'EventSource': () => EventSource,
   'EventTarget': () => EventTarget,
+  'FederatedCredential': () => FederatedCredential,
+  'FetchBodyStream': () => FetchBodyStream,
   'FetchEvent': () => FetchEvent,
   'File': () => File,
   'FileEntry': () => FileEntry,
@@ -230,11 +241,14 @@ final htmlBlinkMap = {
   'FocusEvent': () => FocusEvent,
   'FontFace': () => FontFace,
   'FontFaceSet': () => FontFaceSet,
+  'FontFaceSetLoadEvent': () => FontFaceSetLoadEvent,
   'FormData': () => FormData,
   'Gamepad': () => Gamepad,
   'GamepadButton': () => GamepadButton,
   'GamepadEvent': () => GamepadEvent,
   'GamepadList': () => _GamepadList,
+  'Geofencing': () => Geofencing,
+  'GeofencingRegion': () => GeofencingRegion,
   'Geolocation': () => Geolocation,
   'Geoposition': () => Geoposition,
   'GlobalEventHandlers': () => GlobalEventHandlers,
@@ -281,6 +295,7 @@ final htmlBlinkMap = {
   'HTMLMarqueeElement': () => _HTMLMarqueeElement,
   'HTMLMediaElement': () => MediaElement,
   'HTMLMenuElement': () => MenuElement,
+  'HTMLMenuItemElement': () => MenuItemElement,
   'HTMLMetaElement': () => MetaElement,
   'HTMLMeterElement': () => MeterElement,
   'HTMLModElement': () => ModElement,
@@ -316,18 +331,16 @@ final htmlBlinkMap = {
   'HTMLUnknownElement': () => UnknownElement,
   'HTMLVideoElement': () => VideoElement,
   'HashChangeEvent': () => HashChangeEvent,
-  'HeaderMap': () => HeaderMap,
+  'Headers': () => Headers,
   'History': () => History,
-  'HmacKeyAlgorithm': () => HmacKeyAlgorithm,
   'ImageBitmap': () => ImageBitmap,
   'ImageData': () => ImageData,
   'InjectedScriptHost': () => InjectedScriptHost,
   'InputMethodContext': () => InputMethodContext,
   'InstallEvent': () => InstallEvent,
   'InstallPhaseEvent': () => InstallPhaseEvent,
-  'Key': () => CryptoKey,
-  'KeyAlgorithm': () => KeyAlgorithm,
   'KeyboardEvent': () => KeyboardEvent,
+  'LocalCredential': () => LocalCredential,
   'Location': () => Location,
   'MIDIAccess': () => MidiAccess,
   'MIDIConnectionEvent': () => MidiConnectionEvent,
@@ -410,19 +423,22 @@ final htmlBlinkMap = {
   'RTCStatsResponse': () => RtcStatsResponse,
   'RadioNodeList': () => _RadioNodeList,
   'Range': () => Range,
+  'ReadableStream': () => ReadableStream,
   'Rect': () => _Rect,
+  'RelatedEvent': () => RelatedEvent,
   'Request': () => Request,
   'ResourceProgressEvent': () => ResourceProgressEvent,
   'Response': () => _Response,
-  'RsaHashedKeyAlgorithm': () => RsaHashedKeyAlgorithm,
-  'RsaKeyAlgorithm': () => RsaKeyAlgorithm,
   'Screen': () => Screen,
+  'ScreenOrientation': () => ScreenOrientation,
   'SecurityPolicyViolationEvent': () => SecurityPolicyViolationEvent,
   'Selection': () => Selection,
   'ServiceWorker': () => _ServiceWorker,
+  'ServiceWorkerClient': () => ServiceWorkerClient,
   'ServiceWorkerClients': () => ServiceWorkerClients,
   'ServiceWorkerContainer': () => ServiceWorkerContainer,
   'ServiceWorkerGlobalScope': () => ServiceWorkerGlobalScope,
+  'ServiceWorkerRegistration': () => ServiceWorkerRegistration,
   'ShadowRoot': () => ShadowRoot,
   'SharedWorker': () => SharedWorker,
   'SharedWorkerGlobalScope': () => SharedWorkerGlobalScope,
@@ -620,26 +636,6 @@ abstract class AbstractWorker extends NativeFieldWrapperClass2 implements EventT
   @DomName('AbstractWorker.onerror')
   @DocsEditable()
   Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('AesKeyAlgorithm')
-@Experimental() // untriaged
-class AesKeyAlgorithm extends KeyAlgorithm {
-  // To suppress missing implicit constructor warnings.
-  factory AesKeyAlgorithm._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('AesKeyAlgorithm.length')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get length => _blink.BlinkAesKeyAlgorithm.length_Getter(this);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1002,11 +998,6 @@ class AnimationPlayer extends EventTarget {
   @Experimental() // untriaged
   void set startTime(num value) => _blink.BlinkAnimationPlayer.startTime_Setter_double(this, value);
 
-  @DomName('AnimationPlayer.timeLag')
-  @DocsEditable()
-  @Experimental() // untriaged
-  double get timeLag => _blink.BlinkAnimationPlayer.timeLag_Getter(this);
-
   @DomName('AnimationPlayer.cancel')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1076,6 +1067,11 @@ class AnimationTimeline extends NativeFieldWrapperClass2 {
   @DocsEditable()
   @Experimental() // untriaged
   double get currentTime => _blink.BlinkAnimationTimeline.currentTime_Getter(this);
+
+  @DomName('AnimationTimeline.getAnimationPlayers')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<AnimationPlayer> getAnimationPlayers() => _blink.BlinkAnimationTimeline.getAnimationPlayers_Callback(this);
 
   @DomName('AnimationTimeline.play')
   @DocsEditable()
@@ -2148,6 +2144,21 @@ class CDataSection extends Text {
 
 
 @DocsEditable()
+@DomName('CacheStorage')
+@Experimental() // untriaged
+class CacheStorage extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory CacheStorage._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('Canvas2DContextAttributes')
 // http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
 @Experimental()
@@ -2619,9 +2630,19 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   @DocsEditable()
   void set textBaseline(String value) => _blink.BlinkCanvasRenderingContext2D.textBaseline_Setter_DOMString(this, value);
 
+  @DomName('CanvasRenderingContext2D.addHitRegion')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void addHitRegion([Map options]) => _blink.BlinkCanvasRenderingContext2D.addHitRegion_Callback_Dictionary(this, options);
+
   @DomName('CanvasRenderingContext2D.beginPath')
   @DocsEditable()
   void beginPath() => _blink.BlinkCanvasRenderingContext2D.beginPath_Callback(this);
+
+  @DomName('CanvasRenderingContext2D.clearHitRegions')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearHitRegions() => _blink.BlinkCanvasRenderingContext2D.clearHitRegions_Callback(this);
 
   @DomName('CanvasRenderingContext2D.clearRect')
   @DocsEditable()
@@ -2834,6 +2855,11 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
+
+  @DomName('CanvasRenderingContext2D.removeHitRegion')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void removeHitRegion(String id) => _blink.BlinkCanvasRenderingContext2D.removeHitRegion_Callback_DOMString(this, id);
 
   @DomName('CanvasRenderingContext2D.resetTransform')
   @DocsEditable()
@@ -3270,21 +3296,42 @@ abstract class ChildNode extends NativeFieldWrapperClass2 {
 
 
 @DocsEditable()
-@DomName('Client')
+@DomName('CircularRegion')
 @Experimental() // untriaged
-class Client extends NativeFieldWrapperClass2 {
+class CircularRegion extends GeofencingRegion {
   // To suppress missing implicit constructor warnings.
-  factory Client._() { throw new UnsupportedError("Not supported"); }
+  factory CircularRegion._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('Client.id')
+  @DomName('CircularRegion.CircularRegion')
+  @DocsEditable()
+  factory CircularRegion(Map init) {
+    return _blink.BlinkCircularRegion.constructorCallback_Dictionary(init);
+  }
+
+  @DomName('CircularRegion.MAX_RADIUS')
   @DocsEditable()
   @Experimental() // untriaged
-  int get id => _blink.BlinkClient.id_Getter(this);
+  static const num MAX_RADIUS = 100.0;
 
-  @DomName('Client.postMessage')
+  @DomName('CircularRegion.MIN_RADIUS')
   @DocsEditable()
   @Experimental() // untriaged
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> messagePorts]) => _blink.BlinkClient.postMessage_Callback_SerializedScriptValue_A_MessagePort_A(this, message, messagePorts);
+  static const num MIN_RADIUS = 1.0;
+
+  @DomName('CircularRegion.latitude')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get latitude => _blink.BlinkCircularRegion.latitude_Getter(this);
+
+  @DomName('CircularRegion.longitude')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get longitude => _blink.BlinkCircularRegion.longitude_Getter(this);
+
+  @DomName('CircularRegion.radius')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get radius => _blink.BlinkCircularRegion.radius_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3612,6 +3659,51 @@ class Coordinates extends NativeFieldWrapperClass2 {
 
 
 @DocsEditable()
+@DomName('Credential')
+@Experimental() // untriaged
+class Credential extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory Credential._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('Credential.avatarURL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get avatarUrl => _blink.BlinkCredential.avatarURL_Getter(this);
+
+  @DomName('Credential.id')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get id => _blink.BlinkCredential.id_Getter(this);
+
+  @DomName('Credential.name')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get name => _blink.BlinkCredential.name_Getter(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('CredentialsContainer')
+@Experimental() // untriaged
+class CredentialsContainer extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory CredentialsContainer._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('Crypto')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -3642,31 +3734,31 @@ class Crypto extends NativeFieldWrapperClass2 {
 
 
 @DocsEditable()
-@DomName('Key')
+@DomName('CryptoKey')
 @Experimental() // untriaged
 class CryptoKey extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CryptoKey._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('Key.algorithm')
+  @DomName('CryptoKey.algorithm')
   @DocsEditable()
   @Experimental() // untriaged
-  KeyAlgorithm get algorithm => _blink.BlinkKey.algorithm_Getter(this);
+  Object get algorithm => _blink.BlinkCryptoKey.algorithm_Getter(this);
 
-  @DomName('Key.extractable')
+  @DomName('CryptoKey.extractable')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get extractable => _blink.BlinkKey.extractable_Getter(this);
+  bool get extractable => _blink.BlinkCryptoKey.extractable_Getter(this);
 
-  @DomName('Key.type')
+  @DomName('CryptoKey.type')
   @DocsEditable()
   @Experimental() // untriaged
-  String get type => _blink.BlinkKey.type_Getter(this);
+  String get type => _blink.BlinkCryptoKey.type_Getter(this);
 
-  @DomName('Key.usages')
+  @DomName('CryptoKey.usages')
   @DocsEditable()
   @Experimental() // untriaged
-  List<String> get usages => _blink.BlinkKey.usages_Getter(this);
+  List<String> get usages => _blink.BlinkCryptoKey.usages_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3737,27 +3829,6 @@ class CssFilterRule extends CssRule {
   @DomName('WebKitCSSFilterRule.style')
   @DocsEditable()
   CssStyleDeclaration get style => _blink.BlinkWebKitCSSFilterRule.style_Getter(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('CSSFontFaceLoadEvent')
-// http://www.w3.org/TR/css3-fonts/
-@Experimental()
-class CssFontFaceLoadEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory CssFontFaceLoadEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('CSSFontFaceLoadEvent.fontfaces')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<FontFace> get fontfaces => _blink.BlinkCSSFontFaceLoadEvent.fontfaces_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7594,7 +7665,7 @@ class DataTransfer extends NativeFieldWrapperClass2 {
   @DomName('DataTransfer.setData')
   @DocsEditable()
   @Experimental() // untriaged
-  bool setData(String type, String data) => _blink.BlinkDataTransfer.setData_Callback_DOMString_DOMString(this, type, data);
+  void setData(String type, String data) => _blink.BlinkDataTransfer.setData_Callback_DOMString_DOMString(this, type, data);
 
   @DomName('DataTransfer.setDragImage')
   @DocsEditable()
@@ -7742,7 +7813,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @DomName('DedicatedWorkerGlobalScope.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  void postMessage(Object message, [List<MessagePort> messagePorts]) => _blink.BlinkDedicatedWorkerGlobalScope.postMessage_Callback_ScriptValue_A_MessagePort_A(this, message, messagePorts);
+  void postMessage(Object message, [List<MessagePort> transfer]) => _blink.BlinkDedicatedWorkerGlobalScope.postMessage_Callback_ScriptValue_SEQ_MessagePort_SEQ(this, message, transfer);
 
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   @DomName('DedicatedWorkerGlobalScope.onmessage')
@@ -8273,34 +8344,6 @@ class Document extends Node
   @DocsEditable()
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
 
-  /**
-   * Static factory designed to expose `pointerlockchange` events to event
-   * handlers that are not necessarily instances of [Document].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('Document.webkitpointerlockchangeEvent')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockchange
-  static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
-
-  /**
-   * Static factory designed to expose `pointerlockerror` events to event
-   * handlers that are not necessarily instances of [Document].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('Document.webkitpointerlockerrorEvent')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockerror
-  static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
-
   @DomName('Document.activeElement')
   @DocsEditable()
   @Experimental() // untriaged
@@ -8348,6 +8391,16 @@ class Document extends Node
   @DocsEditable()
   @Experimental() // untriaged
   FontFaceSet get fonts => _blink.BlinkDocument.fonts_Getter(this);
+
+  @DomName('Document.fullscreenElement')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Element get fullscreenElement => _blink.BlinkDocument.fullscreenElement_Getter(this);
+
+  @DomName('Document.fullscreenEnabled')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get fullscreenEnabled => _blink.BlinkDocument.fullscreenEnabled_Getter(this);
 
   @DomName('Document.head')
   @DocsEditable()
@@ -8442,14 +8495,6 @@ class Document extends Node
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#document
   bool get _webkitHidden => _blink.BlinkDocument.webkitHidden_Getter(this);
 
-  @DomName('Document.webkitPointerLockElement')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-pointerLockElement
-  Element get _webkitPointerLockElement => _blink.BlinkDocument.webkitPointerLockElement_Getter(this);
-
   @DomName('Document.webkitVisibilityState')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -8484,15 +8529,10 @@ class Document extends Node
   @DocsEditable()
   Event _createEvent(String eventType) => _blink.BlinkDocument.createEvent_Callback_DOMString(this, eventType);
 
-  NodeIterator _createNodeIterator(Node root, [int whatToShow, NodeFilter filter]) {
-    if (filter != null) {
-      return _blink.BlinkDocument.createNodeIterator_Callback_Node_ul_NodeFilter(this, root, whatToShow, filter);
-    }
-    if (whatToShow != null) {
-      return _blink.BlinkDocument.createNodeIterator_Callback_Node_ul(this, root, whatToShow);
-    }
-    return _blink.BlinkDocument.createNodeIterator_Callback_Node(this, root);
-  }
+  @DomName('Document.createNodeIterator')
+  @DocsEditable()
+  @Unstable()
+  NodeIterator _createNodeIterator(Node root, int whatToShow, NodeFilter filter) => _blink.BlinkDocument.createNodeIterator_Callback_Node_ul_NodeFilter(this, root, whatToShow, filter);
 
   @DomName('Document.createRange')
   @DocsEditable()
@@ -8514,15 +8554,9 @@ class Document extends Node
   @Experimental()
   TouchList _createTouchList(Touch touches) => _blink.BlinkDocument.createTouchList_Callback_Touch(this, touches);
 
-  TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter]) {
-    if (filter != null) {
-      return _blink.BlinkDocument.createTreeWalker_Callback_Node_ul_NodeFilter(this, root, whatToShow, filter);
-    }
-    if (whatToShow != null) {
-      return _blink.BlinkDocument.createTreeWalker_Callback_Node_ul(this, root, whatToShow);
-    }
-    return _blink.BlinkDocument.createTreeWalker_Callback_Node(this, root);
-  }
+  @DomName('Document.createTreeWalker')
+  @DocsEditable()
+  TreeWalker _createTreeWalker(Node root, int whatToShow, NodeFilter filter) => _blink.BlinkDocument.createTreeWalker_Callback_Node_ul_NodeFilter(this, root, whatToShow, filter);
 
   @DomName('Document.elementFromPoint')
   @DocsEditable()
@@ -8531,6 +8565,11 @@ class Document extends Node
   @DomName('Document.execCommand')
   @DocsEditable()
   bool execCommand(String command, bool userInterface, String value) => _blink.BlinkDocument.execCommand_Callback_DOMString_boolean_DOMString(this, command, userInterface, value);
+
+  @DomName('Document.exitFullscreen')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void exitFullscreen() => _blink.BlinkDocument.exitFullscreen_Callback(this);
 
   @DomName('Document.exitPointerLock')
   @DocsEditable()
@@ -8559,12 +8598,9 @@ class Document extends Node
   @DocsEditable()
   List<Node> getElementsByTagName(String localName) => _blink.BlinkDocument.getElementsByTagName_Callback_DOMString(this, localName);
 
-  Node importNode(Node node, [bool deep]) {
-    if (deep != null) {
-      return _blink.BlinkDocument.importNode_Callback_Node_boolean(this, node, deep);
-    }
-    return _blink.BlinkDocument.importNode_Callback_Node(this, node);
-  }
+  @DomName('Document.importNode')
+  @DocsEditable()
+  Node importNode(Node node, bool deep) => _blink.BlinkDocument.importNode_Callback_Node_boolean(this, node, deep);
 
   @DomName('Document.queryCommandEnabled')
   @DocsEditable()
@@ -8593,14 +8629,6 @@ class Document extends Node
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-exitfullscreen
   void _webkitExitFullscreen() => _blink.BlinkDocument.webkitExitFullscreen_Callback(this);
-
-  @DomName('Document.webkitExitPointerLock')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-exitPointerLock-void
-  void _webkitExitPointerLock() => _blink.BlinkDocument.webkitExitPointerLock_Callback(this);
 
   @DomName('Document.childElementCount')
   @DocsEditable()
@@ -9006,20 +9034,6 @@ class Document extends Node
   @Experimental()
   Stream<Event> get onFullscreenError => Element.fullscreenErrorEvent.forTarget(this);
 
-  /// Stream of `pointerlockchange` events handled by this [Document].
-  @DomName('Document.onwebkitpointerlockchange')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockchange
-  @Experimental()
-  Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
-
-  /// Stream of `pointerlockerror` events handled by this [Document].
-  @DomName('Document.onwebkitpointerlockerror')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockerror
-  @Experimental()
-  Stream<Event> get onPointerLockError => pointerLockErrorEvent.forTarget(this);
-
   /**
    * Finds all descendant elements of this document that match the specified
    * group of selectors.
@@ -9349,6 +9363,388 @@ class DomImplementation extends NativeFieldWrapperClass2 {
 
 
 @DocsEditable()
+@DomName('DOMMatrix')
+@Experimental() // untriaged
+class DomMatrix extends DomMatrixReadOnly {
+  // To suppress missing implicit constructor warnings.
+  factory DomMatrix._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DOMMatrix.DOMMatrix')
+  @DocsEditable()
+  factory DomMatrix([DomMatrixReadOnly other]) {
+    if (other == null) {
+      return _blink.BlinkDOMMatrix.constructorCallback();
+    }
+    if ((other is DomMatrixReadOnly || other == null)) {
+      return _blink.BlinkDOMMatrix.constructorCallback_DOMMatrixReadOnly(other);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('DOMMatrix.a')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get a => _blink.BlinkDOMMatrix.a_Getter(this);
+
+  @DomName('DOMMatrix.a')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set a(num value) => _blink.BlinkDOMMatrix.a_Setter_double(this, value);
+
+  @DomName('DOMMatrix.b')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get b => _blink.BlinkDOMMatrix.b_Getter(this);
+
+  @DomName('DOMMatrix.b')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set b(num value) => _blink.BlinkDOMMatrix.b_Setter_double(this, value);
+
+  @DomName('DOMMatrix.c')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get c => _blink.BlinkDOMMatrix.c_Getter(this);
+
+  @DomName('DOMMatrix.c')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set c(num value) => _blink.BlinkDOMMatrix.c_Setter_double(this, value);
+
+  @DomName('DOMMatrix.d')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get d => _blink.BlinkDOMMatrix.d_Getter(this);
+
+  @DomName('DOMMatrix.d')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set d(num value) => _blink.BlinkDOMMatrix.d_Setter_double(this, value);
+
+  @DomName('DOMMatrix.e')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get e => _blink.BlinkDOMMatrix.e_Getter(this);
+
+  @DomName('DOMMatrix.e')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set e(num value) => _blink.BlinkDOMMatrix.e_Setter_double(this, value);
+
+  @DomName('DOMMatrix.f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get f => _blink.BlinkDOMMatrix.f_Getter(this);
+
+  @DomName('DOMMatrix.f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set f(num value) => _blink.BlinkDOMMatrix.f_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m11')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m11 => _blink.BlinkDOMMatrix.m11_Getter(this);
+
+  @DomName('DOMMatrix.m11')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m11(num value) => _blink.BlinkDOMMatrix.m11_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m12')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m12 => _blink.BlinkDOMMatrix.m12_Getter(this);
+
+  @DomName('DOMMatrix.m12')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m12(num value) => _blink.BlinkDOMMatrix.m12_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m13')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m13 => _blink.BlinkDOMMatrix.m13_Getter(this);
+
+  @DomName('DOMMatrix.m13')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m13(num value) => _blink.BlinkDOMMatrix.m13_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m14')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m14 => _blink.BlinkDOMMatrix.m14_Getter(this);
+
+  @DomName('DOMMatrix.m14')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m14(num value) => _blink.BlinkDOMMatrix.m14_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m21')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m21 => _blink.BlinkDOMMatrix.m21_Getter(this);
+
+  @DomName('DOMMatrix.m21')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m21(num value) => _blink.BlinkDOMMatrix.m21_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m22')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m22 => _blink.BlinkDOMMatrix.m22_Getter(this);
+
+  @DomName('DOMMatrix.m22')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m22(num value) => _blink.BlinkDOMMatrix.m22_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m23')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m23 => _blink.BlinkDOMMatrix.m23_Getter(this);
+
+  @DomName('DOMMatrix.m23')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m23(num value) => _blink.BlinkDOMMatrix.m23_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m24')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m24 => _blink.BlinkDOMMatrix.m24_Getter(this);
+
+  @DomName('DOMMatrix.m24')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m24(num value) => _blink.BlinkDOMMatrix.m24_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m31')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m31 => _blink.BlinkDOMMatrix.m31_Getter(this);
+
+  @DomName('DOMMatrix.m31')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m31(num value) => _blink.BlinkDOMMatrix.m31_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m32')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m32 => _blink.BlinkDOMMatrix.m32_Getter(this);
+
+  @DomName('DOMMatrix.m32')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m32(num value) => _blink.BlinkDOMMatrix.m32_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m33')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m33 => _blink.BlinkDOMMatrix.m33_Getter(this);
+
+  @DomName('DOMMatrix.m33')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m33(num value) => _blink.BlinkDOMMatrix.m33_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m34')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m34 => _blink.BlinkDOMMatrix.m34_Getter(this);
+
+  @DomName('DOMMatrix.m34')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m34(num value) => _blink.BlinkDOMMatrix.m34_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m41')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m41 => _blink.BlinkDOMMatrix.m41_Getter(this);
+
+  @DomName('DOMMatrix.m41')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m41(num value) => _blink.BlinkDOMMatrix.m41_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m42')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m42 => _blink.BlinkDOMMatrix.m42_Getter(this);
+
+  @DomName('DOMMatrix.m42')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m42(num value) => _blink.BlinkDOMMatrix.m42_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m43')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m43 => _blink.BlinkDOMMatrix.m43_Getter(this);
+
+  @DomName('DOMMatrix.m43')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m43(num value) => _blink.BlinkDOMMatrix.m43_Setter_double(this, value);
+
+  @DomName('DOMMatrix.m44')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get m44 => _blink.BlinkDOMMatrix.m44_Getter(this);
+
+  @DomName('DOMMatrix.m44')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set m44(num value) => _blink.BlinkDOMMatrix.m44_Setter_double(this, value);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('DOMMatrixReadOnly')
+@Experimental() // untriaged
+class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory DomMatrixReadOnly._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DOMMatrixReadOnly.a')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get a => _blink.BlinkDOMMatrixReadOnly.a_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.b')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get b => _blink.BlinkDOMMatrixReadOnly.b_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.c')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get c => _blink.BlinkDOMMatrixReadOnly.c_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.d')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get d => _blink.BlinkDOMMatrixReadOnly.d_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.e')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get e => _blink.BlinkDOMMatrixReadOnly.e_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get f => _blink.BlinkDOMMatrixReadOnly.f_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.is2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get is2D => _blink.BlinkDOMMatrixReadOnly.is2D_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.isIdentity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get isIdentity => _blink.BlinkDOMMatrixReadOnly.isIdentity_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m11')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m11 => _blink.BlinkDOMMatrixReadOnly.m11_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m12')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m12 => _blink.BlinkDOMMatrixReadOnly.m12_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m13')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m13 => _blink.BlinkDOMMatrixReadOnly.m13_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m14')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m14 => _blink.BlinkDOMMatrixReadOnly.m14_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m21')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m21 => _blink.BlinkDOMMatrixReadOnly.m21_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m22')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m22 => _blink.BlinkDOMMatrixReadOnly.m22_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m23')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m23 => _blink.BlinkDOMMatrixReadOnly.m23_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m24')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m24 => _blink.BlinkDOMMatrixReadOnly.m24_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m31')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m31 => _blink.BlinkDOMMatrixReadOnly.m31_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m32')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m32 => _blink.BlinkDOMMatrixReadOnly.m32_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m33')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m33 => _blink.BlinkDOMMatrixReadOnly.m33_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m34')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m34 => _blink.BlinkDOMMatrixReadOnly.m34_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m41')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m41 => _blink.BlinkDOMMatrixReadOnly.m41_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m42')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m42 => _blink.BlinkDOMMatrixReadOnly.m42_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m43')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m43 => _blink.BlinkDOMMatrixReadOnly.m43_Getter(this);
+
+  @DomName('DOMMatrixReadOnly.m44')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get m44 => _blink.BlinkDOMMatrixReadOnly.m44_Getter(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('DOMParser')
 class DomParser extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
@@ -9363,6 +9759,175 @@ class DomParser extends NativeFieldWrapperClass2 {
   @DomName('DOMParser.parseFromString')
   @DocsEditable()
   Document parseFromString(String str, String contentType) => _blink.BlinkDOMParser.parseFromString_Callback_DOMString_DOMString(this, str, contentType);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('DOMPoint')
+@Experimental() // untriaged
+class DomPoint extends DomPointReadOnly {
+  // To suppress missing implicit constructor warnings.
+  factory DomPoint._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DOMPoint.DOMPoint')
+  @DocsEditable()
+  factory DomPoint([point_OR_x, num y, num z, num w]) {
+    if ((point_OR_x is Map || point_OR_x == null) && y == null && z == null && w == null) {
+      return _blink.BlinkDOMPoint.constructorCallback_Dictionary(point_OR_x);
+    }
+    if ((w is num || w == null) && (z is num || z == null) && (y is num || y == null) && (point_OR_x is num || point_OR_x == null)) {
+      return _blink.BlinkDOMPoint.constructorCallback_double_double_double_double(point_OR_x, y, z, w);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('DOMPoint.w')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get w => _blink.BlinkDOMPoint.w_Getter(this);
+
+  @DomName('DOMPoint.w')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set w(num value) => _blink.BlinkDOMPoint.w_Setter_double(this, value);
+
+  @DomName('DOMPoint.x')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get x => _blink.BlinkDOMPoint.x_Getter(this);
+
+  @DomName('DOMPoint.x')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set x(num value) => _blink.BlinkDOMPoint.x_Setter_double(this, value);
+
+  @DomName('DOMPoint.y')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get y => _blink.BlinkDOMPoint.y_Getter(this);
+
+  @DomName('DOMPoint.y')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set y(num value) => _blink.BlinkDOMPoint.y_Setter_double(this, value);
+
+  @DomName('DOMPoint.z')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get z => _blink.BlinkDOMPoint.z_Getter(this);
+
+  @DomName('DOMPoint.z')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set z(num value) => _blink.BlinkDOMPoint.z_Setter_double(this, value);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('DOMPointReadOnly')
+@Experimental() // untriaged
+class DomPointReadOnly extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory DomPointReadOnly._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DOMPointReadOnly.DOMPointReadOnly')
+  @DocsEditable()
+  factory DomPointReadOnly(num x, num y, num z, num w) {
+    return _blink.BlinkDOMPointReadOnly.constructorCallback_double_double_double_double(x, y, z, w);
+  }
+
+  @DomName('DOMPointReadOnly.w')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get w => _blink.BlinkDOMPointReadOnly.w_Getter(this);
+
+  @DomName('DOMPointReadOnly.x')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get x => _blink.BlinkDOMPointReadOnly.x_Getter(this);
+
+  @DomName('DOMPointReadOnly.y')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get y => _blink.BlinkDOMPointReadOnly.y_Getter(this);
+
+  @DomName('DOMPointReadOnly.z')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get z => _blink.BlinkDOMPointReadOnly.z_Getter(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('DOMRectReadOnly')
+@Experimental() // untriaged
+class DomRectReadOnly extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory DomRectReadOnly._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DOMRectReadOnly.DOMRectReadOnly')
+  @DocsEditable()
+  factory DomRectReadOnly(num x, num y, num width, num height) {
+    return _blink.BlinkDOMRectReadOnly.constructorCallback_double_double_double_double(x, y, width, height);
+  }
+
+  @DomName('DOMRectReadOnly.bottom')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get bottom => _blink.BlinkDOMRectReadOnly.bottom_Getter(this);
+
+  @DomName('DOMRectReadOnly.height')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get height => _blink.BlinkDOMRectReadOnly.height_Getter(this);
+
+  @DomName('DOMRectReadOnly.left')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get left => _blink.BlinkDOMRectReadOnly.left_Getter(this);
+
+  @DomName('DOMRectReadOnly.right')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get right => _blink.BlinkDOMRectReadOnly.right_Getter(this);
+
+  @DomName('DOMRectReadOnly.top')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get top => _blink.BlinkDOMRectReadOnly.top_Getter(this);
+
+  @DomName('DOMRectReadOnly.width')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get width => _blink.BlinkDOMRectReadOnly.width_Getter(this);
+
+  @DomName('DOMRectReadOnly.x')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get x => _blink.BlinkDOMRectReadOnly.x_Getter(this);
+
+  @DomName('DOMRectReadOnly.y')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get y => _blink.BlinkDOMRectReadOnly.y_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9543,10 +10108,6 @@ class DomTokenList extends NativeFieldWrapperClass2 {
   @DocsEditable()
   @Experimental() // untriaged
   void remove(String tokens) => _blink.BlinkDOMTokenList.remove_Callback_DOMString(this, tokens);
-
-  @DomName('DOMTokenList.toString')
-  @DocsEditable()
-  String toString() => _blink.BlinkDOMTokenList.toString_Callback(this);
 
   bool toggle(String token, [bool force]) {
     if (force != null) {
@@ -12498,6 +13059,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   void focus() => _blink.BlinkElement.focus_Callback(this);
 
+  @DomName('Element.getAnimationPlayers')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<AnimationPlayer> getAnimationPlayers() => _blink.BlinkElement.getAnimationPlayers_Callback(this);
+
   @DomName('Element.getAttribute')
   @DocsEditable()
   @Experimental() // untriaged
@@ -12612,34 +13178,15 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   void _removeAttributeNS(String namespaceURI, String localName) => _blink.BlinkElement.removeAttributeNS_Callback_DOMString_DOMString(this, namespaceURI, localName);
 
+  @DomName('Element.requestFullscreen')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void requestFullscreen() => _blink.BlinkElement.requestFullscreen_Callback(this);
+
   @DomName('Element.requestPointerLock')
   @DocsEditable()
   @Experimental() // untriaged
   void requestPointerLock() => _blink.BlinkElement.requestPointerLock_Callback(this);
-
-  /**
-   * Scrolls the element by a number of lines.
-   *
-   * ## Other resources
-   *
-   * * [scrollByLines]
-   * (http://docs.webplatform.org/wiki/dom/methods/scrollByLines) from WebPlatform.org.
-   */
-  @DomName('Element.scrollByLines')
-  @DocsEditable()
-  void scrollByLines(int lines) => _blink.BlinkElement.scrollByLines_Callback_long(this, lines);
-
-  /**
-   * Scrolls the element by a number of pages.
-   *
-   * ## Other resources
-   *
-   * * [scrollByPages]
-   * (http://docs.webplatform.org/wiki/dom/methods/scrollByPages) from WebPlatform.org.
-   */
-  @DomName('Element.scrollByPages')
-  @DocsEditable()
-  void scrollByPages(int pages) => _blink.BlinkElement.scrollByPages_Callback_long(this, pages);
 
   void _scrollIntoView([bool alignWithTop]) {
     if (alignWithTop != null) {
@@ -12666,25 +13213,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.setAttributeNS')
   @DocsEditable()
   void setAttributeNS(String namespaceURI, String qualifiedName, String value) => _blink.BlinkElement.setAttributeNS_Callback_DOMString_DOMString_DOMString(this, namespaceURI, qualifiedName, value);
-
-  /**
-   * Displays this element fullscreen.
-   *
-   * ## Other resources
-   *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
-   * tutorial from WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
-   */
-  @DomName('Element.webkitRequestFullscreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen
-  void requestFullscreen() => _blink.BlinkElement.webkitRequestFullscreen_Callback(this);
 
   @DomName('Element.nextElementSibling')
   @DocsEditable()
@@ -13940,11 +14468,57 @@ class EventTarget extends NativeFieldWrapperClass2 {
 
 
 @DocsEditable()
+@DomName('FederatedCredential')
+@Experimental() // untriaged
+class FederatedCredential extends Credential {
+  // To suppress missing implicit constructor warnings.
+  factory FederatedCredential._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('FederatedCredential.FederatedCredential')
+  @DocsEditable()
+  factory FederatedCredential(String id, String name, String avatarURL, String federation) {
+    return _blink.BlinkFederatedCredential.constructorCallback_DOMString_DOMString_DOMString_DOMString(id, name, avatarURL, federation);
+  }
+
+  @DomName('FederatedCredential.federation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get federation => _blink.BlinkFederatedCredential.federation_Getter(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('FetchBodyStream')
+@Experimental() // untriaged
+class FetchBodyStream extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory FetchBodyStream._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('FetchEvent')
 @Experimental() // untriaged
 class FetchEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory FetchEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('FetchEvent.isReload')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get isReload => _blink.BlinkFetchEvent.isReload_Getter(this);
 
   @DomName('FetchEvent.request')
   @DocsEditable()
@@ -14836,6 +15410,26 @@ typedef void FontFaceSetForEachCallback(FontFace fontFace, FontFace fontFaceAgai
 
 
 @DocsEditable()
+@DomName('FontFaceSetLoadEvent')
+@Experimental() // untriaged
+class FontFaceSetLoadEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory FontFaceSetLoadEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('FontFaceSetLoadEvent.fontfaces')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<FontFace> get fontfaces => _blink.BlinkFontFaceSetLoadEvent.fontfaces_Getter(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('FormData')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -15087,6 +15681,41 @@ class GamepadEvent extends Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('Geofencing')
+@Experimental() // untriaged
+class Geofencing extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory Geofencing._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('GeofencingRegion')
+@Experimental() // untriaged
+class GeofencingRegion extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory GeofencingRegion._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('GeofencingRegion.id')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get id => _blink.BlinkGeofencingRegion.id_Getter(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 @DocsEditable()
 @DomName('Geolocation')
@@ -15172,11 +15801,11 @@ class Geolocation extends NativeFieldWrapperClass2 {
 
   @DomName('Geolocation.getCurrentPosition')
   @DocsEditable()
-  void _getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) => _blink.BlinkGeolocation.getCurrentPosition_Callback_PositionCallback_PositionErrorCallback_object(this, successCallback, errorCallback, options);
+  void _getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Map options]) => _blink.BlinkGeolocation.getCurrentPosition_Callback_PositionCallback_PositionErrorCallback_Dictionary(this, successCallback, errorCallback, options);
 
   @DomName('Geolocation.watchPosition')
   @DocsEditable()
-  int _watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) => _blink.BlinkGeolocation.watchPosition_Callback_PositionCallback_PositionErrorCallback_object(this, successCallback, errorCallback, options);
+  int _watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Map options]) => _blink.BlinkGeolocation.watchPosition_Callback_PositionCallback_PositionErrorCallback_Dictionary(this, successCallback, errorCallback, options);
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15841,56 +16470,40 @@ class HeadElement extends HtmlElement {
 
 
 @DocsEditable()
-@DomName('HeaderMap')
+@DomName('Headers')
 @Experimental() // untriaged
-class HeaderMap extends NativeFieldWrapperClass2 {
+class Headers extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
-  factory HeaderMap._() { throw new UnsupportedError("Not supported"); }
+  factory Headers._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('HeaderMap.HeaderMap')
+  @DomName('Headers.Headers')
   @DocsEditable()
-  factory HeaderMap() {
-    return _blink.BlinkHeaderMap.constructorCallback();
+  factory Headers([input]) {
+    if (input == null) {
+      return _blink.BlinkHeaders.constructorCallback();
+    }
+    if ((input is Headers || input == null)) {
+      return _blink.BlinkHeaders.constructorCallback_Headers(input);
+    }
+    if ((input is Map || input == null)) {
+      return _blink.BlinkHeaders.constructorCallback_Dictionary(input);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('HeaderMap.size')
+  @DomName('Headers.size')
   @DocsEditable()
   @Experimental() // untriaged
-  int get size => _blink.BlinkHeaderMap.size_Getter(this);
+  int get size => _blink.BlinkHeaders.size_Getter(this);
 
-  @DomName('HeaderMap.clear')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void clear() => _blink.BlinkHeaderMap.clear_Callback(this);
-
-  @DomName('HeaderMap.delete')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool delete(String key) => _blink.BlinkHeaderMap.delete_Callback_DOMString(this, key);
-
-  void forEach(HeaderMapForEachCallback callback, [Object thisArg]) {
+  void forEach(HeadersForEachCallback callback, [Object thisArg]) {
     if (thisArg != null) {
-      _blink.BlinkHeaderMap.forEach_Callback_HeaderMapForEachCallback_ScriptValue(this, callback, thisArg);
+      _blink.BlinkHeaders.forEach_Callback_HeadersForEachCallback_ScriptValue(this, callback, thisArg);
       return;
     }
-    _blink.BlinkHeaderMap.forEach_Callback_HeaderMapForEachCallback(this, callback);
+    _blink.BlinkHeaders.forEach_Callback_HeadersForEachCallback(this, callback);
     return;
   }
-
-  @DomName('HeaderMap.get')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get(String key) => _blink.BlinkHeaderMap.get_Callback_DOMString(this, key);
-
-  @DomName('HeaderMap.has')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool has(String key) => _blink.BlinkHeaderMap.has_Callback_DOMString(this, key);
-
-  @DomName('HeaderMap.set')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void set(String key, String value) => _blink.BlinkHeaderMap.set_Callback_DOMString_DOMString(this, key, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15900,9 +16513,9 @@ class HeaderMap extends NativeFieldWrapperClass2 {
 // WARNING: Do not edit - generated code.
 
 
-@DomName('HeaderMapForEachCallback')
+@DomName('HeadersForEachCallback')
 @Experimental() // untriaged
-typedef void HeaderMapForEachCallback(String value, String key, HeaderMap map);
+typedef void HeadersForEachCallback(String value, String key, Headers map);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -16003,31 +16616,6 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void replaceState(Object data, String title, [String url]) => _blink.BlinkHistory.replaceState_Callback_ScriptValue_DOMString_DOMString(this, data, title, url);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('HmacKeyAlgorithm')
-@Experimental() // untriaged
-class HmacKeyAlgorithm extends KeyAlgorithm {
-  // To suppress missing implicit constructor warnings.
-  factory HmacKeyAlgorithm._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('HmacKeyAlgorithm.hash')
-  @DocsEditable()
-  @Experimental() // untriaged
-  KeyAlgorithm get hash => _blink.BlinkHmacKeyAlgorithm.hash_Getter(this);
-
-  @DomName('HmacKeyAlgorithm.length')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get length => _blink.BlinkHmacKeyAlgorithm.length_Getter(this);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16221,14 +16809,6 @@ class HtmlDocument extends Document {
     _webkitExitFullscreen();
   }
 
-  @DomName('Document.webkitExitPointerLock')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  void exitPointerLock() {
-    _webkitExitPointerLock();
-  }
-
   /**
    * Returns the element, if any, that is currently displayed in fullscreen.
    *
@@ -16277,13 +16857,6 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   bool get hidden => _webkitHidden;
-
-  @DomName('Document.webkitPointerLockElement')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  Element get pointerLockElement =>
-      _webkitPointerLockElement;
 
   @DomName('Document.visibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -17960,6 +18533,16 @@ class IFrameElement extends HtmlElement {
    */
   IFrameElement.created() : super.created();
 
+  @DomName('HTMLIFrameElement.allowFullscreen')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get allowFullscreen => _blink.BlinkHTMLIFrameElement.allowFullscreen_Getter(this);
+
+  @DomName('HTMLIFrameElement.allowFullscreen')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set allowFullscreen(bool value) => _blink.BlinkHTMLIFrameElement.allowFullscreen_Setter_boolean(this, value);
+
   @DomName('HTMLIFrameElement.contentWindow')
   @DocsEditable()
   WindowBase get contentWindow => _blink.BlinkHTMLIFrameElement.contentWindow_Getter(this);
@@ -18321,6 +18904,16 @@ class InputElement extends HtmlElement implements
   @DomName('HTMLInputElement.autofocus')
   @DocsEditable()
   void set autofocus(bool value) => _blink.BlinkHTMLInputElement.autofocus_Setter_boolean(this, value);
+
+  @DomName('HTMLInputElement.capture')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get capture => _blink.BlinkHTMLInputElement.capture_Getter(this);
+
+  @DomName('HTMLInputElement.capture')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set capture(bool value) => _blink.BlinkHTMLInputElement.capture_Setter_boolean(this, value);
 
   @DomName('HTMLInputElement.checked')
   @DocsEditable()
@@ -19346,26 +19939,6 @@ class InstallPhaseEvent extends Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('KeyAlgorithm')
-@Experimental() // untriaged
-class KeyAlgorithm extends NativeFieldWrapperClass2 {
-  // To suppress missing implicit constructor warnings.
-  factory KeyAlgorithm._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('KeyAlgorithm.name')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get name => _blink.BlinkKeyAlgorithm.name_Getter(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent {
@@ -19373,14 +19946,13 @@ class KeyboardEvent extends UIEvent {
   factory KeyboardEvent(String type,
       {Window view, bool canBubble: true, bool cancelable: true,
       int keyLocation: 1, bool ctrlKey: false,
-      bool altKey: false, bool shiftKey: false, bool metaKey: false,
-      bool altGraphKey: false}) {
+      bool altKey: false, bool shiftKey: false, bool metaKey: false}) {
     if (view == null) {
       view = window;
     }
     final e = document._createEvent("KeyboardEvent");
     e._initKeyboardEvent(type, canBubble, cancelable, view, "",
-        keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
+        keyLocation, ctrlKey, altKey, shiftKey, metaKey);
     return e;
   }
 
@@ -19411,11 +19983,6 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   @Experimental() // untriaged
   static const int DOM_KEY_LOCATION_STANDARD = 0x00;
-
-  @DomName('KeyboardEvent.altGraphKey')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  bool get altGraphKey => _blink.BlinkKeyboardEvent.altGraphKey_Getter(this);
 
   @DomName('KeyboardEvent.altKey')
   @DocsEditable()
@@ -19460,7 +20027,7 @@ class KeyboardEvent extends UIEvent {
 
   @DomName('KeyboardEvent.initKeyboardEvent')
   @DocsEditable()
-  void _initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int location, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) => _blink.BlinkKeyboardEvent.initKeyboardEvent_Callback_DOMString_boolean_boolean_Window_DOMString_ul_boolean_boolean_boolean_boolean_boolean(this, type, canBubble, cancelable, view, keyIdentifier, location, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
+  void _initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int location, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) => _blink.BlinkKeyboardEvent.initKeyboardEvent_Callback_DOMString_boolean_boolean_Window_DOMString_ul_boolean_boolean_boolean_boolean(this, type, canBubble, cancelable, view, keyIdentifier, location, ctrlKey, altKey, shiftKey, metaKey);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19775,6 +20342,32 @@ class LinkElement extends HtmlElement {
   bool get supportsImport {
     return true;
   }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('LocalCredential')
+@Experimental() // untriaged
+class LocalCredential extends Credential {
+  // To suppress missing implicit constructor warnings.
+  factory LocalCredential._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('LocalCredential.LocalCredential')
+  @DocsEditable()
+  factory LocalCredential(String id, String name, String avatarURL, String password) {
+    return _blink.BlinkLocalCredential.constructorCallback_DOMString_DOMString_DOMString_DOMString(id, name, avatarURL, password);
+  }
+
+  @DomName('LocalCredential.password')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get password => _blink.BlinkLocalCredential.password_Getter(this);
+
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20640,7 +21233,7 @@ class MediaKeyMessageEvent extends Event {
 
   @DomName('MediaKeyMessageEvent.message')
   @DocsEditable()
-  Uint8List get message => _blink.BlinkMediaKeyMessageEvent.message_Getter(this);
+  ByteBuffer get message => _blink.BlinkMediaKeyMessageEvent.message_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20695,15 +21288,6 @@ class MediaKeySession extends EventTarget {
   @DocsEditable()
   String get sessionId => _blink.BlinkMediaKeySession.sessionId_Getter(this);
 
-  @DomName('MediaKeySession.release')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void release() => _blink.BlinkMediaKeySession.release_Callback(this);
-
-  @DomName('MediaKeySession.update')
-  @DocsEditable()
-  void update(Uint8List response) => _blink.BlinkMediaKeySession.update_Callback_Uint8Array(this, response);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20720,19 +21304,9 @@ class MediaKeys extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MediaKeys._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('MediaKeys.MediaKeys')
-  @DocsEditable()
-  factory MediaKeys(String keySystem) {
-    return _blink.BlinkMediaKeys.constructorCallback_DOMString(keySystem);
-  }
-
   @DomName('MediaKeys.keySystem')
   @DocsEditable()
   String get keySystem => _blink.BlinkMediaKeys.keySystem_Getter(this);
-
-  @DomName('MediaKeys.createSession')
-  @DocsEditable()
-  MediaKeySession createSession(String type, Uint8List initData) => _blink.BlinkMediaKeys.createSession_Callback_DOMString_Uint8Array(this, type, initData);
 
   @DomName('MediaKeys.isTypeSupported')
   @DocsEditable()
@@ -20953,6 +21527,11 @@ class MediaStream extends EventTarget {
   @DocsEditable()
   MediaStreamTrack getTrackById(String trackId) => _blink.BlinkMediaStream.getTrackById_Callback_DOMString(this, trackId);
 
+  @DomName('MediaStream.getTracks')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<MediaStreamTrack> getTracks() => _blink.BlinkMediaStream.getTracks_Callback(this);
+
   @DomName('MediaStream.getVideoTracks')
   @DocsEditable()
   List<MediaStreamTrack> getVideoTracks() => _blink.BlinkMediaStream.getVideoTracks_Callback(this);
@@ -21079,6 +21658,11 @@ class MediaStreamTrack extends EventTarget {
   @DomName('MediaStreamTrack.label')
   @DocsEditable()
   String get label => _blink.BlinkMediaStreamTrack.label_Getter(this);
+
+  @DomName('MediaStreamTrack.muted')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get muted => _blink.BlinkMediaStreamTrack.muted_Getter(this);
 
   @DomName('MediaStreamTrack.readyState')
   @DocsEditable()
@@ -21216,6 +21800,97 @@ class MenuElement extends HtmlElement {
    */
   MenuElement.created() : super.created();
 
+  @DomName('HTMLMenuElement.label')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get label => _blink.BlinkHTMLMenuElement.label_Getter(this);
+
+  @DomName('HTMLMenuElement.label')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set label(String value) => _blink.BlinkHTMLMenuElement.label_Setter_DOMString(this, value);
+
+  @DomName('HTMLMenuElement.type')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get type => _blink.BlinkHTMLMenuElement.type_Getter(this);
+
+  @DomName('HTMLMenuElement.type')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set type(String value) => _blink.BlinkHTMLMenuElement.type_Setter_DOMString(this, value);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('HTMLMenuItemElement')
+@Experimental() // untriaged
+class MenuItemElement extends HtmlElement {
+  // To suppress missing implicit constructor warnings.
+  factory MenuItemElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  MenuItemElement.created() : super.created();
+
+  @DomName('HTMLMenuItemElement.checked')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get checked => _blink.BlinkHTMLMenuItemElement.checked_Getter(this);
+
+  @DomName('HTMLMenuItemElement.checked')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set checked(bool value) => _blink.BlinkHTMLMenuItemElement.checked_Setter_boolean(this, value);
+
+  @DomName('HTMLMenuItemElement.default')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get defaultValue => _blink.BlinkHTMLMenuItemElement.default_Getter(this);
+
+  @DomName('HTMLMenuItemElement.default')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set defaultValue(bool value) => _blink.BlinkHTMLMenuItemElement.default_Setter_boolean(this, value);
+
+  @DomName('HTMLMenuItemElement.disabled')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get disabled => _blink.BlinkHTMLMenuItemElement.disabled_Getter(this);
+
+  @DomName('HTMLMenuItemElement.disabled')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set disabled(bool value) => _blink.BlinkHTMLMenuItemElement.disabled_Setter_boolean(this, value);
+
+  @DomName('HTMLMenuItemElement.label')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get label => _blink.BlinkHTMLMenuItemElement.label_Getter(this);
+
+  @DomName('HTMLMenuItemElement.label')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set label(String value) => _blink.BlinkHTMLMenuItemElement.label_Setter_DOMString(this, value);
+
+  @DomName('HTMLMenuItemElement.type')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get type => _blink.BlinkHTMLMenuItemElement.type_Getter(this);
+
+  @DomName('HTMLMenuItemElement.type')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set type(String value) => _blink.BlinkHTMLMenuItemElement.type_Setter_DOMString(this, value);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21316,7 +21991,7 @@ class MessagePort extends EventTarget {
 
   @DomName('MessagePort.postMessage')
   @DocsEditable()
-  void postMessage(Object message, [List<MessagePort> messagePorts]) => _blink.BlinkMessagePort.postMessage_Callback_ScriptValue_A_MessagePort_A(this, message, messagePorts);
+  void postMessage(Object message, [List<MessagePort> transfer]) => _blink.BlinkMessagePort.postMessage_Callback_ScriptValue_SEQ_MessagePort_SEQ(this, message, transfer);
 
   @DomName('MessagePort.start')
   @DocsEditable()
@@ -21938,6 +22613,11 @@ class MouseEvent extends UIEvent {
   @Unstable()
   int get _offsetY => _blink.BlinkMouseEvent.offsetY_Getter(this);
 
+  @DomName('MouseEvent.region')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get region => _blink.BlinkMouseEvent.region_Getter(this);
+
   @DomName('MouseEvent.relatedTarget')
   @DocsEditable()
   EventTarget get relatedTarget => _blink.BlinkMouseEvent.relatedTarget_Getter(this);
@@ -22261,11 +22941,21 @@ class Navigator extends NavigatorCpu implements NavigatorLanguage, NavigatorOnLi
   @Unstable()
   bool get cookieEnabled => _blink.BlinkNavigator.cookieEnabled_Getter(this);
 
+  @DomName('Navigator.credentials')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CredentialsContainer get credentials => _blink.BlinkNavigator.credentials_Getter(this);
+
   @DomName('Navigator.doNotTrack')
   @DocsEditable()
   // http://www.w3.org/2011/tracking-protection/drafts/tracking-dnt.html#js-dom
   @Experimental() // experimental
   String get doNotTrack => _blink.BlinkNavigator.doNotTrack_Getter(this);
+
+  @DomName('Navigator.geofencing')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Geofencing get geofencing => _blink.BlinkNavigator.geofencing_Getter(this);
 
   @DomName('Navigator.geolocation')
   @DocsEditable()
@@ -22332,11 +23022,6 @@ class Navigator extends NavigatorCpu implements NavigatorLanguage, NavigatorOnLi
   @DocsEditable()
   @Experimental() // untriaged
   List<Gamepad> getGamepads() => _blink.BlinkNavigator.getGamepads_Callback(this);
-
-  @DomName('Navigator.getMediaDevices')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void getMediaDevices(MediaDeviceInfoCallback resultCallback) => _blink.BlinkNavigator.getMediaDevices_Callback_MediaDeviceInfoCallback(this, resultCallback);
 
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable()
@@ -25172,10 +25857,6 @@ class Range extends NativeFieldWrapperClass2 {
   @DocsEditable()
   void surroundContents(Node newParent) => _blink.BlinkRange.surroundContents_Callback_Node(this, newParent);
 
-  @DomName('Range.toString')
-  @DocsEditable()
-  String toString() => _blink.BlinkRange.toString_Callback(this);
-
 
   /**
    * Checks if createContextualFragment is supported.
@@ -25194,6 +25875,41 @@ class Range extends NativeFieldWrapperClass2 {
 
 
 @DocsEditable()
+@DomName('ReadableStream')
+@Experimental() // untriaged
+class ReadableStream extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory ReadableStream._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('RelatedEvent')
+@Experimental() // untriaged
+class RelatedEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory RelatedEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('RelatedEvent.relatedTarget')
+  @DocsEditable()
+  @Experimental() // untriaged
+  EventTarget get relatedTarget => _blink.BlinkRelatedEvent.relatedTarget_Getter(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('Request')
 @Experimental() // untriaged
 class Request extends NativeFieldWrapperClass2 {
@@ -25202,29 +25918,40 @@ class Request extends NativeFieldWrapperClass2 {
 
   @DomName('Request.Request')
   @DocsEditable()
-  factory Request([Map requestInitDict]) {
-    return _blink.BlinkRequest.constructorCallback_Dictionary(requestInitDict);
+  factory Request(input, [Map requestInitDict]) {
+    if ((requestInitDict is Map || requestInitDict == null) && (input is String || input == null)) {
+      return _blink.BlinkRequest.constructorCallback_DOMString_Dictionary(input, requestInitDict);
+    }
+    if ((requestInitDict is Map || requestInitDict == null) && (input is Request || input == null)) {
+      return _blink.BlinkRequest.constructorCallback_Request_Dictionary(input, requestInitDict);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
+
+  @DomName('Request.credentials')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get credentials => _blink.BlinkRequest.credentials_Getter(this);
 
   @DomName('Request.headers')
   @DocsEditable()
   @Experimental() // untriaged
-  HeaderMap get headers => _blink.BlinkRequest.headers_Getter(this);
+  Headers get headers => _blink.BlinkRequest.headers_Getter(this);
 
-  @DomName('Request.origin')
+  @DomName('Request.mode')
   @DocsEditable()
   @Experimental() // untriaged
-  String get origin => _blink.BlinkRequest.origin_Getter(this);
+  String get mode => _blink.BlinkRequest.mode_Getter(this);
+
+  @DomName('Request.referrer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get referrer => _blink.BlinkRequest.referrer_Getter(this);
 
   @DomName('Request.url')
   @DocsEditable()
   @Experimental() // untriaged
   String get url => _blink.BlinkRequest.url_Getter(this);
-
-  @DomName('Request.url')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void set url(String value) => _blink.BlinkRequest.url_Setter_DOMString(this, value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25254,51 +25981,6 @@ class ResourceProgressEvent extends ProgressEvent {
   @DomName('ResourceProgressEvent.url')
   @DocsEditable()
   String get url => _blink.BlinkResourceProgressEvent.url_Getter(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('RsaHashedKeyAlgorithm')
-@Experimental() // untriaged
-class RsaHashedKeyAlgorithm extends RsaKeyAlgorithm {
-  // To suppress missing implicit constructor warnings.
-  factory RsaHashedKeyAlgorithm._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('RsaHashedKeyAlgorithm.hash')
-  @DocsEditable()
-  @Experimental() // untriaged
-  KeyAlgorithm get hash => _blink.BlinkRsaHashedKeyAlgorithm.hash_Getter(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('RsaKeyAlgorithm')
-@Experimental() // untriaged
-class RsaKeyAlgorithm extends KeyAlgorithm {
-  // To suppress missing implicit constructor warnings.
-  factory RsaKeyAlgorithm._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('RsaKeyAlgorithm.modulusLength')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get modulusLength => _blink.BlinkRsaKeyAlgorithm.modulusLength_Getter(this);
-
-  @DomName('RsaKeyAlgorithm.publicExponent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Uint8List get publicExponent => _blink.BlinkRsaKeyAlgorithm.publicExponent_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25755,8 +26437,8 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.RTCPeerConnection')
   @DocsEditable()
-  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
-    return _blink.BlinkRTCPeerConnection.constructorCallback_Dictionary_Dictionary(rtcIceServers, mediaConstraints);
+  factory RtcPeerConnection(Map rtcConfiguration, [Map mediaConstraints]) {
+    return _blink.BlinkRTCPeerConnection.constructorCallback_Dictionary_Dictionary(rtcConfiguration, mediaConstraints);
   }
 
   @DomName('RTCPeerConnection.iceConnectionState')
@@ -25805,7 +26487,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.createOffer')
   @DocsEditable()
-  void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) => _blink.BlinkRTCPeerConnection.createOffer_Callback_RTCSessionDescriptionCallback_RTCErrorCallback_Dictionary(this, successCallback, failureCallback, mediaConstraints);
+  void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map rtcOfferOptions]) => _blink.BlinkRTCPeerConnection.createOffer_Callback_RTCSessionDescriptionCallback_RTCErrorCallback_Dictionary(this, successCallback, failureCallback, rtcOfferOptions);
 
   @DomName('RTCPeerConnection.getLocalStreams')
   @DocsEditable()
@@ -26049,7 +26731,7 @@ class Screen extends NativeFieldWrapperClass2 {
   @DomName('Screen.orientation')
   @DocsEditable()
   @Experimental() // untriaged
-  String get orientation => _blink.BlinkScreen.orientation_Getter(this);
+  ScreenOrientation get orientation => _blink.BlinkScreen.orientation_Getter(this);
 
   @DomName('Screen.pixelDepth')
   @DocsEditable()
@@ -26058,11 +26740,46 @@ class Screen extends NativeFieldWrapperClass2 {
   @DomName('Screen.width')
   @DocsEditable()
   int get width => _blink.BlinkScreen.width_Getter(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  @DomName('Screen.unlockOrientation')
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('ScreenOrientation')
+@Experimental() // untriaged
+class ScreenOrientation extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory ScreenOrientation._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ScreenOrientation.changeEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  void unlockOrientation() => _blink.BlinkScreen.unlockOrientation_Callback(this);
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
+  @DomName('ScreenOrientation.angle')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get angle => _blink.BlinkScreenOrientation.angle_Getter(this);
+
+  @DomName('ScreenOrientation.type')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get type => _blink.BlinkScreenOrientation.type_Getter(this);
+
+  @DomName('ScreenOrientation.unlock')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void unlock() => _blink.BlinkScreenOrientation.unlock_Callback(this);
+
+  @DomName('ScreenOrientation.onchange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onChange => changeEvent.forTarget(this);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26477,9 +27194,14 @@ class Selection extends NativeFieldWrapperClass2 {
   @Experimental() // non-standard
   void empty() => _blink.BlinkSelection.empty_Callback(this);
 
-  @DomName('Selection.extend')
-  @DocsEditable()
-  void extend(Node node, int offset) => _blink.BlinkSelection.extend_Callback_Node_long(this, node, offset);
+  void extend(Node node, [int offset]) {
+    if (offset != null) {
+      _blink.BlinkSelection.extend_Callback_Node_long(this, node, offset);
+      return;
+    }
+    _blink.BlinkSelection.extend_Callback_Node(this, node);
+    return;
+  }
 
   @DomName('Selection.getRangeAt')
   @DocsEditable()
@@ -26512,9 +27234,30 @@ class Selection extends NativeFieldWrapperClass2 {
     return;
   }
 
-  @DomName('Selection.toString')
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('ServiceWorkerClient')
+@Experimental() // untriaged
+class ServiceWorkerClient extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory ServiceWorkerClient._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ServiceWorkerClient.id')
   @DocsEditable()
-  String toString() => _blink.BlinkSelection.toString_Callback(this);
+  @Experimental() // untriaged
+  int get id => _blink.BlinkServiceWorkerClient.id_Getter(this);
+
+  @DomName('ServiceWorkerClient.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkServiceWorkerClient.postMessage_Callback_SerializedScriptValue_SEQ_MessagePort_SEQ(this, message, transfer);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26591,6 +27334,11 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   @Experimental() // untriaged
   ServiceWorkerClients get clients => _blink.BlinkServiceWorkerGlobalScope.clients_Getter(this);
 
+  @DomName('ServiceWorkerGlobalScope.nativeCaches')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CacheStorage get nativeCaches => _blink.BlinkServiceWorkerGlobalScope.nativeCaches_Getter(this);
+
   @DomName('ServiceWorkerGlobalScope.scope')
   @DocsEditable()
   @Experimental() // untriaged
@@ -26600,6 +27348,41 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   @DocsEditable()
   @Experimental() // untriaged
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('ServiceWorkerRegistration')
+@Experimental() // untriaged
+class ServiceWorkerRegistration extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory ServiceWorkerRegistration._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ServiceWorkerRegistration.active')
+  @DocsEditable()
+  @Experimental() // untriaged
+  _ServiceWorker get active => _blink.BlinkServiceWorkerRegistration.active_Getter(this);
+
+  @DomName('ServiceWorkerRegistration.installing')
+  @DocsEditable()
+  @Experimental() // untriaged
+  _ServiceWorker get installing => _blink.BlinkServiceWorkerRegistration.installing_Getter(this);
+
+  @DomName('ServiceWorkerRegistration.scope')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get scope => _blink.BlinkServiceWorkerRegistration.scope_Getter(this);
+
+  @DomName('ServiceWorkerRegistration.waiting')
+  @DocsEditable()
+  @Experimental() // untriaged
+  _ServiceWorker get waiting => _blink.BlinkServiceWorkerRegistration.waiting_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29555,6 +30338,11 @@ class Touch extends NativeFieldWrapperClass2 {
   @DocsEditable()
   double get _clientY => _blink.BlinkTouch.clientY_Getter(this);
 
+  @DomName('Touch.force')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get force => _blink.BlinkTouch.force_Getter(this);
+
   @DomName('Touch.identifier')
   @DocsEditable()
   int get identifier => _blink.BlinkTouch.identifier_Getter(this);
@@ -29567,6 +30355,16 @@ class Touch extends NativeFieldWrapperClass2 {
   @DocsEditable()
   double get _pageY => _blink.BlinkTouch.pageY_Getter(this);
 
+  @DomName('Touch.radiusX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get _radiusX => _blink.BlinkTouch.radiusX_Getter(this);
+
+  @DomName('Touch.radiusY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double get _radiusY => _blink.BlinkTouch.radiusY_Getter(this);
+
   @DomName('Touch.screenX')
   @DocsEditable()
   double get _screenX => _blink.BlinkTouch.screenX_Getter(this);
@@ -29578,27 +30376,6 @@ class Touch extends NativeFieldWrapperClass2 {
   @DomName('Touch.target')
   @DocsEditable()
   EventTarget get target => _blink.BlinkTouch.target_Getter(this);
-
-  @DomName('Touch.webkitForce')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  double get force => _blink.BlinkTouch.webkitForce_Getter(this);
-
-  @DomName('Touch.webkitRadiusX')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  double get _webkitRadiusX => _blink.BlinkTouch.webkitRadiusX_Getter(this);
-
-  @DomName('Touch.webkitRadiusY')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  double get _webkitRadiusY => _blink.BlinkTouch.webkitRadiusY_Getter(this);
 
   @DomName('Touch.webkitRotationAngle')
   @DocsEditable()
@@ -29616,8 +30393,8 @@ class Touch extends NativeFieldWrapperClass2 {
   int get __screenY => _blink.BlinkTouch.screenY_Getter(this).round();
   int get __pageX => _blink.BlinkTouch.pageX_Getter(this).round();
   int get __pageY => _blink.BlinkTouch.pageY_Getter(this).round();
-  int get __webkitRadiusX => _blink.BlinkTouch.webkitRadiusX_Getter(this).round();
-  int get __webkitRadiusY => _blink.BlinkTouch.webkitRadiusY_Getter(this).round();
+  int get __radiusX => _blink.BlinkTouch.radiusX_Getter(this).round();
+  int get __radiusY => _blink.BlinkTouch.radiusY_Getter(this).round();
 
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
@@ -29631,19 +30408,19 @@ class Touch extends NativeFieldWrapperClass2 {
   @DomName('Touch.screenY')
   Point get screen => new Point(__screenX, __screenY);
 
-  @DomName('Touch.webkitRadiusX')
+  @DomName('Touch.radiusX')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get radiusX => __webkitRadiusX;
+  int get radiusX => __radiusX;
 
-  @DomName('Touch.webkitRadiusY')
+  @DomName('Touch.radiusY')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get radiusY => __webkitRadiusY;
+  int get radiusY => __radiusY;
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -30154,11 +30931,11 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.createObjectURL_Callback_Blob(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
-      return _blink.BlinkURL.createObjectURL_Callback_MediaStream(blob_OR_source_OR_stream);
-    }
     if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.createObjectURL_Callback_MediaSource(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is MediaStream)) {
+      return _blink.BlinkURL.createObjectURL_Callback_MediaStream(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -30448,6 +31225,11 @@ abstract class UrlUtilsReadOnly extends NativeFieldWrapperClass2 {
   @DocsEditable()
   @Experimental() // untriaged
   String get href => _blink.BlinkURLUtilsReadOnly.href_Getter(this);
+
+  @DomName('URLUtilsReadOnly.origin')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get origin => _blink.BlinkURLUtilsReadOnly.origin_Getter(this);
 
   @DomName('URLUtilsReadOnly.pathname')
   @DocsEditable()
@@ -31090,9 +31872,6 @@ class WebSocket extends EventTarget {
   @DomName('WebSocket.WebSocket')
   @DocsEditable()
   factory WebSocket(String url, [protocol_OR_protocols]) {
-    if ((url is String || url == null) && protocol_OR_protocols == null) {
-      return _blink.BlinkWebSocket.constructorCallback_DOMString(url);
-    }
     if ((protocol_OR_protocols is String || protocol_OR_protocols == null) && (url is String || url == null)) {
       return _blink.BlinkWebSocket.constructorCallback_DOMString_DOMString(url, protocol_OR_protocols);
     }
@@ -31251,9 +32030,6 @@ class WheelEvent extends MouseEvent {
       event._initMouseEvent(type, canBubble, cancelable, view, detail,
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget);
-      event._initWebKitWheelEvent(deltaX, deltaY,
-          view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
-          metaKey);
 
     return event;
   }
@@ -31292,13 +32068,6 @@ class WheelEvent extends MouseEvent {
   @Experimental() // untriaged
   double get deltaZ => _blink.BlinkWheelEvent.deltaZ_Getter(this);
 
-  @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  bool get directionInvertedFromDevice => _blink.BlinkWheelEvent.webkitDirectionInvertedFromDevice_Getter(this);
-
   @DomName('WheelEvent.wheelDeltaX')
   @DocsEditable()
   @Experimental() // non-standard
@@ -31308,11 +32077,6 @@ class WheelEvent extends MouseEvent {
   @DocsEditable()
   @Experimental() // non-standard
   int get wheelDeltaY => _blink.BlinkWheelEvent.wheelDeltaY_Getter(this);
-
-  @DomName('WheelEvent.initWebKitWheelEvent')
-  @DocsEditable()
-  @Experimental()
-  void _initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) => _blink.BlinkWheelEvent.initWebKitWheelEvent_Callback_long_long_Window_long_long_long_long_boolean_boolean_boolean_boolean(this, wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
 
 
   /**
@@ -31436,46 +32200,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   }
 
   /**
-   * Converts a point from node coordinates to this window's coordinates.
-   *
-   * ## Other resources
-   *
-   * * [webkitConvertPointFromPageToNode]
-   * (https://developer.apple.com/library/safari/documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html#//apple_ref/javascript/instm/DOMWindow/webkitConvertPointFromNodeToPage)
-   * from Safari Development Library.
-   */
-  @DomName('Window.convertPointFromNodeToPage')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  Point convertPointFromNodeToPage(Node node, Point point) {
-    var result = _convertPointFromNodeToPage(node,
-        new _DomPoint(point.x, point.y));
-    return new Point(result.x, result.y);
-  }
-
-  /**
-   * Converts a point from this window's coordinates to node coordinates.
-   *
-   * ## Other resources
-   *
-   * * [webkitConvertPointFromPageToNode]
-   * (https://developer.apple.com/library/safari/documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html#//apple_ref/javascript/instm/DOMWindow/webkitConvertPointFromPageToNode)
-   * from Safari Development Library.
-   */
-  @DomName('Window.convertPointFromPageToNode')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  Point convertPointFromPageToNode(Node node, Point point) {
-    var result = _convertPointFromPageToNode(node,
-        new _DomPoint(point.x, point.y));
-    return new Point(result.x, result.y);
-  }
-
-  /**
-   * Checks whether [convertPointFromNodeToPage] and
-   * [convertPointFromPageToNode] are supported on the current platform.
+   * convertPointFromNodeToPage and convertPointFromPageToNode are removed.
+   * see http://dev.w3.org/csswg/cssom-view/#geometry
    */
   static bool get supportsPointConversions => _DomPoint.supported;
   // To suppress missing implicit constructor warnings.
@@ -32340,7 +33066,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
 
   @DomName('Window.postMessage')
   @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List<MessagePort> messagePorts]) => _blink.BlinkWindow.postMessage_Callback_SerializedScriptValue_DOMString_A_MessagePort_A(this, message, targetOrigin, messagePorts);
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List<MessagePort> transfer]) => _blink.BlinkWindow.postMessage_Callback_SerializedScriptValue_DOMString_SEQ_MessagePort_SEQ(this, message, targetOrigin, transfer);
 
   /**
    * Opens the print dialog for this window.
@@ -32447,26 +33173,6 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.stop')
   @DocsEditable()
   void stop() => _blink.BlinkWindow.stop_Callback(this);
-
-  @DomName('Window.toString')
-  @DocsEditable()
-  String toString() => _blink.BlinkWindow.toString_Callback(this);
-
-  @DomName('Window.webkitConvertPointFromNodeToPage')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html
-  _DomPoint _convertPointFromNodeToPage(Node node, _DomPoint p) => _blink.BlinkWindow.webkitConvertPointFromNodeToPage_Callback_Node_WebKitPoint(this, node, p);
-
-  @DomName('Window.webkitConvertPointFromPageToNode')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html
-  _DomPoint _convertPointFromPageToNode(Node node, _DomPoint p) => _blink.BlinkWindow.webkitConvertPointFromPageToNode_Callback_Node_WebKitPoint(this, node, p);
 
   @DomName('Window.webkitRequestFileSystem')
   @DocsEditable()
@@ -33121,7 +33827,7 @@ class Worker extends EventTarget implements AbstractWorker {
 
   @DomName('Worker.postMessage')
   @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> messagePorts]) => _blink.BlinkWorker.postMessage_Callback_SerializedScriptValue_A_MessagePort_A(this, message, messagePorts);
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkWorker.postMessage_Callback_SerializedScriptValue_SEQ_MessagePort_SEQ(this, message, transfer);
 
   @DomName('Worker.terminate')
   @DocsEditable()
@@ -33721,6 +34427,21 @@ abstract class _CSSValue extends NativeFieldWrapperClass2 {
 
 
 @DocsEditable()
+@DomName('Cache')
+@Experimental() // untriaged
+abstract class _Cache extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory _Cache._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('CanvasPathMethods')
 @Experimental() // untriaged
 abstract class _CanvasPathMethods extends NativeFieldWrapperClass2 {
@@ -34249,6 +34970,67 @@ class _DomPoint extends NativeFieldWrapperClass2 {
 
 
 @DocsEditable()
+@DomName('DOMRect')
+@Experimental() // untriaged
+class _DomRect extends DomRectReadOnly {
+  // To suppress missing implicit constructor warnings.
+  factory _DomRect._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DOMRect.DOMRect')
+  @DocsEditable()
+  factory _DomRect([num x, num y, num width, num height]) {
+    return _blink.BlinkDOMRect.constructorCallback_double_double_double_double(x, y, width, height);
+  }
+
+  @DomName('DOMRect.height')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get height => _blink.BlinkDOMRect.height_Getter(this);
+
+  @DomName('DOMRect.height')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set height(num value) => _blink.BlinkDOMRect.height_Setter_double(this, value);
+
+  @DomName('DOMRect.width')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get width => _blink.BlinkDOMRect.width_Getter(this);
+
+  @DomName('DOMRect.width')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set width(num value) => _blink.BlinkDOMRect.width_Setter_double(this, value);
+
+  @DomName('DOMRect.x')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get x => _blink.BlinkDOMRect.x_Getter(this);
+
+  @DomName('DOMRect.x')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set x(num value) => _blink.BlinkDOMRect.x_Setter_double(this, value);
+
+  @DomName('DOMRect.y')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get y => _blink.BlinkDOMRect.y_Getter(this);
+
+  @DomName('DOMRect.y')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set y(num value) => _blink.BlinkDOMRect.y_Setter_double(this, value);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('EntrySync')
 // http://www.w3.org/TR/file-system-api/#idl-def-EntrySync
 @Experimental()
@@ -34743,8 +35525,14 @@ abstract class _Response extends NativeFieldWrapperClass2 {
 
   @DomName('Response.Response')
   @DocsEditable()
-  factory _Response(Blob body, [Map responseInitDict]) {
-    return _blink.BlinkResponse.constructorCallback_Blob_Dictionary(body, responseInitDict);
+  factory _Response(body, [Map responseInitDict]) {
+    if ((responseInitDict is Map || responseInitDict == null) && (body is String || body == null)) {
+      return _blink.BlinkResponse.constructorCallback_DOMString_Dictionary(body, responseInitDict);
+    }
+    if ((responseInitDict is Map || responseInitDict == null) && (body is Blob || body == null)) {
+      return _blink.BlinkResponse.constructorCallback_Blob_Dictionary(body, responseInitDict);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 }
@@ -39230,11 +40018,10 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       {Window view, bool canBubble: true, bool cancelable: true, int keyCode: 0,
       int charCode: 0, int keyLocation: 1, bool ctrlKey: false,
       bool altKey: false, bool shiftKey: false, bool metaKey: false,
-      bool altGraphKey: false, EventTarget currentTarget}) {
+       EventTarget currentTarget}) {
      var parent = new KeyboardEvent(type, view: view, canBubble: canBubble,
         cancelable: cancelable, keyLocation: keyLocation, ctrlKey: ctrlKey,
-        altKey: altKey, shiftKey: shiftKey, metaKey: metaKey, altGraphKey:
-        altGraphKey);
+        altKey: altKey, shiftKey: shiftKey, metaKey: metaKey);
      var keyEvent = new KeyEvent.wrap(parent);
      keyEvent._shadowAltKey = altKey;
      keyEvent._shadowCharCode = charCode;
@@ -39256,8 +40043,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The currently registered target for this event. */
   EventTarget get currentTarget => _currentTarget;
 
-  /** True if the altGraphKey is pressed during this event. */
-  bool get altGraphKey => _parent.altGraphKey;
   /** Accessor to the clipboardData available for this event. */
   DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
@@ -39289,8 +40074,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   }
   void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
       Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
-      bool altKey, bool shiftKey, bool metaKey,
-      bool altGraphKey) {
+      bool altKey, bool shiftKey, bool metaKey) {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }

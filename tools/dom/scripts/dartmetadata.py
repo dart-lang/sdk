@@ -457,8 +457,6 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'DOMFileSystem': _file_system_annotations,
   'DOMFileSystemSync': _file_system_annotations,
   'WebKitPoint': _webkit_experimental_annotations,
-  'Window.webkitConvertPointFromNodeToPage': _webkit_experimental_annotations,
-  'Window.webkitConvertPointFromPageToNode': _webkit_experimental_annotations,
   'Window.indexedDB': _indexed_db_annotations,
   'Window.openDatabase': _web_sql_annotations,
   'Window.performance': _performance_annotations,

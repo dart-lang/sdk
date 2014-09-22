@@ -30,6 +30,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'DatabaseSync': 'SqlDatabaseSync',
     'DOMFileSystem': 'FileSystem',
     'WebKitPoint': '_DomPoint',
+    'DOMRect': '_DomRect',
     'Entity': '_Entity', # Not sure if we want to expose this yet, may conflict with other libs.
     'EntryCallback': '_EntryCallback',
     'EntriesCallback': '_EntriesCallback',
@@ -68,6 +69,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
 # Interfaces that are suppressed, but need to still exist for Dartium and to
 # properly wrap DOM objects if/when encountered.
 _removed_html_interfaces = [
+  'Cache', # TODO: Symbol conflicts with Angular: dartbug.com/20937
   'CanvasPathMethods',
   'CDataSection',
   'CSSPrimitiveValue',
@@ -219,7 +221,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Document.title',
   'Document.webkitCancelFullScreen',
   'Document.webkitExitFullscreen',
-  'Document.webkitExitPointerLock',
   'Document.webkitFullscreenElement',
   'Document.webkitFullscreenEnabled',
   'Document.webkitHidden',
@@ -336,7 +337,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'StorageEvent.initStorageEvent',
   'TextEvent.initTextEvent',
   # TODO(leafp): These have been converted from int to double in Chrome 37.
-  # client, page, and screen were already special cased, adding webKitRadius.
+  # client, page, and screen were already special cased, adding radiusX/radiusY.
   # See impl_Touch.darttemplate for impedance matching code
   'Touch.clientX',
   'Touch.clientY',
@@ -344,8 +345,8 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Touch.pageY',
   'Touch.screenX',
   'Touch.screenY',
-  'Touch.webkitRadiusX',
-  'Touch.webkitRadiusY',
+  'Touch.radiusX',
+  'Touch.radiusY',
   'TouchEvent.initTouchEvent',
   'UIEvent.charCode',
   'UIEvent.initUIEvent',
@@ -380,8 +381,6 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Document.createCDATASection': 'createCDataSection',
     'Document.defaultView': 'window',
     'Window.CSS': 'css',
-    'Window.webkitConvertPointFromNodeToPage': '_convertPointFromNodeToPage',
-    'Window.webkitConvertPointFromPageToNode': '_convertPointFromPageToNode',
     'Window.webkitNotifications': 'notifications',
     'Window.webkitRequestFileSystem': '_requestFileSystem',
     'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
@@ -412,11 +411,11 @@ renamed_overloads = monitored.Dict('htmldartgenerator.renamed_overloads', {
   'DataTransferItemList.add(DOMString data, DOMString type)': 'addData',
   'FormData.append(DOMString name, Blob value, DOMString filename)':
       'appendBlob',
-  'IDBDatabase.transaction(DOMStringList storeNames, DOMString mode)':
+  'IDBDatabase.transaction(DOMStringList storeNames, IDBTransactionMode mode)':
       'transactionStores',
-  'IDBDatabase.transaction(sequence<DOMString> storeNames, DOMString mode)':
+  'IDBDatabase.transaction(sequence<DOMString> storeNames, IDBTransactionMode mode)':
       'transactionList',
-  'IDBDatabase.transaction(DOMString storeName, DOMString mode)':
+  'IDBDatabase.transaction(DOMString storeName, IDBTransactionMode mode)':
       'transactionStore',
   'RTCDataChannel.send(ArrayBuffer data)': 'sendByteBuffer',
   'RTCDataChannel.send(ArrayBufferView data)': 'sendTypedData',
@@ -788,6 +787,9 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'ShadowRoot.getElementsByTagNameNS',
     'SVGElement.getPresentationAttribute',
     'SVGElementInstance.on:wheel',
+    'Touch.get:webkitRadiusX',
+    'Touch.get:webkitRadiusY',
+    'Touch.get:webkitForce',
     'WheelEvent.wheelDelta',
     'Window.on:wheel',
     'WindowEventHandlers.on:beforeUnload',

@@ -1372,7 +1372,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.getAttachedShaders')
   @DocsEditable()
-  void getAttachedShaders(Program program) native;
+  List<Shader> getAttachedShaders(Program program) native;
 
   @DomName('WebGLRenderingContext.getAttribLocation')
   @DocsEditable()
@@ -3698,7 +3698,7 @@ abstract class RenderingContextBase extends Interceptor {
 
   ActiveInfo getActiveUniform(Program program, int index);
 
-  void getAttachedShaders(Program program);
+  List<Shader> getAttachedShaders(Program program);
 
   int getAttribLocation(Program program, String name);
 
