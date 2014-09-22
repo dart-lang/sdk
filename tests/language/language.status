@@ -60,8 +60,6 @@ least_upper_bound_expansive_test/*: Fail, OK
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
-compile_time_constant_c_test: Fail # Issue 21000
-compile_time_constant12_test: Fail # Issue 21000
 
 unicode_bom_test: Fail # Issue 16067
 
