@@ -2019,6 +2019,15 @@ window.ShadowDOMPolyfill = {};
     }
   }
 
+  // Safari 8 exposes WebIDL attributes as an invalid accessor property. Its
+  // descriptor has {get: undefined, set: undefined}. We therefore ignore the
+  // shape of the descriptor and make all properties read-write.
+  // https://bugs.webkit.org/show_bug.cgi?id=49739
+  var isBrokenSafari = function() {
+    var descr = Object.getOwnPropertyDescriptor(Node.prototype, 'nodeType');
+    return !!descr && 'set' in descr;
+  }();
+
   function installProperty(source, target, allowMethod, opt_blacklist) {
     var names = getOwnPropertyNames(source);
     for (var i = 0; i < names.length; i++) {
@@ -2049,7 +2058,7 @@ window.ShadowDOMPolyfill = {};
       else
         getter = getGetter(name);
 
-      if (descriptor.writable || descriptor.set) {
+      if (descriptor.writable || descriptor.set || isBrokenSafari) {
         if (isEvent)
           setter = scope.getEventHandlerSetter(name);
         else

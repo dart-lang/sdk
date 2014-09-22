@@ -1,3 +1,6 @@
+#### Pub version 0.7.0+1
+  * Cherry pick https://github.com/Polymer/ShadowDOM/pull/506 to fix IOS 8.
+
 #### Pub version 0.7.0
   * Updated to 0.4.0-5a7353d release, with same cherry pick as 0.6.0+1.
   * Many features were moved into the polymer package, this package is now
