@@ -5,7 +5,7 @@
 import 'dart:io';
 import 'dart:isolate';
 
-const SPAWN_PACKAGE_ROOT = "otherPackageRoot";
+final SPAWN_PACKAGE_ROOT = Uri.parse("otherPackageRoot");
 
 void main([args, port]) {
   if (port != null) {
@@ -28,7 +28,7 @@ void testPackageRoot(args) {
   if (parentPackageRoot == Platform.packageRoot) {
     throw "Got parent package root";
   }
-  if (Platform.packageRoot != SPAWN_PACKAGE_ROOT) {
+  if (Uri.parse(Platform.packageRoot) != SPAWN_PACKAGE_ROOT) {
     throw "Wrong package root";
   }
   args[0].send(null);
