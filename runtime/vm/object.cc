@@ -161,13 +161,24 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 // (Library, class name, method name)
 // Additionally, private functions in dart:* that are native or constructors are
 // marked as invisible by the parser.
-#define INVISIBLE_LIST(V)                                                      \
+#define INVISIBLE_CLASS_FUNCTIONS(V)                                           \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
+  V(CoreLibrary, _Bigint, _mulAdd)                                             \
 
-static void MarkFunctionAsInvisible(const Library& lib,
-                                    const char* class_name,
-                                    const char* function_name) {
+#define INVISIBLE_LIBRARY_FUNCTIONS(V)                                         \
+  V(TypedDataLibrary, _toInt8)                                                 \
+  V(TypedDataLibrary, _toInt16)                                                \
+  V(TypedDataLibrary, _toInt32)                                                \
+  V(TypedDataLibrary, _toInt64)                                                \
+  V(TypedDataLibrary, _toUint8)                                                \
+  V(TypedDataLibrary, _toUint16)                                               \
+  V(TypedDataLibrary, _toUint32)                                               \
+  V(TypedDataLibrary, _toUint64)                                               \
+
+static void MarkClassFunctionAsInvisible(const Library& lib,
+                                         const char* class_name,
+                                         const char* function_name) {
   ASSERT(!lib.IsNull());
   const Class& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(String::New(class_name))));
@@ -180,13 +191,31 @@ static void MarkFunctionAsInvisible(const Library& lib,
   function.set_is_visible(false);
 }
 
+static void MarkLibraryFunctionAsInvisible(const Library& lib,
+                                           const char* function_name) {
+  ASSERT(!lib.IsNull());
+  const Function& function =
+      Function::Handle(
+          lib.LookupFunctionAllowPrivate(
+              String::Handle(String::New(function_name))));
+  ASSERT(!function.IsNull());
+  function.set_is_visible(false);
+}
+
 
 static void MarkInvisibleFunctions() {
 #define MARK_FUNCTION(lib, class_name, function_name)                          \
-  MarkFunctionAsInvisible(Library::Handle(Library::lib()),                     \
+  MarkClassFunctionAsInvisible(Library::Handle(Library::lib()),                \
       #class_name, #function_name);                                            \
 
-INVISIBLE_LIST(MARK_FUNCTION)
+INVISIBLE_CLASS_FUNCTIONS(MARK_FUNCTION)
+#undef MARK_FUNCTION
+
+#define MARK_FUNCTION(lib, function_name)                                      \
+  MarkLibraryFunctionAsInvisible(Library::Handle(Library::lib()),              \
+      #function_name);                                                         \
+
+INVISIBLE_LIBRARY_FUNCTIONS(MARK_FUNCTION)
 #undef MARK_FUNCTION
 }
 

@@ -122,6 +122,8 @@ math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
 [ $compiler == dart2js && ($jscl || $runtime == d8) ]
+mirrors/invocation_fuzz_test/none: RuntimeError # Issue 15566
+[ $compiler == dart2js && ($minified || $runtime == jsshell) ]
 mirrors/invocation_fuzz_test: RuntimeError # Issue 15566
 
 [ $compiler == dart2js && $runtime == jsshell ]
