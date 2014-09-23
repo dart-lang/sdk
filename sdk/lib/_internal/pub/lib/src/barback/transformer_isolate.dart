@@ -58,8 +58,7 @@ class TransformerIsolate {
       var baseUrl = transformerServer.url;
       var idsToUrls = mapMap(idsToAssetIds, value: (id, assetId) {
         var path = assetId.path.replaceFirst('lib/', '');
-        // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
-        return baseUrl.resolve('packages/${id.package}/$path');
+        return Uri.parse('package:${id.package}/$path');
       });
 
       var code = new StringBuffer();
@@ -69,8 +68,7 @@ class TransformerIsolate {
         code.writeln("import '$url';");
       }
 
-      code.writeln("import "
-          "r'$baseUrl/packages/\$pub/transformer_isolate.dart';");
+      code.writeln("import r'package:\$pub/transformer_isolate.dart';");
       code.writeln(
           "void main(_, SendPort replyTo) => loadTransformers(replyTo);");
 
@@ -78,6 +76,7 @@ class TransformerIsolate {
 
       var port = new ReceivePort();
       return dart.runInIsolate(code.toString(), port.sendPort,
+              packageRoot: baseUrl.resolve('packages'),
               snapshot: snapshot)
           .then((_) => port.first)
           .then((sendPort) {
@@ -89,9 +88,13 @@ class TransformerIsolate {
         // TODO(nweiz): don't parse this as a string once issues 12617 and 12689
         // are fixed.
         var firstErrorLine = error.message.split('\n')[1];
-        var missingTransformer = idsToUrls.keys.firstWhere(
-            (id) => firstErrorLine.startsWith(
-                "Uncaught Error: Failure getting ${idsToUrls[id]}:"),
+
+        // The isolate error message contains the fully expanded path, not the
+        // "package:" URI, so we have to be liberal in what we look for in the
+        // error message.
+        var missingTransformer = idsToUrls.keys.firstWhere((id) =>
+            firstErrorLine.startsWith("Uncaught Error: Failure getting ") &&
+              firstErrorLine.contains(idsToUrls[id].path),
             orElse: () => throw error);
         var packageUri = idToPackageUri(idsToAssetIds[missingTransformer]);
 
@@ -113,11 +116,7 @@ class TransformerIsolate {
   /// return an empty set.
   Future<Set<Transformer>> create(TransformerConfig config) {
     return call(_port, {
-      // TODO(nweiz): Right now, we can load a library either from a running
-      // server or from a snapshot. This means the base URL isn't known except
-      // in the isolate, so we pass just the path.component and let the isolate
-      // resolve it. When issue 12474 is fixed, we can send the full URL.
-      'library': _idsToUrls[config.id].path.toString(),
+      'library': _idsToUrls[config.id].toString(),
       'mode': _mode.name,
       'configuration': JSON.encode(config.configuration)
     }).then((transformers) {

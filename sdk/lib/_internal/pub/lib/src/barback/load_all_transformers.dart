@@ -11,7 +11,6 @@ import '../package_graph.dart';
 import '../utils.dart';
 import 'asset_environment.dart';
 import 'barback_server.dart';
-import 'rewrite_import_transformer.dart';
 import 'transformer_id.dart';
 import 'transformer_loader.dart';
 import 'transformers_needed_by_transformers.dart';
@@ -47,14 +46,6 @@ Future loadAllTransformers(AssetEnvironment environment,
 
   var loader = new TransformerLoader(environment, transformerServer);
 
-  // Add a rewrite transformer for each package, so that we can resolve
-  // "package:" imports while loading transformers.
-  var rewrite = new RewriteImportTransformer();
-  for (var package in environment.graph.packages.keys) {
-    environment.barback.updateTransformers(package, [[rewrite]]);
-  }
-  environment.barback.updateTransformers(r'$pub', [[rewrite]]);
-
   // Only save compiled snapshots when a physical entrypoint package is being
   // used. There's no physical entrypoint when e.g. globally activating a cached
   // package.
@@ -80,18 +71,13 @@ Future loadAllTransformers(AssetEnvironment environment,
       var package = environment.graph.packages[packageName];
       var phases = await loader.transformersForPhases(
           package.pubspec.transformers);
-
-      // Make sure [rewrite] is still the first phase so that future
-      // transformers' "package:" imports will work.
-      phases.insert(0, new Set.from([rewrite]));
       environment.barback.updateTransformers(packageName, phases);
     }));
   }
 
   if (cache != null) cache.save();
 
-  /// Reset the transformers for each package to get rid of [rewrite], which
-  /// is no longer needed.
+  /// Add built-in transformers for the packages that need them.
   await Future.wait(environment.graph.packages.values.map((package) async {
     var phases = await loader.transformersForPhases(
         package.pubspec.transformers);

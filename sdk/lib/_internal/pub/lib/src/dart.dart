@@ -147,16 +147,18 @@ class _DirectiveCollector extends GeneralizingAstVisitor {
 /// passed to the [main] method of the code being run; the caller is responsible
 /// for using this to establish communication with the isolate.
 ///
+/// [packageRoot] controls the package root of the isolate. It may be either a
+/// [String] or a [Uri].
+///
 /// If [snapshot] is passed, the isolate will be loaded from that path if it
 /// exists. Otherwise, a snapshot of the isolate's code will be saved to that
 /// path once the isolate is loaded.
-///
-/// Returns a Future that will fire when the isolate has been spawned. If the
-/// isolate fails to spawn, the Future will complete with an error.
-Future runInIsolate(String code, message, {String snapshot}) {
+Future runInIsolate(String code, message, {packageRoot, String snapshot}) {
   if (snapshot != null && fileExists(snapshot)) {
     log.fine("Spawning isolate from $snapshot.");
-    return Isolate.spawnUri(path.toUri(snapshot), [], message);
+    if (packageRoot != null) packageRoot = packageRoot.toString();
+    return Isolate.spawnUri(path.toUri(snapshot), [], message,
+        packageRoot: packageRoot);
   }
 
   return withTempDir((dir) async {
@@ -166,6 +168,7 @@ Future runInIsolate(String code, message, {String snapshot}) {
     await Isolate.spawn(_isolateBuffer, {
       'replyTo': port.sendPort,
       'uri': path.toUri(dartPath).toString(),
+      'packageRoot': packageRoot == null ? null : packageRoot.toString(),
       'message': message
     });
 
@@ -177,9 +180,10 @@ Future runInIsolate(String code, message, {String snapshot}) {
     if (snapshot == null) return;
 
     ensureDir(path.dirname(snapshot));
-    var result = await runProcess(Platform.executable, [
-      '--snapshot=$snapshot', dartPath
-    ]);
+    var snapshotArgs = [];
+    if (packageRoot != null) snapshotArgs.add('--package-root=$packageRoot');
+    snapshotArgs.addAll(['--snapshot=$snapshot', dartPath]);
+    var result = await runProcess(Platform.executable, snapshotArgs);
 
     if (result.success) return;
 
@@ -198,7 +202,10 @@ Future runInIsolate(String code, message, {String snapshot}) {
 /// Adding an additional isolate in the middle works around this.
 void _isolateBuffer(message) {
   var replyTo = message['replyTo'];
-  Isolate.spawnUri(Uri.parse(message['uri']), [], message['message'])
+  var packageRoot = message['packageRoot'];
+  if (packageRoot != null) packageRoot = Uri.parse(packageRoot);
+  Isolate.spawnUri(Uri.parse(message['uri']), [], message['message'],
+          packageRoot: packageRoot)
       .then((_) => replyTo.send({'type': 'success'}))
       .catchError((e, stack) {
     replyTo.send({

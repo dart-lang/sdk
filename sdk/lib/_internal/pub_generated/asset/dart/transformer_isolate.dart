@@ -17,10 +17,6 @@ import 'serialize.dart';
 /// Cached to avoid re-instantiating each time a transformer is initialized.
 final _mirrors = currentMirrorSystem();
 
-/// The URI of this library.
-final _baseUri = _mirrors.findLibrary(
-    const Symbol('pub.asset.transformer_isolate')).uri;
-
 /// Sets up the initial communication with the host isolate.
 void loadTransformers(SendPort replyTo) {
   var port = new ReceivePort();
@@ -86,7 +82,13 @@ List _initialize(String uri, Map configuration, BarbackMode mode) {
     }).where((classMirror) => classMirror != null));
   }
 
-  loadFromLibrary(_mirrors.libraries[_baseUri.resolve(uri)]);
+  var library = _mirrors.libraries[Uri.parse(uri)];
+
+  // This should only happen if something's wrong with the logic in pub itself.
+  // If it were user error, the entire isolate would fail to load.
+  if (library == null) throw "Couldn't find library at $uri.";
+
+  loadFromLibrary(library);
   return transformers;
 }
 

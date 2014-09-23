@@ -71,10 +71,15 @@ class _DirectiveCollector extends GeneralizingAstVisitor {
   final directives = <UriBasedDirective>[];
   visitUriBasedDirective(UriBasedDirective node) => directives.add(node);
 }
-Future runInIsolate(String code, message, {String snapshot}) {
+Future runInIsolate(String code, message, {packageRoot, String snapshot}) {
   if (snapshot != null && fileExists(snapshot)) {
     log.fine("Spawning isolate from $snapshot.");
-    return Isolate.spawnUri(path.toUri(snapshot), [], message);
+    if (packageRoot != null) packageRoot = packageRoot.toString();
+    return Isolate.spawnUri(
+        path.toUri(snapshot),
+        [],
+        message,
+        packageRoot: packageRoot);
   }
   return withTempDir((dir) {
     final completer0 = new Completer();
@@ -83,66 +88,85 @@ Future runInIsolate(String code, message, {String snapshot}) {
         var dartPath = path.join(dir, 'runInIsolate.dart');
         writeTextFile(dartPath, code, dontLogContents: true);
         var port = new ReceivePort();
-        Isolate.spawn(_isolateBuffer, {
-          'replyTo': port.sendPort,
-          'uri': path.toUri(dartPath).toString(),
-          'message': message
-        }).then((x0) {
-          try {
-            x0;
-            port.first.then((x1) {
-              try {
-                var response = x1;
-                join0() {
+        join0(x0) {
+          Isolate.spawn(_isolateBuffer, {
+            'replyTo': port.sendPort,
+            'uri': path.toUri(dartPath).toString(),
+            'packageRoot': x0,
+            'message': message
+          }).then((x1) {
+            try {
+              x1;
+              port.first.then((x2) {
+                try {
+                  var response = x2;
                   join1() {
-                    ensureDir(path.dirname(snapshot));
-                    runProcess(
-                        Platform.executable,
-                        ['--snapshot=${snapshot}', dartPath]).then((x2) {
-                      try {
-                        var result = x2;
-                        join2() {
-                          log.warning(
-                              "Failed to compile a snapshot to " "${path.relative(snapshot)}:\n" +
-                                  result.stderr.join("\n"));
-                          completer0.complete(null);
-                        }
-                        if (result.success) {
-                          completer0.complete(null);
-                        } else {
-                          join2();
-                        }
-                      } catch (e2) {
-                        completer0.completeError(e2);
+                    join2() {
+                      ensureDir(path.dirname(snapshot));
+                      var snapshotArgs = [];
+                      join3() {
+                        snapshotArgs.addAll(
+                            ['--snapshot=${snapshot}', dartPath]);
+                        runProcess(
+                            Platform.executable,
+                            snapshotArgs).then((x3) {
+                          try {
+                            var result = x3;
+                            join4() {
+                              log.warning(
+                                  "Failed to compile a snapshot to " "${path.relative(snapshot)}:\n" +
+                                      result.stderr.join("\n"));
+                              completer0.complete(null);
+                            }
+                            if (result.success) {
+                              completer0.complete(null);
+                            } else {
+                              join4();
+                            }
+                          } catch (e2) {
+                            completer0.completeError(e2);
+                          }
+                        }, onError: (e3) {
+                          completer0.completeError(e3);
+                        });
                       }
-                    }, onError: (e3) {
-                      completer0.completeError(e3);
-                    });
+                      if (packageRoot != null) {
+                        snapshotArgs.add('--package-root=${packageRoot}');
+                        join3();
+                      } else {
+                        join3();
+                      }
+                    }
+                    if (snapshot == null) {
+                      completer0.complete(null);
+                    } else {
+                      join2();
+                    }
                   }
-                  if (snapshot == null) {
-                    completer0.complete(null);
+                  if (response['type'] == 'error') {
+                    completer0.completeError(
+                        new CrossIsolateException.deserialize(response['error']));
                   } else {
                     join1();
                   }
+                } catch (e1) {
+                  completer0.completeError(e1);
                 }
-                if (response['type'] == 'error') {
-                  completer0.completeError(
-                      new CrossIsolateException.deserialize(response['error']));
-                } else {
-                  join0();
-                }
-              } catch (e1) {
-                completer0.completeError(e1);
-              }
-            }, onError: (e4) {
-              completer0.completeError(e4);
-            });
-          } catch (e0) {
-            completer0.completeError(e0);
-          }
-        }, onError: (e5) {
-          completer0.completeError(e5);
-        });
+              }, onError: (e4) {
+                completer0.completeError(e4);
+              });
+            } catch (e0) {
+              completer0.completeError(e0);
+            }
+          }, onError: (e5) {
+            completer0.completeError(e5);
+          });
+        }
+        if (packageRoot == null) {
+          join0(null);
+        } else {
+          join0(packageRoot.toString());
+        }
       } catch (e6) {
         completer0.completeError(e6);
       }
@@ -152,10 +176,13 @@ Future runInIsolate(String code, message, {String snapshot}) {
 }
 void _isolateBuffer(message) {
   var replyTo = message['replyTo'];
+  var packageRoot = message['packageRoot'];
+  if (packageRoot != null) packageRoot = Uri.parse(packageRoot);
   Isolate.spawnUri(
       Uri.parse(message['uri']),
       [],
-      message['message']).then((_) => replyTo.send({
+      message['message'],
+      packageRoot: packageRoot).then((_) => replyTo.send({
     'type': 'success'
   })).catchError((e, stack) {
     replyTo.send({

@@ -28,15 +28,14 @@ class TransformerIsolate {
       var baseUrl = transformerServer.url;
       var idsToUrls = mapMap(idsToAssetIds, value: (id, assetId) {
         var path = assetId.path.replaceFirst('lib/', '');
-        return baseUrl.resolve('packages/${id.package}/$path');
+        return Uri.parse('package:${id.package}/$path');
       });
       var code = new StringBuffer();
       code.writeln("import 'dart:isolate';");
       for (var url in idsToUrls.values) {
         code.writeln("import '$url';");
       }
-      code.writeln(
-          "import " "r'$baseUrl/packages/\$pub/transformer_isolate.dart';");
+      code.writeln("import r'package:\$pub/transformer_isolate.dart';");
       code.writeln(
           "void main(_, SendPort replyTo) => loadTransformers(replyTo);");
       log.fine("Loading transformers from $ids");
@@ -44,6 +43,7 @@ class TransformerIsolate {
       return dart.runInIsolate(
           code.toString(),
           port.sendPort,
+          packageRoot: baseUrl.resolve('packages'),
           snapshot: snapshot).then((_) => port.first).then((sendPort) {
         return new TransformerIsolate._(sendPort, environment.mode, idsToUrls);
       }).catchError((error, stackTrace) {
@@ -52,7 +52,8 @@ class TransformerIsolate {
         var firstErrorLine = error.message.split('\n')[1];
         var missingTransformer = idsToUrls.keys.firstWhere(
             (id) =>
-                firstErrorLine.startsWith("Uncaught Error: Failure getting ${idsToUrls[id]}:"),
+                firstErrorLine.startsWith("Uncaught Error: Failure getting ") &&
+                    firstErrorLine.contains(idsToUrls[id].path),
             orElse: () => throw error);
         var packageUri = idToPackageUri(idsToAssetIds[missingTransformer]);
         fail('Transformer library "$packageUri" not found.', error, stackTrace);
@@ -62,7 +63,7 @@ class TransformerIsolate {
   TransformerIsolate._(this._port, this._mode, this._idsToUrls);
   Future<Set<Transformer>> create(TransformerConfig config) {
     return call(_port, {
-      'library': _idsToUrls[config.id].path.toString(),
+      'library': _idsToUrls[config.id].toString(),
       'mode': _mode.name,
       'configuration': JSON.encode(config.configuration)
     }).then((transformers) {
