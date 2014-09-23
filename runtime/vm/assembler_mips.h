@@ -928,6 +928,10 @@ class Assembler : public ValueObject {
     }
   }
 
+  void BranchEqual(Register rd, Register rn, Label* l) {
+    beq(rd, rn, l);
+  }
+
   void BranchEqual(Register rd, int32_t value, Label* l) {
     ASSERT(!in_delay_slot_);
     if (value == 0) {
@@ -944,6 +948,10 @@ class Assembler : public ValueObject {
     ASSERT(rd != CMPRES2);
     LoadObject(CMPRES2, object);
     beq(rd, CMPRES2, l);
+  }
+
+  void BranchNotEqual(Register rd, Register rn, Label* l) {
+    bne(rd, rn, l);
   }
 
   void BranchNotEqual(Register rd, int32_t value, Label* l) {
