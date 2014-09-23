@@ -32,4 +32,4 @@ all:
 	| grep -v 'INFO|HINT|UNUSED_IMPORT|.*/compiler/implementation/patch_parser\.dart|120|8|22|' \
 	| grep -v 'INFO|HINT|UNUSED_IMPORT|.*/compiler/implementation/resolution/class_members\.dart|22|8|25|' \
 	| sed -e "s,$(PWD)/,," \
-	| awk -F'|' '{print $$4 ":" $$5 ":" $$6 ": [" $$3 "]" $$8 }' \
+	| awk -F'|' '{print $$4 ":" $$5 ":" $$6 ":\n [" n$$3 "]" $$8 }' \

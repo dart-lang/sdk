@@ -6,8 +6,7 @@ library trydart.poi;
 
 import 'dart:async' show
     Completer,
-    Future,
-    Stream;
+    Future;
 
 import 'dart:io' show
     File,
@@ -20,15 +19,13 @@ import 'dart:io' show
 import 'dart:io' as io;
 
 import 'dart:convert' show
-    LineSplitter,
     UTF8;
 
 import 'package:dart2js_incremental/dart2js_incremental.dart' show
     reuseCompiler;
 
 import 'package:compiler/implementation/source_file_provider.dart' show
-    FormattingDiagnosticHandler,
-    SourceFileProvider;
+    FormattingDiagnosticHandler;
 
 import 'package:compiler/compiler.dart' as api;
 
