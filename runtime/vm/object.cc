@@ -164,7 +164,6 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 #define INVISIBLE_LIST(V)                                                      \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
-  V(CoreLibrary, _Bigint, _mulAdd)                                             \
 
 static void MarkFunctionAsInvisible(const Library& lib,
                                     const char* class_name,
