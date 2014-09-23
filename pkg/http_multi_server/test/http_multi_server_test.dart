@@ -58,6 +58,27 @@ void main() {
       expect(_get(subServer3).then((response) {
         expect(response.headers['server'], equals("http_multi_server test"));
       }), completes);
+    }
+    );
+    test("autoCompress= sets the value for all servers", () {
+      multiServer.autoCompress = true;
+
+      multiServer.listen((request) {
+        request.response.write("got request");
+        request.response.close();
+      });
+
+      expect(_get(subServer1).then((response) {
+        expect(response.headers['content-encoding'], equals("gzip"));
+      }), completes);
+
+      expect(_get(subServer2).then((response) {
+        expect(response.headers['content-encoding'], equals("gzip"));
+      }), completes);
+
+      expect(_get(subServer3).then((response) {
+        expect(response.headers['content-encoding'], equals("gzip"));
+      }), completes);
     });
 
     test("headers.set sets the value for all servers", () {

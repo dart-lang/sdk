@@ -1,3 +1,7 @@
+## 1.3.0
+
+* Add support for `HttpServer.autoCompress`.
+
 ## 1.2.0
 
 * Add support for `HttpServer.defaultResponseHeaders.clear`.

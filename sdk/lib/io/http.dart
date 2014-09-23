@@ -178,6 +178,18 @@ abstract class HttpServer implements Stream<HttpRequest> {
    */
   HttpHeaders get defaultResponseHeaders;
 
+   /**
+   * Whether the [HttpServer] should compress the content, if possible.
+   *
+   * The content can only be compressed when the response is using
+   * chunked Transfer-Encoding and the incoming request has `gzip`
+   * as an accepted encoding in the Accept-Encoding header.
+   *
+   * The default value is `false` (compression disabled).
+   * To enable, set `autoCompress` to `true`.
+   */
+  bool autoCompress;
+
   /**
    * Get or set the timeout used for idle keep-alive connections. If no further
    * request is seen within [idleTimeout] after the previous request was
