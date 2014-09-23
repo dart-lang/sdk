@@ -620,6 +620,8 @@ class TypeGraphInferrerEngine
       analyzeMapAndEnqueue(info);
     });
 
+    Set<FunctionElement> bailedOutOn = new Set<FunctionElement>();
+
     // Trace closures to potentially infer argument types.
     types.allocatedClosures.forEach((info) {
       void trace(Iterable<FunctionElement> elements,
@@ -629,12 +631,22 @@ class TypeGraphInferrerEngine
           elements.forEach((FunctionElement e) {
             compiler.world.registerMightBePassedToApply(e);
             if (_VERBOSE) print("traced closure $e as ${true} (bail)");
+            e.functionSignature.forEachParameter((parameter) {
+              types.getInferredTypeOf(parameter).giveUp(
+                  this,
+                  clearAssignments: false);
+            });
           });
+          bailedOutOn.addAll(elements);
           return;
         }
-        elements.forEach((FunctionElement e) {
+        elements
+            .where((e) => !bailedOutOn.contains(e))
+            .forEach((FunctionElement e) {
           e.functionSignature.forEachParameter((parameter) {
-            workQueue.add(types.getInferredTypeOf(parameter));
+            var info = types.getInferredTypeOf(parameter);
+            info.maybeResume();
+            workQueue.add(info);
           });
           if (tracer.tracedType.mightBePassedToFunctionApply) {
             compiler.world.registerMightBePassedToApply(e);

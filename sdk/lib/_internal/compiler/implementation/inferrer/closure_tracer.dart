@@ -13,13 +13,6 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
       : super(tracedType, inferrer);
 
   void run() {
-    for (FunctionElement e in tracedElements) {
-      e.functionSignature.forEachParameter((Element parameter) {
-        ElementTypeInformation info =
-            inferrer.types.getInferredTypeOf(parameter);
-        info.maybeResume();
-      });
-    }
     analyze();
     if (!continueAnalyzing) return;
     callsToAnalyze.forEach(analyzeCall);
