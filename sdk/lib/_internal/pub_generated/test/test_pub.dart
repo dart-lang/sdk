@@ -283,7 +283,7 @@ void confirmPublish(ScheduledProcess pub) {
 String _pathInSandbox(String relPath) {
   return p.join(p.absolute(sandboxDir), relPath);
 }
-Map getPubTestEnvironment([Uri tokenEndpoint]) {
+Map getPubTestEnvironment([String tokenEndpoint]) {
   var environment = {};
   environment['_PUB_TESTING'] = 'true';
   environment['PUB_CACHE'] = _pathInSandbox(cachePath);
@@ -293,7 +293,7 @@ Map getPubTestEnvironment([Uri tokenEndpoint]) {
   }
   return environment;
 }
-ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
+ScheduledProcess startPub({List args, Future<String> tokenEndpoint}) {
   ensureDir(_pathInSandbox(appPath));
   var dartBin = Platform.executable;
   if (dartBin.contains(Platform.pathSeparator)) {

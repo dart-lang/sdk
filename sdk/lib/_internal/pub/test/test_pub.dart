@@ -483,7 +483,7 @@ String _pathInSandbox(String relPath) {
 }
 
 /// Gets the environment variables used to run pub in a test context.
-Map getPubTestEnvironment([Uri tokenEndpoint]) {
+Map getPubTestEnvironment([String tokenEndpoint]) {
   var environment = {};
   environment['_PUB_TESTING'] = 'true';
   environment['PUB_CACHE'] = _pathInSandbox(cachePath);
@@ -492,8 +492,7 @@ Map getPubTestEnvironment([Uri tokenEndpoint]) {
   environment['_PUB_TEST_SDK_VERSION'] = "0.1.2+3";
 
   if (tokenEndpoint != null) {
-    environment['_PUB_TEST_TOKEN_ENDPOINT'] =
-      tokenEndpoint.toString();
+    environment['_PUB_TEST_TOKEN_ENDPOINT'] = tokenEndpoint.toString();
   }
 
   return environment;
@@ -503,7 +502,7 @@ Map getPubTestEnvironment([Uri tokenEndpoint]) {
 /// interaction with that process.
 ///
 /// Any futures in [args] will be resolved before the process is started.
-ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
+ScheduledProcess startPub({List args, Future<String> tokenEndpoint}) {
   ensureDir(_pathInSandbox(appPath));
 
   // Find a Dart executable we can use to spawn. Use the same one that was
