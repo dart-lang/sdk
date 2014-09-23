@@ -4,6 +4,8 @@
 
 library glob.utils;
 
+import 'package:path/path.dart' as p;
+
 /// A range from [min] to [max], inclusive.
 class Range {
   /// The minimum value included by the range.
@@ -23,6 +25,11 @@ class Range {
 
   /// Whether [this] contains [value].
   bool contains(int value) => value >= min && value <= max;
+
+  bool operator==(Object other) => other is Range &&
+      other.min == min && other.max == max;
+
+  int get hashCode => 3 * min + 7 * max;
 }
 
 /// An implementation of [Match] constructed by [Glob]s.
@@ -53,3 +60,11 @@ final _quote = new RegExp(r"[+*?{}|[\]\\().^$-]");
 /// expressions backslash-escaped.
 String regExpQuote(String contents) =>
     contents.replaceAllMapped(_quote, (char) => "\\${char[0]}");
+
+/// Returns [path] with all its separators replaced with forward slashes.
+///
+/// This is useful when converting from Windows paths to globs.
+String separatorToForwardSlash(String path) {
+  if (p.context != p.Style.windows) return path;
+  return path.replaceAll('\\', '/');
+}

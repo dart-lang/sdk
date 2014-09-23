@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:glob/glob.dart';
+import 'package:glob/src/utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
@@ -234,8 +235,7 @@ void main() {
   });
 
   test("a relative path can be matched by an absolute glob", () {
-    var pattern = p.absolute('foo/bar');
-    if (p.style == p.Style.windows) pattern = pattern.replaceAll('\\', '/');
+    var pattern = separatorToForwardSlash(p.absolute('foo/bar'));
     expect('foo/bar', contains(new Glob(pattern)));
   });
 

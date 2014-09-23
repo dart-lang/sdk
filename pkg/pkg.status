@@ -334,6 +334,7 @@ code_transformers/test/entry_point_test: Skip # Uses dart:io
 code_transformers/test/resolver_test: Skip # Uses dart:io
 code_transformers/test/unique_message_test: Skip # Uses dart:io
 code_transformers/test/remove_sourcemap_comment_test: Skip # Uses dart:io.
+glob/test/*: Fail, OK # Uses dart:io.
 http/test/io/*: Fail, OK # Uses dart:io.
 http_parser/test/web_socket_test: Fail, OK # Uses dart:io
 http_multi_server/test/http_multi_server_test: Skip # Uses dart:io

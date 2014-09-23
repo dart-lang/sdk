@@ -5,6 +5,7 @@
 library glob.ast;
 
 import 'package:path/path.dart' as p;
+import 'package:collection/collection.dart';
 
 import 'utils.dart';
 
@@ -24,6 +25,17 @@ abstract class AstNode {
   ///
   /// Either this or [canMatchRelative] or both will be true.
   final bool canMatchRelative = true;
+
+  /// Returns a new glob with all the options bubbled to the top level.
+  ///
+  /// In particular, this returns a glob AST with two guarantees:
+  ///
+  /// 1. There are no [OptionsNode]s other than the one at the top level.
+  /// 2. It matches the same set of paths as [this].
+  ///
+  /// For example, given the glob `{foo,bar}/{click/clack}`, this would return
+  /// `{foo/click,foo/clack,bar/click,bar/clack}`.
+  OptionsNode flattenOptions() => new OptionsNode([new SequenceNode([this])]);
 
   /// Returns whether this glob matches [string].
   bool matches(String string) {
@@ -46,7 +58,117 @@ class SequenceNode extends AstNode {
   SequenceNode(Iterable<AstNode> nodes)
       : nodes = nodes.toList();
 
+  OptionsNode flattenOptions() {
+    if (nodes.isEmpty) return new OptionsNode([this]);
+
+    var sequences = nodes.first.flattenOptions().options
+        .map((sequence) => sequence.nodes);
+    for (var node in nodes.skip(1)) {
+      // Concatenate all sequences in the next options node ([nextSequences])
+      // onto all previous sequences ([sequences]).
+      var nextSequences = node.flattenOptions().options;
+      sequences = sequences.expand((sequence) {
+        return nextSequences.map((nextSequence) {
+          return sequence.toList()..addAll(nextSequence.nodes);
+        });
+      });
+    }
+
+    return new OptionsNode(sequences.map((sequence) {
+      // Combine any adjacent LiteralNodes in [sequence].
+      return new SequenceNode(sequence.fold([], (combined, node) {
+        if (combined.isEmpty || combined.last is! LiteralNode ||
+            node is! LiteralNode) {
+          return combined..add(node);
+        }
+
+        combined[combined.length - 1] =
+            new LiteralNode(combined.last.text + node.text);
+        return combined;
+      }));
+    }));
+  }
+
+  /// Splits this glob into components along its path separators.
+  ///
+  /// For example, given the glob `foo/*/*.dart`, this would return three globs:
+  /// `foo`, `*`, and `*.dart`.
+  ///
+  /// Path separators within options nodes are not split. For example,
+  /// `foo/{bar,baz/bang}/qux` will return three globs: `foo`, `{bar,baz/bang}`,
+  /// and `qux`.
+  ///
+  /// [context] is used to determine what absolute roots look like for this
+  /// glob.
+  List<SequenceNode> split(p.Context context) {
+    var componentsToReturn = [];
+    var currentComponent;
+
+    addNode(node) {
+      if (currentComponent == null) currentComponent = [];
+      currentComponent.add(node);
+    }
+
+    finishComponent() {
+      if (currentComponent == null) return;
+      componentsToReturn.add(new SequenceNode(currentComponent));
+      currentComponent = null;
+    }
+
+    for (var node in nodes) {
+      if (node is! LiteralNode || !node.text.contains('/')) {
+        addNode(node);
+        continue;
+      }
+
+      var text = node.text;
+      if (context.style == p.Style.windows) text = text.replaceAll("/", "\\");
+      var components = context.split(text);
+
+      // If the first component is absolute, that means it's a separator (on
+      // Windows some non-separator things are also absolute, but it's invalid
+      // to have "C:" show up in the middle of a path anyway).
+      if (context.isAbsolute(components.first)) {
+        // If this is the first component, it's the root.
+        if (componentsToReturn.isEmpty && currentComponent == null) {
+          var root = components.first;
+          if (context.style == p.Style.windows) {
+            // Above, we switched to backslashes to make [context.split] handle
+            // roots properly. That means that if there is a root, it'll still
+            // have backslashes, where forward slashes are required for globs.
+            // So we switch it back here.
+            root = root.replaceAll("\\", "/");
+          }
+          addNode(new LiteralNode(root));
+        }
+        finishComponent();
+        components = components.skip(1);
+        if (components.isEmpty) continue;
+      }
+
+      // For each component except the last one, add a separate sequence to
+      // [sequences] containing only that component.
+      for (var component in components.take(components.length - 1)) {
+        addNode(new LiteralNode(component));
+        finishComponent();
+      }
+
+      // For the final component, only end its sequence (by adding a new empty
+      // sequence) if it ends with a separator.
+      addNode(new LiteralNode(components.last));
+      if (node.text.endsWith('/')) finishComponent();
+    }
+
+    finishComponent();
+    return componentsToReturn;
+  }
+
   String _toRegExp() => nodes.map((node) => node._toRegExp()).join();
+
+  bool operator==(Object other) => other is SequenceNode &&
+      const IterableEquality().equals(nodes, other.nodes);
+
+  int get hashCode => const IterableEquality().hash(nodes);
 
   String toString() => nodes.join();
 }
@@ -56,6 +178,10 @@ class StarNode extends AstNode {
   StarNode();
 
   String _toRegExp() => '[^/]*';
+
+  bool operator==(Object other) => other is StarNode;
+
+  int get hashCode => 0;
 
   String toString() => '*';
 }
@@ -94,6 +220,10 @@ class DoubleStarNode extends AstNode {
     return buffer.toString();
   }
 
+  bool operator==(Object other) => other is DoubleStarNode;
+
+  int get hashCode => 1;
+
   String toString() => '**';
 }
 
@@ -102,6 +232,10 @@ class AnyCharNode extends AstNode {
   AnyCharNode();
 
   String _toRegExp() => '[^/]';
+
+  bool operator==(Object other) => other is AnyCharNode;
+
+  int get hashCode => 2;
 
   String toString() => '?';
 }
@@ -118,6 +252,20 @@ class RangeNode extends AstNode {
 
   RangeNode(Iterable<Range> ranges, {this.negated})
       : ranges = ranges.toSet();
+
+  OptionsNode flattenOptions() {
+    if (negated || ranges.any((range) => !range.isSingleton)) {
+      return super.flattenOptions();
+    }
+
+    // If a range explicitly lists a set of characters, return each character as
+    // a separate expansion.
+    return new OptionsNode(ranges.map((range) {
+      return new SequenceNode([
+        new LiteralNode(new String.fromCharCodes([range.min]))
+      ]);
+    }));
+  }
 
   String _toRegExp() {
     var buffer = new StringBuffer();
@@ -148,6 +296,14 @@ class RangeNode extends AstNode {
     return buffer.toString();
   }
 
+  bool operator==(Object other) {
+    if (other is! RangeNode) return false;
+    if (other.negated != negated) return false;
+    return const SetEquality().equals(ranges, other.ranges);
+  }
+
+  int get hashCode => (negated ? 1 : 3) * const SetEquality().hash(ranges);
+
   String toString() {
     var buffer = new StringBuffer()..write('[');
     for (var range in ranges) {
@@ -172,8 +328,16 @@ class OptionsNode extends AstNode {
   OptionsNode(Iterable<SequenceNode> options)
       : options = options.toList();
 
+  OptionsNode flattenOptions() => new OptionsNode(
+      options.expand((option) => option.flattenOptions().options));
+
   String _toRegExp() =>
       '(?:${options.map((option) => option._toRegExp()).join("|")})';
+
+  bool operator==(Object other) => other is OptionsNode && 
+      const UnorderedIterableEquality().equals(options, other.options);
+
+  int get hashCode => const UnorderedIterableEquality().hash(options);
 
   String toString() => '{${options.join(',')}}';
 }
@@ -196,9 +360,13 @@ class LiteralNode extends AstNode {
 
   bool get canMatchRelative => !canMatchAbsolute;
 
-  LiteralNode(this.text, this._context);
+  LiteralNode(this.text, [this._context]);
 
   String _toRegExp() => regExpQuote(text);
+
+  bool operator==(Object other) => other is LiteralNode && other.text == text;
+
+  int get hashCode => text.hashCode;
 
   String toString() => text;
 }
