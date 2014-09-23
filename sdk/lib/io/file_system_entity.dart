@@ -418,6 +418,8 @@ abstract class FileSystemEntity {
    * Use `events` to specify what events to listen for. The constants in
    * [FileSystemEvent] can be or'ed together to mix events. Default is
    * [FileSystemEvent.ALL].
+   *
+   * A move event may be reported as seperate delete and create events.
    */
   Stream<FileSystemEvent> watch({int events: FileSystemEvent.ALL,
                                  bool recursive: false})
