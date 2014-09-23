@@ -1266,7 +1266,7 @@ void Simulator::DecodeConditionalBranch(Instr* instr) {
 typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
 
 // Calls to leaf Dart runtime functions are based on this interface.
-typedef int32_t (*SimulatorLeafRuntimeCall)(
+typedef int64_t (*SimulatorLeafRuntimeCall)(
     int64_t r0, int64_t r1, int64_t r2, int64_t r3,
     int64_t r4, int64_t r5, int64_t r6, int64_t r7);
 
