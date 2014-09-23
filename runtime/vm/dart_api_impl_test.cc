@@ -7074,6 +7074,7 @@ UNIT_TEST_CASE(NewNativePort) {
 
 static Dart_Isolate RunLoopTestCallback(const char* script_name,
                                         const char* main,
+                                        const char* package_root,
                                         void* data,
                                         char** error) {
   const char* kScriptChars =
@@ -7143,7 +7144,7 @@ static void RunLoopTest(bool throw_exception_child,
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
   Isolate::SetUnhandledExceptionCallback(RunLoopUnhandledExceptionCallback);
-  Dart_Isolate isolate = RunLoopTestCallback(NULL, NULL, NULL, NULL);
+  Dart_Isolate isolate = RunLoopTestCallback(NULL, NULL, NULL, NULL, NULL);
 
   Dart_EnterIsolate(isolate);
   Dart_EnterScope();
