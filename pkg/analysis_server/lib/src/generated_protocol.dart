@@ -4226,56 +4226,58 @@ class ExecutionSetSubscriptionsResult {
  * execution.launchData params
  *
  * {
- *   "executables": List<ExecutableFile>
- *   "dartToHtml": Map<FilePath, List<FilePath>>
- *   "htmlToDart": Map<FilePath, List<FilePath>>
+ *   "file": FilePath
+ *   "kind": optional ExecutableKind
+ *   "referencedFiles": optional List<FilePath>
  * }
  */
 class ExecutionLaunchDataParams implements HasToJson {
   /**
-   * A list of the files that are executable. This list replaces any previous
-   * list provided.
+   * The file for which launch data is being provided. This will either be a
+   * Dart library or an HTML file.
    */
-  List<ExecutableFile> executables;
+  String file;
 
   /**
-   * A mapping from the paths of Dart files that are referenced by HTML files
-   * to a list of the HTML files that reference the Dart files.
+   * The kind of the executable file. This field is omitted if the file is not
+   * a Dart file.
    */
-  Map<String, List<String>> dartToHtml;
+  ExecutableKind kind;
 
   /**
-   * A mapping from the paths of HTML files that reference Dart files to a list
-   * of the Dart files they reference.
+   * A list of the Dart files that are referenced by the file. This field is
+   * omitted if the file is not an HTML file.
    */
-  Map<String, List<String>> htmlToDart;
+  List<String> referencedFiles;
 
-  ExecutionLaunchDataParams(this.executables, this.dartToHtml, this.htmlToDart);
+  ExecutionLaunchDataParams(this.file, {this.kind, this.referencedFiles}) {
+    if (referencedFiles == null) {
+      referencedFiles = <String>[];
+    }
+  }
 
   factory ExecutionLaunchDataParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
-      List<ExecutableFile> executables;
-      if (json.containsKey("executables")) {
-        executables = jsonDecoder._decodeList(jsonPath + ".executables", json["executables"], (String jsonPath, Object json) => new ExecutableFile.fromJson(jsonDecoder, jsonPath, json));
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "executables");
+        throw jsonDecoder.missingKey(jsonPath, "file");
       }
-      Map<String, List<String>> dartToHtml;
-      if (json.containsKey("dartToHtml")) {
-        dartToHtml = jsonDecoder._decodeMap(jsonPath + ".dartToHtml", json["dartToHtml"], valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeList(jsonPath, json, jsonDecoder._decodeString));
+      ExecutableKind kind;
+      if (json.containsKey("kind")) {
+        kind = new ExecutableKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+      }
+      List<String> referencedFiles;
+      if (json.containsKey("referencedFiles")) {
+        referencedFiles = jsonDecoder._decodeList(jsonPath + ".referencedFiles", json["referencedFiles"], jsonDecoder._decodeString);
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "dartToHtml");
+        referencedFiles = <String>[];
       }
-      Map<String, List<String>> htmlToDart;
-      if (json.containsKey("htmlToDart")) {
-        htmlToDart = jsonDecoder._decodeMap(jsonPath + ".htmlToDart", json["htmlToDart"], valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeList(jsonPath, json, jsonDecoder._decodeString));
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "htmlToDart");
-      }
-      return new ExecutionLaunchDataParams(executables, dartToHtml, htmlToDart);
+      return new ExecutionLaunchDataParams(file, kind: kind, referencedFiles: referencedFiles);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "execution.launchData params");
     }
@@ -4288,9 +4290,13 @@ class ExecutionLaunchDataParams implements HasToJson {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["executables"] = executables.map((ExecutableFile value) => value.toJson()).toList();
-    result["dartToHtml"] = dartToHtml;
-    result["htmlToDart"] = htmlToDart;
+    result["file"] = file;
+    if (kind != null) {
+      result["kind"] = kind.toJson();
+    }
+    if (referencedFiles.isNotEmpty) {
+      result["referencedFiles"] = referencedFiles;
+    }
     return result;
   }
 
@@ -4304,9 +4310,9 @@ class ExecutionLaunchDataParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is ExecutionLaunchDataParams) {
-      return _listEqual(executables, other.executables, (ExecutableFile a, ExecutableFile b) => a == b) &&
-          _mapEqual(dartToHtml, other.dartToHtml, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b)) &&
-          _mapEqual(htmlToDart, other.htmlToDart, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b));
+      return file == other.file &&
+          kind == other.kind &&
+          _listEqual(referencedFiles, other.referencedFiles, (String a, String b) => a == b);
     }
     return false;
   }
@@ -4314,9 +4320,9 @@ class ExecutionLaunchDataParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, executables.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, dartToHtml.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, htmlToDart.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, referencedFiles.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -5973,6 +5979,7 @@ class ExecutableFile implements HasToJson {
  * enum {
  *   CLIENT
  *   EITHER
+ *   NOT_EXECUTABLE
  *   SERVER
  * }
  */
@@ -5980,6 +5987,8 @@ class ExecutableKind {
   static const CLIENT = const ExecutableKind._("CLIENT");
 
   static const EITHER = const ExecutableKind._("EITHER");
+
+  static const NOT_EXECUTABLE = const ExecutableKind._("NOT_EXECUTABLE");
 
   static const SERVER = const ExecutableKind._("SERVER");
 
@@ -5993,6 +6002,8 @@ class ExecutableKind {
         return CLIENT;
       case "EITHER":
         return EITHER;
+      case "NOT_EXECUTABLE":
+        return NOT_EXECUTABLE;
       case "SERVER":
         return SERVER;
     }

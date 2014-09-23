@@ -1399,7 +1399,7 @@
       </request>
       <notification event="launchData">
         <p>
-          Reports information needed to allow applications to be launched.
+          Reports information needed to allow a single file to be launched.
         </p>
         <p>
           This notification is not subscribed to by default. Clients can
@@ -1407,35 +1407,25 @@
           passed in an <tt>execution.setSubscriptions</tt> request.
         </p>
         <params>
-          <field name="executables">
-            <list><ref>ExecutableFile</ref></list>
+          <field name="file">
+            <ref>FilePath</ref>
             <p>
-              A list of the files that are executable. This list replaces any
-              previous list provided.
+              The file for which launch data is being provided. This will either
+              be a Dart library or an HTML file.
             </p>
           </field>
-          <field name="dartToHtml">
-            <map>
-              <key><ref>FilePath</ref></key>
-              <value>
-                <list><ref>FilePath</ref></list>
-              </value>
-            </map>
+          <field name="kind" optional="true">
+            <ref>ExecutableKind</ref>
             <p>
-              A mapping from the paths of Dart files that are referenced by HTML
-              files to a list of the HTML files that reference the Dart files.
+              The kind of the executable file. This field is omitted if the file
+              is not a Dart file.
             </p>
           </field>
-          <field name="htmlToDart">
-            <map>
-              <key><ref>FilePath</ref></key>
-              <value>
-                <list><ref>FilePath</ref></list>
-              </value>
-            </map>
+          <field name="referencedFiles" optional="true">
+            <list><ref>FilePath</ref></list>
             <p>
-              A mapping from the paths of HTML files that reference Dart files
-              to a list of the Dart files they reference.
+              A list of the Dart files that are referenced by the file. This
+              field is omitted if the file is not an HTML file.
             </p>
           </field>
         </params>
@@ -1966,6 +1956,7 @@
         <enum>
           <value><code>CLIENT</code></value>
           <value><code>EITHER</code></value>
+          <value><code>NOT_EXECUTABLE</code></value>
           <value><code>SERVER</code></value>
         </enum>
       </type>

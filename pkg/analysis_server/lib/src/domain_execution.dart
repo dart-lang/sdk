@@ -37,7 +37,7 @@ class ExecutionDomainHandler implements RequestHandler {
    * The subscription to the 'onAnalysisComplete' events,
    * used to send notifications when
    */
-  StreamSubscription onAnalysisSubscription;
+  StreamSubscription onFileAnalyzed;
 
   /**
    * Initialize a newly created handler to handle requests for the given [server].
@@ -126,65 +126,88 @@ class ExecutionDomainHandler implements RequestHandler {
     List<ExecutionService> subscriptions =
         new ExecutionSetSubscriptionsParams.fromRequest(request).subscriptions;
     if (subscriptions.contains(ExecutionService.LAUNCH_DATA)) {
-      if (onAnalysisSubscription == null) {
-        onAnalysisSubscription =
-            server.onAnalysisComplete.listen(_analysisComplete);
-        if (server.isAnalysisComplete()) {
-          _analysisComplete(null);
-        }
+      if (onFileAnalyzed == null) {
+        onFileAnalyzed = server.onFileAnalyzed.listen(_fileAnalyzed);
+        _reportCurrentFileStatus();
       }
     } else {
-      if (onAnalysisSubscription != null) {
-        onAnalysisSubscription.cancel();
-        onAnalysisSubscription = null;
+      if (onFileAnalyzed != null) {
+        onFileAnalyzed.cancel();
+        onFileAnalyzed = null;
       }
     }
     return new ExecutionSetSubscriptionsResult().toResponse(request.id);
   }
 
-  void _analysisComplete(_) {
-    List<ExecutableFile> executables = [];
+  void _fileAnalyzed(ChangeNotice notice) {
+    Source source = notice.source;
+    String filePath = source.fullName;
+    AnalysisContext context = server.getAnalysisContext(filePath);
+    if (AnalysisEngine.isDartFileName(filePath)) {
+      ExecutableKind kind = ExecutableKind.NOT_EXECUTABLE;
+      if (context.isClientLibrary(source)) {
+        kind = ExecutableKind.CLIENT;
+        if (context.isServerLibrary(source)) {
+          kind = ExecutableKind.EITHER;
+        }
+      } else if (context.isServerLibrary(source)) {
+        kind = ExecutableKind.SERVER;
+      }
+      server.sendNotification(
+          new ExecutionLaunchDataParams(
+              filePath,
+              kind: kind).toNotification());
+    } else if (AnalysisEngine.isHtmlFileName(filePath)) {
+      List<Source> libraries = context.getLibrariesReferencedFromHtml(source);
+      server.sendNotification(
+          new ExecutionLaunchDataParams(
+              filePath,
+              referencedFiles: _getFullNames(libraries)).toNotification());
+    }
+  }
+
+  void _reportCurrentFileStatus() {
     Map<String, List<String>> dartToHtml = new HashMap<String, List<String>>();
     Map<String, List<String>> htmlToDart = new HashMap<String, List<String>>();
     for (AnalysisContext context in server.getAnalysisContexts()) {
+      List<Source> librarySources = context.librarySources;
       List<Source> clientSources = context.launchableClientLibrarySources;
       List<Source> serverSources = context.launchableServerLibrarySources;
       for (Source source in clientSources) {
-        ExecutableKind kind = ExecutableKind.CLIENT;
         if (serverSources.remove(source)) {
-          kind = ExecutableKind.EITHER;
+          server.sendNotification(
+              new ExecutionLaunchDataParams(
+                  source.fullName,
+                  kind: ExecutableKind.EITHER).toNotification());
+        } else {
+          server.sendNotification(
+              new ExecutionLaunchDataParams(
+                  source.fullName,
+                  kind: ExecutableKind.CLIENT).toNotification());
         }
-        executables.add(new ExecutableFile(source.fullName, kind));
+        librarySources.remove(source);
       }
       for (Source source in serverSources) {
-        executables.add(
-            new ExecutableFile(source.fullName, ExecutableKind.SERVER));
+        server.sendNotification(
+            new ExecutionLaunchDataParams(
+                source.fullName,
+                kind: ExecutableKind.SERVER).toNotification());
+        librarySources.remove(source);
       }
-
-      for (Source librarySource in context.librarySources) {
-        List<Source> files = context.getHtmlFilesReferencing(librarySource);
-        if (files.isNotEmpty) {
-          // TODO(brianwilkerson) Handle the case where the same library is
-          // being analyzed in multiple contexts.
-          dartToHtml[librarySource.fullName] = _getFullNames(files);
-        }
+      for (Source source in librarySources) {
+        server.sendNotification(
+            new ExecutionLaunchDataParams(
+                source.fullName,
+                kind: ExecutableKind.NOT_EXECUTABLE).toNotification());
       }
-
-      for (Source htmlSource in context.htmlSources) {
-        List<Source> libraries =
-            context.getLibrariesReferencedFromHtml(htmlSource);
-        if (libraries.isNotEmpty) {
-          // TODO(brianwilkerson) Handle the case where the same HTML file is
-          // being analyzed in multiple contexts.
-          htmlToDart[htmlSource.fullName] = _getFullNames(libraries);
-        }
+      for (Source source in context.htmlSources) {
+        List<Source> libraries = context.getLibrariesReferencedFromHtml(source);
+        server.sendNotification(
+            new ExecutionLaunchDataParams(
+                source.fullName,
+                referencedFiles: _getFullNames(libraries)).toNotification());
       }
     }
-    server.sendNotification(
-        new ExecutionLaunchDataParams(
-            executables,
-            dartToHtml,
-            htmlToDart).toNotification());
   }
 
   static List<String> _getFullNames(List<Source> sources) {

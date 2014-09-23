@@ -218,6 +218,11 @@ class AnalysisServer {
   StreamController _onAnalysisCompleteController;
 
   /**
+   * The controller that is notified when a single file has been analyzed.
+   */
+  StreamController<ChangeNotice> _onFileAnalyzedController;
+
+  /**
    * True if any exceptions thrown by analysis should be propagated up the call
    * stack.
    */
@@ -242,10 +247,22 @@ class AnalysisServer {
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
     _onAnalysisCompleteController = new StreamController.broadcast();
+    _onFileAnalyzedController = new StreamController.broadcast();
     running = true;
     Notification notification = new ServerConnectedParams().toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
+  }
+
+  /**
+   * If the given notice applies to a file contained within an analysis root,
+   * notify interested parties that the file has been (at least partially)
+   * analyzed.
+   */
+  void fileAnalyzed(ChangeNotice notice) {
+    if (contextDirectoryManager.isInAnalysisRoot(notice.source.fullName)) {
+      _onFileAnalyzedController.add(notice);
+    }
   }
 
   /**
@@ -352,6 +369,11 @@ class AnalysisServer {
    * The stream that is notified when analysis is complete.
    */
   Stream get onAnalysisComplete => _onAnalysisCompleteController.stream;
+
+  /**
+   * The stream that is notified when a single file has been analyzed.
+   */
+  Stream get onFileAnalyzed => _onFileAnalyzedController.stream;
 
   /**
    * Adds the given [ServerOperation] to the queue, but does not schedule

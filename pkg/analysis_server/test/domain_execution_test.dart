@@ -132,29 +132,29 @@ main() {
 
     group('setSubscriptions', () {
       test('failure - invalid service name', () {
-        expect(handler.onAnalysisSubscription, isNull);
+        expect(handler.onFileAnalyzed, isNull);
 
         Request request = new Request('0', EXECUTION_SET_SUBSCRIPTIONS, {
           SUBSCRIPTIONS: ['noSuchService']
         });
         Response response = handler.handleRequest(request);
         expect(response, isResponseFailure('0'));
-        expect(handler.onAnalysisSubscription, isNull);
+        expect(handler.onFileAnalyzed, isNull);
       });
 
       test('success - setting and clearing', () {
-        expect(handler.onAnalysisSubscription, isNull);
+        expect(handler.onFileAnalyzed, isNull);
 
         Request request = new ExecutionSetSubscriptionsParams(
             [ExecutionService.LAUNCH_DATA]).toRequest('0');
         Response response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
-        expect(handler.onAnalysisSubscription, isNotNull);
+        expect(handler.onFileAnalyzed, isNotNull);
 
         request = new ExecutionSetSubscriptionsParams([]).toRequest('0');
         response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
-        expect(handler.onAnalysisSubscription, isNull);
+        expect(handler.onFileAnalyzed, isNull);
       });
     });
 
@@ -166,8 +166,6 @@ main() {
       Source source5 = new TestSource('/e.html');
       Source source6 = new TestSource('/f.html');
       Source source7 = new TestSource('/g.html');
-      Source source8 = new TestSource('/h.dart');
-      Source source9 = new TestSource('/i.dart');
 
       AnalysisContext context = new AnalysisContextMock();
       when(context.launchableClientLibrarySources)
@@ -175,62 +173,52 @@ main() {
       when(context.launchableServerLibrarySources)
           .thenReturn([source2, source3]);
       when(context.librarySources).thenReturn([source4]);
-      when(context.getHtmlFilesReferencing(anyObject))
-          .thenReturn([source5, source6]);
-      when(context.htmlSources).thenReturn([source7]);
+      when(context.htmlSources).thenReturn([source5]);
       when(context.getLibrariesReferencedFromHtml(anyObject))
-          .thenReturn([source8, source9]);
+          .thenReturn([source6, source7]);
 
       AnalysisServer server = new AnalysisServerMock();
       when(server.getAnalysisContexts()).thenReturn([context]);
       when(server.isAnalysisComplete()).thenReturn(false);
 
       StreamController controller = new StreamController.broadcast(sync: true);
-      when(server.onAnalysisComplete).thenReturn(controller.stream);
+      when(server.onFileAnalyzed).thenReturn(controller.stream);
+
+      List<String> unsentNotifications = <String>[
+          source1.fullName, source2.fullName, source3.fullName,
+          source4.fullName, source5.fullName];
+      when(server.sendNotification(anyObject))
+          .thenInvoke((Notification notification) {
+        ExecutionLaunchDataParams params =
+            new ExecutionLaunchDataParams.fromNotification(notification);
+
+        String fileName = params.file;
+        expect(unsentNotifications.remove(fileName), isTrue);
+
+        if (fileName == source1.fullName) {
+          expect(params.kind, ExecutableKind.CLIENT);
+        } else if (fileName == source2.fullName) {
+          expect(params.kind, ExecutableKind.EITHER);
+        } else if (fileName == source3.fullName) {
+          expect(params.kind, ExecutableKind.SERVER);
+        } else if (fileName == source4.fullName) {
+          expect(params.kind, ExecutableKind.NOT_EXECUTABLE);
+        } else if (fileName == source5.fullName) {
+          var referencedFiles = params.referencedFiles;
+          expect(referencedFiles, isNotNull);
+          expect(referencedFiles.length, equals(2));
+          expect(referencedFiles[0], equals(source6.fullName));
+          expect(referencedFiles[1], equals(source7.fullName));
+        }
+      });
 
       ExecutionDomainHandler handler = new ExecutionDomainHandler(server);
       Request request = new ExecutionSetSubscriptionsParams(
           [ExecutionService.LAUNCH_DATA]).toRequest('0');
       Response response = handler.handleRequest(request);
 
-      bool notificationSent = false;
-      when(server.sendNotification(anyObject))
-          .thenInvoke((Notification notification) {
-        ExecutionLaunchDataParams params =
-            new ExecutionLaunchDataParams.fromNotification(notification);
-
-        List<ExecutableFile> executables = params.executables;
-        expect(executables.length, equals(3));
-        expect(
-            executables[0],
-            isExecutableFile(source1, ExecutableKind.CLIENT));
-        expect(
-            executables[1],
-            isExecutableFile(source2, ExecutableKind.EITHER));
-        expect(
-            executables[2],
-            isExecutableFile(source3, ExecutableKind.SERVER));
-
-        Map<String, List<String>> dartToHtml = params.dartToHtml;
-        expect(dartToHtml.length, equals(1));
-        List<String> htmlFiles = dartToHtml[source4.fullName];
-        expect(htmlFiles, isNotNull);
-        expect(htmlFiles.length, equals(2));
-        expect(htmlFiles[0], equals(source5.fullName));
-        expect(htmlFiles[1], equals(source6.fullName));
-
-        Map<String, List<String>> htmlToDart = params.htmlToDart;
-        expect(htmlToDart.length, equals(1));
-        List<String> dartFiles = htmlToDart[source7.fullName];
-        expect(dartFiles, isNotNull);
-        expect(dartFiles.length, equals(2));
-        expect(dartFiles[0], equals(source8.fullName));
-        expect(dartFiles[1], equals(source9.fullName));
-
-        notificationSent = true;
-      });
-      controller.add(null);
-      expect(notificationSent, isTrue);
+//      controller.add(null);
+      expect(unsentNotifications, isEmpty);
     });
   });
 }

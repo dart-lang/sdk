@@ -761,16 +761,17 @@ final Matcher isExecutionSetSubscriptionsResult = isNull;
  * execution.launchData params
  *
  * {
- *   "executables": List<ExecutableFile>
- *   "dartToHtml": Map<FilePath, List<FilePath>>
- *   "htmlToDart": Map<FilePath, List<FilePath>>
+ *   "file": FilePath
+ *   "kind": optional ExecutableKind
+ *   "referencedFiles": optional List<FilePath>
  * }
  */
 final Matcher isExecutionLaunchDataParams = new LazyMatcher(() => new MatchesJsonObject(
   "execution.launchData params", {
-    "executables": isListOf(isExecutableFile),
-    "dartToHtml": isMapOf(isFilePath, isListOf(isFilePath)),
-    "htmlToDart": isMapOf(isFilePath, isListOf(isFilePath))
+    "file": isFilePath
+  }, optionalFields: {
+    "kind": isExecutableKind,
+    "referencedFiles": isListOf(isFilePath)
   }));
 
 /**
@@ -1144,12 +1145,14 @@ final Matcher isExecutableFile = new LazyMatcher(() => new MatchesJsonObject(
  * enum {
  *   CLIENT
  *   EITHER
+ *   NOT_EXECUTABLE
  *   SERVER
  * }
  */
 final Matcher isExecutableKind = new MatchesEnum("ExecutableKind", [
   "CLIENT",
   "EITHER",
+  "NOT_EXECUTABLE",
   "SERVER"
 ]);
 

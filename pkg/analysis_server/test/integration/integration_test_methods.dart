@@ -1344,7 +1344,7 @@ abstract class IntegrationTestMixin {
   }
 
   /**
-   * Reports information needed to allow applications to be launched.
+   * Reports information needed to allow a single file to be launched.
    *
    * This notification is not subscribed to by default. Clients can subscribe
    * by including the value "LAUNCH_DATA" in the list of services passed in an
@@ -1352,20 +1352,20 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * executables ( List<ExecutableFile> )
+   * file ( FilePath )
    *
-   *   A list of the files that are executable. This list replaces any previous
-   *   list provided.
+   *   The file for which launch data is being provided. This will either be a
+   *   Dart library or an HTML file.
    *
-   * dartToHtml ( Map<FilePath, List<FilePath>> )
+   * kind ( optional ExecutableKind )
    *
-   *   A mapping from the paths of Dart files that are referenced by HTML files
-   *   to a list of the HTML files that reference the Dart files.
+   *   The kind of the executable file. This field is omitted if the file is
+   *   not a Dart file.
    *
-   * htmlToDart ( Map<FilePath, List<FilePath>> )
+   * referencedFiles ( optional List<FilePath> )
    *
-   *   A mapping from the paths of HTML files that reference Dart files to a
-   *   list of the Dart files they reference.
+   *   A list of the Dart files that are referenced by the file. This field is
+   *   omitted if the file is not an HTML file.
    */
   Stream onExecutionLaunchData;
 

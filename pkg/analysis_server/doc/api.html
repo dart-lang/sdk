@@ -1648,13 +1648,13 @@ dt.typeDefinition {
           </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification">execution.launchData</dt><dd><div class="box"><pre>notification: {
   "event": "execution.launchData"
   "params": {
-    "<b>executables</b>": List&lt;<a href="#type_ExecutableFile">ExecutableFile</a>&gt;
-    "<b>dartToHtml</b>": Map&lt;<a href="#type_FilePath">FilePath</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt;
-    "<b>htmlToDart</b>": Map&lt;<a href="#type_FilePath">FilePath</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt;
+    "<b>file</b>": <a href="#type_FilePath">FilePath</a>
+    "<b>kind</b>": <span style="color:#999999">optional</span> <a href="#type_ExecutableKind">ExecutableKind</a>
+    "<b>referencedFiles</b>": <span style="color:#999999">optional</span> List&lt;<a href="#type_FilePath">FilePath</a>&gt;
   }
 }</pre></div>
         <p>
-          Reports information needed to allow applications to be launched.
+          Reports information needed to allow a single file to be launched.
         </p>
         <p>
           This notification is not subscribed to by default. Clients can
@@ -1662,23 +1662,23 @@ dt.typeDefinition {
           passed in an <tt>execution.setSubscriptions</tt> request.
         </p>
         
-      <h4>Parameters</h4><dl><dt class="field"><b><i>executables ( List&lt;<a href="#type_ExecutableFile">ExecutableFile</a>&gt; )</i></b></dt><dd>
+      <h4>Parameters</h4><dl><dt class="field"><b><i>file ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
             
             <p>
-              A list of the files that are executable. This list replaces any
-              previous list provided.
+              The file for which launch data is being provided. This will either
+              be a Dart library or an HTML file.
             </p>
-          </dd><dt class="field"><b><i>dartToHtml ( Map&lt;<a href="#type_FilePath">FilePath</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt; )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>kind ( <span style="color:#999999">optional</span> <a href="#type_ExecutableKind">ExecutableKind</a> )</i></b></dt><dd>
             
             <p>
-              A mapping from the paths of Dart files that are referenced by HTML
-              files to a list of the HTML files that reference the Dart files.
+              The kind of the executable file. This field is omitted if the file
+              is not a Dart file.
             </p>
-          </dd><dt class="field"><b><i>htmlToDart ( Map&lt;<a href="#type_FilePath">FilePath</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt; )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>referencedFiles ( <span style="color:#999999">optional</span> List&lt;<a href="#type_FilePath">FilePath</a>&gt; )</i></b></dt><dd>
             
             <p>
-              A mapping from the paths of HTML files that reference Dart files
-              to a list of the Dart files they reference.
+              A list of the Dart files that are referenced by the file. This
+              field is omitted if the file is not an HTML file.
             </p>
           </dd></dl></dd></dl>
     
@@ -2121,7 +2121,7 @@ dt.typeDefinition {
           An enumeration of the kinds of executable files.
         </p>
         
-      <dl><dt class="value">CLIENT</dt><dt class="value">EITHER</dt><dt class="value">SERVER</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutionContextId">ExecutionContextId: String</a></dt><dd>
+      <dl><dt class="value">CLIENT</dt><dt class="value">EITHER</dt><dt class="value">NOT_EXECUTABLE</dt><dt class="value">SERVER</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutionContextId">ExecutionContextId: String</a></dt><dd>
         
         <p>
           The identifier for a execution context.
