@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_process.dart';
+import 'package:scheduled_test/scheduled_test.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 main() {
@@ -17,7 +19,8 @@ main() {
     schedulePub(args: ["global", "activate", "foo"]);
     var process = new ScheduledProcess.start(
         p.join(sandboxDir, cachePath, "bin/foo-script"),
-        ["arg1", "arg2"]);
+        ["arg1", "arg2"],
+        environment: getEnvironment());
     process.stdout.expect("ok [arg1, arg2]");
     process.shouldExit();
   });
@@ -35,8 +38,16 @@ main() {
     var process = new ScheduledProcess.start(
         p.join(sandboxDir, cachePath, "bin/foo-script"),
         ["arg1", "arg2"],
-        environment: getPubTestEnvironment());
+        environment: getEnvironment());
     process.stdout.expect("ok [arg1, arg2]");
     process.shouldExit();
   });
+}
+getEnvironment() {
+  var binDir = p.dirname(Platform.executable);
+  var separator = Platform.operatingSystem == "windows" ? ";" : ":";
+  var path = "${Platform.environment["PATH"]}$separator$binDir";
+  var environment = getPubTestEnvironment();
+  environment["PATH"] = path;
+  return environment;
 }
