@@ -6,7 +6,6 @@ import '../utils.dart';
 import 'asset_environment.dart';
 import 'barback_server.dart';
 import 'rewrite_import_transformer.dart';
-import 'transformer_cache.dart';
 import 'transformer_id.dart';
 import 'transformer_loader.dart';
 import 'transformers_needed_by_transformers.dart';
@@ -16,9 +15,7 @@ Future loadAllTransformers(AssetEnvironment environment,
   scheduleMicrotask(() {
     try {
       var transformersNeededByTransformers =
-          computeTransformersNeededByTransformers(
-              environment.graph,
-              packages: environment.packages);
+          computeTransformersNeededByTransformers(environment.graph);
       var buffer = new StringBuffer();
       buffer.writeln("Transformer dependencies:");
       transformersNeededByTransformers.forEach(((id, dependencies) {
@@ -35,7 +32,7 @@ Future loadAllTransformers(AssetEnvironment environment,
           _packagesThatUseTransformers(environment.graph);
       var loader = new TransformerLoader(environment, transformerServer);
       var rewrite = new RewriteImportTransformer();
-      var it0 = environment.packages.iterator;
+      var it0 = environment.graph.packages.keys.iterator;
       break0(x9) {
         environment.barback.updateTransformers(r'$pub', [[rewrite]]);
         join0(x0) {
@@ -44,11 +41,10 @@ Future loadAllTransformers(AssetEnvironment environment,
           var it1 = stagedTransformers.iterator;
           break1(x6) {
             join1() {
-              Future.wait(environment.packages.map(((packageName) {
+              Future.wait(environment.graph.packages.values.map(((package) {
                 final completer0 = new Completer();
                 scheduleMicrotask(() {
                   try {
-                    var package = environment.graph.packages[packageName];
                     loader.transformersForPhases(
                         package.pubspec.transformers).then((x0) {
                       try {

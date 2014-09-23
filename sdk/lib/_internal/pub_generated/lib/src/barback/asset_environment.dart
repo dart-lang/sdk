@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
+import '../cached_package.dart';
 import '../entrypoint.dart';
 import '../exceptions.dart';
 import '../io.dart';
@@ -29,18 +30,28 @@ class AssetEnvironment {
     if (basePort == null) basePort = 0;
     return entrypoint.loadPackageGraph().then((graph) {
       log.fine("Loaded package graph.");
-      var barback = new Barback(new PubPackageProvider(graph, packages));
+      graph = _adjustPackageGraph(graph, mode, packages);
+      var barback = new Barback(new PubPackageProvider(graph));
       barback.log.listen(_log);
-      var environment = new AssetEnvironment._(
-          graph,
-          barback,
-          mode,
-          watcherType,
-          hostname,
-          basePort,
-          packages);
+      var environment =
+          new AssetEnvironment._(graph, barback, mode, watcherType, hostname, basePort);
       return environment._load(useDart2JS: useDart2JS).then((_) => environment);
     });
+  }
+  static PackageGraph _adjustPackageGraph(PackageGraph graph, BarbackMode mode,
+      Iterable<String> packages) {
+    if (mode != BarbackMode.DEBUG && packages == null) return graph;
+    packages = (packages == null ? graph.packages.keys : packages).toSet();
+    return new PackageGraph(
+        graph.entrypoint,
+        graph.lockFile,
+        new Map.fromIterable(packages, value: (packageName) {
+      var package = graph.packages[packageName];
+      if (mode != BarbackMode.DEBUG) return package;
+      var cache = path.join('.pub/deps/debug', packageName);
+      if (!dirExists(cache)) return package;
+      return new CachedPackage(package, cache);
+    }));
   }
   AdminServer _adminServer;
   final _directories = new Map<String, SourceDirectory>();
@@ -52,14 +63,9 @@ class AssetEnvironment {
   final WatcherType _watcherType;
   final String _hostname;
   final int _basePort;
-  final Set<String> packages;
   Set<AssetId> _modifiedSources;
-  AssetEnvironment._(PackageGraph graph, this.barback, this.mode,
-      this._watcherType, this._hostname, this._basePort, Iterable<String> packages)
-      : graph = graph,
-        packages = packages == null ?
-          graph.packages.keys.toSet() :
-          packages.toSet();
+  AssetEnvironment._(this.graph, this.barback, this.mode, this._watcherType,
+      this._hostname, this._basePort);
   Iterable<Transformer> getBuiltInTransformers(Package package) {
     if (package.name != rootPackage.name) return null;
     if (_builtInTransformers.isEmpty) return null;
@@ -254,17 +260,17 @@ class AssetEnvironment {
   Future<List<Uri>> _lookUpPathInPackagesDirectory(String assetPath) {
     var components = path.split(path.relative(assetPath));
     if (components.first != "packages") return new Future.value([]);
-    if (!packages.contains(components[1])) return new Future.value([]);
+    if (!graph.packages.containsKey(components[1])) return new Future.value([]);
     return Future.wait(_directories.values.map((dir) {
       return dir.server.then(
           (server) => server.url.resolveUri(path.toUri(assetPath)));
     }));
   }
   Future<List<Uri>> _lookUpPathInDependency(String assetPath) {
-    for (var packageName in packages) {
+    for (var packageName in graph.packages.keys) {
       var package = graph.packages[packageName];
-      var libDir = path.join(package.dir, 'lib');
-      var assetDir = path.join(package.dir, 'asset');
+      var libDir = package.path('lib');
+      var assetDir = package.path('asset');
       var uri;
       if (path.isWithin(libDir, assetPath)) {
         uri = path.toUri(
@@ -375,8 +381,8 @@ class AssetEnvironment {
     }, fine: true);
   }
   Future _provideSources() {
-    return Future.wait(packages.map((package) {
-      return _provideDirectorySources(graph.packages[package], "lib");
+    return Future.wait(graph.packages.values.map((package) {
+      return _provideDirectorySources(package, "lib");
     }));
   }
   Future<StreamSubscription<WatchEvent>>
@@ -408,7 +414,7 @@ class AssetEnvironment {
   }
   Iterable<AssetId> _listDirectorySources(Package package, String dir) {
     return package.listFiles(beneath: dir).map((file) {
-      var relative = path.relative(file, from: package.dir);
+      var relative = package.relative(file);
       if (Platform.operatingSystem == 'windows') {
         relative = relative.replaceAll("\\", "/");
       }
@@ -423,7 +429,7 @@ class AssetEnvironment {
         graph.entrypoint.cache.sources[packageId.source] is CachedSource) {
       return new Future.value();
     }
-    var subdirectory = path.join(package.dir, dir);
+    var subdirectory = package.path(dir);
     if (!dirExists(subdirectory)) return new Future.value();
     var watcher = _watcherType.create(subdirectory);
     var subscription = watcher.events.listen((event) {
@@ -432,7 +438,7 @@ class AssetEnvironment {
       if (event.path.endsWith(".dart.js")) return;
       if (event.path.endsWith(".dart.js.map")) return;
       if (event.path.endsWith(".dart.precompiled.js")) return;
-      var idPath = path.relative(event.path, from: package.dir);
+      var idPath = package.relative(event.path);
       var id = new AssetId(package.name, path.toUri(idPath).toString());
       if (event.type == ChangeType.REMOVE) {
         if (_modifiedSources != null) {

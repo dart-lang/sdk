@@ -5,17 +5,14 @@ import '../io.dart';
 import '../package.dart';
 import '../package_graph.dart';
 import '../utils.dart';
-import 'asset_environment.dart';
 import 'cycle_exception.dart';
 import 'transformer_config.dart';
 import 'transformer_id.dart';
 Map<TransformerId, Set<TransformerId>>
-    computeTransformersNeededByTransformers(PackageGraph graph,
-    {Iterable<String> packages}) {
-  if (packages == null) packages = graph.packages.keys;
+    computeTransformersNeededByTransformers(PackageGraph graph) {
   var result = {};
   var computer = new _DependencyComputer(graph);
-  for (var packageName in ordered(packages)) {
+  for (var packageName in ordered(graph.packages.keys)) {
     var package = graph.packages[packageName];
     for (var phase in package.pubspec.transformers) {
       for (var config in phase) {
@@ -52,7 +49,7 @@ class _DependencyComputer {
       fail(
           'A transformer imported unknown package "$packageName" (in ' '"$packageUri").');
     }
-    var library = p.join(package.dir, 'lib', p.joinAll(components.skip(1)));
+    var library = package.path('lib', p.joinAll(components.skip(1)));
     _loadPackageComputer(packageName);
     return _packageComputers[packageName].transformersNeededByLibrary(library);
   }
@@ -123,7 +120,7 @@ class _PackageDependencyComputer {
             _dependencyComputer.transformersNeededByTransformer(id);
           } else {
             _transformersNeededByTransformers[id] =
-                transformersNeededByLibrary(id.getFullPath(_package.dir));
+                transformersNeededByLibrary(_package.transformerPath(id));
           }
         } on CycleException catch (error) {
           throw error.prependStep("$packageName is transformed by $id");
@@ -139,7 +136,7 @@ class _PackageDependencyComputer {
       return _transformersNeededByTransformers[id];
     }
     _transformersNeededByTransformers[id] =
-        transformersNeededByLibrary(id.getFullPath(_package.dir));
+        transformersNeededByLibrary(_package.transformerPath(id));
     return _transformersNeededByTransformers[id];
   }
   Set<TransformerId> transformersNeededByLibrary(String library) {
@@ -196,7 +193,7 @@ class _PackageDependencyComputer {
             results.add(uri);
             continue;
           }
-          path = p.join(_package.dir, 'lib', p.joinAll(components.skip(1)));
+          path = _package.path('lib', p.joinAll(components.skip(1)));
         } else if (uri.scheme == '' || uri.scheme == 'file') {
           path = p.join(p.dirname(library), p.fromUri(uri));
         } else {
@@ -212,7 +209,7 @@ class _PackageDependencyComputer {
   }
   Set<Uri> _getDirectives(String library) {
     var libraryUri = p.toUri(p.normalize(library));
-    var relative = p.toUri(p.relative(library, from: _package.dir)).path;
+    var relative = p.toUri(_package.relative(library)).path;
     if (_applicableTransformers.any(
         (config) => config.canTransform(relative))) {
       _directives[libraryUri] = null;

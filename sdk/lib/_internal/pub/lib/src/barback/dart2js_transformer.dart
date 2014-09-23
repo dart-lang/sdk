@@ -124,8 +124,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
     // against.
     var id = transform.primaryInput.id;
 
-    var entrypoint = path.join(_environment.graph.packages[id.package].dir,
-        id.path);
+    var entrypoint = _environment.graph.packages[id.package].path(id.path);
 
     // TODO(rnystrom): Should have more sophisticated error-handling here. Need
     // to report compile errors to the user in an easily visible way. Need to
@@ -140,7 +139,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
             'minify', defaultsTo: _settings.mode == BarbackMode.RELEASE),
         verbose: _configBool('verbose'),
         environment: _configEnvironment,
-        packageRoot: path.join(_environment.rootPackage.dir, "packages"),
+        packageRoot: _environment.rootPackage.path("packages"),
         analyzeAll: _configBool('analyzeAll'),
         suppressWarnings: _configBool('suppressWarnings'),
         suppressHints: _configBool('suppressHints'),
@@ -259,7 +258,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // TODO(rnystrom): Fix this if #17751 is fixed.
     var buildDir = _environment.getSourceDirectoryContaining(
         _transform.primaryInput.id.path);
-    _libraryRootPath = path.join(_environment.rootPackage.dir,
+    _libraryRootPath = _environment.rootPackage.path(
         buildDir, "packages", r"$sdk");
   }
 
@@ -394,8 +393,8 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // should be loaded directly from disk.
     var sourcePath = path.fromUri(url);
     if (_environment.containsPath(sourcePath)) {
-      var relative = path.toUri(path.relative(sourcePath,
-          from: _environment.rootPackage.dir)).toString();
+      var relative = path.toUri(_environment.rootPackage.relative(sourcePath))
+          .toString();
 
       return new AssetId(_environment.rootPackage.name, relative);
     }

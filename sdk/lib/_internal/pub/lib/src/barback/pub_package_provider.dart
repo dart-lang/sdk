@@ -21,10 +21,9 @@ class PubPackageProvider implements PackageProvider {
   final PackageGraph _graph;
   final List<String> packages;
 
-  PubPackageProvider(PackageGraph graph, [Iterable<String> packages])
+  PubPackageProvider(PackageGraph graph)
       : _graph = graph,
-        packages = [r"$pub", r"$sdk"]
-            ..addAll(packages == null ? graph.packages.keys : packages);
+        packages = [r"$pub", r"$sdk"]..addAll(graph.packages.keys);
 
   Future<Asset> getAsset(AssetId id) {
     // "$pub" is a psuedo-package that allows pub's transformer-loading
@@ -67,7 +66,7 @@ class PubPackageProvider implements PackageProvider {
     }
 
     var nativePath = path.fromUri(id.path);
-    var file = path.join(_graph.packages[id.package].dir, nativePath);
+    var file = _graph.packages[id.package].path(nativePath);
     return new Future.value(new Asset.fromPath(id, file));
   }
 }

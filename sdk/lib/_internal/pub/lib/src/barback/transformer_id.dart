@@ -7,10 +7,8 @@ library pub.barback.transformer_id;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
-import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 
-import '../io.dart';
 import '../utils.dart';
 
 /// A list of the names of all built-in transformers that pub exposes.
@@ -93,17 +91,5 @@ class TransformerId {
     return barback.getAssetById(transformerAsset).then((_) => transformerAsset)
         .catchError((e) => new AssetId(package, 'lib/$package.dart'),
             test: (e) => e is AssetNotFoundException);
-  }
-
-  /// Returns the path to the library identified by this transformer within
-  /// [packageDir], which should be the directory of [package].
-  ///
-  /// If `path` is null, this will determine which library to load.
-  String getFullPath(String packageDir) {
-    if (path != null) return p.join(packageDir, 'lib', p.fromUri('$path.dart'));
-
-    var transformerPath = p.join(packageDir, 'lib', 'transformer.dart');
-    if (fileExists(transformerPath)) return transformerPath;
-    return p.join(packageDir, 'lib', '$package.dart');
   }
 }

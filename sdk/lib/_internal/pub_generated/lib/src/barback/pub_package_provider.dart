@@ -10,11 +10,9 @@ import '../utils.dart';
 class PubPackageProvider implements PackageProvider {
   final PackageGraph _graph;
   final List<String> packages;
-  PubPackageProvider(PackageGraph graph, [Iterable<String> packages])
+  PubPackageProvider(PackageGraph graph)
       : _graph = graph,
-        packages = [
-          r"$pub",
-          r"$sdk"]..addAll(packages == null ? graph.packages.keys : packages);
+        packages = [r"$pub", r"$sdk"]..addAll(graph.packages.keys);
   Future<Asset> getAsset(AssetId id) {
     if (id.package == r'$pub') {
       var components = path.url.split(id.path);
@@ -39,7 +37,7 @@ class PubPackageProvider implements PackageProvider {
       return new Future.value(new Asset.fromPath(id, file));
     }
     var nativePath = path.fromUri(id.path);
-    var file = path.join(_graph.packages[id.package].dir, nativePath);
+    var file = _graph.packages[id.package].path(nativePath);
     return new Future.value(new Asset.fromPath(id, file));
   }
 }

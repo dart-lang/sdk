@@ -73,7 +73,7 @@ class Entrypoint {
       : _packageSymlinks = false;
 
   /// The path to the entrypoint's "packages" directory.
-  String get packagesDir => path.join(root.dir, 'packages');
+  String get packagesDir => root.path('packages');
 
   /// `true` if the entrypoint package currently has a lock file.
   bool get lockFileExists => _lockFile != null || entryExists(lockFilePath);
@@ -91,10 +91,10 @@ class Entrypoint {
   }
 
   /// The path to the entrypoint package's pubspec.
-  String get pubspecPath => path.join(root.dir, 'pubspec.yaml');
+  String get pubspecPath => root.path('pubspec.yaml');
 
   /// The path to the entrypoint package's lockfile.
-  String get lockFilePath => path.join(root.dir, 'pubspec.lock');
+  String get lockFilePath => root.path('pubspec.lock');
 
   /// Gets all dependencies of the [root] package.
   ///
@@ -190,16 +190,16 @@ class Entrypoint {
           unionAll(dependenciesToPrecompile.map(graph.transitiveDependencies))
           .map((package) => package.name).toSet();
 
+      for (var package in dependenciesToPrecompile) {
+        deleteEntry(path.join(depsDir, package));
+      }
+
       var environment = await AssetEnvironment.create(this, BarbackMode.DEBUG,
           packages: packagesToLoad, useDart2JS: false);
 
       /// Ignore barback errors since they'll be emitted via [getAllAssets]
       /// below.
       environment.barback.errors.listen((_) {});
-
-      for (var package in dependenciesToPrecompile) {
-        cleanDir(path.join(depsDir, package));
-      }
 
       // TODO(nweiz): only get assets from [dependenciesToPrecompile] so as not
       // to trigger unnecessary lazy transformers.
@@ -289,7 +289,7 @@ class Entrypoint {
   List<AssetId> _executablesForPackage(PackageGraph graph, String packageName,
       Set<String> changed) {
     var package = graph.packages[packageName];
-    var binDir = path.join(package.dir, 'bin');
+    var binDir = package.path('bin');
     if (!dirExists(binDir)) return [];
     if (graph.isPackageMutable(packageName)) return [];
 
@@ -463,7 +463,7 @@ class Entrypoint {
   /// Saves a list of concrete package versions to the `pubspec.lock` file.
   void _saveLockFile(List<PackageId> packageIds) {
     _lockFile = new LockFile(packageIds);
-    var lockFilePath = path.join(root.dir, 'pubspec.lock');
+    var lockFilePath = root.path('pubspec.lock');
     writeTextFile(lockFilePath, _lockFile.serialize(root.dir, cache.sources));
   }
 
@@ -486,12 +486,12 @@ class Entrypoint {
   void _linkOrDeleteSecondaryPackageDirs() {
     // Only the main "bin" directory gets a "packages" directory, not its
     // subdirectories.
-    var binDir = path.join(root.dir, 'bin');
+    var binDir = root.path('bin');
     if (dirExists(binDir)) _linkOrDeleteSecondaryPackageDir(binDir);
 
     // The others get "packages" directories in subdirectories too.
     for (var dir in ['benchmark', 'example', 'test', 'tool', 'web']) {
-      _linkOrDeleteSecondaryPackageDirsRecursively(path.join(root.dir, dir));
+      _linkOrDeleteSecondaryPackageDirsRecursively(root.path(dir));
     }
  }
 

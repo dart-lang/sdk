@@ -21,7 +21,7 @@ class ExecutableValidator extends Validator {
     // TODO(rnystrom): This can print false positives since a script may be
     // produced by a transformer. Do something better.
     var binFiles = entrypoint.root.listFiles(beneath: "bin", recursive: false)
-        .map((path) => p.relative(path, from: entrypoint.root.dir))
+        .map((path) => entrypoint.root.relative(path))
         .toList();
 
     entrypoint.root.pubspec.executables.forEach((executable, script) {

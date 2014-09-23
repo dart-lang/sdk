@@ -86,8 +86,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
         transform,
         generateSourceMaps: _generateSourceMaps);
     var id = transform.primaryInput.id;
-    var entrypoint =
-        path.join(_environment.graph.packages[id.package].dir, id.path);
+    var entrypoint = _environment.graph.packages[id.package].path(id.path);
     return dart.compile(
         entrypoint,
         provider,
@@ -99,7 +98,7 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
             defaultsTo: _settings.mode == BarbackMode.RELEASE),
         verbose: _configBool('verbose'),
         environment: _configEnvironment,
-        packageRoot: path.join(_environment.rootPackage.dir, "packages"),
+        packageRoot: _environment.rootPackage.path("packages"),
         analyzeAll: _configBool('analyzeAll'),
         suppressWarnings: _configBool('suppressWarnings'),
         suppressHints: _configBool('suppressHints'),
@@ -165,7 +164,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     var buildDir =
         _environment.getSourceDirectoryContaining(_transform.primaryInput.id.path);
     _libraryRootPath =
-        path.join(_environment.rootPackage.dir, buildDir, "packages", r"$sdk");
+        _environment.rootPackage.path(buildDir, "packages", r"$sdk");
   }
   Future<String> provideInput(Uri resourceUri) {
     assert(resourceUri.isAbsolute);
@@ -254,8 +253,8 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     if (id != null) return id;
     var sourcePath = path.fromUri(url);
     if (_environment.containsPath(sourcePath)) {
-      var relative = path.toUri(
-          path.relative(sourcePath, from: _environment.rootPackage.dir)).toString();
+      var relative =
+          path.toUri(_environment.rootPackage.relative(sourcePath)).toString();
       return new AssetId(_environment.rootPackage.name, relative);
     }
     return null;

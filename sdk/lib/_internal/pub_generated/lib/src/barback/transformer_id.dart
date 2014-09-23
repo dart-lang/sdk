@@ -1,9 +1,7 @@
 library pub.barback.transformer_id;
 import 'dart:async';
 import 'package:barback/barback.dart';
-import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
-import '../io.dart';
 import '../utils.dart';
 const _BUILT_IN_TRANSFORMERS = const ['\$dart2js'];
 class TransformerId {
@@ -44,11 +42,5 @@ class TransformerId {
                 transformerAsset).catchError(
                     (e) => new AssetId(package, 'lib/$package.dart'),
                     test: (e) => e is AssetNotFoundException);
-  }
-  String getFullPath(String packageDir) {
-    if (path != null) return p.join(packageDir, 'lib', p.fromUri('$path.dart'));
-    var transformerPath = p.join(packageDir, 'lib', 'transformer.dart');
-    if (fileExists(transformerPath)) return transformerPath;
-    return p.join(packageDir, 'lib', '$package.dart');
   }
 }

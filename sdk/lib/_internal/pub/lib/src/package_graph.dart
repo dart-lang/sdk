@@ -9,7 +9,6 @@ import 'entrypoint.dart';
 import 'lock_file.dart';
 import 'package.dart';
 import 'source/cached.dart';
-import 'source/hosted.dart';
 import 'utils.dart';
 
 /// A holistic view of the entire transitive dependency graph for an entrypoint.
@@ -25,7 +24,11 @@ class PackageGraph {
   /// [packages].
   final LockFile lockFile;
 
-  /// All transitive dependencies of the entrypoint (including itself).
+  /// The transitive dependencies of the entrypoint (including itself).
+  ///
+  /// This may not include all transitive dependencies of the entrypoint if the
+  /// creator of the package graph knows only a subset of the packages are
+  /// relevant in the current context.
   final Map<String, Package> packages;
 
   /// A map of transitive dependencies for each package.

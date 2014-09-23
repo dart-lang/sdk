@@ -501,7 +501,7 @@ class GlobalPackages {
     // TODO(rnystrom): This can print false positives since a script may be
     // produced by a transformer. Do something better.
     var binFiles = package.listFiles(beneath: "bin", recursive: false)
-        .map((path) => p.relative(path, from: package.dir))
+        .map((path) => package.relative(path))
         .toList();
     for (var executable in installed) {
       var script = package.pubspec.executables[executable];

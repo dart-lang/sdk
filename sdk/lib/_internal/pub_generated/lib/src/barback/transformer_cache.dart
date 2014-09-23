@@ -4,9 +4,7 @@ import '../io.dart';
 import '../log.dart' as log;
 import '../package_graph.dart';
 import '../sdk.dart' as sdk;
-import '../source/cached.dart';
 import '../utils.dart';
-import 'asset_environment.dart';
 import 'transformer_id.dart';
 class TransformerCache {
   final PackageGraph _graph;
@@ -16,7 +14,7 @@ class TransformerCache {
   String get _manifestPath => p.join(_dir, "manifest.txt");
   TransformerCache.load(PackageGraph graph)
       : _graph = graph,
-        _dir = p.join(graph.entrypoint.root.dir, ".pub/transformers") {
+        _dir = graph.entrypoint.root.path(".pub/transformers") {
     _oldTransformers = _parseManifest();
   }
   void clearIfOutdated(Set<String> changedPackages) {

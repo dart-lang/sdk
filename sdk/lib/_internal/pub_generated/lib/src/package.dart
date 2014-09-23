@@ -1,7 +1,8 @@
 library pub.package;
 import 'dart:io';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:barback/barback.dart';
+import 'barback/transformer_id.dart';
 import 'io.dart';
 import 'git.dart' as git;
 import 'pubspec.dart';
@@ -18,7 +19,7 @@ class Package {
   final String dir;
   String get name {
     if (pubspec.name != null) return pubspec.name;
-    if (dir != null) return path.basename(dir);
+    if (dir != null) return p.basename(dir);
     return null;
   }
   Version get version => pubspec.version;
@@ -41,17 +42,18 @@ class Package {
         listFiles(
             beneath: "bin",
             recursive: false)).where(
-                (executable) => path.extension(executable) == '.dart').map((executable) {
+                (executable) => p.extension(executable) == '.dart').map((executable) {
       return new AssetId(
           name,
-          path.toUri(path.relative(executable, from: dir)).toString());
+          p.toUri(p.relative(executable, from: dir)).toString());
     }).toList();
   }
   String get readmePath {
-    var readmes = listDir(
-        dir).map(path.basename).where((entry) => entry.contains(_README_REGEXP));
+    var readmes = listFiles(
+        recursive: false).map(
+            p.basename).where((entry) => entry.contains(_README_REGEXP));
     if (readmes.isEmpty) return null;
-    return path.join(dir, readmes.reduce((readme1, readme2) {
+    return p.join(dir, readmes.reduce((readme1, readme2) {
       var extensions1 = ".".allMatches(readme1).length;
       var extensions2 = ".".allMatches(readme2).length;
       var comparison = extensions1.compareTo(extensions2);
@@ -64,6 +66,30 @@ class Package {
         pubspec = new Pubspec.load(packageDir, sources, expectedName: name);
   Package.inMemory(this.pubspec) : dir = null;
   Package(this.pubspec, this.dir);
+  String path(String part1, [String part2, String part3, String part4,
+      String part5, String part6, String part7]) {
+    if (dir == null) {
+      throw new StateError(
+          "Package $name is in-memory and doesn't have paths " "on disk.");
+    }
+    return p.join(dir, part1, part2, part3, part4, part5, part6, part7);
+  }
+  String relative(String path) {
+    if (dir == null) {
+      throw new StateError(
+          "Package $name is in-memory and doesn't have paths " "on disk.");
+    }
+    return p.relative(path, from: dir);
+  }
+  String transformerPath(TransformerId id) {
+    if (id.package != name) {
+      throw new ArgumentError("Transformer $id isn't in package $name.");
+    }
+    if (id.path != null) return path('lib', p.fromUri('${id.path}.dart'));
+    var transformerPath = path('lib/transformer.dart');
+    if (fileExists(transformerPath)) return transformerPath;
+    return path('lib/$name.dart');
+  }
   static final _WHITELISTED_FILES = const ['.htaccess'];
   static final _blacklistedFiles = createFileFilter(['pubspec.lock']);
   static final _blacklistedDirs = createDirectoryFilter(['packages']);
@@ -71,12 +97,12 @@ class Package {
     if (beneath == null) {
       beneath = dir;
     } else {
-      beneath = path.join(dir, beneath);
+      beneath = p.join(dir, beneath);
     }
     if (!dirExists(beneath)) return [];
     var files;
-    if (git.isInstalled && dirExists(path.join(dir, '.git'))) {
-      var relativeBeneath = path.relative(beneath, from: dir);
+    if (git.isInstalled && dirExists(path('.git'))) {
+      var relativeBeneath = p.relative(beneath, from: dir);
       files = git.runSync(
           ["ls-files", "--cached", "--others", "--exclude-standard", relativeBeneath],
           workingDir: dir);

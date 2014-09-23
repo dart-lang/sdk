@@ -4,7 +4,6 @@ import 'entrypoint.dart';
 import 'lock_file.dart';
 import 'package.dart';
 import 'source/cached.dart';
-import 'source/hosted.dart';
 import 'utils.dart';
 class PackageGraph {
   final Entrypoint entrypoint;

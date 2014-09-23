@@ -12,7 +12,6 @@ import '../utils.dart';
 import 'asset_environment.dart';
 import 'barback_server.dart';
 import 'rewrite_import_transformer.dart';
-import 'transformer_cache.dart';
 import 'transformer_id.dart';
 import 'transformer_loader.dart';
 import 'transformers_needed_by_transformers.dart';
@@ -28,8 +27,7 @@ import 'transformers_needed_by_transformers.dart';
 Future loadAllTransformers(AssetEnvironment environment,
     BarbackServer transformerServer) async {
   var transformersNeededByTransformers =
-      computeTransformersNeededByTransformers(environment.graph,
-          packages: environment.packages);
+      computeTransformersNeededByTransformers(environment.graph);
 
   var buffer = new StringBuffer();
   buffer.writeln("Transformer dependencies:");
@@ -52,7 +50,7 @@ Future loadAllTransformers(AssetEnvironment environment,
   // Add a rewrite transformer for each package, so that we can resolve
   // "package:" imports while loading transformers.
   var rewrite = new RewriteImportTransformer();
-  for (var package in environment.packages) {
+  for (var package in environment.graph.packages.keys) {
     environment.barback.updateTransformers(package, [[rewrite]]);
   }
   environment.barback.updateTransformers(r'$pub', [[rewrite]]);
@@ -94,8 +92,7 @@ Future loadAllTransformers(AssetEnvironment environment,
 
   /// Reset the transformers for each package to get rid of [rewrite], which
   /// is no longer needed.
-  await Future.wait(environment.packages.map((packageName) async {
-    var package = environment.graph.packages[packageName];
+  await Future.wait(environment.graph.packages.values.map((package) async {
     var phases = await loader.transformersForPhases(
         package.pubspec.transformers);
     var transformers = environment.getBuiltInTransformers(package);

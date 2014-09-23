@@ -107,7 +107,7 @@ abstract class BarbackCommand extends PubCommand {
 
     // Make sure all of the source directories exist.
     var missing = sourceDirectories.where(
-        (dir) => !dirExists(path.join(entrypoint.root.dir, dir)));
+        (dir) => !dirExists(entrypoint.root.path(dir)));
 
     if (missing.isNotEmpty) {
       dataError(_directorySentence(missing, "does", "do", "not exist"));
@@ -142,7 +142,7 @@ abstract class BarbackCommand extends PubCommand {
 
     // Include every build directory that exists in the package.
     var dirs = _allSourceDirectories.where(
-        (dir) => dirExists(path.join(entrypoint.root.dir, dir)));
+        (dir) => dirExists(entrypoint.root.path(dir)));
 
     if (dirs.isEmpty) {
       var defaultDirs = toSentence(_allSourceDirectories.map(
@@ -158,7 +158,7 @@ abstract class BarbackCommand extends PubCommand {
   /// on the command line.
   void _addDefaultSources() {
     sourceDirectories.addAll(defaultSourceDirectories.where(
-        (dir) => dirExists(path.join(entrypoint.root.dir, dir))));
+        (dir) => dirExists(entrypoint.root.path(dir))));
 
     // TODO(rnystrom): Hackish. Assumes there will only be one or two
     // default sources. That's true for pub build and serve, but isn't as

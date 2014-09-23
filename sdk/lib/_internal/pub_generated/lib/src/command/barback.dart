@@ -55,8 +55,8 @@ abstract class BarbackCommand extends PubCommand {
       usageError(
           _directorySentence(invalid, "isn't", "aren't", "in this package"));
     }
-    var missing = sourceDirectories.where(
-        (dir) => !dirExists(path.join(entrypoint.root.dir, dir)));
+    var missing =
+        sourceDirectories.where((dir) => !dirExists(entrypoint.root.path(dir)));
     if (missing.isNotEmpty) {
       dataError(_directorySentence(missing, "does", "do", "not exist"));
     }
@@ -80,8 +80,8 @@ abstract class BarbackCommand extends PubCommand {
     if (commandOptions.rest.isNotEmpty) {
       usageError('Directory names are not allowed if "--all" is passed.');
     }
-    var dirs = _allSourceDirectories.where(
-        (dir) => dirExists(path.join(entrypoint.root.dir, dir)));
+    var dirs =
+        _allSourceDirectories.where((dir) => dirExists(entrypoint.root.path(dir)));
     if (dirs.isEmpty) {
       var defaultDirs =
           toSentence(_allSourceDirectories.map((name) => '"$name"'));
@@ -93,8 +93,7 @@ abstract class BarbackCommand extends PubCommand {
   }
   void _addDefaultSources() {
     sourceDirectories.addAll(
-        defaultSourceDirectories.where(
-            (dir) => dirExists(path.join(entrypoint.root.dir, dir))));
+        defaultSourceDirectories.where((dir) => dirExists(entrypoint.root.path(dir))));
     if (sourceDirectories.isEmpty) {
       var defaults;
       if (defaultSourceDirectories.length == 1) {

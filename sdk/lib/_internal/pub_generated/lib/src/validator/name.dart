@@ -2,7 +2,6 @@ library pub.validator.name;
 import 'dart:async';
 import 'package:path/path.dart' as path;
 import '../entrypoint.dart';
-import '../io.dart';
 import '../utils.dart';
 import '../validator.dart';
 final _RESERVED_WORDS = [
@@ -64,7 +63,7 @@ class NameValidator extends Validator {
     });
   }
   List<String> get _libraries {
-    var libDir = path.join(entrypoint.root.dir, "lib");
+    var libDir = entrypoint.root.path("lib");
     return entrypoint.root.listFiles(
         beneath: "lib").map(
             (file) =>

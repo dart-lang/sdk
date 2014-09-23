@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
-import '../io.dart';
 import '../utils.dart';
 import '../validator.dart';
 
@@ -51,7 +50,7 @@ class NameValidator extends Validator {
   /// Returns a list of all libraries in the current package as paths relative
   /// to the package's root directory.
   List<String> get _libraries {
-    var libDir = path.join(entrypoint.root.dir, "lib");
+    var libDir = entrypoint.root.path("lib");
     return entrypoint.root.listFiles(beneath: "lib")
         .map((file) => path.relative(file, from: path.dirname(libDir)))
         .where((file) => !path.split(file).contains("src") &&

@@ -11,8 +11,7 @@ class ExecutableValidator extends Validator {
       try {
         var binFiles = entrypoint.root.listFiles(
             beneath: "bin",
-            recursive: false).map(
-                ((path) => p.relative(path, from: entrypoint.root.dir))).toList();
+            recursive: false).map(((path) => entrypoint.root.relative(path))).toList();
         entrypoint.root.pubspec.executables.forEach(((executable, script) {
           var scriptPath = p.join("bin", "$script.dart");
           if (binFiles.contains(scriptPath)) return;

@@ -214,6 +214,70 @@ main() {
                 ".pub/deps/debug/foo/lib",
                 [d.file("foo.dart", "final mode = 'debug';")])]).validate();
   });
+  integration("loads code from the cache", () {
+    servePackages((builder) {
+      builder.serveRepoPackage('barback');
+      builder.serve("foo", "1.2.3", deps: {
+        'barback': 'any'
+      }, pubspec: {
+        'transformers': ['foo']
+      },
+          contents: [
+              d.dir(
+                  "lib",
+                  [
+                      d.file("transformer.dart", replaceTransformer("Hello", "Goodbye")),
+                      d.file("foo.dart", "final message = 'Hello!';")])]);
+    });
+    d.dir(appPath, [d.appPubspec({
+        "foo": "1.2.3"
+      }), d.dir('bin', [d.file('script.dart', """
+          import 'package:foo/foo.dart';
+
+          void main() => print(message);""")])]).create();
+    pubGet(output: contains("Precompiled foo."));
+    d.dir(
+        appPath,
+        [
+            d.dir(
+                ".pub/deps/debug/foo/lib",
+                [d.file("foo.dart", "final message = 'Modified!';")])]).create();
+    var pub = pubRun(args: ["script"]);
+    pub.stdout.expect("Modified!");
+    pub.shouldExit();
+  });
+  integration("doesn't re-transform code loaded from the cache", () {
+    servePackages((builder) {
+      builder.serveRepoPackage('barback');
+      builder.serve("foo", "1.2.3", deps: {
+        'barback': 'any'
+      }, pubspec: {
+        'transformers': ['foo']
+      },
+          contents: [
+              d.dir(
+                  "lib",
+                  [
+                      d.file("transformer.dart", replaceTransformer("Hello", "Goodbye")),
+                      d.file("foo.dart", "final message = 'Hello!';")])]);
+    });
+    d.dir(appPath, [d.appPubspec({
+        "foo": "1.2.3"
+      }), d.dir('bin', [d.file('script.dart', """
+          import 'package:foo/foo.dart';
+
+          void main() => print(message);""")])]).create();
+    pubGet(output: contains("Precompiled foo."));
+    d.dir(
+        appPath,
+        [
+            d.dir(
+                ".pub/deps/debug/foo/lib",
+                [d.file("foo.dart", "final message = 'Hello!';")])]).create();
+    var pub = pubRun(args: ["script"]);
+    pub.stdout.expect("Hello!");
+    pub.shouldExit();
+  });
 }
 String replaceTransformer(String input, String output) {
   return """

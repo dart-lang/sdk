@@ -469,7 +469,7 @@ class GlobalPackages {
     }
     var binFiles = package.listFiles(
         beneath: "bin",
-        recursive: false).map((path) => p.relative(path, from: package.dir)).toList();
+        recursive: false).map((path) => package.relative(path)).toList();
     for (var executable in installed) {
       var script = package.pubspec.executables[executable];
       var scriptPath = p.join("bin", "$script.dart");

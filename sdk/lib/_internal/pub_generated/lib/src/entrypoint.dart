@@ -25,7 +25,7 @@ class Entrypoint {
         _packageSymlinks = packageSymlinks;
   Entrypoint.inMemory(this.root, this._lockFile, this.cache)
       : _packageSymlinks = false;
-  String get packagesDir => path.join(root.dir, 'packages');
+  String get packagesDir => root.path('packages');
   bool get lockFileExists => _lockFile != null || entryExists(lockFilePath);
   LockFile get lockFile {
     if (_lockFile != null) return _lockFile;
@@ -36,8 +36,8 @@ class Entrypoint {
     }
     return _lockFile;
   }
-  String get pubspecPath => path.join(root.dir, 'pubspec.yaml');
-  String get lockFilePath => path.join(root.dir, 'pubspec.lock');
+  String get pubspecPath => root.path('pubspec.yaml');
+  String get lockFilePath => root.path('pubspec.lock');
   Future acquireDependencies(SolveType type, {List<String> useLatest,
       bool dryRun: false}) {
     final completer0 = new Completer();
@@ -154,16 +154,16 @@ class Entrypoint {
                       var packagesToLoad = unionAll(
                           dependenciesToPrecompile.map(
                               graph.transitiveDependencies)).map(((package) => package.name)).toSet();
-                      AssetEnvironment.create(
-                          this,
-                          BarbackMode.DEBUG,
-                          packages: packagesToLoad,
-                          useDart2JS: false).then((x0) {
-                        try {
-                          var environment = x0;
-                          environment.barback.errors.listen(((_) {}));
-                          var it0 = dependenciesToPrecompile.iterator;
-                          break0(x4) {
+                      var it0 = dependenciesToPrecompile.iterator;
+                      break0(x4) {
+                        AssetEnvironment.create(
+                            this,
+                            BarbackMode.DEBUG,
+                            packages: packagesToLoad,
+                            useDart2JS: false).then((x0) {
+                          try {
+                            var environment = x0;
+                            environment.barback.errors.listen(((_) {}));
                             environment.barback.getAllAssets().then((x1) {
                               try {
                                 var assets = x1;
@@ -219,25 +219,25 @@ class Entrypoint {
                             }, onError: (e4) {
                               completer0.completeError(e4);
                             });
+                          } catch (e0) {
+                            completer0.completeError(e0);
                           }
-                          continue0(x5) {
-                            if (it0.moveNext()) {
-                              Future.wait([]).then((x3) {
-                                var package = it0.current;
-                                cleanDir(path.join(depsDir, package));
-                                continue0(null);
-                              });
-                            } else {
-                              break0(null);
-                            }
-                          }
-                          continue0(null);
-                        } catch (e0) {
-                          completer0.completeError(e0);
+                        }, onError: (e5) {
+                          completer0.completeError(e5);
+                        });
+                      }
+                      continue0(x5) {
+                        if (it0.moveNext()) {
+                          Future.wait([]).then((x3) {
+                            var package = it0.current;
+                            deleteEntry(path.join(depsDir, package));
+                            continue0(null);
+                          });
+                        } else {
+                          break0(null);
                         }
-                      }, onError: (e5) {
-                        completer0.completeError(e5);
-                      });
+                      }
+                      continue0(null);
                     } catch (e6) {
                       completer0.completeError(e6);
                     }
@@ -442,7 +442,7 @@ class Entrypoint {
   List<AssetId> _executablesForPackage(PackageGraph graph, String packageName,
       Set<String> changed) {
     var package = graph.packages[packageName];
-    var binDir = path.join(package.dir, 'bin');
+    var binDir = package.path('bin');
     if (!dirExists(binDir)) return [];
     if (graph.isPackageMutable(packageName)) return [];
     var executables = package.executableIds;
@@ -555,7 +555,7 @@ class Entrypoint {
   }
   void _saveLockFile(List<PackageId> packageIds) {
     _lockFile = new LockFile(packageIds);
-    var lockFilePath = path.join(root.dir, 'pubspec.lock');
+    var lockFilePath = root.path('pubspec.lock');
     writeTextFile(lockFilePath, _lockFile.serialize(root.dir, cache.sources));
   }
   void _linkSelf() {
@@ -570,10 +570,10 @@ class Entrypoint {
         relative: true);
   }
   void _linkOrDeleteSecondaryPackageDirs() {
-    var binDir = path.join(root.dir, 'bin');
+    var binDir = root.path('bin');
     if (dirExists(binDir)) _linkOrDeleteSecondaryPackageDir(binDir);
     for (var dir in ['benchmark', 'example', 'test', 'tool', 'web']) {
-      _linkOrDeleteSecondaryPackageDirsRecursively(path.join(root.dir, dir));
+      _linkOrDeleteSecondaryPackageDirsRecursively(root.path(dir));
     }
   }
   void _linkOrDeleteSecondaryPackageDirsRecursively(String dir) {

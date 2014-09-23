@@ -11,6 +11,7 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
 
+import '../cached_package.dart';
 import '../entrypoint.dart';
 import '../exceptions.dart';
 import '../io.dart';
@@ -66,15 +67,33 @@ class AssetEnvironment {
 
     return entrypoint.loadPackageGraph().then((graph) {
       log.fine("Loaded package graph.");
-      var barback = new Barback(new PubPackageProvider(graph, packages));
+      graph = _adjustPackageGraph(graph, mode, packages);
+      var barback = new Barback(new PubPackageProvider(graph));
       barback.log.listen(_log);
 
       var environment = new AssetEnvironment._(graph, barback, mode,
-          watcherType, hostname, basePort, packages);
+          watcherType, hostname, basePort);
 
       return environment._load(useDart2JS: useDart2JS)
           .then((_) => environment);
     });
+  }
+
+  /// Return a version of [graph] that's restricted to [packages] (if passed)
+  /// and loads cached packages (if [mode] is [BarbackMode.DEBUG]).
+  static PackageGraph _adjustPackageGraph(PackageGraph graph,
+      BarbackMode mode, Iterable<String> packages) {
+    if (mode != BarbackMode.DEBUG && packages == null) return graph;
+    packages = (packages == null ? graph.packages.keys : packages).toSet();
+
+    return new PackageGraph(graph.entrypoint, graph.lockFile,
+        new Map.fromIterable(packages, value: (packageName) {
+      var package = graph.packages[packageName];
+      if (mode != BarbackMode.DEBUG) return package;
+      var cache = path.join('.pub/deps/debug', packageName);
+      if (!dirExists(cache)) return package;
+      return new CachedPackage(package, cache);
+    }));
   }
 
   /// The server for the Web Socket API and admin interface.
@@ -90,7 +109,12 @@ class AssetEnvironment {
   /// The root package being built.
   Package get rootPackage => graph.entrypoint.root;
 
-  /// The underlying [PackageGraph] being built.
+  /// The graph of packages whose assets and transformers are loaded in this
+  /// environment.
+  ///
+  /// This isn't necessarily identical to the graph that's passed in to the
+  /// environment. It may expose fewer packages if some packages' assets don't
+  /// need to be loaded, and it may expose some [CachedPackage]s.
   final PackageGraph graph;
 
   /// The mode to run the transformers in.
@@ -113,12 +137,6 @@ class AssetEnvironment {
   /// numbers will be selected for each server.
   final int _basePort;
 
-  /// The set of all packages that are visible for this environment.
-  ///
-  /// By default, this is all transitive dependencies of the entrypoint, but it
-  /// may be a narrower set if fewer packages are needed.
-  final Set<String> packages;
-
   /// The modified source assets that have not been sent to barback yet.
   ///
   /// The build environment can be paused (by calling [pauseUpdates]) and
@@ -134,12 +152,8 @@ class AssetEnvironment {
   /// go to barback immediately.
   Set<AssetId> _modifiedSources;
 
-  AssetEnvironment._(PackageGraph graph, this.barback, this.mode,
-        this._watcherType, this._hostname, this._basePort,
-        Iterable<String> packages)
-      : graph = graph,
-        packages = packages == null ? graph.packages.keys.toSet() :
-            packages.toSet();
+  AssetEnvironment._(this.graph, this.barback, this.mode,
+        this._watcherType, this._hostname, this._basePort);
 
   /// Gets the built-in [Transformer]s that should be added to [package].
   ///
@@ -344,7 +358,7 @@ class AssetEnvironment {
   Future<List<Uri>> _lookUpPathInPackagesDirectory(String assetPath) {
     var components = path.split(path.relative(assetPath));
     if (components.first != "packages") return new Future.value([]);
-    if (!packages.contains(components[1])) return new Future.value([]);
+    if (!graph.packages.containsKey(components[1])) return new Future.value([]);
     return Future.wait(_directories.values.map((dir) {
       return dir.server.then((server) =>
           server.url.resolveUri(path.toUri(assetPath)));
@@ -354,10 +368,10 @@ class AssetEnvironment {
   /// Look up [assetPath] in the "lib" or "asset" directory of a dependency
   /// package.
   Future<List<Uri>> _lookUpPathInDependency(String assetPath) {
-    for (var packageName in packages) {
+    for (var packageName in graph.packages.keys) {
       var package = graph.packages[packageName];
-      var libDir = path.join(package.dir, 'lib');
-      var assetDir = path.join(package.dir, 'asset');
+      var libDir = package.path('lib');
+      var assetDir = package.path('asset');
 
       var uri;
       if (path.isWithin(libDir, assetPath)) {
@@ -533,8 +547,8 @@ class AssetEnvironment {
     // Just include the "lib" directory from each package. We'll add the
     // other build directories in the root package by calling
     // [serveDirectory].
-    return Future.wait(packages.map((package) {
-      return _provideDirectorySources(graph.packages[package], "lib");
+    return Future.wait(graph.packages.values.map((package) {
+      return _provideDirectorySources(package, "lib");
     }));
   }
 
@@ -598,7 +612,7 @@ class AssetEnvironment {
     return package.listFiles(beneath: dir).map((file) {
       // From profiling, path.relative here is just as fast as a raw substring
       // and is correct in the case where package.dir has a trailing slash.
-      var relative = path.relative(file, from: package.dir);
+      var relative = package.relative(file);
 
       if (Platform.operatingSystem == 'windows') {
         relative = relative.replaceAll("\\", "/");
@@ -622,7 +636,7 @@ class AssetEnvironment {
       return new Future.value();
     }
 
-    var subdirectory = path.join(package.dir, dir);
+    var subdirectory = package.path(dir);
     if (!dirExists(subdirectory)) return new Future.value();
 
     // TODO(nweiz): close this watcher when [barback] is closed.
@@ -646,7 +660,7 @@ class AssetEnvironment {
       if (event.path.endsWith(".dart.js.map")) return;
       if (event.path.endsWith(".dart.precompiled.js")) return;
 
-      var idPath = path.relative(event.path, from: package.dir);
+      var idPath = package.relative(event.path);
       var id = new AssetId(package.name, path.toUri(idPath).toString());
       if (event.type == ChangeType.REMOVE) {
         if (_modifiedSources != null) {
