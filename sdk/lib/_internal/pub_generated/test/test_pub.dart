@@ -280,11 +280,21 @@ void confirmPublish(ScheduledProcess pub) {
               "Looks great! Are you ready to upload your package (y/n)?"));
   pub.writeLine("y");
 }
-ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
-  String pathInSandbox(String relPath) {
-    return p.join(p.absolute(sandboxDir), relPath);
+String _pathInSandbox(String relPath) {
+  return p.join(p.absolute(sandboxDir), relPath);
+}
+Map getPubTestEnvironment([Uri tokenEndpoint]) {
+  var environment = {};
+  environment['_PUB_TESTING'] = 'true';
+  environment['PUB_CACHE'] = _pathInSandbox(cachePath);
+  environment['_PUB_TEST_SDK_VERSION'] = "0.1.2+3";
+  if (tokenEndpoint != null) {
+    environment['_PUB_TEST_TOKEN_ENDPOINT'] = tokenEndpoint.toString();
   }
-  ensureDir(pathInSandbox(appPath));
+  return environment;
+}
+ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
+  ensureDir(_pathInSandbox(appPath));
   var dartBin = Platform.executable;
   if (dartBin.contains(Platform.pathSeparator)) {
     dartBin = p.absolute(dartBin);
@@ -294,13 +304,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   dartArgs.addAll(args);
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
   var environmentFuture = tokenEndpoint.then((tokenEndpoint) {
-    var environment = {};
-    environment['_PUB_TESTING'] = 'true';
-    environment['PUB_CACHE'] = pathInSandbox(cachePath);
-    environment['_PUB_TEST_SDK_VERSION'] = "0.1.2+3";
-    if (tokenEndpoint != null) {
-      environment['_PUB_TEST_TOKEN_ENDPOINT'] = tokenEndpoint.toString();
-    }
+    var environment = getPubTestEnvironment(tokenEndpoint);
     if (_hasServer) {
       return port.then((p) {
         environment['PUB_HOSTED_URL'] = "http://localhost:$p";
@@ -313,7 +317,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
       dartBin,
       dartArgs,
       environment: environmentFuture,
-      workingDirectory: pathInSandbox(appPath),
+      workingDirectory: _pathInSandbox(appPath),
       description: args.isEmpty ? 'pub' : 'pub ${args.first}');
 }
 class PubProcess extends ScheduledProcess {

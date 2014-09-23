@@ -112,35 +112,109 @@ class AssetEnvironment {
             (_) =>
                 BarbackServer.bind(this, _hostname, 0, package: package, rootDirectory: "bin"));
   }
-  Future precompileExecutables(String packageName, String directory,
-      {Iterable<AssetId> executableIds}) {
-    if (executableIds == null) {
-      executableIds = graph.packages[packageName].executableIds;
-    }
-    log.fine("executables for $packageName: $executableIds");
-    if (executableIds.isEmpty) return null;
-    var package = graph.packages[packageName];
-    return servePackageBinDirectory(packageName).then((server) {
-      return waitAndPrintErrors(executableIds.map((id) {
-        var basename = path.url.basename(id.path);
-        var snapshotPath = path.join(directory, "$basename.snapshot");
-        return runProcess(
-            Platform.executable,
-            [
-                '--snapshot=$snapshotPath',
-                server.url.resolve(basename).toString()]).then((result) {
-          if (result.success) {
-            log.message("Precompiled ${_formatExecutable(id)}.");
-          } else {
-            throw new ApplicationException(
-                log.yellow("Failed to precompile " "${_formatExecutable(id)}:\n") +
-                    result.stderr.join('\n'));
+  Future<Map<String, String>> precompileExecutables(String packageName,
+      String directory, {Iterable<AssetId> executableIds}) {
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        join0() {
+          log.fine("Executables for ${packageName}: ${executableIds}");
+          join1() {
+            var package = graph.packages[packageName];
+            servePackageBinDirectory(packageName).then((x0) {
+              try {
+                var server = x0;
+                join2(x1) {
+                  completer0.complete(null);
+                }
+                finally0(cont0, v0) {
+                  server.close();
+                  cont0(v0);
+                }
+                catch0(e1) {
+                  finally0(join2, null);
+                }
+                try {
+                  var precompiled = {};
+                  waitAndPrintErrors(executableIds.map(((id) {
+                    final completer0 = new Completer();
+                    scheduleMicrotask(() {
+                      try {
+                        var basename = path.url.basename(id.path);
+                        var snapshotPath =
+                            path.join(directory, "${basename}.snapshot");
+                        runProcess(
+                            Platform.executable,
+                            [
+                                '--snapshot=${snapshotPath}',
+                                server.url.resolve(basename).toString()]).then((x0) {
+                          try {
+                            var result = x0;
+                            join0() {
+                              completer0.complete(null);
+                            }
+                            if (result.success) {
+                              log.message(
+                                  "Precompiled ${_formatExecutable(id)}.");
+                              precompiled[path.withoutExtension(basename)] =
+                                  snapshotPath;
+                              join0();
+                            } else {
+                              completer0.completeError(
+                                  new ApplicationException(
+                                      log.yellow("Failed to precompile ${_formatExecutable(id)}:\n") +
+                                          result.stderr.join('\n')));
+                            }
+                          } catch (e0) {
+                            completer0.completeError(e0);
+                          }
+                        }, onError: (e1) {
+                          completer0.completeError(e1);
+                        });
+                      } catch (e2) {
+                        completer0.completeError(e2);
+                      }
+                    });
+                    return completer0.future;
+                  }))).then((x2) {
+                    try {
+                      x2;
+                      finally0((v1) {
+                        completer0.complete(v1);
+                      }, precompiled);
+                    } catch (e2) {
+                      catch0(e2);
+                    }
+                  }, onError: (e3) {
+                    catch0(e3);
+                  });
+                } catch (e4) {
+                  catch0(e4);
+                }
+              } catch (e0) {
+                completer0.completeError(e0);
+              }
+            }, onError: (e5) {
+              completer0.completeError(e5);
+            });
           }
-        });
-      })).whenComplete(() {
-        server.close();
-      });
+          if (executableIds.isEmpty) {
+            completer0.complete([]);
+          } else {
+            join1();
+          }
+        }
+        if (executableIds == null) {
+          executableIds = graph.packages[packageName].executableIds;
+          join0();
+        } else {
+          join0();
+        }
+      } catch (e6) {
+        completer0.completeError(e6);
+      }
     });
+    return completer0.future;
   }
   String _formatExecutable(AssetId id) =>
       log.bold("${id.package}:${path.basenameWithoutExtension(id.path)}");

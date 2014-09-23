@@ -237,38 +237,45 @@ class AssetEnvironment {
   /// [directory].
   ///
   /// If [executableIds] is passed, only those executables are precompiled.
-  Future precompileExecutables(String packageName, String directory,
-      {Iterable<AssetId> executableIds}) {
+  ///
+  /// Returns a map from executable name to path for the snapshots that were
+  /// successfully precompiled.
+  Future<Map<String, String>> precompileExecutables(String packageName,
+      String directory, {Iterable<AssetId> executableIds}) async {
     if (executableIds == null) {
       executableIds = graph.packages[packageName].executableIds;
     }
-    log.fine("executables for $packageName: $executableIds");
-    if (executableIds.isEmpty) return null;
+
+    log.fine("Executables for $packageName: $executableIds");
+    if (executableIds.isEmpty) return [];
 
     var package = graph.packages[packageName];
-    return servePackageBinDirectory(packageName).then((server) {
-      return waitAndPrintErrors(executableIds.map((id) {
+    var server = await servePackageBinDirectory(packageName);
+    try {
+      var precompiled = {};
+      await waitAndPrintErrors(executableIds.map((id) async {
         var basename = path.url.basename(id.path);
         var snapshotPath = path.join(directory, "$basename.snapshot");
-        return runProcess(Platform.executable, [
+        var result = await runProcess(Platform.executable, [
           '--snapshot=$snapshotPath',
           server.url.resolve(basename).toString()
-        ]).then((result) {
-          if (result.success) {
-            log.message("Precompiled ${_formatExecutable(id)}.");
-          } else {
-            throw new ApplicationException(
-                log.yellow("Failed to precompile "
-                    "${_formatExecutable(id)}:\n") +
-                result.stderr.join('\n'));
-          }
-        });
-      })).whenComplete(() {
-        // Don't return this future, since we have no need to wait for the
-        // server to fully shut down.
-        server.close();
-      });
-    });
+        ]);
+        if (result.success) {
+          log.message("Precompiled ${_formatExecutable(id)}.");
+          precompiled[path.withoutExtension(basename)] = snapshotPath;
+        } else {
+          throw new ApplicationException(
+              log.yellow("Failed to precompile ${_formatExecutable(id)}:\n") +
+              result.stderr.join('\n'));
+        }
+      }));
+
+      return precompiled;
+    } finally {
+      // Don't await this future, since we have no need to wait for the server
+      // to fully shut down.
+      server.close();
+    }
   }
 
   /// Returns the executable name for [id].

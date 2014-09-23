@@ -230,7 +230,7 @@ class Entrypoint {
 
   /// Precompiles all executables from dependencies that don't transitively
   /// depend on [this] or on a path dependency.
-  Future precompileExecutables({Iterable<String> changed}) {
+  Future precompileExecutables({Iterable<String> changed}) async {
     if (changed != null) changed = changed.toSet();
 
     var binDir = path.join('.pub', 'bin');
@@ -243,44 +243,41 @@ class Entrypoint {
         readTextFile(sdkVersionPath) == "${sdk.version}\n";
     if (!sdkMatches) changed = null;
 
-    return loadPackageGraph().then((graph) {
-      var executables = new Map.fromIterable(root.immediateDependencies,
-          key: (dep) => dep.name,
-          value: (dep) => _executablesForPackage(graph, dep.name, changed));
+    var graph = await loadPackageGraph();
+    var executables = new Map.fromIterable(root.immediateDependencies,
+        key: (dep) => dep.name,
+        value: (dep) => _executablesForPackage(graph, dep.name, changed));
 
-      for (var package in executables.keys.toList()) {
-        if (executables[package].isEmpty) executables.remove(package);
-      }
+    for (var package in executables.keys.toList()) {
+      if (executables[package].isEmpty) executables.remove(package);
+    }
 
-      if (!sdkMatches) deleteEntry(binDir);
-      if (executables.isEmpty) return null;
+    if (!sdkMatches) deleteEntry(binDir);
+    if (executables.isEmpty) return;
 
-      return log.progress("Precompiling executables", () {
-        ensureDir(binDir);
+    await log.progress("Precompiling executables", () async {
+      ensureDir(binDir);
 
-        // Make sure there's a trailing newline so our version file matches the
-        // SDK's.
-        writeTextFile(sdkVersionPath, "${sdk.version}\n");
+      // Make sure there's a trailing newline so our version file matches the
+      // SDK's.
+      writeTextFile(sdkVersionPath, "${sdk.version}\n");
 
-        var packagesToLoad =
-            unionAll(executables.keys.map(graph.transitiveDependencies))
-            .map((package) => package.name).toSet();
-        return AssetEnvironment.create(this, BarbackMode.RELEASE,
-            packages: packagesToLoad,
-            useDart2JS: false).then((environment) {
-          environment.barback.errors.listen((error) {
-            log.error(log.red("Build error:\n$error"));
-          });
-
-          return waitAndPrintErrors(executables.keys.map((package) {
-            var dir = path.join(binDir, package);
-            cleanDir(dir);
-            return environment.precompileExecutables(
-                package, dir,
-                executableIds: executables[package]);
-          }));
-        });
+      var packagesToLoad =
+          unionAll(executables.keys.map(graph.transitiveDependencies))
+          .map((package) => package.name).toSet();
+      var environment = await AssetEnvironment.create(this, BarbackMode.RELEASE,
+          packages: packagesToLoad,
+          useDart2JS: false);
+      environment.barback.errors.listen((error) {
+        log.error(log.red("Build error:\n$error"));
       });
+
+      await waitAndPrintErrors(executables.keys.map((package) async {
+        var dir = path.join(binDir, package);
+        cleanDir(dir);
+        await environment.precompileExecutables(package, dir,
+            executableIds: executables[package]);
+      }));
     });
   }
 

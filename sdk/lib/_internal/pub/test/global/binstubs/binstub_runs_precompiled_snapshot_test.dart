@@ -9,31 +9,24 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration("creates binstubs for each executable in the pubspec", () {
+  integration("the binstubs runs a precompiled snapshot if present", () {
     servePackages((builder) {
       builder.serve("foo", "1.0.0", pubspec: {
         "executables": {
-          "one": null,
-          "two-renamed": "second"
+          "foo-script": "script"
         }
       }, contents: [
         d.dir("bin", [
-          d.file("one.dart", "main(args) => print('one');"),
-          d.file("second.dart", "main(args) => print('two');"),
-          d.file("nope.dart", "main(args) => print('nope');")
+          d.file("script.dart", "main(args) => print('ok');")
         ])
       ]);
     });
 
-    schedulePub(args: ["global", "activate", "foo"], output:
-        contains("Installed executables one and two-renamed."));
+    schedulePub(args: ["global", "activate", "foo"]);
 
     d.dir(cachePath, [
       d.dir("bin", [
-        d.matcherFile("one", contains("one")),
-        d.matcherFile("two-renamed", contains("second")),
-        d.nothing("two"),
-        d.nothing("nope")
+        d.matcherFile("foo-script", contains("script.dart.snapshot"))
       ])
     ]).validate();
   });

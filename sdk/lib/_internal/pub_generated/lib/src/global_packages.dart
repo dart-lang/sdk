@@ -36,13 +36,11 @@ class GlobalPackages {
             var name = x0;
             _describeActive(name);
             _installInCache(
-                new PackageDep(name, "git", VersionConstraint.any, repo)).then((x1) {
+                new PackageDep(name, "git", VersionConstraint.any, repo),
+                executables,
+                overwriteBinStubs: overwriteBinStubs).then((x1) {
               try {
-                var package = x1;
-                _updateBinStubs(
-                    package,
-                    executables,
-                    overwriteBinStubs: overwriteBinStubs);
+                x1;
                 completer0.complete(null);
               } catch (e1) {
                 completer0.completeError(e1);
@@ -69,13 +67,11 @@ class GlobalPackages {
       try {
         _describeActive(name);
         _installInCache(
-            new PackageDep(name, "hosted", constraint, name)).then((x0) {
+            new PackageDep(name, "hosted", constraint, name),
+            executables,
+            overwriteBinStubs: overwriteBinStubs).then((x0) {
           try {
-            var package = x0;
-            _updateBinStubs(
-                package,
-                executables,
-                overwriteBinStubs: overwriteBinStubs);
+            x0;
             completer0.complete(null);
           } catch (e0) {
             completer0.completeError(e0);
@@ -133,7 +129,8 @@ class GlobalPackages {
     });
     return completer0.future;
   }
-  Future<Package> _installInCache(PackageDep dep) {
+  Future _installInCache(PackageDep dep, List<String> executables,
+      {bool overwriteBinStubs}) {
     final completer0 = new Completer();
     scheduleMicrotask(() {
       try {
@@ -162,9 +159,14 @@ class GlobalPackages {
                           graph.entrypoint,
                           dep.name).then((x3) {
                         try {
-                          x3;
+                          var snapshots = x3;
                           _writeLockFile(dep.name, lockFile);
-                          completer0.complete(graph.packages[dep.name]);
+                          _updateBinStubs(
+                              graph.packages[dep.name],
+                              executables,
+                              overwriteBinStubs: overwriteBinStubs,
+                              snapshots: snapshots);
+                          completer0.complete(null);
                         } catch (e3) {
                           completer0.completeError(e3);
                         }
@@ -216,19 +218,36 @@ class GlobalPackages {
     });
     return completer0.future;
   }
-  Future _precompileExecutables(Entrypoint entrypoint, String package) {
+  Future<Map<String, String>> _precompileExecutables(Entrypoint entrypoint,
+      String package) {
     return log.progress("Precompiling executables", () {
-      var binDir = p.join(_directory, package, 'bin');
-      cleanDir(binDir);
-      return AssetEnvironment.create(
-          entrypoint,
-          BarbackMode.RELEASE,
-          useDart2JS: false).then((environment) {
-        environment.barback.errors.listen((error) {
-          log.error(log.red("Build error:\n$error"));
-        });
-        return environment.precompileExecutables(package, binDir);
+      final completer0 = new Completer();
+      scheduleMicrotask(() {
+        try {
+          var binDir = p.join(_directory, package, 'bin');
+          cleanDir(binDir);
+          AssetEnvironment.create(
+              entrypoint,
+              BarbackMode.RELEASE,
+              useDart2JS: false).then((x0) {
+            try {
+              var environment = x0;
+              environment.barback.errors.listen(((error) {
+                log.error(log.red("Build error:\n$error"));
+              }));
+              completer0.complete(
+                  environment.precompileExecutables(package, binDir));
+            } catch (e0) {
+              completer0.completeError(e0);
+            }
+          }, onError: (e1) {
+            completer0.completeError(e1);
+          });
+        } catch (e2) {
+          completer0.completeError(e2);
+        }
       });
+      return completer0.future;
     });
   }
   Future<PackageId> _cacheDependency(PackageId id) {
@@ -393,7 +412,8 @@ class GlobalPackages {
     }
   }
   void _updateBinStubs(Package package, List<String> executables,
-      {bool overwriteBinStubs}) {
+      {bool overwriteBinStubs, Map<String, String> snapshots}) {
+    if (snapshots == null) snapshots = const {};
     _deleteBinStubs(package.name);
     if ((executables != null && executables.isEmpty) ||
         package.pubspec.executables.isEmpty) {
@@ -406,8 +426,12 @@ class GlobalPackages {
     for (var executable in allExecutables) {
       if (executables != null && !executables.contains(executable)) continue;
       var script = package.pubspec.executables[executable];
-      var previousPackage =
-          _createBinStub(package, executable, script, overwrite: overwriteBinStubs);
+      var previousPackage = _createBinStub(
+          package,
+          executable,
+          script,
+          overwrite: overwriteBinStubs,
+          snapshot: snapshots[script]);
       if (previousPackage != null) {
         collided[executable] = previousPackage;
         if (!overwriteBinStubs) continue;
@@ -457,7 +481,7 @@ class GlobalPackages {
     }
   }
   String _createBinStub(Package package, String executable, String script,
-      {bool overwrite}) {
+      {bool overwrite, String snapshot}) {
     var binStubPath = p.join(_binStubDir, executable);
     var previousPackage;
     if (fileExists(binStubPath)) {
@@ -470,6 +494,13 @@ class GlobalPackages {
         log.fine("Could not parse binstub $binStubPath:\n$contents");
       }
     }
+    var invocation;
+    if (snapshot != null) {
+      assert(p.isAbsolute(snapshot));
+      invocation = 'dart "$snapshot"';
+    } else {
+      invocation = "pub global run ${package.name}:$script";
+    }
     if (Platform.operatingSystem == "windows") {
       var batch = """
 @echo off
@@ -478,7 +509,7 @@ rem Package: ${package.name}
 rem Version: ${package.version}
 rem Executable: ${executable}
 rem Script: ${script}
-pub global run ${package.name}:$script "%*"
+$invocation "%*"
 """;
       writeTextFile(binStubPath, batch);
     } else {
@@ -488,7 +519,7 @@ pub global run ${package.name}:$script "%*"
 # Version: ${package.version}
 # Executable: ${executable}
 # Script: ${script}
-pub global run ${package.name}:$script "\$@"
+$invocation "\$@"
 """;
       writeTextFile(binStubPath, bash);
       var result = Process.runSync('chmod', ['+x', binStubPath]);

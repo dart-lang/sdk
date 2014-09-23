@@ -284,48 +284,160 @@ class Entrypoint {
     return completer0.future;
   }
   Future precompileExecutables({Iterable<String> changed}) {
-    if (changed != null) changed = changed.toSet();
-    var binDir = path.join('.pub', 'bin');
-    var sdkVersionPath = path.join(binDir, 'sdk-version');
-    var sdkMatches =
-        fileExists(sdkVersionPath) &&
-        readTextFile(sdkVersionPath) == "${sdk.version}\n";
-    if (!sdkMatches) changed = null;
-    return loadPackageGraph().then((graph) {
-      var executables = new Map.fromIterable(
-          root.immediateDependencies,
-          key: (dep) => dep.name,
-          value: (dep) => _executablesForPackage(graph, dep.name, changed));
-      for (var package in executables.keys.toList()) {
-        if (executables[package].isEmpty) executables.remove(package);
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        join0() {
+          var binDir = path.join('.pub', 'bin');
+          var sdkVersionPath = path.join(binDir, 'sdk-version');
+          var sdkMatches =
+              fileExists(sdkVersionPath) &&
+              readTextFile(sdkVersionPath) == "${sdk.version}\n";
+          join1() {
+            loadPackageGraph().then((x0) {
+              try {
+                var graph = x0;
+                var executables = new Map.fromIterable(
+                    root.immediateDependencies,
+                    key: ((dep) => dep.name),
+                    value: ((dep) => _executablesForPackage(graph, dep.name, changed)));
+                var it0 = executables.keys.toList().iterator;
+                break0(x3) {
+                  join2() {
+                    join3() {
+                      log.progress("Precompiling executables", (() {
+                        final completer0 = new Completer();
+                        scheduleMicrotask(() {
+                          try {
+                            ensureDir(binDir);
+                            writeTextFile(sdkVersionPath, "${sdk.version}\n");
+                            var packagesToLoad = unionAll(
+                                executables.keys.map(
+                                    graph.transitiveDependencies)).map(((package) => package.name)).toSet();
+                            AssetEnvironment.create(
+                                this,
+                                BarbackMode.RELEASE,
+                                packages: packagesToLoad,
+                                useDart2JS: false).then((x0) {
+                              try {
+                                var environment = x0;
+                                environment.barback.errors.listen(((error) {
+                                  log.error(log.red("Build error:\n$error"));
+                                }));
+                                waitAndPrintErrors(
+                                    executables.keys.map(((package) {
+                                  final completer0 = new Completer();
+                                  scheduleMicrotask(() {
+                                    try {
+                                      var dir = path.join(binDir, package);
+                                      cleanDir(dir);
+                                      environment.precompileExecutables(
+                                          package,
+                                          dir,
+                                          executableIds: executables[package]).then((x0) {
+                                        try {
+                                          x0;
+                                          completer0.complete(null);
+                                        } catch (e0) {
+                                          completer0.completeError(e0);
+                                        }
+                                      }, onError: (e1) {
+                                        completer0.completeError(e1);
+                                      });
+                                    } catch (e2) {
+                                      completer0.completeError(e2);
+                                    }
+                                  });
+                                  return completer0.future;
+                                }))).then((x1) {
+                                  try {
+                                    x1;
+                                    completer0.complete(null);
+                                  } catch (e1) {
+                                    completer0.completeError(e1);
+                                  }
+                                }, onError: (e2) {
+                                  completer0.completeError(e2);
+                                });
+                              } catch (e0) {
+                                completer0.completeError(e0);
+                              }
+                            }, onError: (e3) {
+                              completer0.completeError(e3);
+                            });
+                          } catch (e4) {
+                            completer0.completeError(e4);
+                          }
+                        });
+                        return completer0.future;
+                      })).then((x1) {
+                        try {
+                          x1;
+                          completer0.complete(null);
+                        } catch (e1) {
+                          completer0.completeError(e1);
+                        }
+                      }, onError: (e2) {
+                        completer0.completeError(e2);
+                      });
+                    }
+                    if (executables.isEmpty) {
+                      completer0.complete(null);
+                    } else {
+                      join3();
+                    }
+                  }
+                  if (!sdkMatches) {
+                    deleteEntry(binDir);
+                    join2();
+                  } else {
+                    join2();
+                  }
+                }
+                continue0(x4) {
+                  if (it0.moveNext()) {
+                    Future.wait([]).then((x2) {
+                      var package = it0.current;
+                      join4() {
+                        continue0(null);
+                      }
+                      if (executables[package].isEmpty) {
+                        executables.remove(package);
+                        join4();
+                      } else {
+                        join4();
+                      }
+                    });
+                  } else {
+                    break0(null);
+                  }
+                }
+                continue0(null);
+              } catch (e0) {
+                completer0.completeError(e0);
+              }
+            }, onError: (e3) {
+              completer0.completeError(e3);
+            });
+          }
+          if (!sdkMatches) {
+            changed = null;
+            join1();
+          } else {
+            join1();
+          }
+        }
+        if (changed != null) {
+          changed = changed.toSet();
+          join0();
+        } else {
+          join0();
+        }
+      } catch (e4) {
+        completer0.completeError(e4);
       }
-      if (!sdkMatches) deleteEntry(binDir);
-      if (executables.isEmpty) return null;
-      return log.progress("Precompiling executables", () {
-        ensureDir(binDir);
-        writeTextFile(sdkVersionPath, "${sdk.version}\n");
-        var packagesToLoad = unionAll(
-            executables.keys.map(
-                graph.transitiveDependencies)).map((package) => package.name).toSet();
-        return AssetEnvironment.create(
-            this,
-            BarbackMode.RELEASE,
-            packages: packagesToLoad,
-            useDart2JS: false).then((environment) {
-          environment.barback.errors.listen((error) {
-            log.error(log.red("Build error:\n$error"));
-          });
-          return waitAndPrintErrors(executables.keys.map((package) {
-            var dir = path.join(binDir, package);
-            cleanDir(dir);
-            return environment.precompileExecutables(
-                package,
-                dir,
-                executableIds: executables[package]);
-          }));
-        });
-      });
     });
+    return completer0.future;
   }
   List<AssetId> _executablesForPackage(PackageGraph graph, String packageName,
       Set<String> changed) {

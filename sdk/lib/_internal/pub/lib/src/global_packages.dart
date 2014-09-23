@@ -93,10 +93,9 @@ class GlobalPackages {
     // dependencies. Their executables shouldn't be cached, and there should
     // be a mechanism for redoing dependency resolution if a path pubspec has
     // changed (see also issue 20499).
-    var package = await _installInCache(
-        new PackageDep(name, "git", VersionConstraint.any, repo));
-    _updateBinStubs(package, executables,
-        overwriteBinStubs: overwriteBinStubs);
+    await _installInCache(
+        new PackageDep(name, "git", VersionConstraint.any, repo),
+        executables, overwriteBinStubs: overwriteBinStubs);
   }
 
   /// Finds the latest version of the hosted package with [name] that matches
@@ -112,10 +111,8 @@ class GlobalPackages {
   Future activateHosted(String name, VersionConstraint constraint,
       List<String> executables, {bool overwriteBinStubs}) async {
     _describeActive(name);
-    var package = await _installInCache(
-        new PackageDep(name, "hosted", constraint, name));
-    _updateBinStubs(package, executables,
-        overwriteBinStubs: overwriteBinStubs);
+    await _installInCache(new PackageDep(name, "hosted", constraint, name),
+        executables, overwriteBinStubs: overwriteBinStubs);
   }
 
   /// Makes the local package at [path] globally active.
@@ -155,9 +152,8 @@ class GlobalPackages {
   }
 
   /// Installs the package [dep] and its dependencies into the system cache.
-  ///
-  /// Returns the cached root [Package].
-  Future<Package> _installInCache(PackageDep dep) async {
+  Future _installInCache(PackageDep dep, List<String> executables,
+      {bool overwriteBinStubs}) async {
     var source = cache.sources[dep.source];
 
     // Create a dummy package with just [dep] so we can do resolution on it.
@@ -183,27 +179,31 @@ class GlobalPackages {
     // the pubspecs.
     var graph = await new Entrypoint.inMemory(root, lockFile, cache)
         .loadPackageGraph(result);
-    await _precompileExecutables(graph.entrypoint, dep.name);
+    var snapshots = await _precompileExecutables(graph.entrypoint, dep.name);
     _writeLockFile(dep.name, lockFile);
 
-    return graph.packages[dep.name];
+    _updateBinStubs(graph.packages[dep.name], executables,
+        overwriteBinStubs: overwriteBinStubs, snapshots: snapshots);
   }
 
   /// Precompiles the executables for [package] and saves them in the global
   /// cache.
-  Future _precompileExecutables(Entrypoint entrypoint, String package) {
-    return log.progress("Precompiling executables", () {
+  ///
+  /// Returns a map from executable name to path for the snapshots that were
+  /// successfully precompiled.
+  Future<Map<String, String>> _precompileExecutables(Entrypoint entrypoint,
+      String package) {
+    return log.progress("Precompiling executables", () async {
       var binDir = p.join(_directory, package, 'bin');
       cleanDir(binDir);
 
-      return AssetEnvironment.create(entrypoint, BarbackMode.RELEASE,
-          useDart2JS: false).then((environment) {
-        environment.barback.errors.listen((error) {
-          log.error(log.red("Build error:\n$error"));
-        });
-
-        return environment.precompileExecutables(package, binDir);
+      var environment = await AssetEnvironment.create(entrypoint,
+          BarbackMode.RELEASE, useDart2JS: false);
+      environment.barback.errors.listen((error) {
+        log.error(log.red("Build error:\n$error"));
       });
+
+      return environment.precompileExecutables(package, binDir);
     });
   }
 
@@ -422,11 +422,17 @@ class GlobalPackages {
   /// If `null`, all executables in the package will get binstubs. If empty, no
   /// binstubs will be created.
   ///
-  /// if [overwriteBinStubs] is `true`, any binstubs that collide with
+  /// If [overwriteBinStubs] is `true`, any binstubs that collide with
   /// existing binstubs in other packages will be overwritten by this one's.
   /// Otherwise, the previous ones will be preserved.
+  ///
+  /// If [snapshots] is given, it is a map of the names of executables whose
+  /// snapshots that were precompiled to their paths. Binstubs for those will
+  /// run the snapshot directly and skip pub entirely.
   void _updateBinStubs(Package package, List<String> executables,
-      {bool overwriteBinStubs}) {
+      {bool overwriteBinStubs, Map<String, String> snapshots}) {
+    if (snapshots == null) snapshots = const {};
+
     // Remove any previously activated binstubs for this package, in case the
     // list of executables has changed.
     _deleteBinStubs(package.name);
@@ -447,7 +453,7 @@ class GlobalPackages {
       var script = package.pubspec.executables[executable];
 
       var previousPackage = _createBinStub(package, executable, script,
-          overwrite: overwriteBinStubs);
+          overwrite: overwriteBinStubs, snapshot: snapshots[script]);
       if (previousPackage != null) {
         collided[executable] = previousPackage;
 
@@ -512,10 +518,13 @@ class GlobalPackages {
   /// If [overwrite] is `true`, this will replace an existing binstub with that
   /// name for another package.
   ///
+  /// If [snapshot] is non-null, it is a path to a snapshot file. The binstub
+  /// will invoke that directly. Otherwise, it will run `pub global run`.
+  ///
   /// If a collision occurs, returns the name of the package that owns the
   /// existing binstub. Otherwise returns `null`.
   String _createBinStub(Package package, String executable, String script,
-      {bool overwrite}) {
+      {bool overwrite, String snapshot}) {
     var binStubPath = p.join(_binStubDir, executable);
 
     // See if the binstub already exists. If so, it's for another package
@@ -532,10 +541,20 @@ class GlobalPackages {
       }
     }
 
-    // TODO(rnystrom): If the script was precompiled to a snapshot, make the
-    // script just invoke that directly and skip pub global run entirely.
+    // If the script was precompiled to a snapshot, just invoke that directly
+    // and skip pub global run entirely.
+    var invocation;
+    if (snapshot != null) {
+      // We expect absolute paths from the precompiler since relative ones
+      // won't be relative to the right directory when the user runs this.
+      assert(p.isAbsolute(snapshot));
+      invocation = 'dart "$snapshot"';
+    } else {
+      invocation = "pub global run ${package.name}:$script";
+    }
 
     if (Platform.operatingSystem == "windows") {
+
       var batch = """
 @echo off
 rem This file was created by pub v${sdk.version}.
@@ -543,7 +562,7 @@ rem Package: ${package.name}
 rem Version: ${package.version}
 rem Executable: ${executable}
 rem Script: ${script}
-pub global run ${package.name}:$script "%*"
+$invocation "%*"
 """;
       writeTextFile(binStubPath, batch);
     } else {
@@ -553,7 +572,7 @@ pub global run ${package.name}:$script "%*"
 # Version: ${package.version}
 # Executable: ${executable}
 # Script: ${script}
-pub global run ${package.name}:$script "\$@"
+$invocation "\$@"
 """;
       writeTextFile(binStubPath, bash);
 

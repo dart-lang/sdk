@@ -8,7 +8,7 @@ main() {
       builder.serve("foo", "1.0.0", pubspec: {
         "executables": {
           "one": null,
-          "two-renamed": "two"
+          "two-renamed": "second"
         }
       },
           contents: [
@@ -16,7 +16,7 @@ main() {
                   "bin",
                   [
                       d.file("one.dart", "main(args) => print('one');"),
-                      d.file("two.dart", "main(args) => print('two');"),
+                      d.file("second.dart", "main(args) => print('two');"),
                       d.file("nope.dart", "main(args) => print('nope');")])]);
     });
     schedulePub(
@@ -28,8 +28,8 @@ main() {
             d.dir(
                 "bin",
                 [
-                    d.matcherFile("one", contains("pub global run foo:one")),
-                    d.matcherFile("two-renamed", contains("pub global run foo:two")),
+                    d.matcherFile("one", contains("one")),
+                    d.matcherFile("two-renamed", contains("second")),
                     d.nothing("two"),
                     d.nothing("nope")])]).validate();
   });

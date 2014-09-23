@@ -476,16 +476,35 @@ void confirmPublish(ScheduledProcess pub) {
   pub.writeLine("y");
 }
 
+/// Gets the absolute path to [relPath], which is a relative path in the test
+/// sandbox.
+String _pathInSandbox(String relPath) {
+  return p.join(p.absolute(sandboxDir), relPath);
+}
+
+/// Gets the environment variables used to run pub in a test context.
+Map getPubTestEnvironment([Uri tokenEndpoint]) {
+  var environment = {};
+  environment['_PUB_TESTING'] = 'true';
+  environment['PUB_CACHE'] = _pathInSandbox(cachePath);
+
+  // Ensure a known SDK version is set for the tests that rely on that.
+  environment['_PUB_TEST_SDK_VERSION'] = "0.1.2+3";
+
+  if (tokenEndpoint != null) {
+    environment['_PUB_TEST_TOKEN_ENDPOINT'] =
+      tokenEndpoint.toString();
+  }
+
+  return environment;
+}
+
 /// Starts a Pub process and returns a [ScheduledProcess] that supports
 /// interaction with that process.
 ///
 /// Any futures in [args] will be resolved before the process is started.
 ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
-  String pathInSandbox(String relPath) {
-    return p.join(p.absolute(sandboxDir), relPath);
-  }
-
-  ensureDir(pathInSandbox(appPath));
+  ensureDir(_pathInSandbox(appPath));
 
   // Find a Dart executable we can use to spawn. Use the same one that was
   // used to run this script itself.
@@ -510,17 +529,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
 
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
   var environmentFuture = tokenEndpoint.then((tokenEndpoint) {
-    var environment = {};
-    environment['_PUB_TESTING'] = 'true';
-    environment['PUB_CACHE'] = pathInSandbox(cachePath);
-
-    // Ensure a known SDK version is set for the tests that rely on that.
-    environment['_PUB_TEST_SDK_VERSION'] = "0.1.2+3";
-
-    if (tokenEndpoint != null) {
-      environment['_PUB_TEST_TOKEN_ENDPOINT'] =
-        tokenEndpoint.toString();
-    }
+    var environment = getPubTestEnvironment(tokenEndpoint);
 
     // If there is a server running, tell pub what its URL is so hosted
     // dependencies will look there.
@@ -535,7 +544,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   });
 
   return new PubProcess.start(dartBin, dartArgs, environment: environmentFuture,
-      workingDirectory: pathInSandbox(appPath),
+      workingDirectory: _pathInSandbox(appPath),
       description: args.isEmpty ? 'pub' : 'pub ${args.first}');
 }
 
