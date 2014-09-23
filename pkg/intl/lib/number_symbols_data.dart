@@ -4,7 +4,6 @@
 // code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 /**
  * Date/time formatting symbols for all locales.
  *
@@ -16,7 +15,6 @@
  * modification must be documented in this section, and should be
  * removed after those changes land to CLDR.
  */
-
 
 library number_symbol_data;
 import "number_symbols.dart";
@@ -735,6 +733,27 @@ Map numberFormatSymbols = const {
       PERCENT_PATTERN: '#,##0\u00A0%',
       CURRENCY_PATTERN: '#,##0.00\u00A0\u00A4',
       DEF_CURRENCY_CODE: 'CAD'
+),
+  /**
+   * Number formatting symbols for locale ga.
+   */
+  "ga" : const NumberSymbols(
+      NAME: "ga",
+      DECIMAL_SEP: '.',
+      GROUP_SEP: ',',
+      PERCENT: '%',
+      ZERO_DIGIT: '0',
+      PLUS_SIGN: '+',
+      MINUS_SIGN: '-',
+      EXP_SYMBOL: 'E',
+      PERMILL: '\u2030',
+      INFINITY: '\u221E',
+      NAN: 'NaN',
+      DECIMAL_PATTERN: '#,##0.###',
+      SCIENTIFIC_PATTERN: '#E0',
+      PERCENT_PATTERN: '#,##0%',
+      CURRENCY_PATTERN: '\u00A4#,##0.00',
+      DEF_CURRENCY_CODE: 'EUR'
 ),
   /**
    * Number formatting symbols for locale gl.

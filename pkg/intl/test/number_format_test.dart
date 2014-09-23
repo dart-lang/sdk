@@ -83,14 +83,16 @@ main() {
   sortedLocales.sort((a, b) => a.compareTo(b));
   for (var locale in sortedLocales) {
     var testFormats = standardFormats(locale);
-    var list = mainList.take((testFormats.length * 2) + 1).iterator;
-    mainList = mainList.skip((testFormats.length * 2) + 1);
+    var testLength = (testFormats.length * 3) + 1;
+    var list = mainList.take(testLength).iterator;
+    mainList = mainList.skip(testLength);
     var nextLocaleFromList = (list..moveNext()).current;
     test("Test against ICU data for $locale", () {
       expect(locale, nextLocaleFromList);
       for (var format in testFormats) {
         var formatted = format.format(123);
         var negative = format.format(-12.3);
+        var large = format.format(1234567890);
         var expected = (list..moveNext()).current;
         expect(formatted, expected);
         var expectedNegative = (list..moveNext()).current;
@@ -102,10 +104,14 @@ main() {
             .replaceAll("\u200f", "")
             .replaceAll("\u2212", "-");
         expect(negative, expectedNegative);
+        var expectedLarge = (list..moveNext()).current;
+        expect(large, expectedLarge);
         var readBack = format.parse(formatted);
         expect(readBack, 123);
         var readBackNegative = format.parse(negative);
         expect(readBackNegative, -12.3);
+        var readBackLarge = format.parse(large);
+        expect(readBackLarge, 1234567890);
       }
     });
   }
