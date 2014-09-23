@@ -144,17 +144,19 @@ class Response extends Message {
   ///
   /// This indicates that the server is refusing to fulfill the request.
   ///
-  /// [body] is the response body. It may be either a [String], a
-  /// [Stream<List<int>>], or `null` to indicate no body. If it's a [String],
-  /// [encoding] is used to encode it to a [Stream<List<int>>]. It defaults to
-  /// UTF-8.
+  /// [body] is the response body. It may be a [String], a [Stream<List<int>>],
+  /// or `null`. If it's a [String], [encoding] is used to encode it to a
+  /// [Stream<List<int>>]. The default encoding is UTF-8. If it's `null` or not
+  /// passed, a default error message is used.
   ///
   /// If [encoding] is passed, the "encoding" field of the Content-Type header
   /// in [headers] will be set appropriately. If there is no existing
   /// Content-Type header, it will be set to "application/octet-stream".
   Response.forbidden(body, {Map<String, String> headers,
       Encoding encoding, Map<String, Object> context})
-      : this(403, body: body, headers: headers,
+      : this(403,
+          headers: body == null ? _adjustErrorHeaders(headers) : headers,
+          body: body == null ? 'Forbidden' : body,
           context: context);
 
   /// Constructs a 404 Not Found response.
@@ -162,17 +164,19 @@ class Response extends Message {
   /// This indicates that the server didn't find any resource matching the
   /// requested URI.
   ///
-  /// [body] is the response body. It may be either a [String], a
-  /// [Stream<List<int>>], or `null` to indicate no body. If it's a [String],
-  /// [encoding] is used to encode it to a [Stream<List<int>>]. It defaults to
-  /// UTF-8.
+  /// [body] is the response body. It may be a [String], a [Stream<List<int>>],
+  /// or `null`. If it's a [String], [encoding] is used to encode it to a
+  /// [Stream<List<int>>]. The default encoding is UTF-8. If it's `null` or not
+  /// passed, a default error message is used.
   ///
   /// If [encoding] is passed, the "encoding" field of the Content-Type header
   /// in [headers] will be set appropriately. If there is no existing
   /// Content-Type header, it will be set to "application/octet-stream".
   Response.notFound(body, {Map<String, String> headers, Encoding encoding,
     Map<String, Object> context})
-      : this(404, body: body, headers: headers,
+      : this(404,
+          headers: body == null ? _adjustErrorHeaders(headers) : headers,
+          body: body == null ? 'Not Found' : body,
           context: context);
 
   /// Constructs a 500 Internal Server Error response.
@@ -180,10 +184,10 @@ class Response extends Message {
   /// This indicates that the server had an internal error that prevented it
   /// from fulfilling the request.
   ///
-  /// [body] is the response body. It may be either a [String], a
-  /// [Stream<List<int>>], or `null` to indicate no body. If it's `null` or not
-  /// passed, a default error message is used. If it's a [String], [encoding] is
-  /// used to encode it to a [Stream<List<int>>]. It defaults to UTF-8.
+  /// [body] is the response body. It may be a [String], a [Stream<List<int>>],
+  /// or `null`. If it's a [String], [encoding] is used to encode it to a
+  /// [Stream<List<int>>]. The default encoding is UTF-8. If it's `null` or not
+  /// passed, a default error message is used.
   ///
   /// If [encoding] is passed, the "encoding" field of the Content-Type header
   /// in [headers] will be set appropriately. If there is no existing
@@ -191,7 +195,7 @@ class Response extends Message {
   Response.internalServerError({body, Map<String, String> headers,
       Encoding encoding, Map<String, Object> context})
       : this(500,
-            headers: body == null ? _adjust500Headers(headers) : headers,
+            headers: body == null ? _adjustErrorHeaders(headers) : headers,
             body: body == null ? 'Internal Server Error' : body,
             context: context);
 
@@ -200,9 +204,9 @@ class Response extends Message {
   /// [statusCode] must be greater than or equal to 100.
   ///
   /// [body] is the response body. It may be either a [String], a
-  /// [Stream<List<int>>], or `null` to indicate no body. If it's `null` or not
-  /// passed, a default error message is used. If it's a [String], [encoding] is
-  /// used to encode it to a [Stream<List<int>>]. It defaults to UTF-8.
+  /// [Stream<List<int>>], or `null` to indicate no body.
+  /// If it's a [String], [encoding] is used to encode it to a
+  /// [Stream<List<int>>]. The default encoding is UTF-8.
   ///
   /// If [encoding] is passed, the "encoding" field of the Content-Type header
   /// in [headers] will be set appropriately. If there is no existing
@@ -283,7 +287,7 @@ Map<String, String> _addHeader(Map<String, String> headers, String name,
 ///
 /// Returns a new map without modifying [headers]. This is used to add
 /// content-type information when creating a 500 response with a default body.
-Map<String, String> _adjust500Headers(Map<String, String> headers) {
+Map<String, String> _adjustErrorHeaders(Map<String, String> headers) {
   if (headers == null || headers['content-type'] == null) {
     return _addHeader(headers, 'content-type', 'text/plain');
   }
