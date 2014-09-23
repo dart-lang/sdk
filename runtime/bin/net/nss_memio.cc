@@ -9,7 +9,7 @@
 
 // This file is a modified copy of Chromium's src/net/base/nss_memio.c.
 // char* has been changed to uint8_t* everywhere, and C++ casts are used.
-// Revision 257452 (this should agree with "nss_rev" in DEPS).
+// Revision 291806 (this should agree with "nss_rev" in DEPS).
 
 
 /* memio is a simple NSPR I/O layer that lets you decouple NSS from
@@ -442,17 +442,21 @@ void memio_PutReadResult(memio_Private *secret, int bytes_read) {
   }
 }
 
-void memio_GetWriteParams(memio_Private *secret,
+int memio_GetWriteParams(memio_Private *secret,
                           const uint8_t** buf1, unsigned int *len1,
                           const uint8_t** buf2, unsigned int *len2) {
   struct memio_buffer* mb =
       &(reinterpret_cast<PRFilePrivate*>(secret)->writebuf);
   PR_ASSERT(mb->bufsize);
 
+  if (mb->last_err)
+    return mb->last_err;
+
   *buf1 = &mb->buf[mb->head];
   *len1 = memio_buffer_used_contiguous(mb);
   *buf2 = mb->buf;
   *len2 = memio_buffer_wrapped_bytes(mb);
+  return 0;
 }
 
 void memio_PutWriteResult(memio_Private *secret, int bytes_written) {

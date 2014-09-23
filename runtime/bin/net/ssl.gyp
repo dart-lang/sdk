@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of Chromium's src/net/third_party/nss/ssl.gyp.
-# Revision 257452 (this should agree with "nss_rev" in DEPS).
+# Revision 291806 (this should agree with "nss_rev" in DEPS).
 
 # The following modification was made to make sure we have the same
 # xcode_settings on all configurations (otherwise we can't build with ninja):

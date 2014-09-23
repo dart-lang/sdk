@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of src/third_party/zlib/zlib.gyp from Chromium.
-# Revision 257452 (this should agree with "nss_rev" in DEPS).
+# Revision 291806 (this should agree with "nss_rev" in DEPS).
 {
   # Added by Dart. All Dart comments refer to the following block or line.
   'includes': [
