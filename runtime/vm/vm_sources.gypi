@@ -447,6 +447,8 @@
     'visitor.h',
     'vtune.cc',
     'vtune.h',
+    'weak_code.cc',
+    'weak_code.h',
     'weak_table.cc',
     'weak_table.h',
     'zone.cc',
