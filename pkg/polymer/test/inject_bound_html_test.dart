@@ -16,7 +16,6 @@ class XFoo extends PolymerElement {
 
   @ComputedProperty('bar')
   String get ignore => readValue(#bar);
-
 }
 
 main() => initPolymer().run(() {

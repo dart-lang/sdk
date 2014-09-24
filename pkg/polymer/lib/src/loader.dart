@@ -68,6 +68,8 @@ void startPolymer(List<Function> initializers, [bool deployMode = true]) {
   for (var initializer in initializers) {
     initializer();
   }
+
+  _watchWaitingFor();
 }
 
 /// Configures [initPolymer] making it optimized for deployment to the internet.
@@ -159,4 +161,32 @@ void _initializeLogging() {
 
   // Listen to the polymer logs and print them to the console.
   polymerLogger.onRecord.listen((rec) {print(rec);});
+}
+
+/// Watches the waitingFor queue and if it fails to make progress then prints
+/// a message to the console.
+void _watchWaitingFor() {
+  int lastWaiting = Polymer.waitingFor.length;
+  int lastAlert;
+  new Timer.periodic(new Duration(seconds: 1), (Timer timer) {
+    var waiting = Polymer.waitingFor;
+    // Done, cancel timer.
+    if (waiting.isEmpty) {
+      timer.cancel();
+      return;
+    }
+    // Made progress, don't alert.
+    if (waiting.length != lastWaiting) {
+      lastWaiting = waiting.length;
+      return;
+    }
+    // Only alert once per waiting state.
+    if (lastAlert == lastWaiting) return;
+    lastAlert = lastWaiting;
+
+    print('No elements registered in a while, but still waiting on '
+        '${waiting.length} elements to be registered. Check that you have a '
+        'class with an @CustomTag annotation for each of the following tags: '
+        '${waiting.map((e) => "'${e.attributes['name']}'").join(', ')}');
+  });
 }

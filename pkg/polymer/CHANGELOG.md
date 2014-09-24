@@ -5,6 +5,8 @@
   * Added Polymer.waitingFor method. This returns a list of all polymer-element
     declarations that are still waiting for their class definitions to be
     loaded.
+  * Add runtime checking of the waitingFor queue and print to the console if a
+    deadlock situation is suspected to help diagnose the white screen of death.
   * Added injectBoundHTML instance method. This can be used to dynamically
     inject html that is bound to your current element into a target element.
 
