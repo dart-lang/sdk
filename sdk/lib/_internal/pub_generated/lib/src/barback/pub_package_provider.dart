@@ -7,12 +7,16 @@ import '../package_graph.dart';
 import '../preprocess.dart';
 import '../sdk.dart' as sdk;
 import '../utils.dart';
-class PubPackageProvider implements PackageProvider {
+class PubPackageProvider implements StaticPackageProvider {
   final PackageGraph _graph;
-  final List<String> packages;
+  final List<String> staticPackages;
+  Iterable<String> get packages =>
+      _graph.packages.keys.toSet().difference(staticPackages);
   PubPackageProvider(PackageGraph graph)
       : _graph = graph,
-        packages = [r"$pub", r"$sdk"]..addAll(graph.packages.keys);
+        staticPackages = [
+          r"$pub",
+          r"$sdk"]..addAll(graph.packages.keys.where(graph.isPackageStatic));
   Future<Asset> getAsset(AssetId id) {
     if (id.package == r'$pub') {
       var components = path.url.split(id.path);
@@ -39,5 +43,14 @@ class PubPackageProvider implements PackageProvider {
     var nativePath = path.fromUri(id.path);
     var file = _graph.packages[id.package].path(nativePath);
     return new Future.value(new Asset.fromPath(id, file));
+  }
+  Stream<AssetId> getAllAssetIds(String packageName) {
+    var package = _graph.packages[packageName];
+    return new Stream.fromIterable(
+        package.listFiles(beneath: 'lib').map((file) {
+      return new AssetId(
+          packageName,
+          path.toUri(package.relative(file)).toString());
+    }));
   }
 }

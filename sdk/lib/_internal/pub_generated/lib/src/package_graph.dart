@@ -47,4 +47,11 @@ class PackageGraph {
       return entrypoint.cache.sources[depId.source] is! CachedSource;
     });
   }
+  bool isPackageStatic(String package) {
+    var id = lockFile.packages[package];
+    if (id == null) return false;
+    var source = entrypoint.cache.sources[id.source];
+    if (source is! CachedSource) return true;
+    return packages[package].pubspec.transformers.isEmpty;
+  }
 }

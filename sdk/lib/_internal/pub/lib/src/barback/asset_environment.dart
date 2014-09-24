@@ -504,11 +504,7 @@ class AssetEnvironment {
         });
 
         return _withStreamErrors(() {
-          return log.progress("Loading source assets", () {
-            barback.updateSources(pubSources);
-            barback.updateSources(sdkSources);
-            return _provideSources();
-          });
+          return log.progress("Loading source assets", _provideSources);
         }, [errorStream, barback.results]);
       }).then((_) {
         log.fine("Provided sources.");
@@ -543,12 +539,13 @@ class AssetEnvironment {
   /// Provides the public source assets in the environment to barback.
   ///
   /// If [watcherType] is not [WatcherType.NONE], enables watching on them.
-  Future _provideSources() {
+  Future _provideSources() async {
     // Just include the "lib" directory from each package. We'll add the
     // other build directories in the root package by calling
     // [serveDirectory].
-    return Future.wait(graph.packages.values.map((package) {
-      return _provideDirectorySources(package, "lib");
+    await Future.wait(graph.packages.values.map((package) async {
+      if (graph.isPackageStatic(package.name)) return;
+      await _provideDirectorySources(package, "lib");
     }));
   }
 

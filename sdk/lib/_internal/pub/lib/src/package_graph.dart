@@ -95,4 +95,22 @@ class PackageGraph {
       return entrypoint.cache.sources[depId.source] is! CachedSource;
     });
   }
+
+  /// Returns whether [package] is static.
+  ///
+  /// A package is considered to be static if it's not transformed and it came
+  /// from a cached source. Static packages don't need to be fully processed by
+  /// barback.
+  ///
+  /// Note that a static package isn't the same as an immutable package (see
+  /// [isPackageMutable]).
+  bool isPackageStatic(String package) {
+    var id = lockFile.packages[package];
+    if (id == null) return false;
+
+    var source = entrypoint.cache.sources[id.source];
+    if (source is! CachedSource) return true;
+
+    return packages[package].pubspec.transformers.isEmpty;
+  }
 }

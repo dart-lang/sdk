@@ -347,11 +347,7 @@ class AssetEnvironment {
           log.fine(error.stackTrace.terse);
         });
         return _withStreamErrors(() {
-          return log.progress("Loading source assets", () {
-            barback.updateSources(pubSources);
-            barback.updateSources(sdkSources);
-            return _provideSources();
-          });
+          return log.progress("Loading source assets", _provideSources);
         }, [errorStream, barback.results]);
       }).then((_) {
         log.fine("Provided sources.");
@@ -381,9 +377,50 @@ class AssetEnvironment {
     }, fine: true);
   }
   Future _provideSources() {
-    return Future.wait(graph.packages.values.map((package) {
-      return _provideDirectorySources(package, "lib");
-    }));
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        Future.wait(graph.packages.values.map(((package) {
+          final completer0 = new Completer();
+          scheduleMicrotask(() {
+            try {
+              join0() {
+                _provideDirectorySources(package, "lib").then((x0) {
+                  try {
+                    x0;
+                    completer0.complete(null);
+                  } catch (e0) {
+                    completer0.completeError(e0);
+                  }
+                }, onError: (e1) {
+                  completer0.completeError(e1);
+                });
+              }
+              if (graph.isPackageStatic(package.name)) {
+                completer0.complete(null);
+              } else {
+                join0();
+              }
+            } catch (e2) {
+              completer0.completeError(e2);
+            }
+          });
+          return completer0.future;
+        }))).then((x0) {
+          try {
+            x0;
+            completer0.complete(null);
+          } catch (e0) {
+            completer0.completeError(e0);
+          }
+        }, onError: (e1) {
+          completer0.completeError(e1);
+        });
+      } catch (e2) {
+        completer0.completeError(e2);
+      }
+    });
+    return completer0.future;
   }
   Future<StreamSubscription<WatchEvent>>
       _provideDirectorySources(Package package, String dir) {
