@@ -28,6 +28,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';
+import 'package:path/path.dart' as pathos;
 
 
 /**
@@ -289,9 +290,13 @@ abstract class MoveFileRefactoring implements Refactoring {
   /**
    * Returns a new [MoveFileRefactoring] instance.
    */
-  factory MoveFileRefactoring(SearchEngine searchEngine,
-      AnalysisContext context, Source source) {
-    return new MoveFileRefactoringImpl(searchEngine, context, source);
+  factory MoveFileRefactoring(pathos.Context pathContext,
+      SearchEngine searchEngine, AnalysisContext context, Source source) {
+    return new MoveFileRefactoringImpl(
+        pathContext,
+        searchEngine,
+        context,
+        source);
   }
 
   /**

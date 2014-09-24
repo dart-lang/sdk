@@ -309,7 +309,11 @@ class _RefactoringManager {
     if (kind == RefactoringKind.MOVE_FILE) {
       engine.AnalysisContext context = server.getAnalysisContext(file);
       Source source = server.getSource(file);
-      refactoring = new MoveFileRefactoring(searchEngine, context, source);
+      refactoring = new MoveFileRefactoring(
+          server.resourceProvider.pathContext,
+          searchEngine,
+          context,
+          source);
     }
     if (kind == RefactoringKind.RENAME) {
       List<AstNode> nodes = server.getNodesAtOffset(file, offset);

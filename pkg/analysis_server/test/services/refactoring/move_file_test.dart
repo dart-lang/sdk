@@ -204,7 +204,11 @@ part '1111/22/new_name.dart';
   }
 
   void _createRefactoring(String newName) {
-    refactoring = new MoveFileRefactoring(searchEngine, context, testSource);
+    refactoring = new MoveFileRefactoring(
+        provider.pathContext,
+        searchEngine,
+        context,
+        testSource);
     refactoring.newFile = newName;
   }
 

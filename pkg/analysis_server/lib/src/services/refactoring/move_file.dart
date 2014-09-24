@@ -22,6 +22,7 @@ import 'package:path/path.dart' as pathos;
  */
 class MoveFileRefactoringImpl extends RefactoringImpl implements
     MoveFileRefactoring {
+  final pathos.Context pathContext;
   final SearchEngine searchEngine;
   final AnalysisContext context;
   final Source source;
@@ -34,7 +35,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
   String oldLibraryDir;
   String newLibraryDir;
 
-  MoveFileRefactoringImpl(this.searchEngine, this.context, this.source) {
+  MoveFileRefactoringImpl(this.pathContext, this.searchEngine, this.context,
+      this.source) {
     oldFile = source.fullName;
   }
 
@@ -64,8 +66,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
         // if a defining unit, update outgoing references
         library = unitElement.library;
         if (library.definingCompilationUnit == unitElement) {
-          oldLibraryDir = pathos.dirname(oldFile);
-          newLibraryDir = pathos.dirname(newFile);
+          oldLibraryDir = pathContext.dirname(oldFile);
+          newLibraryDir = pathContext.dirname(newFile);
           _updateUriReferences(library.imports);
           _updateUriReferences(library.exports);
           _updateUriReferences(library.parts);
@@ -91,7 +93,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
    * Computes the URI to use to reference [newFile] from [reference].
    */
   String _computeNewUri(SourceReference reference) {
-    String refDir = pathos.dirname(reference.file);
+    String refDir = pathContext.dirname(reference.file);
     // try to keep package: URI
     if (_isPackageReference(reference)) {
       Source newSource = new NonExistingSource(newFile, UriKind.FILE_URI);
@@ -101,7 +103,13 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
       }
     }
     // if no package: URI, prepare relative
-    return pathos.relative(newFile, from: refDir);
+    return _getRelativeUri(newFile, refDir);
+  }
+
+  String _getRelativeUri(String path, String from) {
+    String uri = pathContext.relative(path, from: from);
+    List<String> parts = pathContext.split(uri);
+    return pathos.posix.joinAll(parts);
   }
 
   bool _isPackageReference(SourceReference reference) {
@@ -111,12 +119,32 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
     return content.startsWith('package:', offset);
   }
 
+  /**
+   * Checks if the given [path] represents a relative URI.
+   *
+   * The following URI's are not relative:
+   *    `/absolute/path/file.dart`
+   *    `dart:math`
+   */
+  bool _isRelativeUri(String path) {
+    // absolute URI
+    if (Uri.parse(path).isAbsolute) {
+      return false;
+    }
+    // absolute path
+    if (pathContext.isAbsolute(path)) {
+      return false;
+    }
+    // OK
+    return true;
+  }
+
   void _updateUriReference(UriReferencedElement element) {
     if (!element.isSynthetic) {
       String elementUri = element.uri;
       if (_isRelativeUri(elementUri)) {
-        String elementPath = pathos.join(oldLibraryDir, elementUri);
-        String newUri = pathos.relative(elementPath, from: newLibraryDir);
+        String elementPath = pathContext.join(oldLibraryDir, elementUri);
+        String newUri = _getRelativeUri(elementPath, newLibraryDir);
         int uriOffset = element.uriOffset;
         int uriLength = element.uriEnd - uriOffset;
         change.addElementEdit(
@@ -130,25 +158,5 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
     for (UriReferencedElement element in elements) {
       _updateUriReference(element);
     }
-  }
-
-  /**
-   * Checks if the given [path] represents a relative URI.
-   *
-   * The following URI's are not relative:
-   *    `/absolute/path/file.dart`
-   *    `dart:math`
-   */
-  static bool _isRelativeUri(String path) {
-    // absolute path
-    if (pathos.isAbsolute(path)) {
-      return false;
-    }
-    // absolute URI
-    if (Uri.parse(path).isAbsolute) {
-      return false;
-    }
-    // OK
-    return true;
   }
 }
