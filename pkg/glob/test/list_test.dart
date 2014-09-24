@@ -55,7 +55,8 @@ void main() {
   syncAndAsync((list) {
     group("literals", () {
       test("lists a single literal", () {
-        expect(list("foo/baz/qux"), completion(equals(["foo/baz/qux"])));
+        expect(list("foo/baz/qux"),
+            completion(equals([p.join("foo", "baz", "qux")])));
       });
 
       test("lists a non-matching literal", () {
@@ -65,33 +66,45 @@ void main() {
 
     group("star", () {
       test("lists within filenames but not across directories", () {
-        expect(list("foo/b*"),
-            completion(unorderedEquals(["foo/bar", "foo/baz"])));
+        expect(list("foo/b*"), completion(unorderedEquals([
+          p.join("foo", "bar"),
+          p.join("foo", "baz")
+        ])));
       });
 
       test("lists the empy string", () {
-        expect(list("foo/bar*"), completion(equals(["foo/bar"])));
+        expect(list("foo/bar*"), completion(equals([p.join("foo", "bar")])));
       });
     });
 
     group("double star", () {
       test("lists within filenames", () {
-        expect(list("foo/baz/**"),
-            completion(unorderedEquals(["foo/baz/qux", "foo/baz/bang"])));
+        expect(list("foo/baz/**"), completion(unorderedEquals([
+          p.join("foo", "baz", "qux"),
+          p.join("foo", "baz", "bang")
+        ])));
       });
 
       test("lists the empty string", () {
-        expect(list("foo/bar**"), completion(equals(["foo/bar"])));
+        expect(list("foo/bar**"), completion(equals([p.join("foo", "bar")])));
       });
 
       test("lists recursively", () {
-        expect(list("foo/**"), completion(unorderedEquals(
-            ["foo/bar", "foo/baz", "foo/baz/qux", "foo/baz/bang"])));
+        expect(list("foo/**"), completion(unorderedEquals([
+          p.join("foo", "bar"),
+          p.join("foo", "baz"),
+          p.join("foo", "baz", "qux"),
+          p.join("foo", "baz", "bang")
+        ])));
       });
 
       test("combines with literals", () {
-        expect(list("foo/ba**"), completion(unorderedEquals(
-            ["foo/bar", "foo/baz", "foo/baz/qux", "foo/baz/bang"])));
+        expect(list("foo/ba**"), completion(unorderedEquals([
+          p.join("foo", "bar"),
+          p.join("foo", "baz"),
+          p.join("foo", "baz", "qux"),
+          p.join("foo", "baz", "bang")
+        ])));
       });
 
       test("lists recursively in the middle of a glob", () {
@@ -107,15 +120,19 @@ void main() {
           ])
         ]).create();
 
-        expect(list("deep/**/?/?"),
-            completion(unorderedEquals(["deep/a/b/c", "deep/a/b/c/d"])));
+        expect(list("deep/**/?/?"), completion(unorderedEquals([
+          p.join("deep", "a", "b", "c"),
+          p.join("deep", "a", "b", "c", "d")
+        ])));
       });
     });
 
     group("any char", () {
       test("matches a character", () {
-        expect(list("foo/ba?"),
-            completion(unorderedEquals(["foo/bar", "foo/baz"])));
+        expect(list("foo/ba?"), completion(unorderedEquals([
+          p.join("foo", "bar"),
+          p.join("foo", "baz")
+        ])));
       });
 
       test("doesn't match a separator", () {
@@ -125,23 +142,27 @@ void main() {
 
     group("range", () {
       test("matches a range of characters", () {
-        expect(list("foo/ba[a-z]"),
-            completion(unorderedEquals(["foo/bar", "foo/baz"])));
+        expect(list("foo/ba[a-z]"), completion(unorderedEquals([
+          p.join("foo", "bar"),
+          p.join("foo", "baz")
+        ])));
       });
 
       test("matches a specific list of characters", () {
-        expect(list("foo/ba[rz]"),
-            completion(unorderedEquals(["foo/bar", "foo/baz"])));
+        expect(list("foo/ba[rz]"), completion(unorderedEquals([
+          p.join("foo", "bar"),
+          p.join("foo", "baz")
+        ])));
       });
 
       test("doesn't match outside its range", () {
         expect(list("foo/ba[a-x]"),
-            completion(unorderedEquals(["foo/bar"])));
+            completion(unorderedEquals([p.join("foo", "bar")])));
       });
 
       test("doesn't match outside its specific list", () {
         expect(list("foo/ba[rx]"),
-            completion(unorderedEquals(["foo/bar"])));
+            completion(unorderedEquals([p.join("foo", "bar")])));
       });
     });
 
@@ -152,7 +173,7 @@ void main() {
       ]).create();
 
       expect(list("multi/{start-*/f*,*-end/*e}"),
-          completion(equals(["multi/start-end/file"])));
+          completion(equals([p.join("multi", "start-end", "file")])));
     });
 
     test("the same file shouldn't be recursively listed multiple times", () {
@@ -173,7 +194,9 @@ void main() {
       ]).create();
 
       expect(list("multi/{*/*/*/file,a/**/file}"), completion(unorderedEquals([
-        "multi/a/b/file", "multi/a/b/c/file", "multi/a/x/y/file"
+        p.join("multi", "a", "b", "file"),
+        p.join("multi", "a", "b", "c", "file"),
+        p.join("multi", "a", "x", "y", "file")
       ])));
     });
 
@@ -187,13 +210,15 @@ void main() {
 
       test("follows symlinks by default", () {
         expect(list("dir/**"), completion(unorderedEquals([
-          "dir/link", "dir/link/bang", "dir/link/qux"
+          p.join("dir", "link"),
+          p.join("dir", "link", "bang"),
+          p.join("dir", "link", "qux")
         ])));
       });
 
       test("doesn't follow symlinks with followLinks: false", () {
         expect(list("dir/**", followLinks: false),
-            completion(equals(["dir/link"])));
+            completion(equals([p.join("dir", "link")])));
       });
 
       test("shouldn't crash on broken symlinks", () {
@@ -201,13 +226,18 @@ void main() {
           return new Directory(p.join(sandbox, "foo")).delete(recursive: true);
         });
 
-        expect(list("dir/**"), completion(equals(["dir/link"])));
+        expect(list("dir/**"), completion(equals([p.join("dir", "link")])));
       });
     });
 
     test("always lists recursively with recursive: true", () {
-      expect(list("foo", recursive: true), completion(unorderedEquals(
-          ["foo", "foo/bar", "foo/baz", "foo/baz/qux", "foo/baz/bang"])));
+      expect(list("foo", recursive: true), completion(unorderedEquals([
+        "foo",
+        p.join("foo", "bar"),
+        p.join("foo", "baz"),
+        p.join("foo", "baz", "qux"),
+        p.join("foo", "baz", "bang")
+      ])));
     });
 
     test("lists an absolute glob", () {
@@ -216,7 +246,10 @@ void main() {
             p.absolute(p.join(sandbox, 'foo/baz/**')));
 
         return list(pattern);
-      }), completion(unorderedEquals(["foo/baz/bang", "foo/baz/qux"])));
+      }), completion(unorderedEquals([
+        p.join("foo", "baz", "bang"),
+        p.join("foo", "baz", "qux")
+      ])));
     });
   });
 }

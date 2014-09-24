@@ -65,6 +65,6 @@ String regExpQuote(String contents) =>
 ///
 /// This is useful when converting from Windows paths to globs.
 String separatorToForwardSlash(String path) {
-  if (p.context != p.Style.windows) return path;
+  if (p.style != p.Style.windows) return path;
   return path.replaceAll('\\', '/');
 }
