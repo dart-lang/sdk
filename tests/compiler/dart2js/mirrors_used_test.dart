@@ -89,9 +89,9 @@ void main() {
     expectedNames.addAll(nativeNames);
 
     Set recordedNames = new Set()
-        ..addAll(backend.emitter.recordedMangledNames)
-        ..addAll(backend.emitter.mangledFieldNames.keys)
-        ..addAll(backend.emitter.mangledGlobalFieldNames.keys);
+        ..addAll(backend.emitter.oldEmitter.recordedMangledNames)
+        ..addAll(backend.emitter.oldEmitter.mangledFieldNames.keys)
+        ..addAll(backend.emitter.oldEmitter.mangledGlobalFieldNames.keys);
     Expect.setEquals(new Set.from(expectedNames), recordedNames);
 
     for (var library in compiler.libraryLoader.libraries) {

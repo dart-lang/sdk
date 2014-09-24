@@ -9,24 +9,30 @@ import '../common.dart';
 import '../js/js.dart' as js;
 
 import '../js_backend/js_backend.dart' show Namer, JavaScriptBackend;
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../js_emitter/js_emitter.dart' as emitterTask show
+    CodeEmitterTask,
+    Emitter;
+
 import '../universe/universe.dart' show Universe;
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 
 part 'registry.dart';
 
-class Emitter {
+class Emitter implements emitterTask.Emitter {
   final Compiler _compiler;
-  final CodeEmitterTask _oldEmitter;
+  final Namer namer;
+  final emitterTask.CodeEmitterTask _oldEmitter;
 
   final Registry _registry;
 
-  Emitter(Compiler compiler, this._oldEmitter)
+  Emitter(Compiler compiler,
+          this.namer,
+          bool generateSourceMap,
+          this._oldEmitter)
       : this._compiler = compiler,
-        this._registry = new Registry(compiler.deferredLoadTask);
+        this._registry = new Registry(compiler);
 
   JavaScriptBackend get backend => _compiler.backend;
-  Namer get namer => _oldEmitter.namer;
   Universe get universe => _compiler.codegenWorld;
 
   /// Mapping from [ClassElement] to constructed [Class]. We need this to
@@ -52,7 +58,6 @@ class Emitter {
 
     MainOutput mainOutput = _buildMainOutput(_registry.mainFragment);
     Iterable<Output> deferredOutputs = _registry.deferredFragments
-        .skip(1) // Skip the main library elements.
         .map((fragment) => _buildDeferredOutput(mainOutput, fragment));
 
     List<Output> outputs = new List<Output>(_registry.fragmentCount);
@@ -148,7 +153,51 @@ class Emitter {
     String name = namer.getStaticClosureName(element);
     String holder = namer.globalObjectFor(element);
     // TODO(kasperl): This clearly doesn't work yet.
-    js.Expression code = js.js.string("<<unimplemented>>");
+    js.Expression code = js.string("<<unimplemented>>");
     return new StaticMethod(name, _registry.registerHolder(holder), code);
   }
+
+  // TODO(floitsch): copied from OldEmitter. Adjust or share.
+  bool isConstantInlinedOrAlreadyEmitted(Constant constant) {
+    if (constant.isFunction) return true;    // Already emitted.
+    if (constant.isPrimitive) return true;   // Inlined.
+    if (constant.isDummy) return true;       // Inlined.
+    // The name is null when the constant is already a JS constant.
+    // TODO(floitsch): every constant should be registered, so that we can
+    // share the ones that take up too much space (like some strings).
+    if (namer.constantName(constant) == null) return true;
+    return false;
+  }
+
+  // TODO(floitsch): copied from OldEmitter. Adjust or share.
+  int compareConstants(Constant a, Constant b) {
+    // Inlined constants don't affect the order and sometimes don't even have
+    // names.
+    int cmp1 = isConstantInlinedOrAlreadyEmitted(a) ? 0 : 1;
+    int cmp2 = isConstantInlinedOrAlreadyEmitted(b) ? 0 : 1;
+    if (cmp1 + cmp2 < 2) return cmp1 - cmp2;
+
+    // Emit constant interceptors first. Constant interceptors for primitives
+    // might be used by code that builds other constants.  See Issue 18173.
+    if (a.isInterceptor != b.isInterceptor) {
+      return a.isInterceptor ? -1 : 1;
+    }
+
+    // Sorting by the long name clusters constants with the same constructor
+    // which compresses a tiny bit better.
+    int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
+    if (r != 0) return r;
+    // Resolve collisions in the long name by using the constant name (i.e. JS
+    // name) which is unique.
+    return namer.constantName(a).compareTo(namer.constantName(b));
+  }
+
+  js.Expression generateEmbeddedGlobalAccess(String global) {
+    return js.string("<<unimplemented>>");
+  }
+  js.Expression constantReference(Constant value) {
+    return js.string("<<unimplemented>>");
+  }
+
+  void invalidateCaches() {}
 }

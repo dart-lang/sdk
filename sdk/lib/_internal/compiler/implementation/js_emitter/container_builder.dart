@@ -72,7 +72,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       count++;
       parametersBuffer[0] = new jsAst.Parameter(receiverArgumentName);
       argumentsBuffer[0] = js('#', receiverArgumentName);
-      task.interceptorEmitter.interceptorInvocationNames.add(invocationName);
+      emitter.interceptorEmitter.interceptorInvocationNames.add(invocationName);
     }
 
     int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
@@ -98,14 +98,15 @@ class ContainerBuilder extends CodeEmitterHelper {
         } else {
           Constant value = handler.getConstantForVariable(element);
           if (value == null) {
-            argumentsBuffer[count] = task.constantReference(new NullConstant());
+            argumentsBuffer[count] =
+                emitter.constantReference(new NullConstant());
           } else {
             if (!value.isNull) {
               // If the value is the null constant, we should not pass it
               // down to the native method.
               indexOfLastOptionalArgumentInParameters = count;
             }
-            argumentsBuffer[count] = task.constantReference(value);
+            argumentsBuffer[count] = emitter.constantReference(value);
           }
         }
       }
@@ -114,7 +115,7 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     var body;  // List or jsAst.Statement.
     if (member.hasFixedBackendName) {
-      body = task.nativeEmitter.generateParameterStubStatements(
+      body = emitter.nativeEmitter.generateParameterStubStatements(
           member, isInterceptedMethod, invocationName,
           parametersBuffer, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
@@ -348,7 +349,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     jsAst.Expression code = backend.generatedCode[member];
     if (code == null) return;
     String name = namer.getNameOfMember(member);
-    task.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
+    emitter.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
     FunctionSignature parameters = member.functionSignature;
     bool needsStubs = !parameters.optionalParameters.isEmpty;
     bool canTearOff = false;
@@ -492,7 +493,7 @@ class ContainerBuilder extends CodeEmitterHelper {
             backend.rti.getSignatureEncoding(memberType, thisAccess);
       } else {
         memberTypeExpression =
-            js.number(task.metadataEmitter.reifyType(memberType));
+            js.number(emitter.metadataEmitter.reifyType(memberType));
       }
     } else {
       memberTypeExpression = js('null');
@@ -505,20 +506,20 @@ class ContainerBuilder extends CodeEmitterHelper {
         ..add(js.number(requiredParameterCount))
         ..add(js.number(optionalParameterCount))
         ..add(memberTypeExpression)
-        ..addAll(
-            task.metadataEmitter.reifyDefaultArguments(member).map(js.number));
+        ..addAll(emitter.metadataEmitter
+            .reifyDefaultArguments(member).map(js.number));
 
     if (canBeReflected || canBeApplied) {
       parameters.forEachParameter((Element parameter) {
         expressions.add(
-            js.number(task.metadataEmitter.reifyName(parameter.name)));
+            js.number(emitter.metadataEmitter.reifyName(parameter.name)));
         if (backend.mustRetainMetadata) {
           Iterable<int> metadataIndices =
               parameter.metadata.map((MetadataAnnotation annotation) {
             Constant constant =
                 backend.constants.getConstantForMetadata(annotation);
             backend.constants.addCompileTimeConstantForEmission(constant);
-            return task.metadataEmitter.reifyMetadata(annotation);
+            return emitter.metadataEmitter.reifyMetadata(annotation);
           });
           expressions.add(
               new jsAst.ArrayInitializer.from(metadataIndices.map(js.number)));
@@ -528,7 +529,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (canBeReflected) {
       jsAst.LiteralString reflectionName;
       if (member.isConstructor) {
-        String reflectionNameString = task.getReflectionName(member, name);
+        String reflectionNameString = emitter.getReflectionName(member, name);
         reflectionName =
             new jsAst.LiteralString(
                 '"new ${Elements.reconstructConstructorName(member)}"');
@@ -538,7 +539,8 @@ class ContainerBuilder extends CodeEmitterHelper {
       }
       expressions
           ..add(reflectionName)
-          ..addAll(task.metadataEmitter.computeMetadata(member).map(js.number));
+          ..addAll(emitter.metadataEmitter
+              .computeMetadata(member).map(js.number));
     } else if (isClosure && canBeApplied) {
       expressions.add(js.string(namer.privateName(member.library,
                                                   member.name)));

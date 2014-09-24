@@ -13,11 +13,275 @@ const USE_NEW_EMITTER = const bool.fromEnvironment("dart2js.use.new.emitter");
  * The code for the containing (used) methods must exist in the [:universe:].
  */
 class CodeEmitterTask extends CompilerTask {
+  // TODO(floitsch): the code-emitter task should not need a namer.
+  final Namer namer;
+  final TypeTestEmitter typeTestEmitter = new TypeTestEmitter();
+  final InterceptorEmitter interceptorEmitter = new InterceptorEmitter();
+  NativeEmitter nativeEmitter;
+  OldEmitter oldEmitter;
+  Emitter emitter;
+
+  final Set<ClassElement> neededClasses = new Set<ClassElement>();
+  final Map<OutputUnit, List<ClassElement>> outputClassLists =
+      new Map<OutputUnit, List<ClassElement>>();
+  final Map<OutputUnit, List<Constant>> outputConstantLists =
+      new Map<OutputUnit, List<Constant>>();
+  final List<ClassElement> nativeClasses = <ClassElement>[];
+
+  /// Records if a type variable is read dynamically for type tests.
+  final Set<TypeVariableElement> readTypeVariables =
+      new Set<TypeVariableElement>();
+
+  // TODO(ngeoffray): remove this field.
+  Set<ClassElement> instantiatedClasses;
+  List<TypedefElement> typedefsNeededForReflection;
+
+  JavaScriptBackend get backend => compiler.backend;
+
+  CodeEmitterTask(Compiler compiler, Namer namer, bool generateSourceMap)
+      : super(compiler),
+        this.namer = namer {
+    oldEmitter = new OldEmitter(compiler, namer, generateSourceMap, this);
+    emitter = USE_NEW_EMITTER
+        ? new new_js_emitter.Emitter(compiler, namer, generateSourceMap, this)
+        : oldEmitter;
+    nativeEmitter = new NativeEmitter(this);
+    typeTestEmitter.emitter = this.oldEmitter;
+    interceptorEmitter.emitter = this.oldEmitter;
+    // TODO(18886): Remove this call (and the show in the import) once the
+    // memory-leak in the VM is fixed.
+    templateManager.clear();
+  }
+
+
+  jsAst.Expression generateEmbeddedGlobalAccess(String global) {
+    return emitter.generateEmbeddedGlobalAccess(global);
+  }
+
+  jsAst.Expression constantReference(Constant value) {
+    return emitter.constantReference(value);
+  }
+
+  /**
+   * Return a function that returns true if its argument is a class
+   * that needs to be emitted.
+   */
+  Function computeClassFilter() {
+    if (backend.isTreeShakingDisabled) return (ClassElement cls) => true;
+
+    Set<ClassElement> unneededClasses = new Set<ClassElement>();
+    // The [Bool] class is not marked as abstract, but has a factory
+    // constructor that always throws. We never need to emit it.
+    unneededClasses.add(compiler.boolClass);
+
+    // Go over specialized interceptors and then constants to know which
+    // interceptors are needed.
+    Set<ClassElement> needed = new Set<ClassElement>();
+    backend.specializedGetInterceptors.forEach(
+        (_, Iterable<ClassElement> elements) {
+          needed.addAll(elements);
+        }
+    );
+
+    // Add interceptors referenced by constants.
+    needed.addAll(interceptorEmitter.interceptorsReferencedFromConstants());
+
+    // Add unneeded interceptors to the [unneededClasses] set.
+    for (ClassElement interceptor in backend.interceptedClasses) {
+      if (!needed.contains(interceptor)
+          && interceptor != compiler.objectClass) {
+        unneededClasses.add(interceptor);
+      }
+    }
+
+    // These classes are just helpers for the backend's type system.
+    unneededClasses.add(backend.jsMutableArrayClass);
+    unneededClasses.add(backend.jsFixedArrayClass);
+    unneededClasses.add(backend.jsExtendableArrayClass);
+    unneededClasses.add(backend.jsUInt32Class);
+    unneededClasses.add(backend.jsUInt31Class);
+    unneededClasses.add(backend.jsPositiveIntClass);
+
+    return (ClassElement cls) => !unneededClasses.contains(cls);
+  }
+
+  /**
+   * Compute all the constants that must be emitted.
+   */
+  void computeNeededConstants() {
+    JavaScriptConstantCompiler handler = backend.constants;
+    List<Constant> constants = handler.getConstantsForEmission(
+        compiler.hasIncrementalSupport ? null : emitter.compareConstants);
+    for (Constant constant in constants) {
+      if (emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
+      OutputUnit constantUnit =
+          compiler.deferredLoadTask.outputUnitForConstant(constant);
+      if (constantUnit == null) {
+        // The back-end introduces some constants, like "InterceptorConstant" or
+        // some list constants. They are emitted in the main output-unit.
+        // TODO(sigurdm): We should track those constants.
+        constantUnit = compiler.deferredLoadTask.mainOutputUnit;
+      }
+      outputConstantLists.putIfAbsent(constantUnit, () => new List<Constant>())
+          .add(constant);
+    }
+  }
+
+  /// Compute all the classes and typedefs that must be emitted.
+  void computeNeededDeclarations() {
+    // Compute needed typedefs.
+    typedefsNeededForReflection = Elements.sortedByPosition(
+        compiler.world.allTypedefs
+            .where(backend.isAccessibleByReflection)
+            .toList());
+
+    // Compute needed classes.
+    instantiatedClasses =
+        compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
+            .toSet();
+
+    void addClassWithSuperclasses(ClassElement cls) {
+      neededClasses.add(cls);
+      for (ClassElement superclass = cls.superclass;
+          superclass != null;
+          superclass = superclass.superclass) {
+        neededClasses.add(superclass);
+      }
+    }
+
+    void addClassesWithSuperclasses(Iterable<ClassElement> classes) {
+      for (ClassElement cls in classes) {
+        addClassWithSuperclasses(cls);
+      }
+    }
+
+    // 1. We need to generate all classes that are instantiated.
+    addClassesWithSuperclasses(instantiatedClasses);
+
+    // 2. Add all classes used as mixins.
+    Set<ClassElement> mixinClasses = neededClasses
+        .where((ClassElement element) => element.isMixinApplication)
+        .map(computeMixinClass)
+        .toSet();
+    neededClasses.addAll(mixinClasses);
+
+    // 3. If we need noSuchMethod support, we run through all needed
+    // classes to figure out if we need the support on any native
+    // class. If so, we let the native emitter deal with it.
+    if (compiler.enabledNoSuchMethod) {
+      String noSuchMethodName = Compiler.NO_SUCH_METHOD;
+      Selector noSuchMethodSelector = compiler.noSuchMethodSelector;
+      for (ClassElement element in neededClasses) {
+        if (!element.isNative) continue;
+        Element member = element.lookupLocalMember(noSuchMethodName);
+        if (member == null) continue;
+        if (noSuchMethodSelector.applies(member, compiler.world)) {
+          nativeEmitter.handleNoSuchMethod = true;
+          break;
+        }
+      }
+    }
+
+    // 4. Find all classes needed for rti.
+    // It is important that this is the penultimate step, at this point,
+    // neededClasses must only contain classes that have been resolved and
+    // codegen'd. The rtiNeededClasses may contain additional classes, but
+    // these are thought to not have been instantiated, so we neeed to be able
+    // to identify them later and make sure we only emit "empty shells" without
+    // fields, etc.
+    typeTestEmitter.computeRtiNeededClasses();
+    typeTestEmitter.rtiNeededClasses.removeAll(neededClasses);
+    // rtiNeededClasses now contains only the "empty shells".
+    neededClasses.addAll(typeTestEmitter.rtiNeededClasses);
+
+    // TODO(18175, floitsch): remove once issue 18175 is fixed.
+    if (neededClasses.contains(backend.jsIntClass)) {
+      neededClasses.add(compiler.intClass);
+    }
+    if (neededClasses.contains(backend.jsDoubleClass)) {
+      neededClasses.add(compiler.doubleClass);
+    }
+    if (neededClasses.contains(backend.jsNumberClass)) {
+      neededClasses.add(compiler.numClass);
+    }
+    if (neededClasses.contains(backend.jsStringClass)) {
+      neededClasses.add(compiler.stringClass);
+    }
+    if (neededClasses.contains(backend.jsBoolClass)) {
+      neededClasses.add(compiler.boolClass);
+    }
+    if (neededClasses.contains(backend.jsArrayClass)) {
+      neededClasses.add(compiler.listClass);
+    }
+
+    // 5. Finally, sort the classes.
+    List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
+
+    for (ClassElement element in sortedClasses) {
+      if (typeTestEmitter.rtiNeededClasses.contains(element)) {
+        // TODO(sigurdm): We might be able to defer some of these.
+        outputClassLists.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
+            () => new List<ClassElement>()).add(element);
+      } else if (Elements.isNativeOrExtendsNative(element)) {
+        // For now, native classes and related classes cannot be deferred.
+        nativeClasses.add(element);
+        if (!element.isNative) {
+          assert(invariant(element,
+                           !compiler.deferredLoadTask.isDeferred(element)));
+          outputClassLists.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
+              () => new List<ClassElement>()).add(element);
+        }
+      } else {
+        outputClassLists.putIfAbsent(
+            compiler.deferredLoadTask.outputUnitForElement(element),
+            () => new List<ClassElement>())
+            .add(element);
+      }
+    }
+  }
+
+  void assembleProgram() {
+    measure(() {
+      emitter.invalidateCaches();
+
+      // Compute the required type checks to know which classes need a
+      // 'is$' method.
+      typeTestEmitter.computeRequiredTypeChecks();
+
+      computeNeededDeclarations();
+      // TODO(floitsch): we want to call computeNeededConstants here, but
+      // the oldEmitter creates new constants during emission... :(
+
+      emitter.emitProgram();
+    });
+  }
+
+  void registerReadTypeVariable(TypeVariableElement element) {
+    readTypeVariables.add(element);
+  }
+}
+
+abstract class Emitter {
+  void emitProgram();
+
+  jsAst.Expression generateEmbeddedGlobalAccess(String global);
+  jsAst.Expression constantReference(Constant value);
+
+  int compareConstants(Constant a, Constant b);
+  bool isConstantInlinedOrAlreadyEmitted(Constant constant);
+
+  void invalidateCaches();
+}
+
+class OldEmitter implements Emitter {
+  final Compiler compiler;
+  final CodeEmitterTask task;
+
   final ContainerBuilder containerBuilder = new ContainerBuilder();
   final ClassEmitter classEmitter = new ClassEmitter();
   final NsmEmitter nsmEmitter = new NsmEmitter();
-  final TypeTestEmitter typeTestEmitter = new TypeTestEmitter();
-  final InterceptorEmitter interceptorEmitter = new InterceptorEmitter();
+  TypeTestEmitter get typeTestEmitter => task.typeTestEmitter;
+  InterceptorEmitter get interceptorEmitter => task.interceptorEmitter;
   final MetadataEmitter metadataEmitter = new MetadataEmitter();
 
   final Set<Constant> cachedEmittedConstants;
@@ -30,7 +294,7 @@ class CodeEmitterTask extends CompilerTask {
   bool needsLazyInitializer = false;
   final Namer namer;
   ConstantEmitter constantEmitter;
-  NativeEmitter nativeEmitter;
+  NativeEmitter get nativeEmitter => task.nativeEmitter;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeBuffer> outputBuffers = new Map<OutputUnit, CodeBuffer>();
@@ -40,12 +304,12 @@ class CodeEmitterTask extends CompilerTask {
       well as in the generated code. */
   String isolateProperties;
   String classesCollector;
-  final Set<ClassElement> neededClasses = new Set<ClassElement>();
-  final Map<OutputUnit, List<ClassElement>> outputClassLists =
-      new Map<OutputUnit, List<ClassElement>>();
-  final Map<OutputUnit, List<Constant>> outputConstantLists =
-      new Map<OutputUnit, List<Constant>>();
-  final List<ClassElement> nativeClasses = <ClassElement>[];
+  Set<ClassElement> get neededClasses => task.neededClasses;
+  Map<OutputUnit, List<ClassElement>> get outputClassLists
+      => task.outputClassLists;
+  Map<OutputUnit, List<Constant>> get outputConstantLists
+      => task.outputConstantLists;
+  List<ClassElement> get nativeClasses => task.nativeClasses;
   final Map<String, String> mangledFieldNames = <String, String>{};
   final Map<String, String> mangledGlobalFieldNames = <String, String>{};
   final Set<String> recordedMangledNames = new Set<String>();
@@ -53,14 +317,10 @@ class CodeEmitterTask extends CompilerTask {
   final Map<ClassElement, Map<String, jsAst.Expression>> additionalProperties =
       new Map<ClassElement, Map<String, jsAst.Expression>>();
 
-  /// Records if a type variable is read dynamically for type tests.
-  final Set<TypeVariableElement> readTypeVariables =
-      new Set<TypeVariableElement>();
+  Set<ClassElement> get instantiatedClasses => task.instantiatedClasses;
 
-  // TODO(ngeoffray): remove this field.
-  Set<ClassElement> instantiatedClasses;
-
-  List<TypedefElement> typedefsNeededForReflection;
+  List<TypedefElement> get typedefsNeededForReflection =>
+      task.typedefsNeededForReflection;
 
   JavaScriptBackend get backend => compiler.backend;
   TypeVariableHandler get typeVariableHandler => backend.typeVariableHandler;
@@ -112,23 +372,18 @@ class CodeEmitterTask extends CompilerTask {
 
   final bool generateSourceMap;
 
-  CodeEmitterTask(Compiler compiler, Namer namer, this.generateSourceMap)
-      : this.namer = namer,
+  OldEmitter(Compiler compiler, Namer namer, this.generateSourceMap, this.task)
+      : this.compiler = compiler,
+        this.namer = namer,
         constantEmitter = new ConstantEmitter(compiler, namer),
         cachedEmittedConstants = compiler.cacheStrategy.newSet(),
         cachedClassBuilders = compiler.cacheStrategy.newMap(),
-        cachedElements = compiler.cacheStrategy.newSet(),
-        super(compiler) {
-    nativeEmitter = new NativeEmitter(this);
-    containerBuilder.task = this;
-    classEmitter.task = this;
-    nsmEmitter.task = this;
-    typeTestEmitter.task = this;
-    interceptorEmitter.task = this;
-    metadataEmitter.task = this;
-    // TODO(18886): Remove this call (and the show in the import) once the
-    // memory-leak in the VM is fixed.
-    templateManager.clear();
+        cachedElements = compiler.cacheStrategy.newSet() {
+    containerBuilder.emitter = this;
+    classEmitter.emitter = this;
+    nsmEmitter.emitter = this;
+    interceptorEmitter.emitter = this;
+    metadataEmitter.emitter = this;
   }
 
   List<jsAst.Node> cspPrecompiledFunctionFor(OutputUnit outputUnit) {
@@ -881,49 +1136,6 @@ class CodeEmitterTask extends CompilerTask {
     });
   }
 
-  /**
-   * Return a function that returns true if its argument is a class
-   * that needs to be emitted.
-   */
-  Function computeClassFilter() {
-    if (backend.isTreeShakingDisabled) return (ClassElement cls) => true;
-
-    Set<ClassElement> unneededClasses = new Set<ClassElement>();
-    // The [Bool] class is not marked as abstract, but has a factory
-    // constructor that always throws. We never need to emit it.
-    unneededClasses.add(compiler.boolClass);
-
-    // Go over specialized interceptors and then constants to know which
-    // interceptors are needed.
-    Set<ClassElement> needed = new Set<ClassElement>();
-    backend.specializedGetInterceptors.forEach(
-        (_, Iterable<ClassElement> elements) {
-          needed.addAll(elements);
-        }
-    );
-
-    // Add interceptors referenced by constants.
-    needed.addAll(interceptorEmitter.interceptorsReferencedFromConstants());
-
-    // Add unneeded interceptors to the [unneededClasses] set.
-    for (ClassElement interceptor in backend.interceptedClasses) {
-      if (!needed.contains(interceptor)
-          && interceptor != compiler.objectClass) {
-        unneededClasses.add(interceptor);
-      }
-    }
-
-    // These classes are just helpers for the backend's type system.
-    unneededClasses.add(backend.jsMutableArrayClass);
-    unneededClasses.add(backend.jsFixedArrayClass);
-    unneededClasses.add(backend.jsExtendableArrayClass);
-    unneededClasses.add(backend.jsUInt32Class);
-    unneededClasses.add(backend.jsUInt31Class);
-    unneededClasses.add(backend.jsPositiveIntClass);
-
-    return (ClassElement cls) => !unneededClasses.contains(cls);
-  }
-
   void emitFinishClassesInvocationIfNecessary(CodeBuffer buffer) {
     if (needsDefineClass) {
       buffer.write('$finishClassesName($classesCollector,'
@@ -1009,31 +1221,6 @@ class CodeEmitterTask extends CompilerTask {
     return null;
   }
 
-  void emitCompileTimeConstants(CodeBuffer buffer, OutputUnit outputUnit) {
-    List<Constant> constants = outputConstantLists[outputUnit];
-    if (constants == null) return;
-    bool isMainBuffer = buffer == mainBuffer;
-    if (compiler.hasIncrementalSupport && isMainBuffer) {
-      buffer = cachedEmittedConstantsBuffer;
-    }
-    for (Constant constant in constants) {
-      if (compiler.hasIncrementalSupport && isMainBuffer) {
-        if (cachedEmittedConstants.contains(constant)) continue;
-        cachedEmittedConstants.add(constant);
-      }
-      String name = namer.constantName(constant);
-      if (constant.isList) emitMakeConstantListIfNotEmitted(buffer);
-      jsAst.Expression init = js('#.# = #',
-          [namer.globalObjectForConstant(constant), name,
-           constantInitializerExpression(constant)]);
-      buffer.write(jsAst.prettyPrint(init, compiler, monitor: compiler.dumpInfoTask));
-      buffer.write('$N');
-    }
-    if (compiler.hasIncrementalSupport && isMainBuffer) {
-      mainBuffer.add(cachedEmittedConstantsBuffer);
-    }
-  }
-
   bool isConstantInlinedOrAlreadyEmitted(Constant constant) {
     if (constant.isFunction) return true;    // Already emitted.
     if (constant.isPrimitive) return true;   // Inlined.
@@ -1065,6 +1252,32 @@ class CodeEmitterTask extends CompilerTask {
     // Resolve collisions in the long name by using the constant name (i.e. JS
     // name) which is unique.
     return namer.constantName(a).compareTo(namer.constantName(b));
+  }
+
+  void emitCompileTimeConstants(CodeBuffer buffer, OutputUnit outputUnit) {
+    List<Constant> constants = outputConstantLists[outputUnit];
+    if (constants == null) return;
+    bool isMainBuffer = buffer == mainBuffer;
+    if (compiler.hasIncrementalSupport && isMainBuffer) {
+      buffer = cachedEmittedConstantsBuffer;
+    }
+    for (Constant constant in constants) {
+      if (compiler.hasIncrementalSupport && isMainBuffer) {
+        if (cachedEmittedConstants.contains(constant)) continue;
+        cachedEmittedConstants.add(constant);
+      }
+      String name = namer.constantName(constant);
+      if (constant.isList) emitMakeConstantListIfNotEmitted(buffer);
+      jsAst.Expression init = js('#.# = #',
+          [namer.globalObjectForConstant(constant), name,
+           constantInitializerExpression(constant)]);
+      buffer.write(jsAst.prettyPrint(init, compiler,
+                                     monitor: compiler.dumpInfoTask));
+      buffer.write('$N');
+    }
+    if (compiler.hasIncrementalSupport && isMainBuffer) {
+      mainBuffer.add(cachedEmittedConstantsBuffer);
+    }
   }
 
   void emitMakeConstantListIfNotEmitted(CodeBuffer buffer) {
@@ -1228,141 +1441,6 @@ class CodeEmitterTask extends CompilerTask {
     addComment('END invoke [main].', buffer);
   }
 
-  /**
-   * Compute all the constants that must be emitted.
-   */
-  void computeNeededConstants() {
-    JavaScriptConstantCompiler handler = backend.constants;
-    List<Constant> constants = handler.getConstantsForEmission(
-        compiler.hasIncrementalSupport ? null : compareConstants);
-    for (Constant constant in constants) {
-      if (isConstantInlinedOrAlreadyEmitted(constant)) continue;
-      OutputUnit constantUnit =
-          compiler.deferredLoadTask.outputUnitForConstant(constant);
-      if (constantUnit == null) {
-        // The back-end introduces some constants, like "InterceptorConstant" or
-        // some list constants. They are emitted in the main output-unit.
-        // TODO(sigurdm): We should track those constants.
-        constantUnit = compiler.deferredLoadTask.mainOutputUnit;
-      }
-      outputConstantLists.putIfAbsent(constantUnit, () => new List<Constant>())
-          .add(constant);
-    }
-  }
-
-  /// Compute all the classes and typedefs that must be emitted.
-  void computeNeededDeclarations() {
-    // Compute needed typedefs.
-    typedefsNeededForReflection = Elements.sortedByPosition(
-        compiler.world.allTypedefs
-            .where(backend.isAccessibleByReflection)
-            .toList());
-
-    // Compute needed classes.
-    instantiatedClasses =
-        compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
-            .toSet();
-
-    void addClassWithSuperclasses(ClassElement cls) {
-      neededClasses.add(cls);
-      for (ClassElement superclass = cls.superclass;
-          superclass != null;
-          superclass = superclass.superclass) {
-        neededClasses.add(superclass);
-      }
-    }
-
-    void addClassesWithSuperclasses(Iterable<ClassElement> classes) {
-      for (ClassElement cls in classes) {
-        addClassWithSuperclasses(cls);
-      }
-    }
-
-    // 1. We need to generate all classes that are instantiated.
-    addClassesWithSuperclasses(instantiatedClasses);
-
-    // 2. Add all classes used as mixins.
-    Set<ClassElement> mixinClasses = neededClasses
-        .where((ClassElement element) => element.isMixinApplication)
-        .map(computeMixinClass)
-        .toSet();
-    neededClasses.addAll(mixinClasses);
-
-    // 3. If we need noSuchMethod support, we run through all needed
-    // classes to figure out if we need the support on any native
-    // class. If so, we let the native emitter deal with it.
-    if (compiler.enabledNoSuchMethod) {
-      String noSuchMethodName = Compiler.NO_SUCH_METHOD;
-      Selector noSuchMethodSelector = compiler.noSuchMethodSelector;
-      for (ClassElement element in neededClasses) {
-        if (!element.isNative) continue;
-        Element member = element.lookupLocalMember(noSuchMethodName);
-        if (member == null) continue;
-        if (noSuchMethodSelector.applies(member, compiler.world)) {
-          nativeEmitter.handleNoSuchMethod = true;
-          break;
-        }
-      }
-    }
-
-    // 4. Find all classes needed for rti.
-    // It is important that this is the penultimate step, at this point,
-    // neededClasses must only contain classes that have been resolved and
-    // codegen'd. The rtiNeededClasses may contain additional classes, but
-    // these are thought to not have been instantiated, so we neeed to be able
-    // to identify them later and make sure we only emit "empty shells" without
-    // fields, etc.
-    typeTestEmitter.computeRtiNeededClasses();
-    typeTestEmitter.rtiNeededClasses.removeAll(neededClasses);
-    // rtiNeededClasses now contains only the "empty shells".
-    neededClasses.addAll(typeTestEmitter.rtiNeededClasses);
-
-    // TODO(18175, floitsch): remove once issue 18175 is fixed.
-    if (neededClasses.contains(backend.jsIntClass)) {
-      neededClasses.add(compiler.intClass);
-    }
-    if (neededClasses.contains(backend.jsDoubleClass)) {
-      neededClasses.add(compiler.doubleClass);
-    }
-    if (neededClasses.contains(backend.jsNumberClass)) {
-      neededClasses.add(compiler.numClass);
-    }
-    if (neededClasses.contains(backend.jsStringClass)) {
-      neededClasses.add(compiler.stringClass);
-    }
-    if (neededClasses.contains(backend.jsBoolClass)) {
-      neededClasses.add(compiler.boolClass);
-    }
-    if (neededClasses.contains(backend.jsArrayClass)) {
-      neededClasses.add(compiler.listClass);
-    }
-
-    // 5. Finally, sort the classes.
-    List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
-
-    for (ClassElement element in sortedClasses) {
-      if (typeTestEmitter.rtiNeededClasses.contains(element)) {
-        // TODO(sigurdm): We might be able to defer some of these.
-        outputClassLists.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
-            () => new List<ClassElement>()).add(element);
-      } else if (Elements.isNativeOrExtendsNative(element)) {
-        // For now, native classes and related classes cannot be deferred.
-        nativeClasses.add(element);
-        if (!element.isNative) {
-          assert(invariant(element,
-                           !compiler.deferredLoadTask.isDeferred(element)));
-          outputClassLists.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
-              () => new List<ClassElement>()).add(element);
-        }
-      } else {
-        outputClassLists.putIfAbsent(
-            compiler.deferredLoadTask.outputUnitForElement(element),
-            () => new List<ClassElement>())
-            .add(element);
-      }
-    }
-  }
-
   void emitInitFunction(CodeBuffer buffer) {
     jsAst.FunctionDeclaration decl = js.statement('''
       function init() {
@@ -1482,302 +1560,288 @@ class CodeEmitterTask extends CompilerTask {
     cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
   }
 
-  void assembleProgram() {
-    measure(() {
-      invalidateCaches();
+  void emitProgram() {
+    // Maps each output unit to a codebuffers with the library descriptors of
+    // the output unit emitted to it.
+    Map<OutputUnit, CodeBuffer> libraryDescriptorBuffers =
+        new Map<OutputUnit, CodeBuffer>();
 
-      // Compute the required type checks to know which classes need a
-      // 'is$' method.
-      typeTestEmitter.computeRequiredTypeChecks();
+    OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
 
-      computeNeededDeclarations();
+    mainBuffer.add(buildGeneratedBy());
+    addComment(HOOKS_API_USAGE, mainBuffer);
 
-      if (USE_NEW_EMITTER) {
-        new new_js_emitter.Emitter(compiler, this).emitProgram();
-        return;
+    /// For deferred loading we communicate the initializers via this global
+    /// variable. The deferred hunks will add their initialization to this.
+    /// The semicolon is important in minified mode, without it the
+    /// following parenthesis looks like a call to the object literal.
+    mainBuffer..add(
+        'if$_(typeof(${deferredInitializers})$_===$_"undefined")$_'
+        '${deferredInitializers} = Object.create(null);$n');
+
+    // Using a named function here produces easier to read stack traces in
+    // Chrome/V8.
+    mainBuffer.add('(function(${namer.currentIsolate})$_{\n');
+    if (compiler.deferredLoadTask.isProgramSplit) {
+      /// We collect all the global state of the, so it can be passed to the
+      /// initializer of deferred files.
+      mainBuffer.add('var ${globalsHolder}$_=${_}Object.create(null)$N');
+    }
+    mainBuffer.add('function dart()$_{$n'
+        '${_}${_}this.x$_=${_}0$N'
+        '${_}${_}delete this.x$N'
+        '}$n');
+    for (String globalObject in Namer.reservedGlobalObjectNames) {
+      // The global objects start as so-called "slow objects". For V8, this
+      // means that it won't try to make map transitions as we add properties
+      // to these objects. Later on, we attempt to turn these objects into
+      // fast objects by calling "convertToFastObject" (see
+      // [emitConvertToFastObjectFunction]).
+      mainBuffer.write('var ${globalObject}$_=${_}');
+      if(compiler.deferredLoadTask.isProgramSplit) {
+        mainBuffer.add('${globalsHolder}.$globalObject$_=${_}');
+      }
+      mainBuffer.write('new dart$N');
+    }
+
+    mainBuffer.add('function ${namer.isolateName}()$_{}\n');
+    if (compiler.deferredLoadTask.isProgramSplit) {
+      mainBuffer
+        .write('${globalsHolder}.${namer.isolateName}$_=$_'
+               '${namer.isolateName}$N'
+               '${globalsHolder}.$initName$_=${_}$initName$N');
+    }
+    mainBuffer.add('init()$N$n');
+    // Shorten the code by using [namer.currentIsolate] as temporary.
+    isolateProperties = namer.currentIsolate;
+    mainBuffer.add(
+        '$isolateProperties$_=$_$isolatePropertiesName$N');
+
+    emitStaticFunctions();
+
+    // Only output the classesCollector if we actually have any classes.
+    if (!(nativeClasses.isEmpty &&
+          compiler.codegenWorld.staticFunctionsNeedingGetter.isEmpty &&
+        outputClassLists.values.every((classList) => classList.isEmpty) &&
+        typedefsNeededForReflection.isEmpty)) {
+      // Shorten the code by using "$$" as temporary.
+      classesCollector = r"$$";
+      mainBuffer.add('var $classesCollector$_=${_}Object.create(null)$N$n');
+    }
+
+    // Emit native classes on [nativeBuffer].
+    // Might create methodClosures.
+    final CodeBuffer nativeBuffer = new CodeBuffer();
+    if (!nativeClasses.isEmpty) {
+      addComment('Native classes', nativeBuffer);
+      addComment('Native classes', mainBuffer);
+      nativeEmitter.generateNativeClasses(nativeClasses, mainBuffer,
+          additionalProperties);
+    }
+
+    // As a side-effect, emitting classes will produce "bound closures" in
+    // [methodClosures].  The bound closures are JS AST nodes that add
+    // properties to $$ [classesCollector].  The bound closures are not
+    // emitted until we have emitted all other classes (native or not).
+
+    // Might create methodClosures.
+    for (List<ClassElement> outputClassList in outputClassLists.values) {
+      for (ClassElement element in outputClassList) {
+        generateClass(element, getElementDescriptor(element));
+      }
+    }
+
+    nativeEmitter.finishGenerateNativeClasses();
+    nativeEmitter.assembleCode(nativeBuffer);
+
+
+    // After this assignment we will produce invalid JavaScript code if we use
+    // the classesCollector variable.
+    classesCollector = 'classesCollector should not be used from now on';
+
+    // TODO(sigurdm): Need to check this for each outputUnit.
+    if (!elementDescriptors.isEmpty) {
+      var oldClassesCollector = classesCollector;
+      classesCollector = r"$$";
+      if (compiler.enableMinification) {
+        mainBuffer.write(';');
       }
 
-      // Maps each output unit to a codebuffers with the library descriptors of
-      // the output unit emitted to it.
-      Map<OutputUnit, CodeBuffer> libraryDescriptorBuffers =
-          new Map<OutputUnit, CodeBuffer>();
-
-      OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
-
-      mainBuffer.add(buildGeneratedBy());
-      addComment(HOOKS_API_USAGE, mainBuffer);
-
-      /// For deferred loading we communicate the initializers via this global
-      /// variable. The deferred hunks will add their initialization to this.
-      /// The semicolon is important in minified mode, without it the
-      /// following parenthesis looks like a call to the object literal.
-      mainBuffer..add(
-          'if$_(typeof(${deferredInitializers})$_===$_"undefined")$_'
-          '${deferredInitializers} = Object.create(null);$n');
-
-      // Using a named function here produces easier to read stack traces in
-      // Chrome/V8.
-      mainBuffer.add('(function(${namer.currentIsolate})$_{\n');
-      if (compiler.deferredLoadTask.isProgramSplit) {
-        /// We collect all the global state of the, so it can be passed to the
-        /// initializer of deferred files.
-        mainBuffer.add('var ${globalsHolder}$_=${_}Object.create(null)$N');
-      }
-      mainBuffer.add('function dart()$_{$n'
-          '${_}${_}this.x$_=${_}0$N'
-          '${_}${_}delete this.x$N'
-          '}$n');
-      for (String globalObject in Namer.reservedGlobalObjectNames) {
-        // The global objects start as so-called "slow objects". For V8, this
-        // means that it won't try to make map transitions as we add properties
-        // to these objects. Later on, we attempt to turn these objects into
-        // fast objects by calling "convertToFastObject" (see
-        // [emitConvertToFastObjectFunction]).
-        mainBuffer.write('var ${globalObject}$_=${_}');
-        if(compiler.deferredLoadTask.isProgramSplit) {
-          mainBuffer.add('${globalsHolder}.$globalObject$_=${_}');
+      // TODO(karlklose): document what kinds of fields this loop adds to the
+      // library class builder.
+      for (Element element in elementDescriptors.keys) {
+        // TODO(ahe): Should iterate over all libraries.  Otherwise, we will
+        // not see libraries that only have fields.
+        if (element.isLibrary) {
+          LibraryElement library = element;
+          ClassBuilder builder = new ClassBuilder(library, namer);
+          if (classEmitter.emitFields(
+                  library, builder, null, emitStatics: true)) {
+            jsAst.ObjectInitializer initializer =
+              builder.toObjectInitializer();
+            compiler.dumpInfoTask.registerElementAst(builder.element,
+                                                     initializer);
+            getElementDescriptorForOutputUnit(library, mainOutputUnit)
+                .properties.addAll(initializer.properties);
+          }
         }
-        mainBuffer.write('new dart$N');
       }
 
-      mainBuffer.add('function ${namer.isolateName}()$_{}\n');
-      if (compiler.deferredLoadTask.isProgramSplit) {
-        mainBuffer
-          .write('${globalsHolder}.${namer.isolateName}$_=$_'
-                 '${namer.isolateName}$N'
-                 '${globalsHolder}.$initName$_=${_}$initName$N');
-      }
-      mainBuffer.add('init()$N$n');
-      // Shorten the code by using [namer.currentIsolate] as temporary.
-      isolateProperties = namer.currentIsolate;
-      mainBuffer.add(
-          '$isolateProperties$_=$_$isolatePropertiesName$N');
-
-      emitStaticFunctions();
-
-      // Only output the classesCollector if we actually have any classes.
-      if (!(nativeClasses.isEmpty &&
-            compiler.codegenWorld.staticFunctionsNeedingGetter.isEmpty &&
-          outputClassLists.values.every((classList) => classList.isEmpty) &&
-          typedefsNeededForReflection.isEmpty)) {
-        // Shorten the code by using "$$" as temporary.
-        classesCollector = r"$$";
-        mainBuffer.add('var $classesCollector$_=${_}Object.create(null)$N$n');
-      }
-
-      // Emit native classes on [nativeBuffer].
-      // Might create methodClosures.
-      final CodeBuffer nativeBuffer = new CodeBuffer();
-      if (!nativeClasses.isEmpty) {
-        addComment('Native classes', nativeBuffer);
-        addComment('Native classes', mainBuffer);
-        nativeEmitter.generateNativeClasses(nativeClasses, mainBuffer,
-            additionalProperties);
+      // Emit all required typedef declarations into the main output unit.
+      // TODO(karlklose): unify required classes and typedefs to declarations
+      // and have builders for each kind.
+      for (TypedefElement typedef in typedefsNeededForReflection) {
+        OutputUnit mainUnit = compiler.deferredLoadTask.mainOutputUnit;
+        LibraryElement library = typedef.library;
+        // TODO(karlklose): add a TypedefBuilder and move this code there.
+        DartType type = typedef.alias;
+        int typeIndex = metadataEmitter.reifyType(type);
+        String typeReference =
+            encoding.encodeTypedefFieldDescriptor(typeIndex);
+        jsAst.Property descriptor = new jsAst.Property(
+            js.string(namer.classDescriptorProperty),
+            js.string(typeReference));
+        jsAst.Node declaration = new jsAst.ObjectInitializer([descriptor]);
+        String mangledName = namer.getNameX(typedef);
+        String reflectionName = getReflectionName(typedef, mangledName);
+        getElementDescriptorForOutputUnit(library, mainUnit)
+            ..addProperty(mangledName, declaration)
+            ..addProperty("+$reflectionName", js.string(''));
+        // Also emit a trivial constructor for CSP mode.
+        String constructorName = mangledName;
+        jsAst.Expression constructorAst = js('function() {}');
+        emitPrecompiledConstructor(mainOutputUnit,
+                                   constructorName,
+                                   constructorAst);
       }
 
-      // As a side-effect, emitting classes will produce "bound closures" in
-      // [methodClosures].  The bound closures are JS AST nodes that add
-      // properties to $$ [classesCollector].  The bound closures are not
-      // emitted until we have emitted all other classes (native or not).
-
-      // Might create methodClosures.
-      for (List<ClassElement> outputClassList in outputClassLists.values) {
-        for (ClassElement element in outputClassList) {
-          generateClass(element, getElementDescriptor(element));
+      if (!mangledFieldNames.isEmpty) {
+        var keys = mangledFieldNames.keys.toList();
+        keys.sort();
+        var properties = [];
+        for (String key in keys) {
+          var value = js.string('${mangledFieldNames[key]}');
+          properties.add(new jsAst.Property(js.string(key), value));
         }
-      }
 
-      nativeEmitter.finishGenerateNativeClasses();
-      nativeEmitter.assembleCode(nativeBuffer);
-
-
-      // After this assignment we will produce invalid JavaScript code if we use
-      // the classesCollector variable.
-      classesCollector = 'classesCollector should not be used from now on';
-
-      // TODO(sigurdm): Need to check this for each outputUnit.
-      if (!elementDescriptors.isEmpty) {
-        var oldClassesCollector = classesCollector;
-        classesCollector = r"$$";
+        jsAst.Expression mangledNamesAccess =
+            generateEmbeddedGlobalAccess(embeddedNames.MANGLED_NAMES);
+        var map = new jsAst.ObjectInitializer(properties);
+        mainBuffer.write(
+            jsAst.prettyPrint(
+                js.statement('# = #', [mangledNamesAccess, map]),
+                compiler,
+                monitor: compiler.dumpInfoTask));
         if (compiler.enableMinification) {
           mainBuffer.write(';');
         }
-
-        // TODO(karlklose): document what kinds of fields this loop adds to the
-        // library class builder.
-        for (Element element in elementDescriptors.keys) {
-          // TODO(ahe): Should iterate over all libraries.  Otherwise, we will
-          // not see libraries that only have fields.
-          if (element.isLibrary) {
-            LibraryElement library = element;
-            ClassBuilder builder = new ClassBuilder(library, namer);
-            if (classEmitter.emitFields(
-                    library, builder, null, emitStatics: true)) {
-              jsAst.ObjectInitializer initializer =
-                builder.toObjectInitializer();
-              compiler.dumpInfoTask.registerElementAst(builder.element,
-                                                       initializer);
-              getElementDescriptorForOutputUnit(library, mainOutputUnit)
-                  .properties.addAll(initializer.properties);
-            }
-          }
+      }
+      if (!mangledGlobalFieldNames.isEmpty) {
+        var keys = mangledGlobalFieldNames.keys.toList();
+        keys.sort();
+        var properties = [];
+        for (String key in keys) {
+          var value = js.string('${mangledGlobalFieldNames[key]}');
+          properties.add(new jsAst.Property(js.string(key), value));
         }
-
-        // Emit all required typedef declarations into the main output unit.
-        // TODO(karlklose): unify required classes and typedefs to declarations
-        // and have builders for each kind.
-        for (TypedefElement typedef in typedefsNeededForReflection) {
-          OutputUnit mainUnit = compiler.deferredLoadTask.mainOutputUnit;
-          LibraryElement library = typedef.library;
-          // TODO(karlklose): add a TypedefBuilder and move this code there.
-          DartType type = typedef.alias;
-          int typeIndex = metadataEmitter.reifyType(type);
-          String typeReference =
-              encoding.encodeTypedefFieldDescriptor(typeIndex);
-          jsAst.Property descriptor = new jsAst.Property(
-              js.string(namer.classDescriptorProperty),
-              js.string(typeReference));
-          jsAst.Node declaration = new jsAst.ObjectInitializer([descriptor]);
-          String mangledName = namer.getNameX(typedef);
-          String reflectionName = getReflectionName(typedef, mangledName);
-          getElementDescriptorForOutputUnit(library, mainUnit)
-              ..addProperty(mangledName, declaration)
-              ..addProperty("+$reflectionName", js.string(''));
-          // Also emit a trivial constructor for CSP mode.
-          String constructorName = mangledName;
-          jsAst.Expression constructorAst = js('function() {}');
-          emitPrecompiledConstructor(mainOutputUnit,
-                                     constructorName,
-                                     constructorAst);
+        jsAst.Expression mangledGlobalNamesAccess =
+            generateEmbeddedGlobalAccess(embeddedNames.MANGLED_GLOBAL_NAMES);
+        var map = new jsAst.ObjectInitializer(properties);
+        mainBuffer.write(
+            jsAst.prettyPrint(
+                js.statement('# = #', [mangledGlobalNamesAccess, map]),
+                compiler,
+                monitor: compiler.dumpInfoTask));
+        if (compiler.enableMinification) {
+          mainBuffer.write(';');
         }
+      }
 
-        if (!mangledFieldNames.isEmpty) {
-          var keys = mangledFieldNames.keys.toList();
-          keys.sort();
-          var properties = [];
-          for (String key in keys) {
-            var value = js.string('${mangledFieldNames[key]}');
-            properties.add(new jsAst.Property(js.string(key), value));
-          }
+      List<Element> sortedElements =
+          Elements.sortedByPosition(elementDescriptors.keys);
 
-          jsAst.Expression mangledNamesAccess =
-              generateEmbeddedGlobalAccess(embeddedNames.MANGLED_NAMES);
-          var map = new jsAst.ObjectInitializer(properties);
-          mainBuffer.write(
+      Iterable<Element> pendingStatics;
+      if (!compiler.hasIncrementalSupport) {
+        pendingStatics = sortedElements.where((element) {
+            return !element.isLibrary &&
+                elementDescriptors[element].values.any((descriptor) =>
+                    descriptor != null);
+        });
+
+        pendingStatics.forEach((element) =>
+            compiler.reportInfo(
+                element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
+      }
+
+      for (LibraryElement library in sortedElements.where((element) =>
+          element.isLibrary)) {
+        writeLibraryDescriptors(library, libraryDescriptorBuffers);
+        elementDescriptors[library] = const {};
+      }
+      if (pendingStatics != null && !pendingStatics.isEmpty) {
+        compiler.internalError(pendingStatics.first,
+            'Pending statics (see above).');
+      }
+      mainBuffer
+          ..write('(')
+          ..write(
               jsAst.prettyPrint(
-                  js.statement('# = #', [mangledNamesAccess, map]),
-                  compiler,
-                  monitor: compiler.dumpInfoTask));
-          if (compiler.enableMinification) {
-            mainBuffer.write(';');
-          }
-        }
-        if (!mangledGlobalFieldNames.isEmpty) {
-          var keys = mangledGlobalFieldNames.keys.toList();
-          keys.sort();
-          var properties = [];
-          for (String key in keys) {
-            var value = js.string('${mangledGlobalFieldNames[key]}');
-            properties.add(new jsAst.Property(js.string(key), value));
-          }
-          jsAst.Expression mangledGlobalNamesAccess =
-              generateEmbeddedGlobalAccess(embeddedNames.MANGLED_GLOBAL_NAMES);
-          var map = new jsAst.ObjectInitializer(properties);
-          mainBuffer.write(
-              jsAst.prettyPrint(
-                  js.statement('# = #', [mangledGlobalNamesAccess, map]),
-                  compiler,
-                  monitor: compiler.dumpInfoTask));
-          if (compiler.enableMinification) {
-            mainBuffer.write(';');
-          }
-        }
+                  getReflectionDataParser(classesCollector, backend),
+                  compiler))
+          ..write(')')
+          ..write('([$n')
+          ..add(libraryDescriptorBuffers[mainOutputUnit])
+          ..write('])$N');
 
-        List<Element> sortedElements =
-            Elements.sortedByPosition(elementDescriptors.keys);
+      emitFinishClassesInvocationIfNecessary(mainBuffer);
+      classesCollector = oldClassesCollector;
+    }
+    typeTestEmitter.emitRuntimeTypeSupport(mainBuffer, mainOutputUnit);
+    interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
+    interceptorEmitter.emitOneShotInterceptors(mainBuffer);
+    // Constants in checked mode call into RTI code to set type information
+    // which may need getInterceptor (and one-shot interceptor) methods, so
+    // we have to make sure that [emitGetInterceptorMethods] and
+    // [emitOneShotInterceptors] have been called.
+    task.computeNeededConstants();
+    emitCompileTimeConstants(mainBuffer, mainOutputUnit);
 
-        Iterable<Element> pendingStatics;
-        if (!compiler.hasIncrementalSupport) {
-          pendingStatics = sortedElements.where((element) {
-              return !element.isLibrary &&
-                  elementDescriptors[element].values.any((descriptor) =>
-                      descriptor != null);
-          });
+    if (compiler.deferredLoadTask.isProgramSplit) {
+      /// Map from OutputUnit to a hash of its content. The hash uniquely
+      /// identifies the code of the output-unit. It does not include
+      /// boilerplate JS code, like the sourcemap directives or the hash
+      /// itself.
+      Map<OutputUnit, String> deferredLoadHashes =
+          emitDeferredCode(libraryDescriptorBuffers);
+      emitDeferredBoilerPlate(mainBuffer, deferredLoadHashes);
+    }
 
-          pendingStatics.forEach((element) =>
-              compiler.reportInfo(
-                  element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
-        }
+    // Static field initializations require the classes and compile-time
+    // constants to be set up.
+    emitStaticNonFinalFieldInitializations(mainBuffer);
+    interceptorEmitter.emitInterceptedNames(mainBuffer);
+    interceptorEmitter.emitMapTypeToInterceptor(mainBuffer);
+    emitLazilyInitializedStaticFields(mainBuffer);
 
-        for (LibraryElement library in sortedElements.where((element) =>
-            element.isLibrary)) {
-          writeLibraryDescriptors(library, libraryDescriptorBuffers);
-          elementDescriptors[library] = const {};
-        }
-        if (pendingStatics != null && !pendingStatics.isEmpty) {
-          compiler.internalError(pendingStatics.first,
-              'Pending statics (see above).');
-        }
-        mainBuffer
-            ..write('(')
-            ..write(
-                jsAst.prettyPrint(
-                    getReflectionDataParser(classesCollector, backend),
-                    compiler))
-            ..write(')')
-            ..write('([$n')
-            ..add(libraryDescriptorBuffers[mainOutputUnit])
-            ..write('])$N');
+    mainBuffer.add(nativeBuffer);
 
-        emitFinishClassesInvocationIfNecessary(mainBuffer);
-        classesCollector = oldClassesCollector;
-      }
-      typeTestEmitter.emitRuntimeTypeSupport(mainBuffer, mainOutputUnit);
-      interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
-      interceptorEmitter.emitOneShotInterceptors(mainBuffer);
-      // Constants in checked mode call into RTI code to set type information
-      // which may need getInterceptor (and one-shot interceptor) methods, so
-      // we have to make sure that [emitGetInterceptorMethods] and
-      // [emitOneShotInterceptors] have been called.
-      computeNeededConstants();
-      emitCompileTimeConstants(mainBuffer, mainOutputUnit);
+    metadataEmitter.emitMetadata(mainBuffer);
 
-      if (compiler.deferredLoadTask.isProgramSplit) {
-        /// Map from OutputUnit to a hash of its content. The hash uniquely
-        /// identifies the code of the output-unit. It does not include
-        /// boilerplate JS code, like the sourcemap directives or the hash
-        /// itself.
-        Map<OutputUnit, String> deferredLoadHashes =
-            emitDeferredCode(libraryDescriptorBuffers);
-        emitDeferredBoilerPlate(mainBuffer, deferredLoadHashes);
-      }
+    isolateProperties = isolatePropertiesName;
+    // The following code should not use the short-hand for the
+    // initialStatics.
+    mainBuffer.add('${namer.currentIsolate}$_=${_}null$N');
 
-      // Static field initializations require the classes and compile-time
-      // constants to be set up.
-      emitStaticNonFinalFieldInitializations(mainBuffer);
-      interceptorEmitter.emitInterceptedNames(mainBuffer);
-      interceptorEmitter.emitMapTypeToInterceptor(mainBuffer);
-      emitLazilyInitializedStaticFields(mainBuffer);
+    emitFinishIsolateConstructorInvocation(mainBuffer);
+    mainBuffer.add(
+        '${namer.currentIsolate}$_=${_}new ${namer.isolateName}()$N');
 
-      mainBuffer.add(nativeBuffer);
-
-      metadataEmitter.emitMetadata(mainBuffer);
-
-      isolateProperties = isolatePropertiesName;
-      // The following code should not use the short-hand for the
-      // initialStatics.
-      mainBuffer.add('${namer.currentIsolate}$_=${_}null$N');
-
-      emitFinishIsolateConstructorInvocation(mainBuffer);
-      mainBuffer.add(
-          '${namer.currentIsolate}$_=${_}new ${namer.isolateName}()$N');
-
-      emitConvertToFastObjectFunction();
-      for (String globalObject in Namer.reservedGlobalObjectNames) {
-        mainBuffer.add('$globalObject = convertToFastObject($globalObject)$N');
-      }
-      if (DEBUG_FAST_OBJECTS) {
-        mainBuffer.add(r'''
+    emitConvertToFastObjectFunction();
+    for (String globalObject in Namer.reservedGlobalObjectNames) {
+      mainBuffer.add('$globalObject = convertToFastObject($globalObject)$N');
+    }
+    if (DEBUG_FAST_OBJECTS) {
+      mainBuffer.add(r'''
           // The following only works on V8 when run with option
           // "--allow-natives-syntax".  We use'new Function' because the
           // miniparser does not understand V8 native syntax.
@@ -1805,51 +1869,51 @@ class CodeEmitterTask extends CompilerTask {
            }
          }
 ''');
-        for (String object in Namer.userGlobalObjects) {
-        mainBuffer.add('''
-          if (typeof print === "function") {
-             print("Size of $object: "
-                   + String(Object.getOwnPropertyNames($object).length)
-                   + ", fast properties " + HasFastProperties($object));
+      for (String object in Namer.userGlobalObjects) {
+      mainBuffer.add('''
+        if (typeof print === "function") {
+           print("Size of $object: "
+                 + String(Object.getOwnPropertyNames($object).length)
+                 + ", fast properties " + HasFastProperties($object));
 }
 ''');
-        }
       }
+    }
 
-      jsAst.FunctionDeclaration precompiledFunctionAst =
-          buildCspPrecompiledFunctionFor(mainOutputUnit);
-      emitInitFunction(mainBuffer);
-      emitMain(mainBuffer);
-      mainBuffer.add('})()\n');
+    jsAst.FunctionDeclaration precompiledFunctionAst =
+        buildCspPrecompiledFunctionFor(mainOutputUnit);
+    emitInitFunction(mainBuffer);
+    emitMain(mainBuffer);
+    mainBuffer.add('})()\n');
 
-      if (compiler.useContentSecurityPolicy) {
-        mainBuffer.write(
-            jsAst.prettyPrint(
-                precompiledFunctionAst,
-                compiler,
-                monitor: compiler.dumpInfoTask,
-                allowVariableMinification: false).getText());
-      }
+    if (compiler.useContentSecurityPolicy) {
+      mainBuffer.write(
+          jsAst.prettyPrint(
+              precompiledFunctionAst,
+              compiler,
+              monitor: compiler.dumpInfoTask,
+              allowVariableMinification: false).getText());
+    }
 
-      String assembledCode = mainBuffer.getText();
-      String sourceMapTags = "";
-      if (generateSourceMap) {
-        outputSourceMap(assembledCode, mainBuffer, '',
-            compiler.sourceMapUri, compiler.outputUri);
-        sourceMapTags =
-            generateSourceMapTag(compiler.sourceMapUri, compiler.outputUri);
-      }
-      mainBuffer.add(sourceMapTags);
-      assembledCode = mainBuffer.getText();
-      compiler.outputProvider('', 'js')
-          ..add(assembledCode)
-          ..close();
-      compiler.assembledCode = assembledCode;
+    String assembledCode = mainBuffer.getText();
+    String sourceMapTags = "";
+    if (generateSourceMap) {
+      outputSourceMap(assembledCode, mainBuffer, '',
+          compiler.sourceMapUri, compiler.outputUri);
+      sourceMapTags =
+          generateSourceMapTag(compiler.sourceMapUri, compiler.outputUri);
+    }
+    mainBuffer.add(sourceMapTags);
+    assembledCode = mainBuffer.getText();
+    compiler.outputProvider('', 'js')
+        ..add(assembledCode)
+        ..close();
+    compiler.assembledCode = assembledCode;
 
-      if (!compiler.useContentSecurityPolicy) {
-        CodeBuffer cspBuffer = new CodeBuffer();
-        cspBuffer.add(mainBuffer);
-        cspBuffer.write("""
+    if (!compiler.useContentSecurityPolicy) {
+      CodeBuffer cspBuffer = new CodeBuffer();
+      cspBuffer.add(mainBuffer);
+      cspBuffer.write("""
 {
   var message =
       'Deprecation: Automatic generation of output for Content Security\\n' +
@@ -1864,21 +1928,20 @@ class CodeEmitterTask extends CompilerTask {
   }
 }\n""");
 
-        cspBuffer.write(
-            jsAst.prettyPrint(
-                precompiledFunctionAst, compiler,
-                allowVariableMinification: false).getText());
+      cspBuffer.write(
+          jsAst.prettyPrint(
+              precompiledFunctionAst, compiler,
+              allowVariableMinification: false).getText());
 
-        compiler.outputProvider('', 'precompiled.js')
-            ..add(cspBuffer.getText())
-            ..close();
-      }
+      compiler.outputProvider('', 'precompiled.js')
+          ..add(cspBuffer.getText())
+          ..close();
+    }
 
-      if (backend.requiresPreamble &&
-          !backend.htmlLibraryIsLoaded) {
-        compiler.reportHint(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
-      }
-    });
+    if (backend.requiresPreamble &&
+        !backend.htmlLibraryIsLoaded) {
+      compiler.reportHint(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
+    }
   }
 
   String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
@@ -2099,10 +2162,6 @@ class CodeEmitterTask extends CompilerTask {
     compiler.outputProvider(name, 'js.map')
         ..add(sourceMap)
         ..close();
-  }
-
-  void registerReadTypeVariable(TypeVariableElement element) {
-    readTypeVariables.add(element);
   }
 
   void invalidateCaches() {

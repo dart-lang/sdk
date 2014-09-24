@@ -32,7 +32,8 @@ main() {
       var backend = compiler.backend;
 
       // Make sure no class is emitted.
-      Expect.isFalse(generated.contains(backend.emitter.finishClassesName));
+      Expect.isFalse(generated.contains(
+          backend.emitter.oldEmitter.finishClassesName));
     });
   }));
 }

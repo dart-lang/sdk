@@ -71,7 +71,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
       jsAst.Expression encoding = rti.getSignatureEncoding(type, thisAccess);
       String operatorSignature = namer.operatorSignature();
       if (!type.containsTypeVariables) {
-        builder.functionType = '${task.metadataEmitter.reifyType(type)}';
+        builder.functionType = '${emitter.metadataEmitter.reifyType(type)}';
       } else {
         builder.addProperty(operatorSignature, encoding);
       }
@@ -81,7 +81,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
       if (cls.typeVariables.isEmpty) return;
       RuntimeTypes rti = backend.rti;
       jsAst.Expression expression;
-      bool needsNativeCheck = task.nativeEmitter.requiresNativeIsCheck(cls);
+      bool needsNativeCheck = emitter.nativeEmitter.requiresNativeIsCheck(cls);
       expression = rti.getSupertypeSubstitution(
           classElement, cls, alwaysGenerateFunction: true);
       if (expression == null && (emitNull || needsNativeCheck)) {
@@ -273,7 +273,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
   }
 
   void emitRuntimeTypeSupport(CodeBuffer buffer, OutputUnit outputUnit) {
-    task.addComment('Runtime type support', buffer);
+    emitter.addComment('Runtime type support', buffer);
     RuntimeTypes rti = backend.rti;
     TypeChecks typeChecks = rti.requiredChecks;
 

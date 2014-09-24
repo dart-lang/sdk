@@ -263,5 +263,5 @@ useTypes() {
 }
 
 useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
-  codeEmitterTask.clearCspPrecompiledNodes();
+  codeEmitterTask.oldEmitter.clearCspPrecompiledNodes();
 }

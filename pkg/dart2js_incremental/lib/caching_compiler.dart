@@ -85,15 +85,16 @@ Future<Compiler> reuseCompiler(
         ..compilationFailed = false;
     JavaScriptBackend backend = compiler.backend;
 
-    backend.emitter.cachedElements.addAll(backend.generatedCode.keys);
+    backend.emitter.oldEmitter.cachedElements.addAll(
+        backend.generatedCode.keys);
 
     compiler.enqueuer.codegen.newlyEnqueuedElements.clear();
 
-    backend.emitter.containerBuilder
+    backend.emitter.oldEmitter.containerBuilder
         ..staticGetters.clear()
         ..methodClosures.clear();
 
-    backend.emitter.nsmEmitter
+    backend.emitter.oldEmitter.nsmEmitter
         ..trivialNsmHandlers.clear();
 
     backend.emitter.typeTestEmitter
@@ -107,7 +108,7 @@ Future<Compiler> reuseCompiler(
     backend.emitter.interceptorEmitter
         ..interceptorInvocationNames.clear();
 
-    backend.emitter.metadataEmitter
+    backend.emitter.oldEmitter.metadataEmitter
         ..globalMetadata.clear()
         ..globalMetadataMap.clear();
 
@@ -117,6 +118,10 @@ Future<Compiler> reuseCompiler(
         ..nativeMethods.clear();
 
     backend.emitter
+        ..readTypeVariables.clear()
+        ..instantiatedClasses = null;
+
+    backend.emitter.oldEmitter
         ..outputBuffers.clear()
         ..deferredConstants.clear()
         ..isolateProperties = null
@@ -128,8 +133,6 @@ Future<Compiler> reuseCompiler(
         ..mangledGlobalFieldNames.clear()
         ..recordedMangledNames.clear()
         ..additionalProperties.clear()
-        ..readTypeVariables.clear()
-        ..instantiatedClasses = null
         ..clearCspPrecompiledNodes()
         ..hasMakeConstantList = false
         ..elementDescriptors.clear();

@@ -32,20 +32,21 @@ class Fragment {
 }
 
 class Registry {
-  final DeferredLoadTask _deferredLoadTask;
+  final Compiler _compiler;
   final Map<String, Holder> _holdersMap = <String, Holder>{};
-  final Map<OutputUnit, Fragment> _fragmentsMap = <OutputUnit, Fragment>{};
+  final Map<OutputUnit, Fragment> _deferredFragmentsMap =
+      <OutputUnit, Fragment>{};
 
+  DeferredLoadTask get _deferredLoadTask => _compiler.deferredLoadTask;
   Iterable<Holder> get holders => _holdersMap.values;
-  Iterable<Fragment> get deferredFragments => _fragmentsMap.values.skip(1);
-  int get fragmentCount => _fragmentsMap.length;
+  Iterable<Fragment> get deferredFragments => _deferredFragmentsMap.values;
+  // Add one for the main fragment.
+  int get fragmentCount => _deferredFragmentsMap.length + 1;
 
   /// A fastpath for `_libraryElements[_mainOutputUnit]`.
   final Fragment mainFragment = new Fragment();
 
-  Registry(this._deferredLoadTask) {
-    _fragmentsMap[_mainOutputUnit] = mainFragment;
-  }
+  Registry(this._compiler);
 
   bool get _isProgramSplit => _deferredLoadTask.isProgramSplit;
   OutputUnit get _mainOutputUnit => _deferredLoadTask.mainOutputUnit;
@@ -55,7 +56,7 @@ class Registry {
     OutputUnit targetUnit = _deferredLoadTask.outputUnitForElement(element);
     return (targetUnit == _mainOutputUnit)
         ? mainFragment
-        : _fragmentsMap.putIfAbsent(targetUnit, () => new Fragment());
+        : _deferredFragmentsMap.putIfAbsent(targetUnit, () => new Fragment());
   }
 
   /// Adds the element to the list of elements of the library in the right

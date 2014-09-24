@@ -16,7 +16,7 @@ Future<CodeBuffer> compileAll(SourceFile sourceFile) {
   compiler.sourceFiles[uri.toString()] = sourceFile;
   JavaScriptBackend backend = compiler.backend;
   return compiler.runCompiler(uri).then((_) {
-    return backend.emitter.mainBuffer;
+    return backend.emitter.oldEmitter.mainBuffer;
   });
 }
 

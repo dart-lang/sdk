@@ -95,7 +95,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
     Backend backend = compiler.backend;
     if (backend is JavaScriptBackend) {
       // Add up the sizes of all output-buffers.
-      programSize = backend.emitter.outputBuffers.values.fold(0,
+      programSize = backend.emitter.oldEmitter.outputBuffers.values.fold(0,
           (a, b) => a + b.length);
     } else {
       programSize = compiler.assembledCode.length;
@@ -630,7 +630,7 @@ class DumpInfoTask extends CompilerTask {
       outputUnits.add(<String, dynamic> {
         'id': id,
         'name': outputUnit.name,
-        'size': backend.emitter.outputBuffers[outputUnit].length,
+        'size': backend.emitter.oldEmitter.outputBuffers[outputUnit].length,
       });
     }
 
