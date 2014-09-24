@@ -51,7 +51,7 @@ class PackageGraph {
     var id = lockFile.packages[package];
     if (id == null) return false;
     var source = entrypoint.cache.sources[id.source];
-    if (source is! CachedSource) return true;
+    if (source is! CachedSource) return false;
     return packages[package].pubspec.transformers.isEmpty;
   }
 }

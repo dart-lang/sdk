@@ -47,9 +47,16 @@ Future loadAllTransformers(AssetEnvironment environment,
                       var transformers =
                           environment.getBuiltInTransformers(package);
                       join0() {
-                        newFuture(
-                            (() => environment.barback.updateTransformers(package.name, phases)));
-                        completer0.complete(null);
+                        join1() {
+                          newFuture(
+                              (() => environment.barback.updateTransformers(package.name, phases)));
+                          completer0.complete(null);
+                        }
+                        if (phases.isEmpty) {
+                          completer0.complete(null);
+                        } else {
+                          join1();
+                        }
                       }
                       if (transformers != null) {
                         phases.add(transformers);

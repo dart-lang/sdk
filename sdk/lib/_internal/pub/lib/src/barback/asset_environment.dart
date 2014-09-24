@@ -465,30 +465,6 @@ class AssetEnvironment {
         ]);
       }
 
-      // "$pub" is a psuedo-package that allows pub's transformer-loading
-      // infrastructure to share code with pub proper. We provide it only during
-      // the initial transformer loading process.
-      var dartPath = assetPath('dart');
-      var pubSources = listDir(dartPath, recursive: true)
-          // Don't include directories.
-          .where((file) => path.extension(file) == ".dart")
-          .map((library) {
-        var idPath = path.join('lib', path.relative(library, from: dartPath));
-        return new AssetId('\$pub', path.toUri(idPath).toString());
-      });
-
-      // "$sdk" is a pseudo-package that allows the dart2js transformer to find
-      // the Dart core libraries without hitting the file system directly. This
-      // ensures they work with source maps.
-      var libPath = path.join(sdk.rootDirectory, "lib");
-      var sdkSources = listDir(libPath, recursive: true)
-          .where((file) => path.extension(file) == ".dart")
-          .map((file) {
-        var idPath = path.join("lib",
-            path.relative(file, from: sdk.rootDirectory));
-        return new AssetId('\$sdk', path.toUri(idPath).toString());
-      });
-
       // Bind a server that we can use to load the transformers.
       var transformerServer;
       return BarbackServer.bind(this, _hostname, 0).then((server) {
@@ -532,7 +508,7 @@ class AssetEnvironment {
                 .then((_) => transformerServer.close());
           }, fine: true);
         }, [errorStream, barback.results, transformerServer.results]);
-      }).then((_) => barback.removeSources(pubSources));
+      });
     }, fine: true);
   }
 
@@ -685,7 +661,7 @@ class AssetEnvironment {
   Future _withStreamErrors(Future futureCallback(), List<Stream> streams) {
     var completer = new Completer.sync();
     var subscriptions = streams.map((stream) =>
-        stream.listen((_) {}, onError: completer.complete)).toList();
+        stream.listen((_) {}, onError: completer.completeError)).toList();
 
     new Future.sync(futureCallback).then((_) {
       if (!completer.isCompleted) completer.complete();

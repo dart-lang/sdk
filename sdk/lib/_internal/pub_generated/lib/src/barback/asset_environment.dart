@@ -322,22 +322,6 @@ class AssetEnvironment {
         _builtInTransformers.addAll(
             [new Dart2JSTransformer(this, mode), new DartForwardingTransformer(mode)]);
       }
-      var dartPath = assetPath('dart');
-      var pubSources = listDir(
-          dartPath,
-          recursive: true).where(
-              (file) => path.extension(file) == ".dart").map((library) {
-        var idPath = path.join('lib', path.relative(library, from: dartPath));
-        return new AssetId('\$pub', path.toUri(idPath).toString());
-      });
-      var libPath = path.join(sdk.rootDirectory, "lib");
-      var sdkSources = listDir(
-          libPath,
-          recursive: true).where((file) => path.extension(file) == ".dart").map((file) {
-        var idPath =
-            path.join("lib", path.relative(file, from: sdk.rootDirectory));
-        return new AssetId('\$sdk', path.toUri(idPath).toString());
-      });
       var transformerServer;
       return BarbackServer.bind(this, _hostname, 0).then((server) {
         transformerServer = server;
@@ -373,7 +357,7 @@ class AssetEnvironment {
                 transformerServer).then((_) => transformerServer.close());
           }, fine: true);
         }, [errorStream, barback.results, transformerServer.results]);
-      }).then((_) => barback.removeSources(pubSources));
+      });
     }, fine: true);
   }
   Future _provideSources() {
@@ -494,7 +478,7 @@ class AssetEnvironment {
   Future _withStreamErrors(Future futureCallback(), List<Stream> streams) {
     var completer = new Completer.sync();
     var subscriptions = streams.map(
-        (stream) => stream.listen((_) {}, onError: completer.complete)).toList();
+        (stream) => stream.listen((_) {}, onError: completer.completeError)).toList();
     new Future.sync(futureCallback).then((_) {
       if (!completer.isCompleted) completer.complete();
     }).catchError((error, stackTrace) {

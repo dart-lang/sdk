@@ -83,6 +83,7 @@ Future loadAllTransformers(AssetEnvironment environment,
         package.pubspec.transformers);
     var transformers = environment.getBuiltInTransformers(package);
     if (transformers != null) phases.add(transformers);
+    if (phases.isEmpty) return;
 
     // TODO(nweiz): remove the [newFuture] here when issue 17305 is fixed.
     // If no transformer in [phases] applies to a source input,
