@@ -16,9 +16,11 @@ main() => initPolymer().run(() {
   /// We do not port the full test, since this just proxies through to the
   /// polymer js implementation.
   test('can force ready', () {
-    expect(Polymer.waitingFor.length, 1);
-    expect(Polymer.waitingFor[0], querySelector('polymer-element'));
-    Polymer.forceReady();
-    return Polymer.onReady;
+    return new Future(() {}).then((_) {
+      expect(Polymer.waitingFor.length, 1);
+      expect(Polymer.waitingFor[0], querySelector('polymer-element'));
+      Polymer.forceReady();
+      return Polymer.onReady;
+    });
   });
 });
