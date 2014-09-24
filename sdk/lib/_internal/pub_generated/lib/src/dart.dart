@@ -72,107 +72,160 @@ class _DirectiveCollector extends GeneralizingAstVisitor {
   visitUriBasedDirective(UriBasedDirective node) => directives.add(node);
 }
 Future runInIsolate(String code, message, {packageRoot, String snapshot}) {
-  if (snapshot != null && fileExists(snapshot)) {
-    log.fine("Spawning isolate from $snapshot.");
-    if (packageRoot != null) packageRoot = packageRoot.toString();
-    return Isolate.spawnUri(
-        path.toUri(snapshot),
-        [],
-        message,
-        packageRoot: packageRoot);
-  }
-  return withTempDir((dir) {
-    final completer0 = new Completer();
-    scheduleMicrotask(() {
-      try {
-        var dartPath = path.join(dir, 'runInIsolate.dart');
-        writeTextFile(dartPath, code, dontLogContents: true);
-        var port = new ReceivePort();
-        join0(x0) {
-          Isolate.spawn(_isolateBuffer, {
-            'replyTo': port.sendPort,
-            'uri': path.toUri(dartPath).toString(),
-            'packageRoot': x0,
-            'message': message
-          }).then((x1) {
+  final completer0 = new Completer();
+  scheduleMicrotask(() {
+    try {
+      join0() {
+        withTempDir(((dir) {
+          final completer0 = new Completer();
+          scheduleMicrotask(() {
             try {
-              x1;
-              port.first.then((x2) {
-                try {
-                  var response = x2;
-                  join1() {
-                    join2() {
-                      ensureDir(path.dirname(snapshot));
-                      var snapshotArgs = [];
-                      join3() {
-                        snapshotArgs.addAll(
-                            ['--snapshot=${snapshot}', dartPath]);
-                        runProcess(
-                            Platform.executable,
-                            snapshotArgs).then((x3) {
-                          try {
-                            var result = x3;
-                            join4() {
-                              log.warning(
-                                  "Failed to compile a snapshot to " "${path.relative(snapshot)}:\n" +
-                                      result.stderr.join("\n"));
-                              completer0.complete(null);
+              var dartPath = path.join(dir, 'runInIsolate.dart');
+              writeTextFile(dartPath, code, dontLogContents: true);
+              var port = new ReceivePort();
+              join0(x0) {
+                Isolate.spawn(_isolateBuffer, {
+                  'replyTo': port.sendPort,
+                  'uri': path.toUri(dartPath).toString(),
+                  'packageRoot': x0,
+                  'message': message
+                }).then((x1) {
+                  try {
+                    x1;
+                    port.first.then((x2) {
+                      try {
+                        var response = x2;
+                        join1() {
+                          join2() {
+                            ensureDir(path.dirname(snapshot));
+                            var snapshotArgs = [];
+                            join3() {
+                              snapshotArgs.addAll(
+                                  ['--snapshot=${snapshot}', dartPath]);
+                              runProcess(
+                                  Platform.executable,
+                                  snapshotArgs).then((x3) {
+                                try {
+                                  var result = x3;
+                                  join4() {
+                                    log.warning(
+                                        "Failed to compile a snapshot to " "${path.relative(snapshot)}:\n" +
+                                            result.stderr.join("\n"));
+                                    completer0.complete(null);
+                                  }
+                                  if (result.success) {
+                                    completer0.complete(null);
+                                  } else {
+                                    join4();
+                                  }
+                                } catch (e2) {
+                                  completer0.completeError(e2);
+                                }
+                              }, onError: (e3) {
+                                completer0.completeError(e3);
+                              });
                             }
-                            if (result.success) {
-                              completer0.complete(null);
+                            if (packageRoot != null) {
+                              snapshotArgs.add('--package-root=${packageRoot}');
+                              join3();
                             } else {
-                              join4();
+                              join3();
                             }
-                          } catch (e2) {
-                            completer0.completeError(e2);
                           }
-                        }, onError: (e3) {
-                          completer0.completeError(e3);
-                        });
+                          if (snapshot == null) {
+                            completer0.complete(null);
+                          } else {
+                            join2();
+                          }
+                        }
+                        if (response['type'] == 'error') {
+                          completer0.completeError(
+                              new CrossIsolateException.deserialize(response['error']));
+                        } else {
+                          join1();
+                        }
+                      } catch (e1) {
+                        completer0.completeError(e1);
                       }
-                      if (packageRoot != null) {
-                        snapshotArgs.add('--package-root=${packageRoot}');
-                        join3();
-                      } else {
-                        join3();
-                      }
-                    }
-                    if (snapshot == null) {
-                      completer0.complete(null);
-                    } else {
-                      join2();
-                    }
+                    }, onError: (e4) {
+                      completer0.completeError(e4);
+                    });
+                  } catch (e0) {
+                    completer0.completeError(e0);
                   }
-                  if (response['type'] == 'error') {
-                    completer0.completeError(
-                        new CrossIsolateException.deserialize(response['error']));
-                  } else {
-                    join1();
-                  }
-                } catch (e1) {
-                  completer0.completeError(e1);
-                }
-              }, onError: (e4) {
-                completer0.completeError(e4);
-              });
-            } catch (e0) {
-              completer0.completeError(e0);
+                }, onError: (e5) {
+                  completer0.completeError(e5);
+                });
+              }
+              if (packageRoot == null) {
+                join0(null);
+              } else {
+                join0(packageRoot.toString());
+              }
+            } catch (e6) {
+              completer0.completeError(e6);
             }
-          }, onError: (e5) {
-            completer0.completeError(e5);
           });
-        }
-        if (packageRoot == null) {
-          join0(null);
-        } else {
-          join0(packageRoot.toString());
-        }
-      } catch (e6) {
-        completer0.completeError(e6);
+          return completer0.future;
+        })).then((x0) {
+          try {
+            x0;
+            completer0.complete(null);
+          } catch (e0) {
+            completer0.completeError(e0);
+          }
+        }, onError: (e1) {
+          completer0.completeError(e1);
+        });
       }
-    });
-    return completer0.future;
+      if (snapshot != null && fileExists(snapshot)) {
+        log.fine("Spawning isolate from ${snapshot}.");
+        join1() {
+          join2(x1) {
+            join0();
+          }
+          finally0(cont0, v0) {
+            cont0(v0);
+          }
+          catch0(error) {
+            log.fine("Couldn't load existing snapshot ${snapshot}:\n${error}");
+            finally0(join2, null);
+          }
+          try {
+            Isolate.spawnUri(
+                path.toUri(snapshot),
+                [],
+                message,
+                packageRoot: packageRoot).then((x2) {
+              try {
+                x2;
+                finally0((v1) {
+                  completer0.complete(v1);
+                }, null);
+              } catch (e2) {
+                catch0(e2);
+              }
+            }, onError: (e3) {
+              catch0(e3);
+            });
+          } catch (e4) {
+            catch0(e4);
+          }
+        }
+        if (packageRoot != null) {
+          packageRoot = packageRoot.toString();
+          join1();
+        } else {
+          join1();
+        }
+      } else {
+        join0();
+      }
+    } catch (e5) {
+      completer0.completeError(e5);
+    }
   });
+  return completer0.future;
 }
 void _isolateBuffer(message) {
   var replyTo = message['replyTo'];

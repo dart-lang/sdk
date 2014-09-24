@@ -153,15 +153,22 @@ class _DirectiveCollector extends GeneralizingAstVisitor {
 /// If [snapshot] is passed, the isolate will be loaded from that path if it
 /// exists. Otherwise, a snapshot of the isolate's code will be saved to that
 /// path once the isolate is loaded.
-Future runInIsolate(String code, message, {packageRoot, String snapshot}) {
+Future runInIsolate(String code, message, {packageRoot, String snapshot})
+    async {
   if (snapshot != null && fileExists(snapshot)) {
     log.fine("Spawning isolate from $snapshot.");
     if (packageRoot != null) packageRoot = packageRoot.toString();
-    return Isolate.spawnUri(path.toUri(snapshot), [], message,
-        packageRoot: packageRoot);
+    try {
+      await Isolate.spawnUri(path.toUri(snapshot), [], message,
+          packageRoot: packageRoot);
+      return;
+    } on IsolateSpawnException catch (error) {
+      log.fine("Couldn't load existing snapshot $snapshot:\n$error");
+      // Do nothing, we will regenerate the snapshot below.
+    }
   }
 
-  return withTempDir((dir) async {
+  await withTempDir((dir) async {
     var dartPath = path.join(dir, 'runInIsolate.dart');
     writeTextFile(dartPath, code, dontLogContents: true);
     var port = new ReceivePort();
