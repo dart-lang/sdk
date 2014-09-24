@@ -231,9 +231,6 @@ source_maps/test/vlq_test: RuntimeError # A VLQ test checks for large numbers th
 intl/test/find_default_locale_browser_test: Fail
 intl/test/date_time_format_http_request_test: Skip # Timeout.
 
-[ $runtime == safarimobilesim ]
-polymer/test/bind_mdv_test: RuntimeError # Issue 20929
-
 [ $ie ]
 polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
