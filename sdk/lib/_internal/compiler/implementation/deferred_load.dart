@@ -177,11 +177,11 @@ class DeferredLoadTask extends CompilerTask {
 
     element = element.implementation;
     while (!_elementToOutputUnit.containsKey(element)) {
-      // Hack: it looks like we output annotation constants for classes that we
-      // don't include in the output. This seems to happen when we have
-      // reflection but can see that some classes are not needed. We still add
-      // the annotation but don't run through it below (where we assign every
-      // element to its output unit).
+      // TODO(21051): workaround: it looks like we output annotation constants
+      // for classes that we don't include in the output. This seems to happen
+      // when we have reflection but can see that some classes are not needed.
+      // We still add the annotation but don't run through it below (where we
+      // assign every element to its output unit).
       if (element.enclosingElement == null) {
         _elementToOutputUnit[element] = mainOutputUnit;
         break;
