@@ -20,10 +20,7 @@ abstract class BaseServer<T> {
     shelf_io.serveRequests(
         _server,
         const shelf.Pipeline().addMiddleware(
-            shelf.createMiddleware(
-                errorHandler: _handleError)).addMiddleware(
-                    shelf.createMiddleware(
-                        responseHandler: _disableGzip)).addHandler(handleRequest));
+            shelf.createMiddleware(errorHandler: _handleError)).addHandler(handleRequest));
   }
   Future close() {
     return Future.wait([_server.close(), _resultsController.close()]);
@@ -76,13 +73,5 @@ abstract class BaseServer<T> {
     _resultsController.addError(error, stackTrace);
     close();
     return new shelf.Response.internalServerError();
-  }
-  _disableGzip(shelf.Response response) {
-    if (!response.headers.containsKey('Content-Encoding')) {
-      return response.change(headers: {
-        'Content-Encoding': ''
-      });
-    }
-    return response;
   }
 }
