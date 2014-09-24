@@ -55,6 +55,13 @@ const intptr_t kOffsetOfPtr = 32;
   (reinterpret_cast<intptr_t>(                                                 \
       (reinterpret_cast<type*>(kOffsetOfPtr)->accessor())) - kOffsetOfPtr)
 
+#define OPEN_ARRAY_START(type, align)                                          \
+  do {                                                                         \
+    const uword result = reinterpret_cast<uword>(this) + sizeof(*this);        \
+    ASSERT(Utils::IsAligned(result, sizeof(align)));                           \
+    return reinterpret_cast<type*>(result);                                    \
+  } while (0)
+
 
 // A type large enough to contain the value of the C++ vtable. This is needed
 // to support the handle operations.

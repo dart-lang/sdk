@@ -145,7 +145,7 @@ class Snapshot {
   static const Snapshot* SetupFromBuffer(const void* raw_memory);
 
   // Getters.
-  const uint8_t* content() const { return content_; }
+  const uint8_t* content() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
   intptr_t length() const {
     return static_cast<intptr_t>(ReadUnaligned(&unaligned_length_));
   }
@@ -172,7 +172,8 @@ class Snapshot {
   // The following fields are potentially unaligned.
   int64_t unaligned_length_;  // Stream length.
   int64_t unaligned_kind_;  // Kind of snapshot.
-  uint8_t content_[];  // Stream content.
+
+  // Variable length data follows here.
 
   DISALLOW_COPY_AND_ASSIGN(Snapshot);
 };

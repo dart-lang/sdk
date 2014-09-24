@@ -227,13 +227,6 @@ CLASS_LIST_TYPED_DATA(V)
     SNAPSHOT_WRITER_SUPPORT()                                                  \
     HEAP_PROFILER_SUPPORT()                                                    \
 
-#define OPEN_ARRAY_START(type, align)                                          \
-  do {                                                                         \
-    const uword result = reinterpret_cast<uword>(this) + sizeof(*this);        \
-    ASSERT(Utils::IsAligned(result, sizeof(align)));                           \
-    return reinterpret_cast<type*>(result);                                    \
-  } while (0)
-
 // RawObject is the base class of all raw objects, even though it carries the
 // class_ field not all raw objects are allocated in the heap and thus cannot
 // be dereferenced (e.g. RawSmi).
