@@ -815,34 +815,46 @@ class _Bigint extends _IntegerImplementation implements int {
     args[MA_CARRY_OUT] = c;
   }
 
-  // Multiply and accumulate with carry in.
+  // Square and accumulate.
   // Input:
-  //   x: multiplier digit, 0 <= x < 2*DIGIT_BASE (i.e. 33-bit multiplier).
-  //   m_digits[i..i+n-1]: multiplicand digits.
-  //   a_digits[j..j+n-1]: accumulator digits.
-  //   c: carry in.
+  //   x_digits[i..used-1]: digits of operand being squared.
+  //   a_digits[2*i..i+used-1]: accumulator digits.
   // Operation:
-  //   a_digits[j..j+n-1] += x*m_digits[i..i+n-1] + c.
-  // Output:
-  //   carry out.
-  // TODO(regis): Use an argument buffer as in _mulAdd.
-  static int _mulAddc(int x, Uint32List m_digits, int i,
-                      Uint32List a_digits, int j, int c, int n) {
-    if (x == 0 && c == 0) {
-      // No-op if both x and c are 0.
-      return 0;
-    }
+  //   a_digits[2*i..i+used-1] += x_digits[i]*x_digits[i] +
+  //                              2*x_digits[i]*x_digits[i+1..used-1].
+  static void _sqrAdd(Uint32List x_digits, int i,
+                      Uint32List a_digits, int used) {
+    int x = x_digits[i];
+    if (x == 0) return;
+    int j = 2*i;
+    int c = 0;
     int xl = x & DIGIT2_MASK;
     int xh = x >> DIGIT2_BITS;
+    int m = 2*xh*xl;
+    int l = xl*xl + ((m & DIGIT2_MASK) << DIGIT2_BITS) + a_digits[j];
+    c = (l >> DIGIT_BITS) + (m >> DIGIT2_BITS) + xh*xh;
+    a_digits[j] = l & DIGIT_MASK;
+    x <<= 1;
+    xl = x & DIGIT2_MASK;
+    xh = x >> DIGIT2_BITS;
+    int n = used - i - 1;
+    int k = i + 1;
+    j++;
     while (--n >= 0) {
-      int l = m_digits[i] & DIGIT2_MASK;
-      int h = m_digits[i++] >> DIGIT2_BITS;
+      int l = x_digits[k] & DIGIT2_MASK;
+      int h = x_digits[k++] >> DIGIT2_BITS;
       int m = xh*l + h*xl;
       l = xl*l + ((m & DIGIT2_MASK) << DIGIT2_BITS) + a_digits[j] + c;
       c = (l >> DIGIT_BITS) + (m >> DIGIT2_BITS) + xh*h;
       a_digits[j++] = l & DIGIT_MASK;
     }
-    return c;
+    c += a_digits[i + used];
+    if (c >= DIGIT_BASE) {
+      a_digits[i + used] = c - DIGIT_BASE;
+      a_digits[i + used + 1] = 1;
+    } else {
+      a_digits[i + used] = c;
+    }
   }
 
   // r = this * a.
@@ -880,18 +892,7 @@ class _Bigint extends _IntegerImplementation implements int {
       r_digits[i] = 0;
     }
     for (i = 0; i < used - 1; ++i) {
-      _MulAddArgs[MA_MULTIPLIER] = digits[i];
-      _mulAdd(_MulAddArgs, digits, i, r_digits, 2*i, 1);
-      var c = _MulAddArgs[MA_CARRY_OUT];
-      var d = r_digits[i + used];
-      d += _mulAddc(digits[i] << 1, digits, i + 1,
-                    r_digits, 2*i + 1, c, used - i - 1);
-      if (d >= DIGIT_BASE) {
-        r_digits[i + used] = d - DIGIT_BASE;
-        r_digits[i + used + 1] = 1;
-      } else {
-        r_digits[i + used] = d;
-      }
+      _sqrAdd(digits, i, r_digits, used);
     }
     if (r_used > 0) {
       _MulAddArgs[MA_MULTIPLIER] = digits[i];

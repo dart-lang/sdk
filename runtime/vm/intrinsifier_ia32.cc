@@ -927,7 +927,8 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   //   uint32_t* mip = &m_digits[i >> 1];  // i is Smi.
   //   uint32_t* ajp = &a_digits[j >> 1];  // j is Smi.
   //   uint32_t c = 0;
-  //   while ((n -= 2) >= 0) {  // n is Smi.
+  //   SmiUntag(n);
+  //   while (--n >= 0) {
   //     uint32_t mi = *mip++;
   //     uint32_t aj = *ajp;
   //     uint64_t t = x*mi + aj + c;  // 32-bit * 32-bit -> 64-bit.
@@ -936,9 +937,6 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   //   }
   //   args[MA_CARRY_OUT] = c;
   // }
-
-  // TODO(regis): Confirm that it is not required to check arguments (and also
-  // convince invocation_fuzz_test).
 
   // EBX = x
   Label x_not_zero;
@@ -969,6 +967,12 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // ECX = c = 0
   __ xorl(ECX, ECX);
 
+  // SmiUntag(n), 'sar mem32, 1' not implemented
+  __ movl(EAX, Address(ESP, 2 * kWordSize));
+  __ SmiUntag(EAX);
+  __ pushl(EAX);
+  Address n_addr = Address(ESP, 0 * kWordSize);
+
   Label loop, done;
   __ Bind(&loop);
   // x:   EBX
@@ -976,10 +980,10 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // ajp: ESI
   // c:   ECX
   // t:   EDX:EAX (not live at loop entry)
+  // n:   ESP[0]
 
-  // while ((n -= 2) >= 0), n is on stack, above ret addr and saved CTX.
-  __ movl(EAX, Immediate(2));  // 'sub mem32, imm32' not implemented.
-  __ subl(Address(ESP, 2 * kWordSize), EAX);  // --n, n is Smi.
+  // while (--n >= 0)
+  __ decl(n_addr);  // --n
   __ j(NEGATIVE, &done);
 
   // uint32_t mi = *mip++
@@ -1004,10 +1008,149 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&done);
+  __ Drop(1);  // n
   // Restore CTX, set args[MA_CARRY_OUT] to c and return.
   __ popl(CTX);
   __ movl(EAX, Address(ESP, 6 * kWordSize));  // args
   __ movl(FieldAddress(EAX, TypedData::data_offset() + kWordSize), ECX);
+  // TODO(regis): Confirm that returning Object::null() is not required.
+  __ ret();
+}
+
+
+// TODO(regis): Once this intrinsic is implemented on all architectures, the
+// corresponding Dart method will be untested. Add a test with --no-intrinsify.
+void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
+  // Pseudo code:
+  // static void _sqrAdd(Uint32List x_digits, int i,
+  //                     Uint32List a_digits, int used) {
+  //   uint32_t* xip = &x_digits[i >> 1];  // i is Smi.
+  //   uint32_t x = *xip++;
+  //   if (x == 0) return;
+  //   uint32_t* ajp = &a_digits[i];  // j == 2*i, i is Smi.
+  //   uint32_t aj = *ajp;
+  //   uint64_t t = x*x + aj;
+  //   *ajp++ = low32(t);
+  //   uint64_t c = high32(t);
+  //   int n = ((used - i) >> 1) - 1;  // used and i are Smi.
+  //   while (--n >= 0) {
+  //     uint32_t xi = *xip++;
+  //     uint32_t aj = *ajp;
+  //     uint96_t t = 2*x*xi + aj + c;  // 2-bit * 32-bit * 32-bit -> 65-bit.
+  //     *ajp++ = low32(t);
+  //     c = high64(t);  // 33-bit.
+  //   }
+  //   uint32_t aj = *ajp;
+  //   uint64_t t = aj + c;  // 32-bit + 33-bit -> 34-bit.
+  //   *ajp++ = low32(t);
+  //   *ajp = high32(t);
+
+  // EDI = xip = &x_digits[i >> 1]
+  __ movl(EDI, Address(ESP, 4 * kWordSize));  // m_digits
+  __ movl(EAX, Address(ESP, 3 * kWordSize));  // i is Smi
+  __ leal(EDI, FieldAddress(EDI, EAX, TIMES_2, TypedData::data_offset()));
+
+  // EBX = x = *xip++, return if x == 0
+  Label x_zero;
+  __ movl(EBX, Address(EDI, 0));
+  __ cmpl(EBX, Immediate(0));
+  __ j(EQUAL, &x_zero);
+  __ addl(EDI, Immediate(kWordSize));
+
+  // Preserve CTX to free ESI.
+  __ pushl(CTX);
+  ASSERT(CTX == ESI);
+
+  // ESI = ajp = &a_digits[i]
+  __ movl(ESI, Address(ESP, 3 * kWordSize));  // a_digits
+  __ leal(ESI, FieldAddress(ESI, EAX, TIMES_4, TypedData::data_offset()));
+
+  // EAX:EDX = t = x*x + *ajp
+  __ movl(EAX, EBX);
+  __ mull(EBX);
+  __ addl(EAX, Address(ESI, 0));
+  __ adcl(EDX, Immediate(0));
+
+  // *ajp++ = low32(t)
+  __ movl(Address(ESI, 0), EAX);
+  __ addl(ESI, Immediate(kWordSize));
+
+  // int n = used - i - 1;  // All Smi.
+  __ movl(EAX, Address(ESP, 2 * kWordSize));  // used is Smi
+  __ subl(EAX, Address(ESP, 4 * kWordSize));  // i is Smi
+  __ SmiUntag(EAX);
+  __ decl(EAX);
+  __ pushl(EAX);  // Save n on stack.
+
+  // uint64_t c = high32(t)
+  __ pushl(Immediate(0));  // push high32(c) == 0
+  __ pushl(EDX);  // push low32(c) == high32(t)
+
+  Address n_addr = Address(ESP, 2 * kWordSize);
+  Address ch_addr = Address(ESP, 1 * kWordSize);
+  Address cl_addr = Address(ESP, 0 * kWordSize);
+
+  Label loop, done;
+  __ Bind(&loop);
+  // x:   EBX
+  // xip: EDI
+  // ajp: ESI
+  // c:   ESP[1]:ESP[0]
+  // t:   ECX:EDX:EAX (not live at loop entry)
+  // n:   ESP[2]
+
+  // while (--n >= 0)
+  __ decl(Address(ESP, 2 * kWordSize));  // --n
+  __ j(NEGATIVE, &done);
+
+  // uint32_t xi = *xip++
+  __ movl(EAX, Address(EDI, 0));
+  __ addl(EDI, Immediate(kWordSize));
+
+  // uint96_t t = ECX:EDX:EAX = 2*x*xi + aj + c
+  __ mull(EBX);  // EDX:EAX = EAX * EBX
+  __ xorl(ECX, ECX);  // ECX = 0
+  __ shld(ECX, EDX, Immediate(1));
+  __ shld(EDX, EAX, Immediate(1));
+  __ shll(EAX, Immediate(1));  // ECX:EDX:EAX <<= 1
+  __ addl(EAX, Address(ESI, 0));  // t += aj
+  __ adcl(EDX, Immediate(0));
+  __ adcl(ECX, Immediate(0));
+  __ addl(EAX, cl_addr);  // t += low32(c)
+  __ adcl(EDX, ch_addr);  // t += high32(c) << 32
+  __ adcl(ECX, Immediate(0));
+
+  // *ajp++ = low32(t)
+  __ movl(Address(ESI, 0), EAX);
+  __ addl(ESI, Immediate(kWordSize));
+
+  // c = high64(t)
+  __ movl(cl_addr, EDX);
+  __ movl(ch_addr, ECX);
+
+  __ jmp(&loop, Assembler::kNearJump);
+
+  __ Bind(&done);
+  // uint32_t aj = *ajp;
+  __ movl(EAX, Address(ESI, 0));
+
+  // uint64_t t = aj + c;  // 32-bit + 33-bit -> 34-bit.
+  __ movl(EAX, cl_addr);  // t = c
+  __ movl(EDX, ch_addr);
+  __ addl(EAX, Address(ESI, 0));  // t += aj
+  __ adcl(EDX, Immediate(0));
+
+  // *ajp++ = low32(t);
+  __ movl(Address(ESI, 0), EAX);
+  __ addl(ESI, Immediate(kWordSize));
+
+  // *ajp = high32(t);
+  __ movl(Address(ESI, 0), EDX);
+
+  // Restore CTX and return.
+  __ Drop(3);
+  __ popl(CTX);
+  __ Bind(&x_zero);
   // TODO(regis): Confirm that returning Object::null() is not required.
   __ ret();
 }
