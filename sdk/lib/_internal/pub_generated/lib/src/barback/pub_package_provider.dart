@@ -45,12 +45,34 @@ class PubPackageProvider implements StaticPackageProvider {
     return new Future.value(new Asset.fromPath(id, file));
   }
   Stream<AssetId> getAllAssetIds(String packageName) {
-    var package = _graph.packages[packageName];
-    return new Stream.fromIterable(
-        package.listFiles(beneath: 'lib').map((file) {
-      return new AssetId(
-          packageName,
-          path.toUri(package.relative(file)).toString());
-    }));
+    if (packageName == r'$pub') {
+      var dartPath = assetPath('dart');
+      return new Stream.fromIterable(
+          listDir(
+              dartPath,
+              recursive: true).where(
+                  (file) => path.extension(file) == ".dart").map((library) {
+        var idPath = path.join('lib', path.relative(library, from: dartPath));
+        return new AssetId('\$pub', path.toUri(idPath).toString());
+      }));
+    } else if (packageName == r'$sdk') {
+      var libPath = path.join(sdk.rootDirectory, "lib");
+      return new Stream.fromIterable(
+          listDir(
+              libPath,
+              recursive: true).where((file) => path.extension(file) == ".dart").map((file) {
+        var idPath =
+            path.join("lib", path.relative(file, from: sdk.rootDirectory));
+        return new AssetId('\$sdk', path.toUri(idPath).toString());
+      }));
+    } else {
+      var package = _graph.packages[packageName];
+      return new Stream.fromIterable(
+          package.listFiles(beneath: 'lib').map((file) {
+        return new AssetId(
+            packageName,
+            path.toUri(package.relative(file)).toString());
+      }));
+    }
   }
 }

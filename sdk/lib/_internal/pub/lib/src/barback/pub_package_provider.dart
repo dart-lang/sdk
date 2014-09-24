@@ -75,11 +75,37 @@ class PubPackageProvider implements StaticPackageProvider {
   }
 
   Stream<AssetId> getAllAssetIds(String packageName) {
-    var package = _graph.packages[packageName];
-    return new Stream.fromIterable(
-        package.listFiles(beneath: 'lib').map((file) {
-      return new AssetId(packageName,
-          path.toUri(package.relative(file)).toString());
-    }));
+    if (packageName == r'$pub') {
+      // "$pub" is a pseudo-package that allows pub's transformer-loading
+      // infrastructure to share code with pub proper. We provide it only during
+      // the initial transformer loading process.
+      var dartPath = assetPath('dart');
+      return new Stream.fromIterable(listDir(dartPath, recursive: true)
+          // Don't include directories.
+          .where((file) => path.extension(file) == ".dart")
+          .map((library) {
+        var idPath = path.join('lib', path.relative(library, from: dartPath));
+        return new AssetId('\$pub', path.toUri(idPath).toString());
+      }));
+    } else if (packageName == r'$sdk') {
+      // "$sdk" is a pseudo-package that allows the dart2js transformer to find
+      // the Dart core libraries without hitting the file system directly. This
+      // ensures they work with source maps.
+      var libPath = path.join(sdk.rootDirectory, "lib");
+      return new Stream.fromIterable(listDir(libPath, recursive: true)
+          .where((file) => path.extension(file) == ".dart")
+          .map((file) {
+        var idPath = path.join("lib",
+            path.relative(file, from: sdk.rootDirectory));
+        return new AssetId('\$sdk', path.toUri(idPath).toString());
+      }));
+    } else {
+      var package = _graph.packages[packageName];
+      return new Stream.fromIterable(
+          package.listFiles(beneath: 'lib').map((file) {
+        return new AssetId(packageName,
+            path.toUri(package.relative(file)).toString());
+      }));
+    }
   }
 }
