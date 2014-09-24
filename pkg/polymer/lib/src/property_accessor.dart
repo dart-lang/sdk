@@ -51,6 +51,9 @@ class _PropertyAccessor<T> {
   }
 
   set value(T newValue) {
+    // Dart Note: The js side makes computed properties read only, and bails
+    // out right here for them (ignoreWrites). For us they are automatically
+    // read only unless you define a setter for them, so we left that out.
     if (bindable != null) {
       bindable.value = newValue;
     } else {

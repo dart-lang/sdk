@@ -19,7 +19,6 @@ class XTest extends PolymerElement {
   @observable var foo = '';
   @observable var bar;
 
-  bool forceReady = true;
   bool fooWasChanged = false;
   var validBar;
 

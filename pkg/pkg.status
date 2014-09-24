@@ -192,6 +192,8 @@ polymer/test/event_handlers_test: Skip #uses dart:html
 polymer/test/event_path_declarative_test: Skip #uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
+polymer/test/force_ready_test: Skip # uses dart:html
+polymer/test/inject_bound_html_test: Skip # uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
 polymer/test/js_custom_event_test: Skip #uses dart:html
 polymer/test/js_interop_test: Skip #uses dart:html

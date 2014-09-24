@@ -107,7 +107,7 @@ window.PolymerGestures = {};
       return s;
     },
     findTarget: function(inEvent) {
-      if (HAS_FULL_PATH && inEvent.path) {
+      if (HAS_FULL_PATH && inEvent.path && inEvent.path.length) {
         return inEvent.path[0];
       }
       var x = inEvent.clientX, y = inEvent.clientY;
@@ -121,7 +121,7 @@ window.PolymerGestures = {};
     },
     findTouchAction: function(inEvent) {
       var n;
-      if (HAS_FULL_PATH && inEvent.path) {
+      if (HAS_FULL_PATH && inEvent.path && inEvent.path.length) {
         var path = inEvent.path;
         for (var i = 0; i < path.length; i++) {
           n = path[i];
@@ -132,7 +132,7 @@ window.PolymerGestures = {};
       } else {
         n = inEvent.target;
         while(n) {
-          if (n.hasAttribute('touch-action')) {
+          if (n.nodeType === Node.ELEMENT_NODE && n.hasAttribute('touch-action')) {
             return n.getAttribute('touch-action');
           }
           n = n.parentNode || n.host;
@@ -197,6 +197,20 @@ window.PolymerGestures = {};
     insideNode: function(node, x, y) {
       var rect = node.getBoundingClientRect();
       return (rect.left <= x) && (x <= rect.right) && (rect.top <= y) && (y <= rect.bottom);
+    },
+    path: function(event) {
+      var p;
+      if (HAS_FULL_PATH && event.path && event.path.length) {
+        p = event.path;
+      } else {
+        p = [];
+        var n = this.findTarget(event);
+        while (n) {
+          p.push(n);
+          n = n.parentNode || n.host;
+        }
+      }
+      return p;
     }
   };
   scope.targetFinding = target;
@@ -607,6 +621,7 @@ window.PolymerGestures = {};
    *   - pointercancel: a pointer will no longer generate events
    */
   var dispatcher = {
+    IS_IOS: false,
     pointermap: new scope.PointerMap(),
     requiredGestures: new scope.PointerMap(),
     eventMap: Object.create(null),
@@ -686,6 +701,23 @@ window.PolymerGestures = {};
       this.fireEvent('up', inEvent);
       this.requiredGestures.delete(inEvent.pointerId);
     },
+    addGestureDependency: function(node, currentGestures) {
+      var gesturesWanted = node._pgEvents;
+      if (gesturesWanted) {
+        var gk = Object.keys(gesturesWanted);
+        for (var i = 0, r, ri, g; i < gk.length; i++) {
+          // gesture
+          g = gk[i];
+          if (gesturesWanted[g] > 0) {
+            // lookup gesture recognizer
+            r = this.dependencyMap[g];
+            // recognizer index
+            ri = r ? r.index : -1;
+            currentGestures[ri] = true;
+          }
+        }
+      }
+    },
     // LISTENER LOGIC
     eventHandler: function(inEvent) {
       // This is used to prevent multiple dispatch of events from
@@ -699,21 +731,15 @@ window.PolymerGestures = {};
         if (!inEvent._handledByPG) {
           currentGestures = {};
         }
-        // map gesture names to ordered set of recognizers
-        var gesturesWanted = inEvent.currentTarget._pgEvents;
-        if (gesturesWanted) {
-          var gk = Object.keys(gesturesWanted);
-          for (var i = 0, r, ri, g; i < gk.length; i++) {
-            // gesture
-            g = gk[i];
-            if (gesturesWanted[g] > 0) {
-              // lookup gesture recognizer
-              r = this.dependencyMap[g];
-              // recognizer index
-              ri = r ? r.index : -1;
-              currentGestures[ri] = true;
-            }
+        // in IOS mode, there is only a listener on the document, so this is not re-entrant
+        if (this.IS_IOS) {
+          var nodes = scope.targetFinding.path(inEvent);
+          for (var i = 0, n; i < nodes.length; i++) {
+            n = nodes[i];
+            this.addGestureDependency(n, currentGestures);
           }
+        } else {
+          this.addGestureDependency(inEvent.currentTarget, currentGestures);
         }
       }
 
@@ -988,6 +1014,9 @@ window.PolymerGestures = {};
       dispatcher.listen(target, this.events);
     },
     unregister: function(target) {
+      if (target === document) {
+        return;
+      }
       dispatcher.unlisten(target, this.events);
     },
     lastTouches: [],
@@ -1086,6 +1115,7 @@ window.PolymerGestures = {};
 
   // handler block for native touch events
   var touchEvents = {
+    IS_IOS: false,
     events: [
       'touchstart',
       'touchmove',
@@ -1098,13 +1128,14 @@ window.PolymerGestures = {};
       'move'
     ],
     register: function(target, initial) {
-      if (initial) {
-        return;
+      if (this.IS_IOS ? initial : !initial) {
+        dispatcher.listen(target, this.events);
       }
-      dispatcher.listen(target, this.events);
     },
     unregister: function(target) {
-      dispatcher.unlisten(target, this.events);
+      if (!this.IS_IOS) {
+        dispatcher.unlisten(target, this.events);
+      }
     },
     scrollTypes: {
       EMITTER: 'none',
@@ -1398,6 +1429,9 @@ window.PolymerGestures = {};
       dispatcher.listen(target, this.events);
     },
     unregister: function(target) {
+      if (target === document) {
+        return;
+      }
       dispatcher.unlisten(target, this.events);
     },
     POINTER_TYPES: [
@@ -1480,6 +1514,9 @@ window.PolymerGestures = {};
       dispatcher.listen(target, this.events);
     },
     unregister: function(target) {
+      if (target === document) {
+        return;
+      }
       dispatcher.unlisten(target, this.events);
     },
     cleanup: function(id) {
@@ -1533,6 +1570,7 @@ window.PolymerGestures = {};
  * Included are touch events (v1), mouse events, and MSPointerEvents.
  */
 (function(scope) {
+
   var dispatcher = scope.dispatcher;
   var nav = window.navigator;
 
@@ -1544,18 +1582,16 @@ window.PolymerGestures = {};
     dispatcher.registerSource('mouse', scope.mouseEvents);
     if (window.ontouchstart !== undefined) {
       dispatcher.registerSource('touch', scope.touchEvents);
-      /*
-       * NOTE: an empty touch listener on body will reactivate nodes imported from templates with touch listeners
-       * Removing it will re-break the nodes
-       *
-       * Work around for https://bugs.webkit.org/show_bug.cgi?id=135628
-       */
-      var isSafari = nav.userAgent.match('Safari') && !nav.userAgent.match('Chrome');
-      if (isSafari) {
-        document.body.addEventListener('touchstart', function(){});
-      }
     }
   }
+
+  // Work around iOS bugs https://bugs.webkit.org/show_bug.cgi?id=135628 and https://bugs.webkit.org/show_bug.cgi?id=136506
+  var ua = navigator.userAgent;
+  var IS_IOS = ua.match(/iPad|iPhone|iPod/) && 'ontouchstart' in window;
+
+  dispatcher.IS_IOS = IS_IOS;
+  scope.touchEvents.IS_IOS = IS_IOS;
+
   dispatcher.register(document, true);
 })(window.PolymerGestures);
 
@@ -3698,7 +3734,7 @@ window.PolymerGestures = {};
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
 Polymer = {
-  version: '0.4.0-d66a86e'
+  version: '0.4.1-d61654b'
 };
 
 /*
@@ -3881,8 +3917,14 @@ function watchImportsLoad(callback, doc) {
 
 // NOTE: test for native imports loading is based on explicitly watching
 // all imports (see below).
+// We cannot rely on this entirely without watching the entire document
+// for import links. For perf reasons, currently only head is watched.
+// Instead, we fallback to checking if the import property is available 
+// and the document is not itself loading. 
 function isImportLoaded(link) {
-  return useNative ? link.__loaded : link.__importParsed;
+  return useNative ? link.__loaded || 
+      (link.import && link.import.readyState !== 'loading') :
+      link.__importParsed;
 }
 
 // TODO(sorvell): Workaround for 
@@ -4053,19 +4095,14 @@ scope.whenImportsReady = whenImportsReady;
 
 })(Platform);
 
-// Copyright 2012 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
 
 (function(global) {
   'use strict';
@@ -4125,7 +4162,7 @@ scope.whenImportsReady = whenImportsReady;
     // Firefox OS Apps do not allow eval. This feature detection is very hacky
     // but even if some other platform adds support for this function this code
     // will continue to work.
-    if (navigator.getDeviceStorage) {
+    if (typeof navigator != 'undefined' && navigator.getDeviceStorage) {
       return false;
     }
 
@@ -4140,7 +4177,7 @@ scope.whenImportsReady = whenImportsReady;
   var hasEval = detectEval();
 
   function isIndex(s) {
-    return +s === s >>> 0;
+    return +s === s >>> 0 && s !== '';
   }
 
   function toNumber(s) {
@@ -4854,25 +4891,11 @@ scope.whenImportsReady = whenImportsReady;
 
   var runningMicrotaskCheckpoint = false;
 
-  var hasDebugForceFullDelivery = hasObserve && hasEval && (function() {
-    try {
-      eval('%RunMicrotasks()');
-      return true;
-    } catch (ex) {
-      return false;
-    }
-  })();
-
   global.Platform = global.Platform || {};
 
   global.Platform.performMicrotaskCheckpoint = function() {
     if (runningMicrotaskCheckpoint)
       return;
-
-    if (hasDebugForceFullDelivery) {
-      eval('%RunMicrotasks()');
-      return;
-    }
 
     if (!collectObservers)
       return;
@@ -8481,8 +8504,12 @@ scope.styleResolver = styleResolver;
   scope.api.instance.events = events;
 
   // alias PolymerGestures event listener logic
-  scope.addEventListener = PolymerGestures.addEventListener;
-  scope.removeEventListener = PolymerGestures.removeEventListener;
+  scope.addEventListener = function(node, eventType, handlerFn, capture) {
+    PolymerGestures.addEventListener(wrap(node), eventType, handlerFn, capture);
+  };
+  scope.removeEventListener = function(node, eventType, handlerFn, capture) {
+    PolymerGestures.removeEventListener(wrap(node), eventType, handlerFn, capture);
+  };
 
 })(Polymer);
 
@@ -8734,15 +8761,27 @@ scope.styleResolver = styleResolver;
     bindToAccessor: function(name, observable, resolveFn) {
       var privateName = name + '_';
       var privateObservable  = name + 'Observable_';
+      // Present for properties which are computed and published and have a
+      // bound value.
+      var privateComputedBoundValue = name + 'ComputedBoundObservable_';
 
       this[privateObservable] = observable;
+
       var oldValue = this[privateName];
 
       var self = this;
-      var value = observable.open(function(value, oldValue) {
+      function updateValue(value, oldValue) {
         self[privateName] = value;
+
+        var setObserveable = self[privateComputedBoundValue];
+        if (setObserveable && typeof setObserveable.setValue == 'function') {
+          setObserveable.setValue(value);
+        }
+ 
         self.emitPropertyChangeRecord(name, value, oldValue);
-      });
+      }
+ 
+      var value = observable.open(updateValue);
 
       if (resolveFn && !areSameValue(oldValue, value)) {
         var resolvedValue = resolveFn(oldValue, value);
@@ -8753,13 +8792,13 @@ scope.styleResolver = styleResolver;
         }
       }
 
-      this[privateName] = value;
-      this.emitPropertyChangeRecord(name, value, oldValue);
+      updateValue(value, oldValue);
 
       var observer = {
         close: function() {
           observable.close();
           self[privateObservable] = undefined;
+          self[privateComputedBoundValue] = undefined;
         }
       };
       this.registerObserver(observer);
@@ -8787,6 +8826,17 @@ scope.styleResolver = styleResolver;
         this[property] = observable;
         return;
       }
+      var computed = this.element.prototype.computed;
+
+      // Binding an "out-only" value to a computed property. Note that
+      // since this observer isn't opened, it doesn't need to be closed on
+      // cleanup.
+      if (computed && computed[property]) {
+        var privateComputedBoundValue = property + 'ComputedBoundObservable_';
+        this[privateComputedBoundValue] = observable;
+        return;
+      }
+
       return this.bindToAccessor(property, observable, resolveBindingValue);
     },
     invokeMethod: function(method, args) {
@@ -9398,10 +9448,26 @@ scope.styleResolver = styleResolver;
     return prototypesByName[name];
   }
 
+  function instanceOfType(element, type) {
+    if (typeof type !== 'string') {
+      return false;
+    }
+    var proto = HTMLElement.getPrototypeForTag(type);
+    var ctor = proto && proto.constructor;
+    if (!ctor) {
+      return false;
+    }
+    if (CustomElements.instanceof) {
+      return CustomElements.instanceof(element, ctor);
+    }
+    return element instanceof ctor;
+  }
+
   // exports
 
   scope.getRegisteredPrototype = getRegisteredPrototype;
   scope.waitingForPrototype = waitingForPrototype;
+  scope.instanceOfType = instanceOfType;
 
   // namespace shenanigans so we can expose our scope on the registration 
   // function
@@ -9957,7 +10023,7 @@ scope.api.declaration.path = path;
       }
       return map;
     },
-    createPropertyAccessor: function(name) {
+    createPropertyAccessor: function(name, ignoreWrites) {
       var proto = this.prototype;
 
       var privateName = name + '_';
@@ -9973,6 +10039,10 @@ scope.api.declaration.path = path;
           return this[privateName];
         },
         set: function(value) {
+          if (ignoreWrites) {
+            return this[privateName];
+          }
+
           var observable = this[privateObservable];
           if (observable) {
             observable.setValue(value);
@@ -9989,16 +10059,20 @@ scope.api.declaration.path = path;
       });
     },
     createPropertyAccessors: function(prototype) {
-      var n$ = prototype._publishNames;
-      if (n$ && n$.length) {
-        for (var i=0, l=n$.length, n, fn; (i<l) && (n=n$[i]); i++) {
-          this.createPropertyAccessor(n);
-        }
-      }
       var n$ = prototype._computedNames;
       if (n$ && n$.length) {
         for (var i=0, l=n$.length, n, fn; (i<l) && (n=n$[i]); i++) {
-          this.createPropertyAccessor(n);
+          this.createPropertyAccessor(n, true);
+        }
+      }
+      var n$ = prototype._publishNames;
+      if (n$ && n$.length) {
+        for (var i=0, l=n$.length, n, fn; (i<l) && (n=n$[i]); i++) {
+          // If the property is computed and published, the accessor is created
+          // above.
+          if (!prototype.computed || !prototype.computed[n]) {
+            this.createPropertyAccessor(n);
+          }
         }
       }
     }
@@ -10565,6 +10639,21 @@ scope.api.declaration.path = path;
         }
       }
     },
+  
+    /**
+    Returns a list of elements that have had polymer-elements created but 
+    are not yet ready to register. The list is an array of element definitions.
+    */
+    waitingFor: function() {
+      var e$ = [];
+      for (var i=0, l=elements.length, e; (i<l) && 
+          (e=elements[i]); i++) {
+        if (e.__queue && !e.__queue.flushable) {
+          e$.push(e);
+        }
+      }
+      return e$;
+    },
 
     waitToReady: true
 
@@ -10586,15 +10675,37 @@ scope.api.declaration.path = path;
 
   function whenReady(callback) {
     queue.waitToReady = true;
-    HTMLImports.whenImportsReady(function() {
-      queue.addReadyCallback(callback);
-      queue.waitToReady = false;
-      queue.check();
+    Platform.endOfMicrotask(function() {
+      HTMLImports.whenImportsReady(function() {
+        queue.addReadyCallback(callback);
+        queue.waitToReady = false;
+        queue.check();
+    });
+    });
+  }
+
+  /**
+    Forces polymer to register any pending elements. Can be used to abort
+    waiting for elements that are partially defined.
+    @param timeout {Integer} Optional timeout in milliseconds
+  */
+  function forceReady(timeout) {
+    if (timeout === undefined) {
+      queue.ready();
+      return;
+    }
+    var handle = setTimeout(function() {
+      queue.ready();
+    }, timeout);
+    Polymer.whenReady(function() {
+      clearTimeout(handle);
     });
   }
 
   // exports
   scope.elements = elements;
+  scope.waitingFor = queue.waitingFor.bind(queue);
+  scope.forceReady = forceReady;
   scope.queue = queue;
   scope.whenReady = scope.whenPolymerReady = whenReady;
 })(Polymer);

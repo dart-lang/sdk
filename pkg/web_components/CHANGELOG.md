@@ -1,3 +1,6 @@
+#### Pub version 0.7.1-dev
+  * Update to platform version 0.4.1-d214582.
+
 #### Pub version 0.7.0+1
   * Cherry pick https://github.com/Polymer/ShadowDOM/pull/506 to fix IOS 8.
 

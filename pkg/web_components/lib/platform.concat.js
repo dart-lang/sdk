@@ -115,19 +115,14 @@ if (typeof WeakMap === 'undefined') {
 // select ShadowDOM impl
 if (Platform.flags.shadow) {
 
-// Copyright 2012 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
 
 (function(global) {
   'use strict';
@@ -187,7 +182,7 @@ if (Platform.flags.shadow) {
     // Firefox OS Apps do not allow eval. This feature detection is very hacky
     // but even if some other platform adds support for this function this code
     // will continue to work.
-    if (navigator.getDeviceStorage) {
+    if (typeof navigator != 'undefined' && navigator.getDeviceStorage) {
       return false;
     }
 
@@ -202,7 +197,7 @@ if (Platform.flags.shadow) {
   var hasEval = detectEval();
 
   function isIndex(s) {
-    return +s === s >>> 0;
+    return +s === s >>> 0 && s !== '';
   }
 
   function toNumber(s) {
@@ -916,25 +911,11 @@ if (Platform.flags.shadow) {
 
   var runningMicrotaskCheckpoint = false;
 
-  var hasDebugForceFullDelivery = hasObserve && hasEval && (function() {
-    try {
-      eval('%RunMicrotasks()');
-      return true;
-    } catch (ex) {
-      return false;
-    }
-  })();
-
   global.Platform = global.Platform || {};
 
   global.Platform.performMicrotaskCheckpoint = function() {
     if (runningMicrotaskCheckpoint)
       return;
-
-    if (hasDebugForceFullDelivery) {
-      eval('%RunMicrotasks()');
-      return;
-    }
 
     if (!collectObservers)
       return;
@@ -3018,6 +2999,19 @@ window.ShadowDOMPolyfill = {};
     }
   }
 
+
+  function isLoadLikeEvent(event) {
+    switch (event.type) {
+      // http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html#events-and-the-window-object
+      case 'load':
+      // http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#unloading-documents
+      case 'beforeunload':
+      case 'unload':
+        return true;
+    }
+    return false;
+  }
+
   function dispatchEvent(event, originalWrapperTarget) {
     if (currentlyDispatchingEvents.get(event))
       throw new Error('InvalidStateError');
@@ -3035,12 +3029,11 @@ window.ShadowDOMPolyfill = {};
     // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#the-end
     var overrideTarget;
     var win;
-    var type = event.type;
 
     // Should really be not cancelable too but since Firefox has a bug there
     // we skip that check.
     // https://bugzilla.mozilla.org/show_bug.cgi?id=999456
-    if (type === 'load' && !event.bubbles) {
+    if (isLoadLikeEvent(event) && !event.bubbles) {
       var doc = originalWrapperTarget;
       if (doc instanceof wrappers.Document && (win = doc.defaultView)) {
         overrideTarget = doc;
@@ -3055,7 +3048,7 @@ window.ShadowDOMPolyfill = {};
       } else {
         eventPath = getEventPath(originalWrapperTarget, event);
 
-        if (event.type !== 'load') {
+        if (!isLoadLikeEvent(event)) {
           var doc = eventPath[eventPath.length - 1];
           if (doc instanceof wrappers.Document)
             win = doc.defaultView;
@@ -3161,7 +3154,6 @@ window.ShadowDOMPolyfill = {};
     var type = event.type;
 
     var anyRemoved = false;
-    // targetTable.set(event, target);
     targetTable.set(event, target);
     currentTargetTable.set(event, currentTarget);
 
@@ -3246,7 +3238,12 @@ window.ShadowDOMPolyfill = {};
   function Event(type, options) {
     if (type instanceof OriginalEvent) {
       var impl = type;
-      if (!OriginalBeforeUnloadEvent && impl.type === 'beforeunload') {
+      // In browsers that do not correctly support BeforeUnloadEvent we get to
+      // the generic Event wrapper but we still want to ensure we create a
+      // BeforeUnloadEvent. Since BeforeUnloadEvent calls super, we need to
+      // prevent reentrancty.
+      if (!OriginalBeforeUnloadEvent && impl.type === 'beforeunload' &&
+          !(this instanceof BeforeUnloadEvent)) {
         return new BeforeUnloadEvent(impl);
       }
       setWrapper(impl, this);
@@ -4610,6 +4607,8 @@ window.ShadowDOMPolyfill = {};
   scope.nodeWasRemoved = nodeWasRemoved;
   scope.nodesWereAdded = nodesWereAdded;
   scope.nodesWereRemoved = nodesWereRemoved;
+  scope.originalInsertBefore = originalInsertBefore;
+  scope.originalRemoveChild = originalRemoveChild;
   scope.snapshotNodeList = snapshotNodeList;
   scope.wrappers.Node = Node;
 
@@ -6714,7 +6713,7 @@ window.ShadowDOMPolyfill = {};
       refChildWrapper.previousSibling_ = refChildWrapper.previousSibling;
     }
 
-    parentNode.insertBefore(newChild, refChild);
+    scope.originalInsertBefore.call(parentNode, newChild, refChild);
   }
 
   function remove(nodeWrapper) {
@@ -6736,7 +6735,7 @@ window.ShadowDOMPolyfill = {};
     if (parentNodeWrapper.firstChild === nodeWrapper)
       parentNodeWrapper.firstChild_ = nodeWrapper;
 
-    parentNode.removeChild(node);
+    scope.originalRemoveChild.call(parentNode, node);
   }
 
   var distributedNodesTable = new WeakMap();
@@ -6939,7 +6938,7 @@ window.ShadowDOMPolyfill = {};
 
     // http://w3c.github.io/webcomponents/spec/shadow/#distribution-algorithms
     distribution: function(root) {
-      this.resetAll(root);
+      this.resetAllSubtrees(root);
       this.distributionResolution(root);
     },
 
@@ -6949,6 +6948,10 @@ window.ShadowDOMPolyfill = {};
       else
         resetDestinationInsertionPoints(node);
 
+      this.resetAllSubtrees(node);
+    },
+
+    resetAllSubtrees: function(node) {
       for (var child = node.firstChild; child; child = child.nextSibling) {
         this.resetAll(child);
       }
@@ -7889,6 +7892,7 @@ window.ShadowDOMPolyfill = {};
   var unwrap = scope.unwrap;
 
   var OriginalFormData = window.FormData;
+  if (!OriginalFormData) return;
 
   function FormData(formElement) {
     var impl;
@@ -7903,6 +7907,26 @@ window.ShadowDOMPolyfill = {};
   registerWrapper(OriginalFormData, FormData, new OriginalFormData());
 
   scope.wrappers.FormData = FormData;
+
+})(window.ShadowDOMPolyfill);
+
+/*
+ * Copyright 2014 The Polymer Authors. All rights reserved.
+ * Use of this source code is goverened by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
+(function(scope) {
+  'use strict';
+
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
+  var originalSend = XMLHttpRequest.prototype.send;
+
+  // Since we only need to adjust XHR.send, we just patch it instead of wrapping
+  // the entire object. This happens when FormData is passed.
+  XMLHttpRequest.prototype.send = function(obj) {
+    return originalSend.call(this, unwrapIfNeeded(obj));
+  };
 
 })(window.ShadowDOMPolyfill);
 
@@ -9533,96 +9557,6 @@ if (!Function.prototype.bind) {
 })(window.Platform);
 
 /*
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
-
-(function(scope) {
-
-  'use strict';
-
-  // polyfill performance.now
-
-  if (!window.performance) {
-    var start = Date.now();
-    // only at millisecond precision
-    window.performance = {now: function(){ return Date.now() - start }};
-  }
-
-  // polyfill for requestAnimationFrame
-
-  if (!window.requestAnimationFrame) {
-    window.requestAnimationFrame = (function() {
-      var nativeRaf = window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame;
-
-      return nativeRaf ?
-        function(callback) {
-          return nativeRaf(function() {
-            callback(performance.now());
-          });
-        } :
-        function( callback ){
-          return window.setTimeout(callback, 1000 / 60);
-        };
-    })();
-  }
-
-  if (!window.cancelAnimationFrame) {
-    window.cancelAnimationFrame = (function() {
-      return  window.webkitCancelAnimationFrame ||
-        window.mozCancelAnimationFrame ||
-        function(id) {
-          clearTimeout(id);
-        };
-    })();
-  }
-
-  // Make a stub for Polymer() for polyfill purposes; under the HTMLImports
-  // polyfill, scripts in the main document run before imports. That means
-  // if (1) polymer is imported and (2) Polymer() is called in the main document
-  // in a script after the import, 2 occurs before 1. We correct this here
-  // by specfiically patching Polymer(); this is not necessary under native
-  // HTMLImports.
-  var elementDeclarations = [];
-
-  var polymerStub = function(name, dictionary) {
-    Array.prototype.push.call(arguments, document._currentScript);
-    elementDeclarations.push(arguments);
-  };
-  window.Polymer = polymerStub;
-
-  // deliver queued delcarations
-  scope.consumeDeclarations = function(callback) {
-    scope.consumeDeclarations = function() {
-     throw 'Possible attempt to load Polymer twice';
-    };
-    if (callback) {
-      callback(elementDeclarations);
-    }
-    elementDeclarations = null;
-  };
-
-  // Once DOMContent has loaded, any main document scripts that depend on
-  // Polymer() should have run. Calling Polymer() now is an error until
-  // polymer is imported.
-  window.addEventListener('DOMContentLoaded', function() {
-    if (window.Polymer === polymerStub) {
-      window.Polymer = function() {
-        console.error('You tried to use polymer without loading it first. To ' +
-          'load polymer, <link rel="import" href="' + 
-          'components/polymer/polymer.html">');
-      };
-    }
-  });
-
-})(window.Platform);
-
-/*
  * Copyright 2012 The Polymer Authors. All rights reserved.
  * Use of this source code is goverened by a BSD-style
  * license that can be found in the LICENSE file.
@@ -10291,8 +10225,14 @@ function watchImportsLoad(callback, doc) {
 
 // NOTE: test for native imports loading is based on explicitly watching
 // all imports (see below).
+// We cannot rely on this entirely without watching the entire document
+// for import links. For perf reasons, currently only head is watched.
+// Instead, we fallback to checking if the import property is available 
+// and the document is not itself loading. 
 function isImportLoaded(link) {
-  return useNative ? link.__loaded : link.__importParsed;
+  return useNative ? link.__loaded || 
+      (link.import && link.import.readyState !== 'loading') :
+      link.__importParsed;
 }
 
 // TODO(sorvell): Workaround for 
@@ -10768,10 +10708,14 @@ var importParser = {
   },
   // determine the next element in the tree which should be parsed
   nextToParse: function() {
+    this._mayParse = [];
     return !this.parsingElement && this.nextToParseInDoc(mainDoc);
   },
   nextToParseInDoc: function(doc, link) {
-    if (doc) {
+    // use `marParse` list to avoid looping into the same document again
+    // since it could cause an iloop.
+    if (doc && this._mayParse.indexOf(doc) < 0) {
+      this._mayParse.push(doc);
       var nodes = doc.querySelectorAll(this.parseSelectorsForNode(doc));
       for (var i=0, l=nodes.length, p=0, n; (i<l) && (n=nodes[i]); i++) {
         if (!this.isParsed(n)) {
@@ -11501,14 +11445,34 @@ function upgradeDocument(doc) {
   logFlags.dom && console.groupEnd();
 }
 
+/*
+This method is intended to be called when the document tree (including imports)
+has pending custom elements to upgrade. It can be called multiple times and 
+should do nothing if no elements are in need of upgrade.
+
+Note that the import tree can consume itself and therefore special care
+must be taken to avoid recursion.
+*/
+var upgradedDocuments;
 function upgradeDocumentTree(doc) {
+  upgradedDocuments = [];
+  _upgradeDocumentTree(doc);
+  upgradedDocuments = null;
+}
+
+
+function _upgradeDocumentTree(doc) {
   doc = wrapIfNeeded(doc);
+  if (upgradedDocuments.indexOf(doc) >= 0) {
+    return;
+  }
+  upgradedDocuments.push(doc);
   //console.log('upgradeDocumentTree: ', (doc.baseURI).split('/').pop());
   // upgrade contained imported documents
   var imports = doc.querySelectorAll('link[rel=' + IMPORT_LINK_TYPE + ']');
   for (var i=0, l=imports.length, n; (i<l) && (n=imports[i]); i++) {
     if (n.import && n.import.__parsed) {
-      upgradeDocumentTree(n.import);
+      _upgradeDocumentTree(n.import);
     }
   }
   upgradeDocument(doc);
@@ -12191,20 +12155,120 @@ if (window.ShadowDOMPolyfill) {
 
 (function(scope) {
 
-  // TODO(sorvell): It's desireable to provide a default stylesheet 
+  'use strict';
+
+  // polyfill performance.now
+
+  if (!window.performance) {
+    var start = Date.now();
+    // only at millisecond precision
+    window.performance = {now: function(){ return Date.now() - start }};
+  }
+
+  // polyfill for requestAnimationFrame
+
+  if (!window.requestAnimationFrame) {
+    window.requestAnimationFrame = (function() {
+      var nativeRaf = window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame;
+
+      return nativeRaf ?
+        function(callback) {
+          return nativeRaf(function() {
+            callback(performance.now());
+          });
+        } :
+        function( callback ){
+          return window.setTimeout(callback, 1000 / 60);
+        };
+    })();
+  }
+
+  if (!window.cancelAnimationFrame) {
+    window.cancelAnimationFrame = (function() {
+      return  window.webkitCancelAnimationFrame ||
+        window.mozCancelAnimationFrame ||
+        function(id) {
+          clearTimeout(id);
+        };
+    })();
+  }
+
+  // Make a stub for Polymer() for polyfill purposes; under the HTMLImports
+  // polyfill, scripts in the main document run before imports. That means
+  // if (1) polymer is imported and (2) Polymer() is called in the main document
+  // in a script after the import, 2 occurs before 1. We correct this here
+  // by specfiically patching Polymer(); this is not necessary under native
+  // HTMLImports.
+  var elementDeclarations = [];
+
+  var polymerStub = function(name, dictionary) {
+    if ((typeof name !== 'string') && (arguments.length === 1)) {
+      Array.prototype.push.call(arguments, document._currentScript);
+    }
+    elementDeclarations.push(arguments);
+  };
+  window.Polymer = polymerStub;
+
+  // deliver queued delcarations
+  scope.consumeDeclarations = function(callback) {
+    scope.consumeDeclarations = function() {
+     throw 'Possible attempt to load Polymer twice';
+    };
+    if (callback) {
+      callback(elementDeclarations);
+    }
+    elementDeclarations = null;
+  };
+
+  function installPolymerWarning() {
+    if (window.Polymer === polymerStub) {
+      window.Polymer = function() {
+        throw new Error('You tried to use polymer without loading it first. To ' +
+          'load polymer, <link rel="import" href="' + 
+          'components/polymer/polymer.html">');
+      };
+    }
+  }
+
+  // Once DOMContent has loaded, any main document scripts that depend on
+  // Polymer() should have run. Calling Polymer() now is an error until
+  // polymer is imported.
+  if (HTMLImports.useNative) {
+    installPolymerWarning();
+  } else {
+    addEventListener('DOMContentLoaded', installPolymerWarning);
+  }
+
+})(window.Platform);
+
+/*
+ * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+(function(scope) {
+
+  // It's desireable to provide a default stylesheet 
   // that's convenient for styling unresolved elements, but
   // it's cumbersome to have to include this manually in every page.
   // It would make sense to put inside some HTMLImport but 
   // the HTMLImports polyfill does not allow loading of stylesheets 
   // that block rendering. Therefore this injection is tolerated here.
-
+  //
+  // NOTE: position: relative fixes IE's failure to inherit opacity 
+  // when a child is not statically positioned.
   var style = document.createElement('style');
   style.textContent = ''
       + 'body {'
       + 'transition: opacity ease-in 0.2s;' 
       + ' } \n'
       + 'body[unresolved] {'
-      + 'opacity: 0; display: block; overflow: hidden;' 
+      + 'opacity: 0; display: block; overflow: hidden; position: relative;' 
       + ' } \n'
       ;
   var head = document.querySelector('head');

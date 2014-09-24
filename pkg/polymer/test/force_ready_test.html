@@ -2,7 +2,7 @@
 <html>
   <!--polymer-test: this comment is needed for test_suite.dart-->
   <head>
-    <title>property to attribute reflection with bind</title>
+    <title>force ready</title>
     <script src="packages/web_components/platform.js"></script>
     <script src="packages/web_components/dart_support.js"></script>
     <link rel="import" href="packages/polymer/polymer.html">
@@ -10,11 +10,8 @@
   </head>
 
   <body>
-    <x-foo foo="mee" bar="too" count=3></x-foo>
+    <polymer-element name="x-foo"></polymer-element>
 
-    <polymer-element name="x-foo" attributes="foo bar count">
-      <template>{{ fooBar }}:{{ fooBarCounted }}</template>
-      <script type="application/dart" src="computed_properties_test.dart"></script>
-    </polymer-element>
+    <script type="application/dart" src="force_ready_test.dart"></script>
   </body>
 </html>

@@ -221,6 +221,17 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   /// for use.
   static Future get onReady => _onReady.future;
 
+  /// Returns a list of elements that have had polymer-elements created but
+  /// are not yet ready to register. The list is an array of element
+  /// definitions.
+  static List<Element> get waitingFor =>
+      _Polymer.callMethod('waitingFor', [null]);
+
+  /// Forces polymer to register any pending elements. Can be used to abort
+  /// waiting for elements that are partially defined.
+  static forceReady([int timeout]) =>
+      _Polymer.callMethod('forceReady', [null, timeout]);
+
   /// The most derived `<polymer-element>` declaration for this element.
   PolymerDeclaration get element => _element;
   PolymerDeclaration _element;
@@ -1267,6 +1278,18 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     if (job == null) job = new PolymerJob._();
     // Dart note: made start smarter, so we don't need to call stop.
     return job..start(callback, wait);
+  }
+
+  /// Inject HTML which contains markup bound to this element into
+  /// a target element (replacing target element content).
+  DocumentFragment injectBoundHTML(String html, [Element element]) {
+    var template = new TemplateElement()..innerHtml = html;
+    var fragment = this.instanceTemplate(template);
+    if (element != null) {
+      element.text = '';
+      element.append(fragment);
+    }
+    return fragment;
   }
 }
 

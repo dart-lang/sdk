@@ -1,3 +1,13 @@
+#### 0.15.0-dev
+  * Added Polymer.forceReady method. This forces a ready state regardless of
+    whether or not there are still polymer-element declarations waiting for
+    their class definitions to be loaded.
+  * Added Polymer.waitingFor method. This returns a list of all polymer-element
+    declarations that are still waiting for their class definitions to be
+    loaded.
+  * Added injectBoundHTML instance method. This can be used to dynamically
+    inject html that is bound to your current element into a target element.
+
 #### 0.14.3
   * Warn if the same css file is inlined more than once,
     [19996](http://dartbug.com/19996).
