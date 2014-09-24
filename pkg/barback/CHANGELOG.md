@@ -1,3 +1,7 @@
+## 0.15.2+2
+
+* Fix a bug in listing all assets from a static package.
+
 ## 0.15.2+1
 
 * Properly handle logs from a transformer that's been canceled.
