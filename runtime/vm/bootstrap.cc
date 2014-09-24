@@ -315,16 +315,16 @@ RawError* Bootstrap::LoadandCompileScripts() {
   if (error.IsNull()) {
     SetupNativeResolver();
     ClassFinalizer::ProcessPendingClasses();
-  }
 
-  Class& cls = Class::Handle(isolate);
-  // Eagerly compile the function implementation class as it is the super
-  // class of signature classes. This allows us to just finalize signature
-  // classes without going through the hoops of trying to compile them.
-  const Type& type =
-      Type::Handle(isolate, isolate->object_store()->function_impl_type());
-  cls = type.type_class();
-  Compiler::CompileClass(cls);
+    Class& cls = Class::Handle(isolate);
+    // Eagerly compile the function implementation class as it is the super
+    // class of signature classes. This allows us to just finalize signature
+    // classes without going through the hoops of trying to compile them.
+    const Type& type =
+        Type::Handle(isolate, isolate->object_store()->function_impl_type());
+    cls = type.type_class();
+    Compiler::CompileClass(cls);
+  }
 
   // Restore the library tag handler for the isolate.
   isolate->set_library_tag_handler(saved_tag_handler);
