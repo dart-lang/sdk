@@ -298,8 +298,8 @@ class RangeNode extends AstNode {
 
   bool operator==(Object other) {
     if (other is! RangeNode) return false;
-    if (other.negated != negated) return false;
-    return const SetEquality().equals(ranges, other.ranges);
+    if ((other as RangeNode).negated != negated) return false;
+    return const SetEquality().equals(ranges, (other as RangeNode).ranges);
   }
 
   int get hashCode => (negated ? 1 : 3) * const SetEquality().hash(ranges);
