@@ -241,10 +241,10 @@ void scheduleSymlink(String target, String symlink) {
       () => createSymlink(p.join(sandboxDir, target), p.join(sandboxDir, symlink)),
       'symlinking $target to $symlink');
 }
-void schedulePub({List args, output, error, outputJson,
-    Future<Uri> tokenEndpoint, int exitCode: exit_codes.SUCCESS}) {
+void schedulePub({List args, output, error, outputJson, int exitCode:
+    exit_codes.SUCCESS}) {
   assert(output == null || outputJson == null);
-  var pub = startPub(args: args, tokenEndpoint: tokenEndpoint);
+  var pub = startPub(args: args);
   pub.shouldExit(exitCode);
   var failures = [];
   var stderr;

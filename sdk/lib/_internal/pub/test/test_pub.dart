@@ -412,11 +412,11 @@ void scheduleSymlink(String target, String symlink) {
 /// matching that object, which can be a literal JSON object or any other
 /// [Matcher].
 void schedulePub({List args, output, error, outputJson,
-    Future<Uri> tokenEndpoint, int exitCode: exit_codes.SUCCESS}) {
+    int exitCode: exit_codes.SUCCESS}) {
   // Cannot pass both output and outputJson.
   assert(output == null || outputJson == null);
 
-  var pub = startPub(args: args, tokenEndpoint: tokenEndpoint);
+  var pub = startPub(args: args);
   pub.shouldExit(exitCode);
 
   var failures = [];
