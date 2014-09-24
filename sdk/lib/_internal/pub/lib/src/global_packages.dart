@@ -567,6 +567,7 @@ $invocation "%*"
       writeTextFile(binStubPath, batch);
     } else {
       var bash = """
+#!/usr/bin/env sh
 # This file was created by pub v${sdk.version}.
 # Package: ${package.name}
 # Version: ${package.version}
