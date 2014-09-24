@@ -22,7 +22,7 @@ class PubPackageProvider implements StaticPackageProvider {
   final List<String> staticPackages;
 
   Iterable<String> get packages =>
-      _graph.packages.keys.toSet().difference(staticPackages);
+      _graph.packages.keys.toSet().difference(staticPackages.toSet());
 
   PubPackageProvider(PackageGraph graph)
       : _graph = graph,
