@@ -62,7 +62,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implements
           PropertyAccessorElement getter = field.getter;
           if (!getter.isSynthetic) {
             _updateElementDeclaration(getter);
-            _updateElementReferences(getter);
+            return _updateElementReferences(getter);
           }
         });
       }).then((_) => change);

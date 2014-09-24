@@ -59,7 +59,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implements
       return getHierarchyMembers(searchEngine, method).then((elements) {
         return Future.forEach(elements, (Element element) {
           _updateElementDeclaration(element);
-          _updateElementReferences(element);
+          return _updateElementReferences(element);
         });
       }).then((_) => change);
     }
