@@ -16,6 +16,10 @@
 LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19 issue 668
 LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 
+# TODO(terry) re-enable the below CSS tests when Chrome 38 and (Dartium 38) are ready issue 21075
+LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: Skip 
+LayoutTests/fast/css/font-shorthand-from-longhands_t01: Skip
+
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A01_t06: Fail, Pass, OK # co19 issue 695
 
 # These tests are obsolete and need updating.
