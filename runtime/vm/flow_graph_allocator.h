@@ -558,8 +558,6 @@ class LiveRange : public ZoneAllocated {
       finger_() {
   }
 
-  static LiveRange* MakeTemp(intptr_t pos, Location* location_slot);
-
   intptr_t vreg() const { return vreg_; }
   Representation representation() const { return representation_; }
   LiveRange* next_sibling() const { return next_sibling_; }
@@ -588,14 +586,12 @@ class LiveRange : public ZoneAllocated {
 
   void AddSafepoint(intptr_t pos, LocationSummary* locs);
 
-  void AddUse(intptr_t pos, Location* location_slot);
+  UsePosition* AddUse(intptr_t pos, Location* location_slot);
   void AddHintedUse(intptr_t pos, Location* location_slot, Location* hint);
 
   void AddUseInterval(intptr_t start, intptr_t end);
 
   void Print();
-
-  void AssignLocation(UseInterval* use, Location loc);
 
   LiveRange* SplitAt(intptr_t pos);
 
