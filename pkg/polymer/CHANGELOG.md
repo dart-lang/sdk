@@ -1,4 +1,4 @@
-#### 0.15.0-dev
+#### 0.15.0
   * Added Polymer.forceReady method. This forces a ready state regardless of
     whether or not there are still polymer-element declarations waiting for
     their class definitions to be loaded.

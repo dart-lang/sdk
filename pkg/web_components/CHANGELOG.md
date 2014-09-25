@@ -1,4 +1,4 @@
-#### Pub version 0.7.1-dev
+#### Pub version 0.7.1
   * Update to platform version 0.4.1-d214582.
 
 #### Pub version 0.7.0+1
