@@ -48,6 +48,7 @@ import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
+import 'dart:web_gl' show RenderingContext;
 import 'dart:web_sql';
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,

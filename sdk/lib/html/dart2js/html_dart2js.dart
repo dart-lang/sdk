@@ -39,6 +39,7 @@ import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
+import 'dart:web_gl' show RenderingContext;
 import 'dart:web_sql';
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT, JS_CONST;
@@ -1516,6 +1517,8 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
 
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
+  @Creates('CanvasRenderingContext2D|RenderingContext')
+  @Returns('CanvasRenderingContext2D|RenderingContext|Null')
   Object getContext(String contextId, [Map attrs]) {
     if (attrs != null) {
       var attrs_1 = convertDartToNative_Dictionary(attrs);
@@ -1526,10 +1529,14 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @JSName('getContext')
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
+  @Creates('CanvasRenderingContext2D|RenderingContext')
+  @Returns('CanvasRenderingContext2D|RenderingContext|Null')
   Object _getContext_1(contextId, attrs) native;
   @JSName('getContext')
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
+  @Creates('CanvasRenderingContext2D|RenderingContext')
+  @Returns('CanvasRenderingContext2D|RenderingContext|Null')
   Object _getContext_2(contextId) native;
 
   @JSName('toDataURL')
