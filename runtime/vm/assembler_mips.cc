@@ -655,6 +655,11 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
 }
 
 
+void Assembler::LoadIsolate(Register result) {
+  LoadImmediate(result, reinterpret_cast<uword>(Isolate::Current()));
+}
+
+
 void Assembler::LoadClassId(Register result, Register object) {
   ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);

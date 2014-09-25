@@ -27,6 +27,9 @@ const intptr_t kSmiBits = kBitsPerWord - 2;
 const intptr_t kSmiMax = (static_cast<intptr_t>(1) << kSmiBits) - 1;
 const intptr_t kSmiMin =  -(static_cast<intptr_t>(1) << kSmiBits);
 
+const double kPosInfinity = bit_cast<double>(DART_UINT64_C(0x7ff0000000000000));
+const double kNegInfinity = bit_cast<double>(DART_UINT64_C(0xfff0000000000000));
+
 // The expression ARRAY_SIZE(array) is a compile-time constant of type
 // size_t which represents the number of elements of the given
 // array. You should only use ARRAY_SIZE on statically allocated

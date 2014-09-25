@@ -1165,6 +1165,7 @@ class Assembler : public ValueObject {
                               const ExternalLabel* label,
                               Patchability patchable,
                               Register pp);
+  void LoadIsolate(Register dst, Register pp);
   void LoadObject(Register dst, const Object& obj, Register pp);
   void LoadDecodableImmediate(Register reg, int64_t imm, Register pp);
   void LoadImmediateFixed(Register reg, int64_t imm);

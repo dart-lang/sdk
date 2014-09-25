@@ -1209,6 +1209,8 @@ class Assembler : public ValueObject {
   void CompareObject(Register rd1, Register rd2,
                      Register rn, const Object& object);
 
+  void LoadIsolate(Register result);
+
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object);

@@ -698,6 +698,7 @@ class Assembler : public ValueObject {
   bool CanLoadImmediateFromPool(const Immediate& imm, Register pp);
   void LoadImmediate(Register reg, const Immediate& imm, Register pp);
   void LoadImmediate(const Address& dst, const Immediate& imm, Register pp);
+  void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj, Register pp);
   void JmpPatchable(const ExternalLabel* label, Register pp);
   void Jmp(const ExternalLabel* label, Register pp);

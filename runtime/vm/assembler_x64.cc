@@ -2629,6 +2629,11 @@ void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
 }
 
 
+void Assembler::LoadIsolate(Register dst) {
+  movq(dst, Immediate(reinterpret_cast<uword>(Isolate::Current())));
+}
+
+
 void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
   if (CanLoadFromObjectPool(object)) {
     const int32_t offset =

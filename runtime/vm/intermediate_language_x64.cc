@@ -4928,7 +4928,7 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ Bind(&try_sqrt);
   // Before calling pow, check if we could use sqrt instead of pow.
   __ LoadObject(temp,
-      Double::ZoneHandle(Double::NewCanonical(-INFINITY)), PP);
+      Double::ZoneHandle(Double::NewCanonical(kNegInfinity)), PP);
   __ movsd(result, FieldAddress(temp, Double::value_offset()));
   // base == -Infinity -> call pow;
   __ comisd(base, result);

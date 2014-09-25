@@ -2089,6 +2089,11 @@ void Assembler::Drop(intptr_t stack_elements) {
 }
 
 
+void Assembler::LoadIsolate(Register dst) {
+  movl(dst, Immediate(reinterpret_cast<uword>(Isolate::Current())));
+}
+
+
 void Assembler::LoadObject(Register dst, const Object& object) {
   if (object.IsSmi() || object.InVMHeap()) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));

@@ -639,6 +639,8 @@ class Assembler : public ValueObject {
 
   void Drop(intptr_t stack_elements);
 
+  void LoadIsolate(Register dst);
+
   void LoadObject(Register dst, const Object& object);
 
   // If 'object' is a large Smi, xor it with a per-assembler cookie value to

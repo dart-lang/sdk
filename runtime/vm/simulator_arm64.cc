@@ -2444,7 +2444,7 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
 static float arm_reciprocal_sqrt_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-87.
   if (isinf(a) || (fabs(a) >= exp2f(126))) return 0.0;
-  else if (a == 0.0) return INFINITY;
+  else if (a == 0.0) return kPosInfinity;
   else if (isnan(a)) return a;
 
   uint32_t a_bits = bit_cast<uint32_t, float>(a);
@@ -2495,7 +2495,7 @@ static float arm_reciprocal_sqrt_estimate(float a) {
 static float arm_recip_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-85.
   if (isinf(a) || (fabs(a) >= exp2f(126))) return 0.0;
-  else if (a == 0.0) return INFINITY;
+  else if (a == 0.0) return kPosInfinity;
   else if (isnan(a)) return a;
 
   uint32_t a_bits = bit_cast<uint32_t, float>(a);

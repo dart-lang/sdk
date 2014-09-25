@@ -556,6 +556,11 @@ void Assembler::LoadExternalLabelFixed(Register dst,
 }
 
 
+void Assembler::LoadIsolate(Register dst, Register pp) {
+  LoadImmediate(dst, reinterpret_cast<uword>(Isolate::Current()), pp);
+}
+
+
 void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
   if (CanLoadObjectFromPool(object)) {
     const int32_t offset =

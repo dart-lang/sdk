@@ -1554,6 +1554,11 @@ void Assembler::LoadPoolPointer() {
 }
 
 
+void Assembler::LoadIsolate(Register rd) {
+  LoadImmediate(rd, reinterpret_cast<uword>(Isolate::Current()));
+}
+
+
 void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {

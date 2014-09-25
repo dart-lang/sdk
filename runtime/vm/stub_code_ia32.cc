@@ -805,7 +805,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(CTX, Address(EBP, kNewContextOffset));
   __ movl(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
 
-  __ movl(EDI, Immediate(Isolate::CurrentAddress()));
+  __ LoadIsolate(EDI);
 
   // Save the current VMTag on the stack.
   ASSERT(kSavedVMTagSlotFromEntryFp == -4);
@@ -892,7 +892,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
 
   // Load Isolate pointer into CTX. Drop Context.
-  __ movl(CTX, Immediate(Isolate::CurrentAddress()));
+  __ LoadIsolate(CTX);
 
   // Restore the saved Context pointer into the Isolate structure.
   __ popl(Address(CTX, Isolate::top_context_offset()));
@@ -1075,7 +1075,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Load the isolate.
   // Spilled: EDX, ECX
   // EAX: Address being stored
-  __ movl(EDX, Immediate(Isolate::CurrentAddress()));
+  __ LoadIsolate(EDX);
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1106,7 +1106,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(1 * kWordSize);
-  __ movl(EAX, Immediate(Isolate::CurrentAddress()));
+  __ LoadIsolate(EAX);
   __ movl(Address(ESP, 0), EAX);  // Push the isolate as the only argument.
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
@@ -1413,8 +1413,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   // Check single stepping.
   Label stepping, done_stepping;
-  uword single_step_address =
-      Isolate::CurrentAddress() + Isolate::single_step_offset();
+  uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
+      Isolate::single_step_offset();
   __ cmpb(Address::Absolute(single_step_address), Immediate(0));
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
@@ -1651,8 +1651,8 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 #endif  // DEBUG
   // Check single stepping.
   Label stepping, done_stepping;
-  uword single_step_address =
-      Isolate::CurrentAddress() + Isolate::single_step_offset();
+  uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
+      Isolate::single_step_offset();
   __ cmpb(Address::Absolute(single_step_address), Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
   __ Bind(&done_stepping);

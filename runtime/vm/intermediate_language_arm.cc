@@ -5544,7 +5544,7 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ Bind(&try_sqrt);
 
   // Before calling pow, check if we could use sqrt instead of pow.
-  __ LoadDImmediate(result, -INFINITY, temp);
+  __ LoadDImmediate(result, kNegInfinity, temp);
 
   // base == -Infinity -> call pow;
   __ vcmpd(saved_base, result);

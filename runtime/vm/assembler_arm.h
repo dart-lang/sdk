@@ -629,6 +629,8 @@ class Assembler : public ValueObject {
 
   void LoadPoolPointer();
 
+  void LoadIsolate(Register rd);
+
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
