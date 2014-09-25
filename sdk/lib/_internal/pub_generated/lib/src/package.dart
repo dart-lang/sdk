@@ -93,7 +93,8 @@ class Package {
   static final _WHITELISTED_FILES = const ['.htaccess'];
   static final _blacklistedFiles = createFileFilter(['pubspec.lock']);
   static final _blacklistedDirs = createDirectoryFilter(['packages']);
-  List<String> listFiles({String beneath, recursive: true}) {
+  List<String> listFiles({String beneath, bool recursive: true,
+      bool useGitIgnore: false}) {
     if (beneath == null) {
       beneath = dir;
     } else {
@@ -101,7 +102,7 @@ class Package {
     }
     if (!dirExists(beneath)) return [];
     var files;
-    if (git.isInstalled && dirExists(path('.git'))) {
+    if (useGitIgnore && git.isInstalled && dirExists(path('.git'))) {
       var relativeBeneath = p.relative(beneath, from: dir);
       files = git.runSync(
           ["ls-files", "--cached", "--others", "--exclude-standard", relativeBeneath],

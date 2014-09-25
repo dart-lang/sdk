@@ -6,8 +6,8 @@ import '../lib/src/io.dart';
 import '../lib/src/system_cache.dart';
 import 'descriptor.dart' as d;
 import 'test_pub.dart';
-var root;
-var entrypoint;
+String root;
+Entrypoint entrypoint;
 main() {
   initConfig();
   group('not in a git repo', () {
@@ -69,7 +69,7 @@ main() {
                     path.join(root, 'subdir', 'subfile2.txt')]));
       });
     });
-    integration("ignores files that are gitignored", () {
+    integration("ignores files that are gitignored if desired", () {
       d.dir(
           appPath,
           [
@@ -83,12 +83,23 @@ main() {
                       d.file('subfile2.text', 'subcontents')])]).create();
       schedule(() {
         expect(
-            entrypoint.root.listFiles(),
+            entrypoint.root.listFiles(useGitIgnore: true),
             unorderedEquals(
                 [
                     path.join(root, 'pubspec.yaml'),
                     path.join(root, '.gitignore'),
                     path.join(root, 'file2.text'),
+                    path.join(root, 'subdir', 'subfile2.text')]));
+      });
+      schedule(() {
+        expect(
+            entrypoint.root.listFiles(),
+            unorderedEquals(
+                [
+                    path.join(root, 'pubspec.yaml'),
+                    path.join(root, 'file1.txt'),
+                    path.join(root, 'file2.text'),
+                    path.join(root, 'subdir', 'subfile1.txt'),
                     path.join(root, 'subdir', 'subfile2.text')]));
       });
     });

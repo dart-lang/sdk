@@ -117,7 +117,7 @@ class LishCommand extends PubCommand {
               'pubspec.');
     }
 
-    var files = entrypoint.root.listFiles();
+    var files = entrypoint.root.listFiles(useGitIgnore: true);
     log.fine('Archiving and publishing ${entrypoint.root}.');
 
     // Show the package contents so the user can verify they look OK.

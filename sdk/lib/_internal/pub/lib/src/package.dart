@@ -183,9 +183,13 @@ class Package {
   /// [recursive] is true, this will return all files beneath that path;
   /// otherwise, it will only return files one level beneath it.
   ///
+  /// If [useGitIgnore] is passed, this will take the .gitignore rules into
+  /// account if the package's root directory is a Git repository.
+  ///
   /// Note that the returned paths won't always be beneath [dir]. To safely
   /// convert them to paths relative to the package root, use [relative].
-  List<String> listFiles({String beneath, recursive: true}) {
+  List<String> listFiles({String beneath, bool recursive: true,
+      bool useGitIgnore: false}) {
     if (beneath == null) {
       beneath = dir;
     } else {
@@ -200,7 +204,7 @@ class Package {
     // path package, since re-parsing a path is very expensive relative to
     // string operations.
     var files;
-    if (git.isInstalled && dirExists(path('.git'))) {
+    if (useGitIgnore && git.isInstalled && dirExists(path('.git'))) {
       // Later versions of git do not allow a path for ls-files that appears to
       // be outside of the repo, so make sure we give it a relative path.
       var relativeBeneath = p.relative(beneath, from: dir);
