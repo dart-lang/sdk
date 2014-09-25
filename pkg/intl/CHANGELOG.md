@@ -1,3 +1,8 @@
+## 0.11.8
+
+  * Support NumberFormats with two different grouping sizes, e.g.
+    1,23,45,67,890
+
 ## 0.11.7
   * Moved petitparser into a regular dependency so pub run works.
 
@@ -22,7 +27,7 @@
 
 ## 0.11.3
 
- * Add a --[no]-use-deferred-loading flag to generate_from_arb.dart and 
+ * Add a --[no]-use-deferred-loading flag to generate_from_arb.dart and
    generally make the deferred loading of message libraries optional.
 
 ## 0.11.2
@@ -37,11 +42,11 @@
 
 ## 0.11.0
 
- * Switch the message format from a custom JSON format to 
+ * Switch the message format from a custom JSON format to
    the ARB format ( https://code.google.com/p/arb/ )
 
 ## 0.10.0
- 
+
  * Make message catalogs use deferred loading.
 
  * Update CLDR Data to version 25 for dates and numbers.
@@ -59,7 +64,7 @@
   you can format for a particular locale without it dictating the currency, and
   also supply the currency symbols which we don't have yet.
 
-* Canonicalize locales more consistently, avoiding a number of problems if you 
+* Canonicalize locales more consistently, avoiding a number of problems if you
   use a non-canonical form.
 
 * For locales whose length is longer than 6 change "-" to "_" in position 3 when
@@ -73,6 +78,3 @@
 * Handle two different messages with the same text.
 
 * Allow complex string literals in arguments (e.g. multi-line)
-
-
-

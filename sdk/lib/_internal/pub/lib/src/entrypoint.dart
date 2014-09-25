@@ -73,7 +73,7 @@ class Entrypoint {
       : _packageSymlinks = false;
 
   /// The path to the entrypoint's "packages" directory.
-  String get packagesDir => path.join(root.dir, 'packages');
+  String get packagesDir => root.path('packages');
 
   /// `true` if the entrypoint package currently has a lock file.
   bool get lockFileExists => _lockFile != null || entryExists(lockFilePath);
@@ -91,10 +91,10 @@ class Entrypoint {
   }
 
   /// The path to the entrypoint package's pubspec.
-  String get pubspecPath => path.join(root.dir, 'pubspec.yaml');
+  String get pubspecPath => root.path('pubspec.yaml');
 
   /// The path to the entrypoint package's lockfile.
-  String get lockFilePath => path.join(root.dir, 'pubspec.lock');
+  String get lockFilePath => root.path('pubspec.lock');
 
   /// Gets all dependencies of the [root] package.
   ///
@@ -111,52 +111,126 @@ class Entrypoint {
   /// the report. Otherwise, only dependencies that were changed are shown. If
   /// [dryRun] is `true`, no physical changes are made.
   Future acquireDependencies(SolveType type, {List<String> useLatest,
-      bool dryRun: false}) {
-    return syncFuture(() {
-      return resolveVersions(type, cache.sources, root, lockFile: lockFile,
-          useLatest: useLatest);
-    }).then((result) {
-      if (!result.succeeded) throw result.error;
+      bool dryRun: false}) async {
+    var result = await resolveVersions(type, cache.sources, root,
+        lockFile: lockFile, useLatest: useLatest);
+    if (!result.succeeded) throw result.error;
 
-      result.showReport(type);
+    result.showReport(type);
 
-      if (dryRun) {
-        result.summarizeChanges(type, dryRun: dryRun);
-        return null;
+    if (dryRun) {
+      result.summarizeChanges(type, dryRun: dryRun);
+      return;
+    }
+
+    // Install the packages and maybe link them into the entrypoint.
+    if (_packageSymlinks) {
+      cleanDir(packagesDir);
+    } else {
+      deleteEntry(packagesDir);
+    }
+
+    var ids = await Future.wait(result.packages.map(_get));
+    _saveLockFile(ids);
+
+    if (_packageSymlinks) _linkSelf();
+    _linkOrDeleteSecondaryPackageDirs();
+
+    result.summarizeChanges(type, dryRun: dryRun);
+
+    /// Build a package graph from the version solver results so we don't
+    /// have to reload and reparse all the pubspecs.
+    var packageGraph = await loadPackageGraph(result);
+    packageGraph.loadTransformerCache().clearIfOutdated(result.changedPackages);
+
+    // TODO(nweiz): Use await here when
+    // https://github.com/dart-lang/async_await/issues/51 is fixed.
+    return precompileDependencies(changed: result.changedPackages).then((_) {
+      return precompileExecutables(changed: result.changedPackages);
+    }).catchError((error, stackTrace) {
+      // Just log exceptions here. Since the method is just about acquiring
+      // dependencies, it shouldn't fail unless that fails.
+      log.exception(error, stackTrace);
+    });
+  }
+
+  /// Precompile any transformed dependencies of the entrypoint.
+  ///
+  /// If [changed] is passed, only dependencies whose contents might be changed
+  /// if one of the given packages changes will be recompiled.
+  Future precompileDependencies({Iterable<String> changed}) async {
+    if (changed != null) changed = changed.toSet();
+
+    var graph = await loadPackageGraph();
+
+    // Just precompile the debug version of a package. We're mostly interested
+    // in improving speed for development iteration loops, which usually use
+    // debug mode.
+    var depsDir = path.join('.pub', 'deps', 'debug');
+
+    var dependenciesToPrecompile = graph.packages.values.where((package) {
+      if (package.pubspec.transformers.isEmpty) return false;
+      if (graph.isPackageMutable(package.name)) return false;
+      if (!dirExists(path.join(depsDir, package.name))) return true;
+      if (changed == null) return true;
+
+      /// Only recompile [package] if any of its transitive dependencies have
+      /// changed. We check all transitive dependencies because it's possible
+      /// that a transformer makes decisions based on their contents.
+      return overlaps(
+          graph.transitiveDependencies(package.name)
+            .map((package) => package.name).toSet(),
+          changed);
+    }).map((package) => package.name).toSet();
+
+    if (dependenciesToPrecompile.isEmpty) return;
+
+    await log.progress("Precompiling dependencies", () async {
+      var packagesToLoad =
+          unionAll(dependenciesToPrecompile.map(graph.transitiveDependencies))
+          .map((package) => package.name).toSet();
+
+      for (var package in dependenciesToPrecompile) {
+        deleteEntry(path.join(depsDir, package));
       }
 
-      // Install the packages and maybe link them into the entrypoint.
-      if (_packageSymlinks) {
-        cleanDir(packagesDir);
-      } else {
-        deleteEntry(packagesDir);
+      var environment = await AssetEnvironment.create(this, BarbackMode.DEBUG,
+          packages: packagesToLoad, useDart2JS: false);
+
+      /// Ignore barback errors since they'll be emitted via [getAllAssets]
+      /// below.
+      environment.barback.errors.listen((_) {});
+
+      // TODO(nweiz): only get assets from [dependenciesToPrecompile] so as not
+      // to trigger unnecessary lazy transformers.
+      var assets = await environment.barback.getAllAssets();
+      await waitAndPrintErrors(assets.map((asset) async {
+        if (!dependenciesToPrecompile.contains(asset.id.package)) return;
+
+        var destPath = path.join(
+            depsDir, asset.id.package, path.fromUri(asset.id.path));
+        ensureDir(path.dirname(destPath));
+        await createFileFromStream(asset.read(), destPath);
+      }));
+
+      log.message("Precompiled " +
+          toSentence(ordered(dependenciesToPrecompile).map(log.bold)) + ".");
+    }).catchError((error) {
+      // TODO(nweiz): Do this in a catch clause when async_await supports
+      // "rethrow" (https://github.com/dart-lang/async_await/issues/46).
+      // TODO(nweiz): When barback does a better job of associating errors with
+      // assets (issue 19491), catch and handle compilation errors on a
+      // per-package basis.
+      for (var package in dependenciesToPrecompile) {
+        deleteEntry(path.join(depsDir, package));
       }
-
-      return Future.wait(result.packages.map(_get)).then((ids) {
-        _saveLockFile(ids);
-
-        if (_packageSymlinks) _linkSelf();
-        _linkOrDeleteSecondaryPackageDirs();
-
-        result.summarizeChanges(type, dryRun: dryRun);
-
-        /// Build a package graph from the version solver results so we don't
-        /// have to reload and reparse all the pubspecs.
-        return loadPackageGraph(result);
-      }).then((packageGraph) {
-        return precompileExecutables(changed: result.changedPackages)
-            .catchError((error, stackTrace) {
-          // Just log exceptions here. Since the method is just about acquiring
-          // dependencies, it shouldn't fail unless that fails.
-          log.exception(error, stackTrace);
-        });
-      });
+      throw error;
     });
   }
 
   /// Precompiles all executables from dependencies that don't transitively
   /// depend on [this] or on a path dependency.
-  Future precompileExecutables({Iterable<String> changed}) {
+  Future precompileExecutables({Iterable<String> changed}) async {
     if (changed != null) changed = changed.toSet();
 
     var binDir = path.join('.pub', 'bin');
@@ -169,44 +243,44 @@ class Entrypoint {
         readTextFile(sdkVersionPath) == "${sdk.version}\n";
     if (!sdkMatches) changed = null;
 
-    return loadPackageGraph().then((graph) {
-      var executables = new Map.fromIterable(root.immediateDependencies,
-          key: (dep) => dep.name,
-          value: (dep) => _executablesForPackage(graph, dep.name, changed));
+    var graph = await loadPackageGraph();
+    var executables = new Map.fromIterable(root.immediateDependencies,
+        key: (dep) => dep.name,
+        value: (dep) => _executablesForPackage(graph, dep.name, changed));
 
-      for (var package in executables.keys.toList()) {
-        if (executables[package].isEmpty) executables.remove(package);
-      }
+    for (var package in executables.keys.toList()) {
+      if (executables[package].isEmpty) executables.remove(package);
+    }
 
-      if (!sdkMatches) deleteEntry(binDir);
-      if (executables.isEmpty) return null;
+    if (!sdkMatches) deleteEntry(binDir);
+    if (executables.isEmpty) return;
 
-      return log.progress("Precompiling executables", () {
-        ensureDir(binDir);
+    await log.progress("Precompiling executables", () async {
+      ensureDir(binDir);
 
-        // Make sure there's a trailing newline so our version file matches the
-        // SDK's.
-        writeTextFile(sdkVersionPath, "${sdk.version}\n");
+      // Make sure there's a trailing newline so our version file matches the
+      // SDK's.
+      writeTextFile(sdkVersionPath, "${sdk.version}\n");
 
-        var packagesToLoad =
-            unionAll(executables.keys.map(graph.transitiveDependencies))
-            .map((package) => package.name).toSet();
-        return AssetEnvironment.create(this, BarbackMode.RELEASE,
-            packages: packagesToLoad,
-            useDart2JS: false).then((environment) {
-          environment.barback.errors.listen((error) {
-            log.error(log.red("Build error:\n$error"));
-          });
-
-          return waitAndPrintErrors(executables.keys.map((package) {
-            var dir = path.join(binDir, package);
-            cleanDir(dir);
-            return environment.precompileExecutables(
-                package, dir,
-                executableIds: executables[package]);
-          }));
-        });
+      var packagesToLoad =
+          unionAll(executables.keys.map(graph.transitiveDependencies))
+          .map((package) => package.name).toSet();
+      var executableIds = unionAll(
+          executables.values.map((ids) => ids.toSet()));
+      var environment = await AssetEnvironment.create(this, BarbackMode.RELEASE,
+          packages: packagesToLoad,
+          entrypoints: executableIds,
+          useDart2JS: false);
+      environment.barback.errors.listen((error) {
+        log.error(log.red("Build error:\n$error"));
       });
+
+      await waitAndPrintErrors(executables.keys.map((package) async {
+        var dir = path.join(binDir, package);
+        cleanDir(dir);
+        await environment.precompileExecutables(package, dir,
+            executableIds: executables[package]);
+      }));
     });
   }
 
@@ -218,18 +292,9 @@ class Entrypoint {
   List<AssetId> _executablesForPackage(PackageGraph graph, String packageName,
       Set<String> changed) {
     var package = graph.packages[packageName];
-    var binDir = path.join(package.dir, 'bin');
+    var binDir = package.path('bin');
     if (!dirExists(binDir)) return [];
-
-    // If the lockfile has a dependency on the entrypoint or on a path
-    // dependency, its executables could change at any point, so we
-    // shouldn't precompile them.
-    var deps = graph.transitiveDependencies(packageName);
-    var hasUncachedDependency = deps.any((package) {
-      var source = cache.sources[graph.lockFile.packages[package.name].source];
-      return source is! CachedSource;
-    });
-    if (hasUncachedDependency) return [];
+    if (graph.isPackageMutable(packageName)) return [];
 
     var executables = package.executableIds;
 
@@ -238,7 +303,8 @@ class Entrypoint {
     if (changed == null) return executables;
 
     // If any of the package's dependencies changed, recompile the executables.
-    if (deps.any((package) => changed.contains(package.name))) {
+    if (graph.transitiveDependencies(packageName)
+        .any((package) => changed.contains(package.name))) {
       return executables;
     }
 
@@ -263,7 +329,7 @@ class Entrypoint {
     if (id.isRoot) return new Future.value(id);
 
     var source = cache.sources[id.source];
-    return syncFuture(() {
+    return new Future.sync(() {
       if (!_packageSymlinks) {
         if (source is! CachedSource) return null;
         return source.downloadToSystemCache(id);
@@ -328,7 +394,7 @@ class Entrypoint {
   /// Gets dependencies if the lockfile is out of date with respect to the
   /// pubspec.
   Future ensureLockFileIsUpToDate() {
-    return syncFuture(() {
+    return new Future.sync(() {
       // If we don't have a current lock file, we definitely need to install.
       if (!_isLockFileUpToDate(lockFile)) {
         if (lockFileExists) {
@@ -369,7 +435,7 @@ class Entrypoint {
   Future<PackageGraph> loadPackageGraph([SolveResult result]) {
     if (_packageGraph != null) return new Future.value(_packageGraph);
 
-    return syncFuture(() {
+    return new Future.sync(() {
       if (result != null) {
         return Future.wait(result.packages.map((id) {
           return cache.sources[id.source].getDirectory(id)
@@ -400,7 +466,7 @@ class Entrypoint {
   /// Saves a list of concrete package versions to the `pubspec.lock` file.
   void _saveLockFile(List<PackageId> packageIds) {
     _lockFile = new LockFile(packageIds);
-    var lockFilePath = path.join(root.dir, 'pubspec.lock');
+    var lockFilePath = root.path('pubspec.lock');
     writeTextFile(lockFilePath, _lockFile.serialize(root.dir, cache.sources));
   }
 
@@ -423,12 +489,12 @@ class Entrypoint {
   void _linkOrDeleteSecondaryPackageDirs() {
     // Only the main "bin" directory gets a "packages" directory, not its
     // subdirectories.
-    var binDir = path.join(root.dir, 'bin');
+    var binDir = root.path('bin');
     if (dirExists(binDir)) _linkOrDeleteSecondaryPackageDir(binDir);
 
     // The others get "packages" directories in subdirectories too.
     for (var dir in ['benchmark', 'example', 'test', 'tool', 'web']) {
-      _linkOrDeleteSecondaryPackageDirsRecursively(path.join(root.dir, dir));
+      _linkOrDeleteSecondaryPackageDirsRecursively(root.path(dir));
     }
  }
 

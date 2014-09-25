@@ -6,6 +6,7 @@ library pub.command.run;
 
 import 'dart:async';
 
+import 'package:barback/barback.dart';
 import 'package:path/path.dart' as p;
 
 import '../command.dart';
@@ -20,6 +21,13 @@ class RunCommand extends PubCommand {
   String get description => "Run an executable from a package.\n"
       "NOTE: We are currently optimizing this command's startup time.";
   String get usage => "pub run <executable> [args...]";
+
+  RunCommand() {
+    commandParser.addOption("mode",
+        help: 'Mode to run transformers in.\n'
+              '(defaults to "release" for dependencies, "debug" for '
+                'entrypoint)');
+  }
 
   Future onRun() async {
     if (commandOptions.rest.isEmpty) {
@@ -45,7 +53,17 @@ class RunCommand extends PubCommand {
       }
     }
 
-    var exitCode = await runExecutable(entrypoint, package, executable, args);
+    var mode;
+    if (commandOptions['mode'] != null) {
+      mode = new BarbackMode(commandOptions['mode']);
+    } else if (package == entrypoint.root.name) {
+      mode = BarbackMode.DEBUG;
+    } else {
+      mode = BarbackMode.RELEASE;
+    }
+
+    var exitCode = await runExecutable(entrypoint, package, executable, args,
+        mode: mode);
     await flushThenExit(exitCode);
   }
 }

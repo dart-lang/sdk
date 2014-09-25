@@ -440,6 +440,7 @@ Isolate::Isolate()
       thread_state_(NULL),
       tag_table_(GrowableObjectArray::null()),
       current_tag_(UserTag::null()),
+      default_tag_(UserTag::null()),
       metrics_list_head_(NULL),
       next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
@@ -498,6 +499,7 @@ Isolate::Isolate(Isolate* original)
       thread_state_(NULL),
       tag_table_(GrowableObjectArray::null()),
       current_tag_(UserTag::null()),
+      default_tag_(UserTag::null()),
       metrics_list_head_(NULL),
       next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
@@ -1124,6 +1126,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the current tag which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&current_tag_));
 
+  // Visit the default tag which is stored in the isolate.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&default_tag_));
+
   // Visit the tag table which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
 
@@ -1312,9 +1317,15 @@ void Isolate::set_tag_table(const GrowableObjectArray& value) {
 
 
 void Isolate::set_current_tag(const UserTag& tag) {
-  intptr_t user_tag = tag.tag();
-  set_user_tag(static_cast<uword>(user_tag));
+  uword user_tag = tag.tag();
+  ASSERT(user_tag < kUwordMax);
+  set_user_tag(user_tag);
   current_tag_ = tag.raw();
+}
+
+
+void Isolate::set_default_tag(const UserTag& tag) {
+  default_tag_ = tag.raw();
 }
 
 
@@ -1431,6 +1442,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
     : isolate_(NULL),
       parent_port_(parent_port),
       script_url_(NULL),
+      package_root_(NULL),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
@@ -1458,10 +1470,12 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* script_url,
+                                     const char* package_root,
                                      const Instance& args,
                                      const Instance& message)
     : isolate_(NULL),
       parent_port_(parent_port),
+      package_root_(NULL),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
@@ -1471,6 +1485,9 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_message_(NULL),
       serialized_message_len_(0) {
   script_url_ = strdup(script_url);
+  if (package_root != NULL) {
+    package_root_ = strdup(package_root);
+  }
   library_url_ = NULL;
   function_name_ = strdup("main");
   exception_callback_name_ = strdup("_unhandledExceptionCallback");
@@ -1481,6 +1498,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 
 IsolateSpawnState::~IsolateSpawnState() {
   free(script_url_);
+  free(package_root_);
   free(library_url_);
   free(function_name_);
   free(class_name_);

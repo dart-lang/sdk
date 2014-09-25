@@ -557,7 +557,7 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
     while (try_index >= 0) {
       // Detect circles in the exception handler data.
       num_handlers_checked++;
-      ASSERT(num_handlers_checked <= handlers.Length());
+      ASSERT(num_handlers_checked <= handlers.num_entries());
       handled_types = handlers.GetHandledTypes(try_index);
       const intptr_t num_types = handled_types.Length();
       for (intptr_t k = 0; k < num_types; k++) {
@@ -733,8 +733,8 @@ void ActivationFrame::PrintContextMismatchError(
   StackFrame* frame = iterator.NextFrame();
   intptr_t num = 0;
   while ((frame != NULL)) {
-    frame = iterator.NextFrame();
     OS::PrintErr("#%04" Pd " %s\n", num++, frame->ToCString());
+    frame = iterator.NextFrame();
   }
 }
 

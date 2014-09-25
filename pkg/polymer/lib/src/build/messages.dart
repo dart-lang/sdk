@@ -539,3 +539,22 @@ Custom element found in document body without an "unresolved" attribute on it or
 one of its parents. This means your app probably has a flash of unstyled content
 before it finishes loading. See <http://goo.gl/iN03Pj> for more info.
 ''');
+
+const CSS_FILE_INLINED_MULTIPLE_TIMES = const MessageTemplate(
+    const MessageId('polymer', 42),
+    'The css file %-url-% was inlined multiple times.',
+    'A css file was inlined multiple times.',
+    '''
+Css files are inlined by default, but if you import the same one in multiple
+places you probably want to override this behavior to prevent duplicate code.
+To do this, use the following pattern to update your pubspec.yaml:
+
+    transformers:
+    - polymer:
+      inline_stylesheets:
+        web/my_file.css: false
+
+If you would like to hide this warning and keep it inlined, do the same thing
+but assign the value to true.
+'''
+);

@@ -1,0 +1,8 @@
+name: ddbg
+description: A command-line Dart debugger
+dependencies:
+  logging: any
+  observatory:
+    path: /Users/turnidge/ws/dart-repo/dart/runtime/bin/vmservice/observatory
+#dev_dependencies:
+#  unittest: any

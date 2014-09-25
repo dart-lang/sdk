@@ -136,6 +136,7 @@ class ApiMessageReader : public BaseReader {
 
   Dart_CObject type_arguments_marker;
   Dart_CObject dynamic_type_marker;
+  static _Dart_CObject* singleton_uint32_typed_data_;
 };
 
 

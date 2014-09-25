@@ -52,6 +52,15 @@ class NumberFormat {
    * between commas.
    */
   int _groupingSize = 3;
+  /**
+   * In some formats the last grouping size may be different than previous
+   * ones, e.g. Hindi.
+   */
+  int _finalGroupingSize = 3;
+  /**
+   * Set to true if the format has explicitly set the grouping size.
+   */
+  bool _groupingSizeSetExplicitly = false;
   bool _decimalSeparatorAlwaysShown = false;
   bool _useSignForPositiveExponent = false;
   bool _useExponentialNotation = false;
@@ -346,13 +355,17 @@ class NumberFormat {
    * We are printing the digits of the number from left to right. We may need
    * to print a thousands separator or other grouping character as appropriate
    * to the locale. So we find how many places we are from the end of the number
-   * by subtracting our current [position] from the [totalLength] and print
-   * the separator character every [_groupingSize] digits.
+   * by subtracting our current [position] from the [totalLength] and printing
+   * the separator character every [_groupingSize] digits, with the final 
+   * grouping possibly being of a different size, [_finalGroupingSize].
    */
   void _group(int totalLength, int position) {
     var distanceFromEnd = totalLength - position;
     if (distanceFromEnd <= 1 || _groupingSize <= 0) return;
-    if (distanceFromEnd % _groupingSize == 1) {
+    if (distanceFromEnd == _finalGroupingSize + 1) {
+      _add(symbols.GROUP_SEP);
+    } else if ((distanceFromEnd > _finalGroupingSize) && 
+        (distanceFromEnd - _finalGroupingSize) % _groupingSize == 1) {
       _add(symbols.GROUP_SEP);
     }
   }
@@ -847,7 +860,10 @@ class _NumberFormatParser {
       }
     }
 
-    format._groupingSize = max(0, groupingCount);
+    format._finalGroupingSize = max(0, groupingCount);
+    if (!format._groupingSizeSetExplicitly) {
+      format._groupingSize = format._finalGroupingSize;
+    }
     format._decimalSeparatorAlwaysShown = decimalPos == 0 ||
         decimalPos == totalDigits;
 
@@ -883,6 +899,10 @@ class _NumberFormatParser {
         }
         break;
       case _PATTERN_GROUPING_SEPARATOR:
+        if (groupingCount > 0) {
+          format._groupingSizeSetExplicitly = true;
+          format._groupingSize = groupingCount;
+        }
         groupingCount = 0;
         break;
       case _PATTERN_DECIMAL_SEPARATOR:

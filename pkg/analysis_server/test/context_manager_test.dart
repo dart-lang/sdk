@@ -106,12 +106,12 @@ class ContextManagerTest {
     manager.setRoots(<String>[projPath], <String>[]);
     return pumpEventQueue().then((_) {
       expect(manager.currentContextPaths.toSet(),
-          [projPath, subdir1Path, subdir2Path].toSet());
+          [subdir1Path, subdir2Path, projPath].toSet());
       manager.now++;
       manager.refresh();
       return pumpEventQueue().then((_) {
         expect(manager.currentContextPaths.toSet(),
-          [projPath, subdir1Path, subdir2Path].toSet());
+          [subdir1Path, subdir2Path, projPath].toSet());
         expect(manager.currentContextTimestamps[projPath], manager.now);
         expect(manager.currentContextTimestamps[subdir1Path], manager.now);
         expect(manager.currentContextTimestamps[subdir2Path], manager.now);

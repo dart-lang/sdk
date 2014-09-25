@@ -91,11 +91,17 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectInt64(int64_t val) {
 }
 
 
+_Dart_CObject* ApiMessageReader::singleton_uint32_typed_data_ = NULL;
+
 Dart_CObject* ApiMessageReader::AllocateDartCObjectBigint() {
   Dart_CObject* value = AllocateDartCObject(Dart_CObject_kBigint);
   value->value.as_bigint.neg = false;
   value->value.as_bigint.used = 0;
-  value->value.as_bigint.digits = NULL;
+  if (singleton_uint32_typed_data_ == NULL) {
+    singleton_uint32_typed_data_ =
+        AllocateDartCObjectTypedData(Dart_TypedData_kUint32, 0);
+  }
+  value->value.as_bigint.digits = singleton_uint32_typed_data_;
   value->type = Dart_CObject_kBigint;
   return value;
 }

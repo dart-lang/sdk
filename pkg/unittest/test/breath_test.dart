@@ -16,7 +16,9 @@ void main() {
     var start;
 
     test('initial', () {
-      Timer.run(() { sentinel = 1; });
+      Timer.run(() {
+        sentinel = 1;
+      });
     });
 
     test('starve', () {

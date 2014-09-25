@@ -439,6 +439,23 @@ label:
     return _verifyReferences(element, expected);
   }
 
+  Future test_searchReferences_PrefixElement() {
+    _indexTestUnit('''
+import 'dart:async' as ppp;
+main() {
+  ppp.Future a;
+  ppp.Stream b;
+}
+''');
+    PrefixElement element = findNodeElementAtString('ppp;');
+    Element elementA = findElement('a');
+    Element elementB = findElement('b');
+    var expected = [
+        _expectId(elementA, MatchKind.REFERENCE, 'ppp.Future'),
+        _expectId(elementB, MatchKind.REFERENCE, 'ppp.Stream')];
+    return _verifyReferences(element, expected);
+  }
+
   Future test_searchReferences_MethodElement() {
     _indexTestUnit('''
 class A {

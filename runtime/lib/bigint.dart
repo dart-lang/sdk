@@ -46,17 +46,10 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // Bits per half digit.
   static const int DIGIT2_BITS = DIGIT_BITS >> 1;
-  static const int DIGIT2_BASE = 1 << DIGIT2_BITS;
   static const int DIGIT2_MASK = (1 << DIGIT2_BITS) - 1;
 
   // Allocate extra digits so the bigint can be reused.
   static const int EXTRA_DIGITS = 4;
-
-  // Floating-point unit integer precision.
-  static const int FP_BITS = 52;
-  static const int FP_BASE = 1 << FP_BITS;
-  static const int FP_D1 = FP_BITS - DIGIT_BITS;
-  static const int FP_D2 = 2 * DIGIT_BITS - FP_BITS;
 
   // Min and max of non bigint values.
   static const int MIN_INT64 = (-1) << 63;
@@ -68,6 +61,11 @@ class _Bigint extends _IntegerImplementation implements int {
   static _Bigint ZERO = new _Bigint();
   static _Bigint ONE = new _Bigint()._setInt(1);
 
+  // Argument passing for _mulAdd function preventing Mint allocation.
+  static const int MA_MULTIPLIER = 0;  // Index of multiplier digit.
+  static const int MA_CARRY_OUT = 1;  // Index of carry out digit.
+  static final Uint32List _MulAddArgs = new Uint32List(2);
+
   // Digit conversion table for parsing.
   static final Map<int, int> DIGIT_TABLE = _createDigitTable();
 
@@ -77,7 +75,13 @@ class _Bigint extends _IntegerImplementation implements int {
   int get _used native "Bigint_getUsed";
   void set _used(int used) native "Bigint_setUsed";
   Uint32List get _digits native "Bigint_getDigits";
-  void set _digits(Uint32List digits) native "Bigint_setDigits";
+  void set _digits(Uint32List digits) {
+    // The VM expects digits_ to be a Uint32List.
+    assert(digits != null);
+    _set_digits(digits);
+  }
+
+  void _set_digits(Uint32List digits) native "Bigint_setDigits";
 
   // Factory returning an instance initialized to value 0.
   factory _Bigint() native "Bigint_allocate";
@@ -133,6 +137,7 @@ class _Bigint extends _IntegerImplementation implements int {
     var hexDigitIndex = s.length;
     _ensureLength((hexDigitIndex + HEX_DIGITS_PER_DIGIT - 1) ~/ HEX_DIGITS_PER_DIGIT);
     var bitIndex = 0;
+    var digits = _digits;
     while (--hexDigitIndex >= 0) {
       var digit = DIGIT_TABLE[s.codeUnitAt(hexDigitIndex)];
       if (digit = null) {
@@ -141,11 +146,11 @@ class _Bigint extends _IntegerImplementation implements int {
       }
       _neg = false;  // Ignore "-" if not at index 0.
       if (bitIndex == 0) {
-        _digits[_used++] = digit;
+        digits[_used++] = digit;
         // TODO(regis): What if too many bad digits were ignored and
         // _used becomes larger than _digits.length? error or reallocate?
       } else {
-        _digits[_used - 1] |= digit << bitIndex;
+        digits[_used - 1] |= digit << bitIndex;
       }
       bitIndex = (bitIndex + HEX_BITS) % DIGIT_BITS;
     }
@@ -182,19 +187,21 @@ class _Bigint extends _IntegerImplementation implements int {
   // TODO(regis): Intrinsify.
   int _toValidInt() {
     assert(DIGIT_BITS == 32);  // Otherwise this code needs to be revised.
-    if (_used == 0) return 0;
-    if (_used == 1) return _neg ? -_digits[0] : _digits[0];
-    if (_used > 2) return this;
+    var used = _used;
+    if (used == 0) return 0;
+    var digits = _digits;
+    if (used == 1) return _neg ? -digits[0] : digits[0];
+    if (used > 2) return this;
     if (_neg) {
-      if (_digits[1] > 0x80000000) return this;
-      if (_digits[1] == 0x80000000) {
-        if (_digits[0] > 0) return this;
+      if (digits[1] > 0x80000000) return this;
+      if (digits[1] == 0x80000000) {
+        if (digits[0] > 0) return this;
         return MIN_INT64;
       }
-      return -((_digits[1] << DIGIT_BITS) | _digits[0]);
+      return -((digits[1] << DIGIT_BITS) | digits[0]);
     }
-    if (_digits[1] >= 0x80000000) return this;
-    return (_digits[1] << DIGIT_BITS) | _digits[0];
+    if (digits[1] >= 0x80000000) return this;
+    return (digits[1] << DIGIT_BITS) | digits[0];
   }
 
   // Conversion from int to bigint.
@@ -204,12 +211,11 @@ class _Bigint extends _IntegerImplementation implements int {
   // Copy existing _digits if reallocation is necessary.
   // TODO(regis): Check that we are not preserving _digits unnecessarily.
   void _ensureLength(int length) {
-    if (length > 0 && (_digits == null || length > _digits.length)) {
+    var digits = _digits;
+    if (length > 0 && (length > digits.length)) {
       var new_digits = new Uint32List(length + EXTRA_DIGITS);
-      if (_digits != null) {
-        for (var i = _used; --i >= 0; ) {
-          new_digits[i] = _digits[i];
-        }
+      for (var i = _used; --i >= 0; ) {
+        new_digits[i] = digits[i];
       }
       _digits = new_digits;
     }
@@ -217,17 +223,19 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // Clamp off excess high _digits.
   void _clamp() {
-    while (_used > 0 && _digits[_used - 1] == 0) {
+    var digits = _digits;
+    while (_used > 0 && digits[_used - 1] == 0) {
       --_used;
     }
-    assert(_used > 0 || !_neg);
   }
 
   // Copy this to r.
   void _copyTo(_Bigint r) {
     r._ensureLength(_used);
+    var digits = _digits;
+    var r_digits = r._digits;
     for (var i = _used - 1; i >= 0; --i) {
-      r._digits[i] = _digits[i];
+      r_digits[i] = digits[i];
     }
     r._used = _used;
     r._neg = _neg;
@@ -248,11 +256,13 @@ class _Bigint extends _IntegerImplementation implements int {
   void _dlShiftTo(int n, _Bigint r) {
     var r_used = _used + n;
     r._ensureLength(r_used);
+    var digits = _digits;
+    var r_digits = r._digits;
     for (var i = _used - 1; i >= 0; --i) {
-      r._digits[i + n] = _digits[i];
+      r_digits[i + n] = digits[i];
     }
     for (var i = n - 1; i >= 0; --i) {
-      r._digits[i] = 0;
+      r_digits[i] = 0;
     }
     r._used = r_used;
     r._neg = _neg;
@@ -276,15 +286,18 @@ class _Bigint extends _IntegerImplementation implements int {
       return;
     }
     r._ensureLength(r_used);
-    for (var i = n; i < _used; ++i) {
-      r._digits[i - n] = _digits[i];
+    var digits = _digits;
+    var r_digits = r._digits;
+    var used = _used;
+    for (var i = n; i < used; ++i) {
+      r_digits[i - n] = digits[i];
     }
     r._used = r_used;
     r._neg = _neg;
     if (_neg) {
       // Round down if any bit was shifted out.
       for (var i = 0; i < n; i++) {
-        if (_digits[i] != 0) {
+        if (digits[i] != 0) {
           r._subTo(ONE, r);
           break;
         }
@@ -304,15 +317,17 @@ class _Bigint extends _IntegerImplementation implements int {
     var bm = (1 << cbs) - 1;
     var r_used = _used + ds + 1;
     r._ensureLength(r_used);
+    var digits = _digits;
+    var r_digits = r._digits;
     var c = 0;
     for (var i = _used - 1; i >= 0; --i) {
-      r._digits[i + ds + 1] = (_digits[i] >> cbs) | c;
-      c = (_digits[i] & bm) << bs;
+      r_digits[i + ds + 1] = (digits[i] >> cbs) | c;
+      c = (digits[i] & bm) << bs;
     }
     for (var i = ds - 1; i >= 0; --i) {
-      r._digits[i] = 0;
+      r_digits[i] = 0;
     }
-    r._digits[ds] = c;
+    r_digits[ds] = c;
     r._used = r_used;
     r._neg = _neg;
     r._clamp();
@@ -344,22 +359,25 @@ class _Bigint extends _IntegerImplementation implements int {
     var cbs = DIGIT_BITS - bs;
     var bm = (1 << bs) - 1;
     r._ensureLength(r_used);
-    r._digits[0] = _digits[ds] >> bs;
-    for (var i = ds + 1; i < _used; ++i) {
-      r._digits[i - ds - 1] |= (_digits[i] & bm) << cbs;
-      r._digits[i - ds] = _digits[i] >> bs;
+    var digits = _digits;
+    var r_digits = r._digits;
+    r_digits[0] = digits[ds] >> bs;
+    var used = _used;
+    for (var i = ds + 1; i < used; ++i) {
+      r_digits[i - ds - 1] |= (digits[i] & bm) << cbs;
+      r_digits[i - ds] = digits[i] >> bs;
     }
     r._neg = _neg;
     r._used = r_used;
     r._clamp();
     if (_neg) {
       // Round down if any bit was shifted out.
-      if ((_digits[ds] & bm) != 0) {
+      if ((digits[ds] & bm) != 0) {
         r._subTo(ONE, r);
         return;
       }
       for (var i = 0; i < ds; i++) {
-        if (_digits[i] != 0) {
+        if (digits[i] != 0) {
           r._subTo(ONE, r);
           return;
         }
@@ -374,7 +392,9 @@ class _Bigint extends _IntegerImplementation implements int {
     var r = _used - a._used;
     if (r == 0) {
       var i = _used;
-      while (--i >= 0 && (r = _digits[i] - a._digits[i]) == 0);
+      var digits = _digits;
+      var a_digits = a._digits;
+      while (--i >= 0 && (r = digits[i] - a_digits[i]) == 0);
     }
     return r;
   }
@@ -399,63 +419,73 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // r = abs(this) + abs(a).
   void _absAddTo(_Bigint a, _Bigint r) {
-    if (_used < a._used) {
+    var used = _used;
+    var a_used = a._used;
+    if (used < a_used) {
       a._absAddTo(this, r);
       return;
     }
-    if (_used == 0) {
+    if (used == 0) {
       // Set r to 0.
       r._neg = false;
       r._used = 0;
       return;
     }
-    if (a._used == 0) {
+    if (a_used == 0) {
       _copyTo(r);
       return;
     }
-    r._ensureLength(_used + 1);
+    r._ensureLength(used + 1);
+    var digits = _digits;
+    var a_digits = a._digits;
+    var r_digits = r._digits;
     var c = 0;
-    for (var i = 0; i < a._used; i++) {
-      c += _digits[i] + a._digits[i];
-      r._digits[i] = c & DIGIT_MASK;
+    for (var i = 0; i < a_used; i++) {
+      c += digits[i] + a_digits[i];
+      r_digits[i] = c & DIGIT_MASK;
       c >>= DIGIT_BITS;
     }
-    for (var i = a._used; i < _used; i++) {
-      c += _digits[i];
-      r._digits[i] = c & DIGIT_MASK;
+    for (var i = a_used; i < used; i++) {
+      c += digits[i];
+      r_digits[i] = c & DIGIT_MASK;
       c >>= DIGIT_BITS;
     }
-    r._digits[_used] = c;
-    r._used = _used + 1;
+    r_digits[used] = c;
+    r._used = used + 1;
     r._clamp();
   }
 
   // r = abs(this) - abs(a), with abs(this) >= abs(a).
   void _absSubTo(_Bigint a, _Bigint r) {
     assert(_absCompareTo(a) >= 0);
-    if (_used == 0) {
+    var used = _used;
+    if (used == 0) {
       // Set r to 0.
       r._neg = false;
       r._used = 0;
       return;
     }
-    if (a._used == 0) {
+    var a_used = a._used;
+    if (a_used == 0) {
       _copyTo(r);
       return;
     }
-    r._ensureLength(_used);
+    r._ensureLength(used);
+    var digits = _digits;
+    var a_digits = a._digits;
+    var r_digits = r._digits;
     var c = 0;
-    for (var i = 0; i < a._used; i++) {
-      c += _digits[i] - a._digits[i];
-      r._digits[i] = c & DIGIT_MASK;
+    for (var i = 0; i < a_used; i++) {
+      c += digits[i] - a_digits[i];
+      r_digits[i] = c & DIGIT_MASK;
       c >>= DIGIT_BITS;
     }
-    for (var i = a._used; i < _used; i++) {
-      c += _digits[i];
-      r._digits[i] = c & DIGIT_MASK;
+    for (var i = a_used; i < used; i++) {
+      c += digits[i];
+      r_digits[i] = c & DIGIT_MASK;
       c >>= DIGIT_BITS;
     }
-    r._used = _used;
+    r._used = used;
     r._clamp();
   }
 
@@ -463,8 +493,11 @@ class _Bigint extends _IntegerImplementation implements int {
   void _absAndTo(_Bigint a, _Bigint r) {
     var r_used = (_used < a._used) ? _used : a._used;
     r._ensureLength(r_used);
+    var digits = _digits;
+    var a_digits = a._digits;
+    var r_digits = r._digits;
     for (var i = 0; i < r_used; i++) {
-      r._digits[i] = _digits[i] & a._digits[i];
+      r_digits[i] = digits[i] & a_digits[i];
     }
     r._used = r_used;
     r._clamp();
@@ -474,12 +507,15 @@ class _Bigint extends _IntegerImplementation implements int {
   void _absAndNotTo(_Bigint a, _Bigint r) {
     var r_used = _used;
     r._ensureLength(r_used);
+    var digits = _digits;
+    var a_digits = a._digits;
+    var r_digits = r._digits;
     var m = (r_used < a._used) ? r_used : a._used;
     for (var i = 0; i < m; i++) {
-      r._digits[i] = _digits[i] &~ a._digits[i];
+      r_digits[i] = digits[i] &~ a_digits[i];
     }
     for (var i = m; i < r_used; i++) {
-      r._digits[i] = _digits[i];
+      r_digits[i] = digits[i];
     }
     r._used = r_used;
     r._clamp();
@@ -487,21 +523,27 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // r = abs(this) | abs(a).
   void _absOrTo(_Bigint a, _Bigint r) {
-    var r_used = (_used > a._used) ? _used : a._used;
+    var used = _used;
+    var a_used = a._used;
+    var r_used = (used > a_used) ? used : a_used;
     r._ensureLength(r_used);
+    var digits = _digits;
+    var a_digits = a._digits;
+    var r_digits = r._digits;
     var l, m;
-    if (_used < a._used) {
+    if (used < a_used) {
       l = a;
-      m = _used;
+      m = used;
     } else {
       l = this;
-      m = a._used;
+      m = a_used;
     }
     for (var i = 0; i < m; i++) {
-      r._digits[i] = _digits[i] | a._digits[i];
+      r_digits[i] = digits[i] | a_digits[i];
     }
+    var l_digits = l._digits;
     for (var i = m; i < r_used; i++) {
-      r._digits[i] = l._digits[i];
+      r_digits[i] = l_digits[i];
     }
     r._used = r_used;
     r._clamp();
@@ -509,21 +551,27 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // r = abs(this) ^ abs(a).
   void _absXorTo(_Bigint a, _Bigint r) {
-    var r_used = (_used > a._used) ? _used : a._used;
+    var used = _used;
+    var a_used = a._used;
+    var r_used = (used > a_used) ? used : a_used;
     r._ensureLength(r_used);
+    var digits = _digits;
+    var a_digits = a._digits;
+    var r_digits = r._digits;
     var l, m;
-    if (_used < a._used) {
+    if (used < a_used) {
       l = a;
-      m = _used;
+      m = used;
     } else {
       l = this;
-      m = a._used;
+      m = a_used;
     }
     for (var i = 0; i < m; i++) {
-      r._digits[i] = _digits[i] ^ a._digits[i];
+      r_digits[i] = digits[i] ^ a_digits[i];
     }
+    var l_digits = l._digits;
     for (var i = m; i < r_used; i++) {
-      r._digits[i] = l._digits[i];
+      r_digits[i] = l_digits[i];
     }
     r._used = r_used;
     r._clamp();
@@ -734,41 +782,52 @@ class _Bigint extends _IntegerImplementation implements int {
     return r;
   }
 
-  // Accumulate multiply.
-  // this[i..i+n-1]: bigint multiplicand.
-  // x: digit multiplier, 0 <= x < DIGIT_BASE (i.e. 32-bit multiplier).
-  // w[j..j+n-1]: bigint accumulator.
-  // Returns carry out.
-  // w[j..j+n-1] += this[i..i+n-1] * x.
-  // Returns carry out.
-  int _am(int i, int x, _Bigint w, int j, int n) {
+  // Multiply and accumulate.
+  // Input:
+  //   args[MA_MULTIPLIER]: multiplier digit, 0 <= x < DIGIT_BASE (i.e. 32-bit).
+  //   m_digits[i..i+n-1]: multiplicand digits.
+  //   a_digits[j..j+n-1]: accumulator digits.
+  // Operation:
+  //   a_digits[j..j+n-1] += x*m_digits[i..i+n-1].
+  // Output:
+  //   args[MA_CARRY_OUT].
+  // Note: Passing single digits as elements of args prevents Mint allocation.
+  static void _mulAdd(Uint32List args,
+                      Uint32List m_digits, int i,
+                      Uint32List a_digits, int j, int n) {
+    int x = args[MA_MULTIPLIER];
     if (x == 0) {
       // No-op if x is 0.
-      return 0;
+      args[MA_CARRY_OUT] = 0;
+      return;
     }
     int c = 0;
     int xl = x & DIGIT2_MASK;
     int xh = x >> DIGIT2_BITS;
     while (--n >= 0) {
-      int l = _digits[i] & DIGIT2_MASK;
-      int h = _digits[i++] >> DIGIT2_BITS;
+      int l = m_digits[i] & DIGIT2_MASK;
+      int h = m_digits[i++] >> DIGIT2_BITS;
       int m = xh*l + h*xl;
-      l = xl*l + ((m & DIGIT2_MASK) << DIGIT2_BITS) + w._digits[j] + c;
+      l = xl*l + ((m & DIGIT2_MASK) << DIGIT2_BITS) + a_digits[j] + c;
       c = (l >> DIGIT_BITS) + (m >> DIGIT2_BITS) + xh*h;
-      w._digits[j++] = l & DIGIT_MASK;
+      a_digits[j++] = l & DIGIT_MASK;
     }
-    return c;
+    args[MA_CARRY_OUT] = c;
   }
 
-  // Accumulate multiply with carry.
-  // this[i..i+n-1]: bigint multiplicand.
-  // x: digit multiplier, 0 <= x < 2*DIGIT_BASE  (i.e. 33-bit multiplier).
-  // w[j..j+n-1]: bigint accumulator.
-  // c: int carry in.
-  // Returns carry out.
-  // w[j..j+n-1] += this[i..i+n-1] * x + c.
-  // Returns carry out.
-  int _amc(int i, int x, _Bigint w, int j, int c, int n) {
+  // Multiply and accumulate with carry in.
+  // Input:
+  //   x: multiplier digit, 0 <= x < 2*DIGIT_BASE (i.e. 33-bit multiplier).
+  //   m_digits[i..i+n-1]: multiplicand digits.
+  //   a_digits[j..j+n-1]: accumulator digits.
+  //   c: carry in.
+  // Operation:
+  //   a_digits[j..j+n-1] += x*m_digits[i..i+n-1] + c.
+  // Output:
+  //   carry out.
+  // TODO(regis): Use an argument buffer as in _mulAdd.
+  static int _mulAddc(int x, Uint32List m_digits, int i,
+                      Uint32List a_digits, int j, int c, int n) {
     if (x == 0 && c == 0) {
       // No-op if both x and c are 0.
       return 0;
@@ -776,12 +835,12 @@ class _Bigint extends _IntegerImplementation implements int {
     int xl = x & DIGIT2_MASK;
     int xh = x >> DIGIT2_BITS;
     while (--n >= 0) {
-      int l = _digits[i] & DIGIT2_MASK;
-      int h = _digits[i++] >> DIGIT2_BITS;
+      int l = m_digits[i] & DIGIT2_MASK;
+      int h = m_digits[i++] >> DIGIT2_BITS;
       int m = xh*l + h*xl;
-      l = xl*l + ((m & DIGIT2_MASK) << DIGIT2_BITS) + w._digits[j] + c;
+      l = xl*l + ((m & DIGIT2_MASK) << DIGIT2_BITS) + a_digits[j] + c;
       c = (l >> DIGIT_BITS) + (m >> DIGIT2_BITS) + xh*h;
-      w._digits[j++] = l & DIGIT_MASK;
+      a_digits[j++] = l & DIGIT_MASK;
     }
     return c;
   }
@@ -789,14 +848,21 @@ class _Bigint extends _IntegerImplementation implements int {
   // r = this * a.
   void _mulTo(_Bigint a, _Bigint r) {
     // TODO(regis): Use karatsuba multiplication when appropriate.
-    var i = _used;
-    r._ensureLength(i + a._used);
-    r._used = i + a._used;
+    var used = _used;
+    var a_used = a._used;
+    var i = used;
+    r._ensureLength(i + a_used);
+    var digits = _digits;
+    var a_digits = a._digits;
+    var r_digits = r._digits;
+    r._used = i + a_used;
     while (--i >= 0) {
-      r._digits[i] = 0;
+      r_digits[i] = 0;
     }
-    for (i = 0; i < a._used; ++i) {
-      r._digits[i + _used] = _am(0, a._digits[i], r, i, _used);
+    for (i = 0; i < a_used; ++i) {
+      _MulAddArgs[MA_MULTIPLIER] = a_digits[i];
+      _mulAdd(_MulAddArgs, digits, 0, r_digits, i, used);
+      r_digits[i + used] = _MulAddArgs[MA_CARRY_OUT];
     }
     r._clamp();
     r._neg = r._used > 0 && _neg != a._neg;  // Zero cannot be negative.
@@ -804,26 +870,35 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // r = this^2, r != this.
   void _sqrTo(_Bigint r) {
-    var i = 2 * _used;
-    r._ensureLength(i);
-    r._used = i;
+    var used = _used;
+    var r_used = 2 * used;
+    r._ensureLength(r_used);
+    var digits = _digits;
+    var r_digits = r._digits;
+    var i = r_used;
     while (--i >= 0) {
-      r._digits[i] = 0;
+      r_digits[i] = 0;
     }
-    for (i = 0; i < _used - 1; ++i) {
-      var c = _am(i, _digits[i], r, 2*i, 1);
-      var d = r._digits[i + _used];
-      d += _amc(i + 1, _digits[i] << 1, r, 2*i + 1, c, _used - i - 1);
+    for (i = 0; i < used - 1; ++i) {
+      _MulAddArgs[MA_MULTIPLIER] = digits[i];
+      _mulAdd(_MulAddArgs, digits, i, r_digits, 2*i, 1);
+      var c = _MulAddArgs[MA_CARRY_OUT];
+      var d = r_digits[i + used];
+      d += _mulAddc(digits[i] << 1, digits, i + 1,
+                    r_digits, 2*i + 1, c, used - i - 1);
       if (d >= DIGIT_BASE) {
-        r._digits[i + _used] = d - DIGIT_BASE;
-        r._digits[i + _used + 1] = 1;
+        r_digits[i + used] = d - DIGIT_BASE;
+        r_digits[i + used + 1] = 1;
       } else {
-        r._digits[i + _used] = d;
+        r_digits[i + used] = d;
       }
     }
-    if (r._used > 0) {
-      r._digits[r._used - 1] += _am(i, _digits[i], r, 2*i, 1);
+    if (r_used > 0) {
+      _MulAddArgs[MA_MULTIPLIER] = digits[i];
+      _mulAdd(_MulAddArgs, digits, i, r_digits, 2*i, 1);
+      r_digits[r_used - 1] += _MulAddArgs[MA_CARRY_OUT];
     }
+    r._used = r_used;
     r._neg = false;
     r._clamp();
   }
@@ -847,8 +922,8 @@ class _Bigint extends _IntegerImplementation implements int {
     if (r == null) {
       r = new _Bigint();
     }
-    var y = new _Bigint();
-    var nsh = DIGIT_BITS - _nbits(a._digits[a._used - 1]);  // normalize modulus
+    var y = new _Bigint();  // Normalized modulus.
+    var nsh = DIGIT_BITS - _nbits(a._digits[a._used - 1]);
     if (nsh > 0) {
       a._lShiftTo(nsh, y);
       _lShiftTo(nsh, r);
@@ -861,36 +936,46 @@ class _Bigint extends _IntegerImplementation implements int {
     y._neg = false;
     r._neg = false;
     var y_used = y._used;
-    var y0 = y._digits[y_used - 1];
+    var y_digits = y._digits;
+    var y0 = y_digits[y_used - 1];
     if (y0 == 0) return;
-    var yt = y0*(1 << FP_D1) + ((y_used > 1) ? y._digits[y_used - 2] >> FP_D2 : 0);
-    var d1 = FP_BASE/yt;
-    var d2 = (1 << FP_D1)/yt;
-    var e = 1 << FP_D2;
+    var yt = y0 >> 1;  // Chop off one bit, see below. y is normalized: yt != 0.
     var i = r._used;
     var j = i - y_used;
     _Bigint t = (q == null) ? new _Bigint() : q;
-
     y._dlShiftTo(j, t);
-
+    var r_digits = r._digits;
     if (r._compareTo(t) >= 0) {
-      r._digits[r._used++] = 1;
+      r_digits[r._used++] = 1;
       r._subTo(t, r);
     }
     ONE._dlShiftTo(y_used, t);
-    t._subTo(y, y);  // "negative" y so we can replace sub with _am later
+    t._subTo(y, y);  // Negate y so we can replace sub with _mulAdd later.
     while (y._used < y_used) {
-      y._digits[y._used++] = 0;
+      y_digits[y._used++] = 0;
     }
     while (--j >= 0) {
-      // Estimate quotient digit
-      var qd = (r._digits[--i] == y0)
-          ? DIGIT_MASK
-          : (r._digits[i]*d1 + (r._digits[i - 1] + e)*d2).floor();
-      if ((r._digits[i] += y._amc(0, qd, r, j, 0, y_used)) < qd) {  // Try it out
+      // Estimate quotient digit.
+      // TODO(regis): Move the expensive mint division below to a function that
+      // can be intrinsified using an uint64_t by uint32_t division instruction,
+      // e.g. qd = _estqd(r_digits, --i, y0).
+      var qd;  // TODO(regis): Is it more efficient to use
+               //_MulAddArgs[MA_MULTIPLIER] directly instead of qd (Mint)?
+      if (r_digits[--i] == y0) {
+        qd = DIGIT_MASK;
+      } else {
+        // Chop off one bit, since a Mint cannot hold 2 DIGITs.
+        qd = ((r_digits[i] << (DIGIT_BITS - 1)) | (r_digits[i - 1] >> 1)) ~/ yt;
+        if (qd > DIGIT_MASK) {
+          qd = DIGIT_MASK;
+        }
+      }
+      _MulAddArgs[MA_MULTIPLIER] = qd;
+      _mulAdd(_MulAddArgs, y_digits, 0, r_digits, j, y_used);
+      if ((r_digits[i] += _MulAddArgs[MA_CARRY_OUT]) < qd) {
         y._dlShiftTo(j, t);
         r._subTo(t, r);
-        while (r._digits[i] < --qd) {
+        while (r_digits[i] < --qd) {
           r._subTo(t, r);
         }
       }
@@ -904,7 +989,7 @@ class _Bigint extends _IntegerImplementation implements int {
     r._used = y_used;
     r._clamp();
     if (nsh > 0) {
-      r._rShiftTo(nsh, r);  // Denormalize remainder
+      r._rShiftTo(nsh, r);  // Denormalize remainder.
     }
     if (_neg) {
       ZERO._subTo(r, r);
@@ -932,7 +1017,7 @@ class _Bigint extends _IntegerImplementation implements int {
     if (_neg) throw "negative shift amount";  // TODO(regis): What exception?
     assert(DIGIT_BITS == 32);  // Otherwise this code needs to be revised.
     var shift;
-    if (_used > 2 || (_used == 2 && _digits[1] > 0x10000000)) {
+    if ((_used > 2) || ((_used == 2) && (_digits[1] > 0x10000000))) {
       if (other < 0) {
         return -1;
       } else {
@@ -1118,22 +1203,24 @@ class _Bigint extends _IntegerImplementation implements int {
   }
 
   // TODO(regis): Make this method private once the plumbing to invoke it from
-  // dart:math is in place.
+  // dart:math is in place. Move the argument checking to dart:math.
   // Return pow(this, e) % m.
   int modPow(int e, int m) {
-    // TODO(regis): Where/how do we handle values of e smaller than 256?
-    // TODO(regis): Where/how do we handle even values of m?
-    assert(e >= 256 && !m.isEven());
-    if (e is! _Bigint) {
-      _Reduction z = new _Montgomery(m);
+    if (e is! int) throw new ArgumentError(e);
+    if (m is! int) throw new ArgumentError(m);
+    int i = e.bitLength;
+    if (i <= 0) return 1;
+    if ((e is! _Bigint) || m.isEven) {
+      _Reduction z = (i < 8 || m.isEven) ? new _Classic(m) : new _Montgomery(m);
+      // TODO(regis): Should we use Barrett reduction for an even modulus?
       var r = new _Bigint();
       var r2 = new _Bigint();
       var g = z._convert(this);
-      int i = _nbits(e) - 1;
+      i--;
       g._copyTo(r);
       while (--i >= 0) {
         z._sqrTo(r, r2);
-        if ((e & (1 << i)) > 0) {
+        if ((e & (1 << i)) != 0) {
           z._mulTo(r2, g, r);
         } else {
           var t = r;
@@ -1143,12 +1230,9 @@ class _Bigint extends _IntegerImplementation implements int {
       }
       return z._revert(r)._toValidInt();
     }
-    var i = e.bitLength;
     var k;
-    var r = new _Bigint()._setInt(1);
-    if (i <= 0) return r;
     // TODO(regis): Are these values of k really optimal for our implementation?
-    else if (i < 18) k = 1;
+    if (i < 18) k = 1;
     else if (i < 48) k = 3;
     else if (i < 144) k = 4;
     else if (i < 768) k = 5;
@@ -1171,16 +1255,18 @@ class _Bigint extends _IntegerImplementation implements int {
     var j = e._used - 1;
     var w;
     var is1 = true;
+    var r = new _Bigint()._setInt(1);
     var r2 = new _Bigint();
     var t;
-    i = _nbits(e._digits[j]) - 1;
+    var e_digits = e._digits;
+    i = _nbits(e_digits[j]) - 1;
     while (j >= 0) {
       if (i >= k1) {
-        w = (e._digits[j] >> (i - k1)) & km;
+        w = (e_digits[j] >> (i - k1)) & km;
       } else {
-        w = (e._digits[j] & ((1 << (i + 1)) - 1)) << (k1 - i);
+        w = (e_digits[j] & ((1 << (i + 1)) - 1)) << (k1 - i);
         if (j > 0) {
-          w |= e._digits[j - 1] >> (DIGIT_BITS + i - k1);
+          w |= e_digits[j - 1] >> (DIGIT_BITS + i - k1);
         }
       }
       n = k;
@@ -1212,7 +1298,7 @@ class _Bigint extends _IntegerImplementation implements int {
         z._mulTo(r2,g[w], r);
       }
 
-      while (j >= 0 && (e._digits[j] & (1 << i)) == 0) {
+      while (j >= 0 && (e_digits[j] & (1 << i)) == 0) {
         z._sqrTo(r, r2);
         t = r;
         r = r2;
@@ -1227,32 +1313,25 @@ class _Bigint extends _IntegerImplementation implements int {
   }
 }
 
-// New classes to support crypto (modPow method).
-
+// Interface for modular reduction.
 class _Reduction {
-  const _Reduction();
-  _Bigint _convert(_Bigint x) => x;
-  _Bigint _revert(_Bigint x) => x;
-
-  void _mulTo(_Bigint x, _Bigint y, _Bigint r) {
-    x._mulTo(y, r);
-  }
-
-  void _sqrTo(_Bigint x, _Bigint r) {
-    x._sqrTo(r);
-  }
+  _Bigint _convert(_Bigint x);
+  _Bigint _revert(_Bigint x);
+  void _mulTo(_Bigint x, _Bigint y, _Bigint r);
+  void _sqrTo(_Bigint x, _Bigint r);
 }
 
 // Montgomery reduction on _Bigint.
 class _Montgomery implements _Reduction {
-  final _Bigint _m;
+  _Bigint _m;
   var _mp;
   var _mpl;
   var _mph;
   var _um;
   var _mused2;
 
-  _Montgomery(this._m) {
+  _Montgomery(m) {
+    _m = m._toBigint();
     _mp = _m._invDigit();
     _mpl = _mp & _Bigint.DIGIT2_MASK;
     _mph = _mp >> _Bigint.DIGIT2_BITS;
@@ -1282,31 +1361,36 @@ class _Montgomery implements _Reduction {
   // x = x/R mod _m
   void _reduce(_Bigint x) {
     x._ensureLength(_mused2 + 1);
-    while (x._used <= _mused2) {  // Pad x so _am has enough room later.
-      x._digits[x._used++] = 0;
+    var x_digits = x._digits;
+    while (x._used <= _mused2) {  // Pad x so _mulAdd has enough room later.
+      x_digits[x._used++] = 0;
     }
-    for (var i = 0; i < _m._used; ++i) {
+    var m_used = _m._used;
+    var m_digits = _m._digits;
+    for (var i = 0; i < m_used; ++i) {
       // Faster way of calculating u0 = x[i]*mp mod DIGIT_BASE.
-      var j = x._digits[i] & _Bigint.DIGIT2_MASK;
-      var u0 = (j*_mpl + (((j*_mph + (x._digits[i] >> _Bigint.DIGIT2_BITS)
+      var j = x_digits[i] & _Bigint.DIGIT2_MASK;
+      var u0 = (j*_mpl + (((j*_mph + (x_digits[i] >> _Bigint.DIGIT2_BITS)
           *_mpl) & _um) << _Bigint.DIGIT2_BITS)) & _Bigint.DIGIT_MASK;
-      // Use _am to combine the multiply-shift-add into one call.
-      j = i + _m._used;
-      var digit = x._digits[j];
-      digit += _m ._am(0, u0, x, i, _m._used);
+      // Use _mulAdd to combine the multiply-shift-add into one call.
+      j = i + m_used;
+      var digit = x_digits[j];
+      _Bigint._MulAddArgs[_Bigint.MA_MULTIPLIER] = u0;
+      _Bigint._mulAdd(_Bigint._MulAddArgs, m_digits, 0, x_digits, i, m_used);
+      digit += _Bigint._MulAddArgs[_Bigint.MA_CARRY_OUT];
       // Propagate carry.
       while (digit >= _Bigint.DIGIT_BASE) {
         digit -= _Bigint.DIGIT_BASE;
-        x._digits[j++] = digit;
-        digit = x._digits[j];
+        x_digits[j++] = digit;
+        digit = x_digits[j];
         digit++;
       }
-      x._digits[j] = digit;
+      x_digits[j] = digit;
     }
     x._clamp();
-    x._drShiftTo(_m ._used, x);
-    if (x._compareTo(_m ) >= 0) {
-      x._subTo(_m , x);
+    x._drShiftTo(m_used, x);
+    if (x._compareTo(_m) >= 0) {
+      x._subTo(_m, x);
     }
   }
 
@@ -1323,3 +1407,41 @@ class _Montgomery implements _Reduction {
   }
 }
 
+// Modular reduction using "classic" algorithm.
+class _Classic implements _Reduction {
+  _Bigint _m;
+
+  _Classic(int m) {
+    _m = m._toBigint();
+  }
+
+  _Bigint _convert(_Bigint x) {
+    if (x._neg || x._compareTo(_m) >= 0) {
+      var r = new _Bigint();
+      x._divRemTo(_m, null, r);
+      if (x._neg && !r._neg && r._used > 0) {
+        _m._subTo(r, r);
+      }
+      return r;
+    }
+    return x;
+  }
+
+  _Bigint _revert(_Bigint x) {
+    return x;
+  }
+
+  void _reduce(_Bigint x) {
+    x._divRemTo(_m, null, x);
+  }
+
+  void _sqrTo(_Bigint x, _Bigint r) {
+    x._sqrTo(r);
+    _reduce(r);
+  }
+
+  void _mulTo(_Bigint x, _Bigint y, _Bigint r) {
+    x._mulTo(y, r);
+    _reduce(r);
+  }
+}

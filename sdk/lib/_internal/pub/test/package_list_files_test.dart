@@ -13,8 +13,8 @@ import '../lib/src/system_cache.dart';
 import 'descriptor.dart' as d;
 import 'test_pub.dart';
 
-var root;
-var entrypoint;
+String root;
+Entrypoint entrypoint;
 
 main() {
   initConfig();
@@ -78,7 +78,7 @@ main() {
       });
     });
 
-    integration("ignores files that are gitignored", () {
+    integration("ignores files that are gitignored if desired", () {
       d.dir(appPath, [
         d.file('.gitignore', '*.txt'),
         d.file('file1.txt', 'contents'),
@@ -90,10 +90,20 @@ main() {
       ]).create();
 
       schedule(() {
-        expect(entrypoint.root.listFiles(), unorderedEquals([
+        expect(entrypoint.root.listFiles(useGitIgnore: true), unorderedEquals([
           path.join(root, 'pubspec.yaml'),
           path.join(root, '.gitignore'),
           path.join(root, 'file2.text'),
+          path.join(root, 'subdir', 'subfile2.text')
+        ]));
+      });
+
+      schedule(() {
+        expect(entrypoint.root.listFiles(), unorderedEquals([
+          path.join(root, 'pubspec.yaml'),
+          path.join(root, 'file1.txt'),
+          path.join(root, 'file2.text'),
+          path.join(root, 'subdir', 'subfile1.txt'),
           path.join(root, 'subdir', 'subfile2.text')
         ]));
       });

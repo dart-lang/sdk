@@ -6,9 +6,10 @@ library pub.package;
 
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:barback/barback.dart';
 
+import 'barback/transformer_id.dart';
 import 'io.dart';
 import 'git.dart' as git;
 import 'pubspec.dart';
@@ -38,7 +39,7 @@ class Package {
   /// The name of the package.
   String get name {
     if (pubspec.name != null) return pubspec.name;
-    if (dir != null) return path.basename(dir);
+    if (dir != null) return p.basename(dir);
     return null;
   }
 
@@ -79,14 +80,11 @@ class Package {
   /// Returns a list of asset ids for all Dart executables in this package's bin
   /// directory.
   List<AssetId> get executableIds {
-    var binDir = path.join(dir, 'bin');
-    if (!dirExists(binDir)) return [];
-
-    return ordered(listFiles(beneath: binDir, recursive: false))
-        .where((executable) => path.extension(executable) == '.dart')
+    return ordered(listFiles(beneath: "bin", recursive: false))
+        .where((executable) => p.extension(executable) == '.dart')
         .map((executable) {
       return new AssetId(
-          name, path.toUri(path.relative(executable, from: dir)).toString());
+          name, p.toUri(p.relative(executable, from: dir)).toString());
     }).toList();
   }
 
@@ -97,11 +95,11 @@ class Package {
   /// pub.dartlang.org for choosing the primary one: the README with the fewest
   /// extensions that is lexically ordered first is chosen.
   String get readmePath {
-    var readmes = listDir(dir).map(path.basename).
+    var readmes = listFiles(recursive: false).map(p.basename).
         where((entry) => entry.contains(_README_REGEXP));
     if (readmes.isEmpty) return null;
 
-    return path.join(dir, readmes.reduce((readme1, readme2) {
+    return p.join(dir, readmes.reduce((readme1, readme2) {
       var extensions1 = ".".allMatches(readme1).length;
       var extensions2 = ".".allMatches(readme2).length;
       var comparison = extensions1.compareTo(extensions2);
@@ -128,6 +126,44 @@ class Package {
   /// Creates a package with [pubspec] located at [dir].
   Package(this.pubspec, this.dir);
 
+  /// Given a relative path within this package, returns its absolute path.
+  ///
+  /// This is similar to `p.join(dir, part1, ...)`, except that subclasses may
+  /// override it to report that certain paths exist elsewhere than within
+  /// [dir]. For example, a [CachedPackage]'s `lib` directory is in the
+  /// `.pub/deps` directory.
+  String path(String part1, [String part2, String part3, String part4,
+            String part5, String part6, String part7]) {
+    if (dir == null) {
+      throw new StateError("Package $name is in-memory and doesn't have paths "
+          "on disk.");
+    }
+    return p.join(dir, part1, part2, part3, part4, part5, part6, part7);
+  }
+
+  /// Given an absolute path within this package (such as that returned by
+  /// [path] or [listFiles]), returns it relative to the package root.
+  String relative(String path) {
+    if (dir == null) {
+      throw new StateError("Package $name is in-memory and doesn't have paths "
+          "on disk.");
+    }
+    return p.relative(path, from: dir);
+  }
+
+  /// Returns the path to the library identified by [id] within [this].
+  String transformerPath(TransformerId id) {
+    if (id.package != name) {
+      throw new ArgumentError("Transformer $id isn't in package $name.");
+    }
+
+    if (id.path != null) return path('lib', p.fromUri('${id.path}.dart'));
+
+    var transformerPath = path('lib/transformer.dart');
+    if (fileExists(transformerPath)) return transformerPath;
+    return path('lib/$name.dart');
+  }
+
   /// The basenames of files that are included in [list] despite being hidden.
   static final _WHITELISTED_FILES = const ['.htaccess'];
 
@@ -142,11 +178,25 @@ class Package {
   /// If this is a Git repository, this will respect .gitignore; otherwise, it
   /// will return all non-hidden, non-blacklisted files.
   ///
-  /// If [beneath] is passed, this will only return files beneath that path. If
+  /// If [beneath] is passed, this will only return files beneath that path,
+  /// which is expected to be relative to the package's root directory. If
   /// [recursive] is true, this will return all files beneath that path;
   /// otherwise, it will only return files one level beneath it.
-  List<String> listFiles({String beneath, recursive: true}) {
-    if (beneath == null) beneath = dir;
+  ///
+  /// If [useGitIgnore] is passed, this will take the .gitignore rules into
+  /// account if the package's root directory is a Git repository.
+  ///
+  /// Note that the returned paths won't always be beneath [dir]. To safely
+  /// convert them to paths relative to the package root, use [relative].
+  List<String> listFiles({String beneath, bool recursive: true,
+      bool useGitIgnore: false}) {
+    if (beneath == null) {
+      beneath = dir;
+    } else {
+      beneath = p.join(dir, beneath);
+    }
+
+    if (!dirExists(beneath)) return [];
 
     // This is used in some performance-sensitive paths and can list many, many
     // files. As such, it leans more havily towards optimization as opposed to
@@ -154,10 +204,10 @@ class Package {
     // path package, since re-parsing a path is very expensive relative to
     // string operations.
     var files;
-    if (git.isInstalled && dirExists(path.join(dir, '.git'))) {
+    if (useGitIgnore && git.isInstalled && dirExists(path('.git'))) {
       // Later versions of git do not allow a path for ls-files that appears to
       // be outside of the repo, so make sure we give it a relative path.
-      var relativeBeneath = path.relative(beneath, from: dir);
+      var relativeBeneath = p.relative(beneath, from: dir);
 
       // List all files that aren't gitignored, including those not checked in
       // to Git.

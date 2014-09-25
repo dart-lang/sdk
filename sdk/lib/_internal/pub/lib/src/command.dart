@@ -197,7 +197,7 @@ abstract class PubCommand {
     _cache = new SystemCache.withSources(cacheDir, isOffline: isOffline);
     _globals = new GlobalPackages(_cache);
 
-    return syncFuture(onRun);
+    return new Future.sync(onRun);
   }
 
   /// Override this to perform the specific command.

@@ -63,6 +63,18 @@ static bool CanUnboxDouble() {
 }
 
 
+static bool CanConvertUnboxedMintToDouble() {
+#if defined(TARGET_ARCH_IA32)
+  return true;
+#else
+  // ARM does not have a short instruction sequence for converting int64 to
+  // double.
+  // TODO(johnmccutchan): Investigate possibility on MIPS once
+  // mints are implemented there.
+  return false;
+#endif
+}
+
 // Optimize instance calls using ICData.
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -291,7 +303,7 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
   if (smi_shift_left == NULL) return;
 
   // Pattern recognized.
-  smi_shift_left->set_is_truncating(true);
+  smi_shift_left->mark_truncating();
   ASSERT(bit_and_instr->IsBinarySmiOp() || bit_and_instr->IsBinaryMintOp());
   if (bit_and_instr->IsBinaryMintOp()) {
     // Replace Mint op with Smi op.
@@ -299,8 +311,7 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
         Token::kBIT_AND,
         new(I) Value(left_instr),
         new(I) Value(right_instr),
-        Isolate::kNoDeoptId,  // BIT_AND cannot deoptimize.
-        Scanner::kNoSourcePos);
+        Isolate::kNoDeoptId);  // BIT_AND cannot deoptimize.
     bit_and_instr->ReplaceWith(smi_op, current_iterator());
   }
 }
@@ -638,21 +649,21 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new UnboxUint32Instr(use->CopyWithType(), deopt_id);
   } else if (from == kUnboxedMint && to == kUnboxedDouble) {
     ASSERT(CanUnboxDouble());
-    // Convert by boxing/unboxing.
-    // TODO(fschneider): Implement direct unboxed mint-to-double conversion.
-    BoxIntegerInstr* boxed =
-        new(I) BoxIntegerInstr(use->CopyWithType());
-    use->BindTo(boxed);
-    InsertBefore(insert_before, boxed, NULL, FlowGraph::kValue);
-
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    converted = new(I) UnboxDoubleInstr(new(I) Value(boxed), deopt_id);
-
+    if (CanConvertUnboxedMintToDouble()) {
+      // Fast path.
+      converted = new MintToDoubleInstr(use->CopyWithType(), deopt_id);
+    } else {
+      // Slow path.
+      BoxIntegerInstr* boxed = new(I) BoxIntegerInstr(use->CopyWithType());
+      use->BindTo(boxed);
+      InsertBefore(insert_before, boxed, NULL, FlowGraph::kValue);
+      converted = new(I) UnboxDoubleInstr(new(I) Value(boxed), deopt_id);
+    }
   } else if ((from == kUnboxedDouble) && (to == kTagged)) {
     ASSERT(CanUnboxDouble());
     converted = new(I) BoxDoubleInstr(use->CopyWithType());
-
   } else if ((from == kTagged) && (to == kUnboxedDouble)) {
     ASSERT(CanUnboxDouble());
     ASSERT((deopt_target != NULL) ||
@@ -2249,8 +2260,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
             new(I) BinarySmiOpInstr(Token::kBIT_AND,
                                     new(I) Value(left),
                                     new(I) Value(constant),
-                                    call->deopt_id(),
-                                    call->token_pos());
+                                    call->deopt_id());
         ReplaceCall(call, bin_op);
         return true;
       }
@@ -2261,9 +2271,9 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     AddCheckSmi(right, call->deopt_id(), call->env(), call);
     BinarySmiOpInstr* bin_op =
         new(I) BinarySmiOpInstr(op_kind,
-                                        new(I) Value(left),
-                                        new(I) Value(right),
-                                        call->deopt_id(), call->token_pos());
+                                new(I) Value(left),
+                                new(I) Value(right),
+                                call->deopt_id());
     ReplaceCall(call, bin_op);
   } else {
     ASSERT(operands_type == kSmiCid);
@@ -2280,8 +2290,10 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     }
     BinarySmiOpInstr* bin_op =
         new(I) BinarySmiOpInstr(
-            op_kind, new(I) Value(left), new(I) Value(right),
-            call->deopt_id(), call->token_pos());
+            op_kind,
+            new(I) Value(left),
+            new(I) Value(right),
+            call->deopt_id());
     ReplaceCall(call, bin_op);
   }
   return true;
@@ -3051,14 +3063,21 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
   if (CanUnboxDouble() &&
       (recognized_kind == MethodRecognizer::kIntegerToDouble) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      (class_ids[0] == kSmiCid)) {
-    AddReceiverCheck(call);
-    ReplaceCall(call,
-                new(I) SmiToDoubleInstr(
-                    new(I) Value(call->ArgumentAt(0)),
-                    call->token_pos()));
-    return true;
+      (ic_data.NumberOfChecks() == 1)) {
+    if (class_ids[0] == kSmiCid) {
+      AddReceiverCheck(call);
+      ReplaceCall(call,
+                  new(I) SmiToDoubleInstr(
+                      new(I) Value(call->ArgumentAt(0)),
+                      call->token_pos()));
+      return true;
+    } else if ((class_ids[0] == kMintCid) && CanConvertUnboxedMintToDouble()) {
+      AddReceiverCheck(call);
+      ReplaceCall(call,
+                  new(I) MintToDoubleInstr(new(I) Value(call->ArgumentAt(0)),
+                                           call->deopt_id()));
+      return true;
+    }
   }
 
   if (class_ids[0] == kDoubleCid) {
@@ -3222,8 +3241,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
           new(I) BinarySmiOpInstr(Token::kSHL,
                                   new(I) Value(value),
                                   new(I) Value(count),
-                                  call->deopt_id(), call->token_pos());
-      left_shift->set_is_truncating(true);
+                                  call->deopt_id());
+      left_shift->mark_truncating();
       if ((kBitsPerWord == 32) && (mask_value == 0xffffffffLL)) {
         // No BIT_AND operation needed.
         ReplaceCall(call, left_shift);
@@ -3233,8 +3252,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
             new(I) BinarySmiOpInstr(Token::kBIT_AND,
                                     new(I) Value(left_shift),
                                     new(I) Value(int32_mask),
-                                    call->deopt_id(),
-                                    call->token_pos());
+                                    call->deopt_id());
         ReplaceCall(call, bit_and);
       }
       return true;
@@ -3913,7 +3931,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
       new(I) BinarySmiOpInstr(Token::kMUL,
                               new(I) Value(length),
                               new(I) Value(bytes_per_element),
-                              call->deopt_id(), call->token_pos());
+                              call->deopt_id());
   *cursor = flow_graph()->AppendTo(*cursor, len_in_bytes, call->env(),
                                    FlowGraph::kValue);
 
@@ -3927,7 +3945,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
         new(I) BinarySmiOpInstr(Token::kSUB,
                                 new(I) Value(len_in_bytes),
                                 new(I) Value(length_adjustment),
-                                call->deopt_id(), call->token_pos());
+                                call->deopt_id());
     *cursor = flow_graph()->AppendTo(*cursor, adjusted_length, call->env(),
                                      FlowGraph::kValue);
   }
@@ -4505,18 +4523,20 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
   } else if (recognized_kind == MethodRecognizer::kDoubleFromInteger) {
     if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
       const ICData& ic_data = *call->ic_data();
-      if (CanUnboxDouble() && ArgIsAlways(kSmiCid, ic_data, 0)) {
-        Definition* arg = call->ArgumentAt(0);
-        InsertBefore(call,
-                     new(I) CheckSmiInstr(
-                         new(I) Value(arg),
-                         call->deopt_id(),
-                         call->token_pos()),
-                     call->env(),
-                     FlowGraph::kEffect);
-        ReplaceCall(call,
-                    new(I) SmiToDoubleInstr(new(I) Value(arg),
-                                            call->token_pos()));
+      if (CanUnboxDouble()) {
+        if (ArgIsAlways(kSmiCid, ic_data, 1)) {
+          Definition* arg = call->ArgumentAt(1);
+          AddCheckSmi(arg, call->deopt_id(), call->env(), call);
+          ReplaceCall(call,
+                      new(I) SmiToDoubleInstr(new(I) Value(arg),
+                                              call->token_pos()));
+        } else if (ArgIsAlways(kMintCid, ic_data, 1) &&
+                   CanConvertUnboxedMintToDouble()) {
+          Definition* arg = call->ArgumentAt(1);
+          ReplaceCall(call,
+                      new(I) MintToDoubleInstr(new(I) Value(arg),
+                                               call->deopt_id()));
+        }
       }
     }
   } else if (call->function().IsFactory()) {
@@ -4711,7 +4731,8 @@ class DefinitionWorklist : public ValueObject {
   DefinitionWorklist(FlowGraph* flow_graph,
                      intptr_t initial_capacity)
       : defs_(initial_capacity),
-        contains_vector_(new BitVector(flow_graph->current_ssa_temp_index())) {
+        contains_vector_(new(flow_graph->isolate()) BitVector(
+            flow_graph->isolate(), flow_graph->current_ssa_temp_index())) {
   }
 
   void Add(Definition* defn) {
@@ -4816,7 +4837,8 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
 
   // BitVector containing SSA indexes of all processed definitions. Used to skip
   // those candidates that belong to dependency graph of another candidate.
-  BitVector* processed = new BitVector(flow_graph_->current_ssa_temp_index());
+  BitVector* processed =
+      new(I) BitVector(I, flow_graph_->current_ssa_temp_index());
 
   // Worklist used to collect dependency graph.
   DefinitionWorklist worklist(flow_graph_, candidates.length());
@@ -5683,7 +5705,7 @@ class AliasedSet : public ZoneAllocated {
         aliases_map_(),
         representatives_(),
         killed_(),
-        aliased_by_effects_(new(isolate) BitVector(places->length())) {
+        aliased_by_effects_(new(isolate) BitVector(isolate, places->length())) {
     InsertAlias(Place::CreateAnyInstanceAnyIndexAlias(isolate_,
         kAnyInstanceAnyIndexAlias));
     for (intptr_t i = 0; i < places_.length(); i++) {
@@ -5858,7 +5880,7 @@ class AliasedSet : public ZoneAllocated {
 
     BitVector* set = (*sets)[alias];
     if (set == NULL) {
-      (*sets)[alias] = set = new(isolate_) BitVector(max_place_id());
+      (*sets)[alias] = set = new(isolate_) BitVector(isolate_, max_place_id());
     }
     return set;
   }
@@ -6284,9 +6306,9 @@ class LoadOptimizer : public ValueObject {
     const intptr_t num_blocks = graph_->preorder().length();
     for (intptr_t i = 0; i < num_blocks; i++) {
       out_.Add(NULL);
-      gen_.Add(new(I) BitVector(aliased_set_->max_place_id()));
-      kill_.Add(new(I) BitVector(aliased_set_->max_place_id()));
-      in_.Add(new(I) BitVector(aliased_set_->max_place_id()));
+      gen_.Add(new(I) BitVector(I, aliased_set_->max_place_id()));
+      kill_.Add(new(I) BitVector(I, aliased_set_->max_place_id()));
+      in_.Add(new(I) BitVector(I, aliased_set_->max_place_id()));
 
       exposed_values_.Add(NULL);
       out_values_.Add(NULL);
@@ -6534,9 +6556,10 @@ class LoadOptimizer : public ValueObject {
   // Compute OUT sets by propagating them iteratively until fix point
   // is reached.
   void ComputeOutSets() {
-    BitVector* temp = new(I) BitVector(aliased_set_->max_place_id());
-    BitVector* forwarded_loads = new(I) BitVector(aliased_set_->max_place_id());
-    BitVector* temp_out = new(I) BitVector(aliased_set_->max_place_id());
+    BitVector* temp = new(I) BitVector(I, aliased_set_->max_place_id());
+    BitVector* forwarded_loads =
+        new(I) BitVector(I, aliased_set_->max_place_id());
+    BitVector* temp_out = new(I) BitVector(I, aliased_set_->max_place_id());
 
     bool changed = true;
     while (changed) {
@@ -6588,7 +6611,7 @@ class LoadOptimizer : public ValueObject {
           if ((block_out == NULL) || !block_out->Equals(*temp)) {
             if (block_out == NULL) {
               block_out = out_[preorder_number] =
-                  new(I) BitVector(aliased_set_->max_place_id());
+                  new(I) BitVector(I, aliased_set_->max_place_id());
             }
             block_out->CopyFrom(temp);
             changed = true;
@@ -6725,7 +6748,7 @@ class LoadOptimizer : public ValueObject {
         continue;
       }
 
-      BitVector* loop_gen = new(I) BitVector(aliased_set_->max_place_id());
+      BitVector* loop_gen = new(I) BitVector(I, aliased_set_->max_place_id());
       for (BitVector::Iterator loop_it(header->loop_info());
            !loop_it.Done();
            loop_it.Advance()) {
@@ -6877,7 +6900,7 @@ class LoadOptimizer : public ValueObject {
 
     worklist_.Clear();
     if (in_worklist_ == NULL) {
-      in_worklist_ = new(I) BitVector(graph_->current_ssa_temp_index());
+      in_worklist_ = new(I) BitVector(I, graph_->current_ssa_temp_index());
     } else {
       in_worklist_->Clear();
     }
@@ -7000,7 +7023,7 @@ class LoadOptimizer : public ValueObject {
 
     congruency_worklist_.Clear();
     if (in_worklist_ == NULL) {
-      in_worklist_ = new(I) BitVector(graph_->current_ssa_temp_index());
+      in_worklist_ = new(I) BitVector(I, graph_->current_ssa_temp_index());
     } else {
       in_worklist_->Clear();
     }
@@ -7212,7 +7235,7 @@ class StoreOptimizer : public LivenessAnalysis {
 
   virtual void ComputeInitialSets() {
     Isolate* isolate = graph_->isolate();
-    BitVector* all_places = new(isolate) BitVector(
+    BitVector* all_places = new(isolate) BitVector(isolate,
         aliased_set_->max_place_id());
     all_places->SetAll();
     for (BlockIterator block_it = graph_->postorder_iterator();
@@ -7554,9 +7577,10 @@ ConstantPropagator::ConstantPropagator(
       graph_(graph),
       unknown_(Object::unknown_constant()),
       non_constant_(Object::non_constant()),
-      reachable_(new(graph->isolate()) BitVector(graph->preorder().length())),
+      reachable_(new(graph->isolate()) BitVector(
+          graph->isolate(), graph->preorder().length())),
       definition_marks_(new(graph->isolate()) BitVector(
-          graph->max_virtual_register_number())),
+          graph->isolate(), graph->max_virtual_register_number())),
       block_worklist_(),
       definition_worklist_() {}
 
@@ -7748,11 +7772,15 @@ void ConstantPropagator::VisitCheckStackOverflow(
 
 void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) { }
 
+
 void ConstantPropagator::VisitCheckClassId(CheckClassIdInstr* instr) { }
+
 
 void ConstantPropagator::VisitGuardFieldClass(GuardFieldClassInstr* instr) { }
 
+
 void ConstantPropagator::VisitGuardFieldLength(GuardFieldLengthInstr* instr) { }
+
 
 void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) { }
 
@@ -7762,6 +7790,11 @@ void ConstantPropagator::VisitCheckEitherNonSmi(
 
 
 void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) { }
+
+
+void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
+  // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
+}
 
 
 // --------------------------------------------------------------------------
@@ -8071,11 +8104,8 @@ void ConstantPropagator::VisitStringToCharCode(StringToCharCodeInstr* instr) {
 }
 
 
-
-
 void ConstantPropagator::VisitStringInterpolate(StringInterpolateInstr* instr) {
   SetValue(instr, non_constant_);
-  return;
 }
 
 
@@ -8318,107 +8348,53 @@ void ConstantPropagator::VisitCloneContext(CloneContextInstr* instr) {
 }
 
 
-void ConstantPropagator::HandleBinaryOp(Definition* instr,
-                                        Token::Kind op_kind,
-                                        const Value& left_val,
-                                        const Value& right_val) {
-  const Object& left = left_val.definition()->constant_value();
-  const Object& right = right_val.definition()->constant_value();
-  if (IsNonConstant(left) || IsNonConstant(right)) {
-    // TODO(srdjan): Add arithmetic simplifications, e.g, add with 0.
-    SetValue(instr, non_constant_);
-  } else if (IsConstant(left) && IsConstant(right)) {
+void ConstantPropagator::VisitBinaryIntegerOp(BinaryIntegerOpInstr* binary_op) {
+  const Object& left = binary_op->left()->definition()->constant_value();
+  const Object& right = binary_op->right()->definition()->constant_value();
+  if (IsConstant(left) && IsConstant(right)) {
     if (left.IsInteger() && right.IsInteger()) {
       const Integer& left_int = Integer::Cast(left);
       const Integer& right_int = Integer::Cast(right);
-      switch (op_kind) {
-        case Token::kTRUNCDIV:
-        case Token::kMOD:
-          // Check right value for zero.
-          if (right_int.AsInt64Value() == 0) {
-            SetValue(instr, non_constant_);
-            break;
-          }
-          // Fall through.
-        case Token::kADD:
-        case Token::kSUB:
-        case Token::kMUL: {
-          Instance& result = Integer::ZoneHandle(I,
-              left_int.ArithmeticOp(op_kind, right_int));
-          if (result.IsNull()) {
-            // TODO(regis): A bigint operation is required. Invoke dart?
-            // Punt for now.
-            SetValue(instr, non_constant_);
-            break;
-          }
-          result = result.CheckAndCanonicalize(NULL);
-          ASSERT(!result.IsNull());
-          SetValue(instr, result);
-          break;
-        }
-        case Token::kSHL:
-        case Token::kSHR:
-          if (left.IsSmi() &&
-              right.IsSmi() &&
-              (Smi::Cast(right).Value() >= 0)) {
-            Instance& result = Integer::ZoneHandle(I,
-                Smi::Cast(left_int).ShiftOp(op_kind, Smi::Cast(right_int)));
-            result = result.CheckAndCanonicalize(NULL);
-            ASSERT(!result.IsNull());
-            SetValue(instr, result);
-          } else {
-            SetValue(instr, non_constant_);
-          }
-          break;
-        case Token::kBIT_AND:
-        case Token::kBIT_OR:
-        case Token::kBIT_XOR: {
-          Instance& result = Integer::ZoneHandle(I,
-              left_int.BitOp(op_kind, right_int));
-          result = result.CheckAndCanonicalize(NULL);
-          ASSERT(!result.IsNull());
-          SetValue(instr, result);
-          break;
-        }
-        case Token::kDIV:
-          SetValue(instr, non_constant_);
-          break;
-        default:
-          UNREACHABLE();
+      const Integer& result =
+          Integer::Handle(I, binary_op->Evaluate(left_int, right_int));
+      if (!result.IsNull()) {
+        SetValue(binary_op, Integer::ZoneHandle(I, result.raw()));
+        return;
       }
-    } else {
-      // TODO(kmillikin): support other types.
-      SetValue(instr, non_constant_);
     }
   }
-}
 
-
-void ConstantPropagator::TruncateInteger(Definition* defn, int64_t mask) {
-  const Object& value = defn->constant_value();
-  if (IsNonConstant(value)) {
-    return;
-  }
-  ASSERT(IsConstant(value));
-  if (!value.IsInteger()) {
-    return;
-  }
-  const Integer& value_int = Integer::Cast(value);
-  int64_t truncated = value_int.AsInt64Value() & mask;
-  Instance& result = Integer::ZoneHandle(I, Integer::New(truncated));
-  result = result.CheckAndCanonicalize(NULL);
-  ASSERT(!result.IsNull());
-  SetValue(defn, result);
+  SetValue(binary_op, non_constant_);
 }
 
 
 void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
-  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
+  VisitBinaryIntegerOp(instr);
 }
 
 
 void ConstantPropagator::VisitBinaryInt32Op(BinaryInt32OpInstr* instr) {
-  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
+  VisitBinaryIntegerOp(instr);
+}
+
+
+void ConstantPropagator::VisitBinaryUint32Op(BinaryUint32OpInstr* instr) {
+  VisitBinaryIntegerOp(instr);
+}
+
+
+void ConstantPropagator::VisitShiftUint32Op(ShiftUint32OpInstr* instr) {
+  VisitBinaryIntegerOp(instr);
+}
+
+
+void ConstantPropagator::VisitBinaryMintOp(BinaryMintOpInstr* instr) {
+  VisitBinaryIntegerOp(instr);
+}
+
+
+void ConstantPropagator::VisitShiftMintOp(ShiftMintOpInstr* instr) {
+  VisitBinaryIntegerOp(instr);
 }
 
 
@@ -8431,16 +8407,6 @@ void ConstantPropagator::VisitBoxInteger(BoxIntegerInstr* instr) {
 void ConstantPropagator::VisitUnboxInteger(UnboxIntegerInstr* instr) {
   // TODO(kmillikin): Handle unbox operation.
   SetValue(instr, non_constant_);
-}
-
-
-void ConstantPropagator::VisitBinaryMintOp(BinaryMintOpInstr* instr) {
-  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
-}
-
-
-void ConstantPropagator::VisitShiftMintOp(ShiftMintOpInstr* instr) {
-  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
 
 
@@ -8473,6 +8439,17 @@ void ConstantPropagator::VisitUnaryDoubleOp(UnaryDoubleOpInstr* instr) {
 
 
 void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsConstant(value) && value.IsInteger()) {
+    SetValue(instr, Double::Handle(I,
+        Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
+  } else if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitMintToDouble(MintToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value) && value.IsInteger()) {
     SetValue(instr, Double::Handle(I,
@@ -8564,19 +8541,28 @@ void ConstantPropagator::VisitMaterializeObject(MaterializeObjectInstr* instr) {
 }
 
 
+static bool IsIntegerOrDouble(const Object& value) {
+  return value.IsInteger() || value.IsDouble();
+}
+
+
+static double ToDouble(const Object& value) {
+  return value.IsInteger() ? Integer::Cast(value).AsDoubleValue()
+                           : Double::Cast(value).value();
+}
+
+
 void ConstantPropagator::VisitBinaryDoubleOp(
     BinaryDoubleOpInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
-  } else if (IsConstant(left) && IsConstant(right)) {
-    ASSERT(left.IsSmi() || left.IsDouble());
-    ASSERT(right.IsSmi() || right.IsDouble());
-    double left_val = left.IsSmi()
-        ? Smi::Cast(left).AsDoubleValue() : Double::Cast(left).value();
-    double right_val = right.IsSmi()
-        ? Smi::Cast(right).AsDoubleValue() : Double::Cast(right).value();
+  } else if (left.IsInteger() && right.IsInteger()) {
+    SetValue(instr, non_constant_);
+  } else if (IsIntegerOrDouble(left) && IsIntegerOrDouble(right)) {
+    const double left_val = ToDouble(left);
+    const double right_val = ToDouble(right);
     double result_val = 0.0;
     switch (instr->op_kind()) {
       case Token::kADD:
@@ -8919,18 +8905,6 @@ void ConstantPropagator::VisitUnboxedIntConverter(
 }
 
 
-void ConstantPropagator::VisitBinaryUint32Op(BinaryUint32OpInstr* instr) {
-  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
-  TruncateInteger(instr, static_cast<int64_t>(0xFFFFFFFF));
-}
-
-
-void ConstantPropagator::VisitShiftUint32Op(ShiftUint32OpInstr* instr) {
-  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
-  TruncateInteger(instr, static_cast<int64_t>(0xFFFFFFFF));
-}
-
-
 void ConstantPropagator::VisitUnaryUint32Op(UnaryUint32OpInstr* instr) {
   // TODO(kmillikin): Handle unary operations.
   SetValue(instr, non_constant_);
@@ -8986,7 +8960,7 @@ void ConstantPropagator::EliminateRedundantBranches() {
   // Canonicalize branches that have no side-effects and where true- and
   // false-targets are the same.
   bool changed = false;
-  BitVector* empty_blocks = new(I) BitVector(graph_->preorder().length());
+  BitVector* empty_blocks = new(I) BitVector(I, graph_->preorder().length());
   for (BlockIterator b = graph_->postorder_iterator();
        !b.Done();
        b.Advance()) {

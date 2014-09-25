@@ -46,7 +46,8 @@ main(args) {
     }
 
     // Record all getters and setters we use in the tests.
-    ['i', 'j', 'j2', 'inc0', 'inc1', 'inc2'].forEach(generator.addGetter);
+    ['i', 'j', 'j2', 'inc0', 'inc1', 'inc2', 'toString']
+        .forEach(generator.addGetter);
     ['i', 'j2'].forEach(generator.addSetter);
 
     // Record static methods used in the tests

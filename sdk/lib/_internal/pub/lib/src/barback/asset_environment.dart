@@ -11,6 +11,7 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
 
+import '../cached_package.dart';
 import '../entrypoint.dart';
 import '../exceptions.dart';
 import '../io.dart';
@@ -52,29 +53,52 @@ class AssetEnvironment {
   /// If [watcherType] is not [WatcherType.NONE] (the default), watches source
   /// assets for modification.
   ///
-  /// If [packages] is passed, only those packages' assets will be loaded and
+  /// If [packages] is passed, only those packages' assets are loaded and
   /// served.
+  ///
+  /// If [entrypoints] is passed, only transformers necessary to run those
+  /// entrypoints are loaded. Each entrypoint is expected to refer to a Dart
+  /// library.
   ///
   /// Returns a [Future] that completes to the environment once the inputs,
   /// transformers, and server are loaded and ready.
   static Future<AssetEnvironment> create(Entrypoint entrypoint,
       BarbackMode mode, {WatcherType watcherType, String hostname, int basePort,
-      Iterable<String> packages, bool useDart2JS: true}) {
+      Iterable<String> packages, Iterable<AssetId> entrypoints,
+      bool useDart2JS: true}) {
     if (watcherType == null) watcherType = WatcherType.NONE;
     if (hostname == null) hostname = "localhost";
     if (basePort == null) basePort = 0;
 
     return entrypoint.loadPackageGraph().then((graph) {
       log.fine("Loaded package graph.");
-      var barback = new Barback(new PubPackageProvider(graph, packages));
+      graph = _adjustPackageGraph(graph, mode, packages);
+      var barback = new Barback(new PubPackageProvider(graph));
       barback.log.listen(_log);
 
       var environment = new AssetEnvironment._(graph, barback, mode,
-          watcherType, hostname, basePort, packages);
+          watcherType, hostname, basePort);
 
-      return environment._load(useDart2JS: useDart2JS)
+      return environment._load(entrypoints: entrypoints, useDart2JS: useDart2JS)
           .then((_) => environment);
     });
+  }
+
+  /// Return a version of [graph] that's restricted to [packages] (if passed)
+  /// and loads cached packages (if [mode] is [BarbackMode.DEBUG]).
+  static PackageGraph _adjustPackageGraph(PackageGraph graph,
+      BarbackMode mode, Iterable<String> packages) {
+    if (mode != BarbackMode.DEBUG && packages == null) return graph;
+    packages = (packages == null ? graph.packages.keys : packages).toSet();
+
+    return new PackageGraph(graph.entrypoint, graph.lockFile,
+        new Map.fromIterable(packages, value: (packageName) {
+      var package = graph.packages[packageName];
+      if (mode != BarbackMode.DEBUG) return package;
+      var cache = path.join('.pub/deps/debug', packageName);
+      if (!dirExists(cache)) return package;
+      return new CachedPackage(package, cache);
+    }));
   }
 
   /// The server for the Web Socket API and admin interface.
@@ -90,7 +114,12 @@ class AssetEnvironment {
   /// The root package being built.
   Package get rootPackage => graph.entrypoint.root;
 
-  /// The underlying [PackageGraph] being built.
+  /// The graph of packages whose assets and transformers are loaded in this
+  /// environment.
+  ///
+  /// This isn't necessarily identical to the graph that's passed in to the
+  /// environment. It may expose fewer packages if some packages' assets don't
+  /// need to be loaded, and it may expose some [CachedPackage]s.
   final PackageGraph graph;
 
   /// The mode to run the transformers in.
@@ -113,12 +142,6 @@ class AssetEnvironment {
   /// numbers will be selected for each server.
   final int _basePort;
 
-  /// The set of all packages that are visible for this environment.
-  ///
-  /// By default, this is all transitive dependencies of the entrypoint, but it
-  /// may be a narrower set if fewer packages are needed.
-  final Set<String> packages;
-
   /// The modified source assets that have not been sent to barback yet.
   ///
   /// The build environment can be paused (by calling [pauseUpdates]) and
@@ -134,12 +157,8 @@ class AssetEnvironment {
   /// go to barback immediately.
   Set<AssetId> _modifiedSources;
 
-  AssetEnvironment._(PackageGraph graph, this.barback, this.mode,
-        this._watcherType, this._hostname, this._basePort,
-        Iterable<String> packages)
-      : graph = graph,
-        packages = packages == null ? graph.packages.keys.toSet() :
-            packages.toSet();
+  AssetEnvironment._(this.graph, this.barback, this.mode,
+        this._watcherType, this._hostname, this._basePort);
 
   /// Gets the built-in [Transformer]s that should be added to [package].
   ///
@@ -237,38 +256,45 @@ class AssetEnvironment {
   /// [directory].
   ///
   /// If [executableIds] is passed, only those executables are precompiled.
-  Future precompileExecutables(String packageName, String directory,
-      {Iterable<AssetId> executableIds}) {
+  ///
+  /// Returns a map from executable name to path for the snapshots that were
+  /// successfully precompiled.
+  Future<Map<String, String>> precompileExecutables(String packageName,
+      String directory, {Iterable<AssetId> executableIds}) async {
     if (executableIds == null) {
       executableIds = graph.packages[packageName].executableIds;
     }
-    log.fine("executables for $packageName: $executableIds");
-    if (executableIds.isEmpty) return null;
+
+    log.fine("Executables for $packageName: $executableIds");
+    if (executableIds.isEmpty) return [];
 
     var package = graph.packages[packageName];
-    return servePackageBinDirectory(packageName).then((server) {
-      return waitAndPrintErrors(executableIds.map((id) {
+    var server = await servePackageBinDirectory(packageName);
+    try {
+      var precompiled = {};
+      await waitAndPrintErrors(executableIds.map((id) async {
         var basename = path.url.basename(id.path);
         var snapshotPath = path.join(directory, "$basename.snapshot");
-        return runProcess(Platform.executable, [
+        var result = await runProcess(Platform.executable, [
           '--snapshot=$snapshotPath',
           server.url.resolve(basename).toString()
-        ]).then((result) {
-          if (result.success) {
-            log.message("Precompiled ${_formatExecutable(id)}.");
-          } else {
-            throw new ApplicationException(
-                log.yellow("Failed to precompile "
-                    "${_formatExecutable(id)}:\n") +
-                result.stderr.join('\n'));
-          }
-        });
-      })).whenComplete(() {
-        // Don't return this future, since we have no need to wait for the
-        // server to fully shut down.
-        server.close();
-      });
-    });
+        ]);
+        if (result.success) {
+          log.message("Precompiled ${_formatExecutable(id)}.");
+          precompiled[path.withoutExtension(basename)] = snapshotPath;
+        } else {
+          throw new ApplicationException(
+              log.yellow("Failed to precompile ${_formatExecutable(id)}:\n") +
+              result.stderr.join('\n'));
+        }
+      }));
+
+      return precompiled;
+    } finally {
+      // Don't await this future, since we have no need to wait for the server
+      // to fully shut down.
+      server.close();
+    }
   }
 
   /// Returns the executable name for [id].
@@ -337,7 +363,7 @@ class AssetEnvironment {
   Future<List<Uri>> _lookUpPathInPackagesDirectory(String assetPath) {
     var components = path.split(path.relative(assetPath));
     if (components.first != "packages") return new Future.value([]);
-    if (!packages.contains(components[1])) return new Future.value([]);
+    if (!graph.packages.containsKey(components[1])) return new Future.value([]);
     return Future.wait(_directories.values.map((dir) {
       return dir.server.then((server) =>
           server.url.resolveUri(path.toUri(assetPath)));
@@ -347,10 +373,10 @@ class AssetEnvironment {
   /// Look up [assetPath] in the "lib" or "asset" directory of a dependency
   /// package.
   Future<List<Uri>> _lookUpPathInDependency(String assetPath) {
-    for (var packageName in packages) {
+    for (var packageName in graph.packages.keys) {
       var package = graph.packages[packageName];
-      var libDir = path.join(package.dir, 'lib');
-      var assetDir = path.join(package.dir, 'asset');
+      var libDir = package.path('lib');
+      var assetDir = package.path('asset');
 
       var uri;
       if (path.isWithin(libDir, assetPath)) {
@@ -424,10 +450,13 @@ class AssetEnvironment {
   /// If [useDart2JS] is `true`, then the [Dart2JSTransformer] is implicitly
   /// added to end of the root package's transformer phases.
   ///
+  /// If [entrypoints] is passed, only transformers necessary to run those
+  /// entrypoints will be loaded.
+  ///
   /// Returns a [Future] that completes once all inputs and transformers are
   /// loaded.
-  Future _load({bool useDart2JS}) {
-    return log.progress("Initializing barback", () {
+  Future _load({Iterable<AssetId> entrypoints, bool useDart2JS}) {
+    return log.progress("Initializing barback", () async {
       // If the entrypoint package manually configures the dart2js
       // transformer, don't include it in the built-in transformer list.
       //
@@ -444,90 +473,60 @@ class AssetEnvironment {
         ]);
       }
 
-      // "$pub" is a psuedo-package that allows pub's transformer-loading
-      // infrastructure to share code with pub proper. We provide it only during
-      // the initial transformer loading process.
-      var dartPath = assetPath('dart');
-      var pubSources = listDir(dartPath, recursive: true)
-          // Don't include directories.
-          .where((file) => path.extension(file) == ".dart")
-          .map((library) {
-        var idPath = path.join('lib', path.relative(library, from: dartPath));
-        return new AssetId('\$pub', path.toUri(idPath).toString());
-      });
-
-      // "$sdk" is a pseudo-package that allows the dart2js transformer to find
-      // the Dart core libraries without hitting the file system directly. This
-      // ensures they work with source maps.
-      var libPath = path.join(sdk.rootDirectory, "lib");
-      var sdkSources = listDir(libPath, recursive: true)
-          .where((file) => path.extension(file) == ".dart")
-          .map((file) {
-        var idPath = path.join("lib",
-            path.relative(file, from: sdk.rootDirectory));
-        return new AssetId('\$sdk', path.toUri(idPath).toString());
-      });
-
       // Bind a server that we can use to load the transformers.
-      var transformerServer;
-      return BarbackServer.bind(this, _hostname, 0).then((server) {
-        transformerServer = server;
+      var transformerServer = await BarbackServer.bind(this, _hostname, 0);
 
-        var errorStream = barback.errors.map((error) {
-          // Even most normally non-fatal barback errors should take down pub if
-          // they happen during the initial load process.
-          if (error is! AssetLoadException) throw error;
+      var errorStream = barback.errors.map((error) {
+        // Even most normally non-fatal barback errors should take down pub if
+        // they happen during the initial load process.
+        if (error is! AssetLoadException) throw error;
 
-          log.error(log.red(error.message));
-          log.fine(error.stackTrace.terse);
-        });
+        log.error(log.red(error.message));
+        log.fine(error.stackTrace.terse);
+      });
 
-        return _withStreamErrors(() {
-          return log.progress("Loading source assets", () {
-            barback.updateSources(pubSources);
-            barback.updateSources(sdkSources);
-            return _provideSources();
-          });
-        }, [errorStream, barback.results]);
-      }).then((_) {
-        log.fine("Provided sources.");
-        var completer = new Completer();
+      await _withStreamErrors(() {
+        return log.progress("Loading source assets", _provideSources);
+      }, [errorStream, barback.results]);
 
-        var errorStream = barback.errors.map((error) {
-          // Now that we're loading transformers, errors they log shouldn't be
-          // fatal, since we're starting to run them on real user assets which
-          // may have e.g. syntax errors. If an error would cause a transformer
-          // to fail to load, the load failure will cause us to exit.
-          if (error is! TransformerException) throw error;
+      log.fine("Provided sources.");
 
-          var message = error.error.toString();
-          if (error.stackTrace != null) {
-            message += "\n" + error.stackTrace.terse.toString();
-          }
+      errorStream = barback.errors.map((error) {
+        // Now that we're loading transformers, errors they log shouldn't be
+        // fatal, since we're starting to run them on real user assets which
+        // may have e.g. syntax errors. If an error would cause a transformer
+        // to fail to load, the load failure will cause us to exit.
+        if (error is! TransformerException) throw error;
 
-          _log(new LogEntry(error.transform, error.transform.primaryId,
-                  LogLevel.ERROR, message, null));
-        });
+        var message = error.error.toString();
+        if (error.stackTrace != null) {
+          message += "\n" + error.stackTrace.terse.toString();
+        }
 
-        return _withStreamErrors(() {
-          return log.progress("Loading transformers", () {
-            return loadAllTransformers(this, transformerServer)
-                .then((_) => transformerServer.close());
-          }, fine: true);
-        }, [errorStream, barback.results, transformerServer.results]);
-      }).then((_) => barback.removeSources(pubSources));
+        _log(new LogEntry(error.transform, error.transform.primaryId,
+                LogLevel.ERROR, message, null));
+      });
+
+      await _withStreamErrors(() async {
+        return log.progress("Loading transformers", () async {
+          await loadAllTransformers(this, transformerServer,
+              entrypoints: entrypoints);
+          transformerServer.close();
+        }, fine: true);
+      }, [errorStream, barback.results, transformerServer.results]);
     }, fine: true);
   }
 
   /// Provides the public source assets in the environment to barback.
   ///
   /// If [watcherType] is not [WatcherType.NONE], enables watching on them.
-  Future _provideSources() {
+  Future _provideSources() async {
     // Just include the "lib" directory from each package. We'll add the
     // other build directories in the root package by calling
     // [serveDirectory].
-    return Future.wait(packages.map((package) {
-      return _provideDirectorySources(graph.packages[package], "lib");
+    await Future.wait(graph.packages.values.map((package) async {
+      if (graph.isPackageStatic(package.name)) return;
+      await _provideDirectorySources(package, "lib");
     }));
   }
 
@@ -583,18 +582,15 @@ class AssetEnvironment {
   /// this is optimized for our needs in here instead of using the more general
   /// but slower [listDir].
   Iterable<AssetId> _listDirectorySources(Package package, String dir) {
-    var subdirectory = path.join(package.dir, dir);
-    if (!dirExists(subdirectory)) return [];
-
     // This is used in some performance-sensitive paths and can list many, many
     // files. As such, it leans more havily towards optimization as opposed to
     // readability than most code in pub. In particular, it avoids using the
     // path package, since re-parsing a path is very expensive relative to
     // string operations.
-    return package.listFiles(beneath: subdirectory).map((file) {
+    return package.listFiles(beneath: dir).map((file) {
       // From profiling, path.relative here is just as fast as a raw substring
       // and is correct in the case where package.dir has a trailing slash.
-      var relative = path.relative(file, from: package.dir);
+      var relative = package.relative(file);
 
       if (Platform.operatingSystem == 'windows') {
         relative = relative.replaceAll("\\", "/");
@@ -618,7 +614,7 @@ class AssetEnvironment {
       return new Future.value();
     }
 
-    var subdirectory = path.join(package.dir, dir);
+    var subdirectory = package.path(dir);
     if (!dirExists(subdirectory)) return new Future.value();
 
     // TODO(nweiz): close this watcher when [barback] is closed.
@@ -642,7 +638,7 @@ class AssetEnvironment {
       if (event.path.endsWith(".dart.js.map")) return;
       if (event.path.endsWith(".dart.precompiled.js")) return;
 
-      var idPath = path.relative(event.path, from: package.dir);
+      var idPath = package.relative(event.path);
       var id = new AssetId(package.name, path.toUri(idPath).toString());
       if (event.type == ChangeType.REMOVE) {
         if (_modifiedSources != null) {
@@ -670,9 +666,9 @@ class AssetEnvironment {
   Future _withStreamErrors(Future futureCallback(), List<Stream> streams) {
     var completer = new Completer.sync();
     var subscriptions = streams.map((stream) =>
-        stream.listen((_) {}, onError: completer.complete)).toList();
+        stream.listen((_) {}, onError: completer.completeError)).toList();
 
-    syncFuture(futureCallback).then((_) {
+    new Future.sync(futureCallback).then((_) {
       if (!completer.isCompleted) completer.complete();
     }).catchError((error, stackTrace) {
       if (!completer.isCompleted) completer.completeError(error, stackTrace);

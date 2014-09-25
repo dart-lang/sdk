@@ -34,9 +34,18 @@ $ ./install-build-deps.sh --arm --no-chromeos-fonts
 """
 DEFAULT_ARM_CROSS_COMPILER_PATH = '/usr/bin'
 
+usage = """\
+usage: %%prog [options] [targets]
+
+This script runs 'make' in the *current* directory. So, run it from
+the Dart repo root,
+
+  %s ,
+
+unless you really intend to use a non-default Makefile.""" % DART_ROOT
 
 def BuildOptions():
-  result = optparse.OptionParser()
+  result = optparse.OptionParser(usage=usage)
   result.add_option("-m", "--mode",
       help='Build variants (comma-separated).',
       metavar='[all,debug,release]',

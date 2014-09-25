@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
+import '../cached_package.dart';
 import '../entrypoint.dart';
 import '../exceptions.dart';
 import '../io.dart';
@@ -23,24 +24,37 @@ import 'source_directory.dart';
 class AssetEnvironment {
   static Future<AssetEnvironment> create(Entrypoint entrypoint,
       BarbackMode mode, {WatcherType watcherType, String hostname, int basePort,
-      Iterable<String> packages, bool useDart2JS: true}) {
+      Iterable<String> packages, Iterable<AssetId> entrypoints, bool useDart2JS:
+      true}) {
     if (watcherType == null) watcherType = WatcherType.NONE;
     if (hostname == null) hostname = "localhost";
     if (basePort == null) basePort = 0;
     return entrypoint.loadPackageGraph().then((graph) {
       log.fine("Loaded package graph.");
-      var barback = new Barback(new PubPackageProvider(graph, packages));
+      graph = _adjustPackageGraph(graph, mode, packages);
+      var barback = new Barback(new PubPackageProvider(graph));
       barback.log.listen(_log);
-      var environment = new AssetEnvironment._(
-          graph,
-          barback,
-          mode,
-          watcherType,
-          hostname,
-          basePort,
-          packages);
-      return environment._load(useDart2JS: useDart2JS).then((_) => environment);
+      var environment =
+          new AssetEnvironment._(graph, barback, mode, watcherType, hostname, basePort);
+      return environment._load(
+          entrypoints: entrypoints,
+          useDart2JS: useDart2JS).then((_) => environment);
     });
+  }
+  static PackageGraph _adjustPackageGraph(PackageGraph graph, BarbackMode mode,
+      Iterable<String> packages) {
+    if (mode != BarbackMode.DEBUG && packages == null) return graph;
+    packages = (packages == null ? graph.packages.keys : packages).toSet();
+    return new PackageGraph(
+        graph.entrypoint,
+        graph.lockFile,
+        new Map.fromIterable(packages, value: (packageName) {
+      var package = graph.packages[packageName];
+      if (mode != BarbackMode.DEBUG) return package;
+      var cache = path.join('.pub/deps/debug', packageName);
+      if (!dirExists(cache)) return package;
+      return new CachedPackage(package, cache);
+    }));
   }
   AdminServer _adminServer;
   final _directories = new Map<String, SourceDirectory>();
@@ -52,14 +66,9 @@ class AssetEnvironment {
   final WatcherType _watcherType;
   final String _hostname;
   final int _basePort;
-  final Set<String> packages;
   Set<AssetId> _modifiedSources;
-  AssetEnvironment._(PackageGraph graph, this.barback, this.mode,
-      this._watcherType, this._hostname, this._basePort, Iterable<String> packages)
-      : graph = graph,
-        packages = packages == null ?
-          graph.packages.keys.toSet() :
-          packages.toSet();
+  AssetEnvironment._(this.graph, this.barback, this.mode, this._watcherType,
+      this._hostname, this._basePort);
   Iterable<Transformer> getBuiltInTransformers(Package package) {
     if (package.name != rootPackage.name) return null;
     if (_builtInTransformers.isEmpty) return null;
@@ -112,35 +121,109 @@ class AssetEnvironment {
             (_) =>
                 BarbackServer.bind(this, _hostname, 0, package: package, rootDirectory: "bin"));
   }
-  Future precompileExecutables(String packageName, String directory,
-      {Iterable<AssetId> executableIds}) {
-    if (executableIds == null) {
-      executableIds = graph.packages[packageName].executableIds;
-    }
-    log.fine("executables for $packageName: $executableIds");
-    if (executableIds.isEmpty) return null;
-    var package = graph.packages[packageName];
-    return servePackageBinDirectory(packageName).then((server) {
-      return waitAndPrintErrors(executableIds.map((id) {
-        var basename = path.url.basename(id.path);
-        var snapshotPath = path.join(directory, "$basename.snapshot");
-        return runProcess(
-            Platform.executable,
-            [
-                '--snapshot=$snapshotPath',
-                server.url.resolve(basename).toString()]).then((result) {
-          if (result.success) {
-            log.message("Precompiled ${_formatExecutable(id)}.");
-          } else {
-            throw new ApplicationException(
-                log.yellow("Failed to precompile " "${_formatExecutable(id)}:\n") +
-                    result.stderr.join('\n'));
+  Future<Map<String, String>> precompileExecutables(String packageName,
+      String directory, {Iterable<AssetId> executableIds}) {
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        join0() {
+          log.fine("Executables for ${packageName}: ${executableIds}");
+          join1() {
+            var package = graph.packages[packageName];
+            servePackageBinDirectory(packageName).then((x0) {
+              try {
+                var server = x0;
+                join2(x1) {
+                  completer0.complete(null);
+                }
+                finally0(cont0, v0) {
+                  server.close();
+                  cont0(v0);
+                }
+                catch0(e1) {
+                  finally0(join2, null);
+                }
+                try {
+                  var precompiled = {};
+                  waitAndPrintErrors(executableIds.map(((id) {
+                    final completer0 = new Completer();
+                    scheduleMicrotask(() {
+                      try {
+                        var basename = path.url.basename(id.path);
+                        var snapshotPath =
+                            path.join(directory, "${basename}.snapshot");
+                        runProcess(
+                            Platform.executable,
+                            [
+                                '--snapshot=${snapshotPath}',
+                                server.url.resolve(basename).toString()]).then((x0) {
+                          try {
+                            var result = x0;
+                            join0() {
+                              completer0.complete(null);
+                            }
+                            if (result.success) {
+                              log.message(
+                                  "Precompiled ${_formatExecutable(id)}.");
+                              precompiled[path.withoutExtension(basename)] =
+                                  snapshotPath;
+                              join0();
+                            } else {
+                              completer0.completeError(
+                                  new ApplicationException(
+                                      log.yellow("Failed to precompile ${_formatExecutable(id)}:\n") +
+                                          result.stderr.join('\n')));
+                            }
+                          } catch (e0) {
+                            completer0.completeError(e0);
+                          }
+                        }, onError: (e1) {
+                          completer0.completeError(e1);
+                        });
+                      } catch (e2) {
+                        completer0.completeError(e2);
+                      }
+                    });
+                    return completer0.future;
+                  }))).then((x2) {
+                    try {
+                      x2;
+                      finally0((v1) {
+                        completer0.complete(v1);
+                      }, precompiled);
+                    } catch (e2) {
+                      catch0(e2);
+                    }
+                  }, onError: (e3) {
+                    catch0(e3);
+                  });
+                } catch (e4) {
+                  catch0(e4);
+                }
+              } catch (e0) {
+                completer0.completeError(e0);
+              }
+            }, onError: (e5) {
+              completer0.completeError(e5);
+            });
           }
-        });
-      })).whenComplete(() {
-        server.close();
-      });
+          if (executableIds.isEmpty) {
+            completer0.complete([]);
+          } else {
+            join1();
+          }
+        }
+        if (executableIds == null) {
+          executableIds = graph.packages[packageName].executableIds;
+          join0();
+        } else {
+          join0();
+        }
+      } catch (e6) {
+        completer0.completeError(e6);
+      }
     });
+    return completer0.future;
   }
   String _formatExecutable(AssetId id) =>
       log.bold("${id.package}:${path.basenameWithoutExtension(id.path)}");
@@ -180,17 +263,17 @@ class AssetEnvironment {
   Future<List<Uri>> _lookUpPathInPackagesDirectory(String assetPath) {
     var components = path.split(path.relative(assetPath));
     if (components.first != "packages") return new Future.value([]);
-    if (!packages.contains(components[1])) return new Future.value([]);
+    if (!graph.packages.containsKey(components[1])) return new Future.value([]);
     return Future.wait(_directories.values.map((dir) {
       return dir.server.then(
           (server) => server.url.resolveUri(path.toUri(assetPath)));
     }));
   }
   Future<List<Uri>> _lookUpPathInDependency(String assetPath) {
-    for (var packageName in packages) {
+    for (var packageName in graph.packages.keys) {
       var package = graph.packages[packageName];
-      var libDir = path.join(package.dir, 'lib');
-      var assetDir = path.join(package.dir, 'asset');
+      var libDir = package.path('lib');
+      var assetDir = package.path('asset');
       var uri;
       if (path.isWithin(libDir, assetPath)) {
         uri = path.toUri(
@@ -233,77 +316,160 @@ class AssetEnvironment {
     barback.updateSources(_modifiedSources);
     _modifiedSources = null;
   }
-  Future _load({bool useDart2JS}) {
+  Future _load({Iterable<AssetId> entrypoints, bool useDart2JS}) {
     return log.progress("Initializing barback", () {
-      var containsDart2JS = graph.entrypoint.root.pubspec.transformers.any(
-          (transformers) =>
-              transformers.any((config) => config.id.package == '\$dart2js'));
-      if (!containsDart2JS && useDart2JS) {
-        _builtInTransformers.addAll(
-            [new Dart2JSTransformer(this, mode), new DartForwardingTransformer(mode)]);
-      }
-      var dartPath = assetPath('dart');
-      var pubSources = listDir(
-          dartPath,
-          recursive: true).where(
-              (file) => path.extension(file) == ".dart").map((library) {
-        var idPath = path.join('lib', path.relative(library, from: dartPath));
-        return new AssetId('\$pub', path.toUri(idPath).toString());
-      });
-      var libPath = path.join(sdk.rootDirectory, "lib");
-      var sdkSources = listDir(
-          libPath,
-          recursive: true).where((file) => path.extension(file) == ".dart").map((file) {
-        var idPath =
-            path.join("lib", path.relative(file, from: sdk.rootDirectory));
-        return new AssetId('\$sdk', path.toUri(idPath).toString());
-      });
-      var transformerServer;
-      return BarbackServer.bind(this, _hostname, 0).then((server) {
-        transformerServer = server;
-        var errorStream = barback.errors.map((error) {
-          if (error is! AssetLoadException) throw error;
-          log.error(log.red(error.message));
-          log.fine(error.stackTrace.terse);
-        });
-        return _withStreamErrors(() {
-          return log.progress("Loading source assets", () {
-            barback.updateSources(pubSources);
-            barback.updateSources(sdkSources);
-            return _provideSources();
-          });
-        }, [errorStream, barback.results]);
-      }).then((_) {
-        log.fine("Provided sources.");
-        var completer = new Completer();
-        var errorStream = barback.errors.map((error) {
-          if (error is! TransformerException) throw error;
-          var message = error.error.toString();
-          if (error.stackTrace != null) {
-            message += "\n" + error.stackTrace.terse.toString();
+      final completer0 = new Completer();
+      scheduleMicrotask(() {
+        try {
+          var containsDart2JS = graph.entrypoint.root.pubspec.transformers.any(
+              ((transformers) =>
+                  transformers.any((config) => config.id.package == '\$dart2js')));
+          join0() {
+            BarbackServer.bind(this, _hostname, 0).then((x0) {
+              try {
+                var transformerServer = x0;
+                var errorStream = barback.errors.map(((error) {
+                  if (error is! AssetLoadException) throw error;
+                  log.error(log.red(error.message));
+                  log.fine(error.stackTrace.terse);
+                }));
+                _withStreamErrors((() {
+                  return log.progress("Loading source assets", _provideSources);
+                }), [errorStream, barback.results]).then((x1) {
+                  try {
+                    x1;
+                    log.fine("Provided sources.");
+                    errorStream = barback.errors.map(((error) {
+                      if (error is! TransformerException) throw error;
+                      var message = error.error.toString();
+                      if (error.stackTrace != null) {
+                        message += "\n" + error.stackTrace.terse.toString();
+                      }
+                      _log(
+                          new LogEntry(
+                              error.transform,
+                              error.transform.primaryId,
+                              LogLevel.ERROR,
+                              message,
+                              null));
+                    }));
+                    _withStreamErrors((() {
+                      final completer0 = new Completer();
+                      scheduleMicrotask(() {
+                        try {
+                          completer0.complete(
+                              log.progress("Loading transformers", (() {
+                            final completer0 = new Completer();
+                            scheduleMicrotask(() {
+                              try {
+                                loadAllTransformers(
+                                    this,
+                                    transformerServer,
+                                    entrypoints: entrypoints).then((x0) {
+                                  try {
+                                    x0;
+                                    transformerServer.close();
+                                    completer0.complete(null);
+                                  } catch (e0) {
+                                    completer0.completeError(e0);
+                                  }
+                                }, onError: (e1) {
+                                  completer0.completeError(e1);
+                                });
+                              } catch (e2) {
+                                completer0.completeError(e2);
+                              }
+                            });
+                            return completer0.future;
+                          }), fine: true));
+                        } catch (e0) {
+                          completer0.completeError(e0);
+                        }
+                      });
+                      return completer0.future;
+                    }),
+                        [errorStream, barback.results, transformerServer.results]).then((x2) {
+                      try {
+                        x2;
+                        completer0.complete(null);
+                      } catch (e2) {
+                        completer0.completeError(e2);
+                      }
+                    }, onError: (e3) {
+                      completer0.completeError(e3);
+                    });
+                  } catch (e1) {
+                    completer0.completeError(e1);
+                  }
+                }, onError: (e4) {
+                  completer0.completeError(e4);
+                });
+              } catch (e0) {
+                completer0.completeError(e0);
+              }
+            }, onError: (e5) {
+              completer0.completeError(e5);
+            });
           }
-          _log(
-              new LogEntry(
-                  error.transform,
-                  error.transform.primaryId,
-                  LogLevel.ERROR,
-                  message,
-                  null));
-        });
-        return _withStreamErrors(() {
-          return log.progress("Loading transformers", () {
-            return loadAllTransformers(
-                this,
-                transformerServer).then((_) => transformerServer.close());
-          }, fine: true);
-        }, [errorStream, barback.results, transformerServer.results]);
-      }).then((_) => barback.removeSources(pubSources));
+          if (!containsDart2JS && useDart2JS) {
+            _builtInTransformers.addAll(
+                [new Dart2JSTransformer(this, mode), new DartForwardingTransformer(mode)]);
+            join0();
+          } else {
+            join0();
+          }
+        } catch (e6) {
+          completer0.completeError(e6);
+        }
+      });
+      return completer0.future;
     }, fine: true);
   }
   Future _provideSources() {
-    return Future.wait(packages.map((package) {
-      return _provideDirectorySources(graph.packages[package], "lib");
-    }));
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        Future.wait(graph.packages.values.map(((package) {
+          final completer0 = new Completer();
+          scheduleMicrotask(() {
+            try {
+              join0() {
+                _provideDirectorySources(package, "lib").then((x0) {
+                  try {
+                    x0;
+                    completer0.complete(null);
+                  } catch (e0) {
+                    completer0.completeError(e0);
+                  }
+                }, onError: (e1) {
+                  completer0.completeError(e1);
+                });
+              }
+              if (graph.isPackageStatic(package.name)) {
+                completer0.complete(null);
+              } else {
+                join0();
+              }
+            } catch (e2) {
+              completer0.completeError(e2);
+            }
+          });
+          return completer0.future;
+        }))).then((x0) {
+          try {
+            x0;
+            completer0.complete(null);
+          } catch (e0) {
+            completer0.completeError(e0);
+          }
+        }, onError: (e1) {
+          completer0.completeError(e1);
+        });
+      } catch (e2) {
+        completer0.completeError(e2);
+      }
+    });
+    return completer0.future;
   }
   Future<StreamSubscription<WatchEvent>>
       _provideDirectorySources(Package package, String dir) {
@@ -333,10 +499,8 @@ class AssetEnvironment {
     }
   }
   Iterable<AssetId> _listDirectorySources(Package package, String dir) {
-    var subdirectory = path.join(package.dir, dir);
-    if (!dirExists(subdirectory)) return [];
-    return package.listFiles(beneath: subdirectory).map((file) {
-      var relative = path.relative(file, from: package.dir);
+    return package.listFiles(beneath: dir).map((file) {
+      var relative = package.relative(file);
       if (Platform.operatingSystem == 'windows') {
         relative = relative.replaceAll("\\", "/");
       }
@@ -351,7 +515,7 @@ class AssetEnvironment {
         graph.entrypoint.cache.sources[packageId.source] is CachedSource) {
       return new Future.value();
     }
-    var subdirectory = path.join(package.dir, dir);
+    var subdirectory = package.path(dir);
     if (!dirExists(subdirectory)) return new Future.value();
     var watcher = _watcherType.create(subdirectory);
     var subscription = watcher.events.listen((event) {
@@ -360,7 +524,7 @@ class AssetEnvironment {
       if (event.path.endsWith(".dart.js")) return;
       if (event.path.endsWith(".dart.js.map")) return;
       if (event.path.endsWith(".dart.precompiled.js")) return;
-      var idPath = path.relative(event.path, from: package.dir);
+      var idPath = package.relative(event.path);
       var id = new AssetId(package.name, path.toUri(idPath).toString());
       if (event.type == ChangeType.REMOVE) {
         if (_modifiedSources != null) {
@@ -379,8 +543,8 @@ class AssetEnvironment {
   Future _withStreamErrors(Future futureCallback(), List<Stream> streams) {
     var completer = new Completer.sync();
     var subscriptions = streams.map(
-        (stream) => stream.listen((_) {}, onError: completer.complete)).toList();
-    syncFuture(futureCallback).then((_) {
+        (stream) => stream.listen((_) {}, onError: completer.completeError)).toList();
+    new Future.sync(futureCallback).then((_) {
       if (!completer.isCompleted) completer.complete();
     }).catchError((error, stackTrace) {
       if (!completer.isCompleted) completer.completeError(error, stackTrace);

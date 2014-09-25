@@ -35,10 +35,13 @@ polymer/test/computed_properties_test: Pass, RuntimeError # Issue 18931
 polymer/test/custom_event_test: Pass, RuntimeError # Issue 18931
 polymer/test/entered_view_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_binding_release_handler_test: Pass, RuntimeError # Issue 18931
+polymer/test/event_controller_test: Pass, RuntimeError # Issue 21012
 polymer/test/event_handlers_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_path_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_path_declarative_test: Pass, RuntimeError, Timeout # Issue 18931
 polymer/test/events_test: Pass, RuntimeError # Issue 18931
+polymer/test/force_ready_test: Pass, RuntimeError # Issue 18931
+polymer/test/inject_bound_html_test: Pass, RuntimeError # Issue 18931
 polymer/test/instance_attrs_test: Pass, RuntimeError # Issue 18931
 polymer/test/js_custom_event_test: Pass, RuntimeError # Issue 18931
 polymer/test/js_interop_test: Pass, RuntimeError # Issue 18931
@@ -113,19 +116,6 @@ observe/test/unique_message_test: Skip # Intended only as a vm test.
 polymer/test/build/unique_message_test: Skip # Intended only as a vm test.
 code_transformers/test/unique_message_test: Skip # Intended only as a vm test.
 
-[ $compiler == dart2js && $runtime == ff && $system == windows ]
-http/test/html/client_test: Fail # Issue 19750
-scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
-json_rpc_2/test/server/server_test: Fail # Issue 19750
-shelf/test/log_middleware_test: Fail # Issue 19750
-
-[ $runtime == ff ]
-stack_trace/test/trace_test: Fail # Issue 19750
-http/test/html/client_test: Fail # Issue 19750
-scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
-json_rpc_2/test/server/server_test: Fail # Issue 19750
-shelf/test/log_middleware_test: Fail # Issue 19750
-
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
 
@@ -154,16 +144,32 @@ analysis_server/test/analysis_notification_navigation_test: Pass, Slow # Issue 1
 analysis_server/test/domain_analysis_test: Pass, Slow # Issue 16473, 19756
 analysis_server/test/analysis_notification_highlights_test: Pass, Slow # 16473, 19756
 analysis_server/test/search/top_level_declarations_test: Pass, Slow # 16473, 19756
+analysis_server/test/socket_server_test: Pass, Slow # Issue 16473, 19756
 analyzer/test/generated/element_test: Pass, Slow # Issue 16473
 
 [ $runtime == d8 || $runtime == jsshell ]
 stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
-unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
 
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
-scheduled_test/test/unittest_compatibility_test: Fail # Issue 7728
+scheduled_test/test/scheduled_future_matchers_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_stream/stream_matcher_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/abort_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/current_schedule_current_task_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/current_schedule_errors_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/current_schedule_state_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/nested_task_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/on_complete_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/on_exception_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/set_up_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/simple_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/task_return_value_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/tear_down_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/unhandled_error_test: RuntimeError #Issue 21005
+scheduled_test/test/scheduled_test/wrap_future_test: RuntimeError #Issue 21005
+scheduled_test/test/unittest_compatibility_test: RuntimeError #Issue 21005
+unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728
 unittest/test/nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 
 [ $compiler == dart2js && $runtime == drt ]
@@ -183,10 +189,13 @@ polymer/test/computed_properties_test: Skip # uses dart:html
 polymer/test/custom_event_test: Skip # uses dart:html
 polymer/test/entered_view_test: Skip # uses dart:html
 polymer/test/event_binding_release_handler_test: Skip #uses dart:html
+polymer/test/event_controller_test: Skip #uses dart:html
 polymer/test/event_handlers_test: Skip #uses dart:html
 polymer/test/event_path_declarative_test: Skip #uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
+polymer/test/force_ready_test: Skip # uses dart:html
+polymer/test/inject_bound_html_test: Skip # uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
 polymer/test/js_custom_event_test: Skip #uses dart:html
 polymer/test/js_interop_test: Skip #uses dart:html
@@ -222,9 +231,6 @@ source_maps/test/vlq_test: RuntimeError # A VLQ test checks for large numbers th
 intl/test/find_default_locale_browser_test: Fail
 intl/test/date_time_format_http_request_test: Skip # Timeout.
 
-[ $runtime == safarimobilesim ]
-polymer/test/bind_mdv_test: RuntimeError # Issue 20929
-
 [ $ie ]
 polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
@@ -233,13 +239,23 @@ observe/test/list_path_observer_test: RuntimeError, Pass # Issue 20849
 polymer/test/template_attr_template_test: RuntimeError # Issue 20897
 
 [ $runtime == ie10 ]
-typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
-polymer/e2e_test/*: Pass, RuntimeError # Issue 19265
-polymer_expressions/*: Pass, RuntimeError # Issue 19265
-template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
-template_binding/test/custom_element_bindings_test: Pass, RuntimeError # Issue 20714
-polymer/test/event_handlers_test: Pass, Timeout # Issue 19327
 analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
+polymer/e2e_test/*: Pass, RuntimeError # Issue 19265
+polymer/test/event_handlers_test: Pass, Timeout # Issue 19327
+polymer_expressions/*: Pass, RuntimeError # Issue 19265
+template_binding/test/custom_element_bindings_test: Pass, RuntimeError # Issue 20714
+template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
+typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here explicitly, since this is not the same as on ie9)
+
+[ $runtime == ie10 || $runtime == ie11 ]
+scheduled_test/test/scheduled_test/current_schedule_errors_test: Timeout # Issue 21007
+scheduled_test/test/scheduled_test/nested_task_test: Timeout # Issue 21007
+scheduled_test/test/scheduled_test/out_of_band_task_test: Timeout # Issue 21007
+scheduled_test/test/scheduled_test/signal_error_test: Timeout # Issue 21007
+scheduled_test/test/scheduled_test/task_return_value_test: Timeout # Issue 21007
+scheduled_test/test/scheduled_test/timeout_test: Timeout # Issue 21007
+scheduled_test/test/scheduled_test/wrap_async_test: Timeout # Issue 21007
+scheduled_test/test/scheduled_test/wrap_future_test: Timeout # Issue 21007
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari.
@@ -319,6 +335,7 @@ code_transformers/test/entry_point_test: Skip # Uses dart:io
 code_transformers/test/resolver_test: Skip # Uses dart:io
 code_transformers/test/unique_message_test: Skip # Uses dart:io
 code_transformers/test/remove_sourcemap_comment_test: Skip # Uses dart:io.
+glob/test/*: Fail, OK # Uses dart:io.
 http/test/io/*: Fail, OK # Uses dart:io.
 http_parser/test/web_socket_test: Fail, OK # Uses dart:io
 http_multi_server/test/http_multi_server_test: Skip # Uses dart:io
@@ -340,6 +357,7 @@ polymer/test/build/static_clean_test: Fail, OK # Uses dart:io.
 polymer/test/build/build_log_combiner_test: Fail, OK # Uses dart:io.
 polymer/test/build/script_compactor_test: Fail, OK # Uses dart:io.
 polymer/test/build/utils_test: Fail, OK # Uses dart:io.
+polymer/test/build/index_page_builder_test: Fail, OK # Uses dart:io.
 polymer/test/build/import_inliner_test: Fail, OK # Uses dart:io.
 polymer/test/build/linter_test: Fail, OK # Uses dart:io.
 polymer/test/build/remove_sourcemap_comment_test: Fail, OK # Uses dart:io.
@@ -352,13 +370,6 @@ stub_core_library/test/*: Fail, OK # Uses dart:io.
 third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
 third_party/angular_tests/vm_test: Skip # Uses dart:io
 watcher/test/*: Fail, OK # Uses dart:io.
-
-scheduled_test/test/descriptor/*: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_future_matchers_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_process_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/*: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_stream/stream_matcher_test: Fail # http://dartbug.com/8440
-
 
 */test/analyzer_test: Skip  # No need to run analysis tests on browser bots
 
@@ -383,11 +394,20 @@ watcher/test/directory_watcher/linux_test: Skip # Issue 16118
 # simulator.
 *: Skip
 
+[ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
-[ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
-serialization/test/no_library_test: Skip # Expected Failure
-serialization/test/serialization_test: Fail # 13921
+polymer/e2e_test/canonicalization/test/deploy1_test: Fail, OK # tests deploy only behavior
+polymer/e2e_test/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
+polymer/e2e_test/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
+polymer/e2e_test/canonicalization/test/dir/dev2_test: RuntimeError # Issue 17596
+polymer/e2e_test/canonicalization/test/dir/deploy1_test: Fail, OK # tests deploy only behavior
+polymer/e2e_test/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
+scheduled_test/test/descriptor/*: RuntimeError # 13921
+scheduled_test/test/scheduled_future_matchers_test: RuntimeError # 13921
+scheduled_test/test/scheduled_process_test: RuntimeError # 13921
+scheduled_test/test/scheduled_stream/stream_matcher_test: RuntimeError # 13921
+scheduled_test/test/scheduled_test/*: RuntimeError # 13921
 unittest/test/async_exception_test: RuntimeError # 13921
 unittest/test/async_exception_with_future_test: RuntimeError # 13921
 unittest/test/async_setup_teardown_test: RuntimeError # 13921
@@ -413,12 +433,7 @@ unittest/test/single_failing_test: RuntimeError # 13921
 unittest/test/skipped_soloed_nested_test: RuntimeError # 13921
 unittest/test/teardown_test: RuntimeError # 13921
 unittest/test/testcases_immutable_test: RuntimeError # 13921
-polymer/e2e_test/canonicalization/test/deploy1_test: Fail, OK # tests deploy only behavior
-polymer/e2e_test/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
-polymer/e2e_test/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
-polymer/e2e_test/canonicalization/test/dir/dev2_test: RuntimeError # Issue 17596
-polymer/e2e_test/canonicalization/test/dir/deploy1_test: Fail, OK # tests deploy only behavior
-polymer/e2e_test/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
+
 
 [ $runtime == vm ]
 # Skip tests on the VM if the package depends on dart:html
@@ -433,10 +448,12 @@ http/test/html/*: Skip
 
 [ $browser ]
 docgen/test/*: Skip  # Uses dart:io
+scheduled_test/test/scheduled_process_test: Skip # Uses dart:io
 scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
+scheduled_test/test/descriptor/*: Skip # Uses dart:io
 
-[ $browser || $runtime == vm ]
-unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
+[ $compiler == none && $browser ]
+unittest/test/missing_tick_test: RuntimeError # Expected to fail, due to timeout.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.
@@ -469,3 +486,4 @@ http/test/html/client_test: Skip # Issue 18566
 
 [ $system == windows ]
 analysis_server/test/integration/search/get_type_hierarchy_test: Pass, Fail # Issue 20436
+glob/test/list_test: RuntimeError # Issue 21071

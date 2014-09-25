@@ -152,8 +152,7 @@ class BuildCommand extends BarbackCommand {
     return entrypointDirs.length * 2;
   }
   void _addBrowserJs(String directory, String name) {
-    var jsPath = path.join(
-        entrypoint.root.dir,
+    var jsPath = entrypoint.root.path(
         outputDirectory,
         directory,
         'packages',

@@ -18,6 +18,7 @@
 #include "vm/resolver.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
+#include "vm/unicode.h"
 
 namespace dart {
 
@@ -153,6 +154,7 @@ static bool CreateIsolate(Isolate* parent_isolate,
   Isolate* child_isolate = reinterpret_cast<Isolate*>(
       (callback)(state->script_url(),
                  state->function_name(),
+                 state->package_root(),
                  init_data,
                  error));
   if (child_isolate == NULL) {
@@ -216,11 +218,12 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 3) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 4) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, args, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(3));
+  GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(4));
 
   // Canonicalize the uri with respect to the current isolate.
   char* error = NULL;
@@ -233,8 +236,17 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 4) {
     ThrowIsolateSpawnException(msg);
   }
 
-  return Spawn(isolate, new IsolateSpawnState(port.Id(), canonical_uri,
-                                              args, message));
+  char* utf8_package_root = NULL;
+  if (!package_root.IsNull()) {
+    const intptr_t len = Utf8::Length(package_root);
+    Zone* zone = isolate->current_zone();
+    utf8_package_root = zone->Alloc<char>(len + 1);
+    package_root.ToUTF8(reinterpret_cast<uint8_t*>(utf8_package_root), len);
+    utf8_package_root[len] = '\0';
+  }
+
+  return Spawn(isolate, new IsolateSpawnState(
+      port.Id(), canonical_uri, utf8_package_root, args, message));
 }
 
 

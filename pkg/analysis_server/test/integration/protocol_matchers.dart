@@ -649,7 +649,9 @@ final Matcher isEditGetRefactoringParams = new LazyMatcher(() => new MatchesJson
  * edit.getRefactoring result
  *
  * {
- *   "problems": List<RefactoringProblem>
+ *   "initialProblems": List<RefactoringProblem>
+ *   "optionsProblems": List<RefactoringProblem>
+ *   "finalProblems": List<RefactoringProblem>
  *   "feedback": optional RefactoringFeedback
  *   "change": optional SourceChange
  *   "potentialEdits": optional List<String>
@@ -657,7 +659,9 @@ final Matcher isEditGetRefactoringParams = new LazyMatcher(() => new MatchesJson
  */
 final Matcher isEditGetRefactoringResult = new LazyMatcher(() => new MatchesJsonObject(
   "edit.getRefactoring result", {
-    "problems": isListOf(isRefactoringProblem)
+    "initialProblems": isListOf(isRefactoringProblem),
+    "optionsProblems": isListOf(isRefactoringProblem),
+    "finalProblems": isListOf(isRefactoringProblem)
   }, optionalFields: {
     "feedback": isRefactoringFeedback,
     "change": isSourceChange,
@@ -757,16 +761,17 @@ final Matcher isExecutionSetSubscriptionsResult = isNull;
  * execution.launchData params
  *
  * {
- *   "executables": List<ExecutableFile>
- *   "dartToHtml": Map<FilePath, List<FilePath>>
- *   "htmlToDart": Map<FilePath, List<FilePath>>
+ *   "file": FilePath
+ *   "kind": optional ExecutableKind
+ *   "referencedFiles": optional List<FilePath>
  * }
  */
 final Matcher isExecutionLaunchDataParams = new LazyMatcher(() => new MatchesJsonObject(
   "execution.launchData params", {
-    "executables": isListOf(isExecutableFile),
-    "dartToHtml": isMapOf(isFilePath, isListOf(isFilePath)),
-    "htmlToDart": isMapOf(isFilePath, isListOf(isFilePath))
+    "file": isFilePath
+  }, optionalFields: {
+    "kind": isExecutableKind,
+    "referencedFiles": isListOf(isFilePath)
   }));
 
 /**
@@ -964,6 +969,7 @@ final Matcher isCompletionRelevance = new MatchesEnum("CompletionRelevance", [
  *   "docSummary": optional String
  *   "docComplete": optional String
  *   "declaringType": optional String
+ *   "element": optional Element
  *   "returnType": optional String
  *   "parameterNames": optional List<String>
  *   "parameterTypes": optional List<String>
@@ -986,6 +992,7 @@ final Matcher isCompletionSuggestion = new LazyMatcher(() => new MatchesJsonObje
     "docSummary": isString,
     "docComplete": isString,
     "declaringType": isString,
+    "element": isElement,
     "returnType": isString,
     "parameterNames": isListOf(isString),
     "parameterTypes": isListOf(isString),
@@ -1086,6 +1093,7 @@ final Matcher isElement = new LazyMatcher(() => new MatchesJsonObject(
  *   LOCAL_VARIABLE
  *   METHOD
  *   PARAMETER
+ *   PREFIX
  *   SETTER
  *   TOP_LEVEL_VARIABLE
  *   TYPE_PARAMETER
@@ -1108,6 +1116,7 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "LOCAL_VARIABLE",
   "METHOD",
   "PARAMETER",
+  "PREFIX",
   "SETTER",
   "TOP_LEVEL_VARIABLE",
   "TYPE_PARAMETER",
@@ -1136,12 +1145,14 @@ final Matcher isExecutableFile = new LazyMatcher(() => new MatchesJsonObject(
  * enum {
  *   CLIENT
  *   EITHER
+ *   NOT_EXECUTABLE
  *   SERVER
  * }
  */
 final Matcher isExecutableKind = new MatchesEnum("ExecutableKind", [
   "CLIENT",
   "EITHER",
+  "NOT_EXECUTABLE",
   "SERVER"
 ]);
 
@@ -1508,7 +1519,9 @@ final Matcher isPosition = new LazyMatcher(() => new MatchesJsonObject(
  *   EXTRACT_METHOD
  *   INLINE_LOCAL_VARIABLE
  *   INLINE_METHOD
+ *   MOVE_FILE
  *   RENAME
+ *   SORT_MEMBERS
  * }
  */
 final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
@@ -1518,7 +1531,9 @@ final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
   "EXTRACT_METHOD",
   "INLINE_LOCAL_VARIABLE",
   "INLINE_METHOD",
-  "RENAME"
+  "MOVE_FILE",
+  "RENAME",
+  "SORT_MEMBERS"
 ]);
 
 /**
@@ -1767,12 +1782,14 @@ final Matcher isSourceEdit = new LazyMatcher(() => new MatchesJsonObject(
  *
  * {
  *   "file": FilePath
+ *   "fileStamp": long
  *   "edits": List<SourceEdit>
  * }
  */
 final Matcher isSourceFileEdit = new LazyMatcher(() => new MatchesJsonObject(
   "SourceFileEdit", {
     "file": isFilePath,
+    "fileStamp": isInt,
     "edits": isListOf(isSourceEdit)
   }));
 
@@ -1948,6 +1965,23 @@ final Matcher isInlineMethodOptions = new LazyMatcher(() => new MatchesJsonObjec
   }));
 
 /**
+ * moveFile feedback
+ */
+final Matcher isMoveFileFeedback = isNull;
+
+/**
+ * moveFile options
+ *
+ * {
+ *   "newFile": FilePath
+ * }
+ */
+final Matcher isMoveFileOptions = new LazyMatcher(() => new MatchesJsonObject(
+  "moveFile options", {
+    "newFile": isFilePath
+  }));
+
+/**
  * rename feedback
  *
  * {
@@ -1976,4 +2010,14 @@ final Matcher isRenameOptions = new LazyMatcher(() => new MatchesJsonObject(
   "rename options", {
     "newName": isString
   }));
+
+/**
+ * sortMembers feedback
+ */
+final Matcher isSortMembersFeedback = isNull;
+
+/**
+ * sortMembers options
+ */
+final Matcher isSortMembersOptions = isNull;
 

@@ -4,16 +4,19 @@
 
 library glob;
 
+import 'dart:async';
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
 
 import 'src/ast.dart';
+import 'src/list_tree.dart';
 import 'src/parser.dart';
 import 'src/utils.dart';
 
 /// Regular expression used to quote globs.
 final _quoteRegExp = new RegExp(r'[*{[?\\}\],\-()]');
 
-// TODO(nweiz): Add [list] and [listSync] methods.
 /// A glob for matching and listing files and directories.
 ///
 /// A glob matches an entire string as a path. Although the glob pattern uses
@@ -44,6 +47,8 @@ class Glob implements Pattern {
 
   /// The parsed AST of the glob.
   final AstNode _ast;
+
+  ListTree _listTree;
 
   /// Whether [context]'s current directory is absolute.
   bool get _contextIsAbsolute {
@@ -97,6 +102,47 @@ class Glob implements Pattern {
         recursive = recursive,
         _ast = new Parser(pattern + (recursive ? "{,/**}" : ""), context)
             .parse();
+
+  /// Lists all [FileSystemEntity]s beneath [root] that match the glob.
+  ///
+  /// This works much like [Directory.list], but it only lists directories that
+  /// could contain entities that match the glob. It provides no guarantees
+  /// about the order of the returned entities, although it does guarantee that
+  /// only one entity with a given path will be returned.
+  ///
+  /// [root] defaults to the current working directory.
+  ///
+  /// [followLinks] works the same as for [Directory.list].
+  Stream<FileSystemEntity> list({String root, bool followLinks: true}) {
+    if (context.style != p.style) {
+      throw new StateError("Can't list glob \"$this\"; it matches "
+          "${context.style} paths, but this platform uses ${p.style} paths.");
+    }
+
+    if (_listTree == null) _listTree = new ListTree(_ast);
+    return _listTree.list(root: root, followLinks: followLinks);
+  }
+
+  /// Synchronously lists all [FileSystemEntity]s beneath [root] that match the
+  /// glob.
+  ///
+  /// This works much like [Directory.listSync], but it only lists directories
+  /// that could contain entities that match the glob. It provides no guarantees
+  /// about the order of the returned entities, although it does guarantee that
+  /// only one entity with a given path will be returned.
+  ///
+  /// [root] defaults to the current working directory.
+  ///
+  /// [followLinks] works the same as for [Directory.list].
+  List<FileSystemEntity> listSync({String root, bool followLinks: true}) {
+    if (context.style != p.style) {
+      throw new StateError("Can't list glob \"$this\"; it matches "
+          "${context.style} paths, but this platform uses ${p.style} paths.");
+    }
+
+    if (_listTree == null) _listTree = new ListTree(_ast);
+    return _listTree.listSync(root: root, followLinks: followLinks);
+  }
 
   /// Returns whether this glob matches [path].
   bool matches(String path) => matchAsPrefix(path) != null;

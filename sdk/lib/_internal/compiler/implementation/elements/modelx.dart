@@ -38,6 +38,9 @@ import '../ordered_typeset.dart' show OrderedTypeSet;
 
 import 'visitor.dart' show ElementVisitor;
 
+abstract class DeclarationSite {
+}
+
 abstract class ElementX extends Element {
   static int elementHashCode = 0;
 
@@ -261,6 +264,8 @@ abstract class ElementX extends Element {
     if (element.isAbstractField || element.isPrefix) return element.library;
     return element;
   }
+
+  DeclarationSite get declarationSite => null;
 }
 
 class ErroneousElementX extends ElementX implements ErroneousElement {
@@ -1080,7 +1085,7 @@ class TypedefElementX extends ElementX
 // This class holds common information for a list of variable or field
 // declarations. It contains the node, and the type. A [VariableElementX]
 // forwards its [computeType] and [parseNode] methods to this class.
-class VariableList {
+class VariableList implements DeclarationSite {
   VariableDefinitions definitions;
   DartType type;
   final Modifiers modifiers;
@@ -1209,6 +1214,8 @@ abstract class VariableElementX extends ElementX with AstElementMixin
   Token get position => token;
 
   accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
+
+  DeclarationSite get declarationSite => variables;
 }
 
 class LocalVariableElementX extends VariableElementX

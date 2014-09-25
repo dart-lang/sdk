@@ -104,6 +104,8 @@ class TreePrinter {
   final Token catchToken = makeIdToken('catch');
   final Token onToken = makeIdToken('on');
   final Token finallyToken = makeIdToken('finally');
+  final Token getToken = makeIdToken('get');
+  final Token setToken = makeIdToken('set');
 
   static tree.Identifier makeIdentifier(String name) {
     return new tree.Identifier(
@@ -393,18 +395,25 @@ class TreePrinter {
       if (beginStmt && exp.name != null) {
         needParen = true; // Do not mistake for function declaration.
       }
-
+      Token getOrSet = exp.isGetter
+          ? getToken
+          : exp.isSetter
+              ? setToken
+              : null;
+      tree.NodeList parameters = exp.isGetter
+          ? makeList("", [])
+          : makeParameters(exp.parameters);
       tree.Node body = makeFunctionBody(exp.body);
       result = new tree.FunctionExpression(
           functionName(exp),
-          makeParameters(exp.parameters),
+          parameters,
           body,
           exp.returnType == null || exp.element.isConstructor
             ? null
             : makeType(exp.returnType),
           makeFunctionModifiers(exp),
           null,  // initializers
-          null); // get/set
+          getOrSet);
       setElement(result, exp.element, exp);
     } else if (exp is Identifier) {
       precedence = CALLEE;

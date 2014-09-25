@@ -28,8 +28,8 @@ class InvocationComputerTest extends AbstractCompletionTest {
   test_field() {
     addTestSource('class A {var b; X _c;} class X{} main() {A a; a.^}');
     return computeFull().then((_) {
-      assertSuggestField('b', 'A', null);
-      assertSuggestField('_c', 'A', 'X');
+      assertSuggestGetter('b', null);
+      assertSuggestGetter('_c', 'X');
     });
   }
 
@@ -37,7 +37,7 @@ class InvocationComputerTest extends AbstractCompletionTest {
     addSource('/testB.dart', 'lib B; class X {M y; var _z;} class M{}');
     addTestSource('import "/testB.dart"; main() {X x; x.^}');
     return computeFull().then((_) {
-      assertSuggestField('y', 'X', 'M');
+      assertSuggestGetter('y', 'M');
       assertNotSuggested('_z');
     });
   }
@@ -46,8 +46,8 @@ class InvocationComputerTest extends AbstractCompletionTest {
     addTestSource(
         'class A {X b; var _c;} class X{} class B extends A {} main() {B b; b.^}');
     return computeFull().then((_) {
-      assertSuggestField('b', 'A', 'X');
-      assertSuggestField('_c', 'A', null);
+      assertSuggestGetter('b', 'X');
+      assertSuggestGetter('_c', null);
     });
   }
 

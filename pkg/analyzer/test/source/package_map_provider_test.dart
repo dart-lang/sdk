@@ -7,6 +7,7 @@ library test.package.map.provider;
 import 'dart:convert';
 
 import 'package:analyzer/source/package_map_provider.dart';
+import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';

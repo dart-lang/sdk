@@ -306,7 +306,12 @@ class PageSpace {
   // Attempt to allocate from bump block rather than normal freelist.
   uword TryAllocateDataBump(intptr_t size, GrowthPolicy growth_policy);
   uword TryAllocateDataBumpLocked(intptr_t size, GrowthPolicy growth_policy);
+  // Prefer small freelist blocks, then chip away at the bump block.
   uword TryAllocatePromoLocked(intptr_t size, GrowthPolicy growth_policy);
+
+  // Bump block allocation from generated code.
+  uword* TopAddress() { return &bump_top_; }
+  uword* EndAddress() { return &bump_end_; }
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -337,6 +342,8 @@ class PageSpace {
   uword TryAllocateDataBumpInternal(intptr_t size,
                                     GrowthPolicy growth_policy,
                                     bool is_locked);
+  // Makes bump block walkable; do not call concurrently with mutator.
+  void MakeIterable() const;
   HeapPage* AllocatePage(HeapPage::PageType type);
   void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);
@@ -363,6 +370,7 @@ class PageSpace {
 
   Heap* heap_;
 
+  // Use ExclusivePageIterator for safe access to these.
   Mutex* pages_lock_;
   HeapPage* pages_;
   HeapPage* pages_tail_;
@@ -388,6 +396,7 @@ class PageSpace {
   int64_t gc_time_micros_;
   intptr_t collections_;
 
+  friend class ExclusivePageIterator;
   friend class PageSpaceController;
   friend class SweeperTask;
 

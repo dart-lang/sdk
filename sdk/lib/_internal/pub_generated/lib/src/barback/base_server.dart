@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:barback/barback.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
-import 'package:stack_trace/stack_trace.dart';
 import '../log.dart' as log;
 import '../utils.dart';
 import 'asset_environment.dart';
@@ -19,12 +18,9 @@ abstract class BaseServer<T> {
   final _resultsController = new StreamController<T>.broadcast();
   BaseServer(this.environment, this._server) {
     shelf_io.serveRequests(
-        Chain.track(_server),
+        _server,
         const shelf.Pipeline().addMiddleware(
-            shelf.createMiddleware(
-                errorHandler: _handleError)).addMiddleware(
-                    shelf.createMiddleware(
-                        responseHandler: _disableGzip)).addHandler(handleRequest));
+            shelf.createMiddleware(errorHandler: _handleError)).addHandler(handleRequest));
   }
   Future close() {
     return Future.wait([_server.close(), _resultsController.close()]);
@@ -77,13 +73,5 @@ abstract class BaseServer<T> {
     _resultsController.addError(error, stackTrace);
     close();
     return new shelf.Response.internalServerError();
-  }
-  _disableGzip(shelf.Response response) {
-    if (!response.headers.containsKey('Content-Encoding')) {
-      return response.change(headers: {
-        'Content-Encoding': ''
-      });
-    }
-    return response;
   }
 }

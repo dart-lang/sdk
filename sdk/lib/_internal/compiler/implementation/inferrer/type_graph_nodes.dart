@@ -325,12 +325,15 @@ abstract class ElementTypeInformation extends TypeInformation {
  * - Functions
  * - Constructors
  * - Fields (also synthetic ones due to closures)
+ * - Local functions (closures)
  *
  * These should never be created directly but instead are constructed by
  * the [ElementTypeInformation] factory.
  */
 class MemberTypeInformation extends ElementTypeInformation
     with ApplyableTypeInformation {
+  TypedElement get element => super.element;
+
   /**
    * If [element] is a function, [closurizedCount] is the number of
    * times it is closurized. The value gets updated while infering.
@@ -433,14 +436,19 @@ class MemberTypeInformation extends ElementTypeInformation
     if (!compiler.trustTypeAnnotations && !compiler.enableTypeAssertions) {
       return mask;
     }
-    if (element.isGenerativeConstructor || element.isSetter) return mask;
-    var type = element.computeType(compiler);
-    if (element.isFunction ||
-        element.isGetter ||
-        element.isFactoryConstructor) {
-      type = type.returnType;
+    if (element.isGenerativeConstructor ||
+        element.isSetter) {
+      return mask;
     }
-    return new TypeMaskSystem(compiler).narrowType(mask, type);
+    if (element.isField) {
+      return new TypeMaskSystem(compiler).narrowType(mask, element.type);
+    }
+    assert(element.isFunction ||
+           element.isGetter ||
+           element.isFactoryConstructor);
+
+    FunctionType type = element.type;
+    return new TypeMaskSystem(compiler).narrowType(mask, type.returnType);
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
@@ -448,6 +456,10 @@ class MemberTypeInformation extends ElementTypeInformation
     if (special != null) return potentiallyNarrowType(special, inferrer);
     return potentiallyNarrowType(
         inferrer.types.computeTypeMask(assignments), inferrer);
+  }
+
+  TypeMask safeType(TypeGraphInferrerEngine inferrer) {
+    return potentiallyNarrowType(super.safeType(inferrer), inferrer);
   }
 
   String toString() => 'MemberElement $element $type';
@@ -550,10 +562,28 @@ class ParameterTypeInformation extends ElementTypeInformation {
     return null;
   }
 
+  TypeMask potentiallyNarrowType(TypeMask mask,
+                                 TypeGraphInferrerEngine inferrer) {
+    Compiler compiler = inferrer.compiler;
+    if (!compiler.trustTypeAnnotations) {
+      return mask;
+    }
+    // When type assertions are enabled (aka checked mode), we have to always
+    // ignore type annotations to ensure that the checks are actually inserted
+    // into the function body and retained until runtime.
+    assert(!compiler.enableTypeAssertions);
+    return new TypeMaskSystem(compiler).narrowType(mask, element.type);
+  }
+
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
     TypeMask special = handleSpecialCases(inferrer);
     if (special != null) return special;
-    return inferrer.types.computeTypeMask(assignments);
+    return potentiallyNarrowType(inferrer.types.computeTypeMask(assignments),
+                                 inferrer);
+  }
+
+  TypeMask safeType(TypeGraphInferrerEngine inferrer) {
+    return potentiallyNarrowType(super.safeType(inferrer), inferrer);
   }
 
   bool hasStableType(TypeGraphInferrerEngine inferrer) {
@@ -568,6 +598,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
   accept(TypeInformationVisitor visitor) {
     return visitor.visitParameterTypeInformation(this);
   }
+
+  String toString() => 'ParameterElement $element $type';
 }
 
 /**

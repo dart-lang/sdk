@@ -93,6 +93,37 @@ void main() {
       });
     });
 
+    test('thrown in new Future()', () {
+      return captureFuture(() => inNewFuture(() => throw 'error'))
+          .then((chain) {
+        expect(chain.traces, hasLength(3));
+        expect(chain.traces[0].frames.first, frameMember(startsWith('main')));
+
+        // The second trace is the one captured by
+        // [StackZoneSpecification.errorCallback]. Because that runs
+        // asynchronously within [new Future], it doesn't actually refer to the
+        // source file at all.
+        expect(chain.traces[1].frames,
+            everyElement(frameLibrary(isNot(contains('chain_test')))));
+
+        expect(chain.traces[2].frames,
+            contains(frameMember(startsWith('inNewFuture'))));
+      });
+    });
+
+    test('thrown in new Future.sync()', () {
+      return captureFuture(() {
+        inMicrotask(() => inSyncFuture(() => throw 'error'));
+      }).then((chain) {
+        expect(chain.traces, hasLength(3));
+        expect(chain.traces[0].frames.first, frameMember(startsWith('main')));
+        expect(chain.traces[1].frames,
+            contains(frameMember(startsWith('inSyncFuture'))));
+        expect(chain.traces[2].frames,
+            contains(frameMember(startsWith('inMicrotask'))));
+      });
+    });
+
     test('multiple times', () {
       var completer = new Completer();
       var first = true;
@@ -119,6 +150,73 @@ void main() {
       });
 
       return completer.future;
+    });
+
+    test('passed to a completer', () {
+      var trace = new Trace.current();
+      return captureFuture(() {
+        inMicrotask(() => completerErrorFuture(trace));
+      }).then((chain) {
+        expect(chain.traces, hasLength(3));
+
+        // The first trace is the trace that was manually reported for the
+        // error.
+        expect(chain.traces.first.toString(), equals(trace.toString()));
+
+        // The second trace is the trace that was captured when
+        // [Completer.addError] was called.
+        expect(chain.traces[1].frames,
+            contains(frameMember(startsWith('completerErrorFuture'))));
+
+        // The third trace is the automatically-captured trace from when the
+        // microtask was scheduled.
+        expect(chain.traces[2].frames,
+            contains(frameMember(startsWith('inMicrotask'))));
+      });
+    });
+
+    test('passed to a completer with no stack trace', () {
+      return captureFuture(() {
+        inMicrotask(() => completerErrorFuture());
+      }).then((chain) {
+        expect(chain.traces, hasLength(2));
+
+        // The first trace is the one captured when [Completer.addError] was
+        // called.
+        expect(chain.traces[0].frames,
+            contains(frameMember(startsWith('completerErrorFuture'))));
+
+        // The second trace is the automatically-captured trace from when the
+        // microtask was scheduled.
+        expect(chain.traces[1].frames,
+            contains(frameMember(startsWith('inMicrotask'))));
+      });
+    });
+
+    test('passed to a stream controller', () {
+      var trace = new Trace.current();
+      return captureFuture(() {
+        inMicrotask(() => controllerErrorStream(trace).listen(null));
+      }).then((chain) {
+        expect(chain.traces, hasLength(3));
+        expect(chain.traces.first.toString(), equals(trace.toString()));
+        expect(chain.traces[1].frames,
+            contains(frameMember(startsWith('controllerErrorStream'))));
+        expect(chain.traces[2].frames,
+            contains(frameMember(startsWith('inMicrotask'))));
+      });
+    });
+
+    test('passed to a stream controller with no stack trace', () {
+      return captureFuture(() {
+        inMicrotask(() => controllerErrorStream().listen(null));
+      }).then((chain) {
+        expect(chain.traces, hasLength(2));
+        expect(chain.traces[0].frames,
+            contains(frameMember(startsWith('controllerErrorStream'))));
+        expect(chain.traces[1].frames,
+            contains(frameMember(startsWith('inMicrotask'))));
+      });
     });
 
     test('and relays them to the parent zone', () {
@@ -526,50 +624,6 @@ void main() {
   });
 
   group('Chain.track(Future)', () {
-    test('associates the current chain with a manually-reported exception with '
-        'a stack trace', () {
-      var trace = new Trace.current();
-      return captureFuture(() {
-        inMicrotask(() => trackedErrorFuture(trace));
-      }).then((chain) {
-        expect(chain.traces, hasLength(3));
-
-        // The first trace is the trace that was manually reported for the
-        // error.
-        expect(chain.traces.first.toString(), equals(trace.toString()));
-
-        // The second trace is the trace that was captured when [Chain.track]
-        // was called.
-        expect(chain.traces[1].frames.first,
-            frameMember(startsWith('trackedErrorFuture')));
-
-        // The third trace is the automatically-captured trace from when the
-        // microtask was scheduled.
-        expect(chain.traces[2].frames,
-            contains(frameMember(startsWith('inMicrotask'))));
-      });
-    });
-
-    test('associates the current chain with a manually-reported exception with '
-        'no stack trace', () {
-      return captureFuture(() {
-        inMicrotask(() => trackedErrorFuture());
-      }).then((chain) {
-        expect(chain.traces, hasLength(3));
-
-        // The first trace is the one captured by
-        // [StackZoneSpecification.trackFuture], which should contain only
-        // stack_trace and dart: frames.
-        expect(chain.traces.first.frames,
-            everyElement(frameLibrary(isNot(contains('chain_test')))));
-
-        expect(chain.traces[1].frames.first,
-            frameMember(startsWith('trackedErrorFuture')));
-        expect(chain.traces[2].frames,
-            contains(frameMember(startsWith('inMicrotask'))));
-      });
-    });
-
     test('forwards the future value within Chain.capture()', () {
       Chain.capture(() {
         expect(Chain.track(new Future.value('value')),
@@ -598,36 +652,6 @@ void main() {
   });
 
   group('Chain.track(Stream)', () {
-    test('associates the current chain with a manually-reported exception with '
-        'a stack trace', () {
-      var trace = new Trace.current();
-      return captureFuture(() {
-        inMicrotask(() => trackedErrorStream(trace).listen(null));
-      }).then((chain) {
-        expect(chain.traces, hasLength(3));
-        expect(chain.traces.first.toString(), equals(trace.toString()));
-        expect(chain.traces[1].frames.first,
-            frameMember(startsWith('trackedErrorStream')));
-        expect(chain.traces[2].frames,
-            contains(frameMember(startsWith('inMicrotask'))));
-      });
-    });
-
-    test('associates the current chain with a manually-reported exception with '
-        'no stack trace', () {
-      return captureFuture(() {
-        inMicrotask(() => trackedErrorStream().listen(null));
-      }).then((chain) {
-        expect(chain.traces, hasLength(3));
-        expect(chain.traces.first.frames,
-            everyElement(frameLibrary(isNot(contains('chain_test')))));
-        expect(chain.traces[1].frames.first,
-            frameMember(startsWith('trackedErrorStream')));
-        expect(chain.traces[2].frames,
-            contains(frameMember(startsWith('inMicrotask'))));
-      });
-    });
-
     test('forwards stream values within Chain.capture()', () {
       Chain.capture(() {
         var controller = new StreamController()
@@ -692,22 +716,30 @@ void inFutureChain(callback()) {
       .then((_) => new Future(() {}));
 }
 
-/// Returns a Future that completes to an error and is wrapped in [Chain.track].
-///
-/// If [trace] is passed, it's used as the stack trace for the error.
-Future trackedErrorFuture([StackTrace trace]) {
-  var completer = new Completer();
-  completer.completeError('error', trace);
-  return Chain.track(completer.future);
+void inNewFuture(callback()) {
+  new Future(callback);
 }
 
-/// Returns a Stream that emits an error and is wrapped in [Chain.track].
+void inSyncFuture(callback()) {
+  new Future.sync(callback);
+}
+
+/// Returns a Future that completes to an error using a completer.
 ///
 /// If [trace] is passed, it's used as the stack trace for the error.
-Stream trackedErrorStream([StackTrace trace]) {
+Future completerErrorFuture([StackTrace trace]) {
+  var completer = new Completer();
+  completer.completeError('error', trace);
+  return completer.future;
+}
+
+/// Returns a Stream that emits an error using a controller.
+///
+/// If [trace] is passed, it's used as the stack trace for the error.
+Stream controllerErrorStream([StackTrace trace]) {
   var controller = new StreamController();
   controller.addError('error', trace);
-  return Chain.track(controller.stream);
+  return controller.stream;
 }
 
 /// Runs [callback] within [asyncFn], then converts any errors raised into a

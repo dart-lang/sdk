@@ -11,7 +11,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:pool/pool.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 import '../../../../compiler/compiler.dart' as compiler;
 import '../../../../compiler/implementation/dart2js.dart'
@@ -125,14 +124,13 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
     // against.
     var id = transform.primaryInput.id;
 
-    var entrypoint = path.join(_environment.graph.packages[id.package].dir,
-        id.path);
+    var entrypoint = _environment.graph.packages[id.package].path(id.path);
 
     // TODO(rnystrom): Should have more sophisticated error-handling here. Need
     // to report compile errors to the user in an easily visible way. Need to
     // make sure paths in errors are mapped to the original source path so they
     // can understand them.
-    return Chain.track(dart.compile(
+    return dart.compile(
         entrypoint, provider,
         commandLineOptions: _configCommandLineOptions,
         csp: _configBool('csp'),
@@ -141,14 +139,14 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
             'minify', defaultsTo: _settings.mode == BarbackMode.RELEASE),
         verbose: _configBool('verbose'),
         environment: _configEnvironment,
-        packageRoot: path.join(_environment.rootPackage.dir, "packages"),
+        packageRoot: _environment.rootPackage.path("packages"),
         analyzeAll: _configBool('analyzeAll'),
         suppressWarnings: _configBool('suppressWarnings'),
         suppressHints: _configBool('suppressHints'),
         suppressPackageWarnings: _configBool(
             'suppressPackageWarnings', defaultsTo: true),
         terse: _configBool('terse'),
-        includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE));
+        includeSourceMapUrls: _settings.mode != BarbackMode.RELEASE);
   }
 
   /// Parses and returns the "commandLineOptions" configuration option.
@@ -260,7 +258,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // TODO(rnystrom): Fix this if #17751 is fixed.
     var buildDir = _environment.getSourceDirectoryContaining(
         _transform.primaryInput.id.path);
-    _libraryRootPath = path.join(_environment.rootPackage.dir,
+    _libraryRootPath = _environment.rootPackage.path(
         buildDir, "packages", r"$sdk");
   }
 
@@ -373,7 +371,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
   }
 
   Future<String> _readResource(Uri url) {
-    return syncFuture(() {
+    return new Future.sync(() {
       // Find the corresponding asset in barback.
       var id = _sourceUrlToId(url);
       if (id != null) return _transform.readInputAsString(id);
@@ -395,8 +393,8 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // should be loaded directly from disk.
     var sourcePath = path.fromUri(url);
     if (_environment.containsPath(sourcePath)) {
-      var relative = path.toUri(path.relative(sourcePath,
-          from: _environment.rootPackage.dir)).toString();
+      var relative = path.toUri(_environment.rootPackage.relative(sourcePath))
+          .toString();
 
       return new AssetId(_environment.rootPackage.name, relative);
     }

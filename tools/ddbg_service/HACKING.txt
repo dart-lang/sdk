@@ -1,0 +1,17 @@
+ddbg_service
+---
+
+ddbg_service is a command line debugger for the Dart VM implemented
+using the Dart VM Service.  It is still being written and is not ready
+for use.
+
+Assumptions:
+You are running pub from the latest dev channel release of Dart Editor.
+
+Before running ddbg_service, you will need to run get packages from pub:
+
+    pub upgrade
+
+Then launch ddbg_service:
+
+    dart bin/ddbg_service.dart

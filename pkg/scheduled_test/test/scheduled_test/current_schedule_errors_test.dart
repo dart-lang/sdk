@@ -5,15 +5,18 @@
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
 
-import '../metatest.dart';
+import 'package:metatest/metatest.dart';
 import '../utils.dart';
 
-void main(_, message) {
+void main() => initTests(_test);
+
+void _test(message) {
   initMetatest(message);
 
   setUpTimeout();
 
-  expectTests('a scheduled test with an out-of-band error should fail', () {
+  expectTestResults('a scheduled test with an out-of-band error should fail',
+      () {
     mock_clock.mock().run();
     test('test 1', () {
       sleep(1).then((_) => throw 'error');
@@ -22,7 +25,13 @@ void main(_, message) {
     test('test 2', () {
       return sleep(2);
     });
-  }, {'test 1': ERROR, 'test 2': PASS});
+  }, [{
+    'description': 'test 1',
+    'result': 'error'
+  }, {
+    'description': 'test 2',
+    'result': 'pass'
+  }]);
 
   expectTestsPass('currentSchedule.errors contains the error in the onComplete '
       'queue', () {

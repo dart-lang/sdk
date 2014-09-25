@@ -11,6 +11,7 @@ import 'package:path/path.dart' as path;
 
 import 'src/build/build_filter.dart';
 import 'src/build/common.dart';
+import 'src/build/index_page_builder.dart';
 import 'src/build/import_inliner.dart';
 import 'src/build/linter.dart';
 import 'src/build/build_log_combiner.dart';
@@ -44,6 +45,7 @@ TransformOptions _parseSettings(BarbackSettings settings) {
   bool lint = args['lint'] != false; // defaults to true
   bool injectBuildLogs =
       !releaseMode && args['inject_build_logs_in_output'] != false;
+  bool injectPlatformJs = args['inject_platform_js'] != false;
   return new TransformOptions(
       entryPoints: readEntrypoints(args['entry_points']),
       inlineStylesheets: _readInlineStylesheets(args['inline_stylesheets']),
@@ -51,7 +53,8 @@ TransformOptions _parseSettings(BarbackSettings settings) {
       contentSecurityPolicy: csp,
       releaseMode: releaseMode,
       lint: lint,
-      injectBuildLogsInOutput: injectBuildLogs);
+      injectBuildLogsInOutput: injectBuildLogs,
+      injectPlatformJs: injectPlatformJs);
 }
 
 readEntrypoints(value) {
@@ -118,7 +121,7 @@ List<List<Transformer>> createDeployPhases(
   // that is reachable and have the option to lint the rest (similar to how
   // dart2js can analyze reachable code or entire libraries).
   var phases = options.lint ? [[new Linter(options)]] : [];
-  return phases..addAll([
+  phases.addAll([
     [new ImportInliner(options)],
     [new ObservableTransformer()],
     [new ScriptCompactor(options, sdkDir: sdkDir)],
@@ -126,6 +129,10 @@ List<List<Transformer>> createDeployPhases(
     [new BuildFilter(options)],
     [new BuildLogCombiner(options)],
   ]);
+  if (!options.releaseMode) {
+    phases.add([new IndexPageBuilder(options)]);
+  }
+  return phases;
 }
 
 final RegExp _PACKAGE_PATH_REGEX = new RegExp(r'packages\/([^\/]+)\/(.*)');

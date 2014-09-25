@@ -411,12 +411,15 @@ void scheduleSymlink(String target, String symlink) {
 /// If [outputJson] is given, validates that pub outputs stringified JSON
 /// matching that object, which can be a literal JSON object or any other
 /// [Matcher].
+///
+/// If [environment] is given, any keys in it will override the environment
+/// variables passed to the spawned process.
 void schedulePub({List args, output, error, outputJson,
-    Future<Uri> tokenEndpoint, int exitCode: exit_codes.SUCCESS}) {
+    int exitCode: exit_codes.SUCCESS, Map<String, String> environment}) {
   // Cannot pass both output and outputJson.
   assert(output == null || outputJson == null);
 
-  var pub = startPub(args: args, tokenEndpoint: tokenEndpoint);
+  var pub = startPub(args: args, environment: environment);
   pub.shouldExit(exitCode);
 
   var failures = [];
@@ -476,16 +479,38 @@ void confirmPublish(ScheduledProcess pub) {
   pub.writeLine("y");
 }
 
+/// Gets the absolute path to [relPath], which is a relative path in the test
+/// sandbox.
+String _pathInSandbox(String relPath) {
+  return p.join(p.absolute(sandboxDir), relPath);
+}
+
+/// Gets the environment variables used to run pub in a test context.
+Map getPubTestEnvironment([String tokenEndpoint]) {
+  var environment = {};
+  environment['_PUB_TESTING'] = 'true';
+  environment['PUB_CACHE'] = _pathInSandbox(cachePath);
+
+  // Ensure a known SDK version is set for the tests that rely on that.
+  environment['_PUB_TEST_SDK_VERSION'] = "0.1.2+3";
+
+  if (tokenEndpoint != null) {
+    environment['_PUB_TEST_TOKEN_ENDPOINT'] = tokenEndpoint.toString();
+  }
+
+  return environment;
+}
+
 /// Starts a Pub process and returns a [ScheduledProcess] that supports
 /// interaction with that process.
 ///
 /// Any futures in [args] will be resolved before the process is started.
-ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
-  String pathInSandbox(String relPath) {
-    return p.join(p.absolute(sandboxDir), relPath);
-  }
-
-  ensureDir(pathInSandbox(appPath));
+///
+/// If [environment] is given, any keys in it will override the environment
+/// variables passed to the spawned process.
+ScheduledProcess startPub({List args, Future<String> tokenEndpoint,
+    Map<String, String> environment}) {
+  ensureDir(_pathInSandbox(appPath));
 
   // Find a Dart executable we can use to spawn. Use the same one that was
   // used to run this script itself.
@@ -510,32 +535,25 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
 
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
   var environmentFuture = tokenEndpoint.then((tokenEndpoint) {
-    var environment = {};
-    environment['_PUB_TESTING'] = 'true';
-    environment['PUB_CACHE'] = pathInSandbox(cachePath);
-
-    // Ensure a known SDK version is set for the tests that rely on that.
-    environment['_PUB_TEST_SDK_VERSION'] = "0.1.2+3";
-
-    if (tokenEndpoint != null) {
-      environment['_PUB_TEST_TOKEN_ENDPOINT'] =
-        tokenEndpoint.toString();
-    }
+    var pubEnvironment = getPubTestEnvironment(tokenEndpoint);
 
     // If there is a server running, tell pub what its URL is so hosted
     // dependencies will look there.
     if (_hasServer) {
       return port.then((p) {
-        environment['PUB_HOSTED_URL'] = "http://localhost:$p";
-        return environment;
+        pubEnvironment['PUB_HOSTED_URL'] = "http://localhost:$p";
+        return pubEnvironment;
       });
     }
 
-    return environment;
+    return pubEnvironment;
+  }).then((pubEnvironment) {
+    if (environment != null) pubEnvironment.addAll(environment);
+    return pubEnvironment;
   });
 
   return new PubProcess.start(dartBin, dartArgs, environment: environmentFuture,
-      workingDirectory: pathInSandbox(appPath),
+      workingDirectory: _pathInSandbox(appPath),
       description: args.isEmpty ? 'pub' : 'pub ${args.first}');
 }
 
@@ -934,7 +952,7 @@ Future<Pair<List<String>, List<String>>> schedulePackageValidation(
   return schedule(() {
     var cache = new SystemCache.withSources(p.join(sandboxDir, cachePath));
 
-    return syncFuture(() {
+    return new Future.sync(() {
       var validator = fn(new Entrypoint(p.join(sandboxDir, appPath), cache));
       return validator.validate().then((_) {
         return new Pair(validator.errors, validator.warnings);

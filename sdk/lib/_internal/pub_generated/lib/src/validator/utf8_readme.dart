@@ -3,12 +3,11 @@ import 'dart:async';
 import 'dart:convert';
 import '../entrypoint.dart';
 import '../io.dart';
-import '../utils.dart';
 import '../validator.dart';
 class Utf8ReadmeValidator extends Validator {
   Utf8ReadmeValidator(Entrypoint entrypoint) : super(entrypoint);
   Future validate() {
-    return syncFuture(() {
+    return new Future.sync(() {
       var readme = entrypoint.root.readmePath;
       if (readme == null) return;
       var bytes = readBinaryFile(readme);

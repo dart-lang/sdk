@@ -20,7 +20,7 @@ class BarbackServer extends BaseServer<BarbackServerResult> {
   static Future<BarbackServer> bind(AssetEnvironment environment, String host,
       int port, {String package, String rootDirectory}) {
     if (package == null) package = environment.rootPackage.name;
-    return Chain.track(bindServer(host, port)).then((server) {
+    return bindServer(host, port).then((server) {
       if (rootDirectory == null) {
         log.fine('Serving packages on $host:$port.');
       } else {

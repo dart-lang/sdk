@@ -2,96 +2,99 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
+library unittest.expect_async_test;
 
 import 'dart:async';
-import 'dart:isolate';
 
+import 'package:metatest/metatest.dart';
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+void main() => initTests(_test);
 
-var testFunction = (TestConfiguration testConfig) {
-  test('expectAsync zero params', () {
-    _defer(expectAsync(() {
-      ++testConfig.count;
-    }));
-  });
+void _test(message) {
+  initMetatest(message);
 
-  test('expectAsync 1 param', () {
-    var func = expectAsync((arg) {
-      expect(arg, 0);
-      ++testConfig.count;
-    });
-    _defer(() => func(0));
-  });
+  var count = 0;
 
-  test('expectAsync 2 param', () {
-    var func = expectAsync((arg0, arg1) {
-      expect(arg0, 0);
-      expect(arg1, 1);
-      ++testConfig.count;
-    });
-    _defer(() => func(0, 1));
-  });
-
-  test('single arg to Future.catchError', () {
-    var func = expectAsync((error) {
-      expect(error, isStateError);
-      ++testConfig.count;
+  expectTestsPass('expect async test', () {
+    test('expectAsync zero params', () {
+      new Future.sync(expectAsync(() {
+        ++count;
+      }));
     });
 
-    new Future(() {
-      throw new StateError('test');
-    }).catchError(func);
-  });
-
-  test('2 args to Future.catchError', () {
-    var func = expectAsync((error, stack) {
-      expect(error, isStateError);
-      expect(stack is StackTrace, isTrue);
-      ++testConfig.count;
+    test('expectAsync 1 param', () {
+      var func = expectAsync((arg) {
+        expect(arg, 0);
+        ++count;
+      });
+      new Future.sync(() => func(0));
     });
 
-    new Future(() {
-      throw new StateError('test');
-    }).catchError(func);
-  });
-
-  test('zero of two optional positional args', () {
-    var func = expectAsync(([arg0 = true, arg1 = true]) {
-      expect(arg0, isTrue);
-      expect(arg1, isTrue);
-      ++testConfig.count;
+    test('expectAsync 2 param', () {
+      var func = expectAsync((arg0, arg1) {
+        expect(arg0, 0);
+        expect(arg1, 1);
+        ++count;
+      });
+      new Future.sync(() => func(0, 1));
     });
 
-    _defer(() => func());
-  });
+    test('single arg to Future.catchError', () {
+      var func = expectAsync((error) {
+        expect(error, isStateError);
+        ++count;
+      });
 
-  test('one of two optional positional args', () {
-    var func = expectAsync(([arg0 = true, arg1 = true]) {
-      expect(arg0, isFalse);
-      expect(arg1, isTrue);
-      ++testConfig.count;
+      new Future(() {
+        throw new StateError('test');
+      }).catchError(func);
     });
 
-    _defer(() => func(false));
-  });
+    test('2 args to Future.catchError', () {
+      var func = expectAsync((error, stack) {
+        expect(error, isStateError);
+        expect(stack is StackTrace, isTrue);
+        ++count;
+      });
 
-  test('two of two optional positional args', () {
-    var func = expectAsync(([arg0 = true, arg1 = true]) {
-      expect(arg0, isFalse);
-      expect(arg1, isNull);
-      ++testConfig.count;
+      new Future(() {
+        throw new StateError('test');
+      }).catchError(func);
     });
 
-    _defer(() => func(false, null));
-  });
-};
+    test('zero of two optional positional args', () {
+      var func = expectAsync(([arg0 = true, arg1 = true]) {
+        expect(arg0, isTrue);
+        expect(arg1, isTrue);
+        ++count;
+      });
 
-final expected = '8:0:0:8:8:::null:expectAsync zero params:'
-    ':expectAsync 1 param::expectAsync 2 param:'
-    ':single arg to Future.catchError::2 args to Future.catchError:'
-    ':zero of two optional positional args:'
-    ':one of two optional positional args:'
-    ':two of two optional positional args:';
+      new Future.sync(() => func());
+    });
+
+    test('one of two optional positional args', () {
+      var func = expectAsync(([arg0 = true, arg1 = true]) {
+        expect(arg0, isFalse);
+        expect(arg1, isTrue);
+        ++count;
+      });
+
+      new Future.sync(() => func(false));
+    });
+
+    test('two of two optional positional args', () {
+      var func = expectAsync(([arg0 = true, arg1 = true]) {
+        expect(arg0, isFalse);
+        expect(arg1, isNull);
+        ++count;
+      });
+
+      new Future.sync(() => func(false, null));
+    });
+
+    test('verify count', () {
+      expect(count, 8);
+    });
+  });
+}

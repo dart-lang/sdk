@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:compiler/implementation/universe/universe.dart';
 
 import 'closed_world.dart';
+import 'package:analyzer2dart/src/identifier_semantics.dart';
 
 /**
  * The result of performing local reachability analysis on a method.
@@ -24,7 +25,7 @@ class MethodAnalysis {
   /**
    * The functions statically called by the method.
    */
-  final List<LocalElement> calls = <LocalElement>[];
+  final List<ExecutableElement> calls = <ExecutableElement>[];
 
   /**
    * The selectors used by the method to perform dynamic invocation.
@@ -209,19 +210,6 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
 
   TreeShakingVisitor(this.analysis);
 
-  /**
-   * Handle a true method call (a MethodInvocation that represents a call to
-   * a non-static method).
-   */
-  void handleMethodCall(MethodInvocation node) {
-    analysis.invokes.add(createSelectorFromMethodInvocation(node));
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    super.visitFunctionDeclaration(node);
-  }
-
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorElement staticElement = node.staticElement;
@@ -240,110 +228,86 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-    Element staticElement = node.methodName.staticElement;
-    if (staticElement == null) {
-      if (node.realTarget != null) {
-        // Calling a method that has no known element, e.g.:
-        //   dynamic x;
-        //   x.foo();
-        handleMethodCall(node);
-      } else {
-        // Calling a toplevel function which has no known element, e.g.
-        //   main() {
-        //     foo();
-        //   }
-        // TODO(paulberry): deal with this case.  May need to notify the back
-        // end in case this makes it want to drag in some helper code.
-        throw new UnimplementedError();
-      }
-    } else if (staticElement is MethodElement) {
-      // Invoking a method, e.g.:
-      //   class A {
-      //     f() {}
-      //   }
-      //   main() {
-      //     new A().f();
-      //   }
-      // or via implicit this, i.e.:
-      //   class A {
-      //     f() {}
-      //     foo() {
-      //       f();
-      //     }
-      //   }
-      // TODO(paulberry): if user-provided types are wrong, this may actually
-      // be the PropertyAccessorElement case.
-      // TODO(paulberry): do we need to do something different for static
-      // methods?
-      handleMethodCall(node);
-    } else if (staticElement is PropertyAccessorElement) {
-      // Invoking a callable getter, e.g.:
-      //   typedef FunctionType();
-      //   class A {
-      //     FunctionType get f { ... }
-      //   }
-      //   main() {
-      //     new A().f();
-      //   }
-      // or via implicit this, i.e.:
-      //   typedef FunctionType();
-      //   class A {
-      //     FunctionType get f { ... }
-      //     foo() {
-      //       f();
-      //     }
-      //   }
-      // This also covers the case where the getter is synthetic, because we
-      // are getting a field (TODO(paulberry): verify that this is the case).
-      // TODO(paulberry): deal with this case.
-      // TODO(paulberry): if user-provided types are wrong, this may actually
-      // be the MethodElement case.
-      throw new UnimplementedError();
-    } else if (staticElement is MultiplyInheritedExecutableElement) {
-      // TODO(paulberry): deal with this case.
-      throw new UnimplementedError();
-    } else if (staticElement is LocalElement) {
-      // Invoking a callable local, e.g.:
-      //   typedef FunctionType();
-      //   main() {
-      //     FunctionType f = ...;
-      //     f();
-      //   }
-      // or:
-      //   main() {
-      //     f() { ... }
-      //     f();
-      //   }
-      // or:
-      //   f() {}
-      //   main() {
-      //     f();
-      //   }
-      // TODO(paulberry): for the moment we are assuming it's a toplevel
-      // function.
-      analysis.calls.add(staticElement);
-    } else if (staticElement is MultiplyDefinedElement) {
-      // TODO(paulberry): do we have to deal with this case?
-      throw new UnimplementedError();
+    if (node.target != null) {
+      node.target.accept(this);
     }
-    // TODO(paulberry): I believe all the other possibilities are errors, but
-    // we should double check.
+    node.argumentList.accept(this);
+    AccessSemantics semantics = classifyMethodInvocation(node);
+    switch (semantics.kind) {
+      case AccessKind.DYNAMIC:
+        analysis.invokes.add(createSelectorFromMethodInvocation(node));
+        break;
+      case AccessKind.LOCAL_FUNCTION:
+      case AccessKind.LOCAL_VARIABLE:
+      case AccessKind.PARAMETER:
+        // Locals don't need to be tree shaken.
+        break;
+      case AccessKind.STATIC_FIELD:
+        // Invocation of a field.  TODO(paulberry): handle this.
+        throw new UnimplementedError();
+      case AccessKind.STATIC_METHOD:
+        analysis.calls.add(semantics.element);
+        break;
+      case AccessKind.STATIC_PROPERTY:
+        // Invocation of a property.  TODO(paulberry): handle this.
+        throw new UnimplementedError();
+      default:
+        // Unexpected access kind.
+        throw new UnimplementedError();
+    }
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    // Accessing a getter or setter, e.g.:
-    //   class A {
-    //     get g() => ...;
-    //   }
-    //   main() {
-    //     new A().g;
-    //   }
-    // TODO(paulberry): do setters go through this path as well?
-    // TODO(paulberry): handle cases where the property access is represented
-    // as a PrefixedIdentifier.
-    super.visitPropertyAccess(node);
-    analysis.invokes.add(new Selector.getter(node.propertyName.name, null));
+    if (node.target != null) {
+      node.target.accept(this);
+    }
+    _handlePropertyAccess(classifyPropertyAccess(node));
+  }
+
+  @override
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    node.prefix.accept(this);
+    _handlePropertyAccess(classifyPrefixedIdentifier(node));
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    AccessSemantics semantics = classifySimpleIdentifier(node);
+    if (semantics != null) {
+      _handlePropertyAccess(semantics);
+    }
+  }
+
+  void _handlePropertyAccess(AccessSemantics semantics) {
+    switch (semantics.kind) {
+      case AccessKind.DYNAMIC:
+        if (semantics.isRead) {
+          analysis.invokes.add(
+              new Selector.getter(semantics.identifier.name, null));
+        }
+        if (semantics.isWrite) {
+          // TODO(paulberry): implement.
+          throw new UnimplementedError();
+        }
+        break;
+      case AccessKind.LOCAL_FUNCTION:
+      case AccessKind.LOCAL_VARIABLE:
+      case AccessKind.PARAMETER:
+        // Locals don't need to be tree shaken.
+        break;
+      case AccessKind.STATIC_FIELD:
+        // TODO(paulberry): implement.
+        throw new UnimplementedError();
+      case AccessKind.STATIC_METHOD:
+        // Method tear-off.  TODO(paulberry): implement.
+        break;
+      case AccessKind.STATIC_PROPERTY:
+        // TODO(paulberry): implement.
+        throw new UnimplementedError();
+      default:
+        // Unexpected access kind.
+        throw new UnimplementedError();
+    }
   }
 }

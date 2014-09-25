@@ -21,24 +21,54 @@ import 'utils.dart';
 /// Runs [executable] from [package] reachable from [entrypoint].
 ///
 /// The executable string is a relative Dart file path using native path
-/// separators without a trailing ".dart" extension. It is contained within
-/// [package], which should either be the entrypoint package or an immediate
-/// dependency of it.
+/// separators with or without a trailing ".dart" extension. It is contained
+/// within [package], which should either be the entrypoint package or an
+/// immediate dependency of it.
 ///
 /// Arguments from [args] will be passed to the spawned Dart application.
 ///
+/// If [mode] is passed, it's used as the barback mode; it defaults to
+/// [BarbackMode.RELEASE].
+///
 /// Returns the exit code of the spawned app.
 Future<int> runExecutable(Entrypoint entrypoint, String package,
-    String executable, Iterable<String> args, {bool isGlobal: false}) async {
+    String executable, Iterable<String> args, {bool isGlobal: false,
+    BarbackMode mode}) async {
+  if (mode == null) mode = BarbackMode.RELEASE;
+
+  // Make sure the package is an immediate dependency of the entrypoint or the
+  // entrypoint itself.
+  if (entrypoint.root.name != package &&
+      !entrypoint.root.immediateDependencies
+          .any((dep) => dep.name == package)) {
+    var graph = await entrypoint.loadPackageGraph();
+    if (graph.packages.containsKey(package)) {
+      dataError('Package "$package" is not an immediate dependency.\n'
+          'Cannot run executables in transitive dependencies.');
+    } else {
+      dataError('Could not find package "$package". Did you forget to add a '
+          'dependency?');
+    }
+  }
+
   // Unless the user overrides the verbosity, we want to filter out the
   // normal pub output shown while loading the environment.
   if (log.verbosity == log.Verbosity.NORMAL) {
     log.verbosity = log.Verbosity.WARNING;
   }
 
+  // Ignore a trailing extension.
+  if (p.extension(executable) == ".dart") {
+    executable = p.withoutExtension(executable);
+  }
+
   var localSnapshotPath = p.join(".pub", "bin", package,
       "$executable.dart.snapshot");
-  if (!isGlobal && fileExists(localSnapshotPath)) {
+  if (!isGlobal && fileExists(localSnapshotPath) &&
+      // Dependencies are only snapshotted in release mode, since that's the
+      // default mode for them to run. We can't run them in a different mode
+      // using the snapshot.
+      mode == BarbackMode.RELEASE) {
     return _runCachedExecutable(entrypoint, localSnapshotPath, args);
   }
 
@@ -54,10 +84,13 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
     executable = p.join("bin", executable);
   }
 
+  var assetPath = "${p.url.joinAll(p.split(executable))}.dart";
+  var id = new AssetId(package, assetPath);
+
   // TODO(nweiz): Use [packages] to only load assets from packages that the
   // executable might load.
-  var environment = await AssetEnvironment.create(entrypoint,
-      BarbackMode.RELEASE, useDart2JS: false);
+  var environment = await AssetEnvironment.create(entrypoint, mode,
+      useDart2JS: false, entrypoints: [id]);
   environment.barback.errors.listen((error) {
     log.error(log.red("Build error:\n$error"));
   });
@@ -69,27 +102,10 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
     // will work from within some deeply nested script.
     server = await environment.serveDirectory(rootDir);
   } else {
-    // Make sure the dependency exists.
-    var dep = entrypoint.root.immediateDependencies.firstWhere(
-        (dep) => dep.name == package, orElse: () => null);
-    if (dep == null) {
-      if (environment.graph.packages.containsKey(package)) {
-        dataError('Package "$package" is not an immediate dependency.\n'
-            'Cannot run executables in transitive dependencies.');
-      } else {
-        dataError('Could not find package "$package". Did you forget to '
-            'add a dependency?');
-      }
-    }
-
     // For other packages, always use the "bin" directory.
     server = await environment.servePackageBinDirectory(package);
   }
 
-  // Try to make sure the entrypoint script exists (or is generated) before
-  // we spawn the process to run it.
-  var assetPath = "${p.url.joinAll(p.split(executable))}.dart";
-  var id = new AssetId(server.package, assetPath);
   // TODO(rnystrom): Use try/catch here when
   // https://github.com/dart-lang/async_await/issues/4 is fixed.
   return environment.barback.getAssetById(id).then((_) async {

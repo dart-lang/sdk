@@ -3212,18 +3212,19 @@ void Assembler::TryAllocate(const Class& cls,
   if (FLAG_inline_alloc) {
     Heap* heap = Isolate::Current()->heap();
     const intptr_t instance_size = cls.instance_size();
-    LoadImmediate(TMP, Immediate(heap->TopAddress()), pp);
+    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    LoadImmediate(TMP, Immediate(heap->TopAddress(space)), pp);
     movq(instance_reg, Address(TMP, 0));
     AddImmediate(instance_reg, Immediate(instance_size), pp);
     // instance_reg: potential next object start.
-    LoadImmediate(TMP, Immediate(heap->EndAddress()), pp);
+    LoadImmediate(TMP, Immediate(heap->EndAddress(space)), pp);
     cmpq(instance_reg, Address(TMP, 0));
     j(ABOVE_EQUAL, failure, near_jump);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    LoadImmediate(TMP, Immediate(heap->TopAddress()), pp);
+    LoadImmediate(TMP, Immediate(heap->TopAddress(space)), pp);
     movq(Address(TMP, 0), instance_reg);
-    UpdateAllocationStats(cls.id());
+    UpdateAllocationStats(cls.id(), space);
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, Immediate(kHeapObjectTag - instance_size), pp);
     uword tags = 0;
@@ -3248,8 +3249,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
   if (FLAG_inline_alloc) {
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
-
-    movq(instance, Immediate(heap->TopAddress()));
+    Heap::Space space = heap->SpaceForAllocation(kArrayCid);
+    movq(instance, Immediate(heap->TopAddress(space)));
     movq(instance, Address(instance, 0));
     movq(end_address, RAX);
 
@@ -3259,16 +3260,16 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // Check if the allocation fits into the remaining space.
     // instance: potential new object start.
     // end_address: potential next object start.
-    movq(TMP, Immediate(heap->EndAddress()));
+    movq(TMP, Immediate(heap->EndAddress(space)));
     cmpq(end_address, Address(TMP, 0));
     j(ABOVE_EQUAL, failure);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
-    movq(TMP, Immediate(heap->TopAddress()));
+    movq(TMP, Immediate(heap->TopAddress(space)));
     movq(Address(TMP, 0), end_address);
     addq(instance, Immediate(kHeapObjectTag));
-    UpdateAllocationStatsWithSize(kArrayCid, instance_size);
+    UpdateAllocationStatsWithSize(kArrayCid, instance_size, space);
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.

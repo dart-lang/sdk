@@ -1988,6 +1988,9 @@ abstract class Compiler implements DiagnosticListener {
     return libraryUri;
   }
 
+  void diagnoseCrashInUserCode(String message, exception, stackTrace) {
+    // Overridden by Compiler in apiimpl.dart.
+  }
 }
 
 class CompilerTask {

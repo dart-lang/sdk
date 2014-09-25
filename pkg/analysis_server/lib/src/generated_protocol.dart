@@ -3577,7 +3577,9 @@ class EditGetRefactoringParams implements HasToJson {
  * edit.getRefactoring result
  *
  * {
- *   "problems": List<RefactoringProblem>
+ *   "initialProblems": List<RefactoringProblem>
+ *   "optionsProblems": List<RefactoringProblem>
+ *   "finalProblems": List<RefactoringProblem>
  *   "feedback": optional RefactoringFeedback
  *   "change": optional SourceChange
  *   "potentialEdits": optional List<String>
@@ -3585,10 +3587,25 @@ class EditGetRefactoringParams implements HasToJson {
  */
 class EditGetRefactoringResult implements HasToJson {
   /**
-   * The status of the refactoring. The array will be empty if there are no
-   * known problems.
+   * The initial status of the refactoring, i.e. problems related to the
+   * context in which the refactoring is requested. The array will be empty if
+   * there are no known problems.
    */
-  List<RefactoringProblem> problems;
+  List<RefactoringProblem> initialProblems;
+
+  /**
+   * The options validation status, i.e. problems in the given options, such as
+   * light-weight validation of a new name, flags compatibility, etc. The array
+   * will be empty if there are no known problems.
+   */
+  List<RefactoringProblem> optionsProblems;
+
+  /**
+   * The final status of the refactoring, i.e. problems identified in the
+   * result of a full, potentially expensive validation and / or change
+   * creation. The array will be empty if there are no known problems.
+   */
+  List<RefactoringProblem> finalProblems;
 
   /**
    * Data used to provide feedback to the user. The structure of the data is
@@ -3616,7 +3633,7 @@ class EditGetRefactoringResult implements HasToJson {
    */
   List<String> potentialEdits;
 
-  EditGetRefactoringResult(this.problems, {this.feedback, this.change, this.potentialEdits}) {
+  EditGetRefactoringResult(this.initialProblems, this.optionsProblems, this.finalProblems, {this.feedback, this.change, this.potentialEdits}) {
     if (potentialEdits == null) {
       potentialEdits = <String>[];
     }
@@ -3627,11 +3644,23 @@ class EditGetRefactoringResult implements HasToJson {
       json = {};
     }
     if (json is Map) {
-      List<RefactoringProblem> problems;
-      if (json.containsKey("problems")) {
-        problems = jsonDecoder._decodeList(jsonPath + ".problems", json["problems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+      List<RefactoringProblem> initialProblems;
+      if (json.containsKey("initialProblems")) {
+        initialProblems = jsonDecoder._decodeList(jsonPath + ".initialProblems", json["initialProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "problems");
+        throw jsonDecoder.missingKey(jsonPath, "initialProblems");
+      }
+      List<RefactoringProblem> optionsProblems;
+      if (json.containsKey("optionsProblems")) {
+        optionsProblems = jsonDecoder._decodeList(jsonPath + ".optionsProblems", json["optionsProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "optionsProblems");
+      }
+      List<RefactoringProblem> finalProblems;
+      if (json.containsKey("finalProblems")) {
+        finalProblems = jsonDecoder._decodeList(jsonPath + ".finalProblems", json["finalProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "finalProblems");
       }
       RefactoringFeedback feedback;
       if (json.containsKey("feedback")) {
@@ -3647,7 +3676,7 @@ class EditGetRefactoringResult implements HasToJson {
       } else {
         potentialEdits = <String>[];
       }
-      return new EditGetRefactoringResult(problems, feedback: feedback, change: change, potentialEdits: potentialEdits);
+      return new EditGetRefactoringResult(initialProblems, optionsProblems, finalProblems, feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring result");
     }
@@ -3660,7 +3689,9 @@ class EditGetRefactoringResult implements HasToJson {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["problems"] = problems.map((RefactoringProblem value) => value.toJson()).toList();
+    result["initialProblems"] = initialProblems.map((RefactoringProblem value) => value.toJson()).toList();
+    result["optionsProblems"] = optionsProblems.map((RefactoringProblem value) => value.toJson()).toList();
+    result["finalProblems"] = finalProblems.map((RefactoringProblem value) => value.toJson()).toList();
     if (feedback != null) {
       result["feedback"] = feedback.toJson();
     }
@@ -3683,7 +3714,9 @@ class EditGetRefactoringResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetRefactoringResult) {
-      return _listEqual(problems, other.problems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+      return _listEqual(initialProblems, other.initialProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+          _listEqual(optionsProblems, other.optionsProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+          _listEqual(finalProblems, other.finalProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
           feedback == other.feedback &&
           change == other.change &&
           _listEqual(potentialEdits, other.potentialEdits, (String a, String b) => a == b);
@@ -3694,7 +3727,9 @@ class EditGetRefactoringResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, problems.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, initialProblems.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, optionsProblems.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, finalProblems.hashCode);
     hash = _JenkinsSmiHash.combine(hash, feedback.hashCode);
     hash = _JenkinsSmiHash.combine(hash, change.hashCode);
     hash = _JenkinsSmiHash.combine(hash, potentialEdits.hashCode);
@@ -4191,56 +4226,58 @@ class ExecutionSetSubscriptionsResult {
  * execution.launchData params
  *
  * {
- *   "executables": List<ExecutableFile>
- *   "dartToHtml": Map<FilePath, List<FilePath>>
- *   "htmlToDart": Map<FilePath, List<FilePath>>
+ *   "file": FilePath
+ *   "kind": optional ExecutableKind
+ *   "referencedFiles": optional List<FilePath>
  * }
  */
 class ExecutionLaunchDataParams implements HasToJson {
   /**
-   * A list of the files that are executable. This list replaces any previous
-   * list provided.
+   * The file for which launch data is being provided. This will either be a
+   * Dart library or an HTML file.
    */
-  List<ExecutableFile> executables;
+  String file;
 
   /**
-   * A mapping from the paths of Dart files that are referenced by HTML files
-   * to a list of the HTML files that reference the Dart files.
+   * The kind of the executable file. This field is omitted if the file is not
+   * a Dart file.
    */
-  Map<String, List<String>> dartToHtml;
+  ExecutableKind kind;
 
   /**
-   * A mapping from the paths of HTML files that reference Dart files to a list
-   * of the Dart files they reference.
+   * A list of the Dart files that are referenced by the file. This field is
+   * omitted if the file is not an HTML file.
    */
-  Map<String, List<String>> htmlToDart;
+  List<String> referencedFiles;
 
-  ExecutionLaunchDataParams(this.executables, this.dartToHtml, this.htmlToDart);
+  ExecutionLaunchDataParams(this.file, {this.kind, this.referencedFiles}) {
+    if (referencedFiles == null) {
+      referencedFiles = <String>[];
+    }
+  }
 
   factory ExecutionLaunchDataParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
-      List<ExecutableFile> executables;
-      if (json.containsKey("executables")) {
-        executables = jsonDecoder._decodeList(jsonPath + ".executables", json["executables"], (String jsonPath, Object json) => new ExecutableFile.fromJson(jsonDecoder, jsonPath, json));
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "executables");
+        throw jsonDecoder.missingKey(jsonPath, "file");
       }
-      Map<String, List<String>> dartToHtml;
-      if (json.containsKey("dartToHtml")) {
-        dartToHtml = jsonDecoder._decodeMap(jsonPath + ".dartToHtml", json["dartToHtml"], valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeList(jsonPath, json, jsonDecoder._decodeString));
+      ExecutableKind kind;
+      if (json.containsKey("kind")) {
+        kind = new ExecutableKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+      }
+      List<String> referencedFiles;
+      if (json.containsKey("referencedFiles")) {
+        referencedFiles = jsonDecoder._decodeList(jsonPath + ".referencedFiles", json["referencedFiles"], jsonDecoder._decodeString);
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "dartToHtml");
+        referencedFiles = <String>[];
       }
-      Map<String, List<String>> htmlToDart;
-      if (json.containsKey("htmlToDart")) {
-        htmlToDart = jsonDecoder._decodeMap(jsonPath + ".htmlToDart", json["htmlToDart"], valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeList(jsonPath, json, jsonDecoder._decodeString));
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "htmlToDart");
-      }
-      return new ExecutionLaunchDataParams(executables, dartToHtml, htmlToDart);
+      return new ExecutionLaunchDataParams(file, kind: kind, referencedFiles: referencedFiles);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "execution.launchData params");
     }
@@ -4253,9 +4290,13 @@ class ExecutionLaunchDataParams implements HasToJson {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["executables"] = executables.map((ExecutableFile value) => value.toJson()).toList();
-    result["dartToHtml"] = dartToHtml;
-    result["htmlToDart"] = htmlToDart;
+    result["file"] = file;
+    if (kind != null) {
+      result["kind"] = kind.toJson();
+    }
+    if (referencedFiles.isNotEmpty) {
+      result["referencedFiles"] = referencedFiles;
+    }
     return result;
   }
 
@@ -4269,9 +4310,9 @@ class ExecutionLaunchDataParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is ExecutionLaunchDataParams) {
-      return _listEqual(executables, other.executables, (ExecutableFile a, ExecutableFile b) => a == b) &&
-          _mapEqual(dartToHtml, other.dartToHtml, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b)) &&
-          _mapEqual(htmlToDart, other.htmlToDart, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b));
+      return file == other.file &&
+          kind == other.kind &&
+          _listEqual(referencedFiles, other.referencedFiles, (String a, String b) => a == b);
     }
     return false;
   }
@@ -4279,9 +4320,9 @@ class ExecutionLaunchDataParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, executables.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, dartToHtml.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, htmlToDart.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, referencedFiles.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -5071,6 +5112,7 @@ class CompletionRelevance {
  *   "docSummary": optional String
  *   "docComplete": optional String
  *   "declaringType": optional String
+ *   "element": optional Element
  *   "returnType": optional String
  *   "parameterNames": optional List<String>
  *   "parameterTypes": optional List<String>
@@ -5141,6 +5183,11 @@ class CompletionSuggestion implements HasToJson {
   String declaringType;
 
   /**
+   * Information about the element reference being suggested.
+   */
+  Element element;
+
+  /**
    * The return type of the getter, function or method being suggested. This
    * field is omitted if the suggested element is not a getter, function or
    * method.
@@ -5185,7 +5232,7 @@ class CompletionSuggestion implements HasToJson {
    */
   String parameterType;
 
-  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.positionalParameterCount, this.parameterName, this.parameterType}) {
+  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.element, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.positionalParameterCount, this.parameterName, this.parameterType}) {
     if (parameterNames == null) {
       parameterNames = <String>[];
     }
@@ -5253,6 +5300,10 @@ class CompletionSuggestion implements HasToJson {
       if (json.containsKey("declaringType")) {
         declaringType = jsonDecoder._decodeString(jsonPath + ".declaringType", json["declaringType"]);
       }
+      Element element;
+      if (json.containsKey("element")) {
+        element = new Element.fromJson(jsonDecoder, jsonPath + ".element", json["element"]);
+      }
       String returnType;
       if (json.containsKey("returnType")) {
         returnType = jsonDecoder._decodeString(jsonPath + ".returnType", json["returnType"]);
@@ -5285,7 +5336,7 @@ class CompletionSuggestion implements HasToJson {
       if (json.containsKey("parameterType")) {
         parameterType = jsonDecoder._decodeString(jsonPath + ".parameterType", json["parameterType"]);
       }
-      return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, positionalParameterCount: positionalParameterCount, parameterName: parameterName, parameterType: parameterType);
+      return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, element: element, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, positionalParameterCount: positionalParameterCount, parameterName: parameterName, parameterType: parameterType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestion");
     }
@@ -5308,6 +5359,9 @@ class CompletionSuggestion implements HasToJson {
     }
     if (declaringType != null) {
       result["declaringType"] = declaringType;
+    }
+    if (element != null) {
+      result["element"] = element.toJson();
     }
     if (returnType != null) {
       result["returnType"] = returnType;
@@ -5349,6 +5403,7 @@ class CompletionSuggestion implements HasToJson {
           docSummary == other.docSummary &&
           docComplete == other.docComplete &&
           declaringType == other.declaringType &&
+          element == other.element &&
           returnType == other.returnType &&
           _listEqual(parameterNames, other.parameterNames, (String a, String b) => a == b) &&
           _listEqual(parameterTypes, other.parameterTypes, (String a, String b) => a == b) &&
@@ -5373,6 +5428,7 @@ class CompletionSuggestion implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, docSummary.hashCode);
     hash = _JenkinsSmiHash.combine(hash, docComplete.hashCode);
     hash = _JenkinsSmiHash.combine(hash, declaringType.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, element.hashCode);
     hash = _JenkinsSmiHash.combine(hash, returnType.hashCode);
     hash = _JenkinsSmiHash.combine(hash, parameterNames.hashCode);
     hash = _JenkinsSmiHash.combine(hash, parameterTypes.hashCode);
@@ -5722,6 +5778,7 @@ class Element implements HasToJson {
  *   LOCAL_VARIABLE
  *   METHOD
  *   PARAMETER
+ *   PREFIX
  *   SETTER
  *   TOP_LEVEL_VARIABLE
  *   TYPE_PARAMETER
@@ -5756,6 +5813,8 @@ class ElementKind {
   static const METHOD = const ElementKind._("METHOD");
 
   static const PARAMETER = const ElementKind._("PARAMETER");
+
+  static const PREFIX = const ElementKind._("PREFIX");
 
   static const SETTER = const ElementKind._("SETTER");
 
@@ -5801,6 +5860,8 @@ class ElementKind {
         return METHOD;
       case "PARAMETER":
         return PARAMETER;
+      case "PREFIX":
+        return PREFIX;
       case "SETTER":
         return SETTER;
       case "TOP_LEVEL_VARIABLE":
@@ -5918,6 +5979,7 @@ class ExecutableFile implements HasToJson {
  * enum {
  *   CLIENT
  *   EITHER
+ *   NOT_EXECUTABLE
  *   SERVER
  * }
  */
@@ -5925,6 +5987,8 @@ class ExecutableKind {
   static const CLIENT = const ExecutableKind._("CLIENT");
 
   static const EITHER = const ExecutableKind._("EITHER");
+
+  static const NOT_EXECUTABLE = const ExecutableKind._("NOT_EXECUTABLE");
 
   static const SERVER = const ExecutableKind._("SERVER");
 
@@ -5938,6 +6002,8 @@ class ExecutableKind {
         return CLIENT;
       case "EITHER":
         return EITHER;
+      case "NOT_EXECUTABLE":
+        return NOT_EXECUTABLE;
       case "SERVER":
         return SERVER;
     }
@@ -7592,7 +7658,9 @@ class Position implements HasToJson {
  *   EXTRACT_METHOD
  *   INLINE_LOCAL_VARIABLE
  *   INLINE_METHOD
+ *   MOVE_FILE
  *   RENAME
+ *   SORT_MEMBERS
  * }
  */
 class RefactoringKind {
@@ -7608,7 +7676,11 @@ class RefactoringKind {
 
   static const INLINE_METHOD = const RefactoringKind._("INLINE_METHOD");
 
+  static const MOVE_FILE = const RefactoringKind._("MOVE_FILE");
+
   static const RENAME = const RefactoringKind._("RENAME");
+
+  static const SORT_MEMBERS = const RefactoringKind._("SORT_MEMBERS");
 
   final String name;
 
@@ -7628,8 +7700,12 @@ class RefactoringKind {
         return INLINE_LOCAL_VARIABLE;
       case "INLINE_METHOD":
         return INLINE_METHOD;
+      case "MOVE_FILE":
+        return MOVE_FILE;
       case "RENAME":
         return RENAME;
+      case "SORT_MEMBERS":
+        return SORT_MEMBERS;
     }
     throw new Exception('Illegal enum value: $name');
   }
@@ -8640,8 +8716,21 @@ class SourceChange implements HasToJson {
   /**
    * Adds [edit] to the [FileEdit] for the given [file].
    */
-  void addEdit(String file, SourceEdit edit) =>
-      _addEditToSourceChange(this, file, edit);
+  void addEdit(String file, int fileStamp, SourceEdit edit) =>
+      _addEditToSourceChange(this, file, fileStamp, edit);
+
+  /**
+   * Adds [edit] to the [FileEdit] for the given [source].
+   */
+  void addSourceEdit(engine.AnalysisContext context,
+      engine.Source source, SourceEdit edit) =>
+      _addSourceEditToSourceChange(this, context, source, edit);
+
+  /**
+   * Adds [edit] to the [FileEdit] for the given [element].
+   */
+  void addElementEdit(engine.Element element, SourceEdit edit) =>
+      _addElementEditToSourceChange(this, element, edit);
 
   /**
    * Adds the given [FileEdit].
@@ -8825,6 +8914,7 @@ class SourceEdit implements HasToJson {
  *
  * {
  *   "file": FilePath
+ *   "fileStamp": long
  *   "edits": List<SourceEdit>
  * }
  */
@@ -8835,11 +8925,20 @@ class SourceFileEdit implements HasToJson {
   String file;
 
   /**
+   * The modification stamp of the file at the moment when the change was
+   * created, in milliseconds since the "Unix epoch". Will be -1 if the file
+   * did not exist and should be created. The client may use this field to make
+   * sure that the file was not changed since then, so it is safe to apply the
+   * change.
+   */
+  int fileStamp;
+
+  /**
    * A list of the edits used to effect the change.
    */
   List<SourceEdit> edits;
 
-  SourceFileEdit(this.file, {this.edits}) {
+  SourceFileEdit(this.file, this.fileStamp, {this.edits}) {
     if (edits == null) {
       edits = <SourceEdit>[];
     }
@@ -8856,13 +8955,19 @@ class SourceFileEdit implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
+      int fileStamp;
+      if (json.containsKey("fileStamp")) {
+        fileStamp = jsonDecoder._decodeInt(jsonPath + ".fileStamp", json["fileStamp"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "fileStamp");
+      }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
         edits = jsonDecoder._decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
-      return new SourceFileEdit(file, edits: edits);
+      return new SourceFileEdit(file, fileStamp, edits: edits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SourceFileEdit");
     }
@@ -8871,6 +8976,7 @@ class SourceFileEdit implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
+    result["fileStamp"] = fileStamp;
     result["edits"] = edits.map((SourceEdit value) => value.toJson()).toList();
     return result;
   }
@@ -8893,6 +8999,7 @@ class SourceFileEdit implements HasToJson {
   bool operator==(other) {
     if (other is SourceFileEdit) {
       return file == other.file &&
+          fileStamp == other.fileStamp &&
           _listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
     }
     return false;
@@ -8902,6 +9009,7 @@ class SourceFileEdit implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, fileStamp.hashCode);
     hash = _JenkinsSmiHash.combine(hash, edits.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
@@ -9872,6 +9980,85 @@ class InlineMethodOptions extends RefactoringOptions implements HasToJson {
     return _JenkinsSmiHash.finish(hash);
   }
 }
+/**
+ * moveFile feedback
+ */
+class MoveFileFeedback {
+  @override
+  bool operator==(other) {
+    if (other is MoveFileFeedback) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 438975893;
+  }
+}
+
+/**
+ * moveFile options
+ *
+ * {
+ *   "newFile": FilePath
+ * }
+ */
+class MoveFileOptions extends RefactoringOptions implements HasToJson {
+  /**
+   * The new file path to which the given file is being moved.
+   */
+  String newFile;
+
+  MoveFileOptions(this.newFile);
+
+  factory MoveFileOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String newFile;
+      if (json.containsKey("newFile")) {
+        newFile = jsonDecoder._decodeString(jsonPath + ".newFile", json["newFile"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "newFile");
+      }
+      return new MoveFileOptions(newFile);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "moveFile options");
+    }
+  }
+
+  factory MoveFileOptions.fromRefactoringParams(EditGetRefactoringParams refactoringParams, Request request) {
+    return new MoveFileOptions.fromJson(
+        new RequestDecoder(request), "options", refactoringParams.options);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["newFile"] = newFile;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is MoveFileOptions) {
+      return newFile == other.newFile;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, newFile.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
 
 /**
  * rename feedback
@@ -10035,5 +10222,39 @@ class RenameOptions extends RefactoringOptions implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, newName.hashCode);
     return _JenkinsSmiHash.finish(hash);
+  }
+}
+/**
+ * sortMembers feedback
+ */
+class SortMembersFeedback {
+  @override
+  bool operator==(other) {
+    if (other is SortMembersFeedback) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 173473419;
+  }
+}
+/**
+ * sortMembers options
+ */
+class SortMembersOptions {
+  @override
+  bool operator==(other) {
+    if (other is SortMembersOptions) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 99705880;
   }
 }

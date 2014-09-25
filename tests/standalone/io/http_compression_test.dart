@@ -14,6 +14,7 @@ import 'dart:typed_data';
 void testServerCompress({bool clientAutoUncompress: true}) {
   void test(List<int> data) {
     HttpServer.bind("127.0.0.1", 0).then((server) {
+      server.autoCompress = true;
       server.listen((request) {
         request.response.add(data);
         request.response.close();
@@ -55,6 +56,7 @@ void testServerCompress({bool clientAutoUncompress: true}) {
 void testAcceptEncodingHeader() {
   void test(String encoding, bool valid) {
     HttpServer.bind("127.0.0.1", 0).then((server) {
+      server.autoCompress = true;
       server.listen((request) {
         request.response.write("data");
         request.response.close();
@@ -92,8 +94,33 @@ void testAcceptEncodingHeader() {
   test('gzipx;', false);
 }
 
+void testDisableCompressTest() {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    Expect.equals(false, server.autoCompress);
+    server.listen((request) {
+      Expect.equals('gzip', request.headers.value(HttpHeaders.ACCEPT_ENCODING));
+      request.response.write("data");
+      request.response.close();
+    });
+    var client = new HttpClient();
+    client.get("127.0.0.1", server.port, "/")
+        .then((request) => request.close())
+        .then((response) {
+          Expect.equals(null,
+                        response.headers.value(HttpHeaders.CONTENT_ENCODING));
+          response.listen(
+              (_) {},
+              onDone: () {
+                server.close();
+                client.close();
+              });
+        });
+  });
+}
+
 void main() {
   testServerCompress();
   testServerCompress(clientAutoUncompress: false);
   testAcceptEncodingHeader();
+  testDisableCompressTest();
 }

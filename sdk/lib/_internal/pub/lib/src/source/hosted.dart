@@ -171,7 +171,7 @@ class HostedSource extends CachedSource {
   /// into [destPath].
   Future<bool> _download(String server, String package, Version version,
       String destPath) {
-    return syncFuture(() {
+    return new Future.sync(() {
       var url = Uri.parse("$server/packages/$package/versions/$version.tar.gz");
       log.io("Get package from $url.");
       log.message('Downloading ${log.bold(package)} ${version}...');

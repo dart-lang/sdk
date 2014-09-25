@@ -12,7 +12,7 @@ import 'package:analysis_server/src/services/correction/strings.dart';
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
  *   WARNING if the name is discouraged;
- *   ERROR if the name is illegal.
+ *   FATAL if the name is illegal.
  */
 RefactoringStatus validateClassName(String name) {
   return _validateUpperCamelCase(name, "Class");
@@ -22,7 +22,7 @@ RefactoringStatus validateClassName(String name) {
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
  *   WARNING if the name is discouraged;
- *   ERROR if the name is illegal.
+ *   FATAL if the name is illegal.
  */
 RefactoringStatus validateConstantName(String name) {
   // null
@@ -56,7 +56,7 @@ RefactoringStatus validateConstantName(String name) {
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
  *   WARNING if the name is discouraged;
- *   ERROR if the name is illegal.
+ *   FATAL if the name is illegal.
  */
 RefactoringStatus validateConstructorName(String name) {
   if (name != null && name.isEmpty) {
@@ -69,7 +69,7 @@ RefactoringStatus validateConstructorName(String name) {
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
  *   WARNING if the name is discouraged;
- *   ERROR if the name is illegal.
+ *   FATAL if the name is illegal.
  */
 RefactoringStatus validateFieldName(String name) {
   return _validateLowerCamelCase(name, "Field");
@@ -79,7 +79,7 @@ RefactoringStatus validateFieldName(String name) {
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
  *   WARNING if the name is discouraged;
- *   ERROR if the name is illegal.
+ *   FATAL if the name is illegal.
  */
 RefactoringStatus validateFunctionName(String name) {
   return _validateLowerCamelCase(name, "Function");
@@ -89,7 +89,7 @@ RefactoringStatus validateFunctionName(String name) {
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
  *   WARNING if the name is discouraged;
- *   ERROR if the name is illegal.
+ *   FATAL if the name is illegal.
  */
 RefactoringStatus validateFunctionTypeAliasName(String name) {
   return _validateUpperCamelCase(name, "Function type alias");
@@ -99,7 +99,7 @@ RefactoringStatus validateFunctionTypeAliasName(String name) {
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
  *   WARNING if the name is discouraged;
- *   ERROR if the name is illegal.
+ *   FATAL if the name is illegal.
  */
 RefactoringStatus validateImportPrefixName(String name) {
   if (name != null && name.isEmpty) {
@@ -112,7 +112,7 @@ RefactoringStatus validateImportPrefixName(String name) {
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
  *   WARNING if the name is discouraged;
- *   ERROR if the name is illegal.
+ *   FATAL if the name is illegal.
  */
 RefactoringStatus validateLabelName(String name) {
   return _validateLowerCamelCase(name, "Label");
@@ -122,7 +122,7 @@ RefactoringStatus validateLabelName(String name) {
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
  *   WARNING if the name is discouraged;
- *   ERROR if the name is illegal.
+ *   FATAL if the name is illegal.
  */
 RefactoringStatus validateLibraryName(String name) {
   // null
@@ -162,7 +162,7 @@ RefactoringStatus validateLibraryName(String name) {
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
  *   WARNING if the name is discouraged;
- *   ERROR if the name is illegal.
+ *   FATAL if the name is illegal.
  */
 RefactoringStatus validateMethodName(String name) {
   return _validateLowerCamelCase(name, "Method");
@@ -172,7 +172,7 @@ RefactoringStatus validateMethodName(String name) {
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
  *   WARNING if the name is discouraged;
- *   ERROR if the name is illegal.
+ *   FATAL if the name is illegal.
  */
 RefactoringStatus validateParameterName(String name) {
   return _validateLowerCamelCase(name, "Parameter");
@@ -182,7 +182,7 @@ RefactoringStatus validateParameterName(String name) {
  * Returns the [RefactoringStatus] with severity:
  *   OK if the name is valid;
  *   WARNING if the name is discouraged;
- *   ERROR if the name is illegal.
+ *   FATAL if the name is illegal.
  */
 RefactoringStatus validateVariableName(String name) {
   return _validateLowerCamelCase(name, "Variable");
@@ -194,7 +194,7 @@ RefactoringStatus _validateIdentifier(String identifier, String desc,
   String trimmed = identifier.trim();
   if (identifier != trimmed) {
     String message = "$desc must not start or end with a blank.";
-    return new RefactoringStatus.error(message);
+    return new RefactoringStatus.fatal(message);
   }
   // empty
   int length = identifier.length;
@@ -207,7 +207,7 @@ RefactoringStatus _validateIdentifier(String identifier, String desc,
       currentChar != CHAR_UNDERSCORE &&
       currentChar != CHAR_DOLLAR) {
     String message = "$desc must begin with $beginDesc.";
-    return new RefactoringStatus.error(message);
+    return new RefactoringStatus.fatal(message);
   }
   for (int i = 1; i < length; i++) {
     currentChar = identifier.codeUnitAt(i);
@@ -216,7 +216,7 @@ RefactoringStatus _validateIdentifier(String identifier, String desc,
         currentChar != CHAR_DOLLAR) {
       String charStr = new String.fromCharCode(currentChar);
       String message = "$desc must not contain '$charStr'.";
-      return new RefactoringStatus.error(message);
+      return new RefactoringStatus.fatal(message);
     }
   }
   return new RefactoringStatus();

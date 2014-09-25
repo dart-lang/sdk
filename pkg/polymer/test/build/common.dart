@@ -202,6 +202,8 @@ const EMPTY_DATA = '{"experimental_bootstrap":false,"script_ids":[]}';
 const WEB_COMPONENTS_TAG =
     '<script src="packages/web_components/platform.js"></script>\n'
     '<script src="packages/web_components/dart_support.js"></script>\n';
+const DART_SUPPORT_TAG =
+    '<script src="packages/web_components/dart_support.js"></script>\n';
 
 const INTEROP_TAG = '<script src="packages/browser/interop.js"></script>\n';
 const DART_JS_TAG = '<script src="packages/browser/dart.js"></script>';

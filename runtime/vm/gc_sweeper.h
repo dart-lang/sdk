@@ -20,7 +20,7 @@ class PageSpace;
 // memory.
 class GCSweeper {
  public:
-  explicit GCSweeper(Heap* heap) : heap_(heap) {}
+  GCSweeper() {}
   ~GCSweeper() {}
 
   // Sweep the memory area for the page while clearing the mark bits and adding
@@ -37,11 +37,6 @@ class GCSweeper {
                               HeapPage* first,
                               HeapPage* last,
                               FreeList* freelist);
-
- private:
-  Heap* heap_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(GCSweeper);
 };
 
 }  // namespace dart

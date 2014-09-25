@@ -7223,28 +7223,26 @@ AstNode* Parser::ParseDoWhileStatement(String* label_name) {
 AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
                                      SourceLabel* label) {
   TRACE_PARSER("ParseForInStatement");
-  bool is_final = (CurrentToken() == Token::kFINAL);
+  bool loop_var_is_final = (CurrentToken() == Token::kFINAL);
   if (CurrentToken() == Token::kCONST) {
     ReportError("Loop variable cannot be 'const'");
   }
   const String* loop_var_name = NULL;
-  LocalVariable* loop_var = NULL;
   intptr_t loop_var_pos = 0;
+  bool new_loop_var = false;
+  AbstractType& loop_var_type =  AbstractType::ZoneHandle(I);
   if (LookaheadToken(1) == Token::kIN) {
     loop_var_pos = TokenPos();
     loop_var_name = ExpectIdentifier("variable name expected");
   } else {
     // The case without a type is handled above, so require a type here.
-    const AbstractType& type =
-        AbstractType::ZoneHandle(I, ParseConstFinalVarOrType(
-            FLAG_enable_type_checks ? ClassFinalizer::kCanonicalize :
-                                      ClassFinalizer::kIgnore));
-    loop_var_pos = TokenPos();
+    // Delay creation of the local variable until we know its actual
+    // position, which is inside the loop body.
+    new_loop_var = true;
+    loop_var_type = ParseConstFinalVarOrType(
+        FLAG_enable_type_checks ? ClassFinalizer::kCanonicalize :
+                                  ClassFinalizer::kIgnore);
     loop_var_name = ExpectIdentifier("variable name expected");
-    loop_var = new(I) LocalVariable(loop_var_pos, *loop_var_name, type);
-    if (is_final) {
-      loop_var->set_is_final();
-    }
   }
   ExpectToken(Token::kIN);
   const intptr_t collection_pos = TokenPos();
@@ -7286,25 +7284,36 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   // loop body.
   OpenLoopBlock();
   current_block_->scope->AddLabel(label);
+  const intptr_t loop_var_assignment_pos = TokenPos();
 
   AstNode* iterator_current = new(I) InstanceGetterNode(
-      collection_pos,
-      new(I) LoadLocalNode(collection_pos, iterator_var),
+      loop_var_assignment_pos,
+      new(I) LoadLocalNode(loop_var_assignment_pos, iterator_var),
       Symbols::Current());
 
   // Generate assignment of next iterator value to loop variable.
   AstNode* loop_var_assignment = NULL;
-  if (loop_var != NULL) {
-    // The for loop declares a new variable. Add it to the loop body scope.
+  if (new_loop_var) {
+    // The for loop variable is new for each iteration.
+    // Create a variable and add it to the loop body scope.
+    LocalVariable* loop_var =
+       new(I) LocalVariable(loop_var_assignment_pos,
+                            *loop_var_name,
+                            loop_var_type);;
+    if (loop_var_is_final) {
+      loop_var->set_is_final();
+    }
     current_block_->scope->AddVariable(loop_var);
-    loop_var_assignment =
-        new(I) StoreLocalNode(loop_var_pos, loop_var, iterator_current);
+    loop_var_assignment = new(I) StoreLocalNode(
+        loop_var_assignment_pos, loop_var, iterator_current);
   } else {
     AstNode* loop_var_primary =
         ResolveIdent(loop_var_pos, *loop_var_name, false);
     ASSERT(!loop_var_primary->IsPrimaryNode());
-    loop_var_assignment = CreateAssignmentNode(
-        loop_var_primary, iterator_current, loop_var_name, loop_var_pos);
+    loop_var_assignment = CreateAssignmentNode(loop_var_primary,
+                                               iterator_current,
+                                               loop_var_name,
+                                               loop_var_assignment_pos);
     ASSERT(loop_var_assignment != NULL);
   }
   current_block_->statements->Add(loop_var_assignment);

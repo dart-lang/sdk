@@ -1,3 +1,46 @@
+#### 0.15.0-dev
+  * Added Polymer.forceReady method. This forces a ready state regardless of
+    whether or not there are still polymer-element declarations waiting for
+    their class definitions to be loaded.
+  * Added Polymer.waitingFor method. This returns a list of all polymer-element
+    declarations that are still waiting for their class definitions to be
+    loaded.
+  * Add runtime checking of the waitingFor queue and print to the console if a
+    deadlock situation is suspected to help diagnose the white screen of death.
+  * Added injectBoundHTML instance method. This can be used to dynamically
+    inject html that is bound to your current element into a target element.
+
+#### 0.14.3
+  * Warn if the same css file is inlined more than once,
+    [19996](http://dartbug.com/19996).
+  * Don't start moving elements from head to body until we find the first
+    import, [20826](http://dartbug.com/20826).
+  * Add option to not inject platform.js in the build output
+    [20865](http://dartbug.com/20865). To use, set `inject_platform_js` to
+    false in the polymer transformer config section of your pubspec.yaml:
+
+        transformers:
+        - polymer:
+            inject_platform_js: false
+            ...
+
+#### 0.14.2+1
+  * Fix findController function for js or dart wrapped elements. This fixes
+    event bindings when using paper-dialog and probably some other cases,
+    [20931](http://dartbug.com/20931).
+
+#### 0.14.2
+  * Polymer will now create helpful index pages in all folders containing entry
+    points and in their parent folders, in debug mode only
+    [20963](http://dartbug.com/20963).
+
+#### 0.14.1
+  * The build.dart file no longer requires a list of entry points, and you can
+    replace the entire file with `export 'package:polymer/default_build.dart';`
+    [20396](http://dartbug.com/20396).
+  * Inlined imports from the head of the document now get inserted inside a
+    hidden div, similar to the js vulcanizer [20943](http://dartbug.com/20943).
+
 #### 0.14.0+1
   * Small style improvements on error/warnings page.
 
@@ -9,6 +52,8 @@
     like the option to not inject platform.js at all in the built output (if you
     are deploying to chrome exclusively), please star this bug
     http://dartbug.com/20865.
+  * Fixed invalid linter warning when using event handlers inside an
+    `auto-binding-dart` template, [20913](http://dartbug.com/20913).
 
 #### 0.13.1
   * Upgraded error messages to have a unique and stable identifier. This

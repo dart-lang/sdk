@@ -10,11 +10,10 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:unittest/unittest.dart';
-
 import '../../abstract_single_unit.dart';
 import '../../reflective_tests.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:unittest/unittest.dart';
 
 
 main() {
@@ -73,12 +72,10 @@ class B extends A {
     ClassElement classB = findElement("B");
     ClassMemberElement memberA = classA.constructors[0];
     ClassMemberElement memberB = classB.constructors[0];
-    var futureA =
-        getHierarchyMembers(searchEngine, memberA, false).then((members) {
+    var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA]));
     });
-    var futureB =
-        getHierarchyMembers(searchEngine, memberB, false).then((members) {
+    var futureB = getHierarchyMembers(searchEngine, memberB).then((members) {
       expect(members, unorderedEquals([memberB]));
     });
     return Future.wait([futureA, futureB]);
@@ -108,20 +105,16 @@ class D {
     ClassMemberElement memberB = classB.fields[0];
     ClassMemberElement memberC = classC.fields[0];
     ClassMemberElement memberD = classD.fields[0];
-    var futureA =
-        getHierarchyMembers(searchEngine, memberA, false).then((members) {
+    var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
-    var futureB =
-        getHierarchyMembers(searchEngine, memberB, false).then((members) {
+    var futureB = getHierarchyMembers(searchEngine, memberB).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
-    var futureC =
-        getHierarchyMembers(searchEngine, memberC, false).then((members) {
+    var futureC = getHierarchyMembers(searchEngine, memberC).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
-    var futureD =
-        getHierarchyMembers(searchEngine, memberD, false).then((members) {
+    var futureD = getHierarchyMembers(searchEngine, memberD).then((members) {
       expect(members, unorderedEquals([memberD]));
     });
     return Future.wait([futureA, futureB, futureC, futureD]);
@@ -155,60 +148,22 @@ class E extends D {
     ClassMemberElement memberC = classC.methods[0];
     ClassMemberElement memberD = classD.methods[0];
     ClassMemberElement memberE = classE.methods[0];
-    var futureA =
-        getHierarchyMembers(searchEngine, memberA, false).then((members) {
+    var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
-    var futureB =
-        getHierarchyMembers(searchEngine, memberB, false).then((members) {
+    var futureB = getHierarchyMembers(searchEngine, memberB).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
-    var futureC =
-        getHierarchyMembers(searchEngine, memberC, false).then((members) {
+    var futureC = getHierarchyMembers(searchEngine, memberC).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberC]));
     });
-    var futureD =
-        getHierarchyMembers(searchEngine, memberD, false).then((members) {
+    var futureD = getHierarchyMembers(searchEngine, memberD).then((members) {
       expect(members, unorderedEquals([memberD, memberE]));
     });
-    var futureE =
-        getHierarchyMembers(searchEngine, memberE, false).then((members) {
+    var futureE = getHierarchyMembers(searchEngine, memberE).then((members) {
       expect(members, unorderedEquals([memberD, memberE]));
     });
     return Future.wait([futureA, futureB, futureC, futureD, futureE]);
-  }
-
-  Future test_getHierarchyMembers_methods_onlySuper() {
-    _indexTestUnit('''
-class A {
-  foo() {}
-}
-class B extends A {
-  foo() {}
-}
-class C extends B {
-  foo() {}
-}
-''');
-    ClassElement classA = findElement("A");
-    ClassElement classB = findElement("B");
-    ClassElement classC = findElement("C");
-    ClassMemberElement memberA = classA.methods[0];
-    ClassMemberElement memberB = classB.methods[0];
-    ClassMemberElement memberC = classC.methods[0];
-    var futureA =
-        getHierarchyMembers(searchEngine, memberA, true).then((members) {
-      expect(members, unorderedEquals([memberA]));
-    });
-    var futureB =
-        getHierarchyMembers(searchEngine, memberB, true).then((members) {
-      expect(members, unorderedEquals([memberA, memberB]));
-    });
-    var futureC =
-        getHierarchyMembers(searchEngine, memberC, true).then((members) {
-      expect(members, unorderedEquals([memberA, memberB, memberC]));
-    });
-    return Future.wait([futureA, futureB, futureC]);
   }
 
   Future test_getHierarchyMembers_withInterfaces() {
@@ -236,16 +191,13 @@ class E {
     ClassMemberElement memberA = classA.methods[0];
     ClassMemberElement memberB = classB.methods[0];
     ClassMemberElement memberD = classD.methods[0];
-    var futureA =
-        getHierarchyMembers(searchEngine, memberA, false).then((members) {
+    var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberD]));
     });
-    var futureB =
-        getHierarchyMembers(searchEngine, memberB, false).then((members) {
+    var futureB = getHierarchyMembers(searchEngine, memberB).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberD]));
     });
-    var futureD =
-        getHierarchyMembers(searchEngine, memberD, false).then((members) {
+    var futureD = getHierarchyMembers(searchEngine, memberD).then((members) {
       expect(members, unorderedEquals([memberA, memberB, memberD]));
     });
     return Future.wait([futureA, futureB, futureD]);

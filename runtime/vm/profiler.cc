@@ -1968,6 +1968,17 @@ void Profiler::RecordSampleInterruptCallback(
 
   ASSERT(isolate != Dart::vm_isolate());
 
+  uintptr_t sp = 0;
+  if ((isolate->stub_code() != NULL) &&
+      (isolate->top_exit_frame_info() == 0) &&
+      (isolate->vm_tag() == VMTag::kDartTagId)) {
+    // If we're in Dart code, use the Dart stack pointer.
+    sp = state.dsp;
+  } else {
+    // If we're in runtime code, use the C stack pointer.
+    sp = state.csp;
+  }
+
   IsolateProfilerData* profiler_data = isolate->profiler_data();
   if (profiler_data == NULL) {
     // Profiler not initialized.
@@ -1980,12 +1991,12 @@ void Profiler::RecordSampleInterruptCallback(
     return;
   }
 
-  if ((state.sp == 0) || (state.fp == 0) || (state.pc == 0)) {
+  if ((sp == 0) || (state.fp == 0) || (state.pc == 0)) {
     // None of these registers should be zero.
     return;
   }
 
-  if (state.sp > state.fp) {
+  if (sp > state.fp) {
     // Assuming the stack grows down, we should never have a stack pointer above
     // the frame pointer.
     return;
@@ -2006,9 +2017,9 @@ void Profiler::RecordSampleInterruptCallback(
     return;
   }
 
-  if (state.sp > stack_lower) {
+  if (sp > stack_lower) {
     // The stack pointer gives us a tighter lower bound.
-    stack_lower = state.sp;
+    stack_lower = sp;
   }
 
   if (stack_lower >= stack_upper) {
@@ -2016,7 +2027,7 @@ void Profiler::RecordSampleInterruptCallback(
     return;
   }
 
-  if ((state.sp < stack_lower) || (state.sp >= stack_upper)) {
+  if ((sp < stack_lower) || (sp >= stack_upper)) {
     // Stack pointer is outside isolate stack boundary.
     return;
   }
@@ -2039,7 +2050,7 @@ void Profiler::RecordSampleInterruptCallback(
   sample->Init(isolate, OS::GetCurrentTimeMicros(), state.tid);
   sample->set_vm_tag(isolate->vm_tag());
   sample->set_user_tag(isolate->user_tag());
-  sample->set_sp(state.sp);
+  sample->set_sp(sp);
   sample->set_fp(state.fp);
 #if !(defined(TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64))
   // It is never safe to read other thread's stack unless on Win64
@@ -2055,7 +2066,7 @@ void Profiler::RecordSampleInterruptCallback(
                                           stack_upper,
                                           state.pc,
                                           state.fp,
-                                          state.sp);
+                                          sp);
     stackWalker.walk();
   } else {
     // Attempt to walk only the Dart call stack, falling back to walking
@@ -2076,7 +2087,7 @@ void Profiler::RecordSampleInterruptCallback(
                                           stack_upper,
                                           state.pc,
                                           state.fp,
-                                          state.sp);
+                                          sp);
       stackWalker.walk();
     } else {
 #if defined(TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64)
@@ -2090,7 +2101,7 @@ void Profiler::RecordSampleInterruptCallback(
                                             stack_upper,
                                             state.pc,
                                             state.fp,
-                                            state.sp);
+                                            sp);
       stackWalker.walk();
 #endif
     }

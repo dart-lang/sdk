@@ -71,9 +71,9 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(isolate, obj.clazz());
     Error& malformed_type_error = Error::Handle(isolate);
-    if (obj_class.IsSubtypeOf(TypeArguments::Handle(isolate),
+    if (obj_class.IsSubtypeOf(Object::null_type_arguments(),
                               list_class,
-                              TypeArguments::Handle(isolate),
+                              Object::null_type_arguments(),
                               &malformed_type_error)) {
       ASSERT(malformed_type_error.IsNull());  // Type is a raw List.
       return instance.raw();
@@ -91,9 +91,9 @@ static RawInstance* GetMapInstance(Isolate* isolate, const Object& obj) {
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(isolate, obj.clazz());
     Error& malformed_type_error = Error::Handle(isolate);
-    if (obj_class.IsSubtypeOf(TypeArguments::Handle(isolate),
+    if (obj_class.IsSubtypeOf(Object::null_type_arguments(),
                               map_class,
-                              TypeArguments::Handle(isolate),
+                              Object::null_type_arguments(),
                               &malformed_type_error)) {
       ASSERT(malformed_type_error.IsNull());  // Type is a raw Map.
       return instance.raw();
@@ -1867,6 +1867,30 @@ DART_EXPORT bool Dart_IsTypedData(Dart_Handle handle) {
 DART_EXPORT bool Dart_IsByteBuffer(Dart_Handle handle) {
   TRACE_API_CALL(CURRENT_FUNC);
   return Api::ClassId(handle) == kByteBufferCid;
+}
+
+
+DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
+  TRACE_API_CALL(CURRENT_FUNC);
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
+  if (obj.IsInstance()) {
+    const Library& async_lib =
+        Library::Handle(isolate, Library::AsyncLibrary());
+    const Class& future_class =
+        Class::Handle(isolate, async_lib.LookupClass(Symbols::Future()));
+    ASSERT(!future_class.IsNull());
+    const Class& obj_class = Class::Handle(isolate, obj.clazz());
+    Error& malformed_type_error = Error::Handle(isolate);
+    bool is_future = obj_class.IsSubtypeOf(Object::null_type_arguments(),
+                                           future_class,
+                                           Object::null_type_arguments(),
+                                           &malformed_type_error);
+    ASSERT(malformed_type_error.IsNull());  // Type is a raw Future.
+    return is_future;
+  }
+  return false;
 }
 
 

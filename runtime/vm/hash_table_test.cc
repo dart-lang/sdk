@@ -245,7 +245,8 @@ void TestSet(intptr_t initial_capacity, bool ordered) {
       VerifyStringSetsEqual(expected, actual, ordered);
     }
   }
-  // TODO(koda): Delete all entries.
+  actual.Clear();
+  EXPECT_EQ(0, actual.NumOccupied());
   actual.Release();
 }
 
@@ -275,7 +276,8 @@ void TestMap(intptr_t initial_capacity, bool ordered) {
       VerifyStringMapsEqual(expected, actual, ordered);
     }
   }
-  // TODO(koda): Delete all entries.
+  actual.Clear();
+  EXPECT_EQ(0, actual.NumOccupied());
   actual.Release();
 }
 

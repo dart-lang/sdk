@@ -29,9 +29,9 @@ class ChangeTest {
     SourceEdit edit1 = new SourceEdit(1, 2, 'a');
     SourceEdit edit2 = new SourceEdit(1, 2, 'b');
     expect(change.edits, hasLength(0));
-    change.addEdit('/a.dart', edit1);
+    change.addEdit('/a.dart', 0, edit1);
     expect(change.edits, hasLength(1));
-    change.addEdit('/a.dart', edit2);
+    change.addEdit('/a.dart', 0, edit2);
     expect(change.edits, hasLength(1));
     {
       SourceFileEdit fileEdit = change.getFileEdit('/a.dart');
@@ -42,7 +42,7 @@ class ChangeTest {
 
   void test_getFileEdit() {
     SourceChange change = new SourceChange('msg');
-    SourceFileEdit fileEdit = new SourceFileEdit('/a.dart');
+    SourceFileEdit fileEdit = new SourceFileEdit('/a.dart', 0);
     change.addFileEdit(fileEdit);
     expect(change.getFileEdit('/a.dart'), fileEdit);
   }
@@ -54,10 +54,10 @@ class ChangeTest {
 
   void test_toJson() {
     SourceChange change = new SourceChange('msg');
-    change.addFileEdit(new SourceFileEdit('/a.dart')
+    change.addFileEdit(new SourceFileEdit('/a.dart', 1)
         ..add(new SourceEdit(1, 2, 'aaa'))
         ..add(new SourceEdit(10, 20, 'bbb')));
-    change.addFileEdit(new SourceFileEdit('/b.dart')
+    change.addFileEdit(new SourceFileEdit('/b.dart', 2)
         ..add(new SourceEdit(21, 22, 'xxx'))
         ..add(new SourceEdit(210, 220, 'yyy')));
     {
@@ -78,6 +78,7 @@ class ChangeTest {
       'message': 'msg',
       'edits': [{
           'file': '/a.dart',
+          'fileStamp': 1,
           'edits': [{
               'offset': 10,
               'length': 20,
@@ -89,6 +90,7 @@ class ChangeTest {
             }]
         }, {
           'file': '/b.dart',
+          'fileStamp': 2,
           'edits': [{
               'offset': 210,
               'length': 220,
@@ -194,7 +196,7 @@ class FileEditTest {
     SourceEdit edit1b = new SourceEdit(1, 0, 'a2');
     SourceEdit edit10 = new SourceEdit(10, 1, 'b');
     SourceEdit edit100 = new SourceEdit(100, 2, 'c');
-    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart');
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', 0);
     fileEdit.addAll([edit100, edit1a, edit10, edit1b]);
     expect(fileEdit.edits, [edit100, edit10, edit1b, edit1a]);
   }
@@ -204,7 +206,7 @@ class FileEditTest {
     SourceEdit edit1b = new SourceEdit(1, 0, 'a2');
     SourceEdit edit10 = new SourceEdit(10, 1, 'b');
     SourceEdit edit100 = new SourceEdit(100, 2, 'c');
-    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart');
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', 0);
     fileEdit.add(edit100);
     fileEdit.add(edit1a);
     fileEdit.add(edit1b);
@@ -213,22 +215,23 @@ class FileEditTest {
   }
 
   void test_new() {
-    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart');
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', 100);
     fileEdit.add(new SourceEdit(1, 2, 'aaa'));
     fileEdit.add(new SourceEdit(10, 20, 'bbb'));
     expect(
         fileEdit.toString(),
-        '{"file":"/test.dart","edits":['
+        '{"file":"/test.dart","fileStamp":100,"edits":['
             '{"offset":10,"length":20,"replacement":"bbb"},'
             '{"offset":1,"length":2,"replacement":"aaa"}]}');
   }
 
   void test_toJson() {
-    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart');
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', 100);
     fileEdit.add(new SourceEdit(1, 2, 'aaa'));
     fileEdit.add(new SourceEdit(10, 20, 'bbb'));
     var expectedJson = {
       FILE: '/test.dart',
+      FILE_STAMP: 100,
       EDITS: [{
           OFFSET: 10,
           LENGTH: 20,

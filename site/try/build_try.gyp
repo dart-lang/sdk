@@ -56,7 +56,6 @@
           '../../pkg/logging/lib',
           '../../pkg/matcher/lib',
           '../../pkg/path/lib',
-          '../../pkg/serialization/lib',
           '../../pkg/stack_trace/lib',
           '../../pkg/string_scanner/lib',
           '../../pkg/unittest/lib',

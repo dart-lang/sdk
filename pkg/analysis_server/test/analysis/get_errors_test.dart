@@ -8,11 +8,11 @@ import 'dart:async';
 
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
-import '../reflective_tests.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
+import '../reflective_tests.dart';
 
 
 main() {
@@ -110,6 +110,14 @@ main() {
     });
   }
 
+  Future _checkInvalid(String file) {
+    Request request = _createGetErrorsRequest();
+    return serverChannel.sendRequest(request).then((Response response) {
+      expect(response.error, isNotNull);
+      expect(response.error.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
+    });
+  }
+
   Request _createGetErrorsRequest() {
     return new AnalysisGetErrorsParams(testFile).toRequest(requestId);
   }
@@ -118,14 +126,6 @@ main() {
     Request request = _createGetErrorsRequest();
     return serverChannel.sendRequest(request).then((Response response) {
       return new AnalysisGetErrorsResult.fromResponse(response).errors;
-    });
-  }
-
-  Future _checkInvalid(String file) {
-    Request request = _createGetErrorsRequest();
-    return serverChannel.sendRequest(request).then((Response response) {
-      expect(response.error, isNotNull);
-      expect(response.error.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
     });
   }
 }

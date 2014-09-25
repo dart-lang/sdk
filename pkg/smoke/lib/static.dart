@@ -116,7 +116,7 @@ class GeneratedObjectAccessorService implements ObjectAccessorService {
 
   invoke(object, Symbol name, List args, {Map namedArgs, bool adjust: false}) {
     var method;
-    if (object is Type) {
+    if (object is Type && name != #toString) {
       var classMethods = _staticMethods[object];
       method = classMethods == null ? null : classMethods[name];
     } else {

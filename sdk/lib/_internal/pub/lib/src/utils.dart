@@ -85,10 +85,6 @@ class FutureGroup<T> {
 /// under the covers.
 Future newFuture(callback()) => new Future.value().then((_) => callback());
 
-/// Like [new Future.sync], but automatically wraps the future in a
-/// [Chain.track] call.
-Future syncFuture(callback()) => Chain.track(new Future.sync(callback));
-
 /// Runs [callback] in an error zone and pipes any unhandled error to the
 /// returned [Future].
 ///
@@ -165,6 +161,18 @@ String padRight(String source, int length) {
   }
 
   return result.toString();
+}
+
+/// Returns a labelled sentence fragment starting with [name] listing the
+/// elements [iter].
+///
+/// If [iter] does not have one item, name will be pluralized by adding "s" or
+/// using [plural], if given.
+String namedSequence(String name, Iterable iter, [String plural]) {
+  if (iter.length == 1) return "$name ${iter.single}";
+
+  if (plural == null) plural = "${name}s";
+  return "$plural ${toSentence(iter)}";
 }
 
 /// Returns a sentence fragment listing the elements of [iter].
@@ -264,6 +272,14 @@ Set setMinus(Iterable minuend, Iterable subtrahend) {
   return minuendSet;
 }
 
+/// Returns whether there's any overlap between [set1] and [set2].
+bool overlaps(Set set1, Set set2) {
+  // Iterate through the smaller set.
+  var smaller = set1.length > set2.length ? set1 : set2;
+  var larger = smaller == set1 ? set2 : set1;
+  return smaller.any(larger.contains);
+}
+
 /// Returns a list containing the sorted elements of [iter].
 List ordered(Iterable<Comparable> iter) {
   var list = iter.toList();
@@ -326,8 +342,8 @@ Future<Map> mapFromIterableAsync(Iterable iter, {key(element),
   var map = new Map();
   return Future.wait(iter.map((element) {
     return Future.wait([
-      syncFuture(() => key(element)),
-      syncFuture(() => value(element))
+      new Future.sync(() => key(element)),
+      new Future.sync(() => value(element))
     ]).then((results) {
       map[results[0]] = results[1];
     });

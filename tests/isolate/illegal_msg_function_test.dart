@@ -9,8 +9,6 @@ import "dart:async" show Future;
 import "package:unittest/unittest.dart";
 import "remote_unittest_helper.dart";
 
-funcFoo(x) => x + 2;
-
 echo(sendPort) {
   var port = new ReceivePort();
   sendPort.send(port.sendPort);
@@ -22,7 +20,7 @@ echo(sendPort) {
 void main([args, port]) {
   if (testRemote(main, port)) return;
   test("msg_function", () {
-    var function = funcFoo;
+    var function = (x) => x + 2;
     ReceivePort port = new ReceivePort();
     Future spawn = Isolate.spawn(echo, port.sendPort);
     var caught_exception = false;

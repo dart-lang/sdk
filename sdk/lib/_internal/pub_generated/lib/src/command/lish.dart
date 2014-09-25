@@ -96,7 +96,7 @@ class LishCommand extends PubCommand {
           'A private package cannot be published.\n'
               'You can enable this by changing the "publish_to" field in your ' 'pubspec.');
     }
-    var files = entrypoint.root.listFiles();
+    var files = entrypoint.root.listFiles(useGitIgnore: true);
     log.fine('Archiving and publishing ${entrypoint.root}.');
     var package = entrypoint.root;
     log.message(

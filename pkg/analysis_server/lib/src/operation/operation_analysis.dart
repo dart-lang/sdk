@@ -140,6 +140,7 @@ class PerformAnalysisOperation extends ServerOperation {
             notice.lineInfo,
             notice.errors);
       }
+      server.fileAnalyzed(notice);
     }
   }
 

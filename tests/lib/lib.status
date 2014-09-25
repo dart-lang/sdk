@@ -12,9 +12,8 @@ mirrors/regress_16321_test/01: RunTimeError # Issue 16351
 mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
 
 [ $csp ]
-async/deferred/deferred_in_isolate_test: RuntimeError # Issue 16898
-mirrors/deferred_mirrors_metadata_test: Fail # Issue 16898
-mirrors/deferred_mirrors_metatarget_test: Fail # Issue 16898
+# Deferred loading does not work from an isolate in CSP-mode
+async/deferred/deferred_in_isolate_test: Skip # Issue 16898
 
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. http://dartbug.com/5958
@@ -97,6 +96,7 @@ mirrors/symbol_validation_test/01: RuntimeError # Issue 13597
 mirrors/static_members_test: RuntimeError # Issue 14633, Issue 12164
 mirrors/typedef_test/none: RuntimeError # http://dartbug.com/6490
 mirrors/typedef_metadata_test: RuntimeError # Issue 12785
+mirrors/typedef_reflected_type_test/01: RuntimeError # Issue 12607
 mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
 mirrors/type_variable_is_static_test: RuntimeError # Issue 6335
 mirrors/type_variable_owner_test/01: RuntimeError # Issue 12785
@@ -122,6 +122,8 @@ math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
 [ $compiler == dart2js && ($jscl || $runtime == d8) ]
+mirrors/invocation_fuzz_test/none: RuntimeError # Issue 15566
+[ $compiler == dart2js && ($minified || $runtime == jsshell) ]
 mirrors/invocation_fuzz_test: RuntimeError # Issue 15566
 
 [ $compiler == dart2js && $runtime == jsshell ]
@@ -256,6 +258,7 @@ async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failur
 
 [$compiler == none && $runtime == ContentShellOnAndroid ]
 async/stream_timeout_test: RuntimeError, Pass # Issue 19127
+async/slow_consumer3_test: Skip # Times out flakily. Issue 20956
 convert/streamed_conversion_utf8_encode_test: Skip # Times out or passes. Issue 19127
 convert/streamed_conversion_utf8_decode_test: Skip # Times out or passes. Issue 19127
 mirrors/lazy_static_test: Skip # Times out. Issue 19127

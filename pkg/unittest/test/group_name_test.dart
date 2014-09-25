@@ -2,24 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
-
-import 'dart:async';
-import 'dart:isolate';
+library unittest.group_name_test;
 
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+import 'package:metatest/metatest.dart';
 
-var testName = 'group name test';
+void main() => initTests(_test);
 
-var testFunction = (_) {
-  group('a', () {
-    test('a', () {});
-    group('b', () {
-      test('b', () {});
+void _test(message) {
+  initMetatest(message);
+
+  expectTestResults('group name test', () {
+    group('a', () {
+      test('a', () {});
+      group('b', () {
+        test('b', () {});
+      });
     });
-  });
-};
-
-var expected = buildStatusString(2, 0, 0, 'a a::a b b');
+  }, [{
+    'description': 'a a'
+  }, {
+    'description': 'a b b'
+  }]);
+}

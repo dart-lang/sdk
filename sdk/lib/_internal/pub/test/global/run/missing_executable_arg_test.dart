@@ -14,6 +14,8 @@ main() {
 
             Usage: pub global run <package>:<executable> [args...]
             -h, --help    Print usage information for this command.
+                --mode    Mode to run transformers in.
+                          (defaults to "release")
 
             Run "pub help" to see global options.
             """,

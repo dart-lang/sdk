@@ -21,8 +21,6 @@ ObjectStore::ObjectStore()
     null_type_(Type::null()),
     function_type_(Type::null()),
     function_impl_type_(Type::null()),
-    library_prefix_class_(Class::null()),
-    type_class_(Class::null()),
     number_type_(Type::null()),
     int_type_(Type::null()),
     integer_implementation_class_(Class::null()),
@@ -47,9 +45,7 @@ ObjectStore::ObjectStore()
     float32x4_class_(Class::null()),
     int32x4_class_(Class::null()),
     float64x2_class_(Class::null()),
-    typed_data_classes_(Array::null()),
     error_class_(Class::null()),
-    stacktrace_class_(Class::null()),
     weak_property_class_(Class::null()),
     symbol_table_(Array::null()),
     canonical_type_arguments_(Array::null()),
@@ -73,9 +69,9 @@ ObjectStore::ObjectStore()
     out_of_memory_(Instance::null()),
     preallocated_stack_trace_(Stacktrace::null()),
     lookup_port_handler_(Function::null()),
+    empty_uint32_array_(TypedData::null()),
     handle_message_function_(Function::null()),
-    library_load_error_table_(Array::null()),
-    default_tag_(UserTag::null()) {
+    library_load_error_table_(Array::null()) {
 }
 
 

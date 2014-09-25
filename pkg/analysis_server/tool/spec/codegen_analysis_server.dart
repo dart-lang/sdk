@@ -72,12 +72,9 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         writeln(
             '''/**
  * Start the analysis server.
- * 
- * @param millisToRestart the number of milliseconds to wait for an unresponsive server before
- *          restarting it, or zero if the server should not be restarted.
  */'''
             );
-        writeln('public void start(long millisToRestart) throws Exception;');
+        writeln('public void start() throws Exception;');
       });
       super.visitApi();
     });

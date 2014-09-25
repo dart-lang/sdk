@@ -301,13 +301,17 @@ class FunctionExpression extends Expression {
   String name;
   final Parameters parameters;
   final Statement body;
+  final bool isGetter;
+  final bool isSetter;
 
   elements.FunctionElement element;
 
   FunctionExpression(this.parameters,
                      this.body,
                      { this.name,
-                       this.returnType }) {
+                       this.returnType,
+                       this.isGetter: false,
+                       this.isSetter: false }) {
     // Function must have a name if it has a return type
     assert(returnType == null || name != null);
   }
@@ -762,6 +766,7 @@ class Unparser {
     if (e is SuperReceiver) {
       write('super');
     } else if (e is FunctionExpression) {
+      assert(!e.isGetter && !e.isSetter);
       Statement stmt = unfoldBlocks(e.body);
       int precedence = stmt is Return ? EXPRESSION : PRIMARY;
       withPrecedence(precedence, () {
@@ -1185,6 +1190,7 @@ class Unparser {
       writeVariableDefinitions(stmt);
       write(';');
     } else if (stmt is FunctionDeclaration) {
+      assert(!stmt.function.isGetter && !stmt.function.isSetter);
       if (stmt.returnType != null) {
         writeType(stmt.returnType);
         write(' ');

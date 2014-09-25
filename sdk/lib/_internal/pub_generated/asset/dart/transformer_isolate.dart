@@ -12,6 +12,11 @@ import 'package:barback/barback.dart';
 
 import 'serialize.dart';
 
+/// The mirror system.
+///
+/// Cached to avoid re-instantiating each time a transformer is initialized.
+final _mirrors = currentMirrorSystem();
+
 /// Sets up the initial communication with the host isolate.
 void loadTransformers(SendPort replyTo) {
   var port = new ReceivePort();
@@ -20,10 +25,9 @@ void loadTransformers(SendPort replyTo) {
     // TODO(nweiz): When issue 19228 is fixed, spin up a separate isolate for
     // libraries loaded beyond the first so they can run in parallel.
     respond(wrappedMessage, (message) {
-      var library = Uri.parse(message['library']);
       var configuration = JSON.decode(message['configuration']);
       var mode = new BarbackMode(message['mode']);
-      return _initialize(library, configuration, mode).
+      return _initialize(message['library'], configuration, mode).
           map(serializeTransformerLike).toList();
     });
   });
@@ -33,8 +37,7 @@ void loadTransformers(SendPort replyTo) {
 ///
 /// Loads the library, finds any [Transformer] or [TransformerGroup] subclasses
 /// in it, instantiates them with [configuration] and [mode], and returns them.
-List _initialize(Uri uri, Map configuration, BarbackMode mode) {
-  var mirrors = currentMirrorSystem();
+List _initialize(String uri, Map configuration, BarbackMode mode) {
   var transformerClass = reflectClass(Transformer);
   var aggregateClass = _aggregateTransformerClass;
   var groupClass = reflectClass(TransformerGroup);
@@ -79,7 +82,13 @@ List _initialize(Uri uri, Map configuration, BarbackMode mode) {
     }).where((classMirror) => classMirror != null));
   }
 
-  loadFromLibrary(mirrors.libraries[uri]);
+  var library = _mirrors.libraries[Uri.parse(uri)];
+
+  // This should only happen if something's wrong with the logic in pub itself.
+  // If it were user error, the entire isolate would fail to load.
+  if (library == null) throw "Couldn't find library at $uri.";
+
+  loadFromLibrary(library);
   return transformers;
 }
 

@@ -181,7 +181,7 @@ void Socket::GetError(intptr_t fd, OSError* os_error) {
 
 int Socket::GetType(intptr_t fd) {
   struct stat64 buf;
-  int result = NO_RETRY_EXPECTED(fstat64(fd, &buf));
+  int result = TEMP_FAILURE_RETRY(fstat64(fd, &buf));
   if (result == -1) return -1;
   if (S_ISCHR(buf.st_mode)) return File::kTerminal;
   if (S_ISFIFO(buf.st_mode)) return File::kPipe;

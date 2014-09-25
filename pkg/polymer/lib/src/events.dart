@@ -52,6 +52,12 @@ abstract class PolymerEventBindings {
     while (node.parentNode != null) {
       if (node is Polymer && node.eventController != null) {
         return node.eventController;
+      } else if (node is Element) {
+        // If it is a normal element, js polymer element, or dart wrapper to a
+        // js polymer element, then we try js interop.
+        var eventController =
+            new JsObject.fromBrowserObject(node)['eventController'];
+        if (eventController != null) return eventController;
       }
       node = node.parentNode;
     }

@@ -54,22 +54,14 @@ def PubSteps(build_info):
 
   if build_info.system == 'windows':
     common_args.append('-j1')
-  opt_threshold = '--vm-options=--optimization-counter-threshold=5'
   if build_info.mode == 'release':
     bot.RunTest('pub and pkg ', build_info,
                 common_args + ['pub', 'pkg', 'docs'],
-                swallow_error=True)
-    bot.RunTest('pub and pkg optimization counter thresshold 5', build_info,
-                common_args + ['--append_logs', opt_threshold,
-                               'pub', 'pkg', 'docs'],
                 swallow_error=True)
   else:
     # Pub tests currently have a lot of timeouts when run in debug mode.
     # See issue 18479
     bot.RunTest('pub and pkg', build_info, common_args + ['pkg', 'docs'],
-                swallow_error=True)
-    bot.RunTest('pub and pkg optimization counter threshold 5', build_info,
-                common_args + ['--append_logs', opt_threshold, 'pkg', 'docs'],
                 swallow_error=True)
 
   if build_info.mode == 'release':

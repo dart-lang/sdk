@@ -221,7 +221,7 @@ class BuildCommand extends BarbackCommand {
   /// Ensures that the [name].js file is copied into [directory] in [target],
   /// under `packages/browser/`.
   void _addBrowserJs(String directory, String name) {
-    var jsPath = path.join(entrypoint.root.dir,
+    var jsPath = entrypoint.root.path(
         outputDirectory, directory, 'packages', 'browser', '$name.js');
     ensureDir(path.dirname(jsPath));
 

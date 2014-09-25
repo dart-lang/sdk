@@ -58,21 +58,21 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateClassName_leadingBlanks() {
     assertRefactoringStatus(
         validateClassName(" NewName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Class name must not start or end with a blank.");
   }
 
   void test_validateClassName_notIdentifierMiddle() {
     assertRefactoringStatus(
         validateClassName("New-Name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Class name must not contain '-'.");
   }
 
   void test_validateClassName_notIdentifierStart() {
     assertRefactoringStatus(
         validateClassName("-NewName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Class name must begin with an uppercase letter or underscore.");
   }
@@ -87,7 +87,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateClassName_trailingBlanks() {
     assertRefactoringStatus(
         validateClassName("NewName "),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Class name must not start or end with a blank.");
   }
   void test_validateConstantName_OK() {
@@ -116,7 +116,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateConstantName_leadingBlanks() {
     assertRefactoringStatus(
         validateConstantName(" NewName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constant name must not start or end with a blank.");
   }
 
@@ -130,14 +130,14 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateConstantName_notIdentifierMiddle() {
     assertRefactoringStatus(
         validateConstantName("NA-ME"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constant name must not contain '-'.");
   }
 
   void test_validateConstantName_notIdentifierStart() {
     assertRefactoringStatus(
         validateConstantName("99_RED_BALLOONS"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Constant name must begin with an uppercase letter or underscore.");
   }
@@ -152,7 +152,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateConstantName_trailingBlanks() {
     assertRefactoringStatus(
         validateConstantName("NewName "),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constant name must not start or end with a blank.");
   }
 
@@ -178,21 +178,21 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateConstructorName_leadingBlanks() {
     assertRefactoringStatus(
         validateConstructorName(" newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constructor name must not start or end with a blank.");
   }
 
   void test_validateConstructorName_notIdentifierMiddle() {
     assertRefactoringStatus(
         validateConstructorName("na-me"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constructor name must not contain '-'.");
   }
 
   void test_validateConstructorName_notIdentifierStart() {
     assertRefactoringStatus(
         validateConstructorName("2name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Constructor name must begin with a lowercase letter or underscore.");
   }
@@ -207,7 +207,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateConstructorName_trailingBlanks() {
     assertRefactoringStatus(
         validateConstructorName("newName "),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constructor name must not start or end with a blank.");
   }
 
@@ -240,21 +240,21 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFieldName_leadingBlanks() {
     assertRefactoringStatus(
         validateFieldName(" newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Field name must not start or end with a blank.");
   }
 
   void test_validateFieldName_notIdentifierMiddle() {
     assertRefactoringStatus(
         validateFieldName("new-Name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Field name must not contain '-'.");
   }
 
   void test_validateFieldName_notIdentifierStart() {
     assertRefactoringStatus(
         validateFieldName("2newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Field name must begin with a lowercase letter or underscore.");
   }
@@ -269,7 +269,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFieldName_trailingBlanks() {
     assertRefactoringStatus(
         validateFieldName("newName "),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Field name must not start or end with a blank.");
   }
 
@@ -302,21 +302,21 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFunctionName_leadingBlanks() {
     assertRefactoringStatus(
         validateFunctionName(" newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function name must not start or end with a blank.");
   }
 
   void test_validateFunctionName_notIdentifierMiddle() {
     assertRefactoringStatus(
         validateFunctionName("new-Name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function name must not contain '-'.");
   }
 
   void test_validateFunctionName_notIdentifierStart() {
     assertRefactoringStatus(
         validateFunctionName("2newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Function name must begin with a lowercase letter or underscore.");
   }
@@ -331,7 +331,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFunctionName_trailingBlanks() {
     assertRefactoringStatus(
         validateFunctionName("newName "),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function name must not start or end with a blank.");
   }
 
@@ -369,7 +369,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFunctionTypeAliasName_leadingBlanks() {
     assertRefactoringStatus(
         validateFunctionTypeAliasName(" NewName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Function type alias name must not start or end with a blank.");
   }
@@ -377,14 +377,14 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFunctionTypeAliasName_notIdentifierMiddle() {
     assertRefactoringStatus(
         validateFunctionTypeAliasName("New-Name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function type alias name must not contain '-'.");
   }
 
   void test_validateFunctionTypeAliasName_notIdentifierStart() {
     assertRefactoringStatus(
         validateFunctionTypeAliasName("-NewName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Function type alias name must begin with an uppercase letter or underscore.");
   }
@@ -399,7 +399,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFunctionTypeAliasName_trailingBlanks() {
     assertRefactoringStatus(
         validateFunctionTypeAliasName("NewName "),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Function type alias name must not start or end with a blank.");
   }
@@ -430,21 +430,21 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateImportPrefixName_leadingBlanks() {
     assertRefactoringStatus(
         validateImportPrefixName(" newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Import prefix name must not start or end with a blank.");
   }
 
   void test_validateImportPrefixName_notIdentifierMiddle() {
     assertRefactoringStatus(
         validateImportPrefixName("new-Name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Import prefix name must not contain '-'.");
   }
 
   void test_validateImportPrefixName_notIdentifierStart() {
     assertRefactoringStatus(
         validateImportPrefixName("2newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Import prefix name must begin with a lowercase letter or underscore.");
   }
@@ -459,7 +459,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateImportPrefixName_trailingBlanks() {
     assertRefactoringStatus(
         validateImportPrefixName("newName "),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Import prefix name must not start or end with a blank.");
   }
 
@@ -496,21 +496,21 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateLabelName_leadingBlanks() {
     assertRefactoringStatus(
         validateLabelName(" newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Label name must not start or end with a blank.");
   }
 
   void test_validateLabelName_notIdentifierMiddle() {
     assertRefactoringStatus(
         validateLabelName("new-Name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Label name must not contain '-'.");
   }
 
   void test_validateLabelName_notIdentifierStart() {
     assertRefactoringStatus(
         validateLabelName("2newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Label name must begin with a lowercase letter or underscore.");
   }
@@ -525,7 +525,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateLabelName_trailingBlanks() {
     assertRefactoringStatus(
         validateLabelName("newName "),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Label name must not start or end with a blank.");
   }
 
@@ -555,7 +555,7 @@ class NamingConventionsTest extends RefactoringTest {
         expectedMessage: "Library name identifier must not be empty.");
     assertRefactoringStatus(
         validateLibraryName("my. .name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Library name identifier must not start or end with a blank.");
   }
 
@@ -570,21 +570,21 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateLibraryName_leadingBlanks() {
     assertRefactoringStatus(
         validateLibraryName("my. name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Library name identifier must not start or end with a blank.");
   }
 
   void test_validateLibraryName_notIdentifierMiddle() {
     assertRefactoringStatus(
         validateLibraryName("my.ba-d.name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Library name identifier must not contain '-'.");
   }
 
   void test_validateLibraryName_notIdentifierStart() {
     assertRefactoringStatus(
         validateLibraryName("my.2bad.name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Library name identifier must begin with a lowercase letter or underscore.");
   }
@@ -599,7 +599,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateLibraryName_trailingBlanks() {
     assertRefactoringStatus(
         validateLibraryName("my.bad .name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Library name identifier must not start or end with a blank.");
   }
 
@@ -632,21 +632,21 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateMethodName_leadingBlanks() {
     assertRefactoringStatus(
         validateMethodName(" newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Method name must not start or end with a blank.");
   }
 
   void test_validateMethodName_notIdentifierMiddle() {
     assertRefactoringStatus(
         validateMethodName("new-Name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Method name must not contain '-'.");
   }
 
   void test_validateMethodName_notIdentifierStart() {
     assertRefactoringStatus(
         validateMethodName("2newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Method name must begin with a lowercase letter or underscore.");
   }
@@ -661,7 +661,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateMethodName_trailingBlanks() {
     assertRefactoringStatus(
         validateMethodName("newName "),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Method name must not start or end with a blank.");
   }
 
@@ -694,21 +694,21 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateParameterName_leadingBlanks() {
     assertRefactoringStatus(
         validateParameterName(" newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Parameter name must not start or end with a blank.");
   }
 
   void test_validateParameterName_notIdentifierMiddle() {
     assertRefactoringStatus(
         validateParameterName("new-Name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Parameter name must not contain '-'.");
   }
 
   void test_validateParameterName_notIdentifierStart() {
     assertRefactoringStatus(
         validateParameterName("2newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Parameter name must begin with a lowercase letter or underscore.");
   }
@@ -723,7 +723,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateParameterName_trailingBlanks() {
     assertRefactoringStatus(
         validateParameterName("newName "),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Parameter name must not start or end with a blank.");
   }
 
@@ -760,21 +760,21 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateVariableName_leadingBlanks() {
     assertRefactoringStatus(
         validateVariableName(" newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not start or end with a blank.");
   }
 
   void test_validateVariableName_notIdentifierMiddle() {
     assertRefactoringStatus(
         validateVariableName("new-Name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not contain '-'.");
   }
 
   void test_validateVariableName_notIdentifierStart() {
     assertRefactoringStatus(
         validateVariableName("2newName"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage:
             "Variable name must begin with a lowercase letter or underscore.");
   }
@@ -789,7 +789,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateVariableName_trailingBlanks() {
     assertRefactoringStatus(
         validateVariableName("newName "),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not start or end with a blank.");
   }
 }

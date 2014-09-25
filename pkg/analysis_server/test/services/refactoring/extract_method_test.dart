@@ -343,7 +343,7 @@ main() {
     _createRefactoringForStartEndComments();
     refactoring.name = 'bad-name';
     // check conditions
-    return _assertConditionsError("Method name must not contain '-'.");
+    return _assertConditionsFatal("Method name must not contain '-'.");
   }
 
   test_bad_notSameParent() {

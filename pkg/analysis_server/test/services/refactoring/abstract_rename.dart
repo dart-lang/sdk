@@ -7,10 +7,8 @@ library test.services.refactoring.rename;
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import 'abstract_refactoring.dart';
@@ -21,31 +19,6 @@ import 'abstract_refactoring.dart';
  */
 class RenameRefactoringTest extends RefactoringTest {
   RenameRefactoring refactoring;
-
-  /**
-   * Asserts that [refactoringChange] contains a [FileEdit] for the file
-   * with the given [path], and it results the [expectedCode].
-   */
-  void assertFileChangeResult(String path, String expectedCode) {
-    // prepare FileEdit
-    SourceFileEdit fileEdit = refactoringChange.getFileEdit(path);
-    expect(fileEdit, isNotNull);
-    // validate resulting code
-    File file = provider.getResource(path);
-    Source source = file.createSource();
-    String ini = context.getContents(source).data;
-    String actualCode = SourceEdit.applySequence(ini, fileEdit.edits);
-    expect(actualCode, expectedCode);
-  }
-
-  /**
-   * Asserts that [refactoringChange] does not contain a [FileEdit] for the file
-   * with the given [path].
-   */
-  void assertNoFileChange(String path) {
-    SourceFileEdit fileEdit = refactoringChange.getFileEdit(path);
-    expect(fileEdit, isNull);
-  }
 
   /**
    * Asserts that [refactoring] has potential edits in [testFile] at offset

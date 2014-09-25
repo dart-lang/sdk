@@ -45,7 +45,7 @@ DEFINE_NATIVE_ENTRY(UserTag_defaultTag, 0) {
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("UserTag_defaultTag\n");
   }
-  return isolate->object_store()->default_tag();
+  return isolate->default_tag();
 }
 
 

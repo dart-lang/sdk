@@ -46,6 +46,13 @@ class HttpMultiServer extends StreamView<HttpRequest> implements HttpServer {
     }
   }
 
+  bool get autoCompress => _servers.first.autoCompress;
+  set autoCompress(bool value) {
+    for (var server in _servers) {
+      server.autoCompress = value;
+    }
+  }
+
   /// Returns the port that one of the wrapped servers is listening on.
   ///
   /// If the wrapped servers are listening on different ports, it's not defined

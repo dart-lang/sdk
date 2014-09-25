@@ -29,7 +29,7 @@ class ListPackageDirsCommand extends PubCommand {
       }));
     });
     output["packages"] = packages;
-    packages[entrypoint.root.name] = path.join(entrypoint.root.dir, "lib");
+    packages[entrypoint.root.name] = entrypoint.root.path("lib");
     output["input_files"] = [entrypoint.lockFilePath, entrypoint.pubspecPath];
     return Future.wait(futures).then((_) {
       log.json.message(output);

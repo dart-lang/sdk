@@ -462,6 +462,10 @@ class PolymerDeclaration {
     // createPolymerAccessors is done lazily on the first access of properties.
     // Here we just extract the information from annotations and store it as
     // properties on the declaration.
+
+    // Dart Note: The js side makes computed properties read only, and does
+    // special logic right here for them. For us they are automatically read
+    // only unless you define a setter for them, so we left that out.
     var options = const smoke.QueryOptions(includeInherited: true,
         includeUpTo: HtmlElement, withAnnotations: const [ComputedProperty]);
     var existing = {};
@@ -482,6 +486,8 @@ class PolymerDeclaration {
 final Map _typesByName = new Map<String, Type>();
 
 Type _getRegisteredType(String name) => _typesByName[name];
+
+/// Dart Note: instanceOfType not implemented for dart, its not needed.
 
 /// track document.register'ed tag names and their declarations
 final Map _declarations = new Map<String, PolymerDeclaration>();

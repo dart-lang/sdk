@@ -8,8 +8,10 @@
 
 namespace dart {
 
+#define I Isolate::Current()
+
 TEST_CASE(BitVector) {
-  { BitVector* v = new BitVector(15);
+  { BitVector* v = new BitVector(I, 15);
     v->Add(1);
     EXPECT_EQ(true, v->Contains(1));
     EXPECT_EQ(false, v->Contains(0));
@@ -31,7 +33,7 @@ TEST_CASE(BitVector) {
     }
   }
 
-  { BitVector* v = new BitVector(128);
+  { BitVector* v = new BitVector(I, 128);
     v->Add(49);
     v->Add(62);
     v->Add(63);
@@ -53,9 +55,9 @@ TEST_CASE(BitVector) {
     EXPECT(iter.Done());
   }
 
-  { BitVector* a = new BitVector(128);
-    BitVector* b = new BitVector(128);
-    BitVector* c = new BitVector(128);
+  { BitVector* a = new BitVector(I, 128);
+    BitVector* b = new BitVector(I, 128);
+    BitVector* c = new BitVector(I, 128);
     b->Add(0);
     b->Add(32);
     b->Add(64);
@@ -84,8 +86,8 @@ TEST_CASE(BitVector) {
     EXPECT_EQ(false, a->Contains(96));
   }
 
-  { BitVector* a = new BitVector(34);
-    BitVector* b = new BitVector(34);
+  { BitVector* a = new BitVector(I, 34);
+    BitVector* b = new BitVector(I, 34);
     a->SetAll();
     b->Add(0);
     b->Add(1);
@@ -95,16 +97,16 @@ TEST_CASE(BitVector) {
     EXPECT_EQ(true, a->Equals(*b));
   }
 
-  { BitVector* a = new BitVector(2);
-    BitVector* b = new BitVector(2);
+  { BitVector* a = new BitVector(I, 2);
+    BitVector* b = new BitVector(I, 2);
     a->SetAll();
     a->Remove(0);
     a->Remove(1);
     EXPECT_EQ(true, a->Equals(*b));
   }
 
-  { BitVector* a = new BitVector(128);
-    BitVector* b = new BitVector(128);
+  { BitVector* a = new BitVector(I, 128);
+    BitVector* b = new BitVector(I, 128);
     b->Add(0);
     b->Add(32);
     b->Add(64);

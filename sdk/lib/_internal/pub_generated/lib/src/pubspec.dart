@@ -171,6 +171,44 @@ class Pubspec {
   }
   bool _parsedPublishTo = false;
   String _publishTo;
+  Map<String, String> get executables {
+    if (_executables != null) return _executables;
+    _executables = {};
+    var yaml = fields['executables'];
+    if (yaml == null) return _executables;
+    if (yaml is! Map) {
+      _error(
+          '"executables" field must be a map.',
+          fields.nodes['executables'].span);
+    }
+    yaml.nodes.forEach((key, value) {
+      validateName(name, description) {}
+      if (key.value is! String) {
+        _error('"executables" keys must be strings.', key.span);
+      }
+      final keyPattern = new RegExp(r"^[a-zA-Z0-9_-]+$");
+      if (!keyPattern.hasMatch(key.value)) {
+        _error(
+            '"executables" keys may only contain letters, '
+                'numbers, hyphens and underscores.',
+            key.span);
+      }
+      if (value.value == null) {
+        value = key;
+      } else if (value.value is! String) {
+        _error('"executables" values must be strings or null.', value.span);
+      }
+      final valuePattern = new RegExp(r"[/\\]");
+      if (valuePattern.hasMatch(value.value)) {
+        _error(
+            '"executables" values may not contain path separators.',
+            value.span);
+      }
+      _executables[key.value] = value.value;
+    });
+    return _executables;
+  }
+  Map<String, String> _executables;
   bool get isPrivate => publishTo == "none";
   bool get isEmpty =>
       name == null && version == Version.none && dependencies.isEmpty;

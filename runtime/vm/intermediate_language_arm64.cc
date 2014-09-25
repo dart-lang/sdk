@@ -179,7 +179,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (is_power_of_two_kind) {
     const intptr_t shift =
         Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
-    __ Lsl(result, result, shift + kSmiTagSize);
+    __ LslImmediate(result, result, shift + kSmiTagSize);
   } else {
     __ sub(result, result, Operand(1));
     const int64_t val =
@@ -848,7 +848,7 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       result, reinterpret_cast<uword>(Symbols::PredefinedAddress()), PP);
   __ AddImmediate(
       result, result, Symbols::kNullCharCodeSymbolOffset * kWordSize, PP);
-  __ Asr(TMP, char_code, kSmiTagShift);  // Untag to use scaled adress mode.
+  __ SmiUntag(TMP, char_code);  // Untag to use scaled adress mode.
   __ ldr(result, Address(result, TMP, UXTX, Address::Scaled));
 }
 
@@ -2532,7 +2532,6 @@ static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
 
 static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                              BinarySmiOpInstr* shift_left) {
-  const bool is_truncating = shift_left->IsTruncating();
   const LocationSummary& locs = *shift_left->locs();
   const Register left = locs.in(0).reg();
   const Register result = locs.out(0).reg();
@@ -2545,27 +2544,15 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // Immediate shift operation takes 6 bits for the count.
     const intptr_t kCountLimit = 0x3F;
     const intptr_t value = Smi::Cast(constant).Value();
-    if (value == 0) {
-      __ mov(result, left);
-    } else if ((value < 0) || (value >= kCountLimit)) {
-      // This condition may not be known earlier in some cases because
-      // of constant propagation, inlining, etc.
-      if ((value >= kCountLimit) && is_truncating) {
-        __ mov(result, ZR);
-      } else {
-        // Result is Mint or exception.
-        __ b(deopt);
-      }
-    } else {
-      if (!is_truncating) {
-        // Check for overflow (preserve left).
-        __ Lsl(TMP, left, value);
-        __ cmp(left, Operand(TMP, ASR, value));
-        __ b(deopt, NE);  // Overflow.
-      }
-      // Shift for result now we know there is no overflow.
-      __ Lsl(result, left, value);
+    ASSERT((0 < value) && (value < kCountLimit));
+    if (shift_left->can_overflow()) {
+      // Check for overflow (preserve left).
+      __ LslImmediate(TMP, left, value);
+      __ cmp(left, Operand(TMP, ASR, value));
+      __ b(deopt, NE);  // Overflow.
     }
+    // Shift for result now we know there is no overflow.
+    __ LslImmediate(result, left, value);
     if (FLAG_throw_on_javascript_int_overflow) {
       EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
     }
@@ -2575,7 +2562,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   // Right (locs.in(1)) is not constant.
   const Register right = locs.in(1).reg();
   Range* right_range = shift_left->right()->definition()->range();
-  if (shift_left->left()->BindsToConstant() && !is_truncating) {
+  if (shift_left->left()->BindsToConstant() && shift_left->can_overflow()) {
     // TODO(srdjan): Implement code below for is_truncating().
     // If left is constant, we know the maximal allowed size for right.
     const Object& obj = shift_left->left()->BoundConstant();
@@ -2606,7 +2593,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
   const bool right_needs_check =
       !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
-  if (is_truncating) {
+  if (!shift_left->can_overflow()) {
     if (right_needs_check) {
       const bool right_may_be_negative =
           (right_range == NULL) || !right_range->IsPositive();
@@ -2655,7 +2642,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps =
-      (((op_kind() == Token::kSHL) && !IsTruncating()) ||
+      (((op_kind() == Token::kSHL) && can_overflow()) ||
        (op_kind() == Token::kSHR)) ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -2678,7 +2665,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
   }
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RegisterOrSmiConstant(right()));
-  if (((op_kind() == Token::kSHL) && !IsTruncating()) ||
+  if (((op_kind() == Token::kSHL) && can_overflow()) ||
       (op_kind() == Token::kSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
   }
@@ -2730,54 +2717,28 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kMUL: {
         // Keep left value tagged and untag right value.
         const intptr_t value = Smi::Cast(constant).Value();
-        if (deopt == NULL) {
-          if (value == 2) {
-            __ Lsl(result, left, 1);
-          } else {
-            __ LoadImmediate(TMP, value, PP);
-            __ mul(result, left, TMP);
-          }
-        } else {
-          if (value == 2) {
-            __ Asr(TMP, left, 63);  // TMP = sign of left.
-            __ Lsl(result, left, 1);
-            // TMP: result bits 32..63.
-            __ cmp(TMP, Operand(result, ASR, 63));
-            __ b(deopt, NE);
-          } else {
-            __ LoadImmediate(TMP, value, PP);
-            __ mul(result, left, TMP);
-            __ smulh(TMP, left, TMP);
-            // TMP: result bits 64..127.
-            __ cmp(TMP, Operand(result, ASR, 63));
-            __ b(deopt, NE);
-          }
+        __ LoadImmediate(TMP, value, PP);
+        __ mul(result, left, TMP);
+        if (deopt != NULL) {
+          __ smulh(TMP, left, TMP);
+          // TMP: result bits 64..127.
+          __ cmp(TMP, Operand(result, ASR, 63));
+          __ b(deopt, NE);
         }
         break;
       }
       case Token::kTRUNCDIV: {
         const intptr_t value = Smi::Cast(constant).Value();
-        if (value == 1) {
-          __ mov(result, left);
-          break;
-        } else if (value == -1) {
-          // Check the corner case of dividing the 'MIN_SMI' with -1, in which
-          // case we cannot negate the result.
-          __ CompareImmediate(left, 0x8000000000000000LL, kNoPP);
-          __ b(deopt, EQ);
-          __ sub(result, ZR, Operand(left));
-          break;
-        }
         ASSERT(Utils::IsPowerOfTwo(Utils::Abs(value)));
         const intptr_t shift_count =
             Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
         ASSERT(kSmiTagSize == 1);
-        __ Asr(TMP, left, 63);
+        __ AsrImmediate(TMP, left, 63);
         ASSERT(shift_count > 1);  // 1, -1 case handled above.
         const Register temp = TMP2;
         __ add(temp, left, Operand(TMP, LSR, 64 - shift_count));
         ASSERT(shift_count > 0);
-        __ Asr(result, temp, shift_count);
+        __ AsrImmediate(result, temp, shift_count);
         if (value < 0) {
           __ sub(result, ZR, Operand(result));
         }
@@ -2800,23 +2761,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // Asr operation masks the count to 6 bits.
         const intptr_t kCountLimit = 0x3F;
         intptr_t value = Smi::Cast(constant).Value();
-
-        if (value == 0) {
-          // TODO(vegorov): should be handled outside.
-          __ mov(result, left);
-          break;
-        } else if (value < 0) {
-          // TODO(vegorov): should be handled outside.
-          __ b(deopt);
-          break;
-        }
-
-        value = value + kSmiTagSize;
-        if (value >= kCountLimit) {
-          value = kCountLimit;
-        }
-
-        __ Asr(result, left, value);
+        __ AsrImmediate(
+            result, left, Utils::Minimum(value + kSmiTagSize, kCountLimit));
         __ SmiTag(result);
         break;
       }
@@ -3054,7 +3000,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (value_cid == kDoubleCid) {
     __ LoadDFieldFromOffset(result, value, Double::value_offset(), PP);
   } else if (value_cid == kSmiCid) {
-    __ Asr(TMP, value, kSmiTagSize);  // Untag input before conversion.
+    __ SmiUntag(TMP, value);  // Untag input before conversion.
     __ scvtfd(result, TMP);
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
@@ -3074,7 +3020,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadDFieldFromOffset(result, value, Double::value_offset(), PP);
       __ b(&done);
       __ Bind(&is_smi);
-      __ Asr(TMP, value, kSmiTagSize);  // Copy and untag.
+      __ SmiUntag(TMP, value);  // Copy and untag.
       __ scvtfd(result, TMP);
       __ Bind(&done);
     }
@@ -3429,18 +3375,18 @@ void Simd32x4GetSignMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // X lane.
   __ vmovrs(out, value, 0);
-  __ Lsr(out, out, 31);
+  __ LsrImmediate(out, out, 31);
   // Y lane.
   __ vmovrs(temp, value, 1);
-  __ Lsr(temp, temp, 31);
+  __ LsrImmediate(temp, temp, 31);
   __ orr(out, out, Operand(temp, LSL, 1));
   // Z lane.
   __ vmovrs(temp, value, 2);
-  __ Lsr(temp, temp, 31);
+  __ LsrImmediate(temp, temp, 31);
   __ orr(out, out, Operand(temp, LSL, 2));
   // W lane.
   __ vmovrs(temp, value, 3);
-  __ Lsr(temp, temp, 31);
+  __ LsrImmediate(temp, temp, 31);
   __ orr(out, out, Operand(temp, LSL, 3));
   // Tag.
   __ SmiTag(out);
@@ -3940,10 +3886,10 @@ void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // Bits of X lane.
     __ vmovrd(out, value, 0);
-    __ Lsr(out, out, 63);
+    __ LsrImmediate(out, out, 63);
     // Bits of Y lane.
     __ vmovrd(TMP, value, 1);
-    __ Lsr(TMP, TMP, 63);
+    __ LsrImmediate(TMP, TMP, 63);
     __ orr(out, out, Operand(TMP, LSL, 1));
     // Tag.
     __ SmiTag(out);
@@ -4460,6 +4406,18 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* MintToDoubleInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void MintToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Isolate* isolate,
                                                            bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -4877,12 +4835,6 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(
-      deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail);
-  if (ic_data().NumberOfChecks() == 0) {
-    __ b(deopt);
-    return;
-  }
   ASSERT(ic_data().NumArgsTested() == 1);
   if (!with_checks()) {
     ASSERT(ic_data().HasOneTarget());
@@ -4901,6 +4853,8 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadFromOffset(
       R0, SP, (instance_call()->ArgumentCount() - 1) * kWordSize, PP);
 
+  Label* deopt = compiler->AddDeoptStub(
+      deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail);
   LoadValueCid(compiler, R2, R0,
                (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
 
@@ -4986,7 +4940,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(cids_.length() > 2);
       Register mask_reg = locs()->temp(1).reg();
       __ LoadImmediate(mask_reg, 1, PP);
-      __ Lsl(mask_reg, mask_reg, temp);
+      __ lslv(mask_reg, mask_reg, temp);
       __ TestImmediate(mask_reg, mask, PP);
       __ b(deopt, EQ);
     }
@@ -5255,12 +5209,12 @@ void BoxIntNInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   ASSERT(kSmiTagSize == 1);
   // TODO(vegorov) implement and use UBFM/SBFM for this.
-  __ Lsl(out, value, 32);
+  __ LslImmediate(out, value, 32);
   if (from_representation() == kUnboxedInt32) {
-    __ Asr(out, out, 32 - kSmiTagSize);
+    __ AsrImmediate(out, out, 32 - kSmiTagSize);
   } else {
     ASSERT(from_representation() == kUnboxedUint32);
-    __ Lsr(out, out, 32 - kSmiTagSize);
+    __ LsrImmediate(out, out, 32 - kSmiTagSize);
   }
 }
 
@@ -5294,8 +5248,8 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // TODO(vegorov) if we ensure that we never use kDoubleWord size
     // with it then we could avoid this.
     // TODO(vegorov) implement and use UBFM for zero extension.
-    __ Lsl(out, value, 32);
-    __ Lsr(out, out, 32);
+    __ LslImmediate(out, value, 32);
+    __ LsrImmediate(out, out, 32);
   } else if (from() == kUnboxedUint32 && to() == kUnboxedInt32) {
     // Representations are bitwise equivalent.
     // TODO(vegorov) if we ensure that we never use kDoubleWord size
@@ -5303,8 +5257,8 @@ void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // TODO(vegorov) implement and use SBFM for sign extension.
     const Register value = locs()->in(0).reg();
     const Register out = locs()->out(0).reg();
-    __ Lsl(out, value, 32);
-    __ Asr(out, out, 32);
+    __ LslImmediate(out, value, 32);
+    __ AsrImmediate(out, out, 32);
     if (CanDeoptimize()) {
       Label* deopt =
           compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnboxInteger);

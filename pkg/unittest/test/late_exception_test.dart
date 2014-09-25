@@ -2,28 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
+library unittest.late_exception_test;
 
 import 'dart:async';
-import 'dart:isolate';
 
+import 'package:metatest/metatest.dart';
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+void main() => initTests(_test);
 
-var testName = 'late exception test';
+void _test(message) {
+  initMetatest(message);
 
-var testFunction = (_) {
-  var f;
-  test('testOne', () {
-    f = expectAsync(() {});
-    _defer(f);
-  });
-  test('testTwo', () {
-    _defer(expectAsync(() { f(); }));
-  });
-};
-
-var expected = buildStatusString(1, 0, 1, 'testOne',
-    message: 'Callback called (2) after test case testOne has already '
-        'been marked as pass.:testTwo:');
+  expectTestResults('late exception test', () {
+    var f;
+    test('testOne', () {
+      f = expectAsync(() {});
+      new Future.sync(f);
+    });
+    test('testTwo', () {
+      new Future.sync(expectAsync(() {
+        f();
+      }));
+    });
+  }, [{
+    'description': 'testOne',
+    'message': 'Callback called (2) after test case testOne has already been '
+        'marked as pass.',
+    'result': 'error',
+  }, {
+    'description': 'testTwo',
+    'result': 'pass',
+  }]);
+}

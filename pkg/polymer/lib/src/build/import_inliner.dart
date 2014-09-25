@@ -31,8 +31,10 @@ class _HtmlInliner extends PolymerTransformer {
   final AssetId docId;
   final seen = new Set<AssetId>();
   final scriptIds = <AssetId>[];
+  final inlinedStylesheetIds = new Set<AssetId>();
   final extractedFiles = new Set<AssetId>();
   bool experimentalBootstrap = false;
+  final Element importsWrapper = new Element.html('<div hidden></div>');
 
   /// The number of extracted inline Dart scripts. Used as a counter to give
   /// unique-ish filenames.
@@ -54,19 +56,34 @@ class _HtmlInliner extends PolymerTransformer {
 
     return readPrimaryAsHtml(transform, logger).then((doc) {
       document = doc;
+
+      // Insert our importsWrapper. This may be removed later if not needed, but
+      // it makes the logic simpler to have it in the document.
+      document.body.insertBefore(importsWrapper, document.body.firstChild);
+
       changed = new _UrlNormalizer(transform, docId, logger).visit(document)
         || changed;
-      
+
       experimentalBootstrap = document.querySelectorAll('link').any((link) =>
           link.attributes['rel'] == 'import' &&
           link.attributes['href'] == POLYMER_EXPERIMENTAL_HTML);
       changed = _extractScripts(document) || changed;
+
+      // We only need to move the head into the body for the entry point.
+      _moveHeadToBody(document);
+
       return _visitImports(document);
     }).then((importsFound) {
       changed = changed || importsFound;
+
       return _removeScripts(document);
     }).then((scriptsRemoved) {
       changed = changed || scriptsRemoved;
+
+      // Remove the importsWrapper if it contains nothing. Wait until now to do
+      // this since it might have a script that got removed, and thus no longer
+      // have any children.
+      if (importsWrapper.children.isEmpty) importsWrapper.remove();
 
       var output = transform.primaryInput;
       if (changed) output = new Asset.fromString(docId, document.outerHtml);
@@ -96,8 +113,6 @@ class _HtmlInliner extends PolymerTransformer {
   Future<bool> _visitImports(Document document) {
     bool changed = false;
 
-    _moveHeadToBody(document);
-
     // Note: we need to preserve the import order in the generated output.
     return Future.forEach(document.querySelectorAll('link'), (Element tag) {
       var rel = tag.attributes['rel'];
@@ -121,6 +136,13 @@ class _HtmlInliner extends PolymerTransformer {
         if (!options.shouldInlineStylesheet(id)) return null;
 
         changed = true;
+        if (inlinedStylesheetIds.contains(id)
+            && !options.stylesheetInliningIsOverridden(id)) {
+          logger.warning(
+              CSS_FILE_INLINED_MULTIPLE_TIMES.create({'url': id.path}),
+              span: tag.sourceSpan);
+        }
+        inlinedStylesheetIds.add(id);
         return _inlineStylesheet(id, tag);
       }
     }).then((_) => changed);
@@ -128,7 +150,9 @@ class _HtmlInliner extends PolymerTransformer {
 
   /// To preserve the order of scripts with respect to inlined
   /// link rel=import, we move both of those into the body before we do any
-  /// inlining.
+  /// inlining. We do not start doing this until the first import is found
+  /// however, as some scripts do need to be ran in the head to work
+  /// properly (platform.js for instance).
   ///
   /// Note: we do this for stylesheets as well to preserve ordering with
   /// respect to eachother, because stylesheets can be pulled in transitively
@@ -138,17 +162,21 @@ class _HtmlInliner extends PolymerTransformer {
   // Should we do the same? Alternatively could we inline head into head and
   // body into body and avoid this whole thing?
   void _moveHeadToBody(Document doc) {
-    var insertionPoint = doc.body.firstChild;
+    var foundImport = false;
     for (var node in doc.head.nodes.toList(growable: false)) {
       if (node is! Element) continue;
       var tag = node.localName;
       var type = node.attributes['type'];
       var rel = node.attributes['rel'];
+      if (tag == 'link' && rel == 'import') foundImport = true;
+      if (!foundImport) continue;
       if (tag == 'style' || tag == 'script' &&
             (type == null || type == TYPE_JS || type == TYPE_DART) ||
           tag == 'link' && (rel == 'stylesheet' || rel == 'import')) {
-        // Move the node into the body, where its contents will be placed.
-        doc.body.insertBefore(node, insertionPoint);
+        // Move the node into the importsWrapper, where its contents will be
+        // placed. This wrapper is a hidden div to prevent inlined html from
+        // causing a FOUC.
+        importsWrapper.append(node);
       }
     }
   }

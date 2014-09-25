@@ -6,7 +6,6 @@ library services.src.refactoring.rename_label;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -42,17 +41,8 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<SourceChange> createChange() {
-    SourceChange change = new SourceChange(refactoringName);
-    // update declaration
-    addDeclarationEdit(change, element);
-    // update references
-    return searchEngine.searchReferences(element).then((refMatches) {
-      List<SourceReference> references = getSourceReferences(refMatches);
-      for (SourceReference reference in references) {
-        addReferenceEdit(change, reference);
-      }
-      return change;
-    });
+  Future fillChange() {
+    addDeclarationEdit(element);
+    return searchEngine.searchReferences(element).then(addReferenceEdits);
   }
 }

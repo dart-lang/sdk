@@ -64,16 +64,15 @@ then
   else
     SVN_PATH="branches/$CHANNEL/deps/all.deps"
   fi
+  SRC_URI=$SVN_REPRO$SVN_PATH
 fi
-SRC_URI=$SVN_REPRO$SVN_PATH
 
 # Create Debian wheezy chroot.
 debootstrap --arch=$ARCH --components=main,restricted,universe,multiverse \
     wheezy $CHROOT http://http.us.debian.org/debian/
 chroot $CHROOT apt-get update
-mount -o bind /proc $CHROOT/proc  # Needed for openjdk-6-jdk.
 chroot $CHROOT apt-get -y install \
-    debhelper python g++-4.6 openjdk-6-jdk git subversion
+    debhelper python g++-4.6 git subversion
 
 # Add chrome-bot user.
 chroot $CHROOT groupadd --gid 1000 chrome-bot

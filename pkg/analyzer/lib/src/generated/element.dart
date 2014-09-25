@@ -11207,46 +11207,26 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
 
   @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
-    // TODO(collinsn): what version of subtyping do we want?
+    // What version of subtyping do we want? See discussion below in [internalIsSubtypeOf].
     //
     // The more unsound version: any.
-    /*
-    for (Type t : types) {
-      if (((TypeImpl) t).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
+    for (DartType t in _types) {
+      if ((t as TypeImpl).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
         return true;
       }
     }
     return false;
-    */
-    // The less unsound version: all.
-    for (DartType t in _types) {
-      if (!(t as TypeImpl).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   @override
   bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    // TODO(collinsn): what version of subtyping do we want?
-    //
     // The more unsound version: any.
-    /*
-    for (Type t : types) {
-      if (((TypeImpl) t).internalIsSubtypeOf(type, visitedTypePairs)) {
+    for (DartType t in _types) {
+      if ((t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
         return true;
       }
     }
     return false;
-    */
-    // The less unsound version: all.
-    for (DartType t in _types) {
-      if (!(t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   /**

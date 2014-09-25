@@ -15701,6 +15701,8 @@ class SimpleIdentifier extends Identifier {
       return identical(this, parent.name);
     } else if (parent is FunctionTypeAlias) {
       return identical(this, parent.name);
+    } else if (parent is ImportDirective) {
+      return identical(this, parent.prefix);
     } else if (parent is Label) {
       return identical(this, parent.label) && (parent.parent is LabeledStatement);
     } else if (parent is MethodDeclaration) {

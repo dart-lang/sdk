@@ -415,6 +415,11 @@ abstract class _StreamController<T> implements StreamController<T>,
    */
   void addError(Object error, [StackTrace stackTrace]) {
     if (!_mayAddEvent) throw _badEventState();
+    AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
+    if (replacement != null) {
+      error = replacement.error;
+      stackTrace = replacement.stackTrace;
+    }
     _addError(error, stackTrace);
   }
 
@@ -436,13 +441,17 @@ abstract class _StreamController<T> implements StreamController<T>,
       return _ensureDoneFuture();
     }
     if (!_mayAddEvent) throw _badEventState();
+    _closeUnchecked();
+    return _ensureDoneFuture();
+  }
+
+  void _closeUnchecked() {
     _state |= _STATE_CLOSED;
     if (hasListener) {
       _sendDone();
     } else if (_isInitialState) {
       _ensurePendingEvents().add(const _DelayedDone());
     }
-    return _ensureDoneFuture();
   }
 
   // EventSink interface. Used by the [addStream] events.

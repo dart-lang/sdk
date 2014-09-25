@@ -1368,6 +1368,15 @@ class _JsSerializer extends _Serializer {
   visitWorkerSendPort(_WorkerSendPort port) {
     return ['sendport', port._workerId, port._isolateId, port._receivePortId];
   }
+
+  visitFunction(Function topLevelFunction) {
+    final name = IsolateNatives._getJSFunctionName(topLevelFunction);
+    if (name == null) {
+      throw new UnsupportedError(
+          "only top-level functions can be sent.");
+    }
+    return ['function', name];
+  }
 }
 
 
@@ -1396,6 +1405,16 @@ class _JsCopier extends _Copier {
     return new _WorkerSendPort(
         port._workerId, port._isolateId, port._receivePortId);
   }
+
+  Function visitFunction(Function topLevelFunction) {
+    final name = IsolateNatives._getJSFunctionName(topLevelFunction);
+    if (name == null) {
+      throw new UnsupportedError(
+          "only top-level functions can be sent.");
+    }
+    // Is this getting it from the correct isolate? Is it just topLevelFunction?
+    return IsolateNatives._getJSFunctionFromName(name);
+  }
 }
 
 class _JsDeserializer extends _Deserializer {
@@ -1419,6 +1438,10 @@ class _JsDeserializer extends _Deserializer {
 
   Capability deserializeCapability(List list) {
     return new CapabilityImpl._internal(list[1]);
+  }
+
+  Function deserializeFunction(List list) {
+    return IsolateNatives._getJSFunctionFromName(list[1]);
   }
 }
 
@@ -1519,6 +1542,7 @@ abstract class _MessageTraverser {
     if (x is Map) return visitMap(x);
     if (x is SendPort) return visitSendPort(x);
     if (x is Capability) return visitCapability(x);
+    if (x is Function) return visitFunction(x);
 
     // Overridable fallback.
     return visitObject(x);
@@ -1529,6 +1553,7 @@ abstract class _MessageTraverser {
   visitMap(Map x);
   visitSendPort(SendPort x);
   visitCapability(Capability x);
+  visitFunction(Function f);
 
   visitObject(Object x) {
     // TODO(floitsch): make this a real exception. (which one)?
@@ -1573,6 +1598,8 @@ class _Copier extends _MessageTraverser {
     });
     return copy;
   }
+
+  visitFunction(Function f) => throw new UnimplementedError();
 
   visitSendPort(SendPort x) => throw new UnimplementedError();
 
@@ -1622,6 +1649,8 @@ class _Serializer extends _MessageTraverser {
   visitSendPort(SendPort x) => throw new UnimplementedError();
 
   visitCapability(Capability x) => throw new UnimplementedError();
+
+  visitFunction(Function f) => throw new UnimplementedError();
 }
 
 /** Deserializes arrays created with [_Serializer]. */
@@ -1650,6 +1679,7 @@ abstract class _Deserializer {
       case 'map': return _deserializeMap(x);
       case 'sendport': return deserializeSendPort(x);
       case 'capability': return deserializeCapability(x);
+      case 'function' : return deserializeFunction(x);
       default: return deserializeObject(x);
     }
   }
@@ -1688,6 +1718,8 @@ abstract class _Deserializer {
     }
     return result;
   }
+
+  deserializeFunction(List x);
 
   deserializeSendPort(List x);
 

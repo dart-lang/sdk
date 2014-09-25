@@ -6,13 +6,21 @@ library unittest.missing_tick_test;
 
 import 'package:unittest/unittest.dart';
 
-// TODO(gram): Convert to a shouldFail passing test.
-void main() {
-  SimpleConfiguration config = unittestConfiguration;
-  config.timeout = const Duration(seconds: 2);
-  group('Broken', () {
+import 'package:metatest/metatest.dart';
+
+void main() => initTests(_test);
+
+void _test(message) {
+  initMetatest(message, timeout: const Duration(seconds: 1));
+
+  expectTestResults('missing tick', () {
+
     test('test that should time out', () {
       expectAsync(() {});
     });
-  });
+  }, [{
+    'description': 'test that should time out',
+    'message': 'Test timed out after 1 seconds.',
+    'result': 'error',
+  }]);
 }

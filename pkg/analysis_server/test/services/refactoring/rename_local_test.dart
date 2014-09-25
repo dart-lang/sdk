@@ -61,12 +61,14 @@ main() {
 main() {
   int test = 0;
   var newName = 1;
+  print(newName);
 }
 ''');
     createRenameRefactoringAtString('test = 0');
     // check status
     refactoring.newName = 'newName';
     return refactoring.checkFinalConditions().then((status) {
+      expect(status.problems, hasLength(1));
       assertRefactoringStatus(
           status,
           RefactoringProblemSeverity.ERROR,

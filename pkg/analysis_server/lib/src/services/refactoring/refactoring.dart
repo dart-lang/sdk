@@ -9,10 +9,12 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol.dart' show
     RefactoringMethodParameter, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/refactoring/convert_method_to_getter.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
 import 'package:analysis_server/src/services/refactoring/inline_method.dart';
+import 'package:analysis_server/src/services/refactoring/move_file.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_constructor.dart';
 import 'package:analysis_server/src/services/refactoring/rename_import.dart';
@@ -23,6 +25,40 @@ import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';
+import 'package:path/path.dart' as pathos;
+
+
+/**
+ * [Refactoring] to convert getters into normal [MethodDeclaration]s.
+ */
+abstract class ConvertGetterToMethodRefactoring implements Refactoring {
+  /**
+   * Returns a new [ConvertMethodToGetterRefactoring] instance for converting
+   * [element] and all the corresponding hierarchy elements.
+   */
+  factory ConvertGetterToMethodRefactoring(SearchEngine searchEngine,
+      PropertyAccessorElement element) {
+    return new ConvertGetterToMethodRefactoringImpl(searchEngine, element);
+  }
+}
+
+
+/**
+ * [Refactoring] to convert normal [MethodDeclaration]s into getters.
+ */
+abstract class ConvertMethodToGetterRefactoring implements Refactoring {
+  /**
+   * Returns a new [ConvertMethodToGetterRefactoring] instance for converting
+   * [element] and all the corresponding hierarchy elements.
+   */
+  factory ConvertMethodToGetterRefactoring(SearchEngine searchEngine,
+      ExecutableElement element) {
+    return new ConvertMethodToGetterRefactoringImpl(searchEngine, element);
+  }
+}
 
 
 /**
@@ -244,6 +280,29 @@ abstract class InlineMethodRefactoring implements Refactoring {
    * The name of the method (or function) being inlined.
    */
   String get methodName;
+}
+
+
+/**
+ * [Refactoring] to move/rename a file.
+ */
+abstract class MoveFileRefactoring implements Refactoring {
+  /**
+   * Returns a new [MoveFileRefactoring] instance.
+   */
+  factory MoveFileRefactoring(pathos.Context pathContext,
+      SearchEngine searchEngine, AnalysisContext context, Source source) {
+    return new MoveFileRefactoringImpl(
+        pathContext,
+        searchEngine,
+        context,
+        source);
+  }
+
+  /**
+   * The new file path to which the given file is being moved.
+   */
+  void set newFile(String newName);
 }
 
 

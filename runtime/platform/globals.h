@@ -13,15 +13,39 @@
 
 #if defined(_WIN32)
 // Cut down on the amount of stuff that gets included via windows.h.
+#if !defined(WIN32_LEAN_AND_MEAN)
 #define WIN32_LEAN_AND_MEAN
+#endif
+
+#if !defined(NOMINMAX)
 #define NOMINMAX
+#endif
+
+#if !defined(NOKERNEL)
 #define NOKERNEL
+#endif
+
+#if !defined(NOUSER)
 #define NOUSER
+#endif
+
+#if !defined(NOSERVICE)
 #define NOSERVICE
+#endif
+
+#if !defined(NOSOUND)
 #define NOSOUND
+#endif
+
+#if !defined(NOMCX)
 #define NOMCX
+#endif
+
+#if !defined(UNICODE)
 #define _UNICODE
 #define UNICODE
+#endif
+
 #include <windows.h>
 #include <winsock2.h>
 #include <Rpc.h>

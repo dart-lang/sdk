@@ -277,8 +277,8 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ LoadImmediate(TMP, -kObjectAlignment);                                    \
   __ and_(T2, T2, TMP);                                                        \
   Heap* heap = Isolate::Current()->heap();                                     \
-                                                                               \
-  __ LoadImmediate(V0, heap->TopAddress());                                    \
+  Heap::Space space = heap->SpaceForAllocation(cid);                           \
+  __ LoadImmediate(V0, heap->TopAddress(space));                               \
   __ lw(V0, Address(V0, 0));                                                   \
                                                                                \
   /* T2: allocation size. */                                                   \
@@ -289,16 +289,16 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* V0: potential new object start. */                                        \
   /* T1: potential next object start. */                                       \
   /* T2: allocation size. */                                                   \
-  __ LoadImmediate(T3, heap->EndAddress());                                    \
+  __ LoadImmediate(T3, heap->EndAddress(space));                               \
   __ lw(T3, Address(T3, 0));                                                   \
   __ BranchUnsignedGreaterEqual(T1, T3, &fall_through);                        \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ LoadImmediate(T3, heap->TopAddress());                                    \
+  __ LoadImmediate(T3, heap->TopAddress(space));                               \
   __ sw(T1, Address(T3, 0));                                                   \
   __ AddImmediate(V0, kHeapObjectTag);                                         \
-  __ UpdateAllocationStatsWithSize(cid, T2, T4);                               \
+  __ UpdateAllocationStatsWithSize(cid, T2, T4, space);                        \
   /* Initialize the tags. */                                                   \
   /* V0: new object start as a tagged pointer. */                              \
   /* T1: new object end address. */                                            \
@@ -895,6 +895,11 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
+  // TODO(regis): Implement.
+}
+
+
 // Check if the last argument is a double, jump to label 'is_smi' if smi
 // (easy to convert to double), otherwise jump to label 'not_double_smi',
 // Returns the last argument in T0.
@@ -1432,8 +1437,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
-
-  __ LoadImmediate(T3, heap->TopAddress());
+  const intptr_t cid = kOneByteStringCid;
+  Heap::Space space = heap->SpaceForAllocation(cid);
+  __ LoadImmediate(T3, heap->TopAddress(space));
   __ lw(V0, Address(T3, 0));
 
   // length_reg: allocation size.
@@ -1444,8 +1450,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // V0: potential new object start.
   // T1: potential next object start.
   // T2: allocation size.
-  // T3: heap->TopAddress().
-  __ LoadImmediate(T4, heap->EndAddress());
+  // T3: heap->TopAddress(space).
+  __ LoadImmediate(T4, heap->EndAddress(space));
   __ lw(T4, Address(T4, 0));
   __ BranchUnsignedGreaterEqual(T1, T4, failure);
 
@@ -1454,7 +1460,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ sw(T1, Address(T3, 0));
   __ AddImmediate(V0, kHeapObjectTag);
 
-  __ UpdateAllocationStatsWithSize(kOneByteStringCid, T2, T3);
+  __ UpdateAllocationStatsWithSize(cid, T2, T3, space);
 
   // Initialize the tags.
   // V0: new object start as a tagged pointer.
@@ -1463,8 +1469,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   {
     Label overflow, done;
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
-    const Class& cls =
-        Class::Handle(isolate->object_store()->one_byte_string_class());
 
     __ BranchUnsignedGreater(T2, RawObject::SizeTag::kMaxSizeTag, &overflow);
     __ b(&done);
@@ -1475,7 +1479,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
     // Get the class index and insert it into the tags.
     // T2: size and bit tags.
-    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cls.id()));
+    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));
     __ or_(T2, T2, TMP);
     __ sw(T2, FieldAddress(V0, String::tags_offset()));  // Store tags.
   }
@@ -1660,8 +1664,7 @@ void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
   Isolate* isolate = Isolate::Current();
   // V0: Address of default tag.
   __ LoadImmediate(V0,
-      reinterpret_cast<uword>(isolate->object_store()) +
-                              ObjectStore::default_tag_offset());
+      reinterpret_cast<uword>(isolate) + Isolate::default_tag_offset());
   __ Ret();
   __ delay_slot()->lw(V0, Address(V0, 0));
 }

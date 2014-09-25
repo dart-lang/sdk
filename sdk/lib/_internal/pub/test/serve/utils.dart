@@ -456,8 +456,8 @@ Future<Map> _jsonRpcRequest(String method, [Map params]) {
   if (params != null) message["params"] = params;
   _webSocket.add(JSON.encode(message));
 
-  return Chain.track(_webSocketBroadcastStream
-      .firstWhere((response) => response["id"] == id)).then((value) {
+  return _webSocketBroadcastStream
+      .firstWhere((response) => response["id"] == id).then((value) {
     currentSchedule.addDebugInfo(
         "Web Socket request $method with params $params\n"
         "Result: $value");

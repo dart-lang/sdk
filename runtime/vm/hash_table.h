@@ -562,9 +562,14 @@ class HashMap : public BaseIterTable {
     }
   }
 
+  void Clear() const {
+    BaseIterTable::Initialize();
+  }
+
  protected:
   void EnsureCapacity() const {
     static const double kMaxLoadFactor = 0.75;
+    // We currently never shrink.
     HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, *this);
   }
 };
@@ -651,9 +656,14 @@ class HashSet : public BaseIterTable {
     }
   }
 
+  void Clear() const {
+    BaseIterTable::Initialize();
+  }
+
  protected:
   void EnsureCapacity() const {
     static const double kMaxLoadFactor = 0.75;
+    // We currently never shrink.
     HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, *this);
   }
 };

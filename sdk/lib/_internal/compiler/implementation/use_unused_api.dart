@@ -46,6 +46,8 @@ import 'cps_ir/cps_ir_nodes_sexpr.dart' as cps_ir_nodes_sexpr;
 
 import 'cps_ir/cps_ir_builder.dart' as ir_builder;
 
+import 'js_emitter/js_emitter.dart' as js_emitter;
+
 class ElementVisitor extends elements_visitor.ElementVisitor {
   visitElement(e) {}
 }
@@ -72,6 +74,7 @@ void main(List<String> arguments) {
   useIr(null, null, null);
   useCompiler(null);
   useTypes();
+  useCodeEmitterTask(null);
 }
 
 useApi() {
@@ -249,10 +252,16 @@ useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
 }
 
 useCompiler(dart2jslib.Compiler compiler) {
-  compiler.libraryLoader.reset();
-  compiler.libraryLoader.lookupLibrary(null);
+  compiler.libraryLoader
+      ..reset()
+      ..resetAsync(null)
+      ..lookupLibrary(null);
 }
 
 useTypes() {
   new dart_types.ResolvedTypedefType(null, null, null).unalias(null);
+}
+
+useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
+  codeEmitterTask.oldEmitter.clearCspPrecompiledNodes();
 }

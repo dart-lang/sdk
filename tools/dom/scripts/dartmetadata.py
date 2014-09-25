@@ -133,6 +133,11 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Creates('Null')",
     ],
 
+    'HTMLCanvasElement.getContext': [
+      "@Creates('CanvasRenderingContext2D|RenderingContext')",
+      "@Returns('CanvasRenderingContext2D|RenderingContext|Null')",
+    ],
+
     'HTMLInputElement.valueAsDate': [
       "@Creates('Null')", # JS date object.
     ],

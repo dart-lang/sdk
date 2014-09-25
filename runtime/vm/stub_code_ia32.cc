@@ -645,8 +645,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
-
-  __ movl(EAX, Address::Absolute(heap->TopAddress()));
+  const intptr_t cid = kArrayCid;
+  Heap::Space space = heap->SpaceForAllocation(cid);
+  __ movl(EAX, Address::Absolute(heap->TopAddress(space)));
   __ movl(EBX, EAX);
 
   // EDI: allocation size.
@@ -659,14 +660,14 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // EDI: allocation size.
   // ECX: array element type.
   // EDX: array length as Smi).
-  __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
+  __ cmpl(EBX, Address::Absolute(heap->EndAddress(space)));
   __ j(ABOVE_EQUAL, &slow_case);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movl(Address::Absolute(heap->TopAddress()), EBX);
+  __ movl(Address::Absolute(heap->TopAddress(space)), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(kArrayCid, EDI, kNoRegister);
+  __ UpdateAllocationStatsWithSize(cid, EDI, kNoRegister, space);
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -686,8 +687,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    const Class& cls = Class::Handle(isolate->object_store()->array_class());
-    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cid)));
     __ movl(FieldAddress(EAX, Array::tags_offset()), EDI);  // Tags.
   }
   // EAX: new object start as a tagged pointer.
@@ -773,8 +773,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(CTX, Address(EBP, kNewContextOffset));
   __ movl(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
 
-  // Load Isolate pointer from Context structure into EDI.
-  __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
+  __ movl(EDI, Immediate(Isolate::CurrentAddress()));
 
   // Save the current VMTag on the stack.
   ASSERT(kSavedVMTagSlotFromEntryFp == -4);
@@ -860,22 +859,17 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
 
-  // Load Isolate pointer from Context structure into CTX. Drop Context.
-  __ movl(CTX, FieldAddress(CTX, Context::isolate_offset()));
+  // Load Isolate pointer into CTX. Drop Context.
+  __ movl(CTX, Immediate(Isolate::CurrentAddress()));
 
   // Restore the saved Context pointer into the Isolate structure.
-  // Uses ECX as a temporary register for this.
-  __ popl(ECX);
-  __ movl(Address(CTX, Isolate::top_context_offset()), ECX);
+  __ popl(Address(CTX, Isolate::top_context_offset()));
 
   // Restore the saved top exit frame info back into the Isolate structure.
-  // Uses EDX as a temporary register for this.
-  __ popl(EDX);
-  __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), EDX);
+  __ popl(Address(CTX, Isolate::top_exit_frame_info_offset()));
 
   // Restore the current VMTag from the stack.
-  __ popl(ECX);
-  __ movl(Address(CTX, Isolate::vm_tag_offset()), ECX);
+  __ popl(Address(CTX, Isolate::vm_tag_offset()));
 
   // Restore C++ ABI callee-saved registers.
   __ popl(EDI);
@@ -899,9 +893,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   if (FLAG_inline_alloc) {
-    const Class& context_class = Class::ZoneHandle(Object::context_class());
     Label slow_case;
-    Heap* heap = Isolate::Current()->heap();
+    Isolate* isolate = Isolate::Current();
+    Heap* heap = isolate->heap();
     // First compute the rounded instance size.
     // EDX: number of context variables.
     intptr_t fixed_size = (sizeof(RawContext) + kObjectAlignment - 1);
@@ -910,13 +904,15 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 
     // Now allocate the object.
     // EDX: number of context variables.
-    __ movl(EAX, Address::Absolute(heap->TopAddress()));
+    const intptr_t cid = kContextCid;
+    Heap::Space space = heap->SpaceForAllocation(cid);
+    __ movl(EAX, Address::Absolute(heap->TopAddress(space)));
     __ addl(EBX, EAX);
     // Check if the allocation fits into the remaining space.
     // EAX: potential new object.
     // EBX: potential next object start.
     // EDX: number of context variables.
-    __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
+    __ cmpl(EBX, Address::Absolute(heap->EndAddress(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
@@ -928,11 +924,11 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EAX: new object.
     // EBX: next object start.
     // EDX: number of context variables.
-    __ movl(Address::Absolute(heap->TopAddress()), EBX);
+    __ movl(Address::Absolute(heap->TopAddress(space)), EBX);
     __ addl(EAX, Immediate(kHeapObjectTag));
     // EBX: Size of allocation in bytes.
     __ subl(EBX, EAX);
-    __ UpdateAllocationStatsWithSize(context_class.id(), EBX, kNoRegister);
+    __ UpdateAllocationStatsWithSize(cid, EBX, kNoRegister, space);
 
     // Calculate the size tag.
     // EAX: new object.
@@ -955,7 +951,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       // EDX: number of context variables.
       // EBX: size and bit tags.
       __ orl(EBX,
-             Immediate(RawObject::ClassIdTag::encode(context_class.id())));
+             Immediate(RawObject::ClassIdTag::encode(cid)));
       __ movl(FieldAddress(EAX, Context::tags_offset()), EBX);  // Tags.
     }
 
@@ -968,9 +964,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // Load Isolate pointer from Context structure into EBX.
     // EAX: new object.
     // EDX: number of context variables.
-    __ movl(EBX, FieldAddress(CTX, Context::isolate_offset()));
-    // EBX: Isolate, not an object.
-    __ movl(FieldAddress(EAX, Context::isolate_offset()), EBX);
+    __ movl(FieldAddress(EAX, Context::isolate_offset()),
+            Immediate(reinterpret_cast<int32_t>(isolate)));
 
     const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -1045,10 +1040,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ orl(ECX, Immediate(1 << RawObject::kRememberedBit));
   __ movl(FieldAddress(EAX, Object::tags_offset()), ECX);
 
-  // Load the isolate out of the context.
+  // Load the isolate.
   // Spilled: EDX, ECX
   // EAX: Address being stored
-  __ movl(EDX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movl(EDX, Immediate(Isolate::CurrentAddress()));
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1079,7 +1074,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(1 * kWordSize);
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movl(EAX, Immediate(Isolate::CurrentAddress()));
   __ movl(Address(ESP, 0), EAX);  // Push the isolate as the only argument.
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
@@ -1095,8 +1090,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Uses EAX, EBX, ECX, EDX, EDI as temporary registers.
 // Returns patch_code_pc offset where patching code for disabling the stub
 // has been generated (similar to regularly generated Dart code).
-uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
-                                               const Class& cls) {
+void StubCode::GenerateAllocationStubForClass(
+    Assembler* assembler, const Class& cls,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+  *entry_patch_offset = assembler->CodeSize();
   const intptr_t kObjectTypeArgumentsOffset = 1 * kWordSize;
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -1120,19 +1117,20 @@ uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // next object start and initialize the allocated object.
     // EDX: instantiated type arguments (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
-    __ movl(EAX, Address::Absolute(heap->TopAddress()));
+    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    __ movl(EAX, Address::Absolute(heap->TopAddress(space)));
     __ leal(EBX, Address(EAX, instance_size));
     // Check if the allocation fits into the remaining space.
     // EAX: potential new object start.
     // EBX: potential next object start.
-    __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
+    __ cmpl(EBX, Address::Absolute(heap->EndAddress(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
       __ j(ABOVE_EQUAL, &slow_case);
     }
-    __ movl(Address::Absolute(heap->TopAddress()), EBX);
-    __ UpdateAllocationStats(cls.id(), ECX);
+    __ movl(Address::Absolute(heap->TopAddress(space)), EBX);
+    __ UpdateAllocationStats(cls.id(), ECX, space);
 
     // EAX: new object start.
     // EBX: next object start.
@@ -1211,10 +1209,9 @@ uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ ret();
   // Emit function patching code. This will be swapped with the first 5 bytes
   // at entry point.
-  uword patch_code_pc_offset = assembler->CodeSize();
+  *patch_code_pc_offset = assembler->CodeSize();
   StubCode* stub_code = Isolate::Current()->stub_code();
   __ jmp(&stub_code->FixAllocationStubTargetLabel());
-  return patch_code_pc_offset;
 }
 
 
@@ -1382,10 +1379,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
-  Label stepping, done_stepping;
   // Check single stepping.
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
-  __ cmpb(Address(EAX, Isolate::single_step_offset()), Immediate(0));
+  Label stepping, done_stepping;
+  uword single_step_address =
+      Isolate::CurrentAddress() + Isolate::single_step_offset();
+  __ cmpb(Address::Absolute(single_step_address), Immediate(0));
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
 
@@ -1621,9 +1619,9 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 #endif  // DEBUG
   // Check single stepping.
   Label stepping, done_stepping;
-  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
-  __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
-  __ cmpl(EAX, Immediate(0));
+  uword single_step_address =
+      Isolate::CurrentAddress() + Isolate::single_step_offset();
+  __ cmpb(Address::Absolute(single_step_address), Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
   __ Bind(&done_stepping);
 

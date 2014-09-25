@@ -41,11 +41,11 @@ static file server that looks up the requested URI on the filesystem--or it can
 do some processing and forward it to another handler--for example, a logger that
 prints information about requests and responses to the command line.
 
-[handler]: https://api.dartlang.org/apidocs/channels/be/dartdoc-viewer/shelf/shelf.Handler
+[handler]: http://www.dartdocs.org/documentation/shelf/latest/index.html#shelf/shelf@id_Handler
 
-[shelf.Request]: https://api.dartlang.org/apidocs/channels/be/dartdoc-viewer/shelf/shelf.Request
+[shelf.Request]: http://www.dartdocs.org/documentation/shelf/latest/index.html#shelf/shelf.Request
 
-[shelf.Response]:  https://api.dartlang.org/apidocs/channels/be/dartdoc-viewer/shelf/shelf.Response
+[shelf.Response]:  http://www.dartdocs.org/documentation/shelf/latest/index.html#shelf/shelf.Response
 
 The latter kind of handler is called "[middleware][]", since it sits in the
 middle of the server stack. Middleware can be thought of as a function that
@@ -54,9 +54,9 @@ functionality. A Shelf application is usually composed of many layers of
 middleware with one or more handlers at the very center; the [shelf.Pipeline][]
 class makes this sort of application easy to construct.
 
-[middleware]: https://api.dartlang.org/apidocs/channels/be/dartdoc-viewer/shelf/shelf.Middleware
+[middleware]: http://www.dartdocs.org/documentation/shelf/latest/index.html#shelf/shelf@id_Middleware
 
-[shelf.Pipeline]:  https://api.dartlang.org/apidocs/channels/be/dartdoc-viewer/shelf/shelf.Pipeline
+[shelf.Pipeline]:  http://www.dartdocs.org/documentation/shelf/latest/index.html#shelf/shelf.Pipeline
 
 Some middleware can also take multiple handlers and call one or more of them for
 each request. For example, a routing middleware might choose which handler to
@@ -72,7 +72,7 @@ adapters forward requests from and responses to an underlying HTTP server;
 HTTP requests within the browser using `window.location` and `window.history`,
 or it might pipe requests directly from an HTTP client to a Shelf handler.
 
-[shelf_io.serve]: https://api.dartlang.org/apidocs/channels/be/dartdoc-viewer/shelf/shelf-io#id_serve
+[shelf_io.serve]: http://www.dartdocs.org/documentation/shelf/latest/index.html#shelf/shelf-io@id_serve
 
 When implementing an adapter, some rules must be followed. The adapter must not
 pass the `url` or `scriptName` parameters to [new shelf.Request][]; it should
@@ -81,7 +81,7 @@ begin with the adapter's package name followed by a period. If multiple headers
 with the same name are received, the adapter must collapse them into a single
 header separated by commas as per [RFC 2616 section 4.2][].
 
-[new shelf.Request]: https://api.dartlang.org/apidocs/channels/be/dartdoc-viewer/shelf/shelf.Request#id_Request-
+[new shelf.Request]: http://www.dartdocs.org/documentation/shelf/latest/index.html#shelf/shelf.Request@id_Request-
 
 [RFC 2616 section 4.2]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html
 

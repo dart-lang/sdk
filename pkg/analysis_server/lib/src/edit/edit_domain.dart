@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/engine.dart';
 
 
 /**
@@ -159,6 +160,10 @@ class EditDomainHandler implements RequestHandler {
  * is invalidated and a new one is created and initialized.
  */
 class _RefactoringManager {
+  static const List<RefactoringProblem> EMPTY_PROBLEM_LIST = const
+      <RefactoringProblem>[
+      ];
+
   final AnalysisServer server;
   final SearchEngine searchEngine;
 
@@ -176,6 +181,7 @@ class _RefactoringManager {
   EditGetRefactoringResult result;
 
   _RefactoringManager(this.server, this.searchEngine) {
+    server.onAnalysisStarted.listen(_reset);
     _reset();
   }
 
@@ -189,7 +195,8 @@ class _RefactoringManager {
    * Checks if [refactoring] requires options.
    */
   bool get _requiresOptions {
-    if (refactoring is InlineLocalRefactoring) {
+    if (refactoring is ConvertMethodToGetterRefactoring ||
+        refactoring is InlineLocalRefactoring) {
       return false;
     }
     return true;
@@ -198,7 +205,10 @@ class _RefactoringManager {
   void getRefactoring(Request request) {
     // prepare for processing the request
     requestId = request.id;
-    result = new EditGetRefactoringResult(<RefactoringProblem>[]);
+    result = new EditGetRefactoringResult(
+        EMPTY_PROBLEM_LIST,
+        EMPTY_PROBLEM_LIST,
+        EMPTY_PROBLEM_LIST);
     // process the request
     var params = new EditGetRefactoringParams.fromRequest(request);
     _init(params.kind, params.file, params.offset, params.length).then((_) {
@@ -227,6 +237,7 @@ class _RefactoringManager {
         if (_hasFatalError) {
           return _sendResultResponse();
         }
+        // create change
         return refactoring.createChange().then((change) {
           result.change = new SourceChange(change.message, edits: change.edits);
           return _sendResultResponse();
@@ -255,6 +266,16 @@ class _RefactoringManager {
     this.offset = offset;
     this.length = length;
     // create a new Refactoring instance
+    if (kind == RefactoringKind.CONVERT_METHOD_TO_GETTER) {
+      List<Element> elements = server.getElementsAtOffset(file, offset);
+      if (elements.isNotEmpty) {
+        Element element = elements[0];
+        if (element is ExecutableElement) {
+          refactoring =
+              new ConvertMethodToGetterRefactoring(searchEngine, element);
+        }
+      }
+    }
     if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
       List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
       if (units.isNotEmpty) {
@@ -284,6 +305,15 @@ class _RefactoringManager {
         refactoring =
             new InlineMethodRefactoring(searchEngine, units[0], offset);
       }
+    }
+    if (kind == RefactoringKind.MOVE_FILE) {
+      engine.AnalysisContext context = server.getAnalysisContext(file);
+      Source source = server.getSource(file);
+      refactoring = new MoveFileRefactoring(
+          server.resourceProvider.pathContext,
+          searchEngine,
+          context,
+          source);
     }
     if (kind == RefactoringKind.RENAME) {
       List<AstNode> nodes = server.getNodesAtOffset(file, offset);
@@ -348,7 +378,10 @@ class _RefactoringManager {
     });
   }
 
-  void _reset() {
+  void _reset([AnalysisContext context]) {
+    kind = null;
+    offset = null;
+    length = null;
     refactoring = null;
     feedback = null;
     initStatus = new RefactoringStatus();
@@ -361,13 +394,9 @@ class _RefactoringManager {
       result.feedback = feedback;
     }
     // set problems
-    {
-      RefactoringStatus status = new RefactoringStatus();
-      status.addStatus(initStatus);
-      status.addStatus(optionsStatus);
-      status.addStatus(finalStatus);
-      result.problems = status.problems;
-    }
+    result.initialProblems = initStatus.problems;
+    result.optionsProblems = optionsStatus.problems;
+    result.finalProblems = finalStatus.problems;
     // send the response
     server.sendResponse(result.toResponse(requestId));
     // done with this request
@@ -400,6 +429,12 @@ class _RefactoringManager {
       InlineMethodOptions inlineOptions = params.options;
       inlineRefactoring.deleteSource = inlineOptions.deleteSource;
       inlineRefactoring.inlineAll = inlineOptions.inlineAll;
+      return new RefactoringStatus();
+    }
+    if (refactoring is MoveFileRefactoring) {
+      MoveFileRefactoring moveRefactoring = this.refactoring;
+      MoveFileOptions moveOptions = params.options;
+      moveRefactoring.newFile = moveOptions.newFile;
       return new RefactoringStatus();
     }
     if (refactoring is RenameRefactoring) {

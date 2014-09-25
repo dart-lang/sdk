@@ -386,5 +386,55 @@ publish_to: none
             (pubspec) => pubspec.publishTo);
       });
     });
+    group("executables", () {
+      test("defaults to an empty map if omitted", () {
+        var pubspec = new Pubspec.parse('', sources);
+        expect(pubspec.executables, isEmpty);
+      });
+      test("allows simple names for keys and most characters in values", () {
+        var pubspec = new Pubspec.parse('''
+executables:
+  abcDEF-123_: "abc DEF-123._"
+''', sources);
+        expect(pubspec.executables['abcDEF-123_'], equals('abc DEF-123._'));
+      });
+      test("throws if not a map", () {
+        expectPubspecException(
+            'executables: not map',
+            (pubspec) => pubspec.executables);
+      });
+      test("throws if key is not a string", () {
+        expectPubspecException(
+            'executables: {123: value}',
+            (pubspec) => pubspec.executables);
+      });
+      test("throws if a key isn't a simple name", () {
+        expectPubspecException(
+            'executables: {funny/name: ok}',
+            (pubspec) => pubspec.executables);
+      });
+      test("throws if a value is not a string", () {
+        expectPubspecException(
+            'executables: {command: 123}',
+            (pubspec) => pubspec.executables);
+      });
+      test("throws if a value contains a path separator", () {
+        expectPubspecException(
+            'executables: {command: funny_name/part}',
+            (pubspec) => pubspec.executables);
+      });
+      test("throws if a value contains a windows path separator", () {
+        expectPubspecException(
+            r'executables: {command: funny_name\part}',
+            (pubspec) => pubspec.executables);
+      });
+      test("uses the key if the value is null", () {
+        var pubspec = new Pubspec.parse('''
+executables:
+  command:
+''', sources);
+        expect(pubspec.executables['command'], equals('command'));
+      });
+    });
   });
 }

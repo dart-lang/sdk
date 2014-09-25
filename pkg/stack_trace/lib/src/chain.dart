@@ -35,14 +35,6 @@ typedef void ChainHandler(error, Chain chain);
 ///       print("Caught error $error\n"
 ///             "$stackChain");
 ///     });
-///
-/// For the most part [Chain.capture] will notice when an error is thrown and
-/// associate the correct stack chain with it; the chain can be accessed using
-/// [new Chain.forTrace]. However, there are some cases where exceptions won't
-/// be automatically detected: any [Future] constructor,
-/// [Completer.completeError], [Stream.addError], and libraries that use these.
-/// For these, all you need to do is wrap the Future or Stream in a call to
-/// [Chain.track] and the errors will be tracked correctly.
 class Chain implements StackTrace {
   /// The line used in the string representation of stack chains to represent
   /// the gap between traces.
@@ -68,13 +60,6 @@ class Chain implements StackTrace {
   /// [onError] may be called more than once. If [onError] isn't passed, the
   /// parent Zone's `unhandledErrorHandler` will be called with the error and
   /// its chain.
-  ///
-  /// For the most part an error thrown in the zone will have the correct stack
-  /// chain associated with it. However, there are some cases where exceptions
-  /// won't be automatically detected: any [Future] constructor,
-  /// [Completer.completeError], [Stream.addError], and libraries that use
-  /// these. For these, all you need to do is wrap the Future or Stream in a
-  /// call to [Chain.track] and the errors will be tracked correctly.
   ///
   /// Note that even if [onError] isn't passed, this zone will still be an error
   /// zone. This means that any errors that would cross the zone boundary are
@@ -102,33 +87,13 @@ class Chain implements StackTrace {
     });
   }
 
-  /// Ensures that any errors emitted by [futureOrStream] have the correct stack
-  /// chain information associated with them.
+  /// Returns [futureOrStream] unmodified.
   ///
-  /// For the most part an error thrown within a [capture] zone will have the
-  /// correct stack chain automatically associated with it. However, there are
-  /// some cases where exceptions won't be automatically detected: any [Future]
-  /// constructor, [Completer.completeError], [Stream.addError], and libraries
-  /// that use these.
-  ///
-  /// This returns a [Future] or [Stream] that will emit the same values and
-  /// errors as [futureOrStream]. The only exception is that if [futureOrStream]
-  /// emits an error without a stack trace, one will be added in the return
-  /// value.
-  ///
-  /// If this is called outside of a [capture] zone, it just returns
-  /// [futureOrStream] as-is.
-  ///
-  /// As the name suggests, [futureOrStream] may be either a [Future] or a
-  /// [Stream].
-  static track(futureOrStream) {
-    if (_currentSpec == null) return futureOrStream;
-    if (futureOrStream is Future) {
-      return _currentSpec.trackFuture(futureOrStream, 1);
-    } else {
-      return _currentSpec.trackStream(futureOrStream, 1);
-    }
-  }
+  /// Prior to Dart 1.7, this was necessary to ensure that stack traces for
+  /// exceptions reported with [Completer.completeError] and
+  /// [StreamController.addError] were tracked correctly.
+  @Deprecated("Chain.track is not necessary in Dart 1.7+.")
+  static track(futureOrStream) => futureOrStream;
 
   /// Returns the current stack chain.
   ///

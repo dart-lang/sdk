@@ -84,14 +84,14 @@ abstract class Stream<T> {
     // Use the controller's buffering to fill in the value even before
     // the stream has a listener. For a single value, it's not worth it
     // to wait for a listener before doing the `then` on the future.
-    StreamController<T> controller = new StreamController<T>(sync: true);
+    _StreamController<T> controller = new StreamController<T>(sync: true);
     future.then((value) {
-        controller.add(value);
-        controller.close();
+        controller._add(value);
+        controller._closeUnchecked();
       },
       onError: (error, stackTrace) {
-        controller.addError(error, stackTrace);
-        controller.close();
+        controller._addError(error, stackTrace);
+        controller._closeUnchecked();
       });
     return controller.stream;
   }
@@ -313,8 +313,11 @@ abstract class Stream<T> {
     StreamController controller;
     StreamSubscription subscription;
     void onListen () {
-      var add = controller.add;
-      var addError = controller.addError;
+      final add = controller.add;
+      assert(controller is _StreamController ||
+             controller is _BroadcastStreamController);
+      final eventSink = controller;
+      final addError = eventSink._addError;
       subscription = this.listen(
           (T event) {
             var newValue;
@@ -371,6 +374,9 @@ abstract class Stream<T> {
     StreamController controller;
     StreamSubscription subscription;
     void onListen() {
+      assert(controller is _StreamController ||
+             controller is _BroadcastStreamController);
+      final eventSink = controller;
       subscription = this.listen(
           (T event) {
             Stream newStream;
@@ -386,7 +392,7 @@ abstract class Stream<T> {
                         .whenComplete(subscription.resume);
             }
           },
-          onError: controller.addError,
+          onError: eventSink._addError,  // Avoid Zone error replacement.
           onDone: controller.close
       );
     }
@@ -504,7 +510,7 @@ abstract class Stream<T> {
           try {
             throw IterableElementError.noElement();
           } catch (e, s) {
-            result._completeError(e, s);
+            _completeWithErrorCallback(result, e,  s);
           }
         } else {
           result._complete(value);
@@ -562,7 +568,7 @@ abstract class Stream<T> {
         try {
           buffer.write(element);
         } catch (e, s) {
-          _cancelAndError(subscription, result, e, s);
+          _cancelAndErrorWithReplacement(subscription, result, e, s);
         }
       },
       onError: (e) {
@@ -909,7 +915,7 @@ abstract class Stream<T> {
         try {
           throw IterableElementError.noElement();
         } catch (e, s) {
-          future._completeError(e, s);
+          _completeWithErrorCallback(future, e, s);
         }
       },
       cancelOnError: true);
@@ -944,7 +950,7 @@ abstract class Stream<T> {
         try {
           throw IterableElementError.noElement();
         } catch (e, s) {
-          future._completeError(e, s);
+          _completeWithErrorCallback(future, e, s);
         }
       },
       cancelOnError: true);
@@ -971,7 +977,7 @@ abstract class Stream<T> {
           try {
             throw IterableElementError.tooMany();
           } catch (e, s) {
-            _cancelAndError(subscription, future, e, s);
+            _cancelAndErrorWithReplacement(subscription, future, e, s);
           }
           return;
         }
@@ -987,7 +993,7 @@ abstract class Stream<T> {
         try {
           throw IterableElementError.noElement();
         } catch (e, s) {
-          future._completeError(e, s);
+          _completeWithErrorCallback(future, e, s);
         }
       },
       cancelOnError: true);
@@ -1039,7 +1045,7 @@ abstract class Stream<T> {
         try {
           throw IterableElementError.noElement();
         } catch (e, s) {
-          future._completeError(e, s);
+          _completeWithErrorCallback(future, e, s);
         }
       },
       cancelOnError: true);
@@ -1084,7 +1090,7 @@ abstract class Stream<T> {
         try {
           throw IterableElementError.noElement();
         } catch (e, s) {
-          future._completeError(e, s);
+          _completeWithErrorCallback(future, e, s);
         }
       },
       cancelOnError: true);
@@ -1112,7 +1118,7 @@ abstract class Stream<T> {
                 try {
                   throw IterableElementError.tooMany();
                 } catch (e, s) {
-                  _cancelAndError(subscription, future, e, s);
+                  _cancelAndErrorWithReplacement(subscription, future, e, s);
                 }
                 return;
               }
@@ -1132,7 +1138,7 @@ abstract class Stream<T> {
         try {
           throw IterableElementError.noElement();
         } catch (e, s) {
-          future._completeError(e, s);
+          _completeWithErrorCallback(future, e, s);
         }
       },
       cancelOnError: true);
@@ -1212,7 +1218,10 @@ abstract class Stream<T> {
     }
     void onError(error, StackTrace stackTrace) {
       timer.cancel();
-      controller.addError(error, stackTrace);
+      assert(controller is _StreamController ||
+             controller is _BroadcastStreamController);
+      var eventSink = controller;
+      eventSink._addError(error, stackTrace);  // Avoid Zone error replacement.
       timer = zone.createTimer(timeLimit, timeout);
     }
     void onDone() {
@@ -1228,7 +1237,7 @@ abstract class Stream<T> {
       if (onTimeout == null) {
         timeout = () {
           controller.addError(new TimeoutException("No stream event",
-                                                   timeLimit));
+                                                   timeLimit), null);
         };
       } else {
         onTimeout = zone.registerUnaryCallback(onTimeout);

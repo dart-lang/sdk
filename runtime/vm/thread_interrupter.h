@@ -15,7 +15,8 @@ namespace dart {
 struct InterruptedThreadState {
   ThreadId tid;
   uintptr_t pc;
-  uintptr_t sp;
+  uintptr_t csp;
+  uintptr_t dsp;
   uintptr_t fp;
 };
 

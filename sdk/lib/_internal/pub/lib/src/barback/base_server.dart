@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:barback/barback.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
-import 'package:stack_trace/stack_trace.dart';
 
 import '../log.dart' as log;
 import '../utils.dart';
@@ -43,9 +42,8 @@ abstract class BaseServer<T> {
   final _resultsController = new StreamController<T>.broadcast();
 
   BaseServer(this.environment, this._server) {
-    shelf_io.serveRequests(Chain.track(_server), const shelf.Pipeline()
+    shelf_io.serveRequests(_server, const shelf.Pipeline()
         .addMiddleware(shelf.createMiddleware(errorHandler: _handleError))
-        .addMiddleware(shelf.createMiddleware(responseHandler: _disableGzip))
         .addHandler(handleRequest));
   }
 
@@ -121,21 +119,5 @@ abstract class BaseServer<T> {
     _resultsController.addError(error, stackTrace);
     close();
     return new shelf.Response.internalServerError();
-  }
-
-  /// Disable GZIP responses.
-  ///
-  /// This is primarily to optimize pub's startup. Since the transformer
-  /// plug-ins are loaded over HTTP, we pay the hit to GZIP encode and decode
-  /// them. Disabling this improves startup time by about 5% on my test.
-  ///
-  // TODO(rnystrom): Remove this when #5187 is fixed and we don't have to use
-  // HTTP for isolates.
-  _disableGzip(shelf.Response response) {
-    if (!response.headers.containsKey('Content-Encoding')) {
-      return response.change(headers: {'Content-Encoding': ''});
-    }
-
-    return response;
   }
 }

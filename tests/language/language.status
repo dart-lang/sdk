@@ -105,6 +105,7 @@ main_test/05: Fail # http://dartbug.com/20028
 main_test/21: Fail # http://dartbug.com/20028
 main_test/42: Fail # http://dartbug.com/20028
 
+
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122
 
@@ -119,4 +120,6 @@ large_class_declaration_test: Skip # Times out. Issue 20352
 [ $compiler == none && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) && $mode == debug ]
 large_class_declaration_test: Skip # Times out. Issue 20352
 
+[ $compiler == none && $runtime == ContentShellOnAndroid ]
+gc_test: Skip # Times out flakily. Issue 20956
 

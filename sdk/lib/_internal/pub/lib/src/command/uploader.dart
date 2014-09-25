@@ -16,7 +16,6 @@ import '../io.dart';
 import '../log.dart' as log;
 import '../oauth2.dart' as oauth2;
 import '../source/hosted.dart';
-import '../utils.dart';
 
 /// Handles the `uploader` pub command.
 class UploaderCommand extends PubCommand {
@@ -58,7 +57,7 @@ class UploaderCommand extends PubCommand {
       return flushThenExit(exit_codes.USAGE);
     }
 
-    return syncFuture(() {
+    return new Future.sync(() {
       var package = commandOptions['package'];
       if (package != null) return package;
       return new Entrypoint(path.current, cache).root.name;

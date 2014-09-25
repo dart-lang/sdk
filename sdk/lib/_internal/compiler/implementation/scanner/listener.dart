@@ -2170,13 +2170,15 @@ class NodeListener extends ElementListener {
   }
 }
 
-abstract class PartialElement {
+abstract class PartialElement implements DeclarationSite {
   Token beginToken;
   Token endToken;
 
   bool hasParseError = false;
 
   bool get isErroneous => hasParseError;
+
+  DeclarationSite get declarationSite => this;
 }
 
 abstract class PartialFunctionMixin implements FunctionElement {

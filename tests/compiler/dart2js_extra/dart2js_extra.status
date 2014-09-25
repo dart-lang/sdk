@@ -51,13 +51,5 @@ timer_test: Fail # Issue 7728.
 timer_negative_test: Fail, OK # A negative runtime test.
 bailout8_test: Fail, OK # Mismatch in thrown exception.
 
-[ $csp ]
-deferred/deferred_class_test: Fail # http://dartbug.com/16898
-deferred/deferred_constant_test: Fail # http://dartbug.com/16898
-deferred/deferred_constant2_test: Fail # http://dartbug.com/16898
-deferred/deferred_constant3_test: Fail # http://dartbug.com/16898
-deferred/deferred_constant4_test: Fail # http://dartbug.com/16898
-deferred/deferred_constant5_test: Fail # http://dartbug.com/16898
-
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 deferred/*: Skip # Issue 17458

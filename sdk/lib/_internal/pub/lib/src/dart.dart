@@ -6,11 +6,11 @@
 library pub.dart;
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:path/path.dart' as path;
-import 'package:stack_trace/stack_trace.dart';
 
 import '../../../compiler/compiler.dart' as compiler;
 import '../../../compiler/implementation/filenames.dart'
@@ -18,8 +18,8 @@ import '../../../compiler/implementation/filenames.dart'
 
 import '../../asset/dart/serialize.dart';
 import 'io.dart';
+import 'log.dart' as log;
 
-import 'utils.dart';
 /// Interface to communicate with dart2js.
 ///
 /// This is basically an amalgamation of dart2js's
@@ -71,7 +71,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
     bool terse: false,
     bool includeSourceMapUrls: false,
     bool toDart: false}) {
-  return syncFuture(() {
+  return new Future.sync(() {
     var options = <String>['--categories=Client,Server'];
     if (checked) options.add('--enable-checked-mode');
     if (csp) options.add('--csp');
@@ -99,7 +99,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
       packageRoot = path.join(path.dirname(entrypoint), 'packages');
     }
 
-    return Chain.track(compiler.compile(
+    return compiler.compile(
         path.toUri(entrypoint),
         provider.libraryRoot,
         path.toUri(appendSlash(packageRoot)),
@@ -107,7 +107,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
         provider.handleDiagnostic,
         options,
         provider.provideOutput,
-        environment));
+        environment);
   });
 }
 
@@ -147,24 +147,57 @@ class _DirectiveCollector extends GeneralizingAstVisitor {
 /// passed to the [main] method of the code being run; the caller is responsible
 /// for using this to establish communication with the isolate.
 ///
-/// Returns a Future that will fire when the isolate has been spawned. If the
-/// isolate fails to spawn, the Future will complete with an error.
-Future runInIsolate(String code, message) {
-  return withTempDir((dir) {
+/// [packageRoot] controls the package root of the isolate. It may be either a
+/// [String] or a [Uri].
+///
+/// If [snapshot] is passed, the isolate will be loaded from that path if it
+/// exists. Otherwise, a snapshot of the isolate's code will be saved to that
+/// path once the isolate is loaded.
+Future runInIsolate(String code, message, {packageRoot, String snapshot})
+    async {
+  if (snapshot != null && fileExists(snapshot)) {
+    log.fine("Spawning isolate from $snapshot.");
+    if (packageRoot != null) packageRoot = packageRoot.toString();
+    try {
+      await Isolate.spawnUri(path.toUri(snapshot), [], message,
+          packageRoot: packageRoot);
+      return;
+    } on IsolateSpawnException catch (error) {
+      log.fine("Couldn't load existing snapshot $snapshot:\n$error");
+      // Do nothing, we will regenerate the snapshot below.
+    }
+  }
+
+  await withTempDir((dir) async {
     var dartPath = path.join(dir, 'runInIsolate.dart');
     writeTextFile(dartPath, code, dontLogContents: true);
     var port = new ReceivePort();
-    return Chain.track(Isolate.spawn(_isolateBuffer, {
+    await Isolate.spawn(_isolateBuffer, {
       'replyTo': port.sendPort,
       'uri': path.toUri(dartPath).toString(),
+      'packageRoot': packageRoot == null ? null : packageRoot.toString(),
       'message': message
-    })).then((_) => port.first).then((response) {
-      if (response['type'] == 'success') return null;
-      assert(response['type'] == 'error');
-      return new Future.error(
-          new CrossIsolateException.deserialize(response['error']),
-          new Chain.current());
     });
+
+    var response = await port.first;
+    if (response['type'] == 'error') {
+      throw new CrossIsolateException.deserialize(response['error']);
+    }
+
+    if (snapshot == null) return;
+
+    ensureDir(path.dirname(snapshot));
+    var snapshotArgs = [];
+    if (packageRoot != null) snapshotArgs.add('--package-root=$packageRoot');
+    snapshotArgs.addAll(['--snapshot=$snapshot', dartPath]);
+    var result = await runProcess(Platform.executable, snapshotArgs);
+
+    if (result.success) return;
+
+    // Don't emit a fatal error here, since we don't want to crash the
+    // otherwise successful isolate load.
+    log.warning("Failed to compile a snapshot to "
+        "${path.relative(snapshot)}:\n" + result.stderr.join("\n"));
   });
 }
 
@@ -176,8 +209,10 @@ Future runInIsolate(String code, message) {
 /// Adding an additional isolate in the middle works around this.
 void _isolateBuffer(message) {
   var replyTo = message['replyTo'];
-  Chain.track(Isolate.spawnUri(
-          Uri.parse(message['uri']), [], message['message']))
+  var packageRoot = message['packageRoot'];
+  if (packageRoot != null) packageRoot = Uri.parse(packageRoot);
+  Isolate.spawnUri(Uri.parse(message['uri']), [], message['message'],
+          packageRoot: packageRoot)
       .then((_) => replyTo.send({'type': 'success'}))
       .catchError((e, stack) {
     replyTo.send({

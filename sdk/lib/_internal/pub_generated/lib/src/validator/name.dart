@@ -2,7 +2,6 @@ library pub.validator.name;
 import 'dart:async';
 import 'package:path/path.dart' as path;
 import '../entrypoint.dart';
-import '../io.dart';
 import '../utils.dart';
 import '../validator.dart';
 final _RESERVED_WORDS = [
@@ -40,7 +39,7 @@ final _RESERVED_WORDS = [
 class NameValidator extends Validator {
   NameValidator(Entrypoint entrypoint) : super(entrypoint);
   Future validate() {
-    return syncFuture(() {
+    return new Future.sync(() {
       _checkName(
           entrypoint.root.name,
           'Package name "${entrypoint.root.name}"',
@@ -64,10 +63,9 @@ class NameValidator extends Validator {
     });
   }
   List<String> get _libraries {
-    var libDir = path.join(entrypoint.root.dir, "lib");
-    if (!dirExists(libDir)) return [];
+    var libDir = entrypoint.root.path("lib");
     return entrypoint.root.listFiles(
-        beneath: libDir).map(
+        beneath: "lib").map(
             (file) =>
                 path.relative(
                     file,

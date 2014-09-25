@@ -6,7 +6,7 @@ part of dart2js_incremental;
 
 /// Do not call this method directly. It will be made private.
 // TODO(ahe): Make this method private.
-Compiler reuseCompiler(
+Future<Compiler> reuseCompiler(
     {DiagnosticHandler diagnosticHandler,
      CompilerInputProvider inputProvider,
      CompilerOutputProvider outputProvider,
@@ -16,7 +16,7 @@ Compiler reuseCompiler(
      Uri packageRoot,
      bool packagesAreImmutable: false,
      Map<String, dynamic> environment,
-     bool reuseLibrary(LibraryElement library)}) {
+     Future<bool> reuseLibrary(LibraryElement library)}) {
   UserTag oldTag = new UserTag('_reuseCompiler').makeCurrent();
   if (libraryRoot == null) {
     throw 'Missing libraryRoot';
@@ -55,14 +55,16 @@ Compiler reuseCompiler(
         print('Unable to reuse compiler.');
       }
     }
-    compiler = new Compiler(
-        inputProvider,
-        outputProvider,
-        diagnosticHandler,
-        libraryRoot,
-        packageRoot,
-        options,
-        environment);
+    oldTag.makeCurrent();
+    return new Future.value(
+        new Compiler(
+            inputProvider,
+            outputProvider,
+            diagnosticHandler,
+            libraryRoot,
+            packageRoot,
+            options,
+            environment));
   } else {
     for (final task in compiler.tasks) {
       if (task.watch != null) {
@@ -83,15 +85,16 @@ Compiler reuseCompiler(
         ..compilationFailed = false;
     JavaScriptBackend backend = compiler.backend;
 
-    backend.emitter.cachedElements.addAll(backend.generatedCode.keys);
+    backend.emitter.oldEmitter.cachedElements.addAll(
+        backend.generatedCode.keys);
 
     compiler.enqueuer.codegen.newlyEnqueuedElements.clear();
 
-    backend.emitter.containerBuilder
+    backend.emitter.oldEmitter.containerBuilder
         ..staticGetters.clear()
         ..methodClosures.clear();
 
-    backend.emitter.nsmEmitter
+    backend.emitter.oldEmitter.nsmEmitter
         ..trivialNsmHandlers.clear();
 
     backend.emitter.typeTestEmitter
@@ -105,7 +108,7 @@ Compiler reuseCompiler(
     backend.emitter.interceptorEmitter
         ..interceptorInvocationNames.clear();
 
-    backend.emitter.metadataEmitter
+    backend.emitter.oldEmitter.metadataEmitter
         ..globalMetadata.clear()
         ..globalMetadataMap.clear();
 
@@ -115,6 +118,10 @@ Compiler reuseCompiler(
         ..nativeMethods.clear();
 
     backend.emitter
+        ..readTypeVariables.clear()
+        ..instantiatedClasses = null;
+
+    backend.emitter.oldEmitter
         ..outputBuffers.clear()
         ..deferredConstants.clear()
         ..isolateProperties = null
@@ -126,10 +133,7 @@ Compiler reuseCompiler(
         ..mangledGlobalFieldNames.clear()
         ..recordedMangledNames.clear()
         ..additionalProperties.clear()
-        ..readTypeVariables.clear()
-        ..instantiatedClasses = null
-        ..precompiledFunction.clear()
-        ..precompiledConstructorNames.clear()
+        ..clearCspPrecompiledNodes()
         ..hasMakeConstantList = false
         ..elementDescriptors.clear();
 
@@ -138,13 +142,14 @@ Compiler reuseCompiler(
 
     if (reuseLibrary == null) {
       reuseLibrary = (LibraryElement library) {
-        return
+        return new Future.value(
             library.isPlatformLibrary ||
-            (packagesAreImmutable && library.isPackageLibrary);
+            (packagesAreImmutable && library.isPackageLibrary));
       };
     }
-    compiler.libraryLoader.reset(reuseLibrary: reuseLibrary);
+    return compiler.libraryLoader.resetAsync(reuseLibrary).then((_) {
+      oldTag.makeCurrent();
+      return compiler;
+    });
   }
-  oldTag.makeCurrent();
-  return compiler;
 }

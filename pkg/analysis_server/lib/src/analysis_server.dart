@@ -208,9 +208,19 @@ class AnalysisServer {
       new HashMap<AnalysisContext, Completer<AnalysisDoneReason>>();
 
   /**
-   * The listeners that are listening for lifecycle events from this server.
+   * The controller that is notified when analysis is started.
    */
-  List<AnalysisServerListener> listeners = <AnalysisServerListener>[];
+  StreamController<AnalysisContext> _onAnalysisStartedController;
+
+  /**
+   * The controller that is notified when analysis is complete.
+   */
+  StreamController _onAnalysisCompleteController;
+
+  /**
+   * The controller that is notified when a single file has been analyzed.
+   */
+  StreamController<ChangeNotice> _onFileAnalyzedController;
 
   /**
    * True if any exceptions thrown by analysis should be propagated up the call
@@ -235,10 +245,24 @@ class AnalysisServer {
     contextDirectoryManager =
         new ServerContextManager(this, resourceProvider, packageMapProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
+    _onAnalysisStartedController = new StreamController.broadcast();
+    _onAnalysisCompleteController = new StreamController.broadcast();
+    _onFileAnalyzedController = new StreamController.broadcast();
     running = true;
     Notification notification = new ServerConnectedParams().toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
+  }
+
+  /**
+   * If the given notice applies to a file contained within an analysis root,
+   * notify interested parties that the file has been (at least partially)
+   * analyzed.
+   */
+  void fileAnalyzed(ChangeNotice notice) {
+    if (contextDirectoryManager.isInAnalysisRoot(notice.source.fullName)) {
+      _onFileAnalyzedController.add(notice);
+    }
   }
 
   /**
@@ -256,6 +280,7 @@ class AnalysisServer {
    * Schedules analysis of the given context.
    */
   void schedulePerformAnalysisOperation(AnalysisContext context) {
+    _onAnalysisStartedController.add(context);
     scheduleOperation(new PerformAnalysisOperation(context, false));
   }
 
@@ -334,14 +359,21 @@ class AnalysisServer {
   }
 
   /**
-   * Add the given [listener] to the list of listeners that are listening for
-   * lifecycle events from this server.
+   * The stream that is notified when analysis of a context is started.
    */
-  void addAnalysisServerListener(AnalysisServerListener listener) {
-    if (!listeners.contains(listener)) {
-      listeners.add(listener);
-    }
+  Stream<AnalysisContext> get onAnalysisStarted {
+    return _onAnalysisStartedController.stream;
   }
+
+  /**
+   * The stream that is notified when analysis is complete.
+   */
+  Stream get onAnalysisComplete => _onAnalysisCompleteController.stream;
+
+  /**
+   * The stream that is notified when a single file has been analyzed.
+   */
+  Stream get onFileAnalyzed => _onFileAnalyzedController.stream;
 
   /**
    * Adds the given [ServerOperation] to the queue, but does not schedule
@@ -482,7 +514,7 @@ class AnalysisServer {
         _schedulePerformOperation();
       } else {
         sendStatusNotification(null);
-        _notifyAnalysisComplete();
+        _onAnalysisCompleteController.add(null);
       }
     }
   }
@@ -496,14 +528,6 @@ class AnalysisServer {
     // Instruct the contextDirectoryManager to rebuild all contexts from
     // scratch.
     contextDirectoryManager.refresh();
-  }
-
-  /**
-   * Remove the given [listener] from the list of listeners that are listening
-   * for lifecycle events from this server.
-   */
-  void removeAnalysisServerListener(AnalysisServerListener listener) {
-    listeners.remove(listener);
   }
 
   /**
@@ -903,15 +927,6 @@ class AnalysisServer {
   }
 
   /**
-   * Notify all listeners that analysis is complete.
-   */
-  void _notifyAnalysisComplete() {
-    listeners.forEach((AnalysisServerListener listener) {
-      listener.analysisComplete();
-    });
-  }
-
-  /**
    * Schedules [performOperation] exection.
    */
   void _schedulePerformOperation() {
@@ -943,16 +958,6 @@ class AnalysisServer {
             exceptionString,
             stackTraceString).toNotification());
   }
-}
-
-/**
- * An object that is listening for lifecycle events from an analysis server.
- */
-abstract class AnalysisServerListener {
-  /**
-   * Analysis is complete.
-   */
-  void analysisComplete();
 }
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);

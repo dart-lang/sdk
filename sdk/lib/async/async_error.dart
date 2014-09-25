@@ -21,14 +21,7 @@ Function _registerErrorHandler(Function errorHandler, Zone zone) {
   }
 }
 
-class _AsyncError implements Error {
-  final error;
-  final StackTrace stackTrace;
-
-  _AsyncError(this.error, this.stackTrace);
-}
-
-class _UncaughtAsyncError extends _AsyncError {
+class _UncaughtAsyncError extends AsyncError {
   _UncaughtAsyncError(error, StackTrace stackTrace)
       : super(error, _getBestStackTrace(error, stackTrace));
 

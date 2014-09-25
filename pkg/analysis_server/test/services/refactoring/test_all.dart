@@ -6,10 +6,13 @@ library test.services.refactoring;
 
 import 'package:unittest/unittest.dart';
 
+import 'convert_getter_to_method_test.dart' as convert_getter_to_method_test;
+import 'convert_method_to_getter_test.dart' as convert_method_to_getter_test;
 import 'extract_local_test.dart' as extract_local_test;
 import 'extract_method_test.dart' as extract_method_test;
 import 'inline_local_test.dart' as inline_local_test;
 import 'inline_method_test.dart' as inline_method_test;
+import 'move_file_test.dart' as move_file_test;
 import 'naming_conventions_test.dart' as naming_conventions_test;
 import 'rename_class_member_test.dart' as rename_class_member_test;
 import 'rename_constructor_test.dart' as rename_constructor_test;
@@ -23,10 +26,13 @@ import 'rename_unit_member_test.dart' as rename_unit_member_test;
 main() {
   groupSep = ' | ';
   group('refactoring', () {
+    convert_getter_to_method_test.main();
+    convert_method_to_getter_test.main();
     extract_local_test.main();
     extract_method_test.main();
     inline_local_test.main();
     inline_method_test.main();
+    move_file_test.main();
     naming_conventions_test.main();
     rename_class_member_test.main();
     rename_constructor_test.main();

@@ -277,7 +277,7 @@ class Traverser {
     });
   }
   Future _registerDependency(Dependency dependency) {
-    return syncFuture(() {
+    return new Future.sync(() {
       _validateDependency(dependency);
       var dep = dependency.dep;
       var dependencies = _getDependencies(dep.name);

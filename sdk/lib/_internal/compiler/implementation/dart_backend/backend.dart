@@ -181,6 +181,18 @@ class DartBackend extends Backend {
 
   }
 
+  /**
+   * Tells whether we should output given element. Corelib classes like
+   * Object should not be in the resulting code.
+   */
+  @override
+  bool shouldOutput(Element element) {
+    return (!element.library.isPlatformLibrary &&
+            !element.isSynthesized &&
+            element is! AbstractFieldElement)
+        || mirrorRenamer.isMirrorHelperLibrary(element.library);
+  }
+
   void assembleProgram() {
 
     ElementAst computeElementAst(AstElement element) {
@@ -205,17 +217,6 @@ class DartBackend extends Backend {
                                          newTypedefElementCallback,
                                          newClassElementCallback);
       collector.collect();
-    }
-
-    /**
-     * Tells whether we should output given element. Corelib classes like
-     * Object should not be in the resulting code.
-     */
-    bool shouldOutput(Element element) {
-      return (!element.library.isPlatformLibrary &&
-              !element.isSynthesized &&
-              element is! AbstractFieldElement)
-          || mirrorRenamer.isMirrorHelperLibrary(element.library);
     }
 
     String assembledCode = outputter.assembleProgram(

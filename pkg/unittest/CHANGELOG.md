@@ -1,3 +1,11 @@
+##0.11.0+6
+
+* Refactored package tests.
+
+##0.11.0+5
+
+* Release test functions after each test is run.
+
 ##0.11.0+4
 
 * Fix for [20153](https://code.google.com/p/dart/issues/detail?id=20153)

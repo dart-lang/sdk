@@ -84,6 +84,12 @@ class AbstractAnalysisTest {
     return testFile;
   }
 
+  String modifyTestFile(String content) {
+    addFile(testFile, content);
+    this.testCode = content;
+    return testFile;
+  }
+
   Index createIndex() {
     return null;
   }

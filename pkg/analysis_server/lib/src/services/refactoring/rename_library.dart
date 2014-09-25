@@ -8,10 +8,10 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 
@@ -45,17 +45,8 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<SourceChange> createChange() {
-    SourceChange change = new SourceChange(refactoringName);
-    // update declaration
-    addDeclarationEdit(change, element);
-    // update references
-    return searchEngine.searchReferences(element).then((refMatches) {
-      List<SourceReference> references = getSourceReferences(refMatches);
-      for (SourceReference reference in references) {
-        addReferenceEdit(change, reference);
-      }
-      return change;
-    });
+  Future<SourceChange> fillChange() {
+    addDeclarationEdit(element);
+    return searchEngine.searchReferences(element).then(addReferenceEdits);
   }
 }

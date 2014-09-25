@@ -151,6 +151,7 @@ class Assembler : public ValueObject {
   void PopRegister(Register r) { Pop(r); }
 
   void Bind(Label* label);
+  void Jump(Label* label) { b(label); }
 
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
@@ -201,12 +202,12 @@ class Assembler : public ValueObject {
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,
-                             Heap::Space space = Heap::kNew);
+                             Heap::Space space);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
                                      Register temp_reg,
-                                     Heap::Space space = Heap::kNew);
+                                     Heap::Space space);
 
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
@@ -927,6 +928,10 @@ class Assembler : public ValueObject {
     }
   }
 
+  void BranchEqual(Register rd, Register rn, Label* l) {
+    beq(rd, rn, l);
+  }
+
   void BranchEqual(Register rd, int32_t value, Label* l) {
     ASSERT(!in_delay_slot_);
     if (value == 0) {
@@ -943,6 +948,10 @@ class Assembler : public ValueObject {
     ASSERT(rd != CMPRES2);
     LoadObject(CMPRES2, object);
     beq(rd, CMPRES2, l);
+  }
+
+  void BranchNotEqual(Register rd, Register rn, Label* l) {
+    bne(rd, rn, l);
   }
 
   void BranchNotEqual(Register rd, int32_t value, Label* l) {

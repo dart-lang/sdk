@@ -117,7 +117,8 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
     Exceptions::ThrowArgumentError(error);
   }
 
-  const Array& array = Array::Handle(Array::New(len));
+  Heap::Space space = isolate->heap()->SpaceForAllocation(kArrayCid);
+  const Array& array = Array::Handle(Array::New(len, space));
   arguments.SetReturn(array);
   TypeArguments& element_type =
       TypeArguments::CheckedHandle(arguments.ArgAt(1));
@@ -156,8 +157,8 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
     }
   }
 #endif
-
-  const Instance& instance = Instance::Handle(Instance::New(cls));
+  Heap::Space space = isolate->heap()->SpaceForAllocation(cls.id());
+  const Instance& instance = Instance::Handle(Instance::New(cls, space));
 
   arguments.SetReturn(instance);
   if (cls.NumTypeArguments() == 0) {
@@ -1378,9 +1379,10 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
                                    alloc_stub.EntryPoint());
   }
   if (FLAG_trace_patching) {
-    OS::PrintErr("FixAllocationStubTarget: caller %#" Px " "
+    OS::PrintErr("FixAllocationStubTarget: caller %#" Px " alloc-class %s "
         " -> %#" Px "\n",
         frame->pc(),
+        alloc_class.ToCString(),
         alloc_stub.EntryPoint());
   }
   arguments.SetReturn(alloc_stub);

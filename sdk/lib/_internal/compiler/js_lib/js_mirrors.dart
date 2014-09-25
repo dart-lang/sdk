@@ -591,8 +591,13 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
   disableTreeShaking();
   int typeArgIndex = mangledName.indexOf("<");
   if (typeArgIndex != -1) {
-    mirror = new JsTypeBoundClassMirror(reflectClassByMangledName(
-        mangledName.substring(0, typeArgIndex)).originalDeclaration,
+    TypeMirror originalDeclaration =
+        reflectClassByMangledName(mangledName.substring(0, typeArgIndex))
+        .originalDeclaration;
+    if (originalDeclaration is JsTypedefMirror) {
+      throw new UnimplementedError();
+    }
+    mirror = new JsTypeBoundClassMirror(originalDeclaration,
         // Remove the angle brackets enclosing the type arguments.
         mangledName.substring(typeArgIndex + 1, mangledName.length - 1));
     JsCache.update(classMirrors, mangledName, mirror);
@@ -2518,21 +2523,19 @@ class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
 
   bool get hasReflectedType => throw new UnimplementedError();
 
-  Type get reflectedType => throw new UnimplementedError();
+  Type get reflectedType => createRuntimeType(_mangledName);
 
-  // TODO(ahe): Implement this method.
+  // TODO(floitsch): Implement this method.
   List<TypeVariableMirror> get typeVariables => throw new UnimplementedError();
 
-  // TODO(ahe): Implement this method.
+  // TODO(floitsch): Implement this method.
   List<TypeMirror> get typeArguments => throw new UnimplementedError();
 
-  // TODO(ahe): Implement this method.
-  bool get isOriginalDeclaration => throw new UnimplementedError();
+  bool get isOriginalDeclaration => true;
 
-  // TODO(ahe): Implement this method.
-  TypeMirror get originalDeclaration => throw new UnimplementedError();
+  TypeMirror get originalDeclaration => this;
 
-  // TODO(ahe): Implement this method.
+  // TODO(floitsch): Implement this method.
   DeclarationMirror get owner => throw new UnimplementedError();
 
   // TODO(ahe): Implement this method.

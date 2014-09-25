@@ -7,6 +7,7 @@ import 'validator/compiled_dartdoc.dart';
 import 'validator/dependency.dart';
 import 'validator/dependency_override.dart';
 import 'validator/directory.dart';
+import 'validator/executable.dart';
 import 'validator/license.dart';
 import 'validator/name.dart';
 import 'validator/pubspec_field.dart';
@@ -27,6 +28,7 @@ abstract class Validator {
         new DependencyValidator(entrypoint),
         new DependencyOverrideValidator(entrypoint),
         new DirectoryValidator(entrypoint),
+        new ExecutableValidator(entrypoint),
         new CompiledDartdocValidator(entrypoint),
         new Utf8ReadmeValidator(entrypoint)];
     if (packageSize != null) {

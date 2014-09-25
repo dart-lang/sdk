@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of Chromium's src/third_party/sqlite/sqlite.gyp.
-# Revision 257452 (this should agree with "nss_rev" in DEPS).
+# Revision 291806 (this should agree with "nss_rev" in DEPS).
 {
   # Added by Dart. All Dart comments refer to the following block or line.
   'includes': [
@@ -139,6 +139,14 @@
           'msvs_disabled_warnings': [
             4018, 4244, 4267,
           ],
+          'variables': {
+            'clang_warning_flags': [
+              # sqlite does `if (*a++ && *b++);` in a non-buggy way.
+              '-Wno-empty-body',
+              # sqlite has some `unsigned < 0` checks.
+              '-Wno-tautological-compare',
+            ],
+          },
           'conditions': [
             ['OS=="linux"', {
               'link_settings': {
@@ -171,20 +179,6 @@
                 #   http://www.sqlite.org/faq.html#q17
                 '-Wno-int-to-pointer-cast',
                 '-Wno-pointer-to-int-cast',
-              ],
-            }],
-            ['clang==1', {
-              'xcode_settings': {
-                'WARNING_CFLAGS': [
-                  # sqlite does `if (*a++ && *b++);` in a non-buggy way.
-                  '-Wno-empty-body',
-                  # sqlite has some `unsigned < 0` checks.
-                  '-Wno-tautological-compare',
-                ],
-              },
-              'cflags': [
-                '-Wno-empty-body',
-                '-Wno-tautological-compare',
               ],
             }],
           ],

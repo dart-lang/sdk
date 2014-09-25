@@ -2,24 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
-
-import 'dart:async';
-import 'dart:isolate';
+library unittest.setup_and_teardown_test;
 
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+import 'package:metatest/metatest.dart';
 
-var testName = 'setup and teardown test';
+void main() => initTests(_test);
 
-var testFunction = (TestConfiguration testConfig) {
-  group('a', () {
-    setUp(() { testConfig.setup = 'setup'; });
-    tearDown(() { testConfig.teardown = 'teardown'; });
-    test(testName, () {});
+void _test(message) {
+  initMetatest(message);
+
+  expectTestsPass('setup and teardown test', () {
+    var hasSetup = false;
+    var hasTeardown = false;
+
+    group('a', () {
+      setUp(() {
+        hasSetup = true;
+      });
+      tearDown(() {
+        hasTeardown = true;
+      });
+      test('test', () {});
+    });
+
+    test('verify', () {
+      expect(hasSetup, isTrue);
+      expect(hasTeardown, isTrue);
+    });
   });
-};
-
-var expected = buildStatusString(1, 0, 0, 'a $testName', count: 0,
-    setup: 'setup', teardown: 'teardown');
+}

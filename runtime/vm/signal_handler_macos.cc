@@ -20,6 +20,8 @@ uintptr_t SignalHandler::GetProgramCounter(const mcontext_t& mcontext) {
   pc = static_cast<uintptr_t>(mcontext->__ss.__eip);
 #elif defined(TARGET_ARCH_ARM) && defined(USING_SIMULATOR)
   pc = static_cast<uintptr_t>(mcontext->__ss.__eip);
+#elif defined(TARGET_ARCH_ARM64) && defined(USING_SIMULATOR)
+  pc = static_cast<uintptr_t>(mcontext->__ss.__rip);
 #else
   UNIMPLEMENTED();
 #endif  // TARGET_ARCH_...
@@ -39,6 +41,8 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
   fp = static_cast<uintptr_t>(mcontext->__ss.__ebp);
 #elif defined(TARGET_ARCH_ARM) && defined(USING_SIMULATOR)
   fp = static_cast<uintptr_t>(mcontext->__ss.__ebp);
+#elif defined(TARGET_ARCH_ARM64) && defined(USING_SIMULATOR)
+  fp = static_cast<uintptr_t>(mcontext->__ss.__rbp);
 #else
   UNIMPLEMENTED();
 #endif  // TARGET_ARCH_...
@@ -47,7 +51,7 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
 }
 
 
-uintptr_t SignalHandler::GetStackPointer(const mcontext_t& mcontext) {
+uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
   uintptr_t sp = 0;
 
 #if defined(TARGET_ARCH_IA32)
@@ -58,11 +62,18 @@ uintptr_t SignalHandler::GetStackPointer(const mcontext_t& mcontext) {
   sp = static_cast<uintptr_t>(mcontext->__ss.__esp);
 #elif defined(TARGET_ARCH_ARM) && defined(USING_SIMULATOR)
   sp = static_cast<uintptr_t>(mcontext->__ss.__esp);
+#elif defined(TARGET_ARCH_ARM64) && defined(USING_SIMULATOR)
+  sp = static_cast<uintptr_t>(mcontext->__ss.__rsp);
 #else
   UNIMPLEMENTED();
 #endif  // TARGET_ARCH_...
 
   return sp;
+}
+
+
+uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
+  return GetCStackPointer(mcontext);
 }
 
 

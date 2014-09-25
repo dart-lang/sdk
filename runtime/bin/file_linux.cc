@@ -112,7 +112,7 @@ bool File::Flush() {
 int64_t File::Length() {
   ASSERT(handle_->fd() >= 0);
   struct stat64 st;
-  if (NO_RETRY_EXPECTED(fstat64(handle_->fd(), &st)) == 0) {
+  if (TEMP_FAILURE_RETRY(fstat64(handle_->fd(), &st)) == 0) {
     return st.st_size;
   }
   return -1;
@@ -122,7 +122,7 @@ int64_t File::Length() {
 File* File::Open(const char* name, FileOpenMode mode) {
   // Report errors for non-regular files.
   struct stat64 st;
-  if (NO_RETRY_EXPECTED(stat64(name, &st)) == 0) {
+  if (TEMP_FAILURE_RETRY(stat64(name, &st)) == 0) {
     // Only accept regular files and character devices.
     if (!S_ISREG(st.st_mode) && !S_ISCHR(st.st_mode)) {
       errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
@@ -159,7 +159,7 @@ File* File::OpenStdio(int fd) {
 
 bool File::Exists(const char* name) {
   struct stat64 st;
-  if (NO_RETRY_EXPECTED(stat64(name, &st)) == 0) {
+  if (TEMP_FAILURE_RETRY(stat64(name, &st)) == 0) {
     return S_ISREG(st.st_mode);
   } else {
     return false;
@@ -235,7 +235,7 @@ bool File::Copy(const char* old_path, const char* new_path) {
   File::Type type = File::GetType(old_path, true);
   if (type == kIsFile) {
     struct stat64 st;
-    if (NO_RETRY_EXPECTED(stat64(old_path, &st)) != 0) {
+    if (TEMP_FAILURE_RETRY(stat64(old_path, &st)) != 0) {
       return false;
     }
     int old_fd = TEMP_FAILURE_RETRY(open64(old_path, O_RDONLY | O_CLOEXEC));
@@ -290,7 +290,7 @@ bool File::Copy(const char* old_path, const char* new_path) {
 
 int64_t File::LengthFromPath(const char* name) {
   struct stat64 st;
-  if (NO_RETRY_EXPECTED(stat64(name, &st)) == 0) {
+  if (TEMP_FAILURE_RETRY(stat64(name, &st)) == 0) {
     return st.st_size;
   }
   return -1;
@@ -305,7 +305,7 @@ static int64_t TimespecToMilliseconds(const struct timespec& t) {
 
 void File::Stat(const char* name, int64_t* data) {
   struct stat64 st;
-  if (NO_RETRY_EXPECTED(stat64(name, &st)) == 0) {
+  if (TEMP_FAILURE_RETRY(stat64(name, &st)) == 0) {
     if (S_ISREG(st.st_mode)) {
       data[kType] = kIsFile;
     } else if (S_ISDIR(st.st_mode)) {
@@ -328,7 +328,7 @@ void File::Stat(const char* name, int64_t* data) {
 
 time_t File::LastModified(const char* name) {
   struct stat64 st;
-  if (NO_RETRY_EXPECTED(stat64(name, &st)) == 0) {
+  if (TEMP_FAILURE_RETRY(stat64(name, &st)) == 0) {
     return st.st_mtime;
   }
   return -1;
@@ -337,7 +337,7 @@ time_t File::LastModified(const char* name) {
 
 char* File::LinkTarget(const char* pathname) {
   struct stat64 link_stats;
-  if (NO_RETRY_EXPECTED(lstat64(pathname, &link_stats)) != 0) return NULL;
+  if (TEMP_FAILURE_RETRY(lstat64(pathname, &link_stats)) != 0) return NULL;
   if (!S_ISLNK(link_stats.st_mode)) {
     errno = ENOENT;
     return NULL;
@@ -385,7 +385,7 @@ const char* File::StringEscapedPathSeparator() {
 File::StdioHandleType File::GetStdioHandleType(int fd) {
   ASSERT(0 <= fd && fd <= 2);
   struct stat64 buf;
-  int result = NO_RETRY_EXPECTED(fstat64(fd, &buf));
+  int result = TEMP_FAILURE_RETRY(fstat64(fd, &buf));
   if (result == -1) {
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
@@ -404,9 +404,9 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   struct stat64 entry_info;
   int stat_success;
   if (follow_links) {
-    stat_success = NO_RETRY_EXPECTED(stat64(pathname, &entry_info));
+    stat_success = TEMP_FAILURE_RETRY(stat64(pathname, &entry_info));
   } else {
-    stat_success = NO_RETRY_EXPECTED(lstat64(pathname, &entry_info));
+    stat_success = TEMP_FAILURE_RETRY(lstat64(pathname, &entry_info));
   }
   if (stat_success == -1) return File::kDoesNotExist;
   if (S_ISDIR(entry_info.st_mode)) return File::kIsDirectory;
@@ -419,8 +419,8 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
 File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
   struct stat64 file_1_info;
   struct stat64 file_2_info;
-  if (NO_RETRY_EXPECTED(lstat64(file_1, &file_1_info)) == -1 ||
-      NO_RETRY_EXPECTED(lstat64(file_2, &file_2_info)) == -1) {
+  if (TEMP_FAILURE_RETRY(lstat64(file_1, &file_1_info)) == -1 ||
+      TEMP_FAILURE_RETRY(lstat64(file_2, &file_2_info)) == -1) {
     return File::kError;
   }
   return (file_1_info.st_ino == file_2_info.st_ino &&

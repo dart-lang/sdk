@@ -118,8 +118,10 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   if (stub.IsNull()) {
     Assembler assembler;
     const char* name = cls.ToCString();
-    uword patch_code_offset =
-        StubCode::GenerateAllocationStubForClass(&assembler, cls);
+    uword patch_code_offset = 0;
+    uword entry_patch_offset = 0;
+    StubCode::GenerateAllocationStubForClass(
+        &assembler, cls, &entry_patch_offset, &patch_code_offset);
     stub ^= Code::FinalizeCode(name, &assembler);
     stub.set_owner(cls);
     cls.set_allocation_stub(stub);
@@ -129,7 +131,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
       stub.Disassemble(&formatter);
       OS::Print("}\n");
     }
-    stub.set_entry_patch_pc_offset(0);
+    stub.set_entry_patch_pc_offset(entry_patch_offset);
     stub.set_patch_code_pc_offset(patch_code_offset);
   }
   return stub.raw();

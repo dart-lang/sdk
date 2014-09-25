@@ -34,17 +34,7 @@ class AssistsTest extends AbstractAnalysisTest {
         length).toRequest('0');
     Response response = handleSuccessfulRequest(request);
     var result = new EditGetAssistsResult.fromResponse(response);
-    List<SourceChange> sourceChangeList = result.assists;
-    // TODO(scheglov) consider using generated classes and decoders
-    changes = sourceChangeList.map((SourceChange sourceChange) {
-      SourceChange change = new SourceChange(sourceChange.message);
-      sourceChange.edits.forEach((SourceFileEdit sourceFileEdit) {
-        SourceFileEdit fileEdit = new SourceFileEdit(sourceFileEdit.file);
-        change.edits.add(fileEdit);
-        fileEdit.edits.addAll(sourceFileEdit.edits);
-      });
-      return change;
-    }).toList();
+    changes = result.assists;
   }
 
   @override

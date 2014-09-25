@@ -1,7 +1,7 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--optimization_counter_threshold=10
+// VMOptions=--optimization_counter_threshold=10 --disable_alloc_stubs_after_gc
 
 // Library tag to be able to run in html test framework.
 library byte_array_test;

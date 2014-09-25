@@ -24,6 +24,7 @@ kill_self_test: Fail      # Not implemented yet
 handle_error_test: Fail   # Not implemented yet
 handle_error2_test: Fail  # Not implemented yet
 handle_error3_test: Fail  # Not implemented yet
+function_send_test: Fail   # Not implemented yet
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 *: Skip # Isolate tests are timing out flakily on Android content_shell.  Issue 19795
@@ -39,6 +40,8 @@ pause_test: Fail  # non-zero timer not supported.
 
 [ $compiler == dart2js ]
 serialization_test: RuntimeError # Issue 1882, tries to access class TestingOnly declared in isolate_patch.dart
+
+function_send_test/01: RuntimeError # dart2js allows sending closures to the same isolate.
 
 [ $compiler == dart2js && $runtime == safari ]
 cross_isolate_message_test: Skip # Issue 12627
@@ -99,3 +102,6 @@ spawn_uri_missing_test: Skip # Times out.
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
 serialization_test: StaticWarning
+
+[ $compiler != none || $runtime != vm ]
+package_root_test: SkipByDesign # Uses dart:io.

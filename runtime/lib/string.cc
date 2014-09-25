@@ -137,20 +137,22 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
 
 DEFINE_NATIVE_ENTRY(OneByteString_allocate, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length_obj, arguments->NativeArgAt(0));
-  return OneByteString::New(length_obj.Value(), Heap::kNew);
+  Heap::Space space = isolate->heap()->SpaceForAllocation(kOneByteStringCid);
+  return OneByteString::New(length_obj.Value(), space);
 }
 
 
 DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 1) {
   Instance& list = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  Heap::Space space = isolate->heap()->SpaceForAllocation(kOneByteStringCid);
   if (list.IsTypedData()) {
     const TypedData& array = TypedData::Cast(list);
     intptr_t length = array.LengthInBytes();
-    return OneByteString::New(array, 0, length);
+    return OneByteString::New(array, 0, length, space);
   } else if (list.IsExternalTypedData()) {
     const ExternalTypedData& array = ExternalTypedData::Cast(list);
     intptr_t length = array.LengthInBytes();
-    return OneByteString::New(array, 0, length);
+    return OneByteString::New(array, 0, length, space);
   } else if (RawObject::IsTypedDataViewClassId(list.GetClassId())) {
     const Instance& view = Instance::Cast(list);
     intptr_t length = Smi::Value(TypedDataView::Length(view));
@@ -158,15 +160,15 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 1) {
     intptr_t data_offset = Smi::Value(TypedDataView::OffsetInBytes(view));
     if (data_obj.IsTypedData()) {
       const TypedData& array = TypedData::Cast(data_obj);
-      return OneByteString::New(array, data_offset, length);
+      return OneByteString::New(array, data_offset, length, space);
     } else if (data_obj.IsExternalTypedData()) {
       const ExternalTypedData& array = ExternalTypedData::Cast(data_obj);
-      return OneByteString::New(array, data_offset, length);
+      return OneByteString::New(array, data_offset, length, space);
     }
   } else if (list.IsArray()) {
     const Array& array = Array::Cast(list);
     intptr_t length = array.Length();
-    String& string = String::Handle(OneByteString::New(length, Heap::kNew));
+    String& string = String::Handle(OneByteString::New(length, space));
     for (int i = 0; i < length; i++) {
       intptr_t value = Smi::Value(reinterpret_cast<RawSmi*>(array.At(i)));
       OneByteString::SetCharAt(string, i, value);
@@ -175,7 +177,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 1) {
   } else if (list.IsGrowableObjectArray()) {
     const GrowableObjectArray& array = GrowableObjectArray::Cast(list);
     intptr_t length = array.Length();
-    String& string = String::Handle(OneByteString::New(length, Heap::kNew));
+    String& string = String::Handle(OneByteString::New(length, space));
     for (int i = 0; i < length; i++) {
       intptr_t value = Smi::Value(reinterpret_cast<RawSmi*>(array.At(i)));
       OneByteString::SetCharAt(string, i, value);

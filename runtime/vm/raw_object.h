@@ -227,13 +227,6 @@ CLASS_LIST_TYPED_DATA(V)
     SNAPSHOT_WRITER_SUPPORT()                                                  \
     HEAP_PROFILER_SUPPORT()                                                    \
 
-#define OPEN_ARRAY_START(type, align)                                          \
-  do {                                                                         \
-    const uword result = reinterpret_cast<uword>(this) + sizeof(*this);        \
-    ASSERT(Utils::IsAligned(result, sizeof(align)));                           \
-    return reinterpret_cast<type*>(result);                                    \
-  } while (0)
-
 // RawObject is the base class of all raw objects, even though it carries the
 // class_ field not all raw objects are allocated in the heap and thus cannot
 // be dereferenced (e.g. RawSmi).
@@ -542,6 +535,7 @@ class RawClass : public RawObject {
                                 // or the canonical type.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
   RawArray* cha_codes_;  // CHA optimized codes.
+  RawCode* spare_allocation_stub_;  // Spare stub code for allocation.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->allocation_stub_);
@@ -1138,14 +1132,16 @@ class RawExceptionHandlers : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
 
   // Number of exception handler entries.
-  int32_t length_;
+  int32_t num_entries_;
 
-  // Array with [length_] entries. Each entry is an array of all handled
+  // Array with [num_entries_] entries. Each entry is an array of all handled
   // exception types.
   RawArray* handled_types_data_;
 
-  // Exception handler info of length [length_].
+  // Exception handler info of length [num_entries_].
   HandlerInfo* data() { OPEN_ARRAY_START(HandlerInfo, intptr_t); }
+
+  friend class Object;
 };
 
 

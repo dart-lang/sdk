@@ -120,7 +120,7 @@ class GitSource extends CachedSource {
     })).then((_) => new Pair(successes, failures));
   }
   Future<String> _ensureRevision(PackageId id) {
-    return syncFuture(() {
+    return new Future.sync(() {
       var path = _repoCachePath(id);
       if (!entryExists(path)) {
         return _clone(
@@ -152,7 +152,7 @@ class GitSource extends CachedSource {
   }
   Future _clone(String from, String to, {bool mirror: false, bool shallow:
       false}) {
-    return syncFuture(() {
+    return new Future.sync(() {
       ensureDir(to);
       var args = ["clone", from, to];
       if (mirror) args.insert(1, "--mirror");

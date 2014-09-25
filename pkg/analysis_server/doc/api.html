@@ -1398,7 +1398,9 @@ dt.typeDefinition {
   "id": String
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
-    "<b>problems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
+    "<b>initialProblems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
+    "<b>optionsProblems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
+    "<b>finalProblems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
     "<b>feedback</b>": <span style="color:#999999">optional</span> <a href="#type_RefactoringFeedback">RefactoringFeedback</a>
     "<b>change</b>": <span style="color:#999999">optional</span> <a href="#type_SourceChange">SourceChange</a>
     "<b>potentialEdits</b>": <span style="color:#999999">optional</span> List&lt;String&gt;
@@ -1447,11 +1449,28 @@ dt.typeDefinition {
               does not require any options or if the values of those
               options are not known.
             </p>
-          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>problems ( List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt; )</i></b></dt><dd>
+          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>initialProblems ( List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt; )</i></b></dt><dd>
             
             <p>
-              The status of the refactoring. The array will be empty
-              if there are no known problems.
+              The initial status of the refactoring, i.e. problems related to
+              the context in which the refactoring is requested.
+              The array will be empty if there are no known problems.
+            </p>
+          </dd><dt class="field"><b><i>optionsProblems ( List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt; )</i></b></dt><dd>
+            
+            <p>
+              The options validation status, i.e. problems in the given options,
+              such as light-weight validation of a new name, flags
+              compatibility, etc.
+              The array will be empty if there are no known problems.
+            </p>
+          </dd><dt class="field"><b><i>finalProblems ( List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt; )</i></b></dt><dd>
+            
+            <p>
+              The final status of the refactoring, i.e. problems identified in
+              the result of a full, potentially expensive validation and / or
+              change creation.
+              The array will be empty if there are no known problems.
             </p>
           </dd><dt class="field"><b><i>feedback ( <span style="color:#999999">optional</span> <a href="#type_RefactoringFeedback">RefactoringFeedback</a> )</i></b></dt><dd>
             
@@ -1629,13 +1648,13 @@ dt.typeDefinition {
           </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification">execution.launchData</dt><dd><div class="box"><pre>notification: {
   "event": "execution.launchData"
   "params": {
-    "<b>executables</b>": List&lt;<a href="#type_ExecutableFile">ExecutableFile</a>&gt;
-    "<b>dartToHtml</b>": Map&lt;<a href="#type_FilePath">FilePath</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt;
-    "<b>htmlToDart</b>": Map&lt;<a href="#type_FilePath">FilePath</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt;
+    "<b>file</b>": <a href="#type_FilePath">FilePath</a>
+    "<b>kind</b>": <span style="color:#999999">optional</span> <a href="#type_ExecutableKind">ExecutableKind</a>
+    "<b>referencedFiles</b>": <span style="color:#999999">optional</span> List&lt;<a href="#type_FilePath">FilePath</a>&gt;
   }
 }</pre></div>
         <p>
-          Reports information needed to allow applications to be launched.
+          Reports information needed to allow a single file to be launched.
         </p>
         <p>
           This notification is not subscribed to by default. Clients can
@@ -1643,23 +1662,23 @@ dt.typeDefinition {
           passed in an <tt>execution.setSubscriptions</tt> request.
         </p>
         
-      <h4>Parameters</h4><dl><dt class="field"><b><i>executables ( List&lt;<a href="#type_ExecutableFile">ExecutableFile</a>&gt; )</i></b></dt><dd>
+      <h4>Parameters</h4><dl><dt class="field"><b><i>file ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
             
             <p>
-              A list of the files that are executable. This list replaces any
-              previous list provided.
+              The file for which launch data is being provided. This will either
+              be a Dart library or an HTML file.
             </p>
-          </dd><dt class="field"><b><i>dartToHtml ( Map&lt;<a href="#type_FilePath">FilePath</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt; )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>kind ( <span style="color:#999999">optional</span> <a href="#type_ExecutableKind">ExecutableKind</a> )</i></b></dt><dd>
             
             <p>
-              A mapping from the paths of Dart files that are referenced by HTML
-              files to a list of the HTML files that reference the Dart files.
+              The kind of the executable file. This field is omitted if the file
+              is not a Dart file.
             </p>
-          </dd><dt class="field"><b><i>htmlToDart ( Map&lt;<a href="#type_FilePath">FilePath</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt; )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>referencedFiles ( <span style="color:#999999">optional</span> List&lt;<a href="#type_FilePath">FilePath</a>&gt; )</i></b></dt><dd>
             
             <p>
-              A mapping from the paths of HTML files that reference Dart files
-              to a list of the Dart files they reference.
+              A list of the Dart files that are referenced by the file. This
+              field is omitted if the file is not an HTML file.
             </p>
           </dd></dl></dd></dl>
     
@@ -1966,6 +1985,11 @@ dt.typeDefinition {
               field is omitted if the suggested element is not a member
               of a class.
             </p>
+          </dd><dt class="field"><b><i>element ( <span style="color:#999999">optional</span> <a href="#type_Element">Element</a> )</i></b></dt><dd>
+            
+            <p>
+              Information about the element reference being suggested.
+            </p>
           </dd><dt class="field"><b><i>returnType ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
             
             <p>
@@ -2077,7 +2101,7 @@ dt.typeDefinition {
           An enumeration of the kinds of elements.
         </p>
         
-      <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutableFile">ExecutableFile: object</a></dt><dd>
+      <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutableFile">ExecutableFile: object</a></dt><dd>
         <p>
           A description of an executable file.
         </p>
@@ -2097,7 +2121,7 @@ dt.typeDefinition {
           An enumeration of the kinds of executable files.
         </p>
         
-      <dl><dt class="value">CLIENT</dt><dt class="value">EITHER</dt><dt class="value">SERVER</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutionContextId">ExecutionContextId: String</a></dt><dd>
+      <dl><dt class="value">CLIENT</dt><dt class="value">EITHER</dt><dt class="value">NOT_EXECUTABLE</dt><dt class="value">SERVER</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutionContextId">ExecutionContextId: String</a></dt><dd>
         
         <p>
           The identifier for a execution context.
@@ -2472,7 +2496,7 @@ dt.typeDefinition {
           created.
         </p>
         
-      <dl><dt class="value">CONVERT_GETTER_TO_METHOD</dt><dt class="value">CONVERT_METHOD_TO_GETTER</dt><dt class="value">EXTRACT_LOCAL_VARIABLE</dt><dt class="value">EXTRACT_METHOD</dt><dt class="value">INLINE_LOCAL_VARIABLE</dt><dt class="value">INLINE_METHOD</dt><dt class="value">RENAME</dt></dl></dd><dt class="typeDefinition"><a name="type_RefactoringMethodParameter">RefactoringMethodParameter: object</a></dt><dd>
+      <dl><dt class="value">CONVERT_GETTER_TO_METHOD</dt><dt class="value">CONVERT_METHOD_TO_GETTER</dt><dt class="value">EXTRACT_LOCAL_VARIABLE</dt><dt class="value">EXTRACT_METHOD</dt><dt class="value">INLINE_LOCAL_VARIABLE</dt><dt class="value">INLINE_METHOD</dt><dt class="value">MOVE_FILE</dt><dt class="value">RENAME</dt><dt class="value">SORT_MEMBERS</dt></dl></dd><dt class="typeDefinition"><a name="type_RefactoringMethodParameter">RefactoringMethodParameter: object</a></dt><dd>
         <p>
           A description of a parameter in a method refactoring.
         </p>
@@ -2821,6 +2845,15 @@ dt.typeDefinition {
             <p>
               The file containing the code to be modified.
             </p>
+          </dd><dt class="field"><b><i>fileStamp ( long )</i></b></dt><dd>
+            
+            <p>
+              The modification stamp of the file at the moment when the change
+              was created, in milliseconds since the "Unix epoch". Will be -1 if
+              the file did not exist and should be created. The client may use
+              this field to make sure that the file was not changed since then,
+              so it is safe to apply the change.
+            </p>
           </dd><dt class="field"><b><i>edits ( List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt; )</i></b></dt><dd>
             
             <p>
@@ -2893,6 +2926,8 @@ dt.typeDefinition {
         edit.getRefactoring request (designed to improve the UX)
         and the options that may be provided to edit.getRefactoring.
       </p>
+      
+      
       
       
       
@@ -3130,6 +3165,27 @@ dt.typeDefinition {
               or false if only the invocation site used to create this
               refactoring should be inlined.
             </p>
+          </dd></dl></dd><dt class="refactoring">MOVE_FILE</dt><dd>
+        <p>
+          Move the given file and update all of the references to that file
+          and from it. The move operation is supported in general case - for
+          renaming a file in the same folder, moving it to a different folder
+          or both.
+        </p>
+        <p>
+          The refactoring must be activated before an actual file moving
+          operation is performed.
+        </p>
+        <p>
+          The "offset" and "length" fields from the request are ignored, but the
+          file specified in the request specifies the file to be moved.
+        </p>
+        
+      <h4>Feedback</h4><p>none</p><h4>Options</h4><dl><dt class="field"><b><i>newFile ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
+            
+            <p>
+              The new file path to which the given file is being moved.
+            </p>
           </dd></dl></dd><dt class="refactoring">RENAME</dt><dd>
         <p>
           Rename a given element and all of the references to that
@@ -3172,7 +3228,16 @@ dt.typeDefinition {
               The name that the element should have after the
               refactoring.
             </p>
-          </dd></dl></dd></dl>
+          </dd></dl></dd><dt class="refactoring">SORT_MEMBERS</dt><dd>
+        <p>
+          Sort all of the directives, unit and class members
+          of the given Dart file.
+        </p>
+        <p>
+          The "offset" and "length" fields from the request are ignored, but the
+          file specified in the request specifies the file to be sorted.
+        </p>
+      <h4>Feedback</h4><p>none</p><h4>Options</h4><p>none</p></dd></dl>
     <h2>Errors</h2>
     <p>
       This section contains a list of all of the errors that are

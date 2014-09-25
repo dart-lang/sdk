@@ -71,18 +71,9 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<SourceChange> createChange() {
-    SourceChange change = new SourceChange(refactoringName);
-    // update declaration
-    addDeclarationEdit(change, element);
-    // update references
-    return searchEngine.searchReferences(element).then((refMatches) {
-      List<SourceReference> references = getSourceReferences(refMatches);
-      for (SourceReference reference in references) {
-        addReferenceEdit(change, reference);
-      }
-      return change;
-    });
+  Future fillChange() {
+    addDeclarationEdit(element);
+    return searchEngine.searchReferences(element).then(addReferenceEdits);
   }
 
   void _analyzePossibleConflicts_inLibrary(RefactoringStatus result,
@@ -107,6 +98,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
   final RenameLocalRefactoringImpl refactoring;
   final RefactoringStatus result;
   final SourceRange elementRange;
+  final Set<Element> conflictingLocals = new Set<Element>();
 
   _ConflictValidatorVisitor(this.refactoring, this.result, this.elementRange);
 
@@ -116,10 +108,15 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
     String newName = refactoring.newName;
     if (nodeElement != null && nodeElement.name == newName) {
       // duplicate declaration
-      if (haveIntersectingRanges(refactoring.element, nodeElement)) {
+      if (node.inDeclarationContext() &&
+          haveIntersectingRanges(refactoring.element, nodeElement)) {
+        conflictingLocals.add(nodeElement);
         String nodeKind = nodeElement.kind.displayName;
         String message = "Duplicate ${nodeKind} '$newName'.";
         result.addError(message, new Location.fromElement(nodeElement));
+        return;
+      }
+      if (conflictingLocals.contains(nodeElement)) {
         return;
       }
       // shadowing referenced element

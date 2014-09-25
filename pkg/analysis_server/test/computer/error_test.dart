@@ -4,15 +4,15 @@
 
 library test.computer.error;
 
-import 'package:analysis_server/src/computer/error.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import '../mocks.dart';
-import '../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
+
+import '../mocks.dart';
+import '../reflective_tests.dart';
 
 
 
@@ -102,21 +102,5 @@ class AnalysisErrorTest {
       },
       MESSAGE: 'my message'
     });
-  }
-
-  void test_engineErrorsToJson() {
-    var json = engineErrorsToJson(lineInfo, [engineError]);
-    expect(json, unorderedEquals([{
-        'severity': 'ERROR',
-        'type': 'COMPILE_TIME_ERROR',
-        'location': {
-          'file': 'foo.dart',
-          'offset': 10,
-          'length': 20,
-          'startLine': 3,
-          'startColumn': 2
-        },
-        'message': 'my message'
-      }]));
   }
 }

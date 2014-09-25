@@ -18,13 +18,18 @@ import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
 import 'pubspec.dart';
-import 'system_cache.dart';
+import 'sdk.dart' as sdk;
 import 'solver/version_solver.dart';
 import 'source/cached.dart';
 import 'source/git.dart';
 import 'source/path.dart';
+import 'system_cache.dart';
 import 'utils.dart';
 import 'version.dart';
+
+/// Matches the package name that a binstub was created for inside the contents
+/// of the shell script.
+final _binStubPackagePattern = new RegExp(r"Package: ([a-zA-Z0-9_-]+)");
 
 /// Maintains the set of packages that have been globally activated.
 ///
@@ -57,6 +62,9 @@ class GlobalPackages {
   /// The directory where the lockfiles for activated packages are stored.
   String get _directory => p.join(cache.rootDir, "global_packages");
 
+  /// The directory where binstubs for global package executables are stored.
+  String get _binStubDir => p.join(cache.rootDir, "bin");
+
   /// Creates a new global package registry backed by the given directory on
   /// the user's file system.
   ///
@@ -66,7 +74,16 @@ class GlobalPackages {
 
   /// Caches the package located in the Git repository [repo] and makes it the
   /// active global version.
-  Future activateGit(String repo) async {
+  ///
+  /// [executables] is the names of the executables that should have binstubs.
+  /// If `null`, all executables in the package will get binstubs. If empty, no
+  /// binstubs will be created.
+  ///
+  /// if [overwriteBinStubs] is `true`, any binstubs that collide with
+  /// existing binstubs in other packages will be overwritten by this one's.
+  /// Otherwise, the previous ones will be preserved.
+  Future activateGit(String repo, List<String> executables,
+      {bool overwriteBinStubs}) async {
     var source = cache.sources["git"] as GitSource;
     var name = await source.getPackageNameFromRepo(repo);
     // Call this just to log what the current active package is, if any.
@@ -77,18 +94,38 @@ class GlobalPackages {
     // be a mechanism for redoing dependency resolution if a path pubspec has
     // changed (see also issue 20499).
     await _installInCache(
-        new PackageDep(name, "git", VersionConstraint.any, repo));
+        new PackageDep(name, "git", VersionConstraint.any, repo),
+        executables, overwriteBinStubs: overwriteBinStubs);
   }
 
   /// Finds the latest version of the hosted package with [name] that matches
   /// [constraint] and makes it the active global version.
-  Future activateHosted(String name, VersionConstraint constraint) {
+  ///
+  /// [executables] is the names of the executables that should have binstubs.
+  /// If `null`, all executables in the package will get binstubs. If empty, no
+  /// binstubs will be created.
+  ///
+  /// if [overwriteBinStubs] is `true`, any binstubs that collide with
+  /// existing binstubs in other packages will be overwritten by this one's.
+  /// Otherwise, the previous ones will be preserved.
+  Future activateHosted(String name, VersionConstraint constraint,
+      List<String> executables, {bool overwriteBinStubs}) async {
     _describeActive(name);
-    return _installInCache(new PackageDep(name, "hosted", constraint, name));
+    await _installInCache(new PackageDep(name, "hosted", constraint, name),
+        executables, overwriteBinStubs: overwriteBinStubs);
   }
 
   /// Makes the local package at [path] globally active.
-  Future activatePath(String path) async {
+  ///
+  /// [executables] is the names of the executables that should have binstubs.
+  /// If `null`, all executables in the package will get binstubs. If empty, no
+  /// binstubs will be created.
+  ///
+  /// if [overwriteBinStubs] is `true`, any binstubs that collide with
+  /// existing binstubs in other packages will be overwritten by this one's.
+  /// Otherwise, the previous ones will be preserved.
+  Future activatePath(String path, List<String> executables,
+      {bool overwriteBinStubs}) async {
     var entrypoint = new Entrypoint(path, cache);
 
     // Get the package's dependencies.
@@ -109,10 +146,14 @@ class GlobalPackages {
 
     var binDir = p.join(_directory, name, 'bin');
     if (dirExists(binDir)) deleteEntry(binDir);
+
+    _updateBinStubs(entrypoint.root, executables,
+        overwriteBinStubs: overwriteBinStubs);
   }
 
   /// Installs the package [dep] and its dependencies into the system cache.
-  Future _installInCache(PackageDep dep) async {
+  Future _installInCache(PackageDep dep, List<String> executables,
+      {bool overwriteBinStubs}) async {
     var source = cache.sources[dep.source];
 
     // Create a dummy package with just [dep] so we can do resolution on it.
@@ -138,25 +179,34 @@ class GlobalPackages {
     // the pubspecs.
     var graph = await new Entrypoint.inMemory(root, lockFile, cache)
         .loadPackageGraph(result);
-    await _precompileExecutables(graph.entrypoint, dep.name);
+    var snapshots = await _precompileExecutables(graph.entrypoint, dep.name);
     _writeLockFile(dep.name, lockFile);
+
+    _updateBinStubs(graph.packages[dep.name], executables,
+        overwriteBinStubs: overwriteBinStubs, snapshots: snapshots);
   }
 
   /// Precompiles the executables for [package] and saves them in the global
   /// cache.
-  Future _precompileExecutables(Entrypoint entrypoint, String package) {
-    return log.progress("Precompiling executables", () {
+  ///
+  /// Returns a map from executable name to path for the snapshots that were
+  /// successfully precompiled.
+  Future<Map<String, String>> _precompileExecutables(Entrypoint entrypoint,
+      String package) {
+    return log.progress("Precompiling executables", () async {
       var binDir = p.join(_directory, package, 'bin');
       cleanDir(binDir);
 
-      return AssetEnvironment.create(entrypoint, BarbackMode.RELEASE,
-          useDart2JS: false).then((environment) {
-        environment.barback.errors.listen((error) {
-          log.error(log.red("Build error:\n$error"));
-        });
-
-        return environment.precompileExecutables(package, binDir);
+      var graph = await entrypoint.loadPackageGraph();
+      var environment = await AssetEnvironment.create(
+          entrypoint, BarbackMode.RELEASE,
+          entrypoints: graph.packages[package].executableIds,
+          useDart2JS: false);
+      environment.barback.errors.listen((error) {
+        log.error(log.red("Build error:\n$error"));
       });
+
+      return environment.precompileExecutables(package, binDir);
     });
   }
 
@@ -188,7 +238,6 @@ class GlobalPackages {
 
     var id = lockFile.packages[package];
     log.message('Activated ${_formatPackage(id)}.');
-
   }
 
   /// Shows the user the currently active package with [name], if any.
@@ -217,19 +266,16 @@ class GlobalPackages {
 
   /// Deactivates a previously-activated package named [name].
   ///
-  /// If [logDeactivate] is true, displays to the user when a package is
-  /// deactivated. Otherwise, deactivates silently.
-  ///
   /// Returns `false` if no package with [name] was currently active.
-  bool deactivate(String name, {bool logDeactivate: false}) {
+  bool deactivate(String name) {
     var dir = p.join(_directory, name);
     if (!dirExists(dir)) return false;
 
-    if (logDeactivate) {
-      var lockFile = new LockFile.load(_getLockFilePath(name), cache.sources);
-      var id = lockFile.packages[name];
-      log.message('Deactivated package ${_formatPackage(id)}.');
-    }
+    _deleteBinStubs(name);
+
+    var lockFile = new LockFile.load(_getLockFilePath(name), cache.sources);
+    var id = lockFile.packages[name];
+    log.message('Deactivated package ${_formatPackage(id)}.');
 
     deleteEntry(dir);
 
@@ -242,7 +288,7 @@ class GlobalPackages {
   Future<Entrypoint> find(String name) {
     // TODO(rnystrom): Use async/await here when on __ catch is supported.
     // See: https://github.com/dart-lang/async_await/issues/27
-    return syncFuture(() {
+    return new Future.sync(() {
       var lockFilePath = _getLockFilePath(name);
       var lockFile;
       try {
@@ -293,14 +339,20 @@ class GlobalPackages {
   /// recompiled if the SDK has been upgraded since it was first compiled and
   /// then run. Otherwise, it will be run from source.
   ///
+  /// If [mode] is passed, it's used as the barback mode; it defaults to
+  /// [BarbackMode.RELEASE].
+  ///
   /// Returns the exit code from the executable.
   Future<int> runExecutable(String package, String executable,
-      Iterable<String> args) {
+      Iterable<String> args, {BarbackMode mode}) {
+    if (mode == null) mode = BarbackMode.RELEASE;
+
     var binDir = p.join(_directory, package, 'bin');
-    if (!fileExists(p.join(binDir, '$executable.dart.snapshot'))) {
+    if (mode != BarbackMode.RELEASE ||
+        !fileExists(p.join(binDir, '$executable.dart.snapshot'))) {
       return find(package).then((entrypoint) {
         return exe.runExecutable(entrypoint, package, executable, args,
-            isGlobal: true);
+            mode: mode, isGlobal: true);
       });
     }
 
@@ -358,6 +410,249 @@ class GlobalPackages {
       return '${log.bold(id.name)} ${id.version} at path "$path"';
     } else {
       return '${log.bold(id.name)} ${id.version}';
+    }
+  }
+
+  /// Updates the binstubs for [package].
+  ///
+  /// A binstub is a little shell script in `PUB_CACHE/bin` that runs an
+  /// executable from a globally activated package. This removes any old
+  /// binstubs from the previously activated version of the package and
+  /// (optionally) creates new ones for the executables listed in the package's
+  /// pubspec.
+  ///
+  /// [executables] is the names of the executables that should have binstubs.
+  /// If `null`, all executables in the package will get binstubs. If empty, no
+  /// binstubs will be created.
+  ///
+  /// If [overwriteBinStubs] is `true`, any binstubs that collide with
+  /// existing binstubs in other packages will be overwritten by this one's.
+  /// Otherwise, the previous ones will be preserved.
+  ///
+  /// If [snapshots] is given, it is a map of the names of executables whose
+  /// snapshots that were precompiled to their paths. Binstubs for those will
+  /// run the snapshot directly and skip pub entirely.
+  void _updateBinStubs(Package package, List<String> executables,
+      {bool overwriteBinStubs, Map<String, String> snapshots}) {
+    if (snapshots == null) snapshots = const {};
+
+    // Remove any previously activated binstubs for this package, in case the
+    // list of executables has changed.
+    _deleteBinStubs(package.name);
+
+    if ((executables != null && executables.isEmpty) ||
+        package.pubspec.executables.isEmpty) {
+      return;
+    }
+
+    ensureDir(_binStubDir);
+
+    var installed = [];
+    var collided = {};
+    var allExecutables = ordered(package.pubspec.executables.keys);
+    for (var executable in allExecutables) {
+      if (executables != null && !executables.contains(executable)) continue;
+
+      var script = package.pubspec.executables[executable];
+
+      var previousPackage = _createBinStub(package, executable, script,
+          overwrite: overwriteBinStubs, snapshot: snapshots[script]);
+      if (previousPackage != null) {
+        collided[executable] = previousPackage;
+
+        if (!overwriteBinStubs) continue;
+      }
+
+      installed.add(executable);
+    }
+
+    if (installed.isNotEmpty) {
+      var names = namedSequence("executable", installed.map(log.bold));
+      log.message("Installed $names.");
+    }
+
+    // Show errors for any collisions.
+    if (collided.isNotEmpty) {
+      for (var command in ordered(collided.keys)) {
+        if (overwriteBinStubs) {
+          log.warning("Replaced ${log.bold(command)} previously installed from "
+              "${log.bold(collided[command])}.");
+        } else {
+          log.warning("Executable ${log.bold(command)} was already installed "
+              "from ${log.bold(collided[command])}.");
+        }
+      }
+
+      if (!overwriteBinStubs) {
+        log.warning("Deactivate the other package(s) or activate "
+            "${log.bold(package.name)} using --overwrite.");
+      }
+    }
+
+    // Show errors for any unknown executables.
+    if (executables != null) {
+      var unknown = ordered(executables.where(
+          (exe) => !package.pubspec.executables.keys.contains(exe)));
+      if (unknown.isNotEmpty) {
+        dataError("Unknown ${namedSequence('executable', unknown)}.");
+      }
+    }
+
+    // Show errors for any missing scripts.
+    // TODO(rnystrom): This can print false positives since a script may be
+    // produced by a transformer. Do something better.
+    var binFiles = package.listFiles(beneath: "bin", recursive: false)
+        .map((path) => package.relative(path))
+        .toList();
+    for (var executable in installed) {
+      var script = package.pubspec.executables[executable];
+      var scriptPath = p.join("bin", "$script.dart");
+      if (!binFiles.contains(scriptPath)) {
+        log.warning('Warning: Executable "$executable" runs "$scriptPath", '
+            'which was not found in ${log.bold(package.name)}.');
+      }
+    }
+
+    if (installed.isNotEmpty) _suggestIfNotOnPath(installed);
+  }
+
+  /// Creates a binstub named [executable] that runs [script] from [package].
+  ///
+  /// If [overwrite] is `true`, this will replace an existing binstub with that
+  /// name for another package.
+  ///
+  /// If [snapshot] is non-null, it is a path to a snapshot file. The binstub
+  /// will invoke that directly. Otherwise, it will run `pub global run`.
+  ///
+  /// If a collision occurs, returns the name of the package that owns the
+  /// existing binstub. Otherwise returns `null`.
+  String _createBinStub(Package package, String executable, String script,
+      {bool overwrite, String snapshot}) {
+    var binStubPath = p.join(_binStubDir, executable);
+
+    if (Platform.operatingSystem == "windows") binStubPath += ".bat";
+
+    // See if the binstub already exists. If so, it's for another package
+    // since we already deleted all of this package's binstubs.
+    var previousPackage;
+    if (fileExists(binStubPath)) {
+      var contents = readTextFile(binStubPath);
+      var match = _binStubPackagePattern.firstMatch(contents);
+      if (match != null) {
+        previousPackage = match[1];
+        if (!overwrite) return previousPackage;
+      } else {
+        log.fine("Could not parse binstub $binStubPath:\n$contents");
+      }
+    }
+
+    // If the script was precompiled to a snapshot, just invoke that directly
+    // and skip pub global run entirely.
+    var invocation;
+    if (snapshot != null) {
+      // We expect absolute paths from the precompiler since relative ones
+      // won't be relative to the right directory when the user runs this.
+      assert(p.isAbsolute(snapshot));
+      invocation = 'dart "$snapshot"';
+    } else {
+      invocation = "pub global run ${package.name}:$script";
+    }
+
+    if (Platform.operatingSystem == "windows") {
+      var batch = """
+@echo off
+rem This file was created by pub v${sdk.version}.
+rem Package: ${package.name}
+rem Version: ${package.version}
+rem Executable: ${executable}
+rem Script: ${script}
+$invocation %*
+""";
+      writeTextFile(binStubPath, batch);
+    } else {
+      var bash = """
+#!/usr/bin/env sh
+# This file was created by pub v${sdk.version}.
+# Package: ${package.name}
+# Version: ${package.version}
+# Executable: ${executable}
+# Script: ${script}
+$invocation "\$@"
+""";
+      writeTextFile(binStubPath, bash);
+
+      // Make it executable.
+      var result = Process.runSync('chmod', ['+x', binStubPath]);
+      if (result.exitCode != 0) {
+        // Couldn't make it executable so don't leave it laying around.
+        try {
+          deleteEntry(binStubPath);
+        } on IOException catch (err) {
+          // Do nothing. We're going to fail below anyway.
+          log.fine("Could not delete binstub:\n$err");
+        }
+
+        fail('Could not make "$binStubPath" executable (exit code '
+            '${result.exitCode}):\n${result.stderr}');
+      }
+    }
+
+    return previousPackage;
+  }
+
+  /// Deletes all existing binstubs for [package].
+  void _deleteBinStubs(String package) {
+    if (!dirExists(_binStubDir)) return;
+
+    for (var file in listDir(_binStubDir, includeDirs: false)) {
+      var contents = readTextFile(file);
+      var match = _binStubPackagePattern.firstMatch(contents);
+      if (match == null) {
+        log.fine("Could not parse binstub $file:\n$contents");
+        continue;
+      }
+
+      if (match[1] == package) {
+        log.fine("Deleting old binstub $file");
+        deleteEntry(file);
+      }
+    }
+  }
+
+  /// Checks to see if the binstubs are on the user's PATH and, if not, suggests
+  /// that the user add the directory to their PATH.
+  void _suggestIfNotOnPath(List<String> installed) {
+    if (Platform.operatingSystem == "windows") {
+      // See if the shell can find one of the binstubs.
+      // "\q" means return exit code 0 if found or 1 if not.
+      var result = runProcessSync("where", [r"\q", installed.first + ".bat"]);
+      if (result.exitCode == 0) return;
+
+      log.warning(
+          "${log.yellow('Warning:')} Pub installs executables into "
+              "${log.bold(_binStubDir)}, which is not on your path.\n"
+          "You can fix that by adding that directory to your system's "
+              '"Path" environment variable.\n'
+          'A web search for "configure windows path" will show you how.');
+    } else {
+      // See if the shell can find one of the binstubs.
+      var result = runProcessSync("which", [installed.first]);
+      if (result.exitCode == 0) return;
+
+      var binDir = _binStubDir;
+      if (binDir.startsWith(Platform.environment['HOME'])) {
+        binDir = p.join("~", p.relative(binDir,
+            from: Platform.environment['HOME']));
+      }
+
+      log.warning(
+          "${log.yellow('Warning:')} Pub installs executables into "
+              "${log.bold(binDir)}, which is not on your path.\n"
+          "You can fix that by adding this to your shell's config file "
+              "(.bashrc, .bash_profile, etc.):\n"
+          "\n"
+          "  ${log.bold('export PATH="\$PATH":"$binDir"')}\n"
+          "\n");
     }
   }
 }

@@ -176,9 +176,9 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.CLASS, 'A');
-      assertHasResult(CompletionSuggestionKind.FIELD, 'a');
+      assertHasResult(CompletionSuggestionKind.GETTER, 'a');
       assertHasResult(CompletionSuggestionKind.LOCAL_VARIABLE, 'b');
-      assertHasResult(CompletionSuggestionKind.METHOD_NAME, 'x');
+      assertHasResult(CompletionSuggestionKind.METHOD, 'x');
     });
   }
 

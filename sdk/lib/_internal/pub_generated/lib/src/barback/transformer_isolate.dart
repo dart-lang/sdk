@@ -21,29 +21,30 @@ class TransformerIsolate {
   final Map<TransformerId, Uri> _idsToUrls;
   final BarbackMode _mode;
   static Future<TransformerIsolate> spawn(AssetEnvironment environment,
-      BarbackServer transformerServer, List<TransformerId> ids) {
+      BarbackServer transformerServer, List<TransformerId> ids, {String snapshot}) {
     return mapFromIterableAsync(ids, value: (id) {
       return id.getAssetId(environment.barback);
     }).then((idsToAssetIds) {
       var baseUrl = transformerServer.url;
       var idsToUrls = mapMap(idsToAssetIds, value: (id, assetId) {
         var path = assetId.path.replaceFirst('lib/', '');
-        return baseUrl.resolve('packages/${id.package}/$path');
+        return Uri.parse('package:${id.package}/$path');
       });
       var code = new StringBuffer();
       code.writeln("import 'dart:isolate';");
       for (var url in idsToUrls.values) {
         code.writeln("import '$url';");
       }
-      code.writeln(
-          "import " "r'$baseUrl/packages/\$pub/transformer_isolate.dart';");
+      code.writeln("import r'package:\$pub/transformer_isolate.dart';");
       code.writeln(
           "void main(_, SendPort replyTo) => loadTransformers(replyTo);");
       log.fine("Loading transformers from $ids");
       var port = new ReceivePort();
       return dart.runInIsolate(
           code.toString(),
-          port.sendPort).then((_) => port.first).then((sendPort) {
+          port.sendPort,
+          packageRoot: baseUrl.resolve('packages'),
+          snapshot: snapshot).then((_) => port.first).then((sendPort) {
         return new TransformerIsolate._(sendPort, environment.mode, idsToUrls);
       }).catchError((error, stackTrace) {
         if (error is! CrossIsolateException) throw error;
@@ -51,7 +52,8 @@ class TransformerIsolate {
         var firstErrorLine = error.message.split('\n')[1];
         var missingTransformer = idsToUrls.keys.firstWhere(
             (id) =>
-                firstErrorLine.startsWith("Uncaught Error: Failure getting ${idsToUrls[id]}:"),
+                firstErrorLine.startsWith("Uncaught Error: Failure getting ") &&
+                    firstErrorLine.contains(idsToUrls[id].path),
             orElse: () => throw error);
         var packageUri = idToPackageUri(idsToAssetIds[missingTransformer]);
         fail('Transformer library "$packageUri" not found.', error, stackTrace);

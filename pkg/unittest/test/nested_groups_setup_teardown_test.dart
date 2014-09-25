@@ -2,44 +2,64 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
+library unittest.nested_groups_setup_teardown_test;
 
 import 'dart:async';
-import 'dart:isolate';
 
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+import 'package:metatest/metatest.dart';
 
-var testName = 'nested groups setup/teardown';
+void main() => initTests(_test);
 
-var testFunction = (_) {
-  StringBuffer s = new StringBuffer();
-  group('level 1', () {
-    setUp(makeDelayedSetup(1, s));
-    group('level 2', () {
-      setUp(makeImmediateSetup(2, s));
-      tearDown(makeDelayedTeardown(2, s));
-      group('level 3', () {
-        group('level 4', () {
-          setUp(makeDelayedSetup(4, s));
-          tearDown(makeImmediateTeardown(4, s));
-          group('level 5', () {
-            setUp(makeImmediateSetup(5, s));
-            group('level 6', () {
-              tearDown(makeDelayedTeardown(6, s));
-              test('inner', () {});
+void _test(message) {
+  initMetatest(message);
+
+  expectTestsPass('nested groups setup/teardown', () {
+    StringBuffer s = new StringBuffer();
+    group('level 1', () {
+      setUp(makeDelayedSetup(1, s));
+      group('level 2', () {
+        setUp(makeImmediateSetup(2, s));
+        tearDown(makeDelayedTeardown(2, s));
+        group('level 3', () {
+          group('level 4', () {
+            setUp(makeDelayedSetup(4, s));
+            tearDown(makeImmediateTeardown(4, s));
+            group('level 5', () {
+              setUp(makeImmediateSetup(5, s));
+              group('level 6', () {
+                tearDown(makeDelayedTeardown(6, s));
+                test('inner', () {});
+              });
             });
           });
         });
       });
     });
+    test('after nest', () {
+      expect(s.toString(), "l1 U l2 U l4 U l5 U l6 D l4 D l2 D ");
+    });
   });
-  test('after nest', () {
-    expect(s.toString(), "l1 U l2 U l4 U l5 U l6 D l4 D l2 D ");
+}
+
+
+Function makeDelayedSetup(int index, StringBuffer s) => () {
+  return new Future.delayed(new Duration(milliseconds: 1), () {
+    s.write('l$index U ');
   });
 };
 
-var expected = buildStatusString(2, 0, 0,
-    'level 1 level 2 level 3 level 4 level 5 level 6 inner::'
-    'after nest');
+Function makeDelayedTeardown(int index, StringBuffer s) => () {
+  return new Future.delayed(new Duration(milliseconds: 1), () {
+    s.write('l$index D ');
+  });
+};
+
+Function makeImmediateSetup(int index, StringBuffer s) => () {
+  s.write('l$index U ');
+};
+
+Function makeImmediateTeardown(int index, StringBuffer s) => () {
+  s.write('l$index D ');
+};

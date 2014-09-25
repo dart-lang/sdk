@@ -8,17 +8,20 @@ import 'dart:collection' show IterableBase, HashSet;
 
 import '../dart_types.dart' show DynamicType;
 import '../elements/elements.dart';
-import '../elements/modelx.dart'
-    show ElementX,
-         ConstructorElementX,
-         FunctionElementX,
-         TypedefElementX,
-         VariableElementX,
-         FieldElementX,
-         VariableList,
-         ClassElementX,
-         MetadataAnnotationX,
-         MixinApplicationElementX;
+
+import '../elements/modelx.dart' show
+    ClassElementX,
+    ConstructorElementX,
+    DeclarationSite,
+    ElementX,
+    FieldElementX,
+    FunctionElementX,
+    MetadataAnnotationX,
+    MixinApplicationElementX,
+    TypedefElementX,
+    VariableElementX,
+    VariableList;
+
 import '../elements/visitor.dart'
     show ElementVisitor;
 import '../dart2jslib.dart';

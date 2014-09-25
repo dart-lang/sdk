@@ -92,6 +92,7 @@ MockCompiler compilerFor(String code, Uri uri,
                           Map<String, String> coreSource,
                           bool disableInlining: true,
                           bool minify: false,
+                          bool trustTypeAnnotations: false,
                           int expectedErrors,
                           int expectedWarnings}) {
   MockCompiler compiler = new MockCompiler.internal(
@@ -100,6 +101,7 @@ MockCompiler compilerFor(String code, Uri uri,
       coreSource: coreSource,
       disableInlining: disableInlining,
       enableMinification: minify,
+      trustTypeAnnotations: trustTypeAnnotations,
       expectedErrors: expectedErrors,
       expectedWarnings: expectedWarnings);
   compiler.registerSource(uri, code);

@@ -37,7 +37,8 @@ class ThreadInterrupterAndroid : public AllStatic {
     its.tid = state->id;
     its.pc = SignalHandler::GetProgramCounter(mcontext);
     its.fp = SignalHandler::GetFramePointer(mcontext);
-    its.sp = SignalHandler::GetStackPointer(mcontext);
+    its.csp = SignalHandler::GetCStackPointer(mcontext);
+    its.dsp = SignalHandler::GetDartStackPointer(mcontext);
     state->callback(its, state->data);
   }
 };
@@ -56,7 +57,6 @@ void ThreadInterrupter::InstallSignalHandler() {
   SignalHandler::Install(
       ThreadInterrupterAndroid::ThreadInterruptSignalHandler);
 }
-
 
 }  // namespace dart
 

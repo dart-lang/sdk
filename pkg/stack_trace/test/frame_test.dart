@@ -210,7 +210,7 @@ void main() {
     });
   });
 
-  group('.parseFirefox', () {
+  group('.parseFirefox/.parseSafari', () {
     test('parses a simple stack frame correctly', () {
       var frame = new Frame.parseFirefox(
           ".VW.call\$0@http://pub.dartlang.org/stuff.dart.js:560");
@@ -356,11 +356,9 @@ void main() {
       expect(() => new Frame.parseFirefox('@dart:async/future.dart'),
           throwsFormatException);
     });
-  });
 
-  group('.parseSafari6_1', () {
     test('parses a simple stack frame correctly', () {
-      var frame = new Frame.parseSafari6_1(
+      var frame = new Frame.parseFirefox(
           "foo\$bar@http://dartlang.org/foo/bar.dart:10:11");
       expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
       expect(frame.line, equals(10));
@@ -369,7 +367,7 @@ void main() {
     });
 
     test('parses an anonymous stack frame correctly', () {
-      var frame = new Frame.parseSafari6_1(
+      var frame = new Frame.parseFirefox(
           "http://dartlang.org/foo/bar.dart:10:11");
       expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
       expect(frame.line, equals(10));
@@ -378,7 +376,7 @@ void main() {
     });
 
     test('parses a stack frame with no line correctly', () {
-      var frame = new Frame.parseSafari6_1(
+      var frame = new Frame.parseFirefox(
           "foo\$bar@http://dartlang.org/foo/bar.dart::11");
       expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
       expect(frame.line, isNull);
@@ -387,7 +385,7 @@ void main() {
     });
 
     test('parses a stack frame with no column correctly', () {
-      var frame = new Frame.parseSafari6_1(
+      var frame = new Frame.parseFirefox(
           "foo\$bar@http://dartlang.org/foo/bar.dart:10:");
       expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
       expect(frame.line, equals(10));
@@ -396,7 +394,7 @@ void main() {
     });
 
     test('parses a stack frame with no line or column correctly', () {
-      var frame = new Frame.parseSafari6_1(
+      var frame = new Frame.parseFirefox(
           "foo\$bar@http://dartlang.org/foo/bar.dart:10:11");
       expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
       expect(frame.line, equals(10));

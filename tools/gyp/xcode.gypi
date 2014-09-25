@@ -52,5 +52,11 @@
     # Perhaps we should set it to @rpath instead. See
     # http://developer.apple.com/library/mac/#documentation/DeveloperTools/Conceptual/DynamicLibraries/100-Articles/RunpathDependentLibraries.html#//apple_ref/doc/uid/TP40008306-SW1
     'INSTALL_PATH': '$(TARGET_BUILD_DIR)',
+
+    # This must go here because mac_deployment_target is defined in this file,
+    # which is only included on mac, and configurations_xcode.gypi is included
+    # on all platforms, so it would be an undefined variable there.
+    # Move this to configurations_xcode if we start including it only on mac.
+    'MACOSX_DEPLOYMENT_TARGET': '<(mac_deployment_target)',
   },
 }

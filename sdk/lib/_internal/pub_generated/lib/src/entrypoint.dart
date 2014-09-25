@@ -25,7 +25,7 @@ class Entrypoint {
         _packageSymlinks = packageSymlinks;
   Entrypoint.inMemory(this.root, this._lockFile, this.cache)
       : _packageSymlinks = false;
-  String get packagesDir => path.join(root.dir, 'packages');
+  String get packagesDir => root.path('packages');
   bool get lockFileExists => _lockFile != null || entryExists(lockFilePath);
   LockFile get lockFile {
     if (_lockFile != null) return _lockFile;
@@ -36,101 +36,422 @@ class Entrypoint {
     }
     return _lockFile;
   }
-  String get pubspecPath => path.join(root.dir, 'pubspec.yaml');
-  String get lockFilePath => path.join(root.dir, 'pubspec.lock');
+  String get pubspecPath => root.path('pubspec.yaml');
+  String get lockFilePath => root.path('pubspec.lock');
   Future acquireDependencies(SolveType type, {List<String> useLatest,
       bool dryRun: false}) {
-    return syncFuture(() {
-      return resolveVersions(
-          type,
-          cache.sources,
-          root,
-          lockFile: lockFile,
-          useLatest: useLatest);
-    }).then((result) {
-      if (!result.succeeded) throw result.error;
-      result.showReport(type);
-      if (dryRun) {
-        result.summarizeChanges(type, dryRun: dryRun);
-        return null;
-      }
-      if (_packageSymlinks) {
-        cleanDir(packagesDir);
-      } else {
-        deleteEntry(packagesDir);
-      }
-      return Future.wait(result.packages.map(_get)).then((ids) {
-        _saveLockFile(ids);
-        if (_packageSymlinks) _linkSelf();
-        _linkOrDeleteSecondaryPackageDirs();
-        result.summarizeChanges(type, dryRun: dryRun);
-        return loadPackageGraph(result);
-      }).then((packageGraph) {
-        return precompileExecutables(
-            changed: result.changedPackages).catchError((error, stackTrace) {
-          log.exception(error, stackTrace);
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        resolveVersions(
+            type,
+            cache.sources,
+            root,
+            lockFile: lockFile,
+            useLatest: useLatest).then((x0) {
+          try {
+            var result = x0;
+            join0() {
+              result.showReport(type);
+              join1() {
+                join2() {
+                  Future.wait(result.packages.map(_get)).then((x1) {
+                    try {
+                      var ids = x1;
+                      _saveLockFile(ids);
+                      join3() {
+                        _linkOrDeleteSecondaryPackageDirs();
+                        result.summarizeChanges(type, dryRun: dryRun);
+                        loadPackageGraph(result).then((x2) {
+                          try {
+                            var packageGraph = x2;
+                            packageGraph.loadTransformerCache().clearIfOutdated(
+                                result.changedPackages);
+                            completer0.complete(
+                                precompileDependencies(changed: result.changedPackages).then(((_) {
+                              return precompileExecutables(
+                                  changed: result.changedPackages);
+                            })).catchError(((error, stackTrace) {
+                              log.exception(error, stackTrace);
+                            })));
+                          } catch (e2) {
+                            completer0.completeError(e2);
+                          }
+                        }, onError: (e3) {
+                          completer0.completeError(e3);
+                        });
+                      }
+                      if (_packageSymlinks) {
+                        _linkSelf();
+                        join3();
+                      } else {
+                        join3();
+                      }
+                    } catch (e1) {
+                      completer0.completeError(e1);
+                    }
+                  }, onError: (e4) {
+                    completer0.completeError(e4);
+                  });
+                }
+                if (_packageSymlinks) {
+                  cleanDir(packagesDir);
+                  join2();
+                } else {
+                  deleteEntry(packagesDir);
+                  join2();
+                }
+              }
+              if (dryRun) {
+                result.summarizeChanges(type, dryRun: dryRun);
+                completer0.complete(null);
+              } else {
+                join1();
+              }
+            }
+            if (!result.succeeded) {
+              completer0.completeError(result.error);
+            } else {
+              join0();
+            }
+          } catch (e0) {
+            completer0.completeError(e0);
+          }
+        }, onError: (e5) {
+          completer0.completeError(e5);
         });
-      });
+      } catch (e6) {
+        completer0.completeError(e6);
+      }
     });
+    return completer0.future;
+  }
+  Future precompileDependencies({Iterable<String> changed}) {
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        join0() {
+          loadPackageGraph().then((x0) {
+            try {
+              var graph = x0;
+              var depsDir = path.join('.pub', 'deps', 'debug');
+              var dependenciesToPrecompile =
+                  graph.packages.values.where(((package) {
+                if (package.pubspec.transformers.isEmpty) return false;
+                if (graph.isPackageMutable(package.name)) return false;
+                if (!dirExists(path.join(depsDir, package.name))) return true;
+                if (changed == null) return true;
+                return overlaps(
+                    graph.transitiveDependencies(
+                        package.name).map((package) => package.name).toSet(),
+                    changed);
+              })).map(((package) => package.name)).toSet();
+              join1() {
+                log.progress("Precompiling dependencies", (() {
+                  final completer0 = new Completer();
+                  scheduleMicrotask(() {
+                    try {
+                      var packagesToLoad = unionAll(
+                          dependenciesToPrecompile.map(
+                              graph.transitiveDependencies)).map(((package) => package.name)).toSet();
+                      var it0 = dependenciesToPrecompile.iterator;
+                      break0(x4) {
+                        AssetEnvironment.create(
+                            this,
+                            BarbackMode.DEBUG,
+                            packages: packagesToLoad,
+                            useDart2JS: false).then((x0) {
+                          try {
+                            var environment = x0;
+                            environment.barback.errors.listen(((_) {}));
+                            environment.barback.getAllAssets().then((x1) {
+                              try {
+                                var assets = x1;
+                                waitAndPrintErrors(assets.map(((asset) {
+                                  final completer0 = new Completer();
+                                  scheduleMicrotask(() {
+                                    try {
+                                      join0() {
+                                        var destPath =
+                                            path.join(depsDir, asset.id.package, path.fromUri(asset.id.path));
+                                        ensureDir(path.dirname(destPath));
+                                        createFileFromStream(
+                                            asset.read(),
+                                            destPath).then((x0) {
+                                          try {
+                                            x0;
+                                            completer0.complete(null);
+                                          } catch (e0) {
+                                            completer0.completeError(e0);
+                                          }
+                                        }, onError: (e1) {
+                                          completer0.completeError(e1);
+                                        });
+                                      }
+                                      if (!dependenciesToPrecompile.contains(
+                                          asset.id.package)) {
+                                        completer0.complete(null);
+                                      } else {
+                                        join0();
+                                      }
+                                    } catch (e2) {
+                                      completer0.completeError(e2);
+                                    }
+                                  });
+                                  return completer0.future;
+                                }))).then((x2) {
+                                  try {
+                                    x2;
+                                    log.message(
+                                        "Precompiled " +
+                                            toSentence(ordered(dependenciesToPrecompile).map(log.bold)) +
+                                            ".");
+                                    completer0.complete(null);
+                                  } catch (e2) {
+                                    completer0.completeError(e2);
+                                  }
+                                }, onError: (e3) {
+                                  completer0.completeError(e3);
+                                });
+                              } catch (e1) {
+                                completer0.completeError(e1);
+                              }
+                            }, onError: (e4) {
+                              completer0.completeError(e4);
+                            });
+                          } catch (e0) {
+                            completer0.completeError(e0);
+                          }
+                        }, onError: (e5) {
+                          completer0.completeError(e5);
+                        });
+                      }
+                      continue0(x5) {
+                        if (it0.moveNext()) {
+                          Future.wait([]).then((x3) {
+                            var package = it0.current;
+                            deleteEntry(path.join(depsDir, package));
+                            continue0(null);
+                          });
+                        } else {
+                          break0(null);
+                        }
+                      }
+                      continue0(null);
+                    } catch (e6) {
+                      completer0.completeError(e6);
+                    }
+                  });
+                  return completer0.future;
+                })).catchError(((error) {
+                  for (var package in dependenciesToPrecompile) {
+                    deleteEntry(path.join(depsDir, package));
+                  }
+                  throw error;
+                })).then((x1) {
+                  try {
+                    x1;
+                    completer0.complete(null);
+                  } catch (e1) {
+                    completer0.completeError(e1);
+                  }
+                }, onError: (e2) {
+                  completer0.completeError(e2);
+                });
+              }
+              if (dependenciesToPrecompile.isEmpty) {
+                completer0.complete(null);
+              } else {
+                join1();
+              }
+            } catch (e0) {
+              completer0.completeError(e0);
+            }
+          }, onError: (e3) {
+            completer0.completeError(e3);
+          });
+        }
+        if (changed != null) {
+          changed = changed.toSet();
+          join0();
+        } else {
+          join0();
+        }
+      } catch (e4) {
+        completer0.completeError(e4);
+      }
+    });
+    return completer0.future;
   }
   Future precompileExecutables({Iterable<String> changed}) {
-    if (changed != null) changed = changed.toSet();
-    var binDir = path.join('.pub', 'bin');
-    var sdkVersionPath = path.join(binDir, 'sdk-version');
-    var sdkMatches =
-        fileExists(sdkVersionPath) &&
-        readTextFile(sdkVersionPath) == "${sdk.version}\n";
-    if (!sdkMatches) changed = null;
-    return loadPackageGraph().then((graph) {
-      var executables = new Map.fromIterable(
-          root.immediateDependencies,
-          key: (dep) => dep.name,
-          value: (dep) => _executablesForPackage(graph, dep.name, changed));
-      for (var package in executables.keys.toList()) {
-        if (executables[package].isEmpty) executables.remove(package);
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        join0() {
+          var binDir = path.join('.pub', 'bin');
+          var sdkVersionPath = path.join(binDir, 'sdk-version');
+          var sdkMatches =
+              fileExists(sdkVersionPath) &&
+              readTextFile(sdkVersionPath) == "${sdk.version}\n";
+          join1() {
+            loadPackageGraph().then((x0) {
+              try {
+                var graph = x0;
+                var executables = new Map.fromIterable(
+                    root.immediateDependencies,
+                    key: ((dep) => dep.name),
+                    value: ((dep) => _executablesForPackage(graph, dep.name, changed)));
+                var it0 = executables.keys.toList().iterator;
+                break0(x3) {
+                  join2() {
+                    join3() {
+                      log.progress("Precompiling executables", (() {
+                        final completer0 = new Completer();
+                        scheduleMicrotask(() {
+                          try {
+                            ensureDir(binDir);
+                            writeTextFile(sdkVersionPath, "${sdk.version}\n");
+                            var packagesToLoad = unionAll(
+                                executables.keys.map(
+                                    graph.transitiveDependencies)).map(((package) => package.name)).toSet();
+                            var executableIds =
+                                unionAll(executables.values.map(((ids) => ids.toSet())));
+                            AssetEnvironment.create(
+                                this,
+                                BarbackMode.RELEASE,
+                                packages: packagesToLoad,
+                                entrypoints: executableIds,
+                                useDart2JS: false).then((x0) {
+                              try {
+                                var environment = x0;
+                                environment.barback.errors.listen(((error) {
+                                  log.error(log.red("Build error:\n$error"));
+                                }));
+                                waitAndPrintErrors(
+                                    executables.keys.map(((package) {
+                                  final completer0 = new Completer();
+                                  scheduleMicrotask(() {
+                                    try {
+                                      var dir = path.join(binDir, package);
+                                      cleanDir(dir);
+                                      environment.precompileExecutables(
+                                          package,
+                                          dir,
+                                          executableIds: executables[package]).then((x0) {
+                                        try {
+                                          x0;
+                                          completer0.complete(null);
+                                        } catch (e0) {
+                                          completer0.completeError(e0);
+                                        }
+                                      }, onError: (e1) {
+                                        completer0.completeError(e1);
+                                      });
+                                    } catch (e2) {
+                                      completer0.completeError(e2);
+                                    }
+                                  });
+                                  return completer0.future;
+                                }))).then((x1) {
+                                  try {
+                                    x1;
+                                    completer0.complete(null);
+                                  } catch (e1) {
+                                    completer0.completeError(e1);
+                                  }
+                                }, onError: (e2) {
+                                  completer0.completeError(e2);
+                                });
+                              } catch (e0) {
+                                completer0.completeError(e0);
+                              }
+                            }, onError: (e3) {
+                              completer0.completeError(e3);
+                            });
+                          } catch (e4) {
+                            completer0.completeError(e4);
+                          }
+                        });
+                        return completer0.future;
+                      })).then((x1) {
+                        try {
+                          x1;
+                          completer0.complete(null);
+                        } catch (e1) {
+                          completer0.completeError(e1);
+                        }
+                      }, onError: (e2) {
+                        completer0.completeError(e2);
+                      });
+                    }
+                    if (executables.isEmpty) {
+                      completer0.complete(null);
+                    } else {
+                      join3();
+                    }
+                  }
+                  if (!sdkMatches) {
+                    deleteEntry(binDir);
+                    join2();
+                  } else {
+                    join2();
+                  }
+                }
+                continue0(x4) {
+                  if (it0.moveNext()) {
+                    Future.wait([]).then((x2) {
+                      var package = it0.current;
+                      join4() {
+                        continue0(null);
+                      }
+                      if (executables[package].isEmpty) {
+                        executables.remove(package);
+                        join4();
+                      } else {
+                        join4();
+                      }
+                    });
+                  } else {
+                    break0(null);
+                  }
+                }
+                continue0(null);
+              } catch (e0) {
+                completer0.completeError(e0);
+              }
+            }, onError: (e3) {
+              completer0.completeError(e3);
+            });
+          }
+          if (!sdkMatches) {
+            changed = null;
+            join1();
+          } else {
+            join1();
+          }
+        }
+        if (changed != null) {
+          changed = changed.toSet();
+          join0();
+        } else {
+          join0();
+        }
+      } catch (e4) {
+        completer0.completeError(e4);
       }
-      if (!sdkMatches) deleteEntry(binDir);
-      if (executables.isEmpty) return null;
-      return log.progress("Precompiling executables", () {
-        ensureDir(binDir);
-        writeTextFile(sdkVersionPath, "${sdk.version}\n");
-        var packagesToLoad = unionAll(
-            executables.keys.map(
-                graph.transitiveDependencies)).map((package) => package.name).toSet();
-        return AssetEnvironment.create(
-            this,
-            BarbackMode.RELEASE,
-            packages: packagesToLoad,
-            useDart2JS: false).then((environment) {
-          environment.barback.errors.listen((error) {
-            log.error(log.red("Build error:\n$error"));
-          });
-          return waitAndPrintErrors(executables.keys.map((package) {
-            var dir = path.join(binDir, package);
-            cleanDir(dir);
-            return environment.precompileExecutables(
-                package,
-                dir,
-                executableIds: executables[package]);
-          }));
-        });
-      });
     });
+    return completer0.future;
   }
   List<AssetId> _executablesForPackage(PackageGraph graph, String packageName,
       Set<String> changed) {
     var package = graph.packages[packageName];
-    var binDir = path.join(package.dir, 'bin');
+    var binDir = package.path('bin');
     if (!dirExists(binDir)) return [];
-    var deps = graph.transitiveDependencies(packageName);
-    var hasUncachedDependency = deps.any((package) {
-      var source = cache.sources[graph.lockFile.packages[package.name].source];
-      return source is! CachedSource;
-    });
-    if (hasUncachedDependency) return [];
+    if (graph.isPackageMutable(packageName)) return [];
     var executables = package.executableIds;
     if (changed == null) return executables;
-    if (deps.any((package) => changed.contains(package.name))) {
+    if (graph.transitiveDependencies(
+        packageName).any((package) => changed.contains(package.name))) {
       return executables;
     }
     var executablesExist = executables.every(
@@ -147,7 +468,7 @@ class Entrypoint {
   Future<PackageId> _get(PackageId id) {
     if (id.isRoot) return new Future.value(id);
     var source = cache.sources[id.source];
-    return syncFuture(() {
+    return new Future.sync(() {
       if (!_packageSymlinks) {
         if (source is! CachedSource) return null;
         return source.downloadToSystemCache(id);
@@ -181,7 +502,7 @@ class Entrypoint {
     });
   }
   Future ensureLockFileIsUpToDate() {
-    return syncFuture(() {
+    return new Future.sync(() {
       if (!_isLockFileUpToDate(lockFile)) {
         if (lockFileExists) {
           log.message(
@@ -206,7 +527,7 @@ class Entrypoint {
   }
   Future<PackageGraph> loadPackageGraph([SolveResult result]) {
     if (_packageGraph != null) return new Future.value(_packageGraph);
-    return syncFuture(() {
+    return new Future.sync(() {
       if (result != null) {
         return Future.wait(result.packages.map((id) {
           return cache.sources[id.source].getDirectory(
@@ -237,7 +558,7 @@ class Entrypoint {
   }
   void _saveLockFile(List<PackageId> packageIds) {
     _lockFile = new LockFile(packageIds);
-    var lockFilePath = path.join(root.dir, 'pubspec.lock');
+    var lockFilePath = root.path('pubspec.lock');
     writeTextFile(lockFilePath, _lockFile.serialize(root.dir, cache.sources));
   }
   void _linkSelf() {
@@ -252,10 +573,10 @@ class Entrypoint {
         relative: true);
   }
   void _linkOrDeleteSecondaryPackageDirs() {
-    var binDir = path.join(root.dir, 'bin');
+    var binDir = root.path('bin');
     if (dirExists(binDir)) _linkOrDeleteSecondaryPackageDir(binDir);
     for (var dir in ['benchmark', 'example', 'test', 'tool', 'web']) {
-      _linkOrDeleteSecondaryPackageDirsRecursively(path.join(root.dir, dir));
+      _linkOrDeleteSecondaryPackageDirsRecursively(root.path(dir));
     }
   }
   void _linkOrDeleteSecondaryPackageDirsRecursively(String dir) {

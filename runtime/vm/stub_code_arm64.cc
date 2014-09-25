@@ -93,8 +93,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ add(R2, ZR, Operand(R4, LSL, 3));
   __ add(R2, FP, Operand(R2));  // Compute argv.
   // Set argv in NativeArguments.
-  __ AddImmediate(R2, R2, exitframe_last_param_slot_from_fp * kWordSize,
-                  kNoPP);
+  __ AddImmediate(R2, R2, exitframe_last_param_slot_from_fp * kWordSize, kNoPP);
 
     ASSERT(retval_offset == 3 * kWordSize);
   __ AddImmediate(R3, R2, kWordSize, kNoPP);
@@ -657,16 +656,24 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   }
   __ cmp(R2, Operand(0));
   __ b(&slow_case, LT);
-  __ LoadFieldFromOffset(R8, CTX, Context::isolate_offset(), kNoPP);
-  __ LoadFromOffset(R8, R8, Isolate::heap_offset(), kNoPP);
-  __ LoadFromOffset(R8, R8, Heap::new_space_offset(), kNoPP);
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+  const intptr_t cid = kArrayCid;
+  Heap::Space space = heap->SpaceForAllocation(cid);
+  const uword top_address = heap->TopAddress(space);
+  __ LoadImmediate(R8, top_address, kNoPP);
+  const uword end_address = heap->EndAddress(space);
+  ASSERT(top_address < end_address);
+  const uword top_offset = 0;
+  const uword end_offset = end_address - top_address;
 
   // Calculate and align allocation size.
   // Load new object start and calculate next object start.
   // R1: array element type.
   // R2: array length as Smi.
   // R8: points to new space object.
-  __ LoadFromOffset(R0, R8, Scavenger::top_offset(), kNoPP);
+  __ LoadFromOffset(R0, R8, top_offset, kNoPP);
   intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(R3, fixed_size, kNoPP);
   __ add(R3, R3, Operand(R2, LSL, 2));  // R2 is Smi.
@@ -682,7 +689,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R3: array size.
   // R7: potential next object start.
   // R8: points to new space object.
-  __ LoadFromOffset(TMP, R8, Scavenger::end_offset(), kNoPP);
+  __ LoadFromOffset(TMP, R8, end_offset, kNoPP);
   __ CompareRegisters(R7, TMP);
   __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
 
@@ -692,9 +699,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R3: array size.
   // R7: potential next object start.
   // R8: Points to new space object.
-  __ StoreToOffset(R7, R8, Scavenger::top_offset(), kNoPP);
+  __ StoreToOffset(R7, R8, top_offset, kNoPP);
   __ add(R0, R0, Operand(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(kArrayCid, R3, kNoPP);
+  __ UpdateAllocationStatsWithSize(cid, R3, kNoPP, space);
 
   // R0: new object start as a tagged pointer.
   // R1: array element type.
@@ -717,12 +724,12 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
   __ CompareImmediate(R3, RawObject::SizeTag::kMaxSizeTag, kNoPP);
   // If no size tag overflow, shift R1 left, else set R1 to zero.
-  __ Lsl(TMP, R3, shift);
+  __ LslImmediate(TMP, R3, shift);
   __ csel(R1, TMP, R1, LS);
   __ csel(R1, ZR, R1, HI);
 
   // Get the class index and insert it into the tags.
-  __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(kArrayCid), kNoPP);
+  __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid), kNoPP);
   __ orr(R1, R1, Operand(TMP));
   __ StoreFieldToOffset(R1, R0, Array::tags_offset(), kNoPP);
 
@@ -783,13 +790,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   const intptr_t kNewContextOffsetFromFp =
       -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
 
-  // Amount of space to reserve with the system stack pointer before setting it
-  // to the stack limit.
-  const intptr_t kRegSaveSpace = Utils::RoundUp(-kNewContextOffsetFromFp, 16);
-
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
-  // to access the stack.
-  __ SetupDartSP(kRegSaveSpace);
+  // to access the stack, and put the C stack pointer at the stack limit.
+  __ SetupDartSP(Isolate::GetSpecifiedStackSize());
   __ EnterFrame(0);
 
   // Save the callee-saved registers.
@@ -809,6 +812,16 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Push new context.
   __ Push(R3);
+#if defined(DEBUG)
+  {
+    Label ok;
+    __ AddImmediate(R4, FP, kNewContextOffsetFromFp, kNoPP);
+    __ CompareRegisters(R4, SP);
+    __ b(&ok, EQ);
+    __ Stop("kNewContextOffsetFromFp mismatch");
+    __ Bind(&ok);
+  }
+#endif
 
   // We now load the pool pointer(PP) as we are about to invoke dart code and we
   // could potentially invoke some intrinsic functions which need the PP to be
@@ -824,11 +837,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Cache the new Context pointer into CTX while executing Dart code.
   __ LoadFromOffset(CTX, R3, VMHandles::kOffsetOfRawPtrInHandle, PP);
 
-  // Load Isolate pointer from Context structure into temporary register R5.
-  __ LoadFieldFromOffset(R5, CTX, Context::isolate_offset(), PP);
-
-  // Load the stack limit address into the C stack pointer register.
-  __ LoadFromOffset(CSP, R5, Isolate::stack_limit_offset(), PP);
+  // Load Isolate pointer into temporary register R5.
+  __ LoadImmediate(R5, Isolate::CurrentAddress(), PP);
 
   // Cache the new Context pointer into CTX while executing Dart code.
   __ LoadFromOffset(CTX, R3, VMHandles::kOffsetOfRawPtrInHandle, PP);
@@ -891,6 +901,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ blr(R0);  // R4 is the arguments descriptor array.
   __ Comment("InvokeDartCodeStub return");
 
+  // Restore constant pool pointer after return.
+  __ LoadPoolPointer(PP);
+
   // Read the saved new Context pointer.
   __ LoadFromOffset(CTX, FP, kNewContextOffsetFromFp, PP);
   __ LoadFromOffset(CTX, CTX, VMHandles::kOffsetOfRawPtrInHandle, PP);
@@ -898,8 +911,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize, PP);
 
-  // Load Isolate pointer from Context structure into CTX. Drop Context.
-  __ LoadFieldFromOffset(CTX, CTX, Context::isolate_offset(), PP);
+  // Load Isolate pointer into CTX. Drop Context.
+  __ LoadImmediate(CTX, Isolate::CurrentAddress(), PP);
 
   // Restore the current VMTag from the stack.
   __ ldr(R4, Address(SP, 2 * kWordSize));
@@ -947,7 +960,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 //   R0: new allocated RawContext object.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   if (FLAG_inline_alloc) {
-    const Class& context_class = Class::ZoneHandle(Object::context_class());
     Label slow_case;
     Heap* heap = Isolate::Current()->heap();
     // First compute the rounded instance size.
@@ -961,7 +973,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // Now allocate the object.
     // R1: number of context variables.
     // R2: object size.
-    __ LoadImmediate(R5, heap->TopAddress(), kNoPP);
+    const intptr_t cid = kContextCid;
+    Heap::Space space = heap->SpaceForAllocation(cid);
+    __ LoadImmediate(R5, heap->TopAddress(space), kNoPP);
     __ ldr(R0, Address(R5));
     __ add(R3, R2, Operand(R0));
     // Check if the allocation fits into the remaining space.
@@ -969,7 +983,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     // R3: potential next object start.
-    __ LoadImmediate(TMP, heap->EndAddress(), kNoPP);
+    __ LoadImmediate(TMP, heap->EndAddress(space), kNoPP);
     __ ldr(TMP, Address(TMP));
     __ CompareRegisters(R3, TMP);
     if (FLAG_use_slow_path) {
@@ -986,7 +1000,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R3: next object start.
     __ str(R3, Address(R5));
     __ add(R0, R0, Operand(kHeapObjectTag));
-    __ UpdateAllocationStatsWithSize(context_class.id(), R2, kNoPP);
+    __ UpdateAllocationStatsWithSize(cid, R2, kNoPP, space);
 
     // Calculate the size tag.
     // R0: new object.
@@ -995,14 +1009,14 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag, kNoPP);
     // If no size tag overflow, shift R2 left, else set R2 to zero.
-    __ Lsl(TMP, R2, shift);
+    __ LslImmediate(TMP, R2, shift);
     __ csel(R2, TMP, R2, LS);
     __ csel(R2, ZR, R2, HI);
 
     // Get the class index and insert it into the tags.
     // R2: size and bit tags.
     __ LoadImmediate(
-        TMP, RawObject::ClassIdTag::encode(context_class.id()), kNoPP);
+        TMP, RawObject::ClassIdTag::encode(cid), kNoPP);
     __ orr(R2, R2, Operand(TMP));
     __ StoreFieldToOffset(R2, R0, Context::tags_offset(), kNoPP);
 
@@ -1012,10 +1026,10 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ StoreFieldToOffset(R1, R0, Context::num_variables_offset(), kNoPP);
 
     // Setup isolate field.
-    // Load Isolate pointer from Context structure into R2.
+    // Load Isolate pointer into R2.
     // R0: new object.
     // R1: number of context variables.
-    __ LoadFieldFromOffset(R2, CTX, Context::isolate_offset(), kNoPP);
+    __ LoadImmediate(R2, Isolate::CurrentAddress(), kNoPP);
     // R2: isolate, not an object.
     __ StoreFieldToOffset(R2, R0, Context::isolate_offset(), kNoPP);
 
@@ -1085,10 +1099,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ orri(R2, TMP, 1 << RawObject::kRememberedBit);
   __ StoreFieldToOffset(R2, R0, Object::tags_offset(), kNoPP);
 
-  // Load the isolate out of the context.
+  // Load the isolate.
   // Spilled: R1, R2, R3.
   // R0: address being stored.
-  __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadImmediate(R1, Isolate::CurrentAddress(), kNoPP);
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1119,7 +1133,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(0 * kWordSize);
-  __ LoadFieldFromOffset(R0, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadImmediate(R0, Isolate::CurrentAddress(), kNoPP);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
@@ -1131,8 +1145,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Input parameters:
 //   LR : return address.
 //   SP + 0 : type arguments object (only if class is parameterized).
-uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
-                                               const Class& cls) {
+void StubCode::GenerateAllocationStubForClass(
+    Assembler* assembler, const Class& cls,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+  *entry_patch_offset = assembler->CodeSize();
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
   ASSERT(!is_cls_parameterized ||
@@ -1153,13 +1169,14 @@ uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // next object start and initialize the allocated object.
     // R1: instantiated type arguments (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
-    __ LoadImmediate(R5, heap->TopAddress(), kNoPP);
+    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    __ LoadImmediate(R5, heap->TopAddress(space), kNoPP);
     __ ldr(R2, Address(R5));
     __ AddImmediate(R3, R2, instance_size, kNoPP);
     // Check if the allocation fits into the remaining space.
     // R2: potential new object start.
     // R3: potential next object start.
-    __ LoadImmediate(TMP, heap->EndAddress(), kNoPP);
+    __ LoadImmediate(TMP, heap->EndAddress(space), kNoPP);
     __ ldr(TMP, Address(TMP));
     __ CompareRegisters(R3, TMP);
     if (FLAG_use_slow_path) {
@@ -1168,7 +1185,7 @@ uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ b(&slow_case, CS);  // Unsigned higher or equal.
     }
     __ str(R3, Address(R5));
-    __ UpdateAllocationStats(cls.id(), kNoPP);
+    __ UpdateAllocationStats(cls.id(), kNoPP, space);
 
     // R2: new object start.
     // R3: next object start.
@@ -1250,10 +1267,9 @@ uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   // Restore the frame pointer.
   __ LeaveStubFrame();
   __ ret();
-  uword patch_code_pc_offset = assembler->CodeSize();
+  *patch_code_pc_offset = assembler->CodeSize();
   StubCode* stub_code = Isolate::Current()->stub_code();
   __ BranchPatchable(&stub_code->FixAllocationStubTargetLabel());
-  return patch_code_pc_offset;
 }
 
 
@@ -1431,9 +1447,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
-  Label stepping, done_stepping;
   // Check single stepping.
-  __ LoadFieldFromOffset(R6, CTX, Context::isolate_offset(), kNoPP);
+  Label stepping, done_stepping;
+  __ LoadImmediate(R6, Isolate::CurrentAddress(), kNoPP);
   __ LoadFromOffset(
       R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
   __ CompareRegisters(R6, ZR);
@@ -1665,7 +1681,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadFieldFromOffset(R6, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadImmediate(R6, Isolate::CurrentAddress(), kNoPP);
   __ LoadFromOffset(
       R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
   __ CompareImmediate(R6, 0, kNoPP);
@@ -2041,7 +2057,7 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // Return Zero condition flag set if equal.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
-    // Check single stepping.
+  // Check single stepping.
   Label stepping, done_stepping;
   __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset(), kNoPP);
   __ LoadFromOffset(

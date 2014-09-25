@@ -44,6 +44,7 @@
 #include "vm/tags.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
+#include "vm/weak_code.h"
 
 namespace dart {
 
@@ -99,6 +100,7 @@ Array* Object::empty_array_ = NULL;
 Array* Object::zero_array_ = NULL;
 PcDescriptors* Object::empty_descriptors_ = NULL;
 LocalVarDescriptors* Object::empty_var_descriptors_ = NULL;
+ExceptionHandlers* Object::empty_exception_handlers_ = NULL;
 Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
 Instance* Object::unknown_constant_ = NULL;
@@ -160,13 +162,24 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 // (Library, class name, method name)
 // Additionally, private functions in dart:* that are native or constructors are
 // marked as invisible by the parser.
-#define INVISIBLE_LIST(V)                                                      \
+#define INVISIBLE_CLASS_FUNCTIONS(V)                                           \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
+  V(CoreLibrary, _Bigint, _mulAdd)                                             \
 
-static void MarkFunctionAsInvisible(const Library& lib,
-                                    const char* class_name,
-                                    const char* function_name) {
+#define INVISIBLE_LIBRARY_FUNCTIONS(V)                                         \
+  V(TypedDataLibrary, _toInt8)                                                 \
+  V(TypedDataLibrary, _toInt16)                                                \
+  V(TypedDataLibrary, _toInt32)                                                \
+  V(TypedDataLibrary, _toInt64)                                                \
+  V(TypedDataLibrary, _toUint8)                                                \
+  V(TypedDataLibrary, _toUint16)                                               \
+  V(TypedDataLibrary, _toUint32)                                               \
+  V(TypedDataLibrary, _toUint64)                                               \
+
+static void MarkClassFunctionAsInvisible(const Library& lib,
+                                         const char* class_name,
+                                         const char* function_name) {
   ASSERT(!lib.IsNull());
   const Class& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(String::New(class_name))));
@@ -179,13 +192,31 @@ static void MarkFunctionAsInvisible(const Library& lib,
   function.set_is_visible(false);
 }
 
+static void MarkLibraryFunctionAsInvisible(const Library& lib,
+                                           const char* function_name) {
+  ASSERT(!lib.IsNull());
+  const Function& function =
+      Function::Handle(
+          lib.LookupFunctionAllowPrivate(
+              String::Handle(String::New(function_name))));
+  ASSERT(!function.IsNull());
+  function.set_is_visible(false);
+}
+
 
 static void MarkInvisibleFunctions() {
 #define MARK_FUNCTION(lib, class_name, function_name)                          \
-  MarkFunctionAsInvisible(Library::Handle(Library::lib()),                     \
+  MarkClassFunctionAsInvisible(Library::Handle(Library::lib()),                \
       #class_name, #function_name);                                            \
 
-INVISIBLE_LIST(MARK_FUNCTION)
+INVISIBLE_CLASS_FUNCTIONS(MARK_FUNCTION)
+#undef MARK_FUNCTION
+
+#define MARK_FUNCTION(lib, function_name)                                      \
+  MarkLibraryFunctionAsInvisible(Library::Handle(Library::lib()),              \
+      #function_name);                                                         \
+
+INVISIBLE_LIBRARY_FUNCTIONS(MARK_FUNCTION)
 #undef MARK_FUNCTION
 }
 
@@ -437,6 +468,7 @@ void Object::InitOnce() {
   zero_array_ = Array::ReadOnlyHandle();
   empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
   empty_var_descriptors_ = LocalVarDescriptors::ReadOnlyHandle();
+  empty_exception_handlers_ = ExceptionHandlers::ReadOnlyHandle();
   sentinel_ = Instance::ReadOnlyHandle();
   transition_sentinel_ = Instance::ReadOnlyHandle();
   unknown_constant_ =  Instance::ReadOnlyHandle();
@@ -680,6 +712,21 @@ void Object::InitOnce() {
     empty_var_descriptors_->raw_ptr()->num_entries_ = 0;
   }
 
+  // Allocate and initialize the canonical empty exception handler info object.
+  // The vast majority of all functions do not contain an exception handler
+  // and can share this canonical descriptor.
+  {
+    uword address =
+        heap->Allocate(ExceptionHandlers::InstanceSize(0), Heap::kOld);
+    InitializeObject(address,
+                     kExceptionHandlersCid,
+                     ExceptionHandlers::InstanceSize(0));
+    ExceptionHandlers::initializeHandle(
+        empty_exception_handlers_,
+        reinterpret_cast<RawExceptionHandlers*>(address + kHeapObjectTag));
+    empty_exception_handlers_->raw_ptr()->num_entries_ = 0;
+  }
+
   cls = Class::New<Instance>(kDynamicCid);
   cls.set_is_abstract();
   cls.set_num_type_arguments(0);
@@ -698,7 +745,6 @@ void Object::InitOnce() {
   cls = Class::New<Type>();
   cls.set_is_type_finalized();
   cls.set_is_finalized();
-  isolate->object_store()->set_type_class(cls);
 
   cls = dynamic_class_;
   dynamic_type_ = Type::NewNonParameterizedType(cls);
@@ -935,23 +981,16 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_canonical_type_arguments(array);
 
   // Setup type class early in the process.
-  cls = Class::New<Type>();
-  object_store->set_type_class(cls);
-
-  cls = Class::New<TypeRef>();
-  object_store->set_type_ref_class(cls);
-
-  cls = Class::New<TypeParameter>();
-  object_store->set_type_parameter_class(cls);
-
-  cls = Class::New<BoundedType>();
-  object_store->set_bounded_type_class(cls);
-
-  cls = Class::New<MixinAppType>();
-  object_store->set_mixin_app_type_class(cls);
-
-  cls = Class::New<LibraryPrefix>();
-  object_store->set_library_prefix_class(cls);
+  const Class& type_cls = Class::Handle(isolate, Class::New<Type>());
+  const Class& type_ref_cls = Class::Handle(isolate, Class::New<TypeRef>());
+  const Class& type_parameter_cls = Class::Handle(isolate,
+                                                  Class::New<TypeParameter>());
+  const Class& bounded_type_cls = Class::Handle(isolate,
+                                                Class::New<BoundedType>());
+  const Class& mixin_app_type_cls = Class::Handle(isolate,
+                                                  Class::New<MixinAppType>());
+  const Class& library_prefix_cls = Class::Handle(isolate,
+                                                  Class::New<LibraryPrefix>());
 
   // Pre-allocate the OneByteString class needed by the symbol table.
   cls = Class::NewStringClass(kOneByteStringCid);
@@ -1056,10 +1095,10 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
   pending_classes.Add(cls);
 
-  cls = Class::New<Stacktrace>();
-  object_store->set_stacktrace_class(cls);
-  RegisterClass(cls, Symbols::StackTrace(), core_lib);
-  pending_classes.Add(cls);
+  const Class& stacktrace_cls = Class::Handle(isolate,
+                                              Class::New<Stacktrace>());
+  RegisterClass(stacktrace_cls, Symbols::StackTrace(), core_lib);
+  pending_classes.Add(stacktrace_cls);
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
@@ -1096,30 +1135,24 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterClass(cls, Symbols::Null(), core_lib);
   pending_classes.Add(cls);
 
-  cls = object_store->library_prefix_class();
-  ASSERT(!cls.IsNull());
-  RegisterPrivateClass(cls, Symbols::_LibraryPrefix(), core_lib);
-  pending_classes.Add(cls);
+  ASSERT(!library_prefix_cls.IsNull());
+  RegisterPrivateClass(library_prefix_cls, Symbols::_LibraryPrefix(), core_lib);
+  pending_classes.Add(library_prefix_cls);
 
-  cls = object_store->type_class();
-  RegisterPrivateClass(cls, Symbols::Type(), core_lib);
-  pending_classes.Add(cls);
+  RegisterPrivateClass(type_cls, Symbols::Type(), core_lib);
+  pending_classes.Add(type_cls);
 
-  cls = object_store->type_ref_class();
-  RegisterPrivateClass(cls, Symbols::TypeRef(), core_lib);
-  pending_classes.Add(cls);
+  RegisterPrivateClass(type_ref_cls, Symbols::TypeRef(), core_lib);
+  pending_classes.Add(type_ref_cls);
 
-  cls = object_store->type_parameter_class();
-  RegisterPrivateClass(cls, Symbols::TypeParameter(), core_lib);
-  pending_classes.Add(cls);
+  RegisterPrivateClass(type_parameter_cls, Symbols::TypeParameter(), core_lib);
+  pending_classes.Add(type_parameter_cls);
 
-  cls = object_store->bounded_type_class();
-  RegisterPrivateClass(cls, Symbols::BoundedType(), core_lib);
-  pending_classes.Add(cls);
+  RegisterPrivateClass(bounded_type_cls, Symbols::BoundedType(), core_lib);
+  pending_classes.Add(bounded_type_cls);
 
-  cls = object_store->mixin_app_type_class();
-  RegisterPrivateClass(cls, Symbols::MixinAppType(), core_lib);
-  pending_classes.Add(cls);
+  RegisterPrivateClass(mixin_app_type_cls, Symbols::MixinAppType(), core_lib);
+  pending_classes.Add(mixin_app_type_cls);
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
@@ -1233,44 +1266,29 @@ RawError* Object::Init(Isolate* isolate) {
   }
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::TypedDataLibrary());
-  const intptr_t typed_data_class_array_length =
-      RawObject::NumberOfTypedDataClasses();
-  Array& typed_data_classes =
-      Array::Handle(Array::New(typed_data_class_array_length));
-  int index = 0;
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);                      \
-  index = kTypedData##clazz##Cid - kTypedDataInt8ArrayCid;                     \
-  typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_##clazz(), lib);                         \
 
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
   cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);              \
-  index = kTypedData##clazz##ViewCid - kTypedDataInt8ArrayCid;                 \
-  typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_##clazz##View(), lib);                   \
   pending_classes.Add(cls);                                                    \
 
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
   cls = Class::NewTypedDataViewClass(kByteDataViewCid);
-  index = kByteDataViewCid - kTypedDataInt8ArrayCid;
-  typed_data_classes.SetAt(index, cls);
   RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
   pending_classes.Add(cls);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);      \
-  index = kExternalTypedData##clazz##Cid - kTypedDataInt8ArrayCid;             \
-  typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_External##clazz(), lib);                 \
 
   cls = Class::New<Instance>(kByteBufferCid);
   cls.set_instance_size(0);
   cls.set_next_field_offset(-kWordSize);
-  index = kByteBufferCid - kTypedDataInt8ArrayCid;
-  typed_data_classes.SetAt(index, cls);
   RegisterPrivateClass(cls, Symbols::_ByteBuffer(), lib);
   pending_classes.Add(cls);
 
@@ -1314,13 +1332,10 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_float64x2_type(type);
 
-  object_store->set_typed_data_classes(typed_data_classes);
-
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
-  cls = object_store->stacktrace_class();
   type = object_store->object_type();
-  cls.set_super_type(type);
+  stacktrace_cls.set_super_type(type);
 
   // Abstract class that represents the Dart class Function.
   cls = Class::New<Instance>(kIllegalCid);
@@ -1445,26 +1460,19 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   // Set up empty classes in the object store, these will get
   // initialized correctly when we read from the snapshot.
   // This is done to allow bootstrapping of reading classes from the snapshot.
+  // Some classes are not stored in the object store. Yet we still need to
+  // create their Class object so that they get put into the class_table
+  // (as a side effect of Class::New()).
+
   cls = Class::New<Instance>(kInstanceCid);
   object_store->set_object_class(cls);
 
   cls = Class::New<LibraryPrefix>();
-  object_store->set_library_prefix_class(cls);
-
   cls = Class::New<Type>();
-  object_store->set_type_class(cls);
-
   cls = Class::New<TypeRef>();
-  object_store->set_type_ref_class(cls);
-
   cls = Class::New<TypeParameter>();
-  object_store->set_type_parameter_class(cls);
-
   cls = Class::New<BoundedType>();
-  object_store->set_bounded_type_class(cls);
-
   cls = Class::New<MixinAppType>();
-  object_store->set_mixin_app_type_class(cls);
 
   cls = Class::New<Array>();
   object_store->set_array_class(cls);
@@ -1539,22 +1547,14 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<Capability>();
   cls = Class::New<ReceivePort>();
   cls = Class::New<SendPort>();
-
   cls = Class::New<Stacktrace>();
-  object_store->set_stacktrace_class(cls);
-
   cls = Class::New<JSRegExp>();
-
-  // Some classes are not stored in the object store. Yet we still need to
-  // create their Class object so that they get put into the class_table
-  // (as a side effect of Class::New()).
   cls = Class::New<Number>();
 
   cls = Class::New<WeakProperty>();
   object_store->set_weak_property_class(cls);
 
   cls = Class::New<MirrorReference>();
-
   cls = Class::New<UserTag>();
 }
 
@@ -2591,122 +2591,6 @@ void Class::Finalize() const {
 }
 
 
-// Helper class to handle an array of code weak properties. Implements
-// registration and disabling of stored code objects.
-class WeakCodeReferences : public ValueObject {
- public:
-  explicit WeakCodeReferences(const Array& value) : array_(value) {}
-  virtual ~WeakCodeReferences() {}
-
-  void Register(const Code& value) {
-    if (!array_.IsNull()) {
-      // Try to find and reuse cleared WeakProperty to avoid allocating new one.
-      WeakProperty& weak_property = WeakProperty::Handle();
-      for (intptr_t i = 0; i < array_.Length(); i++) {
-        weak_property ^= array_.At(i);
-        if (weak_property.key() == Code::null()) {
-          // Empty property found. Reuse it.
-          weak_property.set_key(value);
-          return;
-        }
-      }
-    }
-
-    const WeakProperty& weak_property = WeakProperty::Handle(
-        WeakProperty::New(Heap::kOld));
-    weak_property.set_key(value);
-
-    intptr_t length = array_.IsNull() ? 0 : array_.Length();
-    const Array& new_array = Array::Handle(
-        Array::Grow(array_, length + 1, Heap::kOld));
-    new_array.SetAt(length, weak_property);
-    UpdateArrayTo(new_array);
-  }
-
-  virtual void UpdateArrayTo(const Array& array) = 0;
-  virtual void ReportDeoptimization(const Code& code) = 0;
-  virtual void ReportSwitchingCode(const Code& code) = 0;
-
-  static bool IsOptimizedCode(const Array& dependent_code, const Code& code) {
-    if (!code.is_optimized()) {
-      return false;
-    }
-    WeakProperty& weak_property = WeakProperty::Handle();
-    for (intptr_t i = 0; i < dependent_code.Length(); i++) {
-      weak_property ^= dependent_code.At(i);
-      if (code.raw() == weak_property.key()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  void DisableCode() {
-    const Array& code_objects = Array::Handle(array_.raw());
-    if (code_objects.IsNull()) {
-      return;
-    }
-    UpdateArrayTo(Object::null_array());
-    // Disable all code on stack.
-    Code& code = Code::Handle();
-    {
-      DartFrameIterator iterator;
-      StackFrame* frame = iterator.NextFrame();
-      while (frame != NULL) {
-        code = frame->LookupDartCode();
-        if (IsOptimizedCode(code_objects, code)) {
-          ReportDeoptimization(code);
-          DeoptimizeAt(code, frame->pc());
-        }
-        frame = iterator.NextFrame();
-      }
-    }
-
-    // Switch functions that use dependent code to unoptimized code.
-    WeakProperty& weak_property = WeakProperty::Handle();
-    Function& function = Function::Handle();
-    for (intptr_t i = 0; i < code_objects.Length(); i++) {
-      weak_property ^= code_objects.At(i);
-      code ^= weak_property.key();
-      if (code.IsNull()) {
-        // Code was garbage collected already.
-        continue;
-      }
-
-      function ^= code.function();
-      // If function uses dependent code switch it to unoptimized.
-      if (code.is_optimized() && (function.CurrentCode() == code.raw())) {
-        ReportSwitchingCode(code);
-        function.SwitchToUnoptimizedCode();
-      } else if (function.unoptimized_code() == code.raw()) {
-        ReportSwitchingCode(code);
-        function.ClearICData();
-        // Remove the code object from the function. The next time the
-        // function is invoked, it will be compiled again.
-        function.ClearCode();
-        // Invalidate the old code object so existing references to it
-        // (from optimized code) will fail when invoked.
-        if (!CodePatcher::IsEntryPatched(code)) {
-          CodePatcher::PatchEntry(code);
-        }
-      } else {
-        // Make non-OSR code non-entrant.
-        if (code.GetEntryPatchPc() != 0) {
-          if (!CodePatcher::IsEntryPatched(code)) {
-            ReportSwitchingCode(code);
-            CodePatcher::PatchEntry(code);
-          }
-        }
-      }
-    }
-  }
-
- private:
-  const Array& array_;
-  DISALLOW_COPY_AND_ASSIGN(WeakCodeReferences);
-};
-
-
 class CHACodeArray : public WeakCodeReferences {
  public:
   explicit CHACodeArray(const Class& cls)
@@ -3625,17 +3509,27 @@ RawType* Class::CanonicalTypeFromIndex(intptr_t idx) const {
 
 
 void Class::set_allocation_stub(const Code& value) const {
+  // Never clear the stub as it may still be a target, but will be GC-d if
+  // not referenced.
   ASSERT(!value.IsNull());
   ASSERT(raw_ptr()->allocation_stub_ == Code::null());
   StorePointer(&raw_ptr()->allocation_stub_, value.raw());
 }
 
 
-void Class::DisableAllocationStub() const {
+void Class::SwitchAllocationStub() const {
   const Code& alloc_stub = Code::Handle(allocation_stub());
   if (!alloc_stub.IsNull()) {
     CodePatcher::PatchEntry(alloc_stub);
-    StorePointer(&raw_ptr()->allocation_stub_, Code::null());
+    const Code& spare_alloc_stub = Code::Handle(spare_allocation_stub());
+    if (spare_alloc_stub.IsNull()) {
+      StorePointer(&raw_ptr()->allocation_stub_, Code::null());
+    } else {
+      ASSERT(CodePatcher::IsEntryPatched(spare_alloc_stub));
+      CodePatcher::RestoreEntry(spare_alloc_stub);
+      StorePointer(&raw_ptr()->allocation_stub_, spare_alloc_stub.raw());
+    }
+    StorePointer(&raw_ptr()->spare_allocation_stub_, alloc_stub.raw());
   }
 }
 
@@ -10158,8 +10052,6 @@ void LibraryPrefix::InvalidateDependentCode() const {
 
 
 RawLibraryPrefix* LibraryPrefix::New() {
-  ASSERT(Isolate::Current()->object_store()->library_prefix_class() !=
-      Class::null());
   RawObject* raw = Object::Allocate(LibraryPrefix::kClassId,
                                     LibraryPrefix::InstanceSize(),
                                     Heap::kOld);
@@ -11026,8 +10918,8 @@ intptr_t LocalVarDescriptors::Length() const {
 }
 
 
-intptr_t ExceptionHandlers::Length() const {
-  return raw_ptr()->length_;
+intptr_t ExceptionHandlers::num_entries() const {
+  return raw_ptr()->num_entries_;
 }
 
 
@@ -11036,7 +10928,7 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        intptr_t handler_pc,
                                        bool needs_stacktrace,
                                        bool has_catch_all) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   RawExceptionHandlers::HandlerInfo* info = &raw_ptr()->data()[try_index];
   info->outer_try_index = outer_try_index;
   info->handler_pc = handler_pc;
@@ -11047,39 +10939,39 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
 void ExceptionHandlers::GetHandlerInfo(
     intptr_t try_index,
     RawExceptionHandlers::HandlerInfo* info) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   ASSERT(info != NULL);
   *info = raw_ptr()->data()[try_index];
 }
 
 
 intptr_t ExceptionHandlers::HandlerPC(intptr_t try_index) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   return raw_ptr()->data()[try_index].handler_pc;
 }
 
 
 intptr_t ExceptionHandlers::OuterTryIndex(intptr_t try_index) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   return raw_ptr()->data()[try_index].outer_try_index;
 }
 
 
 bool ExceptionHandlers::NeedsStacktrace(intptr_t try_index) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   return raw_ptr()->data()[try_index].needs_stacktrace;
 }
 
 
 bool ExceptionHandlers::HasCatchAll(intptr_t try_index) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   return raw_ptr()->data()[try_index].has_catch_all;
 }
 
 
 void ExceptionHandlers::SetHandledTypes(intptr_t try_index,
                                         const Array& handled_types) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   const Array& handled_types_data =
       Array::Handle(raw_ptr()->handled_types_data_);
   handled_types_data.SetAt(try_index, handled_types);
@@ -11087,7 +10979,7 @@ void ExceptionHandlers::SetHandledTypes(intptr_t try_index,
 
 
 RawArray* ExceptionHandlers::GetHandledTypes(intptr_t try_index) const {
-  ASSERT((try_index >= 0) && (try_index < Length()));
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
   Array& array = Array::Handle(raw_ptr()->handled_types_data_);
   array ^= array.At(try_index);
   return array.raw();
@@ -11114,7 +11006,7 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->length_ = num_handlers;
+    result.raw_ptr()->num_entries_ = num_handlers;
   }
   const Array& handled_types_data = (num_handlers == 0) ?
       Object::empty_array() :
@@ -11125,7 +11017,7 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
 
 
 const char* ExceptionHandlers::ToCString() const {
-  if (Length() == 0) {
+  if (num_entries() == 0) {
     return "No exception handlers\n";
   }
   Array& handled_types = Array::Handle();
@@ -11136,7 +11028,7 @@ const char* ExceptionHandlers::ToCString() const {
                         " types) (outer %" Pd ")\n";
   const char* kFormat2 = "  %d. %s\n";
   intptr_t len = 1;  // Trailing '\0'.
-  for (intptr_t i = 0; i < Length(); i++) {
+  for (intptr_t i = 0; i < num_entries(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
     ASSERT(!handled_types.IsNull());
@@ -11156,7 +11048,7 @@ const char* ExceptionHandlers::ToCString() const {
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
   intptr_t num_chars = 0;
-  for (intptr_t i = 0; i < Length(); i++) {
+  for (intptr_t i = 0; i < num_entries(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
     const intptr_t num_types = handled_types.Length();
@@ -14738,7 +14630,6 @@ void Type::set_arguments(const TypeArguments& value) const {
 
 
 RawType* Type::New(Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->type_class() != Class::null());
   RawObject* raw = Object::Allocate(Type::kClassId,
                                     Type::InstanceSize(),
                                     space);
@@ -14948,7 +14839,6 @@ bool TypeRef::TestAndAddBuddyToTrail(GrowableObjectArray** trail,
 
 
 RawTypeRef* TypeRef::New() {
-  ASSERT(Isolate::Current()->object_store()->type_ref_class() != Class::null());
   RawObject* raw = Object::Allocate(TypeRef::kClassId,
                                     TypeRef::InstanceSize(),
                                     Heap::kOld);
@@ -15146,8 +15036,6 @@ intptr_t TypeParameter::Hash() const {
 
 
 RawTypeParameter* TypeParameter::New() {
-  ASSERT(Isolate::Current()->object_store()->type_parameter_class() !=
-         Class::null());
   RawObject* raw = Object::Allocate(TypeParameter::kClassId,
                                     TypeParameter::InstanceSize(),
                                     Heap::kOld);
@@ -15367,8 +15255,6 @@ intptr_t BoundedType::Hash() const {
 
 
 RawBoundedType* BoundedType::New() {
-  ASSERT(Isolate::Current()->object_store()->bounded_type_class() !=
-         Class::null());
   RawObject* raw = Object::Allocate(BoundedType::kClassId,
                                     BoundedType::InstanceSize(),
                                     Heap::kOld);
@@ -15474,8 +15360,6 @@ void MixinAppType::set_mixin_types(const Array& value) const {
 
 
 RawMixinAppType* MixinAppType::New() {
-  ASSERT(Isolate::Current()->object_store()->mixin_app_type_class() !=
-         Class::null());
   // MixinAppType objects do not survive finalization, so allocate
   // on new heap.
   RawObject* raw = Object::Allocate(MixinAppType::kClassId,
@@ -16237,6 +16121,8 @@ void Bigint::set_used(const Smi& value) const {
 
 
 void Bigint::set_digits(const TypedData& value) const {
+  // The VM expects digits_ to be a Uint32List (not null).
+  ASSERT(!value.IsNull() && (value.GetClassId() == kTypedDataUint32ArrayCid));
   StorePointer(&raw_ptr()->digits_, value.raw());
 }
 
@@ -16314,15 +16200,16 @@ bool Bigint::CheckAndCanonicalizeFields(const char** error_str) const {
     ASSERT(!digits_.IsNull());
     set_digits(digits_);
   } else {
-    ASSERT(digits() == TypedData::null());
+    ASSERT(digits() == TypedData::EmptyUint32Array(Isolate::Current()));
   }
   return true;
 }
 
 
 RawBigint* Bigint::New(Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->bigint_class() != Class::null());
-  Bigint& result = Bigint::Handle();
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->bigint_class() != Class::null());
+  Bigint& result = Bigint::Handle(isolate);
   {
     RawObject* raw = Object::Allocate(Bigint::kClassId,
                                       Bigint::InstanceSize(),
@@ -16331,7 +16218,9 @@ RawBigint* Bigint::New(Heap::Space space) {
     result ^= raw;
   }
   result.set_neg(Bool::Get(false));
-  result.set_used(Smi::Handle(Smi::New(0)));
+  result.set_used(Smi::Handle(isolate, Smi::New(0)));
+  result.set_digits(
+      TypedData::Handle(isolate, TypedData::EmptyUint32Array(isolate)));
   return result.raw();
 }
 
@@ -16396,10 +16285,10 @@ RawBigint* Bigint::NewFromShiftedInt64(int64_t value, intptr_t shift,
 void Bigint::EnsureLength(intptr_t length, Heap::Space space) const {
   ASSERT(length >= 0);
   TypedData& old_digits = TypedData::Handle(digits());
-  if ((length > 0) && (old_digits.IsNull() || (length > old_digits.Length()))) {
+  if ((length > 0) && (length > old_digits.Length())) {
     TypedData& new_digits = TypedData::Handle(
         TypedData::New(kTypedDataUint32ArrayCid, length + kExtraDigits, space));
-    if (!old_digits.IsNull()) {
+    if (old_digits.Length() > 0) {
       TypedData::Copy(new_digits, TypedData::data_offset(),
                       old_digits, TypedData::data_offset(),
                       old_digits.LengthInBytes());
@@ -16789,13 +16678,18 @@ bool Bigint::FitsIntoInt64() const {
 }
 
 
-int64_t Bigint::AsInt64Value() const {
-  ASSERT(FitsIntoInt64());
+int64_t Bigint::AsTruncatedInt64Value() const {
   const intptr_t used = Used();
   if (used == 0) return 0;
   const int64_t digit1 = (used > 1) ? DigitAt(1) : 0;
   const int64_t value = (digit1 << 32) + DigitAt(0);
   return Neg() ? -value : value;
+}
+
+
+int64_t Bigint::AsInt64Value() const {
+  ASSERT(FitsIntoInt64());
+  return AsTruncatedInt64Value();
 }
 
 
@@ -19603,6 +19497,20 @@ RawTypedData* TypedData::New(intptr_t class_id,
 }
 
 
+RawTypedData* TypedData::EmptyUint32Array(Isolate* isolate) {
+  ASSERT(isolate != NULL);
+  ASSERT(isolate->object_store() != NULL);
+  if (isolate->object_store()->empty_uint32_array() != TypedData::null()) {
+    // Already created.
+    return isolate->object_store()->empty_uint32_array();
+  }
+  const TypedData& array = TypedData::Handle(isolate,
+      TypedData::New(kTypedDataUint32ArrayCid, 0, Heap::kOld));
+  isolate->object_store()->set_empty_uint32_array(array);
+  return array.raw();
+}
+
+
 const char* TypedData::ToCString() const {
   return "TypedData";
 }
@@ -19835,8 +19743,6 @@ bool Stacktrace::expand_inlined() const {
 RawStacktrace* Stacktrace::New(const Array& code_array,
                                const Array& pc_offset_array,
                                Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->stacktrace_class() !=
-         Class::null());
   Stacktrace& result = Stacktrace::Handle();
   {
     RawObject* raw = Object::Allocate(Stacktrace::kClassId,
@@ -20283,16 +20189,15 @@ RawUserTag* UserTag::New(const String& label, Heap::Space space) {
 RawUserTag* UserTag::DefaultTag() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  ASSERT(isolate->object_store() != NULL);
-  if (isolate->object_store()->default_tag() != UserTag::null()) {
+  if (isolate->default_tag() != UserTag::null()) {
     // Already created.
-    return isolate->object_store()->default_tag();
+    return isolate->default_tag();
   }
   // Create default tag.
   const UserTag& result = UserTag::Handle(isolate,
                                           UserTag::New(Symbols::Default()));
   ASSERT(result.tag() == UserTags::kDefaultUserTag);
-  isolate->object_store()->set_default_tag(result);
+  isolate->set_default_tag(result);
   return result.raw();
 }
 

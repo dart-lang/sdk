@@ -69,7 +69,7 @@ class IncrementalCompiler {
   Future<bool> compile(Uri script) {
     List<String> options = new List<String>.from(this.options);
     options.addAll(INCREMENTAL_OPTIONS);
-    _compiler = reuseCompiler(
+    Future<Compiler> future = reuseCompiler(
         cachedCompiler: _compiler,
         libraryRoot: libraryRoot,
         packageRoot: packageRoot,
@@ -78,6 +78,9 @@ class IncrementalCompiler {
         options: options,
         outputProvider: outputProvider,
         environment: environment);
-    return _compiler.run(script);
+    return future.then((Compiler compiler) {
+      _compiler = compiler;
+      return compiler.run(script);
+    });
   }
 }

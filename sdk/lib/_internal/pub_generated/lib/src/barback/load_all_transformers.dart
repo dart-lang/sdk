@@ -6,81 +6,216 @@ import '../package_graph.dart';
 import '../utils.dart';
 import 'asset_environment.dart';
 import 'barback_server.dart';
-import 'dart2js_transformer.dart';
-import 'excluding_transformer.dart';
-import 'rewrite_import_transformer.dart';
-import 'transformer_config.dart';
+import 'dependency_computer.dart';
 import 'transformer_id.dart';
-import 'transformer_isolate.dart';
-import 'transformers_needed_by_transformers.dart';
+import 'transformer_loader.dart';
 Future loadAllTransformers(AssetEnvironment environment,
-    BarbackServer transformerServer) {
-  var transformersNeededByTransformers =
-      computeTransformersNeededByTransformers(
-          environment.graph,
-          packages: environment.packages);
-  var buffer = new StringBuffer();
-  buffer.writeln("Transformer dependencies:");
-  transformersNeededByTransformers.forEach((id, dependencies) {
-    if (dependencies.isEmpty) {
-      buffer.writeln("$id: -");
-    } else {
-      buffer.writeln("$id: ${toSentence(dependencies)}");
+    BarbackServer transformerServer, {Iterable<AssetId> entrypoints}) {
+  final completer0 = new Completer();
+  scheduleMicrotask(() {
+    try {
+      var dependencyComputer = new DependencyComputer(environment.graph);
+      var necessaryTransformers;
+      join0() {
+        var transformersNeededByTransformers =
+            dependencyComputer.transformersNeededByTransformers(necessaryTransformers);
+        var buffer = new StringBuffer();
+        buffer.writeln("Transformer dependencies:");
+        transformersNeededByTransformers.forEach(((id, dependencies) {
+          if (dependencies.isEmpty) {
+            buffer.writeln("$id: -");
+          } else {
+            buffer.writeln("$id: ${toSentence(dependencies)}");
+          }
+        }));
+        log.fine(buffer);
+        var stagedTransformers =
+            _stageTransformers(transformersNeededByTransformers);
+        var packagesThatUseTransformers =
+            _packagesThatUseTransformers(environment.graph);
+        var loader = new TransformerLoader(environment, transformerServer);
+        join1(x0) {
+          var cache = x0;
+          var first = true;
+          var it0 = stagedTransformers.iterator;
+          break0(x6) {
+            join2() {
+              Future.wait(environment.graph.packages.values.map(((package) {
+                final completer0 = new Completer();
+                scheduleMicrotask(() {
+                  try {
+                    loader.transformersForPhases(
+                        package.pubspec.transformers).then((x0) {
+                      try {
+                        var phases = x0;
+                        var transformers =
+                            environment.getBuiltInTransformers(package);
+                        join0() {
+                          join1() {
+                            newFuture(
+                                (() => environment.barback.updateTransformers(package.name, phases)));
+                            completer0.complete(null);
+                          }
+                          if (phases.isEmpty) {
+                            completer0.complete(null);
+                          } else {
+                            join1();
+                          }
+                        }
+                        if (transformers != null) {
+                          phases.add(transformers);
+                          join0();
+                        } else {
+                          join0();
+                        }
+                      } catch (e0) {
+                        completer0.completeError(e0);
+                      }
+                    }, onError: (e1) {
+                      completer0.completeError(e1);
+                    });
+                  } catch (e2) {
+                    completer0.completeError(e2);
+                  }
+                });
+                return completer0.future;
+              }))).then((x1) {
+                try {
+                  x1;
+                  completer0.complete(null);
+                } catch (e0) {
+                  completer0.completeError(e0);
+                }
+              }, onError: (e1) {
+                completer0.completeError(e1);
+              });
+            }
+            if (cache != null) {
+              cache.save();
+              join2();
+            } else {
+              join2();
+            }
+          }
+          continue0(x7) {
+            if (it0.moveNext()) {
+              Future.wait([]).then((x5) {
+                var stage = it0.current;
+                join3(x2) {
+                  var snapshotPath = x2;
+                  first = false;
+                  loader.load(stage, snapshot: snapshotPath).then((x3) {
+                    try {
+                      x3;
+                      var packagesToUpdate =
+                          unionAll(stage.map(((id) => packagesThatUseTransformers[id])));
+                      Future.wait(packagesToUpdate.map(((packageName) {
+                        final completer0 = new Completer();
+                        scheduleMicrotask(() {
+                          try {
+                            var package =
+                                environment.graph.packages[packageName];
+                            loader.transformersForPhases(
+                                package.pubspec.transformers).then((x0) {
+                              try {
+                                var phases = x0;
+                                environment.barback.updateTransformers(
+                                    packageName,
+                                    phases);
+                                completer0.complete(null);
+                              } catch (e0) {
+                                completer0.completeError(e0);
+                              }
+                            }, onError: (e1) {
+                              completer0.completeError(e1);
+                            });
+                          } catch (e2) {
+                            completer0.completeError(e2);
+                          }
+                        });
+                        return completer0.future;
+                      }))).then((x4) {
+                        try {
+                          x4;
+                          continue0(null);
+                        } catch (e3) {
+                          completer0.completeError(e3);
+                        }
+                      }, onError: (e4) {
+                        completer0.completeError(e4);
+                      });
+                    } catch (e2) {
+                      completer0.completeError(e2);
+                    }
+                  }, onError: (e5) {
+                    completer0.completeError(e5);
+                  });
+                }
+                if (cache == null || !first) {
+                  join3(null);
+                } else {
+                  join3(cache.snapshotPath(stage));
+                }
+              });
+            } else {
+              break0(null);
+            }
+          }
+          continue0(null);
+        }
+        if (environment.rootPackage.dir == null) {
+          join1(null);
+        } else {
+          join1(environment.graph.loadTransformerCache());
+        }
+      }
+      if (entrypoints != null) {
+        join4() {
+          necessaryTransformers =
+              unionAll(entrypoints.map(dependencyComputer.transformersNeededByLibrary));
+          join5() {
+            join0();
+          }
+          if (necessaryTransformers.isEmpty) {
+            log.fine(
+                "No transformers are needed for ${toSentence(entrypoints)}.");
+            completer0.complete(null);
+          } else {
+            join5();
+          }
+        }
+        if (entrypoints.isEmpty) {
+          completer0.complete(null);
+        } else {
+          join4();
+        }
+      } else {
+        join0();
+      }
+    } catch (e6) {
+      completer0.completeError(e6);
     }
   });
-  log.fine(buffer);
-  var phasedTransformers = _phaseTransformers(transformersNeededByTransformers);
-  var packagesThatUseTransformers =
-      _packagesThatUseTransformers(environment.graph);
-  var loader = new _TransformerLoader(environment, transformerServer);
-  var rewrite = new RewriteImportTransformer();
-  for (var package in environment.packages) {
-    environment.barback.updateTransformers(package, [[rewrite]]);
-  }
-  environment.barback.updateTransformers(r'$pub', [[rewrite]]);
-  return Future.forEach(phasedTransformers, (phase) {
-    return loader.load(phase).then((_) {
-      var packagesToUpdate =
-          unionAll(phase.map((id) => packagesThatUseTransformers[id]));
-      return Future.wait(packagesToUpdate.map((packageName) {
-        var package = environment.graph.packages[packageName];
-        return loader.transformersForPhases(
-            package.pubspec.transformers).then((phases) {
-          phases.insert(0, new Set.from([rewrite]));
-          environment.barback.updateTransformers(packageName, phases);
-        });
-      }));
-    });
-  }).then((_) {
-    return Future.wait(environment.graph.packages.values.map((package) {
-      return loader.transformersForPhases(
-          package.pubspec.transformers).then((phases) {
-        var transformers = environment.getBuiltInTransformers(package);
-        if (transformers != null) phases.add(transformers);
-        newFuture(
-            () => environment.barback.updateTransformers(package.name, phases));
-      });
-    }));
-  });
+  return completer0.future;
 }
-List<Set<TransformerId>> _phaseTransformers(Map<TransformerId,
+List<Set<TransformerId>> _stageTransformers(Map<TransformerId,
     Set<TransformerId>> transformerDependencies) {
-  var phaseNumbers = {};
-  var phases = [];
-  phaseNumberFor(id) {
-    if (phaseNumbers.containsKey(id)) return phaseNumbers[id];
+  var stageNumbers = {};
+  var stages = [];
+  stageNumberFor(id) {
+    if (stageNumbers.containsKey(id)) return stageNumbers[id];
     var dependencies = transformerDependencies[id];
-    phaseNumbers[id] =
-        dependencies.isEmpty ? 0 : maxAll(dependencies.map(phaseNumberFor)) + 1;
-    return phaseNumbers[id];
+    stageNumbers[id] =
+        dependencies.isEmpty ? 0 : maxAll(dependencies.map(stageNumberFor)) + 1;
+    return stageNumbers[id];
   }
   for (var id in transformerDependencies.keys) {
-    var phaseNumber = phaseNumberFor(id);
-    if (phases.length <= phaseNumber) phases.length = phaseNumber + 1;
-    if (phases[phaseNumber] == null) phases[phaseNumber] = new Set();
-    phases[phaseNumber].add(id);
+    var stageNumber = stageNumberFor(id);
+    if (stages.length <= stageNumber) stages.length = stageNumber + 1;
+    if (stages[stageNumber] == null) stages[stageNumber] = new Set();
+    stages[stageNumber].add(id);
   }
-  return phases;
+  return stages;
 }
 Map<TransformerId, Set<String>> _packagesThatUseTransformers(PackageGraph graph)
     {
@@ -93,78 +228,4 @@ Map<TransformerId, Set<String>> _packagesThatUseTransformers(PackageGraph graph)
     }
   }
   return results;
-}
-class _TransformerLoader {
-  final AssetEnvironment _environment;
-  final BarbackServer _transformerServer;
-  final _isolates = new Map<TransformerId, TransformerIsolate>();
-  final _transformers = new Map<TransformerConfig, Set<Transformer>>();
-  final _transformerUsers = new Map<TransformerId, Set<String>>();
-  _TransformerLoader(this._environment, this._transformerServer) {
-    for (var package in _environment.graph.packages.values) {
-      for (var config in unionAll(package.pubspec.transformers)) {
-        _transformerUsers.putIfAbsent(
-            config.id,
-            () => new Set<String>()).add(package.name);
-      }
-    }
-  }
-  Future load(Iterable<TransformerId> ids) {
-    ids = ids.where((id) => !_isolates.containsKey(id)).toList();
-    if (ids.isEmpty) return new Future.value();
-    return log.progress("Loading ${toSentence(ids)} transformers", () {
-      return TransformerIsolate.spawn(_environment, _transformerServer, ids);
-    }).then((isolate) {
-      for (var id in ids) {
-        _isolates[id] = isolate;
-      }
-    });
-  }
-  Future<Set<Transformer>> transformersFor(TransformerConfig config) {
-    if (_transformers.containsKey(config)) {
-      return new Future.value(_transformers[config]);
-    } else if (_isolates.containsKey(config.id)) {
-      return _isolates[config.id].create(config).then((transformers) {
-        if (transformers.isNotEmpty) {
-          _transformers[config] = transformers;
-          return transformers;
-        }
-        var message = "No transformers";
-        if (config.configuration.isNotEmpty) {
-          message += " that accept configuration";
-        }
-        var location;
-        if (config.id.path == null) {
-          location =
-              'package:${config.id.package}/transformer.dart or '
-                  'package:${config.id.package}/${config.id.package}.dart';
-        } else {
-          location = 'package:$config.dart';
-        }
-        var users = toSentence(ordered(_transformerUsers[config.id]));
-        fail("$message were defined in $location,\n" "required by $users.");
-      });
-    } else if (config.id.package != '\$dart2js') {
-      return new Future.value(new Set());
-    }
-    var transformer;
-    try {
-      transformer = new Dart2JSTransformer.withSettings(
-          _environment,
-          new BarbackSettings(config.configuration, _environment.mode));
-    } on FormatException catch (error, stackTrace) {
-      fail(error.message, error, stackTrace);
-    }
-    _transformers[config] =
-        new Set.from([ExcludingTransformer.wrap(transformer, config)]);
-    return new Future.value(_transformers[config]);
-  }
-  Future<List<Set<Transformer>>>
-      transformersForPhases(Iterable<Set<TransformerConfig>> phases) {
-    return Future.wait(phases.map((phase) {
-      return waitAndPrintErrors(phase.map(transformersFor)).then(unionAll);
-    })).then((phases) {
-      return phases.toList();
-    });
-  }
 }

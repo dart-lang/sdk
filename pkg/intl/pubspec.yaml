@@ -1,5 +1,5 @@
 name: intl
-version: 0.11.7
+version: 0.11.8
 author: Dart Team <misc@dartlang.org>
 description: Contains code to deal with internationalized/localized messages, date and number formatting and parsing, bi-directional text, and other internationalization issues.
 homepage: https://www.dartlang.org

@@ -241,10 +241,10 @@ void scheduleSymlink(String target, String symlink) {
       () => createSymlink(p.join(sandboxDir, target), p.join(sandboxDir, symlink)),
       'symlinking $target to $symlink');
 }
-void schedulePub({List args, output, error, outputJson,
-    Future<Uri> tokenEndpoint, int exitCode: exit_codes.SUCCESS}) {
+void schedulePub({List args, output, error, outputJson, int exitCode:
+    exit_codes.SUCCESS, Map<String, String> environment}) {
   assert(output == null || outputJson == null);
-  var pub = startPub(args: args, tokenEndpoint: tokenEndpoint);
+  var pub = startPub(args: args, environment: environment);
   pub.shouldExit(exitCode);
   var failures = [];
   var stderr;
@@ -280,11 +280,22 @@ void confirmPublish(ScheduledProcess pub) {
               "Looks great! Are you ready to upload your package (y/n)?"));
   pub.writeLine("y");
 }
-ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
-  String pathInSandbox(String relPath) {
-    return p.join(p.absolute(sandboxDir), relPath);
+String _pathInSandbox(String relPath) {
+  return p.join(p.absolute(sandboxDir), relPath);
+}
+Map getPubTestEnvironment([String tokenEndpoint]) {
+  var environment = {};
+  environment['_PUB_TESTING'] = 'true';
+  environment['PUB_CACHE'] = _pathInSandbox(cachePath);
+  environment['_PUB_TEST_SDK_VERSION'] = "0.1.2+3";
+  if (tokenEndpoint != null) {
+    environment['_PUB_TEST_TOKEN_ENDPOINT'] = tokenEndpoint.toString();
   }
-  ensureDir(pathInSandbox(appPath));
+  return environment;
+}
+ScheduledProcess startPub({List args, Future<String> tokenEndpoint, Map<String,
+    String> environment}) {
+  ensureDir(_pathInSandbox(appPath));
   var dartBin = Platform.executable;
   if (dartBin.contains(Platform.pathSeparator)) {
     dartBin = p.absolute(dartBin);
@@ -294,26 +305,23 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   dartArgs.addAll(args);
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
   var environmentFuture = tokenEndpoint.then((tokenEndpoint) {
-    var environment = {};
-    environment['_PUB_TESTING'] = 'true';
-    environment['PUB_CACHE'] = pathInSandbox(cachePath);
-    environment['_PUB_TEST_SDK_VERSION'] = "0.1.2+3";
-    if (tokenEndpoint != null) {
-      environment['_PUB_TEST_TOKEN_ENDPOINT'] = tokenEndpoint.toString();
-    }
+    var pubEnvironment = getPubTestEnvironment(tokenEndpoint);
     if (_hasServer) {
       return port.then((p) {
-        environment['PUB_HOSTED_URL'] = "http://localhost:$p";
-        return environment;
+        pubEnvironment['PUB_HOSTED_URL'] = "http://localhost:$p";
+        return pubEnvironment;
       });
     }
-    return environment;
+    return pubEnvironment;
+  }).then((pubEnvironment) {
+    if (environment != null) pubEnvironment.addAll(environment);
+    return pubEnvironment;
   });
   return new PubProcess.start(
       dartBin,
       dartArgs,
       environment: environmentFuture,
-      workingDirectory: pathInSandbox(appPath),
+      workingDirectory: _pathInSandbox(appPath),
       description: args.isEmpty ? 'pub' : 'pub ${args.first}');
 }
 class PubProcess extends ScheduledProcess {
@@ -579,7 +587,7 @@ Future<Pair<List<String>, List<String>>>
     schedulePackageValidation(ValidatorCreator fn) {
   return schedule(() {
     var cache = new SystemCache.withSources(p.join(sandboxDir, cachePath));
-    return syncFuture(() {
+    return new Future.sync(() {
       var validator = fn(new Entrypoint(p.join(sandboxDir, appPath), cache));
       return validator.validate().then((_) {
         return new Pair(validator.errors, validator.warnings);

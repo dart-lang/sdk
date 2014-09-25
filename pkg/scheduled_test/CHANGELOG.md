@@ -1,3 +1,7 @@
+## 0.11.2+2
+
+* Moved shared test utilities to `metatest` package.
+
 ## 0.11.2+1
 
 * Fix a case where a `ScheduledProcess` could fail to log its output.

@@ -42,7 +42,7 @@ class StaticAssetCascade implements AssetCascade {
 
   Future<AssetSet> get availableOutputs {
     var provider = graph.provider as StaticPackageProvider;
-    return provider.getAllAssetIds(package).map(provider.getAsset).toList()
+    return provider.getAllAssetIds(package).asyncMap(provider.getAsset).toList()
         .then((assets) => new AssetSet.from(assets));
   }
 

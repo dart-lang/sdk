@@ -46,7 +46,7 @@ class ListPackageDirsCommand extends PubCommand {
     output["packages"] = packages;
 
     // Include the self link.
-    packages[entrypoint.root.name] = path.join(entrypoint.root.dir, "lib");
+    packages[entrypoint.root.name] = entrypoint.root.path("lib");
 
     // Include the file(s) which when modified will affect the results. For pub,
     // that's just the pubspec and lockfile.

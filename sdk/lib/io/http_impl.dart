@@ -948,7 +948,9 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
     bool gzip = false;
     if (isServerSide) {
       var response = outbound;
-      if (outbound.bufferOutput && outbound.headers.chunkedTransferEncoding) {
+      if (response._httpRequest._httpServer.autoCompress &&
+          outbound.bufferOutput &&
+          outbound.headers.chunkedTransferEncoding) {
         List acceptEncodings =
             response._httpRequest.headers[HttpHeaders.ACCEPT_ENCODING];
         List contentEncoding = outbound.headers[HttpHeaders.CONTENT_ENCODING];
@@ -2150,6 +2152,7 @@ class _HttpServer
 
   String serverHeader;
   final HttpHeaders defaultResponseHeaders = _initDefaultResponseHeaders();
+  bool autoCompress = false;
 
   Duration _idleTimeout;
   Timer _idleTimer;

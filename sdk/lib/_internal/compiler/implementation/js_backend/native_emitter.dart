@@ -8,7 +8,7 @@ class NativeEmitter {
 
   final Map<Element, ClassBuilder> cachedBuilders;
 
-  final CodeEmitterTask emitter;
+  final CodeEmitterTask emitterTask;
   CodeBuffer nativeBuffer;
 
   // Native classes found in the application.
@@ -28,20 +28,20 @@ class NativeEmitter {
   // it finds any native class that needs noSuchMethod handling.
   bool handleNoSuchMethod = false;
 
-  NativeEmitter(CodeEmitterTask emitter)
-      : this.emitter = emitter,
+  NativeEmitter(CodeEmitterTask emitterTask)
+      : this.emitterTask = emitterTask,
         subtypes = new Map<ClassElement, List<ClassElement>>(),
         directSubtypes = new Map<ClassElement, List<ClassElement>>(),
         nativeMethods = new Set<FunctionElement>(),
         nativeBuffer = new CodeBuffer(),
-        cachedBuilders = emitter.compiler.cacheStrategy.newMap();
+        cachedBuilders = emitterTask.compiler.cacheStrategy.newMap();
 
-  Compiler get compiler => emitter.compiler;
+  Compiler get compiler => emitterTask.compiler;
   JavaScriptBackend get backend => compiler.backend;
 
-  String get _ => emitter.space;
-  String get n => emitter.n;
-  String get N => emitter.N;
+  String get _ => emitterTask.oldEmitter.space;
+  String get n => emitterTask.oldEmitter.n;
+  String get N => emitterTask.oldEmitter.N;
 
   jsAst.Expression get defPropFunction {
     Element element = backend.findHelper('defineProperty');
@@ -114,9 +114,9 @@ class NativeEmitter {
     neededClasses.add(compiler.objectClass);
 
     Set<ClassElement> neededByConstant =
-        emitter.interceptorEmitter.interceptorsReferencedFromConstants();
+        emitterTask.interceptorEmitter.interceptorsReferencedFromConstants();
     Set<ClassElement> modifiedClasses =
-        emitter.typeTestEmitter.classesModifiedByEmitRuntimeTypeSupport();
+        emitterTask.typeTestEmitter.classesModifiedByEmitRuntimeTypeSupport();
 
     for (ClassElement classElement in preOrder.reversed) {
       // Post-order traversal ensures we visit the subclasses before their
@@ -241,11 +241,11 @@ class NativeEmitter {
       if (!classElement.isNative) continue;
       if (neededClasses.contains(classElement)) {
         // Define interceptor class for [classElement].
-        emitter.classEmitter.emitClassBuilderWithReflectionData(
+        emitterTask.oldEmitter.classEmitter.emitClassBuilderWithReflectionData(
             backend.namer.getNameOfClass(classElement),
             classElement, builders[classElement],
-            emitter.getElementDescriptor(classElement));
-        emitter.needsDefineClass = true;
+            emitterTask.oldEmitter.getElementDescriptor(classElement));
+        emitterTask.oldEmitter.needsDefineClass = true;
       }
     }
   }
@@ -308,13 +308,16 @@ class NativeEmitter {
 
     String superName = backend.namer.getNameOfClass(superclass);
 
-    emitter.classEmitter.emitClassConstructor(classElement, builder);
-    bool hasFields = emitter.classEmitter.emitFields(
+    emitterTask.oldEmitter.classEmitter.emitClassConstructor(
+        classElement, builder);
+    bool hasFields = emitterTask.oldEmitter.classEmitter.emitFields(
         classElement, builder, superName, classIsNative: true);
     int propertyCount = builder.properties.length;
-    emitter.classEmitter.emitClassGettersSetters(classElement, builder);
-    emitter.classEmitter.emitInstanceMembers(classElement, builder);
-    emitter.typeTestEmitter.emitIsTests(classElement, builder);
+    emitterTask.oldEmitter.classEmitter.emitClassGettersSetters(
+        classElement, builder);
+    emitterTask.oldEmitter.classEmitter.emitInstanceMembers(
+        classElement, builder);
+    emitterTask.typeTestEmitter.emitIsTests(classElement, builder);
 
     if (!hasFields &&
         builder.properties.length == propertyCount &&
@@ -454,7 +457,7 @@ class NativeEmitter {
       // If the native emitter has been asked to take care of the
       // noSuchMethod handlers, we do that now.
       if (handleNoSuchMethod) {
-        emitter.nsmEmitter.emitNoSuchMethodHandlers(addProperty);
+        emitterTask.oldEmitter.nsmEmitter.emitNoSuchMethodHandlers(addProperty);
       }
     }
 
@@ -469,7 +472,7 @@ class NativeEmitter {
           [ defPropFunction,
             new jsAst.ObjectInitializer(objectProperties)]);
 
-      if (emitter.compiler.enableMinification) targetBuffer.add(';');
+      if (emitterTask.compiler.enableMinification) targetBuffer.add(';');
       targetBuffer.add(jsAst.prettyPrint(
           new jsAst.ExpressionStatement(init), compiler));
       targetBuffer.add('\n');

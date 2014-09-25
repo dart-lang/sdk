@@ -398,6 +398,11 @@ class Object {
     return *empty_var_descriptors_;
   }
 
+  static const ExceptionHandlers& empty_exception_handlers() {
+    ASSERT(empty_exception_handlers_ != NULL);
+    return *empty_exception_handlers_;
+  }
+
   // The sentinel is a value that cannot be produced by Dart code.
   // It can be used to mark special values, for example to distinguish
   // "uninitialized" fields.
@@ -676,6 +681,7 @@ class Object {
   static Array* zero_array_;
   static PcDescriptors* empty_descriptors_;
   static LocalVarDescriptors* empty_var_descriptors_;
+  static ExceptionHandlers* empty_exception_handlers_;
   static Instance* sentinel_;
   static Instance* transition_sentinel_;
   static Instance* unknown_constant_;
@@ -1137,7 +1143,7 @@ class Class : public Object {
   }
   void set_allocation_stub(const Code& value) const;
 
-  void DisableAllocationStub() const;
+  void SwitchAllocationStub() const;
 
   RawArray* constants() const;
 
@@ -1269,6 +1275,10 @@ class Class : public Object {
 
   void set_canonical_types(const Object& value) const;
   RawObject* canonical_types() const;
+
+  RawCode* spare_allocation_stub() const {
+    return raw_ptr()->spare_allocation_stub_;
+  }
 
   RawArray* invocation_dispatcher_cache() const;
   void set_invocation_dispatcher_cache(const Array& cache) const;
@@ -3311,7 +3321,7 @@ class Stackmap : public Object {
 
 class ExceptionHandlers : public Object {
  public:
-  intptr_t Length() const;
+  intptr_t num_entries() const;
 
   void GetHandlerInfo(intptr_t try_index,
                       RawExceptionHandlers::HandlerInfo* info) const;
@@ -3356,6 +3366,7 @@ class ExceptionHandlers : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers, Object);
   friend class Class;
+  friend class Object;
 };
 
 
@@ -5157,6 +5168,9 @@ class Integer : public Number {
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
+  virtual int64_t AsTruncatedInt64Value() const {
+    return AsInt64Value();
+  }
   virtual uint32_t AsTruncatedUint32Value() const;
 
   virtual bool FitsIntoSmi() const;
@@ -5322,6 +5336,7 @@ class Bigint : public Integer {
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
+  virtual int64_t AsTruncatedInt64Value() const;
   virtual uint32_t AsTruncatedUint32Value() const;
 
   virtual int CompareWith(const Integer& other) const;
@@ -6724,6 +6739,8 @@ class TypedData : public Instance {
     intptr_t cid = obj.raw()->GetClassId();
     return RawObject::IsTypedDataClassId(cid);
   }
+
+  static RawTypedData* EmptyUint32Array(Isolate* isolate);
 
  protected:
   void SetLength(intptr_t value) const {

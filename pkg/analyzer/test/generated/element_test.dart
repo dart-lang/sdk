@@ -4447,9 +4447,9 @@ class UnionTypeImplTest extends EngineTestCase {
   }
 
   void test_isMoreSpecificThan_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS() {
-    // Unions are not subtypes when some element is not a subtype
-    JUnitTestCase.assertFalse(_uAB.isMoreSpecificThan(_uB));
-    JUnitTestCase.assertFalse(_uAB.isMoreSpecificThan(_typeB));
+    // Unions are subtypes when some element is a subtype
+    JUnitTestCase.assertTrue(_uAB.isMoreSpecificThan(_uB));
+    JUnitTestCase.assertTrue(_uAB.isMoreSpecificThan(_typeB));
   }
 
   void test_isMoreSpecificThan_subtypeOfSomeElement() {
@@ -4481,9 +4481,9 @@ class UnionTypeImplTest extends EngineTestCase {
   }
 
   void test_isSubtypeOf_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS() {
-    // Unions are not subtypes when some element is not a subtype
-    JUnitTestCase.assertFalse(_uAB.isSubtypeOf(_uB));
-    JUnitTestCase.assertFalse(_uAB.isSubtypeOf(_typeB));
+    // Unions are subtypes when some element is a subtype
+    JUnitTestCase.assertTrue(_uAB.isSubtypeOf(_uB));
+    JUnitTestCase.assertTrue(_uAB.isSubtypeOf(_typeB));
   }
 
   void test_isSubtypeOf_subtypeOfSomeElement() {

@@ -603,8 +603,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
-
-  __ movq(RAX, Immediate(heap->TopAddress()));
+  const intptr_t cid = kArrayCid;
+  Heap::Space space = heap->SpaceForAllocation(cid);
+  __ movq(RAX, Immediate(heap->TopAddress(space)));
   __ movq(RAX, Address(RAX, 0));
 
   // RDI: allocation size.
@@ -616,16 +617,16 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // RAX: potential new object start.
   // RCX: potential next object start.
   // RDI: allocation size.
-  __ movq(R13, Immediate(heap->EndAddress()));
+  __ movq(R13, Immediate(heap->EndAddress(space)));
   __ cmpq(RCX, Address(R13, 0));
   __ j(ABOVE_EQUAL, &slow_case);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movq(R13, Immediate(heap->TopAddress()));
+  __ movq(R13, Immediate(heap->TopAddress(space)));
   __ movq(Address(R13, 0), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(kArrayCid, RDI);
+  __ UpdateAllocationStatsWithSize(cid, RDI, space);
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
   // RDI: allocation size.
@@ -641,8 +642,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    const Class& cls = Class::Handle(isolate->object_store()->array_class());
-    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cid)));
     __ movq(FieldAddress(RAX, Array::tags_offset()), RDI);  // Tags.
   }
 
@@ -745,8 +745,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   const Register kIsolateReg = RBX;
 
-  // Load Isolate pointer from Context structure into R8.
-  __ movq(kIsolateReg, FieldAddress(CTX, Context::isolate_offset()));
+  // Load Isolate pointer into kIsolateReg.
+  __ movq(kIsolateReg, Immediate(Isolate::CurrentAddress()));
 
   // Save the current VMTag on the stack.
   __ movq(RAX, Address(kIsolateReg, Isolate::vm_tag_offset()));
@@ -848,20 +848,15 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ leaq(RSP, Address(RSP, RDX, TIMES_4, 0));  // RDX is a Smi.
 
-  // Load Isolate pointer from Context structure into CTX. Drop Context.
-  __ movq(kIsolateReg, FieldAddress(CTX, Context::isolate_offset()));
-
+  __ movq(kIsolateReg, Immediate(Isolate::CurrentAddress()));
   // Restore the saved Context pointer into the Isolate structure.
-  __ popq(RDX);
-  __ movq(Address(kIsolateReg, Isolate::top_context_offset()), RDX);
+  __ popq(Address(kIsolateReg, Isolate::top_context_offset()));
 
   // Restore the saved top exit frame info back into the Isolate structure.
-  __ popq(RDX);
-  __ movq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()), RDX);
+  __ popq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()));
 
   // Restore the current VMTag from the stack.
-  __ popq(RDX);
-  __ movq(Address(kIsolateReg, Isolate::vm_tag_offset()), RDX);
+  __ popq(Address(kIsolateReg, Isolate::vm_tag_offset()));
 
   // Restore C++ ABI callee-saved registers.
   __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
@@ -882,9 +877,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ LoadObject(R12, Object::null_object(), PP);
   if (FLAG_inline_alloc) {
-    const Class& context_class = Class::ZoneHandle(Object::context_class());
     Label slow_case;
-    Heap* heap = Isolate::Current()->heap();
+    Isolate* isolate = Isolate::Current();
+    Heap* heap = isolate->heap();
     // First compute the rounded instance size.
     // R10: number of context variables.
     intptr_t fixed_size = (sizeof(RawContext) + kObjectAlignment - 1);
@@ -893,14 +888,16 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 
     // Now allocate the object.
     // R10: number of context variables.
-    __ movq(RAX, Immediate(heap->TopAddress()));
+    const intptr_t cid = kContextCid;
+    Heap::Space space = heap->SpaceForAllocation(cid);
+    __ movq(RAX, Immediate(heap->TopAddress(space)));
     __ movq(RAX, Address(RAX, 0));
     __ addq(R13, RAX);
     // Check if the allocation fits into the remaining space.
     // RAX: potential new object.
     // R13: potential next object start.
     // R10: number of context variables.
-    __ movq(RDI, Immediate(heap->EndAddress()));
+    __ movq(RDI, Immediate(heap->EndAddress(space)));
     __ cmpq(R13, Address(RDI, 0));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
@@ -913,12 +910,12 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // RAX: new object.
     // R13: next object start.
     // R10: number of context variables.
-    __ movq(RDI, Immediate(heap->TopAddress()));
+    __ movq(RDI, Immediate(heap->TopAddress(space)));
     __ movq(Address(RDI, 0), R13);
     __ addq(RAX, Immediate(kHeapObjectTag));
     // R13: Size of allocation in bytes.
     __ subq(R13, RAX);
-    __ UpdateAllocationStatsWithSize(context_class.id(), R13);
+    __ UpdateAllocationStatsWithSize(cid, R13, space);
 
     // Calculate the size tag.
     // RAX: new object.
@@ -941,7 +938,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       // R10: number of context variables.
       // R13: size and bit tags.
       __ orq(R13,
-             Immediate(RawObject::ClassIdTag::encode(context_class.id())));
+             Immediate(RawObject::ClassIdTag::encode(cid)));
       __ movq(FieldAddress(RAX, Context::tags_offset()), R13);  // Tags.
     }
 
@@ -951,12 +948,11 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ movq(FieldAddress(RAX, Context::num_variables_offset()), R10);
 
     // Setup isolate field.
-    // Load Isolate pointer from Context structure into R13.
     // RAX: new object.
     // R10: number of context variables.
-    __ movq(R13, FieldAddress(CTX, Context::isolate_offset()));
     // R13: Isolate, not an object.
-    __ movq(FieldAddress(RAX, Context::isolate_offset()), R13);
+    __ movq(FieldAddress(RAX, Context::isolate_offset()),
+            Immediate(Isolate::CurrentAddress()));
 
     // Setup the parent field.
     // RAX: new object.
@@ -1026,9 +1022,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ orq(RCX, Immediate(1 << RawObject::kRememberedBit));
   __ movq(FieldAddress(RAX, Object::tags_offset()), RCX);
 
-  // Load the isolate out of the context.
+  // Load the isolate.
   // RAX: Address being stored
-  __ movq(RDX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movq(RDX, Immediate(Isolate::CurrentAddress()));
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1055,8 +1051,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Bind(&L);
   // Setup frame, push callee-saved registers.
   __ EnterCallRuntimeFrame(0);
-  __ movq(CallingConventions::kArg1Reg,
-          FieldAddress(CTX, Context::isolate_offset()));
+  __ movq(CallingConventions::kArg1Reg, Immediate(Isolate::CurrentAddress()));
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ LeaveCallRuntimeFrame();
   __ ret();
@@ -1067,8 +1062,14 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Input parameters:
 //   RSP + 8 : type arguments object (only if class is parameterized).
 //   RSP : points to return address.
-uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
-                                              const Class& cls) {
+void StubCode::GenerateAllocationStubForClass(
+    Assembler* assembler, const Class& cls,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+  // Must load pool pointer before being able to patch.
+  Register new_pp = R13;
+  __ LoadPoolPointer(new_pp);
+  *entry_patch_offset = assembler->CodeSize();
+
   const intptr_t kObjectTypeArgumentsOffset = 1 * kWordSize;
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
@@ -1091,14 +1092,15 @@ uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // next object start and initialize the allocated object.
     // RDX: instantiated type arguments (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
-    __ movq(RCX, Immediate(heap->TopAddress()));
+    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    __ movq(RCX, Immediate(heap->TopAddress(space)));
     __ movq(RAX, Address(RCX, 0));
     __ leaq(RBX, Address(RAX, instance_size));
     // Check if the allocation fits into the remaining space.
     // RAX: potential new object start.
     // RBX: potential next object start.
     // RCX: heap top address.
-    __ movq(R13, Immediate(heap->EndAddress()));
+    __ movq(R13, Immediate(heap->EndAddress(space)));
     __ cmpq(RBX, Address(R13, 0));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
@@ -1106,7 +1108,7 @@ uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movq(Address(RCX, 0), RBX);
-    __ UpdateAllocationStats(cls.id());
+    __ UpdateAllocationStats(cls.id(), space);
 
     // RAX: new object start.
     // RBX: next object start.
@@ -1180,10 +1182,9 @@ uword StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   // Restore the frame pointer.
   __ LeaveStubFrame();
   __ ret();
-  uword patch_code_pc_offset = assembler->CodeSize();
+  *patch_code_pc_offset = assembler->CodeSize();
   StubCode* stub_code = Isolate::Current()->stub_code();
-  __ JmpPatchable(&stub_code->FixAllocationStubTargetLabel(), R13);
-  return patch_code_pc_offset;
+  __ JmpPatchable(&stub_code->FixAllocationStubTargetLabel(), new_pp);
 }
 
 
@@ -1354,9 +1355,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
-  Label stepping, done_stepping;
   // Check single stepping.
-  __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
+  Label stepping, done_stepping;
+  __ movq(RAX, Immediate(Isolate::CurrentAddress()));
   __ cmpb(Address(RAX, Isolate::single_step_offset()), Immediate(0));
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
@@ -1587,7 +1588,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movq(RAX, Immediate(Isolate::CurrentAddress()));
   __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
   __ cmpq(RAX, Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);

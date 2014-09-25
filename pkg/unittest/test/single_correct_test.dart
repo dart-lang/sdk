@@ -2,19 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTest;
-
-import 'dart:async';
-import 'dart:isolate';
+library unittest.single_correct_test;
 
 import 'package:unittest/unittest.dart';
 
-part 'utils.dart';
+import 'package:metatest/metatest.dart';
 
-var testName = 'single correct test';
+void main() => initTests(_test);
 
-var testFunction = (_) {
-  test(testName, () => expect(2 + 3, equals(5)));
-};
+void _test(message) {
+  initMetatest(message);
 
-var expected = buildStatusString(1, 0, 0, testName);
+  expectTestsPass('single correct test', () {
+    test('test', () => expect(2 + 3, equals(5)));
+  });
+}

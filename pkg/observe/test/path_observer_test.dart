@@ -72,6 +72,7 @@ main() => dirtyCheckZone().run(() {
       expectPath('foo["b\\"az"]', 'foo["b\\"az"]', 2, [#foo, 'b"az']);
       expectPath("foo['b\\'az']", 'foo["b\'az"]', 2, [#foo, "b'az"]);
       expectPath([#a, #b], 'a.b', 2, [#a, #b]);
+      expectPath([], '', 0, []);
 
       expectPath('.', '<invalid path>', 0);
       expectPath(' . ', '<invalid path>', 0);

@@ -32,7 +32,7 @@ class MetadataEmitter extends CodeEmitterHelper {
           if (value == null) {
             compiler.internalError(annotation, 'Annotation value is null.');
           } else {
-            metadata.add(task.constantReference(value));
+            metadata.add(emitter.constantReference(value));
           }
         }
       }
@@ -50,7 +50,7 @@ class MetadataEmitter extends CodeEmitterHelper {
       Constant value = backend.constants.getConstantForVariable(element);
       String stringRepresentation = (value == null)
           ? "null"
-          : jsAst.prettyPrint(task.constantReference(value), compiler)
+          : jsAst.prettyPrint(emitter.constantReference(value), compiler)
               .getText();
       defaultValues.add(addGlobalMetadata(stringRepresentation));
     }
@@ -64,7 +64,7 @@ class MetadataEmitter extends CodeEmitterHelper {
       return -1;
     }
     return addGlobalMetadata(
-        jsAst.prettyPrint(task.constantReference(value), compiler).getText());
+        jsAst.prettyPrint(emitter.constantReference(value), compiler).getText());
   }
 
   int reifyType(DartType type) {
@@ -73,7 +73,7 @@ class MetadataEmitter extends CodeEmitterHelper {
             type,
             (variable) {
               return js.number(
-                  task.typeVariableHandler.reifyTypeVariable(variable.element));
+                  emitter.typeVariableHandler.reifyTypeVariable(variable.element));
             },
             (TypedefType typedef) {
               return backend.isAccessibleByReflection(typedef.element);
@@ -95,8 +95,7 @@ class MetadataEmitter extends CodeEmitterHelper {
   }
 
   void emitMetadata(CodeBuffer buffer) {
-    JavaScriptBackend backend = compiler.backend;
-    String metadataAccess = backend.emitter.generateEmbeddedGlobalAccessString(
+    String metadataAccess = emitter.generateEmbeddedGlobalAccessString(
           embeddedNames.METADATA);
     buffer.write('$metadataAccess$_=$_[');
     for (String metadata in globalMetadata) {

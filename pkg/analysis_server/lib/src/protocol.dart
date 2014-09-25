@@ -68,13 +68,30 @@ void _addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
 /**
  * Adds [edit] to the [FileEdit] for the given [file].
  */
-void _addEditToSourceChange(SourceChange change, String file, SourceEdit edit) {
+void _addEditToSourceChange(SourceChange change, String file, int fileStamp,
+                            SourceEdit edit) {
   SourceFileEdit fileEdit = change.getFileEdit(file);
   if (fileEdit == null) {
-    fileEdit = new SourceFileEdit(file);
+    fileEdit = new SourceFileEdit(file, fileStamp);
     change.addFileEdit(fileEdit);
   }
   fileEdit.add(edit);
+}
+
+
+void _addElementEditToSourceChange(SourceChange change, engine.Element element,
+    SourceEdit edit) {
+  engine.AnalysisContext context = element.context;
+  engine.Source source = element.source;
+  _addSourceEditToSourceChange(change, context, source, edit);
+}
+
+
+void _addSourceEditToSourceChange(SourceChange change,
+    engine.AnalysisContext context, engine.Source source, SourceEdit edit) {
+  String file = source.fullName;
+  int fileStamp = context.getModificationStamp(source);
+  change.addEdit(file, fileStamp, edit);
 }
 
 /**
@@ -233,6 +250,9 @@ ElementKind _elementKindFromEngine(engine.ElementKind kind) {
   }
   if (kind == engine.ElementKind.PARAMETER) {
     return ElementKind.PARAMETER;
+  }
+  if (kind == engine.ElementKind.PREFIX) {
+    return ElementKind.PREFIX;
   }
   if (kind == engine.ElementKind.SETTER) {
     return ElementKind.SETTER;
@@ -447,6 +467,9 @@ RefactoringOptions _refactoringOptionsFromJson(JsonDecoder jsonDecoder,
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
     return new InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.MOVE_FILE) {
+    return new MoveFileOptions.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.RENAME) {
     return new RenameOptions.fromJson(jsonDecoder, jsonPath, json);

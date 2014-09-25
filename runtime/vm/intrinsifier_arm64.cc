@@ -292,13 +292,13 @@ static int GetScaleFactor(intptr_t size) {
   /* R2: untagged array length. */                                             \
   __ CompareImmediate(R2, max_len, kNoPP);                                     \
   __ b(&fall_through, GT);                                                     \
-  __ Lsl(R2, R2, scale_shift);                                                 \
+  __ LslImmediate(R2, R2, scale_shift);                                        \
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ AddImmediate(R2, R2, fixed_size, kNoPP);                                  \
   __ andi(R2, R2, ~(kObjectAlignment - 1));                                    \
   Heap* heap = Isolate::Current()->heap();                                     \
-                                                                               \
-  __ LoadImmediate(R0, heap->TopAddress(), kNoPP);                             \
+  Heap::Space space = heap->SpaceForAllocation(cid);                           \
+  __ LoadImmediate(R0, heap->TopAddress(space), kNoPP);                        \
   __ ldr(R0, Address(R0, 0));                                                  \
                                                                                \
   /* R2: allocation size. */                                                   \
@@ -309,24 +309,24 @@ static int GetScaleFactor(intptr_t size) {
   /* R0: potential new object start. */                                        \
   /* R1: potential next object start. */                                       \
   /* R2: allocation size. */                                                   \
-  __ LoadImmediate(R3, heap->EndAddress(), kNoPP);                             \
+  __ LoadImmediate(R3, heap->EndAddress(space), kNoPP);                        \
   __ ldr(R3, Address(R3, 0));                                                  \
   __ cmp(R1, Operand(R3));                                                     \
   __ b(&fall_through, CS);                                                     \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ LoadImmediate(R3, heap->TopAddress(), kNoPP);                             \
+  __ LoadImmediate(R3, heap->TopAddress(space), kNoPP);                        \
   __ str(R1, Address(R3, 0));                                                  \
   __ AddImmediate(R0, R0, kHeapObjectTag, kNoPP);                              \
-  __ UpdateAllocationStatsWithSize(cid, R2, kNoPP);                            \
+  __ UpdateAllocationStatsWithSize(cid, R2, kNoPP, space);                     \
   /* Initialize the tags. */                                                   \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
   /* R2: allocation size. */                                                   \
   {                                                                            \
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag, kNoPP);           \
-    __ Lsl(R2, R2, RawObject::kSizeTagPos - kObjectAlignmentLog2);             \
+    __ LslImmediate(R2, R2, RawObject::kSizeTagPos - kObjectAlignmentLog2);    \
     __ csel(R2, ZR, R2, HI);                                                   \
                                                                                \
     /* Get the class index and insert it into the tags. */                     \
@@ -522,7 +522,7 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
 
   __ CompareRegisters(R1, ZR);
   __ b(&neg_remainder, LT);
-  __ Lsl(R0, R1, 1);  // Tag and move result to R0.
+  __ SmiTag(R0, R1);  // Tag and move result to R0.
   __ ret();
 
   __ Bind(&neg_remainder);
@@ -632,7 +632,7 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
 
   // Left is not a constant.
   // Check if count too large for handling it inlined.
-  __ Asr(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+  __ SmiUntag(TMP, right);  // SmiUntag right into TMP.
   // Overflow test (preserve left, right, and TMP);
   __ lslv(temp, left, TMP);
   __ asrv(TMP2, temp, TMP);
@@ -798,6 +798,11 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
   __ ldr(R1, Address(SP, 1 * kWordSize));
   __ StoreIntoObject(R1, FieldAddress(R1, Bigint::digits_offset()), R0, false);
   __ ret();
+}
+
+
+void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
+  // TODO(regis): Implement.
 }
 
 
@@ -995,7 +1000,7 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   __ Bind(&is_zero);
   // Check for negative zero by looking at the sign bit.
   __ fmovrd(R1, V0);
-  __ Lsr(R1, R1, 63);
+  __ LsrImmediate(R1, R1, 63);
   __ tsti(R1, 1);
   __ csel(R0, true_reg, false_reg, NE);  // Sign bit set.
   __ ret();
@@ -1072,7 +1077,7 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
 
   __ LoadImmediate(R0, a_int_value, kNoPP);
   __ LoadFromOffset(R2, R1, disp, kNoPP);
-  __ Lsr(R3, R2, 32);
+  __ LsrImmediate(R3, R2, 32);
   __ andi(R2, R2, 0xffffffff);
   __ mul(R2, R0, R2);
   __ add(R2, R2, Operand(R3));
@@ -1271,8 +1276,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
-
-  __ LoadImmediate(R3, heap->TopAddress(), kNoPP);
+  const intptr_t cid = kOneByteStringCid;
+  Heap::Space space = heap->SpaceForAllocation(cid);
+  __ LoadImmediate(R3, heap->TopAddress(space), kNoPP);
   __ ldr(R0, Address(R3));
 
   // length_reg: allocation size.
@@ -1283,8 +1289,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // R0: potential new object start.
   // R1: potential next object start.
   // R2: allocation size.
-  // R3: heap->Top->Address().
-  __ LoadImmediate(R7, heap->EndAddress(), kNoPP);
+  // R3: heap->TopAddress(space).
+  __ LoadImmediate(R7, heap->EndAddress(space), kNoPP);
   __ ldr(R7, Address(R7));
   __ cmp(R1, Operand(R7));
   __ b(&fail, CS);
@@ -1293,7 +1299,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // next object start and initialize the object.
   __ str(R1, Address(R3));
   __ AddImmediate(R0, R0, kHeapObjectTag, kNoPP);
-  __ UpdateAllocationStatsWithSize(kOneByteStringCid, R2, kNoPP);
+  __ UpdateAllocationStatsWithSize(cid, R2, kNoPP, space);
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.
@@ -1301,16 +1307,14 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // R2: allocation size.
   {
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
-    const Class& cls =
-        Class::Handle(isolate->object_store()->one_byte_string_class());
 
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag, kNoPP);
-    __ Lsl(R2, R2, shift);
+    __ LslImmediate(R2, R2, shift);
     __ csel(R2, R2, ZR, LS);
 
     // Get the class index and insert it into the tags.
     // R2: size and bit tags.
-    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cls.id()), kNoPP);
+    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid), kNoPP);
     __ orr(R2, R2, Operand(TMP));
     __ str(R2, FieldAddress(R0, String::tags_offset()));  // Store tags.
   }
@@ -1511,8 +1515,8 @@ void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
   Isolate* isolate = Isolate::Current();
   // Set return value to default tag address.
   __ LoadImmediate(R0,
-      reinterpret_cast<uword>(isolate->object_store()) +
-                              ObjectStore::default_tag_offset(), kNoPP);
+      reinterpret_cast<uword>(isolate) + Isolate::default_tag_offset(),
+      kNoPP);
   __ ldr(R0, Address(R0));
   __ ret();
 }

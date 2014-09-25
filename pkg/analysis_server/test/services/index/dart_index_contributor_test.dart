@@ -42,7 +42,7 @@ bool _equalsLocation(Location actual, ExpectedLocation expected) {
  */
 bool _equalsLocationProperties(Location actual, Element expectedElement,
     int expectedOffset, int expectedLength, bool isQualified, bool isResolved) {
-  return expectedElement == actual.element &&
+  return (expectedElement == null || expectedElement == actual.element) &&
       expectedOffset == actual.offset &&
       expectedLength == actual.length &&
       isQualified == actual.isQualified &&
@@ -54,7 +54,8 @@ bool _equalsRecordedRelation(RecordedRelation recordedRelation,
     Element expectedElement, Relationship expectedRelationship,
     ExpectedLocation expectedLocation) {
   return expectedElement == recordedRelation.element &&
-      expectedRelationship == recordedRelation.relationship &&
+      (expectedRelationship == null ||
+          expectedRelationship == recordedRelation.relationship) &&
       (expectedLocation == null ||
           _equalsLocation(recordedRelation.location, expectedLocation));
 }
@@ -1335,6 +1336,30 @@ main() {
         element,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'p: 1'));
+  }
+
+  void test_isReferencedBy_PrefixElement() {
+    _indexTestUnit('''
+import 'dart:async' as ppp;
+main() {
+  ppp.Future a;
+  ppp.Stream b;
+}
+''');
+    // prepare elements
+    PrefixElement element = findNodeElementAtString('ppp;');
+    Element elementA = findElement('a');
+    Element elementB = findElement('b');
+    // verify
+    _assertRecordedRelation(
+        element,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(elementA, 'ppp.Future'));
+    _assertRecordedRelation(
+        element,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(elementB, 'ppp.Stream'));
+    _assertNoRecordedRelation(element, null, _expectedLocation(null, 'ppp;'));
   }
 
   void test_isReferencedBy_TopLevelVariableElement() {

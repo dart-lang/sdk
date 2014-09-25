@@ -6,6 +6,7 @@ library pub.command.global_run;
 
 import 'dart:async';
 
+import 'package:barback/barback.dart';
 import 'package:path/path.dart' as p;
 
 import '../command.dart';
@@ -20,6 +21,14 @@ class GlobalRunCommand extends PubCommand {
       "Run an executable from a globally activated package.\n"
       "NOTE: We are currently optimizing this command's startup time.";
   String get usage => "pub global run <package>:<executable> [args...]";
+
+  /// The mode for barback transformers.
+  BarbackMode get mode => new BarbackMode(commandOptions["mode"]);
+
+  GlobalRunCommand() {
+    commandParser.addOption("mode", defaultsTo: "release",
+        help: 'Mode to run transformers in.');
+  }
 
   Future onRun() async {
     if (commandOptions.rest.isEmpty) {
@@ -45,7 +54,8 @@ class GlobalRunCommand extends PubCommand {
           'package.');
     }
 
-    var exitCode = await globals.runExecutable(package, executable, args);
+    var exitCode = await globals.runExecutable(package, executable, args,
+        mode: mode);
     await flushThenExit(exitCode);
   }
 }

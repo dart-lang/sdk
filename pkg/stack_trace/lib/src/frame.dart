@@ -30,15 +30,26 @@ final _v8UrlLocation = new RegExp(r'^(.*):(\d+):(\d+)$');
 final _v8EvalLocation = new RegExp(
     r'^eval at (?:\S.*?) \((.*)\)(?:, .*?:\d+:\d+)?$');
 
-// foo$bar$0@http://pub.dartlang.org/stuff.dart.js:560:28
-// http://pub.dartlang.org/stuff.dart.js:560:28
-final _safariFrame = new RegExp(r"^(?:([0-9A-Za-z_$]*)@)?(.*):(\d*):(\d*)$");
-
 // .VW.call$0@http://pub.dartlang.org/stuff.dart.js:560
 // .VW.call$0("arg")@http://pub.dartlang.org/stuff.dart.js:560
 // .VW.call$0/name<@http://pub.dartlang.org/stuff.dart.js:560
-final _firefoxFrame = new RegExp(
-    r'^([^@(/]*)(?:\(.*\))?((?:/[^/]*)*)(?:\(.*\))?@(.*):(\d+)$');
+// .VW.call$0@http://pub.dartlang.org/stuff.dart.js:560:36
+// http://pub.dartlang.org/stuff.dart.js:560
+final _firefoxSafariFrame = new RegExp(
+    r'^'
+    r'(?:' // Member description. Not present in some Safari frames.
+      r'([^@(/]*)' // The actual name of the member.
+      r'(?:\(.*\))?' // Arguments to the member, sometimes captured by Firefox.
+      r'((?:/[^/]*)*)' // Extra characters indicating a nested closure.
+      r'(?:\(.*\))?' // Arguments to the closure.
+      r'@'
+    r')?'
+    r'(.*?)' // The frame's URL.
+    r':'
+    r'(\d*)' // The line number. Empty in Safari if it's unknown.
+    r'(?::(\d*))?' // The column number. Not present in older browsers and
+                   // empty in Safari if it's unknown.
+    r'$');
 
 // foo/bar.dart 10:11 in Foo._bar
 // http://dartlang.org/foo/bar.dart in Foo._bar
@@ -187,45 +198,45 @@ class Frame {
 
   /// Parses a string representation of a Firefox stack frame.
   factory Frame.parseFirefox(String frame) {
-    var match = _firefoxFrame.firstMatch(frame);
+    var match = _firefoxSafariFrame.firstMatch(frame);
     if (match == null) {
       throw new FormatException(
-          "Couldn't parse Firefox stack trace line '$frame'.");
+          "Couldn't parse Firefox/Safari stack trace line '$frame'.");
     }
 
     // Normally this is a URI, but in a jsshell trace it can be a path.
     var uri = _uriOrPathToUri(match[3]);
-    var member = match[1];
-    member += new List.filled('/'.allMatches(match[2]).length, ".<fn>").join();
-    if (member == '') member = '<fn>';
 
-    // Some Firefox members have initial dots. We remove them for consistency
-    // with other platforms.
-    member = member.replaceFirst(_initialDot, '');
-    return new Frame(uri, int.parse(match[4]), null, member);
+    var member;
+    if (match[1] != null) {
+      member = match[1];
+      member +=
+          new List.filled('/'.allMatches(match[2]).length, ".<fn>").join();
+      if (member == '') member = '<fn>';
+
+      // Some Firefox members have initial dots. We remove them for consistency
+      // with other platforms.
+      member = member.replaceFirst(_initialDot, '');
+    } else {
+      member = '<fn>';
+    }
+
+    var line = match[4] == '' ? null : int.parse(match[4]);
+    var column = match[5] == null || match[5] == '' ?
+        null : int.parse(match[5]);
+    return new Frame(uri, line, column, member);
   }
 
   /// Parses a string representation of a Safari 6.0 stack frame.
-  ///
-  /// Safari 6.0 frames look just like Firefox frames. Prior to Safari 6.0,
-  /// stack traces can't be retrieved.
+  @Deprecated("Use Frame.parseSafari instead.")
   factory Frame.parseSafari6_0(String frame) => new Frame.parseFirefox(frame);
 
   /// Parses a string representation of a Safari 6.1+ stack frame.
-  factory Frame.parseSafari6_1(String frame) {
-    var match = _safariFrame.firstMatch(frame);
-    if (match == null) {
-      throw new FormatException(
-          "Couldn't parse Safari stack trace line '$frame'.");
-    }
+  @Deprecated("Use Frame.parseSafari instead.")
+  factory Frame.parseSafari6_1(String frame) => new Frame.parseFirefox(frame);
 
-    var uri = Uri.parse(match[2]);
-    var member = match[1];
-    if (member == null) member = '<fn>';
-    var line = match[3] == '' ? null : int.parse(match[3]);
-    var column = match[4] == '' ? null : int.parse(match[4]);
-    return new Frame(uri, line, column, member);
-  }
+  /// Parses a string representation of a Safari stack frame.
+  factory Frame.parseSafari(String frame) => new Frame.parseFirefox(frame);
 
   /// Parses this package's string representation of a stack frame.
   factory Frame.parseFriendly(String frame) {
