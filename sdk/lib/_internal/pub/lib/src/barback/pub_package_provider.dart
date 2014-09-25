@@ -29,7 +29,7 @@ class PubPackageProvider implements StaticPackageProvider {
         staticPackages = [r"$pub", r"$sdk"]..addAll(
             graph.packages.keys.where(graph.isPackageStatic));
 
-  Future<Asset> getAsset(AssetId id) {
+  Future<Asset> getAsset(AssetId id) async {
     // "$pub" is a psuedo-package that allows pub's transformer-loading
     // infrastructure to share code with pub proper.
     if (id.package == r'$pub') {
@@ -38,19 +38,20 @@ class PubPackageProvider implements StaticPackageProvider {
       assert(components.first == 'lib');
       components[0] = 'dart';
       var file = assetPath(path.joinAll(components));
+      _assertExists(file, id);
 
       // Barback may not be in the package graph if there are no user-defined
       // transformers being used at all. The "$pub" sources are still provided,
       // but will never be loaded.
       if (!_graph.packages.containsKey("barback")) {
-        return new Future.value(new Asset.fromPath(id, file));
+        return new Asset.fromPath(id, file);
       }
 
       var versions = mapMap(_graph.packages,
           value: (_, package) => package.version);
       var contents = readTextFile(file);
       contents = preprocess(contents, versions, path.toUri(file));
-      return new Future.value(new Asset.fromString(id, contents));
+      return new Asset.fromString(id, contents);
     }
 
     // "$sdk" is a pseudo-package that provides access to the Dart library
@@ -66,12 +67,19 @@ class PubPackageProvider implements StaticPackageProvider {
       parts = parts.skip(1);
 
       var file = path.join(sdk.rootDirectory, path.joinAll(parts));
-      return new Future.value(new Asset.fromPath(id, file));
+      _assertExists(file, id);
+      return new Asset.fromPath(id, file);
     }
 
     var nativePath = path.fromUri(id.path);
     var file = _graph.packages[id.package].path(nativePath);
-    return new Future.value(new Asset.fromPath(id, file));
+    _assertExists(file, id);
+    return new Asset.fromPath(id, file);
+  }
+
+  /// Throw an [AssetNotFoundException] for [id] if [path] doesn't exist.
+  void _assertExists(String path, AssetId id) {
+    if (!fileExists(path)) throw new AssetNotFoundException(id);
   }
 
   Stream<AssetId> getAllAssetIds(String packageName) {

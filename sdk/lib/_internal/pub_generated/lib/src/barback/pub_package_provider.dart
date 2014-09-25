@@ -18,31 +18,57 @@ class PubPackageProvider implements StaticPackageProvider {
           r"$pub",
           r"$sdk"]..addAll(graph.packages.keys.where(graph.isPackageStatic));
   Future<Asset> getAsset(AssetId id) {
-    if (id.package == r'$pub') {
-      var components = path.url.split(id.path);
-      assert(components.isNotEmpty);
-      assert(components.first == 'lib');
-      components[0] = 'dart';
-      var file = assetPath(path.joinAll(components));
-      if (!_graph.packages.containsKey("barback")) {
-        return new Future.value(new Asset.fromPath(id, file));
+    final completer0 = new Completer();
+    scheduleMicrotask(() {
+      try {
+        join0() {
+          join1() {
+            var nativePath = path.fromUri(id.path);
+            var file = _graph.packages[id.package].path(nativePath);
+            _assertExists(file, id);
+            completer0.complete(new Asset.fromPath(id, file));
+          }
+          if (id.package == r'$sdk') {
+            var parts = path.split(path.fromUri(id.path));
+            assert(parts.isNotEmpty && parts[0] == 'lib');
+            parts = parts.skip(1);
+            var file = path.join(sdk.rootDirectory, path.joinAll(parts));
+            _assertExists(file, id);
+            completer0.complete(new Asset.fromPath(id, file));
+          } else {
+            join1();
+          }
+        }
+        if (id.package == r'$pub') {
+          var components = path.url.split(id.path);
+          assert(components.isNotEmpty);
+          assert(components.first == 'lib');
+          components[0] = 'dart';
+          var file = assetPath(path.joinAll(components));
+          _assertExists(file, id);
+          join2() {
+            var versions =
+                mapMap(_graph.packages, value: ((_, package) => package.version));
+            var contents = readTextFile(file);
+            contents = preprocess(contents, versions, path.toUri(file));
+            completer0.complete(new Asset.fromString(id, contents));
+          }
+          if (!_graph.packages.containsKey("barback")) {
+            completer0.complete(new Asset.fromPath(id, file));
+          } else {
+            join2();
+          }
+        } else {
+          join0();
+        }
+      } catch (e0) {
+        completer0.completeError(e0);
       }
-      var versions =
-          mapMap(_graph.packages, value: (_, package) => package.version);
-      var contents = readTextFile(file);
-      contents = preprocess(contents, versions, path.toUri(file));
-      return new Future.value(new Asset.fromString(id, contents));
-    }
-    if (id.package == r'$sdk') {
-      var parts = path.split(path.fromUri(id.path));
-      assert(parts.isNotEmpty && parts[0] == 'lib');
-      parts = parts.skip(1);
-      var file = path.join(sdk.rootDirectory, path.joinAll(parts));
-      return new Future.value(new Asset.fromPath(id, file));
-    }
-    var nativePath = path.fromUri(id.path);
-    var file = _graph.packages[id.package].path(nativePath);
-    return new Future.value(new Asset.fromPath(id, file));
+    });
+    return completer0.future;
+  }
+  void _assertExists(String path, AssetId id) {
+    if (!fileExists(path)) throw new AssetNotFoundException(id);
   }
   Stream<AssetId> getAllAssetIds(String packageName) {
     if (packageName == r'$pub') {
