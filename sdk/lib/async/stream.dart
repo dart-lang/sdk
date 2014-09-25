@@ -1382,7 +1382,7 @@ abstract class EventSink<T> implements Sink<T> {
   void add(T event);
   /** Send an async error to a stream. */
   void addError(errorEvent, [StackTrace stackTrace]);
-  /** Send a done event to a stream.*/
+  /** Send a done event to a stream. */
   void close();
 }
 

@@ -15,7 +15,9 @@ _runUserCode(userCode(),
     if (replacement == null) {
       onError(e, s);
     } else {
-      onError(replacement.error, replacement.stackTrace);
+      var error = _nonNullError(replacement.error);
+      var stackTrace = replacement.stackTrace;
+      onError(error, stackTrace);
     }
   }
 }
@@ -39,7 +41,7 @@ void _cancelAndErrorWithReplacement(StreamSubscription subscription,
                                     error, StackTrace stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
-    error = replacement.error;
+    error = _nonNullError(replacement.error);
     stackTrace = replacement.stackTrace;
   }
   _cancelAndError(subscription, future, error, stackTrace);
@@ -187,11 +189,11 @@ typedef bool _Predicate<T>(T value);
 
 void _addErrorWithReplacement(_EventSink sink, error, stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
-  if (replacement == null) {
-    sink._addError(error, stackTrace);
-  } else {
-    sink._addError(replacement.error, replacement.stackTrace);
+  if (replacement != null) {
+    error = _nonNullError(replacement.error);
+    stackTrace = replacement.stackTrace;
   }
+  sink._addError(error, stackTrace);
 }
 
 

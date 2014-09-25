@@ -380,7 +380,7 @@ testRethrow() {
       Stream s = streamErrorTransform(c.stream, (e) { throw error; });
       s.listen((_) { Expect.fail("unexpected value"); }, onError: expectAsync(
           (e) { Expect.identical(error, e); }));
-      c.addError(null);
+      c.addError("SOME ERROR");
       c.close();
     });
   }

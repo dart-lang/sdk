@@ -187,13 +187,16 @@ abstract class Future<T> {
   /**
    * A future that completes with an error in the next event-loop iteration.
    *
-   * Use [Completer] to create a Future and complete it later.
+   * If [error] is `null`, it is replaced by a [NullThrownError].
+   *
+   * Use [Completer] to create a future and complete it later.
    */
   factory Future.error(Object error, [StackTrace stackTrace]) {
+    error = _nonNullError(error);
     if (!identical(Zone.current, _ROOT_ZONE)) {
       AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
       if (replacement != null) {
-        error = replacement.error;
+        error = _nonNullError(replacement.error);
         stackTrace = replacement.stackTrace;
       }
     }
@@ -663,10 +666,13 @@ abstract class Completer<T> {
 // for error replacement first.
 void _completeWithErrorCallback(_Future result, error, stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
-  if (replacement == null) {
-    result._completeError(error, stackTrace);
-  } else {
-    result._completeError(replacement.error, replacement.stackTrace);
+  if (replacement != null) {
+    error = _nonNullError(replacement.error);
+    stackTrace = replacement.stackTrace;
   }
+  result._completeError(error, stackTrace);
 }
 
+/** Helper function that converts `null` to a [NullThrownError]. */
+Object _nonNullError(Object error) =>
+  (error != null) ? error : new NullThrownError();

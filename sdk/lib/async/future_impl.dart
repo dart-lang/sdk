@@ -17,11 +17,11 @@ abstract class _Completer<T> implements Completer<T> {
   void complete([value]);
 
   void completeError(Object error, [StackTrace stackTrace]) {
-    if (error == null) throw new ArgumentError("Error must not be null");
+    error = _nonNullError(error);
     if (!future._mayComplete) throw new StateError("Future already completed");
     AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
-      error = replacement.error;
+      error = _nonNullError(replacement.error);
       stackTrace = replacement.stackTrace;
     }
     _completeError(error, stackTrace);
@@ -47,7 +47,6 @@ class _AsyncCompleter<T> extends _Completer<T> {
 }
 
 class _SyncCompleter<T> extends _Completer<T> {
-
   void complete([value]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
     future._complete(value);

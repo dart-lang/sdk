@@ -36,12 +36,13 @@ typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
                          ZoneSpecification specification,
                          Map zoneValues);
 
-/// Pair of error and stack trace. Returned by [Zone.errorCallback].
+/** Pair of error and stack trace. Returned by [Zone.errorCallback]. */
 class AsyncError implements Error {
   final error;
   final StackTrace stackTrace;
 
   AsyncError(this.error, this.stackTrace);
+
   String toString() => error.toString();
 }
 
@@ -254,10 +255,10 @@ abstract class Zone {
   // Private constructor so that it is not possible instantiate a Zone class.
   Zone._();
 
-  /// The root zone that is implicitly created.
+  /** The root zone that is implicitly created. */
   static const Zone ROOT = _ROOT_ZONE;
 
-  /// The currently running zone.
+  /** The currently running zone. */
   static Zone _current = _ROOT_ZONE;
 
   static Zone get current => _current;
