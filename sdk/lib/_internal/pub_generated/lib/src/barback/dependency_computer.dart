@@ -14,7 +14,14 @@ class DependencyComputer {
   final _loadingPackageComputers = new Set<String>();
   final _packageComputers = new Map<String, _PackageDependencyComputer>();
   final _transformersNeededByPackages = new Map<String, Set<TransformerId>>();
+  final _untransformedPackages = new Set<String>();
   DependencyComputer(this._graph) {
+    for (var package in ordered(_graph.packages.keys)) {
+      if (_graph.transitiveDependencies(
+          package).every((dependency) => dependency.pubspec.transformers.isEmpty)) {
+        _untransformedPackages.add(package);
+      }
+    }
     ordered(_graph.packages.keys).forEach(_loadPackageComputer);
   }
   Map<TransformerId, Set<TransformerId>>
@@ -54,6 +61,7 @@ class DependencyComputer {
   Set<TransformerId> _transformersNeededByPackageUri(Uri packageUri) {
     var components = p.split(p.fromUri(packageUri.path));
     var packageName = components.first;
+    if (_untransformedPackages.contains(packageName)) return new Set();
     var package = _graph.packages[packageName];
     if (package == null) {
       fail(
@@ -64,6 +72,7 @@ class DependencyComputer {
     return _packageComputers[packageName].transformersNeededByLibrary(library);
   }
   Set<TransformerId> _transformersNeededByPackage(String rootPackage) {
+    if (_untransformedPackages.contains(rootPackage)) return new Set();
     if (_transformersNeededByPackages.containsKey(rootPackage)) {
       return _transformersNeededByPackages[rootPackage];
     }

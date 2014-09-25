@@ -36,7 +36,20 @@ class DependencyComputer {
   /// A cache of the results of [transformersNeededByPackage].
   final _transformersNeededByPackages = new Map<String, Set<TransformerId>>();
 
+  /// The set of all packages that neither use transformers themselves nor
+  /// import packages that use transformers.
+  ///
+  /// This is precomputed before any package computers are loaded.
+  final _untransformedPackages = new Set<String>();
+
   DependencyComputer(this._graph) {
+    for (var package in ordered(_graph.packages.keys)) {
+      if (_graph.transitiveDependencies(package).every((dependency) =>
+            dependency.pubspec.transformers.isEmpty)) {
+        _untransformedPackages.add(package);
+      }
+    }
+
     ordered(_graph.packages.keys).forEach(_loadPackageComputer);
   }
 
@@ -98,13 +111,10 @@ class DependencyComputer {
   /// [packageUri] (a "package:" URI) can be safely imported from an external
   /// package.
   Set<TransformerId> _transformersNeededByPackageUri(Uri packageUri) {
-    // TODO(nweiz): We can do some pre-processing on the package graph (akin to
-    // the old ordering dependency computation) to figure out which packages are
-    // guaranteed not to require any transformers. That'll let us avoid extra
-    // work here and in [_transformersNeededByPackage].
-
     var components = p.split(p.fromUri(packageUri.path));
     var packageName = components.first;
+    if (_untransformedPackages.contains(packageName)) return new Set();
+
     var package = _graph.packages[packageName];
     if (package == null) {
       // TODO(nweiz): include source range information here.
@@ -131,6 +141,8 @@ class DependencyComputer {
   /// transformation may import any dependency or hit any transformer, so we
   /// have to assume that it will.
   Set<TransformerId> _transformersNeededByPackage(String rootPackage) {
+    if (_untransformedPackages.contains(rootPackage)) return new Set();
+
     if (_transformersNeededByPackages.containsKey(rootPackage)) {
       return _transformersNeededByPackages[rootPackage];
     }
