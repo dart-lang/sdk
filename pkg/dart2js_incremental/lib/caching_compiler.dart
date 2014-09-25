@@ -105,7 +105,7 @@ Future<Compiler> reuseCompiler(
         ..rtiNeededClasses.clear()
         ..cachedClassesUsingTypeVariableTests = null;
 
-    backend.emitter.interceptorEmitter
+    backend.emitter.oldEmitter.interceptorEmitter
         ..interceptorInvocationNames.clear();
 
     backend.emitter.oldEmitter.metadataEmitter

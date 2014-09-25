@@ -114,7 +114,7 @@ class NativeEmitter {
     neededClasses.add(compiler.objectClass);
 
     Set<ClassElement> neededByConstant =
-        emitterTask.interceptorEmitter.interceptorsReferencedFromConstants();
+        emitterTask.interceptorsReferencedFromConstants();
     Set<ClassElement> modifiedClasses =
         emitterTask.typeTestEmitter.classesModifiedByEmitRuntimeTypeSupport();
 

@@ -13,19 +13,6 @@ class InterceptorEmitter extends CodeEmitterHelper {
     }
   }
 
-  Set<ClassElement> interceptorsReferencedFromConstants() {
-    Set<ClassElement> classes = new Set<ClassElement>();
-    JavaScriptConstantCompiler handler = backend.constants;
-    List<Constant> constants = handler.getConstantsForEmission();
-    for (Constant constant in constants) {
-      if (constant is InterceptorConstant) {
-        InterceptorConstant interceptorConstant = constant;
-        classes.add(interceptorConstant.dispatchedType.element);
-      }
-    }
-    return classes;
-  }
-
   void emitGetInterceptorMethod(CodeBuffer buffer,
                                 String key,
                                 Set<ClassElement> classes) {

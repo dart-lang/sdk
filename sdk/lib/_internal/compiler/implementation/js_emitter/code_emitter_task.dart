@@ -16,7 +16,6 @@ class CodeEmitterTask extends CompilerTask {
   // TODO(floitsch): the code-emitter task should not need a namer.
   final Namer namer;
   final TypeTestEmitter typeTestEmitter = new TypeTestEmitter();
-  final InterceptorEmitter interceptorEmitter = new InterceptorEmitter();
   NativeEmitter nativeEmitter;
   OldEmitter oldEmitter;
   Emitter emitter;
@@ -47,7 +46,6 @@ class CodeEmitterTask extends CompilerTask {
         : oldEmitter;
     nativeEmitter = new NativeEmitter(this);
     typeTestEmitter.emitter = this.oldEmitter;
-    interceptorEmitter.emitter = this.oldEmitter;
     // TODO(18886): Remove this call (and the show in the import) once the
     // memory-leak in the VM is fixed.
     templateManager.clear();
@@ -60,6 +58,19 @@ class CodeEmitterTask extends CompilerTask {
 
   jsAst.Expression constantReference(Constant value) {
     return emitter.constantReference(value);
+  }
+
+  Set<ClassElement> interceptorsReferencedFromConstants() {
+    Set<ClassElement> classes = new Set<ClassElement>();
+    JavaScriptConstantCompiler handler = backend.constants;
+    List<Constant> constants = handler.getConstantsForEmission();
+    for (Constant constant in constants) {
+      if (constant is InterceptorConstant) {
+        InterceptorConstant interceptorConstant = constant;
+        classes.add(interceptorConstant.dispatchedType.element);
+      }
+    }
+    return classes;
   }
 
   /**
@@ -84,7 +95,7 @@ class CodeEmitterTask extends CompilerTask {
     );
 
     // Add interceptors referenced by constants.
-    needed.addAll(interceptorEmitter.interceptorsReferencedFromConstants());
+    needed.addAll(interceptorsReferencedFromConstants());
 
     // Add unneeded interceptors to the [unneededClasses] set.
     for (ClassElement interceptor in backend.interceptedClasses) {
@@ -281,7 +292,7 @@ class OldEmitter implements Emitter {
   final ClassEmitter classEmitter = new ClassEmitter();
   final NsmEmitter nsmEmitter = new NsmEmitter();
   TypeTestEmitter get typeTestEmitter => task.typeTestEmitter;
-  InterceptorEmitter get interceptorEmitter => task.interceptorEmitter;
+  final InterceptorEmitter interceptorEmitter = new InterceptorEmitter();
   final MetadataEmitter metadataEmitter = new MetadataEmitter();
 
   final Set<Constant> cachedEmittedConstants;
