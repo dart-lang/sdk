@@ -134,7 +134,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
         // the file pointed to.
         struct stat64 entry_info;
         int stat_success;
-        stat_success = NO_RETRY_EXPECTED(
+        stat_success = TEMP_FAILURE_RETRY(
             lstat64(listing->path_buffer().AsString(), &entry_info));
         if (stat_success == -1) {
           return kListError;
@@ -153,7 +153,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
             }
             previous = previous->next;
           }
-          stat_success = NO_RETRY_EXPECTED(
+          stat_success = TEMP_FAILURE_RETRY(
               stat64(listing->path_buffer().AsString(), &entry_info));
           if (stat_success == -1) {
             // Report a broken link as a link, even if follow_links is true.
@@ -235,7 +235,7 @@ static bool DeleteRecursively(PathBuffer* path) {
   // Do not recurse into links for deletion. Instead delete the link.
   // If it's a file, delete it.
   struct stat64 st;
-  if (NO_RETRY_EXPECTED(lstat64(path->AsString(), &st)) == -1) {
+  if (TEMP_FAILURE_RETRY(lstat64(path->AsString(), &st)) == -1) {
     return false;
   } else if (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode)) {
     return (NO_RETRY_EXPECTED(unlink(path->AsString())) == 0);
@@ -283,7 +283,7 @@ static bool DeleteRecursively(PathBuffer* path) {
         // readdir_r. For those we use lstat to determine the entry
         // type.
         struct stat64 entry_info;
-        if (NO_RETRY_EXPECTED(lstat64(path->AsString(), &entry_info)) == -1) {
+        if (TEMP_FAILURE_RETRY(lstat64(path->AsString(), &entry_info)) == -1) {
           break;
         }
         path->Reset(path_length);
@@ -316,7 +316,7 @@ static bool DeleteRecursively(PathBuffer* path) {
 
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
   struct stat64 entry_info;
-  int success = NO_RETRY_EXPECTED(stat64(dir_name, &entry_info));
+  int success = TEMP_FAILURE_RETRY(stat64(dir_name, &entry_info));
   if (success == 0) {
     if (S_ISDIR(entry_info.st_mode)) {
       return EXISTS;
