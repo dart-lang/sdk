@@ -31,8 +31,10 @@ class ObjectSet {
     ASSERT(start_ <= end_);
     size_ = SizeFor((end_ - start_) >> kWordSizeLog2);
     allocation_ = new uword[size_];
-    data_ = &allocation_[-((start >> kWordSizeLog2) / kBitsPerWord)];
-    ASSERT(allocation_ == &data_[(start >> kWordSizeLog2) / kBitsPerWord]);
+    const intptr_t skipped_bitfield_words =
+        (start >> kWordSizeLog2) / kBitsPerWord;
+    data_ = &allocation_[-skipped_bitfield_words];
+    ASSERT(allocation_ == &data_[skipped_bitfield_words]);
     Clear();
   }
 
