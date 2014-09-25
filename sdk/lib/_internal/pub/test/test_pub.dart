@@ -411,12 +411,15 @@ void scheduleSymlink(String target, String symlink) {
 /// If [outputJson] is given, validates that pub outputs stringified JSON
 /// matching that object, which can be a literal JSON object or any other
 /// [Matcher].
+///
+/// If [environment] is given, any keys in it will override the environment
+/// variables passed to the spawned process.
 void schedulePub({List args, output, error, outputJson,
-    int exitCode: exit_codes.SUCCESS}) {
+    int exitCode: exit_codes.SUCCESS, Map<String, String> environment}) {
   // Cannot pass both output and outputJson.
   assert(output == null || outputJson == null);
 
-  var pub = startPub(args: args);
+  var pub = startPub(args: args, environment: environment);
   pub.shouldExit(exitCode);
 
   var failures = [];
@@ -502,7 +505,11 @@ Map getPubTestEnvironment([String tokenEndpoint]) {
 /// interaction with that process.
 ///
 /// Any futures in [args] will be resolved before the process is started.
-ScheduledProcess startPub({List args, Future<String> tokenEndpoint}) {
+///
+/// If [environment] is given, any keys in it will override the environment
+/// variables passed to the spawned process.
+ScheduledProcess startPub({List args, Future<String> tokenEndpoint,
+    Map<String, String> environment}) {
   ensureDir(_pathInSandbox(appPath));
 
   // Find a Dart executable we can use to spawn. Use the same one that was
@@ -528,18 +535,21 @@ ScheduledProcess startPub({List args, Future<String> tokenEndpoint}) {
 
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
   var environmentFuture = tokenEndpoint.then((tokenEndpoint) {
-    var environment = getPubTestEnvironment(tokenEndpoint);
+    var pubEnvironment = getPubTestEnvironment(tokenEndpoint);
 
     // If there is a server running, tell pub what its URL is so hosted
     // dependencies will look there.
     if (_hasServer) {
       return port.then((p) {
-        environment['PUB_HOSTED_URL'] = "http://localhost:$p";
-        return environment;
+        pubEnvironment['PUB_HOSTED_URL'] = "http://localhost:$p";
+        return pubEnvironment;
       });
     }
 
-    return environment;
+    return pubEnvironment;
+  }).then((pubEnvironment) {
+    if (environment != null) pubEnvironment.addAll(environment);
+    return pubEnvironment;
   });
 
   return new PubProcess.start(dartBin, dartArgs, environment: environmentFuture,

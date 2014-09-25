@@ -242,9 +242,9 @@ void scheduleSymlink(String target, String symlink) {
       'symlinking $target to $symlink');
 }
 void schedulePub({List args, output, error, outputJson, int exitCode:
-    exit_codes.SUCCESS}) {
+    exit_codes.SUCCESS, Map<String, String> environment}) {
   assert(output == null || outputJson == null);
-  var pub = startPub(args: args);
+  var pub = startPub(args: args, environment: environment);
   pub.shouldExit(exitCode);
   var failures = [];
   var stderr;
@@ -293,7 +293,8 @@ Map getPubTestEnvironment([String tokenEndpoint]) {
   }
   return environment;
 }
-ScheduledProcess startPub({List args, Future<String> tokenEndpoint}) {
+ScheduledProcess startPub({List args, Future<String> tokenEndpoint, Map<String,
+    String> environment}) {
   ensureDir(_pathInSandbox(appPath));
   var dartBin = Platform.executable;
   if (dartBin.contains(Platform.pathSeparator)) {
@@ -304,14 +305,17 @@ ScheduledProcess startPub({List args, Future<String> tokenEndpoint}) {
   dartArgs.addAll(args);
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
   var environmentFuture = tokenEndpoint.then((tokenEndpoint) {
-    var environment = getPubTestEnvironment(tokenEndpoint);
+    var pubEnvironment = getPubTestEnvironment(tokenEndpoint);
     if (_hasServer) {
       return port.then((p) {
-        environment['PUB_HOSTED_URL'] = "http://localhost:$p";
-        return environment;
+        pubEnvironment['PUB_HOSTED_URL'] = "http://localhost:$p";
+        return pubEnvironment;
       });
     }
-    return environment;
+    return pubEnvironment;
+  }).then((pubEnvironment) {
+    if (environment != null) pubEnvironment.addAll(environment);
+    return pubEnvironment;
   });
   return new PubProcess.start(
       dartBin,

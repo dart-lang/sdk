@@ -469,8 +469,6 @@ class GlobalPackages {
     if (installed.isNotEmpty) {
       var names = namedSequence("executable", installed.map(log.bold));
       log.message("Installed $names.");
-      // TODO(rnystrom): Show the user how to add the binstub directory to
-      // their PATH if not already on it.
     }
 
     // Show errors for any collisions.
@@ -514,6 +512,8 @@ class GlobalPackages {
             'which was not found in ${log.bold(package.name)}.');
       }
     }
+
+    if (installed.isNotEmpty) _suggestIfNotOnPath(installed);
   }
 
   /// Creates a binstub named [executable] that runs [script] from [package].
@@ -615,6 +615,48 @@ $invocation "\$@"
         log.fine("Deleting old binstub $file");
         deleteEntry(file);
       }
+    }
+  }
+
+  /// Checks to see if the binstubs are on the user's PATH and, if not, suggests
+  /// that the user add the directory to their PATH.
+  void _suggestIfNotOnPath(List<String> installed) {
+    if (Platform.operatingSystem == "windows") {
+      // See if the shell can find one of the binstubs.
+      // "\q" means return exit code 0 if found or 1 if not.
+      var result = Process.runSync("where", r"\q", [installed.first]);
+      if (result.exitCode == 0) return;
+
+      var binDir = _binStubDir;
+      if (binDir.startsWith(Platform.environment['APPDATA'])) {
+        binDir = p.join("%APPDATA%", p.relative(binDir,
+            from: Platform.environment['APPDATA']));
+      }
+
+      log.warning(
+          "${log.yellow('Warning:')} Pub installs executables into "
+              "${log.bold(binDir)}, which is not on your path.\n"
+          "You can fix that by adding that directory to your system's "
+              '"Path" environment variable.\n'
+          'A web search for "configure windows path" will show you how.');
+    } else {
+      // See if the shell can find one of the binstubs.
+      var result = Process.runSync("which", [installed.first]);
+      if (result.exitCode == 0) return;
+
+      var binDir = _binStubDir;
+      if (binDir.startsWith(Platform.environment['HOME'])) {
+        binDir = p.join("~", p.relative(binDir,
+            from: Platform.environment['HOME']));
+      }
+
+      log.warning(
+          "${log.yellow('Warning:')} Pub installs executables into "
+              "${log.bold(binDir)}, which is not on your path.\n"
+          "You can fix that by adding this to your shell's config file "
+              "(.bashrc, .bash_profile, etc.):\n"
+          "\n"
+          "\n${log.bold('export PATH="\$PATH":"$binDir"')}\n");
     }
   }
 }

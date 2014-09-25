@@ -489,6 +489,7 @@ class GlobalPackages {
                 'which was not found in ${log.bold(package.name)}.');
       }
     }
+    if (installed.isNotEmpty) _suggestIfNotOnPath(installed);
   }
   String _createBinStub(Package package, String executable, String script,
       {bool overwrite, String snapshot}) {
@@ -560,6 +561,37 @@ $invocation "\$@"
         log.fine("Deleting old binstub $file");
         deleteEntry(file);
       }
+    }
+  }
+  void _suggestIfNotOnPath(List<String> installed) {
+    if (Platform.operatingSystem == "windows") {
+      var result = Process.runSync("where", r"\q", [installed.first]);
+      if (result.exitCode == 0) return;
+      var binDir = _binStubDir;
+      if (binDir.startsWith(Platform.environment['APPDATA'])) {
+        binDir =
+            p.join("%APPDATA%", p.relative(binDir, from: Platform.environment['APPDATA']));
+      }
+      log.warning(
+          "${log.yellow('Warning:')} Pub installs executables into "
+              "${log.bold(binDir)}, which is not on your path.\n"
+              "You can fix that by adding that directory to your system's "
+              '"Path" environment variable.\n'
+              'A web search for "configure windows path" will show you how.');
+    } else {
+      var result = Process.runSync("which", [installed.first]);
+      if (result.exitCode == 0) return;
+      var binDir = _binStubDir;
+      if (binDir.startsWith(Platform.environment['HOME'])) {
+        binDir =
+            p.join("~", p.relative(binDir, from: Platform.environment['HOME']));
+      }
+      log.warning(
+          "${log.yellow('Warning:')} Pub installs executables into "
+              "${log.bold(binDir)}, which is not on your path.\n"
+              "You can fix that by adding this to your shell's config file "
+              "(.bashrc, .bash_profile, etc.):\n" "\n"
+              "\n${log.bold('export PATH="\$PATH":"$binDir"')}\n");
     }
   }
 }
