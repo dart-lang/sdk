@@ -49,7 +49,8 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
                               vmArgs.add("--checked");
                               var relativePath =
                                   p.url.relative(assetPath, from: p.url.joinAll(p.split(server.rootDirectory)));
-                              vmArgs.add('bin/css.dart');
+                              vmArgs.add(
+                                  server.url.resolve(relativePath).toString());
                               vmArgs.addAll(args);
                               Process.start(
                                   Platform.executable,

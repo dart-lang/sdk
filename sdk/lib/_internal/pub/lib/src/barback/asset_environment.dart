@@ -508,7 +508,7 @@ class AssetEnvironment {
       });
 
       await _withStreamErrors(() async {
-        return log.progress("Loading transformers", () {
+        return log.progress("Loading transformers", () async {
           await loadAllTransformers(this, transformerServer,
               entrypoints: entrypoints);
           transformerServer.close();

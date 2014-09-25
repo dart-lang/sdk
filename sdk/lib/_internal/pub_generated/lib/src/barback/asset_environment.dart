@@ -318,50 +318,111 @@ class AssetEnvironment {
   }
   Future _load({Iterable<AssetId> entrypoints, bool useDart2JS}) {
     return log.progress("Initializing barback", () {
-      var containsDart2JS = graph.entrypoint.root.pubspec.transformers.any(
-          (transformers) =>
-              transformers.any((config) => config.id.package == '\$dart2js'));
-      if (!containsDart2JS && useDart2JS) {
-        _builtInTransformers.addAll(
-            [new Dart2JSTransformer(this, mode), new DartForwardingTransformer(mode)]);
-      }
-      var transformerServer;
-      return BarbackServer.bind(this, _hostname, 0).then((server) {
-        transformerServer = server;
-        var errorStream = barback.errors.map((error) {
-          if (error is! AssetLoadException) throw error;
-          log.error(log.red(error.message));
-          log.fine(error.stackTrace.terse);
-        });
-        return _withStreamErrors(() {
-          return log.progress("Loading source assets", _provideSources);
-        }, [errorStream, barback.results]);
-      }).then((_) {
-        log.fine("Provided sources.");
-        var completer = new Completer();
-        var errorStream = barback.errors.map((error) {
-          if (error is! TransformerException) throw error;
-          var message = error.error.toString();
-          if (error.stackTrace != null) {
-            message += "\n" + error.stackTrace.terse.toString();
+      final completer0 = new Completer();
+      scheduleMicrotask(() {
+        try {
+          var containsDart2JS = graph.entrypoint.root.pubspec.transformers.any(
+              ((transformers) =>
+                  transformers.any((config) => config.id.package == '\$dart2js')));
+          join0() {
+            BarbackServer.bind(this, _hostname, 0).then((x0) {
+              try {
+                var transformerServer = x0;
+                var errorStream = barback.errors.map(((error) {
+                  if (error is! AssetLoadException) throw error;
+                  log.error(log.red(error.message));
+                  log.fine(error.stackTrace.terse);
+                }));
+                _withStreamErrors((() {
+                  return log.progress("Loading source assets", _provideSources);
+                }), [errorStream, barback.results]).then((x1) {
+                  try {
+                    x1;
+                    log.fine("Provided sources.");
+                    var errorStream = barback.errors.map(((error) {
+                      if (error is! TransformerException) throw error;
+                      var message = error.error.toString();
+                      if (error.stackTrace != null) {
+                        message += "\n" + error.stackTrace.terse.toString();
+                      }
+                      _log(
+                          new LogEntry(
+                              error.transform,
+                              error.transform.primaryId,
+                              LogLevel.ERROR,
+                              message,
+                              null));
+                    }));
+                    _withStreamErrors((() {
+                      final completer0 = new Completer();
+                      scheduleMicrotask(() {
+                        try {
+                          completer0.complete(
+                              log.progress("Loading transformers", (() {
+                            final completer0 = new Completer();
+                            scheduleMicrotask(() {
+                              try {
+                                loadAllTransformers(
+                                    this,
+                                    transformerServer,
+                                    entrypoints: entrypoints).then((x0) {
+                                  try {
+                                    x0;
+                                    transformerServer.close();
+                                    completer0.complete(null);
+                                  } catch (e0) {
+                                    completer0.completeError(e0);
+                                  }
+                                }, onError: (e1) {
+                                  completer0.completeError(e1);
+                                });
+                              } catch (e2) {
+                                completer0.completeError(e2);
+                              }
+                            });
+                            return completer0.future;
+                          }), fine: true));
+                        } catch (e0) {
+                          completer0.completeError(e0);
+                        }
+                      });
+                      return completer0.future;
+                    }),
+                        [errorStream, barback.results, transformerServer.results]).then((x2) {
+                      try {
+                        x2;
+                        completer0.complete(null);
+                      } catch (e2) {
+                        completer0.completeError(e2);
+                      }
+                    }, onError: (e3) {
+                      completer0.completeError(e3);
+                    });
+                  } catch (e1) {
+                    completer0.completeError(e1);
+                  }
+                }, onError: (e4) {
+                  completer0.completeError(e4);
+                });
+              } catch (e0) {
+                completer0.completeError(e0);
+              }
+            }, onError: (e5) {
+              completer0.completeError(e5);
+            });
           }
-          _log(
-              new LogEntry(
-                  error.transform,
-                  error.transform.primaryId,
-                  LogLevel.ERROR,
-                  message,
-                  null));
-        });
-        return _withStreamErrors(() {
-          return log.progress("Loading transformers", () {
-            return loadAllTransformers(
-                this,
-                transformerServer,
-                entrypoints: entrypoints).then((_) => transformerServer.close());
-          }, fine: true);
-        }, [errorStream, barback.results, transformerServer.results]);
+          if (!containsDart2JS && useDart2JS) {
+            _builtInTransformers.addAll(
+                [new Dart2JSTransformer(this, mode), new DartForwardingTransformer(mode)]);
+            join0();
+          } else {
+            join0();
+          }
+        } catch (e6) {
+          completer0.completeError(e6);
+        }
       });
+      return completer0.future;
     }, fine: true);
   }
   Future _provideSources() {

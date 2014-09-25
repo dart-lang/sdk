@@ -118,7 +118,7 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
     // Get the URL of the executable, relative to the server's root directory.
     var relativePath = p.url.relative(assetPath,
         from: p.url.joinAll(p.split(server.rootDirectory)));
-    vmArgs.add('bin/css.dart');
+    vmArgs.add(server.url.resolve(relativePath).toString());
     vmArgs.addAll(args);
 
     var process = await Process.start(Platform.executable, vmArgs);
