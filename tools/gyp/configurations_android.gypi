@@ -158,6 +158,7 @@
         'target_conditions': [
           ['_toolset=="target"', {
             'cflags': [
+              '-fPIE',
               '--sysroot=<(android_sysroot)',
               '-I<(android_ndk_include)',
               '-I<(android_ndk_root)/sources/cxx-stl/stlport/stlport',
@@ -188,6 +189,7 @@
               '-z',
               'muldefs',
               '-Bdynamic',
+              '-pie',
               '-Wl,-dynamic-linker,/system/bin/linker',
               '-Wl,--gc-sections',
               '-Wl,-z,nocopyreloc',

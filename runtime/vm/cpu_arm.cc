@@ -77,17 +77,19 @@ bool HostCPUFeatures::initialized_ = false;
 
 #if defined(HOST_ARCH_ARM)
 void HostCPUFeatures::InitOnce() {
+  bool is_arm64 = false;
   CpuInfo::InitOnce();
   hardware_ = CpuInfo::GetCpuModel();
 
-  // Has floating point unit.
-  vfp_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "vfp") &&
-                   FLAG_use_vfp;
-
-  // Check for ARMv5TE, ARMv6 or ARMv7. It can be in either the Processor or
-  // Model information fields.
-  if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARM926EJ-S") ||
-      CpuInfo::FieldContains(kCpuInfoModel, "ARM926EJ-S")) {
+  // Check for ARMv5TE, ARMv6, ARMv7, or aarch64.
+  // It can be in either the Processor or Model information fields.
+  if (CpuInfo::FieldContains(kCpuInfoProcessor, "aarch64") ||
+      CpuInfo::FieldContains(kCpuInfoModel, "aarch64")) {
+    // pretend that this arm64 cpu is really an ARMv7
+    arm_version_ = ARMv7;
+    is_arm64 = true;
+  } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARM926EJ-S") ||
+             CpuInfo::FieldContains(kCpuInfoModel, "ARM926EJ-S")) {
     // Lego Mindstorm EV3.
     arm_version_ = ARMv5TE;
     // On ARMv5, the PC read offset in an STR or STM instruction is either 8 or
@@ -111,6 +113,11 @@ void HostCPUFeatures::InitOnce() {
     arm_version_ = ARMv7;
   }
 
+  // Has floating point unit.
+  vfp_supported_ =
+      (CpuInfo::FieldContains(kCpuInfoFeatures, "vfp") || is_arm64) &&
+      FLAG_use_vfp;
+
   // Has integer division.
   bool is_krait = CpuInfo::FieldContains(kCpuInfoHardware, "QCT APQ8064");
   if (is_krait) {
@@ -118,10 +125,11 @@ void HostCPUFeatures::InitOnce() {
     integer_division_supported_ = true;
   } else {
     integer_division_supported_ =
-        CpuInfo::FieldContains(kCpuInfoFeatures, "idiva");
+        CpuInfo::FieldContains(kCpuInfoFeatures, "idiva") || is_arm64;
   }
-  neon_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "neon") &&
-                    FLAG_use_vfp && FLAG_use_neon;
+  neon_supported_ =
+      (CpuInfo::FieldContains(kCpuInfoFeatures, "neon") || is_arm64) &&
+      FLAG_use_vfp && FLAG_use_neon;
 
   // Use the cross-compiler's predefined macros to determine whether we should
   // use the hard or soft float ABI.
