@@ -1,6 +1,7 @@
 import 'package:scheduled_test/scheduled_test.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 main() {
   initConfig();
   integration("creates binstubs for each executable in the pubspec", () {
@@ -28,9 +29,9 @@ main() {
             d.dir(
                 "bin",
                 [
-                    d.matcherFile("one", contains("one")),
-                    d.matcherFile("two-renamed", contains("second")),
-                    d.nothing("two"),
-                    d.nothing("nope")])]).validate();
+                    d.matcherFile(binStubName("one"), contains("one")),
+                    d.matcherFile(binStubName("two-renamed"), contains("second")),
+                    d.nothing(binStubName("two")),
+                    d.nothing(binStubName("nope"))])]).validate();
   });
 }

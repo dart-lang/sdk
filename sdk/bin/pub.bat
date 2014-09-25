@@ -40,7 +40,7 @@ set ASYNC_COMPILER="%SDK_DIR%"\lib\_internal\pub\bin\async_compile.dart
 "%DART%" --package-root="%PACKAGES_DIR%" "%ASYNC_COMPILER%" "%BUILD_DIR%"
 
 rem Run the async/await compiled pub.
-set PUB="%SDK_DIR%"\lib\_internal\pub_generated\bin\pub.dart"
+set PUB="%SDK_DIR%\lib\_internal\pub_generated\bin\pub.dart"
 "%DART%" %VM_OPTIONS% --package-root="%PACKAGES_DIR%" "%PUB%" %*
 
 endlocal
@@ -59,4 +59,4 @@ if not "%current%"=="" call :follow_links "%current%", result
 endlocal & set %~2=%result%
 goto :eof
 
-:end
+:end

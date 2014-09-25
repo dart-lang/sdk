@@ -494,6 +494,7 @@ class GlobalPackages {
   String _createBinStub(Package package, String executable, String script,
       {bool overwrite, String snapshot}) {
     var binStubPath = p.join(_binStubDir, executable);
+    if (Platform.operatingSystem == "windows") binStubPath += ".bat";
     var previousPackage;
     if (fileExists(binStubPath)) {
       var contents = readTextFile(binStubPath);
@@ -520,7 +521,7 @@ rem Package: ${package.name}
 rem Version: ${package.version}
 rem Executable: ${executable}
 rem Script: ${script}
-$invocation "%*"
+$invocation %*
 """;
       writeTextFile(binStubPath, batch);
     } else {
@@ -565,16 +566,11 @@ $invocation "\$@"
   }
   void _suggestIfNotOnPath(List<String> installed) {
     if (Platform.operatingSystem == "windows") {
-      var result = runProcessSync("where", [r"\q", installed.first]);
+      var result = runProcessSync("where", [r"\q", installed.first + ".bat"]);
       if (result.exitCode == 0) return;
-      var binDir = _binStubDir;
-      if (binDir.startsWith(Platform.environment['APPDATA'])) {
-        binDir =
-            p.join("%APPDATA%", p.relative(binDir, from: Platform.environment['APPDATA']));
-      }
       log.warning(
           "${log.yellow('Warning:')} Pub installs executables into "
-              "${log.bold(binDir)}, which is not on your path.\n"
+              "${log.bold(_binStubDir)}, which is not on your path.\n"
               "You can fix that by adding that directory to your system's "
               '"Path" environment variable.\n'
               'A web search for "configure windows path" will show you how.');

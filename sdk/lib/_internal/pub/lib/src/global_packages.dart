@@ -530,6 +530,8 @@ class GlobalPackages {
       {bool overwrite, String snapshot}) {
     var binStubPath = p.join(_binStubDir, executable);
 
+    if (Platform.operatingSystem == "windows") binStubPath += ".bat";
+
     // See if the binstub already exists. If so, it's for another package
     // since we already deleted all of this package's binstubs.
     var previousPackage;
@@ -557,7 +559,6 @@ class GlobalPackages {
     }
 
     if (Platform.operatingSystem == "windows") {
-
       var batch = """
 @echo off
 rem This file was created by pub v${sdk.version}.
@@ -565,7 +566,7 @@ rem Package: ${package.name}
 rem Version: ${package.version}
 rem Executable: ${executable}
 rem Script: ${script}
-$invocation "%*"
+$invocation %*
 """;
       writeTextFile(binStubPath, batch);
     } else {
@@ -624,18 +625,12 @@ $invocation "\$@"
     if (Platform.operatingSystem == "windows") {
       // See if the shell can find one of the binstubs.
       // "\q" means return exit code 0 if found or 1 if not.
-      var result = runProcessSync("where", [r"\q", installed.first]);
+      var result = runProcessSync("where", [r"\q", installed.first + ".bat"]);
       if (result.exitCode == 0) return;
-
-      var binDir = _binStubDir;
-      if (binDir.startsWith(Platform.environment['APPDATA'])) {
-        binDir = p.join("%APPDATA%", p.relative(binDir,
-            from: Platform.environment['APPDATA']));
-      }
 
       log.warning(
           "${log.yellow('Warning:')} Pub installs executables into "
-              "${log.bold(binDir)}, which is not on your path.\n"
+              "${log.bold(_binStubDir)}, which is not on your path.\n"
           "You can fix that by adding that directory to your system's "
               '"Path" environment variable.\n'
           'A web search for "configure windows path" will show you how.');

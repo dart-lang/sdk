@@ -6,6 +6,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 
 main() {
   initConfig();
@@ -29,8 +30,8 @@ main() {
 
     d.dir(cachePath, [
       d.dir("bin", [
-        d.nothing("one"),
-        d.nothing("two")
+        d.nothing(binStubName("one")),
+        d.nothing(binStubName("two"))
       ])
     ]).validate();
   });

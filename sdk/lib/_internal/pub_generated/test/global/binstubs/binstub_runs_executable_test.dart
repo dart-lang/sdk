@@ -4,6 +4,7 @@ import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 main() {
   initConfig();
   integration("the generated binstub runs a snapshotted executable", () {
@@ -18,7 +19,7 @@ main() {
     });
     schedulePub(args: ["global", "activate", "foo"]);
     var process = new ScheduledProcess.start(
-        p.join(sandboxDir, cachePath, "bin/foo-script"),
+        p.join(sandboxDir, cachePath, "bin", binStubName("foo-script")),
         ["arg1", "arg2"],
         environment: getEnvironment());
     process.stdout.expect("ok [arg1, arg2]");
@@ -36,7 +37,7 @@ main() {
               [d.file("script.dart", "main(args) => print('ok \$args');")])]).create();
     schedulePub(args: ["global", "activate", "-spath", "../foo"]);
     var process = new ScheduledProcess.start(
-        p.join(sandboxDir, cachePath, "bin/foo-script"),
+        p.join(sandboxDir, cachePath, "bin", binStubName("foo-script")),
         ["arg1", "arg2"],
         environment: getEnvironment());
     process.stdout.expect("ok [arg1, arg2]");

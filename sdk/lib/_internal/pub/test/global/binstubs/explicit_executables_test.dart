@@ -6,6 +6,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 
 main() {
   initConfig();
@@ -31,9 +32,11 @@ main() {
 
     d.dir(cachePath, [
       d.dir("bin", [
-        d.matcherFile("one", contains("pub global run foo:script")),
-        d.nothing("two"),
-        d.matcherFile("three", contains("pub global run foo:script"))
+        d.matcherFile(binStubName("one"),
+            contains("pub global run foo:script")),
+        d.nothing(binStubName("two")),
+        d.matcherFile(binStubName("three"),
+            contains("pub global run foo:script"))
       ])
     ]).validate();
   });

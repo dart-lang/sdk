@@ -6,6 +6,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 
 main() {
   initConfig();
@@ -38,7 +39,7 @@ main() {
     // It should still be deleted.
     d.dir(cachePath, [
       d.dir("bin", [
-        d.nothing("foo")
+        d.nothing(binStubName("foo"))
       ])
     ]).validate();
   });

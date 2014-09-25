@@ -2,6 +2,7 @@ import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 main() {
   initConfig();
   integration("overwrites an existing binstub if --overwrite is passed", () {
@@ -37,9 +38,9 @@ main() {
             d.dir(
                 "bin",
                 [
-                    d.matcherFile("foo", contains("foo:foo")),
-                    d.matcherFile("bar", contains("bar:bar")),
-                    d.matcherFile("collide1", contains("bar:bar")),
-                    d.matcherFile("collide2", contains("bar:bar"))])]).validate();
+                    d.matcherFile(binStubName("foo"), contains("foo:foo")),
+                    d.matcherFile(binStubName("bar"), contains("bar:bar")),
+                    d.matcherFile(binStubName("collide1"), contains("bar:bar")),
+                    d.matcherFile(binStubName("collide2"), contains("bar:bar"))])]).validate();
   });
 }

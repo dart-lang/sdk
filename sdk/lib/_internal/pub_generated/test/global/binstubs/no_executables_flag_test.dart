@@ -1,6 +1,7 @@
 import 'package:scheduled_test/scheduled_test.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 main() {
   initConfig();
   integration("does not create binstubs if --no-executables is passed", () {
@@ -14,6 +15,8 @@ main() {
     schedulePub(args: ["global", "activate", "--source", "path", "../foo"]);
     schedulePub(
         args: ["global", "activate", "--source", "path", "../foo", "--no-executables"]);
-    d.dir(cachePath, [d.dir("bin", [d.nothing("one")])]).validate();
+    d.dir(
+        cachePath,
+        [d.dir("bin", [d.nothing(binStubName("one"))])]).validate();
   });
 }

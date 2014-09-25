@@ -1,6 +1,7 @@
 import 'package:scheduled_test/scheduled_test.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 main() {
   initConfig();
   integration("the binstubs runs a precompiled snapshot if present", () {
@@ -19,6 +20,9 @@ main() {
         [
             d.dir(
                 "bin",
-                [d.matcherFile("foo-script", contains("script.dart.snapshot"))])]).validate();
+                [
+                    d.matcherFile(
+                        binStubName("foo-script"),
+                        contains("script.dart.snapshot"))])]).validate();
   });
 }

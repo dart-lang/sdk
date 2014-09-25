@@ -71,14 +71,7 @@ void main(List<String> arguments) {
   // See what version (i.e. Git commit) of the async-await compiler we
   // currently have. If this is different from the version that was used to
   // compile the sources, recompile everything.
-  var result = Process.runSync("git", ["rev-parse", "HEAD"], workingDirectory:
-      p.join(sourceDir, "../../../../third_party/pkg/async_await"));
-  if (result.exitCode != 0) {
-    stderr.writeln("Could not get Git revision of async_await compiler.");
-    exit(1);
-  }
-
-  var currentCommit = result.stdout.trim();
+  var currentCommit = _getCurrentCommit();
 
   var readmePath = p.join(generatedDir, "README.md");
   var lastCommit;
@@ -140,6 +133,27 @@ void main(List<String> arguments) {
   if (verbose) print("Compiled $numCompiled out of $numFiles files");
 
   if (hadFailure) exit(1);
+}
+
+String _getCurrentCommit() {
+  var command = "git";
+  var args = ["rev-parse", "HEAD"];
+
+  // Spawning a process on Windows will not look for the executable in the
+  // system path so spawn git through a shell to find it.
+  if (Platform.operatingSystem == "windows") {
+    command = "cmd";
+    args = ["/c", "git"]..addAll(args);
+  }
+
+  var result = Process.runSync(command, args, workingDirectory:
+      p.join(sourceDir, "../../../../third_party/pkg/async_await"));
+  if (result.exitCode != 0) {
+    stderr.writeln("Could not get Git revision of async_await compiler.");
+    exit(1);
+  }
+
+  return result.stdout.trim();
 }
 
 void _compile(String sourcePath, String source, String destPath) {

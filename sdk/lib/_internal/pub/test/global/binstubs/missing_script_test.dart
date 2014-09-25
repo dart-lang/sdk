@@ -23,7 +23,7 @@ main() {
     var pub = startPub(args: ["global", "activate", "-spath", "../foo"]);
 
     pub.stderr.expect('Warning: Executable "missing" runs '
-        '"bin/not_here.dart", which was not found in foo.');
+        '"${p.join('bin', 'not_here.dart')}", which was not found in foo.');
     pub.stderr.expect('Warning: Executable "nope" runs '
         '"${p.join('bin', 'nope.dart')}", which was not found in foo.');
     pub.shouldExit();

@@ -1,6 +1,7 @@
 import 'package:scheduled_test/scheduled_test.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 main() {
   initConfig();
   integration("creates binstubs when activating a path package", () {
@@ -19,6 +20,9 @@ main() {
         [
             d.dir(
                 "bin",
-                [d.matcherFile("foo", contains("pub global run foo:foo"))])]).validate();
+                [
+                    d.matcherFile(
+                        binStubName("foo"),
+                        contains("pub global run foo:foo"))])]).validate();
   });
 }

@@ -6,6 +6,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 
 main() {
   initConfig();
@@ -30,10 +31,10 @@ main() {
 
     d.dir(cachePath, [
       d.dir("bin", [
-        d.matcherFile("one", contains("one")),
-        d.matcherFile("two-renamed", contains("second")),
-        d.nothing("two"),
-        d.nothing("nope")
+        d.matcherFile(binStubName("one"), contains("one")),
+        d.matcherFile(binStubName("two-renamed"), contains("second")),
+        d.nothing(binStubName("two")),
+        d.nothing(binStubName("nope"))
       ])
     ]).validate();
   });

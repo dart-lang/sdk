@@ -1,6 +1,7 @@
 import 'package:scheduled_test/scheduled_test.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 main() {
   initConfig();
   integration("removes previous binstubs when reactivating a package", () {
@@ -29,6 +30,8 @@ main() {
         [
             d.dir(
                 "bin",
-                [d.nothing("one"), d.matcherFile("two", contains("two"))])]).validate();
+                [
+                    d.nothing(binStubName("one")),
+                    d.matcherFile(binStubName("two"), contains("two"))])]).validate();
   });
 }

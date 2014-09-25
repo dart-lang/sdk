@@ -1,6 +1,7 @@
 import 'package:scheduled_test/scheduled_test.dart';
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 main() {
   initConfig();
   integration("removes all binstubs for package", () {
@@ -16,6 +17,8 @@ main() {
         "name": "foo"
       })]).create();
     schedulePub(args: ["global", "deactivate", "foo"]);
-    d.dir(cachePath, [d.dir("bin", [d.nothing("foo")])]).validate();
+    d.dir(
+        cachePath,
+        [d.dir("bin", [d.nothing(binStubName("foo"))])]).validate();
   });
 }

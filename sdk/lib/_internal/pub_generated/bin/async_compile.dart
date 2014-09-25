@@ -32,15 +32,7 @@ void main(List<String> arguments) {
         "Usage: dart async_compile.dart [--verbose] [--force] <build dir>");
     exit(64);
   }
-  var result = Process.runSync(
-      "git",
-      ["rev-parse", "HEAD"],
-      workingDirectory: p.join(sourceDir, "../../../../third_party/pkg/async_await"));
-  if (result.exitCode != 0) {
-    stderr.writeln("Could not get Git revision of async_await compiler.");
-    exit(1);
-  }
-  var currentCommit = result.stdout.trim();
+  var currentCommit = _getCurrentCommit();
   var readmePath = p.join(generatedDir, "README.md");
   var lastCommit;
   var readme = new File(readmePath).readAsStringSync();
@@ -86,6 +78,23 @@ void main(List<String> arguments) {
   if (numCompiled > 0) _generateSnapshot(buildDir);
   if (verbose) print("Compiled $numCompiled out of $numFiles files");
   if (hadFailure) exit(1);
+}
+String _getCurrentCommit() {
+  var command = "git";
+  var args = ["rev-parse", "HEAD"];
+  if (Platform.operatingSystem == "windows") {
+    command = "cmd";
+    args = ["/c", "git"]..addAll(args);
+  }
+  var result = Process.runSync(
+      command,
+      args,
+      workingDirectory: p.join(sourceDir, "../../../../third_party/pkg/async_await"));
+  if (result.exitCode != 0) {
+    stderr.writeln("Could not get Git revision of async_await compiler.");
+    exit(1);
+  }
+  return result.stdout.trim();
 }
 void _compile(String sourcePath, String source, String destPath) {
   var destDir = new Directory(p.dirname(destPath));

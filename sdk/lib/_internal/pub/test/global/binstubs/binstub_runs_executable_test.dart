@@ -10,6 +10,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+import 'utils.dart';
 
 main() {
   initConfig();
@@ -29,7 +30,8 @@ main() {
     schedulePub(args: ["global", "activate", "foo"]);
 
     var process = new ScheduledProcess.start(
-        p.join(sandboxDir, cachePath, "bin/foo-script"), ["arg1", "arg2"],
+        p.join(sandboxDir, cachePath, "bin", binStubName("foo-script")),
+        ["arg1", "arg2"],
         environment: getEnvironment());
 
     process.stdout.expect("ok [arg1, arg2]");
@@ -52,7 +54,8 @@ main() {
     schedulePub(args: ["global", "activate", "-spath", "../foo"]);
 
     var process = new ScheduledProcess.start(
-        p.join(sandboxDir, cachePath, "bin/foo-script"), ["arg1", "arg2"],
+        p.join(sandboxDir, cachePath, "bin", binStubName("foo-script")),
+        ["arg1", "arg2"],
         environment: getEnvironment());
 
     process.stdout.expect("ok [arg1, arg2]");
