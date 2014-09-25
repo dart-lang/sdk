@@ -294,7 +294,7 @@ class SubListIterable<E> extends ListIterable<E> {
     }
   }
 
-  List<E> toList({bool growable: false}) {
+  List<E> toList({bool growable: true}) {
     int start = _start;
     int end = _iterable.length;
     if (_endOrLength != null && _endOrLength < end) end = _endOrLength;
