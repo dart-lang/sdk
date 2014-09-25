@@ -1903,7 +1903,7 @@ class JavaScriptBackend extends Backend {
   computeMembersNeededForReflection() {
     if (_membersNeededForReflection != null) return;
     if (compiler.mirrorsLibrary == null) {
-      _membersNeededForReflection = new Set<Element>();
+      _membersNeededForReflection = const ImmutableEmptySet<Element>();
       return;
     }
     // Compute a mapping from class to the closures it contains, so we
