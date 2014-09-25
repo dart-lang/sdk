@@ -2824,6 +2824,19 @@ void Simulator::DecodeType7(Instr* instr) {
           // Format(instr, "vmovr'cond 'rd, 'sn");
           set_register(rd, get_sregister_bits(sn));
         }
+      } else if ((instr->Bits(22, 3) == 0) && (instr->Bit(20) == 0) &&
+                 (instr->Bit(8) == 1) && (instr->Bits(5, 2) == 0)) {
+        DRegister dn = instr->DnField();
+        Register rd = instr->RdField();
+        if (instr->Bit(21) == 0) {
+          // Format(instr, "vmovd'cond 'dd[0], 'rd");
+          SRegister sd = EvenSRegisterOf(dn);
+          set_sregister_bits(sd, get_register(rd));
+        } else {
+          // Format(instr, "vmovd'cond 'dd[1], 'rd");
+          SRegister sd = OddSRegisterOf(dn);
+          set_sregister_bits(sd, get_register(rd));
+        }
       } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0) &&
                  (instr->Bits(12, 4) == 0xf)) {
         // Format(instr, "vmstat'cond");

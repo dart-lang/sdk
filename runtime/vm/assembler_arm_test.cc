@@ -107,7 +107,7 @@ ASSEMBLER_TEST_GENERATE(Vmov, assembler) {
     __ vmovrs(R3, S5);  // R3 = S5, R3 == 41
     __ vmovrrs(R1, R2, S4);  // R1:R2 = S4:S5, R1:R2 == 43:41
     __ vmovdrr(D3, R3, R2);  // D3 = R3:R2, S6:S7 == 41:41
-    __ vmovsr(S7, R1);  // S7 = R1, S6:S7 == 41:43
+    __ vmovdr(D3, 1, R1);  // D3[1] == S7 = R1, S6:S7 == 41:43
     __ vmovrrd(R0, R1, D3);  // R0:R1 = D3, R0:R1 == 41:43
     __ sub(R0, R1, Operand(R0));  // 43-41
   } else {

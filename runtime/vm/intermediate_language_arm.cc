@@ -3622,7 +3622,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadDFromOffset(result, value, Double::value_offset() - kHeapObjectTag);
   } else if (value_cid == kSmiCid) {
     __ SmiUntag(IP, value);
-    __ vmovsr(STMP, IP);
+    __ vmovdr(DTMP, 0, IP);
     __ vcvtdi(result, STMP);
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
@@ -3646,7 +3646,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ b(&done);
       __ Bind(&is_smi);
       __ SmiUntag(IP, value);
-      __ vmovsr(STMP, IP);
+      __ vmovdr(DTMP, 0, IP);
       __ vcvtdi(result, STMP);
       __ Bind(&done);
     }
@@ -4794,8 +4794,7 @@ LocationSummary* Int32x4ConstructorInstr::MakeLocationSummary(
   summary->set_in(1, Location::RequiresRegister());
   summary->set_in(2, Location::RequiresRegister());
   summary->set_in(3, Location::RequiresRegister());
-  // Low (< 7) Q register needed for the vmovsr instruction.
-  summary->set_out(0, Location::FpuRegisterLocation(Q6));
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -4808,15 +4807,9 @@ void Int32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const QRegister result = locs()->out(0).fpu_reg();
   const DRegister dresult0 = EvenDRegisterOf(result);
   const DRegister dresult1 = OddDRegisterOf(result);
-  const SRegister sresult0 = EvenSRegisterOf(dresult0);
-  const SRegister sresult1 = OddSRegisterOf(dresult0);
-  const SRegister sresult2 = EvenSRegisterOf(dresult1);
-  const SRegister sresult3 = OddSRegisterOf(dresult1);
   __ veorq(result, result, result);
-  __ vmovsr(sresult0, v0);
-  __ vmovsr(sresult1, v1);
-  __ vmovsr(sresult2, v2);
-  __ vmovsr(sresult3, v3);
+  __ vmovdrr(dresult0, v0, v1);
+  __ vmovdrr(dresult1, v2, v3);
 }
 
 
@@ -4831,8 +4824,7 @@ LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
   summary->set_in(2, Location::RequiresRegister());
   summary->set_in(3, Location::RequiresRegister());
   summary->set_temp(0, Location::RequiresRegister());
-  // Low (< 7) Q register needed for the vmovsr instruction.
-  summary->set_out(0, Location::FpuRegisterLocation(Q6));
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -4846,25 +4838,22 @@ void Int32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const QRegister result = locs()->out(0).fpu_reg();
   const DRegister dresult0 = EvenDRegisterOf(result);
   const DRegister dresult1 = OddDRegisterOf(result);
-  const SRegister sresult0 = EvenSRegisterOf(dresult0);
-  const SRegister sresult1 = OddSRegisterOf(dresult0);
-  const SRegister sresult2 = EvenSRegisterOf(dresult1);
-  const SRegister sresult3 = OddSRegisterOf(dresult1);
 
   __ veorq(result, result, result);
   __ LoadImmediate(temp, 0xffffffff);
 
-  __ CompareObject(v0, Bool::True());
-  __ vmovsr(sresult0, temp, EQ);
+  __ LoadObject(IP, Bool::True());
+  __ cmp(v0, Operand(IP));
+  __ vmovdr(dresult0, 0, temp, EQ);
 
-  __ CompareObject(v1, Bool::True());
-  __ vmovsr(sresult1, temp, EQ);
+  __ cmp(v1, Operand(IP));
+  __ vmovdr(dresult0, 1, temp, EQ);
 
-  __ CompareObject(v2, Bool::True());
-  __ vmovsr(sresult2, temp, EQ);
+  __ cmp(v2, Operand(IP));
+  __ vmovdr(dresult1, 0, temp, EQ);
 
-  __ CompareObject(v3, Bool::True());
-  __ vmovsr(sresult3, temp, EQ);
+  __ cmp(v3, Operand(IP));
+  __ vmovdr(dresult1, 1, temp, EQ);
 }
 
 
@@ -4957,8 +4946,7 @@ LocationSummary* Int32x4SetFlagInstr::MakeLocationSummary(Isolate* isolate,
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresRegister());
-  // Low (< 7) Q register needed for the vmovsr instruction.
-  summary->set_out(0, Location::FpuRegisterLocation(Q6));
+  summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
 
@@ -4970,10 +4958,6 @@ void Int32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   const DRegister dresult0 = EvenDRegisterOf(result);
   const DRegister dresult1 = OddDRegisterOf(result);
-  const SRegister sresult0 = EvenSRegisterOf(dresult0);
-  const SRegister sresult1 = OddSRegisterOf(dresult0);
-  const SRegister sresult2 = EvenSRegisterOf(dresult1);
-  const SRegister sresult3 = OddSRegisterOf(dresult1);
 
   if (result != mask) {
     __ vmovq(result, mask);
@@ -4984,16 +4968,16 @@ void Int32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(TMP, 0, NE);
   switch (op_kind()) {
     case MethodRecognizer::kInt32x4WithFlagX:
-      __ vmovsr(sresult0, TMP);
+      __ vmovdr(dresult0, 0, TMP);
       break;
     case MethodRecognizer::kInt32x4WithFlagY:
-      __ vmovsr(sresult1, TMP);
+      __ vmovdr(dresult0, 1, TMP);
       break;
     case MethodRecognizer::kInt32x4WithFlagZ:
-      __ vmovsr(sresult2, TMP);
+      __ vmovdr(dresult1, 0, TMP);
       break;
     case MethodRecognizer::kInt32x4WithFlagW:
-      __ vmovsr(sresult3, TMP);
+      __ vmovdr(dresult1, 1, TMP);
       break;
     default: UNREACHABLE();
   }
@@ -5262,7 +5246,7 @@ LocationSummary* Int32ToDoubleInstr::MakeLocationSummary(Isolate* isolate,
 void Int32ToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
-  __ vmovsr(STMP, value);
+  __ vmovdr(DTMP, 0, value);
   __ vcvtdi(result, STMP);
 }
 
@@ -5283,7 +5267,7 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
   __ SmiUntag(IP, value);
-  __ vmovsr(STMP, IP);
+  __ vmovdr(DTMP, 0, IP);
   __ vcvtdi(result, STMP);
 }
 

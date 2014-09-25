@@ -458,6 +458,7 @@ class Assembler : public ValueObject {
   void vmovrrs(Register rt, Register rt2, SRegister sm, Condition cond = AL);
   void vmovdrr(DRegister dm, Register rt, Register rt2, Condition cond = AL);
   void vmovrrd(Register rt, Register rt2, DRegister dm, Condition cond = AL);
+  void vmovdr(DRegister dd, int i, Register rt, Condition cond = AL);
   void vmovs(SRegister sd, SRegister sm, Condition cond = AL);
   void vmovd(DRegister dd, DRegister dm, Condition cond = AL);
   void vmovq(QRegister qd, QRegister qm);

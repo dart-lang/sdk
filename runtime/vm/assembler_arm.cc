@@ -691,6 +691,24 @@ void Assembler::vmovrrs(Register rt, Register rt2, SRegister sm,
 }
 
 
+void Assembler::vmovdr(DRegister dn, int i, Register rt, Condition cond) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
+  ASSERT((i == 0) || (i == 1));
+  ASSERT(rt != kNoRegister);
+  ASSERT(rt != SP);
+  ASSERT(rt != PC);
+  ASSERT(dn != kNoDRegister);
+  ASSERT(cond != kNoCondition);
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
+                     B27 | B26 | B25 |
+                     (i*B21) |
+                     (static_cast<int32_t>(rt)*B12) | B11 | B9 | B8 |
+                     ((static_cast<int32_t>(dn) >> 4)*B7) |
+                     ((static_cast<int32_t>(dn) & 0xf)*B16) | B4;
+  Emit(encoding);
+}
+
+
 void Assembler::vmovdrr(DRegister dm, Register rt, Register rt2,
                         Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
@@ -2454,8 +2472,10 @@ void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
 
 void Assembler::LoadSImmediate(SRegister sd, float value, Condition cond) {
   if (!vmovs(sd, value, cond)) {
+    const DRegister dd = static_cast<DRegister>(sd >> 1);
+    const int index = sd & 1;
     LoadImmediate(IP, bit_cast<int32_t, float>(value), cond);
-    vmovsr(sd, IP, cond);
+    vmovdr(dd, index, IP, cond);
   }
 }
 
