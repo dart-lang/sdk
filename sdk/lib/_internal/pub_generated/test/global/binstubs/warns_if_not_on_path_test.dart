@@ -7,7 +7,7 @@ main() {
     servePackages((builder) {
       builder.serve("foo", "1.0.0", pubspec: {
         "executables": {
-          "script": null
+          "some-dart-script": "script"
         }
       },
           contents: [
@@ -15,6 +15,6 @@ main() {
     });
     schedulePub(
         args: ["global", "activate", "foo"],
-        output: contains("is not on your path"));
+        error: contains("is not on your path"));
   });
 }

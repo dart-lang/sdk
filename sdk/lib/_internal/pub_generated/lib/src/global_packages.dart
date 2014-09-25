@@ -565,7 +565,7 @@ $invocation "\$@"
   }
   void _suggestIfNotOnPath(List<String> installed) {
     if (Platform.operatingSystem == "windows") {
-      var result = Process.runSync("where", [r"\q", installed.first]);
+      var result = runProcessSync("where", [r"\q", installed.first]);
       if (result.exitCode == 0) return;
       var binDir = _binStubDir;
       if (binDir.startsWith(Platform.environment['APPDATA'])) {
@@ -579,7 +579,7 @@ $invocation "\$@"
               '"Path" environment variable.\n'
               'A web search for "configure windows path" will show you how.');
     } else {
-      var result = Process.runSync("which", [installed.first]);
+      var result = runProcessSync("which", [installed.first]);
       if (result.exitCode == 0) return;
       var binDir = _binStubDir;
       if (binDir.startsWith(Platform.environment['HOME'])) {
@@ -591,7 +591,7 @@ $invocation "\$@"
               "${log.bold(binDir)}, which is not on your path.\n"
               "You can fix that by adding this to your shell's config file "
               "(.bashrc, .bash_profile, etc.):\n" "\n"
-              "\n${log.bold('export PATH="\$PATH":"$binDir"')}\n");
+              "  ${log.bold('export PATH="\$PATH":"$binDir"')}\n" "\n");
     }
   }
 }
