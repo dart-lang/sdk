@@ -105,8 +105,17 @@ abstract class String implements Comparable<String>, Pattern {
    *     var clef = new String.fromCharCodes([0x1D11E]);
    *     clef.codeUnitAt(0); // 0xD834
    *     clef.codeUnitAt(1); // 0xDD1E
+   *
+   * If [start] is provided, the first `start` elements of `charCodes` are
+   * skipped. If `charCodes` has fewer than `start` elements in all, the
+   * result is an empty string. The `start` value must be non-negative.
+   *
+   * If [end] is provided, any elements of `charCodes` after the `end`'th are
+   * ignored. If `charCodes` has fewer than `end` elements, the `end` parameter
+   * has no effect.
    */
-  external factory String.fromCharCodes(Iterable<int> charCodes);
+  external factory String.fromCharCodes(Iterable<int> charCodes,
+                                        [int start = 0, int end]);
 
   /**
    * Allocates a new String for the specified [charCode].

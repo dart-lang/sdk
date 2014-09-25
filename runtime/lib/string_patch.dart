@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class String {
-  /* patch */ factory String.fromCharCodes(Iterable<int> charCodes) {
-    return _StringBase.createFromCharCodes(charCodes);
+  /* patch */ factory String.fromCharCodes(Iterable<int> charCodes,
+                                           [int start = 0, int end]) {
+    return _StringBase.createFromCharCodes(charCodes, start, end);
   }
 
   /* patch */ factory String.fromCharCode(int charCode) {
@@ -13,14 +14,16 @@ patch class String {
         return _OneByteString._allocate(1).._setAt(0, charCode);
       }
       if (charCode <= 0xffff) {
-        return _StringBase._createFromCodePoints(new _List(1)..[0] = charCode);
+        return _StringBase._createFromCodePoints(new _List(1)..[0] = charCode,
+                                                 0, 1);
       }
       if (charCode <= 0x10ffff) {
         var low = 0xDC00 | (charCode & 0x3ff);
         int bits = charCode - 0x10000;
         var high = 0xD800 | (bits >> 10);
         return  _StringBase._createFromCodePoints(new _List(2)..[0] = high
-                                                              ..[1] = low);
+                                                              ..[1] = low,
+                                                  0, 2);
       }
     }
     throw new RangeError.range(charCode, 0, 0x10ffff);
@@ -51,46 +54,50 @@ class _StringBase {
    *  Create the most efficient string representation for specified
    *  [codePoints].
    */
-  static String createFromCharCodes(Iterable<int> charCodes) {
-    if (charCodes != null) {
-      // TODO(srdjan): Also skip copying of wide typed arrays.
-      final ccid = ClassID.getID(charCodes);
-      bool isOneByteString = false;
-      if ((ccid != ClassID.cidArray) &&
-          (ccid != ClassID.cidGrowableObjectArray) &&
-          (ccid != ClassID.cidImmutableArray)) {
-        if ((charCodes is Uint8List) || (charCodes is Int8List)) {
-          isOneByteString = true;
-        } else {
-          charCodes = new List<int>.from(charCodes, growable: false);
-        }
+  static String createFromCharCodes(Iterable<int> charCodes,
+                                    int start, int end) {
+    if (charCodes == null) throw new ArgumentError(charCodes);
+    if (start < 0) throw new RangeError.value(start);
+    // TODO(srdjan): Also skip copying of wide typed arrays.
+    final ccid = ClassID.getID(charCodes);
+    bool isOneByteString = false;
+    if ((ccid != ClassID.cidArray) &&
+        (ccid != ClassID.cidGrowableObjectArray) &&
+        (ccid != ClassID.cidImmutableArray)) {
+      if ((charCodes is Uint8List) || (charCodes is Int8List)) {
+        isOneByteString = true;
+      } else {
+        charCodes = new List.from(charCodes, growable: false);
       }
-      final len = charCodes.length;
-      if (!isOneByteString) {
-        for (int i = 0; i < len; i++) {
-          int e = charCodes[i];
-          if (e is! _Smi) throw new ArgumentError(e);
-          // Is e Latin1?
-          if ((e < 0) || (e > 0xFF)) {
-            return _createFromCodePoints(charCodes);
-          }
-        }
-      }
-      // Allocate a one byte string. When the list is 128 entries or longer,
-      // it's faster to perform a runtime-call.
-      if (len >= 128) {
-        return _OneByteString._allocateFromOneByteList(charCodes);
-      }
-      var s = _OneByteString._allocate(len);
-      for (int i = 0; i < len; i++) {
-        s._setAt(i, charCodes[i]);
-      }
-      return s;
     }
-    return _createFromCodePoints(charCodes);
+    if ((end == null) || (end > charCodes.length)) {
+      end = charCodes.length;
+    }
+    if (end <= start) return "";
+    final len = end - start;
+    if (!isOneByteString) {
+      for (int i = start; i < end; i++) {
+        int e = charCodes[i];
+        if (e is! _Smi) throw new ArgumentError(e);
+        // Is e Latin1?
+        if ((e < 0) || (e > 0xFF)) {
+          return _createFromCodePoints(charCodes, start, end);
+        }
+      }
+    }
+    // Allocate a one byte string. When the list is 128 entries or longer,
+    // it's faster to perform a runtime-call.
+    if (len >= 128) {
+      return _OneByteString._allocateFromOneByteList(charCodes, start, end);
+    }
+    var s = _OneByteString._allocate(len);
+    for (int i = 0; i < len; i++) {
+      s._setAt(i, charCodes[start + i]);
+    }
+    return s;
   }
 
-  static String _createFromCodePoints(List<int> codePoints)
+  static String _createFromCodePoints(List<int> codePoints, int start, int end)
       native "StringBase_createFromCodePoints";
 
   String operator [](int index) native "String_charAt";
@@ -924,7 +931,8 @@ class _OneByteString extends _StringBase implements String {
   static _OneByteString _allocate(int length) native "OneByteString_allocate";
 
 
-  static _OneByteString _allocateFromOneByteList(List<int> list)
+  static _OneByteString _allocateFromOneByteList(List<int> list,
+                                                 int start, int end)
       native "OneByteString_allocateFromOneByteList";
 
   // This is internal helper method. Code point value must be a valid

@@ -98,13 +98,13 @@ namespace dart {
   V(List_getLength, 1)                                                         \
   V(List_slice, 4)                                                             \
   V(ImmutableList_from, 4)                                                     \
-  V(StringBase_createFromCodePoints, 1)                                        \
+  V(StringBase_createFromCodePoints, 3)                                        \
   V(StringBase_substringUnchecked, 3)                                          \
   V(StringBuffer_createStringFromUint16Array, 3)                               \
   V(OneByteString_substringUnchecked, 3)                                       \
   V(OneByteString_splitWithCharCode, 2)                                        \
   V(OneByteString_allocate, 1)                                                 \
-  V(OneByteString_allocateFromOneByteList, 1)                                  \
+  V(OneByteString_allocateFromOneByteList, 3)                                  \
   V(OneByteString_setAt, 3)                                                    \
   V(ExternalOneByteString_getCid, 0)                                           \
   V(String_getHashCode, 1)                                                     \

@@ -270,11 +270,32 @@ class List<E> {
 @patch
 class String {
   @patch
-  factory String.fromCharCodes(Iterable<int> charCodes) {
-    if (charCodes is! JSArray) {
-      charCodes = new List.from(charCodes);
+  factory String.fromCharCodes(Iterable<int> charCodes,
+                               [int start = 0, int end]) {
+    if (start < 0) throw new RangeError.value(start);
+    List list;
+    if (charCodes is JSArray) {
+      list = charCodes;
+      // If possible, recognize typed lists too.
+      int len = list.length;
+      if (end == null || end > len) end = len;
+      if (start > 0 || end < len) {
+        if (start >= end) return "";
+        list = list.sublist(start, end);
+      }
+    } else {
+      if (end != null) {
+        if (start >= end) return "";
+        charCodes = charCodes.take(end);
+      }
+      if (start > 0) charCodes = charCodes.skip(start);
+      list = charCodes.toList();  // Try the iterable's own toList first.
+      if (list is! JSArray) {
+        // If that fails, force a JSArray.
+        list = new List.from(list);
+      }
     }
-    return Primitives.stringFromCharCodes(charCodes);
+    return Primitives.stringFromCharCodes(list);
   }
 
   @patch

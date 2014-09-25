@@ -226,7 +226,7 @@ abstract class ListIterable<E> extends IterableBase<E>
 }
 
 class SubListIterable<E> extends ListIterable<E> {
-  final Iterable<E> _iterable;
+  final Iterable<E> _iterable;  // Has efficient length and elementAt.
   final int _start;
   /** If null, represents the length of the iterable. */
   final int _endOrLength;
@@ -292,6 +292,21 @@ class SubListIterable<E> extends ListIterable<E> {
       if (_endOrLength < newEnd) return this;
       return new SubListIterable<E>(_iterable, _start, newEnd);
     }
+  }
+
+  List<E> toList({bool growable: false}) {
+    int start = _start;
+    int end = _iterable.length;
+    if (_endOrLength != null && _endOrLength < end) end = _endOrLength;
+    int length = end - start;
+    if (length < 0) length = 0;
+    List result = growable ? (new List<E>()..length = length)
+                           : new List<E>(length);
+    for (int i = 0; i < length; i++) {
+      result[i] = _iterable.elementAt(start + i);
+      if (_iterable.length < end) throw new ConcurrentModificationError(this);
+    }
+    return result;
   }
 }
 

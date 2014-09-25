@@ -28,32 +28,45 @@ DEFINE_NATIVE_ENTRY(String_fromEnvironment, 3) {
 }
 
 
-DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
+DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, list, arguments->NativeArgAt(0));
-  if (!list.IsGrowableObjectArray() && !list.IsArray()) {
-    Exceptions::ThrowArgumentError(list);
-  }
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
 
   Array& a = Array::Handle();
-  intptr_t array_len;
+  intptr_t length;
   if (list.IsGrowableObjectArray()) {
     const GrowableObjectArray& growableArray = GrowableObjectArray::Cast(list);
     a ^= growableArray.data();
-    array_len = growableArray.Length();
-  } else {
+    length = growableArray.Length();
+  } else if (list.IsArray()) {
     a ^= Array::Cast(list).raw();
-    array_len = a.Length();
+    length = a.Length();
+  } else {
+    Exceptions::ThrowArgumentError(list);
+    return NULL;  // Unreachable.
+  }
+
+  intptr_t start = start_obj.Value();
+  if ((start < 0) || (start > length)) {
+    Exceptions::ThrowArgumentError(start_obj);
+  }
+
+  intptr_t end = end_obj.Value();
+  if ((end < start) || (end > length)) {
+    Exceptions::ThrowArgumentError(end_obj);
   }
 
   Zone* zone = isolate->current_zone();
 
   // Unbox the array and determine the maximum element width.
   bool is_one_byte_string = true;
+  intptr_t array_len = end - start;
   intptr_t utf16_len = array_len;
   int32_t* utf32_array = zone->Alloc<int32_t>(array_len);
   Instance& index_object = Instance::Handle(isolate);
   for (intptr_t i = 0; i < array_len; i++) {
-    index_object ^= a.At(i);
+    index_object ^= a.At(start + i);
     if (!index_object.IsSmi()) {
       Exceptions::ThrowArgumentError(index_object);
     }
@@ -142,44 +155,84 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocate, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 1) {
+DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 3) {
   Instance& list = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
+
+  intptr_t start = start_obj.Value();
+  intptr_t end = end_obj.Value();
+  if (start < 0) {
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, start_obj);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
+  }
+  intptr_t length = end - start;
+  if (length < 0) {
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, end_obj);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
+  }
+  ASSERT(length >= 0);
+
   Heap::Space space = isolate->heap()->SpaceForAllocation(kOneByteStringCid);
   if (list.IsTypedData()) {
     const TypedData& array = TypedData::Cast(list);
-    intptr_t length = array.LengthInBytes();
-    return OneByteString::New(array, 0, length, space);
+    if (end > array.LengthInBytes()) {
+      const Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, end_obj);
+      Exceptions::ThrowByType(Exceptions::kArgument, args);
+    }
+    return OneByteString::New(array, start, length, space);
   } else if (list.IsExternalTypedData()) {
     const ExternalTypedData& array = ExternalTypedData::Cast(list);
-    intptr_t length = array.LengthInBytes();
-    return OneByteString::New(array, 0, length, space);
+    if (end > array.LengthInBytes()) {
+      const Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, end_obj);
+      Exceptions::ThrowByType(Exceptions::kArgument, args);
+    }
+    return OneByteString::New(array, start, length, space);
   } else if (RawObject::IsTypedDataViewClassId(list.GetClassId())) {
     const Instance& view = Instance::Cast(list);
-    intptr_t length = Smi::Value(TypedDataView::Length(view));
+    if (end > Smi::Value(TypedDataView::Length(view))) {
+      const Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, end_obj);
+      Exceptions::ThrowByType(Exceptions::kArgument, args);
+    }
     const Instance& data_obj = Instance::Handle(TypedDataView::Data(view));
     intptr_t data_offset = Smi::Value(TypedDataView::OffsetInBytes(view));
     if (data_obj.IsTypedData()) {
       const TypedData& array = TypedData::Cast(data_obj);
-      return OneByteString::New(array, data_offset, length, space);
+      return OneByteString::New(array, data_offset + start, length, space);
     } else if (data_obj.IsExternalTypedData()) {
       const ExternalTypedData& array = ExternalTypedData::Cast(data_obj);
-      return OneByteString::New(array, data_offset, length, space);
+      return OneByteString::New(array, data_offset + start, length, space);
     }
   } else if (list.IsArray()) {
     const Array& array = Array::Cast(list);
-    intptr_t length = array.Length();
+    if (end > array.Length()) {
+      const Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, end_obj);
+      Exceptions::ThrowByType(Exceptions::kArgument, args);
+    }
     String& string = String::Handle(OneByteString::New(length, space));
     for (int i = 0; i < length; i++) {
-      intptr_t value = Smi::Value(reinterpret_cast<RawSmi*>(array.At(i)));
+      intptr_t value =
+          Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
       OneByteString::SetCharAt(string, i, value);
     }
     return string.raw();
   } else if (list.IsGrowableObjectArray()) {
     const GrowableObjectArray& array = GrowableObjectArray::Cast(list);
-    intptr_t length = array.Length();
+    if (end > array.Length()) {
+      const Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, end_obj);
+      Exceptions::ThrowByType(Exceptions::kArgument, args);
+    }
     String& string = String::Handle(OneByteString::New(length, space));
     for (int i = 0; i < length; i++) {
-      intptr_t value = Smi::Value(reinterpret_cast<RawSmi*>(array.At(i)));
+      intptr_t value =
+          Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
       OneByteString::SetCharAt(string, i, value);
     }
     return string.raw();
