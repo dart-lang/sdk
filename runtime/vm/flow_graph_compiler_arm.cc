@@ -184,6 +184,10 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   ASSERT(deopt_env() != NULL);
 
   StubCode* stub_code = compiler->isolate()->stub_code();
+  // LR may be live. It will be clobbered by BranchLink, so cache it in IP.
+  // It will be restored at the top of the deoptimization stub, specifically in
+  // GenerateDeoptimizationSequence in stub_code_arm.cc.
+  __ mov(IP, Operand(LR));
   __ BranchLink(&stub_code->DeoptimizeLabel());
   set_pc_offset(assem->CodeSize());
 #undef __

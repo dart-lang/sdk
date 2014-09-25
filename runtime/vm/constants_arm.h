@@ -37,13 +37,13 @@ enum Register {
   R6  =  6,
   R7  =  7,
   R8  =  8,
-  kLastFreeCpuRegister = 8,
   R9  =  9,
   R10 = 10,
   R11 = 11,
   R12 = 12,
   R13 = 13,
   R14 = 14,
+  kLastFreeCpuRegister = 14,
   R15 = 15,
   FP  = 11,
   IP  = 12,
@@ -266,12 +266,13 @@ const int kAbiPreservedFpuRegCount = 4;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3) |
-    (1 << R4) | (1 << R5) | (1 << R6) | (1 << R7) | (1 << R8);
+    (1 << R4) | (1 << R5) | (1 << R6) | (1 << R7) |
+    (1 << R8) | (1 << R14);
 
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
-const int kDartVolatileCpuRegCount = 4;
+const int kDartVolatileCpuRegCount = 5;
 const QRegister kDartFirstVolatileFpuReg = Q0;
 const QRegister kDartLastVolatileFpuReg = Q3;
 const int kDartVolatileFpuRegCount = 4;

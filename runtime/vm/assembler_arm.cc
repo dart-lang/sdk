@@ -2376,8 +2376,8 @@ void Assembler::BranchPatchable(const ExternalLabel* label) {
 
 
 void Assembler::BranchLink(const ExternalLabel* label) {
-  LoadImmediate(IP, label->address());  // Target address is never patched.
-  blx(IP);  // Use blx instruction so that the return branch prediction works.
+  LoadImmediate(LR, label->address());  // Target address is never patched.
+  blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
 
@@ -2949,7 +2949,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   // Preserve volatile CPU registers.
-  EnterFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR), 0);
+  EnterFrame(kDartVolatileCpuRegs | (1 << FP), 0);
 
   // Preserve all volatile FPU registers.
   if (TargetCPUFeatures::vfp_supported()) {
@@ -2976,8 +2976,10 @@ void Assembler::LeaveCallRuntimeFrame() {
       TargetCPUFeatures::vfp_supported() ?
       kDartVolatileFpuRegCount * kFpuRegisterSize : 0;
 
+  // We subtract one from the volatile cpu register count because, even though
+  // LR is volatile, it is pushed ahead of FP.
   const intptr_t kPushedRegistersSize =
-      kDartVolatileCpuRegCount * kWordSize + kPushedFpuRegisterSize;
+      (kDartVolatileCpuRegCount - 1) * kWordSize + kPushedFpuRegisterSize;
   AddImmediate(SP, FP, -kPushedRegistersSize);
 
   // Restore all volatile FPU registers.
@@ -2994,7 +2996,7 @@ void Assembler::LeaveCallRuntimeFrame() {
   }
 
   // Restore volatile CPU registers.
-  LeaveFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR));
+  LeaveFrame(kDartVolatileCpuRegs | (1 << FP));
 }
 
 

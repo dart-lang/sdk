@@ -5093,7 +5093,7 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
            (kind() == MathUnaryInstr::kCos));
     if (TargetCPUFeatures::hardfp_supported()) {
       __ CallRuntime(TargetFunction(), InputCount());
-      } else {
+    } else {
       // If we aren't doing "hardfp", then we have to move the double arguments
       // to the integer registers, and take the results from the integer
       // registers.

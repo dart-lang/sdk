@@ -476,9 +476,26 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
                                            bool preserve_result) {
   // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ mov(IP, Operand(LR));
-  __ mov(LR, Operand(0));
-  __ EnterFrame((1 << PP) | (1 << FP) | (1 << IP) | (1 << LR), 0);
+
+  // IP has the potentially live LR value. LR was clobbered by the call with
+  // the return address, so move it into IP to set up the Dart frame.
+  __ eor(IP, IP, Operand(LR));
+  __ eor(LR, IP, Operand(LR));
+  __ eor(IP, IP, Operand(LR));
+
+  // Set up the frame manually. We can't use EnterFrame because we can't
+  // clobber LR (or any other register) with 0, yet.
+  __ sub(SP, SP, Operand(kWordSize));  // Make room for PC marker of 0.
+  __ Push(IP);  // Push return address.
+  __ Push(FP);
+  __ mov(FP, Operand(SP));
+  __ Push(PP);
+
+  // Now that IP holding the return address has been written to the stack,
+  // we can clobber it with 0 to write the null PC marker.
+  __ mov(IP, Operand(0));
+  __ str(IP, Address(SP, +3 * kWordSize));
+
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
