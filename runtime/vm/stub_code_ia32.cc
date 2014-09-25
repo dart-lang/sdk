@@ -411,6 +411,29 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 }
 
 
+// Called from array allocate instruction when the allocation stub has been
+// disabled.
+// EDX: length (preserved).
+// ECX: element type (preserved).
+void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ EnterStubFrame();
+  __ pushl(EDX);       // Preserve length.
+  __ pushl(ECX);       // Preserve element type.
+  __ pushl(raw_null);  // Setup space on stack for return value.
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  __ popl(EAX);  // Get Code object.
+  __ popl(ECX);  // Restore element type.
+  __ popl(EDX);  // Restore length.
+  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
+  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ LeaveFrame();
+  __ jmp(EAX);
+  __ int3();
+}
+
+
 // Input parameters:
 //   EDX: smi-tagged argument count, may be zero.
 //   EBP[kParamEndSlotFromFp + 1]: last argument.
@@ -422,7 +445,9 @@ static void PushArgumentsArray(Assembler* assembler) {
 
   // Allocate array to store arguments of caller.
   __ movl(ECX, raw_null);  // Null element type for raw Array.
-  __ call(&stub_code->AllocateArrayLabel());
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  const ExternalLabel array_label(array_stub.EntryPoint());
+  __ call(&array_label);
   __ SmiUntag(EDX);
   // EAX: newly allocated array.
   // EDX: length of the array (was preserved by the stub).
@@ -610,7 +635,9 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   ECX : array element type (either NULL or an instantiated type).
 // Uses EAX, EBX, ECX, EDI  as temporary registers.
 // The newly allocated object is returned in EAX.
-void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
+void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+  *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -738,6 +765,11 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ popl(EAX);  // Pop return value from return slot.
   __ LeaveFrame();
   __ ret();
+  // Emit function patching code. This will be swapped with the first 5 bytes
+  // at entry point.
+  *patch_code_pc_offset = assembler->CodeSize();
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  __ jmp(&stub_code->FixAllocateArrayStubTargetLabel());
 }
 
 

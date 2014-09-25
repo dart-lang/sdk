@@ -1977,9 +1977,12 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Allocate the array.  R2 = length, R1 = element type.
   ASSERT(locs()->in(kElementTypePos).reg() == R1);
   ASSERT(locs()->in(kLengthPos).reg() == R2);
-  StubCode* stub_code = compiler->isolate()->stub_code();
+  Isolate* isolate = compiler->isolate();
+  const Code& stub = Code::Handle(
+      isolate, isolate->stub_code()->GetAllocateArrayStub());
+  const ExternalLabel label(stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
-                         &stub_code->AllocateArrayLabel(),
+                         &label,
                          RawPcDescriptors::kOther,
                          locs());
   ASSERT(locs()->out(0).reg() == R0);

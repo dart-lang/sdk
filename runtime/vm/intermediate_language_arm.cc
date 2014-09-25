@@ -2290,10 +2290,12 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       return;
     }
   }
-
-  StubCode* stub_code = compiler->isolate()->stub_code();
+  Isolate* isolate = compiler->isolate();
+  const Code& stub = Code::Handle(
+      isolate, isolate->stub_code()->GetAllocateArrayStub());
+  const ExternalLabel label(stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
-                         &stub_code->AllocateArrayLabel(),
+                         &label,
                          RawPcDescriptors::kOther,
                          locs());
   ASSERT(locs()->out(0).reg() == kResultReg);

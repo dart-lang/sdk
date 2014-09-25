@@ -28,6 +28,7 @@ class RawCode;
   V(CallStaticFunction)                                                        \
   V(FixCallersTarget)                                                          \
   V(FixAllocationStubTarget)                                                   \
+  V(FixAllocateArrayStubTarget)                                                \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazy)                                                            \
   V(ICCallBreakpoint)                                                          \
@@ -51,7 +52,6 @@ class RawCode;
 // List of stubs created per isolate, these stubs could potentially contain
 // embedded objects and hence cannot be shared across isolates.
 #define STUB_CODE_LIST(V)                                                      \
-  V(AllocateArray)                                                             \
   V(CallClosureNoSuchMethod)                                                   \
   V(AllocateContext)                                                           \
   V(UpdateStoreBuffer)                                                         \
@@ -98,12 +98,12 @@ class StubEntry {
 // class StubCode is used to maintain the lifecycle of stubs.
 class StubCode {
  public:
-  StubCode()
+  explicit StubCode(Isolate* isolate)
     :
 #define STUB_CODE_INITIALIZER(name)                                            \
         name##_entry_(NULL),
   STUB_CODE_LIST(STUB_CODE_INITIALIZER)
-        dummy_(NULL) {}
+        isolate_(isolate) {}
   ~StubCode();
 
   void GenerateFor(Isolate* isolate);
@@ -165,6 +165,7 @@ class StubCode {
 #undef STUB_CODE_ACCESSOR
 
   static RawCode* GetAllocationStubForClass(const Class& cls);
+  RawCode* GetAllocateArrayStub();
 
   uword UnoptimizedStaticCallEntryPoint(intptr_t num_args_tested);
 
@@ -190,9 +191,7 @@ class StubCode {
   StubEntry* name##_entry_;
   STUB_CODE_LIST(STUB_CODE_ENTRY);
 #undef STUB_CODE_ENTRY
-  // This dummy field is needed so that we can initialize
-  // the stubs from a macro.
-  void* dummy_;
+  Isolate* isolate_;
 
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
@@ -202,6 +201,8 @@ class StubCode {
   static void GenerateMegamorphicMissStub(Assembler* assembler);
   static void GenerateAllocationStubForClass(
       Assembler* assembler, const Class& cls,
+      uword* entry_patch_offset, uword* patch_code_pc_offset);
+  static void GeneratePatchableAllocateArrayStub(Assembler* assembler,
       uword* entry_patch_offset, uword* patch_code_pc_offset);
   static void GenerateNArgsCheckInlineCacheStub(
       Assembler* assembler,

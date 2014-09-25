@@ -458,6 +458,35 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 }
 
 
+// Called from array allocate instruction when the allocation stub has been
+// disabled.
+// A0: element type (preserved).
+// A1: length (preserved).
+void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
+  __ TraceSimMsg("FixAllocationStubTarget");
+  __ EnterStubFrame();
+  // Setup space on stack for return value.
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ sw(A0, Address(SP, 2 * kWordSize));
+  __ sw(A1, Address(SP, 1 * kWordSize));
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  // Get Code object result.
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(A1, Address(SP, 1 * kWordSize));
+  __ lw(A0, Address(SP, 2 * kWordSize));
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
+
+  // Jump to the dart function.
+  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
+  __ AddImmediate(T0, T0, Instructions::HeaderSize() - kHeapObjectTag);
+
+  // Remove the stub frame.
+  __ LeaveStubFrameAndReturn(T0);
+}
+
+
 // Input parameters:
 //   A1: Smi-tagged argument count, may be zero.
 //   FP[kParamEndSlotFromFp + 1]: Last argument.
@@ -468,7 +497,9 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ LoadImmediate(A0, reinterpret_cast<intptr_t>(Object::null()));
   // A0: Null element type for raw Array.
   // A1: Smi-tagged argument count, may be zero.
-  __ BranchLink(&stub_code->AllocateArrayLabel());
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  const ExternalLabel array_label(array_stub.EntryPoint());
+  __ BranchLink(&array_label);
   __ TraceSimMsg("PushArgumentsArray return");
   // V0: newly allocated array.
   // A1: Smi-tagged argument count, may be zero (was preserved by the stub).
@@ -687,8 +718,10 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   A0: array element type (either NULL or an instantiated type).
 // NOTE: A1 cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in V0.
-void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
+void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
   __ TraceSimMsg("AllocateArrayStub");
+  *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
 
   // Compute the size to be allocated, it is based on the array length
@@ -817,6 +850,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(3 * kWordSize));
 
   __ LeaveStubFrameAndReturn();
+  *patch_code_pc_offset = assembler->CodeSize();
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  __ BranchPatchable(&stub_code->FixAllocateArrayStubTargetLabel());
 }
 
 

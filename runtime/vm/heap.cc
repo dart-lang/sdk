@@ -368,8 +368,10 @@ bool Heap::ShouldPretenure(intptr_t class_id) const {
 void Heap::UpdatePretenurePolicy() {
   if (FLAG_disable_alloc_stubs_after_gc) {
     ClassTable* table = isolate_->class_table();
-    for (intptr_t cid = kNumPredefinedCids; cid < table->NumCids(); ++cid) {
-      if (table->IsValidIndex(cid) && table->HasValidClassAt(cid)) {
+    for (intptr_t cid = 1; cid < table->NumCids(); ++cid) {
+      if (((cid >= kNumPredefinedCids) || (cid == kArrayCid)) &&
+          table->IsValidIndex(cid) &&
+          table->HasValidClassAt(cid)) {
         const Class& cls = Class::Handle(isolate_, table->At(cid));
         cls.SwitchAllocationStub();
       }

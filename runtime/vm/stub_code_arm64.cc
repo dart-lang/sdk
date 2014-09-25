@@ -435,6 +435,30 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 }
 
 
+// Called from array allocate instruction when the allocation stub has been
+// disabled.
+// R1: element type (preserved).
+// R2: length (preserved).
+void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Setup space on stack for return value and preserve length, element type.
+  __ Push(R1);
+  __ Push(R2);
+  __ PushObject(Object::null_object(), PP);
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  // Get Code object result and restore length, element type.
+  __ Pop(R0);
+  __ Pop(R2);
+  __ Pop(R1);
+  // Remove the stub frame.
+  __ LeaveStubFrame();
+  // Jump to the dart function.
+  __ LoadFieldFromOffset(R0, R0, Code::instructions_offset(), kNoPP);
+  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag, kNoPP);
+  __ br(R0);
+}
+
+
 // Input parameters:
 //   R2: smi-tagged argument count, may be zero.
 //   FP[kParamEndSlotFromFp + 1]: last argument.
@@ -444,7 +468,9 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ LoadObject(R1, Object::null_object(), PP);
   // R1: null element type for raw Array.
   // R2: smi-tagged argument count, may be zero.
-  __ BranchLink(&stub_code->AllocateArrayLabel(), PP);
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  const ExternalLabel array_label(array_stub.EntryPoint());
+  __ BranchLink(&array_label, PP);
   // R0: newly allocated array.
   // R2: smi-tagged argument count, may be zero (was preserved by the stub).
   __ Push(R0);  // Array is in R0 and on top of stack.
@@ -642,7 +668,9 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   R1: array element type (either NULL or an instantiated type).
 // NOTE: R2 cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in R0.
-void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
+void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+  *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
@@ -774,6 +802,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ Pop(R0);
   __ LeaveStubFrame();
   __ ret();
+  *patch_code_pc_offset = assembler->CodeSize();
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  __ BranchPatchable(&stub_code->FixAllocateArrayStubTargetLabel());
 }
 
 
