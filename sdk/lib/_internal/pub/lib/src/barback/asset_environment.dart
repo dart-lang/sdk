@@ -53,14 +53,19 @@ class AssetEnvironment {
   /// If [watcherType] is not [WatcherType.NONE] (the default), watches source
   /// assets for modification.
   ///
-  /// If [packages] is passed, only those packages' assets will be loaded and
+  /// If [packages] is passed, only those packages' assets are loaded and
   /// served.
+  ///
+  /// If [entrypoints] is passed, only transformers necessary to run those
+  /// entrypoints are loaded. Each entrypoint is expected to refer to a Dart
+  /// library.
   ///
   /// Returns a [Future] that completes to the environment once the inputs,
   /// transformers, and server are loaded and ready.
   static Future<AssetEnvironment> create(Entrypoint entrypoint,
       BarbackMode mode, {WatcherType watcherType, String hostname, int basePort,
-      Iterable<String> packages, bool useDart2JS: true}) {
+      Iterable<String> packages, Iterable<AssetId> entrypoints,
+      bool useDart2JS: true}) {
     if (watcherType == null) watcherType = WatcherType.NONE;
     if (hostname == null) hostname = "localhost";
     if (basePort == null) basePort = 0;
@@ -74,7 +79,7 @@ class AssetEnvironment {
       var environment = new AssetEnvironment._(graph, barback, mode,
           watcherType, hostname, basePort);
 
-      return environment._load(useDart2JS: useDart2JS)
+      return environment._load(entrypoints: entrypoints, useDart2JS: useDart2JS)
           .then((_) => environment);
     });
   }
@@ -445,10 +450,13 @@ class AssetEnvironment {
   /// If [useDart2JS] is `true`, then the [Dart2JSTransformer] is implicitly
   /// added to end of the root package's transformer phases.
   ///
+  /// If [entrypoints] is passed, only transformers necessary to run those
+  /// entrypoints will be loaded.
+  ///
   /// Returns a [Future] that completes once all inputs and transformers are
   /// loaded.
-  Future _load({bool useDart2JS}) {
-    return log.progress("Initializing barback", () {
+  Future _load({Iterable<AssetId> entrypoints, bool useDart2JS}) {
+    return log.progress("Initializing barback", () async {
       // If the entrypoint package manually configures the dart2js
       // transformer, don't include it in the built-in transformer list.
       //
@@ -466,49 +474,46 @@ class AssetEnvironment {
       }
 
       // Bind a server that we can use to load the transformers.
-      var transformerServer;
-      return BarbackServer.bind(this, _hostname, 0).then((server) {
-        transformerServer = server;
+      var transformerServer = await BarbackServer.bind(this, _hostname, 0);
 
-        var errorStream = barback.errors.map((error) {
-          // Even most normally non-fatal barback errors should take down pub if
-          // they happen during the initial load process.
-          if (error is! AssetLoadException) throw error;
+      var errorStream = barback.errors.map((error) {
+        // Even most normally non-fatal barback errors should take down pub if
+        // they happen during the initial load process.
+        if (error is! AssetLoadException) throw error;
 
-          log.error(log.red(error.message));
-          log.fine(error.stackTrace.terse);
-        });
-
-        return _withStreamErrors(() {
-          return log.progress("Loading source assets", _provideSources);
-        }, [errorStream, barback.results]);
-      }).then((_) {
-        log.fine("Provided sources.");
-        var completer = new Completer();
-
-        var errorStream = barback.errors.map((error) {
-          // Now that we're loading transformers, errors they log shouldn't be
-          // fatal, since we're starting to run them on real user assets which
-          // may have e.g. syntax errors. If an error would cause a transformer
-          // to fail to load, the load failure will cause us to exit.
-          if (error is! TransformerException) throw error;
-
-          var message = error.error.toString();
-          if (error.stackTrace != null) {
-            message += "\n" + error.stackTrace.terse.toString();
-          }
-
-          _log(new LogEntry(error.transform, error.transform.primaryId,
-                  LogLevel.ERROR, message, null));
-        });
-
-        return _withStreamErrors(() {
-          return log.progress("Loading transformers", () {
-            return loadAllTransformers(this, transformerServer)
-                .then((_) => transformerServer.close());
-          }, fine: true);
-        }, [errorStream, barback.results, transformerServer.results]);
+        log.error(log.red(error.message));
+        log.fine(error.stackTrace.terse);
       });
+
+      await _withStreamErrors(() {
+        return log.progress("Loading source assets", _provideSources);
+      }, [errorStream, barback.results]);
+
+      log.fine("Provided sources.");
+
+      var errorStream = barback.errors.map((error) {
+        // Now that we're loading transformers, errors they log shouldn't be
+        // fatal, since we're starting to run them on real user assets which
+        // may have e.g. syntax errors. If an error would cause a transformer
+        // to fail to load, the load failure will cause us to exit.
+        if (error is! TransformerException) throw error;
+
+        var message = error.error.toString();
+        if (error.stackTrace != null) {
+          message += "\n" + error.stackTrace.terse.toString();
+        }
+
+        _log(new LogEntry(error.transform, error.transform.primaryId,
+                LogLevel.ERROR, message, null));
+      });
+
+      await _withStreamErrors(() async {
+        return log.progress("Loading transformers", () {
+          await loadAllTransformers(this, transformerServer,
+              entrypoints: entrypoints);
+          transformerServer.close();
+        }, fine: true);
+      }, [errorStream, barback.results, transformerServer.results]);
     }, fine: true);
   }
 

@@ -6,14 +6,16 @@ library pub.load_all_transformers;
 
 import 'dart:async';
 
+import 'package:barback/barback.dart';
+
 import '../log.dart' as log;
 import '../package_graph.dart';
 import '../utils.dart';
 import 'asset_environment.dart';
 import 'barback_server.dart';
+import 'dependency_computer.dart';
 import 'transformer_id.dart';
 import 'transformer_loader.dart';
-import 'transformers_needed_by_transformers.dart';
 
 /// Loads all transformers depended on by packages in [environment].
 ///
@@ -23,10 +25,30 @@ import 'transformers_needed_by_transformers.dart';
 ///
 /// Any built-in transformers that are provided by the environment will
 /// automatically be added to the end of the root package's cascade.
+///
+/// If [entrypoints] is passed, only transformers necessary to run those
+/// entrypoints will be loaded.
 Future loadAllTransformers(AssetEnvironment environment,
-    BarbackServer transformerServer) async {
-  var transformersNeededByTransformers =
-      computeTransformersNeededByTransformers(environment.graph);
+    BarbackServer transformerServer, {Iterable<AssetId> entrypoints}) async {
+  var dependencyComputer = new DependencyComputer(environment.graph);
+
+  // If we only need to load transformers for a specific set of entrypoints,
+  // remove any other transformers from [transformersNeededByTransformers].
+  var necessaryTransformers;
+  if (entrypoints != null) {
+    if (entrypoints.isEmpty) return;
+
+    necessaryTransformers = unionAll(entrypoints.map(
+        dependencyComputer.transformersNeededByLibrary));
+
+    if (necessaryTransformers.isEmpty) {
+      log.fine("No transformers are needed for ${toSentence(entrypoints)}.");
+      return;
+    }
+  }
+
+  var transformersNeededByTransformers = dependencyComputer
+      .transformersNeededByTransformers(necessaryTransformers);
 
   var buffer = new StringBuffer();
   buffer.writeln("Transformer dependencies:");

@@ -1,4 +1,5 @@
-library pub.barback.transformers_needed_by_transformers;
+library pub.barback.dependency_computer;
+import 'package:barback/barback.dart';
 import 'package:path/path.dart' as p;
 import '../dart.dart';
 import '../io.dart';
@@ -8,40 +9,49 @@ import '../utils.dart';
 import 'cycle_exception.dart';
 import 'transformer_config.dart';
 import 'transformer_id.dart';
-Map<TransformerId, Set<TransformerId>>
-    computeTransformersNeededByTransformers(PackageGraph graph) {
-  var result = {};
-  var computer = new _DependencyComputer(graph);
-  for (var packageName in ordered(graph.packages.keys)) {
-    var package = graph.packages[packageName];
-    for (var phase in package.pubspec.transformers) {
-      for (var config in phase) {
-        var id = config.id;
-        if (id.isBuiltInTransformer) continue;
-        if (id.package != graph.entrypoint.root.name &&
-            !config.canTransformPublicFiles) {
-          continue;
-        }
-        result[id] = computer.transformersNeededByTransformer(id);
-      }
-    }
-  }
-  return result;
-}
-class _DependencyComputer {
+class DependencyComputer {
   final PackageGraph _graph;
   final _loadingPackageComputers = new Set<String>();
   final _packageComputers = new Map<String, _PackageDependencyComputer>();
   final _transformersNeededByPackages = new Map<String, Set<TransformerId>>();
-  _DependencyComputer(this._graph) {
+  DependencyComputer(this._graph) {
     ordered(_graph.packages.keys).forEach(_loadPackageComputer);
   }
-  Set<TransformerId> transformersNeededByTransformer(TransformerId id) {
+  Map<TransformerId, Set<TransformerId>>
+      transformersNeededByTransformers([Iterable<TransformerId> transformers]) {
+    var result = {};
+    if (transformers == null) {
+      transformers = ordered(_graph.packages.keys).expand((packageName) {
+        var package = _graph.packages[packageName];
+        return package.pubspec.transformers.expand((phase) {
+          return phase.expand((config) {
+            var id = config.id;
+            if (id.isBuiltInTransformer) return [];
+            if (id.package != _graph.entrypoint.root.name &&
+                !config.canTransformPublicFiles) {
+              return [];
+            }
+            return [id];
+          });
+        });
+      });
+    }
+    for (var id in transformers) {
+      result[id] = _transformersNeededByTransformer(id);
+    }
+    return result;
+  }
+  Set<TransformerId> transformersNeededByLibrary(AssetId id) {
+    var library = _graph.packages[id.package].path(p.fromUri(id.path));
+    _loadPackageComputer(id.package);
+    return _packageComputers[id.package].transformersNeededByLibrary(library);
+  }
+  Set<TransformerId> _transformersNeededByTransformer(TransformerId id) {
     if (id.isBuiltInTransformer) return new Set();
     _loadPackageComputer(id.package);
-    return _packageComputers[id.package].transformersNeededByTransformer(id);
+    return _packageComputers[id.package]._transformersNeededByTransformer(id);
   }
-  Set<TransformerId> transformersNeededByPackageUri(Uri packageUri) {
+  Set<TransformerId> _transformersNeededByPackageUri(Uri packageUri) {
     var components = p.split(p.fromUri(packageUri.path));
     var packageName = components.first;
     var package = _graph.packages[packageName];
@@ -53,7 +63,7 @@ class _DependencyComputer {
     _loadPackageComputer(packageName);
     return _packageComputers[packageName].transformersNeededByLibrary(library);
   }
-  Set<TransformerId> transformersNeededByPackage(String rootPackage) {
+  Set<TransformerId> _transformersNeededByPackage(String rootPackage) {
     if (_transformersNeededByPackages.containsKey(rootPackage)) {
       return _transformersNeededByPackages[rootPackage];
     }
@@ -100,7 +110,7 @@ class _DependencyComputer {
   }
 }
 class _PackageDependencyComputer {
-  final _DependencyComputer _dependencyComputer;
+  final DependencyComputer _dependencyComputer;
   final Package _package;
   final _applicableTransformers = new Set<TransformerConfig>();
   final _directives = new Map<Uri, Set<Uri>>();
@@ -108,7 +118,7 @@ class _PackageDependencyComputer {
   final _transformersNeededByTransformers =
       new Map<TransformerId, Set<TransformerId>>();
   final _transitiveExternalDirectives = new Map<String, Set<Uri>>();
-  _PackageDependencyComputer(_DependencyComputer dependencyComputer,
+  _PackageDependencyComputer(DependencyComputer dependencyComputer,
       String packageName)
       : _dependencyComputer = dependencyComputer,
         _package = dependencyComputer._graph.packages[packageName] {
@@ -117,7 +127,7 @@ class _PackageDependencyComputer {
         var id = config.id;
         try {
           if (id.package != _package.name) {
-            _dependencyComputer.transformersNeededByTransformer(id);
+            _dependencyComputer._transformersNeededByTransformer(id);
           } else {
             _transformersNeededByTransformers[id] =
                 transformersNeededByLibrary(_package.transformerPath(id));
@@ -130,7 +140,7 @@ class _PackageDependencyComputer {
       _applicableTransformers.addAll(phase);
     }
   }
-  Set<TransformerId> transformersNeededByTransformer(TransformerId id) {
+  Set<TransformerId> _transformersNeededByTransformer(TransformerId id) {
     assert(id.package == _package.name);
     if (_transformersNeededByTransformers.containsKey(id)) {
       return _transformersNeededByTransformers[id];
@@ -153,7 +163,7 @@ class _PackageDependencyComputer {
         return _applicableTransformers.map(
             (config) => config.id).toSet().union(unionAll(dependencies.map((dep) {
           try {
-            return _dependencyComputer.transformersNeededByPackage(dep.name);
+            return _dependencyComputer._transformersNeededByPackage(dep.name);
           } on CycleException catch (error) {
             throw error.prependStep("${_package.name} depends on ${dep.name}");
           }
@@ -161,7 +171,7 @@ class _PackageDependencyComputer {
       } else {
         return unionAll(externalDirectives.map((uri) {
           try {
-            return _dependencyComputer.transformersNeededByPackageUri(uri);
+            return _dependencyComputer._transformersNeededByPackageUri(uri);
           } on CycleException catch (error) {
             var packageName = p.url.split(uri.path).first;
             throw error.prependStep("${_package.name} depends on $packageName");

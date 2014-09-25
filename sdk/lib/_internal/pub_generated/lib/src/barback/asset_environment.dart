@@ -24,7 +24,8 @@ import 'source_directory.dart';
 class AssetEnvironment {
   static Future<AssetEnvironment> create(Entrypoint entrypoint,
       BarbackMode mode, {WatcherType watcherType, String hostname, int basePort,
-      Iterable<String> packages, bool useDart2JS: true}) {
+      Iterable<String> packages, Iterable<AssetId> entrypoints, bool useDart2JS:
+      true}) {
     if (watcherType == null) watcherType = WatcherType.NONE;
     if (hostname == null) hostname = "localhost";
     if (basePort == null) basePort = 0;
@@ -35,7 +36,9 @@ class AssetEnvironment {
       barback.log.listen(_log);
       var environment =
           new AssetEnvironment._(graph, barback, mode, watcherType, hostname, basePort);
-      return environment._load(useDart2JS: useDart2JS).then((_) => environment);
+      return environment._load(
+          entrypoints: entrypoints,
+          useDart2JS: useDart2JS).then((_) => environment);
     });
   }
   static PackageGraph _adjustPackageGraph(PackageGraph graph, BarbackMode mode,
@@ -313,7 +316,7 @@ class AssetEnvironment {
     barback.updateSources(_modifiedSources);
     _modifiedSources = null;
   }
-  Future _load({bool useDart2JS}) {
+  Future _load({Iterable<AssetId> entrypoints, bool useDart2JS}) {
     return log.progress("Initializing barback", () {
       var containsDart2JS = graph.entrypoint.root.pubspec.transformers.any(
           (transformers) =>
@@ -354,7 +357,8 @@ class AssetEnvironment {
           return log.progress("Loading transformers", () {
             return loadAllTransformers(
                 this,
-                transformerServer).then((_) => transformerServer.close());
+                transformerServer,
+                entrypoints: entrypoints).then((_) => transformerServer.close());
           }, fine: true);
         }, [errorStream, barback.results, transformerServer.results]);
       });

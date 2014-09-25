@@ -265,8 +265,11 @@ class Entrypoint {
       var packagesToLoad =
           unionAll(executables.keys.map(graph.transitiveDependencies))
           .map((package) => package.name).toSet();
+      var executableIds = unionAll(
+          executables.values.map((ids) => ids.toSet()));
       var environment = await AssetEnvironment.create(this, BarbackMode.RELEASE,
           packages: packagesToLoad,
+          entrypoints: executableIds,
           useDart2JS: false);
       environment.barback.errors.listen((error) {
         log.error(log.red("Build error:\n$error"));

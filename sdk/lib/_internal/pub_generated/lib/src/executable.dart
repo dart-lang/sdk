@@ -19,92 +19,88 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
       join0() {
         join1() {
           join2() {
-            var localSnapshotPath =
-                p.join(".pub", "bin", package, "${executable}.dart.snapshot");
             join3() {
-              var rootDir = "bin";
-              var parts = p.split(executable);
+              var localSnapshotPath =
+                  p.join(".pub", "bin", package, "${executable}.dart.snapshot");
               join4() {
-                AssetEnvironment.create(
-                    entrypoint,
-                    mode,
-                    useDart2JS: false).then((x0) {
-                  try {
-                    var environment = x0;
-                    environment.barback.errors.listen(((error) {
-                      log.error(log.red("Build error:\n$error"));
-                    }));
-                    var server;
-                    join5() {
-                      var assetPath =
-                          "${p.url.joinAll(p.split(executable))}.dart";
-                      var id = new AssetId(server.package, assetPath);
-                      completer0.complete(
-                          environment.barback.getAssetById(id).then(((_) {
-                        final completer0 = new Completer();
-                        scheduleMicrotask(() {
-                          try {
-                            var vmArgs = [];
-                            vmArgs.add("--checked");
-                            var relativePath =
-                                p.url.relative(assetPath, from: p.url.joinAll(p.split(server.rootDirectory)));
-                            vmArgs.add(
-                                server.url.resolve(relativePath).toString());
-                            vmArgs.addAll(args);
-                            Process.start(
-                                Platform.executable,
-                                vmArgs).then((x0) {
-                              try {
-                                var process = x0;
-                                process.stderr.listen(stderr.add);
-                                process.stdout.listen(stdout.add);
-                                stdin.listen(process.stdin.add);
-                                completer0.complete(process.exitCode);
-                              } catch (e0) {
-                                completer0.completeError(e0);
-                              }
-                            }, onError: (e1) {
-                              completer0.completeError(e1);
-                            });
-                          } catch (e2) {
-                            completer0.completeError(e2);
-                          }
-                        });
-                        return completer0.future;
-                      })).catchError(((error, stackTrace) {
-                        if (error is! AssetNotFoundException) throw error;
-                        var message =
-                            "Could not find ${log.bold(executable + ".dart")}";
-                        if (package != entrypoint.root.name) {
-                          message += " in package ${log.bold(server.package)}";
-                        }
-                        log.error("$message.");
-                        log.fine(new Chain.forTrace(stackTrace));
-                        return exit_codes.NO_INPUT;
-                      })));
-                    }
-                    if (package == entrypoint.root.name) {
-                      environment.serveDirectory(rootDir).then((x1) {
-                        try {
-                          server = x1;
-                          join5();
-                        } catch (e1) {
-                          completer0.completeError(e1);
-                        }
-                      }, onError: (e2) {
-                        completer0.completeError(e2);
-                      });
-                    } else {
-                      var dep =
-                          entrypoint.root.immediateDependencies.firstWhere(
-                              ((dep) => dep.name == package),
-                              orElse: (() => null));
+                var rootDir = "bin";
+                var parts = p.split(executable);
+                join5() {
+                  var assetPath = "${p.url.joinAll(p.split(executable))}.dart";
+                  var id = new AssetId(package, assetPath);
+                  AssetEnvironment.create(
+                      entrypoint,
+                      mode,
+                      useDart2JS: false,
+                      entrypoints: [id]).then((x0) {
+                    try {
+                      var environment = x0;
+                      environment.barback.errors.listen(((error) {
+                        log.error(log.red("Build error:\n$error"));
+                      }));
+                      var server;
                       join6() {
+                        completer0.complete(
+                            environment.barback.getAssetById(id).then(((_) {
+                          final completer0 = new Completer();
+                          scheduleMicrotask(() {
+                            try {
+                              var vmArgs = [];
+                              vmArgs.add("--checked");
+                              var relativePath =
+                                  p.url.relative(assetPath, from: p.url.joinAll(p.split(server.rootDirectory)));
+                              vmArgs.add('bin/css.dart');
+                              vmArgs.addAll(args);
+                              Process.start(
+                                  Platform.executable,
+                                  vmArgs).then((x0) {
+                                try {
+                                  var process = x0;
+                                  process.stderr.listen(stderr.add);
+                                  process.stdout.listen(stdout.add);
+                                  stdin.listen(process.stdin.add);
+                                  completer0.complete(process.exitCode);
+                                } catch (e0) {
+                                  completer0.completeError(e0);
+                                }
+                              }, onError: (e1) {
+                                completer0.completeError(e1);
+                              });
+                            } catch (e2) {
+                              completer0.completeError(e2);
+                            }
+                          });
+                          return completer0.future;
+                        })).catchError(((error, stackTrace) {
+                          if (error is! AssetNotFoundException) throw error;
+                          var message =
+                              "Could not find ${log.bold(executable + ".dart")}";
+                          if (package != entrypoint.root.name) {
+                            message +=
+                                " in package ${log.bold(server.package)}";
+                          }
+                          log.error("$message.");
+                          log.fine(new Chain.forTrace(stackTrace));
+                          return exit_codes.NO_INPUT;
+                        })));
+                      }
+                      if (package == entrypoint.root.name) {
+                        environment.serveDirectory(rootDir).then((x1) {
+                          try {
+                            server = x1;
+                            join6();
+                          } catch (e1) {
+                            completer0.completeError(e1);
+                          }
+                        }, onError: (e2) {
+                          completer0.completeError(e2);
+                        });
+                      } else {
                         environment.servePackageBinDirectory(
                             package).then((x2) {
                           try {
                             server = x2;
-                            join5();
+                            join6();
                           } catch (e3) {
                             completer0.completeError(e3);
                           }
@@ -112,59 +108,69 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
                           completer0.completeError(e4);
                         });
                       }
-                      if (dep == null) {
-                        join7() {
-                          join6();
-                        }
-                        if (environment.graph.packages.containsKey(package)) {
-                          dataError(
-                              'Package "${package}" is not an immediate dependency.\n'
-                                  'Cannot run executables in transitive dependencies.');
-                          join7();
-                        } else {
-                          dataError(
-                              'Could not find package "${package}". Did you forget to ' 'add a dependency?');
-                          join7();
-                        }
-                      } else {
-                        join6();
-                      }
+                    } catch (e0) {
+                      completer0.completeError(e0);
                     }
-                  } catch (e0) {
-                    completer0.completeError(e0);
-                  }
-                }, onError: (e5) {
-                  completer0.completeError(e5);
-                });
+                  }, onError: (e5) {
+                    completer0.completeError(e5);
+                  });
+                }
+                if (parts.length > 1) {
+                  assert(!isGlobal && package == entrypoint.root.name);
+                  rootDir = parts.first;
+                  join5();
+                } else {
+                  executable = p.join("bin", executable);
+                  join5();
+                }
               }
-              if (parts.length > 1) {
-                assert(!isGlobal && package == entrypoint.root.name);
-                rootDir = parts.first;
-                join4();
+              if (!isGlobal &&
+                  fileExists(localSnapshotPath) &&
+                  mode == BarbackMode.RELEASE) {
+                completer0.complete(
+                    _runCachedExecutable(entrypoint, localSnapshotPath, args));
               } else {
-                executable = p.join("bin", executable);
                 join4();
               }
             }
-            if (!isGlobal &&
-                fileExists(localSnapshotPath) &&
-                mode == BarbackMode.RELEASE) {
-              completer0.complete(
-                  _runCachedExecutable(entrypoint, localSnapshotPath, args));
+            if (p.extension(executable) == ".dart") {
+              executable = p.withoutExtension(executable);
+              join3();
             } else {
               join3();
             }
           }
-          if (p.extension(executable) == ".dart") {
-            executable = p.withoutExtension(executable);
+          if (log.verbosity == log.Verbosity.NORMAL) {
+            log.verbosity = log.Verbosity.WARNING;
             join2();
           } else {
             join2();
           }
         }
-        if (log.verbosity == log.Verbosity.NORMAL) {
-          log.verbosity = log.Verbosity.WARNING;
-          join1();
+        if (entrypoint.root.name != package &&
+            !entrypoint.root.immediateDependencies.any(((dep) => dep.name == package))) {
+          entrypoint.loadPackageGraph().then((x3) {
+            try {
+              var graph = x3;
+              join7() {
+                join1();
+              }
+              if (graph.packages.containsKey(package)) {
+                dataError(
+                    'Package "${package}" is not an immediate dependency.\n'
+                        'Cannot run executables in transitive dependencies.');
+                join7();
+              } else {
+                dataError(
+                    'Could not find package "${package}". Did you forget to add a ' 'dependency?');
+                join7();
+              }
+            } catch (e6) {
+              completer0.completeError(e6);
+            }
+          }, onError: (e7) {
+            completer0.completeError(e7);
+          });
         } else {
           join1();
         }
@@ -175,8 +181,8 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
       } else {
         join0();
       }
-    } catch (e6) {
-      completer0.completeError(e6);
+    } catch (e8) {
+      completer0.completeError(e8);
     }
   });
   return completer0.future;

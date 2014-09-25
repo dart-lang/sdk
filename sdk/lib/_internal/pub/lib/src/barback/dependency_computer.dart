@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub.barback.transformers_needed_by_transformers;
+library pub.barback.dependency_computer;
 
+import 'package:barback/barback.dart';
 import 'package:path/path.dart' as p;
 
 import '../dart.dart';
@@ -15,40 +16,9 @@ import 'cycle_exception.dart';
 import 'transformer_config.dart';
 import 'transformer_id.dart';
 
-/// Returns a dependency graph for transformers in [graph].
-///
-/// This graph is represented by a map whose keys are the vertices and whose
-/// values are sets representing edges from the given vertex. Each vertex is a
-/// [TransformerId]. If there's an edge from `T1` to `T2`, then `T2` must be
-/// loaded before `T1` can be loaded.
-///
-/// The returned graph is transitively closed. That is, if there's an edge from
-/// `T1` to `T2` and an edge from `T2` to `T3`, there's also an edge from `T1`
-/// to `T2`.
-Map<TransformerId, Set<TransformerId>> computeTransformersNeededByTransformers(
-    PackageGraph graph) {
-  var result = {};
-  var computer = new _DependencyComputer(graph);
-  for (var packageName in ordered(graph.packages.keys)) {
-    var package = graph.packages[packageName];
-    for (var phase in package.pubspec.transformers) {
-      for (var config in phase) {
-        var id = config.id;
-        if (id.isBuiltInTransformer) continue;
-        if (id.package != graph.entrypoint.root.name &&
-            !config.canTransformPublicFiles) {
-          continue;
-        }
-        result[id] = computer.transformersNeededByTransformer(id);
-      }
-    }
-  }
-  return result;
-}
-
-/// A helper class for [computeTransformersNeededByTransformers] that keeps
-/// package-graph-wide state and caches over the course of the computation.
-class _DependencyComputer {
+/// A class for determining dependencies between transformers and from Dart
+/// libraries onto transformers.
+class DependencyComputer {
   /// The package graph being analyzed.
   final PackageGraph _graph;
 
@@ -66,26 +36,72 @@ class _DependencyComputer {
   /// A cache of the results of [transformersNeededByPackage].
   final _transformersNeededByPackages = new Map<String, Set<TransformerId>>();
 
-  _DependencyComputer(this._graph) {
+  DependencyComputer(this._graph) {
     ordered(_graph.packages.keys).forEach(_loadPackageComputer);
+  }
+
+  /// Returns a dependency graph for [transformers], or for all transformers if
+  /// [transformers] is `null`.
+  ///
+  /// This graph is represented by a map whose keys are the vertices and whose
+  /// values are sets representing edges from the given vertex. Each vertex is a
+  /// [TransformerId]. If there's an edge from `T1` to `T2`, then `T2` must be
+  /// loaded before `T1` can be loaded.
+  ///
+  /// The returned graph is transitively closed. That is, if there's an edge
+  /// from `T1` to `T2` and an edge from `T2` to `T3`, there's also an edge from
+  /// `T1` to `T2`.
+  Map<TransformerId, Set<TransformerId>> transformersNeededByTransformers(
+      [Iterable<TransformerId> transformers]) {
+    var result = {};
+
+    if (transformers == null) {
+      transformers = ordered(_graph.packages.keys).expand((packageName) {
+        var package = _graph.packages[packageName];
+        return package.pubspec.transformers.expand((phase) {
+          return phase.expand((config) {
+            var id = config.id;
+            if (id.isBuiltInTransformer) return [];
+            if (id.package != _graph.entrypoint.root.name &&
+                !config.canTransformPublicFiles) {
+              return [];
+            }
+            return [id];
+          });
+        });
+      });
+    }
+
+    for (var id in transformers) {
+      result[id] = _transformersNeededByTransformer(id);
+    }
+    return result;
+  }
+
+  /// Returns the set of all transformers needed to load the library identified
+  /// by [id].
+  Set<TransformerId> transformersNeededByLibrary(AssetId id) {
+    var library = _graph.packages[id.package].path(p.fromUri(id.path));
+    _loadPackageComputer(id.package);
+    return _packageComputers[id.package].transformersNeededByLibrary(library);
   }
 
   /// Returns the set of all transformers that need to be loaded before [id] is
   /// loaded.
-  Set<TransformerId> transformersNeededByTransformer(TransformerId id) {
+  Set<TransformerId> _transformersNeededByTransformer(TransformerId id) {
     if (id.isBuiltInTransformer) return new Set();
     _loadPackageComputer(id.package);
-    return _packageComputers[id.package].transformersNeededByTransformer(id);
+    return _packageComputers[id.package]._transformersNeededByTransformer(id);
   }
 
   /// Returns the set of all transformers that need to be loaded before
   /// [packageUri] (a "package:" URI) can be safely imported from an external
   /// package.
-  Set<TransformerId> transformersNeededByPackageUri(Uri packageUri) {
+  Set<TransformerId> _transformersNeededByPackageUri(Uri packageUri) {
     // TODO(nweiz): We can do some pre-processing on the package graph (akin to
     // the old ordering dependency computation) to figure out which packages are
     // guaranteed not to require any transformers. That'll let us avoid extra
-    // work here and in [transformersNeededByPackage].
+    // work here and in [_transformersNeededByPackage].
 
     var components = p.split(p.fromUri(packageUri.path));
     var packageName = components.first;
@@ -114,7 +130,7 @@ class _DependencyComputer {
   /// (transitively) imports a transformed library. The result of the
   /// transformation may import any dependency or hit any transformer, so we
   /// have to assume that it will.
-  Set<TransformerId> transformersNeededByPackage(String rootPackage) {
+  Set<TransformerId> _transformersNeededByPackage(String rootPackage) {
     if (_transformersNeededByPackages.containsKey(rootPackage)) {
       return _transformersNeededByPackages[rootPackage];
     }
@@ -175,8 +191,8 @@ class _DependencyComputer {
 /// A helper class for [computeTransformersNeededByTransformers] that keeps
 /// package-specific state and caches over the course of the computation.
 class _PackageDependencyComputer {
-  /// The parent [_DependencyComputer].
-  final _DependencyComputer _dependencyComputer;
+  /// The parent [DependencyComputer].
+  final DependencyComputer _dependencyComputer;
 
   /// The package whose dependencies [this] is computing.
   final Package _package;
@@ -200,7 +216,7 @@ class _PackageDependencyComputer {
   /// libraries.
   final _activeLibraries = new Set<String>();
 
-  /// A cache of the results of [transformersNeededByTransformer].
+  /// A cache of the results of [_transformersNeededByTransformer].
   final _transformersNeededByTransformers =
       new Map<TransformerId, Set<TransformerId>>();
 
@@ -209,14 +225,14 @@ class _PackageDependencyComputer {
   /// This is invalidated whenever [_applicableTransformers] changes.
   final _transitiveExternalDirectives = new Map<String, Set<Uri>>();
 
-  _PackageDependencyComputer(_DependencyComputer dependencyComputer,
+  _PackageDependencyComputer(DependencyComputer dependencyComputer,
           String packageName)
       : _dependencyComputer = dependencyComputer,
         _package = dependencyComputer._graph.packages[packageName] {
     // If [_package] uses its own transformers, there will be fewer transformers
     // running on [_package] while its own transformers are loading than there
     // will be once all its transformers are finished loading. To handle this,
-    // we run [transformersNeededByTransformer] to pre-populate
+    // we run [_transformersNeededByTransformer] to pre-populate
     // [_transformersNeededByLibraries] while [_applicableTransformers] is
     // smaller.
     for (var phase in _package.pubspec.transformers) {
@@ -226,7 +242,7 @@ class _PackageDependencyComputer {
           if (id.package != _package.name) {
             // Probe [id]'s transformer dependencies to ensure that it doesn't
             // depend on this package. If it does, a CycleError will be thrown.
-            _dependencyComputer.transformersNeededByTransformer(id);
+            _dependencyComputer._transformersNeededByTransformer(id);
           } else {
             // Store the transformers needed specifically with the current set
             // of [_applicableTransformers]. When reporting this transformer's
@@ -254,7 +270,7 @@ class _PackageDependencyComputer {
   /// loaded.
   ///
   /// [id] must refer to a transformer in [_package].
-  Set<TransformerId> transformersNeededByTransformer(TransformerId id) {
+  Set<TransformerId> _transformersNeededByTransformer(TransformerId id) {
     assert(id.package == _package.name);
     if (_transformersNeededByTransformers.containsKey(id)) {
       return _transformersNeededByTransformers[id];
@@ -271,7 +287,7 @@ class _PackageDependencyComputer {
   /// If [library] or anything it imports/exports within this package is
   /// transformed by [_applicableTransformers], this will return a conservative
   /// set of transformers (see also
-  /// [_DependencyComputer.transformersNeededByPackage]).
+  /// [DependencyComputer._transformersNeededByPackage]).
   Set<TransformerId> transformersNeededByLibrary(String library) {
     library = p.normalize(library);
     if (_activeLibraries.contains(library)) return new Set();
@@ -291,7 +307,7 @@ class _PackageDependencyComputer {
         return _applicableTransformers.map((config) => config.id).toSet().union(
             unionAll(dependencies.map((dep) {
           try {
-            return _dependencyComputer.transformersNeededByPackage(dep.name);
+            return _dependencyComputer._transformersNeededByPackage(dep.name);
           } on CycleException catch (error) {
             throw error.prependStep("${_package.name} depends on ${dep.name}");
           }
@@ -301,7 +317,7 @@ class _PackageDependencyComputer {
         // used by the external packages' libraries that we import or export.
         return unionAll(externalDirectives.map((uri) {
           try {
-            return _dependencyComputer.transformersNeededByPackageUri(uri);
+            return _dependencyComputer._transformersNeededByPackageUri(uri);
           } on CycleException catch (error) {
             var packageName = p.url.split(uri.path).first;
             throw error.prependStep("${_package.name} depends on $packageName");

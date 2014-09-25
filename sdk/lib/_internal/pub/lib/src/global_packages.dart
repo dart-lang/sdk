@@ -197,8 +197,11 @@ class GlobalPackages {
       var binDir = p.join(_directory, package, 'bin');
       cleanDir(binDir);
 
-      var environment = await AssetEnvironment.create(entrypoint,
-          BarbackMode.RELEASE, useDart2JS: false);
+      var graph = await entrypoint.loadPackageGraph();
+      var environment = await AssetEnvironment.create(
+          entrypoint, BarbackMode.RELEASE,
+          entrypoints: graph.packages[package].executableIds,
+          useDart2JS: false);
       environment.barback.errors.listen((error) {
         log.error(log.red("Build error:\n$error"));
       });

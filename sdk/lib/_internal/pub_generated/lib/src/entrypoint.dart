@@ -314,10 +314,13 @@ class Entrypoint {
                             var packagesToLoad = unionAll(
                                 executables.keys.map(
                                     graph.transitiveDependencies)).map(((package) => package.name)).toSet();
+                            var executableIds =
+                                unionAll(executables.values.map(((ids) => ids.toSet())));
                             AssetEnvironment.create(
                                 this,
                                 BarbackMode.RELEASE,
                                 packages: packagesToLoad,
+                                entrypoints: executableIds,
                                 useDart2JS: false).then((x0) {
                               try {
                                 var environment = x0;

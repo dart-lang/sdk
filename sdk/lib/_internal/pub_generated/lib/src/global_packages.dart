@@ -226,25 +226,35 @@ class GlobalPackages {
         try {
           var binDir = p.join(_directory, package, 'bin');
           cleanDir(binDir);
-          AssetEnvironment.create(
-              entrypoint,
-              BarbackMode.RELEASE,
-              useDart2JS: false).then((x0) {
+          entrypoint.loadPackageGraph().then((x0) {
             try {
-              var environment = x0;
-              environment.barback.errors.listen(((error) {
-                log.error(log.red("Build error:\n$error"));
-              }));
-              completer0.complete(
-                  environment.precompileExecutables(package, binDir));
+              var graph = x0;
+              AssetEnvironment.create(
+                  entrypoint,
+                  BarbackMode.RELEASE,
+                  entrypoints: graph.packages[package].executableIds,
+                  useDart2JS: false).then((x1) {
+                try {
+                  var environment = x1;
+                  environment.barback.errors.listen(((error) {
+                    log.error(log.red("Build error:\n$error"));
+                  }));
+                  completer0.complete(
+                      environment.precompileExecutables(package, binDir));
+                } catch (e1) {
+                  completer0.completeError(e1);
+                }
+              }, onError: (e2) {
+                completer0.completeError(e2);
+              });
             } catch (e0) {
               completer0.completeError(e0);
             }
-          }, onError: (e1) {
-            completer0.completeError(e1);
+          }, onError: (e3) {
+            completer0.completeError(e3);
           });
-        } catch (e2) {
-          completer0.completeError(e2);
+        } catch (e4) {
+          completer0.completeError(e4);
         }
       });
       return completer0.future;
