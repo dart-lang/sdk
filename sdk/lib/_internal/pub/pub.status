@@ -16,4 +16,3 @@ test/transformer/loads_a_diamond_transformer_dependency_graph_test: Pass, Slow
 
 [ $runtime == vm && $system == windows ]
 test/run/app_can_read_from_stdin_test: Fail # Issue 19448
-test/real_version_test: RuntimeError # Issue 20882
