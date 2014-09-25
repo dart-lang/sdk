@@ -491,7 +491,7 @@ class AssetEnvironment {
 
       log.fine("Provided sources.");
 
-      var errorStream = barback.errors.map((error) {
+      errorStream = barback.errors.map((error) {
         // Now that we're loading transformers, errors they log shouldn't be
         // fatal, since we're starting to run them on real user assets which
         // may have e.g. syntax errors. If an error would cause a transformer

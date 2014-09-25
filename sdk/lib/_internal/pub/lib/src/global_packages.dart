@@ -624,7 +624,7 @@ $invocation "\$@"
     if (Platform.operatingSystem == "windows") {
       // See if the shell can find one of the binstubs.
       // "\q" means return exit code 0 if found or 1 if not.
-      var result = Process.runSync("where", r"\q", [installed.first]);
+      var result = Process.runSync("where", [r"\q", installed.first]);
       if (result.exitCode == 0) return;
 
       var binDir = _binStubDir;

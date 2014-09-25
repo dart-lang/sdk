@@ -47,11 +47,15 @@ class CachedPackage extends Package {
 
   /// This will include the cached, transformed versions of files if [beneath]
   /// is within a cached directory, but not otherwise.
-  List<String> listFiles({String beneath, recursive: true}) {
-    if (beneath == null) return super.listFiles(recursive: recursive);
+  List<String> listFiles({String beneath, recursive: true,
+      bool useGitIgnore: false}) {
+    if (beneath == null) {
+      return super.listFiles(recursive: recursive, useGitIgnore: useGitIgnore);
+    }
 
     if (_pathInCache(beneath)) return listDir(p.join(_cacheDir, beneath));
-    return super.listFiles(beneath: beneath, recursive: recursive);
+    return super.listFiles(beneath: beneath, recursive: recursive,
+        useGitIgnore: useGitIgnore);
   }
 
   /// Returns whether [relativePath], a path relative to the package's root,

@@ -339,7 +339,7 @@ class AssetEnvironment {
                   try {
                     x1;
                     log.fine("Provided sources.");
-                    var errorStream = barback.errors.map(((error) {
+                    errorStream = barback.errors.map(((error) {
                       if (error is! TransformerException) throw error;
                       var message = error.error.toString();
                       if (error.stackTrace != null) {

@@ -22,10 +22,16 @@ class CachedPackage extends Package {
     if (p.isWithin(path, _cacheDir)) return p.relative(path, from: _cacheDir);
     return super.relative(path);
   }
-  List<String> listFiles({String beneath, recursive: true}) {
-    if (beneath == null) return super.listFiles(recursive: recursive);
+  List<String> listFiles({String beneath, recursive: true, bool useGitIgnore:
+      false}) {
+    if (beneath == null) {
+      return super.listFiles(recursive: recursive, useGitIgnore: useGitIgnore);
+    }
     if (_pathInCache(beneath)) return listDir(p.join(_cacheDir, beneath));
-    return super.listFiles(beneath: beneath, recursive: recursive);
+    return super.listFiles(
+        beneath: beneath,
+        recursive: recursive,
+        useGitIgnore: useGitIgnore);
   }
   bool _pathInCache(String relativePath) => p.isWithin('lib', relativePath);
 }

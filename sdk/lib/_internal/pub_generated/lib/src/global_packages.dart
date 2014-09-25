@@ -565,7 +565,7 @@ $invocation "\$@"
   }
   void _suggestIfNotOnPath(List<String> installed) {
     if (Platform.operatingSystem == "windows") {
-      var result = Process.runSync("where", r"\q", [installed.first]);
+      var result = Process.runSync("where", [r"\q", installed.first]);
       if (result.exitCode == 0) return;
       var binDir = _binStubDir;
       if (binDir.startsWith(Platform.environment['APPDATA'])) {
