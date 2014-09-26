@@ -46,6 +46,8 @@ symbol_reserved_word_test/05: RuntimeError # bug 20191 / dartium/drt cannot dete
 # new Symbol('void') should be allowed.
 [ $compiler == dart2js ]
 symbol_reserved_word_test/03: RuntimeError # bug 19972
+int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
+int_parse_radix_test/02: Fail # No bigints.
 
 # With the exception of 'void', const Symbol() should not accept reserved
 # words.
