@@ -1,3 +1,7 @@
+## 1.1.1
+
+* Widen the SDK constraint to include 1.7.0-dev.4.0.
+
 ## 1.1.0
 
 * Unify the parsing of Safari and Firefox stack traces. This fixes an error in
