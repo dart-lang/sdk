@@ -68,3 +68,11 @@ String separatorToForwardSlash(String path) {
   if (p.style != p.Style.windows) return path;
   return path.replaceAll('\\', '/');
 }
+
+/// Returns [path] which follows [context] converted to the POSIX format that
+/// globs match against.
+String toPosixPath(p.Context context, String path) {
+  if (context.style == p.Style.windows) return path.replaceAll('\\', '/');
+  if (context.style == p.Style.url) return Uri.decodeFull(path);
+  return path;
+}

@@ -334,7 +334,7 @@ class OptionsNode extends AstNode {
   String _toRegExp() =>
       '(?:${options.map((option) => option._toRegExp()).join("|")})';
 
-  bool operator==(Object other) => other is OptionsNode && 
+  bool operator==(Object other) => other is OptionsNode &&
       const UnorderedIterableEquality().equals(options, other.options);
 
   int get hashCode => const UnorderedIterableEquality().hash(options);

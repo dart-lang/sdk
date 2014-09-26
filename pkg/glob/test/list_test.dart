@@ -265,10 +265,8 @@ void syncAndAsync(callback(ListFn listFn)) {
       return schedule(() {
         return new Glob(glob, recursive: recursive)
             .list(root: sandbox, followLinks: followLinks)
-            .map((entity) {
-          return separatorToForwardSlash(
-              p.relative(entity.path, from: sandbox));
-        }).toList();
+            .map((entity) => p.relative(entity.path, from: sandbox))
+            .toList();
       }, 'listing $glob');
     });
   });
@@ -278,10 +276,8 @@ void syncAndAsync(callback(ListFn listFn)) {
       return schedule(() {
         return new Glob(glob, recursive: recursive)
             .listSync(root: sandbox, followLinks: followLinks)
-            .map((entity) {
-          return separatorToForwardSlash(
-              p.relative(entity.path, from: sandbox));
-        }).toList();
+            .map((entity) => p.relative(entity.path, from: sandbox))
+            .toList();
       }, 'listing $glob');
     });
   });

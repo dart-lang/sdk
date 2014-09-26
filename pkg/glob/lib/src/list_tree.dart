@@ -11,6 +11,7 @@ import 'package:path/path.dart' as p;
 
 import 'ast.dart';
 import 'stream_pool.dart';
+import 'utils.dart';
 
 /// A structure built from a glob that efficiently lists filesystem entities
 /// that match that glob.
@@ -371,7 +372,7 @@ class _ListTreeNode {
   /// Returns whether the native [path] matches [_validator].
   bool _matches(String path) {
     if (_validator == null) return false;
-    return _validator.matches(path);
+    return _validator.matches(toPosixPath(p.context, path));
   }
 
   String toString() => "($_validator) $children";
