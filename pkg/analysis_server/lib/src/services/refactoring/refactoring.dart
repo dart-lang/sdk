@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol.dart' show
     RefactoringMethodParameter, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';
 import 'package:analysis_server/src/services/refactoring/convert_method_to_getter.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
@@ -27,7 +28,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';
 import 'package:path/path.dart' as pathos;
 
 

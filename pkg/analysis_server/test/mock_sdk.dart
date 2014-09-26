@@ -214,7 +214,7 @@ class HtmlElement {}
 
     // If we reach here then we tried to use a dartUri that's not in the
     // table above.
-    throw unimplemented;
+    return null;
   }
 }
 

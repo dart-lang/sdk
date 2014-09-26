@@ -19,9 +19,6 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 
-const String _TOKEN_SEPARATOR = "\uFFFF";
-
-
 /**
  * [InlineLocalRefactoring] implementation.
  */
