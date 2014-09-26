@@ -681,7 +681,8 @@ class TypeGraphInferrerEngine
     while (!workQueue.isEmpty) {
       TypeInformation info = workQueue.remove();
       if (seenTypes.contains(info)) continue;
-      info.reset(this);
+      // If the node cannot be reset, we do not need to update its users either.
+      if (!info.reset(this)) continue;
       seenTypes.add(info);
       workQueue.addAll(info.users);
     }

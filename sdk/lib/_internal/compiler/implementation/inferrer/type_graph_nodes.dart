@@ -155,10 +155,11 @@ abstract class TypeInformation {
   }
 
   /// Reset the analysis of this node by making its type empty.
-  void reset(TypeGraphInferrerEngine inferrer) {
-    if (abandonInferencing) return;
+  bool reset(TypeGraphInferrerEngine inferrer) {
+    if (abandonInferencing) return false;
     type = const TypeMask.nonNullEmpty();
     refineCount = 0;
+    return true;
   }
 
   accept(TypeInformationVisitor visitor);
@@ -1045,16 +1046,17 @@ class ConcreteTypeInformation extends TypeInformation {
   }
 
   void addAssignment(TypeInformation assignment) {
+    throw "Not supported";
   }
 
   void removeAssignment(TypeInformation assignment) {
-    assert(false);
+    throw "Not supported";
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) => type;
 
-  void reset(TypeGraphInferrerEngine inferrer) {
-    assert(false);
+  bool reset(TypeGraphInferrerEngine inferrer) {
+    throw "Not supported";
   }
 
   String toString() => 'Type $type';
