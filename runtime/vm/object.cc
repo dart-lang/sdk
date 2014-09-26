@@ -9115,12 +9115,22 @@ RawScript* Library::LookupScript(const String& url) const {
   const Array& scripts = Array::Handle(LoadedScripts());
   Script& script = Script::Handle();
   String& script_url = String::Handle();
-  intptr_t num_scripts = scripts.Length();
+  const intptr_t url_length = url.Length();
+  const intptr_t num_scripts = scripts.Length();
   for (int i = 0; i < num_scripts; i++) {
     script ^= scripts.At(i);
     script_url = script.url();
-    if (script_url.Equals(url)) {
+    const intptr_t start_idx = script_url.Length() - url_length;
+    if ((start_idx == 0) && url.Equals(script_url)) {
       return script.raw();
+    } else if (start_idx > 0) {
+      // If we do a suffix match, only match if the partial path
+      // starts at or immediately after the path separator.
+      if (((url.CharAt(0) == '/') ||
+          (script_url.CharAt(start_idx - 1) == '/')) &&
+          url.Equals(script_url, start_idx, url_length)) {
+        return script.raw();
+      }
     }
   }
   return Script::null();
