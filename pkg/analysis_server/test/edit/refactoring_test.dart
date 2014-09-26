@@ -18,6 +18,7 @@ import '../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
+  runReflectiveTests(ConvertGetterMethodToMethodTest);
   runReflectiveTests(ConvertMethodToGetterTest);
   runReflectiveTests(ExtractLocalVariableTest);
   runReflectiveTests(ExtractMethodTest);
@@ -26,6 +27,102 @@ main() {
   runReflectiveTests(InlineMethodTest);
   runReflectiveTests(MoveFileTest);
   runReflectiveTests(RenameTest);
+}
+
+
+@ReflectiveTestCase()
+class ConvertGetterMethodToMethodTest extends _AbstractGetRefactoring_Test {
+  test_function() {
+    addTestFile('''
+int get test => 42;
+main() {
+  var a = 1 + test;
+  var b = 2 + test;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendConvertRequest('test =>');
+    }, '''
+int test() => 42;
+main() {
+  var a = 1 + test();
+  var b = 2 + test();
+}
+''');
+  }
+
+  test_init_fatalError_notExplicit() {
+    addTestFile('''
+int test = 42;
+main() {
+  var v = test;
+}
+''');
+    return getRefactoringResult(() {
+      return _sendConvertRequest('test;');
+    }).then((result) {
+      assertResultProblemsFatal(
+          result.initialProblems,
+          'Only explicit getters can be converted to methods.');
+      // ...there is no any change
+      expect(result.change, isNull);
+    });
+  }
+
+  test_method() {
+    addTestFile('''
+class A {
+  int get test => 1;
+}
+class B extends A {
+  int get test => 2;
+}
+class C extends B {
+  int get test => 3;
+}
+class D extends A {
+  int get test => 4;
+}
+main(A a, B b, C c, D d) {
+  var va = a.test;
+  var vb = b.test;
+  var vc = c.test;
+  var vd = d.test;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendConvertRequest('test => 2');
+    }, '''
+class A {
+  int test() => 1;
+}
+class B extends A {
+  int test() => 2;
+}
+class C extends B {
+  int test() => 3;
+}
+class D extends A {
+  int test() => 4;
+}
+main(A a, B b, C c, D d) {
+  var va = a.test();
+  var vb = b.test();
+  var vc = c.test();
+  var vd = d.test();
+}
+''');
+  }
+
+  Future<Response> _sendConvertRequest(String search) {
+    Request request = new EditGetRefactoringParams(
+        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        testFile,
+        findOffset(search),
+        0,
+        false).toRequest('0');
+    return serverChannel.sendRequest(request);
+  }
 }
 
 

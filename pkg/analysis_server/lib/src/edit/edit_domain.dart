@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/engine.dart';
 
 
 /**
@@ -195,11 +194,11 @@ class _RefactoringManager {
    * Checks if [refactoring] requires options.
    */
   bool get _requiresOptions {
-    if (refactoring is ConvertMethodToGetterRefactoring ||
-        refactoring is InlineLocalRefactoring) {
-      return false;
-    }
-    return true;
+    return refactoring is ExtractLocalRefactoring ||
+        refactoring is ExtractMethodRefactoring ||
+        refactoring is InlineMethodRefactoring ||
+        refactoring is MoveFileRefactoring ||
+        refactoring is RenameRefactoring;
   }
 
   void getRefactoring(Request request) {
@@ -266,6 +265,16 @@ class _RefactoringManager {
     this.offset = offset;
     this.length = length;
     // create a new Refactoring instance
+    if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
+      List<Element> elements = server.getElementsAtOffset(file, offset);
+      if (elements.isNotEmpty) {
+        Element element = elements[0];
+        if (element is ExecutableElement) {
+          refactoring =
+              new ConvertGetterToMethodRefactoring(searchEngine, element);
+        }
+      }
+    }
     if (kind == RefactoringKind.CONVERT_METHOD_TO_GETTER) {
       List<Element> elements = server.getElementsAtOffset(file, offset);
       if (elements.isNotEmpty) {
@@ -378,7 +387,7 @@ class _RefactoringManager {
     });
   }
 
-  void _reset([AnalysisContext context]) {
+  void _reset([engine.AnalysisContext context]) {
     kind = null;
     offset = null;
     length = null;
