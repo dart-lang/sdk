@@ -134,7 +134,7 @@ patch class int {
       result = sign * smi;
       start = blockEnd;
     }
-    _Smi multiplier = _PARSE_LIMITS[tableIndex + 1];
+    int multiplier = _PARSE_LIMITS[tableIndex + 1];
     int blockEnd = start + blockSize;
     do {
       _Smi smi = _parseBlock(source, radix, start, blockEnd);
