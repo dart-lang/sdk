@@ -3432,19 +3432,18 @@ void Assembler::LoadClassId(Register result, Register object) {
 }
 
 
-void Assembler::LoadClassById(Register result, Register class_id) {
+void Assembler::LoadClassById(Register result, Register class_id, Register pp) {
   ASSERT(result != class_id);
-  movq(result, FieldAddress(CTX, Context::isolate_offset()));
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  movq(result, Address(result, table_offset_in_isolate));
+  Isolate* isolate = Isolate::Current();
+  LoadImmediate(result, Immediate(isolate->class_table()->TableAddress()), pp);
+  movq(result, Address(result, 0));
   movq(result, Address(result, class_id, TIMES_8, 0));
 }
 
 
-void Assembler::LoadClass(Register result, Register object) {
+void Assembler::LoadClass(Register result, Register object, Register pp) {
   LoadClassId(TMP, object);
-  LoadClassById(result, TMP);
+  LoadClassById(result, TMP, pp);
 }
 
 

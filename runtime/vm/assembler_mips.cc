@@ -672,10 +672,8 @@ void Assembler::LoadClassId(Register result, Register object) {
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(!in_delay_slot_);
   ASSERT(result != class_id);
-  lw(result, FieldAddress(CTX, Context::isolate_offset()));
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  lw(result, Address(result, table_offset_in_isolate));
+  LoadImmediate(result, Isolate::Current()->class_table()->TableAddress());
+  lw(result, Address(result, 0));
   sll(TMP, class_id, 2);
   addu(result, result, TMP);
   lw(result, Address(result));
@@ -686,14 +684,7 @@ void Assembler::LoadClass(Register result, Register object) {
   ASSERT(!in_delay_slot_);
   ASSERT(TMP != result);
   LoadClassId(TMP, object);
-
-  lw(result, FieldAddress(CTX, Context::isolate_offset()));
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  lw(result, Address(result, table_offset_in_isolate));
-  sll(TMP, TMP, 2);
-  addu(result, result, TMP);
-  lw(result, Address(result));
+  LoadClassById(result, TMP);
 }
 
 

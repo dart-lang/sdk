@@ -35,9 +35,6 @@ class RawCode;
   V(ClosureCallBreakpoint)                                                     \
   V(RuntimeCallBreakpoint)                                                     \
   V(DebugStepCheck)                                                            \
-  V(Subtype1TestCache)                                                         \
-  V(Subtype2TestCache)                                                         \
-  V(Subtype3TestCache)                                                         \
   V(GetStackPointer)                                                           \
   V(JumpToExceptionHandler)                                                    \
   V(UnoptimizedIdenticalWithNumberCheck)                                       \
@@ -69,6 +66,9 @@ class RawCode;
   V(TwoArgsUnoptimizedStaticCall)                                              \
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
+  V(Subtype1TestCache)                                                         \
+  V(Subtype2TestCache)                                                         \
+  V(Subtype3TestCache)                                                         \
 
 // class StubEntry is used to describe stub methods generated in dart to
 // abstract out common code executed from generated dart code.

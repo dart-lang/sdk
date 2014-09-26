@@ -1730,10 +1730,8 @@ void Assembler::LoadClassId(Register result, Register object, Condition cond) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
-  ldr(result, FieldAddress(CTX, Context::isolate_offset()));
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  LoadFromOffset(kWord, result, result, table_offset_in_isolate);
+  LoadImmediate(result, Isolate::Current()->class_table()->TableAddress());
+  LoadFromOffset(kWord, result, result, 0);
   ldr(result, Address(result, class_id, LSL, 2));
 }
 
@@ -1741,12 +1739,7 @@ void Assembler::LoadClassById(Register result, Register class_id) {
 void Assembler::LoadClass(Register result, Register object, Register scratch) {
   ASSERT(scratch != result);
   LoadClassId(scratch, object);
-
-  ldr(result, FieldAddress(CTX, Context::isolate_offset()));
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  LoadFromOffset(kWord, result, result, table_offset_in_isolate);
-  ldr(result, Address(result, scratch, LSL, 2));
+  LoadClassById(result, scratch);
 }
 
 

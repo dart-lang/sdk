@@ -1093,10 +1093,8 @@ void Assembler::LoadClassId(Register result, Register object, Register pp) {
 
 void Assembler::LoadClassById(Register result, Register class_id, Register pp) {
   ASSERT(result != class_id);
-  LoadFieldFromOffset(result, CTX, Context::isolate_offset(), pp);
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  LoadFromOffset(result, result, table_offset_in_isolate, pp);
+  LoadImmediate(result, Isolate::Current()->class_table()->TableAddress(), pp);
+  LoadFromOffset(result, result, 0, pp);
   ldr(result, Address(result, class_id, UXTX, Address::Scaled));
 }
 

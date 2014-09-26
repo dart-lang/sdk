@@ -1783,7 +1783,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ movq(RAX, Address(RSP, kInstanceOffsetInBytes));
   __ LoadObject(R12, Object::null_object(), PP);
   if (n > 1) {
-    __ LoadClass(R10, RAX);
+    __ LoadClass(R10, RAX, kNoRegister);
     // Compute instance type arguments into R13.
     Label has_no_type_arguments;
     __ movq(R13, R12);

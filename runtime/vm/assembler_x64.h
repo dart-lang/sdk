@@ -754,9 +754,9 @@ class Assembler : public ValueObject {
    */
   void LoadClassId(Register result, Register object);
 
-  void LoadClassById(Register result, Register class_id);
+  void LoadClassById(Register result, Register class_id, Register pp);
 
-  void LoadClass(Register result, Register object);
+  void LoadClass(Register result, Register object, Register pp);
 
   void CompareClassId(Register object, intptr_t class_id);
 

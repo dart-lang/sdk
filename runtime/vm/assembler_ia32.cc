@@ -2738,25 +2738,16 @@ void Assembler::LoadClassId(Register result, Register object) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
-  movl(result, FieldAddress(CTX, Context::isolate_offset()));
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  movl(result, Address(result, table_offset_in_isolate));
+  movl(result,
+       Address::Absolute(Isolate::Current()->class_table()->TableAddress()));
   movl(result, Address(result, class_id, TIMES_4, 0));
 }
 
 
-void Assembler::LoadClass(Register result,
-                          Register object,
-                          Register scratch) {
+void Assembler::LoadClass(Register result, Register object, Register scratch) {
   ASSERT(scratch != result);
   LoadClassId(scratch, object);
-
-  movl(result, FieldAddress(CTX, Context::isolate_offset()));
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  movl(result, Address(result, table_offset_in_isolate));
-  movl(result, Address(result, scratch, TIMES_4, 0));
+  LoadClassById(result, scratch);
 }
 
 

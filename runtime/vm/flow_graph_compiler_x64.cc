@@ -374,7 +374,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   if (type.IsFunctionType()) {
     // Check if instance is a closure.
-    __ LoadClassById(R13, kClassIdReg);
+    __ LoadClassById(R13, kClassIdReg, PP);
     __ movq(R13, FieldAddress(R13, Class::signature_function_offset()));
     __ CompareObject(R13, Object::null_object(), PP);
     __ j(NOT_EQUAL, is_instance_lbl);
@@ -409,7 +409,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     Label* is_not_instance_lbl) {
   __ Comment("Subtype1TestCacheLookup");
   const Register kInstanceReg = RAX;
-  __ LoadClass(R10, kInstanceReg);
+  __ LoadClass(R10, kInstanceReg, PP);
   // R10: instance class.
   // Check immediate superclass equality.
   __ movq(R13, FieldAddress(R10, Class::super_type_offset()));
