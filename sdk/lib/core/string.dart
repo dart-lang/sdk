@@ -106,10 +106,13 @@ abstract class String implements Comparable<String>, Pattern {
    *     clef.codeUnitAt(0); // 0xD834
    *     clef.codeUnitAt(1); // 0xDD1E
    *
-   * If [start] and [end] is provided, only the values of [charCodes]
-   * at positions from `start` to, but not including, `end`, are used.
-   * The `start` and `end` values must satisfy
-   * `0 <= start <= end <= charCodes.length`.
+   * If [start] is provided, the first `start` elements of `charCodes` are
+   * skipped. If `charCodes` has fewer than `start` elements in all, the
+   * result is an empty string. The `start` value must be non-negative.
+   *
+   * If [end] is provided, any elements of `charCodes` after the `end`'th are
+   * ignored. If `charCodes` has fewer than `end` elements, the `end` parameter
+   * has no effect.
    */
   external factory String.fromCharCodes(Iterable<int> charCodes,
                                         [int start = 0, int end]);

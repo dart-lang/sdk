@@ -57,6 +57,7 @@ class _StringBase {
   static String createFromCharCodes(Iterable<int> charCodes,
                                     int start, int end) {
     if (charCodes == null) throw new ArgumentError(charCodes);
+    if (start < 0) throw new RangeError.value(start);
     // TODO(srdjan): Also skip copying of wide typed arrays.
     final ccid = ClassID.getID(charCodes);
     bool isOneByteString = false;
@@ -69,15 +70,10 @@ class _StringBase {
         charCodes = new List.from(charCodes, growable: false);
       }
     }
-    int codeCount = charCodes.length;
-    if (start < 0 || start > codeCount) {
-      throw new RangeError.range(start, 0, codeCount);
+    if ((end == null) || (end > charCodes.length)) {
+      end = charCodes.length;
     }
-    if (end == null) {
-      end = codeCount;
-    } else if (end < start || end > codeCount) {
-      throw new RangeError.range(end, start, codeCount);
-    }
+    if (end <= start) return "";
     final len = end - start;
     if (!isOneByteString) {
       for (int i = start; i < end; i++) {
