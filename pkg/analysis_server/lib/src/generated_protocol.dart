@@ -8398,6 +8398,8 @@ class RequestError implements HasToJson {
  *   INVALID_REQUEST
  *   SERVER_ALREADY_STARTED
  *   SERVER_ERROR
+ *   SORT_MEMBERS_INVALID_FILE
+ *   SORT_MEMBERS_PARSE_ERRORS
  *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
  *   UNSUPPORTED_FEATURE
@@ -8444,6 +8446,18 @@ class RequestErrorCode {
   static const SERVER_ERROR = const RequestErrorCode._("SERVER_ERROR");
 
   /**
+   * An "edit.sortMembers" request specified a FilePath which does not match a
+   * Dart file in an analysis root.
+   */
+  static const SORT_MEMBERS_INVALID_FILE = const RequestErrorCode._("SORT_MEMBERS_INVALID_FILE");
+
+  /**
+   * An "edit.sortMembers" request specified a Dart file that has scan or parse
+   * errors.
+   */
+  static const SORT_MEMBERS_PARSE_ERRORS = const RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
+
+  /**
    * An "analysis.setPriorityFiles" request includes one or more files that are
    * not being analyzed.
    *
@@ -8485,6 +8499,10 @@ class RequestErrorCode {
         return SERVER_ALREADY_STARTED;
       case "SERVER_ERROR":
         return SERVER_ERROR;
+      case "SORT_MEMBERS_INVALID_FILE":
+        return SORT_MEMBERS_INVALID_FILE;
+      case "SORT_MEMBERS_PARSE_ERRORS":
+        return SORT_MEMBERS_PARSE_ERRORS;
       case "UNANALYZED_PRIORITY_FILES":
         return UNANALYZED_PRIORITY_FILES;
       case "UNKNOWN_REQUEST":

@@ -1520,6 +1520,15 @@ dt.typeDefinition {
           Sort all of the directives, unit and class members
           of the given Dart file.
         </p>
+        <p>
+          If a request is made for a file that does not exist, does not belong
+          to an analysis root or is not a Dart file,
+          <tt>SORT_MEMBERS_INVALID_FILE</tt> will be generated.
+        </p>
+        <p>
+          If the Dart file has scan or parse errors,
+          <tt>SORT_MEMBERS_PARSE_ERRORS</tt> will be generated.
+        </p>
         
         
       <h4>Parameters</h4><dl><dt class="field"><b><i>file ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
@@ -2687,6 +2696,18 @@ dt.typeDefinition {
             <p>
               An internal error occurred in the analysis server.
               Also see the server.error notification.
+            </p>
+          </dd><dt class="value">SORT_MEMBERS_INVALID_FILE</dt><dd>
+            
+            <p>
+              An "edit.sortMembers" request specified a FilePath
+              which does not match a Dart file in an analysis root.
+            </p>
+          </dd><dt class="value">SORT_MEMBERS_PARSE_ERRORS</dt><dd>
+            
+            <p>
+              An "edit.sortMembers" request specified a Dart file that has
+              scan or parse errors.
             </p>
           </dd><dt class="value">UNANALYZED_PRIORITY_FILES</dt><dd>
             
