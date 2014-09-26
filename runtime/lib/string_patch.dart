@@ -57,7 +57,6 @@ class _StringBase {
   static String createFromCharCodes(Iterable<int> charCodes,
                                     int start, int end) {
     if (charCodes == null) throw new ArgumentError(charCodes);
-    if (start < 0) throw new RangeError.value(start);
     // TODO(srdjan): Also skip copying of wide typed arrays.
     final ccid = ClassID.getID(charCodes);
     bool isOneByteString = false;
@@ -70,10 +69,15 @@ class _StringBase {
         charCodes = new List.from(charCodes, growable: false);
       }
     }
-    if ((end == null) || (end > charCodes.length)) {
-      end = charCodes.length;
+    int codeCount = charCodes.length;
+    if (start < 0 || start > codeCount) {
+      throw new RangeError.range(start, 0, codeCount);
     }
-    if (end <= start) return "";
+    if (end == null) {
+      end = codeCount;
+    } else if (end < start || end > codeCount) {
+      throw new RangeError.range(end, start, codeCount);
+    }
     final len = end - start;
     if (!isOneByteString) {
       for (int i = start; i < end; i++) {
@@ -267,12 +271,12 @@ class _StringBase {
       native "StringBase_substringUnchecked";
 
   // Checks for one-byte whitespaces only.
-  static bool _isOneByteWhitespace(int codePoint) {
-    return
-      (codePoint == 32) || // Space.
-      ((codePoint <= 13) ? (9 <= codePoint)  // CR, LF, TAB, etc.
-                         : ((codePoint == 0x85) ||  // NEL
-                            (codePoint == 0xA0)));  // NBSP
+  static bool _isOneByteWhitespace(int codeUnit) {
+    if (codeUnit <= 32) {
+      return ((codeUnit == 32) || // Space.
+              ((codeUnit <= 13) && (codeUnit >= 9)));  // CR, LF, TAB, etc.
+    }
+    return (codeUnit == 0x85) || (codeUnit == 0xA0);
   }
 
   // Characters with Whitespace property (Unicode 6.2).
@@ -291,7 +295,12 @@ class _StringBase {
   //
   // BOM: 0xFEFF
   static bool _isTwoByteWhitespace(int codeUnit) {
-    if (codeUnit <= 0xA0) return _isOneByteWhitespace(codeUnit);
+    if (codeUnit <= 32) {
+      return (codeUnit == 32) ||
+             ((codeUnit <= 13) && (codeUnit >= 9));
+    }
+    if (codeUnit < 0x85) return false;
+    if ((codeUnit == 0x85) || (codeUnit == 0xA0)) return true;
     return (codeUnit <= 0x200A)
             ? ((codeUnit == 0x1680) ||
                (codeUnit == 0x180E) ||
