@@ -119,6 +119,7 @@ class ObservatoryApplication extends Observable {
     lastErrorOrException = exception;
     if (exception.kind == 'NetworkException') {
       // Got a network exception, visit the vm-connect page.
+      this.vm = null;
       locationManager.go(locationManager.makeLink('/vm-connect/'));
     } else {
       _visit('error/', null);
