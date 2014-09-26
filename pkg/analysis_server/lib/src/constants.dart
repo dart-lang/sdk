@@ -72,6 +72,7 @@ const String EDIT_GET_ASSISTS = 'edit.getAssists';
 const String EDIT_GET_AVAILABLE_REFACTORINGS = 'edit.getAvailableRefactorings';
 const String EDIT_GET_FIXES = 'edit.getFixes';
 const String EDIT_GET_REFACTORING = 'edit.getRefactoring';
+const String EDIT_SORT_MEMBERS = 'edit.sortMembers';
 
 //
 // Execution methods

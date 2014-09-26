@@ -962,6 +962,26 @@ class Response {
     : this('', error: new RequestError(RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
 
   /**
+   * Initialize a newly created instance to represent the
+   * SORT_MEMBERS_INVALID_FILE error condition.
+   */
+  Response.sortMembersInvalidFile(Request request)
+    : this(
+        request.id,
+        error: new RequestError(RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
+            'Error during `edit.sortMembers`: invalid file.'));
+
+  /**
+   * Initialize a newly created instance to represent the
+   * SORT_MEMBERS_PARSE_ERRORS error condition.
+   */
+  Response.sortMembersParseErrors(Request request, int numErrors)
+    : this(
+        request.id,
+        error: new RequestError(RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
+            'Error during `edit.sortMembers`: file has $numErrors scan/parse errors.'));
+
+  /**
    * Initialize a newly created instance to represent an error condition caused
    * by a `analysis.setPriorityFiles` [request] that includes one or more files
    * that are not being analyzed.

@@ -11,6 +11,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/json.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -19,6 +20,8 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
+import 'package:analyzer/src/generated/parser.dart' as engine;
+import 'package:analyzer/src/generated/scanner.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 
 
@@ -139,11 +142,50 @@ class EditDomainHandler implements RequestHandler {
       } else if (requestName == EDIT_GET_REFACTORING) {
         refactoringManager.getRefactoring(request);
         return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_SORT_MEMBERS) {
+        return sortMembers(request);
       }
     } on RequestFailure catch (exception) {
       return exception.response;
     }
     return null;
+  }
+
+  Response sortMembers(Request request) {
+    var params = new EditSortMembersParams.fromRequest(request);
+    // prepare file
+    String file = params.file;
+    if (!engine.AnalysisEngine.isDartFileName(file)) {
+      return new Response.sortMembersInvalidFile(request);
+    }
+    // prepare resolved units
+    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+    if (units.isEmpty) {
+      return new Response.sortMembersInvalidFile(request);
+    }
+    // prepare context
+    CompilationUnit unit = units.first;
+    engine.AnalysisContext context = unit.element.context;
+    Source source = unit.element.source;
+    // check if there are no scan/parse errors in the file
+    engine.AnalysisErrorInfo errors = context.getErrors(source);
+    int numScanParseErrors = 0;
+    errors.errors.forEach((engine.AnalysisError error) {
+      if (error.errorCode is engine.ScannerErrorCode ||
+          error.errorCode is engine.ParserErrorCode) {
+        numScanParseErrors++;
+      }
+    });
+    if (numScanParseErrors != 0) {
+      return new Response.sortMembersParseErrors(request, numScanParseErrors);
+    }
+    // do sort
+    int fileStamp = context.getModificationStamp(source);
+    String code = context.getContents(source).data;
+    MemberSorter sorter = new MemberSorter(code, unit);
+    List<SourceEdit> edits = sorter.sort();
+    SourceFileEdit fileEdit = new SourceFileEdit(file, fileStamp, edits: edits);
+    return new EditSortMembersResult(fileEdit).toResponse(request.id);
   }
 }
 
