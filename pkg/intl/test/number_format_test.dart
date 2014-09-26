@@ -18,7 +18,7 @@ import 'dart:math';
 var testNumbersWeCanReadBack = {
   "-1" : -1,
   "-2" : -2.0,
-  "-0.01" : -0.01, 
+  "-0.01" : -0.01,
   "0.001": 0.001,
   "0.01": 0.01,
   "0.1": 0.1,
@@ -76,7 +76,7 @@ inJavaScript() => 1 is double;
 
 main() {
   // For data from a list of locales, run each locale's data as a separate
-  // test so we can see exactly which ones pass or fail. The test data is 
+  // test so we can see exactly which ones pass or fail. The test data is
   // hard-coded as printing 123, -12.3, %12,300, -1,230% in each locale.
   var mainList = numberTestData;
   var sortedLocales = new List.from(numberFormatSymbols.keys);
@@ -96,8 +96,8 @@ main() {
         var expected = (list..moveNext()).current;
         expect(formatted, expected);
         var expectedNegative = (list..moveNext()).current;
-        // Some of these results from CLDR have a leading LTR/RTL indicator, 
-        // which we don't want. We also treat the difference between Unicode 
+        // Some of these results from CLDR have a leading LTR/RTL indicator,
+        // which we don't want. We also treat the difference between Unicode
         // minus sign (2212) and hyphen-minus (45) as not significant.
         expectedNegative = expectedNegative
             .replaceAll("\u200e", "")
@@ -140,6 +140,19 @@ main() {
       expect(formatted, x);
       var readBack = number.parse(formatted);
       expect(testExponential[x], readBack);
+    }
+  });
+
+  // We can't do these in the normal tests because those also format the
+  // numbers and we're reading them in a format where they won't print
+  // back the same way.
+  test('Parsing modifiers,e.g. percent, in the base format', () {
+    var number = new NumberFormat();
+    var modified = { "12%" : 0.12, "12\u2030" : 0.012};
+    modified.addAll(testExponential);
+    for (var x in modified.keys) {
+      var parsed = number.parse(x);
+      expect(parsed, modified[x]);
     }
   });
 
