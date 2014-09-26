@@ -6,6 +6,11 @@ library dart2js.new_js_emitter.model;
 
 import '../dart2jslib.dart' show Compiler;
 import '../js/js.dart' as js;
+import '../../js_lib/shared/embedded_names.dart' show
+    DEFERRED_LIBRARY_URIS,
+    DEFERRED_LIBRARY_HASHES,
+    INITIALIZE_LOADED_HUNK,
+    IS_HUNK_LOADED;
 
 js.LiteralString unparse(Compiler compiler, js.Expression value) {
   String text = js.prettyPrint(value, compiler).getText();
@@ -15,13 +20,17 @@ js.LiteralString unparse(Compiler compiler, js.Expression value) {
 
 class Program {
   final List<Output> outputs;
-  Program(this.outputs);
+  /// A map from load id to the list of outputs that need to be loaded.
+  final Map<String, List<Output>> loadMap;
+
+  Program(this.outputs, this.loadMap);
 
   void emit(Compiler compiler) {
     MainOutput mainUnit = outputs.first;
-    String mainCode = js.prettyPrint(mainUnit.emit(compiler), compiler)
+    String mainCode =
+        js.prettyPrint(mainUnit.emit(compiler, loadMap), compiler)
         .getText();
-    compiler.outputProvider('', 'js')
+    compiler.outputProvider(mainUnit.outputFileName, 'js')
         ..add(_buildGeneratedBy(compiler))
         ..add(mainCode)
         ..close();
@@ -30,7 +39,7 @@ class Program {
     outputs.skip(1).forEach((DeferredOutput deferredUnit) {
       String code = js.prettyPrint(deferredUnit.emit(compiler), compiler)
           .getText();
-      compiler.outputProvider('', 'js')
+      compiler.outputProvider(deferredUnit.outputFileName, deferredExtension)
           ..add(code)
           ..close();
     });
@@ -54,22 +63,38 @@ abstract class Output {
   MainOutput get mainOutput;
   final List<Library> libraries;
 
-  Output(this.libraries);
+  /// Output file name without extension.
+  final String outputFileName;
+
+  Output(this.outputFileName, this.libraries);
 }
+
+/// For deferred loading we communicate the initializers via this global var.
+const String deferredInitializersGlobal = r"$__dart_deferred_initializers__";
+
+const String deferredExtension = ".part.js";
 
 class MainOutput extends Output {
   final js.Expression main;
   final List<Holder> holders;
 
-  MainOutput(this.main, List<Library> libraries, this.holders)
-      : super(libraries);
+  MainOutput(
+      String outputFileName, this.main, List<Library> libraries, this.holders)
+      : super(outputFileName, libraries);
 
   MainOutput get mainOutput => this;
 
-  js.Expression emit(Compiler compiler) {
+  js.Statement emit(Compiler compiler,
+                     Map<String, List<Output>> loadMap) {
     js.Expression program = new js.ArrayInitializer.from(
         libraries.map((e) => e.emit(compiler)));
-    return js.js(boilerplate, [emitHolders(), main, program]);
+    return js.js.statement(
+        boilerplate,
+        [emitDeferredInitializerGlobal(loadMap),
+         emitHolders(),
+         emitEmbeddedGlobals(compiler, loadMap),
+         main,
+         program]);
   }
 
   js.Block emitHolders() {
@@ -94,18 +119,95 @@ class MainOutput extends Output {
     ];
     return new js.Block(statements);
   }
+
+  js.Block emitEmbeddedGlobals(compiler, Map<String, List<Output>> loadMap) {
+    List<js.Property> globals = <js.Property>[];
+
+    if (loadMap.isNotEmpty) {
+      globals.addAll(emitLoadUrisAndHashes(loadMap));
+      globals.add(emitIsHunkLoadedFunction());
+      globals.add(emitInitializeLoadedHunk());
+    }
+
+    if (globals.isEmpty) return new js.Block.empty();
+
+    js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
+
+    List<js.Statement> statements =
+        [new js.ExpressionStatement(
+            new js.VariableDeclarationList(
+                [new js.VariableInitialization(
+                    new js.VariableDeclaration(r"init", allowRename: false),
+                    globalsObject)]))];
+    return new js.Block(statements);
+  }
+
+  List<js.Property> emitLoadUrisAndHashes(Map<String, List<Output>> loadMap) {
+    js.ArrayInitializer outputUris(List<Output> outputs) {
+      return js.stringArray(outputs.map((DeferredOutput output) =>
+          "${output.outputFileName}$deferredExtension"));
+    }
+    js.ArrayInitializer outputHashes(List<Output> outputs) {
+      // TODO(floitsch): the hash must depend on the generated code.
+      return js.numArray(
+          outputs.map((DeferredOutput output) => output.hashCode));
+    }
+
+    List<js.Property> uris = new List<js.Property>(loadMap.length);
+    List<js.Property> hashes = new List<js.Property>(loadMap.length);
+    int count = 0;
+    loadMap.forEach((String loadId, List<Output> outputList) {
+      uris[count] = new js.Property(js.string(loadId), outputUris(outputList));
+      hashes[count] =
+          new js.Property(js.string(loadId), outputHashes(outputList));
+      count++;
+    });
+
+    return <js.Property>[
+         new js.Property(js.string(DEFERRED_LIBRARY_URIS),
+                         new js.ObjectInitializer(uris)),
+         new js.Property(js.string(DEFERRED_LIBRARY_HASHES),
+                         new js.ObjectInitializer(hashes))
+         ];
+  }
+
+  js.Statement emitDeferredInitializerGlobal(Map loadMap) {
+    if (loadMap.isEmpty) return new js.Block.empty();
+
+    return js.js.statement("""
+  if (typeof($deferredInitializersGlobal) === 'undefined')
+    var $deferredInitializersGlobal = Object.create(null);""");
+  }
+
+  js.Property emitIsHunkLoadedFunction() {
+    js.Expression function =
+        js.js("function(hash) { return !!$deferredInitializersGlobal[hash]; }");
+    return new js.Property(js.string(IS_HUNK_LOADED), function);
+  }
+
+  js.Property emitInitializeLoadedHunk() {
+    js.Expression function =
+        js.js("function(hash) { eval($deferredInitializersGlobal[hash]); }");
+    return new js.Property(js.string(INITIALIZE_LOADED_HUNK), function);
+  }
 }
 
 class DeferredOutput extends Output {
   final MainOutput mainOutput;
+  final String name;
 
   List<Holder> get holders => mainOutput.holders;
 
-  DeferredOutput(this.mainOutput, List<Library> libraries)
-      : super(libraries);
+  DeferredOutput(String outputFileName, this.name,
+                 this.mainOutput, List<Library> libraries)
+      : super(outputFileName, libraries);
 
   js.Expression emit(Compiler compiler) {
-    throw "Unimplemented";
+    // TODO(floitsch): the hash must depend on the output.
+    int hash = this.hashCode;
+    js.ArrayInitializer content =
+        new js.ArrayInitializer.from(libraries.map((e) => e.emit(compiler)));
+    return js.js("$deferredInitializersGlobal[$hash] = #", content);
   }
 }
 
@@ -117,9 +219,9 @@ class Library {
 
   js.Expression emit(Compiler compiler) {
     Iterable staticDescriptors = statics.expand((e) =>
-        [ js.string(e.name), js.js.number(e.holder.index), e.emit(compiler) ]);
+        [ js.string(e.name), js.number(e.holder.index), e.emit(compiler) ]);
     Iterable classDescriptors = classes.expand((e) =>
-        [ js.string(e.name), js.js.number(e.holder.index), e.emit(compiler) ]);
+        [ js.string(e.name), js.number(e.holder.index), e.emit(compiler) ]);
 
     js.Expression staticArray = new js.ArrayInitializer.from(staticDescriptors);
     js.Expression classArray = new js.ArrayInitializer.from(classDescriptors);
@@ -146,7 +248,7 @@ class Class {
 
   js.Expression emit(Compiler compiler) {
     List elements = [ js.string(superclassName),
-                      js.js.number(superclassHolderIndex) ];
+                      js.number(superclassHolderIndex) ];
     elements.addAll(methods.expand((e) => [ js.string(e.name), e.code ]));
     return unparse(compiler, new js.ArrayInitializer.from(elements));
   }
@@ -169,6 +271,10 @@ class StaticMethod extends Method {
 }
 
 final String boilerplate = r"""
+{
+// Declare deferred-initializer global.
+#;
+
 !function(start, program) {
 
   // Initialize holder objects.
@@ -196,7 +302,7 @@ final String boilerplate = r"""
 
   function setupStatic(name, holder, descriptor) {
     holder[name] = function() {
-      var method = compile(descriptor);
+      var method = compile(name, descriptor);
       holder[name] = method;
       return method.apply(this, arguments);
     };
@@ -225,7 +331,7 @@ final String boilerplate = r"""
   }
 
   function compileConstructor(name, descriptor) {
-    descriptor = compile(descriptor);
+    descriptor = compile(name, descriptor);
     var prototype = determinePrototype(descriptor);
     for (var i = 2; i < descriptor.length; i += 2) {
       prototype[descriptor[i]] = descriptor[i + 1];
@@ -250,16 +356,21 @@ final String boilerplate = r"""
     return new intermediate();
   }
 
-  function compile(s) {
+  function compile(__name__, __s__) {
     'use strict';
-    return eval(s);
+    // TODO(floitsch): evaluate the performance impact of the string
+    // concatenations.
+    return eval(__s__ + "\n//# sourceURL=" + __name__ + ".js");
   }
 
   setupProgram();
   var end = Date.now();
   print('Setup: ' + (end - start) + ' ms.');
 
-  if (true) #();
+  // Initialize globals.
+  #;
+
+  if (true) #();  // Start main.
 
 }(Date.now(), #)
-""";
+}""";

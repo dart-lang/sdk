@@ -1571,6 +1571,22 @@ class OldEmitter implements Emitter {
     cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
   }
 
+  /// Returns a name composed of the main output file name and [name].
+  String deferredPartFileName(OutputUnit outputUnit,
+                              {bool addExtension: true}) {
+    String outPath = compiler.outputUri != null
+        ? compiler.outputUri.path
+        : "out";
+    String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
+    String extension = addExtension ? ".part.js" : "";
+    if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) {
+      return "$outName$extension";
+    } else {
+      String name = outputUnit.name;
+      return "${outName}_$name$extension";
+    }
+  }
+
   void emitProgram() {
     // Maps each output unit to a codebuffers with the library descriptors of
     // the output unit emitted to it.
@@ -2028,7 +2044,7 @@ class OldEmitter implements Emitter {
       List<String> hashes = new List<String>();
       deferredLibraryHashes[loadId] = new List<String>();
       for (OutputUnit outputUnit in outputUnits) {
-        uris.add("${outputUnit.partFileName(compiler)}.part.js");
+        uris.add("${deferredPartFileName(outputUnit)}");
         hashes.add(deferredLoadHashes[outputUnit]);
       }
 
@@ -2142,7 +2158,8 @@ class OldEmitter implements Emitter {
       String hash = hashOfString(code);
 
       outputBuffers[outputUnit] = outputBuffer;
-      compiler.outputProvider(outputUnit.partFileName(compiler), 'part.js')
+      compiler.outputProvider(
+          deferredPartFileName(outputUnit, addExtension: false), 'part.js')
         ..add(code)
         ..add('${deferredInitializers}["$hash"]$_=$_'
                 '${deferredInitializers}.current$N')

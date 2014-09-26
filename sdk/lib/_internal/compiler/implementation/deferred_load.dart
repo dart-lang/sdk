@@ -77,19 +77,6 @@ class OutputUnit {
   /// Based on the set of [imports].
   String name;
 
-  /// Returns a name composed of the main output file name and [name].
-  String partFileName(Compiler compiler) {
-    String outPath = compiler.outputUri != null
-        ? compiler.outputUri.path
-        : "out";
-    String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
-    if (this == compiler.deferredLoadTask.mainOutputUnit) {
-      return outName;
-    } else {
-      return "${outName}_$name";
-    }
-  }
-
   String toString() => "OutputUnit($name)";
 
   bool operator==(OutputUnit other) {

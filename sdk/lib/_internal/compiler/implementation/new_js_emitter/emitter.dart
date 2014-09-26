@@ -39,6 +39,10 @@ class Emitter implements emitterTask.Emitter {
   /// update the superclass in the [Class].
   final Map<ClassElement, Class> _classes = <ClassElement, Class>{};
 
+  /// Mapping from [OutputUnit] to constructed [Output]. We need this to
+  /// generate the deferredLoadingMap (to know which hunks to load).
+  final Map<OutputUnit, Output> _outputs = <OutputUnit, Output>{};
+
   void emitProgram() {
     Program program = _buildProgram();
     program.emit(_compiler);
@@ -64,7 +68,7 @@ class Emitter implements emitterTask.Emitter {
     outputs[0] = mainOutput;
     outputs.setAll(1, deferredOutputs);
 
-    Program result = new Program(outputs);
+    Program result = new Program(outputs, _buildLoadMap());
 
     // Resolve the superclass references after we've processed all the classes.
     _classes.forEach((ClassElement element, Class c) {
@@ -75,17 +79,51 @@ class Emitter implements emitterTask.Emitter {
     return result;
   }
 
+  /// Builds a map from loadId to outputs-to-load.
+  Map<String, List<Output>> _buildLoadMap() {
+    List<OutputUnit> convertHunks(List<OutputUnit> hunks) {
+      return hunks.map((OutputUnit unit) => _outputs[unit])
+          .toList(growable: false);
+    }
+
+    Map<String, List<Output>> loadMap = <String, List<Output>>{};
+    _compiler.deferredLoadTask.hunksToLoad
+        .forEach((String loadId, List<OutputUnit> outputUnits) {
+      loadMap[loadId] = outputUnits
+          .map((OutputUnit unit) => _outputs[unit])
+          .toList(growable: false);
+    });
+    return loadMap;
+  }
+
   MainOutput _buildMainOutput(Fragment fragment) {
     // Construct the main output from the libraries and the registered holders.
-    return new MainOutput(
+    MainOutput result = new MainOutput(
+        "",  // The empty string is the name for the main output file.
         namer.elementAccess(_compiler.mainFunction),
         _buildLibraries(fragment),
         _registry.holders.toList(growable: false));
+    _outputs[fragment.outputUnit] = result;
+    return result;
+  }
+
+  /// Returns a name composed of the main output file name and [name].
+  String _outputFileName(String name) {
+    assert(name != "");
+    String outPath = _compiler.outputUri != null
+        ? _compiler.outputUri.path
+        : "out";
+    String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
+    return "${outName}_$name";
   }
 
   DeferredOutput _buildDeferredOutput(MainOutput mainOutput,
                                       Fragment fragment) {
-    return new DeferredOutput(mainOutput, _buildLibraries(fragment));
+    DeferredOutput result = new DeferredOutput(
+        _outputFileName(fragment.name), fragment.name,
+        mainOutput, _buildLibraries(fragment));
+    _outputs[fragment.outputUnit] = result;
+    return result;
   }
 
   List<Library> _buildLibraries(Fragment fragment) {
