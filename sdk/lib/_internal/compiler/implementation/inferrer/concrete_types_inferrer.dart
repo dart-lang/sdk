@@ -5,7 +5,7 @@
 library concrete_types_inferrer;
 
 import 'dart:collection' show Queue, IterableBase;
-import '../native_handler.dart' as native;
+import '../native/native.dart' as native;
 import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../dart_types.dart' show DartType, TypeKind;
 import '../elements/elements.dart';

@@ -22,7 +22,7 @@ import '../dart2jslib.dart'
          invariant,
          TreeElementMapping;
 import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
-import '../native_handler.dart' as native;
+import '../native/native.dart' as native;
 import '../util/util.dart' show Spannable, Setlet, ImmutableEmptySet;
 import 'simple_types_inferrer.dart';
 

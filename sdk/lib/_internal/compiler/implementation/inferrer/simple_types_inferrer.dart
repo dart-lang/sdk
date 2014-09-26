@@ -9,7 +9,7 @@ import '../dart_types.dart'
     show DartType, InterfaceType, FunctionType, TypeKind;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' as js;
-import '../native_handler.dart' as native;
+import '../native/native.dart' as native;
 import '../tree/tree.dart' as ast;
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
 import '../util/util.dart' show Link, Spannable, Setlet;

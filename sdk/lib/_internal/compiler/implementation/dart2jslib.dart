@@ -28,7 +28,7 @@ import 'js_backend/js_backend.dart' as js_backend;
 import 'library_loader.dart'
     show LibraryLoader,
          LibraryLoaderTask;
-import 'native_handler.dart' as native;
+import 'native/native.dart' as native;
 import 'scanner/scannerlib.dart';
 import 'ssa/ssa.dart';
 import 'tree/tree.dart';

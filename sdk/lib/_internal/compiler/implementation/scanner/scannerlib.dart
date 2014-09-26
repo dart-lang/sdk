@@ -25,7 +25,7 @@ import '../elements/modelx.dart' show
 import '../elements/visitor.dart'
     show ElementVisitor;
 import '../dart2jslib.dart';
-import '../native_handler.dart' as native;
+import '../native/native.dart' as native;
 import '../string_validator.dart';
 import '../tree/tree.dart';
 import '../util/characters.dart';
