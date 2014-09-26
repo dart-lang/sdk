@@ -121,8 +121,8 @@ typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage thi
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
-[ $compiler == dart2js && ($jscl || $runtime == d8) && $unchecked ]
-mirrors/invocation_fuzz_test: RuntimeError # Issue 15566
+[ $compiler == dart2js && ($jscl || $runtime == d8) ]
+mirrors/invocation_fuzz_test: Skip # Issue 15566
 [ $compiler == dart2js && ($minified || $runtime == jsshell) ]
 mirrors/invocation_fuzz_test: RuntimeError # Issue 15566
 
