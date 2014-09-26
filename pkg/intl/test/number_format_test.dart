@@ -187,6 +187,12 @@ main() {
     expect(readBack, amount);
   });
 
+  test("Delta percent format", () {
+    var f = new NumberFormat("+#,##0%;-#,##0%");
+    expect(f.format(-0.07), "-7%");
+    expect(f.format(0.12), "+12%");
+  });
+
   test('Unparseable', () {
     var format = new NumberFormat.currencyPattern();
     expect(() => format.parse("abcdefg"), throwsFormatException);

@@ -1,3 +1,9 @@
+## 0.11.9
+  * Fix bug with per-mille parsing (only divided by 100, not 1000)
+  
+  * Support percent and per-mille formats with both positive and negative
+    variations. Previously would throw an exception for too many modifiers.
+
 ## 0.11.8
 
   * Support NumberFormats with two different grouping sizes, e.g.

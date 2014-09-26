@@ -495,11 +495,11 @@ class _NumberParser {
       symbols.EXP_SYMBOL: () => 'E',
       symbols.GROUP_SEP: handleSpace,
       symbols.PERCENT: () {
-        scale = 100;
+        scale = _NumberFormatParser._PERCENT_SCALE;
         return '';
       },
       symbols.PERMILL: () {
-        scale = 1000;
+        scale = _NumberFormatParser._PER_MILLE_SCALE;
         return '';
       },
       ' ' : handleSpace,
@@ -676,7 +676,9 @@ class _NumberFormatParser {
   static const _PATTERN_DECIMAL_SEPARATOR = '.';
   static const _PATTERN_CURRENCY_SIGN = '\u00A4';
   static const _PATTERN_PER_MILLE = '\u2030';
+  static const _PER_MILLE_SCALE = 1000;
   static const _PATTERN_PERCENT = '%';
+  static const _PERCENT_SCALE = 100;
   static const _PATTERN_EXPONENT = 'E';
   static const _PATTERN_PLUS = '+';
 
@@ -778,17 +780,18 @@ class _NumberFormatParser {
           affix.write(currencyName);
           break;
         case _PATTERN_PERCENT:
-          if (format._multiplier != 1) {
+          if (format._multiplier != 1 && format._multiplier != _PERCENT_SCALE) {
             throw new FormatException('Too many percent/permill');
           }
-          format._multiplier = 100;
+          format._multiplier = _PERCENT_SCALE;
           affix.write(symbols.PERCENT);
           break;
         case _PATTERN_PER_MILLE:
-          if (format._multiplier != 1) {
+          if (format._multiplier != 1 &&
+              format._multiplier != _PER_MILLE_SCALE) {
             throw new FormatException('Too many percent/permill');
           }
-          format._multiplier = 1000;
+          format._multiplier = _PER_MILLE_SCALE;
           affix.write(symbols.PERMILL);
           break;
         default:
