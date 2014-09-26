@@ -80,6 +80,7 @@ import '../../js_lib/shared/embedded_names.dart' as embeddedNames;
 import '../hash/sha1.dart';
 
 part 'class_builder.dart';
+part 'class_stub_generator.dart';
 part 'code_emitter_helper.dart';
 part 'code_emitter_task.dart';
 part 'container_builder.dart';

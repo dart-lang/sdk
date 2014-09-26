@@ -5,6 +5,10 @@
 part of dart2js.js_emitter;
 
 class ClassEmitter extends CodeEmitterHelper {
+
+  ClassStubGenerator get _stubGenerator =>
+      new ClassStubGenerator(compiler, namer, backend);
+
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -73,16 +77,11 @@ class ClassEmitter extends CodeEmitterHelper {
         fields.add(name);
       });
     }
-    String constructorName = namer.getNameOfClass(classElement);
 
-    // TODO(sra): Implement placeholders in VariableDeclaration position:
-    //     task.precompiledFunction.add(js.statement('function #(#) { #; }',
-    //        [ constructorName, fields,
-    //            fields.map(
-    //                (name) => js('this.# = #', [name, name]))]));
-    jsAst.Expression constructorAst = js('function(#) { #; }',
-        [fields,
-         fields.map((name) => js('this.# = #', [name, name]))]);
+    jsAst.Expression constructorAst =
+        _stubGenerator.generateClassConstructor(classElement, fields);
+
+    String constructorName = namer.getNameOfClass(classElement);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(classElement);
     emitter.emitPrecompiledConstructor(
@@ -361,7 +360,7 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   /**
-   * Calls [addField] for each of the fields of [element].
+   * Invokes [f] for each of the fields of [element].
    *
    * [element] must be a [ClassElement] or a [LibraryElement].
    *
@@ -520,16 +519,16 @@ class ClassEmitter extends CodeEmitterHelper {
 
   void generateGetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
+    jsAst.Expression function =
+        _stubGenerator.generateGetter(member, fieldName);
+
     String getterName = namer.getterNameFromAccessorName(accessorName);
     ClassElement cls = member.enclosingClass;
     String className = namer.getNameOfClass(cls);
-    String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
-    List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(member);
     emitter.cspPrecompiledFunctionFor(outputUnit).add(
-        js('#.prototype.# = function(#) { return #.# }',
-           [className, getterName, args, receiver, fieldName]));
+        js('#.prototype.# = #', [className, getterName, function]));
     if (backend.isAccessibleByReflection(member)) {
       emitter.cspPrecompiledFunctionFor(outputUnit).add(
           js('#.prototype.#.${namer.reflectableField} = 1',
@@ -539,17 +538,16 @@ class ClassEmitter extends CodeEmitterHelper {
 
   void generateSetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
+    jsAst.Expression function =
+        _stubGenerator.generateSetter(member, fieldName);
+
     String setterName = namer.setterNameFromAccessorName(accessorName);
     ClassElement cls = member.enclosingClass;
     String className = namer.getNameOfClass(cls);
-    String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
-    List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(member);
     emitter.cspPrecompiledFunctionFor(outputUnit).add(
-        // TODO: remove 'return'?
-        js('#.prototype.# = function(#, v) { return #.# = v; }',
-            [className, setterName, args, receiver, fieldName]));
+        js('#.prototype.# = #', [className, setterName, function]));
     if (backend.isAccessibleByReflection(member)) {
       emitter.cspPrecompiledFunctionFor(outputUnit).add(
           js('#.prototype.#.${namer.reflectableField} = 1',
