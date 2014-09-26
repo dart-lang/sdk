@@ -215,12 +215,13 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   // When reading a full snapshot we don't need to canonicalize the object
   // as it would already be a canonical object.
   // When reading a script snapshot we need to canonicalize only those object
-  // references that are objects from the core library (loaded from a
-  // full snapshot). Objects that are only in the script need not be
+  // references that are objects from the core library (loaded from a full
+  // snapshot, or created between taking the full snapshot and taking the script
+  // snapshot). Objects that are only in the script need not be
   // canonicalized as they are already canonical.
   // When reading a message snapshot we always have to canonicalize the object.
   if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
-      (RawObject::IsCreatedFromSnapshot(tags) ||
+      ((type.type_class()->IsCreatedFromSnapshot()) ||
        (kind == Snapshot::kMessage))) {
     type ^= type.Canonicalize();
   }
@@ -272,9 +273,6 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
       reader->isolate(), NEW_OBJECT(TypeRef));
   reader->AddBackRef(object_id, &type_ref, kIsDeserialized);
 
-  // Set the object tags.
-  type_ref.set_tags(tags);
-
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
@@ -284,6 +282,12 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
     type_ref.StorePointer((type_ref.raw()->from() + i),
                           reader->PassiveObjectHandle()->raw());
   }
+
+  // Set the object tags.
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
+    type_ref ^= type_ref.Canonicalize();
+  }
+  type_ref.set_tags(tags);
 
   return type_ref.raw();
 }
@@ -461,13 +465,12 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   // When reading a full snapshot we don't need to canonicalize the object
   // as it would already be a canonical object.
   // When reading a script snapshot we need to canonicalize only those object
-  // references that are objects from the core library (loaded from a
-  // full snapshot). Objects that are only in the script need not be
+  // references that are objects from the core library (loaded from a full
+  // snapshot, or created between taking the full snapshot and taking the script
+  // snapshot). Objects that are only in the script need not be
   // canonicalized as they are already canonical.
   // When reading a message snapshot we always have to canonicalize the object.
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
-      (RawObject::IsCreatedFromSnapshot(tags) ||
-       (kind == Snapshot::kMessage))) {
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
     type_arguments ^= type_arguments.Canonicalize();
   }
 
@@ -1618,12 +1621,13 @@ RawInstance* Instance::ReadFrom(SnapshotReader* reader,
                             Instance::InstanceSize(),
                             HEAP_SPACE(kind));
     // When reading a script snapshot we need to canonicalize only those object
-    // references that are objects from the core library (loaded from a
-    // full snapshot). Objects that are only in the script need not be
+    // references that are objects from the core library (loaded from a full
+    // snapshot, or created between taking the full snapshot and taking the
+    // script snapshot). Objects that are only in the script need not be
     // canonicalized as they are already canonical.
     // When reading a message snapshot we always have to canonicalize.
     if (RawObject::IsCanonical(tags) &&
-        (RawObject::IsCreatedFromSnapshot(tags) ||
+        ((obj.clazz()->IsCreatedFromSnapshot()) ||
          (kind == Snapshot::kMessage))) {
       obj = obj.CheckAndCanonicalize(NULL);
     }
@@ -1666,13 +1670,12 @@ RawMint* Mint::ReadFrom(SnapshotReader* reader,
     mint = reader->NewMint(value);
   } else {
     // When reading a script snapshot we need to canonicalize only those object
-    // references that are objects from the core library (loaded from a
-    // full snapshot). Objects that are only in the script need not be
+    // references that are objects from the core library (loaded from a full
+    // snapshot, or created between taking the full snapshot and taking the
+    // script snapshot). Objects that are only in the script need not be
     // canonicalized as they are already canonical.
     // When reading a message snapshot we always have to canonicalize.
-    if (RawObject::IsCanonical(tags) &&
-        (RawObject::IsCreatedFromSnapshot(tags) ||
-         (kind == Snapshot::kMessage))) {
+    if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
       mint = Mint::NewCanonical(value);
     } else {
       mint = Mint::New(value, HEAP_SPACE(kind));
@@ -1728,13 +1731,12 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   // When reading a full snapshot we don't need to canonicalize the object
   // as it would already be a canonical object.
   // When reading a script snapshot we need to canonicalize only those object
-  // references that are objects from the core library (loaded from a
-  // full snapshot). Objects that are only in the script need not be
+  // references that are objects from the core library (loaded from a full
+  // snapshot, or created between taking the full snapshot and taking the script
+  // snapshot). Objects that are only in the script need not be
   // canonicalized as they are already canonical.
   // When reading a message snapshot we always have to canonicalize the object.
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
-      (RawObject::IsCreatedFromSnapshot(tags) ||
-       (kind == Snapshot::kMessage))) {
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
     obj ^= obj.CheckAndCanonicalize(NULL);
     ASSERT(!obj.IsNull());
   }
@@ -1779,11 +1781,11 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
     dbl = reader->NewDouble(value);
   } else {
     // When reading a script snapshot we need to canonicalize only those object
-    // references that are objects from the core library (loaded from a
-    // full snapshot). Objects that are only in the script need not be
+    // references that are objects from the core library (loaded from a full
+    // snapshot, or created between taking the full snapshot and taking the
+    // script snapshot). Objects that are only in the script need not be
     // canonicalized as they are already canonical.
-    if (RawObject::IsCanonical(tags) &&
-        RawObject::IsCreatedFromSnapshot(tags)) {
+    if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
       dbl = Double::NewCanonical(value);
     } else {
       dbl = Double::New(value, HEAP_SPACE(kind));
