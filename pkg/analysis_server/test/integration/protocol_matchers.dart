@@ -669,6 +669,30 @@ final Matcher isEditGetRefactoringResult = new LazyMatcher(() => new MatchesJson
   }));
 
 /**
+ * edit.sortMembers params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+final Matcher isEditSortMembersParams = new LazyMatcher(() => new MatchesJsonObject(
+  "edit.sortMembers params", {
+    "file": isFilePath
+  }));
+
+/**
+ * edit.sortMembers result
+ *
+ * {
+ *   "edit": SourceFileEdit
+ * }
+ */
+final Matcher isEditSortMembersResult = new LazyMatcher(() => new MatchesJsonObject(
+  "edit.sortMembers result", {
+    "edit": isSourceFileEdit
+  }));
+
+/**
  * execution.createContext params
  *
  * {
@@ -2010,14 +2034,4 @@ final Matcher isRenameOptions = new LazyMatcher(() => new MatchesJsonObject(
   "rename options", {
     "newName": isString
   }));
-
-/**
- * sortMembers feedback
- */
-final Matcher isSortMembersFeedback = isNull;
-
-/**
- * sortMembers options
- */
-final Matcher isSortMembersOptions = isNull;
 

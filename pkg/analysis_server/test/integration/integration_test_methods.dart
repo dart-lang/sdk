@@ -1202,6 +1202,37 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Sort all of the directives, unit and class members of the given Dart file.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The Dart file to sort.
+   *
+   * Returns
+   *
+   * edit ( SourceFileEdit )
+   *
+   *   The file edit that is to be applied to the given file to effect the
+   *   sorting.
+   */
+  Future sendEditSortMembers(String file, {bool checkTypes: true}) {
+    Map<String, dynamic> params = {};
+    params["file"] = file;
+    if (checkTypes) {
+      expect(params, isEditSortMembersParams);
+    }
+    return server.send("edit.sortMembers", params)
+        .then((result) {
+      if (checkTypes) {
+        expect(result, isEditSortMembersResult);
+      }
+      return result;
+    });
+  }
+
+  /**
    * Create an execution context for the executable file with the given path.
    * The context that is created will persist until execution.deleteContext is
    * used to delete it. Clients, therefore, are responsible for managing the

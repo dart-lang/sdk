@@ -1285,6 +1285,29 @@
           </field>
         </result>
       </request>
+      <request method="sortMembers">
+        <p>
+          Sort all of the directives, unit and class members
+          of the given Dart file.
+        </p>
+        <params>
+          <field name="file">
+            <ref>FilePath</ref>
+            <p>
+              The Dart file to sort.
+            </p>
+          </field>
+        </params>
+        <result>
+          <field name="edit">
+            <ref>SourceFileEdit</ref>
+            <p>
+              The file edit that is to be applied to the given file to effect
+              the sorting.
+            </p>
+          </field>
+        </result>
+      </request>
     </domain>
     <domain name="execution">
       <p>
@@ -3334,16 +3357,6 @@
             </p>
           </field>
         </options>
-      </refactoring>
-      <refactoring kind=SORT_MEMBERS>
-        <p>
-          Sort all of the directives, unit and class members
-          of the given Dart file.
-        </p>
-        <p>
-          The "offset" and "length" fields from the request are ignored, but the
-          file specified in the request specifies the file to be sorted.
-        </p>
       </refactoring>
     </refactorings>
     <h2>Errors</h2>

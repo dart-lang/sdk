@@ -3738,6 +3738,139 @@ class EditGetRefactoringResult implements HasToJson {
 }
 
 /**
+ * edit.sortMembers params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+class EditSortMembersParams implements HasToJson {
+  /**
+   * The Dart file to sort.
+   */
+  String file;
+
+  EditSortMembersParams(this.file);
+
+  factory EditSortMembersParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      return new EditSortMembersParams(file);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.sortMembers params");
+    }
+  }
+
+  factory EditSortMembersParams.fromRequest(Request request) {
+    return new EditSortMembersParams.fromJson(
+        new RequestDecoder(request), "params", request._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "edit.sortMembers", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is EditSortMembersParams) {
+      return file == other.file;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.sortMembers result
+ *
+ * {
+ *   "edit": SourceFileEdit
+ * }
+ */
+class EditSortMembersResult implements HasToJson {
+  /**
+   * The file edit that is to be applied to the given file to effect the
+   * sorting.
+   */
+  SourceFileEdit edit;
+
+  EditSortMembersResult(this.edit);
+
+  factory EditSortMembersResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      SourceFileEdit edit;
+      if (json.containsKey("edit")) {
+        edit = new SourceFileEdit.fromJson(jsonDecoder, jsonPath + ".edit", json["edit"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "edit");
+      }
+      return new EditSortMembersResult(edit);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.sortMembers result");
+    }
+  }
+
+  factory EditSortMembersResult.fromResponse(Response response) {
+    return new EditSortMembersResult.fromJson(
+        new ResponseDecoder(response), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["edit"] = edit.toJson();
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is EditSortMembersResult) {
+      return edit == other.edit;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, edit.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * execution.createContext params
  *
  * {
@@ -10222,39 +10355,5 @@ class RenameOptions extends RefactoringOptions implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, newName.hashCode);
     return _JenkinsSmiHash.finish(hash);
-  }
-}
-/**
- * sortMembers feedback
- */
-class SortMembersFeedback {
-  @override
-  bool operator==(other) {
-    if (other is SortMembersFeedback) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    return 173473419;
-  }
-}
-/**
- * sortMembers options
- */
-class SortMembersOptions {
-  @override
-  bool operator==(other) {
-    if (other is SortMembersOptions) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    return 99705880;
   }
 }
