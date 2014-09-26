@@ -66,6 +66,7 @@ const ICData* Instruction::GetICData(
     const ZoneGrowableArray<const ICData*>& ic_data_array) const {
   // The deopt_id can be outside the range of the IC data array for
   // computations added in the optimizing compiler.
+  ASSERT(deopt_id_ != Isolate::kNoDeoptId);
   if (deopt_id_ < ic_data_array.length()) {
     return ic_data_array[deopt_id_];
   }
@@ -2682,6 +2683,7 @@ StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
                                        bool needs_number_check)
     : ComparisonInstr(token_pos, kind, left, right),
       needs_number_check_(needs_number_check) {
+  deopt_id_ = Isolate::Current()->GetNextDeoptId();
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
 }
 
