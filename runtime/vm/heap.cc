@@ -373,7 +373,7 @@ void Heap::UpdatePretenurePolicy() {
           table->IsValidIndex(cid) &&
           table->HasValidClassAt(cid)) {
         const Class& cls = Class::Handle(isolate_, table->At(cid));
-        cls.SwitchAllocationStub();
+        cls.DisableAllocationStub();
       }
     }
   }

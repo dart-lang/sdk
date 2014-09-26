@@ -797,10 +797,19 @@ static void DisassembleCode(const Function& function, bool optimized) {
       offset ^= table.At(i + Code::kSCallTableOffsetEntry);
       function ^= table.At(i + Code::kSCallTableFunctionEntry);
       code ^= table.At(i + Code::kSCallTableCodeEntry);
-      OS::Print("  0x%" Px ": %s, %p\n",
-          start + offset.Value(),
-          function.ToFullyQualifiedCString(),
-          code.raw());
+      if (function.IsNull()) {
+        Class& cls = Class::Handle();
+        cls ^= code.owner();
+        OS::Print("  0x%" Px ": allocation stub for %s, %p\n",
+            start + offset.Value(),
+            cls.ToCString(),
+            code.raw());
+      } else {
+        OS::Print("  0x%" Px ": %s, %p\n",
+            start + offset.Value(),
+            function.ToFullyQualifiedCString(),
+            code.raw());
+      }
     }
     OS::Print("}\n");
   }

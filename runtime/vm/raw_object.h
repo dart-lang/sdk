@@ -535,7 +535,6 @@ class RawClass : public RawObject {
                                 // or the canonical type.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
   RawArray* cha_codes_;  // CHA optimized codes.
-  RawCode* spare_allocation_stub_;  // Spare stub code for allocation.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->allocation_stub_);

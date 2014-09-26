@@ -540,6 +540,18 @@ void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
 }
 
 
+void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
+  ASSERT(Code::kSCallTableEntryLength == 3);
+  ASSERT(Code::kSCallTableOffsetEntry == 0);
+  static_calls_target_table_.Add(
+      Smi::Handle(Smi::New(assembler()->CodeSize())));
+  ASSERT(Code::kSCallTableFunctionEntry == 1);
+  static_calls_target_table_.Add(Function::Handle());
+  ASSERT(Code::kSCallTableCodeEntry == 2);
+  static_calls_target_table_.Add(code);
+}
+
+
 void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
                                             intptr_t token_pos) {
   ASSERT(is_optimizing());

@@ -501,6 +501,8 @@ class FlowGraphCompiler : public ValueObject {
 
   Isolate* isolate() const { return isolate_; }
 
+  void AddStubCallTarget(const Code& code);
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 
@@ -623,7 +625,10 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;
-  // Stores: [code offset, function, null(code)].
+  // Stores: [code offset, function or null, null(code)].
+  // Stores static call targets as well as stub targets.
+  // TODO(srdjan): Evaluate if we should store allocation stub targets into a
+  // separate table?
   const GrowableObjectArray& static_calls_target_table_;
   const bool is_optimizing_;
   // Set to true if optimized code has IC calls.

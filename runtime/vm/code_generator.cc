@@ -1377,6 +1377,7 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
     CodePatcher::PatchStaticCallAt(frame->pc(),
                                    caller_code,
                                    alloc_stub.EntryPoint());
+    caller_code.SetStubCallTargetCodeAt(frame->pc(), alloc_stub);
   }
   if (FLAG_trace_patching) {
     OS::PrintErr("FixAllocationStubTarget: caller %#" Px " alloc-class %s "

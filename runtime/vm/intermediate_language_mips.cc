@@ -2108,6 +2108,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          &label,
                          RawPcDescriptors::kOther,
                          locs());
+  compiler->AddStubCallTarget(stub);
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
@@ -4918,6 +4919,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          &label,
                          RawPcDescriptors::kOther,
                          locs());
+  compiler->AddStubCallTarget(stub);
   __ Drop(ArgumentCount());  // Discard arguments.
 }
 

@@ -98,15 +98,15 @@ TEST_CASE(RegenerateAllocStubs) {
                                   stub_code->GetAllocationStubForClass(cls));
   Class& owner = Class::Handle();
   owner ^= stub.owner();
-  owner.SwitchAllocationStub();
+  owner.DisableAllocationStub();
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
-  owner.SwitchAllocationStub();
+  owner.DisableAllocationStub();
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
-  owner.SwitchAllocationStub();
+  owner.DisableAllocationStub();
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
