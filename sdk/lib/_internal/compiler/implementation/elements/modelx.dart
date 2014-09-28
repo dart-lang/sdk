@@ -1624,6 +1624,8 @@ abstract class FunctionElementX extends BaseFunctionElementX
   void reuseElement() {
     super.reuseElement();
     nestedClosures.clear();
+    functionSignatureCache = null;
+    typeCache = null;
   }
 }
 

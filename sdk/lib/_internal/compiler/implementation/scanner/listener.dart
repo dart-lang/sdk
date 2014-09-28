@@ -2227,6 +2227,10 @@ abstract class PartialFunctionMixin implements FunctionElement {
   }
 
   Token get position => _position;
+
+  void reusePartialFunctionMixin() {
+    cachedNode = null;
+  }
 }
 
 class PartialFunctionElement extends FunctionElementX
@@ -2242,6 +2246,11 @@ class PartialFunctionElement extends FunctionElementX
       : super(name, kind, modifiers, enclosing, hasNoBody) {
     init(beginToken, getOrSet, endToken);
   }
+
+  void reuseElement() {
+    super.reuseElement();
+    reusePartialFunctionMixin();
+  }
 }
 
 class PartialConstructorElement extends ConstructorElementX
@@ -2254,6 +2263,11 @@ class PartialConstructorElement extends ConstructorElementX
                             Element enclosing)
       : super(name, kind, modifiers, enclosing) {
     init(beginToken, null, endToken);
+  }
+
+  void reuseElement() {
+    super.reuseElement();
+    reusePartialFunctionMixin();
   }
 }
 

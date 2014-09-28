@@ -996,6 +996,13 @@ class Namer implements ClosureNamer {
       return name;
     }
   }
+
+  void forgetElement(Element element) {
+    String globalName = globals[element];
+    invariant(element, globalName != null, message: 'No global name.');
+    usedGlobalNames.remove(globalName);
+    globals.remove(element);
+  }
 }
 
 /**

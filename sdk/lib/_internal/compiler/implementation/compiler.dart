@@ -1991,6 +1991,16 @@ abstract class Compiler implements DiagnosticListener {
   void diagnoseCrashInUserCode(String message, exception, stackTrace) {
     // Overridden by Compiler in apiimpl.dart.
   }
+
+  void forgetElement(Element element) {
+    enqueuer.forgetElement(element);
+    if (element is MemberElement) {
+      for (Element closure in element.nestedClosures) {
+        // TODO(ahe): It would be nice to reuse names of nested closures.
+        closureToClassMapper.forgetElement(closure);
+      }
+    }
+  }
 }
 
 class CompilerTask {

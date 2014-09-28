@@ -25,6 +25,11 @@ class EnqueueTask extends CompilerTask {
     resolution.nativeEnqueuer =
         compiler.backend.nativeResolutionEnqueuer(resolution);
   }
+
+  void forgetElement(Element element) {
+    resolution.forgetElement(element);
+    codegen.forgetElement(element);
+  }
 }
 
 abstract class Enqueuer {
@@ -810,6 +815,10 @@ class ResolutionEnqueuer extends Enqueuer {
   void _logSpecificSummary(log(message)) {
     log('Resolved ${resolvedElements.length} elements.');
   }
+
+  void forgetElement(Element element) {
+    resolvedElements.remove(element);
+  }
 }
 
 /// [Enqueuer] which is specific to code generation.
@@ -870,6 +879,17 @@ class CodegenEnqueuer extends Enqueuer {
   void _logSpecificSummary(log(message)) {
     log('Compiled ${generatedCode.length} methods.');
   }
+
+  void forgetElement(Element element) {
+    generatedCode.remove(element);
+    if (element is MemberElement) {
+      for (Element closure in element.nestedClosures) {
+        generatedCode.remove(closure);
+        removeFromSet(instanceMembersByName, closure);
+        removeFromSet(instanceFunctionsByName, closure);
+      }
+    }
+  }
 }
 
 /// Parameterizes filtering of which work items are enqueued.
@@ -891,4 +911,10 @@ class QueueFilter {
   void processWorkItem(void f(WorkItem work), WorkItem work) {
     f(work);
   }
+}
+
+void removeFromSet(Map<String, Set<Element>> map, Element element) {
+  Set<Element> set = map[element.name];
+  if (set == null) return;
+  set.remove(element);
 }
