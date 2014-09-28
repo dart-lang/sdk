@@ -1026,6 +1026,60 @@ class A {
 ''');
   }
 
+  test_classMember_method() {
+    addTestFile('''
+class A {
+  test() {}
+  main() {
+    test();
+  }
+}
+main(A a) {
+  a.test();
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test() {}', 'newName');
+    }, '''
+class A {
+  newName() {}
+  main() {
+    newName();
+  }
+}
+main(A a) {
+  a.newName();
+}
+''');
+  }
+
+  test_classMember_method_potential() {
+    addTestFile('''
+class A {
+  test() {}
+}
+main(A a, a2) {
+  a.test();
+  a2.test(); // a2
+}
+''');
+    return getRefactoringResult(() {
+      return sendRenameRequest('test() {}', 'newName');
+    }).then((result) {
+      assertResultProblemsOK(result);
+      // prepare potential edit ID
+      List<String> potentialIds = result.potentialEdits;
+      expect(potentialIds, hasLength(1));
+      String potentialId = potentialIds[0];
+      // find potential edit
+      SourceChange change = result.change;
+      SourceEdit potentialEdit = _findEditWithId(change, potentialId);
+      expect(potentialEdit, isNotNull);
+      expect(potentialEdit.offset, findOffset('test(); // a2'));
+      expect(potentialEdit.length, 4);
+    });
+  }
+
   test_classMember_setter() {
     addTestFile('''
 class A {
@@ -1288,6 +1342,18 @@ main() {
         });
       });
     });
+  }
+
+  SourceEdit _findEditWithId(SourceChange change, String id) {
+    SourceEdit potentialEdit;
+    change.edits.forEach((fileEdit) {
+      fileEdit.edits.forEach((edit) {
+        if (edit.id == id) {
+          potentialEdit = edit;
+        }
+      });
+    });
+    return potentialEdit;
   }
 }
 

@@ -13,7 +13,6 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/json.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -213,7 +212,7 @@ class _RefactoringManager {
   int offset;
   int length;
   Refactoring refactoring;
-  HasToJson feedback;
+  RefactoringFeedback feedback;
   RefactoringStatus initStatus;
   RefactoringStatus optionsStatus;
   RefactoringStatus finalStatus;
@@ -280,7 +279,8 @@ class _RefactoringManager {
         }
         // create change
         return refactoring.createChange().then((change) {
-          result.change = new SourceChange(change.message, edits: change.edits);
+          result.change = change;
+          result.potentialEdits = refactoring.potentialEditIds;
           return _sendResultResponse();
         });
       });
