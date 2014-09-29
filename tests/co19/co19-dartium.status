@@ -491,7 +491,6 @@ LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # co19
 LayoutTests/fast/css/focus-display-block-inline_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/font-face-cache-bug_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/font-face-unicode-range-load_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
-LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/html-attr-case-sensitivity_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -743,3 +742,6 @@ LayoutTests/fast/canvas/webgl/webgl-specific_t01: RuntimeError # co19-roll r761:
 LayoutTests/fast/canvas/webgl/webgl-texture-binding-preserved_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/webgl-unprefixed-context-id_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/webgl-viewport-parameters-preserved_t01: RuntimeError # co19-roll r761: Please triage this failure.
+
+[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $system != windows ]
+LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-roll r761: Please triage this failure.
