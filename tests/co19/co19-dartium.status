@@ -257,6 +257,8 @@ LibTest/html/Node/previousNode_A01_t01: RuntimeError # co19-roll r722: Please tr
 WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Issue 19055.
 WebPlatformTest/custom-elements/concepts/type_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/custom-elements/concepts/type_A06_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/nodes/Node-appendChild_t01: RuntimeError # Issue 21136
+WebPlatformTest/dom/ranges/Range-comparePoint_t02: RuntimeError # Issue 21136
 WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/template-end-tag-without-start-one_t01: RuntimeError # co19-roll r722: Please triage this failure.
@@ -425,7 +427,6 @@ WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLEl
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formAction_document_address_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError # co19-roll r738: Please triage this failure.
-WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setSelectionRange_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.  Pass on macos.
 WebPlatformTest/html/semantics/forms/the-button-element/button-validation_t01: RuntimeError # co19-roll r738: Please triage this failure.
@@ -608,6 +609,7 @@ LayoutTests/fast/dom/HTMLTableElement/insert-row_t01: RuntimeError # co19-roll r
 LibTest/html/Node/ownerDocument_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/custom-elements/instantiating/createElementNS_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # co19-roll r722: Please triage this failure.
