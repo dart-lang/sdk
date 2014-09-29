@@ -395,6 +395,110 @@ main() {
 ''');
   }
 
+  void test_createField_qualified_instance_hasField() {
+    _indexTestUnit('''
+class A {
+  int aaa;
+  int zzz;
+
+  existingMethod() {}
+}
+main(A a) {
+  a.test = 5;
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int aaa;
+  int zzz;
+
+  int test;
+
+  existingMethod() {}
+}
+main(A a) {
+  a.test = 5;
+}
+''');
+  }
+
+  void test_createField_qualified_instance_hasMethod() {
+    _indexTestUnit('''
+class A {
+  existingMethod() {}
+}
+main(A a) {
+  a.test = 5;
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int test;
+
+  existingMethod() {}
+}
+main(A a) {
+  a.test = 5;
+}
+''');
+  }
+
+  void test_createField_qualified_static() {
+    _indexTestUnit('''
+class A {
+}
+main() {
+  A.test = 5;
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  static int test;
+}
+main() {
+  A.test = 5;
+}
+''');
+  }
+
+  void test_createField_unqualified_instance() {
+    _indexTestUnit('''
+class A {
+  main() {
+    test = 5;
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int test;
+
+  main() {
+    test = 5;
+  }
+}
+''');
+  }
+
+  void test_createField_unqualified_static() {
+    _indexTestUnit('''
+class A {
+  static main() {
+    test = 5;
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  static int test;
+
+  static main() {
+    test = 5;
+  }
+}
+''');
+  }
+
   void test_createFile_forImport() {
     testFile = '/my/project/bin/test.dart';
     _indexTestUnit('''

@@ -201,6 +201,7 @@ class FixProcessor {
       _addFix_createFunction_forFunctionType();
       _addFix_importLibrary_withType();
       _addFix_importLibrary_withTopLevelVariable();
+      _addFix_undefinedSetter_createField();
     }
     if (errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER) {
       _addFix_useStaticAccess_method();
@@ -226,6 +227,9 @@ class FixProcessor {
       _addFix_undefinedMethod_useSimilar();
       _addFix_undefinedMethod_create();
       _addFix_undefinedFunction_create();
+    }
+    if (errorCode == StaticTypeWarningCode.UNDEFINED_SETTER) {
+      _addFix_undefinedSetter_createField();
     }
     // done
     return fixes;
@@ -410,10 +414,10 @@ class FixProcessor {
       // add proposal
       _ConstructorLocation targetLocation =
           _prepareNewConstructorLocation(targetClassNode);
-      SourceBuilder sb = new SourceBuilder(file, targetLocation._offset);
+      SourceBuilder sb = new SourceBuilder(file, targetLocation.offset);
       {
         String indent = utils.getIndent(1);
-        sb.append(targetLocation._prefix);
+        sb.append(targetLocation.prefix);
         sb.append(indent);
         sb.append(targetClassName);
         if (!constructorName.isEmpty) {
@@ -432,7 +436,7 @@ class FixProcessor {
         sb.append('(');
         sb.append(argumentsBuffer.toString());
         sb.append(');');
-        sb.append(targetLocation._suffix);
+        sb.append(targetLocation.suffix);
       }
       _insertBuilder(sb);
       // add proposal
@@ -486,17 +490,17 @@ class FixProcessor {
     _ConstructorLocation targetLocation =
         _prepareNewConstructorLocation(targetClass);
     // build method source
-    SourceBuilder sb = new SourceBuilder(targetFile, targetLocation._offset);
+    SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
     {
       String indent = "  ";
-      sb.append(targetLocation._prefix);
+      sb.append(targetLocation.prefix);
       sb.append(indent);
       sb.append(targetElement.name);
       _addFix_undefinedMethod_create_parameters(
           sb,
           instanceCreation.argumentList);
       sb.append(") {${eol}${indent}}");
-      sb.append(targetLocation._suffix);
+      sb.append(targetLocation.suffix);
     }
     // insert source
     _insertBuilder(sb);
@@ -544,10 +548,10 @@ class FixProcessor {
     _ConstructorLocation targetLocation =
         _prepareNewConstructorLocation(targetClass);
     // build method source
-    SourceBuilder sb = new SourceBuilder(targetFile, targetLocation._offset);
+    SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
     {
       String indent = "  ";
-      sb.append(targetLocation._prefix);
+      sb.append(targetLocation.prefix);
       sb.append(indent);
       sb.append(targetElement.name);
       sb.append(".");
@@ -561,7 +565,7 @@ class FixProcessor {
           sb,
           instanceCreation.argumentList);
       sb.append(") {${eol}${indent}}");
-      sb.append(targetLocation._suffix);
+      sb.append(targetLocation.suffix);
     }
     // insert source
     _insertBuilder(sb);
@@ -1341,6 +1345,76 @@ class FixProcessor {
     }
   }
 
+  void _addFix_undefinedSetter_createField() {
+    // prepare enclosing AssignmentExpression
+    AssignmentExpression assignment = node.getAncestor((node) {
+      return node is AssignmentExpression;
+    });
+    if (assignment == null) {
+      return;
+    }
+    // prepare name
+    SimpleIdentifier nameNode = node;
+    String name = nameNode.name;
+    // prepare target class
+    bool staticModifier = false;
+    ClassElement targetClassElement;
+    AstNode nameParent = nameNode.parent;
+    if (nameParent is PrefixedIdentifier) {
+      Expression target = nameParent.prefix;
+      // prepare target interface type
+      DartType targetType = target.bestType;
+      if (targetType is! InterfaceType) {
+        return;
+      }
+      targetClassElement = targetType.element as ClassElement;
+      // may be static
+      if (target is Identifier) {
+        staticModifier = target.bestElement.kind == ElementKind.CLASS;
+      }
+    } else {
+      ClassDeclaration target = node.getAncestor((node) {
+        return node is ClassDeclaration;
+      });
+      if (target == null) {
+        return;
+      }
+      targetClassElement = target.element;
+      staticModifier = _inStaticContext();
+    }
+    // prepare location
+    ClassDeclaration targetClassNode = targetClassElement.node;
+    _FieldLocation targetLocation = _prepareNewFieldLocation(targetClassNode);
+    // build method source
+    String targetFile = targetClassElement.source.fullName;
+    SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
+    {
+      sb.append(targetLocation.prefix);
+      // maybe "static"
+      if (staticModifier) {
+        sb.append('static ');
+      }
+      // append return type
+      _appendType(sb, assignment.rightHandSide.bestType, 'TYPE');
+      // append name
+      {
+        sb.startPosition('NAME');
+        sb.append(name);
+        sb.endPosition();
+      }
+      sb.append(';');
+      sb.append(targetLocation.suffix);
+    }
+    // insert source
+    _insertBuilder(sb);
+    // add linked positions
+    if (targetFile == file) {
+      _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+    }
+    // add proposal
+    _addFixToElement(FixKind.CREATE_FIELD, [name], targetClassElement);
+  }
+
   void _addFix_useEffectiveIntegerDivision() {
     for (AstNode n = node; n != null; n = n.parent) {
       if (n is MethodInvocation &&
@@ -1842,17 +1916,44 @@ class FixProcessor {
         break;
       }
     }
-    // after the field/constructor
+    // after the last field/constructor
     if (lastFieldOrConstructor != null) {
       return new _ConstructorLocation(
-          "${eol}${eol}",
+          eol + eol,
           lastFieldOrConstructor.end,
-          "");
+          '');
     }
     // at the beginning of the class
-    String suffix = members.isEmpty ? "" : eol;
+    String suffix = members.isEmpty ? '' : eol;
     return new _ConstructorLocation(
         eol,
+        classDeclaration.leftBracket.end,
+        suffix);
+  }
+
+  _FieldLocation _prepareNewFieldLocation(ClassDeclaration classDeclaration) {
+    String indent = utils.getIndent(1);
+    // find the last field
+    ClassMember lastFieldOrConstructor = null;
+    List<ClassMember> members = classDeclaration.members;
+    for (ClassMember member in members) {
+      if (member is FieldDeclaration) {
+        lastFieldOrConstructor = member;
+      } else {
+        break;
+      }
+    }
+    // after the last field
+    if (lastFieldOrConstructor != null) {
+      return new _FieldLocation(
+          eol + eol + indent,
+          lastFieldOrConstructor.end,
+          '');
+    }
+    // at the beginning of the class
+    String suffix = members.isEmpty ? '' : eol;
+    return new _FieldLocation(
+        eol + indent,
         classDeclaration.leftBracket.end,
         suffix);
   }
@@ -1980,13 +2081,26 @@ class _ClosestElementFinder {
   }
 }
 
+
 /**
  * Describes the location for a newly created [ConstructorDeclaration].
  */
 class _ConstructorLocation {
-  final String _prefix;
-  final int _offset;
-  final String _suffix;
+  final String prefix;
+  final int offset;
+  final String suffix;
 
-  _ConstructorLocation(this._prefix, this._offset, this._suffix);
+  _ConstructorLocation(this.prefix, this.offset, this.suffix);
+}
+
+
+/**
+ * Describes the location for a newly created [FieldDeclaration].
+ */
+class _FieldLocation {
+  final String prefix;
+  final int offset;
+  final String suffix;
+
+  _FieldLocation(this.prefix, this.offset, this.suffix);
 }

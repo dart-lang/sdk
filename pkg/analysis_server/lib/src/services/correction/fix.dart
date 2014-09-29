@@ -62,6 +62,8 @@ class FixKind {
       'CREATE_CONSTRUCTOR_SUPER',
       50,
       "Create constructor to call {0}");
+  static const CREATE_FIELD =
+      const FixKind('CREATE_FIELD', 50, "Create field '{0}'");
   static const CREATE_FILE =
       const FixKind('CREATE_FILE', 50, "Create file '{0}'");
   static const CREATE_FUNCTION =
