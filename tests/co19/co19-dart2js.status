@@ -12,21 +12,21 @@ LibTest/core/List/sort_A01_t04: Fail, Pass, Timeout # Must be a bug in jsshell, 
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: CompileTimeError # co19 issue 700
 LibTest/core/List/removeAt_A02_t01: RuntimeError # Issue 1533
 LibTest/isolate/ReceivePort/receive_A01_t02: RuntimeError # Issue 6750
-Language/05_Variables/05_Variables_A11_t01: fail # Please triage this issue.
+Language/05_Variables/05_Variables_A11_t01: MissingCompileTimeError # Issue 21050
+Language/13_Statements/04_Local_Function_Declaration_A04_t01: MissingCompileTimeError # Issue 21050
+Language/13_Statements/04_Local_Function_Declaration_A04_t03: MissingCompileTimeError # Issue 21050
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # 13363
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # 13363
 
-Language/13_Statements/04_Local_Function_Declaration_A04_t01: MissingCompileTimeError # co19-roll r607: Please triage this failure
-Language/13_Statements/04_Local_Function_Declaration_A04_t03: MissingCompileTimeError # co19-roll r667: Please triage this failure
 Language/07_Classes/07_Classes_A13_t02: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t03: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t05: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t06: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t08: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with same name a type parameter
-Language/03_Overview/1_Scoping_A02_t05: CompileTimeError # TODO(ahe): Please triage this failure.
-Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # TODO(ahe): Please triage this failure.
+Language/03_Overview/1_Scoping_A02_t05: CompileTimeError # Issue 21072
+Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # Issue 21072
 LibTest/core/double/INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/typed_data/ByteData/getFloat32_A02_t02: fail # co19-roll r569: Please triage this failure
@@ -96,10 +96,10 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: F
 
 [ $compiler == dart2js && $checked ]
 Language/13_Statements/09_Switch_A05_t01: Fail # Missing type check in switch expression
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
-Language/15_Types/2_Dynamic_Type_System_A01_t02: RuntimeError # co19-roll r607: Please triage this failure
-Language/15_Types/8_Parameterized_Types_A03_t07: RuntimeError # co19-roll r607: Please triage this failure
-Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r623: Please triage this failure
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: RuntimeError # Issue 1533 - co19 issue 711
+Language/15_Types/2_Dynamic_Type_System_A01_t02: RuntimeError # Issue 21088
+Language/15_Types/8_Parameterized_Types_A03_t07: RuntimeError # Issue 21088
+Language/15_Types/1_Static_Types_A03_t01: RuntimeError # Issue 21089
 LibTest/core/Map/Map_class_A01_t04: Slow, Pass
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass
 Language/13_Statements/09_Switch_A09_t01: RuntimeError # Issue 16089
@@ -418,20 +418,20 @@ LibTest/typed_data/Int32x4/z_A01_t01: fail # co19-roll r672: Please triage this 
 LibTest/typed_data/Int32x4/z_A01_t02: fail # co19-roll r672: Please triage this failure
 
 [ $compiler == dart2js ]
-Language/03_Overview/1_Scoping_A02_t28: fail # co19-roll r559: Please triage this failure
-Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A02_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t06: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/03_Numbers_A01_t09: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A02_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A02_t05: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A02_t06: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A02_t07: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/22_Equality_A01_t01: fail # co19-roll r546: Please triage this failure
+Language/03_Overview/1_Scoping_A02_t28: fail # Issue 21092 and co19 issue 713
+Language/05_Variables/05_Variables_A05_t01: fail # Issue 21093
+Language/05_Variables/05_Variables_A05_t02: fail # Issue 21093
+Language/12_Expressions/00_Object_Identity/1_Object_Identity_A02_t02: fail # Issue 11551, also related to issue 563, 18738
+Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t01: fail # Issue 11551, also related to issue 563, 18738
+Language/12_Expressions/03_Numbers_A01_t06: fail # Issue 21098
+Language/12_Expressions/03_Numbers_A01_t09: fail # Issue 21098
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t03: fail # Issue 21092 and co19 issue 713
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t05: fail # Issue 21092 and co19 issue 713
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t06: fail # Issue 21092 and co19 issue 713
+Language/12_Expressions/12_Instance_Creation/1_New_A02_t07: fail # Issue 21092 and co19 issue 713
+Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: fail # Issue 21134 and co19 issue 714
+Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: fail # Issue 21134 and co19 issue 714
+Language/12_Expressions/22_Equality_A01_t01: fail # Issue 21137
 Language/12_Expressions/22_Equality_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/33_Type_Cast_A02_t03: fail # co19-roll r546: Please triage this failure
