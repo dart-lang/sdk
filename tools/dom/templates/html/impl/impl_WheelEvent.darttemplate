@@ -12,7 +12,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       int clientY: 0, int button: 0, bool canBubble: true,
       bool cancelable: true, bool ctrlKey: false, bool altKey: false,
       bool shiftKey: false, bool metaKey: false, EventTarget relatedTarget}) {
-
+$if DART2JS
     if (view == null) {
       view = window;
     }
@@ -21,7 +21,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       eventType = 'MouseScrollEvents';
     }
     final event = document._createEvent(eventType);
-$if DART2JS
     // If polyfilling, then flip these because we'll flip them back to match
     // the W3C standard:
     // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY
@@ -66,25 +65,38 @@ $if DART2JS
     } else {
       // Chrome does an auto-convert to pixels.
       deltaY = deltaY ~/ 120;
-$else
-    // Dartium always needs these flipped because we're using the legacy
-    // _initWebKitWheelEvent instead of the more modern WheelEvent constructor
-    // which isn't yet properly exposed by the Dartium bindings.
-    deltaX = -deltaX;
-    deltaY = -deltaY;
-$endif
-      // Fallthrough for Dartium.
+
       event._initMouseEvent(type, canBubble, cancelable, view, detail,
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget);
-      event._initWebKitWheelEvent(deltaX, deltaY,
+      JS('void', '#.initWebKitWheelEvent(#, #, #, #, #, #, #, #, #, #, #)',
+          event, deltaX, deltaY,
           view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey);
-$if DART2JS
     }
-$endif
 
     return event;
+$else
+    var options = {
+      'view': view,
+      'deltaX': deltaX,
+      'deltaY': deltaY,
+      'detail': detail,
+      'screenX': screenX,
+      'screenY': screenY,
+      'clientX': clientX,
+      'clientY': clientY,
+      'button': button,
+      'bubbles': canBubble,
+      'cancelable': cancelable,
+      'ctrlKey': ctrlKey,
+      'altKey': altKey,
+      'shiftKey': shiftKey,
+      'metaKey': metaKey,
+      'relatedTarget': relatedTarget,
+    };
+    return _blink.BlinkWheelEvent.constructorCallback(type, options);
+$endif
   }
 
 $!MEMBERS

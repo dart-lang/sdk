@@ -114,7 +114,6 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'ChannelMergerNode': 'ChannelMergerNode,AudioChannelMerger',
     'ChannelSplitterNode': 'ChannelSplitterNode,AudioChannelSplitter',
 
-    'ClientRect': 'ClientRect,DOMRect',
     'ClientRectList': 'ClientRectList,DOMRectList',
 
     'CSSStyleDeclaration':
@@ -239,9 +238,9 @@ def _BuildArguments(args, interface, constructor=False):
     return '_OR_'.join(sorted(set(arg.id for arg in args)))
 
   def DartType(idl_type_name):
-   if idl_type_name in _idl_type_registry:
-     return _idl_type_registry[idl_type_name].dart_type or idl_type_name
-   return idl_type_name
+    if idl_type_name in _idl_type_registry:
+      return _idl_type_registry[idl_type_name].dart_type or idl_type_name
+    return idl_type_name
 
   # Given a list of overloaded arguments, choose a suitable type.
   def OverloadedType(args):
@@ -264,12 +263,15 @@ def _BuildArguments(args, interface, constructor=False):
 
   return result
 
-# Argument default value set (literal value or null).
-def HasDefault(argument):
-  return (argument.default_value != None) or argument.default_value_is_null
+# Argument default value is one that we suppress
+# FIXME(leafp) We may wish to eliminate this special treatment of optional
+# arguments entirely, since default values are being used more pervasively
+# in the IDL now.
+def HasSuppressedOptionalDefault(argument):
+  return (argument.default_value == 'Undefined') or argument.default_value_is_null
 
 def IsOptional(argument):
-  return argument.optional and (not(HasDefault(argument))) \
+  return argument.optional and (not(HasSuppressedOptionalDefault(argument))) \
          or 'DartForceOptional' in argument.ext_attrs
 
 def AnalyzeOperation(interface, operations):
@@ -450,7 +452,7 @@ class OperationInfo(object):
       else:
         if optional:
           raise Exception('Optional parameters cannot precede required ones: '
-                          + str(params))
+                          + str(param_info))
         required.append(FormatParam(param_info))
     needs_named = optional and self.requires_named_arguments and not force_optional
     return (required, optional, needs_named)
@@ -1273,7 +1275,7 @@ class TypeRegistry(object):
     return self.TypeInfo(type_name).dart_type()
 
   def _TypeInfo(self, type_name):
-    match = re.match(r'(?:sequence<(\w+)>|(\w+)\[\])$', type_name)
+    match = re.match(r'(?:sequence<([\w ]+)>|(\w+)\[\])$', type_name)
     if match:
       type_data = TypeData('Sequence')
       item_info = self.TypeInfo(match.group(1) or match.group(2))

@@ -344,7 +344,6 @@ WebPlatformTest/dom/nodes/Document-adoptNode_t01: RuntimeError # co19-roll r722:
 WebPlatformTest/dom/nodes/Document-createElement_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-createElementNS_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-getElementsByTagName_t01: RuntimeError, Pass # co19-roll r722: Please triage this failure.
-WebPlatformTest/dom/nodes/Document-importNode_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-appendChild_t02: RuntimeError, Pass # co19-roll r722: Please triage this failure.

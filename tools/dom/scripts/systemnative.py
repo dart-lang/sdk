@@ -677,6 +677,14 @@ class DartiumBackend(HtmlDartGenerator):
       '$!METHODS'
       '}\n',
       INTERFACE_NAME=DeriveBlinkClassName(self._interface.id))
+    # TODO(vsm): Should we check for collisions between EventConstructors and others?
+    # Should we unify at some point?
+    if 'EventConstructor' in self._interface.ext_attrs:
+        self._native_class_emitter.Emit(
+            '\n'
+            '  static constructorCallback(type, options) native "$(INTERFACE_NAME)_constructorCallback";\n',
+            INTERFACE_NAME=self._interface.id
+            )
     self._blink_entries = set()
 
   def _EmitConstructorInfrastructure(self,
@@ -761,7 +769,7 @@ class DartiumBackend(HtmlDartGenerator):
     return True
 
   def IsConstructorArgumentOptional(self, argument):
-    return False
+    return IsOptional(argument)
 
   def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
     constructor_callback_cpp_name = name + 'constructorCallback'  
@@ -1339,10 +1347,8 @@ class DartiumBackend(HtmlDartGenerator):
     needs_custom_element_callbacks = False
 
     # TODO(antonm): unify with ScriptState below.
-    requires_stack_info = (ext_attrs.get('CallWith') == 'ScriptArguments|ScriptState' or
-                           ext_attrs.get('ConstructorCallWith') == 'ScriptArguments|ScriptState' or
-                           ext_attrs.get('CallWith') == 'ScriptArguments&ScriptState' or
-                           ext_attrs.get('ConstructorCallWith') == 'ScriptArguments&ScriptState')
+    call_with = ext_attrs.get('CallWith', '') + ext_attrs.get('ConstructorCallWith', '')
+    requires_stack_info = 'ScriptArguments' in call_with or 'ScriptState' in call_with
     if requires_stack_info:
       raises_exceptions = True
       cpp_arguments = ['&state', 'scriptArguments.release()']

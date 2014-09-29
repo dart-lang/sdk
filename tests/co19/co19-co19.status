@@ -19,12 +19,16 @@ LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 # TODO(terry) re-enable the below CSS tests when Chrome 38 and (Dartium 38) are ready issue 21075
 LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: Skip
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: Skip
+LayoutTests/fast/css/fontface-properties_t01: Skip
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A01_t06: Fail, Pass, OK # co19 issue 695
 
 # These tests are obsolete and need updating.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-002_t01: Skip # Issue 19019
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-003_t01: Skip # Issue 19019
+
+# These tests are broken in both Javascript and Dart (co19 folks contacted to fix).
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-004_t01: Skip # Issue 21115
 
 [ $compiler != dartanalyzer && $compiler != dart2analyzer ]
 # Tests that fail on every runtime, but not on the analyzer.

@@ -787,6 +787,11 @@ class DrawBuffers extends Interceptor {
   @DomName('WebGLDrawBuffers.MAX_DRAW_BUFFERS_WEBGL')
   @DocsEditable()
   static const int MAX_DRAW_BUFFERS_WEBGL = 0x8824;
+
+  @JSName('drawBuffersWEBGL')
+  @DomName('WebGLDrawBuffers.drawBuffersWEBGL')
+  @DocsEditable()
+  void drawBuffersWebgl(List<int> buffers) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1372,7 +1377,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.getAttachedShaders')
   @DocsEditable()
-  void getAttachedShaders(Program program) native;
+  List<Shader> getAttachedShaders(Program program) native;
 
   @DomName('WebGLRenderingContext.getAttribLocation')
   @DocsEditable()
@@ -3698,7 +3703,7 @@ abstract class RenderingContextBase extends Interceptor {
 
   ActiveInfo getActiveUniform(Program program, int index);
 
-  void getAttachedShaders(Program program);
+  List<Shader> getAttachedShaders(Program program);
 
   int getAttribLocation(Program program, String name);
 

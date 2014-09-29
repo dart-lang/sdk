@@ -873,6 +873,10 @@ class DrawBuffers extends NativeFieldWrapperClass2 {
   @DocsEditable()
   static const int MAX_DRAW_BUFFERS_WEBGL = 0x8824;
 
+  @DomName('WebGLDrawBuffers.drawBuffersWEBGL')
+  @DocsEditable()
+  void drawBuffersWebgl(List<int> buffers) => _blink.BlinkWebGLDrawBuffers.drawBuffersWEBGL_Callback_SEQ_ul_SEQ(this, buffers);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1455,7 +1459,7 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
   @DomName('WebGLRenderingContext.getAttachedShaders')
   @DocsEditable()
-  void getAttachedShaders(Program program) => _blink.BlinkWebGLRenderingContext.getAttachedShaders_Callback_WebGLProgram(this, program);
+  List<Shader> getAttachedShaders(Program program) => _blink.BlinkWebGLRenderingContext.getAttachedShaders_Callback_WebGLProgram(this, program);
 
   @DomName('WebGLRenderingContext.getAttribLocation')
   @DocsEditable()
@@ -3741,7 +3745,7 @@ abstract class RenderingContextBase extends NativeFieldWrapperClass2 {
   @DomName('WebGLRenderingContextBase.getAttachedShaders')
   @DocsEditable()
   @Experimental() // untriaged
-  void getAttachedShaders(Program program) => _blink.BlinkWebGLRenderingContextBase.getAttachedShaders_Callback_WebGLProgram(this, program);
+  List<Shader> getAttachedShaders(Program program) => _blink.BlinkWebGLRenderingContextBase.getAttachedShaders_Callback_WebGLProgram(this, program);
 
   @DomName('WebGLRenderingContextBase.getAttribLocation')
   @DocsEditable()

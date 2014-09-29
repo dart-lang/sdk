@@ -28,7 +28,7 @@ class DartGenerator(object):
 
   def __init__(self, logging_level=logging.WARNING):
     self._auxiliary_files = {}
-    self._dart_templates_re = re.compile(r'[\w.:]+<([\w\.<>:]+)>')
+    self._dart_templates_re = re.compile(r'[\w.:]+<([\w \.<>:]+)>')
     _logger.setLevel(logging_level)
 
   def _StripModules(self, type_name):
@@ -229,9 +229,7 @@ class DartGenerator(object):
     ARG = idlnode.IDLArgument([('Type', ('ScopedName', 'object')), ('Id', 'arg')])
     for interface in database.GetInterfaces():
       for operation in interface.operations:
-        call_with = (operation.ext_attrs.get('CallWith', '').split('|') +
-                     operation.ext_attrs.get('ConstructorCallWith', '').split('|') +
-                     operation.ext_attrs.get('CallWith', '').split('&') +
-                     operation.ext_attrs.get('ConstructorCallWith', '').split('&'))
+        call_with = (operation.ext_attrs.get('CallWith', '') +
+                     operation.ext_attrs.get('ConstructorCallWith', ''))
         if 'ScriptArguments' in call_with:
           operation.arguments.append(ARG)

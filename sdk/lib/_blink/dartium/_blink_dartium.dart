@@ -24,14 +24,6 @@ class BlinkANGLEInstancedArrays {
 
 class BlinkAbstractWorker {}
 
-class BlinkKeyAlgorithm {
-  static name_Getter(mthis) native "KeyAlgorithm_name_Getter";
-}
-
-class BlinkAesKeyAlgorithm {
-  static length_Getter(mthis) native "AesKeyAlgorithm_length_Getter";
-}
-
 class BlinkEventTarget {
   static addEventListener_Callback_DOMString_EventListener_boolean(mthis, type, listener, useCapture) native "EventTarget_addEventListener_Callback_DOMString_EventListener_boolean";
 
@@ -151,8 +143,6 @@ class BlinkAnimationPlayer {
 
   static startTime_Setter_double(mthis, value) native "AnimationPlayer_startTime_Setter";
 
-  static timeLag_Getter(mthis) native "AnimationPlayer_timeLag_Getter";
-
   static cancel_Callback(mthis) native "AnimationPlayer_cancel_Callback";
 
   static finish_Callback(mthis) native "AnimationPlayer_finish_Callback";
@@ -165,6 +155,8 @@ class BlinkAnimationPlayer {
 }
 
 class BlinkEvent {
+  static constructorCallback(type, options) native "Event_constructorCallback";
+
   static bubbles_Getter(mthis) native "Event_bubbles_Getter";
 
   static cancelable_Getter(mthis) native "Event_cancelable_Getter";
@@ -195,6 +187,8 @@ class BlinkEvent {
 }
 
 class BlinkAnimationPlayerEvent {
+  static constructorCallback(type, options) native "AnimationPlayerEvent_constructorCallback";
+
   static currentTime_Getter(mthis) native "AnimationPlayerEvent_currentTime_Getter";
 
   static timelineTime_Getter(mthis) native "AnimationPlayerEvent_timelineTime_Getter";
@@ -202,6 +196,8 @@ class BlinkAnimationPlayerEvent {
 
 class BlinkAnimationTimeline {
   static currentTime_Getter(mthis) native "AnimationTimeline_currentTime_Getter";
+
+  static getAnimationPlayers_Callback(mthis) native "AnimationTimeline_getAnimationPlayers_Callback";
 
   static play_Callback_AnimationNode(mthis, source) native "AnimationTimeline_play_Callback_AnimationNode";
 }
@@ -217,6 +213,8 @@ class BlinkApplicationCache {
 }
 
 class BlinkApplicationCacheErrorEvent {
+  static constructorCallback(type, options) native "ApplicationCacheErrorEvent_constructorCallback";
+
   static message_Getter(mthis) native "ApplicationCacheErrorEvent_message_Getter";
 
   static reason_Getter(mthis) native "ApplicationCacheErrorEvent_reason_Getter";
@@ -259,7 +257,7 @@ class BlinkNode {
 
   static textContent_Setter_DOMString(mthis, value) native "Node_textContent_Setter";
 
-  static appendChild_Callback_Node(mthis, newChild) native "Node_appendChild_Callback";
+  static appendChild_Callback_Node(mthis, newChild) native "Node_appendChild_Callback_Node";
 
   static cloneNode_Callback_boolean(mthis, deep) native "Node_cloneNode_Callback";
 
@@ -267,11 +265,11 @@ class BlinkNode {
 
   static hasChildNodes_Callback(mthis) native "Node_hasChildNodes_Callback";
 
-  static insertBefore_Callback_Node_Node(mthis, newChild, refChild) native "Node_insertBefore_Callback";
+  static insertBefore_Callback_Node_Node(mthis, newChild, refChild) native "Node_insertBefore_Callback_Node_Node";
 
-  static removeChild_Callback_Node(mthis, oldChild) native "Node_removeChild_Callback";
+  static removeChild_Callback_Node(mthis, oldChild) native "Node_removeChild_Callback_Node";
 
-  static replaceChild_Callback_Node_Node(mthis, newChild, oldChild) native "Node_replaceChild_Callback";
+  static replaceChild_Callback_Node_Node(mthis, newChild, oldChild) native "Node_replaceChild_Callback_Node_Node";
 }
 
 class BlinkAttr {
@@ -425,14 +423,6 @@ class BlinkAudioListener {
 class BlinkAudioParam {
   static defaultValue_Getter(mthis) native "AudioParam_defaultValue_Getter";
 
-  static maxValue_Getter(mthis) native "AudioParam_maxValue_Getter";
-
-  static minValue_Getter(mthis) native "AudioParam_minValue_Getter";
-
-  static name_Getter(mthis) native "AudioParam_name_Getter";
-
-  static units_Getter(mthis) native "AudioParam_units_Getter";
-
   static value_Getter(mthis) native "AudioParam_value_Getter";
 
   static value_Setter_float(mthis, value) native "AudioParam_value_Setter";
@@ -481,6 +471,8 @@ class BlinkAudioTrackList {
 }
 
 class BlinkAutocompleteErrorEvent {
+  static constructorCallback(type, options) native "AutocompleteErrorEvent_constructorCallback";
+
   static reason_Getter(mthis) native "AutocompleteErrorEvent_reason_Getter";
 }
 
@@ -600,10 +592,6 @@ class BlinkCSSCharsetRule {
   static encoding_Getter(mthis) native "CSSCharsetRule_encoding_Getter";
 
   static encoding_Setter_DOMString(mthis, value) native "CSSCharsetRule_encoding_Setter";
-}
-
-class BlinkCSSFontFaceLoadEvent {
-  static fontfaces_Getter(mthis) native "CSSFontFaceLoadEvent_fontfaces_Getter";
 }
 
 class BlinkCSSFontFaceRule {
@@ -764,6 +752,10 @@ class BlinkCSSViewportRule {
   static style_Getter(mthis) native "CSSViewportRule_style_Getter";
 }
 
+class BlinkCache {}
+
+class BlinkCacheStorage {}
+
 class BlinkCanvas2DContextAttributes {
   static alpha_Getter(mthis) native "Canvas2DContextAttributes_alpha_Getter";
 
@@ -857,7 +849,11 @@ class BlinkCanvasRenderingContext2D {
 
   static textBaseline_Setter_DOMString(mthis, value) native "CanvasRenderingContext2D_textBaseline_Setter";
 
+  static addHitRegion_Callback_Dictionary(mthis, options) native "CanvasRenderingContext2D_addHitRegion_Callback_Dictionary";
+
   static beginPath_Callback(mthis) native "CanvasRenderingContext2D_beginPath_Callback";
+
+  static clearHitRegions_Callback(mthis) native "CanvasRenderingContext2D_clearHitRegions_Callback";
 
   static clearRect_Callback_float_float_float_float(mthis, x, y, width, height) native "CanvasRenderingContext2D_clearRect_Callback_float_float_float_float";
 
@@ -951,6 +947,8 @@ class BlinkCanvasRenderingContext2D {
 
   static putImageData_Callback_ImageData_float_float_float_float_float_float(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_putImageData_Callback_ImageData_float_float_float_float_float_float";
 
+  static removeHitRegion_Callback_DOMString(mthis, id) native "CanvasRenderingContext2D_removeHitRegion_Callback_DOMString";
+
   static resetTransform_Callback(mthis) native "CanvasRenderingContext2D_resetTransform_Callback";
 
   static restore_Callback(mthis) native "CanvasRenderingContext2D_restore_Callback";
@@ -1006,10 +1004,18 @@ class BlinkChannelMergerNode {}
 
 class BlinkChannelSplitterNode {}
 
-class BlinkClient {
-  static id_Getter(mthis) native "Client_id_Getter";
+class BlinkGeofencingRegion {
+  static id_Getter(mthis) native "GeofencingRegion_id_Getter";
+}
 
-  static postMessage_Callback_SerializedScriptValue_A_MessagePort_A(mthis, message, messagePorts) native "Client_postMessage_Callback";
+class BlinkCircularRegion {
+  static constructorCallback_Dictionary(init) native "CircularRegion_constructorCallback_Dictionary";
+
+  static latitude_Getter(mthis) native "CircularRegion_latitude_Getter";
+
+  static longitude_Getter(mthis) native "CircularRegion_longitude_Getter";
+
+  static radius_Getter(mthis) native "CircularRegion_radius_Getter";
 }
 
 class BlinkClientRect {
@@ -1033,6 +1039,8 @@ class BlinkClientRectList {
 }
 
 class BlinkCloseEvent {
+  static constructorCallback(type, options) native "CloseEvent_constructorCallback";
+
   static code_Getter(mthis) native "CloseEvent_code_Getter";
 
   static reason_Getter(mthis) native "CloseEvent_reason_Getter";
@@ -1042,9 +1050,13 @@ class BlinkCloseEvent {
 
 class BlinkComment {
   static constructorCallback_DOMString(data) native "Comment_constructorCallback_DOMString";
+
+  static constructorCallback() native "Comment_constructorCallback";
 }
 
 class BlinkUIEvent {
+  static constructorCallback(type, options) native "UIEvent_constructorCallback";
+
   static charCode_Getter(mthis) native "UIEvent_charCode_Getter";
 
   static detail_Getter(mthis) native "UIEvent_detail_Getter";
@@ -1067,11 +1079,15 @@ class BlinkUIEvent {
 }
 
 class BlinkCompositionEvent {
+  static constructorCallback(type, options) native "CompositionEvent_constructorCallback";
+
   static activeSegmentEnd_Getter(mthis) native "CompositionEvent_activeSegmentEnd_Getter";
 
   static activeSegmentStart_Getter(mthis) native "CompositionEvent_activeSegmentStart_Getter";
 
   static data_Getter(mthis) native "CompositionEvent_data_Getter";
+
+  static getSegments_Callback(mthis) native "CompositionEvent_getSegments_Callback";
 
   static initCompositionEvent_Callback_DOMString_boolean_boolean_Window_DOMString(mthis, typeArg, canBubbleArg, cancelableArg, viewArg, dataArg) native "CompositionEvent_initCompositionEvent_Callback_DOMString_boolean_boolean_Window_DOMString";
 }
@@ -1156,13 +1172,35 @@ class BlinkCoordinates {
 
 class BlinkCounter {}
 
+class BlinkCredential {
+  static avatarURL_Getter(mthis) native "Credential_avatarURL_Getter";
+
+  static id_Getter(mthis) native "Credential_id_Getter";
+
+  static name_Getter(mthis) native "Credential_name_Getter";
+}
+
+class BlinkCredentialsContainer {}
+
 class BlinkCrypto {
   static subtle_Getter(mthis) native "Crypto_subtle_Getter";
 
   static getRandomValues_Callback_ArrayBufferView(mthis, array) native "Crypto_getRandomValues_Callback";
 }
 
+class BlinkCryptoKey {
+  static algorithm_Getter(mthis) native "CryptoKey_algorithm_Getter";
+
+  static extractable_Getter(mthis) native "CryptoKey_extractable_Getter";
+
+  static type_Getter(mthis) native "CryptoKey_type_Getter";
+
+  static usages_Getter(mthis) native "CryptoKey_usages_Getter";
+}
+
 class BlinkCustomEvent {
+  static constructorCallback(type, options) native "CustomEvent_constructorCallback";
+
   static detail_Getter(mthis) native "CustomEvent_detail_Getter";
 
   static initCustomEvent_Callback_DOMString_boolean_boolean_ScriptValue(mthis, typeArg, canBubbleArg, cancelableArg, detailArg) native "CustomEvent_initCustomEvent_Callback";
@@ -1202,10 +1240,242 @@ class BlinkDOMImplementation {
   static hasFeature_Callback_DOMString_DOMString(mthis, feature, version) native "DOMImplementation_hasFeature_Callback_DOMString_DOMString";
 }
 
+class BlinkDOMMatrixReadOnly {
+  static a_Getter(mthis) native "DOMMatrixReadOnly_a_Getter";
+
+  static b_Getter(mthis) native "DOMMatrixReadOnly_b_Getter";
+
+  static c_Getter(mthis) native "DOMMatrixReadOnly_c_Getter";
+
+  static d_Getter(mthis) native "DOMMatrixReadOnly_d_Getter";
+
+  static e_Getter(mthis) native "DOMMatrixReadOnly_e_Getter";
+
+  static f_Getter(mthis) native "DOMMatrixReadOnly_f_Getter";
+
+  static is2D_Getter(mthis) native "DOMMatrixReadOnly_is2D_Getter";
+
+  static isIdentity_Getter(mthis) native "DOMMatrixReadOnly_isIdentity_Getter";
+
+  static m11_Getter(mthis) native "DOMMatrixReadOnly_m11_Getter";
+
+  static m12_Getter(mthis) native "DOMMatrixReadOnly_m12_Getter";
+
+  static m13_Getter(mthis) native "DOMMatrixReadOnly_m13_Getter";
+
+  static m14_Getter(mthis) native "DOMMatrixReadOnly_m14_Getter";
+
+  static m21_Getter(mthis) native "DOMMatrixReadOnly_m21_Getter";
+
+  static m22_Getter(mthis) native "DOMMatrixReadOnly_m22_Getter";
+
+  static m23_Getter(mthis) native "DOMMatrixReadOnly_m23_Getter";
+
+  static m24_Getter(mthis) native "DOMMatrixReadOnly_m24_Getter";
+
+  static m31_Getter(mthis) native "DOMMatrixReadOnly_m31_Getter";
+
+  static m32_Getter(mthis) native "DOMMatrixReadOnly_m32_Getter";
+
+  static m33_Getter(mthis) native "DOMMatrixReadOnly_m33_Getter";
+
+  static m34_Getter(mthis) native "DOMMatrixReadOnly_m34_Getter";
+
+  static m41_Getter(mthis) native "DOMMatrixReadOnly_m41_Getter";
+
+  static m42_Getter(mthis) native "DOMMatrixReadOnly_m42_Getter";
+
+  static m43_Getter(mthis) native "DOMMatrixReadOnly_m43_Getter";
+
+  static m44_Getter(mthis) native "DOMMatrixReadOnly_m44_Getter";
+}
+
+class BlinkDOMMatrix {
+  static constructorCallback() native "DOMMatrix_constructorCallback";
+
+  static constructorCallback_DOMMatrixReadOnly(other) native "DOMMatrix_constructorCallback_DOMMatrixReadOnly";
+
+  static a_Getter(mthis) native "DOMMatrix_a_Getter";
+
+  static a_Setter_double(mthis, value) native "DOMMatrix_a_Setter";
+
+  static b_Getter(mthis) native "DOMMatrix_b_Getter";
+
+  static b_Setter_double(mthis, value) native "DOMMatrix_b_Setter";
+
+  static c_Getter(mthis) native "DOMMatrix_c_Getter";
+
+  static c_Setter_double(mthis, value) native "DOMMatrix_c_Setter";
+
+  static d_Getter(mthis) native "DOMMatrix_d_Getter";
+
+  static d_Setter_double(mthis, value) native "DOMMatrix_d_Setter";
+
+  static e_Getter(mthis) native "DOMMatrix_e_Getter";
+
+  static e_Setter_double(mthis, value) native "DOMMatrix_e_Setter";
+
+  static f_Getter(mthis) native "DOMMatrix_f_Getter";
+
+  static f_Setter_double(mthis, value) native "DOMMatrix_f_Setter";
+
+  static m11_Getter(mthis) native "DOMMatrix_m11_Getter";
+
+  static m11_Setter_double(mthis, value) native "DOMMatrix_m11_Setter";
+
+  static m12_Getter(mthis) native "DOMMatrix_m12_Getter";
+
+  static m12_Setter_double(mthis, value) native "DOMMatrix_m12_Setter";
+
+  static m13_Getter(mthis) native "DOMMatrix_m13_Getter";
+
+  static m13_Setter_double(mthis, value) native "DOMMatrix_m13_Setter";
+
+  static m14_Getter(mthis) native "DOMMatrix_m14_Getter";
+
+  static m14_Setter_double(mthis, value) native "DOMMatrix_m14_Setter";
+
+  static m21_Getter(mthis) native "DOMMatrix_m21_Getter";
+
+  static m21_Setter_double(mthis, value) native "DOMMatrix_m21_Setter";
+
+  static m22_Getter(mthis) native "DOMMatrix_m22_Getter";
+
+  static m22_Setter_double(mthis, value) native "DOMMatrix_m22_Setter";
+
+  static m23_Getter(mthis) native "DOMMatrix_m23_Getter";
+
+  static m23_Setter_double(mthis, value) native "DOMMatrix_m23_Setter";
+
+  static m24_Getter(mthis) native "DOMMatrix_m24_Getter";
+
+  static m24_Setter_double(mthis, value) native "DOMMatrix_m24_Setter";
+
+  static m31_Getter(mthis) native "DOMMatrix_m31_Getter";
+
+  static m31_Setter_double(mthis, value) native "DOMMatrix_m31_Setter";
+
+  static m32_Getter(mthis) native "DOMMatrix_m32_Getter";
+
+  static m32_Setter_double(mthis, value) native "DOMMatrix_m32_Setter";
+
+  static m33_Getter(mthis) native "DOMMatrix_m33_Getter";
+
+  static m33_Setter_double(mthis, value) native "DOMMatrix_m33_Setter";
+
+  static m34_Getter(mthis) native "DOMMatrix_m34_Getter";
+
+  static m34_Setter_double(mthis, value) native "DOMMatrix_m34_Setter";
+
+  static m41_Getter(mthis) native "DOMMatrix_m41_Getter";
+
+  static m41_Setter_double(mthis, value) native "DOMMatrix_m41_Setter";
+
+  static m42_Getter(mthis) native "DOMMatrix_m42_Getter";
+
+  static m42_Setter_double(mthis, value) native "DOMMatrix_m42_Setter";
+
+  static m43_Getter(mthis) native "DOMMatrix_m43_Getter";
+
+  static m43_Setter_double(mthis, value) native "DOMMatrix_m43_Setter";
+
+  static m44_Getter(mthis) native "DOMMatrix_m44_Getter";
+
+  static m44_Setter_double(mthis, value) native "DOMMatrix_m44_Setter";
+}
+
 class BlinkDOMParser {
   static constructorCallback() native "DOMParser_constructorCallback";
 
   static parseFromString_Callback_DOMString_DOMString(mthis, str, contentType) native "DOMParser_parseFromString_Callback_DOMString_DOMString";
+}
+
+class BlinkDOMPointReadOnly {
+  static constructorCallback_double_double_double_double(x, y, z, w) native "DOMPointReadOnly_constructorCallback_double_double_double_double";
+
+  static w_Getter(mthis) native "DOMPointReadOnly_w_Getter";
+
+  static x_Getter(mthis) native "DOMPointReadOnly_x_Getter";
+
+  static y_Getter(mthis) native "DOMPointReadOnly_y_Getter";
+
+  static z_Getter(mthis) native "DOMPointReadOnly_z_Getter";
+}
+
+class BlinkDOMPoint {
+  static constructorCallback() native "DOMPoint_constructorCallback";
+
+  static constructorCallback_Dictionary(point_OR_x) native "DOMPoint_constructorCallback_Dictionary";
+
+  static constructorCallback_double_double(point_OR_x, y) native "DOMPoint_constructorCallback_double_double";
+
+  static constructorCallback_double_double_double(point_OR_x, y, z) native "DOMPoint_constructorCallback_double_double_double";
+
+  static constructorCallback_double_double_double_double(point_OR_x, y, z, w) native "DOMPoint_constructorCallback_double_double_double_double";
+
+  static w_Getter(mthis) native "DOMPoint_w_Getter";
+
+  static w_Setter_double(mthis, value) native "DOMPoint_w_Setter";
+
+  static x_Getter(mthis) native "DOMPoint_x_Getter";
+
+  static x_Setter_double(mthis, value) native "DOMPoint_x_Setter";
+
+  static y_Getter(mthis) native "DOMPoint_y_Getter";
+
+  static y_Setter_double(mthis, value) native "DOMPoint_y_Setter";
+
+  static z_Getter(mthis) native "DOMPoint_z_Getter";
+
+  static z_Setter_double(mthis, value) native "DOMPoint_z_Setter";
+}
+
+class BlinkDOMRectReadOnly {
+  static constructorCallback_double_double_double_double(x, y, width, height) native "DOMRectReadOnly_constructorCallback_double_double_double_double";
+
+  static bottom_Getter(mthis) native "DOMRectReadOnly_bottom_Getter";
+
+  static height_Getter(mthis) native "DOMRectReadOnly_height_Getter";
+
+  static left_Getter(mthis) native "DOMRectReadOnly_left_Getter";
+
+  static right_Getter(mthis) native "DOMRectReadOnly_right_Getter";
+
+  static top_Getter(mthis) native "DOMRectReadOnly_top_Getter";
+
+  static width_Getter(mthis) native "DOMRectReadOnly_width_Getter";
+
+  static x_Getter(mthis) native "DOMRectReadOnly_x_Getter";
+
+  static y_Getter(mthis) native "DOMRectReadOnly_y_Getter";
+}
+
+class BlinkDOMRect {
+  static constructorCallback_double_double_double_double(x, y, width, height) native "DOMRect_constructorCallback_double_double_double_double";
+
+  static constructorCallback_double_double_double(x, y, width) native "DOMRect_constructorCallback_double_double_double";
+
+  static constructorCallback_double_double(x, y) native "DOMRect_constructorCallback_double_double";
+
+  static constructorCallback_double(x) native "DOMRect_constructorCallback_double";
+
+  static constructorCallback() native "DOMRect_constructorCallback";
+
+  static height_Getter(mthis) native "DOMRect_height_Getter";
+
+  static height_Setter_double(mthis, value) native "DOMRect_height_Setter";
+
+  static width_Getter(mthis) native "DOMRect_width_Getter";
+
+  static width_Setter_double(mthis, value) native "DOMRect_width_Setter";
+
+  static x_Getter(mthis) native "DOMRect_x_Getter";
+
+  static x_Setter_double(mthis, value) native "DOMRect_x_Setter";
+
+  static y_Getter(mthis) native "DOMRect_y_Getter";
+
+  static y_Setter_double(mthis, value) native "DOMRect_y_Setter";
 }
 
 class BlinkDOMTokenList {
@@ -1218,8 +1488,6 @@ class BlinkDOMTokenList {
   static item_Callback_ul(mthis, index) native "DOMTokenList_item_Callback_unsigned long";
 
   static remove_Callback_DOMString(mthis, tokens) native "DOMTokenList_remove_Callback_DOMString";
-
-  static toString_Callback(mthis) native "DOMTokenList_toString_Callback";
 
   static toggle_Callback_DOMString_boolean(mthis, token, force) native "DOMTokenList_toggle_Callback_DOMString_boolean";
 
@@ -1381,7 +1649,7 @@ class BlinkWorkerGlobalScope {
 }
 
 class BlinkDedicatedWorkerGlobalScope {
-  static postMessage_Callback_ScriptValue_A_MessagePort_A(mthis, message, messagePorts) native "DedicatedWorkerGlobalScope_postMessage_Callback";
+  static postMessage_Callback_ScriptValue_SEQ_MessagePort_SEQ(mthis, message, transfer) native "DedicatedWorkerGlobalScope_postMessage_Callback";
 }
 
 class BlinkDelayNode {
@@ -1409,6 +1677,8 @@ class BlinkDeviceAcceleration {
 }
 
 class BlinkDeviceLightEvent {
+  static constructorCallback(type, options) native "DeviceLightEvent_constructorCallback";
+
   static value_Getter(mthis) native "DeviceLightEvent_value_Getter";
 }
 
@@ -1531,6 +1801,10 @@ class BlinkDocument {
 
   static fonts_Getter(mthis) native "Document_fonts_Getter";
 
+  static fullscreenElement_Getter(mthis) native "Document_fullscreenElement_Getter";
+
+  static fullscreenEnabled_Getter(mthis) native "Document_fullscreenEnabled_Getter";
+
   static head_Getter(mthis) native "Document_head_Getter";
 
   static hidden_Getter(mthis) native "Document_hidden_Getter";
@@ -1569,8 +1843,6 @@ class BlinkDocument {
 
   static webkitHidden_Getter(mthis) native "Document_webkitHidden_Getter";
 
-  static webkitPointerLockElement_Getter(mthis) native "Document_webkitPointerLockElement_Getter";
-
   static webkitVisibilityState_Getter(mthis) native "Document_webkitVisibilityState_Getter";
 
   static adoptNode_Callback_Node(mthis, node) native "Document_adoptNode_Callback_Node";
@@ -1587,8 +1859,6 @@ class BlinkDocument {
 
   static createNodeIterator_Callback_Node_ul_NodeFilter(mthis, root, whatToShow, filter) native "Document_createNodeIterator_Callback_Node_unsigned long_NodeFilter";
 
-  static createNodeIterator_Callback_Node_ul(mthis, root, whatToShow) native "Document_createNodeIterator_Callback_Node_unsigned long";
-
   static createNodeIterator_Callback_Node(mthis, root) native "Document_createNodeIterator_Callback_Node";
 
   static createRange_Callback(mthis) native "Document_createRange_Callback";
@@ -1601,13 +1871,13 @@ class BlinkDocument {
 
   static createTreeWalker_Callback_Node_ul_NodeFilter(mthis, root, whatToShow, filter) native "Document_createTreeWalker_Callback_Node_unsigned long_NodeFilter";
 
-  static createTreeWalker_Callback_Node_ul(mthis, root, whatToShow) native "Document_createTreeWalker_Callback_Node_unsigned long";
-
   static createTreeWalker_Callback_Node(mthis, root) native "Document_createTreeWalker_Callback_Node";
 
   static elementFromPoint_Callback_long_long(mthis, x, y) native "Document_elementFromPoint_Callback_long_long";
 
   static execCommand_Callback_DOMString_boolean_DOMString(mthis, command, userInterface, value) native "Document_execCommand_Callback_DOMString_boolean_DOMString";
+
+  static exitFullscreen_Callback(mthis) native "Document_exitFullscreen_Callback";
 
   static exitPointerLock_Callback(mthis) native "Document_exitPointerLock_Callback";
 
@@ -1636,8 +1906,6 @@ class BlinkDocument {
   static queryCommandValue_Callback_DOMString(mthis, command) native "Document_queryCommandValue_Callback_DOMString";
 
   static webkitExitFullscreen_Callback(mthis) native "Document_webkitExitFullscreen_Callback";
-
-  static webkitExitPointerLock_Callback(mthis) native "Document_webkitExitPointerLock_Callback";
 
   static childElementCount_Getter(mthis) native "Document_childElementCount_Getter";
 
@@ -1755,6 +2023,8 @@ class BlinkElement {
 
   static focus_Callback(mthis) native "Element_focus_Callback";
 
+  static getAnimationPlayers_Callback(mthis) native "Element_getAnimationPlayers_Callback";
+
   static getAttribute_Callback_DOMString(mthis, name) native "Element_getAttribute_Callback_DOMString";
 
   static getAttributeNS_Callback_DOMString_DOMString(mthis, namespaceURI, localName) native "Element_getAttributeNS_Callback_DOMString_DOMString";
@@ -1785,11 +2055,9 @@ class BlinkElement {
 
   static removeAttributeNS_Callback_DOMString_DOMString(mthis, namespaceURI, localName) native "Element_removeAttributeNS_Callback_DOMString_DOMString";
 
+  static requestFullscreen_Callback(mthis) native "Element_requestFullscreen_Callback";
+
   static requestPointerLock_Callback(mthis) native "Element_requestPointerLock_Callback";
-
-  static scrollByLines_Callback_long(mthis, lines) native "Element_scrollByLines_Callback_long";
-
-  static scrollByPages_Callback_long(mthis, pages) native "Element_scrollByPages_Callback_long";
 
   static scrollIntoView_Callback_boolean(mthis, alignWithTop) native "Element_scrollIntoView_Callback_boolean";
 
@@ -1802,8 +2070,6 @@ class BlinkElement {
   static setAttribute_Callback_DOMString_DOMString(mthis, name, value) native "Element_setAttribute_Callback_DOMString_DOMString";
 
   static setAttributeNS_Callback_DOMString_DOMString_DOMString(mthis, namespaceURI, qualifiedName, value) native "Element_setAttributeNS_Callback_DOMString_DOMString_DOMString";
-
-  static webkitRequestFullscreen_Callback(mthis) native "Element_webkitRequestFullscreen_Callback";
 
   static nextElementSibling_Getter(mthis) native "Element_nextElementSibling_Getter";
 
@@ -1825,6 +2091,8 @@ class BlinkElement {
 }
 
 class BlinkErrorEvent {
+  static constructorCallback(type, options) native "ErrorEvent_constructorCallback";
+
   static colno_Getter(mthis) native "ErrorEvent_colno_Getter";
 
   static error_Getter(mthis) native "ErrorEvent_error_Getter";
@@ -1839,6 +2107,8 @@ class BlinkErrorEvent {
 class BlinkEventSource {
   static constructorCallback_DOMString_Dictionary(url, eventSourceInit) native "EventSource_constructorCallback_DOMString_Dictionary";
 
+  static constructorCallback_DOMString(url) native "EventSource_constructorCallback_DOMString";
+
   static readyState_Getter(mthis) native "EventSource_readyState_Getter";
 
   static url_Getter(mthis) native "EventSource_url_Getter";
@@ -1848,7 +2118,17 @@ class BlinkEventSource {
   static close_Callback(mthis) native "EventSource_close_Callback";
 }
 
+class BlinkFederatedCredential {
+  static constructorCallback_DOMString_DOMString_DOMString_DOMString(id, name, avatarURL, federation) native "FederatedCredential_constructorCallback_DOMString_DOMString_DOMString_DOMString";
+
+  static federation_Getter(mthis) native "FederatedCredential_federation_Getter";
+}
+
+class BlinkFetchBodyStream {}
+
 class BlinkFetchEvent {
+  static isReload_Getter(mthis) native "FetchEvent_isReload_Getter";
+
   static request_Getter(mthis) native "FetchEvent_request_Getter";
 
   static respondWith_Callback_ScriptValue(mthis, value) native "FetchEvent_respondWith_Callback_ScriptValue";
@@ -1927,13 +2207,21 @@ class BlinkFileWriter {
 class BlinkFileWriterSync {}
 
 class BlinkFocusEvent {
+  static constructorCallback(type, options) native "FocusEvent_constructorCallback";
+
   static relatedTarget_Getter(mthis) native "FocusEvent_relatedTarget_Getter";
 }
 
 class BlinkFontFace {
+  static constructorCallback_DOMString_DOMString(family, source) native "FontFace_constructorCallback_DOMString_DOMString";
+
   static constructorCallback_DOMString_DOMString_Dictionary(family, source, descriptors) native "FontFace_constructorCallback_DOMString_DOMString_Dictionary";
 
+  static constructorCallback_DOMString_ArrayBufferView(family, source) native "FontFace_constructorCallback_DOMString_ArrayBufferView";
+
   static constructorCallback_DOMString_ArrayBufferView_Dictionary(family, source, descriptors) native "FontFace_constructorCallback_DOMString_ArrayBufferView_Dictionary";
+
+  static constructorCallback_DOMString_ArrayBuffer(family, source) native "FontFace_constructorCallback_DOMString_ArrayBuffer";
 
   static constructorCallback_DOMString_ArrayBuffer_Dictionary(family, source, descriptors) native "FontFace_constructorCallback_DOMString_ArrayBuffer_Dictionary";
 
@@ -1988,6 +2276,10 @@ class BlinkFontFaceSet {
   static has_Callback_FontFace(mthis, fontFace) native "FontFaceSet_has_Callback_FontFace";
 }
 
+class BlinkFontFaceSetLoadEvent {
+  static fontfaces_Getter(mthis) native "FontFaceSetLoadEvent_fontfaces_Getter";
+}
+
 class BlinkFormData {
   static constructorCallback_HTMLFormElement(form) native "FormData_constructorCallback_HTMLFormElement";
 
@@ -2021,6 +2313,8 @@ class BlinkGamepadButton {
 }
 
 class BlinkGamepadEvent {
+  static constructorCallback(type, options) native "GamepadEvent_constructorCallback";
+
   static gamepad_Getter(mthis) native "GamepadEvent_gamepad_Getter";
 }
 
@@ -2030,12 +2324,14 @@ class BlinkGamepadList {
   static item_Callback_ul(mthis, index) native "GamepadList_item_Callback_unsigned long";
 }
 
+class BlinkGeofencing {}
+
 class BlinkGeolocation {
   static clearWatch_Callback_long(mthis, watchID) native "Geolocation_clearWatch_Callback_long";
 
-  static getCurrentPosition_Callback_PositionCallback_PositionErrorCallback_object(mthis, successCallback, errorCallback, options) native "Geolocation_getCurrentPosition_Callback";
+  static getCurrentPosition_Callback_PositionCallback_PositionErrorCallback_Dictionary(mthis, successCallback, errorCallback, options) native "Geolocation_getCurrentPosition_Callback_PositionCallback_PositionErrorCallback_Dictionary";
 
-  static watchPosition_Callback_PositionCallback_PositionErrorCallback_object(mthis, successCallback, errorCallback, options) native "Geolocation_watchPosition_Callback";
+  static watchPosition_Callback_PositionCallback_PositionErrorCallback_Dictionary(mthis, successCallback, errorCallback, options) native "Geolocation_watchPosition_Callback_PositionCallback_PositionErrorCallback_Dictionary";
 }
 
 class BlinkGeoposition {
@@ -2669,6 +2965,10 @@ class BlinkHTMLHeadingElement {}
 class BlinkHTMLHtmlElement {}
 
 class BlinkHTMLIFrameElement {
+  static allowFullscreen_Getter(mthis) native "HTMLIFrameElement_allowFullscreen_Getter";
+
+  static allowFullscreen_Setter_boolean(mthis, value) native "HTMLIFrameElement_allowFullscreen_Setter";
+
   static contentWindow_Getter(mthis) native "HTMLIFrameElement_contentWindow_Getter";
 
   static height_Getter(mthis) native "HTMLIFrameElement_height_Getter";
@@ -2766,6 +3066,10 @@ class BlinkHTMLInputElement {
   static autofocus_Getter(mthis) native "HTMLInputElement_autofocus_Getter";
 
   static autofocus_Setter_boolean(mthis, value) native "HTMLInputElement_autofocus_Setter";
+
+  static capture_Getter(mthis) native "HTMLInputElement_capture_Getter";
+
+  static capture_Setter_boolean(mthis, value) native "HTMLInputElement_capture_Setter";
 
   static checked_Getter(mthis) native "HTMLInputElement_checked_Getter";
 
@@ -3056,7 +3360,37 @@ class BlinkHTMLMapElement {
 
 class BlinkHTMLMarqueeElement {}
 
-class BlinkHTMLMenuElement {}
+class BlinkHTMLMenuElement {
+  static label_Getter(mthis) native "HTMLMenuElement_label_Getter";
+
+  static label_Setter_DOMString(mthis, value) native "HTMLMenuElement_label_Setter";
+
+  static type_Getter(mthis) native "HTMLMenuElement_type_Getter";
+
+  static type_Setter_DOMString(mthis, value) native "HTMLMenuElement_type_Setter";
+}
+
+class BlinkHTMLMenuItemElement {
+  static checked_Getter(mthis) native "HTMLMenuItemElement_checked_Getter";
+
+  static checked_Setter_boolean(mthis, value) native "HTMLMenuItemElement_checked_Setter";
+
+  static default_Getter(mthis) native "HTMLMenuItemElement_default_Getter";
+
+  static default_Setter_boolean(mthis, value) native "HTMLMenuItemElement_default_Setter";
+
+  static disabled_Getter(mthis) native "HTMLMenuItemElement_disabled_Getter";
+
+  static disabled_Setter_boolean(mthis, value) native "HTMLMenuItemElement_disabled_Setter";
+
+  static label_Getter(mthis) native "HTMLMenuItemElement_label_Getter";
+
+  static label_Setter_DOMString(mthis, value) native "HTMLMenuItemElement_label_Setter";
+
+  static type_Getter(mthis) native "HTMLMenuItemElement_type_Getter";
+
+  static type_Setter_DOMString(mthis, value) native "HTMLMenuItemElement_type_Setter";
+}
 
 class BlinkHTMLMetaElement {
   static content_Getter(mthis) native "HTMLMetaElement_content_Getter";
@@ -3675,6 +4009,8 @@ class BlinkHTMLVideoElement {
 }
 
 class BlinkHashChangeEvent {
+  static constructorCallback(type, options) native "HashChangeEvent_constructorCallback";
+
   static newURL_Getter(mthis) native "HashChangeEvent_newURL_Getter";
 
   static oldURL_Getter(mthis) native "HashChangeEvent_oldURL_Getter";
@@ -3682,24 +4018,18 @@ class BlinkHashChangeEvent {
   static initHashChangeEvent_Callback_DOMString_boolean_boolean_DOMString_DOMString(mthis, type, canBubble, cancelable, oldURL, newURL) native "HashChangeEvent_initHashChangeEvent_Callback_DOMString_boolean_boolean_DOMString_DOMString";
 }
 
-class BlinkHeaderMap {
-  static constructorCallback() native "HeaderMap_constructorCallback";
+class BlinkHeaders {
+  static constructorCallback() native "Headers_constructorCallback";
 
-  static size_Getter(mthis) native "HeaderMap_size_Getter";
+  static constructorCallback_Headers(input) native "Headers_constructorCallback_Headers";
 
-  static clear_Callback(mthis) native "HeaderMap_clear_Callback";
+  static constructorCallback_Dictionary(input) native "Headers_constructorCallback_Dictionary";
 
-  static delete_Callback_DOMString(mthis, key) native "HeaderMap_delete_Callback_DOMString";
+  static size_Getter(mthis) native "Headers_size_Getter";
 
-  static forEach_Callback_HeaderMapForEachCallback_ScriptValue(mthis, callback, thisArg) native "HeaderMap_forEach_Callback_HeaderMapForEachCallback_ScriptValue";
+  static forEach_Callback_HeadersForEachCallback_ScriptValue(mthis, callback, thisArg) native "Headers_forEach_Callback_HeadersForEachCallback_ScriptValue";
 
-  static forEach_Callback_HeaderMapForEachCallback(mthis, callback) native "HeaderMap_forEach_Callback_HeaderMapForEachCallback";
-
-  static get_Callback_DOMString(mthis, key) native "HeaderMap_get_Callback_DOMString";
-
-  static has_Callback_DOMString(mthis, key) native "HeaderMap_has_Callback_DOMString";
-
-  static set_Callback_DOMString_DOMString(mthis, key, value) native "HeaderMap_set_Callback_DOMString_DOMString";
+  static forEach_Callback_HeadersForEachCallback(mthis, callback) native "Headers_forEach_Callback_HeadersForEachCallback";
 }
 
 class BlinkHistory {
@@ -3716,12 +4046,6 @@ class BlinkHistory {
   static pushState_Callback_ScriptValue_DOMString_DOMString(mthis, data, title, url) native "History_pushState_Callback";
 
   static replaceState_Callback_ScriptValue_DOMString_DOMString(mthis, data, title, url) native "History_replaceState_Callback";
-}
-
-class BlinkHmacKeyAlgorithm {
-  static hash_Getter(mthis) native "HmacKeyAlgorithm_hash_Getter";
-
-  static length_Getter(mthis) native "HmacKeyAlgorithm_length_Getter";
 }
 
 class BlinkIDBCursor {
@@ -3761,9 +4085,15 @@ class BlinkIDBDatabase {
 
   static deleteObjectStore_Callback_DOMString(mthis, name) native "IDBDatabase_deleteObjectStore_Callback_DOMString";
 
+  static transaction_Callback_DOMString(mthis, storeName_OR_storeNames) native "IDBDatabase_transaction_Callback_DOMString";
+
   static transaction_Callback_DOMString_DOMString(mthis, storeName_OR_storeNames, mode) native "IDBDatabase_transaction_Callback_DOMString_DOMString";
 
+  static transaction_Callback_SEQ_DOMString_SEQ(mthis, storeName_OR_storeNames) native "IDBDatabase_transaction_Callback_sequence<DOMString>";
+
   static transaction_Callback_SEQ_DOMString_SEQ_DOMString(mthis, storeName_OR_storeNames, mode) native "IDBDatabase_transaction_Callback_sequence<DOMString>_DOMString";
+
+  static transaction_Callback_DOMStringList(mthis, storeName_OR_storeNames) native "IDBDatabase_transaction_Callback_DOMStringList";
 
   static transaction_Callback_DOMStringList_DOMString(mthis, storeName_OR_storeNames, mode) native "IDBDatabase_transaction_Callback_DOMStringList_DOMString";
 }
@@ -3797,9 +4127,13 @@ class BlinkIDBIndex {
 
   static getKey_Callback_ScriptValue(mthis, key) native "IDBIndex_getKey_Callback_ScriptValue";
 
-  static openCursor_Callback_ScriptValue_DOMString(mthis, key, direction) native "IDBIndex_openCursor_Callback_ScriptValue_DOMString";
+  static openCursor_Callback_ScriptValue_DOMString(mthis, range, direction) native "IDBIndex_openCursor_Callback_ScriptValue_DOMString";
 
-  static openKeyCursor_Callback_ScriptValue_DOMString(mthis, key, direction) native "IDBIndex_openKeyCursor_Callback_ScriptValue_DOMString";
+  static openCursor_Callback_ScriptValue(mthis, range) native "IDBIndex_openCursor_Callback_ScriptValue";
+
+  static openKeyCursor_Callback_ScriptValue_DOMString(mthis, range, direction) native "IDBIndex_openKeyCursor_Callback_ScriptValue_DOMString";
+
+  static openKeyCursor_Callback_ScriptValue(mthis, range) native "IDBIndex_openKeyCursor_Callback_ScriptValue";
 }
 
 class BlinkIDBKeyRange {
@@ -3853,6 +4187,8 @@ class BlinkIDBObjectStore {
 
   static openKeyCursor_Callback_ScriptValue_DOMString(mthis, range, direction) native "IDBObjectStore_openKeyCursor_Callback_ScriptValue_DOMString";
 
+  static openKeyCursor_Callback_ScriptValue(mthis, range) native "IDBObjectStore_openKeyCursor_Callback_ScriptValue";
+
   static put_Callback_ScriptValue_ScriptValue(mthis, value, key) native "IDBObjectStore_put_Callback_ScriptValue_ScriptValue";
 }
 
@@ -3883,6 +4219,8 @@ class BlinkIDBTransaction {
 }
 
 class BlinkIDBVersionChangeEvent {
+  static constructorCallback(type, options) native "IDBVersionChangeEvent_constructorCallback";
+
   static dataLoss_Getter(mthis) native "IDBVersionChangeEvent_dataLoss_Getter";
 
   static dataLossMessage_Getter(mthis) native "IDBVersionChangeEvent_dataLossMessage_Getter";
@@ -3934,18 +4272,8 @@ class BlinkInstallEvent {
   static replace_Callback(mthis) native "InstallEvent_replace_Callback";
 }
 
-class BlinkKey {
-  static algorithm_Getter(mthis) native "Key_algorithm_Getter";
-
-  static extractable_Getter(mthis) native "Key_extractable_Getter";
-
-  static type_Getter(mthis) native "Key_type_Getter";
-
-  static usages_Getter(mthis) native "Key_usages_Getter";
-}
-
 class BlinkKeyboardEvent {
-  static altGraphKey_Getter(mthis) native "KeyboardEvent_altGraphKey_Getter";
+  static constructorCallback(type, options) native "KeyboardEvent_constructorCallback";
 
   static altKey_Getter(mthis) native "KeyboardEvent_altKey_Getter";
 
@@ -3965,7 +4293,13 @@ class BlinkKeyboardEvent {
 
   static getModifierState_Callback_DOMString(mthis, keyArgument) native "KeyboardEvent_getModifierState_Callback_DOMString";
 
-  static initKeyboardEvent_Callback_DOMString_boolean_boolean_Window_DOMString_ul_boolean_boolean_boolean_boolean_boolean(mthis, type, canBubble, cancelable, view, keyIdentifier, location, ctrlKey, altKey, shiftKey, metaKey, altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback_DOMString_boolean_boolean_Window_DOMString_unsigned long_boolean_boolean_boolean_boolean_boolean";
+  static initKeyboardEvent_Callback_DOMString_boolean_boolean_Window_DOMString_ul_boolean_boolean_boolean_boolean(mthis, type, canBubble, cancelable, view, keyIdentifier, location, ctrlKey, altKey, shiftKey, metaKey) native "KeyboardEvent_initKeyboardEvent_Callback_DOMString_boolean_boolean_Window_DOMString_unsigned long_boolean_boolean_boolean_boolean";
+}
+
+class BlinkLocalCredential {
+  static constructorCallback_DOMString_DOMString_DOMString_DOMString(id, name, avatarURL, password) native "LocalCredential_constructorCallback_DOMString_DOMString_DOMString_DOMString";
+
+  static password_Getter(mthis) native "LocalCredential_password_Getter";
 }
 
 class BlinkLocation {
@@ -4023,6 +4357,8 @@ class BlinkMIDIAccess {
 }
 
 class BlinkMIDIConnectionEvent {
+  static constructorCallback(type, options) native "MIDIConnectionEvent_constructorCallback";
+
   static port_Getter(mthis) native "MIDIConnectionEvent_port_Getter";
 }
 
@@ -4041,6 +4377,8 @@ class BlinkMIDIPort {
 class BlinkMIDIInput {}
 
 class BlinkMIDIMessageEvent {
+  static constructorCallback(type, options) native "MIDIMessageEvent_constructorCallback";
+
   static data_Getter(mthis) native "MIDIMessageEvent_data_Getter";
 
   static receivedTime_Getter(mthis) native "MIDIMessageEvent_receivedTime_Getter";
@@ -4119,6 +4457,8 @@ class BlinkMediaKeyError {
 }
 
 class BlinkMediaKeyEvent {
+  static constructorCallback(type, options) native "MediaKeyEvent_constructorCallback";
+
   static defaultURL_Getter(mthis) native "MediaKeyEvent_defaultURL_Getter";
 
   static errorCode_Getter(mthis) native "MediaKeyEvent_errorCode_Getter";
@@ -4135,12 +4475,16 @@ class BlinkMediaKeyEvent {
 }
 
 class BlinkMediaKeyMessageEvent {
+  static constructorCallback(type, options) native "MediaKeyMessageEvent_constructorCallback";
+
   static destinationURL_Getter(mthis) native "MediaKeyMessageEvent_destinationURL_Getter";
 
   static message_Getter(mthis) native "MediaKeyMessageEvent_message_Getter";
 }
 
 class BlinkMediaKeyNeededEvent {
+  static constructorCallback(type, options) native "MediaKeyNeededEvent_constructorCallback";
+
   static contentType_Getter(mthis) native "MediaKeyNeededEvent_contentType_Getter";
 
   static initData_Getter(mthis) native "MediaKeyNeededEvent_initData_Getter";
@@ -4152,18 +4496,10 @@ class BlinkMediaKeySession {
   static keySystem_Getter(mthis) native "MediaKeySession_keySystem_Getter";
 
   static sessionId_Getter(mthis) native "MediaKeySession_sessionId_Getter";
-
-  static release_Callback(mthis) native "MediaKeySession_release_Callback";
-
-  static update_Callback_Uint8Array(mthis, response) native "MediaKeySession_update_Callback_Uint8Array";
 }
 
 class BlinkMediaKeys {
-  static constructorCallback_DOMString(keySystem) native "MediaKeys_constructorCallback_DOMString";
-
   static keySystem_Getter(mthis) native "MediaKeys_keySystem_Getter";
-
-  static createSession_Callback_DOMString_Uint8Array(mthis, type, initData) native "MediaKeys_createSession_Callback_DOMString_Uint8Array";
 
   static isTypeSupported_Callback_DOMString_DOMString(keySystem, contentType) native "MediaKeys_isTypeSupported_Callback_DOMString_DOMString";
 }
@@ -4233,6 +4569,8 @@ class BlinkMediaStream {
 
   static getTrackById_Callback_DOMString(mthis, trackId) native "MediaStream_getTrackById_Callback_DOMString";
 
+  static getTracks_Callback(mthis) native "MediaStream_getTracks_Callback";
+
   static getVideoTracks_Callback(mthis) native "MediaStream_getVideoTracks_Callback";
 
   static removeTrack_Callback_MediaStreamTrack(mthis, track) native "MediaStream_removeTrack_Callback_MediaStreamTrack";
@@ -4249,6 +4587,8 @@ class BlinkMediaStreamAudioSourceNode {
 }
 
 class BlinkMediaStreamEvent {
+  static constructorCallback(type, options) native "MediaStreamEvent_constructorCallback";
+
   static stream_Getter(mthis) native "MediaStreamEvent_stream_Getter";
 }
 
@@ -4262,6 +4602,8 @@ class BlinkMediaStreamTrack {
   static kind_Getter(mthis) native "MediaStreamTrack_kind_Getter";
 
   static label_Getter(mthis) native "MediaStreamTrack_label_Getter";
+
+  static muted_Getter(mthis) native "MediaStreamTrack_muted_Getter";
 
   static readyState_Getter(mthis) native "MediaStreamTrack_readyState_Getter";
 
@@ -4291,6 +4633,8 @@ class BlinkMessageChannel {
 }
 
 class BlinkMessageEvent {
+  static constructorCallback(type, options) native "MessageEvent_constructorCallback";
+
   static data_Getter(mthis) native "MessageEvent_data_Getter";
 
   static lastEventId_Getter(mthis) native "MessageEvent_lastEventId_Getter";
@@ -4305,7 +4649,7 @@ class BlinkMessageEvent {
 class BlinkMessagePort {
   static close_Callback(mthis) native "MessagePort_close_Callback";
 
-  static postMessage_Callback_ScriptValue_A_MessagePort_A(mthis, message, messagePorts) native "MessagePort_postMessage_Callback";
+  static postMessage_Callback_ScriptValue_SEQ_MessagePort_SEQ(mthis, message, transfer) native "MessagePort_postMessage_Callback";
 
   static start_Callback(mthis) native "MessagePort_start_Callback";
 }
@@ -4337,6 +4681,8 @@ class BlinkMimeTypeArray {
 }
 
 class BlinkMouseEvent {
+  static constructorCallback(type, options) native "MouseEvent_constructorCallback";
+
   static altKey_Getter(mthis) native "MouseEvent_altKey_Getter";
 
   static button_Getter(mthis) native "MouseEvent_button_Getter";
@@ -4360,6 +4706,8 @@ class BlinkMouseEvent {
   static offsetX_Getter(mthis) native "MouseEvent_offsetX_Getter";
 
   static offsetY_Getter(mthis) native "MouseEvent_offsetY_Getter";
+
+  static region_Getter(mthis) native "MouseEvent_region_Getter";
 
   static relatedTarget_Getter(mthis) native "MouseEvent_relatedTarget_Getter";
 
@@ -4465,7 +4813,11 @@ class BlinkNavigator {
 
   static cookieEnabled_Getter(mthis) native "Navigator_cookieEnabled_Getter";
 
+  static credentials_Getter(mthis) native "Navigator_credentials_Getter";
+
   static doNotTrack_Getter(mthis) native "Navigator_doNotTrack_Getter";
+
+  static geofencing_Getter(mthis) native "Navigator_geofencing_Getter";
 
   static geolocation_Getter(mthis) native "Navigator_geolocation_Getter";
 
@@ -4490,8 +4842,6 @@ class BlinkNavigator {
   static webkitTemporaryStorage_Getter(mthis) native "Navigator_webkitTemporaryStorage_Getter";
 
   static getGamepads_Callback(mthis) native "Navigator_getGamepads_Callback";
-
-  static getMediaDevices_Callback_MediaDeviceInfoCallback(mthis, resultCallback) native "Navigator_getMediaDevices_Callback_MediaDeviceInfoCallback";
 
   static getStorageUpdates_Callback(mthis) native "Navigator_getStorageUpdates_Callback";
 
@@ -4647,6 +4997,8 @@ class BlinkOscillatorNode {
 }
 
 class BlinkOverflowEvent {
+  static constructorCallback(type, options) native "OverflowEvent_constructorCallback";
+
   static horizontalOverflow_Getter(mthis) native "OverflowEvent_horizontalOverflow_Getter";
 
   static orient_Getter(mthis) native "OverflowEvent_orient_Getter";
@@ -4657,6 +5009,8 @@ class BlinkOverflowEvent {
 class BlinkPagePopupController {}
 
 class BlinkPageTransitionEvent {
+  static constructorCallback(type, options) native "PageTransitionEvent_constructorCallback";
+
   static persisted_Getter(mthis) native "PageTransitionEvent_persisted_Getter";
 }
 
@@ -4879,6 +5233,8 @@ class BlinkPluginArray {
 }
 
 class BlinkPopStateEvent {
+  static constructorCallback(type, options) native "PopStateEvent_constructorCallback";
+
   static state_Getter(mthis) native "PopStateEvent_state_Getter";
 }
 
@@ -4895,6 +5251,8 @@ class BlinkProcessingInstruction {
 }
 
 class BlinkProgressEvent {
+  static constructorCallback(type, options) native "ProgressEvent_constructorCallback";
+
   static lengthComputable_Getter(mthis) native "ProgressEvent_lengthComputable_Getter";
 
   static loaded_Getter(mthis) native "ProgressEvent_loaded_Getter";
@@ -4903,6 +5261,8 @@ class BlinkProgressEvent {
 }
 
 class BlinkPushEvent {
+  static constructorCallback(type, options) native "PushEvent_constructorCallback";
+
   static data_Getter(mthis) native "PushEvent_data_Getter";
 }
 
@@ -4935,6 +5295,8 @@ class BlinkRTCDTMFSender {
 }
 
 class BlinkRTCDTMFToneChangeEvent {
+  static constructorCallback(type, options) native "RTCDTMFToneChangeEvent_constructorCallback";
+
   static tone_Getter(mthis) native "RTCDTMFToneChangeEvent_tone_Getter";
 }
 
@@ -4999,7 +5361,9 @@ class BlinkRTCIceCandidateEvent {
 }
 
 class BlinkRTCPeerConnection {
-  static constructorCallback_Dictionary_Dictionary(rtcIceServers, mediaConstraints) native "RTCPeerConnection_constructorCallback_Dictionary_Dictionary";
+  static constructorCallback_Dictionary_Dictionary(rtcConfiguration, mediaConstraints) native "RTCPeerConnection_constructorCallback_Dictionary_Dictionary";
+
+  static constructorCallback_Dictionary(rtcConfiguration) native "RTCPeerConnection_constructorCallback_Dictionary";
 
   static iceConnectionState_Getter(mthis) native "RTCPeerConnection_iceConnectionState_Getter";
 
@@ -5023,7 +5387,7 @@ class BlinkRTCPeerConnection {
 
   static createDataChannel_Callback_DOMString_Dictionary(mthis, label, options) native "RTCPeerConnection_createDataChannel_Callback_DOMString_Dictionary";
 
-  static createOffer_Callback_RTCSessionDescriptionCallback_RTCErrorCallback_Dictionary(mthis, successCallback, failureCallback, mediaConstraints) native "RTCPeerConnection_createOffer_Callback_RTCSessionDescriptionCallback_RTCErrorCallback_Dictionary";
+  static createOffer_Callback_RTCSessionDescriptionCallback_RTCErrorCallback_Dictionary(mthis, successCallback, failureCallback, rtcOfferOptions) native "RTCPeerConnection_createOffer_Callback_RTCSessionDescriptionCallback_RTCErrorCallback_Dictionary";
 
   static getLocalStreams_Callback(mthis) native "RTCPeerConnection_getLocalStreams_Callback";
 
@@ -5044,6 +5408,8 @@ class BlinkRTCPeerConnection {
 
 class BlinkRTCSessionDescription {
   static constructorCallback_Dictionary(descriptionInitDict) native "RTCSessionDescription_constructorCallback_Dictionary";
+
+  static constructorCallback() native "RTCSessionDescription_constructorCallback";
 
   static sdp_Getter(mthis) native "RTCSessionDescription_sdp_Getter";
 
@@ -5099,6 +5465,8 @@ class BlinkRange {
 
   static collapse_Callback_boolean(mthis, toStart) native "Range_collapse_Callback_boolean";
 
+  static collapse_Callback(mthis) native "Range_collapse_Callback";
+
   static comparePoint_Callback_Node_long(mthis, refNode, offset) native "Range_comparePoint_Callback_Node_long";
 
   static createContextualFragment_Callback_DOMString(mthis, html) native "Range_createContextualFragment_Callback_DOMString";
@@ -5136,22 +5504,36 @@ class BlinkRange {
   static setStartBefore_Callback_Node(mthis, refNode) native "Range_setStartBefore_Callback_Node";
 
   static surroundContents_Callback_Node(mthis, newParent) native "Range_surroundContents_Callback_Node";
-
-  static toString_Callback(mthis) native "Range_toString_Callback";
 }
+
+class BlinkReadableStream {}
 
 class BlinkRect {}
 
+class BlinkRelatedEvent {
+  static constructorCallback(type, options) native "RelatedEvent_constructorCallback";
+
+  static relatedTarget_Getter(mthis) native "RelatedEvent_relatedTarget_Getter";
+}
+
 class BlinkRequest {
-  static constructorCallback_Dictionary(requestInitDict) native "Request_constructorCallback_Dictionary";
+  static constructorCallback_DOMString(input) native "Request_constructorCallback_DOMString";
+
+  static constructorCallback_DOMString_Dictionary(input, requestInitDict) native "Request_constructorCallback_DOMString_Dictionary";
+
+  static constructorCallback_Request(input) native "Request_constructorCallback_Request";
+
+  static constructorCallback_Request_Dictionary(input, requestInitDict) native "Request_constructorCallback_Request_Dictionary";
+
+  static credentials_Getter(mthis) native "Request_credentials_Getter";
 
   static headers_Getter(mthis) native "Request_headers_Getter";
 
-  static origin_Getter(mthis) native "Request_origin_Getter";
+  static mode_Getter(mthis) native "Request_mode_Getter";
+
+  static referrer_Getter(mthis) native "Request_referrer_Getter";
 
   static url_Getter(mthis) native "Request_url_Getter";
-
-  static url_Setter_DOMString(mthis, value) native "Request_url_Setter";
 }
 
 class BlinkResourceProgressEvent {
@@ -5159,17 +5541,13 @@ class BlinkResourceProgressEvent {
 }
 
 class BlinkResponse {
+  static constructorCallback_DOMString(body) native "Response_constructorCallback_DOMString";
+
+  static constructorCallback_DOMString_Dictionary(body, responseInitDict) native "Response_constructorCallback_DOMString_Dictionary";
+
+  static constructorCallback_Blob(body) native "Response_constructorCallback_Blob";
+
   static constructorCallback_Blob_Dictionary(body, responseInitDict) native "Response_constructorCallback_Blob_Dictionary";
-}
-
-class BlinkRsaKeyAlgorithm {
-  static modulusLength_Getter(mthis) native "RsaKeyAlgorithm_modulusLength_Getter";
-
-  static publicExponent_Getter(mthis) native "RsaKeyAlgorithm_publicExponent_Getter";
-}
-
-class BlinkRsaHashedKeyAlgorithm {
-  static hash_Getter(mthis) native "RsaHashedKeyAlgorithm_hash_Getter";
 }
 
 class BlinkSQLError {
@@ -5748,8 +6126,6 @@ class BlinkSVGFEMorphologyElement {
   static radiusX_Getter(mthis) native "SVGFEMorphologyElement_radiusX_Getter";
 
   static radiusY_Getter(mthis) native "SVGFEMorphologyElement_radiusY_Getter";
-
-  static setRadius_Callback_float_float(mthis, radiusX, radiusY) native "SVGFEMorphologyElement_setRadius_Callback_float_float";
 
   static height_Getter(mthis) native "SVGFEMorphologyElement_height_Getter";
 
@@ -6759,6 +7135,8 @@ class BlinkSVGStyleElement {
 
   static media_Setter_DOMString(mthis, value) native "SVGStyleElement_media_Setter";
 
+  static sheet_Getter(mthis) native "SVGStyleElement_sheet_Getter";
+
   static title_Getter(mthis) native "SVGStyleElement_title_Getter";
 
   static title_Setter_DOMString(mthis, value) native "SVGStyleElement_title_Setter";
@@ -6918,8 +7296,14 @@ class BlinkScreen {
   static pixelDepth_Getter(mthis) native "Screen_pixelDepth_Getter";
 
   static width_Getter(mthis) native "Screen_width_Getter";
+}
 
-  static unlockOrientation_Callback(mthis) native "Screen_unlockOrientation_Callback";
+class BlinkScreenOrientation {
+  static angle_Getter(mthis) native "ScreenOrientation_angle_Getter";
+
+  static type_Getter(mthis) native "ScreenOrientation_type_Getter";
+
+  static unlock_Callback(mthis) native "ScreenOrientation_unlock_Callback";
 }
 
 class BlinkScriptProcessorNode {
@@ -6929,6 +7313,8 @@ class BlinkScriptProcessorNode {
 }
 
 class BlinkSecurityPolicyViolationEvent {
+  static constructorCallback(type, options) native "SecurityPolicyViolationEvent_constructorCallback";
+
   static blockedURI_Getter(mthis) native "SecurityPolicyViolationEvent_blockedURI_Getter";
 
   static columnNumber_Getter(mthis) native "SecurityPolicyViolationEvent_columnNumber_Getter";
@@ -6991,6 +7377,8 @@ class BlinkSelection {
 
   static extend_Callback_Node_long(mthis, node, offset) native "Selection_extend_Callback_Node_long";
 
+  static extend_Callback_Node(mthis, node) native "Selection_extend_Callback_Node";
+
   static getRangeAt_Callback_long(mthis, index) native "Selection_getRangeAt_Callback_long";
 
   static modify_Callback_DOMString_DOMString_DOMString(mthis, alter, direction, granularity) native "Selection_modify_Callback_DOMString_DOMString_DOMString";
@@ -7004,11 +7392,15 @@ class BlinkSelection {
   static setPosition_Callback_Node_long(mthis, node, offset) native "Selection_setPosition_Callback_Node_long";
 
   static setPosition_Callback_Node(mthis, node) native "Selection_setPosition_Callback_Node";
-
-  static toString_Callback(mthis) native "Selection_toString_Callback";
 }
 
 class BlinkServiceWorker {}
+
+class BlinkServiceWorkerClient {
+  static id_Getter(mthis) native "ServiceWorkerClient_id_Getter";
+
+  static postMessage_Callback_SerializedScriptValue_SEQ_MessagePort_SEQ(mthis, message, transfer) native "ServiceWorkerClient_postMessage_Callback";
+}
 
 class BlinkServiceWorkerClients {}
 
@@ -7025,7 +7417,19 @@ class BlinkServiceWorkerContainer {
 class BlinkServiceWorkerGlobalScope {
   static clients_Getter(mthis) native "ServiceWorkerGlobalScope_clients_Getter";
 
+  static nativeCaches_Getter(mthis) native "ServiceWorkerGlobalScope_nativeCaches_Getter";
+
   static scope_Getter(mthis) native "ServiceWorkerGlobalScope_scope_Getter";
+}
+
+class BlinkServiceWorkerRegistration {
+  static active_Getter(mthis) native "ServiceWorkerRegistration_active_Getter";
+
+  static installing_Getter(mthis) native "ServiceWorkerRegistration_installing_Getter";
+
+  static scope_Getter(mthis) native "ServiceWorkerRegistration_scope_Getter";
+
+  static waiting_Getter(mthis) native "ServiceWorkerRegistration_waiting_Getter";
 }
 
 class BlinkShadowRoot {
@@ -7181,12 +7585,16 @@ class BlinkSpeechRecognitionAlternative {
 }
 
 class BlinkSpeechRecognitionError {
+  static constructorCallback(type, options) native "SpeechRecognitionError_constructorCallback";
+
   static error_Getter(mthis) native "SpeechRecognitionError_error_Getter";
 
   static message_Getter(mthis) native "SpeechRecognitionError_message_Getter";
 }
 
 class BlinkSpeechRecognitionEvent {
+  static constructorCallback(type, options) native "SpeechRecognitionEvent_constructorCallback";
+
   static emma_Getter(mthis) native "SpeechRecognitionEvent_emma_Getter";
 
   static interpretation_Getter(mthis) native "SpeechRecognitionEvent_interpretation_Getter";
@@ -7303,6 +7711,8 @@ class BlinkStorage {
 }
 
 class BlinkStorageEvent {
+  static constructorCallback(type, options) native "StorageEvent_constructorCallback";
+
   static key_Getter(mthis) native "StorageEvent_key_Getter";
 
   static newValue_Getter(mthis) native "StorageEvent_newValue_Getter";
@@ -7493,23 +7903,23 @@ class BlinkTouch {
 
   static clientY_Getter(mthis) native "Touch_clientY_Getter";
 
+  static force_Getter(mthis) native "Touch_force_Getter";
+
   static identifier_Getter(mthis) native "Touch_identifier_Getter";
 
   static pageX_Getter(mthis) native "Touch_pageX_Getter";
 
   static pageY_Getter(mthis) native "Touch_pageY_Getter";
 
+  static radiusX_Getter(mthis) native "Touch_radiusX_Getter";
+
+  static radiusY_Getter(mthis) native "Touch_radiusY_Getter";
+
   static screenX_Getter(mthis) native "Touch_screenX_Getter";
 
   static screenY_Getter(mthis) native "Touch_screenY_Getter";
 
   static target_Getter(mthis) native "Touch_target_Getter";
-
-  static webkitForce_Getter(mthis) native "Touch_webkitForce_Getter";
-
-  static webkitRadiusX_Getter(mthis) native "Touch_webkitRadiusX_Getter";
-
-  static webkitRadiusY_Getter(mthis) native "Touch_webkitRadiusY_Getter";
 
   static webkitRotationAngle_Getter(mthis) native "Touch_webkitRotationAngle_Getter";
 }
@@ -7539,10 +7949,14 @@ class BlinkTouchList {
 }
 
 class BlinkTrackEvent {
+  static constructorCallback(type, options) native "TrackEvent_constructorCallback";
+
   static track_Getter(mthis) native "TrackEvent_track_Getter";
 }
 
 class BlinkTransitionEvent {
+  static constructorCallback(type, options) native "TransitionEvent_constructorCallback";
+
   static elapsedTime_Getter(mthis) native "TransitionEvent_elapsedTime_Getter";
 
   static propertyName_Getter(mthis) native "TransitionEvent_propertyName_Getter";
@@ -7638,6 +8052,8 @@ class BlinkURLUtilsReadOnly {
   static hostname_Getter(mthis) native "WorkerLocation_hostname_Getter";
 
   static href_Getter(mthis) native "WorkerLocation_href_Getter";
+
+  static origin_Getter(mthis) native "WorkerLocation_origin_Getter";
 
   static pathname_Getter(mthis) native "WorkerLocation_pathname_Getter";
 
@@ -7849,6 +8265,8 @@ class BlinkWebGLContextAttributes {
 }
 
 class BlinkWebGLContextEvent {
+  static constructorCallback(type, options) native "WebGLContextEvent_constructorCallback";
+
   static statusMessage_Getter(mthis) native "WebGLContextEvent_statusMessage_Getter";
 }
 
@@ -7860,7 +8278,9 @@ class BlinkWebGLDebugShaders {
 
 class BlinkWebGLDepthTexture {}
 
-class BlinkWebGLDrawBuffers {}
+class BlinkWebGLDrawBuffers {
+  static drawBuffersWEBGL_Callback_SEQ_ul_SEQ(mthis, buffers) native "WebGLDrawBuffers_drawBuffersWEBGL_Callback_sequence<unsigned long>";
+}
 
 class BlinkWebGLFramebuffer {}
 
@@ -7999,7 +8419,7 @@ class BlinkWebGLRenderingContextBase {
 
   static getActiveUniform_Callback_WebGLProgram_ul(mthis, program, index) native "WebGLRenderingContextBase_getActiveUniform_Callback_WebGLProgram_unsigned long";
 
-  static getAttachedShaders_Callback_WebGLProgram(mthis, program) native "WebGLRenderingContextBase_getAttachedShaders_Callback";
+  static getAttachedShaders_Callback_WebGLProgram(mthis, program) native "WebGLRenderingContextBase_getAttachedShaders_Callback_WebGLProgram";
 
   static getAttribLocation_Callback_WebGLProgram_DOMString(mthis, program, name) native "WebGLRenderingContextBase_getAttribLocation_Callback_WebGLProgram_DOMString";
 
@@ -8301,7 +8721,7 @@ class BlinkWebGLRenderingContext {
 
   static getActiveUniform_Callback_WebGLProgram_ul(mthis, program, index) native "WebGLRenderingContext_getActiveUniform_Callback_WebGLProgram_unsigned long";
 
-  static getAttachedShaders_Callback_WebGLProgram(mthis, program) native "WebGLRenderingContext_getAttachedShaders_Callback";
+  static getAttachedShaders_Callback_WebGLProgram(mthis, program) native "WebGLRenderingContext_getAttachedShaders_Callback_WebGLProgram";
 
   static getAttribLocation_Callback_WebGLProgram_DOMString(mthis, program, name) native "WebGLRenderingContext_getAttribLocation_Callback_WebGLProgram_DOMString";
 
@@ -8495,6 +8915,8 @@ class BlinkWebGLUniformLocation {}
 class BlinkWebGLVertexArrayObjectOES {}
 
 class BlinkWebKitAnimationEvent {
+  static constructorCallback(type, options) native "WebKitAnimationEvent_constructorCallback";
+
   static animationName_Getter(mthis) native "WebKitAnimationEvent_animationName_Getter";
 
   static elapsedTime_Getter(mthis) native "WebKitAnimationEvent_elapsedTime_Getter";
@@ -8561,6 +8983,8 @@ class BlinkWebSocket {
 }
 
 class BlinkWheelEvent {
+  static constructorCallback(type, options) native "WheelEvent_constructorCallback";
+
   static deltaMode_Getter(mthis) native "WheelEvent_deltaMode_Getter";
 
   static deltaX_Getter(mthis) native "WheelEvent_deltaX_Getter";
@@ -8569,13 +8993,9 @@ class BlinkWheelEvent {
 
   static deltaZ_Getter(mthis) native "WheelEvent_deltaZ_Getter";
 
-  static webkitDirectionInvertedFromDevice_Getter(mthis) native "WheelEvent_webkitDirectionInvertedFromDevice_Getter";
-
   static wheelDeltaX_Getter(mthis) native "WheelEvent_wheelDeltaX_Getter";
 
   static wheelDeltaY_Getter(mthis) native "WheelEvent_wheelDeltaY_Getter";
-
-  static initWebKitWheelEvent_Callback_long_long_Window_long_long_long_long_boolean_boolean_boolean_boolean(mthis, wheelDeltaX, wheelDeltaY, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey) native "WheelEvent_initWebKitWheelEvent_Callback_long_long_Window_long_long_long_long_boolean_boolean_boolean_boolean";
 }
 
 class BlinkWindow {
@@ -8693,6 +9113,8 @@ class BlinkWindow {
 
   static confirm_Callback_DOMString(mthis, message) native "Window_confirm_Callback_DOMString";
 
+  static confirm_Callback(mthis) native "Window_confirm_Callback";
+
   static find_Callback_DOMString_boolean_boolean_boolean_boolean_boolean_boolean(mthis, string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog) native "Window_find_Callback_DOMString_boolean_boolean_boolean_boolean_boolean_boolean";
 
   static getComputedStyle_Callback_Element_DOMString(mthis, element, pseudoElement) native "Window_getComputedStyle_Callback_Element_DOMString";
@@ -8711,7 +9133,7 @@ class BlinkWindow {
 
   static openDatabase_Callback_DOMString_DOMString_DOMString_ul_DatabaseCallback(mthis, name, version, displayName, estimatedSize, creationCallback) native "Window_openDatabase_Callback_DOMString_DOMString_DOMString_unsigned long_DatabaseCallback";
 
-  static postMessage_Callback_SerializedScriptValue_DOMString_A_MessagePort_A(mthis, message, targetOrigin, messagePorts) native "Window_postMessage_Callback";
+  static postMessage_Callback_SerializedScriptValue_DOMString_SEQ_MessagePort_SEQ(mthis, message, targetOrigin, transfer) native "Window_postMessage_Callback";
 
   static print_Callback(mthis) native "Window_print_Callback";
 
@@ -8730,12 +9152,6 @@ class BlinkWindow {
   static showModalDialog_Callback_DOMString_ScriptValue_DOMString(mthis, url, dialogArgs, featureArgs) native "Window_showModalDialog_Callback";
 
   static stop_Callback(mthis) native "Window_stop_Callback";
-
-  static toString_Callback(mthis) native "Window_toString_Callback";
-
-  static webkitConvertPointFromNodeToPage_Callback_Node_WebKitPoint(mthis, node, p) native "Window_webkitConvertPointFromNodeToPage_Callback_Node_WebKitPoint";
-
-  static webkitConvertPointFromPageToNode_Callback_Node_WebKitPoint(mthis, node, p) native "Window_webkitConvertPointFromPageToNode_Callback_Node_WebKitPoint";
 
   static webkitRequestFileSystem_Callback_us_ll_FileSystemCallback_ErrorCallback(mthis, type, size, successCallback, errorCallback) native "Window_webkitRequestFileSystem_Callback_unsigned short_long long_FileSystemCallback_ErrorCallback";
 
@@ -8757,7 +9173,7 @@ class BlinkWindow {
 class BlinkWorker {
   static constructorCallback_DOMString(scriptUrl) native "Worker_constructorCallback_DOMString";
 
-  static postMessage_Callback_SerializedScriptValue_A_MessagePort_A(mthis, message, messagePorts) native "Worker_postMessage_Callback";
+  static postMessage_Callback_SerializedScriptValue_SEQ_MessagePort_SEQ(mthis, message, transfer) native "Worker_postMessage_Callback";
 
   static terminate_Callback(mthis) native "Worker_terminate_Callback";
 }
