@@ -198,12 +198,13 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
       // TODO(johnniwinther): Get the constant from the [TreeElements]
       // associated with the enclosing method.
       ParameterElement parameter = _element;
-      Constant constant = mirrorSystem.compiler.constants
+      ConstExp constant = mirrorSystem.compiler.constants
           .getConstantForVariable(parameter);
       assert(invariant(parameter, constant != null,
           message: "Missing constant for parameter "
                    "$parameter with default value."));
-      return _convertConstantToInstanceMirror(mirrorSystem, constant);
+      return _convertConstantToInstanceMirror(mirrorSystem,
+          constant, constant.value);
     }
     return null;
   }

@@ -58,10 +58,13 @@ void main() {
 final _PARAM_VALUES = {
   "intConst": "42",
   "boolConst": "true",
-  "listConst": '[true, 42, "Shanna", null, 3.14, []]',
+  "listConst": 'const [true, 42, "Shanna", null, 3.14, const []]',
   "stringConst": "\"Shanna\"",
-  "mapConst": startsWith("Map"),
-  "emptyMap": '{}'
+  "mapConst": 'const {"a": 1, 2: true, "c": const [1, null, true]}',
+  "emptyMap": 'const {}',
+  "referencedConst": "INT_CONST",
+  "constructedConstant1": "const ConstClass<int>(0, true)",
+  "constructedConstant2": 'const ConstClass(1, false, str: "str")'
 };
 
 const _PARAM_NAME_ORDER = const [
@@ -70,5 +73,8 @@ const _PARAM_NAME_ORDER = const [
   "listConst",
   "stringConst",
   "mapConst",
-  "emptyMap"
+  "emptyMap",
+  "referencedConst",
+  "constructedConstant1",
+  "constructedConstant2"
 ];

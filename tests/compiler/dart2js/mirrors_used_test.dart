@@ -120,7 +120,8 @@ void main() {
     // generated code.
     for (var dependency in backend.metadataConstants) {
       Constant constant = dependency.constant;
-      Expect.isFalse(compiledConstants.contains(constant), '$constant');
+      Expect.isFalse(compiledConstants.contains(constant),
+                     constant.toStructuredString());
     }
 
     // The type literal 'Foo' is both used as metadata, and as a plain value in

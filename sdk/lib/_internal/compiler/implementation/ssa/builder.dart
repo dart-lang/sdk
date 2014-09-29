@@ -59,7 +59,7 @@ class SsaBuilderTask extends CompilerTask {
           signature.forEachOptionalParameter((ParameterElement parameter) {
             // This ensures the default value will be computed.
             Constant constant =
-                backend.constants.getConstantForVariable(parameter);
+                backend.constants.getConstantForVariable(parameter).value;
             CodegenRegistry registry = work.registry;
             registry.registerCompileTimeConstant(constant);
           });
@@ -1346,11 +1346,11 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   HInstruction handleConstantForOptionalParameter(Element parameter) {
-    Constant constant =
+    ConstExp constant =
         backend.constants.getConstantForVariable(parameter);
     assert(invariant(parameter, constant != null,
         message: 'No constant computed for $parameter'));
-    return graph.addConstant(constant, compiler);
+    return graph.addConstant(constant.value, compiler);
   }
 
   Element get currentNonClosureClass {
@@ -1386,11 +1386,11 @@ class SsaBuilder extends ResolvedVisitor {
   bool inTryStatement = false;
 
   Constant getConstantForNode(ast.Node node) {
-    Constant constant =
+    ConstExp constant =
         backend.constants.getConstantForNode(node, elements);
     assert(invariant(node, constant != null,
         message: 'No constant computed for $node'));
-    return constant;
+    return constant.value;
   }
 
   HInstruction addConstant(ast.Node node) {
@@ -1398,7 +1398,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   bool isLazilyInitialized(VariableElement element) {
-    Constant initialValue =
+    ConstExp initialValue =
         backend.constants.getConstantForVariable(element);
     return initialValue == null;
   }
@@ -3082,13 +3082,14 @@ class SsaBuilder extends ResolvedVisitor {
     if (element != null && element.isForeign(backend)) {
       visitForeignGetter(send);
     } else if (Elements.isStaticOrTopLevelField(element)) {
-      Constant value;
+      ConstExp constant;
       if (element.isField && !element.isAssignable) {
         // A static final or const. Get its constant value and inline it if
         // the value can be compiled eagerly.
-        value = backend.constants.getConstantForVariable(element);
+        constant = backend.constants.getConstantForVariable(element);
       }
-      if (value != null) {
+      if (constant != null) {
+        Constant value = constant.value;
         HConstant instruction;
         // Constants that are referred via a deferred prefix should be referred
         // by reference.

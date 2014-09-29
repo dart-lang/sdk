@@ -1200,14 +1200,15 @@ abstract class Compiler implements DiagnosticListener {
       functionApplyMethod = functionClass.lookupLocalMember('apply');
 
       proxyConstant =
-          resolver.constantCompiler.compileConstant(coreLibrary.find('proxy'));
+          resolver.constantCompiler.compileConstant(
+              coreLibrary.find('proxy')).value;
 
       // TODO(johnniwinther): Move this to the JavaScript backend.
       LibraryElement jsHelperLibrary =
           loadedLibraries[js_backend.JavaScriptBackend.DART_JS_HELPER];
       if (jsHelperLibrary != null) {
         patchConstant = resolver.constantCompiler.compileConstant(
-            jsHelperLibrary.find('patch'));
+            jsHelperLibrary.find('patch')).value;
       }
 
       if (preserveComments) {
@@ -1271,16 +1272,12 @@ abstract class Compiler implements DiagnosticListener {
     mapClass = lookupCoreClass('Map');
     nullClass = lookupCoreClass('Null');
     stackTraceClass = lookupCoreClass('StackTrace');
+    symbolClass = lookupCoreClass('Symbol');
     if (!missingCoreClasses.isEmpty) {
       internalError(coreLibrary,
           'dart:core library does not contain required classes: '
           '$missingCoreClasses');
     }
-
-    // The Symbol class may not exist during unit testing.
-    // TODO(ahe): It is possible that we have to require the presence
-    // of Symbol as we change how we implement noSuchMethod.
-    symbolClass = lookupCoreClass('Symbol');
   }
 
   Element _unnamedListConstructor;
@@ -2077,6 +2074,20 @@ class SourceSpan implements Spannable {
   String toString() => 'SourceSpan($uri, $begin, $end)';
 }
 
+/// Flag that can be used in assertions to assert that a code path is only
+/// executed as part of development.
+///
+/// This flag is automatically set to true if helper methods like, [debugPrint],
+/// [debugWrapPrint], [trace], and [reportHere] are called.
+bool DEBUG_MODE = false;
+
+/// Assert that [DEBUG_MODE] is `true` and provide [message] as part of the
+/// error message.
+assertDebugMode(String message) {
+  assert(invariant(NO_LOCATION_SPANNABLE, DEBUG_MODE,
+      message: 'Debug mode is not enabled: $message'));
+}
+
 /**
  * Throws a [SpannableAssertionFailure] if [condition] is
  * [:false:]. [condition] must be either a [:bool:] or a no-arg
@@ -2109,9 +2120,7 @@ bool invariant(Spannable spannable, var condition, {var message: null}) {
   return true;
 }
 
-/**
- * Global
- */
+/// Returns `true` when [s] is private if used as an identifier.
 bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
 
 /// A sink that drains into /dev/null.

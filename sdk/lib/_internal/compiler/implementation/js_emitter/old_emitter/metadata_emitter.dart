@@ -27,12 +27,12 @@ class MetadataEmitter extends CodeEmitterHelper {
       if (link != null) {
         for (; !link.isEmpty; link = link.tail) {
           MetadataAnnotation annotation = link.head;
-          Constant value =
+          ConstExp constant =
               backend.constants.getConstantForMetadata(annotation);
-          if (value == null) {
+          if (constant == null) {
             compiler.internalError(annotation, 'Annotation value is null.');
           } else {
-            metadata.add(emitter.constantReference(value));
+            metadata.add(emitter.constantReference(constant.value));
           }
         }
       }
@@ -47,24 +47,25 @@ class MetadataEmitter extends CodeEmitterHelper {
     if (signature.optionalParameterCount == 0) return const [];
     List<int> defaultValues = <int>[];
     for (Element element in signature.optionalParameters) {
-      Constant value = backend.constants.getConstantForVariable(element);
-      String stringRepresentation = (value == null)
+      ConstExp constant = backend.constants.getConstantForVariable(element);
+      String stringRepresentation = (constant == null)
           ? "null"
-          : jsAst.prettyPrint(emitter.constantReference(value), compiler)
-              .getText();
+          : jsAst.prettyPrint(
+              emitter.constantReference(constant.value), compiler).getText();
       defaultValues.add(addGlobalMetadata(stringRepresentation));
     }
     return defaultValues;
   }
 
   int reifyMetadata(MetadataAnnotation annotation) {
-    Constant value = backend.constants.getConstantForMetadata(annotation);
-    if (value == null) {
+    ConstExp constant = backend.constants.getConstantForMetadata(annotation);
+    if (constant == null) {
       compiler.internalError(annotation, 'Annotation value is null.');
       return -1;
     }
     return addGlobalMetadata(
-        jsAst.prettyPrint(emitter.constantReference(value), compiler).getText());
+        jsAst.prettyPrint(
+            emitter.constantReference(constant.value), compiler).getText());
   }
 
   int reifyType(DartType type) {

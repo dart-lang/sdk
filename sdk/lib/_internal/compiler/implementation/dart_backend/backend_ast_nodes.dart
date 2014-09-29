@@ -828,7 +828,9 @@ class Unparser {
           write(v.toString());
         }
       } else {
-        write(e.value.toString());
+        // TODO(sigurdm): Use [ConstExp] to generate valid code for any
+        // constant.
+        write(e.value.unparse());
       }
     } else if (e is LiteralList) {
       if (e.isConst) {

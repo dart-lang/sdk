@@ -4,6 +4,8 @@
 
 library deferred_load;
 
+import 'cps_ir/const_expression.dart';
+
 import 'dart2jslib.dart' show
     Backend,
     Compiler,
@@ -277,16 +279,16 @@ class DeferredLoadTask extends CompilerTask {
       treeElements.forEachConstantNode((Node node, _) {
         // Explicitly depend on the backend constants.
         addConstants(
-            backend.constants.getConstantForNode(node, treeElements));
+            backend.constants.getConstantForNode(node, treeElements).value);
       });
       elements.addAll(treeElements.otherDependencies);
     }
 
     // TODO(sigurdm): How is metadata on a patch-class handled?
     for (MetadataAnnotation metadata in element.metadata) {
-      Constant constant = backend.constants.getConstantForMetadata(metadata);
+      ConstExp constant = backend.constants.getConstantForMetadata(metadata);
       if (constant != null) {
-        addConstants(constant);
+        addConstants(constant.value);
       }
     }
     if (element.isClass) {
@@ -420,19 +422,19 @@ class DeferredLoadTask extends CompilerTask {
       });
 
       for (MetadataAnnotation metadata in library.metadata) {
-        Constant constant =
+        ConstExp constant =
             backend.constants.getConstantForMetadata(metadata);
         if (constant != null) {
-          _mapDependencies(constant.computeType(compiler).element,
+          _mapDependencies(constant.value.computeType(compiler).element,
               deferredImport);
         }
       }
       for (LibraryTag tag in library.tags) {
         for (MetadataAnnotation metadata in tag.metadata) {
-          Constant constant =
+          ConstExp constant =
               backend.constants.getConstantForMetadata(metadata);
           if (constant != null) {
-            _mapDependencies(constant.computeType(compiler).element,
+            _mapDependencies(constant.value.computeType(compiler).element,
                 deferredImport);
           }
         }
@@ -466,9 +468,9 @@ class DeferredLoadTask extends CompilerTask {
         assert(metadatas != null);
         for (MetadataAnnotation metadata in metadatas) {
           metadata.ensureResolved(compiler);
-          Element element = metadata.value.computeType(compiler).element;
+          Element element = metadata.constant.value.computeType(compiler).element;
           if (element == deferredLibraryClass) {
-            ConstructedConstant constant = metadata.value;
+            ConstructedConstant constant = metadata.constant.value;
             StringConstant s = constant.fields[0];
             result = s.value.slowToString();
             break;
@@ -653,7 +655,8 @@ class DeferredLoadTask extends CompilerTask {
           if (metadataList != null) {
             for (MetadataAnnotation metadata in metadataList) {
               metadata.ensureResolved(compiler);
-              Element element = metadata.value.computeType(compiler).element;
+              Element element =
+                  metadata.constant.value.computeType(compiler).element;
               if (element == deferredLibraryClass) {
                  compiler.reportFatalError(import, MessageKind.DEFERRED_OLD_SYNTAX);
               }

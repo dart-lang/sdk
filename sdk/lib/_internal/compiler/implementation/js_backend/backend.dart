@@ -751,7 +751,7 @@ class JavaScriptBackend extends Backend {
                                 Element annotatedElement,
                                 Registry registry) {
     assert(registry.isForResolution);
-    Constant constant = constants.getConstantForMetadata(metadata);
+    Constant constant = constants.getConstantForMetadata(metadata).value;
     registerCompileTimeConstant(constant, registry);
     metadataConstants.add(new Dependency(constant, annotatedElement));
   }
@@ -1154,10 +1154,10 @@ class JavaScriptBackend extends Backend {
       return;
     }
     if (kind.category == ElementCategory.VARIABLE) {
-      Constant initialValue = constants.getConstantForVariable(element);
+      ConstExp initialValue = constants.getConstantForVariable(element);
       if (initialValue != null) {
-        registerCompileTimeConstant(initialValue, work.registry);
-        constants.addCompileTimeConstantForEmission(initialValue);
+        registerCompileTimeConstant(initialValue.value, work.registry);
+        constants.addCompileTimeConstantForEmission(initialValue.value);
         // We don't need to generate code for static or top-level
         // variables. For instance variables, we may need to generate
         // the checked setter.
@@ -1611,7 +1611,7 @@ class JavaScriptBackend extends Backend {
     if (mustRetainMetadata && referencedFromMirrorSystem(element)) {
       for (MetadataAnnotation metadata in element.metadata) {
         metadata.ensureResolved(compiler);
-        Constant constant = constants.getConstantForMetadata(metadata);
+        Constant constant = constants.getConstantForMetadata(metadata).value;
         constants.addCompileTimeConstantForEmission(constant);
       }
       return true;
@@ -1880,7 +1880,7 @@ class JavaScriptBackend extends Backend {
       // all metadata but only stuff that potentially would match one
       // of the used meta targets.
       metadata.ensureResolved(compiler);
-      Constant value = metadata.value;
+      Constant value = metadata.constant.value;
       if (value == null) continue;
       DartType type = value.computeType(compiler);
       if (metaTargetsUsed.contains(type.element)) return true;
@@ -2151,8 +2151,8 @@ class JavaScriptBackend extends Backend {
     bool hasNoSideEffects = false;
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
-      if (!metadata.value.isConstructedObject) continue;
-      ObjectConstant value = metadata.value;
+      if (!metadata.constant.value.isConstructedObject) continue;
+      ObjectConstant value = metadata.constant.value;
       ClassElement cls = value.type.element;
       if (cls == noInlineClass) {
         hasNoInline = true;

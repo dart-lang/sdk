@@ -27,21 +27,47 @@ part 'track_map.dart';
 /// printouts.
 const bool DEBUG_PRINT_ENABLED = true;
 
+/// Enables debug mode.
+///
+/// Sets the [DEBUG_MODE] to `true`.
+void enableDebugMode() {
+  DEBUG_MODE = true;
+}
+
 class _DebugIndentation extends Indentation {
   final String indentationUnit = " ";
 }
 _DebugIndentation _indentation = new _DebugIndentation();
 
+/// Function signature of [debugPrint].
+typedef DebugPrint(s);
+
 /// If [DEBUG_PRINT_ENABLED] is `true` print [s] using the current identation.
-debugPrint(s) {
+DebugPrint get debugPrint {
+  enableDebugMode();
+  // TODO(johnniwinther): Maybe disable debug mode after the call.
+  return _debugPrint;
+}
+
+/// Implementation of [debugPrint].
+_debugPrint(s) {
   if (DEBUG_PRINT_ENABLED) print('${_indentation.indentation}$s');
 }
+
+/// Function signature of [debugWrapPrint].
+typedef DebugWrapPrint(s, f());
 
 /// Wraps the call to [f] with a print of 'start:$s' and 'end:$s' incrementing
 /// the current indentation used by [debugPrint] during the execution of [f].
 ///
 /// Use this to get a tree-like debug printout for nested calls.
-debugWrapPrint(s, f()) {
+DebugWrapPrint get debugWrapPrint {
+  enableDebugMode();
+  return _debugWrapPrint;
+}
+
+/// Implementation of [debugWrapPrint].
+DebugWrapPrint _debugWrapPrint(s, f()) {
   debugPrint('start:$s');
   var result = _indentation.indentBlock(f);
   debugPrint('end:$s');
@@ -49,10 +75,21 @@ debugWrapPrint(s, f()) {
 }
 
 /// Dummy method to mark breakpoints.
-debugBreak() {}
+debugBreak() {
+  enableDebugMode();
+}
+
+/// Function signature of [reportHere].
+typedef ReportHere(Compiler compiler, Spannable node, String debugMessage);
 
 /// Print a message with a source location.
-reportHere(Compiler compiler, Spannable node, String debugMessage) {
+ReportHere get reportHere {
+  enableDebugMode();
+  return _reportHere;
+}
+
+/// Implementation of [reportHere]
+_reportHere(Compiler compiler, Spannable node, String debugMessage) {
   compiler.reportInfo(node,
       MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
 }

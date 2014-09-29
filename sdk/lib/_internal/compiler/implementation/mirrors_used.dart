@@ -4,6 +4,8 @@
 
 library dart2js.mirrors_used;
 
+import 'cps_ir/const_expression.dart';
+
 import 'dart2jslib.dart' show
     Compiler,
     CompilerTask,
@@ -132,7 +134,8 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
       NamedArgument named = argument.asNamedArgument();
       if (named == null) continue;
       ConstantCompiler constantCompiler = compiler.resolver.constantCompiler;
-      Constant value = constantCompiler.compileNode(named.expression, mapping);
+      Constant value =
+          constantCompiler.compileNode(named.expression, mapping).value;
 
       MirrorUsageBuilder builder =
           new MirrorUsageBuilder(
@@ -261,9 +264,9 @@ class MirrorUsageAnalyzer {
     List<MirrorUsage> result = <MirrorUsage>[];
     for (MetadataAnnotation metadata in tag.metadata) {
       metadata.ensureResolved(compiler);
-      Element element = metadata.value.computeType(compiler).element;
+      Element element = metadata.constant.value.computeType(compiler).element;
       if (element == compiler.mirrorsUsedClass) {
-        result.add(buildUsage(metadata.value));
+        result.add(buildUsage(metadata.constant.value));
       }
     }
     return result;
@@ -561,8 +564,8 @@ class MirrorUsageBuilder {
   /// Attempt to find a [Spannable] corresponding to constant.
   Spannable positionOf(Constant constant) {
     Node node;
-    elements.forEachConstantNode((Node n, Constant c) {
-      if (node == null && c == constant) {
+    elements.forEachConstantNode((Node n, ConstExp c) {
+      if (node == null && c.value == constant) {
         node = n;
       }
     });

@@ -6,13 +6,18 @@ library dart2js;
 
 import 'dart:async';
 import 'dart:collection' show Queue;
-
 import 'dart:profiler' show
     UserTag;
 
+import '../compiler.dart' as api;
+import 'cache_strategy.dart';
 import 'closure.dart' as closureMapping;
+import 'cps_ir/const_expression.dart';
+import 'cps_ir/cps_ir_builder.dart' show IrBuilderTask;
 import 'dart_backend/dart_backend.dart' as dart_backend;
 import 'dart_types.dart';
+import 'deferred_load.dart' show DeferredLoadTask, OutputUnit;
+import 'dump_info.dart';
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
     show ErroneousElementX,
@@ -24,32 +29,28 @@ import 'elements/modelx.dart'
          AnalyzableElement,
          DeferredLoaderGetterElementX;
 import 'helpers/helpers.dart';  // Included for debug helpers.
+import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'library_loader.dart'
     show LibraryLoader,
          LibraryLoaderTask;
+import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 import 'native/native.dart' as native;
+import 'ordered_typeset.dart';
+import 'patch_parser.dart';
+import 'resolution/class_members.dart' show MembersCreator;
+import 'resolution/resolution.dart';
 import 'scanner/scannerlib.dart';
 import 'ssa/ssa.dart';
-import 'tree/tree.dart';
-import 'cps_ir/cps_ir_builder.dart' show IrBuilderTask;
-import 'universe/universe.dart';
-import 'util/util.dart';
-import 'util/characters.dart' show $_;
-import 'ordered_typeset.dart';
-import '../compiler.dart' as api;
-import 'patch_parser.dart';
-import 'types/types.dart' as ti;
-import 'resolution/resolution.dart';
-import 'resolution/class_members.dart' show MembersCreator;
 import 'source_file.dart' show SourceFile;
-import 'js/js.dart' as js;
-import 'deferred_load.dart' show DeferredLoadTask, OutputUnit;
-import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
-import 'dump_info.dart';
 import 'tracer.dart' show Tracer;
-import 'cache_strategy.dart';
+import 'tree/tree.dart' hide unparse;
+import 'types/types.dart' as ti;
+import 'universe/universe.dart';
+import 'util/characters.dart' show $_;
+import 'util/util.dart';
 
+export 'helpers/helpers.dart';
 export 'resolution/resolution.dart' show TreeElements, TreeElementMapping;
 export 'scanner/scannerlib.dart' show isUserDefinableOperator,
                                       isUnaryOperator,
@@ -61,7 +62,6 @@ export 'util/util.dart'
     show Spannable,
          CURRENT_ELEMENT_SPANNABLE,
          NO_LOCATION_SPANNABLE;
-export 'helpers/helpers.dart';
 
 part 'code_buffer.dart';
 part 'compile_time_constants.dart';

@@ -313,7 +313,7 @@ class JavaScriptMapConstant extends MapConstant {
   final Constant protoValue;
   final bool onlyStringKeys;
 
-  JavaScriptMapConstant(DartType type,
+  JavaScriptMapConstant(InterfaceType type,
                         ListConstant keyList,
                         List<Constant> values,
                         this.protoValue,

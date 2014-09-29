@@ -306,19 +306,20 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
          !link.isEmpty;
          link = link.tail) {
       MetadataAnnotation annotation = link.head.ensureResolved(compiler);
-      var value = annotation.value;
-      if (value is! ConstructedConstant) continue;
-      if (value.type is! InterfaceType) continue;
-      if (!identical(value.type.element, annotationClass)) continue;
+      Constant value = annotation.constant.value;
+      if (!value.isConstructedObject) continue;
+      ConstructedConstant constructedObject = value;
+      if (constructedObject.type.element != annotationClass) continue;
 
-      var fields = value.fields;
+      List<Constant> fields = constructedObject.fields;
       // TODO(sra): Better validation of the constant.
       if (fields.length != 1 || fields[0] is! StringConstant) {
         PartialMetadataAnnotation partial = annotation;
         compiler.internalError(annotation,
             'Annotations needs one string: ${partial.parseNode(compiler)}');
       }
-      String specString = fields[0].toDartString().slowToString();
+      StringConstant specStringConstant = fields[0];
+      String specString = specStringConstant.toDartString().slowToString();
       if (name == null) {
         name = specString;
       } else {

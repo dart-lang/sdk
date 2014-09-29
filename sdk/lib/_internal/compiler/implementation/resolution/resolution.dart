@@ -6,6 +6,7 @@ library resolution;
 
 import 'dart:collection' show Queue;
 
+import '../cps_ir/const_expression.dart';
 import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../tree/tree.dart';

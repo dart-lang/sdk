@@ -23,6 +23,7 @@ abstract class ConstantVisitor<R> {
   R visitDeferred(DeferredConstant constant);
 }
 
+// TODO(johnniwinther): Rename this to `ConstantValue`.
 abstract class Constant {
   const Constant();
 
@@ -59,6 +60,24 @@ abstract class Constant {
   List<Constant> getDependencies();
 
   accept(ConstantVisitor visitor);
+
+  /// The value of this constant in Dart syntax, if possible.
+  ///
+  /// For [ConstructedConstant]s there is no way to create a valid const
+  /// expression from the value so the unparse of these is best effort.
+  ///
+  /// For the synthetic constants, [DeferredConstant], [DummyConstant],
+  /// [InterceptorConstant] the unparse is descriptive only.
+  String unparse();
+
+  /// Returns a structured representation of this constant suited for debugging.
+  String toStructuredString();
+
+  String toString() {
+    assertDebugMode("Use Constant.unparse() or Constant.toStructuredString() "
+                    "instead of Constant.toString().");
+    return toStructuredString();
+  }
 }
 
 class FunctionConstant extends Constant {
@@ -73,8 +92,8 @@ class FunctionConstant extends Constant {
     return identical(other.element, element);
   }
 
-  String toString() => element.toString();
   List<Constant> getDependencies() => const <Constant>[];
+
   DartString toDartString() {
     return new DartString.literal(element.name);
   }
@@ -89,11 +108,26 @@ class FunctionConstant extends Constant {
   int get hashCode => (17 * element.hashCode) & 0x7fffffff;
 
   accept(ConstantVisitor visitor) => visitor.visitFunction(this);
+
+  String unparse() {
+    if (element.isStatic) {
+      return '${element.enclosingClass.name}.${element.name}';
+    } else {
+      return '${element.name}';
+    }
+  }
+
+  String toStructuredString() {
+    return 'FunctionConstant(${unparse()})';
+  }
 }
 
 abstract class PrimitiveConstant extends Constant {
+  // TODO(johnniwinther): Rename to `primitiveValue`.
   get value;
+
   const PrimitiveConstant();
+
   bool get isPrimitive => true;
 
   bool operator ==(var other) {
@@ -105,10 +139,13 @@ abstract class PrimitiveConstant extends Constant {
 
   int get hashCode => throw new UnsupportedError('PrimitiveConstant.hashCode');
 
-  String toString() => value.toString();
   // Primitive constants don't have dependencies.
   List<Constant> getDependencies() => const <Constant>[];
+
   DartString toDartString();
+
+  /// This value in Dart syntax.
+  String unparse() => value.toString();
 }
 
 class NullConstant extends PrimitiveConstant {
@@ -116,8 +153,11 @@ class NullConstant extends PrimitiveConstant {
   static const String JsNull = "null";
 
   factory NullConstant() => const NullConstant._internal();
+
   const NullConstant._internal();
+
   bool get isNull => true;
+
   get value => null;
 
   DartType computeType(Compiler compiler) {
@@ -130,19 +170,25 @@ class NullConstant extends PrimitiveConstant {
 
   // The magic constant has no meaning. It is just a random value.
   int get hashCode => 785965825;
+
   DartString toDartString() => const LiteralDartString("null");
 
   accept(ConstantVisitor visitor) => visitor.visitNull(this);
+
+  String toStructuredString() => 'NullConstant';
 }
 
 abstract class NumConstant extends PrimitiveConstant {
-  num get value;
   const NumConstant();
+
+  num get value;
+
   bool get isNum => true;
 }
 
 class IntConstant extends NumConstant {
   final int value;
+
   factory IntConstant(int value) {
     switch (value) {
       case 0: return const IntConstant._internal(0);
@@ -161,12 +207,19 @@ class IntConstant extends NumConstant {
       default: return new IntConstant._internal(value);
     }
   }
+
   const IntConstant._internal(this.value);
+
   bool get isInt => true;
+
   bool isUInt31() => value >= 0 && value < (1 << 31);
+
   bool isUInt32() => value >= 0 && value < (1 << 32);
+
   bool isPositive() => value >= 0;
+
   bool get isZero => value == 0;
+
   bool get isOne => value == 1;
 
   DartType computeType(Compiler compiler) {
@@ -191,13 +244,17 @@ class IntConstant extends NumConstant {
   }
 
   int get hashCode => value & SMI_MASK;
+
   DartString toDartString() => new DartString.literal(value.toString());
 
   accept(ConstantVisitor visitor) => visitor.visitInt(this);
+
+  String toStructuredString() => 'IntConstant(${unparse()})';
 }
 
 class DoubleConstant extends NumConstant {
   final double value;
+
   factory DoubleConstant(double value) {
     if (value.isNaN) {
       return const DoubleConstant._internal(double.NAN);
@@ -213,12 +270,18 @@ class DoubleConstant extends NumConstant {
       return new DoubleConstant._internal(value);
     }
   }
+
   const DoubleConstant._internal(this.value);
+
   bool get isDouble => true;
+
   bool get isNaN => value.isNaN;
+
   // We need to check for the negative sign since -0.0 == 0.0.
   bool get isMinusZero => value == 0.0 && value.isNegative;
+
   bool get isZero => value == 0.0;
+
   bool get isOne => value == 1.0;
 
   DartType computeType(Compiler compiler) {
@@ -251,16 +314,21 @@ class DoubleConstant extends NumConstant {
   }
 
   int get hashCode => value.hashCode;
+
   DartString toDartString() => new DartString.literal(value.toString());
 
   accept(ConstantVisitor visitor) => visitor.visitDouble(this);
+
+  String toStructuredString() => 'DoubleConstant(${unparse()})';
 }
 
 abstract class BoolConstant extends PrimitiveConstant {
   factory BoolConstant(value) {
     return value ? new TrueConstant() : new FalseConstant();
   }
+
   const BoolConstant._internal();
+
   bool get isBool => true;
 
   DartType computeType(Compiler compiler) {
@@ -272,39 +340,49 @@ abstract class BoolConstant extends PrimitiveConstant {
   }
 
   BoolConstant negate();
+
+  String toStructuredString() => 'BoolConstant(${unparse()})';
 }
 
 class TrueConstant extends BoolConstant {
-  final bool value = true;
-
   factory TrueConstant() => const TrueConstant._internal();
+
   const TrueConstant._internal() : super._internal();
+
   bool get isTrue => true;
+
+  bool get value => true;
 
   FalseConstant negate() => new FalseConstant();
 
   bool operator ==(var other) => identical(this, other);
+
   // The magic constant is just a random value. It does not have any
   // significance.
   int get hashCode => 499;
+
   DartString toDartString() => const LiteralDartString("true");
 
   accept(ConstantVisitor visitor) => visitor.visitTrue(this);
 }
 
 class FalseConstant extends BoolConstant {
-  final bool value = false;
-
   factory FalseConstant() => const FalseConstant._internal();
+
   const FalseConstant._internal() : super._internal();
+
   bool get isFalse => true;
+
+  bool get value => false;
 
   TrueConstant negate() => new TrueConstant();
 
   bool operator ==(var other) => identical(this, other);
+
   // The magic constant is just a random value. It does not have any
   // significance.
   int get hashCode => 536555975;
+
   DartString toDartString() => const LiteralDartString("false");
 
   accept(ConstantVisitor visitor) => visitor.visitFalse(this);
@@ -312,6 +390,7 @@ class FalseConstant extends BoolConstant {
 
 class StringConstant extends PrimitiveConstant {
   final DartString value;
+
   final int hashCode;
 
   // TODO(floitsch): cache StringConstants.
@@ -320,6 +399,7 @@ class StringConstant extends PrimitiveConstant {
   StringConstant(DartString value)
       : this.value = value,
         this.hashCode = value.slowToString().hashCode;
+
   bool get isString => true;
 
   DartType computeType(Compiler compiler) {
@@ -337,30 +417,40 @@ class StringConstant extends PrimitiveConstant {
   }
 
   DartString toDartString() => value;
+
   int get length => value.length;
 
   accept(ConstantVisitor visitor) => visitor.visitString(this);
 
-  String toString() {
-    return 'StringConstant("${value.slowToString()}")';
-  }
+  // TODO(johnniwinther): Ensure correct escaping.
+  String unparse() => '"${value.slowToString()}"';
+
+  String toStructuredString() => 'StringConstant(${unparse()})';
 }
 
 abstract class ObjectConstant extends Constant {
-  final DartType type;
+  final InterfaceType  type;
 
   ObjectConstant(this.type);
 
   bool get isObject => true;
 
   DartType computeType(Compiler compiler) => type;
+
+  void _unparseTypeArguments(StringBuffer sb) {
+    if (!type.treatAsRaw) {
+      sb.write('<');
+      sb.write(type.typeArguments.join(', '));
+      sb.write('>');
+    }
+  }
 }
 
 class TypeConstant extends ObjectConstant {
   /// The user type that this constant represents.
   final DartType representedType;
 
-  TypeConstant(this.representedType, type) : super(type);
+  TypeConstant(this.representedType, InterfaceType type) : super(type);
 
   bool get isType => true;
 
@@ -378,17 +468,20 @@ class TypeConstant extends ObjectConstant {
 
   accept(ConstantVisitor visitor) => visitor.visitType(this);
 
-  String toString() => 'TypeConstant(${representedType})';
+  String unparse() => '$representedType';
+
+  String toStructuredString() => 'TypeConstant(${representedType})';
 }
 
 class ListConstant extends ObjectConstant {
   final List<Constant> entries;
   final int hashCode;
 
-  ListConstant(DartType type, List<Constant> entries)
+  ListConstant(InterfaceType type, List<Constant> entries)
       : this.entries = entries,
         hashCode = _computeHash(type, entries),
         super(type);
+
   bool get isList => true;
 
   static int _computeHash(DartType type, List<Constant> entries) {
@@ -423,12 +516,24 @@ class ListConstant extends ObjectConstant {
 
   accept(ConstantVisitor visitor) => visitor.visitList(this);
 
-  String toString() {
+  String unparse() {
+    StringBuffer sb = new StringBuffer();
+    _unparseTypeArguments(sb);
+    sb.write('[');
+    for (int i = 0 ; i < length ; i++) {
+      if (i > 0) sb.write(',');
+      sb.write(entries[i].unparse());
+    }
+    sb.write(']');
+    return sb.toString();
+  }
+
+  String toStructuredString() {
     StringBuffer sb = new StringBuffer();
     sb.write('ListConstant([');
-    for (int i = 0 ; i < entries.length ; i++) {
+    for (int i = 0 ; i < length ; i++) {
       if (i > 0) sb.write(',');
-      sb.write(entries[i]);
+      sb.write(entries[i].toStructuredString());
     }
     sb.write('])');
     return sb.toString();
@@ -440,7 +545,7 @@ class MapConstant extends ObjectConstant {
   final List<Constant> values;
   final int hashCode;
 
-  MapConstant(DartType type, List<Constant> keys, List<Constant> values)
+  MapConstant(InterfaceType type, List<Constant> keys, List<Constant> values)
       : this.keys = keys,
         this.values = values,
         this.hashCode = computeHash(type, keys, values),
@@ -493,14 +598,28 @@ class MapConstant extends ObjectConstant {
 
   accept(ConstantVisitor visitor) => visitor.visitMap(this);
 
-  String toString() {
+  String unparse() {
+    StringBuffer sb = new StringBuffer();
+    _unparseTypeArguments(sb);
+    sb.write('{');
+    for (int i = 0 ; i < length ; i++) {
+      if (i > 0) sb.write(',');
+      sb.write(keys[i].unparse());
+      sb.write(':');
+      sb.write(values[i].unparse());
+    }
+    sb.write('}');
+    return sb.toString();
+  }
+
+  String toStructuredString() {
     StringBuffer sb = new StringBuffer();
     sb.write('MapConstant({');
     for (int i = 0; i < length; i++) {
       if (i > 0) sb.write(',');
-      sb.write(keys[i]);
+      sb.write(keys[i].toStructuredString());
       sb.write(':');
-      sb.write(values[i]);
+      sb.write(values[i].toStructuredString());
     }
     sb.write('})');
     return sb.toString();
@@ -533,7 +652,11 @@ class InterceptorConstant extends Constant {
     return compiler.typesTask.nonNullType;
   }
 
-  String toString() {
+  String unparse() {
+    return 'interceptor($dispatchedType)';
+  }
+
+  String toStructuredString() {
     return 'InterceptorConstant(${dispatchedType.getStringAsDeclared("o")})';
   }
 }
@@ -560,26 +683,23 @@ class DummyConstant extends Constant {
 
   ti.TypeMask computeMask(Compiler compiler) => typeMask;
 
-  String toString() {
-    return 'DummyConstant($typeMask)';
-  }
+  String unparse() => 'dummy($typeMask)';
+
+  String toStructuredString() => 'DummyConstant($typeMask)';
 }
 
 class ConstructedConstant extends ObjectConstant {
   final List<Constant> fields;
   final int hashCode;
 
-  ConstructedConstant(DartType type, List<Constant> fields,
-      {this.isLiteralSymbol: false})
+  ConstructedConstant(InterfaceType type, List<Constant> fields)
     : this.fields = fields,
       hashCode = computeHash(type, fields),
       super(type) {
     assert(type != null);
   }
-  bool get isConstructedObject => true;
 
-  /// True if this constant is constructed as a literal symbol.
-  final bool isLiteralSymbol;
+  bool get isConstructedObject => true;
 
   static int computeHash(DartType type, List<Constant> fields) {
     // TODO(floitsch): create a better hash.
@@ -625,7 +745,24 @@ class ConstructedConstant extends ObjectConstant {
     return result;
   }
 
-  String toString() {
+  String unparse() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(type.name);
+    _unparseTypeArguments(sb);
+    sb.write('(');
+    int i = 0;
+    fieldElements.forEach((Element field, Constant value) {
+      if (i > 0) sb.write(',');
+      sb.write(field.name);
+      sb.write('=');
+      sb.write(value.unparse());
+      i++;
+    });
+    sb.write(')');
+    return sb.toString();
+  }
+
+  String toStructuredString() {
     StringBuffer sb = new StringBuffer();
     sb.write('ConstructedConstant(');
     sb.write(type);
@@ -635,7 +772,7 @@ class ConstructedConstant extends ObjectConstant {
       if (i > 0) sb.write(',');
       sb.write(field.name);
       sb.write('=');
-      sb.write(value);
+      sb.write(value.toStructuredString());
       i++;
     });
     sb.write('))');
@@ -671,7 +808,7 @@ class DeferredConstant extends Constant {
     return referenced.computeMask(compiler);
   }
 
-  String toString() {
-    return 'DeferredConstant($referenced)';
-  }
+  String unparse() => 'deferred(${referenced.unparse()})';
+
+  String toStructuredString() => 'DeferredConstant($referenced)';
 }

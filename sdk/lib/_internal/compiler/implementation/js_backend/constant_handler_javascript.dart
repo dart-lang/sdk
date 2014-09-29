@@ -23,13 +23,13 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
 
   String get name => 'ConstantHandler';
 
-  Constant getConstantForVariable(VariableElement element) {
+  ConstExp getConstantForVariable(VariableElement element) {
     return dartConstantCompiler.getConstantForVariable(element);
   }
 
-  Constant compileConstant(VariableElement element) {
+  ConstExp compileConstant(VariableElement element) {
     return measure(() {
-      Constant result = dartConstantCompiler.compileConstant(element);
+      ConstExp result = dartConstantCompiler.compileConstant(element);
       jsConstantCompiler.compileConstant(element);
       return result;
     });
@@ -41,20 +41,20 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
     });
   }
 
-  Constant compileNode(Node node, TreeElements elements) {
+  ConstExp compileNode(Node node, TreeElements elements) {
     return measure(() {
-      Constant result =
+      ConstExp result =
           dartConstantCompiler.compileNode(node, elements);
       jsConstantCompiler.compileNode(node, elements);
       return result;
     });
   }
 
-  Constant compileMetadata(MetadataAnnotation metadata,
+  ConstExp compileMetadata(MetadataAnnotation metadata,
                            Node node,
                            TreeElements elements) {
     return measure(() {
-      Constant constant =
+      ConstExp constant =
           dartConstantCompiler.compileMetadata(metadata, node, elements);
       jsConstantCompiler.compileMetadata(metadata, node, elements);
       return constant;
@@ -78,22 +78,22 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   final Set<VariableElement> lazyStatics = new Set<VariableElement>();
 
   // Constants computed for constant expressions.
-  final Map<Node, Constant> nodeConstantMap = new Map<Node, Constant>();
+  final Map<Node, ConstExp> nodeConstantMap = new Map<Node, ConstExp>();
 
   // Constants computed for metadata.
-  final Map<MetadataAnnotation, Constant> metadataConstantMap =
-      new Map<MetadataAnnotation, Constant>();
+  final Map<MetadataAnnotation, ConstExp> metadataConstantMap =
+      new Map<MetadataAnnotation, ConstExp>();
 
   JavaScriptConstantCompiler(Compiler compiler)
       : super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM);
 
-  Constant compileVariableWithDefinitions(VariableElement element,
+  ConstExp compileVariableWithDefinitions(VariableElement element,
                                           TreeElements definitions,
                                           {bool isConst: false}) {
     if (!isConst && lazyStatics.contains(element)) {
       return null;
     }
-    Constant value = super.compileVariableWithDefinitions(
+    ConstExp value = super.compileVariableWithDefinitions(
         element, definitions, isConst: isConst);
     if (!isConst && value == null) {
       lazyStatics.add(element);
@@ -153,22 +153,22 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return result;
   }
 
-  Constant getInitialValueFor(VariableElement element) {
-    Constant initialValue = initialVariableValues[element.declaration];
+  ConstExp getInitialValueFor(VariableElement element) {
+    ConstExp initialValue = initialVariableValues[element.declaration];
     if (initialValue == null) {
       compiler.internalError(element, "No initial value for given element.");
     }
     return initialValue;
   }
 
-  Constant compileNode(Node node, TreeElements elements) {
+  ConstExp compileNode(Node node, TreeElements elements) {
     return compileNodeWithDefinitions(node, elements);
   }
 
-  Constant compileNodeWithDefinitions(Node node,
+  ConstExp compileNodeWithDefinitions(Node node,
                                       TreeElements definitions,
                                       {bool isConst: true}) {
-    Constant constant = nodeConstantMap[node];
+    ConstExp constant = nodeConstantMap[node];
     if (constant != null) {
       return constant;
     }
@@ -180,30 +180,31 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return constant;
   }
 
-  Constant getConstantForNode(Node node, TreeElements definitions) {
-    Constant constant = nodeConstantMap[node];
+  ConstExp getConstantForNode(Node node, TreeElements definitions) {
+    ConstExp constant = nodeConstantMap[node];
     if (constant != null) {
       return constant;
     }
     return definitions.getConstant(node);
   }
 
-  Constant getConstantForMetadata(MetadataAnnotation metadata) {
+  ConstExp getConstantForMetadata(MetadataAnnotation metadata) {
     return metadataConstantMap[metadata];
   }
 
-  Constant compileMetadata(MetadataAnnotation metadata,
+  ConstExp compileMetadata(MetadataAnnotation metadata,
                            Node node,
                            TreeElements elements) {
-    Constant constant = super.compileMetadata(metadata, node, elements);
+    ConstExp constant = super.compileMetadata(metadata, node, elements);
     metadataConstantMap[metadata] = constant;
     return constant;
   }
 
-  Constant createTypeConstant(TypeDeclarationElement element) {
+  ConstExp createTypeConstant(TypeDeclarationElement element) {
     DartType elementType = element.rawType;
     DartType constantType =
         compiler.backend.typeImplementation.computeType(compiler);
-    return new TypeConstant(elementType, constantType);
+    return new TypeConstExp(
+        new TypeConstant(elementType, constantType), elementType);
   }
 }
