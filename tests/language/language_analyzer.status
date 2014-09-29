@@ -482,10 +482,3 @@ const_constructor3_test/02: MissingCompileTimeError # Issue 16391
 const_constructor3_test/04: MissingCompileTimeError # Issue 16391
 const_init2_test/02: MissingCompileTimeError # Issue 16391
 malformed2_test/01: MissingCompileTimeError # Issue 16391
-
-# Issue 16391. These tests are supposed to produce a compile time
-# error in checked mode, but they produce a compile time error
-# regardless of mode:
-[ $compiler == dartanalyzer && $unchecked ]
-list_literal1_test/01: CompileTimeError # Issue 16391
-map_literal1_test/01: CompileTimeError # Issue 16391
