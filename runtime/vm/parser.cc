@@ -8877,6 +8877,9 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
   const intptr_t expr_pos = TokenPos();
 
   if (CurrentToken() == Token::kTHROW) {
+    if (require_compiletime_const) {
+      ReportError("'throw expr' is not a valid compile-time constant");
+    }
     ConsumeToken();
     if (CurrentToken() == Token::kSEMICOLON) {
       ReportError("expression expected after throw");
