@@ -183,6 +183,9 @@ abstract class Update {
   PartialElement get after;
 
   Update(this.compiler);
+
+  /// Applies the update to [before] and returns that element.
+  PartialElement apply();
 }
 
 /// Represents an update of a function element.
@@ -193,4 +196,24 @@ class FunctionUpdate extends Update {
 
   FunctionUpdate(Compiler compiler, this.before, this.after)
       : super(compiler);
+
+  PartialFunctionElement apply() {
+    patchElement();
+    reuseElement();
+    return before;
+  }
+
+  /// Destructively change the tokens in [before] to match those of [after].
+  void patchElement() {
+    before.beginToken = after.beginToken;
+    before.endToken = after.endToken;
+    before.getOrSet = after.getOrSet;
+  }
+
+  /// Reset various caches and remove this element from the compiler's internal
+  /// state.
+  void reuseElement() {
+    compiler.forgetElement(before);
+    before.reuseElement();
+  }
 }
