@@ -50,7 +50,7 @@ void analyze(String text, [expectedWarnings]) {
   compiler.diagnosticHandler = (uri, int begin, int end, String message, kind) {
     SourceFile sourceFile = compiler.sourceFiles[uri.toString()];
     if (sourceFile != null) {
-      print(sourceFile.getLocationMessage(message, begin, end, true, (x) => x));
+      print(sourceFile.getLocationMessage(message, begin, end));
     } else {
       print(message);
     }

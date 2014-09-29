@@ -63,7 +63,7 @@ void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
           warningsMismatch = true;
           print(file.getLocationMessage(
               'Unexpected warning: ${message.message}',
-              message.begin, message.end, true, (x) => x));
+              message.begin, message.end));
         }
       }
       if (!unseenWarnings.isEmpty) {

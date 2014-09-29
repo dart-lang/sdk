@@ -133,4 +133,18 @@ class ElementConverterVisitor
     return new TypedefElementY(converter, input);
   }
 
+  @override
+  dart2js.FieldElement visitTopLevelVariableElement(
+      analyzer.TopLevelVariableElement input) {
+    return new TopLevelVariableElementY(converter, input);
+  }
+
+  @override
+  dart2js.Element visitPropertyAccessorElement(
+      analyzer.PropertyAccessorElement input) {
+    if (input.isSynthetic) {
+      return input.variable.accept(this);
+    }
+    return null;
+  }
 }

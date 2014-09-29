@@ -318,8 +318,35 @@ class LibraryElementY extends ElementY with AnalyzableElementY
   get tags => unsupported('tags');
 }
 
+abstract class TopLevelElementMixin implements ElementY {
+  @override
+  bool get isClassMember => false;
+
+  @override
+  bool get isInstanceMember => false;
+
+  @override
+  bool get isTopLevel => true;
+
+  // TODO(johnniwinther): Ensure the correct semantics of this.
+  @override
+  bool get isFactoryConstructor => false;
+
+  @override
+  bool get isStatic {
+    // Semantic difference: Analyzer considers top-level and static class
+    // members to be static, dart2js only considers static class members to be
+    // static.
+    return false;
+  }
+
+  // TODO(johnniwinther): Ensure the correct semantics of this.
+  @override
+  bool get isAbstract => false;
+}
+
 class TopLevelFunctionElementY extends ElementY
-    with AnalyzableElementY, AstElementY
+    with AnalyzableElementY, AstElementY, TopLevelElementMixin
     implements dart2js.FunctionElement {
   analyzer.FunctionElement get element => super.element;
 
@@ -355,34 +382,8 @@ class TopLevelFunctionElementY extends ElementY
     return _functionSignature;
   }
 
-
-  // TODO(johnniwinther): Ensure the correct semantics of this.
-  @override
-  bool get isFactoryConstructor => false;
-
-  @override
-  bool get isStatic {
-    // Semantic difference: Analyzer considers top-level and static class
-    // members to be static, dart2js only considers static class members to be
-    // static.
-    return false;
-  }
-
-  // TODO(johnniwinther): Ensure the correct semantics of this.
-  @override
-  bool get isAbstract => false;
-
   @override
   dart2js.ElementKind get kind => dart2js.ElementKind.FUNCTION;
-
-  @override
-  bool get isClassMember => false;
-
-  @override
-  bool get isInstanceMember => false;
-
-  @override
-  bool get isTopLevel => true;
 
   TopLevelFunctionElementY(ElementConverter converter,
                            analyzer.FunctionElement element)
@@ -655,4 +656,29 @@ class TypedefElementY extends TypeDeclarationElementY
 
   @override
   get functionSignature => unsupported('functionSignature');
+}
+
+class TopLevelVariableElementY extends ElementY
+    with AnalyzableElementY, AstElementY, TopLevelElementMixin
+    implements dart2js.FieldElement {
+
+  analyzer.TopLevelVariableElement get element => super.element;
+
+  dart2js.ElementKind get kind => dart2js.ElementKind.FIELD;
+
+  @override
+  dart2js.DartType get type => converter.convertType(element.type);
+
+  TopLevelVariableElementY(ElementConverter converter,
+                           analyzer.TopLevelVariableElement element)
+      : super(converter, element);
+
+  @override
+  get initializer => unsupported('initializer');
+
+  @override
+  get memberContext => unsupported('memberContext');
+
+  @override
+  get nestedClosures => unsupported('nestedClosures');
 }

@@ -14,9 +14,7 @@ import 'dart:convert' show UTF8;
 abstract class SourceFile {
 
   /** The name of the file. */
-  final String filename;
-
-  SourceFile(this.filename);
+  String get filename;
 
   /** The text content of the file represented as a String. */
   String slowText();
@@ -110,11 +108,22 @@ abstract class SourceFile {
   String slowSubstring(int start, int end);
 
   /**
-   * Create a pretty string representation from a character position
-   * in the file.
+   * Create a pretty string representation for [message] from a character
+   * range `[start, end]` in this file.
+   *
+   * If [includeSourceLine] is `true` the first source line code line that
+   * contains the range will be included as well as marker characters ('^')
+   * underlining the range.
+   *
+   * Use [colorize] to wrap source code text and marker characters in color
+   * escape codes.
    */
   String getLocationMessage(String message, int start, int end,
-                            bool includeText, String color(String x)) {
+                            {bool includeSourceLine: true,
+                             String colorize(String text)}) {
+    if (colorize == null) {
+      colorize = (text) => text;
+    }
     var line = getLine(start);
     var column = getColumn(line, start);
 
@@ -125,7 +134,7 @@ abstract class SourceFile {
     }
     buf.write('\n$message\n');
 
-    if (start != end && includeText) {
+    if (start != end && includeSourceLine) {
       String textLine;
       // +1 for 0-indexing, +1 again to avoid the last line of the file
       if ((line + 2) < lineStarts.length) {
@@ -136,7 +145,7 @@ abstract class SourceFile {
 
       int toColumn = min(column + (end-start), textLine.length);
       buf.write(textLine.substring(0, column));
-      buf.write(color(textLine.substring(column, toColumn)));
+      buf.write(colorize(textLine.substring(column, toColumn)));
       buf.write(textLine.substring(toColumn));
 
       int i = 0;
@@ -145,7 +154,7 @@ abstract class SourceFile {
       }
 
       for (; i < toColumn; i++) {
-        buf.write(color('^'));
+        buf.write(colorize('^'));
       }
     }
 
@@ -154,11 +163,12 @@ abstract class SourceFile {
 }
 
 class Utf8BytesSourceFile extends SourceFile {
+  final String filename;
 
   /** The UTF-8 encoded content of the source file. */
   final List<int> content;
 
-  Utf8BytesSourceFile(String filename, this.content) : super(filename);
+  Utf8BytesSourceFile(this.filename, this.content);
 
   String slowText() => UTF8.decode(content);
 
@@ -196,10 +206,10 @@ class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
 }
 
 class StringSourceFile extends SourceFile {
-
+  final String filename;
   final String text;
 
-  StringSourceFile(String filename, this.text) : super(filename);
+  StringSourceFile(this.filename, this.text);
 
   int get length => text.length;
   set length(int v) { }

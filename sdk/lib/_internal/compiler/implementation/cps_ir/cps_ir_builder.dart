@@ -350,6 +350,14 @@ class IrBuilder {
     return environment.lookup(local);
   }
 
+  /// Create a get access of the static [element].
+  ir.Primitive buildGetStatic(Element element, Selector selector) {
+    assert(isOpen);
+    assert(selector.isGetter);
+    return continueWithExpression(
+        (k) => new ir.InvokeStatic(element, selector, k, []));
+  }
+
   /**
    * Add an explicit `return null` for functions that don't have a return
    * statement on each branch. This includes functions with an empty body,
@@ -1437,7 +1445,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
                Elements.isInstanceField(element) ||
                Elements.isInstanceMethod(element) ||
                selector.isIndex ||
-               // TODO(johnniwinther): clean up semantics of resultion.
+               // TODO(johnniwinther): clean up semantics of resolution.
                node.isSuperCall) {
       // Dynamic dispatch to a getter. Sometimes resolution will suggest a
       // target element, but in these cases we must still emit a dynamic
@@ -1457,13 +1465,13 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
           (k) => createDynamicInvoke(node, selector, receiver, k, arguments));
     } else if (element.isField || element.isGetter || element.isErroneous ||
                element.isSetter) {
+      // TODO(johnniwinther): Change handling of setter selectors.
       // Access to a static field or getter (non-static case handled above).
       // Even if there is only a setter, we compile as if it was a getter,
       // so the vm can fail at runtime.
       assert(selector.kind == SelectorKind.GETTER ||
              selector.kind == SelectorKind.SETTER);
-      result = continueWithExpression(
-          (k) => new ir.InvokeStatic(element, selector, k, []));
+      result = buildGetStatic(element, selector);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
       // Convert a top-level or static function to a function object.
       result = translateConstant(node);

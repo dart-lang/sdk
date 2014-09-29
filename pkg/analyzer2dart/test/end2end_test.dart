@@ -310,6 +310,20 @@ main() $NEW_BACKEND_COMMENT
 
 ''');
   });
+
+  test('Top level field access', () {
+    checkResult('''
+main(args) {
+  return deprecated;
+}
+''', '''
+main(args) $NEW_BACKEND_COMMENT
+  {
+    return deprecated;
+  }
+
+''');
+  });
 }
 
 checkResult(String input, String expectedOutput) {

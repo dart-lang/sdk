@@ -376,7 +376,7 @@ api.DiagnosticHandler createHandler(MockCompiler compiler, String text,
       sourceFile = compiler.sourceFiles[uri.toString()];
     }
     if (sourceFile != null && begin != null && end != null) {
-      print(sourceFile.getLocationMessage(message, begin, end, true, (x) => x));
+      print(sourceFile.getLocationMessage(message, begin, end));
     } else {
       print(message);
     }

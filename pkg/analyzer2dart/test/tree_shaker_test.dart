@@ -27,6 +27,53 @@ foo() {
     helper.assertHasFunction('foo');
   });
 
+  test('Toplevel field access', () {
+    var helper = new TreeShakerTestHelper('''
+main() {
+  return foo;
+}
+var foo;
+var bar;
+''');
+    helper.assertHasFunction('main');
+    helper.assertHasVariable('foo');
+    helper.assertNoVariable('bar');
+  });
+
+  test('Toplevel field invocation', () {
+    var helper = new TreeShakerTestHelper('''
+main() {
+  return foo();
+}
+var foo;
+var bar;
+''');
+    helper.assertHasFunction('main');
+    helper.assertHasVariable('foo');
+    helper.assertNoVariable('bar');
+  });
+
+  test('Member field invocation', () {
+    var helper = new TreeShakerTestHelper('''
+class A {
+  void call() {}
+  void baz() {}
+}
+main() {
+  new A();
+  foo();
+}
+var foo;
+var bar;
+''');
+    helper.assertHasFunction('main');
+    helper.assertHasVariable('foo');
+    helper.assertNoVariable('bar');
+    helper.assertHasInstantiatedClass('A');
+    helper.assertHasMethod('A.call');
+    helper.assertNoMethod('A.baz');
+  });
+
   test('Class instantiation', () {
     var helper = new TreeShakerTestHelper('''
 main() {
@@ -166,6 +213,11 @@ class TreeShakerTestHelper {
   Map<String, VariableDeclaration> fields = <String, VariableDeclaration>{};
 
   /**
+   * Top level variables contained in [world], indexed by name.
+   */
+  Map<String, VariableDeclaration> variables = <String, VariableDeclaration>{};
+
+  /**
    * Classes instantiated in [world], indexed by name.
    */
   Map<String, ClassDeclaration> instantiatedClasses = <String,
@@ -220,6 +272,12 @@ class TreeShakerTestHelper {
       expect(declaration.element, equals(element));
       fields['${element.enclosingElement.name}.${element.name}'] = declaration;
     });
+    world.variables.forEach(
+        (TopLevelVariableElement element, VariableDeclaration declaration) {
+      expect(declaration, isNotNull);
+      expect(declaration.element, equals(element));
+      variables['${element.name}'] = declaration;
+    });
   }
 
   /**
@@ -227,6 +285,13 @@ class TreeShakerTestHelper {
    */
   void assertHasField(String qualifiedName) {
     expect(fields, contains(qualifiedName));
+  }
+
+  /**
+   * Asserts that [world] contains a top level variable with the given name.
+   */
+  void assertHasVariable(String name) {
+    expect(variables, contains(name));
   }
 
   /**
@@ -265,6 +330,14 @@ class TreeShakerTestHelper {
    */
   void assertNoField(String qualifiedName) {
     expect(fields, isNot(contains(qualifiedName)));
+  }
+
+  /**
+   * Asserts that [world] doesn't contain a top level variable with the given
+   * name.
+   */
+  void assertNoVariable(String name) {
+    expect(variables, isNot(contains(name)));
   }
 
   /**

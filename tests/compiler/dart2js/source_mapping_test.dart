@@ -45,8 +45,7 @@ void testSourceMapLocations(String codeWithMarkers) {
         SourceFile sourceFileWithMarkers =
             new StringSourceFile('<test script>', codeWithMarkers);
         String message = sourceFileWithMarkers.getLocationMessage(
-            'Missing location', originalLocation, originalLocation + 1, true,
-            (s) => s);
+            'Missing location', originalLocation, originalLocation + 1);
         Expect.fail(message);
       }
     }

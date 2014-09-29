@@ -33,6 +33,14 @@ class ClosedWorld {
       new HashMap<FieldElement, VariableDeclaration>();
 
   /**
+   * Top-level variables that are reachable.
+   */
+  // TODO(johnniwinther): Is there value in splitting fields and top-level
+  // variables?
+  Map<TopLevelVariableElement, VariableDeclaration> variables =
+      new HashMap<TopLevelVariableElement, VariableDeclaration>();
+
+  /**
    * Classes that are instantiated from reachable code.
    *
    * TODO(paulberry): Also keep track of classes that are reachable but not
