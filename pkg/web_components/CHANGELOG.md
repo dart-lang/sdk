@@ -1,3 +1,6 @@
+#### Pub version 0.7.1+2
+  * Revert the change from 0.7.1+1 due to redness in FF/Safari/IE.
+
 #### Pub version 0.7.1+1
   * Cherry pick [f280d](https://github.com/Polymer/ShadowDOM/commit/f280d) and
     [165c3](https://github.com/Polymer/CustomElements/commit/165c3) to fix
