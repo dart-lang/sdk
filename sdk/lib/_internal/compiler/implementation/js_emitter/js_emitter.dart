@@ -88,6 +88,7 @@ part 'old_emitter/class_emitter.dart';
 part 'old_emitter/code_emitter_helper.dart';
 part 'old_emitter/container_builder.dart';
 part 'old_emitter/declarations.dart';
+part 'old_emitter/emitter.dart';
 part 'old_emitter/interceptor_emitter.dart';
 part 'old_emitter/metadata_emitter.dart';
 part 'old_emitter/nsm_emitter.dart';
