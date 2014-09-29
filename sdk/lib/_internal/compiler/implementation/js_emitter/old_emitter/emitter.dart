@@ -1823,27 +1823,27 @@ class OldEmitter implements Emitter {
                    '${globalsHolder}.$globalObject$N');
       }
       outputBuffer
-          .write('var init$_=$_${globalsHolder}.init$N');
+          ..write('var init$_=$_${globalsHolder}.init$N')
+          ..write('var ${namer.isolateName}$_=$_'
+                    '${globalsHolder}.${namer.isolateName}$N');
       if (libraryDescriptorBuffer != null) {
       // TODO(ahe): This defines a lot of properties on the
       // Isolate.prototype object.  We know this will turn it into a
       // slow object in V8, so instead we should do something similar
       // to Isolate.$finishIsolateConstructor.
          outputBuffer
-             ..write('var ${namer.isolateName}$_=$_'
-                     '${globalsHolder}.${namer.isolateName}$N')
-            ..write('var ${namer.currentIsolate}$_=$_$isolatePropertiesName$N')
-            // The classesCollector object ($$).
-            ..write('$classesCollector$_=${_}Object.create(null);$n')
-          ..write('(')
-          ..write(
-              jsAst.prettyPrint(
-                  getReflectionDataParser(classesCollector, backend),
-                  compiler, monitor: compiler.dumpInfoTask))
-          ..write(')')
-          ..write('([$n')
-          ..addBuffer(libraryDescriptorBuffer)
-          ..write('])$N');
+           ..write('var ${namer.currentIsolate}$_=$_$isolatePropertiesName$N')
+           // The classesCollector object ($$).
+           ..write('$classesCollector$_=${_}Object.create(null);$n')
+           ..write('(')
+           ..write(
+               jsAst.prettyPrint(
+                   getReflectionDataParser(classesCollector, backend),
+                   compiler, monitor: compiler.dumpInfoTask))
+           ..write(')')
+           ..write('([$n')
+           ..addBuffer(libraryDescriptorBuffer)
+           ..write('])$N');
 
         if (outputClassLists.containsKey(outputUnit)) {
           outputBuffer.write(
