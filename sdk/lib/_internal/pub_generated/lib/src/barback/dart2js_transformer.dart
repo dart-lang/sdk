@@ -232,7 +232,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
       if (file == null) {
         logFn('$uri: $message');
       } else {
-        logFn(file.getLocationMessage(message, begin, end, true, (i) => i));
+        logFn(file.getLocationMessage(message, begin, end));
       }
     }
     if (fatal && _throwOnError) {
