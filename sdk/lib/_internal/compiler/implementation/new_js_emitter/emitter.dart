@@ -5,6 +5,7 @@
 library dart2js.new_js_emitter.emitter;
 
 import 'model.dart';
+import 'model_emitter.dart';
 import '../common.dart';
 import '../js/js.dart' as js;
 
@@ -48,7 +49,7 @@ class Emitter implements emitterTask.Emitter {
 
   void emitProgram() {
     Program program = _buildProgram();
-    program.emit(_compiler);
+    new ModelEmitter(_compiler).emitProgram(program);
   }
 
   Program _buildProgram() {
