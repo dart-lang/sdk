@@ -24,6 +24,9 @@ import 'dart:convert' show
 import 'package:dart2js_incremental/dart2js_incremental.dart' show
     reuseCompiler;
 
+import 'package:dart2js_incremental/library_updater.dart' show
+    LibraryUpdater;
+
 import 'package:compiler/implementation/source_file_provider.dart' show
     FormattingDiagnosticHandler;
 
@@ -372,6 +375,10 @@ Future<Element> runPoi(
       '--disable-type-inference',
   ];
 
+  LibraryUpdater updater =
+      new LibraryUpdater(
+          cachedCompiler, inputProvider, script, printWallClock, printVerbose);
+
   return reuseCompiler(
       diagnosticHandler: handler,
       inputProvider: inputProvider,
@@ -379,20 +386,33 @@ Future<Element> runPoi(
       cachedCompiler: cachedCompiler,
       libraryRoot: libraryRoot,
       packageRoot: packageRoot,
-      packagesAreImmutable: true).then((Compiler newCompiler) {
+      packagesAreImmutable: true,
+      reuseLibrary: updater.reuseLibrary).then((Compiler newCompiler) {
     var filter = new ScriptOnlyFilter(script);
     newCompiler.enqueuerFilter = filter;
-    return runPoiInternal(newCompiler, script, position);
+    return runPoiInternal(newCompiler, updater, position);
   });
 }
 
 Future<Element> runPoiInternal(
     Compiler newCompiler,
-    Uri uri,
+    LibraryUpdater updater,
     int position) {
   cachedCompiler = newCompiler;
 
-  return cachedCompiler.run(uri).then((success) {
+  Future<bool> compilation = cachedCompiler.run(updater.uri);
+
+  return compilation.then((success) {
+    if (isVerbose) {
+      for (final task in cachedCompiler.tasks) {
+        int time = task.timingMicroseconds;
+        if (time != 0) {
+          printFormattedTime('${task.name} took', time);
+        }
+      }
+    }
+
+    if (poiCount != null) poiCount++;
     if (success != true) {
       throw 'Compilation failed';
     }
