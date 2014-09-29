@@ -145,7 +145,7 @@ class ListTracerVisitor extends TracerVisitor<ListTypeInformation> {
       if (!callsGrowableMethod && list.inferredLength == null) {
         list.inferredLength = list.originalLength;
       }
-      list.flowsInto.addAll(flowsInto);
+      list.addFlowsIntoTargets(flowsInto);
       return true;
     } else {
       callsGrowableMethod = true;

@@ -22,17 +22,19 @@ part of type_graph_inferrer;
  */
 abstract class TypeInformation {
   Set<TypeInformation> users;
-  var /* List|ParameterAssignments */ assignments;
+  var /* List|ParameterAssignments */ _assignments;
 
   /// The type the inferrer has found for this [TypeInformation].
   /// Initially empty.
   TypeMask type = const TypeMask.nonNullEmpty();
 
-  /// The graph node of the member this [TypeInformation] node belongs to
+  /// The graph node of the member this [TypeInformation] node belongs to.
   final MemberTypeInformation context;
 
-  /// The element this
+  /// The element this [TypeInformation] node belongs to.
   MemberElement get contextMember => context == null ? null : context.element;
+
+  Iterable<TypeInformation> get assignments => _assignments;
 
   /// We abandon inference in certain cases (complex cyclic flow, native
   /// behaviours, etc.). In some case, we might resume inference in the
@@ -66,19 +68,19 @@ abstract class TypeInformation {
 
   bool get isConcrete => false;
 
-  TypeInformation(this.context) : assignments = <TypeInformation>[],
+  TypeInformation(this.context) : _assignments = <TypeInformation>[],
                                   users = new Setlet<TypeInformation>();
 
   TypeInformation.noAssignments(this.context)
-      : assignments = const <TypeInformation>[],
+      : _assignments = const <TypeInformation>[],
         users = new Setlet<TypeInformation>();
 
   TypeInformation.untracked()
-      : assignments = const <TypeInformation>[],
+      : _assignments = const <TypeInformation>[],
         users = const ImmutableEmptySet(),
         context = null;
 
-  TypeInformation.withAssignments(this.context, this.assignments)
+  TypeInformation.withAssignments(this.context, this._assignments)
       : users = new Setlet<TypeInformation>();
 
   void addUser(TypeInformation user) {
@@ -103,7 +105,7 @@ abstract class TypeInformation {
     // Cheap one-level cycle detection.
     if (assignment == this) return;
     if (areAssignmentsTracked()) {
-      assignments.add(assignment);
+      _assignments.add(assignment);
     }
     // Even if we abandon inferencing on this [TypeInformation] we
     // need to collect the users, so that phases that track where
@@ -113,7 +115,7 @@ abstract class TypeInformation {
 
   void removeAssignment(TypeInformation assignment) {
     if (!abandonInferencing || mightResume) {
-      assignments.remove(assignment);
+      _assignments.remove(assignment);
     }
     // We can have multiple assignments of the same [TypeInformation].
     if (!assignments.contains(assignment)) {
@@ -144,17 +146,18 @@ abstract class TypeInformation {
     // Do not remove [this] as a user of nodes in [assignments],
     // because our tracing analysis could be interested in tracing
     // this node.
-    if (clearAssignments) assignments = STOP_TRACKING_ASSIGNMENTS_MARKER;
+    if (clearAssignments) _assignments = STOP_TRACKING_ASSIGNMENTS_MARKER;
     // Do not remove users because our tracing analysis could be
     // interested in tracing the users of this node.
   }
 
   void clear() {
-    assignments = STOP_TRACKING_ASSIGNMENTS_MARKER;
+    _assignments = STOP_TRACKING_ASSIGNMENTS_MARKER;
     users = const ImmutableEmptySet();
   }
 
   /// Reset the analysis of this node by making its type empty.
+
   bool reset(TypeGraphInferrerEngine inferrer) {
     if (abandonInferencing) return false;
     type = const TypeMask.nonNullEmpty();
@@ -183,7 +186,7 @@ abstract class TypeInformation {
     removeAndClearReferences(inferrer);
     // Do not remove users because the tracing analysis could be interested
     // in tracing the users of this node.
-    assignments = STOP_TRACKING_ASSIGNMENTS_MARKER;
+    _assignments = STOP_TRACKING_ASSIGNMENTS_MARKER;
     abandonInferencing = true;
     isStable = true;
   }
@@ -1116,7 +1119,7 @@ class NarrowTypeInformation extends TypeInformation {
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
-    TypeMask input = assignments[0].type;
+    TypeMask input = assignments.first.type;
     TypeMask intersection = input.intersection(typeAnnotation,
         inferrer.classWorld);
     if (_ANOMALY_WARN) {
@@ -1168,7 +1171,8 @@ abstract class InferredTypeInformation extends TypeInformation {
  * A [ListTypeInformation] is a [TypeInformation] created
  * for each `List` instantiations.
  */
-class ListTypeInformation extends TypeInformation {
+class ListTypeInformation extends TypeInformation
+    with TracedTypeInformation {
   final ElementInContainerTypeInformation elementType;
 
   /** The container type before it is inferred. */
@@ -1185,13 +1189,6 @@ class ListTypeInformation extends TypeInformation {
    * We conservatively assume it does.
    */
   bool checksGrowable = true;
-
-  // The set of [TypeInformation] where the traced container could
-  // flow in.
-  final Setlet<TypeInformation> flowsInto = new Setlet<TypeInformation>();
-
-  bool bailedOut = true;
-  bool analyzed = false;
 
   ListTypeInformation(MemberTypeInformation context,
                       this.originalType,
@@ -1250,7 +1247,8 @@ class ElementInContainerTypeInformation extends InferredTypeInformation {
  * A [MapTypeInformation] is a [TypeInformation] created
  * for maps.
  */
-class MapTypeInformation extends TypeInformation {
+class MapTypeInformation extends TypeInformation
+    with TracedTypeInformation {
   // When in Dictionary mode, this map tracks the type of the values that
   // have been assigned to a specific [String] key.
   final Map<String, ValueInMapTypeInformation> typeInfoMap = {};
@@ -1258,14 +1256,6 @@ class MapTypeInformation extends TypeInformation {
   final KeyInMapTypeInformation keyType;
   final ValueInMapTypeInformation valueType;
   final MapTypeMask originalType;
-
-  // The set of [TypeInformation] where values from the traced map could
-  // flow in.
-  final Setlet<TypeInformation> flowsInto = new Setlet<TypeInformation>();
-
-  // Set to false once analysis has succeeded.
-  bool bailedOut = true;
-  bool analyzed = false;
 
   // Set to false if a statically unknown key flows into this map.
   bool _allKeysAreStrings = true;
@@ -1492,6 +1482,38 @@ class ClosureTypeInformation extends TypeInformation
 
   bool hasStableType(TypeGraphInferrerEngine inferrer) {
     return false;
+  }
+}
+
+/**
+ * Mixin for [TypeInformation] nodes that can bail out during tracing.
+ */
+abstract class TracedTypeInformation implements TypeInformation {
+  /// Set to false once analysis has succeeded.
+  bool bailedOut = true;
+  /// Set to true once analysis is completed.
+  bool analyzed = false;
+
+  Set<TypeInformation> _flowsInto;
+
+  /**
+   * The set of [TypeInformation] nodes where values from the traced node could
+   * flow in.
+   */
+  Set<TypeInformation> get flowsInto {
+    return (_flowsInto == null) ? const ImmutableEmptySet<TypeInformation>()
+                                : _flowsInto;
+  }
+
+  /**
+   * Adds [nodes] to the sets of values this [TracedTypeInformation] flows into.
+   */
+  void addFlowsIntoTargets(Iterable<TypeInformation> nodes) {
+    if (_flowsInto == null) {
+      _flowsInto = nodes.toSet();
+    } else {
+      _flowsInto.addAll(nodes);
+    }
   }
 }
 
