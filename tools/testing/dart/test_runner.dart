@@ -1441,9 +1441,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     parseAnalyzerOutput(errors, warnings);
 
     // Handle errors / missing errors
-    if (testCase.hasCompileError) {
-      // Don't use [TestCase.expectCompileError] since the analyzer does not
-      // (currently) report checked-mode only compile time errors.
+    if (testCase.expectCompileError) {
       if (errors.length > 0) {
         return Expectation.PASS;
       }
