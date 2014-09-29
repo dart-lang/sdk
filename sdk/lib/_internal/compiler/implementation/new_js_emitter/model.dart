@@ -364,11 +364,12 @@ final String boilerplate = r"""
   }
 
   setupProgram();
-  var end = Date.now();
-  print('Setup: ' + (end - start) + ' ms.');
 
   // Initialize globals.
   #;
+
+  var end = Date.now();
+  print('Setup: ' + (end - start) + ' ms.');
 
   if (true) #();  // Start main.
 

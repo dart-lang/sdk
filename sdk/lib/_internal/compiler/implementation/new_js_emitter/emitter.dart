@@ -8,6 +8,9 @@ import 'model.dart';
 import '../common.dart';
 import '../js/js.dart' as js;
 
+import '../dart2jslib.dart' show PrimitiveConstant;
+import '../tree/tree.dart' show DartString;
+
 import '../js_backend/js_backend.dart' show Namer, JavaScriptBackend;
 import '../js_emitter/js_emitter.dart' as emitterTask show
     CodeEmitterTask,
@@ -231,9 +234,20 @@ class Emitter implements emitterTask.Emitter {
   }
 
   js.Expression generateEmbeddedGlobalAccess(String global) {
-    return js.string("<<unimplemented>>");
+    // TODO(floitsch): We should not use "init" for globals.
+    return js.string("init.$global");
   }
+
   js.Expression constantReference(Constant value) {
+    if (!value.isPrimitive) return js.string("<<unimplemented>>");
+    PrimitiveConstant constant = value;
+    if (constant.isBool) return new js.LiteralBool(constant.isTrue);
+    if (constant.isString) {
+      DartString dartString = constant.value;
+      return js.string(dartString.slowToString());
+    }
+    if (constant.isNum) return js.number(constant.value);
+    if (constant.isNull) return new js.LiteralNull();
     return js.string("<<unimplemented>>");
   }
 
