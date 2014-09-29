@@ -1334,9 +1334,19 @@ abstract class StreamSubscription<T> {
   /**
    * Request that the stream pauses events until further notice.
    *
+   * While paused, the subscription will not fire any events.
+   * If it receives events from its source, they will be buffered until
+   * the subscription is resumed.
+   * The underlying source is usually informed about the pause,
+   * so it can stop generating events until the subscription is resumed.
+   *
+   * To avoid buffering events on a broadcast stream, it is better to
+   * cancel this subscription, and start to listen again when events
+   * are needed.
+   *
    * If [resumeSignal] is provided, the stream will undo the pause
    * when the future completes. If the future completes with an error,
-   * it will not be handled!
+   * the stream will resume, but the error will not be handled!
    *
    * A call to [resume] will also undo a pause.
    *
@@ -1380,9 +1390,11 @@ abstract class StreamSubscription<T> {
 abstract class EventSink<T> implements Sink<T> {
   /** Send a data event to a stream. */
   void add(T event);
+
   /** Send an async error to a stream. */
   void addError(errorEvent, [StackTrace stackTrace]);
-  /** Send a done event to a stream. */
+
+  /** Close the sink. No further events can be added after closing. */
   void close();
 }
 
@@ -1488,7 +1500,6 @@ abstract class StreamSink<S> implements StreamConsumer<S>, EventSink<S> {
  * It is good practice to write transformers that can be used multiple times.
  */
 abstract class StreamTransformer<S, T> {
-
   /**
    * Creates a [StreamTransformer].
    *
@@ -1573,6 +1584,16 @@ abstract class StreamTransformer<S, T> {
       void handleDone(EventSink<T> sink)})
           = _StreamHandlerTransformer;
 
+  /**
+   * Transform the incoming [stream]'s events.
+   *
+   * Creates a new stream.
+   * When this stream is listened to, it will start listening on [stream],
+   * and generate events on the new stream based on the events from [stream].
+   *
+   * Subscriptions on the returned stream should propagate pause state
+   * to the subscription on [stream].
+   */
   Stream<T> bind(Stream<S> stream);
 }
 

@@ -465,16 +465,15 @@ abstract class Future<T> {
    * This method is equivalent to:
    *
    *     Future<T> whenComplete(action()) {
-   *       this.then((v) {
-   *                   var f2 = action();
-   *                   if (f2 is Future) return f2.then((_) => v);
-   *                   return v
-   *                 },
-   *                 onError: (e) {
-   *                   var f2 = action();
-   *                   if (f2 is Future) return f2.then((_) { throw e; });
-   *                   throw e;
-   *                 });
+   *       return this.then((v) {
+   *         var f2 = action();
+   *         if (f2 is Future) return f2.then((_) => v);
+   *         return v
+   *       }, onError: (e) {
+   *         var f2 = action();
+   *         if (f2 is Future) return f2.then((_) { throw e; });
+   *         throw e;
+   *       });
    *     }
    */
   Future<T> whenComplete(action());
@@ -642,7 +641,7 @@ abstract class Completer<T> {
    * Completing a future with an error indicates that an exception was thrown
    * while trying to produce a value.
    *
-   * The argument [error] must not be `null`.
+   * If [error] is `null`, it is replaced by a [NullThrownError].
    *
    * If `error` is a `Future`, the future itself is used as the error value.
    * If you want to complete with the result of the future, you can use:

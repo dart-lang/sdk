@@ -61,12 +61,16 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *     fixedLengthList.length;     // 3
    *     fixedLengthList.length = 1; // Error
    *
-   *
    * The list has length 0 and is growable if [length] is omitted.
    *
    *     List growableList = new List();
    *     growableList.length; // 0;
    *     growableList.length = 3;
+   *
+   * To create a growable list with a given length, just assign the length
+   * right after creation:
+   *
+   *     List growableList = new List()..length = 500;
    *
    * The [length] must not be negative or null, if it is provided.
    */

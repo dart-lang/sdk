@@ -417,6 +417,7 @@ abstract class Zone {
    * The original error is used unchanged in that case.
    * Otherwise return an instance of [AsyncError] holding
    * the new pair of error and stack trace.
+   * If the [AsyncError.error] is `null`, it is replaced by a [NullThrownError].
    */
   AsyncError errorCallback(Object error, StackTrace stackTrace);
 

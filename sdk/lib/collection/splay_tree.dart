@@ -244,9 +244,13 @@ class _TypeTest<T> {
  * in amortized logarithmic time.
  *
  * Keys of the map are compared using the `compare` function passed in
- * the constructor. If that is omitted, the objects are assumed to be
- * [Comparable], and are compared using their [Comparable.compareTo]
- * method. Non-comparable objects (including `null`) will not work as keys
+ * the constructor, both for ordering and for equality.
+ * If the map contains only the key `a`, then `map.containsKey(b)`
+ * will return `true` if and only if `compare(a, b) == 0`,
+ * and the value of `a == b` is not even checked.
+ * If the compare function is omitted, the objects are assumed to be
+ * [Comparable], and are compared using their [Comparable.compareTo] method.
+ * Non-comparable objects (including `null`) will not work as keys
  * in that case.
  *
  * To allow calling [operator[]], [remove] or [containsKey] with objects
@@ -634,9 +638,13 @@ class _SplayTreeNodeIterator<K>
  * in amortized logarithmic time.
  *
  * Elements of the set are compared using the `compare` function passed in
- * the constructor. If that is omitted, the objects are assumed to be
- * [Comparable], and are compared using their [Comparable.compareTo]
- * method. Non-comparable objects (including `null`) will not work as an element
+ * the constructor, both for ordering and for equality.
+ * If the set contains only an object `a`, then `set.contains(b)`
+ * will return `true` if and only if `compare(a, b) == 0`,
+ * and the value of `a == b` is not even checked.
+ * If the compare function is omitted, the objects are assumed to be
+ * [Comparable], and are compared using their [Comparable.compareTo] method.
+ * Non-comparable objects (including `null`) will not work as an element
  * in that case.
  */
 class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {

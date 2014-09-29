@@ -7,6 +7,8 @@ part of dart.collection;
 /**
  * Abstract implementation of a list.
  *
+ * `ListBase` can be used as a base class for implementing the `List` interface.
+ *
  * All operations are defined in terms of `length`, `operator[]`,
  * `operator[]=` and `length=`, which need to be implemented.
  *
@@ -33,7 +35,8 @@ abstract class ListBase<E> extends Object with ListMixin<E> {
 /**
  * Base implementation of a [List] class.
  *
- * This class can be used as a mixin.
+ * `ListMixin` can be used as a mixin to make a class implement
+ * the `List` interface.
  *
  * This implements all read operations using only the `length` and
  * `operator[]` members. It implements write operations using those and
