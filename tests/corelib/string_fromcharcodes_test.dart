@@ -149,6 +149,11 @@ main() {
   test(tailSurrogate, [0xDBFF, 0xDFFF], 1);
   test("\u{10FFFF}", [0x10FFFF], 0, 1);
 
+  void testThrowsRange(iterable, [start = 0, end]) {
+    Expect.throws(() => new String.fromCharCodes(iterable, start, end),
+                  (e) => e is RangeError);
+  }
+
   // Test varying slices of the code units of a string.
   testSubstring(string) {
     var codes = string.codeUnits;
@@ -172,13 +177,12 @@ main() {
         }
       }
 
-      Expect.throws(() => new String.fromCharCodes(iterable, -1));
-      Expect.throws(() => new String.fromCharCodes(iterable, 0, -1));
-      Expect.throws(() => new String.fromCharCodes(iterable, 2, 1));
-      Expect.throws(() => new String.fromCharCodes(iterable, 0, length + 1));
-      Expect.throws(() => new String.fromCharCodes(iterable, length + 1));
-      Expect.throws(() => new String.fromCharCodes(iterable, length + 1,
-                                                             length + 2));
+      testThrowsRange(iterable, -1);
+      testThrowsRange(iterable, 0, -1);
+      testThrowsRange(iterable, 2, 1);
+      testThrowsRange(iterable, 0, length + 1);
+      testThrowsRange(iterable, length + 1);
+      testThrowsRange(iterable, length + 1, length + 2);
     }
   }
 

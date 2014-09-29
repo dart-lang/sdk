@@ -69,7 +69,7 @@ class _StringBase {
         // Treat charCodes as Iterable.
         if (start < 0) throw new RangeError.range(start, 0, charCodes.length);
         if (end != null && end < start) {
-          throw new RangeError.value(end, start, charCodes.length);
+          throw new RangeError.range(end, start, charCodes.length);
         }
         var it = charCodes.iterator;
         for (int i = 0; i < start; i++) {
