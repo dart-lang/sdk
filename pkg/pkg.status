@@ -26,6 +26,7 @@ third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issu
 intl/test/date_time_format_http_request_test: Skip # Times out flakily. Issue 19544
 intl/test/date_time_format_local_even_test: Skip # Times out flakily. Issue 19544
 intl/test/date_time_format_local_odd_test: Skip # Times out flakily. Issue 19544
+mutation_observer: Skip # Issue 21149
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
