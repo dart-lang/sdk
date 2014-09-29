@@ -104,7 +104,7 @@ main() {
   testThrows([-1]);
   testThrows(new List(1)..[0] = -1);
   testThrows(const [-1]);
-  //testThrows(new Int8List(1)..[0] = -1);
+  testThrows(new Int8List(1)..[0] = -1);
   testThrows(new Int16List(1)..[0] = -1);
   testThrows(new Int32List(1)..[0] = -1);
   testThrows([0x110000]);
@@ -130,28 +130,19 @@ main() {
     test("BCDEFGH", iterable, 1);
     test("H", iterable, 7);
     test("", iterable, 8);
-    test("", iterable, 9);
     // start = 0, end varies.
     test("ABCDEFGH", iterable, 0);
     test("A", iterable, 0, 1);
     test("AB", iterable, 0, 2);
     test("ABCDEFG", iterable, 0, 7);
     test("ABCDEFGH", iterable, 0, 8);
-    test("ABCDEFGH", iterable, 0, 9);
     test("", iterable, 0, 0);
-    test("", iterable, 0, -1);
     // Both varying.
     test("ABCDEFGH", iterable, 0, 8);
-    test("ABCDEFGH", iterable, 0, 9);
     test("AB", iterable, 0, 2);
     test("GH", iterable, 6, 8);
     test("DE", iterable, 3, 5);
     test("", iterable, 3, 3);
-    test("", iterable, 5, 3);
-    test("", iterable, 4, -1);
-    test("", iterable, 8, -1);
-    test("", iterable, 0, -1);
-    test("", iterable, 9, 9);
   }
   // Can split surrogates in input, but not a single big code point.
   test(leadSurrogate, [0xDBFF, 0xDFFF], 0, 1);
@@ -180,7 +171,14 @@ main() {
           test(string.substring(i, i + j), iterable, i, i + j);
         }
       }
-      Expect.equals(string, new String.fromCharCodes(iterable, 0, length + 1));
+
+      Expect.throws(() => new String.fromCharCodes(iterable, -1));
+      Expect.throws(() => new String.fromCharCodes(iterable, 0, -1));
+      Expect.throws(() => new String.fromCharCodes(iterable, 2, 1));
+      Expect.throws(() => new String.fromCharCodes(iterable, 0, length + 1));
+      Expect.throws(() => new String.fromCharCodes(iterable, length + 1));
+      Expect.throws(() => new String.fromCharCodes(iterable, length + 1,
+                                                             length + 2));
     }
   }
 

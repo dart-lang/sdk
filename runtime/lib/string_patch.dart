@@ -57,23 +57,59 @@ class _StringBase {
   static String createFromCharCodes(Iterable<int> charCodes,
                                     int start, int end) {
     if (charCodes == null) throw new ArgumentError(charCodes);
-    if (start < 0) throw new RangeError.value(start);
     // TODO(srdjan): Also skip copying of wide typed arrays.
     final ccid = ClassID.getID(charCodes);
     bool isOneByteString = false;
     if ((ccid != ClassID.cidArray) &&
         (ccid != ClassID.cidGrowableObjectArray) &&
         (ccid != ClassID.cidImmutableArray)) {
-      if ((charCodes is Uint8List) || (charCodes is Int8List)) {
+      if (charCodes is Uint8List) {
         isOneByteString = true;
       } else {
-        charCodes = new List.from(charCodes, growable: false);
+        // Treat charCodes as Iterable.
+        if (start < 0) throw new RangeError.range(start, 0, charCodes.length);
+        if (end != null && end < start) {
+          throw new RangeError.value(end, start, charCodes.length);
+        }
+        var it = charCodes.iterator;
+        for (int i = 0; i < start; i++) {
+          if (!it.moveNext()) {
+            throw new RangeError.range(start, 0, i);
+          }
+        }
+        int bits = 0;  // Bitwise or of all char codes in list.
+        var list = [];
+        if (end == null) {
+          while (it.moveNext()) {
+            int code = it.current;
+            bits |= code;
+            list.add(code);
+          }
+        } else {
+          for (int i = start; i < end; i++) {
+            if (!it.moveNext()) {
+              throw new RangeError.range(end, start, i);
+            }
+            int code = it.current;
+            bits |= code;
+            list.add(code);
+          }
+        }
+        charCodes = list;
+        isOneByteString = (bits >= 0 && bits <= 0xff);
+        start = 0;
+        end = list.length;
       }
     }
-    if ((end == null) || (end > charCodes.length)) {
-      end = charCodes.length;
+    int codeCount = charCodes.length;
+    if (start < 0 || start > codeCount) {
+      throw new RangeError.range(start, 0, codeCount);
     }
-    if (end <= start) return "";
+    if (end == null) {
+      end = codeCount;
+    } else if (end < start || end > codeCount) {
+      throw new RangeError.range(end, start, codeCount);
+    }
     final len = end - start;
     if (!isOneByteString) {
       for (int i = start; i < end; i++) {
@@ -269,10 +305,10 @@ class _StringBase {
   // Checks for one-byte whitespaces only.
   static bool _isOneByteWhitespace(int codeUnit) {
     if (codeUnit <= 32) {
-      return ((codeUnit == 32) || // Space.
+      return ((codeUnit == 32) ||  // Space.
               ((codeUnit <= 13) && (codeUnit >= 9)));  // CR, LF, TAB, etc.
     }
-    return (codeUnit == 0x85) || (codeUnit == 0xA0);
+    return (codeUnit == 0x85) || (codeUnit == 0xA0);  // NEL, NBSP.
   }
 
   // Characters with Whitespace property (Unicode 6.2).

@@ -272,28 +272,24 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
                                [int start = 0, int end]) {
-    if (start < 0) throw new RangeError.value(start);
-    List list;
-    if (charCodes is JSArray) {
-      list = charCodes;
-      // If possible, recognize typed lists too.
-      int len = list.length;
-      if (end == null || end > len) end = len;
-      if (start > 0 || end < len) {
-        if (start >= end) return "";
-        list = list.sublist(start, end);
-      }
-    } else {
-      if (end != null) {
-        if (start >= end) return "";
-        charCodes = charCodes.take(end);
-      }
-      if (start > 0) charCodes = charCodes.skip(start);
-      list = charCodes.toList();  // Try the iterable's own toList first.
-      if (list is! JSArray) {
-        // If that fails, force a JSArray.
-        list = new List.from(list);
-      }
+    // If possible, recognize typed lists too.
+    if (charCodes is! JSArray) {
+      return _stringFromIterable(charCodes, start, end);
+    }
+
+    List list = charCodes;
+    int len = list.length;
+    if (start < 0 || start > len) {
+      throw new RangeError.range(start, 0, len);
+    }
+    if (end == null) {
+      end = len;
+    } else if (end < start || end > len) {
+      throw new RangeError.range(end, start, len);
+    }
+
+    if (start > 0 || end < len) {
+      list = list.sublist(start, end);
     }
     return Primitives.stringFromCharCodes(list);
   }
@@ -307,6 +303,32 @@ class String {
   factory String.fromEnvironment(String name, {String defaultValue}) {
     throw new UnsupportedError(
         'String.fromEnvironment can only be used as a const constructor');
+  }
+
+  static String _stringFromIterable(Iterable<int> charCodes,
+                                    int start, int end) {
+    if (start < 0) throw new RangeError.range(start, 0, charCodes.length);
+    if (end != null && end < start) {
+      throw new RangeError.value(end, start, charCodes.length);
+    }
+    var it = charCodes.iterator;
+    for (int i = 0; i < start; i++) {
+      if (!it.moveNext()) {
+        throw new RangeError.range(start, 0, i);
+      }
+    }
+    var list = [];
+    if (end == null) {
+      while (it.moveNext()) list.add(it.current);
+    } else {
+      for (int i = start; i < end; i++) {
+        if (!it.moveNext()) {
+          throw new RangeError.range(end, start, i);
+        }
+        list.add(it.current);
+      }
+    }
+    return Primitives.stringFromCharCodes(list);
   }
 }
 
