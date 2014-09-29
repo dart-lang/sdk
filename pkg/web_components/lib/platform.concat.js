@@ -2317,7 +2317,13 @@ window.ShadowDOMPolyfill = {};
   var globalMutationObservers = [];
   var isScheduled = false;
 
-  function scheduleCallback() {
+  function scheduleCallback(observer) {
+    if (observer.scheduled_)
+      return;
+
+    observer.scheduled_ = true;
+    globalMutationObservers.push(observer);
+
     if (isScheduled)
       return;
     setEndOfMicrotask(notifyObservers);
@@ -2337,6 +2343,7 @@ window.ShadowDOMPolyfill = {};
 
       for (var i = 0; i < notifyList.length; i++) {
         var mo = notifyList[i];
+        mo.scheduled_ = false;
         var queue = mo.takeRecords();
         removeTransientObserversFor(mo);
         if (queue.length) {
@@ -2452,8 +2459,6 @@ window.ShadowDOMPolyfill = {};
       }
     }
 
-    var anyObserversEnqueued = false;
-
     // 4.
     for (var uid in interestedObservers) {
       var observer = interestedObservers[uid];
@@ -2486,15 +2491,9 @@ window.ShadowDOMPolyfill = {};
         record.oldValue = associatedStrings[uid];
 
       // 8.
-      if (!observer.records_.length) {
-        globalMutationObservers.push(observer);
-        anyObserversEnqueued = true;
-      }
+      scheduleCallback(observer);
       observer.records_.push(record);
     }
-
-    if (anyObserversEnqueued)
-      scheduleCallback();
   }
 
   var slice = Array.prototype.slice;
@@ -2557,6 +2556,7 @@ window.ShadowDOMPolyfill = {};
     this.nodes_ = [];
     this.records_ = [];
     this.uid_ = ++uidCounter;
+    this.scheduled_ = false;
   }
 
   MutationObserver.prototype = {
@@ -2641,6 +2641,10 @@ window.ShadowDOMPolyfill = {};
       // the required listeners set up on the target.
       if (node === this.target)
         return;
+
+      // Make sure we remove transient observers at the end of microtask, even
+      // if we didn't get any change records.
+      scheduleCallback(this.observer);
 
       this.transientObservedNodes.push(node);
       var registrations = registrationsTable.get(node);
@@ -11373,10 +11377,7 @@ function watchShadow(node) {
 }
 
 function watchRoot(root) {
-  if (!root.__watched) {
-    observe(root);
-    root.__watched = true;
-  }
+  observe(root);
 }
 
 function handler(mutations) {
@@ -11421,18 +11422,32 @@ function handler(mutations) {
   logFlags.dom && console.groupEnd();
 };
 
-var observer = new MutationObserver(handler);
+function takeRecords(node) {
+  // If the optional node is not supplied, assume we mean the whole document.
+  if (node === undefined) node = document;
 
-function takeRecords() {
-  // TODO(sjmiles): ask Raf why we have to call handler ourselves
-  handler(observer.takeRecords());
-  takeMutations();
+  // Find the root of the tree, which will be an Document or ShadowRoot.
+  while (node.parentNode) {
+    node = node.parentNode;
+  }
+
+  var observer = node.__observer;
+  if (observer) {
+    handler(observer.takeRecords());
+    takeMutations();
+  }
 }
 
 var forEach = Array.prototype.forEach.call.bind(Array.prototype.forEach);
 
 function observe(inRoot) {
+  if (inRoot.__observer) return;
+
+  // For each ShadowRoot, we create a new MutationObserver, so the root can be
+  // garbage collected once all references to the `inRoot` node are gone.
+  var observer = new MutationObserver(handler);
   observer.observe(inRoot, {childList: true, subtree: true});
+  inRoot.__observer = observer;
 }
 
 function observeDocument(doc) {

@@ -1,3 +1,8 @@
+#### Pub version 0.7.1+1
+  * Cherry pick [f280d](https://github.com/Polymer/ShadowDOM/commit/f280d) and
+    [165c3](https://github.com/Polymer/CustomElements/commit/165c3) to fix
+    memory leaks.
+
 #### Pub version 0.7.1
   * Update to platform version 0.4.1-d214582.
 
