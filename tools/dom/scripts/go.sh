@@ -1,6 +1,6 @@
 #!/bin/bash -x
 #
-#   go.sh [--cached] [systems]
+#   go.sh [systems]
 #
 # Convenience script to generate systems.  Do not call from build steps or tests
 # - call fremontcutbuilder and dartdomgenerator instead. Do not add 'real'
@@ -12,10 +12,6 @@
 #   ./go.sh | tee Q
 #
 # I can inspect file Q if needed.
-#
-# If I know the IDL has not changed since the last run, it is faster to run
-#
-#   ./go.sh --cached
 #
 # To generate a subset of systems:
 #
@@ -30,12 +26,6 @@
 #   ./go.sh
 #   meld ../generated0 ../generated   # compare directories with too
 
-CACHED=
-if [[ "$1" == "--cached" ]] ; then
-  CACHED=1
-  shift
-fi
-
 ALLSYSTEMS="htmldart2js,htmldartium"
 SYSTEMS="$ALLSYSTEMS"
 
@@ -43,12 +33,5 @@ if [[ "$1" != "" ]] ; then
   SYSTEMS="$1"
 fi
 
-if [[ $CACHED ]] ; then
-  reset &&
-  ./dartdomgenerator.py --use-database-cache --systems="$SYSTEMS" \
-  --update-dom-metadata
-else
-  reset &&
-  ./dartdomgenerator.py --rebuild --systems="$SYSTEMS" --blink-parser \
-  --logging=40 --update-dom-metadata
-fi
+reset && \
+./dartdomgenerator.py --systems="$SYSTEMS" --logging=40 --update-dom-metadata

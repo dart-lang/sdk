@@ -5,7 +5,6 @@
 
 import copy
 import database
-import idlparser
 import logging
 import monitored
 import multiprocessing
@@ -40,7 +39,6 @@ class DatabaseBuilderOptions(object):
   """Used in specifying options when importing new interfaces"""
 
   def __init__(self,
-      idl_syntax=idlparser.WEBIDL_SYNTAX,
       idl_defines=[],
       source=None, source_attributes={},
       rename_operation_arguments_on_merge=False,
@@ -49,7 +47,6 @@ class DatabaseBuilderOptions(object):
       logging_level=logging.WARNING):
     """Constructor.
     Args:
-      idl_syntax -- the syntax of the IDL file that is imported.
       idl_defines -- list of definitions for the idl gcc pre-processor
       source -- the origin of the IDL file, used for annotating the
         database.
@@ -65,30 +62,12 @@ class DatabaseBuilderOptions(object):
     """
     self.source = source
     self.source_attributes = source_attributes
-    self.idl_syntax = idl_syntax
     self.idl_defines = idl_defines
     self.rename_operation_arguments_on_merge = \
         rename_operation_arguments_on_merge
     self.add_new_interfaces = add_new_interfaces
     self.obsolete_old_declarations = obsolete_old_declarations
     _logger.setLevel(logging_level)
-
-
-def _load_idl_file(build, file_name, import_options):
-  """Loads an IDL file into memory"""
-  idl_parser = idlparser.IDLParser(import_options.idl_syntax)
-
-  try:
-    f = open(file_name, 'r')
-    content = f.read()
-    f.close()
-
-    idl_ast = idl_parser.parse(content)
-
-    return IDLFile(idl_ast, file_name)
-  except SyntaxError, e:
-    raise RuntimeError('Failed to load file %s: %s: Content: %s[end]'
-                       % (file_name, e, content))
 
 
 def format_exception(e):
@@ -106,7 +85,7 @@ def format_exception(e):
 
 
 # Compile IDL using Blink's IDL compiler.
-def _new_compile_idl_file(build, file_name, import_options):
+def _compile_idl_file(build, file_name, import_options):
   try:
     idl_file_fullpath = os.path.realpath(file_name)
     idl_definition = build.idl_compiler.compile_file(idl_file_fullpath)
@@ -122,7 +101,7 @@ def _new_compile_idl_file(build, file_name, import_options):
 
 
 # Create the Model (IDLFile) from the new AST of the compiled IDL file.
-def _new_load_idl_file(build, file_name, import_options):
+def _load_idl_file(build, file_name, import_options):
   try:
     # Compute interface name from IDL filename (it's one for one in WebKit).
     name = os.path.splitext(os.path.basename(file_name))[0]
@@ -523,7 +502,7 @@ class DatabaseBuilder(object):
             import_options.source_attributes)
       interface.parents.append(parent)
 
-  def merge_imported_interfaces(self, blink_parser):
+  def merge_imported_interfaces(self):
     """Merges all imported interfaces and loads them into the DB."""
     imported_interfaces = self._imported_interfaces
 
@@ -576,7 +555,7 @@ class DatabaseBuilder(object):
 
   # Compile the IDL file with the Blink compiler and remember each AST for the
   # IDL.
-  def _blink_compile_idl_files(self, file_paths, import_options, parallel, is_dart_idl):
+  def _blink_compile_idl_files(self, file_paths, import_options, is_dart_idl):
     if not(is_dart_idl):
       start_time = time.time()
 
@@ -597,81 +576,37 @@ class DatabaseBuilder(object):
         'implement_pairs': implement_pairs,
       }
 
-    # use --parallel for async on a pool.  Look at doing it like Blink
-    blink_compiler = _new_compile_idl_file
-    process_ast = self._process_ast
+    # Parse the IDL files serially.
+    start_time = time.time()
 
-    if parallel:
-      # Parse the IDL files in parallel.
-      pool = multiprocessing.Pool()
-      try:
-        for file_path in file_paths:
-          pool.apply_async(blink_compiler,
-                           [ self.build, file_path, import_options],
-                           callback = lambda new_ast: process_ast(new_ast, True))
-        pool.close()
-        pool.join()
-      except:
-        pool.terminate()
-        raise
-    else:
-      # Parse the IDL files serially.
-      start_time = time.time()
+    for file_path in file_paths:
+      file_path = os.path.normpath(file_path)
+      ast = _compile_idl_file(self.build, file_path, import_options)
+      self._process_ast(os.path.splitext(os.path.basename(file_path))[0], ast)
 
-      for file_path in file_paths:
-        file_path = os.path.normpath(file_path)
-        ast = blink_compiler(self.build, file_path, import_options)
-        process_ast(os.path.splitext(os.path.basename(file_path))[0], ast, True)
+    end_time = time.time()
+    print 'Compiled %s IDL files in %s seconds' % (len(file_paths),
+                                                  round((end_time - start_time), 2))
 
-      end_time = time.time()
-      print 'Compiled %s IDL files in %s seconds' % (len(file_paths),
-                                                    round((end_time - start_time), 2))
+  def _process_ast(self, filename, ast):
+    new_asts[filename] = ast
 
-  def _process_ast(self, filename, ast, blink_parser = False):
-    if blink_parser:
-      new_asts[filename] = ast
-    else:
-      for name in ast.interfaces:
-        # Index by filename some files are partial on another interface (e.g.,
-        # DocumentFontFaceSet.idl).
-        new_asts[filename] = ast.interfaces
+  def import_idl_files(self, file_paths, import_options, is_dart_idl):
+    self._blink_compile_idl_files(file_paths, import_options, is_dart_idl)
 
-  def import_idl_files(self, file_paths, import_options, parallel, blink_parser, is_dart_idl):
-    if blink_parser:
-      self._blink_compile_idl_files(file_paths, import_options, parallel, is_dart_idl)
+    start_time = time.time()
 
-    # use --parallel for async on a pool.  Look at doing it like Blink
-    idl_loader = _new_load_idl_file if blink_parser else _load_idl_file
+    # Parse the IDL files in serial.
+    for file_path in file_paths:
+      file_path = os.path.normpath(file_path)
+      idl_file = _load_idl_file(self.build, file_path, import_options)
+      _logger.info('Processing %s' % os.path.splitext(os.path.basename(file_path))[0])
+      self._process_idl_file(idl_file, import_options, is_dart_idl)
 
-    if parallel:
-      # Parse the IDL files in parallel.
-      pool = multiprocessing.Pool()
-      try:
-        for file_path in file_paths:
-          pool.apply_async(idl_loader,
-                           [ self.build, file_path, import_options],
-                           callback = lambda idl_file:
-                             self._process_idl_file(idl_file, import_options))
-        pool.close()
-        pool.join()
-      except:
-        pool.terminate()
-        raise
-    else:
-      start_time = time.time()
+    end_time = time.time()
 
-      # Parse the IDL files in serial.
-      for file_path in file_paths:
-        file_path = os.path.normpath(file_path)
-        idl_file = idl_loader(self.build, file_path, import_options)
-        _logger.info('Processing %s' % os.path.splitext(os.path.basename(file_path))[0])
-        self._process_idl_file(idl_file, import_options, is_dart_idl)
-
-      end_time = time.time()
-
-      print 'Total %s files %sprocessed in databasebuilder in %s seconds' % \
-      (len(file_paths), '' if blink_parser else 'compiled/', \
-       round((end_time - start_time), 2))
+    print 'Total %s files %sprocessed in databasebuilder in %s seconds' % \
+    (len(file_paths), '', round((end_time - start_time), 2))
 
   def _process_idl_file(self, idl_file, import_options, dart_idl = False):
     # TODO(terry): strip_ext_attributes on an idl_file does nothing.
