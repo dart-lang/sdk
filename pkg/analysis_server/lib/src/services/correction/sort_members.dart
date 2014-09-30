@@ -78,9 +78,11 @@ class MemberSorter {
     for (int i = 0; i < size; i++) {
       _MemberInfo newInfo = membersSorted[size - 1 - i];
       _MemberInfo oldInfo = members[size - 1 - i];
-      String beforeCode = code.substring(0, oldInfo.offset);
-      String afterCode = code.substring(oldInfo.end);
-      code = beforeCode + newInfo.text + afterCode;
+      if (newInfo != oldInfo) {
+        String beforeCode = code.substring(0, oldInfo.offset);
+        String afterCode = code.substring(oldInfo.end);
+        code = beforeCode + newInfo.text + afterCode;
+      }
     }
   }
 
@@ -297,7 +299,7 @@ class MemberSorter {
       if (priority1 == priority2) {
         // don't reorder class fields
         if (o1.item.kind == _MemberKind.CLASS_FIELD) {
-          return 0;
+          return o1.offset - o2.offset;
         }
         // sort all other members by name
         return o1.name.compareTo(o2.name);
@@ -412,4 +414,7 @@ class _PriorityItem {
         other.isPrivate == isPrivate &&
         other.isStatic == isStatic;
   }
+
+  @override
+  String toString() => kind.toString();
 }
