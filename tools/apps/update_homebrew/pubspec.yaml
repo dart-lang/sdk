@@ -1,0 +1,6 @@
+name: update_homebrew
+version: 0.1.0
+dependencies:
+  args: ">=0.12.0+2 <0.13.0"
+  googleapis: ">=0.2.1 <0.3.0"
+  http: ">=0.11.1+1 <0.12.0"
