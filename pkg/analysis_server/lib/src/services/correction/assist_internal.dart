@@ -8,13 +8,13 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -70,9 +70,8 @@ class AssistProcessor {
 
   List<Assist> compute() {
     utils = new CorrectionUtils(unit);
-    node = new NodeLocator.con2(
-        selectionOffset,
-        selectionEnd).searchWithin(unit);
+    node =
+        new NodeLocator.con2(selectionOffset, selectionEnd).searchWithin(unit);
     // try to add proposals
     _addProposal_addTypeAnnotation();
     _addProposal_assignToLocalVariable();
@@ -83,6 +82,7 @@ class AssistProcessor {
     _addProposal_convertToIsNotEmpty();
     _addProposal_exchangeOperands();
     _addProposal_importAddShow();
+    _addProposal_introduceLocalTestedType();
     _addProposal_invertIf();
     _addProposal_joinIfStatementInner();
     _addProposal_joinIfStatementOuter();
@@ -551,6 +551,75 @@ class AssistProcessor {
     _addInsertEdit(importDirective.end - 1, showCombinator);
     // add proposal
     _addAssist(AssistKind.IMPORT_ADD_SHOW, []);
+  }
+
+  void _addProposal_introduceLocalTestedType() {
+    AstNode node = this.node;
+    if (node is IfStatement) {
+      node = (node as IfStatement).condition;
+    } else if (node is WhileStatement) {
+      node = (node as WhileStatement).condition;
+    }
+    // prepare IsExpression
+    if (node is! IsExpression) {
+      _coverageMarker();
+      return;
+    }
+    IsExpression isExpression = node;
+    DartType castType = isExpression.type.type;
+    String castTypeCode = _getNodeText(isExpression.type);
+    // prepare environment
+    String indent = utils.getIndent(1);
+    String prefix;
+    Block targetBlock;
+    {
+      Statement statement = node.getAncestor((n) => n is Statement);
+      prefix = utils.getNodePrefix(statement);
+      if (statement is IfStatement && statement.thenStatement is Block) {
+        targetBlock = statement.thenStatement;
+      }
+      if (statement is WhileStatement && statement.body is Block) {
+        targetBlock = statement.body;
+      }
+    }
+    if (targetBlock == null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare source
+    int offset = targetBlock.leftBracket.end;
+    SourceBuilder builder = new SourceBuilder(file, offset);
+    builder.append(eol + prefix + indent);
+    builder.append(castTypeCode);
+    // prepare excluded names
+    Set<String> excluded = new Set<String>();
+    {
+      ScopedNameFinder scopedNameFinder = new ScopedNameFinder(offset);
+      isExpression.accept(scopedNameFinder);
+      excluded.addAll(scopedNameFinder.locals.keys.toSet());
+    }
+    // name(s)
+    {
+      List<String> suggestions =
+          getVariableNameSuggestionsForExpression(castType, null, excluded);
+      builder.append(' ');
+      builder.startPosition('NAME');
+      for (int i = 0; i < suggestions.length; i++) {
+        String name = suggestions[i];
+        if (i == 0) {
+          builder.append(name);
+        }
+        builder.addSuggestion(LinkedEditSuggestionKind.VARIABLE, name);
+      }
+      builder.endPosition();
+    }
+    builder.append(' = ');
+    builder.append(_getNodeText(isExpression.expression));
+    builder.append(';');
+    builder.setExitOffset();
+    // add proposal
+    _insertBuilder(builder);
+    _addAssist(AssistKind.INTRODUCE_LOCAL_CAST_TYPE, []);
   }
 
   void _addProposal_invertIf() {
@@ -1531,6 +1600,13 @@ class AssistProcessor {
         fixGroup.addSuggestion(suggestion);
       });
     });
+    // add exit position
+    {
+      int exitOffset = builder.exitOffset;
+      if (exitOffset != null) {
+        exitPosition = _newPosition(exitOffset);
+      }
+    }
   }
 
   Position _newPosition(int offset) {

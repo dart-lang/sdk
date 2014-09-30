@@ -904,16 +904,16 @@ main() {
     assertNoAssistAt('import ', AssistKind.IMPORT_ADD_SHOW);
   }
 
-  void test_importAddShow_BAD_unused() {
+  void test_importAddShow_BAD_unresolvedUri() {
     _indexTestUnit('''
-import 'dart:math';
+import '/no/such/lib.dart';
 ''');
     assertNoAssistAt('import ', AssistKind.IMPORT_ADD_SHOW);
   }
 
-  void test_importAddShow_BAD_unresolvedUri() {
+  void test_importAddShow_BAD_unused() {
     _indexTestUnit('''
-import '/no/such/lib.dart';
+import 'dart:math';
 ''');
     assertNoAssistAt('import ', AssistKind.IMPORT_ADD_SHOW);
   }
@@ -971,6 +971,84 @@ main() {
   max(1, 2);
 }
 ''');
+  }
+
+  void test_introduceLocalTestedType_BAD_notBlock() {
+    _indexTestUnit('''
+main(p) {
+  if (p is String)
+    print('not a block');
+}
+''');
+    assertNoAssistAt('if (p', AssistKind.INTRODUCE_LOCAL_CAST_TYPE);
+  }
+
+  void test_introduceLocalTestedType_BAD_notIsExpression() {
+    _indexTestUnit('''
+main(p) {
+  if (p == null) {
+  }
+}
+''');
+    assertNoAssistAt('if (p', AssistKind.INTRODUCE_LOCAL_CAST_TYPE);
+  }
+
+  void test_introduceLocalTestedType_OK_if() {
+    _indexTestUnit('''
+class MyTypeName {}
+main(p) {
+  if (p is MyTypeName) {
+  }
+  p = null;
+}
+''');
+    String expected = '''
+class MyTypeName {}
+main(p) {
+  if (p is MyTypeName) {
+    MyTypeName myTypeName = p;
+  }
+  p = null;
+}
+''';
+    assertHasAssistAt(
+        'is MyType',
+        AssistKind.INTRODUCE_LOCAL_CAST_TYPE,
+        expected);
+    _assertLinkedGroup(
+        change.linkedEditGroups[0],
+        ['myTypeName = '],
+        expectedSuggestions(
+            LinkedEditSuggestionKind.VARIABLE,
+            ['myTypeName', 'typeName', 'name']));
+    // another good location
+    assertHasAssistAt('if (p', AssistKind.INTRODUCE_LOCAL_CAST_TYPE, expected);
+  }
+
+  void test_introduceLocalTestedType_OK_while() {
+    _indexTestUnit('''
+main(p) {
+  while (p is String) {
+  }
+  p = null;
+}
+''');
+    String expected = '''
+main(p) {
+  while (p is String) {
+    String s = p;
+  }
+  p = null;
+}
+''';
+    assertHasAssistAt(
+        'is String',
+        AssistKind.INTRODUCE_LOCAL_CAST_TYPE,
+        expected);
+    assertHasAssistAt(
+        'while (p',
+        AssistKind.INTRODUCE_LOCAL_CAST_TYPE,
+        expected);
   }
 
   void test_invertIfStatement_blocks() {
