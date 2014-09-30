@@ -12,9 +12,6 @@ import 'package:dart2js_incremental/library_updater.dart' show
     LibraryUpdater,
     Update;
 
-import 'package:compiler/implementation/elements/elements.dart' show
-    LibraryElement;
-
 import 'compiler_test_case.dart';
 
 void nolog(_) {}

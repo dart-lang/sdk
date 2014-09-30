@@ -21,6 +21,12 @@ import '../../compiler/dart2js/compiler_helper.dart' show
 export 'package:expect/expect.dart' show
     Expect;
 
+import 'package:compiler/implementation/elements/elements.dart' show
+    LibraryElement;
+
+export 'package:compiler/implementation/elements/elements.dart' show
+    LibraryElement;
+
 const String SCHEME = 'org.trydart.compiler-test-case';
 
 Uri customUri(String path) => Uri.parse('$SCHEME://$path');
@@ -43,8 +49,6 @@ abstract class CompilerTestCase {
 
   final MockCompiler compiler;
 
-  Future<LibraryElement> mainAppCache;
-
   CompilerTestCase.init(this.source, this.scriptUri, this.compiler);
 
   CompilerTestCase.intermediate(String source, Uri scriptUri)
@@ -54,13 +58,27 @@ abstract class CompilerTestCase {
       : this.intermediate(source, customUri(path == null ? 'main.dart' : path));
 
   Future<LibraryElement> get mainApp {
-    if (mainAppCache == null) {
-      mainAppCache = compiler.libraryLoader.loadLibrary(scriptUri);
-    }
-    return mainAppCache;
+    return compiler.libraryLoader.loadLibrary(scriptUri)
+        .then((LibraryElement library) {
+          if (compiler.mainApp == null) {
+            compiler.mainApp = library;
+          } else if (compiler.mainApp != library) {
+            throw
+                "Inconsistent use of compiler"
+                " (${compiler.mainApp} != $library).";
+          }
+          return library;
+        });
   }
 
   Future run();
+
+  /// Returns a future for the mainApp after running the compiler.
+  Future<LibraryElement> compile() {
+    return mainApp.then((LibraryElement library) {
+      return compiler.runCompiler(scriptUri).then((_) => library);
+    });
+  }
 
   String toString() => source;
 }

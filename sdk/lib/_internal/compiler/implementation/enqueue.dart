@@ -648,6 +648,10 @@ abstract class Enqueuer {
   void _logSpecificSummary(log(message));
 
   String toString() => 'Enqueuer($name)';
+
+  void forgetElement(Element element) {
+    universe.forgetElement(element, compiler);
+  }
 }
 
 /// [Enqueuer] which is specific to resolution.
@@ -817,6 +821,7 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   void forgetElement(Element element) {
+    super.forgetElement(element);
     resolvedElements.remove(element);
   }
 }
@@ -881,6 +886,7 @@ class CodegenEnqueuer extends Enqueuer {
   }
 
   void forgetElement(Element element) {
+    super.forgetElement(element);
     generatedCode.remove(element);
     if (element is MemberElement) {
       for (Element closure in element.nestedClosures) {

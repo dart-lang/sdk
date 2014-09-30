@@ -112,6 +112,21 @@ class Universe {
     isChecks.add(type);
     return type;
   }
+
+  void forgetElement(Element element, Compiler compiler) {
+    allClosures.remove(element);
+    slowDirectlyNestedClosures(element).forEach(compiler.forgetElement);
+  }
+
+  // TODO(ahe): Replace this method with something that is O(1), for example,
+  // by using a map.
+  List<LocalFunctionElement> slowDirectlyNestedClosures(Element element) {
+    // Return new list to guard against concurrent modifications.
+    return new List<LocalFunctionElement>.from(
+        allClosures.where((LocalFunctionElement closure) {
+          return closure.executableContext == element;
+        }));
+  }
 }
 
 class SelectorKind {

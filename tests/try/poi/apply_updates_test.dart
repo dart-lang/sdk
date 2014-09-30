@@ -13,9 +13,6 @@ import 'package:dart2js_incremental/library_updater.dart' show
     LibraryUpdater,
     Update;
 
-import 'package:compiler/implementation/elements/elements.dart' show
-    LibraryElement;
-
 import 'package:compiler/implementation/scanner/scannerlib.dart' show
     PartialFunctionElement;
 
