@@ -822,12 +822,12 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Bigint_add(Assembler* assembler) {
+void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   // TODO(regis): Implement.
 }
 
 
-void Intrinsifier::Bigint_sub(Assembler* assembler) {
+void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   // TODO(regis): Implement.
 }
 

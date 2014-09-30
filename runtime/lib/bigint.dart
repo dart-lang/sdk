@@ -414,9 +414,9 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // r_digits[0..used] = digits[0..used-1] + a_digits[0..a_used-1].
   // used >= a_used > 0.
-  static void _add(Uint32List digits, int used,
-                   Uint32List a_digits, int a_used,
-                   Uint32List r_digits) {
+  static void _absAdd(Uint32List digits, int used,
+                      Uint32List a_digits, int a_used,
+                      Uint32List r_digits) {
     var c = 0;
     for (var i = 0; i < a_used; i++) {
       c += digits[i] + a_digits[i];
@@ -433,9 +433,9 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // r_digits[0..used-1] = digits[0..used-1] - a_digits[0..a_used-1].
   // used >= a_used > 0.
-  static void _sub(Uint32List digits, int used,
-                   Uint32List a_digits, int a_used,
-                   Uint32List r_digits) {
+  static void _absSub(Uint32List digits, int used,
+                      Uint32List a_digits, int a_used,
+                      Uint32List r_digits) {
     var c = 0;
     for (var i = 0; i < a_used; i++) {
       c += digits[i] - a_digits[i];
@@ -468,7 +468,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return;
     }
     r._ensureLength(used + 1);
-    _add(_digits, used, a._digits, a_used, r._digits);
+    _absAdd(_digits, used, a._digits, a_used, r._digits);
     r._used = used + 1;
     r._clamp();
   }
@@ -489,7 +489,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return;
     }
     r._ensureLength(used);
-    _sub(_digits, used, a._digits, a_used, r._digits);
+    _absSub(_digits, used, a._digits, a_used, r._digits);
     r._used = used;
     r._clamp();
   }

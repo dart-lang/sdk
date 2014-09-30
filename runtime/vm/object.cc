@@ -165,8 +165,8 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 #define INVISIBLE_CLASS_FUNCTIONS(V)                                           \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
-  V(CoreLibrary, _Bigint, _add)                                                \
-  V(CoreLibrary, _Bigint, _sub)                                                \
+  V(CoreLibrary, _Bigint, _absAdd)                                             \
+  V(CoreLibrary, _Bigint, _absSub)                                             \
   V(CoreLibrary, _Bigint, _mulAdd)                                             \
   V(CoreLibrary, _Bigint, _sqrAdd)                                             \
   V(CoreLibrary, _Bigint, _estQuotientDigit)                                   \
@@ -16735,7 +16735,7 @@ uint32_t Bigint::AsTruncatedUint32Value() const {
   const intptr_t used = Used();
   if (used == 0) return 0;
   const uint32_t digit0 = DigitAt(0);
-  return Neg() ? -digit0 : digit0;
+  return Neg() ? static_cast<uint32_t>(-digit0) : digit0;
 }
 
 

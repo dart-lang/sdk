@@ -914,10 +914,11 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 
 // TODO(regis): Once this intrinsic is implemented on all architectures, the
 // corresponding Dart method will be untested. Add a test with --no-intrinsify.
-void Intrinsifier::Bigint_add(Assembler* assembler) {
-  // static void _add(Uint32List digits, int used,
-  //                  Uint32List a_digits, int a_used,
-  //                  Uint32List r_digits)
+void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
+#if 0  // TODO(regis): Re-enable when the optimizer issue is fixed.
+  // static void _absAdd(Uint32List digits, int used,
+  //                     Uint32List a_digits, int a_used,
+  //                     Uint32List r_digits)
 
   // Preserve CTX to free ESI.
   __ pushl(CTX);
@@ -969,15 +970,17 @@ void Intrinsifier::Bigint_add(Assembler* assembler) {
   __ popl(CTX);
   // TODO(regis): Confirm that returning Object::null() is not required.
   __ ret();
+#endif
 }
 
 
 // TODO(regis): Once this intrinsic is implemented on all architectures, the
 // corresponding Dart method will be untested. Add a test with --no-intrinsify.
-void Intrinsifier::Bigint_sub(Assembler* assembler) {
-  // static void _sub(Uint32List digits, int used,
-  //                  Uint32List a_digits, int a_used,
-  //                  Uint32List r_digits)
+void Intrinsifier::Bigint_absSub(Assembler* assembler) {
+#if 0  // TODO(regis): Re-enable when the optimizer issue is fixed.
+  // static void _absSub(Uint32List digits, int used,
+  //                     Uint32List a_digits, int a_used,
+  //                     Uint32List r_digits)
 
   // Preserve CTX to free ESI.
   __ pushl(CTX);
@@ -1025,6 +1028,7 @@ void Intrinsifier::Bigint_sub(Assembler* assembler) {
   __ popl(CTX);
   // TODO(regis): Confirm that returning Object::null() is not required.
   __ ret();
+#endif
 }
 
 
