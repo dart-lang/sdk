@@ -493,6 +493,8 @@ abstract class Backend {
   FunctionElement helperForMissingMain() => null;
 
   FunctionElement helperForMainArity() => null;
+
+  void forgetElement(Element element) {}
 }
 
 /// Backend callbacks function specific to the resolution phase.
@@ -1997,6 +1999,7 @@ abstract class Compiler implements DiagnosticListener {
         closureToClassMapper.forgetElement(closure);
       }
     }
+    backend.forgetElement(element);
   }
 }
 

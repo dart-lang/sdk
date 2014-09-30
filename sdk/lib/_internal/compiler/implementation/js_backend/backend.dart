@@ -2211,6 +2211,10 @@ class JavaScriptBackend extends Backend {
   FunctionElement helperForMainArity() {
     return findHelper('mainHasTooManyParameters');
   }
+
+  void forgetElement(Element element) {
+    constants.forgetElement(element);
+  }
 }
 
 class JavaScriptResolutionCallbacks extends ResolutionCallbacks {

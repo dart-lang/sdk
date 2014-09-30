@@ -207,4 +207,25 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return new TypeConstExp(
         new TypeConstant(elementType, constantType), elementType);
   }
+
+  void forgetElement(Element element) {
+    element.accept(new ForgetConstantVisitor(this));
+  }
+}
+
+class ForgetConstantVisitor extends ElementVisitor {
+  final JavaScriptConstantCompiler constants;
+
+  ForgetConstantVisitor(this.constants);
+
+  void visitElement(Element e) {
+    for (MetadataAnnotation data in e.metadata) {
+      constants.metadataConstantMap.remove(data);
+    }
+  }
+
+  void visitFunctionElement(FunctionElement e) {
+    super.visitFunctionElement(e);
+    e.functionSignature.forEachParameter(this.visit);
+  }
 }
