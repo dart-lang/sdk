@@ -21,7 +21,7 @@ import 'package:compiler/implementation/tree/tree.dart' show LiteralDartString;
 import 'package:compiler/implementation/universe/universe.dart'
     show Selector, SelectorKind;
 import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart';
-import 'package:compiler/implementation/cps_ir/const_expression.dart'
+import 'package:compiler/implementation/constants/expressions.dart'
     show PrimitiveConstExp;
 
 /// Used whenever a node constructed by [SExpressionUnstringifier] needs a

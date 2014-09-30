@@ -13,7 +13,7 @@ import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../universe/universe.dart' show SelectorKind;
-import 'const_expression.dart';
+import '../constants/expressions.dart';
 
 /**
  * This task iterates through all resolved elements and builds [ir.Node]s. The

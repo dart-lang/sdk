@@ -4,7 +4,7 @@
 
 library dart2js.mirrors_used;
 
-import 'cps_ir/const_expression.dart';
+import 'constants/expressions.dart';
 
 import 'dart2jslib.dart' show
     Compiler,

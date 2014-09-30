@@ -5,7 +5,7 @@
 library elements;
 
 
-import '../cps_ir/const_expression.dart';
+import '../constants/expressions.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';

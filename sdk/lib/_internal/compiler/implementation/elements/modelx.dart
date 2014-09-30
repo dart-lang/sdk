@@ -5,7 +5,7 @@
 library elements.modelx;
 
 import 'elements.dart';
-import '../cps_ir/const_expression.dart';
+import '../constants/expressions.dart';
 import '../helpers/helpers.dart';  // Included for debug helpers.
 import '../tree/tree.dart';
 import '../util/util.dart';

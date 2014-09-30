@@ -10,7 +10,7 @@ import '../universe/universe.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import '../dart_types.dart' show DartType, GenericType;
 import '../universe/universe.dart' show Selector;
-import '../cps_ir/const_expression.dart';
+import '../constants/expressions.dart';
 
 
 // The Tree language is the target of translation out of the CPS-based IR.

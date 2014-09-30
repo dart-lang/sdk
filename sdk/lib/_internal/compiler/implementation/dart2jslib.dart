@@ -12,7 +12,7 @@ import 'dart:profiler' show
 import '../compiler.dart' as api;
 import 'cache_strategy.dart';
 import 'closure.dart' as closureMapping;
-import 'cps_ir/const_expression.dart';
+import 'constants/expressions.dart';
 import 'cps_ir/cps_ir_builder.dart' show IrBuilderTask;
 import 'dart_backend/dart_backend.dart' as dart_backend;
 import 'dart_types.dart';
@@ -66,7 +66,7 @@ export 'util/util.dart'
 part 'code_buffer.dart';
 part 'compile_time_constants.dart';
 part 'compiler.dart';
-part 'constants.dart';
+part 'constants/values.dart';
 part 'constant_system.dart';
 part 'constant_system_dart.dart';
 part 'diagnostic_listener.dart';

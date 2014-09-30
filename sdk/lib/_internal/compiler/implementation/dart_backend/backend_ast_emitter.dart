@@ -12,7 +12,7 @@ import '../dart_types.dart';
 import '../elements/modelx.dart' as modelx;
 import '../universe/universe.dart';
 import '../tree/tree.dart' as tree show Modifiers;
-import '../cps_ir/const_expression.dart';
+import '../constants/expressions.dart';
 
 /// Translates the dart_tree IR to Dart backend AST.
 Expression emit(tree.FunctionDefinition definition) {

@@ -12,7 +12,7 @@ import '../js/js.dart' as jsAst;
 
 import '../new_js_emitter/emitter.dart' as new_js_emitter;
 
-import '../cps_ir/const_expression.dart';
+import '../constants/expressions.dart';
 
 import '../closure.dart' show
     ClosureClassElement,

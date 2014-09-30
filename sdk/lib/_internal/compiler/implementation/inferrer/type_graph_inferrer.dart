@@ -5,7 +5,7 @@
 library type_graph_inferrer;
 
 import 'dart:collection' show Queue, IterableBase;
-import '../cps_ir/const_expression.dart';
+import '../constants/expressions.dart';
 import '../dart_types.dart' show DartType, FunctionType, InterfaceType,
     TypeKind;
 import '../elements/elements.dart';
