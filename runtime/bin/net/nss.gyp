@@ -1080,6 +1080,8 @@
         '<(nss_directory)/nss/lib/util/pkcs11p.h',
         '<(nss_directory)/nss/lib/util/pkcs11t.h',
         '<(nss_directory)/nss/lib/util/pkcs11u.h',
+        '<(nss_directory)/nss/lib/util/pkcs1sig.c',
+        '<(nss_directory)/nss/lib/util/pkcs1sig.h',
         '<(nss_directory)/nss/lib/util/portreg.c',
         '<(nss_directory)/nss/lib/util/portreg.h',
         '<(nss_directory)/nss/lib/util/quickder.c',

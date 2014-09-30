@@ -24,6 +24,29 @@ class ModeTransformer extends Transformer {
   }
 }
 """;
+const HAS_INPUT_TRANSFORMER = """
+import 'dart:async';
+
+import 'package:barback/barback.dart';
+
+class HasInputTransformer extends Transformer {
+  HasInputTransformer.asPlugin();
+
+  bool get allowedExtensions => '.txt';
+
+  Future apply(Transform transform) {
+    return Future.wait([
+      transform.hasInput(new AssetId("foo", "lib/foo.dart")),
+      transform.hasInput(new AssetId("foo", "lib/does/not/exist.dart"))
+    ]).then((results) {
+      transform.addOutput(new Asset.fromString(
+          transform.primaryInput.id,
+          "lib/foo.dart: \${results.first}, "
+            "lib/does/not/exist.dart: \${results.last}"));
+    });
+  }
+}
+""";
 main() {
   initConfig();
   integration("caches a transformed dependency", () {
@@ -277,6 +300,39 @@ main() {
     var pub = pubRun(args: ["script"]);
     pub.stdout.expect("Hello!");
     pub.shouldExit();
+  });
+  integration("hasInput works for static packages", () {
+    servePackages((builder) {
+      builder.serveRepoPackage('barback');
+      builder.serve("foo", "1.2.3", deps: {
+        'barback': 'any'
+      }, pubspec: {
+        'transformers': ['foo']
+      },
+          contents: [
+              d.dir(
+                  "lib",
+                  [
+                      d.file("transformer.dart", replaceTransformer("Hello", "Goodbye")),
+                      d.file("foo.dart", "void main() => print('Hello!');")])]);
+    });
+    d.dir(appPath, [d.pubspec({
+        "name": "myapp",
+        "dependencies": {
+          "foo": "1.2.3"
+        },
+        "transformers": ["myapp/src/transformer"]
+      }),
+          d.dir(
+              "lib",
+              [d.dir("src", [d.file("transformer.dart", HAS_INPUT_TRANSFORMER)])]),
+          d.dir("web", [d.file("foo.txt", "foo")])]).create();
+    pubGet(output: contains("Precompiled foo."));
+    pubServe();
+    requestShouldSucceed(
+        "foo.txt",
+        "lib/foo.dart: true, lib/does/not/exist.dart: false");
+    endPubServe();
   });
 }
 String replaceTransformer(String input, String output) {
