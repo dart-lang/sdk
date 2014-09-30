@@ -7993,9 +7993,9 @@ class BlinkTreeWalker {
 class BlinkURL {
   static createObjectURL_Callback_Blob(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_Blob";
 
-  static createObjectURL_Callback_MediaStream(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_MediaStream";
-
   static createObjectURL_Callback_MediaSource(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_MediaSource";
+
+  static createObjectURL_Callback_MediaStream(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_MediaStream";
 
   static revokeObjectURL_Callback_DOMString(url) native "URL_revokeObjectURL_Callback_DOMString";
 

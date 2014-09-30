@@ -21572,8 +21572,12 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   }
 
   void insertAll(int index, Iterable<Node> iterable) {
-    var item = this[index];
-    _this.insertAllBefore(iterable, item);
+    if (index == length) {
+      addAll(iterable);
+    } else {
+      var item = this[index];
+      _this.insertAllBefore(iterable, item);
+    }
   }
 
   void setAll(int index, Iterable<Node> iterable) {
