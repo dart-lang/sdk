@@ -29,6 +29,8 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DEFINE_FLAG(bool, verify_incoming_contexts, false, "");
 
+#define INT32_SIZEOF(x) static_cast<int32_t>(sizeof(x))
+
 // Input parameters:
 //   ESP : points to return address.
 //   ESP + 4 : address of last argument in argument array.
@@ -86,7 +88,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movl(Address(CTX, Isolate::vm_tag_offset()), ECX);
 
   // Reserve space for arguments and align frame before entering C++ world.
-  __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments)));
+  __ AddImmediate(ESP, Immediate(-INT32_SIZEOF(NativeArguments)));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
@@ -210,7 +212,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Reserve space for the native arguments structure, the outgoing parameters
   // (pointer to the native arguments structure, the C function entry point)
   // and align frame before entering the C++ world.
-  __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments) - (2 * kWordSize)));
+  __ AddImmediate(ESP,
+                  Immediate(-INT32_SIZEOF(NativeArguments) - (2 * kWordSize)));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
@@ -314,7 +317,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Reserve space for the native arguments structure, the outgoing parameter
   // (pointer to the native arguments structure) and align frame before
   // entering the C++ world.
-  __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments) - kWordSize));
+  __ AddImmediate(ESP, Immediate(-INT32_SIZEOF(NativeArguments) - kWordSize));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }

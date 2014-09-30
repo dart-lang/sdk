@@ -509,7 +509,6 @@ bool File::IsAbsolutePath(const char* pathname) {
 
 
 char* File::GetCanonicalPath(const char* pathname) {
-  struct _stat st;
   const wchar_t* system_name = StringUtils::Utf8ToWide(pathname);
   HANDLE file_handle = CreateFileW(
         system_name,
