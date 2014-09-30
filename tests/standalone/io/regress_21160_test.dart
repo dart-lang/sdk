@@ -10,9 +10,9 @@ import "dart:async";
 import "dart:io";
 import "dart:typed_data";
 
-// 1 MB of i%256 data.
+// 10 KiB of i%256 data.
 Uint8List DATA = new Uint8List.fromList(
-    new List.generate(1024 * 1024, (i) => i % 256));
+    new List.generate(10 * 1024, (i) => i % 256));
 
 Future<SecureServerSocket> startServer() {
   return SecureServerSocket.bind("localhost",
