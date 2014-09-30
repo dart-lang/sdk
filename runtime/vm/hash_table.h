@@ -44,6 +44,7 @@ namespace dart {
 // The classes all wrap an Array handle, and metods like HashSet::Insert can
 // trigger growth into a new RawArray, updating the handle. Debug mode asserts
 // that 'Release' was called once to access the final array before destruction.
+// NOTE: The handle returned by 'Release' is cleared by ~HashTable.
 //
 // Example use:
 //  typedef UnorderedHashMap<FooTraits> FooMap;
@@ -90,25 +91,33 @@ class HashTable : public ValueObject {
       : isolate_(isolate),
         key_handle_(Object::Handle(isolate_)),
         smi_handle_(Smi::Handle(isolate_)),
-        data_(&Array::Handle(isolate_, data)) {}
+        data_(&Array::Handle(isolate_, data)),
+        released_data_(NULL) {}
   // Like above, except uses current isolate.
   explicit HashTable(RawArray* data)
       : isolate_(Isolate::Current()),
         key_handle_(Object::Handle(isolate_)),
         smi_handle_(Smi::Handle(isolate_)),
-        data_(&Array::Handle(isolate_, data)) {}
+        data_(&Array::Handle(isolate_, data)),
+        released_data_(NULL) {}
 
+  // Returns the final table. The handle is cleared when this HashTable is
+  // destroyed.
   Array& Release() {
     ASSERT(data_ != NULL);
-    Array* result = data_;
+    ASSERT(released_data_ == NULL);
     // Ensure that no methods are called after 'Release'.
+    released_data_ = data_;
     data_ = NULL;
-    return *result;
+    return *released_data_;
   }
 
   ~HashTable() {
-    // Ensure that 'Release' was called.
+    // In DEBUG mode, calling 'Release' is mandatory.
     ASSERT(data_ == NULL);
+    if (released_data_ != NULL) {
+      *released_data_ = Array::null();
+    }
   }
 
   // Returns a backing storage size such that 'num_occupied' distinct keys can
@@ -305,9 +314,9 @@ class HashTable : public ValueObject {
   Isolate* isolate_;
   Object& key_handle_;
   Smi& smi_handle_;
-  // This is a pointer rather than a reference, to enable Release nulling it,
-  // preventing post-Release modification.
+  // Exactly one of these is non-NULL, depending on whether Release was called.
   Array* data_;
+  Array* released_data_;
 
   friend class HashTables;
 };
