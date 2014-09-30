@@ -5,16 +5,16 @@
 library type_graph_inferrer;
 
 import 'dart:collection' show Queue, IterableBase;
+
 import '../constants/expressions.dart';
-import '../dart_types.dart' show DartType, FunctionType, InterfaceType,
-    TypeKind;
-import '../elements/elements.dart';
-import '../tree/tree.dart' as ast show DartString, Node;
-import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
-import '../types/types.dart'
-  show TypeMask, ContainerTypeMask, MapTypeMask, DictionaryTypeMask,
-       ValueTypeMask, TypesInferrer;
-import '../universe/universe.dart' show Selector, TypedSelector, SideEffects;
+import '../constants/values.dart';
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir
+    show Node;
+import '../dart_types.dart'
+    show DartType,
+         FunctionType,
+         InterfaceType,
+         TypeKind;
 import '../dart2jslib.dart'
     show ClassWorld,
          Compiler,
@@ -22,16 +22,37 @@ import '../dart2jslib.dart'
          FunctionConstant,
          invariant,
          TreeElementMapping;
-import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
+import '../elements/elements.dart';
 import '../native/native.dart' as native;
-import '../util/util.dart' show Spannable, Setlet, ImmutableEmptySet;
+import '../tree/tree.dart' as ast
+    show DartString,
+         Node;
+import '../types/types.dart'
+    show ContainerTypeMask,
+         DictionaryTypeMask,
+         MapTypeMask,
+         TypeMask,
+         TypesInferrer,
+         ValueTypeMask;
+import '../universe/universe.dart'
+    show Selector,
+         SideEffects,
+         TypedSelector;
+import '../util/util.dart'
+    show ImmutableEmptySet,
+         Setlet,
+         Spannable;
+
+import 'inferrer_visitor.dart'
+    show ArgumentsTypes,
+         TypeSystem;
 import 'simple_types_inferrer.dart';
 
-part 'type_graph_nodes.dart';
 part 'closure_tracer.dart';
 part 'list_tracer.dart';
-part 'node_tracer.dart';
 part 'map_tracer.dart';
+part 'node_tracer.dart';
+part 'type_graph_nodes.dart';
 
 bool _VERBOSE = false;
 bool _PRINT_SUMMARY = false;

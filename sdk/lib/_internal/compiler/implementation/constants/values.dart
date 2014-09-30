@@ -2,7 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js;
+library dart2js.constants.values;
+
+import '../dart_types.dart';
+import '../dart2jslib.dart'
+    show assertDebugMode,
+         Compiler;
+import '../elements/elements.dart'
+    show ClassElement,
+         Element,
+         FunctionElement,
+         PrefixElement;
+import '../tree/tree.dart' hide unparse;
+import '../types/types.dart' as ti show TypeMask;
+import '../util/util.dart' show SMI_MASK;
 
 abstract class ConstantVisitor<R> {
   const ConstantVisitor();

@@ -7,8 +7,10 @@ library resolution;
 import 'dart:collection' show Queue;
 
 import '../constants/expressions.dart';
-import '../dart2jslib.dart';
+import '../constants/values.dart';
+import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
+import '../dart2jslib.dart';
 import '../tree/tree.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
@@ -34,12 +36,11 @@ import '../elements/modelx.dart'
          TypeVariableElementX,
          VariableElementX,
          VariableList;
+import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
 import '../util/util.dart';
 
-import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
-import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
 import 'class_members.dart' show MembersCreator;
-import '../dart_backend/dart_backend.dart' show DartBackend;
+import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
 
 part 'members.dart';
 part 'registry.dart';

@@ -4,16 +4,17 @@
 
 library dart2js.ir_builder;
 
-import 'cps_ir_nodes.dart' as ir;
-import '../elements/elements.dart';
-import '../dart2jslib.dart';
+import '../constants/expressions.dart';
+import '../constants/values.dart' show PrimitiveConstant;
+import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
+import '../dart2jslib.dart';
+import '../elements/elements.dart';
 import '../source_file.dart';
 import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
-import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../universe/universe.dart' show SelectorKind;
-import '../constants/expressions.dart';
+import 'cps_ir_nodes.dart' as ir;
 
 /**
  * This task iterates through all resolved elements and builds [ir.Node]s. The

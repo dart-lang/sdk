@@ -77,7 +77,7 @@ class _TransformingVisitor extends RecursiveVisitor {
 
     // Set up the replacement structure.
 
-    dart2js.PrimitiveConstant primitiveConstant = cell.constant;
+    values.PrimitiveConstant primitiveConstant = cell.constant;
     ConstExp constExp = new PrimitiveConstExp(primitiveConstant);
     Constant constant = new Constant(constExp);
     LetPrim letPrim = new LetPrim(constant);
@@ -368,7 +368,7 @@ class _ConstPropagationVisitor extends Visitor {
     }
 
     // Calculate the resulting constant if possible.
-    dart2js.Constant result;
+    values.Constant result;
     String opname = node.selector.name;
     if (node.selector.argumentCount == 0) {
       // Unary operator.
@@ -437,7 +437,7 @@ class _ConstPropagationVisitor extends Visitor {
         return false;
       }
       Constant constant = ref.definition;
-      return constant != null && constant.value is dart2js.StringConstant;
+      return constant != null && constant.value.isString;
     });
 
     assert(cont.parameters.length == 1);
@@ -445,11 +445,11 @@ class _ConstPropagationVisitor extends Visitor {
       // All constant, we can concatenate ourselves.
       Iterable<String> allStrings = node.arguments.map((Reference ref) {
         Constant constant = ref.definition;
-        dart2js.StringConstant stringConstant = constant.value;
+        values.StringConstant stringConstant = constant.value;
         return stringConstant.value.slowToString();
       });
       LiteralDartString dartString = new LiteralDartString(allStrings.join());
-      dart2js.Constant constant = new dart2js.StringConstant(dartString);
+      values.Constant constant = new values.StringConstant(dartString);
       setValues(new _ConstnessLattice(constant));
     } else {
       setValues(_ConstnessLattice.NonConst);
@@ -466,7 +466,7 @@ class _ConstPropagationVisitor extends Visitor {
       setReachable(node.trueContinuation.definition);
       setReachable(node.falseContinuation.definition);
     } else if (conditionCell.isConstant &&
-        !(conditionCell.constant is dart2js.BoolConstant)) {
+        !(conditionCell.constant.isBool)) {
       // Treat non-bool constants in condition as non-const since they result
       // in type errors in checked mode.
       // TODO(jgruber): Default to false in unchecked mode.
@@ -474,8 +474,8 @@ class _ConstPropagationVisitor extends Visitor {
       setReachable(node.falseContinuation.definition);
       setValue(isTrue.value.definition, _ConstnessLattice.NonConst);
     } else if (conditionCell.isConstant &&
-        conditionCell.constant is dart2js.BoolConstant) {
-      dart2js.BoolConstant boolConstant = conditionCell.constant;
+        conditionCell.constant.isBool) {
+      values.BoolConstant boolConstant = conditionCell.constant;
       setReachable((boolConstant.isTrue) ?
           node.trueContinuation.definition : node.falseContinuation.definition);
     }
@@ -505,21 +505,21 @@ class _ConstPropagationVisitor extends Visitor {
       // Receiver is a constant, perform is-checks at compile-time.
 
       types.InterfaceType checkedType = node.type;
-      dart2js.Constant constant = cell.constant;
+      values.Constant constant = cell.constant;
       types.DartType constantType = constant.computeType(compiler);
 
       _ConstnessLattice result = _ConstnessLattice.NonConst;
-      if (constant is dart2js.NullConstant &&
+      if (constant.isNull &&
           checkedType.element != compiler.nullClass &&
           checkedType.element != compiler.objectClass) {
         // `(null is Type)` is true iff Type is in { Null, Object }.
-        result = new _ConstnessLattice(new dart2js.FalseConstant());
+        result = new _ConstnessLattice(new values.FalseConstant());
       } else {
         // Otherwise, perform a standard subtype check.
         result = new _ConstnessLattice(
             constantSystem.isSubtype(compiler, constantType, checkedType)
-            ? new dart2js.TrueConstant()
-            : new dart2js.FalseConstant());
+            ? new values.TrueConstant()
+            : new values.FalseConstant());
       }
 
       setValues(result);
@@ -562,8 +562,8 @@ class _ConstPropagationVisitor extends Visitor {
 
   void visitCreateFunction(CreateFunction node) {
     setReachable(node.definition);
-    dart2js.Constant constant =
-        new dart2js.FunctionConstant(node.definition.element);
+    values.Constant constant =
+        new values.FunctionConstant(node.definition.element);
     setValue(node, new _ConstnessLattice(constant));
   }
 
@@ -614,7 +614,7 @@ class _ConstnessLattice {
   static const int NONCONST = 2;
 
   final int kind;
-  final dart2js.Constant constant;
+  final values.Constant constant;
 
   static final _ConstnessLattice Unknown =
       new _ConstnessLattice._internal(UNKNOWN, null);

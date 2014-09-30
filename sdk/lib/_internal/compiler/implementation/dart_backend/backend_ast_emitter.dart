@@ -6,13 +6,13 @@ library backend_ast_emitter;
 
 import 'tree_ir_nodes.dart' as tree;
 import 'backend_ast_nodes.dart';
-import '../dart2jslib.dart' as dart2js;
-import '../elements/elements.dart';
+import '../constants/expressions.dart';
+import '../constants/values.dart' as values;
 import '../dart_types.dart';
+import '../elements/elements.dart';
 import '../elements/modelx.dart' as modelx;
 import '../universe/universe.dart';
 import '../tree/tree.dart' as tree show Modifiers;
-import '../constants/expressions.dart';
 
 /// Translates the dart_tree IR to Dart backend AST.
 Expression emit(tree.FunctionDefinition definition) {
@@ -149,7 +149,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     if (statementBuffer.last is! Return) return;
     Return ret = statementBuffer.last;
     Expression expr = ret.expression;
-    if (expr is Literal && expr.value is dart2js.NullConstant) {
+    if (expr is Literal && expr.value.isNull) {
       statementBuffer.removeLast();
     }
   }
@@ -421,7 +421,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
     visitStatement(stmt.body);
     Statement body = new Block(statementBuffer);
-    Statement statement = new While(new Literal(new dart2js.TrueConstant()),
+    Statement statement = new While(new Literal(new values.TrueConstant()),
                                     body);
     if (usedLabels.remove(stmt.label)) {
       statement = new LabeledStatement(stmt.label.name, statement);
@@ -672,7 +672,7 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
   ASTEmitter parent;
   ConstantEmitter(this.parent);
 
-  Expression handlePrimitiveConstant(dart2js.PrimitiveConstant value) {
+  Expression handlePrimitiveConstant(values.PrimitiveConstant value) {
     // Num constants may be negative, while literals must be non-negative:
     // Literals are non-negative in the specification, and a negated literal
     // parses as a call to unary `-`. The AST unparser assumes literals are
@@ -680,8 +680,8 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
     // the predecrement operator.
     // Translate such constants into their positive value wrapped by
     // the unary minus operator.
-    if (value is dart2js.NumConstant) {
-      dart2js.NumConstant numConstant = value;
+    if (value.isNum) {
+      values.NumConstant numConstant = value;
       if (numConstant.value.isNegative) {
         return negatedLiteral(numConstant);
       }
@@ -696,13 +696,13 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
 
   /// Given a negative num constant, returns the corresponding positive
   /// literal wrapped by a unary minus operator.
-  Expression negatedLiteral(dart2js.NumConstant constant) {
+  Expression negatedLiteral(values.NumConstant constant) {
     assert(constant.value.isNegative);
-    dart2js.NumConstant positiveConstant;
+    values.NumConstant positiveConstant;
     if (constant.isInt) {
-      positiveConstant = new dart2js.IntConstant(-constant.value);
+      positiveConstant = new values.IntConstant(-constant.value);
     } else if (constant.isDouble) {
-      positiveConstant = new dart2js.DoubleConstant(-constant.value);
+      positiveConstant = new values.DoubleConstant(-constant.value);
     } else {
       throw "Unexpected type of NumConstant: $constant";
     }

@@ -9,7 +9,7 @@ import 'model_emitter.dart';
 import '../common.dart';
 import '../js/js.dart' as js;
 
-import '../dart2jslib.dart' show PrimitiveConstant;
+import '../constants/values.dart' show PrimitiveConstant;
 import '../tree/tree.dart' show DartString;
 
 import '../js_backend/js_backend.dart' show Namer, JavaScriptBackend;

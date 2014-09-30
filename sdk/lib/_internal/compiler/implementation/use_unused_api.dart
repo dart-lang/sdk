@@ -10,43 +10,26 @@ library dart2js.use_unused_api;
 
 import '../compiler.dart' as api;
 
-import 'dart2js.dart' as dart2js;
-
-import 'dart2jslib.dart' as dart2jslib;
-
-import 'tree/tree.dart' as tree;
-
-import 'util/util.dart' as util;
-
-import 'elements/elements.dart' as elements;
-
-import 'elements/modelx.dart' as modelx;
-
-import 'elements/visitor.dart' as elements_visitor;
-
-import 'js/js.dart' as js;
-
-import 'inferrer/concrete_types_inferrer.dart' as concrete_types_inferrer;
-
 import 'colors.dart' as colors;
-
-import 'filenames.dart' as filenames;
-
-import 'dart_types.dart' as dart_types;
-
-import 'universe/universe.dart' as universe;
-
-import 'inferrer/type_graph_inferrer.dart' as type_graph_inferrer;
-
-import 'source_file_provider.dart' as source_file_provider;
-
-import 'ssa/ssa.dart' as ssa;
-
-import 'cps_ir/cps_ir_nodes_sexpr.dart' as cps_ir_nodes_sexpr;
-
+import 'constants/values.dart' as constants;
 import 'cps_ir/cps_ir_builder.dart' as ir_builder;
-
+import 'cps_ir/cps_ir_nodes_sexpr.dart' as cps_ir_nodes_sexpr;
+import 'dart_types.dart' as dart_types;
+import 'dart2js.dart' as dart2js;
+import 'dart2jslib.dart' as dart2jslib;
+import 'elements/elements.dart' as elements;
+import 'elements/modelx.dart' as modelx;
+import 'elements/visitor.dart' as elements_visitor;
+import 'filenames.dart' as filenames;
+import 'inferrer/concrete_types_inferrer.dart' as concrete_types_inferrer;
+import 'inferrer/type_graph_inferrer.dart' as type_graph_inferrer;
+import 'js/js.dart' as js;
 import 'js_emitter/js_emitter.dart' as js_emitter;
+import 'source_file_provider.dart' as source_file_provider;
+import 'ssa/ssa.dart' as ssa;
+import 'tree/tree.dart' as tree;
+import 'universe/universe.dart' as universe;
+import 'util/util.dart' as util;
 
 class ElementVisitor extends elements_visitor.ElementVisitor {
   visitElement(e) {}
@@ -81,7 +64,7 @@ useApi() {
   api.ReadStringFromUri uri;
 }
 
-void useConstant(dart2jslib.Constant constant, dart2jslib.ConstantSystem cs) {
+void useConstant(constants.Constant constant, dart2jslib.ConstantSystem cs) {
   constant.isObject;
   cs.isBool(constant);
 }

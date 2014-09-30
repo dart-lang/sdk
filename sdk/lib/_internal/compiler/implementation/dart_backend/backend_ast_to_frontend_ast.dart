@@ -4,13 +4,14 @@
 
 library dart_tree_printer;
 
-import 'backend_ast_nodes.dart';
+import '../constants/values.dart' as values;
+import '../dart_types.dart' as types;
+import '../dart2jslib.dart' as dart2js;
+import '../elements/elements.dart' as elements;
 import '../tree/tree.dart' as tree;
 import '../scanner/scannerlib.dart';
 import '../util/util.dart';
-import '../dart2jslib.dart' as dart2js;
-import '../elements/elements.dart' as elements;
-import '../dart_types.dart' as types;
+import 'backend_ast_nodes.dart';
 
 /// Translates the backend AST to Dart frontend AST.
 tree.FunctionExpression emit(dart2js.TreeElementMapping treeElements,
@@ -459,13 +460,13 @@ class TreePrinter {
           bracketList(',', [makeExpression(exp.index)]));
     } else if (exp is Literal) {
       precedence = CALLEE;
-      dart2js.PrimitiveConstant value = exp.value;
+      values.PrimitiveConstant value = exp.value;
       Token tok = new StringToken.fromString(STRING_INFO, '${value.value}', -1);
-      if (value is dart2js.StringConstant) {
+      if (value.isString) {
         result = unparseStringLiteral(exp);
-      } else if (value is dart2js.IntConstant) {
+      } else if (value.isInt) {
         result = new tree.LiteralInt(tok, null);
-      } else if (value is dart2js.DoubleConstant) {
+      } else if (value.isDouble) {
         if (value.value == double.INFINITY) {
           precedence = MULTIPLICATIVE;
           tok = new StringToken.fromString(STRING_INFO, '1/0.0', -1);
@@ -477,9 +478,9 @@ class TreePrinter {
           tok = new StringToken.fromString(STRING_INFO, '0/0.0', -1);
         }
         result = new tree.LiteralDouble(tok, null);
-      } else if (value is dart2js.BoolConstant) {
+      } else if (value.isBool) {
         result = new tree.LiteralBool(tok, null);
-      } else if (value is dart2js.NullConstant) {
+      } else if (value.isNull) {
         result = new tree.LiteralNull(tok);
       } else {
         throw "Unrecognized constant: ${value}";

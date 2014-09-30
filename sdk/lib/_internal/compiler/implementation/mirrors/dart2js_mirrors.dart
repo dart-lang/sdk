@@ -7,6 +7,7 @@ library dart2js.mirrors;
 import 'dart:collection' show UnmodifiableListView, UnmodifiableMapView;
 
 import '../constants/expressions.dart';
+import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../scanner/scannerlib.dart';
 import '../resolution/resolution.dart' show Scope;

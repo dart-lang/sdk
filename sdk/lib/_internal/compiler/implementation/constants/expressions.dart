@@ -4,12 +4,14 @@
 
 library const_expression;
 
-import '../dart2jslib.dart' show Constant, ListConstant, MapConstant,
-    PrimitiveConstant, ConstructedConstant, TypeConstant, FunctionConstant,
-    StringConstant, assertDebugMode;
+import '../dart2jslib.dart' show assertDebugMode;
 import '../dart_types.dart';
-import '../elements/elements.dart';
-import '../universe/universe.dart';
+import '../elements/elements.dart' show
+    Element,
+    FunctionElement,
+    VariableElement;
+import '../universe/universe.dart' show Selector;
+import 'values.dart';
 
 /// An expression that is a compile-time constant.
 ///
@@ -56,7 +58,7 @@ class PrimitiveConstExp extends ConstExp {
 /// Literal list constant.
 class ListConstExp extends ConstExp {
   final ListConstant value;
-  final GenericType type;
+  final InterfaceType type;
   final List<ConstExp> values;
 
   ListConstExp(this.value, this.type, this.values);
@@ -67,7 +69,7 @@ class ListConstExp extends ConstExp {
 /// Literal map constant.
 class MapConstExp extends ConstExp {
   final MapConstant value;
-  final GenericType type;
+  final InterfaceType type;
   final List<ConstExp> keys;
   final List<ConstExp> values;
 
@@ -79,7 +81,7 @@ class MapConstExp extends ConstExp {
 /// Invocation of a const constructor.
 class ConstructorConstExp extends ConstExp {
   final Constant value;
-  final GenericType type;
+  final InterfaceType type;
   final FunctionElement target;
   final Selector selector;
   final List<ConstExp> arguments;

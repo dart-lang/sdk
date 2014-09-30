@@ -7,9 +7,11 @@
 
 library sexpr_unstringifier;
 
-import 'package:compiler/implementation/dart2jslib.dart' as dart2js
+import 'package:compiler/implementation/constants/values.dart' as values
     show Constant, IntConstant, NullConstant, StringConstant,
-         DoubleConstant, TrueConstant, FalseConstant, MessageKind;
+         DoubleConstant, TrueConstant, FalseConstant;
+import 'package:compiler/implementation/dart2jslib.dart' as dart2js
+    show MessageKind;
 import 'package:compiler/implementation/dart_types.dart' as dart_types
     show DartType;
 import 'package:compiler/implementation/elements/elements.dart'
@@ -556,7 +558,7 @@ class SExpressionUnstringifier {
     // NullConstant.
     if (tag == "NullConstant") {
       tokens.consumeEnd();
-      return new Constant(new PrimitiveConstExp(new dart2js.NullConstant()));
+      return new Constant(new PrimitiveConstExp(new values.NullConstant()));
     }
 
     // BoolConstant.
@@ -567,10 +569,10 @@ class SExpressionUnstringifier {
       tokens.consumeEnd();
       if (tag == "true") {
         return new Constant(new PrimitiveConstExp(
-            new dart2js.TrueConstant()));
+            new values.TrueConstant()));
       } else if (tag == "false") {
         return new Constant(new PrimitiveConstExp(
-            new dart2js.FalseConstant()));
+            new values.FalseConstant()));
       }
       throw "Invalid bool value '$tag'.";
     }
@@ -587,7 +589,7 @@ class SExpressionUnstringifier {
       String string = strings.join(" ");
       assert(string.startsWith('"') && string.endsWith('"'));
 
-      dart2js.StringConstant value = new dart2js.StringConstant(
+      values.StringConstant value = new values.StringConstant(
           new LiteralDartString(string.substring(1, string.length - 1)));
 
       tokens.consumeEnd();
@@ -605,7 +607,7 @@ class SExpressionUnstringifier {
       tokens.consumeEnd();
       tokens.consumeEnd();
       return new Constant(new PrimitiveConstExp(
-          new dart2js.IntConstant(intValue)));
+          new values.IntConstant(intValue)));
     }
 
     // DoubleConstant.
@@ -619,7 +621,7 @@ class SExpressionUnstringifier {
       tokens.consumeEnd();
       tokens.consumeEnd();
       return new Constant(new PrimitiveConstExp(
-          new dart2js.DoubleConstant(doubleValue)));
+          new values.DoubleConstant(doubleValue)));
     }
 
     throw "Unhandled tag '$tag'.";

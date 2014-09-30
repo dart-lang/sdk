@@ -5,17 +5,18 @@
 library deferred_load;
 
 import 'constants/expressions.dart';
+import 'constants/values.dart' show
+    Constant,
+    ConstructedConstant,
+    DeferredConstant,
+    StringConstant;
 
 import 'dart2jslib.dart' show
     Backend,
     Compiler,
     CompilerTask,
-    Constant,
-    ConstructedConstant,
-    MessageKind,
-    DeferredConstant,
-    StringConstant,
-    invariant;
+    invariant,
+    MessageKind;
 
 import 'dart_backend/dart_backend.dart' show
     DartBackend;
@@ -24,18 +25,18 @@ import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
 
 import 'elements/elements.dart' show
-    Element,
+    AstElement,
     ClassElement,
+    Element,
     ElementKind,
     Elements,
     FunctionElement,
     LibraryElement,
     MetadataAnnotation,
-    ScopeContainerElement,
     PrefixElement,
-    VoidElement,
+    ScopeContainerElement,
     TypedefElement,
-    AstElement;
+    VoidElement;
 
 import 'util/util.dart' show
     Link, makeUnique;
@@ -44,19 +45,19 @@ import 'util/setlet.dart' show
     Setlet;
 
 import 'tree/tree.dart' show
-    LibraryTag,
-    Node,
-    NewExpression,
     Import,
+    LibraryTag,
     LibraryDependency,
+    LiteralDartString,
     LiteralString,
-    LiteralDartString;
+    NewExpression,
+    Node;
 
 import 'tree/tree.dart' as ast;
 
 import 'resolution/resolution.dart' show
-    TreeElements,
-    AnalyzableElementX;
+    AnalyzableElementX,
+    TreeElements;
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.

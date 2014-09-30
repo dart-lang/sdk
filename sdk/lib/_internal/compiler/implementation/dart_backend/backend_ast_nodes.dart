@@ -4,11 +4,11 @@
 
 library backend_ast_nodes;
 
-import '../dart2jslib.dart' as dart2js;
+import '../constants/values.dart' as values;
+import '../dart_types.dart' as types;
+import '../elements/elements.dart' as elements;
 import '../tree/tree.dart' as tree;
 import '../util/characters.dart' as characters;
-import '../elements/elements.dart' as elements;
-import '../dart_types.dart' as types;
 
 /// The following nodes correspond to [tree.Send] expressions:
 /// [FieldExpression], [IndexExpression], [Assignment], [Increment],
@@ -344,7 +344,7 @@ class Identifier extends Expression {
 }
 
 class Literal extends Expression {
-  final dart2js.PrimitiveConstant value;
+  final values.PrimitiveConstant value;
 
   Literal(this.value);
 }
@@ -807,10 +807,10 @@ class Unparser {
     } else if (e is Identifier) {
       write(e.name);
     } else if (e is Literal) {
-      if (e.value is dart2js.StringConstant) {
+      if (e.value.isString) {
         writeStringLiteral(e);
       }
-      else if (e.value is dart2js.DoubleConstant) {
+      else if (e.value.isDouble) {
         double v = e.value.value;
         if (v == double.INFINITY) {
           withPrecedence(MULTIPLICATIVE, () {
@@ -1291,7 +1291,7 @@ class Unparser {
     void collectParts(Expression e) {
       if (e is StringConcat) {
         e.expressions.forEach(collectParts);
-      } else if (e is Literal && e.value is dart2js.StringConstant) {
+      } else if (e is Literal && e.value.isString) {
         for (int char in e.value.value) {
           parts.add(char);
         }

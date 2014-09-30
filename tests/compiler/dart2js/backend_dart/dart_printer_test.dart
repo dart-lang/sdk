@@ -5,6 +5,7 @@
 library dart_printer_test;
 
 import "package:expect/expect.dart";
+import 'package:compiler/implementation/constants/values.dart';
 import 'package:compiler/implementation/dart_backend/backend_ast_nodes.dart';
 import 'package:compiler/implementation/scanner/scannerlib.dart';
 import 'package:compiler/implementation/source_file.dart';

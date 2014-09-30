@@ -5,19 +5,21 @@
 library native;
 
 import 'dart:collection' show Queue;
+
+import '../constants/values.dart';
 import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show ClassElementX, FunctionElementX;
+import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../resolution/resolution.dart' show ResolverVisitor;
 import '../scanner/scannerlib.dart';
 import '../ssa/ssa.dart';
 import '../tree/tree.dart';
 import '../universe/universe.dart' show SideEffects;
 import '../util/util.dart';
-import '../js/js.dart' as js;
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 
 part 'behavior.dart';
 part 'enqueue.dart';

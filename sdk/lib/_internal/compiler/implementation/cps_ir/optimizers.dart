@@ -4,12 +4,13 @@
 
 library dart2js.optimizers;
 
+import '../constants/expressions.dart' show ConstExp, PrimitiveConstExp;
+import '../constants/values.dart' as values;
+import '../dart_types.dart' as types;
+import '../dart2jslib.dart' as dart2js;
 import '../elements/elements.dart' show ClassElement;
 import '../tree/tree.dart' show LiteralDartString;
 import '../util/util.dart';
-import '../dart_types.dart' as types;
-import '../dart2jslib.dart' as dart2js;
-import '../constants/expressions.dart' show ConstExp, PrimitiveConstExp;
 import 'cps_ir_nodes.dart';
 
 part 'constant_propagation.dart';

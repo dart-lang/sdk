@@ -4,13 +4,13 @@
 
 library tree_ir_nodes;
 
-import '../dart2jslib.dart' as dart2js;
-import '../elements/elements.dart';
-import '../universe/universe.dart';
+import '../constants/expressions.dart';
+import '../constants/values.dart' as values;
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import '../dart_types.dart' show DartType, GenericType;
+import '../elements/elements.dart';
+import '../universe/universe.dart';
 import '../universe/universe.dart' show Selector;
-import '../constants/expressions.dart';
 
 
 // The Tree language is the target of translation out of the CPS-based IR.
@@ -166,7 +166,7 @@ class InvokeConstructor extends Expression implements Invoke {
   final FunctionElement target;
   final List<Expression> arguments;
   final Selector selector;
-  final dart2js.Constant constant;
+  final values.Constant constant;
 
   InvokeConstructor(this.type, this.target, this.selector, this.arguments,
       [this.constant]);
@@ -179,7 +179,7 @@ class InvokeConstructor extends Expression implements Invoke {
 /// Calls [toString] on each argument and concatenates the results.
 class ConcatenateStrings extends Expression {
   final List<Expression> arguments;
-  final dart2js.Constant constant;
+  final values.Constant constant;
 
   ConcatenateStrings(this.arguments, [this.constant]);
 
@@ -194,12 +194,12 @@ class Constant extends Expression {
 
   Constant(this.expression);
 
-  Constant.primitive(dart2js.PrimitiveConstant primitiveValue)
+  Constant.primitive(values.PrimitiveConstant primitiveValue)
       : expression = new PrimitiveConstExp(primitiveValue);
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
 
-  dart2js.Constant get value => expression.value;
+  values.Constant get value => expression.value;
 }
 
 class This extends Expression {

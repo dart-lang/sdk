@@ -4,17 +4,19 @@
 
 library dart2js.common;
 
+export 'constants/values.dart' show
+    Constant,
+    InterceptorConstant,
+    NullConstant,
+    TypeConstant;
+
 export 'dart2jslib.dart' show
     CompilerTask,
     Compiler,
-    Constant,
     ConstantEnvironment,
-    InterceptorConstant,
     MessageKind,
-    NullConstant,
     Selector,
     TreeElements,
-    TypeConstant,
     invariant;
 
 export 'dart_types.dart' show

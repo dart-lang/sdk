@@ -8,29 +8,27 @@ import 'dart:collection';
 
 import '../closure.dart';
 import '../constants/expressions.dart';
-import '../js/js.dart' as js;
+import '../constants/values.dart';
+import '../deferred_load.dart' show DeferredLoadTask;
 import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../dart_types.dart';
-import '../source_file.dart';
-import '../source_map_builder.dart';
 import '../elements/elements.dart';
-import '../js_backend/js_backend.dart';
-import '../native/native.dart' as native;
-import '../tree/tree.dart' as ast;
-import '../types/types.dart';
-import '../universe/universe.dart';
-import '../deferred_load.dart' show DeferredLoadTask;
-import '../util/util.dart';
-
-import '../scanner/scannerlib.dart'
-    show PartialFunctionElement, Token, PLUS_TOKEN;
-
 import '../elements/modelx.dart'
     show ElementX,
          VariableElementX,
          ConstructorBodyElementX;
-
+import '../js/js.dart' as js;
+import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../native/native.dart' as native;
+import '../scanner/scannerlib.dart'
+    show PartialFunctionElement, Token, PLUS_TOKEN;
+import '../source_file.dart';
+import '../source_map_builder.dart';
+import '../tree/tree.dart' as ast;
+import '../types/types.dart';
+import '../universe/universe.dart';
+import '../util/util.dart';
 
 part 'builder.dart';
 part 'codegen.dart';

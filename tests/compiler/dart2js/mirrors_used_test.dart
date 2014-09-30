@@ -15,7 +15,7 @@ import 'memory_compiler.dart' show
 import 'package:compiler/implementation/apiimpl.dart' show
     Compiler;
 
-import 'package:compiler/implementation/dart2jslib.dart' show
+import 'package:compiler/implementation/constants/values.dart' show
     Constant,
     TypeConstant;
 

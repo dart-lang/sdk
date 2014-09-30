@@ -4,7 +4,7 @@
 
 library logical_rewriter;
 
-import '../dart2jslib.dart' as dart2js;
+import '../constants/values.dart' as values;
 import 'tree_ir_nodes.dart';
 
 /// Rewrites logical expressions to be more compact in the Tree IR.
@@ -405,10 +405,10 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
       }
       return e;
     }
-    if (e is Constant && e.value is dart2js.BoolConstant) {
+    if (e is Constant && e.value.isBool) {
       // !true ==> false
       if (!polarity) {
-        dart2js.BoolConstant value = e.value;
+        values.BoolConstant value = e.value;
         return new Constant.primitive(value.negate());
       }
       return e;
@@ -418,11 +418,11 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
   }
 
   bool isTrue(Expression e) {
-    return e is Constant && e.value is dart2js.TrueConstant;
+    return e is Constant && e.value.isTrue;
   }
 
   bool isFalse(Expression e) {
-    return e is Constant && e.value is dart2js.FalseConstant;
+    return e is Constant && e.value.isFalse;
   }
 
   Expression makeAnd(Expression e1, Expression e2, {bool liftNots: true}) {

@@ -4,12 +4,11 @@
 
 // Test that constants depended on by other constants are correctly deferred.
 
+import 'dart:async';
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/implementation/constants/values.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
-import "dart:async";
-import 'package:compiler/implementation/dart2jslib.dart'
-  hide Compiler;
 
 
 class FakeOutputStream<T> extends EventSink<T> {

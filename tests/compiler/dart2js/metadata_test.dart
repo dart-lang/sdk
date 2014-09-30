@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/implementation/constants/values.dart'
+    show PrimitiveConstant;
+import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
-import 'package:compiler/implementation/dart2jslib.dart'
-    show PrimitiveConstant;
 
 void checkPosition(Spannable spannable, Node node, String source, compiler) {
   SourceSpan span = compiler.spanFromSpannable(spannable);

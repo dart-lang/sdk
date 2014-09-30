@@ -6,12 +6,12 @@
 // dependencies on other parts of the system.
 library dart2js.ir_nodes;
 
-import '../dart2jslib.dart' as dart2js show Constant, ConstructedConstant,
-  StringConstant, ListConstant, MapConstant, invariant;
+import '../constants/expressions.dart';
+import '../constants/values.dart' as values show Constant;
+import '../dart2jslib.dart' as dart2js show invariant;
 import '../elements/elements.dart';
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
-import '../constants/expressions.dart';
 
 abstract class Node {
   static int hashCount = 0;
@@ -453,7 +453,7 @@ class Constant extends Primitive {
 
   Constant(this.expression);
 
-  dart2js.Constant get value => expression.value;
+  values.Constant get value => expression.value;
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
@@ -471,7 +471,7 @@ class ReifyTypeVar extends Primitive {
 
   ReifyTypeVar(this.typeVariable);
 
-  dart2js.Constant get constant => null;
+  values.Constant get constant => null;
 
   accept(Visitor visitor) => visitor.visitReifyTypeVar(this);
 }

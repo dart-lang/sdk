@@ -34,23 +34,23 @@ abstract class InstanceMirrorMixin implements InstanceMirror {
 
 InstanceMirror _convertConstantToInstanceMirror(
     Dart2JsMirrorSystem mirrorSystem, ConstExp constant, Constant value) {
-  if (value is BoolConstant) {
+  if (value.isBool) {
     return new Dart2JsBoolConstantMirror(mirrorSystem, constant, value);
-  } else if (value is NumConstant) {
+  } else if (value.isNum) {
     return new Dart2JsNumConstantMirror(mirrorSystem, constant, value);
-  } else if (value is StringConstant) {
+  } else if (value.isString) {
     return new Dart2JsStringConstantMirror(mirrorSystem, constant, value);
-  } else if (value is ListConstant) {
+  } else if (value.isList) {
     return new Dart2JsListConstantMirror(mirrorSystem, constant, value);
-  } else if (value is MapConstant) {
+  } else if (value.isMap) {
     return new Dart2JsMapConstantMirror(mirrorSystem, constant, value);
-  } else if (value is TypeConstant) {
+  } else if (value.isType) {
     return new Dart2JsTypeConstantMirror(mirrorSystem, constant, value);
-  } else if (value is FunctionConstant) {
+  } else if (value.isFunction) {
     return new Dart2JsConstantMirror(mirrorSystem, constant, value);
-  } else if (value is NullConstant) {
+  } else if (value.isNull) {
     return new Dart2JsNullConstantMirror(mirrorSystem, constant, value);
-  } else if (value is ConstructedConstant) {
+  } else if (value.isConstructedObject) {
     return new Dart2JsConstructedConstantMirror(mirrorSystem, constant, value);
   }
   mirrorSystem.compiler.internalError(NO_LOCATION_SPANNABLE,
