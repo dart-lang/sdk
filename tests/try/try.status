@@ -25,6 +25,3 @@ poi/serialize_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js ]
 poi/*: Skip # http://dartbug.com/20031
-
-[ $checked ]
-poi/apply_updates_test: Fail

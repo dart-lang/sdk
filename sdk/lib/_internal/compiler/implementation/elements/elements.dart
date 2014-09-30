@@ -1132,6 +1132,8 @@ abstract class FunctionElement extends Element
   /// This method will go away!
   // TODO(johnniwinther): Rename to `ensureFunctionSignature`.
   @deprecated FunctionSignature computeSignature(Compiler compiler);
+
+  bool get hasFunctionSignature;
 }
 
 /// A top level, static or instance function.

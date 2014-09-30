@@ -306,6 +306,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   computeSignature(compiler) => unsupported();
 
+  bool get hasFunctionSignature => false;
+
   get effectiveTarget => this;
 
   computeEffectiveTargetType(InterfaceType newType) => unsupported();
@@ -1560,6 +1562,8 @@ abstract class BaseFunctionElementX
            && !isConstructor
            && !isStatic;
   }
+
+  bool get hasFunctionSignature => functionSignatureCache != null;
 
   FunctionSignature computeSignature(Compiler compiler) {
     if (functionSignatureCache != null) return functionSignatureCache;

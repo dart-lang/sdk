@@ -226,6 +226,8 @@ class ForgetConstantVisitor extends ElementVisitor {
 
   void visitFunctionElement(FunctionElement e) {
     super.visitFunctionElement(e);
-    e.functionSignature.forEachParameter(this.visit);
+    if (e.hasFunctionSignature) {
+      e.functionSignature.forEachParameter(this.visit);
+    }
   }
 }
