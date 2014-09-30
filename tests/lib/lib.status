@@ -2,12 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $checked && $compiler != dartanalyzer && $compiler != dart2analyzer && $runtime != dartium ]
-mirrors/regress_16321_test/01: CompileTimeError # Issue 16351
-
-[ $checked && $compiler == none && ($runtime == dartium || $runtime == drt) ]
-mirrors/regress_16321_test/01: RunTimeError # Issue 16351
-
 [ $unchecked ]
 mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
 
@@ -299,6 +293,9 @@ mirrors/deferred_mirrors_metadata_test: Fail # Issue 17522
 
 profiler/metrics_test: Fail # Issue 20309
 profiler/metrics_num_test: Fail # Issue 20309
+
+[ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
+mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 async/*deferred*: Skip # Issue 17458
