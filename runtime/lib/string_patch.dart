@@ -578,28 +578,36 @@ class _StringBase {
   /**
    * Convert all objects in [values] to strings and concat them
    * into a result string.
+   * Modifies the input list if it contains non-`String` values.
    */
-  static String _interpolate(List<String> values) {
+  static String _interpolate(final List values) {
     final numValues = values.length;
-    _List stringList = new List<String>(numValues);
-    bool isOneByteString = true;
     int totalLength = 0;
-    for (int i = 0; i < numValues; i++) {
-      var s = values[i].toString();
-      if (isOneByteString && (ClassID.getID(s) == ClassID.cidOneByteString)) {
+    int i = 0;
+    while (i < numValues) {
+      final e = values[i];
+      final s = e.toString();
+      values[i] = s;
+      if (ClassID.getID(s) == ClassID.cidOneByteString) {
         totalLength += s.length;
+        i++;
+      } else if (s is! String) {
+        throw new ArgumentError(s);
       } else {
-        isOneByteString = false;
-        if (s is! String) {
-          throw new ArgumentError(s);
+        // Handle remaining elements without checking for one-byte-ness.
+        while (++i < numValues) {
+          final e = values[i];
+          final s = e.toString();
+          values[i] = s;
+          if (s is! String) {
+            throw new ArgumentError(s);
+          }
         }
+        return _concatRangeNative(values, 0, numValues);
       }
-      stringList[i] = s;
     }
-    if (isOneByteString) {
-      return _OneByteString._concatAll(stringList, totalLength);
-    }
-    return _concatRangeNative(stringList, 0, stringList.length);
+    // All strings were one-byte strings.
+    return _OneByteString._concatAll(values, totalLength);
   }
 
   Iterable<Match> allMatches(String string, [int start = 0]) {
@@ -738,11 +746,11 @@ class _OneByteString extends _StringBase implements String {
       // Native is quicker.
       return _StringBase._concatRangeNative(strings, 0, strings.length);
     }
-    var res = _OneByteString._allocate(totalLength);
+    final res = _OneByteString._allocate(totalLength);
     final stringsLength = strings.length;
     int rIx = 0;
     for (int i = 0; i < stringsLength; i++) {
-      _OneByteString e = strings[i];
+      final _OneByteString e = strings[i];
       final eLength = e.length;
       for (int s = 0; s < eLength; s++) {
         res._setAt(rIx++, e.codeUnitAt(s));
