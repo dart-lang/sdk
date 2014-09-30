@@ -916,39 +916,43 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 // corresponding Dart method will be untested. Add a test with --no-intrinsify.
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // Pseudo code:
-  // static void _mulAdd(Uint32List args,
+  // static void _mulAdd(Uint32List x_digits, int xi,
   //                     Uint32List m_digits, int i,
   //                     Uint32List a_digits, int j, int n) {
-  //   uint32_t x = args[MA_MULTIPLIER];
-  //   if (x == 0) {
-  //     args[MA_CARRY_OUT] = 0;
+  //   uint32_t x = x_digits[xi];
+  //   if (x == 0  || n == 0) {
   //     return;
   //   }
   //   uint32_t* mip = &m_digits[i >> 1];  // i is Smi.
   //   uint32_t* ajp = &a_digits[j >> 1];  // j is Smi.
   //   uint32_t c = 0;
   //   SmiUntag(n);
-  //   while (--n >= 0) {
+  //   do {
   //     uint32_t mi = *mip++;
   //     uint32_t aj = *ajp;
   //     uint64_t t = x*mi + aj + c;  // 32-bit * 32-bit -> 64-bit.
   //     *ajp++ = low32(t);
   //     c = high32(t);
+  //   } while (--n > 0);
+  //   while (c != 0) {
+  //     uint64_t t = *ajp + c;
+  //     *ajp++ = low32(t);
+  //     c = high32(t);  // c == 0 or 1.
   //   }
-  //   args[MA_CARRY_OUT] = c;
   // }
 
-  // EBX = x
-  Label x_not_zero;
-  __ movl(ECX, Address(ESP, 6 * kWordSize));  // args
-  __ movl(EBX, FieldAddress(ECX, TypedData::data_offset()));  // x
-  __ cmpl(EBX, Immediate(0));
-  __ j(NOT_EQUAL, &x_not_zero, Assembler::kNearJump);
-  // Set args[MA_CARRY_OUT] to 0 and return.
-  __ movl(FieldAddress(ECX, TypedData::data_offset() + kWordSize), EBX);
-  // TODO(regis): Confirm that returning Object::null() is not required.
-  __ ret();
-  __ Bind(&x_not_zero);
+  Label no_op;
+  // EBX = x, no_op if x == 0
+  __ movl(ECX, Address(ESP, 7 * kWordSize));  // x_digits
+  __ movl(EAX, Address(ESP, 6 * kWordSize));  // xi is Smi
+  __ movl(EBX, FieldAddress(ECX, EAX, TIMES_2, TypedData::data_offset()));
+  __ testl(EBX, EBX);
+  __ j(ZERO, &no_op, Assembler::kNearJump);
+
+  // EDX = SmiUntag(n), no_op if n == 0
+  __ movl(EDX, Address(ESP, 1 * kWordSize));
+  __ SmiUntag(EDX);
+  __ j(ZERO, &no_op, Assembler::kNearJump);
 
   // Preserve CTX to free ESI.
   __ pushl(CTX);
@@ -964,27 +968,21 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ movl(EAX, Address(ESP, 3 * kWordSize));  // j is Smi
   __ leal(ESI, FieldAddress(ESI, EAX, TIMES_2, TypedData::data_offset()));
 
+  // Save n
+  __ pushl(EDX);
+  Address n_addr = Address(ESP, 0 * kWordSize);
+
   // ECX = c = 0
   __ xorl(ECX, ECX);
 
-  // SmiUntag(n), 'sar mem32, 1' not implemented
-  __ movl(EAX, Address(ESP, 2 * kWordSize));
-  __ SmiUntag(EAX);
-  __ pushl(EAX);
-  Address n_addr = Address(ESP, 0 * kWordSize);
-
-  Label loop, done;
-  __ Bind(&loop);
+  Label muladd_loop;
+  __ Bind(&muladd_loop);
   // x:   EBX
   // mip: EDI
   // ajp: ESI
   // c:   ECX
   // t:   EDX:EAX (not live at loop entry)
   // n:   ESP[0]
-
-  // while (--n >= 0)
-  __ decl(n_addr);  // --n
-  __ j(NEGATIVE, &done);
 
   // uint32_t mi = *mip++
   __ movl(EAX, Address(EDI, 0));
@@ -1005,14 +1003,31 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
 
   // c = high32(t)
   __ movl(ECX, EDX);
-  __ jmp(&loop, Assembler::kNearJump);
+
+  // while (--n > 0)
+  __ decl(n_addr);  // --n
+  __ j(NOT_ZERO, &muladd_loop, Assembler::kNearJump);
+
+  Label done;
+  __ testl(ECX, ECX);
+  __ j(ZERO, &done);
+
+  // *ajp += c
+  __ addl(Address(ESI, 0), ECX);
+  __ j(NOT_CARRY, &done, Assembler::kNearJump);
+
+  Label propagate_carry_loop;
+  __ Bind(&propagate_carry_loop);
+  __ addl(ESI, Immediate(kWordSize));
+  __ incl(Address(ESI, 0));  // c == 0 or 1
+  __ j(CARRY, &propagate_carry_loop, Assembler::kNearJump);
 
   __ Bind(&done);
   __ Drop(1);  // n
-  // Restore CTX, set args[MA_CARRY_OUT] to c and return.
+  // Restore CTX and return.
   __ popl(CTX);
-  __ movl(EAX, Address(ESP, 6 * kWordSize));  // args
-  __ movl(FieldAddress(EAX, TypedData::data_offset() + kWordSize), ECX);
+
+  __ Bind(&no_op);
   // TODO(regis): Confirm that returning Object::null() is not required.
   __ ret();
 }
