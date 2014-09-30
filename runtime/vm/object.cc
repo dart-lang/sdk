@@ -166,6 +166,7 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
   V(CoreLibrary, _Bigint, _mulAdd)                                             \
+  V(CoreLibrary, _Bigint, _sqrAdd)                                             \
 
 #define INVISIBLE_LIBRARY_FUNCTIONS(V)                                         \
   V(TypedDataLibrary, _toInt8)                                                 \
