@@ -198,10 +198,10 @@ class FixProcessor {
       _addFix_undefinedClass_useSimilar();
     }
     if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
+      _addFix_createField();
       _addFix_createFunction_forFunctionType();
       _addFix_importLibrary_withType();
       _addFix_importLibrary_withTopLevelVariable();
-      _addFix_undefinedSetter_createField();
     }
     if (errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER) {
       _addFix_useStaticAccess_method();
@@ -220,6 +220,7 @@ class FixProcessor {
       _addFix_undefinedFunction_create();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_GETTER) {
+      _addFix_createField();
       _addFix_createFunction_forFunctionType();
     }
     if (errorCode == HintCode.UNDEFINED_METHOD ||
@@ -229,7 +230,7 @@ class FixProcessor {
       _addFix_undefinedFunction_create();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_SETTER) {
-      _addFix_undefinedSetter_createField();
+      _addFix_createField();
     }
     // done
     return fixes;
@@ -577,6 +578,82 @@ class FixProcessor {
         FixKind.CREATE_CONSTRUCTOR,
         [constructorName],
         targetElement);
+  }
+
+  void _addFix_createField() {
+    SimpleIdentifier nameNode = node;
+    String name = nameNode.name;
+    // prepare target Expression
+    Expression target;
+    {
+      AstNode nameParent = nameNode.parent;
+      if (nameParent is PrefixedIdentifier) {
+        target = nameParent.prefix;
+      }
+      if (nameParent is PropertyAccess) {
+        target = nameParent.realTarget;
+      }
+    }
+    // prepare target ClassElement
+    bool staticModifier = false;
+    ClassElement targetClassElement;
+    if (target != null) {
+      // prepare target interface type
+      DartType targetType = target.bestType;
+      if (targetType is! InterfaceType) {
+        return;
+      }
+      targetClassElement = targetType.element;
+      // maybe static
+      if (target is Identifier) {
+        Identifier targetIdentifier = target;
+        Element targetElement = targetIdentifier.staticElement;
+        staticModifier = targetElement.kind == ElementKind.CLASS;
+      }
+    } else {
+      targetClassElement = getEnclosingClassElement(node);
+      if (targetClassElement == null) {
+        return;
+      }
+      staticModifier = _inStaticContext();
+    }
+    // prepare location
+    ClassDeclaration targetClassNode = targetClassElement.node;
+    _FieldLocation targetLocation = _prepareNewFieldLocation(targetClassNode);
+    // build method source
+    String targetFile = targetClassElement.source.fullName;
+    SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
+    {
+      sb.append(targetLocation.prefix);
+      // maybe "static"
+      if (staticModifier) {
+        sb.append('static ');
+      }
+      // append type
+      Expression fieldTypeNode = climbPropertyAccess(nameNode);
+      DartType fieldType = _inferUndefinedExpressionType(fieldTypeNode);
+      if (fieldType != null) {
+        _appendType(sb, fieldType, 'TYPE');
+      } else {
+        sb.append('var ');
+      }
+      // append name
+      {
+        sb.startPosition('NAME');
+        sb.append(name);
+        sb.endPosition();
+      }
+      sb.append(';');
+      sb.append(targetLocation.suffix);
+    }
+    // insert source
+    _insertBuilder(sb);
+    // add linked positions
+    if (targetFile == file) {
+      _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+    }
+    // add proposal
+    _addFixToElement(FixKind.CREATE_FIELD, [name], targetClassElement);
   }
 
   void _addFix_createFunction_forFunctionType() {
@@ -1153,7 +1230,7 @@ class FixProcessor {
       sb.append(sourcePrefix);
       // append return type
       {
-        DartType type = _inferReturnType(invocation);
+        DartType type = _inferUndefinedExpressionType(invocation);
         _appendType(sb, type, 'RETURN_TYPE');
       }
       // append name
@@ -1254,7 +1331,10 @@ class FixProcessor {
           sb.append("static ");
         }
         // append return type
-        _appendType(sb, _inferReturnType(invocation), 'RETURN_TYPE');
+        _appendType(
+            sb,
+            _inferUndefinedExpressionType(invocation),
+            'RETURN_TYPE');
         // append name
         {
           sb.startPosition("NAME");
@@ -1343,76 +1423,6 @@ class FixProcessor {
         _addFix(FixKind.CHANGE_TO, [closestName]);
       }
     }
-  }
-
-  void _addFix_undefinedSetter_createField() {
-    // prepare enclosing AssignmentExpression
-    AssignmentExpression assignment = node.getAncestor((node) {
-      return node is AssignmentExpression;
-    });
-    if (assignment == null) {
-      return;
-    }
-    // prepare name
-    SimpleIdentifier nameNode = node;
-    String name = nameNode.name;
-    // prepare target class
-    bool staticModifier = false;
-    ClassElement targetClassElement;
-    AstNode nameParent = nameNode.parent;
-    if (nameParent is PrefixedIdentifier) {
-      Expression target = nameParent.prefix;
-      // prepare target interface type
-      DartType targetType = target.bestType;
-      if (targetType is! InterfaceType) {
-        return;
-      }
-      targetClassElement = targetType.element as ClassElement;
-      // may be static
-      if (target is Identifier) {
-        staticModifier = target.bestElement.kind == ElementKind.CLASS;
-      }
-    } else {
-      ClassDeclaration target = node.getAncestor((node) {
-        return node is ClassDeclaration;
-      });
-      if (target == null) {
-        return;
-      }
-      targetClassElement = target.element;
-      staticModifier = _inStaticContext();
-    }
-    // prepare location
-    ClassDeclaration targetClassNode = targetClassElement.node;
-    _FieldLocation targetLocation = _prepareNewFieldLocation(targetClassNode);
-    // build method source
-    String targetFile = targetClassElement.source.fullName;
-    SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
-    {
-      sb.append(targetLocation.prefix);
-      // maybe "static"
-      if (staticModifier) {
-        sb.append('static ');
-      }
-      // append return type
-      _appendType(sb, assignment.rightHandSide.bestType, 'TYPE');
-      // append name
-      {
-        sb.startPosition('NAME');
-        sb.append(name);
-        sb.endPosition();
-      }
-      sb.append(';');
-      sb.append(targetLocation.suffix);
-    }
-    // insert source
-    _insertBuilder(sb);
-    // add linked positions
-    if (targetFile == file) {
-      _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
-    }
-    // add proposal
-    _addFixToElement(FixKind.CREATE_FIELD, [name], targetClassElement);
   }
 
   void _addFix_useEffectiveIntegerDivision() {
@@ -1774,33 +1784,46 @@ class FixProcessor {
   }
 
   /**
-   * Returns a possible return [Type], may be `null` if cannot be inferred.
+   * Returns an expected [DartType] of [expression], may be `null` if cannot be
+   * inferred.
    */
-  DartType _inferReturnType(MethodInvocation invocation) {
-    AstNode parent = invocation.parent;
+  DartType _inferUndefinedExpressionType(Expression expression) {
+    AstNode parent = expression.parent;
     // myFunction();
     if (parent is ExpressionStatement) {
-      return VoidTypeImpl.instance;
+      if (expression is MethodInvocation) {
+        return VoidTypeImpl.instance;
+      }
     }
     // return myFunction();
     if (parent is ReturnStatement) {
-      ExecutableElement executable = getEnclosingExecutableElement(invocation);
+      ExecutableElement executable = getEnclosingExecutableElement(expression);
       return executable != null ? executable.returnType : null;
     }
     // int v = myFunction();
     if (parent is VariableDeclaration) {
       VariableDeclaration variableDeclaration = parent;
-      if (variableDeclaration.initializer == invocation) {
+      if (variableDeclaration.initializer == expression) {
         VariableElement variableElement = variableDeclaration.element;
         if (variableElement != null) {
           return variableElement.type;
         }
       }
     }
+    // myField = 42;
+    if (parent is AssignmentExpression) {
+      AssignmentExpression assignment = parent;
+      if (assignment.leftHandSide == expression) {
+        Expression rhs = assignment.rightHandSide;
+        if (rhs != null) {
+          return rhs.bestType;
+        }
+      }
+    }
     // v = myFunction();
     if (parent is AssignmentExpression) {
       AssignmentExpression assignment = parent;
-      if (assignment.rightHandSide == invocation) {
+      if (assignment.rightHandSide == expression) {
         if (assignment.operator.type == TokenType.EQ) {
           // v = myFunction();
           Expression lhs = assignment.leftHandSide;
@@ -1824,7 +1847,7 @@ class FixProcessor {
       BinaryExpression binary = parent;
       MethodElement method = binary.bestElement;
       if (method != null) {
-        if (binary.rightOperand == invocation) {
+        if (binary.rightOperand == expression) {
           List<ParameterElement> parameters = method.parameters;
           return parameters.length == 1 ? parameters[0].type : null;
         }
@@ -1832,7 +1855,7 @@ class FixProcessor {
     }
     // foo( myFunction() );
     if (parent is ArgumentList) {
-      ParameterElement parameter = invocation.bestParameterElement;
+      ParameterElement parameter = expression.bestParameterElement;
       return parameter != null ? parameter.type : null;
     }
     // bool
@@ -1840,28 +1863,28 @@ class FixProcessor {
       // assert( myFunction() );
       if (parent is AssertStatement) {
         AssertStatement statement = parent;
-        if (statement.condition == invocation) {
+        if (statement.condition == expression) {
           return coreTypeBool;
         }
       }
       // if ( myFunction() ) {}
       if (parent is IfStatement) {
         IfStatement statement = parent;
-        if (statement.condition == invocation) {
+        if (statement.condition == expression) {
           return coreTypeBool;
         }
       }
       // while ( myFunction() ) {}
       if (parent is WhileStatement) {
         WhileStatement statement = parent;
-        if (statement.condition == invocation) {
+        if (statement.condition == expression) {
           return coreTypeBool;
         }
       }
       // do {} while ( myFunction() );
       if (parent is DoStatement) {
         DoStatement statement = parent;
-        if (statement.condition == invocation) {
+        if (statement.condition == expression) {
           return coreTypeBool;
         }
       }

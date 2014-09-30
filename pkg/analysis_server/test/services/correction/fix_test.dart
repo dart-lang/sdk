@@ -395,7 +395,114 @@ main() {
 ''');
   }
 
-  void test_createField_qualified_instance_hasField() {
+  void test_createField_getter_multiLevel() {
+    _indexTestUnit('''
+class A {
+}
+class B {
+  A a;
+}
+class C {
+  B b;
+}
+main(C c) {
+  int v = c.b.a.test;
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int test;
+}
+class B {
+  A a;
+}
+class C {
+  B b;
+}
+main(C c) {
+  int v = c.b.a.test;
+}
+''');
+  }
+
+  void test_createField_getter_qualified_instance() {
+    _indexTestUnit('''
+class A {
+}
+main(A a) {
+  int v = a.test;
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int test;
+}
+main(A a) {
+  int v = a.test;
+}
+''');
+  }
+
+  void test_createField_getter_unqualified_instance_asInvocationArgument() {
+    _indexTestUnit('''
+class A {
+  main() {
+    f(test);
+  }
+}
+f(String s) {}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  String test;
+
+  main() {
+    f(test);
+  }
+}
+f(String s) {}
+''');
+  }
+
+  void test_createField_getter_unqualified_instance_asStatement() {
+    _indexTestUnit('''
+class A {
+  main() {
+    test;
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  var test;
+
+  main() {
+    test;
+  }
+}
+''');
+  }
+
+  void test_createField_getter_unqualified_instance_assignmentLhs() {
+    _indexTestUnit('''
+class A {
+  main() {
+    int v = test;
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int test;
+
+  main() {
+    int v = test;
+  }
+}
+''');
+  }
+
+  void test_createField_setter_qualified_instance_hasField() {
     _indexTestUnit('''
 class A {
   int aaa;
@@ -422,7 +529,7 @@ main(A a) {
 ''');
   }
 
-  void test_createField_qualified_instance_hasMethod() {
+  void test_createField_setter_qualified_instance_hasMethod() {
     _indexTestUnit('''
 class A {
   existingMethod() {}
@@ -443,7 +550,7 @@ main(A a) {
 ''');
   }
 
-  void test_createField_qualified_static() {
+  void test_createField_setter_qualified_static() {
     _indexTestUnit('''
 class A {
 }
@@ -461,7 +568,7 @@ main() {
 ''');
   }
 
-  void test_createField_unqualified_instance() {
+  void test_createField_setter_unqualified_instance() {
     _indexTestUnit('''
 class A {
   main() {
@@ -480,7 +587,7 @@ class A {
 ''');
   }
 
-  void test_createField_unqualified_static() {
+  void test_createField_setter_unqualified_static() {
     _indexTestUnit('''
 class A {
   static main() {

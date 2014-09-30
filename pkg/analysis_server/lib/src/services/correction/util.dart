@@ -33,6 +33,25 @@ bool allListsIdentical(List<List> lists, int position) {
 
 
 /**
+ * Climbs up [PrefixedIdentifier] and [ProperyAccess] nodes that include [node].
+ */
+Expression climbPropertyAccess(AstNode node) {
+  while (true) {
+    AstNode parent = node.parent;
+    if (parent is PrefixedIdentifier && parent.identifier == node) {
+      node = parent;
+      continue;
+    }
+    if (parent is PropertyAccess && parent.propertyName == node) {
+      node = parent;
+      continue;
+    }
+    return node;
+  }
+}
+
+
+/**
  * TODO(scheglov) replace with nodes once there will be [CompilationUnit#getComments].
  *
  * Returns [SourceRange]s of all comments in [unit].
@@ -73,14 +92,13 @@ String getDefaultValueCode(DartType type) {
 }
 
 
+
 /**
  * Return the name of the [Element] kind.
  */
 String getElementKindName(Element element) {
   return element.kind.displayName;
 }
-
-
 
 /**
  * Returns the name to display in the UI for the given [Element].
@@ -93,6 +111,7 @@ String getElementQualifiedName(Element element) {
     return element.displayName;
   }
 }
+
 
 /**
  * If the given [AstNode] is in a [ClassDeclaration], returns the
@@ -167,7 +186,6 @@ AstNode getEnclosingExecutableNode(AstNode node) {
 }
 
 
-
 /**
  * Returns [getExpressionPrecedence] for the parent of [node],
  * or `0` if the parent node is [ParenthesizedExpression].
@@ -203,7 +221,6 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
   return namespace.definedNames;
 }
 
-
 /**
  * Returns the line prefix from the given source, i.e. basically just a
  * whitespace prefix of the given [String].
@@ -235,6 +252,7 @@ VariableElement getLocalOrParameterVariableElement(SimpleIdentifier node) {
   }
   return null;
 }
+
 
 /**
  * @return the [LocalVariableElement] if given [SimpleIdentifier] is the reference to
@@ -388,13 +406,13 @@ Statement getSingleStatement(Statement statement) {
   return statement;
 }
 
-
 /**
  * Returns the [String] content of the given [Source].
  */
 String getSourceContent(AnalysisContext context, Source source) {
   return context.getContents(source).data;
 }
+
 
 /**
  * Returns the given [Statement] if not a [Block], or all the children
