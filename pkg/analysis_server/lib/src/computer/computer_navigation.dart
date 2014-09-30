@@ -30,11 +30,11 @@ class DartUnitNavigationComputer {
   }
 
   void _addRegion(int offset, int length, Element element) {
-    if (element == null || element == DynamicElementImpl.instance) {
-      return;
-    }
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
+    }
+    if (element == null || element == DynamicElementImpl.instance) {
+      return;
     }
     protocol.Element target = new protocol.Element.fromEngine(element);
     _regions.add(new protocol.NavigationRegion(offset, length, [target]));

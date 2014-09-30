@@ -233,6 +233,17 @@ class AAA {
     });
   }
 
+  test_fieldFormalParameter_unresolved() {
+    addTestFile('''
+class AAA {
+  AAA(this.fff);
+}
+''');
+    return prepareNavigation().then((_) {
+      assertNoRegion('fff);', 3);
+    });
+  }
+
   test_identifier_resolved() {
     addTestFile('''
 class AAA {}
