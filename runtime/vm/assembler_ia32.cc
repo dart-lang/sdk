@@ -1598,7 +1598,14 @@ void Assembler::cdq() {
 void Assembler::idivl(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF7);
-  EmitUint8(0xF8 | reg);
+  EmitOperand(7, Operand(reg));
+}
+
+
+void Assembler::divl(Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF7);
+  EmitOperand(6, Operand(reg));
 }
 
 

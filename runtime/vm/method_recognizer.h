@@ -154,8 +154,12 @@ namespace dart {
   V(_Bigint, set:_neg, Bigint_setNeg, 920204960)                               \
   V(_Bigint, set:_used, Bigint_setUsed, 1857576743)                            \
   V(_Bigint, _set_digits, Bigint_setDigits, 582835804)                         \
+  V(_Bigint, _add, Bigint_add, 381787634)                                      \
+  V(_Bigint, _sub, Bigint_sub, 1839548871)                                     \
   V(_Bigint, _mulAdd, Bigint_mulAdd, 1283124653)                               \
   V(_Bigint, _sqrAdd, Bigint_sqrAdd, 1665155090)                               \
+  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 643982609)            \
+  V(_Montgomery, _mulMod, Montgomery_mulMod, 149127024)                        \
   V(_Double, >, Double_greaterThan, 381325711)                                 \
   V(_Double, >=, Double_greaterEqualThan, 1409267140)                          \
   V(_Double, <, Double_lessThan, 2080387973)                                   \

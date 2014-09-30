@@ -717,6 +717,21 @@ ASSEMBLER_TEST_RUN(SignedDivide, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(UnsignedDivide, assembler) {
+  __ movl(EAX, Immediate(0xffffffbe));
+  __ movl(EDX, Immediate(0x41));
+  __ movl(ECX, Immediate(-1));
+  __ divl(ECX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(UnsignedDivide, test) {
+  typedef int (*UnsignedDivide)();
+  EXPECT_EQ(0x42, reinterpret_cast<UnsignedDivide>(test->entry())());
+}
+
+
 ASSEMBLER_TEST_GENERATE(Exchange, assembler) {
   __ movl(EAX, Immediate(123456789));
   __ movl(EDX, Immediate(987654321));

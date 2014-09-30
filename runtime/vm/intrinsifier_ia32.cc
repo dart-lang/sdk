@@ -914,12 +914,128 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 
 // TODO(regis): Once this intrinsic is implemented on all architectures, the
 // corresponding Dart method will be untested. Add a test with --no-intrinsify.
+void Intrinsifier::Bigint_add(Assembler* assembler) {
+  // static void _add(Uint32List digits, int used,
+  //                  Uint32List a_digits, int a_used,
+  //                  Uint32List r_digits)
+
+  // Preserve CTX to free ESI.
+  __ pushl(CTX);
+  ASSERT(CTX == ESI);
+
+  __ movl(EDI, Address(ESP, 6 * kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 5 * kWordSize));  // used is Smi
+  __ SmiUntag(EAX);  // used > 0.
+  __ movl(ESI, Address(ESP, 4 * kWordSize));  // a_digits
+  __ movl(ECX, Address(ESP, 3 * kWordSize));  // a_used is Smi
+  __ SmiUntag(ECX);  // a_used > 0.
+  __ movl(EBX, Address(ESP, 2 * kWordSize));  // r_digits
+
+  // Precompute 'used - a_used' now so that CF is not lost later.
+  __ subl(EAX, ECX);
+  __ incl(EAX);  // To account for the extra test between loops.
+  __ pushl(EAX);
+
+  __ xorl(EDX, EDX);  // EDX = 0, CF = 0.
+  Label add_loop;
+  __ Bind(&add_loop);
+  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
+  __ adcl(EAX, FieldAddress(ESI, EDX, TIMES_4, TypedData::data_offset()));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ incl(EDX);  // Does not affect CF.
+  __ decl(ECX);  // Does not affect CF.
+  __ j(NOT_ZERO, &add_loop, Assembler::kNearJump);
+
+  Label last_carry;
+  __ popl(ECX);
+  __ decl(ECX);  // Does not affect CF.
+  __ j(ZERO, &last_carry, Assembler::kNearJump);
+
+  Label carry_loop;
+  __ Bind(&carry_loop);
+  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
+  __ adcl(EAX, Immediate(0));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ incl(EDX);  // Does not affect CF.
+  __ decl(ECX);  // Does not affect CF.
+  __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
+
+  __ Bind(&last_carry);
+  __ movl(EAX, Immediate(0));
+  __ adcl(EAX, Immediate(0));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+
+  // Restore CTX and return.
+  __ popl(CTX);
+  // TODO(regis): Confirm that returning Object::null() is not required.
+  __ ret();
+}
+
+
+// TODO(regis): Once this intrinsic is implemented on all architectures, the
+// corresponding Dart method will be untested. Add a test with --no-intrinsify.
+void Intrinsifier::Bigint_sub(Assembler* assembler) {
+  // static void _sub(Uint32List digits, int used,
+  //                  Uint32List a_digits, int a_used,
+  //                  Uint32List r_digits)
+
+  // Preserve CTX to free ESI.
+  __ pushl(CTX);
+  ASSERT(CTX == ESI);
+
+  __ movl(EDI, Address(ESP, 6 * kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 5 * kWordSize));  // used is Smi
+  __ SmiUntag(EAX);  // used > 0.
+  __ movl(ESI, Address(ESP, 4 * kWordSize));  // a_digits
+  __ movl(ECX, Address(ESP, 3 * kWordSize));  // a_used is Smi
+  __ SmiUntag(ECX);  // a_used > 0.
+  __ movl(EBX, Address(ESP, 2 * kWordSize));  // r_digits
+
+  // Precompute 'used - a_used' now so that CF is not lost later.
+  __ subl(EAX, ECX);
+  __ incl(EAX);  // To account for the extra test between loops.
+  __ pushl(EAX);
+
+  __ xorl(EDX, EDX);  // EDX = 0, CF = 0.
+  Label sub_loop;
+  __ Bind(&sub_loop);
+  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
+  __ sbbl(EAX, FieldAddress(ESI, EDX, TIMES_4, TypedData::data_offset()));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ incl(EDX);  // Does not affect CF.
+  __ decl(ECX);  // Does not affect CF.
+  __ j(NOT_ZERO, &sub_loop, Assembler::kNearJump);
+
+  Label done;
+  __ popl(ECX);
+  __ decl(ECX);  // Does not affect CF.
+  __ j(ZERO, &done, Assembler::kNearJump);
+
+  Label carry_loop;
+  __ Bind(&carry_loop);
+  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
+  __ sbbl(EAX, Immediate(0));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ incl(EDX);  // Does not affect CF.
+  __ decl(ECX);  // Does not affect CF.
+  __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
+
+  __ Bind(&done);
+  // Restore CTX and return.
+  __ popl(CTX);
+  // TODO(regis): Confirm that returning Object::null() is not required.
+  __ ret();
+}
+
+
+// TODO(regis): Once this intrinsic is implemented on all architectures, the
+// corresponding Dart method will be untested. Add a test with --no-intrinsify.
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // Pseudo code:
   // static void _mulAdd(Uint32List x_digits, int xi,
   //                     Uint32List m_digits, int i,
   //                     Uint32List a_digits, int j, int n) {
-  //   uint32_t x = x_digits[xi];
+  //   uint32_t x = x_digits[xi >> 1];  // xi is Smi.
   //   if (x == 0  || n == 0) {
   //     return;
   //   }
@@ -1059,6 +1175,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   //   uint64_t t = aj + c;  // 32-bit + 33-bit -> 34-bit.
   //   *ajp++ = low32(t);
   //   *ajp = high32(t);
+  // }
 
   // EDI = xip = &x_digits[i >> 1]
   __ movl(EDI, Address(ESP, 4 * kWordSize));  // m_digits
@@ -1080,7 +1197,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ movl(ESI, Address(ESP, 3 * kWordSize));  // a_digits
   __ leal(ESI, FieldAddress(ESI, EAX, TIMES_4, TypedData::data_offset()));
 
-  // EAX:EDX = t = x*x + *ajp
+  // EDX:EAX = t = x*x + *ajp
   __ movl(EAX, EBX);
   __ mull(EBX);
   __ addl(EAX, Address(ESI, 0));
@@ -1166,6 +1283,94 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ Drop(3);
   __ popl(CTX);
   __ Bind(&x_zero);
+  // TODO(regis): Confirm that returning Object::null() is not required.
+  __ ret();
+}
+
+
+// TODO(regis): Once this intrinsic is implemented on all architectures, the
+// corresponding Dart method will be untested. Add a test with --no-intrinsify.
+void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
+  // Pseudo code:
+  // static void _estQuotientDigit(Uint32List args, Uint32List digits, int i) {
+  //   uint32_t yt = args[_YT];  // _YT == 0.
+  //   uint32_t* dp = &digits[i >> 1];  // i is Smi.
+  //   uint32_t dh = dp[0];  // dh == digits[i >> 1].
+  //   uint32_t qd;
+  //   if (dh == yt) {
+  //     qd = DIGIT_MASK;
+  //   } else {
+  //     dl = dp[-1];  // dl == digits[(i - 1) >> 1].
+  //     qd = dh:dl / yt;  // No overflow possible, because dh < yt.
+  //   }
+  //   args[_QD] = qd;  // _QD == 1;
+  // }
+
+  // EDI = args
+  __ movl(EDI, Address(ESP, 3 * kWordSize));  // args
+
+  // ECX = yt = args[0]
+  __ movl(ECX, FieldAddress(EDI, TypedData::data_offset()));
+
+  // EBX = dp = &digits[i >> 1]
+  __ movl(EBX, Address(ESP, 2 * kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 1 * kWordSize));  // i is Smi
+  __ leal(EBX, FieldAddress(EBX, EAX, TIMES_2, TypedData::data_offset()));
+
+  // EDX = dh = dp[0]
+  __ movl(EDX, Address(EBX, 0));
+
+  // EAX = qd = DIGIT_MASK = -1
+  __ movl(EAX, Immediate(-1));
+
+  // Return qd if dh == yt
+  Label return_qd;
+  __ cmpl(EDX, ECX);
+  __ j(EQUAL, &return_qd, Assembler::kNearJump);
+
+  // EAX = dl = dp[-1]
+  __ movl(EAX, Address(EBX, -kWordSize));
+
+  // EAX = qd = dh:dl / yt = EDX:EAX / ECX
+  __ divl(ECX);
+
+  __ Bind(&return_qd);
+  // args[1] = qd
+  __ movl(FieldAddress(EDI, TypedData::data_offset() + kWordSize), EAX);
+
+  // TODO(regis): Confirm that returning Object::null() is not required.
+  __ ret();
+}
+
+
+// TODO(regis): Once this intrinsic is implemented on all architectures, the
+// corresponding Dart method will be untested. Add a test with --no-intrinsify.
+void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
+  // Pseudo code:
+  // static void _mulMod(Uint32List args, Uint32List digits, int i) {
+  //   uint32_t rho = args[_RHO];  // _RHO == 0.
+  //   uint32_t d = digits[i >> 1];  // i is Smi.
+  //   uint64_t t = rho*d;
+  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 1.
+  // }
+
+  // EDI = args
+  __ movl(EDI, Address(ESP, 3 * kWordSize));  // args
+
+  // ECX = rho = args[0]
+  __ movl(ECX, FieldAddress(EDI, TypedData::data_offset()));
+
+  // EAX = digits[i >> 1]
+  __ movl(EBX, Address(ESP, 2 * kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 1 * kWordSize));  // i is Smi
+  __ movl(EAX, FieldAddress(EBX, EAX, TIMES_2, TypedData::data_offset()));
+
+  // EDX:EAX = t = rho*d
+  __ mull(ECX);
+
+  // args[1] = t mod DIGIT_BASE = low32(t)
+  __ movl(FieldAddress(EDI, TypedData::data_offset() + kWordSize), EAX);
+
   // TODO(regis): Confirm that returning Object::null() is not required.
   __ ret();
 }

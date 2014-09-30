@@ -895,12 +895,32 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Bigint_add(Assembler* assembler) {
+  // TODO(regis): Implement.
+}
+
+
+void Intrinsifier::Bigint_sub(Assembler* assembler) {
+  // TODO(regis): Implement.
+}
+
+
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // TODO(regis): Implement.
 }
 
 
 void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
+  // TODO(regis): Implement.
+}
+
+
+void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
+  // TODO(regis): Implement.
+}
+
+
+void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   // TODO(regis): Implement.
 }
 

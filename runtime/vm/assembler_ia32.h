@@ -558,6 +558,8 @@ class Assembler : public ValueObject {
 
   void idivl(Register reg);
 
+  void divl(Register reg);
+
   void imull(Register dst, Register src);
   void imull(Register reg, const Immediate& imm);
   void imull(Register reg, const Address& address);

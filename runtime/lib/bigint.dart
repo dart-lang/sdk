@@ -412,6 +412,43 @@ class _Bigint extends _IntegerImplementation implements int {
     return r;
   }
 
+  // r_digits[0..used] = digits[0..used-1] + a_digits[0..a_used-1].
+  // used >= a_used > 0.
+  static void _add(Uint32List digits, int used,
+                   Uint32List a_digits, int a_used,
+                   Uint32List r_digits) {
+    var c = 0;
+    for (var i = 0; i < a_used; i++) {
+      c += digits[i] + a_digits[i];
+      r_digits[i] = c & DIGIT_MASK;
+      c >>= DIGIT_BITS;
+    }
+    for (var i = a_used; i < used; i++) {
+      c += digits[i];
+      r_digits[i] = c & DIGIT_MASK;
+      c >>= DIGIT_BITS;
+    }
+    r_digits[used] = c;
+  }
+
+  // r_digits[0..used-1] = digits[0..used-1] - a_digits[0..a_used-1].
+  // used >= a_used > 0.
+  static void _sub(Uint32List digits, int used,
+                   Uint32List a_digits, int a_used,
+                   Uint32List r_digits) {
+    var c = 0;
+    for (var i = 0; i < a_used; i++) {
+      c += digits[i] - a_digits[i];
+      r_digits[i] = c & DIGIT_MASK;
+      c >>= DIGIT_BITS;
+    }
+    for (var i = a_used; i < used; i++) {
+      c += digits[i];
+      r_digits[i] = c & DIGIT_MASK;
+      c >>= DIGIT_BITS;
+    }
+  }
+
   // r = abs(this) + abs(a).
   void _absAddTo(_Bigint a, _Bigint r) {
     var used = _used;
@@ -431,21 +468,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return;
     }
     r._ensureLength(used + 1);
-    var digits = _digits;
-    var a_digits = a._digits;
-    var r_digits = r._digits;
-    var c = 0;
-    for (var i = 0; i < a_used; i++) {
-      c += digits[i] + a_digits[i];
-      r_digits[i] = c & DIGIT_MASK;
-      c >>= DIGIT_BITS;
-    }
-    for (var i = a_used; i < used; i++) {
-      c += digits[i];
-      r_digits[i] = c & DIGIT_MASK;
-      c >>= DIGIT_BITS;
-    }
-    r_digits[used] = c;
+    _add(_digits, used, a._digits, a_used, r._digits);
     r._used = used + 1;
     r._clamp();
   }
@@ -466,20 +489,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return;
     }
     r._ensureLength(used);
-    var digits = _digits;
-    var a_digits = a._digits;
-    var r_digits = r._digits;
-    var c = 0;
-    for (var i = 0; i < a_used; i++) {
-      c += digits[i] - a_digits[i];
-      r_digits[i] = c & DIGIT_MASK;
-      c >>= DIGIT_BITS;
-    }
-    for (var i = a_used; i < used; i++) {
-      c += digits[i];
-      r_digits[i] = c & DIGIT_MASK;
-      c >>= DIGIT_BITS;
-    }
+    _sub(_digits, used, a._digits, a_used, r._digits);
     r._used = used;
     r._clamp();
   }
@@ -896,6 +906,27 @@ class _Bigint extends _IntegerImplementation implements int {
     r._clamp();
   }
 
+  // Indices of the arguments of _estQuotientDigit.
+  static const int _YT = 0;  // Index of top digit of divisor y in args array.
+  static const int _QD = 1;  // Index of estimated quotient digit in args array.
+
+  // Estimate args[_QD] = digits[i]:digits[i-1] ~/ args[_YT].
+  static void _estQuotientDigit(Uint32List args, Uint32List digits, int i) {
+    if (digits[i] == args[_YT]) {
+      args[_QD] = DIGIT_MASK;
+    } else {
+      // Chop off one bit, since a Mint cannot hold 2 DIGITs.
+      var qd = ((digits[i] << (DIGIT_BITS - 1)) | (digits[i - 1] >> 1))
+          ~/ (args[_YT] >> 1);
+      if (qd > DIGIT_MASK) {
+        args[_QD] = DIGIT_MASK;
+      } else {
+        args[_QD] = qd;
+      }
+    }
+  }
+
+
   // Truncating division and remainder.
   // If q != null, q = trunc(this / a).
   // If r != null, r = this - a * trunc(this / a).
@@ -930,9 +961,8 @@ class _Bigint extends _IntegerImplementation implements int {
     r._neg = false;
     var y_used = y._used;
     var y_digits = y._digits;
-    var y0 = y_digits[y_used - 1];
-    if (y0 == 0) return;
-    var yt = y0 >> 1;  // Chop off one bit, see below. y is normalized: yt != 0.
+    var yt = y_digits[y_used - 1];
+    if (yt == 0) return;
     var i = r._used;
     var j = i - y_used;
     _Bigint t = (q == null) ? new _Bigint() : q;
@@ -947,29 +977,15 @@ class _Bigint extends _IntegerImplementation implements int {
     while (y._used < y_used) {
       y_digits[y._used++] = 0;
     }
-    var qd_digit = new Uint32List(1);
+    Uint32List args = new Uint32List(2);
+    args[_YT] = yt;
     while (--j >= 0) {
-      // Estimate quotient digit.
-      // TODO(regis): Move the expensive mint division below to a function that
-      // can be intrinsified using an uint64_t by uint32_t division instruction,
-      // e.g. qd = _estqd(r_digits, --i, y0).
-      if (r_digits[--i] == y0) {
-        qd_digit[0] = DIGIT_MASK;
-      } else {
-        // Chop off one bit, since a Mint cannot hold 2 DIGITs.
-        var qd =
-            ((r_digits[i] << (DIGIT_BITS - 1)) | (r_digits[i - 1] >> 1)) ~/ yt;
-        if (qd > DIGIT_MASK) {
-          qd_digit[0] = DIGIT_MASK;
-        } else {
-          qd_digit[0] = qd;
-        }
-      }
-      _mulAdd(qd_digit, 0, y_digits, 0, r_digits, j, y_used);
-      if (r_digits[i] < qd_digit[0]) {
+      _estQuotientDigit(args, r_digits, --i);
+      _mulAdd(args, _QD, y_digits, 0, r_digits, j, y_used);
+      if (r_digits[i] < args[_QD]) {
         y._dlShiftTo(j, t);
         r._subTo(t, r);
-        while (r_digits[i] < --qd_digit[0]) {
+        while (r_digits[i] < --args[_QD]) {
           r._subTo(t, r);
         }
       }
@@ -1318,21 +1334,28 @@ class _Reduction {
 // Montgomery reduction on _Bigint.
 class _Montgomery implements _Reduction {
   _Bigint _m;
-  int _mp;
-  int _mpl;
-  int _mph;
-  int _um;
   int _mused2;
-  Uint32List _u0digit;
+  Uint32List _rho_mu;
+  static const int _RHO = 0;  // Index of rho in _rho_mu array.
+  static const int _MU = 1;  // Index of mu in _rho_mu array.
 
   _Montgomery(m) {
     _m = m._toBigint();
-    _mp = _m._invDigit();
-    _mpl = _mp & _Bigint.DIGIT2_MASK;
-    _mph = _mp >> _Bigint.DIGIT2_BITS;
-    _um = (1 << (_Bigint.DIGIT_BITS - _Bigint.DIGIT2_BITS)) - 1;
     _mused2 = 2*_m._used;
-    _u0digit = new Uint32List(1);
+    _rho_mu = new Uint32List(2);
+    _rho_mu[_RHO] = _m._invDigit();
+  }
+
+  // args[_MU] = args[_RHO]*digits[i] mod DIGIT_BASE.
+  static void _mulMod(Uint32List args, Uint32List digits, int i) {
+    const int MU_MASK = (1 << (_Bigint.DIGIT_BITS - _Bigint.DIGIT2_BITS)) - 1;
+    var rhol = args[_RHO] & _Bigint.DIGIT2_MASK;
+    var rhoh = args[_RHO] >> _Bigint.DIGIT2_BITS;
+    var dh = digits[i] >> _Bigint.DIGIT2_BITS;
+    var dl = digits[i] & _Bigint.DIGIT2_MASK;
+    args[_MU] =
+        (dl*rhol + (((dl*rhoh + dh*rhol) & MU_MASK) << _Bigint.DIGIT2_BITS))
+        & _Bigint.DIGIT_MASK;
   }
 
   // Return x*R mod _m
@@ -1364,12 +1387,8 @@ class _Montgomery implements _Reduction {
     var m_used = _m._used;
     var m_digits = _m._digits;
     for (var i = 0; i < m_used; ++i) {
-      // Faster way of calculating u0 = x[i]*mp mod DIGIT_BASE.
-      var j = x_digits[i] & _Bigint.DIGIT2_MASK;
-      _u0digit[0] = (j*_mpl + (((j*_mph + (x_digits[i] >> _Bigint.DIGIT2_BITS)
-          *_mpl) & _um) << _Bigint.DIGIT2_BITS)) & _Bigint.DIGIT_MASK;
-      // Use _mulAdd to combine the multiply-shift-add into one call.
-      _Bigint._mulAdd(_u0digit, 0, m_digits, 0, x_digits, i, m_used);
+      _mulMod(_rho_mu, x_digits, i);
+      _Bigint._mulAdd(_rho_mu, _MU, m_digits, 0, x_digits, i, m_used);
     }
     x._clamp();
     x._drShiftTo(m_used, x);
