@@ -58,8 +58,6 @@ import 'resolution/resolution.dart' show
     TreeElements,
     AnalyzableElementX;
 
-import "dart:math" show min;
-
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.
 ///
