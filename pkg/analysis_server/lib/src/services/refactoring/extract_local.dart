@@ -22,6 +22,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'dart:collection';
 
 
 const String _TOKEN_SEPARATOR = "\uFFFF";
@@ -51,6 +52,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
   bool wholeStatementExpression = false;
   String stringLiteralPart;
   final List<SourceRange> occurrences = <SourceRange>[];
+  final Map<Element, int> elementIds = <Element, int>{};
   final Set<String> excludedVariableNames = new Set<String>();
 
   ExtractLocalRefactoringImpl(this.unit, this.selectionOffset,
@@ -362,12 +364,14 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
    */
   void _prepareOccurrences() {
     occurrences.clear();
+    elementIds.clear();
     // prepare selection
     String selectionSource;
     {
       String rawSelectionSource = utils.getRangeText(selectionRange);
       List<Token> selectionTokens = TokenUtils.getTokens(rawSelectionSource);
-      selectionSource = selectionTokens.join(_TOKEN_SEPARATOR);
+      selectionSource =
+          _encodeExpressionTokens(rootExpression, selectionTokens);
     }
     // prepare enclosing function
     AstNode enclosingFunction;
@@ -387,6 +391,70 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     for (SourceRange occurrence in occurrences) {
       offsets.add(occurrence.offset);
       lengths.add(occurrence.length);
+    }
+  }
+
+  /**
+   * Return an unique identifier for the given [Element], or `null` if [element]
+   * is `null`.
+   */
+  int _encodeElement(Element element) {
+    if (element == null) {
+      return null;
+    }
+    int id = elementIds[element];
+    if (id == null) {
+      id = elementIds.length;
+      elementIds[element] = id;
+    }
+    return id;
+  }
+
+  /**
+   * Returns an [Element]-sensitive encoding of [tokens].
+   * Each [Token] with a [LocalVariableElement] has a suffix of the element id.
+   *
+   * So, we can distingush different local variables with the same name, if
+   * there are multiple variables with the same name are declared in the
+   * function we are searching occurrences in.
+   */
+  String _encodeExpressionTokens(Expression expr, List<Token> tokens) {
+    // no expression, i.e. a part of a string
+    if (expr == null) {
+      return tokens.join(_TOKEN_SEPARATOR);
+    }
+    // prepare Token -> LocalElement map
+    Map<Token, Element> map = new HashMap<Token, Element>(
+        equals: (Token a, Token b) => a.lexeme == b.lexeme,
+        hashCode: (Token t) => t.lexeme.hashCode);
+    expr.accept(new _TokenLocalElementVisitor(map));
+    // map and join tokens
+    return tokens.map((Token token) {
+      String tokenString = token.lexeme;
+      // append token's Element id
+      Element element = map[token];
+      if (element != null) {
+        int elementId = _encodeElement(element);
+        if (elementId != null) {
+          tokenString += '-$elementId';
+        }
+      }
+      // done
+      return tokenString;
+    }).join(_TOKEN_SEPARATOR);
+  }
+}
+
+
+class _TokenLocalElementVisitor extends RecursiveAstVisitor {
+  final Map<Token, Element> map;
+
+  _TokenLocalElementVisitor(this.map);
+
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    Element element = node.staticElement;
+    if (element is LocalVariableElement) {
+      map[node.token] = element;
     }
   }
 }
@@ -478,7 +546,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   @override
   Object visitBinaryExpression(BinaryExpression node) {
     if (!_hasStatements(node)) {
-      _tryToFindOccurrenceFragment(node);
+      _tryToFindOccurrenceFragments(node);
       return null;
     }
     return super.visitBinaryExpression(node);
@@ -531,18 +599,18 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   void _tryToFindOccurrence(Expression node) {
     String nodeSource = ref.utils.getNodeText(node);
     List<Token> nodeTokens = TokenUtils.getTokens(nodeSource);
-    nodeSource = nodeTokens.join(_TOKEN_SEPARATOR);
+    nodeSource = ref._encodeExpressionTokens(node, nodeTokens);
     if (nodeSource == selectionSource) {
       SourceRange occuRange = rangeNode(node);
       _addOccurrence(occuRange);
     }
   }
 
-  void _tryToFindOccurrenceFragment(Expression node) {
+  void _tryToFindOccurrenceFragments(Expression node) {
     int nodeOffset = node.offset;
     String nodeSource = ref.utils.getNodeText(node);
     List<Token> nodeTokens = TokenUtils.getTokens(nodeSource);
-    nodeSource = nodeTokens.join(_TOKEN_SEPARATOR);
+    nodeSource = ref._encodeExpressionTokens(node, nodeTokens);
     // find "selection" in "node" tokens
     int lastIndex = 0;
     while (true) {
