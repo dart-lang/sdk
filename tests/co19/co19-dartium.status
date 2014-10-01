@@ -685,6 +685,7 @@ LayoutTests/fast/files/xhr-response-blob_t01: RuntimeError # co19-roll r786: Ple
 LayoutTests/fast/filesystem/async-operations_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/directory-entry-to-uri_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/file-entry-to-uri_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/filesystem/filesystem-reference_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/storage/disallowed-storage_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/storage/storage-disallowed-in-data-url_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/sub-pixel/cssom-subpixel-precision_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -732,8 +733,8 @@ LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # co19-ro
 LayoutTests/fast/text/offsetForPosition-cluster-at-zero_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/regional-indicator-symobls_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/remove-zero-length-run_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/text/sub-pixel/text-scaling-ltr_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/text/sub-pixel/text-scaling-pixel_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/text/sub-pixel/text-scaling-ltr_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/text/sub-pixel/text-scaling-pixel_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/sub-pixel/text-scaling-rtl_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/sub-pixel/text-scaling-vertical_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/sub-pixel/text-scaling-webfont_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
@@ -814,13 +815,12 @@ LayoutTests/fast/css-intrinsic-dimensions/tables_t01: RuntimeError # co19-roll r
 LayoutTests/fast/css-intrinsic-dimensions/width-shrinks-avoid-floats_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/file-writer-abort_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/file-writer-events_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/filesystem/filesystem-reference_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/op-copy_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/op-get-entry_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/op-get-metadata_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/op-get-parent_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/op-move_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/filesystem/op-read-directory_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/filesystem/op-read-directory_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/op-remove_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/op-restricted-chars_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/op-restricted-names_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -864,6 +864,7 @@ LayoutTests/fast/css/counters/complex-before_t01: RuntimeError, Pass # co19-roll
 LayoutTests/fast/css/getComputedStyle/computed-style-select-overflow_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/vertical-align-length-copy-bug_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css-generated-content/bug-106384_t01: Skip # Times out. co19-roll r786: Please triage this failure.
+LayoutTests/fast/css-generated-content/empty-first-letter-with-columns-crash_t01: Skip # Times out. co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-generated-content/hit-test-generated-content_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-intrinsic-dimensions/css-tables_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-intrinsic-dimensions/tables_t01: RuntimeError # co19-roll r786: Please triage this failure.
