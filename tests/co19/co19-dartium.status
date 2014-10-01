@@ -658,15 +658,21 @@ LayoutTests/fast/dynamic/recursive-layout_t01: RuntimeError # co19-roll r786: Pl
 LayoutTests/fast/events/add-event-without-document_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/clipboard-clearData_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/clipboard-dataTransferItemList_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
+LayoutTests/fast/events/div-focus_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/document-elementFromPoint_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/event-creation_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/initkeyboardevent-crash_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/events/input-focus-no-duplicate-events_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/invalid-003_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/invalid-004_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/events/label-focus_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/mutation-during-replace-child-2_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/mutation-during-replace-child_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/events/nested-event-remove-node-crash_t01: Skip # Flaky timeout. co19-roll r786: Please triage this failure.
+LayoutTests/fast/events/scoped/editing-commands_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/scroll-event-does-not-bubble_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/wheelevent-constructor_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/exclusions/parsing/parsing-wrap-flow_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/exclusions/parsing/parsing-wrap-through_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -676,8 +682,9 @@ LayoutTests/fast/files/blob-constructor_t01: RuntimeError # co19-roll r786: Plea
 LayoutTests/fast/files/file-reader-methods-illegal-arguments_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/files/url-null_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/files/xhr-response-blob_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/filesystem/async-operations_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/directory-entry-to-uri_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/filesystem/file-entry-to-uri_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/filesystem/file-entry-to-uri_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/storage/disallowed-storage_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/storage/storage-disallowed-in-data-url_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/sub-pixel/cssom-subpixel-precision_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -688,7 +695,7 @@ LayoutTests/fast/table/anonymous-table-section-removed_t01: RuntimeError # co19-
 LayoutTests/fast/table/before-child-non-table-section-add-table-crash_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/caption-orthogonal-writing-mode-sizing_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/col-width-span-expand_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/table/computeLogicalWidth-table-needsSectionRecalc_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/table/computeLogicalWidth-table-needsSectionRecalc_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/css-table-max-height_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/css-table-max-width_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/css-table-width-with-border-padding_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -712,23 +719,24 @@ LayoutTests/fast/table/table-rowspan-height-distribution-in-rows_t01: RuntimeErr
 LayoutTests/fast/table/table-rowspan-height-distribution-in-rows_t02: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/table-with-content-width-exceeding-max-width_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text-autosizing/vertical-writing-mode_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/text/find-soft-hyphen_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/find-spaces_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/text/font-ligatures-linebreak_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/text/font-ligatures-linebreak-word_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/text/font-ligatures-linebreak_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/text/font-ligatures-linebreak-word_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/international/cjk-segmentation_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/international/iso-8859-8_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/international/rtl-text-wrapping_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/international/thai-offsetForPosition-inside-character_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/text/ipa-tone-letters_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/text/ipa-tone-letters_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/offsetForPosition-cluster-at-zero_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/regional-indicator-symobls_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/remove-zero-length-run_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/sub-pixel/text-scaling-ltr_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/sub-pixel/text-scaling-pixel_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/text/sub-pixel/text-scaling-rtl_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/text/sub-pixel/text-scaling-vertical_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/text/sub-pixel/text-scaling-webfont_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/text/sub-pixel/text-scaling-rtl_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/text/sub-pixel/text-scaling-vertical_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/text/sub-pixel/text-scaling-webfont_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/transforms/bounding-rect-zoom_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/transforms/hit-test-large-scale_t01: RuntimeError # co19-roll r786: Please triage this failure.

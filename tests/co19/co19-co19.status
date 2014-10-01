@@ -80,7 +80,7 @@ LibTest/isolate/SendPort/send_A03_t02: Fail # Co19 issue 639
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 
 [ $compiler != dartanalyzer && $compiler != dart2analyzer && $compiler != dart2js ]
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError # co19 issue 718
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Fail # co19 issue 718
 
 ### CHECKED MODE FAILURES ###
 

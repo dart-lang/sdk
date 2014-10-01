@@ -223,7 +223,6 @@ LibTest/typed_data/ByteData/setUint8_A02_t02: fail # Issue 12989
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail, Pass # issue 3333
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, OK # This is not rejected by V8.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK # co19 issue 92.
 LibTest/core/RegExp/firstMatch_A01_t01: RuntimeError, OK # Bad test, use Match.regexp, not Match.pattern.
 LibTest/core/int/compareTo_A01_t01: RuntimeError, OK # Requires big int.
 LibTest/core/int/hashCode_A01_t01: RuntimeError, OK # co19 testing missing assertion.
