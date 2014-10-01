@@ -128,13 +128,15 @@ class TestingServers {
     "/NonExistingFile",
     "/NonExistingFile.js",
     "/hahaURL",
-    "/UNEXISTENT",
-    "/missing.png",
-    "/NoSuchPart.dart",
-    "/Nonexistent_library.dart",
-    "/missing_file",
-    "/xxx-missing.jpeg",
-    "/does-not-exist.css"
+    "/IntentionallyMissingFile",
+    "/IntentionallyMissingFile.dart",
+    "/IntentionallyMissingFile.html",
+    "/IntentionallyMissingFile.png",
+    "/IntentionallyMissingFile.css",
+    "/IntentionallyMissingFile.jpg",
+    "/IntentionallyMissingFile.ttf",
+    "/IntentionallyMissingFile.otf",
+    "/IntentionallyMissingFile.jpeg"
   ];
 
   List _serverList = [];

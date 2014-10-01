@@ -72,11 +72,9 @@ LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError, Pass # Dart issue 15617
 LibTest/math/Rectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.
 LibTest/math/MutableRectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.
 
-WebPlatformTest/dom/Node-replaceChild_t01: CompileTimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/dom/nodes/Node-replaceChild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/Utils/test/testFail_t01: RuntimeError # co19-roll r722: Please triage this failure.
 
 [ $compiler == dart2js ]
@@ -96,7 +94,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: F
 
 [ $compiler == dart2js && $checked ]
 Language/13_Statements/09_Switch_A05_t01: Fail # Missing type check in switch expression
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: RuntimeError # Issue 1533 - co19 issue 711
 Language/15_Types/2_Dynamic_Type_System_A01_t02: RuntimeError # Issue 21088
 Language/15_Types/8_Parameterized_Types_A03_t07: RuntimeError # Issue 21088
 Language/15_Types/1_Static_Types_A03_t01: RuntimeError # Issue 21089
@@ -104,6 +101,16 @@ LibTest/core/Map/Map_class_A01_t04: Slow, Pass
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass
 Language/13_Statements/09_Switch_A09_t01: RuntimeError # Issue 16089
 LibTest/math/Point/operator_mult_A02_t01: RuntimeError # Issue 1533
+
+LayoutTests/fast/url/file-http-base_t01: Crash # Issue 21166
+LayoutTests/fast/url/file_t01: Crash # Issue 21166
+LayoutTests/fast/url/relative-unix_t01: Crash # Issue 21166
+LayoutTests/fast/url/relative-win_t01: Crash # Issue 21166
+LayoutTests/fast/url/relative_t01: Crash # Issue 21166
+LayoutTests/fast/url/segments-from-data-url_t01: Crash # Issue 21166
+LayoutTests/fast/url/segments_t01: Crash # Issue 21166
+LayoutTests/fast/url/trivial-segments_t01: Crash # Issue 21166
+LayoutTests/fast/url/trivial_t01: Crash # Issue 21166
 
 [ $compiler == dart2js && $checked && $runtime == jsshell]
 LibTest/core/Map/Map_class_A01_t04: Skip # Issue 18093, timeout.
@@ -126,7 +133,6 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: RuntimeErr
 LibTest/isolate/SendPort/send_A02_t04: RuntimeError, OK # co19 issue 293 Passes on IE
 
 LibTest/core/RegExp/firstMatch_A01_t01: RuntimeError, OK # co19 issue 294
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK # co19 issue 294
 
 LibTest/core/int/isOdd_A01_t01: RuntimeError, OK # co19 issue 277
 LibTest/core/int/isEven_A01_t01: RuntimeError, OK # co19 issue 277
@@ -140,8 +146,6 @@ LibTest/core/int/operator_AND_A01_t01: RuntimeError, OK # Requires bigints.
 LibTest/core/int/operator_right_shift_A01_t01: RuntimeError, OK # Expects negative result from bit-operation.
 LibTest/core/int/operator_OR_A01_t01: RuntimeError, OK # Requires bigints.
 LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints.
-
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK # co19 issue 212
 
 #
 # Issues with co19 test suite.
@@ -436,7 +440,6 @@ Language/12_Expressions/22_Equality_A05_t01: fail # co19-roll r546: Please triag
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/33_Type_Cast_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/02_Expression_Statements_A01_t08: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/06_For_A01_t11: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/10_Rethrow_A01_t04: fail # co19-roll r559: Please triage this failure
 Language/13_Statements/10_Rethrow_A01_t05: fail # co19-roll r559: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # co19-roll r546: Please triage this failure
@@ -631,8 +634,6 @@ LibTest/async/Stream/handleError_A04_t01: RuntimeError # co19-roll r641: Please 
 LibTest/async/Stream/listen_A05_t01: RuntimeError # co19-roll r641: Please triage this failure
 LibTest/convert/JsonCodec/encode_A01_t01: RuntimeError # co19-roll r641: Please triage this failure
 LibTest/convert/JsonCodec/encode_A01_t02: RuntimeError # co19-roll r641: Please triage this failure
-WebPlatformTest/webstorage/storage_clear_t01: CompileTimeError # co19 issue 702
-WebPlatformTest/webstorage/storage_builtins_t01: CompileTimeError # co19 issue 702
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 LibTest/async/DeferredLibrary/*: Skip # Issue 17458

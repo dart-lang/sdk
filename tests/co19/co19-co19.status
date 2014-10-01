@@ -13,15 +13,7 @@
 [ $runtime == vm || $runtime != vm ]
 # Tests that fail everywhere, including the analyzer.
 
-LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19 issue 668
 LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
-
-# TODO(terry) re-enable the below CSS tests when Chrome 38 and (Dartium 38) are ready issue 21075
-LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: Skip
-LayoutTests/fast/css/font-shorthand-from-longhands_t01: Skip
-LayoutTests/fast/css/fontface-properties_t01: Skip
-
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A01_t06: Fail, Pass, OK # co19 issue 695
 
 # These tests are obsolete and need updating.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-attributes/test-002_t01: Skip # Issue 19019
@@ -37,7 +29,6 @@ LibTest/async/Future/Future.error_A01_t01: RuntimeError # co19 issue 712
 LibTest/async/Completer/completeError_A02_t01: RuntimeError # co19 issue 712
 LibTest/isolate/ReceivePort/asBroadcastStream_A02_t01: Fail # co19 issue 687
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
-
 
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # co19-roll r607: Please triage this failure
@@ -85,16 +76,14 @@ LibTest/isolate/SendPort/send_A02_t06: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A03_t01: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A03_t02: Fail # Co19 issue 639
 
-Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: MissingRuntimeError, OK # co19 issue 638
-Utils/tests/Expect/listEquals_A01_t02: RuntimeError # CO19 issue 707
-Utils/tests/Expect/listEquals_A03_t01: RuntimeError # CO19 issue 707
-
 [ $runtime == dartium || $compiler == dart2js ]
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
+
+[ $compiler != dartanalyzer && $compiler != dart2analyzer && $compiler != dart2js ]
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError # co19 issue 718
 
 ### CHECKED MODE FAILURES ###
 
 [ $compiler != dartanalyzer && $compiler != dart2analyzer && $checked ]
 LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/LinkedList_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-LibTest/isolate/ReceivePort/any_A01_t02: RuntimeError # co19 issue 704
