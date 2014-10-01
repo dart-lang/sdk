@@ -352,7 +352,8 @@ class TopLevelFunctionElementY extends ElementY
 
   dart2js.FunctionSignature _functionSignature;
 
-  // TODO(johnniwinther): Avoid the need for this.
+  // TODO(johnniwinther): Avoid the need for these.
+  @override
   dart2js.FunctionSignature get functionSignature {
     if (_functionSignature == null) {
       util.LinkBuilder<dart2js.Element> parameterBuilder =
@@ -381,6 +382,9 @@ class TopLevelFunctionElementY extends ElementY
     }
     return _functionSignature;
   }
+
+  @override
+  bool get hasFunctionSignature => true;
 
   @override
   dart2js.ElementKind get kind => dart2js.ElementKind.FUNCTION;
