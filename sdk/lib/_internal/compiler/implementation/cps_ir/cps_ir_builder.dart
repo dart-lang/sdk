@@ -5,7 +5,7 @@
 library dart2js.ir_builder;
 
 import '../constants/expressions.dart';
-import '../constants/values.dart' show PrimitiveConstant;
+import '../constants/values.dart' show PrimitiveConstantValue;
 import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
 import '../dart2jslib.dart';
@@ -302,17 +302,17 @@ class IrBuilder {
     return v;
   }
 
-  ir.Constant makeConst(ConstExp exp) {
+  ir.Constant makeConst(ConstantExpression exp) {
     return new ir.Constant(exp);
   }
 
-  ir.Constant makePrimConst(PrimitiveConstant value) {
-    return makeConst(new PrimitiveConstExp(value));
+  ir.Constant makePrimConst(PrimitiveConstantValue value) {
+    return makeConst(new PrimitiveConstantExpression(value));
   }
 
   // TODO(johnniwinther): Build constants directly through [ConstExp] when these
   // are created from analyzer2dart.
-  ir.Node buildPrimConst(PrimitiveConstant constant) {
+  ir.Node buildPrimConst(PrimitiveConstantValue constant) {
     assert(isOpen);
     ir.Node prim = makePrimConst(constant);
     add(new ir.LetPrim(prim));
@@ -379,7 +379,7 @@ class IrBuilder {
   ir.FunctionDefinition buildFunctionDefinition(
       FunctionElement element,
       List<ConstDeclaration> constants,
-      List<ConstExp> defaults) {
+      List<ConstantExpression> defaults) {
     if (!element.isAbstract) {
       ensureReturn();
       return new ir.FunctionDefinition(
@@ -537,7 +537,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
                       isClosureVariable: isClosureVariable(parameterElement));
     });
 
-    List<ConstExp> defaults = new List<ConstExp>();
+    List<ConstantExpression> defaults = new List<ConstantExpression>();
     signature.orderedOptionalParameters.forEach((ParameterElement element) {
       defaults.add(getConstantForVariable(element));
     });
@@ -1140,7 +1140,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
         assert(!definition.arguments.isEmpty);
         assert(definition.arguments.tail.isEmpty);
         VariableElement element = elements[definition];
-        ConstExp value = getConstantForVariable(element);
+        ConstantExpression value = getConstantForVariable(element);
         localConstants.add(new ConstDeclaration(element, value));
       }
     } else {
@@ -1261,16 +1261,16 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
     return translateConstant(node);
   }
 
-  ConstExp getConstantForNode(ast.Node node) {
-    ConstExp constant =
+  ConstantExpression getConstantForNode(ast.Node node) {
+    ConstantExpression constant =
         compiler.backend.constantCompilerTask.compileNode(node, elements);
     assert(invariant(node, constant != null,
         message: 'No constant computed for $node'));
     return constant;
   }
 
-  ConstExp getConstantForVariable(VariableElement element) {
-    ConstExp constant =
+  ConstantExpression getConstantForVariable(VariableElement element) {
+    ConstantExpression constant =
         compiler.backend.constants.getConstantForVariable(element);
     assert(invariant(element, constant != null,
             message: 'No constant computed for $element'));
@@ -1859,7 +1859,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
         (k) => new ir.ConcatenateStrings(k, arguments));
   }
 
-  ir.Primitive translateConstant(ast.Node node, [ConstExp constant]) {
+  ir.Primitive translateConstant(ast.Node node, [ConstantExpression constant]) {
     assert(isOpen);
     if (constant == null) {
       constant = getConstantForNode(node);

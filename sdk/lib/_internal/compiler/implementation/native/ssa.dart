@@ -15,7 +15,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   HInstruction convertDartClosure(ParameterElement  parameter,
                                   FunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
-    Constant arityConstant =
+    ConstantValue arityConstant =
         builder.constantSystem.createInt(type.computeArity());
     HInstruction arity = builder.graph.addConstant(arityConstant, compiler);
     // TODO(ngeoffray): For static methods, we could pass a method with a

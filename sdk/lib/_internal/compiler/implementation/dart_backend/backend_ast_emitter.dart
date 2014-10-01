@@ -7,7 +7,7 @@ library backend_ast_emitter;
 import 'tree_ir_nodes.dart' as tree;
 import 'backend_ast_nodes.dart';
 import '../constants/expressions.dart';
-import '../constants/values.dart' as values;
+import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' as modelx;
@@ -182,7 +182,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
   /// Root parameters can have default values, while inner parameters cannot.
   Parameters emitRootParameters(tree.FunctionDefinition function) {
     FunctionSignature signature = function.element.functionSignature;
-    List<ConstExp> defaults = function.defaultParameterValues;
+    List<ConstantExpression> defaults = function.defaultParameterValues;
     List<Parameter> required =
         signature.requiredParameters.mapToList(emitParameterFromElement);
     List<Parameter> optional = new List<Parameter>(defaults.length);
@@ -421,7 +421,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
     visitStatement(stmt.body);
     Statement body = new Block(statementBuffer);
-    Statement statement = new While(new Literal(new values.TrueConstant()),
+    Statement statement = new While(new Literal(new TrueConstantValue()),
                                     body);
     if (usedLabels.remove(stmt.label)) {
       statement = new LabeledStatement(stmt.label.name, statement);
@@ -664,15 +664,16 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     }
   }
 
-  Expression emitConstant(ConstExp exp) => new ConstantEmitter(this).visit(exp);
-
+  Expression emitConstant(ConstantExpression exp) {
+    return new ConstantEmitter(this).visit(exp);
+  }
 }
 
-class ConstantEmitter extends ConstExpVisitor<Expression> {
+class ConstantEmitter extends ConstantExpressionVisitor<Expression> {
   ASTEmitter parent;
   ConstantEmitter(this.parent);
 
-  Expression handlePrimitiveConstant(values.PrimitiveConstant value) {
+  Expression handlePrimitiveConstant(PrimitiveConstantValue value) {
     // Num constants may be negative, while literals must be non-negative:
     // Literals are non-negative in the specification, and a negated literal
     // parses as a call to unary `-`. The AST unparser assumes literals are
@@ -681,8 +682,8 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
     // Translate such constants into their positive value wrapped by
     // the unary minus operator.
     if (value.isNum) {
-      values.NumConstant numConstant = value;
-      if (numConstant.value.isNegative) {
+      NumConstantValue numConstant = value;
+      if (numConstant.primitiveValue.isNegative) {
         return negatedLiteral(numConstant);
       }
     }
@@ -690,19 +691,19 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
   }
 
   @override
-  Expression visitPrimitive(PrimitiveConstExp exp) {
+  Expression visitPrimitive(PrimitiveConstantExpression exp) {
     return handlePrimitiveConstant(exp.value);
   }
 
   /// Given a negative num constant, returns the corresponding positive
   /// literal wrapped by a unary minus operator.
-  Expression negatedLiteral(values.NumConstant constant) {
-    assert(constant.value.isNegative);
-    values.NumConstant positiveConstant;
+  Expression negatedLiteral(NumConstantValue constant) {
+    assert(constant.primitiveValue.isNegative);
+    NumConstantValue positiveConstant;
     if (constant.isInt) {
-      positiveConstant = new values.IntConstant(-constant.value);
+      positiveConstant = new IntConstantValue(-constant.primitiveValue);
     } else if (constant.isDouble) {
-      positiveConstant = new values.DoubleConstant(-constant.value);
+      positiveConstant = new DoubleConstantValue(-constant.primitiveValue);
     } else {
       throw "Unexpected type of NumConstant: $constant";
     }
@@ -710,7 +711,7 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
   }
 
   @override
-  Expression visitList(ListConstExp exp) {
+  Expression visitList(ListConstantExpression exp) {
     return new LiteralList(
         exp.values.map(visit).toList(growable: false),
         isConst: true,
@@ -718,7 +719,7 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
   }
 
   @override
-  Expression visitMap(MapConstExp exp) {
+  Expression visitMap(MapConstantExpression exp) {
     List<LiteralMapEntry> entries = new List<LiteralMapEntry>.generate(
         exp.values.length,
         (i) => new LiteralMapEntry(visit(exp.keys[i]),
@@ -730,7 +731,7 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
   }
 
   @override
-  Expression visitConstructor(ConstructorConstExp exp) {
+  Expression visitConstructor(ConstructedConstantExpresssion exp) {
     int positionalArgumentCount = exp.selector.positionalArgumentCount;
     List<Argument> args = new List<Argument>.generate(
         positionalArgumentCount,
@@ -751,24 +752,24 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
   }
 
   @override
-  Expression visitConcatenate(ConcatenateConstExp exp) {
+  Expression visitConcatenate(ConcatenateConstantExpression exp) {
     return new StringConcat(exp.arguments.map(visit).toList(growable: false));
   }
 
   @override
-  Expression visitSymbol(SymbolConstExp exp) {
+  Expression visitSymbol(SymbolConstantExpression exp) {
     return new LiteralSymbol(exp.name);
   }
 
   @override
-  Expression visitType(TypeConstExp exp) {
+  Expression visitType(TypeConstantExpression exp) {
     DartType type = exp.type;
     return new LiteralType(type.name)
                ..type = type;
   }
 
   @override
-  Expression visitVariable(VariableConstExp exp) {
+  Expression visitVariable(VariableConstantExpression exp) {
     Element element = exp.element;
     if (element.kind != ElementKind.VARIABLE) {
       return new Identifier(element.name)..element = element;
@@ -779,18 +780,18 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
   }
 
   @override
-  Expression visitFunction(FunctionConstExp exp) {
+  Expression visitFunction(FunctionConstantExpression exp) {
     return new Identifier(exp.element.name)
                ..element = exp.element;
   }
 
   @override
-  Expression visitBinary(BinaryConstExp exp) {
+  Expression visitBinary(BinaryConstantExpression exp) {
     return handlePrimitiveConstant(exp.value);
   }
 
   @override
-  Expression visitConditional(ConditionalConstExp exp) {
+  Expression visitConditional(ConditionalConstantExpression exp) {
     if (exp.condition.value.isTrue) {
       return exp.trueExp.accept(this);
     } else {
@@ -799,7 +800,7 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
   }
 
   @override
-  Expression visitUnary(UnaryConstExp exp) {
+  Expression visitUnary(UnaryConstantExpression exp) {
     return handlePrimitiveConstant(exp.value);
   }
 }

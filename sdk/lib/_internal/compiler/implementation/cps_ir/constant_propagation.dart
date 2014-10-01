@@ -77,8 +77,9 @@ class _TransformingVisitor extends RecursiveVisitor {
 
     // Set up the replacement structure.
 
-    values.PrimitiveConstant primitiveConstant = cell.constant;
-    ConstExp constExp = new PrimitiveConstExp(primitiveConstant);
+    PrimitiveConstantValue primitiveConstant = cell.constant;
+    ConstantExpression constExp =
+        new PrimitiveConstantExpression(primitiveConstant);
     Constant constant = new Constant(constExp);
     LetPrim letPrim = new LetPrim(constant);
     InvokeContinuation invoke =
@@ -368,7 +369,7 @@ class _ConstPropagationVisitor extends Visitor {
     }
 
     // Calculate the resulting constant if possible.
-    values.Constant result;
+    ConstantValue result;
     String opname = node.selector.name;
     if (node.selector.argumentCount == 0) {
       // Unary operator.
@@ -445,11 +446,11 @@ class _ConstPropagationVisitor extends Visitor {
       // All constant, we can concatenate ourselves.
       Iterable<String> allStrings = node.arguments.map((Reference ref) {
         Constant constant = ref.definition;
-        values.StringConstant stringConstant = constant.value;
-        return stringConstant.value.slowToString();
+        StringConstantValue stringConstant = constant.value;
+        return stringConstant.primitiveValue.slowToString();
       });
       LiteralDartString dartString = new LiteralDartString(allStrings.join());
-      values.Constant constant = new values.StringConstant(dartString);
+      ConstantValue constant = new StringConstantValue(dartString);
       setValues(new _ConstnessLattice(constant));
     } else {
       setValues(_ConstnessLattice.NonConst);
@@ -475,7 +476,7 @@ class _ConstPropagationVisitor extends Visitor {
       setValue(isTrue.value.definition, _ConstnessLattice.NonConst);
     } else if (conditionCell.isConstant &&
         conditionCell.constant.isBool) {
-      values.BoolConstant boolConstant = conditionCell.constant;
+      BoolConstantValue boolConstant = conditionCell.constant;
       setReachable((boolConstant.isTrue) ?
           node.trueContinuation.definition : node.falseContinuation.definition);
     }
@@ -505,7 +506,7 @@ class _ConstPropagationVisitor extends Visitor {
       // Receiver is a constant, perform is-checks at compile-time.
 
       types.InterfaceType checkedType = node.type;
-      values.Constant constant = cell.constant;
+      ConstantValue constant = cell.constant;
       types.DartType constantType = constant.computeType(compiler);
 
       _ConstnessLattice result = _ConstnessLattice.NonConst;
@@ -513,13 +514,13 @@ class _ConstPropagationVisitor extends Visitor {
           checkedType.element != compiler.nullClass &&
           checkedType.element != compiler.objectClass) {
         // `(null is Type)` is true iff Type is in { Null, Object }.
-        result = new _ConstnessLattice(new values.FalseConstant());
+        result = new _ConstnessLattice(new FalseConstantValue());
       } else {
         // Otherwise, perform a standard subtype check.
         result = new _ConstnessLattice(
             constantSystem.isSubtype(compiler, constantType, checkedType)
-            ? new values.TrueConstant()
-            : new values.FalseConstant());
+            ? new TrueConstantValue()
+            : new FalseConstantValue());
       }
 
       setValues(result);
@@ -562,8 +563,8 @@ class _ConstPropagationVisitor extends Visitor {
 
   void visitCreateFunction(CreateFunction node) {
     setReachable(node.definition);
-    values.Constant constant =
-        new values.FunctionConstant(node.definition.element);
+    ConstantValue constant =
+        new FunctionConstantValue(node.definition.element);
     setValue(node, new _ConstnessLattice(constant));
   }
 
@@ -614,7 +615,7 @@ class _ConstnessLattice {
   static const int NONCONST = 2;
 
   final int kind;
-  final values.Constant constant;
+  final ConstantValue constant;
 
   static final _ConstnessLattice Unknown =
       new _ConstnessLattice._internal(UNKNOWN, null);

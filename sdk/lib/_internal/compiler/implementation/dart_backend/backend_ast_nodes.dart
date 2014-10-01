@@ -344,7 +344,7 @@ class Identifier extends Expression {
 }
 
 class Literal extends Expression {
-  final values.PrimitiveConstant value;
+  final values.PrimitiveConstantValue value;
 
   Literal(this.value);
 }
@@ -811,7 +811,7 @@ class Unparser {
         writeStringLiteral(e);
       }
       else if (e.value.isDouble) {
-        double v = e.value.value;
+        double v = e.value.primitiveValue;
         if (v == double.INFINITY) {
           withPrecedence(MULTIPLICATIVE, () {
             write('1/0.0');
@@ -1292,7 +1292,7 @@ class Unparser {
       if (e is StringConcat) {
         e.expressions.forEach(collectParts);
       } else if (e is Literal && e.value.isString) {
-        for (int char in e.value.value) {
+        for (int char in e.value.primitiveValue) {
           parts.add(char);
         }
       } else {

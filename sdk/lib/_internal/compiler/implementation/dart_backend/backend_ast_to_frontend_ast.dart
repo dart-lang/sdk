@@ -460,20 +460,21 @@ class TreePrinter {
           bracketList(',', [makeExpression(exp.index)]));
     } else if (exp is Literal) {
       precedence = CALLEE;
-      values.PrimitiveConstant value = exp.value;
-      Token tok = new StringToken.fromString(STRING_INFO, '${value.value}', -1);
+      values.PrimitiveConstantValue value = exp.value;
+      Token tok = new StringToken.fromString(
+          STRING_INFO, '${value.primitiveValue}', -1);
       if (value.isString) {
         result = unparseStringLiteral(exp);
       } else if (value.isInt) {
         result = new tree.LiteralInt(tok, null);
       } else if (value.isDouble) {
-        if (value.value == double.INFINITY) {
+        if (value.primitiveValue == double.INFINITY) {
           precedence = MULTIPLICATIVE;
           tok = new StringToken.fromString(STRING_INFO, '1/0.0', -1);
-        } else if (value.value == double.NEGATIVE_INFINITY) {
+        } else if (value.primitiveValue == double.NEGATIVE_INFINITY) {
           precedence = MULTIPLICATIVE;
           tok = new StringToken.fromString(STRING_INFO, '-1/0.0', -1);
-        } else if (value.value.isNaN) {
+        } else if (value.primitiveValue.isNaN) {
           precedence = MULTIPLICATIVE;
           tok = new StringToken.fromString(STRING_INFO, '0/0.0', -1);
         }

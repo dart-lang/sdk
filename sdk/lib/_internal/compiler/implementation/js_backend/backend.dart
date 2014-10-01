@@ -705,24 +705,24 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerCompileTimeConstant(Constant constant, Registry registry) {
+  void registerCompileTimeConstant(ConstantValue constant, Registry registry) {
     registerCompileTimeConstantInternal(constant, registry);
-    for (Constant dependency in constant.getDependencies()) {
+    for (ConstantValue dependency in constant.getDependencies()) {
       registerCompileTimeConstant(dependency, registry);
     }
   }
 
-  void registerCompileTimeConstantInternal(Constant constant,
+  void registerCompileTimeConstantInternal(ConstantValue constant,
                                            Registry registry) {
     DartType type = constant.computeType(compiler);
     registerInstantiatedConstantType(type, registry);
 
     if (constant.isFunction) {
-      FunctionConstant function = constant;
+      FunctionConstantValue function = constant;
       registry.registerGetOfStaticFunction(function.element);
     } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
-      InterceptorConstant interceptor = constant;
+      InterceptorConstantValue interceptor = constant;
       registerInstantiatedConstantType(interceptor.dispatchedType, registry);
     } else if (constant.isType) {
       enqueueInResolution(getCreateRuntimeType(), registry);
@@ -751,7 +751,7 @@ class JavaScriptBackend extends Backend {
                                 Element annotatedElement,
                                 Registry registry) {
     assert(registry.isForResolution);
-    Constant constant = constants.getConstantForMetadata(metadata).value;
+    ConstantValue constant = constants.getConstantForMetadata(metadata).value;
     registerCompileTimeConstant(constant, registry);
     metadataConstants.add(new Dependency(constant, annotatedElement));
   }
@@ -1154,7 +1154,7 @@ class JavaScriptBackend extends Backend {
       return;
     }
     if (kind.category == ElementCategory.VARIABLE) {
-      ConstExp initialValue = constants.getConstantForVariable(element);
+      ConstantExpression initialValue = constants.getConstantForVariable(element);
       if (initialValue != null) {
         registerCompileTimeConstant(initialValue.value, work.registry);
         constants.addCompileTimeConstantForEmission(initialValue.value);
@@ -1611,7 +1611,8 @@ class JavaScriptBackend extends Backend {
     if (mustRetainMetadata && referencedFromMirrorSystem(element)) {
       for (MetadataAnnotation metadata in element.metadata) {
         metadata.ensureResolved(compiler);
-        Constant constant = constants.getConstantForMetadata(metadata).value;
+        ConstantValue constant =
+            constants.getConstantForMetadata(metadata).value;
         constants.addCompileTimeConstantForEmission(constant);
       }
       return true;
@@ -1880,7 +1881,7 @@ class JavaScriptBackend extends Backend {
       // all metadata but only stuff that potentially would match one
       // of the used meta targets.
       metadata.ensureResolved(compiler);
-      Constant value = metadata.constant.value;
+      ConstantValue value = metadata.constant.value;
       if (value == null) continue;
       DartType type = value.computeType(compiler);
       if (metaTargetsUsed.contains(type.element)) return true;
@@ -2152,7 +2153,7 @@ class JavaScriptBackend extends Backend {
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
       if (!metadata.constant.value.isConstructedObject) continue;
-      ObjectConstant value = metadata.constant.value;
+      ObjectConstantValue value = metadata.constant.value;
       ClassElement cls = value.type.element;
       if (cls == noInlineClass) {
         hasNoInline = true;
@@ -2416,7 +2417,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
 
 /// Records that [constant] is used by the element behind [registry].
 class Dependency {
-  final Constant constant;
+  final ConstantValue constant;
   final Element annotatedElement;
 
   const Dependency(this.constant, this.annotatedElement);

@@ -778,12 +778,12 @@ class TypeGraphInferrerEngine
           if (type is! ListTypeInformation && type is! MapTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
-            ConstExp constant = compiler.backend.constants
+            ConstantExpression constant = compiler.backend.constants
                 .getConstantForVariable(element);
             if (constant != null) {
-              Constant value = constant.value;
+              ConstantValue value = constant.value;
               if (value.isFunction) {
-                FunctionConstant functionConstant = value;
+                FunctionConstantValue functionConstant = value;
                 type = types.allocateClosure(node, functionConstant.element);
               } else {
                 // Although we might find a better type, we have to keep

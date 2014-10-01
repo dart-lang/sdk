@@ -410,19 +410,19 @@ class DartConstantTask extends ConstantCompilerTask
 
   String get name => 'ConstantHandler';
 
-  ConstExp getConstantForVariable(VariableElement element) {
+  ConstantExpression getConstantForVariable(VariableElement element) {
     return constantCompiler.getConstantForVariable(element);
   }
 
-  ConstExp getConstantForNode(Node node, TreeElements elements) {
+  ConstantExpression getConstantForNode(Node node, TreeElements elements) {
     return constantCompiler.getConstantForNode(node, elements);
   }
 
-  ConstExp getConstantForMetadata(MetadataAnnotation metadata) {
+  ConstantExpression getConstantForMetadata(MetadataAnnotation metadata) {
     return metadata.constant;
   }
 
-  ConstExp compileConstant(VariableElement element) {
+  ConstantExpression compileConstant(VariableElement element) {
     return measure(() {
       return constantCompiler.compileConstant(element);
     });
@@ -434,13 +434,13 @@ class DartConstantTask extends ConstantCompilerTask
     });
   }
 
-  ConstExp compileNode(Node node, TreeElements elements) {
+  ConstantExpression compileNode(Node node, TreeElements elements) {
     return measure(() {
       return constantCompiler.compileNodeWithDefinitions(node, elements);
     });
   }
 
-  ConstExp compileMetadata(MetadataAnnotation metadata,
+  ConstantExpression compileMetadata(MetadataAnnotation metadata,
                            Node node,
                            TreeElements elements) {
     return measure(() {

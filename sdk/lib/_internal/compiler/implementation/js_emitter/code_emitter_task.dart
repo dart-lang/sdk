@@ -23,8 +23,8 @@ class CodeEmitterTask extends CompilerTask {
   final Set<ClassElement> neededClasses = new Set<ClassElement>();
   final Map<OutputUnit, List<ClassElement>> outputClassLists =
       new Map<OutputUnit, List<ClassElement>>();
-  final Map<OutputUnit, List<Constant>> outputConstantLists =
-      new Map<OutputUnit, List<Constant>>();
+  final Map<OutputUnit, List<ConstantValue>> outputConstantLists =
+      new Map<OutputUnit, List<ConstantValue>>();
   final List<ClassElement> nativeClasses = <ClassElement>[];
 
   /// Records if a type variable is read dynamically for type tests.
@@ -56,17 +56,17 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.generateEmbeddedGlobalAccess(global);
   }
 
-  jsAst.Expression constantReference(Constant value) {
+  jsAst.Expression constantReference(ConstantValue value) {
     return emitter.constantReference(value);
   }
 
   Set<ClassElement> interceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
     JavaScriptConstantCompiler handler = backend.constants;
-    List<Constant> constants = handler.getConstantsForEmission();
-    for (Constant constant in constants) {
-      if (constant is InterceptorConstant) {
-        InterceptorConstant interceptorConstant = constant;
+    List<ConstantValue> constants = handler.getConstantsForEmission();
+    for (ConstantValue constant in constants) {
+      if (constant is InterceptorConstantValue) {
+        InterceptorConstantValue interceptorConstant = constant;
         classes.add(interceptorConstant.dispatchedType.element);
       }
     }
@@ -121,9 +121,9 @@ class CodeEmitterTask extends CompilerTask {
    */
   void computeNeededConstants() {
     JavaScriptConstantCompiler handler = backend.constants;
-    List<Constant> constants = handler.getConstantsForEmission(
+    List<ConstantValue> constants = handler.getConstantsForEmission(
         compiler.hasIncrementalSupport ? null : emitter.compareConstants);
-    for (Constant constant in constants) {
+    for (ConstantValue constant in constants) {
       if (emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
       OutputUnit constantUnit =
           compiler.deferredLoadTask.outputUnitForConstant(constant);
@@ -133,7 +133,7 @@ class CodeEmitterTask extends CompilerTask {
         // TODO(sigurdm): We should track those constants.
         constantUnit = compiler.deferredLoadTask.mainOutputUnit;
       }
-      outputConstantLists.putIfAbsent(constantUnit, () => new List<Constant>())
+      outputConstantLists.putIfAbsent(constantUnit, () => new List<ConstantValue>())
           .add(constant);
     }
   }
@@ -276,10 +276,10 @@ abstract class Emitter {
   void emitProgram();
 
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
-  jsAst.Expression constantReference(Constant value);
+  jsAst.Expression constantReference(ConstantValue value);
 
-  int compareConstants(Constant a, Constant b);
-  bool isConstantInlinedOrAlreadyEmitted(Constant constant);
+  int compareConstants(ConstantValue a, ConstantValue b);
+  bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
 
   void invalidateCaches();
 }

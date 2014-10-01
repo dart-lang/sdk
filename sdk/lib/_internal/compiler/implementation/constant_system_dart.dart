@@ -9,10 +9,10 @@ const DART_CONSTANT_SYSTEM = const DartConstantSystem();
 class BitNotOperation implements UnaryOperation {
   final String name = '~';
   const BitNotOperation();
-  Constant fold(Constant constant) {
+  ConstantValue fold(ConstantValue constant) {
     if (constant.isInt) {
-      IntConstant intConstant = constant;
-      return DART_CONSTANT_SYSTEM.createInt(~intConstant.value);
+      IntConstantValue intConstant = constant;
+      return DART_CONSTANT_SYSTEM.createInt(~intConstant.primitiveValue);
     }
     return null;
   }
@@ -21,14 +21,14 @@ class BitNotOperation implements UnaryOperation {
 class NegateOperation implements UnaryOperation {
   final String name = 'negate';
   const NegateOperation();
-  Constant fold(Constant constant) {
+  ConstantValue fold(ConstantValue constant) {
     if (constant.isInt) {
-      IntConstant intConstant = constant;
-      return DART_CONSTANT_SYSTEM.createInt(-intConstant.value);
+      IntConstantValue intConstant = constant;
+      return DART_CONSTANT_SYSTEM.createInt(-intConstant.primitiveValue);
     }
     if (constant.isDouble) {
-      DoubleConstant doubleConstant = constant;
-      return DART_CONSTANT_SYSTEM.createDouble(-doubleConstant.value);
+      DoubleConstantValue doubleConstant = constant;
+      return DART_CONSTANT_SYSTEM.createDouble(-doubleConstant.primitiveValue);
     }
     return null;
   }
@@ -37,10 +37,10 @@ class NegateOperation implements UnaryOperation {
 class NotOperation implements UnaryOperation {
   final String name = '!';
   const NotOperation();
-  Constant fold(Constant constant) {
+  ConstantValue fold(ConstantValue constant) {
     if (constant.isBool) {
-      BoolConstant boolConstant = constant;
-      return DART_CONSTANT_SYSTEM.createBool(!boolConstant.value);
+      BoolConstantValue boolConstant = constant;
+      return DART_CONSTANT_SYSTEM.createBool(!boolConstant.primitiveValue);
     }
     return null;
   }
@@ -51,11 +51,12 @@ class NotOperation implements UnaryOperation {
  */
 abstract class BinaryBitOperation implements BinaryOperation {
   const BinaryBitOperation();
-  Constant fold(Constant left, Constant right) {
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
     if (left.isInt && right.isInt) {
-      IntConstant leftInt = left;
-      IntConstant rightInt = right;
-      int resultValue = foldInts(leftInt.value, rightInt.value);
+      IntConstantValue leftInt = left;
+      IntConstantValue rightInt = right;
+      int resultValue =
+          foldInts(leftInt.primitiveValue, rightInt.primitiveValue);
       if (resultValue == null) return null;
       return DART_CONSTANT_SYSTEM.createInt(resultValue);
     }
@@ -110,11 +111,12 @@ class ShiftRightOperation extends BinaryBitOperation {
 
 abstract class BinaryBoolOperation implements BinaryOperation {
   const BinaryBoolOperation();
-  Constant fold(Constant left, Constant right) {
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
     if (left.isBool && right.isBool) {
-      BoolConstant leftBool = left;
-      BoolConstant rightBool = right;
-      bool resultValue = foldBools(leftBool.value, rightBool.value);
+      BoolConstantValue leftBool = left;
+      BoolConstantValue rightBool = right;
+      bool resultValue =
+          foldBools(leftBool.primitiveValue, rightBool.primitiveValue);
       return DART_CONSTANT_SYSTEM.createBool(resultValue);
     }
     return null;
@@ -139,15 +141,15 @@ class BooleanOrOperation extends BinaryBoolOperation {
 
 abstract class ArithmeticNumOperation implements BinaryOperation {
   const ArithmeticNumOperation();
-  Constant fold(Constant left, Constant right) {
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
     if (left.isNum && right.isNum) {
-      NumConstant leftNum = left;
-      NumConstant rightNum = right;
+      NumConstantValue leftNum = left;
+      NumConstantValue rightNum = right;
       num foldedValue;
       if (left.isInt && right.isInt) {
-        foldedValue = foldInts(leftNum.value, rightNum.value);
+        foldedValue = foldInts(leftNum.primitiveValue, rightNum.primitiveValue);
       } else {
-        foldedValue = foldNums(leftNum.value, rightNum.value);
+        foldedValue = foldNums(leftNum.primitiveValue, rightNum.primitiveValue);
       }
       // A division by 0 means that we might not have a folded value.
       if (foldedValue == null) return null;
@@ -220,16 +222,16 @@ class DivideOperation extends ArithmeticNumOperation {
 class AddOperation implements BinaryOperation {
   final String name = '+';
   const AddOperation();
-  Constant fold(Constant left, Constant right) {
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
     if (left.isInt && right.isInt) {
-      IntConstant leftInt = left;
-      IntConstant rightInt = right;
-      int result = leftInt.value + rightInt.value;
+      IntConstantValue leftInt = left;
+      IntConstantValue rightInt = right;
+      int result = leftInt.primitiveValue + rightInt.primitiveValue;
       return DART_CONSTANT_SYSTEM.createInt(result);
     } else if (left.isNum && right.isNum) {
-      NumConstant leftNum = left;
-      NumConstant rightNum = right;
-      double result = leftNum.value + rightNum.value;
+      NumConstantValue leftNum = left;
+      NumConstantValue rightNum = right;
+      double result = leftNum.primitiveValue + rightNum.primitiveValue;
       return DART_CONSTANT_SYSTEM.createDouble(result);
     } else {
       return null;
@@ -240,11 +242,12 @@ class AddOperation implements BinaryOperation {
 
 abstract class RelationalNumOperation implements BinaryOperation {
   const RelationalNumOperation();
-  Constant fold(Constant left, Constant right) {
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
     if (!left.isNum || !right.isNum) return null;
-    NumConstant leftNum = left;
-    NumConstant rightNum = right;
-    bool foldedValue = foldNums(leftNum.value, rightNum.value);
+    NumConstantValue leftNum = left;
+    NumConstantValue rightNum = right;
+    bool foldedValue =
+        foldNums(leftNum.primitiveValue, rightNum.primitiveValue);
     assert(foldedValue != null);
     return DART_CONSTANT_SYSTEM.createBool(foldedValue);
   }
@@ -283,13 +286,13 @@ class GreaterEqualOperation extends RelationalNumOperation {
 class EqualsOperation implements BinaryOperation {
   final String name = '==';
   const EqualsOperation();
-  Constant fold(Constant left, Constant right) {
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
     if (left.isNum && right.isNum) {
       // Numbers need to be treated specially because: NaN != NaN, -0.0 == 0.0,
       // and 1 == 1.0.
-      NumConstant leftNum = left;
-      NumConstant rightNum = right;
-      bool result = leftNum.value == rightNum.value;
+      NumConstantValue leftNum = left;
+      NumConstantValue rightNum = right;
+      bool result = leftNum.primitiveValue == rightNum.primitiveValue;
       return DART_CONSTANT_SYSTEM.createBool(result);
     }
     if (left.isConstructedObject) {
@@ -305,7 +308,7 @@ class EqualsOperation implements BinaryOperation {
 class IdentityOperation implements BinaryOperation {
   final String name = '===';
   const IdentityOperation();
-  BoolConstant fold(Constant left, Constant right) {
+  BoolConstantValue fold(ConstantValue left, ConstantValue right) {
     // In order to preserve runtime semantics which says that NaN !== NaN don't
     // constant fold NaN === NaN. Otherwise the output depends on inlined
     // variables and other optimizations.
@@ -347,21 +350,25 @@ class DartConstantSystem extends ConstantSystem {
 
   const DartConstantSystem();
 
-  IntConstant createInt(int i) => new IntConstant(i);
-  DoubleConstant createDouble(double d) => new DoubleConstant(d);
-  StringConstant createString(DartString string) => new StringConstant(string);
-  BoolConstant createBool(bool value) => new BoolConstant(value);
-  NullConstant createNull() => new NullConstant();
-  MapConstant createMap(Compiler compiler, InterfaceType type,
-                        List<Constant> keys, List<Constant> values) {
-    return new MapConstant(type, keys, values);
+  IntConstantValue createInt(int i) => new IntConstantValue(i);
+  DoubleConstantValue createDouble(double d) => new DoubleConstantValue(d);
+  StringConstantValue createString(DartString string) {
+    return new StringConstantValue(string);
+  }
+  BoolConstantValue createBool(bool value) => new BoolConstantValue(value);
+  NullConstantValue createNull() => new NullConstantValue();
+  MapConstantValue createMap(Compiler compiler,
+                             InterfaceType type,
+                             List<ConstantValue> keys,
+                             List<ConstantValue> values) {
+    return new MapConstantValue(type, keys, values);
   }
 
-  bool isInt(Constant constant) => constant.isInt;
-  bool isDouble(Constant constant) => constant.isDouble;
-  bool isString(Constant constant) => constant.isString;
-  bool isBool(Constant constant) => constant.isBool;
-  bool isNull(Constant constant) => constant.isNull;
+  bool isInt(ConstantValue constant) => constant.isInt;
+  bool isDouble(ConstantValue constant) => constant.isDouble;
+  bool isString(ConstantValue constant) => constant.isString;
+  bool isBool(ConstantValue constant) => constant.isBool;
+  bool isNull(ConstantValue constant) => constant.isNull;
 
   bool isSubtype(Compiler compiler, DartType s, DartType t) {
     return compiler.types.isSubtype(s, t);

@@ -16,7 +16,7 @@ class OldEmitter implements Emitter {
   final InterceptorEmitter interceptorEmitter = new InterceptorEmitter();
   final MetadataEmitter metadataEmitter = new MetadataEmitter();
 
-  final Set<Constant> cachedEmittedConstants;
+  final Set<ConstantValue> cachedEmittedConstants;
   final CodeBuffer cachedEmittedConstantsBuffer = new CodeBuffer();
   final Map<Element, ClassBuilder> cachedClassBuilders;
   final Set<Element> cachedElements;
@@ -39,7 +39,7 @@ class OldEmitter implements Emitter {
   Set<ClassElement> get neededClasses => task.neededClasses;
   Map<OutputUnit, List<ClassElement>> get outputClassLists
       => task.outputClassLists;
-  Map<OutputUnit, List<Constant>> get outputConstantLists
+  Map<OutputUnit, List<ConstantValue>> get outputConstantLists
       => task.outputConstantLists;
   List<ClassElement> get nativeClasses => task.nativeClasses;
   final Map<String, String> mangledFieldNames = <String, String>{};
@@ -142,11 +142,11 @@ class OldEmitter implements Emitter {
     buffer.write(jsAst.prettyPrint(js.comment(comment), compiler));
   }
 
-  jsAst.Expression constantReference(Constant value) {
+  jsAst.Expression constantReference(ConstantValue value) {
     return constantEmitter.reference(value);
   }
 
-  jsAst.Expression constantInitializerExpression(Constant value) {
+  jsAst.Expression constantInitializerExpression(ConstantValue value) {
     return constantEmitter.initializationExpression(value);
   }
 
@@ -903,7 +903,7 @@ class OldEmitter implements Emitter {
       // `mapTypeToInterceptor` is handled in [emitMapTypeToInterceptor].
       if (element == backend.mapTypeToInterceptor) continue;
       compiler.withCurrentElement(element, () {
-        Constant initialValue = handler.getInitialValueFor(element).value;
+        ConstantValue initialValue = handler.getInitialValueFor(element).value;
         jsAst.Expression init =
           js('$isolateProperties.# = #',
               [namer.getNameOfGlobalField(element),
@@ -953,7 +953,7 @@ class OldEmitter implements Emitter {
     return null;
   }
 
-  bool isConstantInlinedOrAlreadyEmitted(Constant constant) {
+  bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
     if (constant.isFunction) return true;    // Already emitted.
     if (constant.isPrimitive) return true;   // Inlined.
     if (constant.isDummy) return true;       // Inlined.
@@ -964,7 +964,7 @@ class OldEmitter implements Emitter {
     return false;
   }
 
-  int compareConstants(Constant a, Constant b) {
+  int compareConstants(ConstantValue a, ConstantValue b) {
     // Inlined constants don't affect the order and sometimes don't even have
     // names.
     int cmp1 = isConstantInlinedOrAlreadyEmitted(a) ? 0 : 1;
@@ -987,13 +987,13 @@ class OldEmitter implements Emitter {
   }
 
   void emitCompileTimeConstants(CodeBuffer buffer, OutputUnit outputUnit) {
-    List<Constant> constants = outputConstantLists[outputUnit];
+    List<ConstantValue> constants = outputConstantLists[outputUnit];
     if (constants == null) return;
     bool isMainBuffer = buffer == mainBuffer;
     if (compiler.hasIncrementalSupport && isMainBuffer) {
       buffer = cachedEmittedConstantsBuffer;
     }
-    for (Constant constant in constants) {
+    for (ConstantValue constant in constants) {
       if (compiler.hasIncrementalSupport && isMainBuffer) {
         if (cachedEmittedConstants.contains(constant)) continue;
         cachedEmittedConstants.add(constant);

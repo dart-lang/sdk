@@ -16,8 +16,8 @@ import 'package:compiler/implementation/apiimpl.dart' show
     Compiler;
 
 import 'package:compiler/implementation/constants/values.dart' show
-    Constant,
-    TypeConstant;
+    ConstantValue,
+    TypeConstantValue;
 
 import 'package:compiler/implementation/elements/elements.dart' show
     Element,
@@ -115,11 +115,11 @@ void main() {
     // 1. The constructed constant for 'MirrorsUsed'.
     Expect.isTrue(backend.metadataConstants.length >= 1);
 
-    Set<Constant> compiledConstants = backend.constants.compiledConstants;
+    Set<ConstantValue> compiledConstants = backend.constants.compiledConstants;
     // Make sure that most of the metadata constants aren't included in the
     // generated code.
     for (var dependency in backend.metadataConstants) {
-      Constant constant = dependency.constant;
+      ConstantValue constant = dependency.constant;
       Expect.isFalse(compiledConstants.contains(constant),
                      constant.toStructuredString());
     }
@@ -127,8 +127,9 @@ void main() {
     // The type literal 'Foo' is both used as metadata, and as a plain value in
     // the program. Make sure that it isn't duplicated.
     int fooConstantCount = 0;
-    for (Constant constant in compiledConstants) {
-      if (constant is TypeConstant && '${constant.representedType}' == 'Foo') {
+    for (ConstantValue constant in compiledConstants) {
+      if (constant is TypeConstantValue &&
+          '${constant.representedType}' == 'Foo') {
         fooConstantCount++;
       }
     }

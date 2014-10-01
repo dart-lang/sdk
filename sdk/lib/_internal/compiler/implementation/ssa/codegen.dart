@@ -1261,7 +1261,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(right);
       push(new js.Binary(mapRelationalOperator(op, inverse), jsLeft, pop()));
     } else {
-      assert(NullConstant.JsNull == 'null');
+      assert(NullConstantValue.JsNull == 'null');
       use(left);
       js.Binary leftEqualsNull =
           new js.Binary("==", pop(), new js.LiteralNull());
@@ -1803,15 +1803,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void generateConstant(Constant constant) {
+  void generateConstant(ConstantValue constant) {
     if (constant.isFunction) {
-      FunctionConstant function = constant;
+      FunctionConstantValue function = constant;
       registry.registerStaticUse(function.element);
     }
     if (constant.isType) {
       // If the type is a web component, we need to ensure the constructors are
       // available to 'upgrade' the native object.
-      TypeConstant type = constant;
+      TypeConstantValue type = constant;
       Element element = type.representedType.element;
       if (element != null && element.isClass) {
         registry.registerTypeConstant(element);
@@ -2188,7 +2188,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       => checkTypeOf(input, cmp, 'boolean');
 
   void checkObject(HInstruction input, String cmp) {
-    assert(NullConstant.JsNull == 'null');
+    assert(NullConstantValue.JsNull == 'null');
     if (cmp == "===") {
       checkTypeOf(input, '===', 'object');
       js.Expression left = pop();

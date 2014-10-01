@@ -7,9 +7,9 @@
 
 library sexpr_unstringifier;
 
-import 'package:compiler/implementation/constants/values.dart' as values
-    show Constant, IntConstant, NullConstant, StringConstant,
-         DoubleConstant, TrueConstant, FalseConstant;
+import 'package:compiler/implementation/constants/expressions.dart'
+    show PrimitiveConstantExpression;
+import 'package:compiler/implementation/constants/values.dart';
 import 'package:compiler/implementation/dart2jslib.dart' as dart2js
     show MessageKind;
 import 'package:compiler/implementation/dart_types.dart' as dart_types
@@ -23,8 +23,6 @@ import 'package:compiler/implementation/tree/tree.dart' show LiteralDartString;
 import 'package:compiler/implementation/universe/universe.dart'
     show Selector, SelectorKind;
 import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart';
-import 'package:compiler/implementation/constants/expressions.dart'
-    show PrimitiveConstExp;
 
 /// Used whenever a node constructed by [SExpressionUnstringifier] needs a
 /// named entity.
@@ -558,7 +556,8 @@ class SExpressionUnstringifier {
     // NullConstant.
     if (tag == "NullConstant") {
       tokens.consumeEnd();
-      return new Constant(new PrimitiveConstExp(new values.NullConstant()));
+      return new Constant(
+          new PrimitiveConstantExpression(new NullConstantValue()));
     }
 
     // BoolConstant.
@@ -568,11 +567,11 @@ class SExpressionUnstringifier {
       tokens.consumeEnd();
       tokens.consumeEnd();
       if (tag == "true") {
-        return new Constant(new PrimitiveConstExp(
-            new values.TrueConstant()));
+        return new Constant(new PrimitiveConstantExpression(
+            new TrueConstantValue()));
       } else if (tag == "false") {
-        return new Constant(new PrimitiveConstExp(
-            new values.FalseConstant()));
+        return new Constant(new PrimitiveConstantExpression(
+            new FalseConstantValue()));
       }
       throw "Invalid bool value '$tag'.";
     }
@@ -589,11 +588,11 @@ class SExpressionUnstringifier {
       String string = strings.join(" ");
       assert(string.startsWith('"') && string.endsWith('"'));
 
-      values.StringConstant value = new values.StringConstant(
+      StringConstantValue value = new StringConstantValue(
           new LiteralDartString(string.substring(1, string.length - 1)));
 
       tokens.consumeEnd();
-      return new Constant(new PrimitiveConstExp(value));
+      return new Constant(new PrimitiveConstantExpression(value));
     }
 
     // IntConstant.
@@ -606,8 +605,8 @@ class SExpressionUnstringifier {
       }
       tokens.consumeEnd();
       tokens.consumeEnd();
-      return new Constant(new PrimitiveConstExp(
-          new values.IntConstant(intValue)));
+      return new Constant(new PrimitiveConstantExpression(
+          new IntConstantValue(intValue)));
     }
 
     // DoubleConstant.
@@ -620,8 +619,8 @@ class SExpressionUnstringifier {
       }
       tokens.consumeEnd();
       tokens.consumeEnd();
-      return new Constant(new PrimitiveConstExp(
-          new values.DoubleConstant(doubleValue)));
+      return new Constant(new PrimitiveConstantExpression(
+          new DoubleConstantValue(doubleValue)));
     }
 
     throw "Unhandled tag '$tag'.";

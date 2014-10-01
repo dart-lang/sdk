@@ -123,7 +123,7 @@ class CodegenRegistry extends Registry {
     backend.registerIsCheckForCodegen(type, world, this);
   }
 
-  void registerCompileTimeConstant(Constant constant) {
+  void registerCompileTimeConstant(ConstantValue constant) {
     backend.registerCompileTimeConstant(constant, this);
     backend.constants.addCompileTimeConstantForEmission(constant);
   }
@@ -276,7 +276,7 @@ abstract class Backend {
   bool methodNeedsRti(FunctionElement function);
 
   /// Called during codegen when [constant] has been used.
-  void registerCompileTimeConstant(Constant constant, Registry registry) {}
+  void registerCompileTimeConstant(ConstantValue constant, Registry registry) {}
 
   /// Called during resolution when a constant value for [metadata] on
   /// [annotatedElement] has been evaluated.
@@ -757,11 +757,11 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement typedDataClass;
 
   /// The constant for the [proxy] variable defined in dart:core.
-  Constant proxyConstant;
+  ConstantValue proxyConstant;
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   /// The constant for the [patch] variable defined in dart:_js_helper.
-  Constant patchConstant;
+  ConstantValue patchConstant;
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   ClassElement nativeAnnotationClass;

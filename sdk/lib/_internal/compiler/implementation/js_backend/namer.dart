@@ -256,8 +256,8 @@ class Namer implements ClosureNamer {
   final Map<String, String> operatorNameMap;
   final Map<String, int> popularNameCounters;
 
-  final Map<Constant, String> constantNames;
-  final Map<Constant, String> constantLongNames;
+  final Map<ConstantValue, String> constantNames;
+  final Map<ConstantValue, String> constantLongNames;
   ConstantCanonicalHasher constantHasher;
 
   // All alphanumeric characters.
@@ -276,8 +276,8 @@ class Namer implements ClosureNamer {
         suggestedGlobalNames = new Map<String, String>(),
         suggestedInstanceNames = new Map<String, String>(),
         popularNameCounters = new Map<String, int>(),
-        constantNames = new Map<Constant, String>(),
-        constantLongNames = new Map<Constant, String>(),
+        constantNames = new Map<ConstantValue, String>(),
+        constantLongNames = new Map<ConstantValue, String>(),
         constantHasher = new ConstantCanonicalHasher(compiler),
         functionTypeNamer = new FunctionTypeNamer(compiler);
 
@@ -309,7 +309,7 @@ class Namer implements ClosureNamer {
     }
   }
 
-  String constantName(Constant constant) {
+  String constantName(ConstantValue constant) {
     // In the current implementation it doesn't make sense to give names to
     // function constants since the function-implementation itself serves as
     // constant and can be accessed directly.
@@ -325,7 +325,7 @@ class Namer implements ClosureNamer {
   }
 
   // The long name is unminified and may have collisions.
-  String constantLongName(Constant constant) {
+  String constantLongName(ConstantValue constant) {
     String longName = constantLongNames[constant];
     if (longName == null) {
       longName = new ConstantNamingVisitor(compiler, constantHasher)
@@ -880,7 +880,7 @@ class Namer implements ClosureNamer {
     return "${globalObjectFor(element)}.${getNameX(element)}";
   }
 
-  String globalObjectForConstant(Constant constant) => 'C';
+  String globalObjectForConstant(ConstantValue constant) => 'C';
 
   String operatorIsPrefix() => r'$is';
 
@@ -1006,7 +1006,7 @@ class Namer implements ClosureNamer {
 }
 
 /**
- * Generator of names for [Constant] values.
+ * Generator of names for [ConstantValue] values.
  *
  * The names are stable under perturbations of the source.  The name is either a
  * short sequence of words, if this can be found from the constant, or a type
@@ -1020,7 +1020,7 @@ class Namer implements ClosureNamer {
  *     EventKeyProvider_keyup  // const EventKeyProvider('keyup')
  *
  */
-class ConstantNamingVisitor implements ConstantVisitor {
+class ConstantNamingVisitor implements ConstantValueVisitor {
 
   static final RegExp IDENTIFIER = new RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
   static const MAX_FRAGMENTS = 5;
@@ -1037,7 +1037,7 @@ class ConstantNamingVisitor implements ConstantVisitor {
 
   ConstantNamingVisitor(this.compiler, this.hasher);
 
-  String getName(Constant constant) {
+  String getName(ConstantValue constant) {
     _visit(constant);
     if (root == null) return 'CONSTANT';
     if (failed) return '${root}_${getHashTag(constant, DEFAULT_TAG_LENGTH)}';
@@ -1045,7 +1045,7 @@ class ConstantNamingVisitor implements ConstantVisitor {
     return fragments.join('_');
   }
 
-  String getHashTag(Constant constant, int width) =>
+  String getHashTag(ConstantValue constant, int width) =>
       hashWord(hasher.getHash(constant), width);
 
   String hashWord(int hash, int length) {
@@ -1086,45 +1086,45 @@ class ConstantNamingVisitor implements ConstantVisitor {
     }
   }
 
-  _visit(Constant constant) {
+  _visit(ConstantValue constant) {
     return constant.accept(this);
   }
 
-  visitFunction(FunctionConstant constant) {
+  visitFunction(FunctionConstantValue constant) {
     add(constant.element.name);
   }
 
-  visitNull(NullConstant constant) {
+  visitNull(NullConstantValue constant) {
     add('null');
   }
 
-  visitInt(IntConstant constant) {
+  visitInt(IntConstantValue constant) {
     // No `addRoot` since IntConstants are always inlined.
-    if (constant.value < 0) {
-      add('m${-constant.value}');
+    if (constant.primitiveValue < 0) {
+      add('m${-constant.primitiveValue}');
     } else {
-      add('${constant.value}');
+      add('${constant.primitiveValue}');
     }
   }
 
-  visitDouble(DoubleConstant constant) {
+  visitDouble(DoubleConstantValue constant) {
     failed = true;
   }
 
-  visitTrue(TrueConstant constant) {
+  visitTrue(TrueConstantValue constant) {
     add('true');
   }
 
-  visitFalse(FalseConstant constant) {
+  visitFalse(FalseConstantValue constant) {
     add('false');
   }
 
-  visitString(StringConstant constant) {
+  visitString(StringConstantValue constant) {
     // No `addRoot` since string constants are always inlined.
-    addIdentifier(constant.value.slowToString());
+    addIdentifier(constant.primitiveValue.slowToString());
   }
 
-  visitList(ListConstant constant) {
+  visitList(ListConstantValue constant) {
     // TODO(9476): Incorporate type parameters into name.
     addRoot('List');
     int length = constant.length;
@@ -1152,7 +1152,7 @@ class ConstantNamingVisitor implements ConstantVisitor {
     }
   }
 
-  visitConstructed(ConstructedConstant constant) {
+  visitConstructed(ConstructedConstantValue constant) {
     addRoot(constant.type.element.name);
     for (int i = 0; i < constant.fields.length; i++) {
       _visit(constant.fields[i]);
@@ -1160,7 +1160,7 @@ class ConstantNamingVisitor implements ConstantVisitor {
     }
   }
 
-  visitType(TypeConstant constant) {
+  visitType(TypeConstantValue constant) {
     addRoot('Type');
     DartType type = constant.representedType;
     JavaScriptBackend backend = compiler.backend;
@@ -1168,42 +1168,42 @@ class ConstantNamingVisitor implements ConstantVisitor {
     addIdentifier(name);
   }
 
-  visitInterceptor(InterceptorConstant constant) {
+  visitInterceptor(InterceptorConstantValue constant) {
     addRoot(constant.dispatchedType.element.name);
     add('methods');
   }
 
-  visitDummy(DummyConstant constant) {
+  visitDummy(DummyConstantValue constant) {
     add('dummy_receiver');
   }
 
-  visitDeferred(DeferredConstant constant) {
+  visitDeferred(DeferredConstantValue constant) {
     addRoot('Deferred');
   }
 }
 
 /**
- * Generates canonical hash values for [Constant]s.
+ * Generates canonical hash values for [ConstantValue]s.
  *
  * Unfortunately, [Constant.hashCode] is not stable under minor perturbations,
  * so it can't be used for generating names.  This hasher keeps consistency
  * between runs by basing hash values of the names of elements, rather than
  * their hashCodes.
  */
-class ConstantCanonicalHasher implements ConstantVisitor<int> {
+class ConstantCanonicalHasher implements ConstantValueVisitor<int> {
 
   static const _MASK = 0x1fffffff;
   static const _UINT32_LIMIT = 4 * 1024 * 1024 * 1024;
 
 
   final Compiler compiler;
-  final Map<Constant, int> hashes = new Map<Constant, int>();
+  final Map<ConstantValue, int> hashes = new Map<ConstantValue, int>();
 
   ConstantCanonicalHasher(this.compiler);
 
-  int getHash(Constant constant) => _visit(constant);
+  int getHash(ConstantValue constant) => _visit(constant);
 
-  int _visit(Constant constant) {
+  int _visit(ConstantValue constant) {
     int hash = hashes[constant];
     if (hash == null) {
       hash = _finish(constant.accept(this));
@@ -1212,32 +1212,34 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
     return hash;
   }
 
-  int visitNull(NullConstant constant) => 1;
-  int visitTrue(TrueConstant constant) => 2;
-  int visitFalse(FalseConstant constant) => 3;
+  int visitNull(NullConstantValue constant) => 1;
+  int visitTrue(TrueConstantValue constant) => 2;
+  int visitFalse(FalseConstantValue constant) => 3;
 
-  int visitFunction(FunctionConstant constant) {
+  int visitFunction(FunctionConstantValue constant) {
     return _hashString(1, constant.element.name);
   }
 
-  int visitInt(IntConstant constant) => _hashInt(constant.value);
+  int visitInt(IntConstantValue constant) => _hashInt(constant.primitiveValue);
 
-  int visitDouble(DoubleConstant constant) => _hashDouble(constant.value);
-
-  int visitString(StringConstant constant) {
-    return _hashString(2, constant.value.slowToString());
+  int visitDouble(DoubleConstantValue constant) {
+    return _hashDouble(constant.primitiveValue);
   }
 
-  int visitList(ListConstant constant) {
+  int visitString(StringConstantValue constant) {
+    return _hashString(2, constant.primitiveValue.slowToString());
+  }
+
+  int visitList(ListConstantValue constant) {
     return _hashList(constant.length, constant.entries);
   }
 
-  int visitMap(MapConstant constant) {
+  int visitMap(MapConstantValue constant) {
     int hash = _hashList(constant.length, constant.keys);
     return _hashList(hash, constant.values);
   }
 
-  int visitConstructed(ConstructedConstant constant) {
+  int visitConstructed(ConstructedConstantValue constant) {
     int hash = _hashString(3, constant.type.element.name);
     for (int i = 0; i < constant.fields.length; i++) {
       hash = _combine(hash, _visit(constant.fields[i]));
@@ -1245,24 +1247,24 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
     return hash;
   }
 
-  int visitType(TypeConstant constant) {
+  int visitType(TypeConstantValue constant) {
     DartType type = constant.representedType;
     JavaScriptBackend backend = compiler.backend;
     String name = backend.rti.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);
   }
 
-  visitInterceptor(InterceptorConstant constant) {
+  visitInterceptor(InterceptorConstantValue constant) {
     String typeName = constant.dispatchedType.element.name;
     return _hashString(5, typeName);
   }
 
-  visitDummy(DummyConstant constant) {
+  visitDummy(DummyConstantValue constant) {
     compiler.internalError(NO_LOCATION_SPANNABLE,
         'DummyReceiverConstant should never be named and never be subconstant');
   }
 
-  visitDeferred(DeferredConstant constant) {
+  visitDeferred(DeferredConstantValue constant) {
     int hash = constant.prefix.hashCode;
     return _combine(hash, constant.referenced.accept(this));
   }
@@ -1278,8 +1280,8 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
     return hash;
   }
 
-  int _hashList(int hash, List<Constant> constants) {
-    for (Constant constant in constants) {
+  int _hashList(int hash, List<ConstantValue> constants) {
+    for (ConstantValue constant in constants) {
       hash = _combine(hash, _visit(constant));
     }
     return hash;

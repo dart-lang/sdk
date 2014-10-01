@@ -58,7 +58,7 @@ class SsaBuilderTask extends CompilerTask {
           FunctionSignature signature = function.functionSignature;
           signature.forEachOptionalParameter((ParameterElement parameter) {
             // This ensures the default value will be computed.
-            Constant constant =
+            ConstantValue constant =
                 backend.constants.getConstantForVariable(parameter).value;
             CodegenRegistry registry = work.registry;
             registry.registerCompileTimeConstant(constant);
@@ -1346,7 +1346,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   HInstruction handleConstantForOptionalParameter(Element parameter) {
-    ConstExp constant =
+    ConstantExpression constant =
         backend.constants.getConstantForVariable(parameter);
     assert(invariant(parameter, constant != null,
         message: 'No constant computed for $parameter'));
@@ -1385,8 +1385,8 @@ class SsaBuilder extends ResolvedVisitor {
 
   bool inTryStatement = false;
 
-  Constant getConstantForNode(ast.Node node) {
-    ConstExp constant =
+  ConstantValue getConstantForNode(ast.Node node) {
+    ConstantExpression constant =
         backend.constants.getConstantForNode(node, elements);
     assert(invariant(node, constant != null,
         message: 'No constant computed for $node'));
@@ -1398,7 +1398,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   bool isLazilyInitialized(VariableElement element) {
-    ConstExp initialValue =
+    ConstantExpression initialValue =
         backend.constants.getConstantForVariable(element);
     return initialValue == null;
   }
@@ -2059,8 +2059,8 @@ class SsaBuilder extends ResolvedVisitor {
         if (remainingTypeVariables == 0) return false;
         remainingTypeVariables--;
         // Check that the index is the one we expect.
-        IntConstant constant = index.constant;
-        return constant.value == expectedIndex++;
+        IntConstantValue constant = index.constant;
+        return constant.primitiveValue == expectedIndex++;
       }
 
       List<HInstruction> typeArguments = <HInstruction>[];
@@ -2092,7 +2092,8 @@ class SsaBuilder extends ResolvedVisitor {
       List bodyCallInputs = <HInstruction>[];
       if (isNativeUpgradeFactory) {
         if (interceptor == null) {
-          Constant constant = new InterceptorConstant(classElement.thisType);
+          ConstantValue constant =
+              new InterceptorConstantValue(classElement.thisType);
           interceptor = graph.addConstant(constant, compiler);
         }
         bodyCallInputs.add(interceptor);
@@ -2999,7 +3000,7 @@ class SsaBuilder extends ResolvedVisitor {
     if (operand is HConstant) {
       UnaryOperation operation = constantSystem.lookupUnary(op.source);
       HConstant constant = operand;
-      Constant folded = operation.fold(constant.constant);
+      ConstantValue folded = operation.fold(constant.constant);
       if (folded != null) {
         stack.add(graph.addConstant(folded, compiler));
         return;
@@ -3082,14 +3083,14 @@ class SsaBuilder extends ResolvedVisitor {
     if (element != null && element.isForeign(backend)) {
       visitForeignGetter(send);
     } else if (Elements.isStaticOrTopLevelField(element)) {
-      ConstExp constant;
+      ConstantExpression constant;
       if (element.isField && !element.isAssignable) {
         // A static final or const. Get its constant value and inline it if
         // the value can be compiled eagerly.
         constant = backend.constants.getConstantForVariable(element);
       }
       if (constant != null) {
-        Constant value = constant.value;
+        ConstantValue value = constant.value;
         HConstant instruction;
         // Constants that are referred via a deferred prefix should be referred
         // by reference.
@@ -3642,8 +3643,8 @@ class SsaBuilder extends ResolvedVisitor {
       return;
     }
     HConstant hConstant = globalNameHNode;
-    StringConstant constant = hConstant.constant;
-    String globalName = constant.value.slowToString();
+    StringConstantValue constant = hConstant.constant;
+    String globalName = constant.primitiveValue.slowToString();
     js.Template expr = js.js.expressionTemplateYielding(
         backend.emitter.generateEmbeddedGlobalAccess(globalName));
     native.NativeBehavior nativeBehavior =
@@ -3661,10 +3662,10 @@ class SsaBuilder extends ResolvedVisitor {
       visit(argument);
       HInstruction argumentInstruction = pop();
       if (argumentInstruction is HConstant) {
-        Constant argumentConstant = argumentInstruction.constant;
-        if (argumentConstant is TypeConstant) {
-          Constant constant =
-              new InterceptorConstant(argumentConstant.representedType);
+        ConstantValue argumentConstant = argumentInstruction.constant;
+        if (argumentConstant is TypeConstantValue) {
+          ConstantValue constant =
+              new InterceptorConstantValue(argumentConstant.representedType);
           HInstruction instruction = graph.addConstant(constant, compiler);
           stack.add(instruction);
           return;
@@ -3887,11 +3888,11 @@ class SsaBuilder extends ResolvedVisitor {
     String publicName = name;
     if (selector.isSetter) publicName += '=';
 
-    Constant nameConstant = constantSystem.createString(
+    ConstantValue nameConstant = constantSystem.createString(
         new ast.DartString.literal(publicName));
 
     String internalName = backend.namer.invocationName(selector);
-    Constant internalNameConstant =
+    ConstantValue internalNameConstant =
         constantSystem.createString(new ast.DartString.literal(internalName));
 
     Element createInvocationMirror = backend.getCreateInvocationMirror();
@@ -3900,14 +3901,14 @@ class SsaBuilder extends ResolvedVisitor {
 
     var argumentNames = new List<HInstruction>();
     for (String argumentName in selector.namedArguments) {
-      Constant argumentNameConstant =
+      ConstantValue argumentNameConstant =
           constantSystem.createString(new ast.DartString.literal(argumentName));
       argumentNames.add(graph.addConstant(argumentNameConstant, compiler));
     }
     var argumentNamesInstruction = buildLiteralList(argumentNames);
     add(argumentNamesInstruction);
 
-    Constant kindConstant =
+    ConstantValue kindConstant =
         constantSystem.createInt(selector.invocationMirrorKind);
 
     pushInvokeStatic(null,
@@ -4252,7 +4253,7 @@ class SsaBuilder extends ResolvedVisitor {
       bool canThrow = true;
       if (inputs[0].isInteger(compiler) && inputs[0] is HConstant) {
         var constant = inputs[0];
-        if (constant.constant.value >= 0) canThrow = false;
+        if (constant.constant.primitiveValue >= 0) canThrow = false;
       }
       HForeign foreign = new HForeign(
           code, elementType, inputs, nativeBehavior: behavior,
@@ -4441,7 +4442,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   HConstant addConstantString(String string) {
     ast.DartString dartString = new ast.DartString.literal(string);
-    Constant constant = constantSystem.createString(dartString);
+    ConstantValue constant = constantSystem.createString(dartString);
     return graph.addConstant(constant, compiler);
   }
 
@@ -4522,11 +4523,11 @@ class SsaBuilder extends ResolvedVisitor {
                                   List<HInstruction> argumentValues,
                                   List<String> existingArguments}) {
     Element helper = backend.getThrowNoSuchMethod();
-    Constant receiverConstant =
+    ConstantValue receiverConstant =
         constantSystem.createString(new ast.DartString.empty());
     HInstruction receiver = graph.addConstant(receiverConstant, compiler);
     ast.DartString dartString = new ast.DartString.literal(methodName);
-    Constant nameConstant = constantSystem.createString(dartString);
+    ConstantValue nameConstant = constantSystem.createString(dartString);
     HInstruction name = graph.addConstant(nameConstant, compiler);
     if (argumentValues == null) {
       argumentValues = <HInstruction>[];
@@ -4596,8 +4597,8 @@ class SsaBuilder extends ResolvedVisitor {
     } else if (node.isConst) {
       stack.add(addConstant(node));
       if (isSymbolConstructor) {
-        ConstructedConstant symbol = getConstantForNode(node);
-        StringConstant stringConstant = symbol.fields.single;
+        ConstructedConstantValue symbol = getConstantForNode(node);
+        StringConstantValue stringConstant = symbol.fields.single;
         String nameString = stringConstant.toDartString().slowToString();
         registry.registerConstSymbol(nameString);
       }
@@ -5368,13 +5369,16 @@ class SsaBuilder extends ResolvedVisitor {
     visit(node.expression);
   }
 
-  Map<ast.CaseMatch, Constant> buildSwitchCaseConstants(ast.SwitchStatement node) {
-    Map<ast.CaseMatch, Constant> constants = new Map<ast.CaseMatch, Constant>();
+  Map<ast.CaseMatch, ConstantValue> buildSwitchCaseConstants(
+      ast.SwitchStatement node) {
+
+    Map<ast.CaseMatch, ConstantValue> constants =
+        new Map<ast.CaseMatch, ConstantValue>();
     for (ast.SwitchCase switchCase in node.cases) {
       for (ast.Node labelOrCase in switchCase.labelsAndCases) {
         if (labelOrCase is ast.CaseMatch) {
           ast.CaseMatch match = labelOrCase;
-          Constant constant = getConstantForNode(match.expression);
+          ConstantValue constant = getConstantForNode(match.expression);
           constants[labelOrCase] = constant;
         }
       }
@@ -5383,7 +5387,8 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   visitSwitchStatement(ast.SwitchStatement node) {
-    Map<ast.CaseMatch, Constant> constants = buildSwitchCaseConstants(node);
+    Map<ast.CaseMatch, ConstantValue> constants =
+        buildSwitchCaseConstants(node);
 
     // The switch case indices must match those computed in
     // [SwitchCaseJumpHandler].
@@ -5421,14 +5426,14 @@ class SsaBuilder extends ResolvedVisitor {
    * statements to labeled switch cases.
    */
   void buildSimpleSwitchStatement(ast.SwitchStatement node,
-                                  Map<ast.CaseMatch, Constant> constants) {
+                                  Map<ast.CaseMatch, ConstantValue> constants) {
     JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
     HInstruction buildExpression() {
       visit(node.expression);
       return pop();
     }
-    Iterable<Constant> getConstants(ast.SwitchCase switchCase) {
-      List<Constant> constantList = <Constant>[];
+    Iterable<ConstantValue> getConstants(ast.SwitchCase switchCase) {
+      List<ConstantValue> constantList = <ConstantValue>[];
       for (ast.Node labelOrCase in switchCase.labelsAndCases) {
         if (labelOrCase is ast.CaseMatch) {
           constantList.add(constants[labelOrCase]);
@@ -5457,7 +5462,7 @@ class SsaBuilder extends ResolvedVisitor {
    * statements to labeled switch cases.
    */
   void buildComplexSwitchStatement(ast.SwitchStatement node,
-                                   Map<ast.CaseMatch, Constant> constants,
+                                   Map<ast.CaseMatch, ConstantValue> constants,
                                    Map<ast.SwitchCase, int> caseIndex,
                                    bool hasDefault) {
     // If the switch statement has switch cases targeted by continue
@@ -5504,8 +5509,8 @@ class SsaBuilder extends ResolvedVisitor {
       visit(node.expression);
       return pop();
     }
-    Iterable<Constant> getConstants(ast.SwitchCase switchCase) {
-      List<Constant> constantList = <Constant>[];
+    Iterable<ConstantValue> getConstants(ast.SwitchCase switchCase) {
+      List<ConstantValue> constantList = <ConstantValue>[];
       if (switchCase != null) {
         for (ast.Node labelOrCase in switchCase.labelsAndCases) {
           if (labelOrCase is ast.CaseMatch) {
@@ -5547,8 +5552,8 @@ class SsaBuilder extends ResolvedVisitor {
       HInstruction buildExpression() {
         return localsHandler.readLocal(switchTarget);
       }
-      Iterable<Constant> getConstants(ast.SwitchCase switchCase) {
-        return <Constant>[constantSystem.createInt(caseIndex[switchCase])];
+      Iterable<ConstantValue> getConstants(ast.SwitchCase switchCase) {
+        return <ConstantValue>[constantSystem.createInt(caseIndex[switchCase])];
       }
       void buildSwitchCase(ast.SwitchCase switchCase) {
         visit(switchCase.statements);
@@ -5603,14 +5608,17 @@ class SsaBuilder extends ResolvedVisitor {
    *   considered default for the created switch statement.
    * [buildSwitchCase] creates the statements for the switch case.
    */
-  void handleSwitch(ast.Node errorNode,
-                    JumpHandler jumpHandler,
-                    HInstruction buildExpression(),
-                    var switchCases,
-                    Iterable<Constant> getConstants(ast.SwitchCase switchCase),
-                    bool isDefaultCase(ast.SwitchCase switchCase),
-                    void buildSwitchCase(ast.SwitchCase switchCase)) {
-    Map<ast.CaseMatch, Constant> constants = new Map<ast.CaseMatch, Constant>();
+  void handleSwitch(
+      ast.Node errorNode,
+      JumpHandler jumpHandler,
+      HInstruction buildExpression(),
+      var switchCases,
+      Iterable<ConstantValue> getConstants(ast.SwitchCase switchCase),
+      bool isDefaultCase(ast.SwitchCase switchCase),
+      void buildSwitchCase(ast.SwitchCase switchCase)) {
+
+    Map<ast.CaseMatch, ConstantValue> constants =
+        new Map<ast.CaseMatch, ConstantValue>();
 
     HBasicBlock expressionStart = openNewBlock();
     HInstruction expression = buildExpression();
@@ -5630,7 +5638,7 @@ class SsaBuilder extends ResolvedVisitor {
     while (caseIterator.hasNext) {
       ast.SwitchCase switchCase = caseIterator.next();
       HBasicBlock block = graph.addNewBlock();
-      for (Constant constant in getConstants(switchCase)) {
+      for (ConstantValue constant in getConstants(switchCase)) {
         HConstant hConstant = graph.addConstant(constant, compiler);
         switchInstruction.inputs.add(hConstant);
         hConstant.usedBy.add(switchInstruction);

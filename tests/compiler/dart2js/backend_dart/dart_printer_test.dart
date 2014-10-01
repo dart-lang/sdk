@@ -191,7 +191,7 @@ class AstBuilder extends Listener {
             quoting,
             isFirst: i == 0,
             isLast: i == parts.length - 1);
-        members.add(new Literal(new StringConstant(str)));
+        members.add(new Literal(new StringConstantValue(str)));
       }
     }
     push(new StringConcat(members));
@@ -288,16 +288,17 @@ class AstBuilder extends Listener {
   }
   handleLiteralBool(Token t) {
     bool value = t.value == 'true';
-    push(new Literal(value ? new TrueConstant() : new FalseConstant()));
+    push(new Literal(
+        value ? new TrueConstantValue() : new FalseConstantValue()));
   }
   handleLiteralDouble(t) {
-    push(new Literal(new DoubleConstant(double.parse(t.value))));
+    push(new Literal(new DoubleConstantValue(double.parse(t.value))));
   }
   handleLiteralInt(Token t) {
-    push(new Literal(new IntConstant(int.parse(t.value))));
+    push(new Literal(new IntConstantValue(int.parse(t.value))));
   }
   handleLiteralNull(t) {
-    push(new Literal(new NullConstant()));
+    push(new Literal(new NullConstantValue()));
   }
   endLiteralSymbol(Token hash, int idCount) {
     List<Identifier> ids = popList(idCount, <Identifier>[]);
@@ -639,8 +640,8 @@ void checkDeepEqual(x, y) {
       }
     }
   }
-  else if (x is PrimitiveConstant && y is PrimitiveConstant) {
-    checkDeepEqual(x.value, y.value);
+  else if (x is PrimitiveConstantValue && y is PrimitiveConstantValue) {
+    checkDeepEqual(x.primitiveValue, y.primitiveValue);
   }
   else if (x is DartString && y is DartString) {
     if (x.slowToString() != y.slowToString()) {

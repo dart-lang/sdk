@@ -11,7 +11,7 @@ abstract class TreeElements {
   /// Iterables of the dependencies that this [TreeElement] records of
   /// [analyzedElement].
   Iterable<Element> get allElements;
-  void forEachConstantNode(f(Node n, ConstExp c));
+  void forEachConstantNode(f(Node n, ConstantExpression c));
 
   /// A set of additional dependencies.  See [registerDependency] below.
   Iterable<Element> get otherDependencies;
@@ -35,8 +35,8 @@ abstract class TreeElements {
   void setIteratorSelector(ForIn node, Selector selector);
   void setMoveNextSelector(ForIn node, Selector selector);
   void setCurrentSelector(ForIn node, Selector selector);
-  void setConstant(Node node, ConstExp constant);
-  ConstExp getConstant(Node node);
+  void setConstant(Node node, ConstantExpression constant);
+  ConstantExpression getConstant(Node node);
   bool isAssert(Send send);
 
   /// Returns the [FunctionElement] defined by [node].
@@ -93,7 +93,7 @@ class TreeElementMapping implements TreeElements {
   Map<Node, DartType> _types;
   Setlet<Node> _superUses;
   Setlet<Element> _otherDependencies;
-  Map<Node, ConstExp> _constants;
+  Map<Node, ConstantExpression> _constants;
   Map<VariableElement, List<Node>> _potentiallyMutated;
   Map<Node, Map<VariableElement, List<Node>>> _potentiallyMutatedIn;
   Map<VariableElement, List<Node>> _potentiallyMutatedInClosure;
@@ -236,14 +236,14 @@ class TreeElementMapping implements TreeElements {
     return this[node];
   }
 
-  void setConstant(Node node, ConstExp constant) {
+  void setConstant(Node node, ConstantExpression constant) {
     if (_constants == null) {
-      _constants = new Maplet<Node, ConstExp>();
+      _constants = new Maplet<Node, ConstantExpression>();
     }
     _constants[node] = constant;
   }
 
-  ConstExp getConstant(Node node) {
+  ConstantExpression getConstant(Node node) {
     return _constants != null ? _constants[node] : null;
   }
 
@@ -344,7 +344,7 @@ class TreeElementMapping implements TreeElements {
     return _elements != null ? _elements : const <Element>[];
   }
 
-  void forEachConstantNode(f(Node n, ConstExp c)) {
+  void forEachConstantNode(f(Node n, ConstantExpression c)) {
     if (_constants != null) {
       _constants.forEach(f);
     }
@@ -3309,15 +3309,16 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (isSymbolConstructor) {
       if (node.isConst) {
         Node argumentNode = node.send.arguments.head;
-        ConstExp constant = compiler.resolver.constantCompiler.compileNode(
-            argumentNode, registry.mapping);
-        Constant name = constant.value;
+        ConstantExpression constant =
+            compiler.resolver.constantCompiler.compileNode(
+                argumentNode, registry.mapping);
+        ConstantValue name = constant.value;
         if (!name.isString) {
           DartType type = name.computeType(compiler);
           compiler.reportError(argumentNode, MessageKind.STRING_EXPECTED,
                                    {'type': type});
         } else {
-          StringConstant stringConstant = name;
+          StringConstantValue stringConstant = name;
           String nameString = stringConstant.toDartString().slowToString();
           if (validateSymbol(argumentNode, nameString)) {
             registry.registerConstSymbol(nameString);
@@ -3343,10 +3344,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   void checkConstMapKeysDontOverrideEquals(Spannable spannable,
-                                           MapConstant map) {
-    for (Constant key in map.keys) {
+                                           MapConstantValue map) {
+    for (ConstantValue key in map.keys) {
       if (!key.isObject) continue;
-      ObjectConstant objectConstant = key;
+      ObjectConstantValue objectConstant = key;
       DartType keyType = objectConstant.type;
       ClassElement cls = keyType.element;
       if (cls == compiler.stringClass) continue;
@@ -3361,10 +3362,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   void analyzeConstant(Node node) {
     addDeferredAction(enclosingElement, () {
-      ConstExp constant = compiler.resolver.constantCompiler.compileNode(
-          node, registry.mapping);
+      ConstantExpression constant =
+          compiler.resolver.constantCompiler.compileNode(
+              node, registry.mapping);
 
-      Constant value = constant.value;
+      ConstantValue value = constant.value;
       if (value.isMap) {
         checkConstMapKeysDontOverrideEquals(node, value);
       }
@@ -3375,7 +3377,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (argumentsToJsInterceptorConstant != null &&
           argumentsToJsInterceptorConstant.contains(node)) {
         if (value.isType) {
-          TypeConstant typeConstant = value;
+          TypeConstantValue typeConstant = value;
           if (typeConstant.representedType is InterfaceType) {
             registry.registerInstantiatedType(typeConstant.representedType);
           } else {
@@ -3711,7 +3713,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     visit(node.expression);
   }
 
-  DartType typeOfConstant(Constant constant) {
+  DartType typeOfConstant(ConstantValue constant) {
     if (constant.isInt) return compiler.intClass.rawType;
     if (constant.isBool) return compiler.boolClass.rawType;
     if (constant.isDouble) return compiler.doubleClass.rawType;
@@ -3719,7 +3721,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (constant.isNull) return compiler.nullClass.rawType;
     if (constant.isFunction) return compiler.functionClass.rawType;
     assert(constant.isObject);
-    ObjectConstant objectConstant = constant;
+    ObjectConstantValue objectConstant = constant;
     return objectConstant.type;
   }
 
@@ -3748,7 +3750,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         if (caseMatch == null) continue;
 
         // Analyze the constant.
-        ConstExp constant = registry.getConstant(caseMatch.expression);
+        ConstantExpression constant =
+            registry.getConstant(caseMatch.expression);
         assert(invariant(node, constant != null,
             message: 'No constant computed for $node'));
 

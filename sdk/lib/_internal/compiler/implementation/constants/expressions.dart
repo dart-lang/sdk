@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library const_expression;
+library dart2js.constants.expressions;
 
 import '../dart2jslib.dart' show assertDebugMode;
 import '../dart_types.dart';
@@ -15,22 +15,22 @@ import 'values.dart';
 
 /// An expression that is a compile-time constant.
 ///
-/// Whereas [Constant] represent a compile-time value, a [ConstExp]
-/// represents an expression for creating a constant.
+/// Whereas [ConstantValue] represent a compile-time value, a
+/// [ConstantExpression] represents an expression for creating a constant.
 ///
-/// There is no one-to-one mapping between [ConstExp] and [Constant], because
-/// different expressions can denote the same constant. For instance,
-/// multiple `const` constructors may be used to create the same object, and
-/// different `const` variables may hold the same value.
-abstract class ConstExp {
+/// There is no one-to-one mapping between [ConstantExpression] and
+/// [ConstantValue], because different expressions can denote the same constant.
+/// For instance, multiple `const` constructors may be used to create the same
+/// object, and different `const` variables may hold the same value.
+abstract class ConstantExpression {
   /// Returns the value of this constant expression.
-  Constant get value;
+  ConstantValue get value;
 
   // TODO(johnniwinther): Unify precedence handled between constants, front-end
   // and back-end.
   int get precedence => 16;
 
-  accept(ConstExpVisitor visitor);
+  accept(ConstantExpressionVisitor visitor);
 
   String getText() {
     ConstExpPrinter printer = new ConstExpPrinter();
@@ -39,54 +39,55 @@ abstract class ConstExp {
   }
 
   String toString() {
-    assertDebugMode('Use ConstExp.getText() instead of ConstExp.toString()');
+    assertDebugMode('Use ConstantExpression.getText() instead of '
+                    'ConstantExpression.toString()');
     return getText();
   }
 }
 
 /// Boolean, int, double, string, or null constant.
-class PrimitiveConstExp extends ConstExp {
-  final PrimitiveConstant value;
+class PrimitiveConstantExpression extends ConstantExpression {
+  final PrimitiveConstantValue value;
 
-  PrimitiveConstExp(this.value) {
+  PrimitiveConstantExpression(this.value) {
     assert(value != null);
   }
 
-  accept(ConstExpVisitor visitor) => visitor.visitPrimitive(this);
+  accept(ConstantExpressionVisitor visitor) => visitor.visitPrimitive(this);
 }
 
 /// Literal list constant.
-class ListConstExp extends ConstExp {
-  final ListConstant value;
+class ListConstantExpression extends ConstantExpression {
+  final ListConstantValue value;
   final InterfaceType type;
-  final List<ConstExp> values;
+  final List<ConstantExpression> values;
 
-  ListConstExp(this.value, this.type, this.values);
+  ListConstantExpression(this.value, this.type, this.values);
 
-  accept(ConstExpVisitor visitor) => visitor.visitList(this);
+  accept(ConstantExpressionVisitor visitor) => visitor.visitList(this);
 }
 
 /// Literal map constant.
-class MapConstExp extends ConstExp {
-  final MapConstant value;
+class MapConstantExpression extends ConstantExpression {
+  final MapConstantValue value;
   final InterfaceType type;
-  final List<ConstExp> keys;
-  final List<ConstExp> values;
+  final List<ConstantExpression> keys;
+  final List<ConstantExpression> values;
 
-  MapConstExp(this.value, this.type, this.keys, this.values);
+  MapConstantExpression(this.value, this.type, this.keys, this.values);
 
-  accept(ConstExpVisitor visitor) => visitor.visitMap(this);
+  accept(ConstantExpressionVisitor visitor) => visitor.visitMap(this);
 }
 
 /// Invocation of a const constructor.
-class ConstructorConstExp extends ConstExp {
-  final Constant value;
+class ConstructedConstantExpresssion extends ConstantExpression {
+  final ConstantValue value;
   final InterfaceType type;
   final FunctionElement target;
   final Selector selector;
-  final List<ConstExp> arguments;
+  final List<ConstantExpression> arguments;
 
-  ConstructorConstExp(this.value,
+  ConstructedConstantExpresssion(this.value,
                       this.type,
                       this.target,
                       this.selector,
@@ -94,75 +95,75 @@ class ConstructorConstExp extends ConstExp {
     assert(type.element == target.enclosingClass);
   }
 
-  accept(ConstExpVisitor visitor) => visitor.visitConstructor(this);
+  accept(ConstantExpressionVisitor visitor) => visitor.visitConstructor(this);
 }
 
 /// String literal with juxtaposition and/or interpolations.
 // TODO(johnniwinther): Do we need this?
-class ConcatenateConstExp extends ConstExp {
-  final StringConstant value;
-  final List<ConstExp> arguments;
+class ConcatenateConstantExpression extends ConstantExpression {
+  final StringConstantValue value;
+  final List<ConstantExpression> arguments;
 
-  ConcatenateConstExp(this.value, this.arguments);
+  ConcatenateConstantExpression(this.value, this.arguments);
 
-  accept(ConstExpVisitor visitor) => visitor.visitConcatenate(this);
+  accept(ConstantExpressionVisitor visitor) => visitor.visitConcatenate(this);
 }
 
 /// Symbol literal.
-class SymbolConstExp extends ConstExp {
-  final ConstructedConstant value;
+class SymbolConstantExpression extends ConstantExpression {
+  final ConstructedConstantValue value;
   final String name;
 
-  SymbolConstExp(this.value, this.name);
+  SymbolConstantExpression(this.value, this.name);
 
-  accept(ConstExpVisitor visitor) => visitor.visitSymbol(this);
+  accept(ConstantExpressionVisitor visitor) => visitor.visitSymbol(this);
 }
 
 /// Type literal.
-class TypeConstExp extends ConstExp {
-  final TypeConstant value;
+class TypeConstantExpression extends ConstantExpression {
+  final TypeConstantValue value;
   /// Either [DynamicType] or a raw [GenericType].
   final DartType type;
 
-  TypeConstExp(this.value, this.type) {
+  TypeConstantExpression(this.value, this.type) {
     assert(type is GenericType || type is DynamicType);
   }
 
-  accept(ConstExpVisitor visitor) => visitor.visitType(this);
+  accept(ConstantExpressionVisitor visitor) => visitor.visitType(this);
 }
 
-/// A constant local, top-level, or static variable.
-class VariableConstExp extends ConstExp {
-  final Constant value;
+/// Reference to a constant local, top-level, or static variable.
+class VariableConstantExpression extends ConstantExpression {
+  final ConstantValue value;
   final VariableElement element;
 
-  VariableConstExp(this.value, this.element);
+  VariableConstantExpression(this.value, this.element);
 
-  accept(ConstExpVisitor visitor) => visitor.visitVariable(this);
+  accept(ConstantExpressionVisitor visitor) => visitor.visitVariable(this);
 }
 
 /// Reference to a top-level or static function.
-class FunctionConstExp extends ConstExp {
-  final FunctionConstant value;
+class FunctionConstantExpression extends ConstantExpression {
+  final FunctionConstantValue value;
   final FunctionElement element;
 
-  FunctionConstExp(this.value, this.element);
+  FunctionConstantExpression(this.value, this.element);
 
-  accept(ConstExpVisitor visitor) => visitor.visitFunction(this);
+  accept(ConstantExpressionVisitor visitor) => visitor.visitFunction(this);
 }
 
 /// A constant binary expression like `a * b` or `identical(a, b)`.
-class BinaryConstExp extends ConstExp {
-  final Constant value;
-  final ConstExp left;
+class BinaryConstantExpression extends ConstantExpression {
+  final ConstantValue value;
+  final ConstantExpression left;
   final String operator;
-  final ConstExp right;
+  final ConstantExpression right;
 
-  BinaryConstExp(this.value, this.left, this.operator, this.right) {
+  BinaryConstantExpression(this.value, this.left, this.operator, this.right) {
     assert(PRECEDENCE_MAP[operator] != null);
   }
 
-  accept(ConstExpVisitor visitor) => visitor.visitBinary(this);
+  accept(ConstantExpressionVisitor visitor) => visitor.visitBinary(this);
 
   int get precedence => PRECEDENCE_MAP[operator];
 
@@ -191,16 +192,16 @@ class BinaryConstExp extends ConstExp {
 }
 
 /// A unary constant expression like `-a`.
-class UnaryConstExp extends ConstExp {
-  final Constant value;
+class UnaryConstantExpression extends ConstantExpression {
+  final ConstantValue value;
   final String operator;
-  final ConstExp expression;
+  final ConstantExpression expression;
 
-  UnaryConstExp(this.value, this.operator, this.expression) {
+  UnaryConstantExpression(this.value, this.operator, this.expression) {
     assert(PRECEDENCE_MAP[operator] != null);
   }
 
-  accept(ConstExpVisitor visitor) => visitor.visitUnary(this);
+  accept(ConstantExpressionVisitor visitor) => visitor.visitUnary(this);
 
   int get precedence => PRECEDENCE_MAP[operator];
 
@@ -212,48 +213,54 @@ class UnaryConstExp extends ConstExp {
 }
 
 /// A constant conditional expression like `a ? b : c`.
-class ConditionalConstExp extends ConstExp {
-  final Constant value;
-  final ConstExp condition;
-  final ConstExp trueExp;
-  final ConstExp falseExp;
+class ConditionalConstantExpression extends ConstantExpression {
+  final ConstantValue value;
+  final ConstantExpression condition;
+  final ConstantExpression trueExp;
+  final ConstantExpression falseExp;
 
-  ConditionalConstExp(this.value, this.condition, this.trueExp, this.falseExp);
+  ConditionalConstantExpression(this.value,
+                                this.condition,
+                                this.trueExp,
+                                this.falseExp);
 
-  accept(ConstExpVisitor visitor) => visitor.visitConditional(this);
+  accept(ConstantExpressionVisitor visitor) => visitor.visitConditional(this);
 
   int get precedence => 3;
 }
 
-abstract class ConstExpVisitor<T> {
-  T visit(ConstExp constant) => constant.accept(this);
+abstract class ConstantExpressionVisitor<T> {
+  T visit(ConstantExpression constant) => constant.accept(this);
 
-  T visitPrimitive(PrimitiveConstExp exp);
-  T visitList(ListConstExp exp);
-  T visitMap(MapConstExp exp);
-  T visitConstructor(ConstructorConstExp exp);
-  T visitConcatenate(ConcatenateConstExp exp);
-  T visitSymbol(SymbolConstExp exp);
-  T visitType(TypeConstExp exp);
-  T visitVariable(VariableConstExp exp);
-  T visitFunction(FunctionConstExp exp);
-  T visitBinary(BinaryConstExp exp);
-  T visitUnary(UnaryConstExp exp);
-  T visitConditional(ConditionalConstExp exp);
+  T visitPrimitive(PrimitiveConstantExpression exp);
+  T visitList(ListConstantExpression exp);
+  T visitMap(MapConstantExpression exp);
+  T visitConstructor(ConstructedConstantExpresssion exp);
+  T visitConcatenate(ConcatenateConstantExpression exp);
+  T visitSymbol(SymbolConstantExpression exp);
+  T visitType(TypeConstantExpression exp);
+  T visitVariable(VariableConstantExpression exp);
+  T visitFunction(FunctionConstantExpression exp);
+  T visitBinary(BinaryConstantExpression exp);
+  T visitUnary(UnaryConstantExpression exp);
+  T visitConditional(ConditionalConstantExpression exp);
 }
 
 /// Represents the declaration of a constant [element] with value [expression].
+// TODO(johnniwinther): Where does this class belong?
 class ConstDeclaration {
   final VariableElement element;
-  final ConstExp expression;
+  final ConstantExpression expression;
 
   ConstDeclaration(this.element, this.expression);
 }
 
-class ConstExpPrinter extends ConstExpVisitor {
+class ConstExpPrinter extends ConstantExpressionVisitor {
   final StringBuffer sb = new StringBuffer();
 
-  write(ConstExp parent, ConstExp child, {bool leftAssociative: true}) {
+  write(ConstantExpression parent,
+        ConstantExpression child,
+        {bool leftAssociative: true}) {
     if (child.precedence < parent.precedence ||
         !leftAssociative && child.precedence == parent.precedence) {
       sb.write('(');
@@ -278,16 +285,16 @@ class ConstExpPrinter extends ConstExpVisitor {
     sb.write('>');
   }
 
-  visitPrimitive(PrimitiveConstExp exp) {
+  visitPrimitive(PrimitiveConstantExpression exp) {
     sb.write(exp.value.unparse());
   }
 
-  visitList(ListConstExp exp) {
+  visitList(ListConstantExpression exp) {
     sb.write('const ');
     writeTypeArguments(exp.type);
     sb.write('[');
     bool needsComma = false;
-    for (ConstExp value in exp.values) {
+    for (ConstantExpression value in exp.values) {
       if (needsComma) {
         sb.write(', ');
       }
@@ -297,7 +304,7 @@ class ConstExpPrinter extends ConstExpVisitor {
     sb.write(']');
   }
 
-  visitMap(MapConstExp exp) {
+  visitMap(MapConstantExpression exp) {
     sb.write('const ');
     writeTypeArguments(exp.type);
     sb.write('{');
@@ -312,7 +319,7 @@ class ConstExpPrinter extends ConstExpVisitor {
     sb.write('}');
   }
 
-  visitConstructor(ConstructorConstExp exp) {
+  visitConstructor(ConstructedConstantExpresssion exp) {
     sb.write('const ');
     sb.write(exp.target.enclosingClass.name);
     if (exp.target.name != '') {
@@ -343,20 +350,20 @@ class ConstExpPrinter extends ConstExpVisitor {
     sb.write(')');
   }
 
-  visitConcatenate(ConcatenateConstExp exp) {
+  visitConcatenate(ConcatenateConstantExpression exp) {
     sb.write(exp.value.unparse());
   }
 
-  visitSymbol(SymbolConstExp exp) {
+  visitSymbol(SymbolConstantExpression exp) {
     sb.write('#');
     sb.write(exp.name);
   }
 
-  visitType(TypeConstExp exp) {
+  visitType(TypeConstantExpression exp) {
     sb.write(exp.type.name);
   }
 
-  visitVariable(VariableConstExp exp) {
+  visitVariable(VariableConstantExpression exp) {
     if (exp.element.isStatic) {
       sb.write(exp.element.enclosingClass.name);
       sb.write('.');
@@ -364,7 +371,7 @@ class ConstExpPrinter extends ConstExpVisitor {
     sb.write(exp.element.name);
   }
 
-  visitFunction(FunctionConstExp exp) {
+  visitFunction(FunctionConstantExpression exp) {
     if (exp.element.isStatic) {
       sb.write(exp.element.enclosingClass.name);
       sb.write('.');
@@ -372,7 +379,7 @@ class ConstExpPrinter extends ConstExpVisitor {
     sb.write(exp.element.name);
   }
 
-  visitBinary(BinaryConstExp exp) {
+  visitBinary(BinaryConstantExpression exp) {
     if (exp.operator == 'identical') {
       sb.write('identical(');
       visit(exp.left);
@@ -388,12 +395,12 @@ class ConstExpPrinter extends ConstExpVisitor {
     }
   }
 
-  visitUnary(UnaryConstExp exp) {
+  visitUnary(UnaryConstantExpression exp) {
     sb.write(exp.operator);
     write(exp, exp.expression);
   }
 
-  visitConditional(ConditionalConstExp exp) {
+  visitConditional(ConditionalConstantExpression exp) {
     write(exp, exp.condition, leftAssociative: false);
     sb.write(' ? ');
     write(exp, exp.trueExp);

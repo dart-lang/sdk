@@ -23,13 +23,13 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
 
   String get name => 'ConstantHandler';
 
-  ConstExp getConstantForVariable(VariableElement element) {
+  ConstantExpression getConstantForVariable(VariableElement element) {
     return dartConstantCompiler.getConstantForVariable(element);
   }
 
-  ConstExp compileConstant(VariableElement element) {
+  ConstantExpression compileConstant(VariableElement element) {
     return measure(() {
-      ConstExp result = dartConstantCompiler.compileConstant(element);
+      ConstantExpression result = dartConstantCompiler.compileConstant(element);
       jsConstantCompiler.compileConstant(element);
       return result;
     });
@@ -41,20 +41,20 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
     });
   }
 
-  ConstExp compileNode(Node node, TreeElements elements) {
+  ConstantExpression compileNode(Node node, TreeElements elements) {
     return measure(() {
-      ConstExp result =
+      ConstantExpression result =
           dartConstantCompiler.compileNode(node, elements);
       jsConstantCompiler.compileNode(node, elements);
       return result;
     });
   }
 
-  ConstExp compileMetadata(MetadataAnnotation metadata,
+  ConstantExpression compileMetadata(MetadataAnnotation metadata,
                            Node node,
                            TreeElements elements) {
     return measure(() {
-      ConstExp constant =
+      ConstantExpression constant =
           dartConstantCompiler.compileMetadata(metadata, node, elements);
       jsConstantCompiler.compileMetadata(metadata, node, elements);
       return constant;
@@ -71,29 +71,30 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     implements BackendConstantEnvironment {
 
   /** Set of all registered compiled constants. */
-  final Set<Constant> compiledConstants = new Set<Constant>();
+  final Set<ConstantValue> compiledConstants = new Set<ConstantValue>();
 
   // TODO(johnniwinther): Move this to the backend constant handler.
   /** Caches the statics where the initial value cannot be eagerly compiled. */
   final Set<VariableElement> lazyStatics = new Set<VariableElement>();
 
   // Constants computed for constant expressions.
-  final Map<Node, ConstExp> nodeConstantMap = new Map<Node, ConstExp>();
+  final Map<Node, ConstantExpression> nodeConstantMap =
+      new Map<Node, ConstantExpression>();
 
   // Constants computed for metadata.
-  final Map<MetadataAnnotation, ConstExp> metadataConstantMap =
-      new Map<MetadataAnnotation, ConstExp>();
+  final Map<MetadataAnnotation, ConstantExpression> metadataConstantMap =
+      new Map<MetadataAnnotation, ConstantExpression>();
 
   JavaScriptConstantCompiler(Compiler compiler)
       : super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM);
 
-  ConstExp compileVariableWithDefinitions(VariableElement element,
+  ConstantExpression compileVariableWithDefinitions(VariableElement element,
                                           TreeElements definitions,
                                           {bool isConst: false}) {
     if (!isConst && lazyStatics.contains(element)) {
       return null;
     }
-    ConstExp value = super.compileVariableWithDefinitions(
+    ConstantExpression value = super.compileVariableWithDefinitions(
         element, definitions, isConst: isConst);
     if (!isConst && value == null) {
       lazyStatics.add(element);
@@ -101,7 +102,7 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return value;
   }
 
-  void addCompileTimeConstantForEmission(Constant constant) {
+  void addCompileTimeConstantForEmission(ConstantValue constant) {
     compiledConstants.add(constant);
   }
 
@@ -131,12 +132,12 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
    * topological sort which gives the constants an ordering that is less
    * sensitive to perturbations in the source code.
    */
-  List<Constant> getConstantsForEmission([preSortCompare]) {
+  List<ConstantValue> getConstantsForEmission([preSortCompare]) {
     // We must emit dependencies before their uses.
-    Set<Constant> seenConstants = new Set<Constant>();
-    List<Constant> result = new List<Constant>();
+    Set<ConstantValue> seenConstants = new Set<ConstantValue>();
+    List<ConstantValue> result = new List<ConstantValue>();
 
-    void addConstant(Constant constant) {
+    void addConstant(ConstantValue constant) {
       if (!seenConstants.contains(constant)) {
         constant.getDependencies().forEach(addConstant);
         assert(!seenConstants.contains(constant));
@@ -145,7 +146,7 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
       }
     }
 
-    List<Constant> sorted = compiledConstants.toList();
+    List<ConstantValue> sorted = compiledConstants.toList();
     if (preSortCompare != null) {
       sorted.sort(preSortCompare);
     }
@@ -153,22 +154,23 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return result;
   }
 
-  ConstExp getInitialValueFor(VariableElement element) {
-    ConstExp initialValue = initialVariableValues[element.declaration];
+  ConstantExpression getInitialValueFor(VariableElement element) {
+    ConstantExpression initialValue =
+        initialVariableValues[element.declaration];
     if (initialValue == null) {
       compiler.internalError(element, "No initial value for given element.");
     }
     return initialValue;
   }
 
-  ConstExp compileNode(Node node, TreeElements elements) {
+  ConstantExpression compileNode(Node node, TreeElements elements) {
     return compileNodeWithDefinitions(node, elements);
   }
 
-  ConstExp compileNodeWithDefinitions(Node node,
+  ConstantExpression compileNodeWithDefinitions(Node node,
                                       TreeElements definitions,
                                       {bool isConst: true}) {
-    ConstExp constant = nodeConstantMap[node];
+    ConstantExpression constant = nodeConstantMap[node];
     if (constant != null) {
       return constant;
     }
@@ -180,32 +182,33 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return constant;
   }
 
-  ConstExp getConstantForNode(Node node, TreeElements definitions) {
-    ConstExp constant = nodeConstantMap[node];
+  ConstantExpression getConstantForNode(Node node, TreeElements definitions) {
+    ConstantExpression constant = nodeConstantMap[node];
     if (constant != null) {
       return constant;
     }
     return definitions.getConstant(node);
   }
 
-  ConstExp getConstantForMetadata(MetadataAnnotation metadata) {
+  ConstantExpression getConstantForMetadata(MetadataAnnotation metadata) {
     return metadataConstantMap[metadata];
   }
 
-  ConstExp compileMetadata(MetadataAnnotation metadata,
+  ConstantExpression compileMetadata(MetadataAnnotation metadata,
                            Node node,
                            TreeElements elements) {
-    ConstExp constant = super.compileMetadata(metadata, node, elements);
+    ConstantExpression constant =
+        super.compileMetadata(metadata, node, elements);
     metadataConstantMap[metadata] = constant;
     return constant;
   }
 
-  ConstExp createTypeConstant(TypeDeclarationElement element) {
+  ConstantExpression createTypeConstant(TypeDeclarationElement element) {
     DartType elementType = element.rawType;
     DartType constantType =
         compiler.backend.typeImplementation.computeType(compiler);
-    return new TypeConstExp(
-        new TypeConstant(elementType, constantType), elementType);
+    return new TypeConstantExpression(
+        new TypeConstantValue(elementType, constantType), elementType);
   }
 
   void forgetElement(Element element) {

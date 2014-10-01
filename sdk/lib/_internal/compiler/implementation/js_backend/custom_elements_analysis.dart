@@ -166,7 +166,7 @@ class CustomElementsAnalysisJoin {
             .forEach(compiler.globalDependencies.registerDependency);
         // Force the generaton of the type constant that is the key to an entry
         // in the generated table.
-        Constant constant = makeTypeConstant(classElement);
+        ConstantValue constant = makeTypeConstant(classElement);
         backend.registerCompileTimeConstant(
             constant, compiler.globalDependencies);
         backend.constants.addCompileTimeConstantForEmission(constant);
@@ -176,10 +176,10 @@ class CustomElementsAnalysisJoin {
     instantiatedClasses.removeAll(newActiveClasses);
   }
 
-  TypeConstant makeTypeConstant(ClassElement element) {
+  TypeConstantValue makeTypeConstant(ClassElement element) {
     DartType elementType = element.rawType;
     DartType constantType = backend.typeImplementation.rawType;
-    return new TypeConstant(elementType, constantType);
+    return new TypeConstantValue(elementType, constantType);
   }
 
   List<Element> computeEscapingConstructors(ClassElement classElement) {

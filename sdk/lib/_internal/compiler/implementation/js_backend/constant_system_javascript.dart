@@ -9,13 +9,14 @@ const JAVA_SCRIPT_CONSTANT_SYSTEM = const JavaScriptConstantSystem();
 class JavaScriptBitNotOperation extends BitNotOperation {
   const JavaScriptBitNotOperation();
 
-  Constant fold(Constant constant) {
+  ConstantValue fold(ConstantValue constant) {
     if (JAVA_SCRIPT_CONSTANT_SYSTEM.isInt(constant)) {
       // In JavaScript we don't check for -0 and treat it as if it was zero.
       if (constant.isMinusZero) constant = DART_CONSTANT_SYSTEM.createInt(0);
-      IntConstant intConstant = constant;
+      IntConstantValue intConstant = constant;
       // We convert the result of bit-operations to 32 bit unsigned integers.
-      return JAVA_SCRIPT_CONSTANT_SYSTEM.createInt32(~intConstant.value);
+      return
+          JAVA_SCRIPT_CONSTANT_SYSTEM.createInt32(~intConstant.primitiveValue);
     }
     return null;
   }
@@ -32,14 +33,14 @@ class JavaScriptBinaryBitOperation implements BinaryOperation {
 
   String get name => dartBitOperation.name;
 
-  Constant fold(Constant left, Constant right) {
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
     // In JavaScript we don't check for -0 and treat it as if it was zero.
     if (left.isMinusZero) left = DART_CONSTANT_SYSTEM.createInt(0);
     if (right.isMinusZero) right = DART_CONSTANT_SYSTEM.createInt(0);
-    IntConstant result = dartBitOperation.fold(left, right);
+    IntConstantValue result = dartBitOperation.fold(left, right);
     if (result != null) {
       // We convert the result of bit-operations to 32 bit unsigned integers.
-      return JAVA_SCRIPT_CONSTANT_SYSTEM.createInt32(result.value);
+      return JAVA_SCRIPT_CONSTANT_SYSTEM.createInt32(result.primitiveValue);
     }
     return result;
   }
@@ -50,11 +51,11 @@ class JavaScriptBinaryBitOperation implements BinaryOperation {
 class JavaScriptShiftRightOperation extends JavaScriptBinaryBitOperation {
   const JavaScriptShiftRightOperation() : super(const ShiftRightOperation());
 
-  Constant fold(Constant left, Constant right) {
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
     // Truncate the input value to 32 bits if necessary.
     if (left.isInt) {
-      IntConstant intConstant = left;
-      int value = intConstant.value;
+      IntConstantValue intConstant = left;
+      int value = intConstant.primitiveValue;
       int truncatedValue = value & JAVA_SCRIPT_CONSTANT_SYSTEM.BITS32;
       if (value < 0) {
         // Sign-extend if the input was negative. The current semantics don't
@@ -85,10 +86,10 @@ class JavaScriptNegateOperation implements UnaryOperation {
 
   String get name => dartNegateOperation.name;
 
-  Constant fold(Constant constant) {
+  ConstantValue fold(ConstantValue constant) {
     if (constant.isInt) {
-      IntConstant intConstant = constant;
-      if (intConstant.value == 0) {
+      IntConstantValue intConstant = constant;
+      if (intConstant.primitiveValue == 0) {
         return JAVA_SCRIPT_CONSTANT_SYSTEM.createDouble(-0.0);
       }
     }
@@ -103,8 +104,8 @@ class JavaScriptBinaryArithmeticOperation implements BinaryOperation {
 
   String get name => dartArithmeticOperation.name;
 
-  Constant fold(Constant left, Constant right) {
-    Constant result = dartArithmeticOperation.fold(left, right);
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
+    ConstantValue result = dartArithmeticOperation.fold(left, right);
     if (result == null) return result;
     return JAVA_SCRIPT_CONSTANT_SYSTEM.convertToJavaScriptConstant(result);
   }
@@ -119,17 +120,17 @@ class JavaScriptIdentityOperation implements BinaryOperation {
 
   String get name => dartIdentityOperation.name;
 
-  BoolConstant fold(Constant left, Constant right) {
-    BoolConstant result = dartIdentityOperation.fold(left, right);
-    if (result == null || result.value) return result;
+  BoolConstantValue fold(ConstantValue left, ConstantValue right) {
+    BoolConstantValue result = dartIdentityOperation.fold(left, right);
+    if (result == null || result.primitiveValue) return result;
     // In JavaScript -0.0 === 0 and all doubles are equal to their integer
     // values. Furthermore NaN !== NaN.
     if (left.isNum && right.isNum) {
-      NumConstant leftNum = left;
-      NumConstant rightNum = right;
-      double leftDouble = leftNum.value.toDouble();
-      double rightDouble = rightNum.value.toDouble();
-      return new BoolConstant(leftDouble == rightDouble);
+      NumConstantValue leftNum = left;
+      NumConstantValue rightNum = right;
+      double leftDouble = leftNum.primitiveValue.toDouble();
+      double rightDouble = rightNum.primitiveValue.toDouble();
+      return new BoolConstantValue(leftDouble == rightDouble);
     }
     return result;
   }
@@ -185,49 +186,51 @@ class JavaScriptConstantSystem extends ConstantSystem {
     return doubleValue.isNaN || doubleValue.isInfinite;
   }
 
-  NumConstant convertToJavaScriptConstant(NumConstant constant) {
+  NumConstantValue convertToJavaScriptConstant(NumConstantValue constant) {
     if (constant.isInt) {
-      IntConstant intConstant = constant;
-      int intValue = intConstant.value;
+      IntConstantValue intConstant = constant;
+      int intValue = intConstant.primitiveValue;
       if (integerBecomesNanOrInfinity(intValue)) {
-        return new DoubleConstant(intValue.toDouble());
+        return new DoubleConstantValue(intValue.toDouble());
       }
       // If the integer loses precision with JavaScript numbers, use
       // the floored version JavaScript will use.
       int floorValue = intValue.toDouble().floor().toInt();
       if (floorValue != intValue) {
-        return new IntConstant(floorValue);
+        return new IntConstantValue(floorValue);
       }
     } else if (constant.isDouble) {
-      DoubleConstant doubleResult = constant;
-      double doubleValue = doubleResult.value;
+      DoubleConstantValue doubleResult = constant;
+      double doubleValue = doubleResult.primitiveValue;
       if (!doubleValue.isInfinite && !doubleValue.isNaN &&
           !constant.isMinusZero) {
         int intValue = doubleValue.truncate();
         if (intValue == doubleValue) {
-          return new IntConstant(intValue);
+          return new IntConstantValue(intValue);
         }
       }
     }
     return constant;
   }
 
-  NumConstant createInt(int i)
-      => convertToJavaScriptConstant(new IntConstant(i));
-  NumConstant createInt32(int i) => new IntConstant(i & BITS32);
-  NumConstant createDouble(double d)
-      => convertToJavaScriptConstant(new DoubleConstant(d));
-  StringConstant createString(DartString string) => new StringConstant(string);
-  BoolConstant createBool(bool value) => new BoolConstant(value);
-  NullConstant createNull() => new NullConstant();
+  NumConstantValue createInt(int i)
+      => convertToJavaScriptConstant(new IntConstantValue(i));
+  NumConstantValue createInt32(int i) => new IntConstantValue(i & BITS32);
+  NumConstantValue createDouble(double d)
+      => convertToJavaScriptConstant(new DoubleConstantValue(d));
+  StringConstantValue createString(DartString string) {
+    return new StringConstantValue(string);
+  }
+  BoolConstantValue createBool(bool value) => new BoolConstantValue(value);
+  NullConstantValue createNull() => new NullConstantValue();
 
   // Integer checks don't verify that the number is not -0.0.
-  bool isInt(Constant constant) => constant.isInt || constant.isMinusZero;
-  bool isDouble(Constant constant)
+  bool isInt(ConstantValue constant) => constant.isInt || constant.isMinusZero;
+  bool isDouble(ConstantValue constant)
       => constant.isDouble && !constant.isMinusZero;
-  bool isString(Constant constant) => constant.isString;
-  bool isBool(Constant constant) => constant.isBool;
-  bool isNull(Constant constant) => constant.isNull;
+  bool isString(ConstantValue constant) => constant.isString;
+  bool isBool(ConstantValue constant) => constant.isBool;
+  bool isNull(ConstantValue constant) => constant.isNull;
 
   bool isSubtype(Compiler compiler, DartType s, DartType t) {
     // At runtime, an integer is both an integer and a double: the
@@ -240,18 +243,18 @@ class JavaScriptConstantSystem extends ConstantSystem {
     return compiler.types.isSubtype(s, t);
   }
 
-  MapConstant createMap(Compiler compiler,
+  MapConstantValue createMap(Compiler compiler,
                         InterfaceType sourceType,
-                        List<Constant> keys,
-                        List<Constant> values) {
+                        List<ConstantValue> keys,
+                        List<ConstantValue> values) {
     JavaScriptBackend backend = compiler.backend;
 
     bool onlyStringKeys = true;
-    Constant protoValue = null;
+    ConstantValue protoValue = null;
     for (int i = 0; i < keys.length ; i++) {
       var key = keys[i];
       if (key.isString) {
-        if (key.value == JavaScriptMapConstant.PROTO_PROPERTY) {
+        if (key.primitiveValue == JavaScriptMapConstant.PROTO_PROPERTY) {
           protoValue = values[i];
         }
       } else {
@@ -270,7 +273,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
       List<DartType> arguments = <DartType>[sourceType.typeArguments.first];
       keysType = new InterfaceType(compiler.listClass, arguments);
     }
-    ListConstant keysList = new ListConstant(keysType, keys);
+    ListConstantValue keysList = new ListConstantValue(keysType, keys);
     String className = onlyStringKeys
         ? (hasProtoKey ? JavaScriptMapConstant.DART_PROTO_CLASS
                        : JavaScriptMapConstant.DART_STRING_CLASS)
@@ -290,7 +293,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
   }
 }
 
-class JavaScriptMapConstant extends MapConstant {
+class JavaScriptMapConstant extends MapConstantValue {
   /**
    * The [PROTO_PROPERTY] must not be used as normal property in any JavaScript
    * object. It would change the prototype chain.
@@ -309,13 +312,13 @@ class JavaScriptMapConstant extends MapConstant {
   static const String PROTO_VALUE = "_protoValue";
   static const String JS_DATA_NAME = "_jsData";
 
-  final ListConstant keyList;
-  final Constant protoValue;
+  final ListConstantValue keyList;
+  final ConstantValue protoValue;
   final bool onlyStringKeys;
 
   JavaScriptMapConstant(InterfaceType type,
-                        ListConstant keyList,
-                        List<Constant> values,
+                        ListConstantValue keyList,
+                        List<ConstantValue> values,
                         this.protoValue,
                         this.onlyStringKeys)
       : this.keyList = keyList,
@@ -326,8 +329,8 @@ class JavaScriptMapConstant extends MapConstant {
     return compiler.typesTask.constMapType;
   }
 
-  List<Constant> getDependencies() {
-    List<Constant> result = <Constant>[];
+  List<ConstantValue> getDependencies() {
+    List<ConstantValue> result = <ConstantValue>[];
     if (onlyStringKeys) {
       result.add(keyList);
     } else {

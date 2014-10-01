@@ -216,7 +216,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction foldUnary(UnaryOperation operation, HInstruction operand) {
     if (operand is HConstant) {
       HConstant receiver = operand;
-      Constant folded = operation.fold(receiver.constant);
+      ConstantValue folded = operation.fold(receiver.constant);
       if (folded != null) return graph.addConstant(folded, compiler);
     }
     return null;
@@ -227,11 +227,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (actualReceiver.isIndexablePrimitive(compiler)) {
       if (actualReceiver.isConstantString()) {
         HConstant constantInput = actualReceiver;
-        StringConstant constant = constantInput.constant;
+        StringConstantValue constant = constantInput.constant;
         return graph.addConstantInt(constant.length, compiler);
       } else if (actualReceiver.isConstantList()) {
         HConstant constantInput = actualReceiver;
-        ListConstant constant = constantInput.constant;
+        ListConstantValue constant = constantInput.constant;
         return graph.addConstantInt(constant.length, compiler);
       }
       Element element = backend.jsIndexableLength;
@@ -242,7 +242,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return result;
     } else if (actualReceiver.isConstantMap()) {
       HConstant constantInput = actualReceiver;
-      MapConstant constant = constantInput.constant;
+      MapConstantValue constant = constantInput.constant;
       return graph.addConstantInt(constant.length, compiler);
     }
     return null;
@@ -439,7 +439,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (left is HConstant && right is HConstant) {
       HConstant op1 = left;
       HConstant op2 = right;
-      Constant folded = operation.fold(op1.constant, op2.constant);
+      ConstantValue folded = operation.fold(op1.constant, op2.constant);
       if (folded != null) return graph.addConstant(folded, compiler);
     }
     return null;
@@ -723,11 +723,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // HFieldGet of a constructed constant can be replaced with the constant's
     // field.
     if (receiver is HConstant) {
-      Constant constant = receiver.constant;
+      ConstantValue constant = receiver.constant;
       if (constant.isConstructedObject) {
-        ConstructedConstant constructedConstant = constant;
-        Map<Element, Constant> fields = constructedConstant.fieldElements;
-        Constant value = fields[node.element];
+        ConstructedConstantValue constructedConstant = constant;
+        Map<Element, ConstantValue> fields = constructedConstant.fieldElements;
+        ConstantValue value = fields[node.element];
         if (value != null) {
           return graph.addConstant(value, compiler);
         }
@@ -740,9 +740,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitIndex(HIndex node) {
     if (node.receiver.isConstantList() && node.index.isConstantInteger()) {
       var instruction = node.receiver;
-      List<Constant> entries = instruction.constant.entries;
+      List<ConstantValue> entries = instruction.constant.entries;
       instruction = node.index;
-      int index = instruction.constant.value;
+      int index = instruction.constant.primitiveValue;
       if (index >= 0 && index < entries.length) {
         return graph.addConstant(entries[index], compiler);
       }
@@ -818,18 +818,20 @@ class SsaInstructionSimplifier extends HBaseVisitor
     //     "L" + "R"             ->  "LR"
     //     (prefix + "L") + "R"  ->  prefix + "LR"
     //
-    StringConstant getString(HInstruction instruction) {
+    StringConstantValue getString(HInstruction instruction) {
       if (!instruction.isConstantString()) return null;
       HConstant constant = instruction;
       return constant.constant;
     }
 
-    StringConstant leftString = getString(node.left);
-    if (leftString != null && leftString.value.length == 0) return node.right;
+    StringConstantValue leftString = getString(node.left);
+    if (leftString != null && leftString.primitiveValue.length == 0) {
+      return node.right;
+    }
 
-    StringConstant rightString = getString(node.right);
+    StringConstantValue rightString = getString(node.right);
     if (rightString == null) return node;
-    if (rightString.value.length == 0) return node.left;
+    if (rightString.primitiveValue.length == 0) return node.left;
 
     HInstruction prefix = null;
     if (leftString == null) {
@@ -842,14 +844,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (leftString == null) return node;
     }
 
-    if (leftString.value.length + rightString.value.length >
+    if (leftString.primitiveValue.length + rightString.primitiveValue.length >
         MAX_SHARED_CONSTANT_FOLDED_STRING_LENGTH) {
       if (node.usedBy.length > 1) return node;
     }
 
     HInstruction folded = graph.addConstant(
-        constantSystem.createString(
-            new ast.DartString.concat(leftString.value, rightString.value)),
+        constantSystem.createString(new ast.DartString.concat(
+            leftString.primitiveValue, rightString.primitiveValue)),
         compiler);
     if (prefix == null) return folded;
     return new HStringConcat(prefix, folded, node.node, backend.stringType);
@@ -865,11 +867,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // Only constant-fold int.toString() when Dart and JS results the same.
         // TODO(18103): We should be able to remove this work-around when issue
         // 18103 is resolved by providing the correct string.
-        IntConstant intConstant = constant.constant;
+        IntConstantValue intConstant = constant.constant;
         // Very conservative range.
         if (!intConstant.isUInt32()) return node;
       }
-      PrimitiveConstant primitive = constant.constant;
+      PrimitiveConstantValue primitive = constant.constant;
       return graph.addConstant(constantSystem.createString(
           primitive.toDartString()), compiler);
     }
@@ -969,7 +971,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   HInstruction get zapInstruction {
     if (zapInstructionCache == null) {
       // A constant with no type does not pollute types at phi nodes.
-      Constant constant = new DummyConstant(const TypeMask.nonNullEmpty());
+      ConstantValue constant =
+          new DummyConstantValue(const TypeMask.nonNullEmpty());
       zapInstructionCache = analyzer.graph.addConstant(constant, compiler);
     }
     return zapInstructionCache;
@@ -1156,8 +1159,8 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
         for (int pos = 1; pos < node.inputs.length; pos++) {
           HConstant input = node.inputs[pos];
           if (!input.isConstantInteger()) continue;
-          IntConstant constant = input.constant;
-          int label = constant.value;
+          IntConstantValue constant = input.constant;
+          int label = constant.primitiveValue;
           if (!liveLabels.contains(label) &&
               label <= upper &&
               label >= lower) {

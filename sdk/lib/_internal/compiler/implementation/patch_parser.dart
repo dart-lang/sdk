@@ -116,7 +116,7 @@ library patchparser;
 
 import 'dart:async';
 
-import 'constants/values.dart' show Constant;
+import 'constants/values.dart' show ConstantValue;
 import 'dart2jslib.dart'
     show Compiler,
          CompilerTask,
@@ -317,7 +317,7 @@ abstract class EagerAnnotationHandler {
   void validate(Compiler compiler,
                 Element element,
                 MetadataAnnotation annotation,
-                Constant constant);
+                ConstantValue constant);
 
 
   /// Checks [element] for metadata matching the [handler]. Return `true` if
@@ -378,7 +378,7 @@ class NativeAnnotationHandler implements EagerAnnotationHandler {
   void validate(Compiler compiler,
                 Element element,
                 MetadataAnnotation annotation,
-                Constant constant) {
+                ConstantValue constant) {
     if (constant.computeType(compiler).element !=
             compiler.nativeAnnotationClass) {
       compiler.internalError(annotation, 'Invalid @Native(...) annotation.');
@@ -404,7 +404,7 @@ class PatchAnnotationHandler implements EagerAnnotationHandler {
   void validate(Compiler compiler,
                 Element element,
                 MetadataAnnotation annotation,
-                Constant constant) {
+                ConstantValue constant) {
     if (constant != compiler.patchConstant) {
       compiler.internalError(annotation, 'Invalid patch annotation.');
     }

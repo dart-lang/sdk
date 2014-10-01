@@ -39,18 +39,18 @@ void main() {
     var lib =
         compiler.libraryLoader.lookupLibrary(Uri.parse("memory:lib.dart"));
     var backend = compiler.backend;
-    List<Constant> allConstants = [];
+    List<ConstantValue> allConstants = [];
 
-    addConstantWithDependendencies(Constant c) {
+    addConstantWithDependendencies(ConstantValue c) {
       allConstants.add(c);
       c.getDependencies().forEach(addConstantWithDependendencies);
     }
 
     backend.constants.compiledConstants.forEach(addConstantWithDependendencies);
     for (String stringValue in ["cA", "cB", "cC"]) {
-      Constant constant = allConstants.firstWhere((constant) {
-        return constant is StringConstant
-            && constant.value.slowToString() == stringValue;
+      ConstantValue constant = allConstants.firstWhere((constant) {
+        return constant.isString
+            && constant.primitiveValue.slowToString() == stringValue;
       });
       Expect.notEquals(null, outputUnitForConstant(constant));
       Expect.notEquals(mainOutputUnit, outputUnitForConstant(constant));

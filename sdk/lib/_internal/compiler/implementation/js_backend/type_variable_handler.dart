@@ -67,19 +67,19 @@ class TypeVariableHandler {
     for (TypeVariableType currentTypeVariable in cls.typeVariables) {
       TypeVariableElement typeVariableElement = currentTypeVariable.element;
 
-      AstConstant wrapConstant(ConstExp constant) {
+      AstConstant wrapConstant(ConstantExpression constant) {
         return new AstConstant(typeVariableElement,
                                      typeVariableElement.node,
                                      constant);
       }
 
-      ConstExp name = new PrimitiveConstExp(
+      ConstantExpression name = new PrimitiveConstantExpression(
           backend.constantSystem.createString(
               new DartString.literal(currentTypeVariable.name)));
-      ConstExp bound = new PrimitiveConstExp(
+      ConstantExpression bound = new PrimitiveConstantExpression(
           backend.constantSystem.createInt(
               emitter.reifyType(typeVariableElement.bound)));
-      ConstExp type = backend.constants.createTypeConstant(cls);
+      ConstantExpression type = backend.constants.createTypeConstant(cls);
       List<AstConstant> arguments =
           [wrapConstant(type), wrapConstant(name), wrapConstant(bound)];
 
@@ -96,7 +96,7 @@ class TypeVariableHandler {
               new Selector.callConstructor('', null, 3),
               arguments,
               arguments);
-      Constant value = constant.value;
+      ConstantValue value = constant.value;
       backend.registerCompileTimeConstant(value, compiler.globalDependencies);
       backend.constants.addCompileTimeConstantForEmission(value);
       constants.add(
@@ -136,7 +136,7 @@ class TypeVariableHandler {
    * entry in the list has already been reserved and the constant is added
    * there, otherwise a new entry for [c] is created.
    */
-  int reifyTypeVariableConstant(Constant c, TypeVariableElement variable) {
+  int reifyTypeVariableConstant(ConstantValue c, TypeVariableElement variable) {
     String name = jsAst.prettyPrint(task.oldEmitter.constantReference(c),
                                     compiler).getText();
     int index;

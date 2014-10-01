@@ -1430,7 +1430,7 @@ abstract class TypeVariableElement extends Element
 
 abstract class MetadataAnnotation implements Spannable {
   /// The front-end constant of this metadata annotation.
-  ConstExp get constant;
+  ConstantExpression get constant;
   Element get annotatedElement;
   int get resolutionState;
   Token get beginToken;

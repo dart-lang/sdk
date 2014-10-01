@@ -391,11 +391,11 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
     List<jsAst.Expression> elements = <jsAst.Expression>[];
     JavaScriptConstantCompiler handler = backend.constants;
-    List<Constant> constants =
+    List<ConstantValue> constants =
         handler.getConstantsForEmission(emitter.compareConstants);
-    for (Constant constant in constants) {
-      if (constant is TypeConstant) {
-        TypeConstant typeConstant = constant;
+    for (ConstantValue constant in constants) {
+      if (constant is TypeConstantValue) {
+        TypeConstantValue typeConstant = constant;
         Element element = typeConstant.representedType.element;
         if (element is ClassElement) {
           ClassElement classElement = element;

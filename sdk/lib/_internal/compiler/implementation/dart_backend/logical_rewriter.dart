@@ -408,7 +408,7 @@ class LogicalRewriter extends Visitor<Statement, Expression> {
     if (e is Constant && e.value.isBool) {
       // !true ==> false
       if (!polarity) {
-        values.BoolConstant value = e.value;
+        values.BoolConstantValue value = e.value;
         return new Constant.primitive(value.negate());
       }
       return e;

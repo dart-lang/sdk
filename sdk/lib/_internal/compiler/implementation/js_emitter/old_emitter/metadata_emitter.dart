@@ -27,7 +27,7 @@ class MetadataEmitter extends CodeEmitterHelper {
       if (link != null) {
         for (; !link.isEmpty; link = link.tail) {
           MetadataAnnotation annotation = link.head;
-          ConstExp constant =
+          ConstantExpression constant =
               backend.constants.getConstantForMetadata(annotation);
           if (constant == null) {
             compiler.internalError(annotation, 'Annotation value is null.');
@@ -46,8 +46,9 @@ class MetadataEmitter extends CodeEmitterHelper {
     FunctionSignature signature = function.functionSignature;
     if (signature.optionalParameterCount == 0) return const [];
     List<int> defaultValues = <int>[];
-    for (Element element in signature.optionalParameters) {
-      ConstExp constant = backend.constants.getConstantForVariable(element);
+    for (ParameterElement element in signature.optionalParameters) {
+      ConstantExpression constant =
+          backend.constants.getConstantForVariable(element);
       String stringRepresentation = (constant == null)
           ? "null"
           : jsAst.prettyPrint(
@@ -58,7 +59,8 @@ class MetadataEmitter extends CodeEmitterHelper {
   }
 
   int reifyMetadata(MetadataAnnotation annotation) {
-    ConstExp constant = backend.constants.getConstantForMetadata(annotation);
+    ConstantExpression constant =
+        backend.constants.getConstantForMetadata(annotation);
     if (constant == null) {
       compiler.internalError(annotation, 'Annotation value is null.');
       return -1;
@@ -74,7 +76,8 @@ class MetadataEmitter extends CodeEmitterHelper {
             type,
             (variable) {
               return js.number(
-                  emitter.typeVariableHandler.reifyTypeVariable(variable.element));
+                  emitter.typeVariableHandler.reifyTypeVariable(
+                      variable.element));
             },
             (TypedefType typedef) {
               return backend.isAccessibleByReflection(typedef.element);

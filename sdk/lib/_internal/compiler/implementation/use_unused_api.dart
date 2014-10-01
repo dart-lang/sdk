@@ -64,7 +64,8 @@ useApi() {
   api.ReadStringFromUri uri;
 }
 
-void useConstant(constants.Constant constant, dart2jslib.ConstantSystem cs) {
+void useConstant(constants.ConstantValue constant,
+                 dart2jslib.ConstantSystem cs) {
   constant.isObject;
   cs.isBool(constant);
 }

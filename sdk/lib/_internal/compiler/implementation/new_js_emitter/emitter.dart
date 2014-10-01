@@ -9,7 +9,7 @@ import 'model_emitter.dart';
 import '../common.dart';
 import '../js/js.dart' as js;
 
-import '../constants/values.dart' show PrimitiveConstant;
+import '../constants/values.dart' show PrimitiveConstantValue;
 import '../tree/tree.dart' show DartString;
 
 import '../js_backend/js_backend.dart' show Namer, JavaScriptBackend;
@@ -200,7 +200,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   // TODO(floitsch): copied from OldEmitter. Adjust or share.
-  bool isConstantInlinedOrAlreadyEmitted(Constant constant) {
+  bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
     if (constant.isFunction) return true;    // Already emitted.
     if (constant.isPrimitive) return true;   // Inlined.
     if (constant.isDummy) return true;       // Inlined.
@@ -212,7 +212,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   // TODO(floitsch): copied from OldEmitter. Adjust or share.
-  int compareConstants(Constant a, Constant b) {
+  int compareConstants(ConstantValue a, ConstantValue b) {
     // Inlined constants don't affect the order and sometimes don't even have
     // names.
     int cmp1 = isConstantInlinedOrAlreadyEmitted(a) ? 0 : 1;
@@ -239,15 +239,15 @@ class Emitter implements emitterTask.Emitter {
     return js.string("init.$global");
   }
 
-  js.Expression constantReference(Constant value) {
+  js.Expression constantReference(ConstantValue value) {
     if (!value.isPrimitive) return js.string("<<unimplemented>>");
-    PrimitiveConstant constant = value;
+    PrimitiveConstantValue constant = value;
     if (constant.isBool) return new js.LiteralBool(constant.isTrue);
     if (constant.isString) {
-      DartString dartString = constant.value;
+      DartString dartString = constant.primitiveValue;
       return js.string(dartString.slowToString());
     }
-    if (constant.isNum) return js.number(constant.value);
+    if (constant.isNum) return js.number(constant.primitiveValue);
     if (constant.isNull) return new js.LiteralNull();
     return js.string("<<unimplemented>>");
   }

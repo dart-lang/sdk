@@ -5,10 +5,10 @@
 library dart2js.common;
 
 export 'constants/values.dart' show
-    Constant,
-    InterceptorConstant,
-    NullConstant,
-    TypeConstant;
+    ConstantValue,
+    InterceptorConstantValue,
+    NullConstantValue,
+    TypeConstantValue;
 
 export 'dart2jslib.dart' show
     CompilerTask,

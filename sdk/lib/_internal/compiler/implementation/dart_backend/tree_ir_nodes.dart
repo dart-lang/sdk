@@ -166,7 +166,7 @@ class InvokeConstructor extends Expression implements Invoke {
   final FunctionElement target;
   final List<Expression> arguments;
   final Selector selector;
-  final values.Constant constant;
+  final values.ConstantValue constant;
 
   InvokeConstructor(this.type, this.target, this.selector, this.arguments,
       [this.constant]);
@@ -179,7 +179,7 @@ class InvokeConstructor extends Expression implements Invoke {
 /// Calls [toString] on each argument and concatenates the results.
 class ConcatenateStrings extends Expression {
   final List<Expression> arguments;
-  final values.Constant constant;
+  final values.ConstantValue constant;
 
   ConcatenateStrings(this.arguments, [this.constant]);
 
@@ -190,16 +190,16 @@ class ConcatenateStrings extends Expression {
  * A constant.
  */
 class Constant extends Expression {
-  final ConstExp expression;
+  final ConstantExpression expression;
 
   Constant(this.expression);
 
-  Constant.primitive(values.PrimitiveConstant primitiveValue)
-      : expression = new PrimitiveConstExp(primitiveValue);
+  Constant.primitive(values.PrimitiveConstantValue primitiveValue)
+      : expression = new PrimitiveConstantExpression(primitiveValue);
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
 
-  values.Constant get value => expression.value;
+  values.ConstantValue get value => expression.value;
 }
 
 class This extends Expression {
@@ -448,7 +448,8 @@ class Assign extends Statement {
  * expression.
  */
 class Return extends Statement {
-  /// Should not be null. Use [Constant] with [NullConstant] for void returns.
+  /// Should not be null. Use [Constant] with [NullConstantValue] for void
+  /// returns.
   Expression value;
 
   Statement get next => null;
@@ -489,7 +490,7 @@ class FunctionDefinition extends Node {
   final List<Variable> parameters;
   Statement body;
   final List<ConstDeclaration> localConstants;
-  final List<ConstExp> defaultParameterValues;
+  final List<ConstantExpression> defaultParameterValues;
 
   FunctionDefinition(this.element, this.parameters, this.body,
       this.localConstants, this.defaultParameterValues);

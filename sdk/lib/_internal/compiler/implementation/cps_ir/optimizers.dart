@@ -4,8 +4,10 @@
 
 library dart2js.optimizers;
 
-import '../constants/expressions.dart' show ConstExp, PrimitiveConstExp;
-import '../constants/values.dart' as values;
+import '../constants/expressions.dart' show
+    ConstantExpression,
+    PrimitiveConstantExpression;
+import '../constants/values.dart';
 import '../dart_types.dart' as types;
 import '../dart2jslib.dart' as dart2js;
 import '../elements/elements.dart' show ClassElement;

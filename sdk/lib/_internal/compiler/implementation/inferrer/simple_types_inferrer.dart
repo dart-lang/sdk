@@ -985,7 +985,7 @@ class SimpleTypeInferrerVisitor<T>
       var constant =
           compiler.backend.constants.getConstantForVariable(element);
       if (constant != null && constant.value.isInt) {
-        return constant.value.value;
+        return constant.value.primitiveValue;
       }
     }
     return null;

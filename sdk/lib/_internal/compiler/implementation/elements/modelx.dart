@@ -2627,7 +2627,7 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
    * The compile-time constant which this annotation resolves to.
    * In the mirror system, this would be an object mirror.
    */
-  ConstExp constant;
+  ConstantExpression constant;
   Element annotatedElement;
   int resolutionState;
 
