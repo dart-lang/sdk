@@ -628,6 +628,8 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new(I) UnboxIntegerInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kUnboxedMint) && (to == kTagged)) {
     converted = new(I) BoxIntegerInstr(use->CopyWithType());
+  } else if ((from == kUnboxedUint32) && (to == kTagged)) {
+    converted = new(I) BoxUint32Instr(use->CopyWithType());
   } else if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
     const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
