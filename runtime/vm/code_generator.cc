@@ -1209,7 +1209,9 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // Since the code is referenced from the frame and the ZoneHandle,
     // it cannot have been removed from the function.
     ASSERT(function.HasCode());
-    if (!CanOptimizeFunction(function, isolate)) {
+    // Don't do OSR on intrinsified functions: The intrinsic code expects to be
+    // called like a regular function and can't be entered via OSR.
+    if (!CanOptimizeFunction(function, isolate) || function.is_intrinsic()) {
       return;
     }
     intptr_t osr_id =

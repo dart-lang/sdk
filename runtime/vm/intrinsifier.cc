@@ -180,6 +180,7 @@ void Intrinsifier::Intrinsify(ParsedFunction* parsed_function,
     return;
   }
 
+  ASSERT(!compiler->flow_graph().IsCompiledForOsr());
   if (GraphIntrinsify(parsed_function, compiler)) {
     return;
   }
