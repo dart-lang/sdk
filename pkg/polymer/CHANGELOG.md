@@ -1,3 +1,6 @@
+#### 0.15.0+1
+  * Widen web_components version constraint.
+
 #### 0.15.0
   * Added Polymer.forceReady method. This forces a ready state regardless of
     whether or not there are still polymer-element declarations waiting for

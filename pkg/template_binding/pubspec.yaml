@@ -7,7 +7,7 @@ description: >
 homepage: https://www.dartlang.org/polymer-dart/
 dependencies:
   observe: ">=0.11.0 <0.13.0"
-  web_components: ">=0.7.0 <0.8.0"
+  web_components: ">=0.7.0 <0.9.0"
 dev_dependencies:
   unittest: ">=0.10.0 <0.11.0"
 environment:

@@ -1,3 +1,6 @@
+#### Pub version 0.13.0+1
+  * Widen web_components version constraint.
+
 #### Pub version 0.13.0
   * Up to date with [TemplateBinding#41e95ea][41e95ea] (release 0.4.0)
   * Using this package now requires some additional javascript polyfills, that
