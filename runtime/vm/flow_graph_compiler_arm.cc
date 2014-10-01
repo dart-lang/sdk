@@ -1082,7 +1082,7 @@ void FlowGraphCompiler::CompileGraph() {
     __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
     for (intptr_t i = 0; i < num_locals; ++i) {
       // Subtract index i (locals lie at lower addresses than FP).
-      __ str(R0, Address(FP, (slot_base - i) * kWordSize));
+      __ StoreToOffset(kWord, R0, FP, (slot_base - i) * kWordSize);
     }
   }
 

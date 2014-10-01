@@ -275,7 +275,7 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
-  __ str(value, Address(FP, local().index() * kWordSize));
+  __ StoreToOffset(kWord, value, FP, local().index() * kWordSize);
 }
 
 
