@@ -1040,6 +1040,30 @@ TEST_CASE(NewString) {
 }
 
 
+TEST_CASE(MalformedStringToUTF8) {
+  const char* kScriptChars =
+      "String testMain() {"
+      "  return '\\u{1D11E}'[1];"
+      "}";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle str1 = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+  EXPECT_VALID(str1);
+
+  uint8_t* utf8_encoded = NULL;
+  intptr_t utf8_length = 0;
+  Dart_Handle result = Dart_StringToUTF8(str1, &utf8_encoded, &utf8_length);
+  EXPECT_VALID(result);
+  EXPECT_EQ(3, utf8_length);
+  EXPECT_EQ(237, static_cast<intptr_t>(utf8_encoded[0]));
+  EXPECT_EQ(180, static_cast<intptr_t>(utf8_encoded[1]));
+  EXPECT_EQ(158, static_cast<intptr_t>(utf8_encoded[2]));
+
+  Dart_Handle str2 = Dart_NewStringFromUTF8(utf8_encoded, utf8_length);
+  EXPECT(Dart_IsError(str2));  // Invalid UTF-8.
+}
+
+
 static void ExternalStringCallbackFinalizer(void* peer) {
   *static_cast<int*>(peer) *= 2;
 }

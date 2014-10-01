@@ -37,6 +37,7 @@ var blacklist = [
   'dart.isolate._isolateScheduleImmediate',
   'dart.io._Timer._createTimer',  /// smi: ok
   'dart.async.runZoned',  /// string: ok
+  'dart.async._asyncRunCallback',
 
   // These either cause the VM to segfault or throw uncatchable API errors.
   // TODO(15274): Fix them and remove from blacklist.

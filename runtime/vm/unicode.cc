@@ -138,7 +138,6 @@ intptr_t Utf8::Length(const String& str) {
 
 
 intptr_t Utf8::Encode(int32_t ch, char* dst) {
-  ASSERT(!Utf16::IsSurrogate(ch));
   static const int kMask = ~(1 << 6);
   if (ch <= kMaxOneByteChar) {
     dst[0] = ch;
