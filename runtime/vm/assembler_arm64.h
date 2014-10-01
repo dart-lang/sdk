@@ -1456,19 +1456,12 @@ class Assembler : public ValueObject {
 
   void EmitConditionalBranch(ConditionalBranchOp op, Condition cond,
                              int64_t imm) {
-    ASSERT(Utils::IsInt(21, imm) && ((imm & 0x3) == 0));
+    const int32_t off = EncodeImm19BranchOffset(imm, 0);
     const int32_t encoding =
         op |
         (static_cast<int32_t>(cond) << kCondShift) |
-        (((imm >> 2) << kImm19Shift) & kImm19Mask);
+        off;
     Emit(encoding);
-  }
-
-  void EmitFarConditionalBranch(ConditionalBranchOp op,
-                                Condition cond,
-                                int64_t offset) {
-    EmitConditionalBranch(op, InvertCondition(cond), 2 * Instr::kInstrSize);
-    b(offset);
   }
 
   bool CanEncodeImm19BranchOffset(int64_t offset) {
@@ -1480,14 +1473,26 @@ class Assembler : public ValueObject {
     if (label->IsBound()) {
       const int64_t dest = label->Position() - buffer_.Size();
       if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
-        EmitFarConditionalBranch(op, cond, dest);
+        if (cond == AL) {
+          // If the condition is AL, we must always branch to dest. There is
+          // no need for a guard branch.
+          b(dest);
+        } else {
+          EmitConditionalBranch(
+              op, InvertCondition(cond), 2 * Instr::kInstrSize);
+          b(dest);
+        }
       } else {
         EmitConditionalBranch(op, cond, dest);
       }
     } else {
       const int64_t position = buffer_.Size();
       if (use_far_branches()) {
-        EmitFarConditionalBranch(op, cond, label->position_);
+        // When cond is AL, this guard branch will be rewritten as a nop when
+        // the label is bound. We don't write it as a nop initially because it
+        // makes the decoding code in Bind simpler.
+        EmitConditionalBranch(op, InvertCondition(cond), 2 * Instr::kInstrSize);
+        b(label->position_);
       } else {
         EmitConditionalBranch(op, cond, label->position_);
       }
@@ -1502,7 +1507,7 @@ class Assembler : public ValueObject {
 
   void EmitUnconditionalBranchOp(UnconditionalBranchOp op, int64_t offset) {
     ASSERT(CanEncodeImm26BranchOffset(offset));
-    const int32_t off = (offset >> 2) << kImm26Shift;
+    const int32_t off = ((offset >> 2) << kImm26Shift) & kImm26Mask;
     const int32_t encoding = op | off;
     Emit(encoding);
   }
