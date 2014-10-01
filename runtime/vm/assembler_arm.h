@@ -800,14 +800,21 @@ class Assembler : public ValueObject {
     return TargetCPUFeatures::store_pc_read_offset();
   }
 
-  void UpdateAllocationStats(intptr_t cid,
-                             Register temp_reg,
-                             Heap::Space space);
-
-  void UpdateAllocationStatsWithSize(intptr_t cid,
-                                     Register size_reg,
-                                     Register temp_reg,
-                                     Heap::Space space);
+  // The register into which the allocation stats table is loaded with
+  // LoadAllocationStatsAddress should be passed to
+  // IncrementAllocationStats(WithSize) as stats_addr_reg to update the
+  // allocation stats. These are separate assembler macros so we can
+  // avoid a dependent load too nearby the load of the table address.
+  void LoadAllocationStatsAddress(Register dest,
+                                  intptr_t cid,
+                                  Heap::Space space);
+  void IncrementAllocationStats(Register stats_addr,
+                                intptr_t cid,
+                                Heap::Space space);
+  void IncrementAllocationStatsWithSize(Register stats_addr_reg,
+                                        Register size_reg,
+                                        intptr_t cid,
+                                        Heap::Space space);
 
   Address ElementAddressForIntIndex(bool is_load,
                                     bool is_external,

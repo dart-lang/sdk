@@ -296,47 +296,55 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
+  __ LoadAllocationStatsAddress(R4, cid, space);                               \
   __ LoadImmediate(R3, heap->TopAddress(space));                               \
   __ str(R1, Address(R3, 0));                                                  \
   __ AddImmediate(R0, kHeapObjectTag);                                         \
-  __ UpdateAllocationStatsWithSize(cid, R2, R4, space);                        \
   /* Initialize the tags. */                                                   \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
   /* R2: allocation size. */                                                   \
+  /* R4: allocation stats address */                                           \
   {                                                                            \
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag);                  \
-    __ mov(R2, Operand(R2, LSL,                                                \
+    __ mov(R3, Operand(R2, LSL,                                                \
         RawObject::kSizeTagPos - kObjectAlignmentLog2), LS);                   \
-    __ mov(R2, Operand(0), HI);                                                \
+    __ mov(R3, Operand(0), HI);                                                \
                                                                                \
     /* Get the class index and insert it into the tags. */                     \
     __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));                 \
-    __ orr(R2, R2, Operand(TMP));                                              \
-    __ str(R2, FieldAddress(R0, type_name::tags_offset()));  /* Tags. */       \
+    __ orr(R3, R3, Operand(TMP));                                              \
+    __ str(R3, FieldAddress(R0, type_name::tags_offset()));  /* Tags. */       \
   }                                                                            \
   /* Set the length field. */                                                  \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
-  __ ldr(R2, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
+  /* R2: allocation size. */                                                   \
+  /* R4: allocation stats address. */                                          \
+  __ ldr(R3, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
   __ StoreIntoObjectNoBarrier(R0,                                              \
                               FieldAddress(R0, type_name::length_offset()),    \
-                              R2);                                             \
+                              R3);                                             \
   /* Initialize all array elements to 0. */                                    \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
-  /* R2: iterator which initially points to the start of the variable */       \
-  /* R3: scratch register. */                                                  \
+  /* R2: allocation size. */                                                   \
+  /* R3: iterator which initially points to the start of the variable */       \
+  /* R4: allocation stats address */                                           \
+  /* R6, R7: zero. */                                                          \
   /* data area to be initialized. */                                           \
-  __ LoadImmediate(R3, 0);                                                     \
-  __ AddImmediate(R2, R0, sizeof(Raw##type_name) - 1);                         \
+  __ LoadImmediate(R6, 0);                                                     \
+  __ mov(R7, Operand(R6));                                                     \
+  __ AddImmediate(R3, R0, sizeof(Raw##type_name) - 1);                         \
   Label init_loop;                                                             \
   __ Bind(&init_loop);                                                         \
-  __ cmp(R2, Operand(R1));                                                     \
-  __ str(R3, Address(R2, 0), CC);                                              \
-  __ add(R2, R2, Operand(kWordSize), CC);                                      \
+  __ AddImmediate(R3, 2 * kWordSize);                                          \
+  __ cmp(R3, Operand(R1));                                                     \
+  __ strd(R6, Address(R3, -2 * kWordSize), LS);                                \
   __ b(&init_loop, CC);                                                        \
+  __ str(R6, Address(R3, -2 * kWordSize), HI);                                 \
                                                                                \
+  __ IncrementAllocationStatsWithSize(R4, R2, cid, space);                     \
   __ Ret();                                                                    \
   __ Bind(&fall_through);                                                      \
 
@@ -1430,26 +1438,27 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
+  __ LoadAllocationStatsAddress(R4, cid, space);
   __ str(R1, Address(R3, 0));
   __ AddImmediate(R0, kHeapObjectTag);
-  __ UpdateAllocationStatsWithSize(cid, R2, R3, space);
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.
   // R1: new object end address.
   // R2: allocation size.
+  // R4: allocation stats address.
   {
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
 
     __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag);
-    __ mov(R2, Operand(R2, LSL, shift), LS);
-    __ mov(R2, Operand(0), HI);
+    __ mov(R3, Operand(R2, LSL, shift), LS);
+    __ mov(R3, Operand(0), HI);
 
     // Get the class index and insert it into the tags.
-    // R2: size and bit tags.
+    // R3: size and bit tags.
     __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));
-    __ orr(R2, R2, Operand(TMP));
-    __ str(R2, FieldAddress(R0, String::tags_offset()));  // Store tags.
+    __ orr(R3, R3, Operand(TMP));
+    __ str(R3, FieldAddress(R0, String::tags_offset()));  // Store tags.
   }
 
   // Set the length field using the saved length (R6).
@@ -1459,6 +1468,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // Clear hash.
   __ LoadImmediate(TMP, 0);
   __ str(TMP, FieldAddress(R0, String::hash_offset()));
+
+  __ IncrementAllocationStatsWithSize(R4, R2, cid, space);
   __ b(ok);
 
   __ Bind(&fail);
