@@ -1,6 +1,6 @@
 library pub.preprocess;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:string_scanner/string_scanner.dart';
-import 'version.dart';
 String preprocess(String input, Map<String, Version> versions, sourceUrl) {
   if (!input.contains(new RegExp(r"^//[>#]", multiLine: true))) return input;
   return new _Preprocessor(input, versions, sourceUrl).run();

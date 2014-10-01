@@ -1,5 +1,6 @@
 library pub.pubspec;
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 import 'barback/transformer_config.dart';
@@ -8,7 +9,6 @@ import 'io.dart';
 import 'package.dart';
 import 'source_registry.dart';
 import 'utils.dart';
-import 'version.dart';
 class Pubspec {
   final SourceRegistry _sources;
   Uri get _location => fields.span.sourceUrl;

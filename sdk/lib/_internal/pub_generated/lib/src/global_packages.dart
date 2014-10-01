@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:barback/barback.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'barback/asset_environment.dart';
 import 'entrypoint.dart';
 import 'executable.dart' as exe;
@@ -18,7 +19,6 @@ import 'source/git.dart';
 import 'source/path.dart';
 import 'system_cache.dart';
 import 'utils.dart';
-import 'version.dart';
 final _binStubPackagePattern = new RegExp(r"Package: ([a-zA-Z0-9_-]+)");
 class GlobalPackages {
   final SystemCache cache;

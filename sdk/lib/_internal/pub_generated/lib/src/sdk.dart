@@ -1,8 +1,8 @@
 library pub.sdk;
 import 'dart:io';
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 import 'io.dart';
-import 'version.dart';
 final String rootDirectory =
     runningFromSdk ? _rootDirectory : path.join(repoRoot, "sdk");
 final String _rootDirectory = path.dirname(path.dirname(Platform.executable));

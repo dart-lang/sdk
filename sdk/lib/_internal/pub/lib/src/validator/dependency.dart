@@ -6,11 +6,12 @@ library pub.validator.dependency;
 
 import 'dart:async';
 
+import 'package:pub_semver/pub_semver.dart';
+
 import '../entrypoint.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../validator.dart';
-import '../version.dart';
 
 /// A validator that validates a package's dependencies.
 class DependencyValidator extends Validator {

@@ -1,12 +1,12 @@
 library pub.lock_file;
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 import 'io.dart';
 import 'package.dart';
 import 'source_registry.dart';
 import 'utils.dart';
-import 'version.dart';
 class LockFile {
   Map<String, PackageId> packages;
   factory LockFile(List<PackageId> ids) {

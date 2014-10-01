@@ -4,9 +4,8 @@
 
 library pub.preprocess;
 
+import 'package:pub_semver/pub_semver.dart';
 import 'package:string_scanner/string_scanner.dart';
-
-import 'version.dart';
 
 /// Runs a simple preprocessor over [input] to remove sections that are
 /// incompatible with the available barback version.

@@ -5,6 +5,7 @@
 library pub.pubspec;
 
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -14,7 +15,6 @@ import 'io.dart';
 import 'package.dart';
 import 'source_registry.dart';
 import 'utils.dart';
-import 'version.dart';
 
 /// The parsed contents of a pubspec file.
 ///

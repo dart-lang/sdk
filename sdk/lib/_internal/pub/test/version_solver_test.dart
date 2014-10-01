@@ -6,6 +6,7 @@ library pub_upgrade_test;
 
 import 'dart:async';
 
+import 'package:pub_semver/pub_semver.dart';
 import 'package:unittest/unittest.dart';
 
 import '../lib/src/lock_file.dart';
@@ -16,7 +17,6 @@ import '../lib/src/sdk.dart' as sdk;
 import '../lib/src/source/cached.dart';
 import '../lib/src/system_cache.dart';
 import '../lib/src/utils.dart';
-import '../lib/src/version.dart';
 import '../lib/src/solver/version_solver.dart';
 import 'test_pub.dart';
 

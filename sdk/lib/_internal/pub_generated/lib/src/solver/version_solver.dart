@@ -1,6 +1,7 @@
 library pub.solver.version_solver;
 import 'dart:async';
 import "dart:convert";
+import 'package:pub_semver/pub_semver.dart';
 import 'package:stack_trace/stack_trace.dart';
 import '../exceptions.dart';
 import '../lock_file.dart';
@@ -8,7 +9,6 @@ import '../log.dart' as log;
 import '../package.dart';
 import '../pubspec.dart';
 import '../source_registry.dart';
-import '../version.dart';
 import '../utils.dart';
 import 'backtracking_solver.dart';
 import 'solve_report.dart';
@@ -122,7 +122,7 @@ class PubspecCache {
         package.name,
         package.description).then((versions) {
       versions.sort(
-          _type == SolveType.DOWNGRADE ? Version.antiPrioritize : Version.prioritize);
+          _type == SolveType.DOWNGRADE ? Version.antiprioritize : Version.prioritize);
       var ids =
           versions.reversed.map((version) => package.atVersion(version)).toList();
       _versions[package] = ids;

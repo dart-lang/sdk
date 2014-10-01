@@ -1,8 +1,8 @@
 library pub.command.global_activate;
 import 'dart:async';
+import 'package:pub_semver/pub_semver.dart';
 import '../command.dart';
 import '../utils.dart';
-import '../version.dart';
 class GlobalActivateCommand extends PubCommand {
   String get description => "Make a package's executables globally available.";
   String get usage => "pub global activate <package...>";

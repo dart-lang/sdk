@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:barback/barback.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import 'barback/asset_environment.dart';
 import 'entrypoint.dart';
@@ -25,7 +26,6 @@ import 'source/git.dart';
 import 'source/path.dart';
 import 'system_cache.dart';
 import 'utils.dart';
-import 'version.dart';
 
 /// Matches the package name that a binstub was created for inside the contents
 /// of the shell script.

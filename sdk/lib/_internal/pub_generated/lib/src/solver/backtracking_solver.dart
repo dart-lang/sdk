@@ -1,6 +1,7 @@
 library pub.solver.backtracking_solver;
 import 'dart:async';
 import 'dart:collection' show Queue;
+import 'package:pub_semver/pub_semver.dart';
 import '../barback.dart' as barback;
 import '../exceptions.dart';
 import '../lock_file.dart';
@@ -11,7 +12,6 @@ import '../sdk.dart' as sdk;
 import '../source_registry.dart';
 import '../source/unknown.dart';
 import '../utils.dart';
-import '../version.dart';
 import 'dependency_queue.dart';
 import 'version_queue.dart';
 import 'version_solver.dart';

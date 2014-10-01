@@ -1,10 +1,10 @@
 library pub.solver.solve_report;
+import 'package:pub_semver/pub_semver.dart';
 import '../lock_file.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../source_registry.dart';
 import '../utils.dart';
-import '../version.dart';
 import 'version_solver.dart';
 class SolveReport {
   final SolveType _type;

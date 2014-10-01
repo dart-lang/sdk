@@ -1,10 +1,10 @@
 library pub.validator.dependency;
 import 'dart:async';
+import 'package:pub_semver/pub_semver.dart';
 import '../entrypoint.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../validator.dart';
-import '../version.dart';
 class DependencyValidator extends Validator {
   DependencyValidator(Entrypoint entrypoint) : super(entrypoint);
   Future validate() {

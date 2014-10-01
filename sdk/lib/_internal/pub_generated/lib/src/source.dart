@@ -1,9 +1,9 @@
 library pub.source;
 import 'dart:async';
+import 'package:pub_semver/pub_semver.dart';
 import 'package.dart';
 import 'pubspec.dart';
 import 'system_cache.dart';
-import 'version.dart';
 abstract class Source {
   String get name;
   final bool hasMultipleVersions = false;

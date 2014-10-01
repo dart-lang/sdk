@@ -1,7 +1,7 @@
+import 'package:pub_semver/pub_semver.dart';
 import 'descriptor.dart' as d;
 import 'test_pub.dart';
 import '../lib/src/barback.dart' as barback;
-import '../lib/src/version.dart';
 main() {
   initConfig();
   var constraint = barback.pubConstraints["barback"];

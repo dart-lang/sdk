@@ -1,10 +1,10 @@
 library pub.command.cache_add;
 import 'dart:async';
+import 'package:pub_semver/pub_semver.dart';
 import '../command.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../utils.dart';
-import '../version.dart';
 class CacheAddCommand extends PubCommand {
   String get description => "Install a package.";
   String get usage =>

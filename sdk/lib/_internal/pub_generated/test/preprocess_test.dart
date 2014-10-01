@@ -1,7 +1,7 @@
 library pub.test.preprocess_test;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:unittest/unittest.dart';
 import '../lib/src/preprocess.dart';
-import '../lib/src/version.dart';
 import 'test_pub.dart';
 main() {
   initConfig();
