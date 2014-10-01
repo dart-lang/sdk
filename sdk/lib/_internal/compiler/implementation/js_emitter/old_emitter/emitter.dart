@@ -1378,7 +1378,6 @@ class OldEmitter implements Emitter {
     }
 
     // Emit native classes on [nativeBuffer].
-    // Might create methodClosures.
     final CodeBuffer nativeBuffer = new CodeBuffer();
     if (!nativeClasses.isEmpty) {
       addComment('Native classes', nativeBuffer);
@@ -1387,12 +1386,6 @@ class OldEmitter implements Emitter {
           additionalProperties);
     }
 
-    // As a side-effect, emitting classes will produce "bound closures" in
-    // [methodClosures].  The bound closures are JS AST nodes that add
-    // properties to $$ [classesCollector].  The bound closures are not
-    // emitted until we have emitted all other classes (native or not).
-
-    // Might create methodClosures.
     for (List<ClassElement> outputClassList in outputClassLists.values) {
       for (ClassElement element in outputClassList) {
         generateClass(element, getElementDescriptor(element));

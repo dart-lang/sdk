@@ -91,8 +91,7 @@ Future<Compiler> reuseCompiler(
     compiler.enqueuer.codegen.newlyEnqueuedElements.clear();
 
     backend.emitter.oldEmitter.containerBuilder
-        ..staticGetters.clear()
-        ..methodClosures.clear();
+        ..staticGetters.clear();
 
     backend.emitter.oldEmitter.nsmEmitter
         ..trivialNsmHandlers.clear();

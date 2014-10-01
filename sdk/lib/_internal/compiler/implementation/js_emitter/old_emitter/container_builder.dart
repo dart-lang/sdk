@@ -11,10 +11,6 @@ part of dart2js.js_emitter;
 class ContainerBuilder extends CodeEmitterHelper {
   final Map<Element, Element> staticGetters = new Map<Element, Element>();
 
-  /// A cache of synthesized closures for top-level, static or
-  /// instance methods.
-  final Map<String, Element> methodClosures = <String, Element>{};
-
   bool needsSuperGetter(FunctionElement element) =>
     compiler.codegenWorld.methodsNeedingSuperGetter.contains(element);
 
