@@ -50,7 +50,7 @@ Future writeHomebrewInfo(String channel, int revision) {
       final file = "channels/$channel/release/$revision/${files[key]}";
       buffer.writeln('  ${key}_FILE = "$file"');
       buffer.writeln('  ${key}_HASH = "$hash"');
-    })
+    });
   })
     .then((_) => getVersion(channel, revision))
     .then((version) {
@@ -80,6 +80,11 @@ main(args) {
   final options = parser.parse(args);
   final revision = options['revision'];
   final channel = options['channel'];
+  if ([revision, channel, options['key']].contains(null)) {
+    print("Usage: update_homebrew.dart -r revision -c channel -k ssh_key\n"
+          "  ssh_key should allow pushes to dart-lang/homebrew-dart on github");
+    return;
+  }
   final sshWrapper = Platform.script.resolve('ssh_with_key').toFilePath();
   gitEnvironment = {'GIT_SSH': sshWrapper,
                     'SSH_KEY_PATH': options['key']};
@@ -91,7 +96,6 @@ main(args) {
       .then((_) => runGit(
           ['clone', 'git@github.com:dart-lang/homebrew-dart.git', '.']))
       .then((_) => writeHomebrewInfo(channel, revision))
-      .then((_) => runGit(['add', '${channel}_info.rb']))
       .then((_) => runGit(['commit', '-a', '-m',
                            'Updated $channel branch to revision $revision']))
       .then((_) => runGit(['push']))
