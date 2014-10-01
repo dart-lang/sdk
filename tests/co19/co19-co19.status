@@ -79,7 +79,7 @@ LibTest/isolate/SendPort/send_A03_t02: Fail # Co19 issue 639
 [ $runtime == dartium || $compiler == dart2js ]
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 
-[ $compiler != dartanalyzer && $compiler != dart2analyzer && $compiler != dart2js ]
+[ $compiler == dart2js || $compiler == none ]
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Fail # co19 issue 718
 
 ### CHECKED MODE FAILURES ###
