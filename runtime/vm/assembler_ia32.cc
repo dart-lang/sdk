@@ -2212,13 +2212,17 @@ void Assembler::StoreIntoObject(Register object,
     StoreIntoObjectFilterNoSmi(object, value, &done);
   }
   // A store buffer update is required.
-  if (value != EAX) pushl(EAX);  // Preserve EAX.
-  if (object != EAX) {
-    movl(EAX, object);
+  if (value != EDX) {
+    pushl(EDX);  // Preserve EDX.
+  }
+  if (object != EDX) {
+    movl(EDX, object);
   }
   StubCode* stub_code = Isolate::Current()->stub_code();
   call(&stub_code->UpdateStoreBufferLabel());
-  if (value != EAX) popl(EAX);  // Restore EAX.
+  if (value != EDX) {
+    popl(EDX);  // Restore EDX.
+  }
   Bind(&done);
 }
 

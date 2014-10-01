@@ -1050,57 +1050,62 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
-//   EAX: Address being stored
+//   EDX: Address being stored
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Save values being destroyed.
-  __ pushl(EDX);
+  __ pushl(EAX);
   __ pushl(ECX);
 
   Label add_to_buffer;
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
-  // Spilled: EDX, ECX
-  // EAX: Address being stored
-  __ movl(ECX, FieldAddress(EAX, Object::tags_offset()));
-  __ testl(ECX, Immediate(1 << RawObject::kRememberedBit));
+  // Spilled: EAX, ECX
+  // EDX: Address being stored
+  Label reload;
+  __ Bind(&reload);
+  __ movl(EAX, FieldAddress(EDX, Object::tags_offset()));
+  __ testl(EAX, Immediate(1 << RawObject::kRememberedBit));
   __ j(EQUAL, &add_to_buffer, Assembler::kNearJump);
   __ popl(ECX);
-  __ popl(EDX);
+  __ popl(EAX);
   __ ret();
 
   // Update the tags that this object has been remembered.
-  // EAX: Address being stored
-  // ECX: Current tag value
+  // EDX: Address being stored
+  // EAX: Current tag value
   __ Bind(&add_to_buffer);
+  __ movl(ECX, EAX);
   __ orl(ECX, Immediate(1 << RawObject::kRememberedBit));
-  __ movl(FieldAddress(EAX, Object::tags_offset()), ECX);
+  // Compare the tag word with EAX, update to ECX if unchanged.
+  __ LockCmpxchgl(FieldAddress(EDX, Object::tags_offset()), ECX);
+  __ j(NOT_EQUAL, &reload);
 
   // Load the isolate.
-  // Spilled: EDX, ECX
-  // EAX: Address being stored
-  __ LoadIsolate(EDX);
+  // Spilled: EAX, ECX
+  // EDX: Address being stored
+  __ LoadIsolate(EAX);
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
-  // Spilled: EDX, ECX
-  // EAX: Address being stored
-  // EDX: Isolate
-  __ movl(EDX, Address(EDX, Isolate::store_buffer_offset()));
-  __ movl(ECX, Address(EDX, StoreBufferBlock::top_offset()));
-  __ movl(Address(EDX, ECX, TIMES_4, StoreBufferBlock::pointers_offset()), EAX);
+  // Spilled: EAX, ECX
+  // EDX: Address being stored
+  // EAX: Isolate
+  __ movl(EAX, Address(EAX, Isolate::store_buffer_offset()));
+  __ movl(ECX, Address(EAX, StoreBufferBlock::top_offset()));
+  __ movl(Address(EAX, ECX, TIMES_4, StoreBufferBlock::pointers_offset()), EDX);
 
   // Increment top_ and check for overflow.
-  // Spilled: EDX, ECX
+  // Spilled: EAX, ECX
   // ECX: top_
-  // EDX: StoreBufferBlock
+  // EAX: StoreBufferBlock
   Label L;
   __ incl(ECX);
-  __ movl(Address(EDX, StoreBufferBlock::top_offset()), ECX);
+  __ movl(Address(EAX, StoreBufferBlock::top_offset()), ECX);
   __ cmpl(ECX, Immediate(StoreBufferBlock::kSize));
   // Restore values.
-  // Spilled: EDX, ECX
+  // Spilled: EAX, ECX
   __ popl(ECX);
-  __ popl(EDX);
+  __ popl(EAX);
   __ j(EQUAL, &L, Assembler::kNearJump);
   __ ret();
 
@@ -1109,8 +1114,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(1 * kWordSize);
-  __ LoadIsolate(EAX);
-  __ movl(Address(ESP, 0), EAX);  // Push the isolate as the only argument.
+  __ LoadIsolate(EDX);
+  __ movl(Address(ESP, 0), EDX);  // Push the isolate as the only argument.
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
