@@ -915,7 +915,6 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 // TODO(regis): Once this intrinsic is implemented on all architectures, the
 // corresponding Dart method will be untested. Add a test with --no-intrinsify.
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
-#if 0  // TODO(regis): Re-enable when the optimizer issue is fixed.
   // static void _absAdd(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
   //                     Uint32List r_digits)
@@ -970,14 +969,12 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   __ popl(CTX);
   // TODO(regis): Confirm that returning Object::null() is not required.
   __ ret();
-#endif
 }
 
 
 // TODO(regis): Once this intrinsic is implemented on all architectures, the
 // corresponding Dart method will be untested. Add a test with --no-intrinsify.
 void Intrinsifier::Bigint_absSub(Assembler* assembler) {
-#if 0  // TODO(regis): Re-enable when the optimizer issue is fixed.
   // static void _absSub(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
   //                     Uint32List r_digits)
@@ -1028,7 +1025,6 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   __ popl(CTX);
   // TODO(regis): Confirm that returning Object::null() is not required.
   __ ret();
-#endif
 }
 
 
