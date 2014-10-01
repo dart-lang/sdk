@@ -16735,7 +16735,7 @@ uint32_t Bigint::AsTruncatedUint32Value() const {
   const intptr_t used = Used();
   if (used == 0) return 0;
   const uint32_t digit0 = DigitAt(0);
-  return Neg() ? static_cast<uint32_t>(-digit0) : digit0;
+  return Neg() ? static_cast<uint32_t>(-static_cast<int32_t>(digit0)) : digit0;
 }
 
 
