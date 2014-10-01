@@ -1117,7 +1117,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
 
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      return CompileType::Int();
+      return Typed32BitIsSmi() ? CompileType::FromCid(kSmiCid)
+                                : CompileType::FromCid(kMintCid);
 
     default:
       UNREACHABLE();
@@ -1141,9 +1142,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTwoByteStringCid:
       return kTagged;
     case kTypedDataInt32ArrayCid:
-      return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
-      return kUnboxedUint32;
+      return Typed32BitIsSmi() ? kTagged : kUnboxedMint;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1226,12 +1226,9 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
     } else {
       locs->set_out(0, Location::RequiresFpuRegister());
     }
-  } else if (representation() == kUnboxedUint32) {
-    ASSERT(class_id() == kTypedDataUint32ArrayCid);
-    locs->set_out(0, Location::RequiresRegister());
-  } else if (representation() == kUnboxedInt32) {
-    ASSERT(class_id() == kTypedDataInt32ArrayCid);
-    locs->set_out(0, Location::RequiresRegister());
+  } else if (representation() == kUnboxedMint) {
+    locs->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                    Location::RequiresRegister()));
   } else {
     ASSERT(representation() == kTagged);
     locs->set_out(0, Location::RequiresRegister());
@@ -1284,23 +1281,27 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  if ((representation() == kUnboxedUint32) ||
-      (representation() == kUnboxedInt32)) {
-    Register result = locs()->out(0).reg();
-    if ((index_scale() == 1) && index.IsRegister()) {
-      __ SmiUntag(index.reg());
-    }
+  if (representation() == kUnboxedMint) {
+    ASSERT(locs()->out(0).IsPairLocation());
+    PairLocation* result_pair = locs()->out(0).AsPairLocation();
+    const Register result1 = result_pair->At(0).reg();
+    const Register result2 = result_pair->At(1).reg();
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
-        ASSERT(representation() == kUnboxedInt32);
-        __ ldr(result, element_address);
-      break;
+        // Load low word.
+        __ ldr(result1, element_address);
+        // Sign extend into high word.
+        __ SignFill(result2, result1);
+        break;
       case kTypedDataUint32ArrayCid:
-        ASSERT(representation() == kUnboxedUint32);
-        __ ldr(result, element_address);
-      break;
+        // Load low word.
+        __ ldr(result1, element_address);
+        // Zero high word.
+        __ eor(result2, result2, Operand(result2));
+        break;
       default:
         UNREACHABLE();
+        break;
     }
     return;
   }

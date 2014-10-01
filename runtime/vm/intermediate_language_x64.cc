@@ -968,11 +968,9 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataUint16ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
-      return kTagged;
     case kTypedDataInt32ArrayCid:
-      return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
-      return kUnboxedUint32;
+      return kTagged;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1054,29 +1052,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  if ((representation() == kUnboxedUint32) ||
-      (representation() == kUnboxedInt32)) {
-    if ((index_scale() == 1) && index.IsRegister()) {
-      __ SmiUntag(index.reg());
-    }
-    Register result = locs()->out(0).reg();
-    switch (class_id()) {
-      case kTypedDataInt32ArrayCid:
-        ASSERT(representation() == kUnboxedInt32);
-        __ movsxd(result, element_address);
-        break;
-      case kTypedDataUint32ArrayCid:
-        ASSERT(representation() == kUnboxedUint32);
-        __ movl(result, element_address);
-        break;
-      default:
-        UNREACHABLE();
-    }
-    return;
-  }
-
-  ASSERT(representation() == kTagged);
-
   if ((index_scale() == 1) && index.IsRegister()) {
     __ SmiUntag(index.reg());
   }
@@ -1101,6 +1076,14 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint16ArrayCid:
     case kTwoByteStringCid:
       __ movzxw(result, element_address);
+      __ SmiTag(result);
+      break;
+    case kTypedDataInt32ArrayCid:
+      __ movsxd(result, element_address);
+      __ SmiTag(result);
+      break;
+    case kTypedDataUint32ArrayCid:
+      __ movl(result, element_address);
       __ SmiTag(result);
       break;
     default:

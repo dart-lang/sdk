@@ -1084,7 +1084,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
 
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      return CompileType::Int();
+      return Typed32BitIsSmi() ? CompileType::FromCid(kSmiCid)
+                                 : CompileType::FromCid(kMintCid);
 
     default:
       UNIMPLEMENTED();
@@ -1108,9 +1109,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTwoByteStringCid:
       return kTagged;
     case kTypedDataInt32ArrayCid:
-      return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
-      return kUnboxedUint32;
+      return Typed32BitIsSmi() ? kTagged : kUnboxedMint;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1180,10 +1180,17 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Warning: element_address may use register TMP as base.
 
   if ((representation() == kUnboxedDouble) ||
+      (representation() == kUnboxedMint) ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4)) {
     DRegister result = locs()->out(0).fpu_reg();
     switch (class_id()) {
+      case kTypedDataInt32ArrayCid:
+        UNIMPLEMENTED();
+        break;
+      case kTypedDataUint32ArrayCid:
+        UNIMPLEMENTED();
+        break;
       case kTypedDataFloat32ArrayCid:
         // Load single precision float.
         __ lwc1(EvenFRegisterOf(result), element_address);
@@ -1199,26 +1206,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     return;
   }
-
-  if ((representation() == kUnboxedUint32) ||
-      (representation() == kUnboxedInt32)) {
-    const Register result = locs()->out(0).reg();
-    switch (class_id()) {
-      case kTypedDataInt32ArrayCid:
-        ASSERT(representation() == kUnboxedUint32);
-        __ lw(result, element_address);
-        break;
-      case kTypedDataUint32ArrayCid:
-        ASSERT(representation() == kUnboxedInt32);
-        __ lw(result, element_address);
-        break;
-      default:
-        UNREACHABLE();
-    }
-    return;
-  }
-
-  ASSERT(representation() == kTagged);
 
   const Register result = locs()->out(0).reg();
   switch (class_id()) {
@@ -1244,6 +1231,26 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTwoByteStringCid:
       __ lhu(result, element_address);
       __ SmiTag(result);
+      break;
+    case kTypedDataInt32ArrayCid: {
+        Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                              ICData::kDeoptInt32Load);
+        __ lw(result, element_address);
+        // Verify that the signed value in 'result' can fit inside a Smi.
+        __ BranchSignedLess(result, 0xC0000000, deopt);
+        __ SmiTag(result);
+      }
+      break;
+    case kTypedDataUint32ArrayCid: {
+        Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                              ICData::kDeoptUint32Load);
+        __ lw(result, element_address);
+        // Verify that the unsigned value in 'result' can fit inside a Smi.
+        __ LoadImmediate(TMP, 0xC0000000);
+        __ and_(CMPRES1, result, TMP);
+        __ bne(CMPRES1, ZR, deopt);
+        __ SmiTag(result);
+      }
       break;
     default:
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
