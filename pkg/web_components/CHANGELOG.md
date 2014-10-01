@@ -1,3 +1,14 @@
+#### Pub version 0.8.0
+  * Re-apply changes from 0.7.1+1 and also cherry pick 
+    [efdbbc](https://github.com/polymer/CustomElements/commit/efdbbc) to fix
+    the customElementsTakeRecords function.
+  * **Breaking Change** The customElementsTakeRecords function now has an
+    an optional argument `node`. There is no longer a single global observer,
+    but one for each ShadowRoot and one for the main document. The observer that
+    is actually used defaults to the main document, but if `node` is supplied
+    then it will walk up the document tree and use the first observer that it
+    finds.
+
 #### Pub version 0.7.1+2
   * Revert the change from 0.7.1+1 due to redness in FF/Safari/IE.
 
