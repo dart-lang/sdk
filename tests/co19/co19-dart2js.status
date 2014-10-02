@@ -435,21 +435,21 @@ Language/12_Expressions/12_Instance_Creation/1_New_A02_t07: fail # Issue 21092 a
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: fail # Issue 21134 and co19 issue 714
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: fail # Issue 21134 and co19 issue 714
 Language/12_Expressions/22_Equality_A01_t01: fail # Issue 21137
-Language/12_Expressions/22_Equality_A05_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/33_Type_Cast_A02_t03: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/02_Expression_Statements_A01_t08: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/10_Rethrow_A01_t04: fail # co19-roll r559: Please triage this failure
-Language/13_Statements/10_Rethrow_A01_t05: fail # co19-roll r559: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t28: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # co19-roll r546: Please triage this failure
-Language/15_Types/4_Interface_Types_A11_t01: crash # co19-roll r546: Please triage this failure
-Language/15_Types/4_Interface_Types_A11_t02: crash # co19-roll r546: Please triage this failure
-Language/15_Types/4_Interface_Types_A12_t10: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/22_Equality_A05_t01: fail # Issue 21137
+Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # Issue 21154
+Language/12_Expressions/33_Type_Cast_A02_t03: fail # co19 issue 716
+Language/13_Statements/02_Expression_Statements_A01_t08: fail # Issue 21155
+Language/13_Statements/10_Rethrow_A01_t04: fail # co19 issue 719
+Language/13_Statements/10_Rethrow_A01_t05: fail # co19 issue 719
+Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # Issue 21171
+Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # Issue 21171
+Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # Issue 21171
+Language/14_Libraries_and_Scripts/1_Imports_A03_t28: fail # Issue 21171
+Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # co19 issue 723
+Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # co19 issue 723
+Language/15_Types/4_Interface_Types_A11_t01: crash # Issue 21174
+Language/15_Types/4_Interface_Types_A11_t02: crash # Issue 21174
+Language/15_Types/4_Interface_Types_A12_t10: fail # co19 issue 716
 LibTest/core/DateTime/DateTime_A01_t03: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Duration/operator_div_A01_t01: fail # co19-roll r546: Please triage this failure
@@ -502,11 +502,11 @@ LibTest/collection/ListBase/ListBase_class_A01_t01: RuntimeError # Please triage
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $checked ]
-Language/12_Expressions/03_Numbers_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/19_Conditional_A04_t03: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/20_Logical_Boolean_Expressions_A03_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/27_Unary_Expressions_A02_t03: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/06_For/1_For_Loop_A01_t08: fail # co19-roll r546: Please triage this failure
+Language/12_Expressions/03_Numbers_A05_t02: fail # co19 issue 716
+Language/12_Expressions/19_Conditional_A04_t03: fail # co19 issue 716
+Language/12_Expressions/20_Logical_Boolean_Expressions_A03_t01: fail # Issue 21195 and co19 issue 725
+Language/12_Expressions/27_Unary_Expressions_A02_t03: fail # Issue 21196 and co19 issue 726
+Language/13_Statements/06_For/1_For_Loop_A01_t08: fail # Issue 21197 and co19 issue 727
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/typed_data/Float32List/Float32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
@@ -539,8 +539,8 @@ LibTest/typed_data/Uint8List/toList_A01_t01: Skip # co19-roll r559: Please triag
 
 [ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: fail # co19-roll r587: Please triage this failure
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # co19-roll r607: Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure
+Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Issue 21198 (int/double related)
+Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Issue 21199
 LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 
 [ $compiler == dart2js && $runtime == jsshell ]
@@ -582,14 +582,14 @@ LibTest/async/Timer/Timer.periodic_A02_t01: RuntimeError # Issue 7728, timer not
 LibTest/math/sin_A01_t02: RuntimeError # V8 issue 3006, https://code.google.com/p/v8/issues/detail?id=3006
 
 [ $compiler == dart2js && $minified ]
-Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r559: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: fail # co19-roll r559: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: fail # co19-roll r559: Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A02_t01: fail # co19-roll r559: Please triage this failure
-Language/12_Expressions/18_Assignment_A05_t02: fail # co19-roll r559: Please triage this failure
-Language/12_Expressions/18_Assignment_A05_t04: fail # co19-roll r559: Please triage this failure
-Language/12_Expressions/18_Assignment_A05_t05: fail # co19-roll r559: Please triage this failure
-Language/12_Expressions/18_Assignment_A08_t04: fail # co19-roll r559: Please triage this failure
+Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19 issue 729
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: fail # co19 issue 729
+Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: fail # co19 issue 729
+Language/12_Expressions/17_Getter_Invocation_A02_t01: fail # co19 issue 729
+Language/12_Expressions/18_Assignment_A05_t02: fail # co19 issue 729
+Language/12_Expressions/18_Assignment_A05_t04: fail # co19 issue 729
+Language/12_Expressions/18_Assignment_A05_t05: fail # co19 issue 729
+Language/12_Expressions/18_Assignment_A08_t04: fail # co19 issue 729
 LibTest/typed_data/Float32List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float64List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
@@ -602,14 +602,14 @@ LibTest/typed_data/Uint8ClampedList/runtimeType_A01_t01: fail # co19-roll r559: 
 LibTest/typed_data/Uint8List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
 
 [ $compiler == dart2js || $compiler == dart2dart ]
-Language/07_Classes/1_Instance_Methods_A07_t01: fail # co19-roll r587: Please triage this failure
-Language/07_Classes/6_Constructors/2_Factories_A08_t02: fail # co19-roll r587: Please triage this failure
-Language/07_Classes/6_Constructors/2_Factories_A10_t02: fail # co19-roll r587: Please triage this failure
-Language/07_Classes/6_Constructors/2_Factories_A10_t03: fail # co19-roll r587: Please triage this failure
-Language/10_Generics/09_Generics_A01_t17: fail # co19-roll r587: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t15: CompileTimeError # co19-roll r651: Please triage this failure
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/07_Classes/1_Instance_Methods_A07_t01: fail # Issue 21201
+Language/07_Classes/6_Constructors/2_Factories_A08_t02: fail # Issue 21202
+Language/07_Classes/6_Constructors/2_Factories_A10_t02: fail # Issue 21202
+Language/07_Classes/6_Constructors/2_Factories_A10_t03: fail # Issue 21202
+Language/10_Generics/09_Generics_A01_t17: fail # Issue 21203
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t15: CompileTimeError # Issue 21092
+Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # Issue 21210
+Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # Issue 21210
 Language/15_Types/4_Interface_Types_A11_t04: fail # Issue 14654
 LibTest/isolate/Isolate/spawnUri_A01_t01: Fail # co19-roll r672: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A01_t02: Fail # co19-roll r672: Please triage this failure
@@ -619,9 +619,9 @@ LibTest/isolate/Isolate/spawnUri_A01_t05: Fail # co19-roll r672: Please triage t
 
 [ $compiler == dart2js ]
 LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-Language/03_Overview/2_Privacy_A01_t02: RuntimeError # co19-roll r667: Please triage this failure
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t16: RuntimeError # co19-roll r667: Please triage this failure
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t17: RuntimeError # co19-roll r667: Please triage this failure
+Language/03_Overview/2_Privacy_A01_t02: RuntimeError # co19 issue 730
+Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t16: RuntimeError # co19 issue 731
+Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t17: RuntimeError # co19 issue 731
 LibTest/convert/JsonDecoder/fuse_A01_t01: RuntimeError # co19-roll r667: Please triage this failure
 LibTest/convert/JsonEncoder/convert_A01_t01: RuntimeError # co19-roll r667: Please triage this failure
 
