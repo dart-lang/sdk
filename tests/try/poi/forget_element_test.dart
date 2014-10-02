@@ -44,13 +44,16 @@ class ForgetElementTestCase extends CompilerTestCase {
 
   final int expectedInitialDartValueCount;
 
+  final int additionalClosureClassMaps;
+
   ForgetElementTestCase(
       String source,
       {int closureCount: 0,
        int metadataCount: 0,
        int constantCount: 0,
        int initialValueCount: 0,
-       int initialDartValueCount: null})
+       int initialDartValueCount: null,
+       this.additionalClosureClassMaps: 0})
       : this.expectedClosureCount = closureCount,
         this.expectedMetadataCount = metadataCount,
         this.expectedConstantCount = constantCount,
@@ -93,6 +96,15 @@ class ForgetElementTestCase extends CompilerTestCase {
         elementsWithDartInitialValuesIn(library).length,
         'number of fields with initial values (Dart)');
 
+    // Check that the compiler has recorded the expected number of closure
+    // class maps. There's always at least one, from main. Each top-level
+    // element also seems to induce one.
+    Expect.equals(
+        expectedClosureCount + additionalClosureClassMaps,
+        closureClassMapsIn(library).length - 1,
+        'closure class map count ${closureClassMapsIn(library)}');
+
+
     // Forget about all elements.
     library.forEachLocalMember(compiler.forgetElement);
 
@@ -112,6 +124,9 @@ class ForgetElementTestCase extends CompilerTestCase {
     Expect.isTrue(
         elementsWithDartInitialValuesIn(library).isEmpty,
         'fields with initial values (Dart)');
+
+    // Check that closure class maps were forgotten.
+    Expect.isTrue(closureClassMapsIn(library).isEmpty, 'closure class maps');
   });
 
   Iterable closuresInLibrary(LibraryElement library) {
@@ -171,6 +186,10 @@ class ForgetElementTestCase extends CompilerTestCase {
         (VariableElement element) => element.library == library);
   }
 
+  Iterable closureClassMapsIn(LibraryElement library) {
+    Map cache = compiler.closureToClassMapper.closureMappingCache;
+    return nodesIn(library).where((node) => cache[node] != null);
+  }
 }
 
 class NodeCollector extends tree.Visitor {
@@ -276,7 +295,8 @@ List<CompilerTestCase> get tests => <CompilerTestCase>[
         'main() => x; var x = const Constant(); $CONSTANT_CLASS',
         constantCount: 1,
         initialValueCount: 1,
-        initialDartValueCount: 0),
+        initialDartValueCount: 0,
+        additionalClosureClassMaps: 1),
 
     // Test that a constant in a parameter initializer is discarded
     // correctly.
