@@ -4,7 +4,7 @@
 
 library dart2js.new_js_emitter.model;
 
-import '../js/js.dart' as js show Expression;
+import '../../js/js.dart' as js show Expression;
 
 class Program {
   final List<Output> outputs;

@@ -4,9 +4,9 @@
 
 library dart2js.new_js_emitter.model_emitter;
 
-import '../dart2jslib.dart' show Compiler;
-import '../js/js.dart' as js;
-import '../../js_lib/shared/embedded_names.dart' show
+import '../../dart2jslib.dart' show Compiler;
+import '../../js/js.dart' as js;
+import '../../../js_lib/shared/embedded_names.dart' show
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,
     INITIALIZE_LOADED_HUNK,

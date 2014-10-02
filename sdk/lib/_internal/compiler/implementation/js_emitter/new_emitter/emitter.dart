@@ -6,19 +6,19 @@ library dart2js.new_js_emitter.emitter;
 
 import 'model.dart';
 import 'model_emitter.dart';
-import '../common.dart';
-import '../js/js.dart' as js;
+import '../../common.dart';
+import '../../js/js.dart' as js;
 
-import '../constants/values.dart' show PrimitiveConstantValue;
-import '../tree/tree.dart' show DartString;
+import '../../constants/values.dart' show PrimitiveConstantValue;
+import '../../tree/tree.dart' show DartString;
 
-import '../js_backend/js_backend.dart' show Namer, JavaScriptBackend;
-import '../js_emitter/js_emitter.dart' as emitterTask show
+import '../../js_backend/js_backend.dart' show Namer, JavaScriptBackend;
+import '../../js_emitter/js_emitter.dart' as emitterTask show
     CodeEmitterTask,
     Emitter;
 
-import '../universe/universe.dart' show Universe;
-import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
+import '../../universe/universe.dart' show Universe;
+import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 
 part 'registry.dart';
 
