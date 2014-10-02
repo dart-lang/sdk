@@ -122,7 +122,7 @@ class ElementFactory {
       fieldMap[indexFieldName] = new DartObjectImpl(intType, new IntState(i));
       fieldMap[nameFieldName] = new DartObjectImpl(stringType, new StringState(constantName));
       DartObjectImpl value = new DartObjectImpl(enumType, new GenericState(fieldMap));
-      constantElement.evaluationResult = new ValidResult(value);
+      constantElement.evaluationResult = new EvaluationResultImpl.con1(value);
       fields.add(constantElement);
     }
     //

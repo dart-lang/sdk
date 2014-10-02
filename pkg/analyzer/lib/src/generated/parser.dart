@@ -1599,7 +1599,7 @@ class Parser {
       _currentToken = token;
       return parseExpression2();
     } finally {
-      instrumentation.log();
+      instrumentation.log2(2);
     }
   }
 
@@ -1616,7 +1616,7 @@ class Parser {
       _currentToken = token;
       return parseStatement2();
     } finally {
-      instrumentation.log();
+      instrumentation.log2(2);
     }
   }
 
@@ -1633,7 +1633,7 @@ class Parser {
       _currentToken = token;
       return _parseStatementList();
     } finally {
-      instrumentation.log();
+      instrumentation.log2(2);
     }
   }
 

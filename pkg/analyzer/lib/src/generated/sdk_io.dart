@@ -83,6 +83,12 @@ class DirectoryBasedDartSdk implements DartSdk {
   LibraryMap _libraryMap;
 
   /**
+   * The default SDK, or `null` if the default SDK either has not yet been created or cannot
+   * be created for some reason.
+   */
+  static DirectoryBasedDartSdk _DEFAULT_SDK;
+
+  /**
    * The name of the directory within the SDK directory that contains executables.
    */
   static String _BIN_DIRECTORY_NAME = "bin";
@@ -192,11 +198,14 @@ class DirectoryBasedDartSdk implements DartSdk {
    * @return the default Dart SDK
    */
   static DirectoryBasedDartSdk get defaultSdk {
-    JavaFile sdkDirectory = defaultSdkDirectory;
-    if (sdkDirectory == null) {
-      return null;
+    if (_DEFAULT_SDK == null) {
+      JavaFile sdkDirectory = defaultSdkDirectory;
+      if (sdkDirectory == null) {
+        return null;
+      }
+      _DEFAULT_SDK = new DirectoryBasedDartSdk(sdkDirectory);
     }
-    return new DirectoryBasedDartSdk(sdkDirectory);
+    return _DEFAULT_SDK;
   }
 
   /**

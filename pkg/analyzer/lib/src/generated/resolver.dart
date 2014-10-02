@@ -1403,7 +1403,11 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      _validate(node, null);
+      EvaluationResultImpl evaluationResult = node.evaluationResult;
+      // Note: evaluationResult might be null if there are circular references among constants.
+      if (evaluationResult != null) {
+        _reportErrors(evaluationResult.errors, null);
+      }
     }
     _validateInstanceCreationArguments(node);
     return super.visitInstanceCreationExpression(node);
@@ -1413,10 +1417,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   Object visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.constKeyword != null) {
-      EvaluationResultImpl result;
+      DartObjectImpl result;
       for (Expression element in node.elements) {
         result = _validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
-        if (result is ValidResult) {
+        if (result != null) {
           _reportErrorIfFromDeferredLibrary(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY);
         }
       }
@@ -1434,33 +1438,34 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     for (MapLiteralEntry entry in node.entries) {
       Expression key = entry.key;
       if (isConst) {
-        EvaluationResultImpl keyResult = _validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
+        DartObjectImpl keyResult = _validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
         Expression valueExpression = entry.value;
-        EvaluationResultImpl valueResult = _validate(valueExpression, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
-        if (valueResult is ValidResult) {
+        DartObjectImpl valueResult = _validate(valueExpression, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+        if (valueResult != null) {
           _reportErrorIfFromDeferredLibrary(valueExpression, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
         }
-        if (keyResult is ValidResult) {
+        if (keyResult != null) {
           _reportErrorIfFromDeferredLibrary(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY);
-          DartObject value = keyResult.value;
-          if (keys.contains(value)) {
+          if (keys.contains(keyResult)) {
             invalidKeys.add(key);
           } else {
-            keys.add(value);
+            keys.add(keyResult);
           }
-          DartType type = value.type;
+          DartType type = keyResult.type;
           if (_implementsEqualsWhenNotAllowed(type)) {
             _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, key, [type.displayName]);
           }
         }
       } else {
-        EvaluationResultImpl result = key.accept(new ConstantVisitor.con1(_typeProvider));
-        if (result is ValidResult) {
-          DartObject value = result.value;
-          if (keys.contains(value)) {
+        // Note: we throw the errors away because this isn't actually a const.
+        BooleanErrorListener errorListener = new BooleanErrorListener();
+        ErrorReporter subErrorReporter = new ErrorReporter(errorListener, _errorReporter.source);
+        DartObjectImpl result = key.accept(new ConstantVisitor.con1(_typeProvider, subErrorReporter));
+        if (result != null) {
+          if (keys.contains(result)) {
             invalidKeys.add(key);
           } else {
-            keys.add(value);
+            keys.add(result);
           }
         } else {
           reportEqualKeys = false;
@@ -1494,10 +1499,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       if (switchMember is SwitchCase) {
         SwitchCase switchCase = switchMember;
         Expression expression = switchCase.expression;
-        EvaluationResultImpl caseResult = _validate(expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
-        if (caseResult is ValidResult) {
+        DartObjectImpl caseResult = _validate(expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
+        if (caseResult != null) {
           _reportErrorIfFromDeferredLibrary(expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
-          DartObject value = caseResult.value;
+          DartObject value = caseResult;
           if (firstType == null) {
             firstType = value.type;
           } else {
@@ -1529,11 +1534,12 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         // computed their values. But if we missed it for some reason, this gives us a second
         // chance.
         //
-        result = _validate(initializer, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+        result = new EvaluationResultImpl.con1(_validate(initializer, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE));
         element.evaluationResult = result;
         return null;
-      } else if (result is ErrorResult) {
-        _reportErrors(result, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+      } else if (result.value == null) {
+        // TODO(paulberry): report errors even if valid result.
+        _reportErrors(result.errors, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
         return null;
       }
       _reportErrorIfFromDeferredLibrary(initializer, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
@@ -1602,26 +1608,22 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * If the given result represents one or more errors, report those errors. Except for special
-   * cases, use the given error code rather than the one reported in the error.
+   * Report any errors in the given list. Except for special cases, use the given error code rather
+   * than the one reported in the error.
    *
-   * @param result the result containing any errors that need to be reported
-   * @param errorCode the error code to be used if the result represents an error
+   * @param errors the errors that need to be reported
+   * @param errorCode the error code to be used
    */
-  void _reportErrors(EvaluationResultImpl result, ErrorCode errorCode) {
-    if (result is ErrorResult) {
-      for (ErrorResult_ErrorData data in result.errorData) {
-        ErrorCode dataErrorCode = data.errorCode;
-        if (identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_INT) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM)) {
-          _errorReporter.reportErrorForNode(dataErrorCode, data.node, []);
-        } else if (errorCode != null) {
-          _errorReporter.reportErrorForNode(errorCode, data.node, []);
-        }
+  void _reportErrors(List<AnalysisError> errors, ErrorCode errorCode) {
+    for (AnalysisError data in errors) {
+      ErrorCode dataErrorCode = data.errorCode;
+      if (identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_INT) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM)) {
+        _errorReporter.reportError(data);
+      } else if (errorCode != null) {
+        _errorReporter.reportError(new AnalysisError.con2(data.source, data.offset, data.length, errorCode, []));
       }
     }
   }
-
-  ValidResult _valid(InterfaceType type, InstanceState state) => new ValidResult(new DartObjectImpl(type, state));
 
   /**
    * Validate that the given expression is a compile time constant. Return the value of the compile
@@ -1631,9 +1633,11 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
    * @param errorCode the error code to be used if the expression is not a compile time constant
    * @return the value of the compile time constant
    */
-  EvaluationResultImpl _validate(Expression expression, ErrorCode errorCode) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor.con1(_typeProvider));
-    _reportErrors(result, errorCode);
+  DartObjectImpl _validate(Expression expression, ErrorCode errorCode) {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    ErrorReporter subErrorReporter = new ErrorReporter(errorListener, _errorReporter.source);
+    DartObjectImpl result = expression.accept(new ConstantVisitor.con1(_typeProvider, subErrorReporter));
+    _reportErrors(errorListener.errors, errorCode);
     return result;
   }
 
@@ -1691,10 +1695,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         DefaultFormalParameter defaultParameter = parameter;
         Expression defaultValue = defaultParameter.defaultValue;
         if (defaultValue != null) {
-          EvaluationResultImpl result = _validate(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+          DartObjectImpl result = _validate(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
           VariableElementImpl element = parameter.element as VariableElementImpl;
-          element.evaluationResult = result;
-          if (result is ValidResult) {
+          element.evaluationResult = new EvaluationResultImpl.con1(result);
+          if (result != null) {
             _reportErrorIfFromDeferredLibrary(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
           }
         }
@@ -1719,8 +1723,12 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           for (VariableDeclaration variableDeclaration in fieldDeclaration.fields.variables) {
             Expression initializer = variableDeclaration.initializer;
             if (initializer != null) {
-              EvaluationResultImpl result = initializer.accept(new ConstantVisitor.con1(_typeProvider));
-              if (result is! ValidResult) {
+              // Ignore any errors produced during validation--if the constant can't be eavluated
+              // we'll just report a single error.
+              BooleanErrorListener errorListener = new BooleanErrorListener();
+              ErrorReporter subErrorReporter = new ErrorReporter(errorListener, _errorReporter.source);
+              DartObjectImpl result = initializer.accept(new ConstantVisitor.con1(_typeProvider, subErrorReporter));
+              if (result == null) {
                 _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST, errorSite, [variableDeclaration.name.name]);
               }
             }
@@ -1738,9 +1746,11 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
    * @param expression the expression to validate
    */
   void _validateInitializerExpression(List<ParameterElement> parameterElements, Expression expression) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor_ConstantVerifier_validateInitializerExpression(_typeProvider, this, parameterElements));
-    _reportErrors(result, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
-    if (result is ValidResult) {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    ErrorReporter subErrorReporter = new ErrorReporter(errorListener, _errorReporter.source);
+    DartObjectImpl result = expression.accept(new ConstantVisitor_ConstantVerifier_validateInitializerExpression(_typeProvider, subErrorReporter, this, parameterElements));
+    _reportErrors(errorListener.errors, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    if (result != null) {
       _reportErrorIfFromDeferredLibrary(expression, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
     }
   }
@@ -1784,30 +1794,30 @@ class ConstantVisitor_ConstantVerifier_validateInitializerExpression extends Con
 
   List<ParameterElement> parameterElements;
 
-  ConstantVisitor_ConstantVerifier_validateInitializerExpression(TypeProvider arg0, this.ConstantVerifier_this, this.parameterElements) : super.con1(arg0);
+  ConstantVisitor_ConstantVerifier_validateInitializerExpression(TypeProvider arg0, ErrorReporter arg1, this.ConstantVerifier_this, this.parameterElements) : super.con1(arg0, arg1);
 
   @override
-  EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
+  DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
     for (ParameterElement parameterElement in parameterElements) {
       if (identical(parameterElement, element) && parameterElement != null) {
         DartType type = parameterElement.type;
         if (type != null) {
           if (type.isDynamic) {
-            return ConstantVerifier_this._valid(ConstantVerifier_this._typeProvider.objectType, DynamicState.DYNAMIC_STATE);
+            return new DartObjectImpl(ConstantVerifier_this._typeProvider.objectType, DynamicState.DYNAMIC_STATE);
           } else if (type.isSubtypeOf(ConstantVerifier_this._boolType)) {
-            return ConstantVerifier_this._valid(ConstantVerifier_this._typeProvider.boolType, BoolState.UNKNOWN_VALUE);
+            return new DartObjectImpl(ConstantVerifier_this._typeProvider.boolType, BoolState.UNKNOWN_VALUE);
           } else if (type.isSubtypeOf(ConstantVerifier_this._typeProvider.doubleType)) {
-            return ConstantVerifier_this._valid(ConstantVerifier_this._typeProvider.doubleType, DoubleState.UNKNOWN_VALUE);
+            return new DartObjectImpl(ConstantVerifier_this._typeProvider.doubleType, DoubleState.UNKNOWN_VALUE);
           } else if (type.isSubtypeOf(ConstantVerifier_this._intType)) {
-            return ConstantVerifier_this._valid(ConstantVerifier_this._typeProvider.intType, IntState.UNKNOWN_VALUE);
+            return new DartObjectImpl(ConstantVerifier_this._typeProvider.intType, IntState.UNKNOWN_VALUE);
           } else if (type.isSubtypeOf(ConstantVerifier_this._numType)) {
-            return ConstantVerifier_this._valid(ConstantVerifier_this._typeProvider.numType, NumState.UNKNOWN_VALUE);
+            return new DartObjectImpl(ConstantVerifier_this._typeProvider.numType, NumState.UNKNOWN_VALUE);
           } else if (type.isSubtypeOf(ConstantVerifier_this._stringType)) {
-            return ConstantVerifier_this._valid(ConstantVerifier_this._typeProvider.stringType, StringState.UNKNOWN_VALUE);
+            return new DartObjectImpl(ConstantVerifier_this._typeProvider.stringType, StringState.UNKNOWN_VALUE);
           }
         }
-        return ConstantVerifier_this._valid(type is InterfaceType ? type : ConstantVerifier_this._typeProvider.objectType, GenericState.UNKNOWN_VALUE);
+        return new DartObjectImpl(type is InterfaceType ? type : ConstantVerifier_this._typeProvider.objectType, GenericState.UNKNOWN_VALUE);
       }
     }
     return super.visitSimpleIdentifier(node);
@@ -1907,15 +1917,15 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     if (isAmpAmp || isBarBar) {
       Expression lhsCondition = node.leftOperand;
       if (!_isDebugConstant(lhsCondition)) {
-        ValidResult lhsResult = _getConstantBooleanValue(lhsCondition);
+        EvaluationResultImpl lhsResult = _getConstantBooleanValue(lhsCondition);
         if (lhsResult != null) {
-          if (lhsResult.isTrue && isBarBar) {
+          if (lhsResult.value.isTrue && isBarBar) {
             // report error on else block: true || !e!
             _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.rightOperand, []);
             // only visit the LHS:
             _safelyVisit(lhsCondition);
             return null;
-          } else if (lhsResult.isFalse && isAmpAmp) {
+          } else if (lhsResult.value.isFalse && isAmpAmp) {
             // report error on if block: false && !e!
             _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.rightOperand, []);
             // only visit the LHS:
@@ -1946,9 +1956,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     Expression conditionExpression = node.condition;
     _safelyVisit(conditionExpression);
     if (!_isDebugConstant(conditionExpression)) {
-      ValidResult result = _getConstantBooleanValue(conditionExpression);
+      EvaluationResultImpl result = _getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result.isTrue) {
+        if (result.value.isTrue) {
           // report error on else block: true ? 1 : !2!
           _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.elseExpression, []);
           _safelyVisit(node.thenExpression);
@@ -1969,9 +1979,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     Expression conditionExpression = node.condition;
     _safelyVisit(conditionExpression);
     if (!_isDebugConstant(conditionExpression)) {
-      ValidResult result = _getConstantBooleanValue(conditionExpression);
+      EvaluationResultImpl result = _getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result.isTrue) {
+        if (result.value.isTrue) {
           // report error on else block: if(true) {} else {!}
           Statement elseStatement = node.elseStatement;
           if (elseStatement != null) {
@@ -2067,9 +2077,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     Expression conditionExpression = node.condition;
     _safelyVisit(conditionExpression);
     if (!_isDebugConstant(conditionExpression)) {
-      ValidResult result = _getConstantBooleanValue(conditionExpression);
+      EvaluationResultImpl result = _getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result.isFalse) {
+        if (result.value.isFalse) {
           // report error on if block: while (false) {!}
           _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.body, []);
           return null;
@@ -2114,12 +2124,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
    *         if it is `false`, or `null` if the expression is not a constant boolean
    *         value
    */
-  ValidResult _getConstantBooleanValue(Expression expression) {
+  EvaluationResultImpl _getConstantBooleanValue(Expression expression) {
     if (expression is BooleanLiteral) {
       if (expression.value) {
-        return new ValidResult(new DartObjectImpl(null, BoolState.from(true)));
+        return new EvaluationResultImpl.con1(new DartObjectImpl(null, BoolState.from(true)));
       } else {
-        return new ValidResult(new DartObjectImpl(null, BoolState.from(false)));
+        return new EvaluationResultImpl.con1(new DartObjectImpl(null, BoolState.from(false)));
       }
     }
     // Don't consider situations where we could evaluate to a constant boolean expression with the
@@ -4669,74 +4679,69 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return a method representing the merge of the given elements. The type of the merged element is
-   * the component-wise union of the types of the given elements. If not all input elements have the
-   * same shape then [null] is returned.
+   * Helper function for `maybeMergeExecutableElements` that does the actual merging.
    *
-   * @param elements the `ExecutableElement`s to merge
-   * @return an `ExecutableElement` representing the merge of `elements`
+   * @param elementArrayToMerge non-empty array of elements to merge.
+   * @return
    */
-  static ExecutableElement _computeMergedExecutableElement(Set<ExecutableElement> elements) {
-    List<ExecutableElement> elementArrayToMerge = new List.from(elements);
-    if (elementArrayToMerge.length == 0) {
-      return null;
-    } else {
-      // Flatten methods structurally. Based on
-      // [InheritanceManager.computeMergedExecutableElement] and
-      // [InheritanceManager.createSyntheticExecutableElement].
-      //
-      // However, the approach we take here is much simpler, but expected to work
-      // well in the common case. It degrades gracefully in the uncommon case,
-      // by computing the type [dynamic] for the method, preventing any
-      // hints from being generated (TODO: not done yet).
-      //
-      // The approach is: we require that each [ExecutableElement] has the
-      // same shape: the same number of required, optional positional, and optional named
-      // parameters, in the same positions, and with the named parameters in the
-      // same order. We compute a type by unioning pointwise.
-      ExecutableElement e_0 = elementArrayToMerge[0];
-      List<ParameterElement> ps_0 = e_0.parameters;
-      List<ParameterElementImpl> ps_out = new List<ParameterElementImpl>(ps_0.length);
-      for (int j = 0; j < ps_out.length; j++) {
-        ps_out[j] = new ParameterElementImpl(ps_0[j].name, 0);
-        ps_out[j].synthetic = true;
-        ps_out[j].type = ps_0[j].type;
-        ps_out[j].parameterKind = ps_0[j].parameterKind;
-      }
-      DartType r_out = e_0.returnType;
-      for (int i = 1; i < elementArrayToMerge.length; i++) {
-        ExecutableElement e_i = elementArrayToMerge[i];
-        r_out = UnionTypeImpl.union([r_out, e_i.returnType]);
-        List<ParameterElement> ps_i = e_i.parameters;
-        // Each function must have the same number of params.
-        if (ps_0.length != ps_i.length) {
-          return null;
-        } else {
-          // Each function must have the same kind of params, with the same names,
-          // in the same order.
-          for (int j = 0; j < ps_i.length; j++) {
-            if (ps_0[j].parameterKind != ps_i[j].parameterKind || !identical(ps_0[j].name, ps_i[j].name)) {
-              return null;
-            } else {
-              // The output parameter type is the union of the input parameter types.
-              ps_out[j].type = UnionTypeImpl.union([ps_out[j].type, ps_i[j].type]);
-            }
+  static ExecutableElement _computeMergedExecutableElement(List<ExecutableElement> elementArrayToMerge) {
+    // Flatten methods structurally. Based on
+    // [InheritanceManager.computeMergedExecutableElement] and
+    // [InheritanceManager.createSyntheticExecutableElement].
+    //
+    // However, the approach we take here is much simpler, but expected to work
+    // well in the common case. It degrades gracefully in the uncommon case,
+    // by computing the type [dynamic] for the method, preventing any
+    // hints from being generated (TODO: not done yet).
+    //
+    // The approach is: we require that each [ExecutableElement] has the
+    // same shape: the same number of required, optional positional, and optional named
+    // parameters, in the same positions, and with the named parameters in the
+    // same order. We compute a type by unioning pointwise.
+    ExecutableElement e_0 = elementArrayToMerge[0];
+    List<ParameterElement> ps_0 = e_0.parameters;
+    List<ParameterElementImpl> ps_out = new List<ParameterElementImpl>(ps_0.length);
+    for (int j = 0; j < ps_out.length; j++) {
+      ps_out[j] = new ParameterElementImpl(ps_0[j].name, 0);
+      ps_out[j].synthetic = true;
+      ps_out[j].type = ps_0[j].type;
+      ps_out[j].parameterKind = ps_0[j].parameterKind;
+    }
+    DartType r_out = e_0.returnType;
+    for (int i = 1; i < elementArrayToMerge.length; i++) {
+      ExecutableElement e_i = elementArrayToMerge[i];
+      r_out = UnionTypeImpl.union([r_out, e_i.returnType]);
+      List<ParameterElement> ps_i = e_i.parameters;
+      // Each function must have the same number of params.
+      if (ps_0.length != ps_i.length) {
+        return null;
+      } else {
+        // Each function must have the same kind of params, with the same names,
+        // in the same order.
+        for (int j = 0; j < ps_i.length; j++) {
+          if (ps_0[j].parameterKind != ps_i[j].parameterKind || !identical(ps_0[j].name, ps_i[j].name)) {
+            return null;
+          } else {
+            // The output parameter type is the union of the input parameter types.
+            ps_out[j].type = UnionTypeImpl.union([ps_out[j].type, ps_i[j].type]);
           }
         }
       }
-      // TODO (collinsn): this code should work for functions and methods,
-      // so we may want [FunctionElementImpl]
-      // instead here in some cases? And then there are constructors and property accessors.
-      // Maybe the answer is to create a new subclass of [ExecutableElementImpl] which
-      // is used for merged executable elements, in analogy with [MultiplyInheritedMethodElementImpl]
-      // and [MultiplyInheritedPropertyAcessorElementImpl].
-      ExecutableElementImpl e_out = new MethodElementImpl(e_0.name, 0);
-      e_out.synthetic = true;
-      e_out.returnType = r_out;
-      e_out.parameters = ps_out;
-      e_out.type = new FunctionTypeImpl.con1(e_out);
-      return e_out;
     }
+    // TODO (collinsn): this code should work for functions and methods,
+    // so we may want [FunctionElementImpl]
+    // instead here in some cases? And then there are constructors and property accessors.
+    // Maybe the answer is to create a new subclass of [ExecutableElementImpl] which
+    // is used for merged executable elements, in analogy with [MultiplyInheritedMethodElementImpl]
+    // and [MultiplyInheritedPropertyAcessorElementImpl].
+    ExecutableElementImpl e_out = new MethodElementImpl(e_0.name, 0);
+    e_out.synthetic = true;
+    e_out.returnType = r_out;
+    e_out.parameters = ps_out;
+    e_out.type = new FunctionTypeImpl.con1(e_out);
+    // Get NPE in [toString()] w/o this.
+    e_out.enclosingElement = e_0.enclosingElement;
+    return e_out;
   }
 
   /**
@@ -4791,6 +4796,26 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     return false;
+  }
+
+  /**
+   * Return a method representing the merge of the given elements. The type of the merged element is
+   * the component-wise union of the types of the given elements. If not all input elements have the
+   * same shape then [null] is returned.
+   *
+   * @param elements the `ExecutableElement`s to merge
+   * @return an `ExecutableElement` representing the merge of `elements`
+   */
+  static ExecutableElement _maybeMergeExecutableElements(Set<ExecutableElement> elements) {
+    List<ExecutableElement> elementArrayToMerge = new List.from(elements);
+    if (elementArrayToMerge.length == 0) {
+      return null;
+    } else if (elementArrayToMerge.length == 1) {
+      // If all methods are equal, don't bother building a new one.
+      return elementArrayToMerge[0];
+    } else {
+      return _computeMergedExecutableElement(elementArrayToMerge);
+    }
   }
 
   /**
@@ -4859,13 +4884,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         MethodElement propagatedMethod = _lookUpMethod(leftHandSide, propagatedType, methodName);
         node.propagatedElement = propagatedMethod;
         if (_shouldReportMissingMember(staticType, staticMethod)) {
-          if (_doesClassElementHaveProxy(staticType.element)) {
-            _resolver.reportErrorForToken(StaticTypeWarningCode.UNDEFINED_METHOD, operator, [methodName, staticType.displayName]);
-          }
+          _recordUndefinedToken(staticType.element, StaticTypeWarningCode.UNDEFINED_METHOD, operator, [methodName, staticType.displayName]);
         } else if (_enableHints && _shouldReportMissingMember(propagatedType, propagatedMethod) && !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-          if (_doesClassElementHaveProxy(propagatedType.element)) {
-            _resolver.reportErrorForToken(HintCode.UNDEFINED_METHOD, operator, [methodName, propagatedType.displayName]);
-          }
+          _recordUndefinedToken(propagatedType.element, HintCode.UNDEFINED_METHOD, operator, [methodName, propagatedType.displayName]);
         }
       }
     }
@@ -4886,13 +4907,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         MethodElement propagatedMethod = _lookUpMethod(leftOperand, propagatedType, methodName);
         node.propagatedElement = propagatedMethod;
         if (_shouldReportMissingMember(staticType, staticMethod)) {
-          if (_doesClassElementHaveProxy(staticType.element)) {
-            _resolver.reportErrorForToken(StaticTypeWarningCode.UNDEFINED_OPERATOR, operator, [methodName, staticType.displayName]);
-          }
+          _recordUndefinedToken(staticType.element, StaticTypeWarningCode.UNDEFINED_OPERATOR, operator, [methodName, staticType.displayName]);
         } else if (_enableHints && _shouldReportMissingMember(propagatedType, propagatedMethod) && !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-          if (_doesClassElementHaveProxy(propagatedType.element)) {
-            _resolver.reportErrorForToken(HintCode.UNDEFINED_OPERATOR, operator, [methodName, propagatedType.displayName]);
-          }
+          _recordUndefinedToken(propagatedType.element, HintCode.UNDEFINED_OPERATOR, operator, [methodName, propagatedType.displayName]);
         }
       }
     }
@@ -5248,6 +5265,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     Element staticElement;
     Element propagatedElement;
+    DartType staticType = null;
+    DartType propagatedType = null;
     if (target == null) {
       staticElement = _resolveInvokedElement(methodName);
       propagatedElement = null;
@@ -5256,7 +5275,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       methodName.staticElement = importedLibrary.loadLibraryFunction;
       return null;
     } else {
-      DartType staticType = _getStaticType(target);
+      staticType = _getStaticType(target);
+      propagatedType = _getPropagatedType(target);
       //
       // If this method invocation is of the form 'C.m' where 'C' is a class, then we don't call
       // resolveInvokedElement(..) which walks up the class hierarchy, instead we just look for the
@@ -5267,7 +5287,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         staticElement = propagatedElement = _resolveElement(typeReference, methodName);
       } else {
         staticElement = _resolveInvokedElementWithTarget(target, staticType, methodName);
-        propagatedElement = _resolveInvokedElementWithTarget(target, _getPropagatedType(target), methodName);
+        propagatedElement = _resolveInvokedElementWithTarget(target, propagatedType, methodName);
       }
     }
     staticElement = _convertSetterToGetter(staticElement);
@@ -5296,6 +5316,15 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     ErrorCode errorCode = _checkForInvocationError(target, true, staticElement);
     bool generatedWithTypePropagation = false;
     if (_enableHints && errorCode == null && staticElement == null) {
+      // The method lookup may have failed because there were multiple
+      // incompatible choices. In this case we don't want to generate a hint.
+      if (propagatedElement == null && propagatedType is UnionType) {
+        // TODO(collinsn): an improvement here is to make the propagated type of the method call
+        // the union of the propagated types of all possible calls.
+        if (_lookupMethods(target, propagatedType as UnionType, methodName.name).length > 1) {
+          return null;
+        }
+      }
       errorCode = _checkForInvocationError(target, false, propagatedElement);
       if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_METHOD)) {
         ClassElement classElementContext = null;
@@ -5334,9 +5363,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         ClassElement enclosingClass = _resolver.enclosingClass;
         targetTypeName = enclosingClass.displayName;
         ErrorCode proxyErrorCode = (generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD : StaticTypeWarningCode.UNDEFINED_METHOD);
-        if (_doesClassElementHaveProxy(_resolver.enclosingClass)) {
-          _resolver.reportErrorForNode(proxyErrorCode, methodName, [methodName.name, targetTypeName]);
-        }
+        _recordUndefinedNode(_resolver.enclosingClass, proxyErrorCode, methodName, [methodName.name, targetTypeName]);
       } else {
         // ignore Function "call"
         // (if we are about to create a hint using type propagation, then we can use type
@@ -5358,9 +5385,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
         targetTypeName = targetType == null ? null : targetType.displayName;
         ErrorCode proxyErrorCode = (generatedWithTypePropagation ? HintCode.UNDEFINED_METHOD : StaticTypeWarningCode.UNDEFINED_METHOD);
-        if (_doesClassElementHaveProxy(targetType.element)) {
-          _resolver.reportErrorForNode(proxyErrorCode, methodName, [methodName.name, targetTypeName]);
-        }
+        _recordUndefinedNode(targetType.element, proxyErrorCode, methodName, [methodName.name, targetTypeName]);
       }
     } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_SUPER_METHOD)) {
       // Generate the type name.
@@ -5398,13 +5423,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     MethodElement propagatedMethod = _lookUpMethod(operand, propagatedType, methodName);
     node.propagatedElement = propagatedMethod;
     if (_shouldReportMissingMember(staticType, staticMethod)) {
-      if (_doesClassElementHaveProxy(staticType.element)) {
-        _resolver.reportErrorForToken(StaticTypeWarningCode.UNDEFINED_OPERATOR, node.operator, [methodName, staticType.displayName]);
-      }
+      _recordUndefinedToken(staticType.element, StaticTypeWarningCode.UNDEFINED_OPERATOR, node.operator, [methodName, staticType.displayName]);
     } else if (_enableHints && _shouldReportMissingMember(propagatedType, propagatedMethod) && !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-      if (_doesClassElementHaveProxy(propagatedType.element)) {
-        _resolver.reportErrorForToken(HintCode.UNDEFINED_OPERATOR, node.operator, [methodName, propagatedType.displayName]);
-      }
+      _recordUndefinedToken(propagatedType.element, HintCode.UNDEFINED_OPERATOR, node.operator, [methodName, propagatedType.displayName]);
     }
     return null;
   }
@@ -5489,13 +5510,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       MethodElement propagatedMethod = _lookUpMethod(operand, propagatedType, methodName);
       node.propagatedElement = propagatedMethod;
       if (_shouldReportMissingMember(staticType, staticMethod)) {
-        if (_doesClassElementHaveProxy(staticType.element)) {
-          _resolver.reportErrorForToken(StaticTypeWarningCode.UNDEFINED_OPERATOR, operator, [methodName, staticType.displayName]);
-        }
+        _recordUndefinedToken(staticType.element, StaticTypeWarningCode.UNDEFINED_OPERATOR, operator, [methodName, staticType.displayName]);
       } else if (_enableHints && _shouldReportMissingMember(propagatedType, propagatedMethod) && !_memberFoundInSubclass(propagatedType.element, methodName, true, false)) {
-        if (_doesClassElementHaveProxy(propagatedType.element)) {
-          _resolver.reportErrorForToken(HintCode.UNDEFINED_OPERATOR, operator, [methodName, propagatedType.displayName]);
-        }
+        _recordUndefinedToken(propagatedType.element, HintCode.UNDEFINED_OPERATOR, operator, [methodName, propagatedType.displayName]);
       }
     }
     return null;
@@ -5589,9 +5606,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         Annotation annotation = node.parent as Annotation;
         _resolver.reportErrorForNode(CompileTimeErrorCode.INVALID_ANNOTATION, annotation, []);
       } else {
-        if (_doesClassElementHaveProxy(_resolver.enclosingClass)) {
-          _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
-        }
+        _recordUndefinedNode(_resolver.enclosingClass, StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
       }
     }
     node.staticElement = element;
@@ -5794,19 +5809,15 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       sc.Token rightBracket = node.rightBracket;
       ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_OPERATOR : HintCode.UNDEFINED_OPERATOR);
       if (leftBracket == null || rightBracket == null) {
-        if (_doesClassElementHaveProxy(shouldReportMissingMember_static ? staticType.element : propagatedType.element)) {
-          _resolver.reportErrorForNode(errorCode, node, [
-              methodName,
-              shouldReportMissingMember_static ? staticType.displayName : propagatedType.displayName]);
-        }
+        _recordUndefinedNode(shouldReportMissingMember_static ? staticType.element : propagatedType.element, errorCode, node, [
+            methodName,
+            shouldReportMissingMember_static ? staticType.displayName : propagatedType.displayName]);
       } else {
         int offset = leftBracket.offset;
         int length = rightBracket.offset - offset + 1;
-        if (_doesClassElementHaveProxy(shouldReportMissingMember_static ? staticType.element : propagatedType.element)) {
-          _resolver.reportErrorForOffset(errorCode, offset, length, [
-              methodName,
-              shouldReportMissingMember_static ? staticType.displayName : propagatedType.displayName]);
-        }
+        _recordUndefinedOffset(shouldReportMissingMember_static ? staticType.element : propagatedType.element, errorCode, offset, length, [
+            methodName,
+            shouldReportMissingMember_static ? staticType.displayName : propagatedType.displayName]);
       }
       return true;
     }
@@ -5877,20 +5888,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` iff the passed [Element] is a [ClassElement] and either has, or
-   * in that is or inherits proxy.
+   * Return `true` if the given element is not a proxy.
    *
-   * @param element the enclosing element
-   * @return `true` iff the passed [Element] is a [ClassElement] and either has,
-   *         or in that is or inherits proxy
+   * @param element the enclosing element. If null, `true` will be returned.
+   * @return `false` iff the passed [Element] is a [ClassElement] that is a proxy
+   *         or inherits proxy
    * @see ClassElement#isOrInheritsProxy()
    */
-  bool _doesClassElementHaveProxy(Element element) {
-    if (element is ClassElement) {
-      return !element.isOrInheritsProxy;
-    }
-    return true;
-  }
+  bool _doesntHaveProxy(Element element) => !(element is ClassElement && element.isOrInheritsProxy);
 
   /**
    * Look for any declarations of the given identifier that are imported using a prefix. Return the
@@ -6307,19 +6312,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         return method;
       }
       return _lookUpMethodInInterfaces(interfaceType, false, methodName, new HashSet<ClassElement>());
-    }
-    if (type is UnionType) {
-      Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
-      for (DartType t in type.elements) {
-        MethodElement m = _lookUpMethod(target, t, methodName);
-        if (m != null) {
-          methods.add(m);
-        }
-      }
+    } else if (type is UnionType) {
       // TODO (collinsn): I want [computeMergedExecutableElement] to be general
       // and work with functions, methods, constructors, and property accessors. However,
       // I won't be able to assume it returns [MethodElement] here then.
-      return _computeMergedExecutableElement(methods) as MethodElement;
+      return _maybeMergeExecutableElements(_lookupMethods(target, type, methodName)) as MethodElement;
     }
     return null;
   }
@@ -6369,6 +6366,37 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return null;
     }
     return _lookUpMethodInInterfaces(superclass, true, methodName, visitedInterfaces);
+  }
+
+  /**
+   * Look up all methods of a given name defined on a union type.
+   *
+   * @param target
+   * @param type
+   * @param methodName
+   * @return all methods named `methodName` defined on the union type `type`.
+   */
+  Set<ExecutableElement> _lookupMethods(Expression target, UnionType type, String methodName) {
+    Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
+    bool allElementsHaveMethod = true;
+    for (DartType t in type.elements) {
+      MethodElement m = _lookUpMethod(target, t, methodName);
+      if (m != null) {
+        methods.add(m);
+      } else {
+        allElementsHaveMethod = false;
+      }
+    }
+    // For strict union types we require that all types in the union define the method.
+    if (AnalysisEngine.instance.strictUnionTypes) {
+      if (allElementsHaveMethod) {
+        return methods;
+      } else {
+        return new Set<ExecutableElement>();
+      }
+    } else {
+      return methods;
+    }
   }
 
   /**
@@ -6509,6 +6537,53 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         return operator;
       }
       break;
+    }
+  }
+
+  /**
+   * Record that the given node is undefined, causing an error to be reported if appropriate.
+   *
+   * @param declaringElement the element inside which no declaration was found. If this element is a
+   *          proxy, no error will be reported. If null, then an error will always be reported.
+   * @param errorCode the error code to report.
+   * @param node the node which is undefined.
+   * @param arguments arguments to the error message.
+   */
+  void _recordUndefinedNode(Element declaringElement, ErrorCode errorCode, AstNode node, List<Object> arguments) {
+    if (_doesntHaveProxy(declaringElement)) {
+      _resolver.reportErrorForNode(errorCode, node, arguments);
+    }
+  }
+
+  /**
+   * Record that the given offset/length is undefined, causing an error to be reported if
+   * appropriate.
+   *
+   * @param declaringElement the element inside which no declaration was found. If this element is a
+   *          proxy, no error will be reported. If null, then an error will always be reported.
+   * @param errorCode the error code to report.
+   * @param offset the offset to the text which is undefined.
+   * @param length the length of the text which is undefined.
+   * @param arguments arguments to the error message.
+   */
+  void _recordUndefinedOffset(Element declaringElement, ErrorCode errorCode, int offset, int length, List<Object> arguments) {
+    if (_doesntHaveProxy(declaringElement)) {
+      _resolver.reportErrorForOffset(errorCode, offset, length, arguments);
+    }
+  }
+
+  /**
+   * Record that the given token is undefined, causing an error to be reported if appropriate.
+   *
+   * @param declaringElement the element inside which no declaration was found. If this element is a
+   *          proxy, no error will be reported. If null, then an error will always be reported.
+   * @param errorCode the error code to report.
+   * @param token the token which is undefined.
+   * @param arguments arguments to the error message.
+   */
+  void _recordUndefinedToken(Element declaringElement, ErrorCode errorCode, sc.Token token, List<Object> arguments) {
+    if (_doesntHaveProxy(declaringElement)) {
+      _resolver.reportErrorForToken(errorCode, token, arguments);
     }
   }
 
@@ -6922,78 +6997,42 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     propertyName.staticElement = staticElement;
     propertyName.propagatedElement = propagatedElement;
     bool shouldReportMissingMember_static = _shouldReportMissingMember(staticType, staticElement);
-    bool shouldReportMissingMember_propagated = !shouldReportMissingMember_static && _enableHints ? _shouldReportMissingMember(propagatedType, propagatedElement) : false;
-    // If we are about to generate the hint (propagated version of this warning), then check
-    // that the member is not in a subtype of the propagated type.
-    if (shouldReportMissingMember_propagated) {
-      if (_memberFoundInSubclass(propagatedType.element, propertyName.name, false, true)) {
-        shouldReportMissingMember_propagated = false;
-      }
+    bool shouldReportMissingMember_propagated = !shouldReportMissingMember_static && _enableHints && _shouldReportMissingMember(propagatedType, propagatedElement) && !_memberFoundInSubclass(propagatedType.element, propertyName.name, false, true);
+    // TODO(collinsn): add support for errors on union types by extending
+    // [lookupGetter] and [lookupSetter] in analogy with the earlier [lookupMethod] extensions.
+    if (propagatedType is UnionType) {
+      shouldReportMissingMember_propagated = false;
     }
     if (shouldReportMissingMember_static || shouldReportMissingMember_propagated) {
-      if (staticType.isVoid) {
-        if (propertyName.inSetterContext()) {
-          ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER);
-          _resolver.reportErrorForNode(errorCode, propertyName, [propertyName.name, staticType.displayName]);
-        } else if (propertyName.inGetterContext()) {
-          ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER);
-          _resolver.reportErrorForNode(errorCode, propertyName, [propertyName.name, staticType.displayName]);
-        } else {
-          _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_IDENTIFIER, propertyName, [propertyName.name]);
+      Element staticOrPropagatedEnclosingElt = shouldReportMissingMember_static ? staticType.element : propagatedType.element;
+      bool isStaticProperty = _isStatic(staticOrPropagatedEnclosingElt);
+      String displayName = staticOrPropagatedEnclosingElt != null ? staticOrPropagatedEnclosingElt.displayName : propagatedType != null ? propagatedType.displayName : staticType.displayName;
+      // Special getter cases.
+      if (propertyName.inGetterContext()) {
+        if (!isStaticProperty && staticOrPropagatedEnclosingElt is ClassElement) {
+          ClassElement classElement = staticOrPropagatedEnclosingElt;
+          InterfaceType targetType = classElement.type;
+          if (targetType != null && targetType.isDartCoreFunction && propertyName.name == FunctionElement.CALL_METHOD_NAME) {
+            // TODO(brianwilkerson) Can we ever resolve the function being invoked?
+            //resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
+            return;
+          } else if (classElement.isEnum && propertyName.name == "_name") {
+            _resolver.reportErrorForNode(CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD, propertyName, [propertyName.name]);
+            return;
+          }
         }
       }
-      Element staticOrPropagatedEnclosingElt = shouldReportMissingMember_static ? staticType.element : propagatedType.element;
-      if (staticOrPropagatedEnclosingElt != null) {
-        bool isStaticProperty = _isStatic(staticOrPropagatedEnclosingElt);
-        if (propertyName.inSetterContext()) {
-          if (isStaticProperty) {
-            ErrorCode errorCode = (shouldReportMissingMember_static ? StaticWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER);
-            if (_doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
-              _resolver.reportErrorForNode(errorCode, propertyName, [
-                  propertyName.name,
-                  staticOrPropagatedEnclosingElt.displayName]);
-            }
-          } else {
-            ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_SETTER : HintCode.UNDEFINED_SETTER);
-            if (_doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
-              _resolver.reportErrorForNode(errorCode, propertyName, [
-                  propertyName.name,
-                  staticOrPropagatedEnclosingElt.displayName]);
-            }
-          }
-        } else if (propertyName.inGetterContext()) {
-          if (isStaticProperty) {
-            ErrorCode errorCode = (shouldReportMissingMember_static ? StaticWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER);
-            if (_doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
-              _resolver.reportErrorForNode(errorCode, propertyName, [
-                  propertyName.name,
-                  staticOrPropagatedEnclosingElt.displayName]);
-            }
-          } else {
-            if (staticOrPropagatedEnclosingElt is ClassElement) {
-              ClassElement classElement = staticOrPropagatedEnclosingElt;
-              InterfaceType targetType = classElement.type;
-              if (targetType != null && targetType.isDartCoreFunction && propertyName.name == FunctionElement.CALL_METHOD_NAME) {
-                // TODO(brianwilkerson) Can we ever resolve the function being invoked?
-                //resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
-                return;
-              } else if (classElement.isEnum && propertyName.name == "_name") {
-                _resolver.reportErrorForNode(CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD, propertyName, [propertyName.name]);
-                return;
-              }
-            }
-            ErrorCode errorCode = (shouldReportMissingMember_static ? StaticTypeWarningCode.UNDEFINED_GETTER : HintCode.UNDEFINED_GETTER);
-            if (_doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
-              _resolver.reportErrorForNode(errorCode, propertyName, [
-                  propertyName.name,
-                  staticOrPropagatedEnclosingElt.displayName]);
-            }
-          }
-        } else {
-          if (_doesClassElementHaveProxy(staticOrPropagatedEnclosingElt)) {
-            _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_IDENTIFIER, propertyName, [propertyName.name]);
-          }
-        }
+      Element declaringElement = staticType.isVoid ? null : staticOrPropagatedEnclosingElt;
+      if (propertyName.inSetterContext()) {
+        ErrorCode staticErrorCode = (isStaticProperty && !staticType.isVoid ? StaticWarningCode.UNDEFINED_SETTER : StaticTypeWarningCode.UNDEFINED_SETTER);
+        ErrorCode errorCode = shouldReportMissingMember_static ? staticErrorCode : HintCode.UNDEFINED_SETTER;
+        _recordUndefinedNode(declaringElement, errorCode, propertyName, [propertyName.name, displayName]);
+      } else if (propertyName.inGetterContext()) {
+        ErrorCode staticErrorCode = (isStaticProperty && !staticType.isVoid ? StaticWarningCode.UNDEFINED_GETTER : StaticTypeWarningCode.UNDEFINED_GETTER);
+        ErrorCode errorCode = shouldReportMissingMember_static ? staticErrorCode : HintCode.UNDEFINED_GETTER;
+        _recordUndefinedNode(declaringElement, errorCode, propertyName, [propertyName.name, displayName]);
+      } else {
+        _recordUndefinedNode(declaringElement, StaticWarningCode.UNDEFINED_IDENTIFIER, propertyName, [propertyName.name]);
       }
     }
   }
@@ -7304,7 +7343,7 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
       HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
       fieldMap[indexFieldName] = new DartObjectImpl(intType, new IntState(i));
       DartObjectImpl value = new DartObjectImpl(enumType, new GenericState(fieldMap));
-      constantField.evaluationResult = new ValidResult(value);
+      constantField.evaluationResult = new EvaluationResultImpl.con1(value);
       fields.add(constantField);
       getters.add(_createGetter(constantField));
       constantName.staticElement = constantField;
@@ -10257,10 +10296,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // report problem
     if (_isEnclosingConstructorConst) {
-      _errorReporter.reportTypeErrorForNode(CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE, expression, [staticType, fieldType]);
-    } else {
-      _errorReporter.reportTypeErrorForNode(StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, expression, [staticType, fieldType]);
+      // TODO(paulberry): this error should be based on the actual type of the constant, not the
+      // static type.  See dartbug.com/21119.
+      _errorReporter.reportTypeErrorForNode(CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE, expression, [staticType, fieldType]);
     }
+    _errorReporter.reportTypeErrorForNode(StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, expression, [staticType, fieldType]);
     return true;
   }
 
@@ -10820,17 +10860,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     DartType listElementType = typeNames[0].type;
-    // Prepare problem to report.
-    ErrorCode errorCode;
-    if (node.constKeyword != null) {
-      errorCode = CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE;
-    } else {
-      errorCode = StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE;
-    }
     // Check every list element.
     bool hasProblems = false;
     for (Expression element in node.elements) {
-      hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(element, listElementType, errorCode));
+      if (node.constKeyword != null) {
+        // TODO(paulberry): this error should be based on the actual type of the list element, not
+        // the static type.  See dartbug.com/21119.
+        hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(element, listElementType, CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE));
+      }
+      hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(element, listElementType, StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE));
     }
     return hasProblems;
   }
@@ -10855,24 +10893,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     DartType keyType = typeNames[0].type;
     DartType valueType = typeNames[1].type;
-    // Prepare problem to report.
-    ErrorCode keyErrorCode;
-    ErrorCode valueErrorCode;
-    if (node.constKeyword != null) {
-      keyErrorCode = CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE;
-      valueErrorCode = CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE;
-    } else {
-      keyErrorCode = StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE;
-      valueErrorCode = StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE;
-    }
     // Check every map entry.
     bool hasProblems = false;
     NodeList<MapLiteralEntry> entries = node.entries;
     for (MapLiteralEntry entry in entries) {
       Expression key = entry.key;
       Expression value = entry.value;
-      hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType, keyErrorCode));
-      hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(value, valueType, valueErrorCode));
+      if (node.constKeyword != null) {
+        // TODO(paulberry): this error should be based on the actual type of the list element, not
+        // the static type.  See dartbug.com/21119.
+        hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType, CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE));
+        hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(value, valueType, CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE));
+      }
+      hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType, StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE));
+      hasProblems = javaBooleanOr(hasProblems, _checkForArgumentTypeNotAssignableWithExpectedTypes(value, valueType, StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE));
     }
     return hasProblems;
   }
@@ -12269,25 +12303,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Return the flattened version of the given type, as defined by the specification: <blockquote>
-   * Let <i>flatten(T) = flatten(S)</i> if <i>T = Future&lt;S&gt;</i>, and <i>T</i> otherwise.
-   * </blockquote>
-   *
-   * @param type the type to be flattened
-   * @return the flattened version of the given type
-   */
-  DartType _flatten(DartType type) {
-    while (_isFuture(type)) {
-      List<DartType> arguments = (type as InterfaceType).typeArguments;
-      if (arguments.length != 1) {
-        return type;
-      }
-      type = arguments[0];
-    }
-    return type;
-  }
-
-  /**
    * Return the error code that should be used when the given class references itself directly.
    *
    * @param classElt the class that references itself
@@ -12580,7 +12595,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return false;
   }
 
-  bool _isUserDefinedObject(EvaluationResultImpl result) => result == null || (result is ValidResult && result.isUserDefinedObject);
+  bool _isUserDefinedObject(EvaluationResultImpl result) => result == null || (result.value != null && result.value.isUserDefinedObject);
 
   /**
    * This checks the class declaration is not a superinterface to itself.
@@ -13597,6 +13612,147 @@ class INIT_STATE extends Enum<INIT_STATE> {
       INIT_IN_INITIALIZERS];
 
   const INIT_STATE(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * Instances of the class `SecondTypeResolverVisitor` are used to finish any resolve steps
+ * after the [TypeResolverVisitor] that cannot happen in the [TypeResolverVisitor], but
+ * should happen before the next tasks.
+ *
+ * Currently this visitor only finishes the resolution of [ClassTypeAlias]s, thus the scopes
+ * of other top level AST nodes do not currently have to be built.
+ */
+class ImplicitConstructorBuilder extends ScopedVisitor {
+  /**
+   * Initialize a newly created visitor to finish resolution in the nodes in a compilation unit.
+   *
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  ImplicitConstructorBuilder.con1(Library library, Source source, TypeProvider typeProvider) : super.con1(library, source, typeProvider);
+
+  /**
+   * Initialize a newly created visitor to finish resolution in the nodes in a compilation unit.
+   *
+   * @param library the library containing the compilation unit being resolved
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   */
+  ImplicitConstructorBuilder.con2(ResolvableLibrary library, Source source, TypeProvider typeProvider) : super.con4(library, source, typeProvider);
+
+  @override
+  Object visitClassDeclaration(ClassDeclaration node) => null;
+
+  @override
+  Object visitClassTypeAlias(ClassTypeAlias node) {
+    super.visitClassTypeAlias(node);
+    InterfaceType superclassType = null;
+    DartType type = node.superclass.type;
+    if (type is InterfaceType) {
+      superclassType = type;
+    } else {
+      superclassType = typeProvider.objectType;
+    }
+    ClassElementImpl classElement = node.element as ClassElementImpl;
+    if (classElement != null) {
+      ClassElement superclassElement = superclassType.element;
+      if (superclassElement != null) {
+        List<ConstructorElement> constructors = superclassElement.constructors;
+        int count = constructors.length;
+        if (count > 0) {
+          List<DartType> parameterTypes = TypeParameterTypeImpl.getTypes(superclassType.typeParameters);
+          List<DartType> argumentTypes = _getArgumentTypes(node.superclass.typeArguments, parameterTypes);
+          InterfaceType classType = classElement.type;
+          List<ConstructorElement> implicitConstructors = new List<ConstructorElement>();
+          for (int i = 0; i < count; i++) {
+            ConstructorElement explicitConstructor = constructors[i];
+            if (!explicitConstructor.isFactory) {
+              implicitConstructors.add(_createImplicitContructor(classType, explicitConstructor, parameterTypes, argumentTypes));
+            }
+          }
+          classElement.constructors = new List.from(implicitConstructors);
+        }
+      }
+    }
+    return null;
+  }
+
+  @override
+  Object visitEnumDeclaration(EnumDeclaration node) => null;
+
+  @override
+  Object visitFunctionDeclaration(FunctionDeclaration node) => null;
+
+  @override
+  Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => null;
+
+  /**
+   * Create an implicit constructor that is copied from the given constructor, but that is in the
+   * given class.
+   *
+   * @param classType the class in which the implicit constructor is defined
+   * @param explicitConstructor the constructor on which the implicit constructor is modeled
+   * @param parameterTypes the types to be replaced when creating parameters
+   * @param argumentTypes the types with which the parameters are to be replaced
+   * @return the implicit constructor that was created
+   */
+  ConstructorElement _createImplicitContructor(InterfaceType classType, ConstructorElement explicitConstructor, List<DartType> parameterTypes, List<DartType> argumentTypes) {
+    ConstructorElementImpl implicitConstructor = new ConstructorElementImpl(explicitConstructor.name, -1);
+    implicitConstructor.synthetic = true;
+    implicitConstructor.redirectedConstructor = explicitConstructor;
+    implicitConstructor.const2 = explicitConstructor.isConst;
+    implicitConstructor.returnType = classType;
+    List<ParameterElement> explicitParameters = explicitConstructor.parameters;
+    int count = explicitParameters.length;
+    if (count > 0) {
+      List<ParameterElement> implicitParameters = new List<ParameterElement>(count);
+      for (int i = 0; i < count; i++) {
+        ParameterElement explicitParameter = explicitParameters[i];
+        ParameterElementImpl implicitParameter = new ParameterElementImpl(explicitParameter.name, -1);
+        implicitParameter.const3 = explicitParameter.isConst;
+        implicitParameter.final2 = explicitParameter.isFinal;
+        implicitParameter.parameterKind = explicitParameter.parameterKind;
+        implicitParameter.synthetic = true;
+        implicitParameter.type = explicitParameter.type.substitute2(argumentTypes, parameterTypes);
+        implicitParameters[i] = implicitParameter;
+      }
+      implicitConstructor.parameters = implicitParameters;
+    }
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(implicitConstructor);
+    type.typeArguments = classType.typeArguments;
+    implicitConstructor.type = type;
+    return implicitConstructor;
+  }
+
+  /**
+   * Return an array of argument types that corresponds to the array of parameter types and that are
+   * derived from the given list of type arguments.
+   *
+   * @param typeArguments the type arguments from which the types will be taken
+   * @param parameterTypes the parameter types that must be matched by the type arguments
+   * @return the argument types that correspond to the parameter types
+   */
+  List<DartType> _getArgumentTypes(TypeArgumentList typeArguments, List<DartType> parameterTypes) {
+    DynamicTypeImpl dynamic = DynamicTypeImpl.instance;
+    int parameterCount = parameterTypes.length;
+    List<DartType> types = new List<DartType>(parameterCount);
+    if (typeArguments == null) {
+      for (int i = 0; i < parameterCount; i++) {
+        types[i] = dynamic;
+      }
+    } else {
+      NodeList<TypeName> arguments = typeArguments.arguments;
+      int argumentCount = Math.min(arguments.length, parameterCount);
+      for (int i = 0; i < argumentCount; i++) {
+        types[i] = arguments[i].type;
+      }
+      for (int i = argumentCount; i < parameterCount; i++) {
+        types[i] = dynamic;
+      }
+    }
+    return types;
+  }
 }
 
 /**
@@ -15997,6 +16153,7 @@ class LibraryResolver {
       _buildDirectiveModels();
       instrumentation.metric3("buildDirectiveModels", "complete");
       _typeProvider = new TypeProviderImpl(coreElement);
+      _buildTypeAliases();
       _buildTypeHierarchies();
       instrumentation.metric3("buildTypeHierarchies", "complete");
       //
@@ -16083,7 +16240,9 @@ class LibraryResolver {
       instrumentation.metric3("buildDirectiveModels", "complete");
       _typeProvider = new TypeProviderImpl(coreElement);
       _buildEnumMembers();
+      _buildTypeAliases();
       _buildTypeHierarchies();
+      _buildImplicitConstructors();
       instrumentation.metric3("buildTypeHierarchies", "complete");
       //
       // Perform resolution and type analysis.
@@ -16108,7 +16267,7 @@ class LibraryResolver {
       }
       return targetLibrary.libraryElement;
     } finally {
-      instrumentation.log();
+      instrumentation.log2(15);
     }
   }
 
@@ -16337,6 +16496,57 @@ class LibraryResolver {
           EnumMemberBuilder builder = new EnumMemberBuilder(_typeProvider);
           library.getAST(source).accept(builder);
         }
+      }
+    } finally {
+      timeCounter.stop();
+    }
+  }
+
+  /**
+   * Finish steps that the [buildTypeHierarchies] could not perform, see
+   * [ImplicitConstructorBuilder].
+   *
+   * @throws AnalysisException if any of the type hierarchies could not be resolved
+   */
+  void _buildImplicitConstructors() {
+    TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
+    try {
+      for (Library library in _librariesInCycles) {
+        for (Source source in library.compilationUnitSources) {
+          ImplicitConstructorBuilder visitor = new ImplicitConstructorBuilder.con1(library, source, _typeProvider);
+          library.getAST(source).accept(visitor);
+        }
+      }
+    } finally {
+      timeCounter.stop();
+    }
+  }
+
+  /**
+   * Resolve the types referenced by function type aliases across all of the function type aliases
+   * defined in the current cycle.
+   *
+   * @throws AnalysisException if any of the function type aliases could not be resolved
+   */
+  void _buildTypeAliases() {
+    TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
+    try {
+      List<LibraryResolver_TypeAliasInfo> typeAliases = new List<LibraryResolver_TypeAliasInfo>();
+      for (Library library in _librariesInCycles) {
+        for (Source source in library.compilationUnitSources) {
+          CompilationUnit ast = library.getAST(source);
+          for (CompilationUnitMember member in ast.declarations) {
+            if (member is FunctionTypeAlias) {
+              typeAliases.add(new LibraryResolver_TypeAliasInfo(library, source, member));
+            }
+          }
+        }
+      }
+      // TODO(brianwilkerson) We need to sort the type aliases such that all aliases referenced by
+      // an alias T are resolved before we resolve T.
+      for (LibraryResolver_TypeAliasInfo info in typeAliases) {
+        TypeResolverVisitor visitor = new TypeResolverVisitor.con1(info._library, info._source, _typeProvider);
+        info._typeAlias.accept(visitor);
       }
     } finally {
       timeCounter.stop();
@@ -16766,7 +16976,9 @@ class LibraryResolver2 {
       instrumentation.metric3("buildDirectiveModels", "complete");
       _typeProvider = new TypeProviderImpl(coreElement);
       _buildEnumMembers();
+      _buildTypeAliases();
       _buildTypeHierarchies();
+      _buildImplicitConstructors();
       instrumentation.metric3("buildTypeHierarchies", "complete");
       //
       // Perform resolution and type analysis.
@@ -16958,6 +17170,28 @@ class LibraryResolver2 {
     }
   }
 
+  /**
+   * Finish steps that the [buildTypeHierarchies] could not perform, see
+   * [ImplicitConstructorBuilder].
+   *
+   * @throws AnalysisException if any of the type hierarchies could not be resolved
+   */
+  void _buildImplicitConstructors() {
+    TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
+    try {
+      for (ResolvableLibrary library in _librariesInCycle) {
+        for (ResolvableCompilationUnit unit in library.resolvableCompilationUnits) {
+          Source source = unit.source;
+          CompilationUnit ast = unit.compilationUnit;
+          ImplicitConstructorBuilder visitor = new ImplicitConstructorBuilder.con2(library, source, _typeProvider);
+          ast.accept(visitor);
+        }
+      }
+    } finally {
+      timeCounter.stop();
+    }
+  }
+
   HashMap<Source, ResolvableLibrary> _buildLibraryMap() {
     HashMap<Source, ResolvableLibrary> libraryMap = new HashMap<Source, ResolvableLibrary>();
     int libraryCount = _librariesInCycle.length;
@@ -16974,6 +17208,36 @@ class LibraryResolver2 {
       }
     }
     return libraryMap;
+  }
+
+  /**
+   * Resolve the types referenced by function type aliases across all of the function type aliases
+   * defined in the current cycle.
+   *
+   * @throws AnalysisException if any of the function type aliases could not be resolved
+   */
+  void _buildTypeAliases() {
+    TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
+    try {
+      List<LibraryResolver2_TypeAliasInfo> typeAliases = new List<LibraryResolver2_TypeAliasInfo>();
+      for (ResolvableLibrary library in _librariesInCycle) {
+        for (ResolvableCompilationUnit unit in library.resolvableCompilationUnits) {
+          for (CompilationUnitMember member in unit.compilationUnit.declarations) {
+            if (member is FunctionTypeAlias) {
+              typeAliases.add(new LibraryResolver2_TypeAliasInfo(library, unit.source, member));
+            }
+          }
+        }
+      }
+      // TODO(brianwilkerson) We need to sort the type aliases such that all aliases referenced by
+      // an alias T are resolved before we resolve T.
+      for (LibraryResolver2_TypeAliasInfo info in typeAliases) {
+        TypeResolverVisitor visitor = new TypeResolverVisitor.con4(info._library, info._source, _typeProvider);
+        info._typeAlias.accept(visitor);
+      }
+    } finally {
+      timeCounter.stop();
+    }
   }
 
   /**
@@ -17088,6 +17352,46 @@ class LibraryResolver2 {
       timeCounter.stop();
     }
   }
+}
+
+/**
+ * Instances of the class `TypeAliasInfo` hold information about a [TypeAlias].
+ */
+class LibraryResolver2_TypeAliasInfo {
+  final ResolvableLibrary _library;
+
+  final Source _source;
+
+  final FunctionTypeAlias _typeAlias;
+
+  /**
+   * Initialize a newly created information holder with the given information.
+   *
+   * @param library the library containing the type alias
+   * @param source the source of the file containing the type alias
+   * @param typeAlias the type alias being remembered
+   */
+  LibraryResolver2_TypeAliasInfo(this._library, this._source, this._typeAlias);
+}
+
+/**
+ * Instances of the class `TypeAliasInfo` hold information about a [TypeAlias].
+ */
+class LibraryResolver_TypeAliasInfo {
+  final Library _library;
+
+  final Source _source;
+
+  final FunctionTypeAlias _typeAlias;
+
+  /**
+   * Initialize a newly created information holder with the given information.
+   *
+   * @param library the library containing the type alias
+   * @param source the source of the file containing the type alias
+   * @param typeAlias the type alias being remembered
+   */
+  LibraryResolver_TypeAliasInfo(this._library, this._source, this._typeAlias);
 }
 
 /**
@@ -18909,7 +19213,7 @@ class ResolverVisitor extends ScopedVisitor {
     try {
       super.visitFieldDeclaration(node);
     } finally {
-      Map<Element, DartType> overrides = _overrideManager.captureOverrides(node.fields);
+      Map<VariableElement, DartType> overrides = _overrideManager.captureOverrides(node.fields);
       _overrideManager.exitScope();
       _overrideManager.applyOverrides(overrides);
     }
@@ -19001,7 +19305,7 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitIfStatement(IfStatement node) {
     Expression condition = node.condition;
     safelyVisit(condition);
-    Map<Element, DartType> thenOverrides = null;
+    Map<VariableElement, DartType> thenOverrides = new HashMap<VariableElement, DartType>();
     Statement thenStatement = node.thenStatement;
     if (thenStatement != null) {
       _overrideManager.enterScope();
@@ -19023,7 +19327,7 @@ class ResolverVisitor extends ScopedVisitor {
         _overrideManager.exitScope();
       }
     }
-    Map<Element, DartType> elseOverrides = null;
+    Map<VariableElement, DartType> elseOverrides = new HashMap<VariableElement, DartType>();
     Statement elseStatement = node.elseStatement;
     if (elseStatement != null) {
       _overrideManager.enterScope();
@@ -19037,26 +19341,21 @@ class ResolverVisitor extends ScopedVisitor {
     }
     node.accept(_elementResolver);
     node.accept(_typeAnalyzer);
+    // Join overrides.
     bool thenIsAbrupt = _isAbruptTerminationStatement(thenStatement);
     bool elseIsAbrupt = _isAbruptTerminationStatement(elseStatement);
     if (elseIsAbrupt && !thenIsAbrupt) {
       _propagateTrueState(condition);
-      if (thenOverrides != null) {
-        _overrideManager.applyOverrides(thenOverrides);
-      }
+      _overrideManager.applyOverrides(thenOverrides);
     } else if (thenIsAbrupt && !elseIsAbrupt) {
       _propagateFalseState(condition);
-      if (elseOverrides != null) {
-        _overrideManager.applyOverrides(elseOverrides);
-      }
+      _overrideManager.applyOverrides(elseOverrides);
     } else if (!thenIsAbrupt && !elseIsAbrupt) {
-      // It would be more precise to ignore the existing override for any variable that
-      // is overridden in both branches.
-      if (thenOverrides != null) {
-        _overrideManager.mergeOverrides(thenOverrides);
-      }
-      if (elseOverrides != null) {
-        _overrideManager.mergeOverrides(elseOverrides);
+      if (AnalysisEngine.instance.enableUnionTypes) {
+        List<Map<VariableElement, DartType>> perBranchOverrides = new List<Map<VariableElement, DartType>>();
+        perBranchOverrides.add(thenOverrides);
+        perBranchOverrides.add(elseOverrides);
+        _overrideManager.joinOverrides(perBranchOverrides);
       }
     }
     return null;
@@ -19181,7 +19480,7 @@ class ResolverVisitor extends ScopedVisitor {
     try {
       super.visitTopLevelVariableDeclaration(node);
     } finally {
-      Map<Element, DartType> overrides = _overrideManager.captureOverrides(node.variables);
+      Map<VariableElement, DartType> overrides = _overrideManager.captureOverrides(node.variables);
       _overrideManager.exitScope();
       _overrideManager.applyOverrides(overrides);
     }
@@ -19335,7 +19634,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (potentialType == null || potentialType.isBottom) {
       return;
     }
-    DartType currentType = _getBestType(element);
+    DartType currentType = _overrideManager.getBestType(element);
     // If we aren't allowing precision loss then the third and fourth conditions check that we
     // aren't losing precision.
     //
@@ -19452,25 +19751,6 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Return the best type information available for the given element. If the type of the element
-   * has been overridden, then return the overriding type. Otherwise, return the static type.
-   *
-   * @param element the element for which type information is to be returned
-   * @return the best type information available for the given element
-   */
-  DartType _getBestType(Element element) {
-    DartType bestType = _overrideManager.getType(element);
-    if (bestType == null) {
-      if (element is LocalVariableElement) {
-        bestType = element.type;
-      } else if (element is ParameterElement) {
-        bestType = element.type;
-      }
-    }
-    return bestType;
-  }
-
-  /**
    * The given expression is the expression used to compute the iterator for a for-each statement.
    * Attempt to compute the type of objects that will be assigned to the loop variable and return
    * that type. Return `null` if the type could not be determined.
@@ -19529,7 +19809,7 @@ class ResolverVisitor extends ScopedVisitor {
     for (int i = 0; i < parameters.length && i < expectedParameters.length; i++) {
       FormalParameter parameter = parameters[i];
       ParameterElement element = parameter.element;
-      DartType currentType = _getBestType(element);
+      DartType currentType = _overrideManager.getBestType(element);
       // may be override the type
       DartType expectedType = expectedParameters[i].type;
       if (currentType == null || expectedType.isMoreSpecificThan(currentType)) {
@@ -22651,7 +22931,7 @@ class TypeOverrideManager {
    *
    * @param overrides the overrides to be applied
    */
-  void applyOverrides(Map<Element, DartType> overrides) {
+  void applyOverrides(Map<VariableElement, DartType> overrides) {
     if (_currentScope == null) {
       throw new IllegalStateException("Cannot apply overrides without a scope");
     }
@@ -22664,7 +22944,7 @@ class TypeOverrideManager {
    *
    * @return the overrides in the current scope
    */
-  Map<Element, DartType> captureLocalOverrides() {
+  Map<VariableElement, DartType> captureLocalOverrides() {
     if (_currentScope == null) {
       throw new IllegalStateException("Cannot capture local overrides without a scope");
     }
@@ -22678,7 +22958,7 @@ class TypeOverrideManager {
    * @param variableList the list of variables whose overriding types are to be captured
    * @return a table mapping elements to their overriding types
    */
-  Map<Element, DartType> captureOverrides(VariableDeclarationList variableList) {
+  Map<VariableElement, DartType> captureOverrides(VariableDeclarationList variableList) {
     if (_currentScope == null) {
       throw new IllegalStateException("Cannot capture overrides without a scope");
     }
@@ -22703,6 +22983,18 @@ class TypeOverrideManager {
   }
 
   /**
+   * Return the best type information available for the given element. If the type of the element
+   * has been overridden, then return the overriding type. Otherwise, return the static type.
+   *
+   * @param element the element for which type information is to be returned
+   * @return the best type information available for the given element
+   */
+  DartType getBestType(VariableElement element) {
+    DartType bestType = getType(element);
+    return bestType == null ? element.type : bestType;
+  }
+
+  /**
    * Return the overridden type of the given element, or `null` if the type of the element has
    * not been overridden.
    *
@@ -22717,12 +23009,73 @@ class TypeOverrideManager {
   }
 
   /**
-   * Merge new overrides with existing overrides using union types.
+   * Update overrides assuming `perBranchOverrides` is the collection of per-branch overrides
+   * for *all* branches flowing into a join point. If a variable is updated in each per-branch
+   * override, then its type before the branching is ignored. Otherwise, its type before the
+   * branching is merged with all updates in the branches.
    *
-   * @param overrides the new overrides to merge in.
+   * Although this method would do the right thing for a single set of overrides, we require there
+   * to be at least two override sets. Instead use `applyOverrides` for to apply a single set.
+   *
+   * For example, for the code
+   *
+   * <pre>
+   *   if (c) {
+   *     ...
+   *   } else {
+   *     ...
+   *   }
+   * </pre>
+   * the `perBranchOverrides` would include overrides for the then and else branches, and for
+   * the code
+   *
+   * <pre>
+   *   ...
+   *   while(c) {
+   *     ...
+   *   }
+   * </pre>
+   * the `perBranchOverrides` would include overrides for before the loop and for the loop
+   * body.
+   *
+   * @param perBranchOverrides one set of overrides for each (at least two) branch flowing into the
+   *          join point
    */
-  void mergeOverrides(Map<Element, DartType> overrides) {
-    _currentScope.mergeOverrides(overrides);
+  void joinOverrides(List<Map<VariableElement, DartType>> perBranchOverrides) {
+    if (perBranchOverrides.length < 2) {
+      throw new IllegalArgumentException("There is no point in joining zero or one override sets.");
+    }
+    Set<VariableElement> allElements = new HashSet<VariableElement>();
+    Set<VariableElement> commonElements = new HashSet<VariableElement>.from(perBranchOverrides[0].keys.toSet());
+    for (Map<VariableElement, DartType> os in perBranchOverrides) {
+      // Union: elements updated in some branch.
+      allElements.addAll(os.keys.toSet());
+      // Intersection: elements updated in all branches.
+      commonElements.retainAll(os.keys.toSet());
+    }
+    Set<VariableElement> uncommonElements = allElements;
+    // Difference: elements updated in some but not all branches.
+    uncommonElements.removeAll(commonElements);
+    Map<VariableElement, DartType> joinOverrides = new HashMap<VariableElement, DartType>();
+    // The common elements were updated in all branches, so their type
+    // before branching can be ignored.
+    for (VariableElement e in commonElements) {
+      joinOverrides[e] = perBranchOverrides[0][e];
+      for (Map<VariableElement, DartType> os in perBranchOverrides) {
+        joinOverrides[e] = UnionTypeImpl.union([joinOverrides[e], os[e]]);
+      }
+    }
+    // The uncommon elements were updated in some but not all branches,
+    // so they may still have the type they had before branching.
+    for (VariableElement e in uncommonElements) {
+      joinOverrides[e] = getBestType(e);
+      for (Map<VariableElement, DartType> os in perBranchOverrides) {
+        if (os.containsKey(e)) {
+          joinOverrides[e] = UnionTypeImpl.union([joinOverrides[e], os[e]]);
+        }
+      }
+    }
+    applyOverrides(joinOverrides);
   }
 
   /**
@@ -22731,7 +23084,7 @@ class TypeOverrideManager {
    * @param element the element whose type might have been overridden
    * @param type the overridden type of the given element
    */
-  void setType(Element element, DartType type) {
+  void setType(VariableElement element, DartType type) {
     if (_currentScope == null) {
       throw new IllegalStateException("Cannot override without a scope");
     }
@@ -22752,7 +23105,7 @@ class TypeOverrideManager_TypeOverrideScope {
   /**
    * A table mapping elements to the overridden type of that element.
    */
-  Map<Element, DartType> _overridenTypes = new HashMap<Element, DartType>();
+  Map<VariableElement, DartType> _overridenTypes = new HashMap<VariableElement, DartType>();
 
   /**
    * Initialize a newly created scope to be an empty child of the given scope.
@@ -22766,8 +23119,8 @@ class TypeOverrideManager_TypeOverrideScope {
    *
    * @param overrides the overrides to be applied
    */
-  void applyOverrides(Map<Element, DartType> overrides) {
-    for (MapEntry<Element, DartType> entry in getMapEntrySet(overrides)) {
+  void applyOverrides(Map<VariableElement, DartType> overrides) {
+    for (MapEntry<VariableElement, DartType> entry in getMapEntrySet(overrides)) {
       _overridenTypes[entry.getKey()] = entry.getValue();
     }
   }
@@ -22778,7 +23131,7 @@ class TypeOverrideManager_TypeOverrideScope {
    *
    * @return the overrides in the current scope
    */
-  Map<Element, DartType> captureLocalOverrides() => _overridenTypes;
+  Map<VariableElement, DartType> captureLocalOverrides() => _overridenTypes;
 
   /**
    * Return a map from the elements for the variables in the given list that have their types
@@ -22787,11 +23140,11 @@ class TypeOverrideManager_TypeOverrideScope {
    * @param variableList the list of variables whose overriding types are to be captured
    * @return a table mapping elements to their overriding types
    */
-  Map<Element, DartType> captureOverrides(VariableDeclarationList variableList) {
-    Map<Element, DartType> overrides = new HashMap<Element, DartType>();
+  Map<VariableElement, DartType> captureOverrides(VariableDeclarationList variableList) {
+    Map<VariableElement, DartType> overrides = new HashMap<VariableElement, DartType>();
     if (variableList.isConst || variableList.isFinal) {
       for (VariableDeclaration variable in variableList.variables) {
-        Element element = variable.element;
+        VariableElement element = variable.element;
         if (element != null) {
           DartType type = _overridenTypes[element];
           if (type != null) {
@@ -22824,24 +23177,12 @@ class TypeOverrideManager_TypeOverrideScope {
   }
 
   /**
-   * Merge new overrides with existing overrides using union types.
-   *
-   * @param overrides the new overrides to merge in.
-   */
-  void mergeOverrides(Map<Element, DartType> overrides) {
-    for (MapEntry<Element, DartType> entry in getMapEntrySet(overrides)) {
-      Element key = entry.getKey();
-      _overridenTypes[key] = UnionTypeImpl.union([_overridenTypes[key], entry.getValue()]);
-    }
-  }
-
-  /**
    * Set the overridden type of the given element to the given type
    *
    * @param element the element whose type might have been overridden
    * @param type the overridden type of the given element
    */
-  void setType(Element element, DartType type) {
+  void setType(VariableElement element, DartType type) {
     _overridenTypes[element] = type;
   }
 }
@@ -23490,32 +23831,14 @@ class TypeResolverVisitor extends ScopedVisitor {
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     super.visitClassTypeAlias(node);
-    ClassElementImpl classElement = _getClassElement(node.name);
     ErrorCode errorCode = CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
     InterfaceType superclassType = _resolveType(node.superclass, errorCode, CompileTimeErrorCode.EXTENDS_ENUM, errorCode);
     if (superclassType == null) {
       superclassType = typeProvider.objectType;
     }
-    if (classElement != null && superclassType != null) {
+    ClassElementImpl classElement = _getClassElement(node.name);
+    if (classElement != null) {
       classElement.supertype = superclassType;
-      ClassElement superclassElement = superclassType.element;
-      if (superclassElement != null) {
-        List<ConstructorElement> constructors = superclassElement.constructors;
-        int count = constructors.length;
-        if (count > 0) {
-          List<DartType> parameterTypes = TypeParameterTypeImpl.getTypes(superclassType.typeParameters);
-          List<DartType> argumentTypes = _getArgumentTypes(node.superclass.typeArguments, parameterTypes);
-          InterfaceType classType = classElement.type;
-          List<ConstructorElement> implicitConstructors = new List<ConstructorElement>();
-          for (int i = 0; i < count; i++) {
-            ConstructorElement explicitConstructor = constructors[i];
-            if (!explicitConstructor.isFactory) {
-              implicitConstructors.add(_createImplicitContructor(classType, explicitConstructor, parameterTypes, argumentTypes));
-            }
-          }
-          classElement.constructors = new List.from(implicitConstructors);
-        }
-      }
     }
     _resolve(classElement, node.withClause, node.implementsClause);
     return null;
@@ -23620,9 +23943,12 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
-    super.visitFunctionTypeAlias(node);
     FunctionTypeAliasElementImpl element = node.element as FunctionTypeAliasElementImpl;
-    element.returnType = _computeReturnType(node.returnType);
+    if (element.returnType == null) {
+      // Only visit function type aliases once.
+      super.visitFunctionTypeAlias(node);
+      element.returnType = _computeReturnType(node.returnType);
+    }
     return null;
   }
 
@@ -24002,73 +24328,6 @@ class TypeResolverVisitor extends ScopedVisitor {
     } else {
       return returnType.type;
     }
-  }
-
-  /**
-   * Create an implicit constructor that is copied from the given constructor, but that is in the
-   * given class.
-   *
-   * @param classType the class in which the implicit constructor is defined
-   * @param explicitConstructor the constructor on which the implicit constructor is modeled
-   * @param parameterTypes the types to be replaced when creating parameters
-   * @param argumentTypes the types with which the parameters are to be replaced
-   * @return the implicit constructor that was created
-   */
-  ConstructorElement _createImplicitContructor(InterfaceType classType, ConstructorElement explicitConstructor, List<DartType> parameterTypes, List<DartType> argumentTypes) {
-    ConstructorElementImpl implicitConstructor = new ConstructorElementImpl(explicitConstructor.name, -1);
-    implicitConstructor.synthetic = true;
-    implicitConstructor.redirectedConstructor = explicitConstructor;
-    implicitConstructor.const2 = explicitConstructor.isConst;
-    implicitConstructor.returnType = classType;
-    List<ParameterElement> explicitParameters = explicitConstructor.parameters;
-    int count = explicitParameters.length;
-    if (count > 0) {
-      List<ParameterElement> implicitParameters = new List<ParameterElement>(count);
-      for (int i = 0; i < count; i++) {
-        ParameterElement explicitParameter = explicitParameters[i];
-        ParameterElementImpl implicitParameter = new ParameterElementImpl(explicitParameter.name, -1);
-        implicitParameter.const3 = explicitParameter.isConst;
-        implicitParameter.final2 = explicitParameter.isFinal;
-        implicitParameter.parameterKind = explicitParameter.parameterKind;
-        implicitParameter.synthetic = true;
-        implicitParameter.type = explicitParameter.type.substitute2(argumentTypes, parameterTypes);
-        implicitParameters[i] = implicitParameter;
-      }
-      implicitConstructor.parameters = implicitParameters;
-    }
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(implicitConstructor);
-    type.typeArguments = classType.typeArguments;
-    implicitConstructor.type = type;
-    return implicitConstructor;
-  }
-
-  /**
-   * Return an array of argument types that corresponds to the array of parameter types and that are
-   * derived from the given list of type arguments.
-   *
-   * @param typeArguments the type arguments from which the types will be taken
-   * @param parameterTypes the parameter types that must be matched by the type arguments
-   * @return the argument types that correspond to the parameter types
-   */
-  List<DartType> _getArgumentTypes(TypeArgumentList typeArguments, List<DartType> parameterTypes) {
-    DynamicTypeImpl dynamic = DynamicTypeImpl.instance;
-    int parameterCount = parameterTypes.length;
-    List<DartType> types = new List<DartType>(parameterCount);
-    if (typeArguments == null) {
-      for (int i = 0; i < parameterCount; i++) {
-        types[i] = dynamic;
-      }
-    } else {
-      NodeList<TypeName> arguments = typeArguments.arguments;
-      int argumentCount = Math.min(arguments.length, parameterCount);
-      for (int i = 0; i < argumentCount; i++) {
-        types[i] = arguments[i].type;
-      }
-      for (int i = argumentCount; i < parameterCount; i++) {
-        types[i] = dynamic;
-      }
-    }
-    return types;
   }
 
   /**

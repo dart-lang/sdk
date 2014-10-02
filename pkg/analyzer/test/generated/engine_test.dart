@@ -118,6 +118,15 @@
 //     });
 //   }
 // }
+// class AnalysisContextFactory_AnalysisContextForTests_AnalysisContextImplTest_test_resolveCompilationUnit_sourceChangeDuringResolution extends AnalysisContextFactory_AnalysisContextForTests {
+//   @override
+//   DartEntry recordResolveDartLibraryTaskResults(ResolveDartLibraryTask task) {
+//     ChangeSet changeSet = new ChangeSet();
+//     changeSet.changedSource(task.librarySource);
+//     applyChanges(changeSet);
+//     return super.recordResolveDartLibraryTaskResults(task);
+//   }
+// }
 // class AnalysisContextImplTest extends EngineTestCase {
 //   /**
 //    * Returns `true` if there is an [AnalysisError] with [ErrorSeverity#ERROR] in
@@ -402,7 +411,7 @@
 //     LineInfo info = _context.computeLineInfo(source);
 //     JUnitTestCase.assertNotNull(info);
 //   }
-//   void test_computeResolvableCompilationUnit_exception() {
+//   void test_computeResolvableCompilationUnit_dart_exception() {
 //     TestSource source = _addSourceWithException("/test.dart");
 //     try {
 //       _context.computeResolvableCompilationUnit(source);
@@ -410,7 +419,7 @@
 //     } on AnalysisException catch (exception) {
 //     }
 //   }
-//   void test_computeResolvableCompilationUnit_html() {
+//   void test_computeResolvableCompilationUnit_html_exception() {
 //     Source source = _addSource("/lib.html", "<html></html>");
 //     try {
 //       _context.computeResolvableCompilationUnit(source);
@@ -420,9 +429,11 @@
 //   }
 //   void test_computeResolvableCompilationUnit_valid() {
 //     Source source = _addSource("/lib.dart", "library lib;");
-//     CompilationUnit compilationUnit = _context.parseCompilationUnit(source);
-//     JUnitTestCase.assertNotNull(compilationUnit);
-//     JUnitTestCase.assertNotSame(compilationUnit, _context.computeResolvableCompilationUnit(source));
+//     CompilationUnit parsedUnit = _context.parseCompilationUnit(source);
+//     JUnitTestCase.assertNotNull(parsedUnit);
+//     CompilationUnit resolvedUnit = _context.computeResolvableCompilationUnit(source).compilationUnit;
+//     JUnitTestCase.assertNotNull(resolvedUnit);
+//     JUnitTestCase.assertNotSame(parsedUnit, resolvedUnit);
 //   }
 //   void test_dispose() {
 //     JUnitTestCase.assertFalse(_context.isDisposed);
@@ -718,12 +729,17 @@
 //   }
 //   void test_getLibrarySources() {
 //     List<Source> sources = _context.librarySources;
-//     EngineTestCase.assertLength(0, sources);
+//     int originalLength = sources.length;
 //     Source source = _addSource("/test.dart", "library lib;");
 //     _context.computeKindOf(source);
 //     sources = _context.librarySources;
-//     EngineTestCase.assertLength(1, sources);
-//     JUnitTestCase.assertEquals(source, sources[0]);
+//     EngineTestCase.assertLength(originalLength + 1, sources);
+//     for (Source returnedSource in sources) {
+//       if (returnedSource == source) {
+//         return;
+//       }
+//     }
+//     JUnitTestCase.fail("The added source was not in the list of library sources");
 //   }
 //   void test_getLineInfo() {
 //     Source source = _addSource("/test.dart", EngineTestCase.createSource(["library lib;", "", "main() {}"]));
@@ -811,9 +827,6 @@
 //   void test_getStatistics() {
 //     AnalysisContextStatistics statistics = _context.statistics;
 //     JUnitTestCase.assertNotNull(statistics);
-//     EngineTestCase.assertLength(0, statistics.cacheRows);
-//     EngineTestCase.assertLength(0, statistics.exceptions);
-//     EngineTestCase.assertLength(0, statistics.sources);
 //   }
 //   void test_isClientLibrary_dart() {
 //     _context = AnalysisContextFactory.contextWithCore();
@@ -1055,13 +1068,15 @@
 //   }
 //   void test_performAnalysisTask_IOException() {
 //     TestSource source = _addSourceWithException2("/test.dart", "library test;");
+//     int oldTimestamp = _context.getModificationStamp(source);
 //     source.generateExceptionOnRead = false;
 //     _analyzeAll_assertFinished();
 //     JUnitTestCase.assertEquals(1, source.readCount);
 //     source.generateExceptionOnRead = true;
-//     _changeSource(source, "");
-//     _context.performAnalysisTask();
-//     JUnitTestCase.assertNull(_context.performAnalysisTask().changeNotices);
+//     do {
+//       _changeSource(source, "");
+//     } while (oldTimestamp == _context.getModificationStamp(source));
+//     _analyzeAll_assertFinished();
 //     JUnitTestCase.assertEquals(2, source.readCount);
 //   }
 //   void test_performAnalysisTask_missingPart() {
@@ -1084,6 +1099,28 @@
 //     _analyzeAll_assertFinished();
 //     JUnitTestCase.assertNotNullMsg("performAnalysisTask failed to compute an element model", _context.getLibraryElement(source));
 //   }
+//   void test_resolveCompilationUnit_import_relative() {
+//     _context = AnalysisContextFactory.contextWithCore();
+//     Source sourceA = _addSource("/libA.dart", "library libA; import 'libB.dart'; class A{}");
+//     _addSource("/libB.dart", "library libB; class B{}");
+//     CompilationUnit compilationUnit = _context.resolveCompilationUnit2(sourceA, sourceA);
+//     LibraryElement library = compilationUnit.element.library;
+//     List<LibraryElement> importedLibraries = library.importedLibraries;
+//     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
+//     List<LibraryElement> visibleLibraries = library.visibleLibraries;
+//     assertNamedElements(visibleLibraries, ["dart.core", "libA", "libB"]);
+//   }
+//   void test_resolveCompilationUnit_import_relative_cyclic() {
+//     _context = AnalysisContextFactory.contextWithCore();
+//     Source sourceA = _addSource("/libA.dart", "library libA; import 'libB.dart'; class A{}");
+//     _addSource("/libB.dart", "library libB; import 'libA.dart'; class B{}");
+//     CompilationUnit compilationUnit = _context.resolveCompilationUnit2(sourceA, sourceA);
+//     LibraryElement library = compilationUnit.element.library;
+//     List<LibraryElement> importedLibraries = library.importedLibraries;
+//     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
+//     List<LibraryElement> visibleLibraries = library.visibleLibraries;
+//     assertNamedElements(visibleLibraries, ["dart.core", "libA", "libB"]);
+//   }
 //   void test_resolveCompilationUnit_library() {
 //     _context = AnalysisContextFactory.contextWithCore();
 //     _sourceFactory = _context.sourceFactory;
@@ -1091,6 +1128,7 @@
 //     LibraryElement library = _context.computeLibraryElement(source);
 //     CompilationUnit compilationUnit = _context.resolveCompilationUnit(source, library);
 //     JUnitTestCase.assertNotNull(compilationUnit);
+//     JUnitTestCase.assertNotNull(compilationUnit.element);
 //   }
 //   void test_resolveCompilationUnit_source() {
 //     _context = AnalysisContextFactory.contextWithCore();
@@ -1100,7 +1138,7 @@
 //     JUnitTestCase.assertNotNull(compilationUnit);
 //   }
 //   void test_resolveCompilationUnit_sourceChangeDuringResolution() {
-//     _context = new AnalysisContextImpl_AnalysisContextImplTest_test_resolveCompilationUnit_sourceChangeDuringResolution();
+//     _context = new AnalysisContextFactory_AnalysisContextForTests_AnalysisContextImplTest_test_resolveCompilationUnit_sourceChangeDuringResolution();
 //     AnalysisContextFactory.initContextWithCore(_context);
 //     _sourceFactory = _context.sourceFactory;
 //     Source source = _addSource("/lib.dart", "library lib;");
@@ -1274,6 +1312,12 @@
 //     if (notice != null) {
 //       JUnitTestCase.fail("performAnalysisTask failed to terminate after analyzing all sources");
 //     }
+//   }
+//   @override
+//   void tearDown() {
+//     _context = null;
+//     _sourceFactory = null;
+//     super.tearDown();
 //   }
 //   Source _addSource(String fileName, String contents) {
 //     Source source = new FileBasedSource.con1(FileUtilities2.createFile(fileName));
@@ -1466,13 +1510,13 @@
 //         final __test = new AnalysisContextImplTest();
 //         runJUnitTest(__test, __test.test_computeLineInfo_html);
 //       });
-//       _ut.test('test_computeResolvableCompilationUnit_exception', () {
+//       _ut.test('test_computeResolvableCompilationUnit_dart_exception', () {
 //         final __test = new AnalysisContextImplTest();
-//         runJUnitTest(__test, __test.test_computeResolvableCompilationUnit_exception);
+//         runJUnitTest(__test, __test.test_computeResolvableCompilationUnit_dart_exception);
 //       });
-//       _ut.test('test_computeResolvableCompilationUnit_html', () {
+//       _ut.test('test_computeResolvableCompilationUnit_html_exception', () {
 //         final __test = new AnalysisContextImplTest();
-//         runJUnitTest(__test, __test.test_computeResolvableCompilationUnit_html);
+//         runJUnitTest(__test, __test.test_computeResolvableCompilationUnit_html_exception);
 //       });
 //       _ut.test('test_computeResolvableCompilationUnit_valid', () {
 //         final __test = new AnalysisContextImplTest();
@@ -1758,6 +1802,14 @@
 //         final __test = new AnalysisContextImplTest();
 //         runJUnitTest(__test, __test.test_performAnalysisTask_modifiedAfterParse);
 //       });
+//       _ut.test('test_resolveCompilationUnit_import_relative', () {
+//         final __test = new AnalysisContextImplTest();
+//         runJUnitTest(__test, __test.test_resolveCompilationUnit_import_relative);
+//       });
+//       _ut.test('test_resolveCompilationUnit_import_relative_cyclic', () {
+//         final __test = new AnalysisContextImplTest();
+//         runJUnitTest(__test, __test.test_resolveCompilationUnit_import_relative_cyclic);
+//       });
 //       _ut.test('test_resolveCompilationUnit_library', () {
 //         final __test = new AnalysisContextImplTest();
 //         runJUnitTest(__test, __test.test_resolveCompilationUnit_library);
@@ -1823,15 +1875,6 @@
 //         runJUnitTest(__test, __test.test_updateAnalysis);
 //       });
 //     });
-//   }
-// }
-// class AnalysisContextImpl_AnalysisContextImplTest_test_resolveCompilationUnit_sourceChangeDuringResolution extends AnalysisContextImpl {
-//   @override
-//   DartEntry recordResolveDartLibraryTaskResults(ResolveDartLibraryTask task) {
-//     ChangeSet changeSet = new ChangeSet();
-//     changeSet.changedSource(task.librarySource);
-//     applyChanges(changeSet);
-//     return super.recordResolveDartLibraryTaskResults(task);
 //   }
 // }
 // class AnalysisOptionsImplTest extends EngineTestCase {
@@ -4908,6 +4951,14 @@
 //   }
 // }
 // class PartitionManagerTest extends EngineTestCase {
+//   void test_clearCache() {
+//     PartitionManager manager = new PartitionManager();
+//     DartSdk sdk = new MockDartSdk();
+//     SdkCachePartition oldPartition = manager.forSdk(sdk);
+//     manager.clearCache();
+//     SdkCachePartition newPartition = manager.forSdk(sdk);
+//     JUnitTestCase.assertNotSame(oldPartition, newPartition);
+//   }
 //   void test_creation() {
 //     JUnitTestCase.assertNotNull(new PartitionManager());
 //   }
@@ -4925,6 +4976,10 @@
 //   }
 //   static dartSuite() {
 //     _ut.group('PartitionManagerTest', () {
+//       _ut.test('test_clearCache', () {
+//         final __test = new PartitionManagerTest();
+//         runJUnitTest(__test, __test.test_clearCache);
+//       });
 //       _ut.test('test_creation', () {
 //         final __test = new PartitionManagerTest();
 //         runJUnitTest(__test, __test.test_creation);
@@ -5044,7 +5099,7 @@
 //     ResolveDartUnitTask task = new ResolveDartUnitTask(context, source, element);
 //     task.perform(new TestTaskVisitor_ResolveDartUnitTaskTest_test_perform_exception());
 //   }
-//   void xtest_perform_library() {
+//   void test_perform_library() {
 //     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
 //     LibraryElementImpl libraryElement = ElementFactory.library(context, "lib");
 //     CompilationUnitElementImpl unitElement = libraryElement.definingCompilationUnit as CompilationUnitElementImpl;
@@ -5057,7 +5112,7 @@
 //     Source source = unitElement.source;
 //     context.setContents(source, EngineTestCase.createSource(["library lib;", "class A {}"]));
 //     ResolveDartUnitTask task = new ResolveDartUnitTask(context, source, libraryElement);
-//     task.perform(new TestTaskVisitor_ResolveDartUnitTaskTest_xtest_perform_library(source, context));
+//     task.perform(new TestTaskVisitor_ResolveDartUnitTaskTest_test_perform_library(source, context));
 //   }
 //   static dartSuite() {
 //     _ut.group('ResolveDartUnitTaskTest', () {
@@ -5088,6 +5143,10 @@
 //       _ut.test('test_perform_exception', () {
 //         final __test = new ResolveDartUnitTaskTest();
 //         runJUnitTest(__test, __test.test_perform_exception);
+//       });
+//       _ut.test('test_perform_library', () {
+//         final __test = new ResolveDartUnitTaskTest();
+//         runJUnitTest(__test, __test.test_perform_library);
 //       });
 //     });
 //   }
@@ -6473,10 +6532,10 @@
 //     return true;
 //   }
 // }
-// class TestTaskVisitor_ResolveDartUnitTaskTest_xtest_perform_library extends TestTaskVisitor<Boolean> {
+// class TestTaskVisitor_ResolveDartUnitTaskTest_test_perform_library extends TestTaskVisitor<Boolean> {
 //   Source source;
 //   InternalAnalysisContext context;
-//   TestTaskVisitor_ResolveDartUnitTaskTest_xtest_perform_library(this.source, this.context) : super();
+//   TestTaskVisitor_ResolveDartUnitTaskTest_test_perform_library(this.source, this.context) : super();
 //   @override
 //   bool visitResolveDartUnitTask(ResolveDartUnitTask task) {
 //     CaughtException exception = task.exception;

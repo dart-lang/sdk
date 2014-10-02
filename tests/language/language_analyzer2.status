@@ -426,6 +426,7 @@ void_type_test: StaticWarning
 
 issue13474_test: StaticWarning, OK # Test Issue
 
+
 # The following lines have been left in to quickly switch back to having deferred loading
 # off by default again.
 # Deferred loading support, tests marked as failing until support is enabled by default.
@@ -457,9 +458,11 @@ main_not_a_function_test/01: Fail # http://dartbug.com/20030
 main_test/03: Fail # http://dartbug.com/20030
 no_main_test/01: Fail # http://dartbug.com/20030
 
+compile_time_constant10_test/none: CompileTimeError # Issue 21177
+
 # Issue 16391. These tests are supposed to produce a compile time
 # error in checked mode, but they don't:
-[ $compiler == dart2analyzer && $checked ]
+[ $compiler == dartanalyzer && $checked ]
 compile_time_constant_checked2_test/02: MissingCompileTimeError # Issue 16391
 compile_time_constant_checked2_test/03: MissingCompileTimeError # Issue 16391
 compile_time_constant_checked2_test/04: MissingCompileTimeError # Issue 16391
@@ -481,14 +484,3 @@ const_constructor3_test/02: MissingCompileTimeError # Issue 16391
 const_constructor3_test/04: MissingCompileTimeError # Issue 16391
 const_init2_test/02: MissingCompileTimeError # Issue 16391
 malformed2_test/01: MissingCompileTimeError # Issue 16391
-
-# Issue 16391. These tests are supposed to produce a compile time
-# error in checked mode, but they produce a compile time error
-# regardless of mode:
-[ $compiler == dart2analyzer && $unchecked ]
-compile_time_constant_checked2_test/01: CompileTimeError # Language Issue 16391
-compile_time_constant_checked2_test/05: CompileTimeError # Language Issue 16391
-compile_time_constant_checked3_test/01: CompileTimeError # Language Issue 16391
-compile_time_constant_checked3_test/05: CompileTimeError # Language Issue 16391
-list_literal1_test/01: CompileTimeError # Issue 16391
-map_literal1_test/01: CompileTimeError # Issue 16391

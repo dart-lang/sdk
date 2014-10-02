@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/ast.dart' show AstNode, NodeLocator;
-import 'package:analyzer/src/generated/element.dart' show InterfaceType, MethodElement, PropertyAccessorElement;
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:unittest/unittest.dart' as _ut;
 
@@ -382,6 +382,38 @@ class EngineTestCase extends JUnitTestCase {
       }
       JUnitTestCase.fail("Does not contain ${element}");
     }
+  }
+
+  /**
+   * Assert that the given collection has the same number of elements as the number of specified
+   * names, and that for each specified name, a corresponding element can be found in the given
+   * collection with that name.
+   *
+   * @param elements the elements
+   * @param names the names
+   */
+  void assertNamedElements(List<Element> elements, List<String> names) {
+    for (String elemName in names) {
+      bool found = false;
+      for (Element elem in elements) {
+        if (elem.name == elemName) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        JavaStringBuilder msg = new JavaStringBuilder();
+        msg.append("Expected element named: ");
+        msg.append(elemName);
+        msg.append("\n  but found: ");
+        for (Element elem in elements) {
+          msg.append(elem.name);
+          msg.append(", ");
+        }
+        JUnitTestCase.fail(msg.toString());
+      }
+    }
+    assertLength(names.length, elements);
   }
 
   AnalysisContextImpl createAnalysisContext() {

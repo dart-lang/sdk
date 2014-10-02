@@ -1490,6 +1490,11 @@
 //     assertRecordedRelation(relations, selectorElement, IndexConstants.ANGULAR_REFERENCE, new ExpectedLocation(indexHtmlUnit, findOffset2("myComponent attr='null"), "myComponent"));
 //     assertRecordedRelation(relations, attr, IndexConstants.ANGULAR_REFERENCE, new ExpectedLocation(indexHtmlUnit, findOffset2("attr='null"), "attr"));
 //   }
+//   @override
+//   void tearDown() {
+//     _index = null;
+//     super.tearDown();
+//   }
 //   List<RecordedRelation> captureRecordedRelations() => captureRelations(_store);
 //   static dartSuite() {
 //     _ut.group('AngularHtmlIndexContributorTest', () {
@@ -3108,6 +3113,9 @@
 //     DartObject value = result.value;
 //     JUnitTestCase.assertEquals(null, value);
 //   }
+//   void fail_plus_string_string() {
+//     _assertValue4("ab", "'a' + 'b'");
+//   }
 //   void fail_prefixedIdentifier_invalid() {
 //     EvaluationResult result = _getExpressionValue("?");
 //     JUnitTestCase.assertTrue(result.isValid);
@@ -3143,6 +3151,12 @@
 //     JUnitTestCase.assertTrue(result.isValid);
 //     DartObject value = result.value;
 //     JUnitTestCase.assertEquals(null, value);
+//   }
+//   void fail_stringLength_complex() {
+//     _assertValue3(6, "('qwe' + 'rty').length");
+//   }
+//   void fail_stringLength_simple() {
+//     _assertValue3(6, "'Dvorak'.length");
 //   }
 //   void test_bitAnd_int_int() {
 //     _assertValue3(74 & 42, "74 & 42");
@@ -3339,7 +3353,10 @@
 //   void _assertValue4(String expectedValue, String contents) {
 //     EvaluationResult result = _getExpressionValue(contents);
 //     DartObject value = result.value;
-//     JUnitTestCase.assertEquals("String", value.type.name);
+//     JUnitTestCase.assertNotNull(value);
+//     InterfaceType type = value.type;
+//     JUnitTestCase.assertNotNull(type);
+//     JUnitTestCase.assertEquals("String", type.name);
 //     JUnitTestCase.assertEquals(expectedValue, value.stringValue);
 //   }
 //   EvaluationResult _getExpressionValue(String contents) {
@@ -3353,7 +3370,7 @@
 //     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableDeclaration, TopLevelVariableDeclaration, declaration);
 //     NodeList<VariableDeclaration> variables = (declaration as TopLevelVariableDeclaration).variables.variables;
 //     EngineTestCase.assertSizeOfList(1, variables);
-//     ConstantEvaluator evaluator = new ConstantEvaluator(source, new TestTypeProvider());
+//     ConstantEvaluator evaluator = new ConstantEvaluator(source, (analysisContext as AnalysisContextImpl).typeProvider);
 //     return evaluator.evaluate(variables[0].initializer);
 //   }
 //   static dartSuite() {
@@ -3765,15 +3782,11 @@
 //   }
 //   void test_dependencyOnConstructorArgument_unresolvedConstructor() {
 //     // "const A.a(x)" depends on x even if the constructor A.a can't be found.
-//     // TODO(paulberry): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is redundant and
-//     // probably shouldn't be issued.
 //     _assertProperDependencies(EngineTestCase.createSource([
 //         "class A {",
 //         "}",
 //         "const int x = 1;",
-//         "const A y = const A.a(x);"]), [
-//         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-//         CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR]);
+//         "const A y = const A.a(x);"]), [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR]);
 //   }
 //   void test_dependencyOnConstructorInitializer() {
 //     // "const A()" depends on x
@@ -4139,8 +4152,8 @@
 //   void test_instanceCreationExpression_symbol() {
 //     CompilationUnit compilationUnit = resolveSource(EngineTestCase.createSource(["const foo = const Symbol('a');"]));
 //     EvaluationResultImpl evaluationResult = _evaluateInstanceCreationExpression(compilationUnit, "foo");
-//     EngineTestCase.assertInstanceOf((obj) => obj is ValidResult, ValidResult, evaluationResult);
-//     DartObjectImpl value = (evaluationResult as ValidResult).value;
+//     JUnitTestCase.assertNotNull(evaluationResult.value);
+//     DartObjectImpl value = evaluationResult.value;
 //     JUnitTestCase.assertEquals(typeProvider.symbolType, value.type);
 //     JUnitTestCase.assertEquals("a", value.value);
 //   }
@@ -4159,10 +4172,10 @@
 //         "const c_num = const C<num>();"]));
 //     EvaluationResultImpl c_int = _evaluateInstanceCreationExpression(compilationUnit, "c_int");
 //     _assertType(c_int, "C<int>");
-//     DartObjectImpl c_int_value = (c_int as ValidResult).value;
+//     DartObjectImpl c_int_value = c_int.value;
 //     EvaluationResultImpl c_num = _evaluateInstanceCreationExpression(compilationUnit, "c_num");
 //     _assertType(c_num, "C<num>");
-//     DartObjectImpl c_num_value = (c_num as ValidResult).value;
+//     DartObjectImpl c_num_value = c_num.value;
 //     JUnitTestCase.assertFalse(c_int_value == c_num_value);
 //   }
 //   void test_isValidSymbol() {
@@ -4195,7 +4208,7 @@
 //     CompilationUnit compilationUnit = resolveSource(EngineTestCase.createSource(["const voidSymbol = #void;"]));
 //     VariableDeclaration voidSymbol = findTopLevelDeclaration(compilationUnit, "voidSymbol");
 //     EvaluationResultImpl voidSymbolResult = (voidSymbol.element as VariableElementImpl).evaluationResult;
-//     DartObjectImpl value = (voidSymbolResult as ValidResult).value;
+//     DartObjectImpl value = voidSymbolResult.value;
 //     JUnitTestCase.assertEquals(typeProvider.symbolType, value.type);
 //     JUnitTestCase.assertEquals("void", value.value);
 //   }
@@ -4224,39 +4237,39 @@
 //     assertErrors(source, expectedErrorCodes);
 //   }
 //   HashMap<String, DartObjectImpl> _assertType(EvaluationResultImpl result, String typeName) {
-//     EngineTestCase.assertInstanceOf((obj) => obj is ValidResult, ValidResult, result);
-//     DartObjectImpl value = (result as ValidResult).value;
+//     JUnitTestCase.assertNotNull(result.value);
+//     DartObjectImpl value = result.value;
 //     JUnitTestCase.assertEquals(typeName, value.type.displayName);
 //     return value.fields;
 //   }
 //   bool _assertValidBool(EvaluationResultImpl result) {
-//     EngineTestCase.assertInstanceOf((obj) => obj is ValidResult, ValidResult, result);
-//     DartObjectImpl value = (result as ValidResult).value;
+//     JUnitTestCase.assertNotNull(result.value);
+//     DartObjectImpl value = result.value;
 //     JUnitTestCase.assertEquals(typeProvider.boolType, value.type);
 //     bool boolValue = value.boolValue;
 //     JUnitTestCase.assertNotNull(boolValue);
 //     return boolValue;
 //   }
 //   int _assertValidInt(EvaluationResultImpl result) {
-//     EngineTestCase.assertInstanceOf((obj) => obj is ValidResult, ValidResult, result);
-//     DartObjectImpl value = (result as ValidResult).value;
+//     JUnitTestCase.assertNotNull(result.value);
+//     DartObjectImpl value = result.value;
 //     JUnitTestCase.assertEquals(typeProvider.intType, value.type);
 //     return value.intValue;
 //   }
 //   void _assertValidNull(EvaluationResultImpl result) {
-//     EngineTestCase.assertInstanceOf((obj) => obj is ValidResult, ValidResult, result);
-//     DartObjectImpl value = (result as ValidResult).value;
+//     JUnitTestCase.assertNotNull(result.value);
+//     DartObjectImpl value = result.value;
 //     JUnitTestCase.assertEquals(typeProvider.nullType, value.type);
 //   }
 //   String _assertValidString(EvaluationResultImpl result) {
-//     EngineTestCase.assertInstanceOf((obj) => obj is ValidResult, ValidResult, result);
-//     DartObjectImpl value = (result as ValidResult).value;
+//     JUnitTestCase.assertNotNull(result.value);
+//     DartObjectImpl value = result.value;
 //     JUnitTestCase.assertEquals(typeProvider.stringType, value.type);
 //     return value.stringValue;
 //   }
 //   void _assertValidUnknown(EvaluationResultImpl result) {
-//     EngineTestCase.assertInstanceOf((obj) => obj is ValidResult, ValidResult, result);
-//     DartObjectImpl value = (result as ValidResult).value;
+//     JUnitTestCase.assertNotNull(result.value);
+//     DartObjectImpl value = result.value;
 //     JUnitTestCase.assertTrue(value.isUnknown);
 //   }
 //   EvaluationResultImpl _check_fromEnvironment_bool(String valueInEnvironment, String defaultExpr) {
@@ -4338,18 +4351,16 @@
 //     Expression expression = findTopLevelConstantExpression(compilationUnit, name);
 //     return (expression as InstanceCreationExpression).evaluationResult;
 //   }
-//   ConstantValueComputer _makeConstantValueComputer() => new ConstantValueComputerTest_ValidatingConstantValueComputer(new TestTypeProvider(), analysisContext2.declaredVariables);
+//   ConstantValueComputer _makeConstantValueComputer() => new ConstantValueComputerTest_ValidatingConstantValueComputer(analysisContext2.typeProvider, analysisContext2.declaredVariables);
 //   void _validate(bool shouldBeValid, VariableDeclarationList declarationList) {
 //     for (VariableDeclaration declaration in declarationList.variables) {
 //       VariableElementImpl element = declaration.element as VariableElementImpl;
 //       JUnitTestCase.assertNotNull(element);
 //       EvaluationResultImpl result = element.evaluationResult;
 //       if (shouldBeValid) {
-//         EngineTestCase.assertInstanceOf((obj) => obj is ValidResult, ValidResult, result);
-//         Object value = (result as ValidResult).value;
-//         JUnitTestCase.assertNotNull(value);
+//         JUnitTestCase.assertNotNull(result.value);
 //       } else {
-//         EngineTestCase.assertInstanceOf((obj) => obj is ErrorResult, ErrorResult, result);
+//         JUnitTestCase.assertNull(result.value);
 //       }
 //     }
 //   }
@@ -4660,12 +4671,12 @@
 //     }
 //   }
 //   @override
-//   ConstantVisitor createConstantVisitor() => new ConstantValueComputerTest_ValidatingConstantVisitor(typeProvider, referenceGraph, _nodeBeingEvaluated);
+//   ConstantVisitor createConstantVisitor(ErrorReporter errorReporter) => new ConstantValueComputerTest_ValidatingConstantVisitor(typeProvider, referenceGraph, _nodeBeingEvaluated, errorReporter);
 // }
 // class ConstantValueComputerTest_ValidatingConstantVisitor extends ConstantVisitor {
 //   final DirectedGraph<AstNode> _referenceGraph;
 //   final AstNode _nodeBeingEvaluated;
-//   ConstantValueComputerTest_ValidatingConstantVisitor(TypeProvider typeProvider, this._referenceGraph, this._nodeBeingEvaluated) : super.con1(typeProvider);
+//   ConstantValueComputerTest_ValidatingConstantVisitor(TypeProvider typeProvider, this._referenceGraph, this._nodeBeingEvaluated, ErrorReporter errorReporter) : super.con1(typeProvider, errorReporter);
 //   @override
 //   void beforeGetEvaluationResult(AstNode node) {
 //     super.beforeGetEvaluationResult(node);
@@ -4681,7 +4692,10 @@
 //     Expression thenExpression = AstFactory.integer(1);
 //     Expression elseExpression = AstFactory.integer(0);
 //     ConditionalExpression expression = AstFactory.conditionalExpression(AstFactory.booleanLiteral(false), thenExpression, elseExpression);
-//     _assertValue(0, expression.accept(new ConstantVisitor.con1(new TestTypeProvider())));
+//     GatheringErrorListener errorListener = new GatheringErrorListener();
+//     ErrorReporter errorReporter = new ErrorReporter(errorListener, _dummySource());
+//     _assertValue(0, expression.accept(new ConstantVisitor.con1(new TestTypeProvider(), errorReporter)));
+//     errorListener.assertNoErrors();
 //   }
 //   void test_visitConditionalExpression_instanceCreation_invalidFieldInitializer() {
 //     TestTypeProvider typeProvider = new TestTypeProvider();
@@ -4693,35 +4707,52 @@
 //     constructorElement.parameters[0] = new FieldFormalParameterElementImpl(AstFactory.identifier3("x"));
 //     InstanceCreationExpression expression = AstFactory.instanceCreationExpression2(Keyword.CONST, AstFactory.typeName4(className, []), [AstFactory.integer(0)]);
 //     expression.staticElement = constructorElement;
-//     expression.accept(new ConstantVisitor.con1(typeProvider));
+//     GatheringErrorListener errorListener = new GatheringErrorListener();
+//     ErrorReporter errorReporter = new ErrorReporter(errorListener, _dummySource());
+//     expression.accept(new ConstantVisitor.con1(typeProvider, errorReporter));
+//     errorListener.assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
 //   }
 //   void test_visitConditionalExpression_nonBooleanCondition() {
 //     Expression thenExpression = AstFactory.integer(1);
 //     Expression elseExpression = AstFactory.integer(0);
-//     ConditionalExpression expression = AstFactory.conditionalExpression(AstFactory.nullLiteral(), thenExpression, elseExpression);
-//     EvaluationResultImpl result = expression.accept(new ConstantVisitor.con1(new TestTypeProvider()));
-//     EngineTestCase.assertInstanceOf((obj) => obj is ErrorResult, ErrorResult, result);
+//     NullLiteral conditionExpression = AstFactory.nullLiteral();
+//     ConditionalExpression expression = AstFactory.conditionalExpression(conditionExpression, thenExpression, elseExpression);
+//     GatheringErrorListener errorListener = new GatheringErrorListener();
+//     ErrorReporter errorReporter = new ErrorReporter(errorListener, _dummySource());
+//     DartObjectImpl result = expression.accept(new ConstantVisitor.con1(new TestTypeProvider(), errorReporter));
+//     JUnitTestCase.assertNull(result);
+//     errorListener.assertErrorsWithCodes([CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL]);
 //   }
 //   void test_visitConditionalExpression_nonConstantElse() {
 //     Expression thenExpression = AstFactory.integer(1);
 //     Expression elseExpression = AstFactory.identifier3("x");
 //     ConditionalExpression expression = AstFactory.conditionalExpression(AstFactory.booleanLiteral(true), thenExpression, elseExpression);
-//     EvaluationResultImpl result = expression.accept(new ConstantVisitor.con1(new TestTypeProvider()));
-//     EngineTestCase.assertInstanceOf((obj) => obj is ErrorResult, ErrorResult, result);
+//     GatheringErrorListener errorListener = new GatheringErrorListener();
+//     ErrorReporter errorReporter = new ErrorReporter(errorListener, _dummySource());
+//     DartObjectImpl result = expression.accept(new ConstantVisitor.con1(new TestTypeProvider(), errorReporter));
+//     JUnitTestCase.assertNull(result);
+//     errorListener.assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
 //   }
 //   void test_visitConditionalExpression_nonConstantThen() {
 //     Expression thenExpression = AstFactory.identifier3("x");
 //     Expression elseExpression = AstFactory.integer(0);
 //     ConditionalExpression expression = AstFactory.conditionalExpression(AstFactory.booleanLiteral(true), thenExpression, elseExpression);
-//     EvaluationResultImpl result = expression.accept(new ConstantVisitor.con1(new TestTypeProvider()));
-//     EngineTestCase.assertInstanceOf((obj) => obj is ErrorResult, ErrorResult, result);
+//     GatheringErrorListener errorListener = new GatheringErrorListener();
+//     ErrorReporter errorReporter = new ErrorReporter(errorListener, _dummySource());
+//     DartObjectImpl result = expression.accept(new ConstantVisitor.con1(new TestTypeProvider(), errorReporter));
+//     JUnitTestCase.assertNull(result);
+//     errorListener.assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
 //   }
 //   void test_visitConditionalExpression_true() {
 //     Expression thenExpression = AstFactory.integer(1);
 //     Expression elseExpression = AstFactory.integer(0);
 //     ConditionalExpression expression = AstFactory.conditionalExpression(AstFactory.booleanLiteral(true), thenExpression, elseExpression);
-//     _assertValue(1, expression.accept(new ConstantVisitor.con1(new TestTypeProvider())));
+//     GatheringErrorListener errorListener = new GatheringErrorListener();
+//     ErrorReporter errorReporter = new ErrorReporter(errorListener, _dummySource());
+//     _assertValue(1, expression.accept(new ConstantVisitor.con1(new TestTypeProvider(), errorReporter)));
+//     errorListener.assertNoErrors();
 //   }
+//   NonExistingSource _dummySource() => new NonExistingSource("foo.dart", UriKind.FILE_URI);
 //   void test_visitSimpleIdentifier_inEnvironment() {
 //     CompilationUnit compilationUnit = resolveSource(EngineTestCase.createSource(["const a = b;", "const b = 3;"]));
 //     HashMap<String, DartObjectImpl> environment = new HashMap<String, DartObjectImpl>();
@@ -4740,15 +4771,19 @@
 //     CompilationUnit compilationUnit = resolveSource(EngineTestCase.createSource(["const a = b;", "const b = 3;"]));
 //     _assertValue(3, _evaluateConstant(compilationUnit, "a", null));
 //   }
-//   void _assertValue(int expectedValue, EvaluationResultImpl result) {
-//     EngineTestCase.assertInstanceOf((obj) => obj is ValidResult, ValidResult, result);
-//     DartObjectImpl value = (result as ValidResult).value;
-//     JUnitTestCase.assertEquals("int", value.type.name);
-//     JUnitTestCase.assertEquals(expectedValue, value.intValue.longValue());
+//   void _assertValue(int expectedValue, DartObjectImpl result) {
+//     JUnitTestCase.assertNotNull(result);
+//     JUnitTestCase.assertEquals("int", result.type.name);
+//     JUnitTestCase.assertEquals(expectedValue, result.intValue.longValue());
 //   }
-//   EvaluationResultImpl _evaluateConstant(CompilationUnit compilationUnit, String name, HashMap<String, DartObjectImpl> lexicalEnvironment) {
+//   DartObjectImpl _evaluateConstant(CompilationUnit compilationUnit, String name, HashMap<String, DartObjectImpl> lexicalEnvironment) {
+//     Source source = compilationUnit.element.source;
 //     Expression expression = findTopLevelConstantExpression(compilationUnit, name);
-//     return expression.accept(new ConstantVisitor.con2(typeProvider, lexicalEnvironment));
+//     GatheringErrorListener errorListener = new GatheringErrorListener();
+//     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
+//     DartObjectImpl result = expression.accept(new ConstantVisitor.con2(typeProvider, lexicalEnvironment, errorReporter));
+//     errorListener.assertNoErrors();
+//     return result;
 //   }
 //   static dartSuite() {
 //     _ut.group('ConstantVisitorTest', () {
@@ -4818,8 +4853,21 @@
 // }
 // class DartObjectImplTest extends EngineTestCase {
 //   TypeProvider _typeProvider = new TestTypeProvider();
-//   void test_add_invalid_knownInt() {
-//     _assertAdd(null, _stringValue("1"), _intValue(2));
+//   void fail_add_knownString_knownString() {
+//     JUnitTestCase.fail("New constant semantics are not yet enabled");
+//     _assertAdd(_stringValue("ab"), _stringValue("a"), _stringValue("b"));
+//   }
+//   void fail_add_knownString_unknownString() {
+//     JUnitTestCase.fail("New constant semantics are not yet enabled");
+//     _assertAdd(_stringValue(null), _stringValue("a"), _stringValue(null));
+//   }
+//   void fail_add_unknownString_knownString() {
+//     JUnitTestCase.fail("New constant semantics are not yet enabled");
+//     _assertAdd(_stringValue(null), _stringValue(null), _stringValue("b"));
+//   }
+//   void fail_add_unknownString_unknownString() {
+//     JUnitTestCase.fail("New constant semantics are not yet enabled");
+//     _assertAdd(_stringValue(null), _stringValue(null), _stringValue(null));
 //   }
 //   void test_add_knownDouble_knownDouble() {
 //     _assertAdd(_doubleValue(3.0), _doubleValue(1.0), _doubleValue(2.0));
@@ -4833,17 +4881,20 @@
 //   void test_add_knownDouble_unknownInt() {
 //     _assertAdd(_doubleValue(null), _doubleValue(1.0), _intValue(null));
 //   }
-//   void test_add_knownInt_invalid() {
-//     _assertAdd(null, _intValue(1), _stringValue("2"));
-//   }
 //   void test_add_knownInt_knownInt() {
 //     _assertAdd(_intValue(3), _intValue(1), _intValue(2));
+//   }
+//   void test_add_knownInt_knownString() {
+//     _assertAdd(null, _intValue(1), _stringValue("2"));
 //   }
 //   void test_add_knownInt_unknownDouble() {
 //     _assertAdd(_doubleValue(null), _intValue(1), _doubleValue(null));
 //   }
 //   void test_add_knownInt_unknownInt() {
 //     _assertAdd(_intValue(null), _intValue(1), _intValue(null));
+//   }
+//   void test_add_knownString_knownInt() {
+//     _assertAdd(null, _stringValue("1"), _intValue(2));
 //   }
 //   void test_add_unknownDouble_knownDouble() {
 //     _assertAdd(_doubleValue(null), _doubleValue(null), _doubleValue(2.0));
@@ -4857,17 +4908,17 @@
 //   void test_add_unknownInt_knownInt() {
 //     _assertAdd(_intValue(null), _intValue(null), _intValue(2));
 //   }
-//   void test_bitAnd_invalid_knownInt() {
-//     _assertBitAnd(null, _stringValue("6"), _intValue(3));
-//   }
-//   void test_bitAnd_knownInt_invalid() {
-//     _assertBitAnd(null, _intValue(6), _stringValue("3"));
-//   }
 //   void test_bitAnd_knownInt_knownInt() {
 //     _assertBitAnd(_intValue(2), _intValue(6), _intValue(3));
 //   }
+//   void test_bitAnd_knownInt_knownString() {
+//     _assertBitAnd(null, _intValue(6), _stringValue("3"));
+//   }
 //   void test_bitAnd_knownInt_unknownInt() {
 //     _assertBitAnd(_intValue(null), _intValue(6), _intValue(null));
+//   }
+//   void test_bitAnd_knownString_knownInt() {
+//     _assertBitAnd(null, _stringValue("6"), _intValue(3));
 //   }
 //   void test_bitAnd_unknownInt_knownInt() {
 //     _assertBitAnd(_intValue(null), _intValue(null), _intValue(3));
@@ -4875,26 +4926,26 @@
 //   void test_bitAnd_unknownInt_unknownInt() {
 //     _assertBitAnd(_intValue(null), _intValue(null), _intValue(null));
 //   }
-//   void test_bitNot_invalid() {
-//     _assertBitNot(null, _stringValue("6"));
-//   }
 //   void test_bitNot_knownInt() {
 //     _assertBitNot(_intValue(-4), _intValue(3));
+//   }
+//   void test_bitNot_knownString() {
+//     _assertBitNot(null, _stringValue("6"));
 //   }
 //   void test_bitNot_unknownInt() {
 //     _assertBitNot(_intValue(null), _intValue(null));
 //   }
-//   void test_bitOr_invalid_knownInt() {
-//     _assertBitOr(null, _stringValue("6"), _intValue(3));
-//   }
-//   void test_bitOr_knownInt_invalid() {
-//     _assertBitOr(null, _intValue(6), _stringValue("3"));
-//   }
 //   void test_bitOr_knownInt_knownInt() {
 //     _assertBitOr(_intValue(7), _intValue(6), _intValue(3));
 //   }
+//   void test_bitOr_knownInt_knownString() {
+//     _assertBitOr(null, _intValue(6), _stringValue("3"));
+//   }
 //   void test_bitOr_knownInt_unknownInt() {
 //     _assertBitOr(_intValue(null), _intValue(6), _intValue(null));
+//   }
+//   void test_bitOr_knownString_knownInt() {
+//     _assertBitOr(null, _stringValue("6"), _intValue(3));
 //   }
 //   void test_bitOr_unknownInt_knownInt() {
 //     _assertBitOr(_intValue(null), _intValue(null), _intValue(3));
@@ -4902,17 +4953,17 @@
 //   void test_bitOr_unknownInt_unknownInt() {
 //     _assertBitOr(_intValue(null), _intValue(null), _intValue(null));
 //   }
-//   void test_bitXor_invalid_knownInt() {
-//     _assertBitXor(null, _stringValue("6"), _intValue(3));
-//   }
-//   void test_bitXor_knownInt_invalid() {
-//     _assertBitXor(null, _intValue(6), _stringValue("3"));
-//   }
 //   void test_bitXor_knownInt_knownInt() {
 //     _assertBitXor(_intValue(5), _intValue(6), _intValue(3));
 //   }
+//   void test_bitXor_knownInt_knownString() {
+//     _assertBitXor(null, _intValue(6), _stringValue("3"));
+//   }
 //   void test_bitXor_knownInt_unknownInt() {
 //     _assertBitXor(_intValue(null), _intValue(6), _intValue(null));
+//   }
+//   void test_bitXor_knownString_knownInt() {
+//     _assertBitXor(null, _stringValue("6"), _intValue(3));
 //   }
 //   void test_bitXor_unknownInt_knownInt() {
 //     _assertBitXor(_intValue(null), _intValue(null), _intValue(3));
@@ -4920,10 +4971,10 @@
 //   void test_bitXor_unknownInt_unknownInt() {
 //     _assertBitXor(_intValue(null), _intValue(null), _intValue(null));
 //   }
-//   void test_concatenate_invalid_knownString() {
+//   void test_concatenate_knownInt_knownString() {
 //     _assertConcatenate(null, _intValue(2), _stringValue("def"));
 //   }
-//   void test_concatenate_knownString_invalid() {
+//   void test_concatenate_knownString_knownInt() {
 //     _assertConcatenate(null, _stringValue("abc"), _intValue(3));
 //   }
 //   void test_concatenate_knownString_knownString() {
@@ -4934,9 +4985,6 @@
 //   }
 //   void test_concatenate_unknownString_knownString() {
 //     _assertConcatenate(_stringValue(null), _stringValue(null), _stringValue("def"));
-//   }
-//   void test_divide_invalid_knownInt() {
-//     _assertDivide(null, _stringValue("6"), _intValue(2));
 //   }
 //   void test_divide_knownDouble_knownDouble() {
 //     _assertDivide(_doubleValue(3.0), _doubleValue(6.0), _doubleValue(2.0));
@@ -4950,17 +4998,20 @@
 //   void test_divide_knownDouble_unknownInt() {
 //     _assertDivide(_doubleValue(null), _doubleValue(6.0), _intValue(null));
 //   }
-//   void test_divide_knownInt_invalid() {
-//     _assertDivide(null, _intValue(6), _stringValue("2"));
-//   }
 //   void test_divide_knownInt_knownInt() {
 //     _assertDivide(_intValue(3), _intValue(6), _intValue(2));
+//   }
+//   void test_divide_knownInt_knownString() {
+//     _assertDivide(null, _intValue(6), _stringValue("2"));
 //   }
 //   void test_divide_knownInt_unknownDouble() {
 //     _assertDivide(_doubleValue(null), _intValue(6), _doubleValue(null));
 //   }
 //   void test_divide_knownInt_unknownInt() {
 //     _assertDivide(_intValue(null), _intValue(6), _intValue(null));
+//   }
+//   void test_divide_knownString_knownInt() {
+//     _assertDivide(null, _stringValue("6"), _intValue(2));
 //   }
 //   void test_divide_unknownDouble_knownDouble() {
 //     _assertDivide(_doubleValue(null), _doubleValue(null), _doubleValue(2.0));
@@ -5103,9 +5154,6 @@
 //   void test_getValue_string_unknown() {
 //     JUnitTestCase.assertNull(_stringValue(null).value);
 //   }
-//   void test_greaterThan_invalid_knownInt() {
-//     _assertGreaterThan(null, _stringValue("1"), _intValue(2));
-//   }
 //   void test_greaterThan_knownDouble_knownDouble_false() {
 //     _assertGreaterThan(_boolValue(false), _doubleValue(1.0), _doubleValue(2.0));
 //   }
@@ -5124,20 +5172,23 @@
 //   void test_greaterThan_knownDouble_unknownInt() {
 //     _assertGreaterThan(_boolValue(null), _doubleValue(1.0), _intValue(null));
 //   }
-//   void test_greaterThan_knownInt_invalid() {
-//     _assertGreaterThan(null, _intValue(1), _stringValue("2"));
-//   }
 //   void test_greaterThan_knownInt_knownInt_false() {
 //     _assertGreaterThan(_boolValue(false), _intValue(1), _intValue(2));
 //   }
 //   void test_greaterThan_knownInt_knownInt_true() {
 //     _assertGreaterThan(_boolValue(true), _intValue(2), _intValue(1));
 //   }
+//   void test_greaterThan_knownInt_knownString() {
+//     _assertGreaterThan(null, _intValue(1), _stringValue("2"));
+//   }
 //   void test_greaterThan_knownInt_unknownDouble() {
 //     _assertGreaterThan(_boolValue(null), _intValue(1), _doubleValue(null));
 //   }
 //   void test_greaterThan_knownInt_unknownInt() {
 //     _assertGreaterThan(_boolValue(null), _intValue(1), _intValue(null));
+//   }
+//   void test_greaterThan_knownString_knownInt() {
+//     _assertGreaterThan(null, _stringValue("1"), _intValue(2));
 //   }
 //   void test_greaterThan_unknownDouble_knownDouble() {
 //     _assertGreaterThan(_boolValue(null), _doubleValue(null), _doubleValue(2.0));
@@ -5150,9 +5201,6 @@
 //   }
 //   void test_greaterThan_unknownInt_knownInt() {
 //     _assertGreaterThan(_boolValue(null), _intValue(null), _intValue(2));
-//   }
-//   void test_greaterThanOrEqual_invalid_knownInt() {
-//     _assertGreaterThanOrEqual(null, _stringValue("1"), _intValue(2));
 //   }
 //   void test_greaterThanOrEqual_knownDouble_knownDouble_false() {
 //     _assertGreaterThanOrEqual(_boolValue(false), _doubleValue(1.0), _doubleValue(2.0));
@@ -5172,20 +5220,23 @@
 //   void test_greaterThanOrEqual_knownDouble_unknownInt() {
 //     _assertGreaterThanOrEqual(_boolValue(null), _doubleValue(1.0), _intValue(null));
 //   }
-//   void test_greaterThanOrEqual_knownInt_invalid() {
-//     _assertGreaterThanOrEqual(null, _intValue(1), _stringValue("2"));
-//   }
 //   void test_greaterThanOrEqual_knownInt_knownInt_false() {
 //     _assertGreaterThanOrEqual(_boolValue(false), _intValue(1), _intValue(2));
 //   }
 //   void test_greaterThanOrEqual_knownInt_knownInt_true() {
 //     _assertGreaterThanOrEqual(_boolValue(true), _intValue(2), _intValue(2));
 //   }
+//   void test_greaterThanOrEqual_knownInt_knownString() {
+//     _assertGreaterThanOrEqual(null, _intValue(1), _stringValue("2"));
+//   }
 //   void test_greaterThanOrEqual_knownInt_unknownDouble() {
 //     _assertGreaterThanOrEqual(_boolValue(null), _intValue(1), _doubleValue(null));
 //   }
 //   void test_greaterThanOrEqual_knownInt_unknownInt() {
 //     _assertGreaterThanOrEqual(_boolValue(null), _intValue(1), _intValue(null));
+//   }
+//   void test_greaterThanOrEqual_knownString_knownInt() {
+//     _assertGreaterThanOrEqual(null, _stringValue("1"), _intValue(2));
 //   }
 //   void test_greaterThanOrEqual_unknownDouble_knownDouble() {
 //     _assertGreaterThanOrEqual(_boolValue(null), _doubleValue(null), _doubleValue(2.0));
@@ -5256,9 +5307,6 @@
 //   void test_hasExactValue_string_unknown() {
 //     JUnitTestCase.assertTrue(_stringValue(null).hasExactValue);
 //   }
-//   void test_integerDivide_invalid_knownInt() {
-//     _assertIntegerDivide(null, _stringValue("6"), _intValue(2));
-//   }
 //   void test_integerDivide_knownDouble_knownDouble() {
 //     _assertIntegerDivide(_intValue(3), _doubleValue(6.0), _doubleValue(2.0));
 //   }
@@ -5271,17 +5319,20 @@
 //   void test_integerDivide_knownDouble_unknownInt() {
 //     _assertIntegerDivide(_intValue(null), _doubleValue(6.0), _intValue(null));
 //   }
-//   void test_integerDivide_knownInt_invalid() {
-//     _assertIntegerDivide(null, _intValue(6), _stringValue("2"));
-//   }
 //   void test_integerDivide_knownInt_knownInt() {
 //     _assertIntegerDivide(_intValue(3), _intValue(6), _intValue(2));
+//   }
+//   void test_integerDivide_knownInt_knownString() {
+//     _assertIntegerDivide(null, _intValue(6), _stringValue("2"));
 //   }
 //   void test_integerDivide_knownInt_unknownDouble() {
 //     _assertIntegerDivide(_intValue(null), _intValue(6), _doubleValue(null));
 //   }
 //   void test_integerDivide_knownInt_unknownInt() {
 //     _assertIntegerDivide(_intValue(null), _intValue(6), _intValue(null));
+//   }
+//   void test_integerDivide_knownString_knownInt() {
+//     _assertIntegerDivide(null, _stringValue("6"), _intValue(2));
 //   }
 //   void test_integerDivide_unknownDouble_knownDouble() {
 //     _assertIntegerDivide(_intValue(null), _doubleValue(null), _doubleValue(2.0));
@@ -5334,9 +5385,6 @@
 //   void test_isBoolNumStringOrNull_string_unknown() {
 //     JUnitTestCase.assertTrue(_stringValue(null).isBoolNumStringOrNull);
 //   }
-//   void test_lessThan_invalid_knownInt() {
-//     _assertLessThan(null, _stringValue("1"), _intValue(2));
-//   }
 //   void test_lessThan_knownDouble_knownDouble_false() {
 //     _assertLessThan(_boolValue(false), _doubleValue(2.0), _doubleValue(1.0));
 //   }
@@ -5355,20 +5403,23 @@
 //   void test_lessThan_knownDouble_unknownInt() {
 //     _assertLessThan(_boolValue(null), _doubleValue(1.0), _intValue(null));
 //   }
-//   void test_lessThan_knownInt_invalid() {
-//     _assertLessThan(null, _intValue(1), _stringValue("2"));
-//   }
 //   void test_lessThan_knownInt_knownInt_false() {
 //     _assertLessThan(_boolValue(false), _intValue(2), _intValue(1));
 //   }
 //   void test_lessThan_knownInt_knownInt_true() {
 //     _assertLessThan(_boolValue(true), _intValue(1), _intValue(2));
 //   }
+//   void test_lessThan_knownInt_knownString() {
+//     _assertLessThan(null, _intValue(1), _stringValue("2"));
+//   }
 //   void test_lessThan_knownInt_unknownDouble() {
 //     _assertLessThan(_boolValue(null), _intValue(1), _doubleValue(null));
 //   }
 //   void test_lessThan_knownInt_unknownInt() {
 //     _assertLessThan(_boolValue(null), _intValue(1), _intValue(null));
+//   }
+//   void test_lessThan_knownString_knownInt() {
+//     _assertLessThan(null, _stringValue("1"), _intValue(2));
 //   }
 //   void test_lessThan_unknownDouble_knownDouble() {
 //     _assertLessThan(_boolValue(null), _doubleValue(null), _doubleValue(2.0));
@@ -5381,9 +5432,6 @@
 //   }
 //   void test_lessThan_unknownInt_knownInt() {
 //     _assertLessThan(_boolValue(null), _intValue(null), _intValue(2));
-//   }
-//   void test_lessThanOrEqual_invalid_knownInt() {
-//     _assertLessThanOrEqual(null, _stringValue("1"), _intValue(2));
 //   }
 //   void test_lessThanOrEqual_knownDouble_knownDouble_false() {
 //     _assertLessThanOrEqual(_boolValue(false), _doubleValue(2.0), _doubleValue(1.0));
@@ -5403,20 +5451,23 @@
 //   void test_lessThanOrEqual_knownDouble_unknownInt() {
 //     _assertLessThanOrEqual(_boolValue(null), _doubleValue(1.0), _intValue(null));
 //   }
-//   void test_lessThanOrEqual_knownInt_invalid() {
-//     _assertLessThanOrEqual(null, _intValue(1), _stringValue("2"));
-//   }
 //   void test_lessThanOrEqual_knownInt_knownInt_false() {
 //     _assertLessThanOrEqual(_boolValue(false), _intValue(2), _intValue(1));
 //   }
 //   void test_lessThanOrEqual_knownInt_knownInt_true() {
 //     _assertLessThanOrEqual(_boolValue(true), _intValue(1), _intValue(2));
 //   }
+//   void test_lessThanOrEqual_knownInt_knownString() {
+//     _assertLessThanOrEqual(null, _intValue(1), _stringValue("2"));
+//   }
 //   void test_lessThanOrEqual_knownInt_unknownDouble() {
 //     _assertLessThanOrEqual(_boolValue(null), _intValue(1), _doubleValue(null));
 //   }
 //   void test_lessThanOrEqual_knownInt_unknownInt() {
 //     _assertLessThanOrEqual(_boolValue(null), _intValue(1), _intValue(null));
+//   }
+//   void test_lessThanOrEqual_knownString_knownInt() {
+//     _assertLessThanOrEqual(null, _stringValue("1"), _intValue(2));
 //   }
 //   void test_lessThanOrEqual_unknownDouble_knownDouble() {
 //     _assertLessThanOrEqual(_boolValue(null), _doubleValue(null), _doubleValue(2.0));
@@ -5577,9 +5628,6 @@
 //   void test_logicalOr_true_true() {
 //     _assertLogicalOr(_boolValue(true), _boolValue(true), _boolValue(true));
 //   }
-//   void test_minus_invalid_knownInt() {
-//     _assertMinus(null, _stringValue("4"), _intValue(3));
-//   }
 //   void test_minus_knownDouble_knownDouble() {
 //     _assertMinus(_doubleValue(1.0), _doubleValue(4.0), _doubleValue(3.0));
 //   }
@@ -5592,17 +5640,20 @@
 //   void test_minus_knownDouble_unknownInt() {
 //     _assertMinus(_doubleValue(null), _doubleValue(4.0), _intValue(null));
 //   }
-//   void test_minus_knownInt_invalid() {
-//     _assertMinus(null, _intValue(4), _stringValue("3"));
-//   }
 //   void test_minus_knownInt_knownInt() {
 //     _assertMinus(_intValue(1), _intValue(4), _intValue(3));
+//   }
+//   void test_minus_knownInt_knownString() {
+//     _assertMinus(null, _intValue(4), _stringValue("3"));
 //   }
 //   void test_minus_knownInt_unknownDouble() {
 //     _assertMinus(_doubleValue(null), _intValue(4), _doubleValue(null));
 //   }
 //   void test_minus_knownInt_unknownInt() {
 //     _assertMinus(_intValue(null), _intValue(4), _intValue(null));
+//   }
+//   void test_minus_knownString_knownInt() {
+//     _assertMinus(null, _stringValue("4"), _intValue(3));
 //   }
 //   void test_minus_unknownDouble_knownDouble() {
 //     _assertMinus(_doubleValue(null), _doubleValue(null), _doubleValue(3.0));
@@ -5700,9 +5751,6 @@
 //   void test_performToString_string_unknown() {
 //     _assertPerformToString(_stringValue(null), _stringValue(null));
 //   }
-//   void test_remainder_invalid_knownInt() {
-//     _assertRemainder(null, _stringValue("7"), _intValue(2));
-//   }
 //   void test_remainder_knownDouble_knownDouble() {
 //     _assertRemainder(_doubleValue(1.0), _doubleValue(7.0), _doubleValue(2.0));
 //   }
@@ -5715,17 +5763,20 @@
 //   void test_remainder_knownDouble_unknownInt() {
 //     _assertRemainder(_doubleValue(null), _doubleValue(6.0), _intValue(null));
 //   }
-//   void test_remainder_knownInt_invalid() {
-//     _assertRemainder(null, _intValue(7), _stringValue("2"));
-//   }
 //   void test_remainder_knownInt_knownInt() {
 //     _assertRemainder(_intValue(1), _intValue(7), _intValue(2));
+//   }
+//   void test_remainder_knownInt_knownString() {
+//     _assertRemainder(null, _intValue(7), _stringValue("2"));
 //   }
 //   void test_remainder_knownInt_unknownDouble() {
 //     _assertRemainder(_doubleValue(null), _intValue(7), _doubleValue(null));
 //   }
 //   void test_remainder_knownInt_unknownInt() {
 //     _assertRemainder(_intValue(null), _intValue(7), _intValue(null));
+//   }
+//   void test_remainder_knownString_knownInt() {
+//     _assertRemainder(null, _stringValue("7"), _intValue(2));
 //   }
 //   void test_remainder_unknownDouble_knownDouble() {
 //     _assertRemainder(_doubleValue(null), _doubleValue(null), _doubleValue(2.0));
@@ -5739,14 +5790,11 @@
 //   void test_remainder_unknownInt_knownInt() {
 //     _assertRemainder(_intValue(null), _intValue(null), _intValue(2));
 //   }
-//   void test_shiftLeft_invalid_knownInt() {
-//     _assertShiftLeft(null, _stringValue(null), _intValue(3));
-//   }
-//   void test_shiftLeft_knownInt_invalid() {
-//     _assertShiftLeft(null, _intValue(6), _stringValue(null));
-//   }
 //   void test_shiftLeft_knownInt_knownInt() {
 //     _assertShiftLeft(_intValue(48), _intValue(6), _intValue(3));
+//   }
+//   void test_shiftLeft_knownInt_knownString() {
+//     _assertShiftLeft(null, _intValue(6), _stringValue(null));
 //   }
 //   void test_shiftLeft_knownInt_tooLarge() {
 //     _assertShiftLeft(_intValue(null), _intValue(6), new DartObjectImpl(_typeProvider.intType, new IntState(Long.MAX_VALUE)));
@@ -5754,20 +5802,20 @@
 //   void test_shiftLeft_knownInt_unknownInt() {
 //     _assertShiftLeft(_intValue(null), _intValue(6), _intValue(null));
 //   }
+//   void test_shiftLeft_knownString_knownInt() {
+//     _assertShiftLeft(null, _stringValue(null), _intValue(3));
+//   }
 //   void test_shiftLeft_unknownInt_knownInt() {
 //     _assertShiftLeft(_intValue(null), _intValue(null), _intValue(3));
 //   }
 //   void test_shiftLeft_unknownInt_unknownInt() {
 //     _assertShiftLeft(_intValue(null), _intValue(null), _intValue(null));
 //   }
-//   void test_shiftRight_invalid_knownInt() {
-//     _assertShiftRight(null, _stringValue(null), _intValue(3));
-//   }
-//   void test_shiftRight_knownInt_invalid() {
-//     _assertShiftRight(null, _intValue(48), _stringValue(null));
-//   }
 //   void test_shiftRight_knownInt_knownInt() {
 //     _assertShiftRight(_intValue(6), _intValue(48), _intValue(3));
+//   }
+//   void test_shiftRight_knownInt_knownString() {
+//     _assertShiftRight(null, _intValue(48), _stringValue(null));
 //   }
 //   void test_shiftRight_knownInt_tooLarge() {
 //     _assertShiftRight(_intValue(null), _intValue(48), new DartObjectImpl(_typeProvider.intType, new IntState(Long.MAX_VALUE)));
@@ -5775,14 +5823,27 @@
 //   void test_shiftRight_knownInt_unknownInt() {
 //     _assertShiftRight(_intValue(null), _intValue(48), _intValue(null));
 //   }
+//   void test_shiftRight_knownString_knownInt() {
+//     _assertShiftRight(null, _stringValue(null), _intValue(3));
+//   }
 //   void test_shiftRight_unknownInt_knownInt() {
 //     _assertShiftRight(_intValue(null), _intValue(null), _intValue(3));
 //   }
 //   void test_shiftRight_unknownInt_unknownInt() {
 //     _assertShiftRight(_intValue(null), _intValue(null), _intValue(null));
 //   }
-//   void test_times_invalid_knownInt() {
-//     _assertTimes(null, _stringValue("2"), _intValue(3));
+//   void test_stringLength_int() {
+//     try {
+//       _assertStringLength(_intValue(null), _intValue(0));
+//       JUnitTestCase.fail("Expected EvaluationException");
+//     } on EvaluationException catch (exception) {
+//     }
+//   }
+//   void test_stringLength_knownString() {
+//     _assertStringLength(_intValue(3), _stringValue("abc"));
+//   }
+//   void test_stringLength_unknownString() {
+//     _assertStringLength(_intValue(null), _stringValue(null));
 //   }
 //   void test_times_knownDouble_knownDouble() {
 //     _assertTimes(_doubleValue(6.0), _doubleValue(2.0), _doubleValue(3.0));
@@ -5796,17 +5857,20 @@
 //   void test_times_knownDouble_unknownInt() {
 //     _assertTimes(_doubleValue(null), _doubleValue(2.0), _intValue(null));
 //   }
-//   void test_times_knownInt_invalid() {
-//     _assertTimes(null, _intValue(2), _stringValue("3"));
-//   }
 //   void test_times_knownInt_knownInt() {
 //     _assertTimes(_intValue(6), _intValue(2), _intValue(3));
+//   }
+//   void test_times_knownInt_knownString() {
+//     _assertTimes(null, _intValue(2), _stringValue("3"));
 //   }
 //   void test_times_knownInt_unknownDouble() {
 //     _assertTimes(_doubleValue(null), _intValue(2), _doubleValue(null));
 //   }
 //   void test_times_knownInt_unknownInt() {
 //     _assertTimes(_intValue(null), _intValue(2), _intValue(null));
+//   }
+//   void test_times_knownString_knownInt() {
+//     _assertTimes(null, _stringValue("2"), _intValue(3));
 //   }
 //   void test_times_unknownDouble_knownDouble() {
 //     _assertTimes(_doubleValue(null), _doubleValue(null), _doubleValue(3.0));
@@ -6326,6 +6390,27 @@
 //     }
 //   }
 //   /**
+//    * Assert that the length of the operand is the expected value, or that the operation throws an
+//    * exception if the expected value is `null`.
+//    *
+//    * @param expected the expected result of the operation
+//    * @param operand the operand to the operation
+//    * @throws EvaluationException if the result is an exception when it should not be
+//    */
+//   void _assertStringLength(DartObjectImpl expected, DartObjectImpl operand) {
+//     if (expected == null) {
+//       try {
+//         operand.stringLength(_typeProvider);
+//         JUnitTestCase.fail("Expected an EvaluationException");
+//       } on EvaluationException catch (exception) {
+//       }
+//     } else {
+//       DartObjectImpl result = operand.stringLength(_typeProvider);
+//       JUnitTestCase.assertNotNull(result);
+//       JUnitTestCase.assertEquals(expected, result);
+//     }
+//   }
+//   /**
 //    * Assert that the result of multiplying the left and right operands is the expected value, or
 //    * that the operation throws an exception if the expected value is `null`.
 //    *
@@ -6394,10 +6479,6 @@
 //   DartObjectImpl _symbolValue(String value) => new DartObjectImpl(_typeProvider.symbolType, new SymbolState(value));
 //   static dartSuite() {
 //     _ut.group('DartObjectImplTest', () {
-//       _ut.test('test_add_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_add_invalid_knownInt);
-//       });
 //       _ut.test('test_add_knownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_add_knownDouble_knownDouble);
@@ -6414,13 +6495,13 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_add_knownDouble_unknownInt);
 //       });
-//       _ut.test('test_add_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_add_knownInt_invalid);
-//       });
 //       _ut.test('test_add_knownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_add_knownInt_knownInt);
+//       });
+//       _ut.test('test_add_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_add_knownInt_knownString);
 //       });
 //       _ut.test('test_add_knownInt_unknownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -6429,6 +6510,10 @@
 //       _ut.test('test_add_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_add_knownInt_unknownInt);
+//       });
+//       _ut.test('test_add_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_add_knownString_knownInt);
 //       });
 //       _ut.test('test_add_unknownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -6446,21 +6531,21 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_add_unknownInt_knownInt);
 //       });
-//       _ut.test('test_bitAnd_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_bitAnd_invalid_knownInt);
-//       });
-//       _ut.test('test_bitAnd_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_bitAnd_knownInt_invalid);
-//       });
 //       _ut.test('test_bitAnd_knownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_bitAnd_knownInt_knownInt);
 //       });
+//       _ut.test('test_bitAnd_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_bitAnd_knownInt_knownString);
+//       });
 //       _ut.test('test_bitAnd_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_bitAnd_knownInt_unknownInt);
+//       });
+//       _ut.test('test_bitAnd_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_bitAnd_knownString_knownInt);
 //       });
 //       _ut.test('test_bitAnd_unknownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
@@ -6470,33 +6555,33 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_bitAnd_unknownInt_unknownInt);
 //       });
-//       _ut.test('test_bitNot_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_bitNot_invalid);
-//       });
 //       _ut.test('test_bitNot_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_bitNot_knownInt);
+//       });
+//       _ut.test('test_bitNot_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_bitNot_knownString);
 //       });
 //       _ut.test('test_bitNot_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_bitNot_unknownInt);
 //       });
-//       _ut.test('test_bitOr_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_bitOr_invalid_knownInt);
-//       });
-//       _ut.test('test_bitOr_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_bitOr_knownInt_invalid);
-//       });
 //       _ut.test('test_bitOr_knownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_bitOr_knownInt_knownInt);
 //       });
+//       _ut.test('test_bitOr_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_bitOr_knownInt_knownString);
+//       });
 //       _ut.test('test_bitOr_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_bitOr_knownInt_unknownInt);
+//       });
+//       _ut.test('test_bitOr_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_bitOr_knownString_knownInt);
 //       });
 //       _ut.test('test_bitOr_unknownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
@@ -6506,21 +6591,21 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_bitOr_unknownInt_unknownInt);
 //       });
-//       _ut.test('test_bitXor_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_bitXor_invalid_knownInt);
-//       });
-//       _ut.test('test_bitXor_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_bitXor_knownInt_invalid);
-//       });
 //       _ut.test('test_bitXor_knownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_bitXor_knownInt_knownInt);
 //       });
+//       _ut.test('test_bitXor_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_bitXor_knownInt_knownString);
+//       });
 //       _ut.test('test_bitXor_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_bitXor_knownInt_unknownInt);
+//       });
+//       _ut.test('test_bitXor_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_bitXor_knownString_knownInt);
 //       });
 //       _ut.test('test_bitXor_unknownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
@@ -6530,13 +6615,13 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_bitXor_unknownInt_unknownInt);
 //       });
-//       _ut.test('test_concatenate_invalid_knownString', () {
+//       _ut.test('test_concatenate_knownInt_knownString', () {
 //         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_concatenate_invalid_knownString);
+//         runJUnitTest(__test, __test.test_concatenate_knownInt_knownString);
 //       });
-//       _ut.test('test_concatenate_knownString_invalid', () {
+//       _ut.test('test_concatenate_knownString_knownInt', () {
 //         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_concatenate_knownString_invalid);
+//         runJUnitTest(__test, __test.test_concatenate_knownString_knownInt);
 //       });
 //       _ut.test('test_concatenate_knownString_knownString', () {
 //         final __test = new DartObjectImplTest();
@@ -6549,10 +6634,6 @@
 //       _ut.test('test_concatenate_unknownString_knownString', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_concatenate_unknownString_knownString);
-//       });
-//       _ut.test('test_divide_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_divide_invalid_knownInt);
 //       });
 //       _ut.test('test_divide_knownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -6570,13 +6651,13 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_divide_knownDouble_unknownInt);
 //       });
-//       _ut.test('test_divide_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_divide_knownInt_invalid);
-//       });
 //       _ut.test('test_divide_knownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_divide_knownInt_knownInt);
+//       });
+//       _ut.test('test_divide_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_divide_knownInt_knownString);
 //       });
 //       _ut.test('test_divide_knownInt_unknownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -6585,6 +6666,10 @@
 //       _ut.test('test_divide_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_divide_knownInt_unknownInt);
+//       });
+//       _ut.test('test_divide_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_divide_knownString_knownInt);
 //       });
 //       _ut.test('test_divide_unknownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -6754,10 +6839,6 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_getValue_string_unknown);
 //       });
-//       _ut.test('test_greaterThanOrEqual_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_greaterThanOrEqual_invalid_knownInt);
-//       });
 //       _ut.test('test_greaterThanOrEqual_knownDouble_knownDouble_false', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_greaterThanOrEqual_knownDouble_knownDouble_false);
@@ -6782,10 +6863,6 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_greaterThanOrEqual_knownDouble_unknownInt);
 //       });
-//       _ut.test('test_greaterThanOrEqual_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_greaterThanOrEqual_knownInt_invalid);
-//       });
 //       _ut.test('test_greaterThanOrEqual_knownInt_knownInt_false', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_greaterThanOrEqual_knownInt_knownInt_false);
@@ -6794,6 +6871,10 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_greaterThanOrEqual_knownInt_knownInt_true);
 //       });
+//       _ut.test('test_greaterThanOrEqual_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_greaterThanOrEqual_knownInt_knownString);
+//       });
 //       _ut.test('test_greaterThanOrEqual_knownInt_unknownDouble', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_greaterThanOrEqual_knownInt_unknownDouble);
@@ -6801,6 +6882,10 @@
 //       _ut.test('test_greaterThanOrEqual_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_greaterThanOrEqual_knownInt_unknownInt);
+//       });
+//       _ut.test('test_greaterThanOrEqual_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_greaterThanOrEqual_knownString_knownInt);
 //       });
 //       _ut.test('test_greaterThanOrEqual_unknownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -6817,10 +6902,6 @@
 //       _ut.test('test_greaterThanOrEqual_unknownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_greaterThanOrEqual_unknownInt_knownInt);
-//       });
-//       _ut.test('test_greaterThan_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_greaterThan_invalid_knownInt);
 //       });
 //       _ut.test('test_greaterThan_knownDouble_knownDouble_false', () {
 //         final __test = new DartObjectImplTest();
@@ -6846,10 +6927,6 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_greaterThan_knownDouble_unknownInt);
 //       });
-//       _ut.test('test_greaterThan_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_greaterThan_knownInt_invalid);
-//       });
 //       _ut.test('test_greaterThan_knownInt_knownInt_false', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_greaterThan_knownInt_knownInt_false);
@@ -6858,6 +6935,10 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_greaterThan_knownInt_knownInt_true);
 //       });
+//       _ut.test('test_greaterThan_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_greaterThan_knownInt_knownString);
+//       });
 //       _ut.test('test_greaterThan_knownInt_unknownDouble', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_greaterThan_knownInt_unknownDouble);
@@ -6865,6 +6946,10 @@
 //       _ut.test('test_greaterThan_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_greaterThan_knownInt_unknownInt);
+//       });
+//       _ut.test('test_greaterThan_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_greaterThan_knownString_knownInt);
 //       });
 //       _ut.test('test_greaterThan_unknownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -6958,10 +7043,6 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_hasExactValue_string_unknown);
 //       });
-//       _ut.test('test_integerDivide_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_integerDivide_invalid_knownInt);
-//       });
 //       _ut.test('test_integerDivide_knownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_integerDivide_knownDouble_knownDouble);
@@ -6978,13 +7059,13 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_integerDivide_knownDouble_unknownInt);
 //       });
-//       _ut.test('test_integerDivide_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_integerDivide_knownInt_invalid);
-//       });
 //       _ut.test('test_integerDivide_knownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_integerDivide_knownInt_knownInt);
+//       });
+//       _ut.test('test_integerDivide_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_integerDivide_knownInt_knownString);
 //       });
 //       _ut.test('test_integerDivide_knownInt_unknownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -6993,6 +7074,10 @@
 //       _ut.test('test_integerDivide_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_integerDivide_knownInt_unknownInt);
+//       });
+//       _ut.test('test_integerDivide_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_integerDivide_knownString_knownInt);
 //       });
 //       _ut.test('test_integerDivide_unknownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -7062,10 +7147,6 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_isBoolNumStringOrNull_string_unknown);
 //       });
-//       _ut.test('test_lessThanOrEqual_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_lessThanOrEqual_invalid_knownInt);
-//       });
 //       _ut.test('test_lessThanOrEqual_knownDouble_knownDouble_false', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_lessThanOrEqual_knownDouble_knownDouble_false);
@@ -7090,10 +7171,6 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_lessThanOrEqual_knownDouble_unknownInt);
 //       });
-//       _ut.test('test_lessThanOrEqual_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_lessThanOrEqual_knownInt_invalid);
-//       });
 //       _ut.test('test_lessThanOrEqual_knownInt_knownInt_false', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_lessThanOrEqual_knownInt_knownInt_false);
@@ -7102,6 +7179,10 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_lessThanOrEqual_knownInt_knownInt_true);
 //       });
+//       _ut.test('test_lessThanOrEqual_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_lessThanOrEqual_knownInt_knownString);
+//       });
 //       _ut.test('test_lessThanOrEqual_knownInt_unknownDouble', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_lessThanOrEqual_knownInt_unknownDouble);
@@ -7109,6 +7190,10 @@
 //       _ut.test('test_lessThanOrEqual_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_lessThanOrEqual_knownInt_unknownInt);
+//       });
+//       _ut.test('test_lessThanOrEqual_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_lessThanOrEqual_knownString_knownInt);
 //       });
 //       _ut.test('test_lessThanOrEqual_unknownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -7125,10 +7210,6 @@
 //       _ut.test('test_lessThanOrEqual_unknownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_lessThanOrEqual_unknownInt_knownInt);
-//       });
-//       _ut.test('test_lessThan_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_lessThan_invalid_knownInt);
 //       });
 //       _ut.test('test_lessThan_knownDouble_knownDouble_false', () {
 //         final __test = new DartObjectImplTest();
@@ -7154,10 +7235,6 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_lessThan_knownDouble_unknownInt);
 //       });
-//       _ut.test('test_lessThan_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_lessThan_knownInt_invalid);
-//       });
 //       _ut.test('test_lessThan_knownInt_knownInt_false', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_lessThan_knownInt_knownInt_false);
@@ -7166,6 +7243,10 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_lessThan_knownInt_knownInt_true);
 //       });
+//       _ut.test('test_lessThan_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_lessThan_knownInt_knownString);
+//       });
 //       _ut.test('test_lessThan_knownInt_unknownDouble', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_lessThan_knownInt_unknownDouble);
@@ -7173,6 +7254,10 @@
 //       _ut.test('test_lessThan_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_lessThan_knownInt_unknownInt);
+//       });
+//       _ut.test('test_lessThan_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_lessThan_knownString_knownInt);
 //       });
 //       _ut.test('test_lessThan_unknownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -7306,10 +7391,6 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_logicalOr_true_true);
 //       });
-//       _ut.test('test_minus_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_minus_invalid_knownInt);
-//       });
 //       _ut.test('test_minus_knownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_minus_knownDouble_knownDouble);
@@ -7326,13 +7407,13 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_minus_knownDouble_unknownInt);
 //       });
-//       _ut.test('test_minus_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_minus_knownInt_invalid);
-//       });
 //       _ut.test('test_minus_knownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_minus_knownInt_knownInt);
+//       });
+//       _ut.test('test_minus_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_minus_knownInt_knownString);
 //       });
 //       _ut.test('test_minus_knownInt_unknownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -7341,6 +7422,10 @@
 //       _ut.test('test_minus_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_minus_knownInt_unknownInt);
+//       });
+//       _ut.test('test_minus_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_minus_knownString_knownInt);
 //       });
 //       _ut.test('test_minus_unknownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -7470,10 +7555,6 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_performToString_string_unknown);
 //       });
-//       _ut.test('test_remainder_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_remainder_invalid_knownInt);
-//       });
 //       _ut.test('test_remainder_knownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_remainder_knownDouble_knownDouble);
@@ -7490,13 +7571,13 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_remainder_knownDouble_unknownInt);
 //       });
-//       _ut.test('test_remainder_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_remainder_knownInt_invalid);
-//       });
 //       _ut.test('test_remainder_knownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_remainder_knownInt_knownInt);
+//       });
+//       _ut.test('test_remainder_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_remainder_knownInt_knownString);
 //       });
 //       _ut.test('test_remainder_knownInt_unknownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -7505,6 +7586,10 @@
 //       _ut.test('test_remainder_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_remainder_knownInt_unknownInt);
+//       });
+//       _ut.test('test_remainder_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_remainder_knownString_knownInt);
 //       });
 //       _ut.test('test_remainder_unknownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -7522,17 +7607,13 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_remainder_unknownInt_knownInt);
 //       });
-//       _ut.test('test_shiftLeft_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_shiftLeft_invalid_knownInt);
-//       });
-//       _ut.test('test_shiftLeft_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_shiftLeft_knownInt_invalid);
-//       });
 //       _ut.test('test_shiftLeft_knownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_shiftLeft_knownInt_knownInt);
+//       });
+//       _ut.test('test_shiftLeft_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_shiftLeft_knownInt_knownString);
 //       });
 //       _ut.test('test_shiftLeft_knownInt_tooLarge', () {
 //         final __test = new DartObjectImplTest();
@@ -7542,6 +7623,10 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_shiftLeft_knownInt_unknownInt);
 //       });
+//       _ut.test('test_shiftLeft_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_shiftLeft_knownString_knownInt);
+//       });
 //       _ut.test('test_shiftLeft_unknownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_shiftLeft_unknownInt_knownInt);
@@ -7550,17 +7635,13 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_shiftLeft_unknownInt_unknownInt);
 //       });
-//       _ut.test('test_shiftRight_invalid_knownInt', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_shiftRight_invalid_knownInt);
-//       });
-//       _ut.test('test_shiftRight_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_shiftRight_knownInt_invalid);
-//       });
 //       _ut.test('test_shiftRight_knownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_shiftRight_knownInt_knownInt);
+//       });
+//       _ut.test('test_shiftRight_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_shiftRight_knownInt_knownString);
 //       });
 //       _ut.test('test_shiftRight_knownInt_tooLarge', () {
 //         final __test = new DartObjectImplTest();
@@ -7570,6 +7651,10 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_shiftRight_knownInt_unknownInt);
 //       });
+//       _ut.test('test_shiftRight_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_shiftRight_knownString_knownInt);
+//       });
 //       _ut.test('test_shiftRight_unknownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_shiftRight_unknownInt_knownInt);
@@ -7578,9 +7663,17 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_shiftRight_unknownInt_unknownInt);
 //       });
-//       _ut.test('test_times_invalid_knownInt', () {
+//       _ut.test('test_stringLength_int', () {
 //         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_times_invalid_knownInt);
+//         runJUnitTest(__test, __test.test_stringLength_int);
+//       });
+//       _ut.test('test_stringLength_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_stringLength_knownString);
+//       });
+//       _ut.test('test_stringLength_unknownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_stringLength_unknownString);
 //       });
 //       _ut.test('test_times_knownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -7598,13 +7691,13 @@
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_times_knownDouble_unknownInt);
 //       });
-//       _ut.test('test_times_knownInt_invalid', () {
-//         final __test = new DartObjectImplTest();
-//         runJUnitTest(__test, __test.test_times_knownInt_invalid);
-//       });
 //       _ut.test('test_times_knownInt_knownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_times_knownInt_knownInt);
+//       });
+//       _ut.test('test_times_knownInt_knownString', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_times_knownInt_knownString);
 //       });
 //       _ut.test('test_times_knownInt_unknownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -7613,6 +7706,10 @@
 //       _ut.test('test_times_knownInt_unknownInt', () {
 //         final __test = new DartObjectImplTest();
 //         runJUnitTest(__test, __test.test_times_knownInt_unknownInt);
+//       });
+//       _ut.test('test_times_knownString_knownInt', () {
+//         final __test = new DartObjectImplTest();
+//         runJUnitTest(__test, __test.test_times_knownString_knownInt);
 //       });
 //       _ut.test('test_times_unknownDouble_knownDouble', () {
 //         final __test = new DartObjectImplTest();
@@ -11565,6 +11662,11 @@
 //   void setUp() {
 //     _context = AnalysisContextFactory.contextWithCore();
 //   }
+//   @override
+//   void tearDown() {
+//     _context = null;
+//     super.tearDown();
+//   }
 //   HtmlUnitBuilderTest_ExpectedLibrary _l(List<HtmlUnitBuilderTest_ExpectedVariable> expectedVariables) => new HtmlUnitBuilderTest_ExpectedLibrary(this, expectedVariables);
 //   HtmlElementImpl _build(String contents) {
 //     TestSource source = new TestSource.con1(FileUtilities2.createFile("/test.html"), contents);
@@ -11724,6 +11826,14 @@
 //     _sourceFactory = new SourceFactory([new FileUriResolver()]);
 //     _context = new AnalysisContextImpl();
 //     _context.sourceFactory = _sourceFactory;
+//   }
+//   @override
+//   void tearDown() {
+//     _sourceFactory = null;
+//     _context = null;
+//     _contents = null;
+//     _errors = null;
+//     super.tearDown();
 //   }
 //   void _assertErrorLocation(AnalysisError error, int expectedOffset, int expectedLength) {
 //     JUnitTestCase.assertEqualsMsg(error.toString(), expectedOffset, error.offset);
@@ -13342,6 +13452,8 @@
 //     suite.addTestSuite(IncrementalResolverTest);
 //     suite.addTestSuite(InheritanceManagerTest);
 //     suite.addTestSuite(LibraryElementBuilderTest);
+//     suite.addTestSuite(LibraryResolver2Test);
+//     suite.addTestSuite(LibraryResolverTest);
 //     suite.addTestSuite(LibraryTest);
 //     suite.addTestSuite(StaticTypeAnalyzerTest);
 //     suite.addTestSuite(SubtypeManagerTest);
@@ -13413,6 +13525,7 @@
 // class TestAll {
 //   static Test suite() {
 //     TestSuite suite = new ExtendedTestSuite("Tests in ${TestAll.getPackage().getName()}");
+//     suite.addTestSuite(CheckedModeCompileTimeErrorCodeTest);
 //     suite.addTestSuite(CompileTimeErrorCodeTest);
 //     suite.addTestSuite(ErrorResolverTest);
 //     suite.addTestSuite(HintCodeTest);

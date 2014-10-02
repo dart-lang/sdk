@@ -5505,7 +5505,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (identical(this, type) || type.isDynamic || type.isDartCoreFunction || type.isObject) {
       return true;
     } else if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsMoreSpecificThan(this, withDynamic, visitedTypePairs);
+      return (type as UnionTypeImpl).internalUnionTypeIsLessSpecificThan(this, withDynamic, visitedTypePairs);
     } else if (type is! FunctionType) {
       return false;
     } else if (this == type) {
@@ -7278,7 +7278,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (identical(type, DynamicTypeImpl.instance)) {
       return true;
     } else if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsMoreSpecificThan(this, withDynamic, visitedTypePairs);
+      return (type as UnionTypeImpl).internalUnionTypeIsLessSpecificThan(this, withDynamic, visitedTypePairs);
     } else if (type is! InterfaceType) {
       return false;
     }
@@ -10742,7 +10742,43 @@ abstract class TypeImpl implements DartType {
    * @param visitedTypePairs the set of pairs of types used to prevent infinite loops
    * @return `true` if this type is assignable to the given type
    */
-  bool isAssignableTo2(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf2(type, visitedTypePairs) || (type as TypeImpl).isSubtypeOf2(this, visitedTypePairs);
+  bool isAssignableTo2(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // Strictness matters for union types on the LHS, but not for union types
+    // on the RHS.
+    if (this is UnionType) {
+      if (AnalysisEngine.instance.strictUnionTypes) {
+        // *Every* element on the LHS must be assignable to the RHS. We recursively fall into
+        // the next case when the RHS is also a union: the order here is important!
+        for (DartType left in (this as UnionType).elements) {
+          // Would have to cast to [TypeImpl] to call the [visitedTypePairs] version here.
+          if (!left.isAssignableTo(type)) {
+            return false;
+          }
+        }
+        return true;
+      } else {
+        // *Some* element on the LHS must be assignable to the RHS.
+        for (DartType left in (this as UnionType).elements) {
+          // Would have to cast to [TypeImpl] to call the [visitedTypePairs] version here.
+          if (left.isAssignableTo(type)) {
+            return true;
+          }
+        }
+        return false;
+      }
+    } else if (type is UnionType) {
+      // The LHS, which is not a union, must be assignable to *some* element on the RHS.
+      for (DartType right in type.elements) {
+        if (this.isAssignableTo2(right, visitedTypePairs)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      // For non union types we use the language spec definition of [<=>].
+      return isSubtypeOf2(type, visitedTypePairs) || (type as TypeImpl).isSubtypeOf2(this, visitedTypePairs);
+    }
+  }
 
   @override
   bool get isBottom => false;
@@ -11208,25 +11244,47 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
   @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     // What version of subtyping do we want? See discussion below in [internalIsSubtypeOf].
-    //
-    // The more unsound version: any.
-    for (DartType t in _types) {
-      if ((t as TypeImpl).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
-        return true;
+    if (AnalysisEngine.instance.strictUnionTypes) {
+      // The less unsound version: all.
+      for (DartType t in _types) {
+        if (!(t as TypeImpl).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
+          return false;
+        }
       }
+      return true;
+    } else {
+      // The more unsound version: any.
+      for (DartType t in _types) {
+        if ((t as TypeImpl).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
+          return true;
+        }
+      }
+      return false;
     }
-    return false;
   }
 
   @override
   bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    // The more unsound version: any.
-    for (DartType t in _types) {
-      if ((t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
-        return true;
+    if (AnalysisEngine.instance.strictUnionTypes) {
+      // The less unsound version: all.
+      //
+      // For this version to make sense we also need to redefine assignment compatibility [<=>].
+      // See discussion above.
+      for (DartType t in _types) {
+        if (!(t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
+          return false;
+        }
       }
+      return true;
+    } else {
+      // The more unsound version: any.
+      for (DartType t in _types) {
+        if ((t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
+          return true;
+        }
+      }
+      return false;
     }
-    return false;
   }
 
   /**
@@ -11238,7 +11296,7 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
    * @param visitedTypePairs
    * @return true if `type` is more specific than this union type
    */
-  bool internalUnionTypeIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool internalUnionTypeIsLessSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     // This implementation does not make sense when [type] is a union type, at least
     // for the "less unsound" version of [internalIsMoreSpecificThan] above.
     if (type is UnionType) {

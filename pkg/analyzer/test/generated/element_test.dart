@@ -4735,8 +4735,8 @@ class VoidTypeImplTest extends EngineTestCase {
 }
 
 main() {
-  ElementKindTest.dartSuite();
   AngularPropertyKindTest.dartSuite();
+  ElementKindTest.dartSuite();
   FunctionTypeImplTest.dartSuite();
   InterfaceTypeImplTest.dartSuite();
   TypeParameterTypeImplTest.dartSuite();

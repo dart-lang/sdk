@@ -1637,9 +1637,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     //
     // Look for non-priority sources that need to be analyzed.
     //
-    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      _getSourcesNeedingProcessing(iterator.key, iterator.value, false, hintsEnabled, sources);
+    WorkManager_WorkIterator iterator = _workManager.iterator();
+    while (iterator.hasNext) {
+      Source source = iterator.next();
+      _getSourcesNeedingProcessing(source, _cache.get(source), false, hintsEnabled, sources);
     }
     return new List<Source>.from(sources);
   }
@@ -1771,16 +1772,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisResult(_getChangeNotices(true), getEnd - getStart, null, -1);
     }
     String taskDescription = task.toString();
-    if (!_reportedLoop && !_recentTasks.add(taskDescription)) {
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.print("Performing repeated task: ");
-      writer.println(taskDescription);
-      for (String description in _recentTasks) {
-        writer.print("  ");
-        writer.println(description);
-      }
-      _logInformation(writer.toString());
-    }
+    //    if (!reportedLoop && !recentTasks.add(taskDescription)) {
+    //      reportedLoop = true;
+    //      @SuppressWarnings("resource")
+    //      PrintStringWriter writer = new PrintStringWriter();
+    //      writer.print("Performing repeated task: ");
+    //      writer.println(taskDescription);
+    //      for (String description : recentTasks) {
+    //        writer.print("  ");
+    //        writer.println(description);
+    //      }
+    //      logInformation(writer.toString());
+    //    }
     _notifyAboutToPerformTask(taskDescription);
     if (_TRACE_PERFORM_TASK) {
       print(taskDescription);
@@ -3358,18 +3361,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _workManager.remove(sourcesToRemove[i]);
       }
     }
-    //      //
-    //      // Look for a non-priority source that needs to be analyzed and was missed by the loop above.
-    //      //
-    //      for (Map.Entry<Source, SourceEntry> entry : cache.entrySet()) {
-    //        source = entry.getKey();
-    //        TaskData taskData = getNextAnalysisTaskForSource(source, entry.getValue(), false, hintsEnabled);
-    //        AnalysisTask task = taskData.getTask();
-    //        if (task != null) {
-    //          System.out.println("Failed to analyze " + source.getFullName());
-    //          return task;
-    //        }
-    //      }
     if (hasBlockedTask) {
       // All of the analysis work is blocked waiting for an asynchronous task to complete.
       return WaitForAsyncTask.instance;
@@ -6272,6 +6263,25 @@ class AnalysisEngine {
    * The partition manager being used to manage the shared partitions.
    */
   final PartitionManager partitionManager = new PartitionManager();
+
+  /**
+   * A flag indicating whether union types should be used.
+   */
+  bool enableUnionTypes = false;
+
+  /**
+   * A flag indicating whether union types should have strict semantics. This option has no effect
+   * when `enabledUnionTypes` is `false`.
+   */
+  bool strictUnionTypes = false;
+
+  /**
+   * Clear any caches holding on to analysis results so that a full re-analysis will be performed
+   * the next time an analysis context is created.
+   */
+  void clearCaches() {
+    partitionManager.clearCache();
+  }
 
   /**
    * Create a new context in which analysis can be performed.
@@ -12257,7 +12267,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
       }
       return result;
     } finally {
-      instrumentation.log2(2);
+      instrumentation.log2(15);
     }
   }
 
@@ -13217,6 +13227,13 @@ class PartitionManager {
    * The default cache size for a Dart SDK partition.
    */
   static int _DEFAULT_SDK_CACHE_SIZE = 256;
+
+  /**
+   * Clear any cached data being maintained by this manager.
+   */
+  void clearCache() {
+    _sdkPartitions.clear();
+  }
 
   /**
    * Return the partition being used for the given SDK, creating the partition if necessary.
