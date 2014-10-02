@@ -1308,7 +1308,7 @@ class OldEmitter implements Emitter {
     }
   }
 
-  void emitProgram() {
+  void emitProgram(Program program) {
     // Maps each output unit to a codebuffers with the library descriptors of
     // the output unit emitted to it.
     Map<OutputUnit, CodeBuffer> libraryDescriptorBuffers =

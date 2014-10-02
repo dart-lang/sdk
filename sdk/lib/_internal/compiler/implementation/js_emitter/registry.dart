@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.new_js_emitter.emitter;
+part of dart2js.js_emitter.program_builder;
 
 /// A Fragment maps [LibraryElement]s to their [Element]s.
 ///
-/// Fundamentally, this class is a `Map<LibraryElement, List<Element>>`.
+/// Fundamentally, this class nicely encapsulates a
+/// `Map<LibraryElement, List<Element>>`.
 class Fragment {
   final Map<LibraryElement, List<Element>> _mapping =
       <LibraryElement, List<Element>>{};

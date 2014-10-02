@@ -42,7 +42,7 @@ class CodeEmitterTask extends CompilerTask {
         this.namer = namer {
     oldEmitter = new OldEmitter(compiler, namer, generateSourceMap, this);
     emitter = USE_NEW_EMITTER
-        ? new new_js_emitter.Emitter(compiler, namer, generateSourceMap, this)
+        ? new new_js_emitter.Emitter(compiler, namer)
         : oldEmitter;
     nativeEmitter = new NativeEmitter(this);
     typeTestEmitter.emitter = this.oldEmitter;
@@ -267,13 +267,17 @@ class CodeEmitterTask extends CompilerTask {
       // TODO(floitsch): we want to call computeNeededConstants here, but
       // the oldEmitter creates new constants during emission... :(
 
-      emitter.emitProgram();
+      Program program;
+      if (USE_NEW_EMITTER) {
+        program = new ProgramBuilder(compiler, namer, this).buildProgram();
+      }
+      emitter.emitProgram(program);
     });
   }
 }
 
 abstract class Emitter {
-  void emitProgram();
+  void emitProgram(Program program);
 
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
   jsAst.Expression constantReference(ConstantValue value);

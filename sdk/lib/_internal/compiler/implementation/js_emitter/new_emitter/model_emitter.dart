@@ -12,7 +12,7 @@ import '../../../js_lib/shared/embedded_names.dart' show
     INITIALIZE_LOADED_HUNK,
     IS_HUNK_LOADED;
 
-import 'model.dart';
+import '../model.dart';
 
 class ModelEmitter {
   final Compiler compiler;

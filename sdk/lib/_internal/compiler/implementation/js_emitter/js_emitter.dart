@@ -49,6 +49,9 @@ import '../js_backend/js_backend.dart' show
     TypeChecks,
     TypeVariableHandler;
 
+import 'model.dart';
+import 'program_builder.dart';
+
 import 'new_emitter/emitter.dart' as new_js_emitter;
 
 import '../source_file.dart' show
