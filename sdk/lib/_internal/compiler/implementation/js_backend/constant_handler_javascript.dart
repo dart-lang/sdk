@@ -212,6 +212,7 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   }
 
   void forgetElement(Element element) {
+    super.forgetElement(element);
     element.accept(new ForgetConstantElementVisitor(this));
     if (element is AstElement && element.hasNode) {
       element.node.accept(new ForgetConstantNodeVisitor(this));

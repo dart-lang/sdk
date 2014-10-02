@@ -495,6 +495,8 @@ abstract class Backend {
   FunctionElement helperForMainArity() => null;
 
   void forgetElement(Element element) {}
+
+  void registerMainHasArguments(Enqueuer enqueuer) {}
 }
 
 /// Backend callbacks function specific to the resolution phase.
@@ -1478,7 +1480,6 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(johnniwinther): Move these to [CodegenEnqueuer].
     if (hasIsolateSupport) {
       backend.enableIsolateSupport(enqueuer.codegen);
-      enqueuer.codegen.registerGetOfStaticFunction(mainFunction);
     }
     if (enabledNoSuchMethod) {
       backend.enableNoSuchMethod(null, enqueuer.codegen);
@@ -1542,12 +1543,13 @@ abstract class Compiler implements DiagnosticListener {
     if (main != null && !main.isErroneous) {
       FunctionElement mainMethod = main;
       if (mainMethod.computeSignature(this).parameterCount != 0) {
-        // TODO(ngeoffray, floitsch): we should also ensure that the
-        // class IsolateMessage is instantiated. Currently, just enabling
-        // isolate support works.
-        world.enableIsolateSupport();
-        world.registerInstantiatedClass(listClass, globalDependencies);
-        world.registerInstantiatedClass(stringClass, globalDependencies);
+        // The first argument could be a list of strings.
+        world.registerInstantiatedClass(
+            backend.listImplementation, globalDependencies);
+        world.registerInstantiatedClass(
+            backend.stringImplementation, globalDependencies);
+
+        backend.registerMainHasArguments(world);
       }
       world.addToWorkList(main);
     }

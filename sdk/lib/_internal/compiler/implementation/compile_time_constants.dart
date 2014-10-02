@@ -78,9 +78,14 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
   final ConstantSystem constantSystem;
 
   /**
-   * Contains the initial value of fields. Must contain all static and global
-   * initializations of const fields. May contain eagerly compiled values for
-   * statics and instance fields.
+   * Contains the initial values of fields and default values of parameters.
+   *
+   * Must contain all static and global initializations of const fields.
+   *
+   * May contain eagerly compiled initial values for statics and instance
+   * fields (if those are compile-time constants).
+   *
+   * May contain default parameter values of optional arguments.
    *
    * Invariant: The keys in this map are declarations.
    */
@@ -201,6 +206,16 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
                                      Node node,
                                      TreeElements elements) {
     return compileNodeWithDefinitions(node, elements);
+  }
+
+  void forgetElement(Element element) {
+    initialVariableValues.remove(element);
+    if (element is ScopeContainerElement) {
+      element.forEachLocalMember(initialVariableValues.remove);
+    }
+    if (element is FunctionElement && element.hasFunctionSignature) {
+      element.functionSignature.forEachParameter(this.forgetElement);
+    }
   }
 }
 

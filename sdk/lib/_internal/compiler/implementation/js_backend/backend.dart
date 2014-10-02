@@ -1038,6 +1038,18 @@ class JavaScriptBackend extends Backend {
   }
 
   void enableIsolateSupport(Enqueuer enqueuer) {
+    // TODO(floitsch): We should also ensure that the class IsolateMessage is
+    // instantiated. Currently, just enabling isolate support works.
+    if (compiler.mainFunction != null) {
+      // The JavaScript backend implements [Isolate.spawn] by looking up
+      // top-level functions by name. So all top-level function tear-off
+      // closures have a private name field.
+      //
+      // The JavaScript backend of [Isolate.spawnUri] uses the same internal
+      // implementation as [Isolate.spawn], and fails if it cannot look main up
+      // by name.
+      enqueuer.registerGetOfStaticFunction(compiler.mainFunction);
+    }
     if (enqueuer.isResolutionQueue) {
       for (String name in const [START_ROOT_ISOLATE,
                                  '_currentIsolate',
@@ -2215,6 +2227,14 @@ class JavaScriptBackend extends Backend {
 
   void forgetElement(Element element) {
     constants.forgetElement(element);
+  }
+
+  void registerMainHasArguments(Enqueuer enqueuer) {
+    // If the main method takes arguments, this compilation could be the target
+    // of Isolate.spawnUri. Strictly speaking, that can happen also if main
+    // takes no arguments, but in this case the spawned isolate can't
+    // communicate with the spawning isolate.
+    enqueuer.enableIsolateSupport();
   }
 }
 

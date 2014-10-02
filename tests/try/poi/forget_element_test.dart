@@ -11,7 +11,8 @@ import 'package:compiler/implementation/elements/elements.dart' show
     FunctionElement,
     LocalFunctionElement,
     MetadataAnnotation,
-    ScopeContainerElement;
+    ScopeContainerElement,
+    VariableElement;
 
 import 'package:compiler/implementation/js_backend/js_backend.dart' show
     JavaScriptBackend;
@@ -36,14 +37,18 @@ class ForgetElementTestCase extends CompilerTestCase {
 
   final int expectedConstantCount;
 
+  final int expectedInitialValueCount;
+
   ForgetElementTestCase(
       String source,
       {int closureCount: 0,
        int metadataCount: 0,
-       int constantCount: 0})
+       int constantCount: 0,
+       int initialValueCount: 0})
       : this.expectedClosureCount = closureCount,
         this.expectedMetadataCount = metadataCount,
         this.expectedConstantCount = constantCount,
+        this.expectedInitialValueCount = initialValueCount,
         super(source);
 
   Future run() => compile().then((LibraryElement library) {
@@ -59,10 +64,19 @@ class ForgetElementTestCase extends CompilerTestCase {
         expectedMetadataCount, metadataInLibrary(library).length,
         'metadata count');
 
+    // Check that the compiler has recorded the expected number of
+    // constants. Since metadata is also constants, those must also be counted.
     Expect.equals(
         expectedConstantCount + expectedMetadataCount,
         constantsIn(library).length,
         'constant count');
+
+    // Check that the compiler has recorded the expected number of initial
+    // values.
+    Expect.equals(
+        expectedInitialValueCount,
+        elementsWithInitialValuesIn(library).length,
+        'number of fields with initial values');
 
     // Forget about all elements.
     library.forEachLocalMember(compiler.forgetElement);
@@ -75,6 +89,11 @@ class ForgetElementTestCase extends CompilerTestCase {
 
     // Check that the constants were forgotten.
     Expect.isTrue(constantsIn(library).isEmpty, 'constants');
+
+    // Check that initial values were forgotten.
+    Expect.isTrue(
+        elementsWithInitialValuesIn(library).isEmpty,
+        'fields with initial values');
   });
 
   Iterable closuresInLibrary(LibraryElement library) {
@@ -118,6 +137,12 @@ class ForgetElementTestCase extends CompilerTestCase {
     return nodesIn(library)
         .map((node) => backend.constants.nodeConstantMap[node])
         .where((constant) => constant != null);
+  }
+
+  Iterable elementsWithInitialValuesIn(LibraryElement library) {
+    JavaScriptBackend backend = compiler.backend;
+    return backend.constants.initialVariableValues.keys.where(
+        (VariableElement element) => element.library == library);
   }
 }
 
@@ -187,7 +212,8 @@ List<CompilerTestCase> get tests => <CompilerTestCase>[
     // Test that metadata on top-level variable is discarded correctly.
     new ForgetElementTestCase(
         '@Constant() var x; main() => x; $CONSTANT_CLASS',
-        metadataCount: 1),
+        metadataCount: 1,
+        initialValueCount: 1),
 
     // Test that metadata on parameter on a local function is discarded
     // correctly.
@@ -220,16 +246,31 @@ List<CompilerTestCase> get tests => <CompilerTestCase>[
     // discarded correctly.
     new ForgetElementTestCase(
         'main() => x; var x = const Constant(); $CONSTANT_CLASS',
-        constantCount: 1),
+        constantCount: 1,
+        initialValueCount: 1),
 
     // Test that a constant in a parameter initializer is discarded
     // correctly.
-    // TODO(ahe): Get this test to work. Currently fails with "Assertion
-    // failure: Node has not been computed for
-    // function(closureFromTearOff).".
-    /*
     new ForgetElementTestCase(
         'main([x = const Constant()]) => x; $CONSTANT_CLASS',
-        constantCount: 1),
-    */
+        constantCount: 1,
+        initialValueCount: 1),
+
+    // Test that a constant in a parameter initializer is discarded
+    // correctly (nested function).
+    new ForgetElementTestCase(
+        'main() => (([x = const Constant()]) => x)(); $CONSTANT_CLASS',
+        closureCount: 1,
+        constantCount: 1,
+        initialValueCount: 1),
+
+    // Test that a constant in a parameter initializer is discarded
+    // correctly (deeply nested function).
+    new ForgetElementTestCase(
+        'main() => (() => (([x = const Constant()]) => x)())();'
+        ' $CONSTANT_CLASS',
+        closureCount: 2,
+        constantCount: 1,
+        initialValueCount: 1),
+
 ]..addAll(assertUnimplementedLocalMetadata());
