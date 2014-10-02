@@ -137,7 +137,7 @@ class TypeVariableHandler {
    * there, otherwise a new entry for [c] is created.
    */
   int reifyTypeVariableConstant(ConstantValue c, TypeVariableElement variable) {
-    String name = jsAst.prettyPrint(task.oldEmitter.constantReference(c),
+    String name = jsAst.prettyPrint(task.constantReference(c),
                                     compiler).getText();
     int index;
     if (typeVariableConstants.containsKey(variable)) {

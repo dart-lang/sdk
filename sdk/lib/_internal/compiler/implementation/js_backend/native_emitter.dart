@@ -39,10 +39,6 @@ class NativeEmitter {
   Compiler get compiler => emitterTask.compiler;
   JavaScriptBackend get backend => compiler.backend;
 
-  String get _ => emitterTask.oldEmitter.space;
-  String get n => emitterTask.oldEmitter.n;
-  String get N => emitterTask.oldEmitter.N;
-
   jsAst.Expression get defPropFunction {
     Element element = backend.findHelper('defineProperty');
     return backend.namer.elementAccess(element);
