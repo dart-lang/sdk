@@ -832,6 +832,12 @@ class AnalysisServer {
   List<Element> getElementsOfNodes(List<AstNode> nodes, int offset) {
     List<Element> elements = <Element>[];
     for (AstNode node in nodes) {
+      if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
+        node = node.parent;
+      }
+      if (node is LibraryIdentifier) {
+        node = node.parent;
+      }
       Element element = ElementLocator.locateWithOffset(node, offset);
       if (node is SimpleIdentifier && element is PrefixElement) {
         element = getImportElement(node);

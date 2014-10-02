@@ -1271,6 +1271,39 @@ main() {
     });
   }
 
+  test_library_libraryDirective() {
+    addTestFile('''
+library aaa.bbb.ccc;
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('library aaa', 'my.new_name');
+    }, '''
+library my.new_name;
+''');
+  }
+
+  test_library_libraryDirective_name() {
+    addTestFile('''
+library aaa.bbb.ccc;
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('aaa', 'my.new_name');
+    }, '''
+library my.new_name;
+''');
+  }
+
+  test_library_libraryDirective_nameDot() {
+    addTestFile('''
+library aaa.bbb.ccc;
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('.bbb', 'my.new_name');
+    }, '''
+library my.new_name;
+''');
+  }
+
   test_localVariable() {
     addTestFile('''
 main() {
