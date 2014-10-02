@@ -569,6 +569,7 @@ void Assembler::stm(BlockAddressMode am, Register base, RegList regs,
 
 
 void Assembler::ldrex(Register rt, Register rn, Condition cond) {
+  ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   ASSERT(rn != kNoRegister);
   ASSERT(rt != kNoRegister);
   ASSERT(cond != kNoCondition);
@@ -584,6 +585,7 @@ void Assembler::ldrex(Register rt, Register rn, Condition cond) {
 
 
 void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
+  ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   ASSERT(rn != kNoRegister);
   ASSERT(rd != kNoRegister);
   ASSERT(rt != kNoRegister);
@@ -600,6 +602,7 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
 
 
 void Assembler::clrex() {
+  ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   int32_t encoding = (kSpecialCondition << kConditionShift) |
                      B26 | B24 | B22 | B21 | B20 | (0xff << 12) | B4 | 0xf;
   Emit(encoding);
