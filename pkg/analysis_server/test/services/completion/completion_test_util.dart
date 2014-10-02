@@ -6,7 +6,8 @@ library test.services.completion.util;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' as protocol show Element, ElementKind;
+import 'package:analysis_server/src/protocol.dart' as protocol show Element,
+    ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/index/index.dart';
@@ -26,7 +27,9 @@ class AbstractCompletionTest extends AbstractContextTest {
   DartCompletionComputer computer;
   String testFile = '/completionTest.dart';
   Source testSource;
+  CompilationUnit testUnit;
   int completionOffset;
+  AstNode completionNode;
   bool _computeFastCalled = false;
   DartCompletionRequest request;
 
@@ -51,7 +54,7 @@ class AbstractCompletionTest extends AbstractContextTest {
 
   void assertNotSuggested(String completion) {
     if (request.suggestions.any((cs) => cs.completion == completion)) {
-      fail('did not expect completion: $completion');
+      _failWithNodeInfo('did not expect completion: $completion');
     }
   }
 
@@ -64,17 +67,17 @@ class AbstractCompletionTest extends AbstractContextTest {
         if (cs == null) {
           cs = s;
         } else {
-          List<CompletionSuggestion> matchSuggestions =
+          List<CompletionSuggestion> completions =
               request.suggestions.where((s) => s.completion == completion).toList();
-          fail(
-              'expected exactly one $completion but found > 1\n $matchSuggestions');
+          _failWithNodeInfo(
+              'expected exactly one $completion but found > 1\n$completions');
         }
       }
     });
     if (cs == null) {
       List<CompletionSuggestion> completions =
           request.suggestions.map((s) => s.completion).toList();
-      fail('expected "$completion" but found\n $completions');
+      _failWithNodeInfo('expected "$completion" but found\n $completions');
     }
     expect(cs.kind, equals(kind));
     expect(cs.relevance, equals(relevance));
@@ -222,9 +225,11 @@ class AbstractCompletionTest extends AbstractContextTest {
 
   bool computeFast() {
     _computeFastCalled = true;
-    CompilationUnit unit = context.parseCompilationUnit(testSource);
-    request.unit = unit;
-    request.node = new NodeLocator.con1(completionOffset).searchWithin(unit);
+    testUnit = context.parseCompilationUnit(testSource);
+    completionNode =
+        new NodeLocator.con1(completionOffset).searchWithin(testUnit);
+    request.unit = testUnit;
+    request.node = completionNode;
     return computer.computeFast(request);
   }
 
@@ -283,5 +288,18 @@ class AbstractCompletionTest extends AbstractContextTest {
     super.setUp();
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
+  }
+
+  void _failWithNodeInfo(String message) {
+    StringBuffer sb = new StringBuffer(message);
+    if (completionNode != null) {
+      sb.write('\n  in');
+      AstNode node = completionNode;
+      while (node != null) {
+        sb.write('\n    ${node.runtimeType}');
+        node = node.parent;
+      }
+    }
+    fail(sb.toString());
   }
 }
