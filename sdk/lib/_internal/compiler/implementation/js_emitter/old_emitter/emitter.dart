@@ -49,8 +49,6 @@ class OldEmitter implements Emitter {
   final Map<ClassElement, Map<String, jsAst.Expression>> additionalProperties =
       new Map<ClassElement, Map<String, jsAst.Expression>>();
 
-  Set<ClassElement> get instantiatedClasses => task.instantiatedClasses;
-
   List<TypedefElement> get typedefsNeededForReflection =>
       task.typedefsNeededForReflection;
 

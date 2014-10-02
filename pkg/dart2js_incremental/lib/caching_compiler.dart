@@ -116,9 +116,7 @@ Future<Compiler> reuseCompiler(
         ..nativeClasses.clear()
         ..nativeMethods.clear();
 
-    backend.emitter
-        ..readTypeVariables.clear()
-        ..instantiatedClasses = null;
+    backend.emitter.readTypeVariables.clear();
 
     backend.emitter.oldEmitter
         ..outputBuffers.clear()

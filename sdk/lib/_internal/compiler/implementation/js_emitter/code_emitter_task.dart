@@ -31,8 +31,6 @@ class CodeEmitterTask extends CompilerTask {
   final Set<TypeVariableElement> readTypeVariables =
       new Set<TypeVariableElement>();
 
-  // TODO(ngeoffray): remove this field.
-  Set<ClassElement> instantiatedClasses;
   List<TypedefElement> typedefsNeededForReflection;
 
   JavaScriptBackend get backend => compiler.backend;
@@ -151,7 +149,7 @@ class CodeEmitterTask extends CompilerTask {
             .toList());
 
     // Compute needed classes.
-    instantiatedClasses =
+    Set<ClassElement> instantiatedClasses =
         compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
             .toSet();
 

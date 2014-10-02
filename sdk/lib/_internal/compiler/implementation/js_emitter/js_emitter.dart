@@ -29,7 +29,7 @@ import '../elements/elements.dart' show
 
 import '../hash/sha1.dart' show hashOfString;
 
-import '../helpers/helpers.dart';  // Included for debug helpers.
+// import '../helpers/helpers.dart';  // Included for debug helpers.
 
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show
