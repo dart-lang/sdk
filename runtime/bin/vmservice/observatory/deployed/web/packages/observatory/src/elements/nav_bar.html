@@ -202,8 +202,8 @@
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
     <nav-menu link="{{ hashLinkWorkaround }}" anchor="{{ isolate.name }}" last="{{ last }}">
-      <nav-menu-item link="{{ isolate.relativeLink('stacktrace') }}"
-                     anchor="stack trace"></nav-menu-item>
+      <nav-menu-item link="{{ '/debugger' + isolate.link }}"
+                     anchor="debugger"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeLink('profile') }}"
                      anchor="cpu profile"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeLink('allocationprofile') }}"

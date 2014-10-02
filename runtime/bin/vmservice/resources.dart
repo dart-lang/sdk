@@ -24,6 +24,8 @@ String detectMimeType(String name) {
       return 'image/jpeg';
     case 'jpeg':
       return 'image/jpeg';
+    case 'svg':
+      return 'image/svg+xml';
     default:
       return 'text/plain';
   }

@@ -22,4 +22,13 @@ EXCLUDE="$EXCLUDE --exclude main.*"
 EXCLUDE="$EXCLUDE --exclude unittest"
 EXCLUDE="$EXCLUDE --exclude *_buildLogs*"
 
+# For some reason...
+#
+#    EXCLUDE="$EXCLUDE --exclude *~"
+#
+# ..doesn't work to exclude emacs auto-save files.  I'm sure it is
+# something silly, but, in the meantime, solve the problem with a
+# hammer.
+find build -type f | grep ~$ | xargs rm
+
 rsync -av --progress build/web/ deployed/web/ $EXCLUDE

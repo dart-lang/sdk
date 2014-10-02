@@ -100,8 +100,8 @@ class ObservatoryApplication extends Observable {
   }
 
   void _registerPages() {
-    // Register ClassTreePage.
     _pageRegistry.add(new ClassTreePage(this));
+    _pageRegistry.add(new DebuggerPage(this));
     _pageRegistry.add(new VMConnectPage(this));
     _pageRegistry.add(new ErrorViewPage(this));
     _pageRegistry.add(new MetricsPage(this));
