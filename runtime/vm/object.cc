@@ -677,7 +677,7 @@ void Object::InitOnce() {
     Array::initializeHandle(
         empty_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
-    empty_array_->raw_ptr()->length_ = Smi::New(0);
+    empty_array_->StoreSmi(&empty_array_->raw_ptr()->length_, Smi::New(0));
   }
 
   // Allocate and initialize the zero_array instance.
@@ -687,8 +687,9 @@ void Object::InitOnce() {
     Array::initializeHandle(
         zero_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
-    zero_array_->raw_ptr()->length_ = Smi::New(1);
-    zero_array_->raw_ptr()->data()[0] = Smi::New(0);
+    zero_array_->StoreSmi(&zero_array_->raw_ptr()->length_, Smi::New(1));
+    zero_array_->StorePointer(&zero_array_->raw_ptr()->data()[0],
+                              static_cast<RawObject*>(Smi::New(0)));
   }
 
   // Allocate and initialize the empty_descriptors instance.
@@ -701,7 +702,8 @@ void Object::InitOnce() {
     PcDescriptors::initializeHandle(
         empty_descriptors_,
         reinterpret_cast<RawPcDescriptors*>(address + kHeapObjectTag));
-    empty_descriptors_->raw_ptr()->length_ = 0;
+    empty_descriptors_->StoreNonPointer(&empty_descriptors_->raw_ptr()->length_,
+                                        0);
   }
 
   // Allocate and initialize the canonical empty variable descriptor object.
@@ -1894,7 +1896,7 @@ void Class::set_num_type_arguments(intptr_t value) const {
   if (!Utils::IsInt(16, value)) {
     ReportTooManyTypeArguments(*this);
   }
-  raw_ptr()->num_type_arguments_ = value;
+  StoreNonPointer(&raw_ptr()->num_type_arguments_, value);
 }
 
 
@@ -1902,7 +1904,7 @@ void Class::set_num_own_type_arguments(intptr_t value) const {
   if (!Utils::IsInt(16, value)) {
     ReportTooManyTypeArguments(*this);
   }
-  raw_ptr()->num_own_type_arguments_ = value;
+  StoreNonPointer(&raw_ptr()->num_own_type_arguments_, value);
 }
 
 
@@ -2245,7 +2247,7 @@ void Class::set_signature_function(const Function& value) const {
 
 
 void Class::set_state_bits(intptr_t bits) const {
-  raw_ptr()->state_bits_ = static_cast<uint16_t>(bits);
+  StoreNonPointer(&raw_ptr()->state_bits_, static_cast<uint16_t>(bits));
 }
 
 
@@ -3278,7 +3280,7 @@ void Class::set_script(const Script& value) const {
 
 void Class::set_token_pos(intptr_t token_pos) const {
   ASSERT(token_pos >= 0);
-  raw_ptr()->token_pos_ = token_pos;
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
@@ -4190,7 +4192,7 @@ RawUnresolvedClass* UnresolvedClass::New() {
 
 void UnresolvedClass::set_token_pos(intptr_t token_pos) const {
   ASSERT(token_pos >= 0);
-  raw_ptr()->token_pos_ = token_pos;
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
@@ -4773,7 +4775,7 @@ void TypeArguments::SetLength(intptr_t value) const {
   ASSERT(!IsCanonical());
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
-  raw_ptr()->length_ = Smi::New(value);
+  StoreSmi(&raw_ptr()->length_, Smi::New(value));
 }
 
 
@@ -5467,26 +5469,28 @@ void Function::set_is_async_closure(bool value) const {
 
 void Function::set_token_pos(intptr_t value) const {
   ASSERT(value >= 0);
-  raw_ptr()->token_pos_ = value;
+  StoreNonPointer(&raw_ptr()->token_pos_, value);
 }
 
 
 void Function::set_kind_tag(intptr_t value) const {
-  raw_ptr()->kind_tag_ = static_cast<uint32_t>(value);
+  StoreNonPointer(&raw_ptr()->kind_tag_, static_cast<uint32_t>(value));
 }
 
 
 void Function::set_num_fixed_parameters(intptr_t value) const {
   ASSERT(value >= 0);
   ASSERT(Utils::IsInt(16, value));
-  raw_ptr()->num_fixed_parameters_ = static_cast<int16_t>(value);
+  StoreNonPointer(&raw_ptr()->num_fixed_parameters_,
+                  static_cast<int16_t>(value));
 }
 
 
 void Function::set_num_optional_parameters(intptr_t value) const {
   // A positive value indicates positional params, a negative one named params.
   ASSERT(Utils::IsInt(16, value));
-  raw_ptr()->num_optional_parameters_ = static_cast<int16_t>(value);
+  StoreNonPointer(&raw_ptr()->num_optional_parameters_,
+                  static_cast<int16_t>(value));
 }
 
 
@@ -7033,7 +7037,7 @@ intptr_t Field::guarded_list_length() const {
 
 
 void Field::set_guarded_list_length(intptr_t list_length) const {
-  raw_ptr()->guarded_list_length_ = Smi::New(list_length);
+  StoreSmi(&raw_ptr()->guarded_list_length_, Smi::New(list_length));
 }
 
 
@@ -8169,7 +8173,7 @@ void Script::set_source(const String& value) const {
 
 
 void Script::set_kind(RawScript::Kind value) const {
-  raw_ptr()->kind_ = value;
+  StoreNonPointer(&raw_ptr()->kind_, value);
 }
 
 
@@ -8203,8 +8207,8 @@ void Script::SetLocationOffset(intptr_t line_offset,
                                intptr_t col_offset) const {
   ASSERT(line_offset >= 0);
   ASSERT(col_offset >= 0);
-  raw_ptr()->line_offset_ = line_offset;
-  raw_ptr()->col_offset_ = col_offset;
+  StoreNonPointer(&raw_ptr()->line_offset_, line_offset);
+  StoreNonPointer(&raw_ptr()->col_offset_, col_offset);
 }
 
 
@@ -8579,7 +8583,7 @@ void Library::SetName(const String& name) const {
 void Library::SetLoadInProgress() const {
   // Must not already be in the process of being loaded.
   ASSERT(raw_ptr()->load_state_ <= RawLibrary::kLoadRequested);
-  raw_ptr()->load_state_ = RawLibrary::kLoadInProgress;
+  StoreNonPointer(&raw_ptr()->load_state_, RawLibrary::kLoadInProgress);
 }
 
 
@@ -8593,14 +8597,14 @@ void Library::SetLoadRequested() const {
 void Library::SetLoaded() const {
   // Should not be already loaded or just allocated.
   ASSERT(LoadInProgress() || LoadRequested());
-  raw_ptr()->load_state_ = RawLibrary::kLoaded;
+  StoreNonPointer(&raw_ptr()->load_state_, RawLibrary::kLoaded);
 }
 
 
 void Library::SetLoadError(const Instance& error) const {
   // Should not be already successfully loaded or just allocated.
   ASSERT(LoadInProgress() || LoadRequested() || LoadFailed());
-  raw_ptr()->load_state_ = RawLibrary::kLoadError;
+  StoreNonPointer(&raw_ptr()->load_state_, RawLibrary::kLoadError);
   StorePointer(&raw_ptr()->load_error_, error.raw());
 }
 
@@ -9331,7 +9335,7 @@ void Library::AddAnonymousClass(const Class& cls) const {
   }
   anon_array.SetAt(num_anonymous, cls);
   num_anonymous++;
-  raw_ptr()->num_anonymous_ = num_anonymous;
+  StoreNonPointer(&raw_ptr()->num_anonymous_, num_anonymous);
 }
 
 
@@ -9437,7 +9441,7 @@ void Library::InitImportList() const {
   const Array& imports =
       Array::Handle(Array::New(kInitialImportsCapacity, Heap::kOld));
   StorePointer(&raw_ptr()->imports_, imports.raw());
-  raw_ptr()->num_imports_ = 0;
+  StoreNonPointer(&raw_ptr()->num_imports_, 0);
 }
 
 
@@ -9455,23 +9459,27 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   const Library& result = Library::Handle(Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
-  result.raw_ptr()->resolved_names_ = Object::empty_array().raw();
-  result.raw_ptr()->dictionary_ = Object::empty_array().raw();
+  result.StorePointer(&result.raw_ptr()->resolved_names_,
+                      Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->dictionary_,
+                      Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->metadata_,
                       GrowableObjectArray::New(4, Heap::kOld));
-  result.raw_ptr()->anonymous_classes_ = Object::empty_array().raw();
-  result.raw_ptr()->num_anonymous_ = 0;
-  result.raw_ptr()->imports_ = Object::empty_array().raw();
-  result.raw_ptr()->exports_ = Object::empty_array().raw();
-  result.raw_ptr()->loaded_scripts_ = Array::null();
+  result.StorePointer(&result.raw_ptr()->anonymous_classes_,
+                      Object::empty_array().raw());
+  result.StoreNonPointer(&result.raw_ptr()->num_anonymous_, 0);
+  result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
   result.raw_ptr()->load_error_ = Instance::null();
   result.set_native_entry_resolver(NULL);
   result.set_native_entry_symbol_resolver(NULL);
-  result.raw_ptr()->corelib_imported_ = true;
+  result.StoreNonPointer(&result.raw_ptr()->corelib_imported_, true);
   result.set_debuggable(false);
   result.set_is_dart_scheme(url.StartsWith(Symbols::DartScheme()));
-  result.raw_ptr()->load_state_ = RawLibrary::kAllocated;
-  result.raw_ptr()->index_ = -1;
+  result.StoreNonPointer(&result.raw_ptr()->load_state_,
+                         RawLibrary::kAllocated);
+  result.StoreNonPointer(&result.raw_ptr()->index_, -1);
   const intptr_t kInitialNameCacheSize = 64;
   result.InitResolvedNamesCache(kInitialNameCacheSize);
   result.InitClassDictionary();
@@ -9954,7 +9962,7 @@ RawClass* LibraryPrefix::LookupClass(const String& class_name) const {
 
 
 void LibraryPrefix::set_is_loaded() const {
-  raw_ptr()->is_loaded_ = true;
+  StoreNonPointer(&raw_ptr()->is_loaded_, true);
 }
 
 
@@ -10073,8 +10081,8 @@ RawLibraryPrefix* LibraryPrefix::New(const String& name,
   result.set_name(name);
   result.set_num_imports(0);
   result.set_importer(importer);
-  result.raw_ptr()->is_deferred_load_ = deferred_load;
-  result.raw_ptr()->is_loaded_ = !deferred_load;
+  result.StoreNonPointer(&result.raw_ptr()->is_deferred_load_, deferred_load);
+  result.StoreNonPointer(&result.raw_ptr()->is_loaded_, !deferred_load);
   result.set_imports(Array::Handle(Array::New(kInitialSize)));
   result.AddImport(import);
   result.set_dependent_code(Object::null_array());
@@ -10094,7 +10102,7 @@ void LibraryPrefix::set_imports(const Array& value) const {
 
 
 void LibraryPrefix::set_num_imports(intptr_t value) const {
-  raw_ptr()->num_imports_ = value;
+  StoreNonPointer(&raw_ptr()->num_imports_, value);
 }
 
 
@@ -10450,7 +10458,7 @@ intptr_t PcDescriptors::Length() const {
 
 
 void PcDescriptors::SetLength(intptr_t value) const {
-  raw_ptr()->length_ = value;
+  StoreNonPointer(&raw_ptr()->length_, value);
 }
 
 
@@ -10913,7 +10921,7 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->num_entries_ = num_variables;
+    result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_variables);
   }
   return result.raw();
 }
@@ -11012,7 +11020,7 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->num_entries_ = num_handlers;
+    result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_handlers);
   }
   const Array& handled_types_data = (num_handlers == 0) ?
       Object::empty_array() :
@@ -11222,7 +11230,7 @@ RawDeoptInfo* DeoptInfo::New(intptr_t num_commands) {
 void DeoptInfo::SetLength(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
-  raw_ptr()->length_ = Smi::New(value);
+  StoreSmi(&raw_ptr()->length_, Smi::New(value));
 }
 
 
@@ -11267,7 +11275,7 @@ void ICData::set_arguments_descriptor(const Array& value) const {
 
 void ICData::set_deopt_id(intptr_t value) const {
   ASSERT(value <= kMaxInt32);
-  raw_ptr()->deopt_id_ = value;
+  StoreNonPointer(&raw_ptr()->deopt_id_, value);
 }
 
 
@@ -11340,7 +11348,7 @@ bool ICData::MayCheckForJSWarning() const {
 
 
 void ICData::set_state_bits(uint32_t bits) const {
-  raw_ptr()->state_bits_ = bits;
+  StoreNonPointer(&raw_ptr()->state_bits_, bits);
 }
 
 
@@ -11864,7 +11872,7 @@ Code::Comments::Comments(const Array& comments)
 
 
 void Code::set_state_bits(intptr_t bits) const {
-  raw_ptr()->state_bits_ = bits;
+  StoreNonPointer(&raw_ptr()->state_bits_, bits);
 }
 
 
@@ -12644,7 +12652,7 @@ intptr_t MegamorphicCache::mask() const {
 
 
 void MegamorphicCache::set_mask(intptr_t mask) const {
-  raw_ptr()->mask_ = Smi::New(mask);
+  StoreSmi(&raw_ptr()->mask_, Smi::New(mask));
 }
 
 
@@ -12654,7 +12662,7 @@ intptr_t MegamorphicCache::filled_entry_count() const {
 
 
 void MegamorphicCache::set_filled_entry_count(intptr_t count) const {
-  raw_ptr()->filled_entry_count_ = count;
+  StoreNonPointer(&raw_ptr()->filled_entry_count_, count);
 }
 
 
@@ -12963,12 +12971,12 @@ void LanguageError::set_script(const Script& value) const {
 
 void LanguageError::set_token_pos(intptr_t value) const {
   ASSERT(value >= 0);
-  raw_ptr()->token_pos_ = value;
+  StoreNonPointer(&raw_ptr()->token_pos_, value);
 }
 
 
 void LanguageError::set_kind(uint8_t value) const {
-  raw_ptr()->kind_ = value;
+  StoreNonPointer(&raw_ptr()->kind_, value);
 }
 
 
@@ -14668,21 +14676,21 @@ RawType* Type::New(const Object& clazz,
   result.set_type_class(clazz);
   result.set_arguments(arguments);
   result.set_token_pos(token_pos);
-  result.raw_ptr()->type_state_ = RawType::kAllocated;
+  result.StoreNonPointer(&result.raw_ptr()->type_state_, RawType::kAllocated);
   return result.raw();
 }
 
 
 void Type::set_token_pos(intptr_t token_pos) const {
   ASSERT(token_pos >= 0);
-  raw_ptr()->token_pos_ = token_pos;
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
 void Type::set_type_state(int8_t state) const {
   ASSERT((state >= RawType::kAllocated) &&
          (state <= RawType::kFinalizedUninstantiated));
-  raw_ptr()->type_state_ = state;
+  StoreNonPointer(&raw_ptr()->type_state_, state);
 }
 
 
@@ -14955,7 +14963,7 @@ void TypeParameter::set_parameterized_class(const Class& value) const {
 
 void TypeParameter::set_index(intptr_t value) const {
   ASSERT(value >= 0);
-  raw_ptr()->index_ = value;
+  StoreNonPointer(&raw_ptr()->index_, value);
 }
 
 
@@ -15077,14 +15085,15 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
   result.set_name(name);
   result.set_bound(bound);
   result.set_token_pos(token_pos);
-  result.raw_ptr()->type_state_ = RawTypeParameter::kAllocated;
+  result.StoreNonPointer(&result.raw_ptr()->type_state_,
+                         RawTypeParameter::kAllocated);
   return result.raw();
 }
 
 
 void TypeParameter::set_token_pos(intptr_t token_pos) const {
   ASSERT(token_pos >= 0);
-  raw_ptr()->token_pos_ = token_pos;
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
@@ -15092,7 +15101,7 @@ void TypeParameter::set_type_state(int8_t state) const {
   ASSERT((state == RawTypeParameter::kAllocated) ||
          (state == RawTypeParameter::kBeingFinalized) ||
          (state == RawTypeParameter::kFinalizedUninstantiated));
-  raw_ptr()->type_state_ = state;
+  StoreNonPointer(&raw_ptr()->type_state_, state);
 }
 
 
@@ -15873,7 +15882,7 @@ RawClass* Smi::Class() {
 
 
 void Mint::set_value(int64_t value) const {
-  raw_ptr()->value_ = value;
+  StoreNonPointer(&raw_ptr()->value_, value);
 }
 
 
@@ -15994,7 +16003,7 @@ void Mint::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 void Double::set_value(double value) const {
-  raw_ptr()->value_ = value;
+  StoreNonPointer(&raw_ptr()->value_, value);
 }
 
 
@@ -19210,22 +19219,22 @@ void Float32x4::set_value(simd128_value_t value) const {
 
 
 void Float32x4::set_x(float value) const {
-  raw_ptr()->value_[0] = value;
+  StoreNonPointer(&raw_ptr()->value_[0], value);
 }
 
 
 void Float32x4::set_y(float value) const {
-  raw_ptr()->value_[1] = value;
+  StoreNonPointer(&raw_ptr()->value_[1], value);
 }
 
 
 void Float32x4::set_z(float value) const {
-  raw_ptr()->value_[2] = value;
+  StoreNonPointer(&raw_ptr()->value_[2], value);
 }
 
 
 void Float32x4::set_w(float value) const {
-  raw_ptr()->value_[3] = value;
+  StoreNonPointer(&raw_ptr()->value_[3], value);
 }
 
 
@@ -19305,22 +19314,22 @@ RawInt32x4* Int32x4::New(simd128_value_t value, Heap::Space space) {
 
 
 void Int32x4::set_x(int32_t value) const {
-  raw_ptr()->value_[0] = value;
+  StoreNonPointer(&raw_ptr()->value_[0], value);
 }
 
 
 void Int32x4::set_y(int32_t value) const {
-  raw_ptr()->value_[1] = value;
+  StoreNonPointer(&raw_ptr()->value_[1], value);
 }
 
 
 void Int32x4::set_z(int32_t value) const {
-  raw_ptr()->value_[2] = value;
+  StoreNonPointer(&raw_ptr()->value_[2], value);
 }
 
 
 void Int32x4::set_w(int32_t value) const {
-  raw_ptr()->value_[3] = value;
+  StoreNonPointer(&raw_ptr()->value_[3], value);
 }
 
 
@@ -19417,12 +19426,12 @@ double Float64x2::y() const {
 
 
 void Float64x2::set_x(double x) const {
-  raw_ptr()->value_[0] = x;
+  StoreNonPointer(&raw_ptr()->value_[0], x);
 }
 
 
 void Float64x2::set_y(double y) const {
-  raw_ptr()->value_[1] = y;
+  StoreNonPointer(&raw_ptr()->value_[1], y);
 }
 
 
@@ -19587,7 +19596,7 @@ RawCapability* Capability::New(uint64_t id, Heap::Space space) {
                                       space);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->id_ = id;
+    result.StoreNonPointer(&result.raw_ptr()->id_, id);
   }
   return result.raw();
 }
@@ -19616,7 +19625,7 @@ RawReceivePort* ReceivePort::New(Dart_Port id,
                                       space);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->send_port_ = send_port.raw();
+    result.StorePointer(&result.raw_ptr()->send_port_, send_port.raw());
   }
   if (is_control_port) {
     PortMap::SetPortState(id, PortMap::kControlPort);
@@ -19645,7 +19654,7 @@ RawSendPort* SendPort::New(Dart_Port id, Heap::Space space) {
                                       space);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->id_ = id;
+    result.StoreNonPointer(&result.raw_ptr()->id_, id);
   }
   return result.raw();
 }
@@ -19754,7 +19763,7 @@ void Stacktrace::set_catch_pc_offset_array(const Array& pc_offset_array) const {
 
 
 void Stacktrace::set_expand_inlined(bool value) const {
-  raw_ptr()->expand_inlined_ = value;
+  StoreNonPointer(&raw_ptr()->expand_inlined_, value);
 }
 
 
@@ -19970,7 +19979,7 @@ void JSRegExp::set_pattern(const String& pattern) const {
 
 
 void JSRegExp::set_num_bracket_expressions(intptr_t value) const {
-  raw_ptr()->num_bracket_expressions_ = Smi::New(value);
+  StoreSmi(&raw_ptr()->num_bracket_expressions_, Smi::New(value));
 }
 
 

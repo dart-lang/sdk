@@ -593,6 +593,32 @@ class Object {
     }
   }
 
+  // Use for storing into an explicitly Smi-typed field of an object
+  // (i.e., both the previous and new value are Smis).
+  void StoreSmi(RawSmi** addr, RawSmi* value) const {
+    // Can't use Contains, as array length is initialized through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(raw()));
+    *addr = value;
+  }
+
+  // Needs two template arguments to allow assigning enums to fixed-size ints.
+  template<typename FieldType, typename ValueType>
+  void StoreNonPointer(FieldType* addr, ValueType value) const {
+    // Can't use Contains, as it uses tags_, which is set through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(raw()));
+    *addr = value;
+  }
+
+  // Fail at link time if StoreNonPointer is called with an object pointer.
+#define STORE_NON_POINTER_ILLEGAL_TYPE(type)                                   \
+  template<typename ValueType>                                                 \
+  void StoreNonPointer(Raw##type** addr, ValueType value) const {              \
+    UnimplementedMethod();                                                     \
+  }
+  CLASS_LIST(STORE_NON_POINTER_ILLEGAL_TYPE);
+  void UnimplementedMethod() const;
+#undef STORE_NON_POINTER_ILLEGAL_TYPE
+
   RawObject* raw_;  // The raw object reference.
 
  protected:
@@ -771,7 +797,7 @@ class Class : public Object {
   }
   void set_instance_size_in_words(intptr_t value) const {
     ASSERT(Utils::IsAligned((value * kWordSize), kObjectAlignment));
-    raw_ptr()->instance_size_in_words_ = value;
+    StoreNonPointer(&raw_ptr()->instance_size_in_words_, value);
   }
 
   intptr_t next_field_offset() const {
@@ -787,12 +813,12 @@ class Class : public Object {
             (value == raw_ptr()->instance_size_in_words_)) ||
            (!Utils::IsAligned((value * kWordSize), kObjectAlignment) &&
             ((value + 1) == raw_ptr()->instance_size_in_words_)));
-    raw_ptr()->next_field_offset_in_words_ = value;
+    StoreNonPointer(&raw_ptr()->next_field_offset_in_words_, value);
   }
 
   cpp_vtable handle_vtable() const { return raw_ptr()->handle_vtable_; }
   void set_handle_vtable(cpp_vtable value) const {
-    raw_ptr()->handle_vtable_ = value;
+    StoreNonPointer(&raw_ptr()->handle_vtable_, value);
   }
 
   static bool is_valid_id(intptr_t value) {
@@ -801,7 +827,7 @@ class Class : public Object {
   intptr_t id() const { return raw_ptr()->id_; }
   void set_id(intptr_t value) const {
     ASSERT(is_valid_id(value));
-    raw_ptr()->id_ = value;
+    StoreNonPointer(&raw_ptr()->id_, value);
   }
 
   RawString* Name() const;
@@ -901,7 +927,7 @@ class Class : public Object {
     set_type_arguments_field_offset_in_words(value);
   }
   void set_type_arguments_field_offset_in_words(intptr_t value) const {
-    raw_ptr()->type_arguments_field_offset_in_words_ = value;
+    StoreNonPointer(&raw_ptr()->type_arguments_field_offset_in_words_, value);
   }
   static intptr_t type_arguments_field_offset_in_words_offset() {
     return OFFSET_OF(RawClass, type_arguments_field_offset_in_words_);
@@ -1135,7 +1161,7 @@ class Class : public Object {
     return raw_ptr()->num_native_fields_;
   }
   void set_num_native_fields(uint16_t value) const {
-    raw_ptr()->num_native_fields_ = value;
+    StoreNonPointer(&raw_ptr()->num_native_fields_, value);
   }
 
   RawCode* allocation_stub() const {
@@ -1804,7 +1830,7 @@ class Function : public Object {
 
   intptr_t end_token_pos() const { return raw_ptr()->end_token_pos_; }
   void set_end_token_pos(intptr_t value) const {
-    raw_ptr()->end_token_pos_ = value;
+    StoreNonPointer(&raw_ptr()->end_token_pos_, value);
   }
 
   intptr_t num_fixed_parameters() const {
@@ -1848,14 +1874,14 @@ class Function : public Object {
     return raw_ptr()->usage_counter_;
   }
   void set_usage_counter(intptr_t value) const {
-    raw_ptr()->usage_counter_ = value;
+    StoreNonPointer(&raw_ptr()->usage_counter_, value);
   }
 
   int16_t deoptimization_counter() const {
     return raw_ptr()->deoptimization_counter_;
   }
   void set_deoptimization_counter(int16_t value) const {
-    raw_ptr()->deoptimization_counter_ = value;
+    StoreNonPointer(&raw_ptr()->deoptimization_counter_, value);
   }
 
   static const intptr_t kMaxInstructionCount = (1 << 16) - 1;
@@ -1867,7 +1893,8 @@ class Function : public Object {
     if (value > kMaxInstructionCount) {
       value = kMaxInstructionCount;
     }
-    raw_ptr()->optimized_instruction_count_ = static_cast<uint16_t>(value);
+    StoreNonPointer(&raw_ptr()->optimized_instruction_count_,
+                    static_cast<uint16_t>(value));
   }
 
   intptr_t optimized_call_site_count() const {
@@ -1878,7 +1905,8 @@ class Function : public Object {
     if (value > kMaxInstructionCount) {
       value = kMaxInstructionCount;
     }
-    raw_ptr()->optimized_call_site_count_ = static_cast<uint16_t>(value);
+    StoreNonPointer(&raw_ptr()->optimized_call_site_count_,
+                    static_cast<uint16_t>(value));
   }
 
   bool IsOptimizable() const;
@@ -2349,7 +2377,7 @@ class Field : public Object {
   intptr_t guarded_cid() const { return raw_ptr()->guarded_cid_; }
 
   void set_guarded_cid(intptr_t cid) const {
-    raw_ptr()->guarded_cid_ = cid;
+    StoreNonPointer(&raw_ptr()->guarded_cid_, cid);
   }
   static intptr_t guarded_cid_offset() {
     return OFFSET_OF(RawField, guarded_cid_);
@@ -2411,7 +2439,7 @@ class Field : public Object {
     return raw_ptr()->is_nullable_ == kNullCid;
   }
   void set_is_nullable(bool val) const {
-    raw_ptr()->is_nullable_ = val ? kNullCid : kIllegalCid;
+    StoreNonPointer(&raw_ptr()->is_nullable_, val ? kNullCid : kIllegalCid);
   }
   static intptr_t is_nullable_offset() {
     return OFFSET_OF(RawField, is_nullable_);
@@ -2491,10 +2519,10 @@ class Field : public Object {
     StorePointer(&raw_ptr()->owner_, value.raw());
   }
   void set_token_pos(intptr_t token_pos) const {
-    raw_ptr()->token_pos_ = token_pos;
+    StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
   }
   void set_kind_bits(intptr_t value) const {
-    raw_ptr()->kind_bits_ = static_cast<uint8_t>(value);
+    StoreNonPointer(&raw_ptr()->kind_bits_, static_cast<uint8_t>(value));
   }
 
   static RawField* New();
@@ -2519,7 +2547,9 @@ class LiteralToken : public Object {
   static RawLiteralToken* New(Token::Kind kind, const String& literal);
 
  private:
-  void set_kind(Token::Kind kind) const { raw_ptr()->kind_ = kind; }
+  void set_kind(Token::Kind kind) const {
+    StoreNonPointer(&raw_ptr()->kind_, kind);
+  }
   void set_literal(const String& literal) const;
   void set_value(const Object& value) const;
 
@@ -2845,14 +2875,15 @@ class Library : public Object {
     return raw_ptr()->native_entry_resolver_;
   }
   void set_native_entry_resolver(Dart_NativeEntryResolver value) const {
-    raw_ptr()->native_entry_resolver_ = value;
+    StoreNonPointer(&raw_ptr()->native_entry_resolver_, value);
   }
   Dart_NativeEntrySymbol native_entry_symbol_resolver() const {
     return raw_ptr()->native_entry_symbol_resolver_;
   }
   void set_native_entry_symbol_resolver(
       Dart_NativeEntrySymbol native_symbol_resolver) const {
-    raw_ptr()->native_entry_symbol_resolver_ = native_symbol_resolver;
+    StoreNonPointer(&raw_ptr()->native_entry_symbol_resolver_,
+                    native_symbol_resolver);
   }
 
   RawError* Patch(const Script& script) const;
@@ -2861,7 +2892,7 @@ class Library : public Object {
 
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const {
-    raw_ptr()->index_ = value;
+    StoreNonPointer(&raw_ptr()->index_, value);
   }
 
   void Register() const;
@@ -2870,14 +2901,14 @@ class Library : public Object {
     return raw_ptr()->debuggable_;
   }
   void set_debuggable(bool value) const {
-    raw_ptr()->debuggable_ = value;
+    StoreNonPointer(&raw_ptr()->debuggable_, value);
   }
 
   bool is_dart_scheme() const {
     return raw_ptr()->is_dart_scheme_;
   }
   void set_is_dart_scheme(bool value) const {
-    raw_ptr()->is_dart_scheme_ = value;
+    StoreNonPointer(&raw_ptr()->is_dart_scheme_, value);
   }
 
   bool IsCoreLibrary() const {
@@ -2938,7 +2969,7 @@ class Library : public Object {
   static RawLibrary* New();
 
   void set_num_imports(intptr_t value) const {
-    raw_ptr()->num_imports_ = value;
+    StoreNonPointer(&raw_ptr()->num_imports_, value);
   }
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
@@ -3060,10 +3091,10 @@ class Instructions : public Object {
 
  private:
   void set_size(intptr_t size) const {
-    raw_ptr()->size_ = size;
+    StoreNonPointer(&raw_ptr()->size_, size);
   }
   void set_code(RawCode* code) const {
-    raw_ptr()->code_ = code;
+    StorePointer(&raw_ptr()->code_, code);
   }
   void set_object_pool(RawArray* object_pool) const {
     StorePointer(&raw_ptr()->object_pool_, object_pool);
@@ -3275,13 +3306,13 @@ class Stackmap : public Object {
   uint32_t PcOffset() const { return raw_ptr()->pc_offset_; }
   void SetPcOffset(uint32_t value) const {
     ASSERT(value <= kMaxUint32);
-    raw_ptr()->pc_offset_ = value;
+    StoreNonPointer(&raw_ptr()->pc_offset_, value);
   }
 
   intptr_t RegisterBitCount() const { return raw_ptr()->register_bit_count_; }
   void SetRegisterBitCount(intptr_t register_bit_count) const {
     ASSERT(register_bit_count < kMaxInt32);
-    raw_ptr()->register_bit_count_ = register_bit_count;
+    StoreNonPointer(&raw_ptr()->register_bit_count_, register_bit_count);
   }
 
   static const intptr_t kMaxLengthInBytes = kSmiMax;
@@ -3302,7 +3333,9 @@ class Stackmap : public Object {
                           intptr_t register_bit_count);
 
  private:
-  void SetLength(intptr_t length) const { raw_ptr()->length_ = length; }
+  void SetLength(intptr_t length) const {
+      StoreNonPointer(&raw_ptr()->length_, length);
+  }
 
   bool InRange(intptr_t index) const { return index < Length(); }
 
@@ -3951,13 +3984,13 @@ class Code : public Object {
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
   void set_compile_timestamp(int64_t timestamp) const {
-    raw_ptr()->compile_timestamp_ = timestamp;
+    StoreNonPointer(&raw_ptr()->compile_timestamp_, timestamp);
   }
 
   void set_instructions(RawInstructions* instructions) {
     // RawInstructions are never allocated in New space and hence a
     // store buffer update is not needed here.
-    raw_ptr()->instructions_ = instructions;
+    StorePointer(&raw_ptr()->instructions_, instructions);
   }
 
   void set_pointer_offsets_length(intptr_t value) {
@@ -4045,11 +4078,11 @@ class Context : public Object {
   }
 
   void set_isolate(Isolate* isolate) const {
-    raw_ptr()->isolate_ = isolate;
+    StoreNonPointer(&raw_ptr()->isolate_, isolate);
   }
 
   void set_num_variables(intptr_t num_variables) const {
-    raw_ptr()->num_variables_ = num_variables;
+    StoreNonPointer(&raw_ptr()->num_variables_, num_variables);
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Context, Object);
@@ -4114,7 +4147,7 @@ class ContextScope : public Object {
 
  private:
   void set_num_variables(intptr_t num_variables) const {
-    raw_ptr()->num_variables_ = num_variables;
+    StoreNonPointer(&raw_ptr()->num_variables_, num_variables);
   }
 
   RawContextScope::VariableDesc* VariableDescAddr(intptr_t index) const {
@@ -5734,13 +5767,13 @@ class String : public Instance {
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
-    raw_ptr()->length_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
   void SetHash(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
-    raw_ptr()->hash_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->hash_, Smi::New(value));
   }
 
   template<typename HandleType, typename ElementType, typename CallbackType>
@@ -6050,7 +6083,7 @@ class ExternalOneByteString : public AllStatic {
                               ExternalStringData<uint8_t>* data) {
     ASSERT(str.IsExternalOneByteString());
     NoGCScope no_gc;
-    raw_ptr(str)->external_data_ = data;
+    str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
   }
 
   static void Finalize(void* isolate_callback_data,
@@ -6123,7 +6156,7 @@ class ExternalTwoByteString : public AllStatic {
                               ExternalStringData<uint16_t>* data) {
     ASSERT(str.IsExternalTwoByteString());
     NoGCScope no_gc;
-    raw_ptr(str)->external_data_ = data;
+    str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
   }
 
   static void Finalize(void* isolate_callback_data,
@@ -6170,7 +6203,9 @@ class Bool : public Instance {
   }
 
  private:
-  void set_value(bool value) const { raw_ptr()->value_ = value; }
+  void set_value(bool value) const {
+    StoreNonPointer(&raw_ptr()->value_, value);
+  }
 
   // New should only be called to initialize the two legal bool values.
   static RawBool* New(bool value);
@@ -6284,7 +6319,7 @@ class Array : public Instance {
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
-    raw_ptr()->length_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
@@ -6342,7 +6377,7 @@ class GrowableObjectArray : public Instance {
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
-    raw_ptr()->length_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
   RawArray* data() const { return raw_ptr()->data_; }
@@ -6741,7 +6776,7 @@ class TypedData : public Instance {
 
  protected:
   void SetLength(intptr_t value) const {
-    raw_ptr()->length_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
  private:
@@ -6849,11 +6884,11 @@ class ExternalTypedData : public Instance {
 
  protected:
   void SetLength(intptr_t value) const {
-    raw_ptr()->length_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
   void SetData(uint8_t* data) const {
-    raw_ptr()->data_ = data;
+    StoreNonPointer(&raw_ptr()->data_, data);
   }
 
  private:
@@ -7201,10 +7236,12 @@ class JSRegExp : public Instance {
 
  private:
   void set_type(RegExType type) const {
-    raw_ptr()->type_flags_ = TypeBits::update(type, raw_ptr()->type_flags_);
+    StoreNonPointer(&raw_ptr()->type_flags_,
+                    TypeBits::update(type, raw_ptr()->type_flags_));
   }
   void set_flags(intptr_t value) const {
-    raw_ptr()->type_flags_ = FlagsBits::update(value, raw_ptr()->type_flags_);
+    StoreNonPointer(&raw_ptr()->type_flags_,
+                    FlagsBits::update(value, raw_ptr()->type_flags_));
   }
 
   RegExType type() const {
@@ -7217,7 +7254,7 @@ class JSRegExp : public Instance {
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
-    raw_ptr()->data_length_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->data_length_, Smi::New(value));
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(JSRegExp, Instance);
@@ -7301,7 +7338,7 @@ class UserTag : public Instance {
   void set_tag(uword t) const {
     ASSERT(t >= UserTags::kUserTagIdOffset);
     ASSERT(t < UserTags::kUserTagIdOffset + UserTags::kMaxUserTags);
-    raw_ptr()->tag_ = t;
+    StoreNonPointer(&raw_ptr()->tag_, t);
   }
   static intptr_t tag_offset() { return OFFSET_OF(RawUserTag, tag_); }
 
@@ -7383,7 +7420,8 @@ intptr_t Field::Offset() const {
 void Field::SetOffset(intptr_t value_in_bytes) const {
   ASSERT(!is_static());  // SetOffset is valid only for instance fields.
   ASSERT(kWordSize != 0);
-  raw_ptr()->value_ = Smi::New(value_in_bytes / kWordSize);
+  StorePointer(&raw_ptr()->value_,
+               static_cast<RawInstance*>(Smi::New(value_in_bytes / kWordSize)));
 }
 
 
