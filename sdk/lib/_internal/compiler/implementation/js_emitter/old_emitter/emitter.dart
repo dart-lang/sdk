@@ -1422,7 +1422,7 @@ class OldEmitter implements Emitter {
               builder.toObjectInitializer();
             compiler.dumpInfoTask.registerElementAst(builder.element,
                                                      initializer);
-            getElementDescriptorForOutputUnit(library, mainOutputUnit)
+            getElementDescriptor(library)
                 .properties.addAll(initializer.properties);
           }
         }
@@ -1445,7 +1445,7 @@ class OldEmitter implements Emitter {
         jsAst.Node declaration = new jsAst.ObjectInitializer([descriptor]);
         String mangledName = namer.getNameX(typedef);
         String reflectionName = getReflectionName(typedef, mangledName);
-        getElementDescriptorForOutputUnit(library, mainUnit)
+        getElementDescriptor(library)
             ..addProperty(mangledName, declaration)
             ..addProperty("+$reflectionName", js.string(''));
         // Also emit a trivial constructor for CSP mode.
@@ -1707,7 +1707,7 @@ class OldEmitter implements Emitter {
 
   ClassBuilder getElementDescriptor(Element element) {
     Element owner = element.library;
-    if (!element.isTopLevel && !element.isNative) {
+    if (!element.isLibrary && !element.isTopLevel && !element.isNative) {
       // For static (not top level) elements, record their code in a buffer
       // specific to the class. For now, not supported for native classes and
       // native elements.
