@@ -2622,6 +2622,21 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
 }
 
 
+LocationSummary* CurrentContextInstr::MakeLocationSummary(Isolate* isolate,
+                                                          bool opt) const {
+  return LocationSummary::Make(isolate,
+                               0,
+                               Location::RegisterLocation(CTX),
+                               LocationSummary::kNoCall);
+}
+
+
+void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // No code to emit. Just assert the correct result register.
+  ASSERT(locs()->out(0).reg() == CTX);
+}
+
+
 LocationSummary* StoreContextInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool optimizing) const {
   const intptr_t kNumInputs = 1;
@@ -2630,6 +2645,12 @@ LocationSummary* StoreContextInstr::MakeLocationSummary(Isolate* isolate,
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RegisterLocation(CTX));
   return summary;
+}
+
+
+void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Nothing to do.  Context register was loaded by the register allocator.
+  ASSERT(locs()->in(0).reg() == CTX);
 }
 
 
@@ -2667,12 +2688,6 @@ void DropTempsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Assert that register assignment is correct.
   ASSERT((InputCount() == 0) || (locs()->out(0).reg() == locs()->in(0).reg()));
   __ Drop(num_temps());
-}
-
-
-void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Nothing to do.  Context register was loaded by the register allocator.
-  ASSERT(locs()->in(0).reg() == CTX);
 }
 
 

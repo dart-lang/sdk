@@ -6524,20 +6524,6 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* CurrentContextInstr::MakeLocationSummary(Isolate* isolate,
-                                                          bool opt) const {
-  return LocationSummary::Make(isolate,
-                               0,
-                               Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-
-void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ MoveRegister(locs()->out(0).reg(), CTX);
-}
-
-
 LocationSummary* StrictCompareInstr::MakeLocationSummary(Isolate* isolate,
                                                          bool opt) const {
   const intptr_t kNumInputs = 2;
