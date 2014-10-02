@@ -688,7 +688,7 @@ ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
 
 ASSEMBLER_TEST_RUN(Semaphore, test) {
   EXPECT(test != NULL);
-  typedef int (*Semaphore)();
+  typedef int (*Semaphore)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Semaphore, test->entry()));
 }
 
@@ -713,7 +713,7 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
 
 ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
   EXPECT(test != NULL);
-  typedef int (*FailedSemaphore)();
+  typedef int (*FailedSemaphore)() DART_UNUSED;
   EXPECT_EQ(41, EXECUTE_TEST_CODE_INT32(FailedSemaphore, test->entry()));
 }
 
