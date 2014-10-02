@@ -5,6 +5,7 @@
 library services.src.refactoring.sort_members;
 
 import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/services/correction/diff.dart';
 import 'package:analyzer/src/generated/ast.dart';
 
 
@@ -65,8 +66,13 @@ class MemberSorter {
     // prepare edits
     List<SourceEdit> edits = <SourceEdit>[];
     if (code != initialCode) {
-      // TODO(scheglov) compute diff instead of full replacement
-      SourceEdit edit = new SourceEdit(0, initialCode.length, code);
+      // TODO(scheglov) use better diff algorithm
+      int commonPrefix = findCommonPrefix(initialCode, code);
+      int commonSuffix = findCommonSuffix(initialCode, code);
+      SourceEdit edit = new SourceEdit(
+          commonPrefix,
+          initialCode.length - commonSuffix - commonPrefix,
+          code.substring(commonPrefix, code.length - commonSuffix));
       edits.add(edit);
     }
     return edits;

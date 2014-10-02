@@ -8,6 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'assist_test.dart' as assist_test;
 import 'change_test.dart' as change_test;
+import 'diff_test.dart' as diff_test;
 import 'fix_test.dart' as fix_test;
 import 'levenshtein_test.dart' as levenshtein_test;
 import 'name_suggestion_test.dart' as name_suggestion_test;
@@ -22,6 +23,7 @@ main() {
   group('correction', () {
     assist_test.main();
     change_test.main();
+    diff_test.main();
     fix_test.main();
     levenshtein_test.main();
     name_suggestion_test.main();
