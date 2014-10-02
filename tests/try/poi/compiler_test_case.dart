@@ -27,11 +27,13 @@ import 'package:compiler/implementation/elements/elements.dart' show
 export 'package:compiler/implementation/elements/elements.dart' show
     LibraryElement;
 
+const String CONSTANT_CLASS = 'class Constant { const Constant(); }';
+
 const String SCHEME = 'org.trydart.compiler-test-case';
 
 Uri customUri(String path) => Uri.parse('$SCHEME://$path');
 
-Future runTests(List<CompilerTest> tests) {
+Future runTests(List<CompilerTestCase> tests) {
   asyncTest(() => Future.forEach(tests, runTest));
 }
 

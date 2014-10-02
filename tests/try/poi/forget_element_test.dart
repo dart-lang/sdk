@@ -6,25 +6,44 @@
 library trydart.forget_element_test;
 
 import 'package:compiler/implementation/elements/elements.dart' show
+    AstElement,
+    Element,
+    FunctionElement,
     LocalFunctionElement,
-    MetadataAnnotation;
+    MetadataAnnotation,
+    ScopeContainerElement;
 
 import 'package:compiler/implementation/js_backend/js_backend.dart' show
     JavaScriptBackend;
 
+import 'package:compiler/implementation/tree/tree.dart' as tree;
+
+import 'package:compiler/implementation/scanner/scannerlib.dart' show
+    PartialMetadataAnnotation;
+
+import 'package:compiler/implementation/elements/visitor.dart' show
+    ElementVisitor;
+
 import 'compiler_test_case.dart';
+
+import 'forget_element_assertion.dart' show
+    assertUnimplementedLocalMetadata;
 
 class ForgetElementTestCase extends CompilerTestCase {
   final int expectedClosureCount;
 
   final int expectedMetadataCount;
 
+  final int expectedConstantCount;
+
   ForgetElementTestCase(
       String source,
       {int closureCount: 0,
-       int metadataCount: 0})
+       int metadataCount: 0,
+       int constantCount: 0})
       : this.expectedClosureCount = closureCount,
         this.expectedMetadataCount = metadataCount,
+        this.expectedConstantCount = constantCount,
         super(source);
 
   Future run() => compile().then((LibraryElement library) {
@@ -40,6 +59,11 @@ class ForgetElementTestCase extends CompilerTestCase {
         expectedMetadataCount, metadataInLibrary(library).length,
         'metadata count');
 
+    Expect.equals(
+        expectedConstantCount + expectedMetadataCount,
+        constantsIn(library).length,
+        'constant count');
+
     // Forget about all elements.
     library.forEachLocalMember(compiler.forgetElement);
 
@@ -48,6 +72,9 @@ class ForgetElementTestCase extends CompilerTestCase {
 
     // Check that the metadata annotations were forgotten.
     Expect.isTrue(metadataInLibrary(library).isEmpty, 'metadata');
+
+    // Check that the constants were forgotten.
+    Expect.isTrue(constantsIn(library).isEmpty, 'constants');
   });
 
   Iterable closuresInLibrary(LibraryElement library) {
@@ -62,39 +89,147 @@ class ForgetElementTestCase extends CompilerTestCase {
           return metadata.annotatedElement.library == library;
         });
   }
+
+  Iterable<tree.Node> nodesIn(LibraryElement library) {
+    NodeCollector collector = new NodeCollector();
+    library.forEachLocalMember((e) {
+      if (e is AstElement && e.hasNode) {
+        e.node.accept(collector);
+      }
+
+      // Due to quirks of history, only parameter metadata is recorded in AST
+      // nodes, so they must be extracted from the elements.
+      for (MetadataAnnotation metadata in e.metadata) {
+        if (metadata is PartialMetadataAnnotation) {
+          if (metadata.cachedNode != null) {
+            metadata.cachedNode.accept(collector);
+          }
+        }
+      }
+    });
+
+    List<MetadataAnnotation> metadata =
+        (new MetadataCollector()..visit(library)).metadata;
+    return collector.nodes;
+  }
+
+  Iterable constantsIn(LibraryElement library) {
+    JavaScriptBackend backend = compiler.backend;
+    return nodesIn(library)
+        .map((node) => backend.constants.nodeConstantMap[node])
+        .where((constant) => constant != null);
+  }
 }
 
-const String CONSTANT_CLASS = 'class Constant { const Constant(); }';
+class NodeCollector extends tree.Visitor {
+  final List<tree.Node> nodes = <tree.Node>[];
+
+  void visitNode(tree.Node node) {
+    nodes.add(node);
+    node.visitChildren(this);
+  }
+}
+
+class MetadataCollector extends ElementVisitor {
+  final List<MetadataAnnotation> metadata = <MetadataAnnotation>[];
+
+  void visitElement(Element e) {
+    metadata.addAll(e.metadata.toList());
+  }
+
+  void visitScopeContainerElement(ScopeContainerElement e) {
+    super.visitScopeContainerElement(e);
+    e.forEachLocalMember(this.visit);
+  }
+
+  void visitFunctionElement(FunctionElement e) {
+    super.visitFunctionElement(e);
+    if (e.hasFunctionSignature) {
+      e.functionSignature.forEachParameter(this.visit);
+    }
+  }
+}
 
 void main() {
-  runTests(
-      [
-          new ForgetElementTestCase(
-              'main() {}'),
-
-          new ForgetElementTestCase(
-              'main() => null;'),
-
-          new ForgetElementTestCase(
-              'main() => (() => null)();',
-              closureCount: 1),
-
-          new ForgetElementTestCase(
-              'main() => (() => (() => null)())();',
-              closureCount: 2),
-
-          new ForgetElementTestCase(
-              'main() => (() => (() => (() => null)())())();',
-              closureCount: 3),
-
-          new ForgetElementTestCase(
-              '@Constant() main() => null; $CONSTANT_CLASS',
-              metadataCount: 1),
-
-          new ForgetElementTestCase(
-              'main() => ((@Constant() x) => x)(null); $CONSTANT_CLASS',
-              closureCount: 1,
-              metadataCount: 1),
-      ]
-  );
+  runTests(tests);
 }
+
+List<CompilerTestCase> get tests => <CompilerTestCase>[
+
+    // Edge case: empty body.
+    new ForgetElementTestCase(
+        'main() {}'),
+
+    // Edge case: simple arrow function.
+    new ForgetElementTestCase(
+        'main() => null;'),
+
+    // Test that a local closure is discarded correctly.
+    new ForgetElementTestCase(
+        'main() => (() => null)();',
+        closureCount: 1),
+
+    // Test that nested closures are discarded correctly.
+    new ForgetElementTestCase(
+        'main() => (() => (() => null)())();',
+        closureCount: 2),
+
+    // Test that nested closures are discarded correctly.
+    new ForgetElementTestCase(
+        'main() => (() => (() => (() => null)())())();',
+        closureCount: 3),
+
+    // Test that metadata on top-level function is discarded correctly.
+    new ForgetElementTestCase(
+        '@Constant() main() => null; $CONSTANT_CLASS',
+        metadataCount: 1),
+
+    // Test that metadata on top-level variable is discarded correctly.
+    new ForgetElementTestCase(
+        '@Constant() var x; main() => x; $CONSTANT_CLASS',
+        metadataCount: 1),
+
+    // Test that metadata on parameter on a local function is discarded
+    // correctly.
+    new ForgetElementTestCase(
+        'main() => ((@Constant() x) => x)(null); $CONSTANT_CLASS',
+        closureCount: 1,
+        metadataCount: 1),
+
+    // Test that a constant in a top-level method body is discarded
+    // correctly.
+    new ForgetElementTestCase(
+        'main() => const Constant(); $CONSTANT_CLASS',
+        constantCount: 1),
+
+    // Test that a constant in a nested function body is discarded
+    // correctly.
+    new ForgetElementTestCase(
+        'main() => (() => const Constant())(); $CONSTANT_CLASS',
+        constantCount: 1,
+        closureCount: 1),
+
+    // Test that a constant in a nested function body is discarded
+    // correctly.
+    new ForgetElementTestCase(
+        'main() => (() => (() => const Constant())())(); $CONSTANT_CLASS',
+        constantCount: 1,
+        closureCount: 2),
+
+    // Test that a constant in a top-level variable initializer is
+    // discarded correctly.
+    new ForgetElementTestCase(
+        'main() => x; var x = const Constant(); $CONSTANT_CLASS',
+        constantCount: 1),
+
+    // Test that a constant in a parameter initializer is discarded
+    // correctly.
+    // TODO(ahe): Get this test to work. Currently fails with "Assertion
+    // failure: Node has not been computed for
+    // function(closureFromTearOff).".
+    /*
+    new ForgetElementTestCase(
+        'main([x = const Constant()]) => x; $CONSTANT_CLASS',
+        constantCount: 1),
+    */
+]..addAll(assertUnimplementedLocalMetadata());

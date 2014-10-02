@@ -2665,6 +2665,10 @@ class ParameterMetadataAnnotation extends MetadataAnnotationX {
   Token get beginToken => metadata.getBeginToken();
 
   Token get endToken => metadata.getEndToken();
+
+  bool get hasNode => true;
+
+  Metadata get node => metadata;
 }
 
 /// Mixin for the implementation of patched elements.

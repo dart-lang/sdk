@@ -2377,6 +2377,13 @@ class PartialMetadataAnnotation extends MetadataAnnotationX {
     cachedNode = metadata.expression;
     return cachedNode;
   }
+
+  bool get hasNode => cachedNode != null;
+
+  Node get node {
+    assert(invariant(this, hasNode));
+    return cachedNode;
+  }
 }
 
 Node parse(DiagnosticListener diagnosticListener,

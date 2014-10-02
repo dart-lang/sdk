@@ -212,18 +212,24 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   }
 
   void forgetElement(Element element) {
-    element.accept(new ForgetConstantVisitor(this));
+    element.accept(new ForgetConstantElementVisitor(this));
+    if (element is AstElement && element.hasNode) {
+      element.node.accept(new ForgetConstantNodeVisitor(this));
+    }
   }
 }
 
-class ForgetConstantVisitor extends ElementVisitor {
+class ForgetConstantElementVisitor extends ElementVisitor {
   final JavaScriptConstantCompiler constants;
 
-  ForgetConstantVisitor(this.constants);
+  ForgetConstantElementVisitor(this.constants);
 
   void visitElement(Element e) {
     for (MetadataAnnotation data in e.metadata) {
       constants.metadataConstantMap.remove(data);
+      if (data.hasNode) {
+        data.node.accept(new ForgetConstantNodeVisitor(constants));
+      }
     }
   }
 
@@ -232,5 +238,16 @@ class ForgetConstantVisitor extends ElementVisitor {
     if (e.hasFunctionSignature) {
       e.functionSignature.forEachParameter(this.visit);
     }
+  }
+}
+
+class ForgetConstantNodeVisitor extends Visitor {
+  final JavaScriptConstantCompiler constants;
+
+  ForgetConstantNodeVisitor(this.constants);
+
+  void visitNode(Node node) {
+    node.visitChildren(this);
+    constants.nodeConstantMap.remove(node);
   }
 }

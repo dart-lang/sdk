@@ -1436,6 +1436,9 @@ abstract class MetadataAnnotation implements Spannable {
   Token get beginToken;
   Token get endToken;
 
+  bool get hasNode;
+  Node get node;
+
   MetadataAnnotation ensureResolved(Compiler compiler);
 }
 
