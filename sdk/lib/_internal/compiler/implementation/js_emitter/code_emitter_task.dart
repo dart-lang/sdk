@@ -60,6 +60,10 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.constantReference(value);
   }
 
+  void registerReadTypeVariable(TypeVariableElement element) {
+    readTypeVariables.add(element);
+  }
+
   Set<ClassElement> interceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
     JavaScriptConstantCompiler handler = backend.constants;
@@ -265,10 +269,6 @@ class CodeEmitterTask extends CompilerTask {
 
       emitter.emitProgram();
     });
-  }
-
-  void registerReadTypeVariable(TypeVariableElement element) {
-    readTypeVariables.add(element);
   }
 }
 
