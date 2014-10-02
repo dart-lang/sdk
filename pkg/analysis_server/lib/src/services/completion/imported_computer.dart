@@ -6,7 +6,8 @@ library services.completion.computer.dart.toplevel;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' as protocol show Element, ElementKind;
+import 'package:analysis_server/src/protocol.dart' as protocol show Element,
+    ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
@@ -45,10 +46,30 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   _ImportedVisitor(this.request);
 
   @override
-  Future<bool> visitCombinator(Combinator node) {
-    NamespaceDirective directive =
-        node.getAncestor((parent) => parent is NamespaceDirective);
-    if (directive != null) {
+  Future<bool> visitBlock(Block node) {
+    return _addImportedElementSuggestions();
+  }
+
+  @override
+  Future<bool> visitNode(AstNode node) {
+    return new Future.value(false);
+  }
+
+  @override
+  Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
+    AstNode parent = node.parent;
+    if (parent is Combinator) {
+      return _addCombinatorSuggestions(parent);
+    }
+    if (parent is ExpressionStatement) {
+      return _addImportedElementSuggestions();
+    }
+    return new Future.value(false);
+  }
+
+  Future _addCombinatorSuggestions(Combinator node) {
+    var directive = node.getAncestor((parent) => parent is NamespaceDirective);
+    if (directive is NamespaceDirective) {
       LibraryElement library = directive.uriElement;
       LibraryElementSuggestionBuilder.suggestionsFor(request, library);
       return new Future.value(true);
@@ -56,41 +77,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     return new Future.value(false);
   }
 
-  @override
-  Future<bool> visitExpressionStatement(ExpressionStatement node) {
-    Expression expression = node.expression;
-    if (expression is SimpleIdentifier) {
-      if (expression.end < request.offset) {
-        // Don't suggest imported elements for local var name
-        return new Future.value(false);
-      }
-    }
-    return visitNode(node);
-  }
-
-  @override
-  Future<bool> visitNode(AstNode node) {
-    return _addImportedElements();
-  }
-
-  @override
-  Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
-    return node.parent.accept(this);
-  }
-
-  @override
-  Future<bool> visitVariableDeclaration(VariableDeclaration node) {
-    // Do not add suggestions if editing the name in a var declaration
-    SimpleIdentifier name = node.name;
-    if (name == null ||
-        name.offset < request.offset ||
-        request.offset > name.end) {
-      return visitNode(node);
-    }
-    return new Future.value(false);
-  }
-
-  Future<bool> _addImportedElements() {
+  Future<bool> _addImportedElementSuggestions() {
     var future = request.searchEngine.searchTopLevelDeclarations('');
     return future.then((List<SearchMatch> matches) {
 
