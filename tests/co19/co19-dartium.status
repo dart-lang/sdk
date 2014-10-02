@@ -17,12 +17,15 @@ LibTest/html/Window/document_A01_t01: RuntimeError # Issue 20146
 LibTest/html/Window/postMessage_A01_t02: RuntimeError # Issue 20146
 LibTest/html/Window/moveBy_A01_t01: RuntimeError # Issue 20146
 LayoutTests/fast/dom: Skip # Unknown tests are breaking the test infrastructure. Issue 18558
+LayoutTests/fast/css-generated-content/malformed-url_t01.dart: Skip # Breaks the test infrastructure. Issue 18558.
+LayoutTests/fast/css-generated-content/bug91547_t01.dart: Skip # Breaks the test infrastructure. Issue 18558.
 LayoutTests/fast/dom/HTMLButtonElement/change-type_t01: Skip # Breaks the test infrastructure. Issue 18558
 LayoutTests/fast/dom/shadow/form-in-shadow_t01: Skip # Breaks the test infrastructure. Issue 18558.
 # Only one of the next two causes the problem - not sure which.
 LayoutTests/fast/dom/Range/create-contextual-fragment-script-not-ran_t01: Skip # Breaks the test infrastructure. Issue 18558.
 LayoutTests/fast/dom/Range/bug-19527_t01: Skip # Breaks the test infrastructure. Issue 18558.
 LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: Skip # Breaks the test infrastructure. Issue 18558.
+LayoutTests/fast/filesystem/file-after-reload-crash_t01.dart: Skip # Breaks the test infrastructure. Issue 18558.
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Pass, Fail # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Skip # Issue 13719: Please triage this failure.
@@ -592,7 +595,9 @@ WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # 
 
 # co19-roll r786
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-generated-content/malformed-url_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/css-generated-content/pseudo-animation_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-generated-content/pseudo-element-events_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-generated-content/pseudo-transition-event_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-generated-content/pseudo-transition_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -640,7 +645,7 @@ LayoutTests/fast/css-grid-layout/place-cell-by-index_t01: RuntimeError # co19-ro
 LayoutTests/fast/css/style-scoped/style-scoped-nested_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css/style-scoped/style-scoped-with-dom-operation_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css/style-scoped/style-scoped-with-important-rule_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/css3-text/css3-text-align-last/getComputedStyle/getComputedStyle-text-align-last-inherited_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/css3-text/css3-text-align-last/getComputedStyle/getComputedStyle-text-align-last-inherited_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css3-text/css3-text-align-last/getComputedStyle/getComputedStyle-text-align-last_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-color_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-line_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -648,7 +653,7 @@ LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyl
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-underline-position_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent-inherited_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/css3-text/css3-text-justify/getComputedStyle/getComputedStyle-text-justify_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/css3-text/css3-text-justify/getComputedStyle/getComputedStyle-text-justify_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/dynamic/crash-generated-counter_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/dynamic/crash-generated-image_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/dynamic/crash-generated-quote_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -814,7 +819,7 @@ LayoutTests/fast/css-intrinsic-dimensions/multicol_t01: RuntimeError # co19-roll
 LayoutTests/fast/css-intrinsic-dimensions/tables_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-intrinsic-dimensions/width-shrinks-avoid-floats_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/file-writer-abort_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/filesystem/file-writer-events_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/filesystem/file-writer-events_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/op-copy_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/op-get-entry_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/filesystem/op-get-metadata_t01: RuntimeError # co19-roll r786: Please triage this failure.
