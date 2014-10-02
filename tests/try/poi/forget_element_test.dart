@@ -25,6 +25,9 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
 import 'package:compiler/implementation/elements/visitor.dart' show
     ElementVisitor;
 
+import 'package:compiler/implementation/dart2jslib.dart' show
+    DartConstantCompiler;
+
 import 'compiler_test_case.dart';
 
 import 'forget_element_assertion.dart' show
@@ -39,16 +42,24 @@ class ForgetElementTestCase extends CompilerTestCase {
 
   final int expectedInitialValueCount;
 
+  final int expectedInitialDartValueCount;
+
   ForgetElementTestCase(
       String source,
       {int closureCount: 0,
        int metadataCount: 0,
        int constantCount: 0,
-       int initialValueCount: 0})
+       int initialValueCount: 0,
+       int initialDartValueCount: null})
       : this.expectedClosureCount = closureCount,
         this.expectedMetadataCount = metadataCount,
         this.expectedConstantCount = constantCount,
         this.expectedInitialValueCount = initialValueCount,
+        // Sometimes these numbers aren't the same. Appears to happen with
+        // non-const fields, because those aren't compile-time constants in the
+        // strict language specification sense.
+        this.expectedInitialDartValueCount = (initialDartValueCount == null)
+            ? initialValueCount : initialDartValueCount,
         super(source);
 
   Future run() => compile().then((LibraryElement library) {
@@ -75,8 +86,12 @@ class ForgetElementTestCase extends CompilerTestCase {
     // values.
     Expect.equals(
         expectedInitialValueCount,
-        elementsWithInitialValuesIn(library).length,
-        'number of fields with initial values');
+        elementsWithJsInitialValuesIn(library).length,
+        'number of fields with initial values (JS)');
+    Expect.equals(
+        expectedInitialDartValueCount,
+        elementsWithDartInitialValuesIn(library).length,
+        'number of fields with initial values (Dart)');
 
     // Forget about all elements.
     library.forEachLocalMember(compiler.forgetElement);
@@ -92,8 +107,11 @@ class ForgetElementTestCase extends CompilerTestCase {
 
     // Check that initial values were forgotten.
     Expect.isTrue(
-        elementsWithInitialValuesIn(library).isEmpty,
-        'fields with initial values');
+        elementsWithJsInitialValuesIn(library).isEmpty,
+        'fields with initial values (JS)');
+    Expect.isTrue(
+        elementsWithDartInitialValuesIn(library).isEmpty,
+        'fields with initial values (Dart)');
   });
 
   Iterable closuresInLibrary(LibraryElement library) {
@@ -139,11 +157,20 @@ class ForgetElementTestCase extends CompilerTestCase {
         .where((constant) => constant != null);
   }
 
-  Iterable elementsWithInitialValuesIn(LibraryElement library) {
+  Iterable elementsWithJsInitialValuesIn(LibraryElement library) {
     JavaScriptBackend backend = compiler.backend;
     return backend.constants.initialVariableValues.keys.where(
         (VariableElement element) => element.library == library);
   }
+
+  Iterable elementsWithDartInitialValuesIn(LibraryElement library) {
+    JavaScriptBackend backend = compiler.backend;
+    DartConstantCompiler dartConstants =
+        backend.constantCompilerTask.dartConstantCompiler;
+    return dartConstants.initialVariableValues.keys.where(
+        (VariableElement element) => element.library == library);
+  }
+
 }
 
 class NodeCollector extends tree.Visitor {
@@ -213,7 +240,8 @@ List<CompilerTestCase> get tests => <CompilerTestCase>[
     new ForgetElementTestCase(
         '@Constant() var x; main() => x; $CONSTANT_CLASS',
         metadataCount: 1,
-        initialValueCount: 1),
+        initialValueCount: 1,
+        initialDartValueCount: 0),
 
     // Test that metadata on parameter on a local function is discarded
     // correctly.
@@ -247,7 +275,8 @@ List<CompilerTestCase> get tests => <CompilerTestCase>[
     new ForgetElementTestCase(
         'main() => x; var x = const Constant(); $CONSTANT_CLASS',
         constantCount: 1,
-        initialValueCount: 1),
+        initialValueCount: 1,
+        initialDartValueCount: 0),
 
     // Test that a constant in a parameter initializer is discarded
     // correctly.
