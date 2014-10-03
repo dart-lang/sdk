@@ -24901,3 +24901,198 @@ class VariableResolverVisitor extends ScopedVisitor {
     return null;
   }
 }
+
+/**
+ * Instances of the class {@code HtmlTagInfoBuilder} gather information about the tags used in one
+ * or more HTML structures.
+ */
+class HtmlTagInfoBuilder implements ht.XmlVisitor {
+  /**
+   * The name of the 'id' attribute.
+   */
+  static final String ID_ATTRIBUTE = "id";
+
+  /**
+   * The name of the 'class' attribute.
+   */
+  static final String ID_CLASS = "class";
+
+  /**
+   * A set containing all of the tag names used in the HTML.
+   */
+  HashSet<String> tagSet = new HashSet<String>();
+
+  /**
+   * A table mapping the id's that are defined to the tag name with that id.
+   */
+  HashMap<String, String> idMap = new HashMap<String, String>();
+
+  /**
+   * A table mapping the classes that are defined to a set of the tag names with that class.
+   */
+  HashMap<String, HashSet<String>> classMap = new HashMap<String, HashSet<String>>();
+
+  /**
+   * Initialize a newly created HTML tag info builder.
+   */
+  HtmlTagInfoBuilder();
+
+  /**
+   * Create a tag information holder holding all of the information gathered about the tags in the
+   * HTML structures that were visited.
+   *
+   * @return the information gathered about the tags in the visited HTML structures
+   */
+  HtmlTagInfo getTagInfo() {
+    List<String> allTags = tagSet.toList();
+    HashMap<String, List<String>> classToTagsMap = new HashMap<String, List<String>>();
+    classMap.forEach((String key, Set<String> tags) {
+      classToTagsMap[key] = tags.toList();
+    });
+    return new HtmlTagInfo(allTags, idMap, classToTagsMap);
+  }
+
+  @override
+  visitHtmlScriptTagNode(ht.HtmlScriptTagNode node) {
+    visitXmlTagNode(node);
+  }
+
+  @override
+  visitHtmlUnit(ht.HtmlUnit node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  visitXmlAttributeNode(ht.XmlAttributeNode node) {
+  }
+
+  @override
+  visitXmlTagNode(ht.XmlTagNode node) {
+    node.visitChildren(this);
+    String tagName = node.tag;
+    tagSet.add(tagName);
+    for (ht.XmlAttributeNode attribute in node.attributes) {
+      String attributeName = attribute.name;
+      if (attributeName == ID_ATTRIBUTE) {
+        String attributeValue = attribute.text;
+        if (attributeValue != null) {
+          String tag = idMap[attributeValue];
+          if (tag == null) {
+            idMap[attributeValue] = tagName;
+          } else {
+//            reportError(HtmlWarningCode.MULTIPLY_DEFINED_ID, valueToken);
+          }
+        }
+      } else if (attributeName == ID_CLASS) {
+        String attributeValue = attribute.text;
+        if (attributeValue != null) {
+          HashSet<String> tagList = classMap[attributeValue];
+          if (tagList == null) {
+            tagList = new HashSet<String>();
+            classMap[attributeValue] = tagList;
+          } else {
+//            reportError(HtmlWarningCode.MULTIPLY_DEFINED_ID, valueToken);
+          }
+          tagList.add(tagName);
+        }
+      }
+    }
+  }
+
+//  /**
+//   * Report an error with the given error code at the given location. Use the given arguments to
+//   * compose the error message.
+//   *
+//   * @param errorCode the error code of the error to be reported
+//   * @param offset the offset of the first character to be highlighted
+//   * @param length the number of characters to be highlighted
+//   * @param arguments the arguments used to compose the error message
+//   */
+//  private void reportError(ErrorCode errorCode, Token token, Object... arguments) {
+//    errorListener.onError(new AnalysisError(
+//        htmlElement.getSource(),
+//        token.getOffset(),
+//        token.getLength(),
+//        errorCode,
+//        arguments));
+//  }
+//
+//  /**
+//   * Report an error with the given error code at the given location. Use the given arguments to
+//   * compose the error message.
+//   *
+//   * @param errorCode the error code of the error to be reported
+//   * @param offset the offset of the first character to be highlighted
+//   * @param length the number of characters to be highlighted
+//   * @param arguments the arguments used to compose the error message
+//   */
+//  private void reportError(ErrorCode errorCode, int offset, int length, Object... arguments) {
+//    errorListener.onError(new AnalysisError(
+//        htmlElement.getSource(),
+//        offset,
+//        length,
+//        errorCode,
+//        arguments));
+//  }
+}
+
+
+/**
+ * Instances of the class {@code HtmlTagInfo} record information about the tags used in an HTML
+ * file.
+ */
+class HtmlTagInfo {
+  /**
+   * An array containing all of the tags used in the HTML file.
+   */
+  List<String> allTags;
+
+  /**
+   * A table mapping the id's defined in the HTML file to an array containing the names of tags with
+   * that identifier.
+   */
+  HashMap<String, String> idToTagMap;
+
+  /**
+   * A table mapping the classes defined in the HTML file to an array containing the names of tags
+   * with that class.
+   */
+  HashMap<String, List<String>> classToTagsMap;
+
+  /**
+   * Initialize a newly created information holder to hold the given information about the tags in
+   * an HTML file.
+   *
+   * @param allTags an array containing all of the tags used in the HTML file
+   * @param idToTagMap a table mapping the id's defined in the HTML file to an array containing the
+   *          names of tags with that identifier
+   * @param classToTagsMap a table mapping the classes defined in the HTML file to an array
+   *          containing the names of tags with that class
+   */
+  HtmlTagInfo(List<String> allTags, HashMap<String, String> idToTagMap,
+      HashMap<String, List<String>> classToTagsMap) {
+    this.allTags = allTags;
+    this.idToTagMap = idToTagMap;
+    this.classToTagsMap = classToTagsMap;
+  }
+
+  /**
+   * Return an array containing the tags that have the given class, or {@code null} if there are no
+   * such tags.
+   *
+   * @return an array containing the tags that have the given class
+   */
+  List<String> getTagsWithClass(String identifier) {
+    return classToTagsMap[identifier];
+  }
+
+  /**
+   * Return the tag that has the given identifier, or {@code null} if there is no such tag (the
+   * identifier is not defined).
+   *
+   * @return the tag that has the given identifier
+   */
+  String getTagWithId(String identifier) {
+    return idToTagMap[identifier];
+  }
+}

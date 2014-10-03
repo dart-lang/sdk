@@ -4,6 +4,8 @@ import "dart:math" as math;
 
 final Stopwatch nanoTimeStopwatch = new Stopwatch();
 
+const int LONG_MAX_VALUE = 0x7fffffffffffffff;
+
 class JavaSystem {
   static int currentTimeMillis() {
     return (new DateTime.now()).millisecondsSinceEpoch;
@@ -271,7 +273,7 @@ class StringUtils {
     return sb.toString();
   }
 
-  static List<String> split(String s, [String pattern = '']) {
+  static List<String> split(String s, [String pattern = ' ']) {
     return s.split(pattern);
   }
 

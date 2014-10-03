@@ -1965,6 +1965,7 @@ class XmlTagNode extends XmlNode {
       return content;
     }
     JavaStringBuilder buffer = new JavaStringBuilder();
+    buffer.append(content);
     while (!identical(token, contentEnd)) {
       buffer.append(token.lexeme);
       token = token.next;
