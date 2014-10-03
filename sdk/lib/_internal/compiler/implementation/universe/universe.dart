@@ -116,6 +116,18 @@ class Universe {
   void forgetElement(Element element, Compiler compiler) {
     allClosures.remove(element);
     slowDirectlyNestedClosures(element).forEach(compiler.forgetElement);
+    closurizedMembers.remove(element);
+    fieldSetters.remove(element);
+    fieldGetters.remove(element);
+    instantiatedClasses.remove(element);
+    if (element is ClassElement) {
+      assert(invariant(
+          element, element.thisType.isRaw,
+          message: 'Generic classes not supported (${element.thisType}).'));
+      instantiatedTypes
+          ..remove(element.rawType)
+          ..remove(element.thisType);
+    }
   }
 
   // TODO(ahe): Replace this method with something that is O(1), for example,

@@ -7,6 +7,7 @@ library trydart.forget_element_test;
 
 import 'package:compiler/implementation/elements/elements.dart' show
     AstElement,
+    ClassElement,
     Element,
     FunctionElement,
     LocalFunctionElement,
@@ -28,6 +29,12 @@ import 'package:compiler/implementation/elements/visitor.dart' show
 import 'package:compiler/implementation/dart2jslib.dart' show
     DartConstantCompiler;
 
+import 'package:compiler/implementation/universe/universe.dart' show
+    Universe;
+
+import 'package:compiler/implementation/dart_types.dart' show
+    DartType;
+
 import 'compiler_test_case.dart';
 
 import 'forget_element_assertion.dart' show
@@ -45,6 +52,15 @@ class ForgetElementTestCase extends CompilerTestCase {
   final int expectedInitialDartValueCount;
 
   final int additionalClosureClassMaps;
+
+  JavaScriptBackend get backend => compiler.backend;
+
+  DartConstantCompiler get dartConstants =>
+      backend.constantCompilerTask.dartConstantCompiler;
+
+  Universe get codegenUniverse => compiler.enqueuer.codegen.universe;
+
+  Universe get resolutionUniverse => compiler.enqueuer.resolution.universe;
 
   ForgetElementTestCase(
       String source,
@@ -127,6 +143,22 @@ class ForgetElementTestCase extends CompilerTestCase {
 
     // Check that closure class maps were forgotten.
     Expect.isTrue(closureClassMapsIn(library).isEmpty, 'closure class maps');
+
+    // Check that istantiated types and classes were forgotten.
+    Expect.isTrue(
+        resolutionTypesIn(library).isEmpty, 'resolution instantiatedTypes');
+    Expect.isTrue(
+        resolutionClassesIn(library).isEmpty, 'resolution instantiatedClasses');
+    Expect.isTrue(
+        codegenTypesIn(library).isEmpty, 'codegen instantiatedTypes');
+    Expect.isTrue(
+        codegenClassesIn(library).isEmpty, 'codegen instantiatedClasses');
+
+    // Check that other members remembered by [Universe] were forgotten.
+    Expect.isTrue(
+        resolutionMembersIn(library).isEmpty, 'resolution misc members');
+    Expect.isTrue(
+        codegenMembersIn(library).isEmpty, 'codegen misc members');
   });
 
   Iterable closuresInLibrary(LibraryElement library) {
@@ -135,7 +167,6 @@ class ForgetElementTestCase extends CompilerTestCase {
   }
 
   Iterable metadataInLibrary(LibraryElement library) {
-    JavaScriptBackend backend = compiler.backend;
     return backend.constants.metadataConstantMap.keys.where(
         (MetadataAnnotation metadata) {
           return metadata.annotatedElement.library == library;
@@ -166,22 +197,17 @@ class ForgetElementTestCase extends CompilerTestCase {
   }
 
   Iterable constantsIn(LibraryElement library) {
-    JavaScriptBackend backend = compiler.backend;
     return nodesIn(library)
         .map((node) => backend.constants.nodeConstantMap[node])
         .where((constant) => constant != null);
   }
 
   Iterable elementsWithJsInitialValuesIn(LibraryElement library) {
-    JavaScriptBackend backend = compiler.backend;
     return backend.constants.initialVariableValues.keys.where(
         (VariableElement element) => element.library == library);
   }
 
   Iterable elementsWithDartInitialValuesIn(LibraryElement library) {
-    JavaScriptBackend backend = compiler.backend;
-    DartConstantCompiler dartConstants =
-        backend.constantCompilerTask.dartConstantCompiler;
     return dartConstants.initialVariableValues.keys.where(
         (VariableElement element) => element.library == library);
   }
@@ -189,6 +215,42 @@ class ForgetElementTestCase extends CompilerTestCase {
   Iterable closureClassMapsIn(LibraryElement library) {
     Map cache = compiler.closureToClassMapper.closureMappingCache;
     return nodesIn(library).where((node) => cache[node] != null);
+  }
+
+  Iterable codegenTypesIn(LibraryElement library) {
+    return codegenUniverse.instantiatedTypes.where(
+        (DartType type) => type.element.library == library);
+  }
+
+  Iterable codegenClassesIn(LibraryElement library) {
+    return codegenUniverse.instantiatedClasses.where(
+        (ClassElement cls) => cls.library == library);
+  }
+
+  Iterable codegenMembersIn(LibraryElement library) {
+    sameLibrary(e) => e.library == library;
+    return new Set()
+        ..addAll(codegenUniverse.closurizedMembers.where(sameLibrary))
+        ..addAll(codegenUniverse.fieldSetters.where(sameLibrary))
+        ..addAll(codegenUniverse.fieldGetters.where(sameLibrary));
+  }
+
+  Iterable resolutionTypesIn(LibraryElement library) {
+    return resolutionUniverse.instantiatedTypes.where(
+        (DartType type) => type.element.library == library);
+  }
+
+  Iterable resolutionClassesIn(LibraryElement library) {
+    return resolutionUniverse.instantiatedClasses.where(
+        (ClassElement cls) => cls.library == library);
+  }
+
+  Iterable resolutionMembersIn(LibraryElement library) {
+    sameLibrary(e) => e.library == library;
+    return new Set()
+        ..addAll(resolutionUniverse.closurizedMembers.where(sameLibrary))
+        ..addAll(resolutionUniverse.fieldSetters.where(sameLibrary))
+        ..addAll(resolutionUniverse.fieldGetters.where(sameLibrary));
   }
 }
 

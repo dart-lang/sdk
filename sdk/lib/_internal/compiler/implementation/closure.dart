@@ -18,6 +18,9 @@ import "elements/modelx.dart"
          LocalFunctionElementX;
 import "elements/visitor.dart" show ElementVisitor;
 
+import 'universe/universe.dart' show
+    Universe;
+
 class ClosureNamer {
   String getClosureVariableName(String name, int id) {
     return "${name}_$id";
@@ -89,6 +92,16 @@ class ClosureTask extends CompilerTask {
           closure, 'Not a closure: $closure (${closure.runtimeType}).');
     }
     namer.forgetElement(cls);
+    Universe universe = compiler.enqueuer.codegen.universe;
+    universe.instantiatedTypes
+        ..remove(cls.rawType)
+        ..remove(cls.thisType);
+    universe.instantiatedClasses.remove(cls);
+    cls.forEachLocalMember((Element e) {
+      universe.closurizedMembers.remove(e);
+      universe.fieldSetters.remove(e);
+      universe.fieldGetters.remove(e);
+    });
   }
 }
 
@@ -434,6 +447,14 @@ class ClosureClassMap {
     });
     capturingScopes.values.forEach((ClosureScope scope) {
       scope.forEachCapturedVariable(f);
+    });
+  }
+
+  void removeMyselfFrom(Universe universe) {
+    _freeVariableMapping.values.forEach((e) {
+      universe.closurizedMembers.remove(e);
+      universe.fieldSetters.remove(e);
+      universe.fieldGetters.remove(e);
     });
   }
 }
