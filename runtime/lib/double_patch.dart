@@ -112,7 +112,7 @@ patch class double {
       if (negExponent >= P10.length) return null;
       return sign * (doubleValue / P10[negExponent]);
     }
-    if (exponent > P10.length) return null;
+    if (exponent >= P10.length) return null;
     return sign * (doubleValue * P10[exponent]);
   }
 

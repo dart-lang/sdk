@@ -270,6 +270,12 @@ void main() {
   testParse("0.49999999999999997219", 0.49999999999999994);
   testParse("0.49999999999999999", 0.5);
 
+  // Edge cases of algorithm (e+-22/23).
+  testParse("1e22", 1e22);
+  testParse("1e23", 1e23);
+  testParse("1e-22", 1e-22);
+  testParse("1e-23", 1e-23);
+
   testParseWhitespace("1", 1.0);
   testParseWhitespace("1.0", 1.0);
   testParseWhitespace("1e1", 10.0);
