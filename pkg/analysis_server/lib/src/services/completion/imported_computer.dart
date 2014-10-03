@@ -100,7 +100,8 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
           ImportElement element = directive.element;
           if (element != null) {
             LibraryElement lib = element.importedLibrary;
-            if (directive.prefix == null) {
+            SimpleIdentifier prefix = directive.prefix;
+            if (prefix == null) {
               visibleLibs.add(lib);
               directive.combinators.forEach((Combinator combinator) {
                 if (combinator is ShowCombinator) {
@@ -112,6 +113,19 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
                 }
               });
             } else {
+              String completion = prefix.name;
+              if (completion != null && completion.length > 0) {
+                CompletionSuggestion suggestion = new CompletionSuggestion(
+                    CompletionSuggestionKind.LIBRARY_PREFIX,
+                    CompletionRelevance.DEFAULT,
+                    completion,
+                    completion.length,
+                    0,
+                    element.isDeprecated,
+                    false);
+                suggestion.element = new protocol.Element.fromEngine(lib);
+                request.suggestions.add(suggestion);
+              }
               excludedLibs.add(lib);
             }
           }

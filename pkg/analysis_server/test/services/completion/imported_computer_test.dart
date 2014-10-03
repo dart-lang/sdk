@@ -53,10 +53,7 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
       assertNotSuggested('D');
       assertSuggestClass('EE');
       assertNotSuggested('F');
-      // Don't suggest library prefix as it is suggested by local computer
-      // TODO (danrubel) modify so that imported_computer handles
-      // all aspects of import statement
-      assertNotSuggested('g');
+      assertSuggestLibraryPrefix('g');
       assertNotSuggested('G');
       assertSuggestClass('H', CompletionRelevance.LOW);
       // Should not suggest compilation unit elements

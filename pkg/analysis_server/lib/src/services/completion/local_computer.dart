@@ -104,11 +104,6 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
 
   @override
   visitCompilationUnit(CompilationUnit node) {
-    node.directives.forEach((Directive directive) {
-      if (directive is ImportDirective) {
-        _addLibraryPrefixSuggestion(directive);
-      }
-    });
     node.declarations.forEach((Declaration declaration) {
       if (declaration is ClassDeclaration) {
         _addClassSuggestion(declaration);
@@ -254,22 +249,6 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
           declaration.returnType,
           false,
           _isDeprecated(declaration.metadata));
-    }
-  }
-
-  void _addLibraryPrefixSuggestion(ImportDirective directive) {
-    CompletionSuggestion suggestion = _addSuggestion(
-        directive.prefix,
-        CompletionSuggestionKind.LIBRARY_PREFIX,
-        null,
-        null);
-    if (suggestion != null) {
-      suggestion.element = _createElement(
-          protocol.ElementKind.LIBRARY,
-          directive.prefix,
-          NO_RETURN_TYPE,
-          false,
-          false);
     }
   }
 

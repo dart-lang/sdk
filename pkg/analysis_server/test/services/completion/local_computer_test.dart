@@ -82,7 +82,8 @@ class LocalComputerTest extends AbstractCompletionTest {
     expect(b.element.isDeprecated, isFalse);
     expect(b.element.isPrivate, isTrue);
     assertSuggestTopLevelVar('T', 'A');
-    assertSuggestLibraryPrefix('x');
+    // Library prefix suggestion is provided by ImportedComputer
+    assertNotSuggested('x');
   }
 
   test_ExpressionStatement_name() {

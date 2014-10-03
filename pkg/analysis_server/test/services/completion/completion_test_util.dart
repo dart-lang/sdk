@@ -143,7 +143,6 @@ class AbstractCompletionTest extends AbstractContextTest {
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.LIBRARY));
-    expect(element.name, equals(prefix));
     expect(element.returnType, isNull);
     return cs;
   }
