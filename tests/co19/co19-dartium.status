@@ -17,6 +17,7 @@ LibTest/html/Window/document_A01_t01: RuntimeError # Issue 20146
 LibTest/html/Window/postMessage_A01_t02: RuntimeError # Issue 20146
 LibTest/html/Window/moveBy_A01_t01: RuntimeError # Issue 20146
 LayoutTests/fast/dom: Skip # Unknown tests are breaking the test infrastructure. Issue 18558
+LayoutTests/fast/filesystem: Skip # Unknown tests are breaking the test infrastructure. Issue 18558
 LayoutTests/fast/css-generated-content/malformed-url_t01.dart: Skip # Breaks the test infrastructure. Issue 18558.
 LayoutTests/fast/css-generated-content/bug91547_t01.dart: Skip # Breaks the test infrastructure. Issue 18558.
 LayoutTests/fast/dom/HTMLButtonElement/change-type_t01: Skip # Breaks the test infrastructure. Issue 18558
