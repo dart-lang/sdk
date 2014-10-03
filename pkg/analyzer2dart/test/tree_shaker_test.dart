@@ -179,6 +179,74 @@ main() {
     helper.assertNoField('B.f1');
     helper.assertNoField('B.f2');
   });
+
+  test('Ordinary constructor with initializer list', () {
+    var helper = new TreeShakerTestHelper('''
+class A {
+  A() : x = f();
+  var x;
+  foo() {}
+}
+f() {}
+main() {
+  new A().foo();
+}
+''');
+    helper.assertHasMethod('A.foo');
+    helper.assertHasFunction('f');
+  });
+
+  test('Redirecting constructor', () {
+    var helper = new TreeShakerTestHelper('''
+class A {
+  A.a1() : this.a2();
+  A.a2();
+  foo() {}
+}
+main() {
+  new A.a1().foo();
+}
+''');
+    helper.assertHasMethod('A.foo');
+  });
+
+  test('Factory constructor', () {
+    var helper = new TreeShakerTestHelper('''
+class A {
+  factory A() {
+    return new B();
+  }
+  foo() {}
+}
+class B {
+  B();
+  foo() {}
+}
+main() {
+  new A().foo();
+}
+''');
+    helper.assertHasMethod('B.foo');
+    helper.assertNoMethod('A.foo');
+  });
+
+  test('Redirecting factory constructor', () {
+    var helper = new TreeShakerTestHelper('''
+class A {
+  factory A() = B;
+  foo() {}
+}
+class B {
+  B();
+  foo() {}
+}
+main() {
+  new A().foo();
+}
+''');
+    helper.assertHasMethod('B.foo');
+    helper.assertNoMethod('A.foo');
+  });
 }
 
 class TreeShakerTestHelper {
