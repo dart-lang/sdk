@@ -6,9 +6,9 @@ library test.services.completion.toplevel;
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/imported_computer.dart';
-import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import 'completion_test_util.dart';
 
 main() {
@@ -25,194 +25,274 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     computer = new ImportedComputer();
   }
 
-  test_class() {
-    addSource('/testA.dart', 'class A {int x;} class _B { }');
-    addTestSource('import "/testA.dart"; class C {foo(){^}}');
-    return computeFull().then((_) {
-      assertSuggestClass('A');
-      assertNotSuggested('x');
-      assertNotSuggested('_B');
-      // Should not suggest compilation unit elements
-      // which are returned by the LocalComputer
-      assertNotSuggested('C');
-    });
-  }
-
-  test_function() {
-    addSource('/testA.dart', '@deprecated A() {int x;} _B() {}');
-    addTestSource('import "/testA.dart"; class C {foo(){^}}');
-    return computeFull().then((_) {
-      assertSuggestFunction('A', null, true);
-      assertNotSuggested('x');
-      assertNotSuggested('_B');
-      // Should not suggest compilation unit elements
-      // which are returned by the LocalComputer
-      assertNotSuggested('C');
-    });
-  }
-
-  test_class_importHide() {
-    addSource('/testA.dart', 'class A { } class B { }');
-    addTestSource('import "/testA.dart" hide ^; class C {}');
-    return computeFull().then((_) {
-      assertSuggestClass('A');
-      assertSuggestClass('B');
-      assertNotSuggested('Object');
-    });
-  }
-
-  test_class_importShow() {
-    addSource('/testA.dart', 'class A { } class B { }');
-    addTestSource('import "/testA.dart" show ^; class C {}');
-    return computeFull().then((_) {
-      // only suggest elements listed in show combinator
-      assertSuggestClass('A');
-      assertSuggestClass('B');
-      assertNotSuggested('Object');
-    });
-  }
-
-  test_class_importShowWithPart() {
-    addSource('/testB.dart', 'part of libA;  class B { }');
-    addSource('/testA.dart', 'part "/testB.dart"; class A { }');
-    addTestSource('import "/testA.dart" show ^; class C {}');
-    return computeFull().then((_) {
-      // only suggest elements listed in show combinator
-      assertSuggestClass('A');
-      assertSuggestClass('B');
-      assertNotSuggested('Object');
-    });
-  }
-
-  test_class_importedWithHide() {
-    addSource('/testA.dart', 'class A { } class B { }');
-    addTestSource('import "/testA.dart" hide B; class C {foo(){^}}');
-    return computeFull().then((_) {
-      // exclude elements listed in hide combinator
-      assertSuggestClass('A');
-      assertNotSuggested('B');
-      assertSuggestClass('Object');
-    });
-  }
-
-  test_class_importedWithPrefix() {
-    addSource('/testA.dart', 'class A { }');
-    addTestSource('import "/testA.dart" as foo; class C {foo(){^}}');
-    return computeFull().then((_) {
-      // do not suggest types imported with prefix
-      assertNotSuggested('A');
-      // do not suggest prefix as it is suggested by LocalComputer
-      assertNotSuggested('foo');
-    });
-  }
-
-  test_class_importedWithShow() {
-    addSource('/testA.dart', 'class A { } class B { }');
-    addTestSource('import "/testA.dart" show A; class C {foo(){^}}');
-    return computeFull().then((_) {
-      // only suggest elements listed in show combinator
-      assertSuggestClass('A');
-      assertNotSuggested('B');
-      assertSuggestClass('Object');
-    });
-  }
-
-  test_class_notImported() {
-    addSource('/testA.dart', 'class A {int x;} class _B { }');
-    addTestSource('class C {foo(){^}}');
+  test_Block_class() {
+    // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
+    addSource('/testAB.dart', '''
+      class A {int x;}
+      class _B { }''');
+    addSource('/testCD.dart', '''
+      class C { }
+      class D { }''');
+    addSource('/testEEF.dart', '''
+      class EE { }
+      class F { }''');
+    addSource('/testG.dart', 'class G { }');
+    addSource('/testH.dart', 'class H { }'); // not imported
+    addTestSource('''
+      import "/testAB.dart";
+      import "/testCD.dart" hide D;
+      import "/testEEF.dart" show EE;
+      import "/testG.dart" as g;
+      class X {foo(){^}}''');
+    // pass true for full analysis to pick up unimported source
     return computeFull(true).then((_) {
-      assertSuggestClass('A', CompletionRelevance.LOW);
+      assertSuggestClass('A');
       assertNotSuggested('x');
       assertNotSuggested('_B');
-    });
-  }
-
-  test_dartCore() {
-    addTestSource('class C {foo(){^}}');
-    return computeFull().then((_) {
+      assertSuggestClass('C');
+      assertNotSuggested('D');
+      assertSuggestClass('EE');
+      assertNotSuggested('F');
+      // Don't suggest library prefix as it is suggested by local computer
+      // TODO (danrubel) modify so that imported_computer handles
+      // all aspects of import statement
+      assertNotSuggested('g');
+      assertNotSuggested('G');
+      assertSuggestClass('H', CompletionRelevance.LOW);
+      // Should not suggest compilation unit elements
+      // which are returned by the LocalComputer
+      assertNotSuggested('X');
       assertSuggestClass('Object');
+      // TODO (danrubel) suggest HtmlElement as low relevance
       assertNotSuggested('HtmlElement');
     });
   }
 
-  test_dartHtml() {
-    addTestSource('import "dart:html"; class C {foo(){^}}');
+  test_Block_function() {
+    addSource('/testA.dart', '''
+      export "dart:math" hide sin;
+      @deprecated A() {int x;}
+      _B() {}''');
+    addTestSource('''
+      import "/testA.dart";
+      class X {foo(){^}}''');
     return computeFull().then((_) {
-      assertSuggestClass('Object');
-      assertSuggestClass('HtmlElement');
+      assertSuggestFunction('A', null, true);
+      assertNotSuggested('x');
+      assertNotSuggested('_B');
+      // TODO (danrubel) should suggest exported elements from imported lib
+      //assertSuggestFunction('cos', 'num', false);
+      assertNotSuggested('cos');
+      assertNotSuggested('sin');
+      // Should not suggest compilation unit elements
+      // which are returned by the LocalComputer
+      assertNotSuggested('X');
     });
   }
 
-  test_field_name() {
-    addSource('/testA.dart', 'class A { }');
-    addTestSource('import "/testA.dart"; class C {A ^}');
-    return computeFull().then((_) {
-      assertNotSuggested('A');
-    });
-  }
-
-  test_field_name2() {
-    addSource('/testA.dart', 'class A { }');
-    addTestSource('import "/testA.dart"; class C {var ^}');
-    return computeFull().then((_) {
-      assertNotSuggested('A');
-    });
-  }
-
-  test_local_name() {
-    addSource('/testA.dart', 'B T1; class B{}');
-    addTestSource('import "/testA.dart"; class C {a() {C ^}}');
-    return computeFull().then((_) {
-      assertNotSuggested('T1');
-    });
-  }
-
-  test_local_name2() {
-    addSource('/testA.dart', 'var T1;');
-    addTestSource('import "/testA.dart"; class C {a() {var ^}}');
-    return computeFull().then((_) {
-      assertNotSuggested('T1');
-    });
-  }
-
-  test_import_dart() {
-    addTestSource('import "dart^"; main() {}');
-    return computeFull().then((_) {
-      assertNotSuggested('T1');
-    });
-  }
-
-  test_topLevelVar() {
-    addSource('/testA.dart', 'String T1; var _T2;');
-    addTestSource('import "/testA.dart"; class C {foo(){^}}');
-    return computeFull().then((_) {
+  test_Block_topLevelVar() {
+    // Block  BlockFunctionBody  MethodDeclaration
+    addSource('/testA.dart', '''
+      String T1;
+      var _T2;''');
+    addSource('/testB.dart', /* not imported */ '''
+      int T3;
+      var _T4;''');
+    addTestSource('''
+      import "/testA.dart";
+      class C {foo(){^}}''');
+    // pass true for full analysis to pick up unimported source
+    return computeFull(true).then((_) {
       assertSuggestTopLevelVar('T1', 'String');
       assertNotSuggested('_T2');
+      assertSuggestTopLevelVar('T3', 'int', CompletionRelevance.LOW);
+      assertNotSuggested('_T4');
     });
   }
 
-  test_topLevelVar_name() {
+  test_ExpressionStatement_class() {
+    // SimpleIdentifier  ExpressionStatement  Block
+    addSource('/testA.dart', '''
+      class A {int x;}
+      class _B { }''');
+    addTestSource('''
+      import "/testA.dart";
+      class C {foo(){O^}}''');
+    return computeFull().then((_) {
+      assertSuggestClass('A');
+      assertNotSuggested('x');
+      assertNotSuggested('_B');
+      // Should not suggest compilation unit elements
+      // which are returned by the LocalComputer
+      assertNotSuggested('C');
+    });
+  }
+
+  test_ExpressionStatement_name() {
+    // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
+    addSource('/testA.dart', '''
+      B T1;
+      class B{}''');
+    addTestSource('''
+      import "/testA.dart";
+      class C {a() {C ^}}''');
+    return computeFull().then((_) {
+      assertNotSuggested('T1');
+    });
+  }
+
+  test_FieldDeclaration_name() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addSource('/testA.dart', 'class A { }');
+    addTestSource('''
+      import "/testA.dart";
+      class C {A ^}''');
+    return computeFull().then((_) {
+      assertNotSuggested('A');
+    });
+  }
+
+  test_FieldDeclaration_name_varType() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // FieldDeclaration
+    addSource('/testA.dart', 'class A { }');
+    addTestSource('''
+      import "/testA.dart";
+      class C {var ^}''');
+    return computeFull().then((_) {
+      assertNotSuggested('A');
+    });
+  }
+
+  test_HideCombinator_class() {
+    // SimpleIdentifier  HideCombinator  ImportDirective
+    addSource('/testAB.dart', '''
+      library libAB;
+      part '/partAB.dart';
+      class A { }
+      class B { }''');
+    addSource('/partAB.dart', '''
+      part of libAB;
+      class PB { }''');
+    addSource('/testCD.dart', '''
+      class C { }
+      class D { }''');
+    addTestSource('''
+      import "/testAB.dart" hide ^;
+      import "/testCD.dart";
+      class X {}''');
+    return computeFull().then((_) {
+      assertSuggestClass('A');
+      assertSuggestClass('B');
+      assertSuggestClass('PB');
+      assertNotSuggested('C');
+      assertNotSuggested('D');
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_ImportDirective_dart() {
+    // SimpleStringLiteral  ImportDirective
+    addTestSource('''
+      import "dart^";
+      main() {}''');
+    return computeFull().then((_) {
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_ShowCombinator_class() {
+    // SimpleIdentifier  ShowCombinator  ImportDirective
+    addSource('/testAB.dart', '''
+      class A { }
+      class B { }''');
+    addSource('/testCD.dart', '''
+      class C { }
+      class D { }''');
+    addTestSource('''
+      import "/testAB.dart" show ^;
+      import "/testCD.dart";
+      class X {}''');
+    return computeFull().then((_) {
+      assertSuggestClass('A');
+      assertSuggestClass('B');
+      assertNotSuggested('C');
+      assertNotSuggested('D');
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_TopLevelVariableDeclaration_name() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
     addSource('/testA.dart', 'class B { };');
-    addTestSource('import "/testA.dart"; class C {} B ^');
+    addTestSource('''
+      import "/testA.dart";
+      class C {} B ^''');
     return computeFull().then((_) {
       assertNotSuggested('B');
     });
   }
 
-  test_topLevelVar_name2() {
+  test_TopLevelVariableDeclaration_name_untyped() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
     addSource('/testA.dart', 'class B { };');
-    addTestSource('import "/testA.dart"; class C {} var ^');
+    addTestSource('''
+      import "/testA.dart";
+      class C {} var ^''');
     return computeFull().then((_) {
       assertNotSuggested('B');
     });
   }
 
-  test_topLevelVar_notImported() {
-    addSource('/testA.dart', 'var T1; var _T2;');
-    addTestSource('class C {foo(){^}}');
-    return computeFull(true).then((_) {
-      assertSuggestTopLevelVar('T1', null, CompletionRelevance.LOW);
-      assertNotSuggested('_T2');
+  test_VariableDeclaration_name() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addSource('/testA.dart', 'var T1;');
+    addTestSource('''
+      import "/testA.dart";
+      class C {a() {var ^}}''');
+    return computeFull().then((_) {
+      assertNotSuggested('T1');
+    });
+  }
+
+  // TODO (danrubel) implement
+  xtest_InstanceCreationExpression() {
+    // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
+    addSource('/testA.dart', '''
+      class A {int x;}
+      B() { }''');
+    addTestSource('''
+      import "/testA.dart";
+      class C {foo(){new ^}}''');
+    return computeFull().then((_) {
+      assertSuggestClass('A');
+      assertNotSuggested('x');
+      assertNotSuggested('B');
+      // Should not suggest compilation unit elements
+      // which are returned by the LocalComputer
+      assertNotSuggested('C');
+    });
+  }
+
+  // TODO (danrubel) implement
+  xtest_VariableDeclarationStatement_RHS() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement
+    addSource('/testA.dart', 'class A {int x;} class _B { }');
+    addTestSource('''
+      import "/testA.dart";
+      class C {foo(){var e = ^}}''');
+    return computeFull().then((_) {
+      assertSuggestClass('A');
+      assertNotSuggested('x');
+      assertNotSuggested('_B');
+      // Should not suggest compilation unit elements
+      // which are returned by the LocalComputer
+      assertNotSuggested('C');
     });
   }
 }

@@ -53,8 +53,12 @@ class AbstractCompletionTest extends AbstractContextTest {
   }
 
   void assertNotSuggested(String completion) {
-    if (request.suggestions.any((cs) => cs.completion == completion)) {
-      _failWithNodeInfo('did not expect completion: $completion');
+    CompletionSuggestion suggestion = request.suggestions.firstWhere(
+        (cs) => cs.completion == completion,
+        orElse: () => null);
+    if (suggestion != null) {
+      _failedCompletion(
+          'did not expect completion: $completion\n  $suggestion');
     }
   }
 
@@ -67,17 +71,14 @@ class AbstractCompletionTest extends AbstractContextTest {
         if (cs == null) {
           cs = s;
         } else {
-          List<CompletionSuggestion> completions =
-              request.suggestions.where((s) => s.completion == completion).toList();
-          _failWithNodeInfo(
-              'expected exactly one $completion but found > 1\n$completions');
+          _failedCompletion(
+              'expected exactly one $completion',
+              request.suggestions.where((s) => s.completion == completion));
         }
       }
     });
     if (cs == null) {
-      List<CompletionSuggestion> completions =
-          request.suggestions.map((s) => s.completion).toList();
-      _failWithNodeInfo('expected "$completion" but found\n $completions');
+      _failedCompletion('expected $completion', request.suggestions);
     }
     expect(cs.kind, equals(kind));
     expect(cs.relevance, equals(relevance));
@@ -290,8 +291,21 @@ class AbstractCompletionTest extends AbstractContextTest {
     searchEngine = new SearchEngineImpl(index);
   }
 
-  void _failWithNodeInfo(String message) {
+  void _failedCompletion(String message,
+      [Iterable<CompletionSuggestion> completions]) {
     StringBuffer sb = new StringBuffer(message);
+    if (completions != null) {
+      sb.write('\n  found');
+      completions.toList()
+          ..sort((CompletionSuggestion s1, CompletionSuggestion s2) {
+            String c1 = s1.completion.toLowerCase();
+            String c2 = s2.completion.toLowerCase();
+            return c1.compareTo(c2);
+          })
+          ..forEach((CompletionSuggestion suggestion) {
+            sb.write('\n    ${suggestion.completion} -> $suggestion');
+          });
+    }
     if (completionNode != null) {
       sb.write('\n  in');
       AstNode node = completionNode;
