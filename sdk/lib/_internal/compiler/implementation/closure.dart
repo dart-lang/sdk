@@ -102,6 +102,7 @@ class ClosureTask extends CompilerTask {
       universe.fieldSetters.remove(e);
       universe.fieldGetters.remove(e);
     });
+    compiler.enqueuer.codegen.seenClasses.remove(cls);
   }
 }
 

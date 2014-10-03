@@ -159,6 +159,12 @@ class ForgetElementTestCase extends CompilerTestCase {
         resolutionMembersIn(library).isEmpty, 'resolution misc members');
     Expect.isTrue(
         codegenMembersIn(library).isEmpty, 'codegen misc members');
+
+    // Check that classes remembered by the enqueuer have been forgotten.
+    Expect.isTrue(
+        codegenSeenClassesIn(library).isEmpty, 'codegen seen classes');
+    Expect.isTrue(
+        resolutionSeenClassesIn(library).isEmpty, 'resolution seen classes');
   });
 
   Iterable closuresInLibrary(LibraryElement library) {
@@ -251,6 +257,16 @@ class ForgetElementTestCase extends CompilerTestCase {
         ..addAll(resolutionUniverse.closurizedMembers.where(sameLibrary))
         ..addAll(resolutionUniverse.fieldSetters.where(sameLibrary))
         ..addAll(resolutionUniverse.fieldGetters.where(sameLibrary));
+  }
+
+  Iterable codegenSeenClassesIn(LibraryElement library) {
+    return compiler.enqueuer.codegen.seenClasses.where(
+        (e) => e.library == library);
+  }
+
+  Iterable resolutionSeenClassesIn(LibraryElement library) {
+    return compiler.enqueuer.resolution.seenClasses.where(
+        (e) => e.library == library);
   }
 }
 

@@ -651,6 +651,7 @@ abstract class Enqueuer {
 
   void forgetElement(Element element) {
     universe.forgetElement(element, compiler);
+    seenClasses.remove(element);
   }
 }
 
