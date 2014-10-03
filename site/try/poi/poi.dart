@@ -197,7 +197,9 @@ api.CompilerInputProvider simulateMutation(
         }
         printVerbose('Not using cached version of $cachedFileName');
         cache = new io.File(cachedFileName).readAsBytes().then((data) {
-          printVerbose('Read file $cachedFileName: ${UTF8.decode(data)}');
+          printVerbose(
+              'Read file $cachedFileName: '
+              '${UTF8.decode(data.sublist(0, 100), allowMalformed: true)}...');
           return data;
         });
         count++;
