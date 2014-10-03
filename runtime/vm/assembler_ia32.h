@@ -165,6 +165,9 @@ class Address : public Operand {
     SetDisp32(disp);
   }
 
+  // This addressing mode does not exist.
+  Address(Register index, ScaleFactor scale, Register r);
+
   Address(Register base, Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != ESP);  // Illegal addressing mode.
     if (disp == 0 && base != EBP) {
@@ -180,6 +183,9 @@ class Address : public Operand {
       SetDisp32(disp);
     }
   }
+
+  // This addressing mode does not exist.
+  Address(Register base, Register index, ScaleFactor scale, Register r);
 
   Address(const Address& other) : Operand(other) { }
 
@@ -205,8 +211,14 @@ class FieldAddress : public Address {
   FieldAddress(Register base, int32_t disp)
       : Address(base, disp - kHeapObjectTag) { }
 
+  // This addressing mode does not exist.
+  FieldAddress(Register base, Register r);
+
   FieldAddress(Register base, Register index, ScaleFactor scale, int32_t disp)
       : Address(base, index, scale, disp - kHeapObjectTag) { }
+
+  // This addressing mode does not exist.
+  FieldAddress(Register base, Register index, ScaleFactor scale, Register r);
 
   FieldAddress(const FieldAddress& other) : Address(other) { }
 

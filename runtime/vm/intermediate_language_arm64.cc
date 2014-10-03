@@ -642,7 +642,7 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   const ZoneGrowableArray<intptr_t>& data = cid_results();
   ASSERT(data[0] == kSmiCid);
   bool result = data[1] == true_result;
-  __ tsti(val_reg, kSmiTagMask);
+  __ tsti(val_reg, Immediate(kSmiTagMask));
   __ b(result ? labels.true_label : labels.false_label, EQ);
   __ LoadClassId(cid_reg, val_reg, PP);
 
@@ -937,7 +937,7 @@ void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
 
   __ LoadImmediate(TMP, reinterpret_cast<int64_t>(&kSmiCidSource) + 1, PP);
-  __ tsti(object, kSmiTagMask);
+  __ tsti(object, Immediate(kSmiTagMask));
   __ csel(TMP, TMP, object, EQ);
   __ LoadClassId(result, TMP, PP);
   __ SmiTag(result);
@@ -1327,7 +1327,7 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
   if (value_is_smi == NULL) {
     __ LoadImmediate(value_cid_reg, kSmiCid, PP);
   }
-  __ tsti(value_reg, kSmiTagMask);
+  __ tsti(value_reg, Immediate(kSmiTagMask));
   if (value_is_smi == NULL) {
     __ b(&done, EQ);
   } else {
@@ -1481,7 +1481,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Field guard class has been initialized and is known.
     if (value_cid == kDynamicCid) {
       // Value's class id is not known.
-      __ tsti(value_reg, kSmiTagMask);
+      __ tsti(value_reg, Immediate(kSmiTagMask));
 
       if (field_cid != kSmiCid) {
         __ b(fail, EQ);
@@ -1791,7 +1791,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadFromOffset(
         temp2, temp, Field::kind_bits_offset() - kHeapObjectTag,
         PP, kUnsignedByte);
-    __ tsti(temp2, 1 << Field::kUnboxingCandidateBit);
+    __ tsti(temp2, Immediate(1 << Field::kUnboxingCandidateBit));
     __ b(&store_pointer, EQ);
 
     __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP, kWord);
@@ -2948,12 +2948,12 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register left = locs()->in(0).reg();
   const Register right = locs()->in(1).reg();
   if (left_cid == kSmiCid) {
-    __ tsti(right, kSmiTagMask);
+    __ tsti(right, Immediate(kSmiTagMask));
   } else if (right_cid == kSmiCid) {
-    __ tsti(left, kSmiTagMask);
+    __ tsti(left, Immediate(kSmiTagMask));
   } else {
     __ orr(TMP, left, Operand(right));
-    __ tsti(TMP, kSmiTagMask);
+    __ tsti(TMP, Immediate(kSmiTagMask));
   }
   __ b(deopt, EQ);
 }
@@ -3017,7 +3017,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadDFieldFromOffset(result, value, Double::value_offset(), PP);
     } else {
       Label is_smi, done;
-      __ tsti(value, kSmiTagMask);
+      __ tsti(value, Immediate(kSmiTagMask));
       __ b(&is_smi, EQ);
       __ CompareClassId(value, kDoubleCid, PP);
       __ b(deopt, NE);
@@ -3075,7 +3075,7 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (value_cid != kFloat32x4Cid) {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, ICData::kDeoptCheckClass);
-    __ tsti(value, kSmiTagMask);
+    __ tsti(value, Immediate(kSmiTagMask));
     __ b(deopt, EQ);
     __ CompareClassId(value, kFloat32x4Cid, PP);
     __ b(deopt, NE);
@@ -3128,7 +3128,7 @@ void UnboxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (value_cid != kFloat64x2Cid) {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, ICData::kDeoptCheckClass);
-    __ tsti(value, kSmiTagMask);
+    __ tsti(value, Immediate(kSmiTagMask));
     __ b(deopt, EQ);
     __ CompareClassId(value, kFloat64x2Cid, PP);
     __ b(deopt, NE);
@@ -3180,7 +3180,7 @@ void UnboxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (value_cid != kInt32x4Cid) {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, ICData::kDeoptCheckClass);
-    __ tsti(value, kSmiTagMask);
+    __ tsti(value, Immediate(kSmiTagMask));
     __ b(deopt, EQ);
     __ CompareClassId(value, kInt32x4Cid, PP);
     __ b(deopt, NE);
@@ -4360,7 +4360,7 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kBIT_NOT:
       __ mvn(result, value);
       // Remove inverted smi-tag.
-      __ andi(result, result, ~kSmiTagMask);
+      __ andi(result, result, Immediate(~kSmiTagMask));
       break;
     default:
       UNREACHABLE();
@@ -4923,11 +4923,11 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label is_ok;
   intptr_t cix = 0;
   if (unary_checks().GetReceiverClassIdAt(cix) == kSmiCid) {
-    __ tsti(value, kSmiTagMask);
+    __ tsti(value, Immediate(kSmiTagMask));
     __ b(&is_ok, EQ);
     cix++;  // Skip first check.
   } else {
-    __ tsti(value, kSmiTagMask);
+    __ tsti(value, Immediate(kSmiTagMask));
     __ b(deopt, EQ);
   }
   __ LoadClassId(temp, value, PP);
@@ -4998,7 +4998,7 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary(Isolate* isolate,
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckSmi);
-  __ tsti(value, kSmiTagMask);
+  __ tsti(value, Immediate(kSmiTagMask));
   __ b(deopt, NE);
 }
 

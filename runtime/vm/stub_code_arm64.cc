@@ -676,7 +676,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   // Assert that length is a Smi.
-  __ tsti(R2, kSmiTagMask);
+  __ tsti(R2, Immediate(kSmiTagMask));
   if (FLAG_use_slow_path) {
     __ b(&slow_case);
   } else {
@@ -706,7 +706,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ LoadImmediate(R3, fixed_size, kNoPP);
   __ add(R3, R3, Operand(R2, LSL, 2));  // R2 is Smi.
   ASSERT(kSmiTagShift == 1);
-  __ andi(R3, R3, ~(kObjectAlignment - 1));
+  __ andi(R3, R3, Immediate(~(kObjectAlignment - 1)));
   __ adds(R7, R3, Operand(R0));
   __ b(&slow_case, VS);
 
@@ -999,7 +999,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ LoadImmediate(R2, fixed_size, kNoPP);
     __ add(R2, R2, Operand(R1, LSL, 3));
     ASSERT(kSmiTagShift == 1);
-    __ andi(R2, R2, ~(kObjectAlignment - 1));
+    __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));
 
     // Now allocate the object.
     // R1: number of context variables.
@@ -1117,7 +1117,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
   __ LoadFieldFromOffset(TMP, R0, Object::tags_offset(), kNoPP);
-  __ tsti(TMP, 1 << RawObject::kRememberedBit);
+  __ tsti(TMP, Immediate(1 << RawObject::kRememberedBit));
   __ b(&add_to_buffer, EQ);
   __ ret();
 
@@ -1127,7 +1127,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Push(R2);
   __ Push(R3);
 
-  __ orri(R2, TMP, 1 << RawObject::kRememberedBit);
+  __ orri(R2, TMP, Immediate(1 << RawObject::kRememberedBit));
   __ StoreFieldToOffset(R2, R0, Object::tags_offset(), kNoPP);
 
   // Load the isolate.
@@ -1393,7 +1393,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ ldr(R0, Address(SP, + 0 * kWordSize));  // Right.
   __ ldr(R1, Address(SP, + 1 * kWordSize));  // Left.
   __ orr(TMP, R0, Operand(R1));
-  __ tsti(TMP, kSmiTagMask);
+  __ tsti(TMP, Immediate(kSmiTagMask));
   __ b(not_smi_or_overflow, NE);
   switch (kind) {
     case Token::kADD: {
@@ -1470,7 +1470,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ LoadFromOffset(R6, R5, ICData::state_bits_offset() - kHeapObjectTag,
                       kNoPP, kUnsignedWord);
     ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
-    __ andi(R6, R6, ICData::NumArgsTestedMask());
+    __ andi(R6, R6, Immediate(ICData::NumArgsTestedMask()));
     __ CompareImmediate(R6, num_args, kNoPP);
     __ b(&ok, EQ);
     __ Stop("Incorrect stub for IC data");
@@ -1702,7 +1702,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
     __ LoadFromOffset(R6, R5, ICData::state_bits_offset() - kHeapObjectTag,
                       kNoPP, kUnsignedWord);
     ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
-    __ andi(R6, R6, ICData::NumArgsTestedMask());
+    __ andi(R6, R6, Immediate(ICData::NumArgsTestedMask()));
     __ CompareImmediate(R6, 0, kNoPP);
     __ b(&ok, EQ);
     __ Stop("Incorrect IC data for unoptimized static call");
@@ -2034,9 +2034,9 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
                                                     const Register unused2) {
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.
-  __ tsti(left, kSmiTagMask);
+  __ tsti(left, Immediate(kSmiTagMask));
   __ b(&reference_compare, EQ);
-  __ tsti(right, kSmiTagMask);
+  __ tsti(right, Immediate(kSmiTagMask));
   __ b(&reference_compare, EQ);
 
   // Value compare for two doubles.

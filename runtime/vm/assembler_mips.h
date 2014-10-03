@@ -50,6 +50,9 @@ class Address : public ValueObject {
   explicit Address(Register base, int32_t offset = 0)
       : ValueObject(), base_(base), offset_(offset) { }
 
+  // This addressing mode does not exist.
+  Address(Register base, Register offset);
+
   Address(const Address& other)
       : ValueObject(), base_(other.base_), offset_(other.offset_) { }
   Address& operator=(const Address& other) {
@@ -932,13 +935,13 @@ class Assembler : public ValueObject {
     beq(rd, rn, l);
   }
 
-  void BranchEqual(Register rd, int32_t value, Label* l) {
+  void BranchEqual(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
-    if (value == 0) {
+    if (imm.value() == 0) {
       beq(rd, ZR, l);
     } else {
       ASSERT(rd != CMPRES2);
-      LoadImmediate(CMPRES2, value);
+      LoadImmediate(CMPRES2, imm.value());
       beq(rd, CMPRES2, l);
     }
   }
@@ -954,13 +957,13 @@ class Assembler : public ValueObject {
     bne(rd, rn, l);
   }
 
-  void BranchNotEqual(Register rd, int32_t value, Label* l) {
+  void BranchNotEqual(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
-    if (value == 0) {
+    if (imm.value() == 0) {
       bne(rd, ZR, l);
     } else {
       ASSERT(rd != CMPRES2);
-      LoadImmediate(CMPRES2, value);
+      LoadImmediate(CMPRES2, imm.value());
       bne(rd, CMPRES2, l);
     }
   }
@@ -978,13 +981,13 @@ class Assembler : public ValueObject {
     bne(CMPRES2, ZR, l);
   }
 
-  void BranchSignedGreater(Register rd, int32_t value, Label* l) {
+  void BranchSignedGreater(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
-    if (value == 0) {
+    if (imm.value() == 0) {
       bgtz(rd, l);
     } else {
       ASSERT(rd != CMPRES2);
-      LoadImmediate(CMPRES2, value);
+      LoadImmediate(CMPRES2, imm.value());
       BranchSignedGreater(rd, CMPRES2, l);
     }
   }
@@ -995,13 +998,13 @@ class Assembler : public ValueObject {
     bne(CMPRES2, ZR, l);
   }
 
-  void BranchUnsignedGreater(Register rd, int32_t value, Label* l) {
+  void BranchUnsignedGreater(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
-    if (value == 0) {
-      BranchNotEqual(rd, 0, l);
+    if (imm.value() == 0) {
+      BranchNotEqual(rd, Immediate(0), l);
     } else {
       ASSERT(rd != CMPRES2);
-      LoadImmediate(CMPRES2, value);
+      LoadImmediate(CMPRES2, imm.value());
       BranchUnsignedGreater(rd, CMPRES2, l);
     }
   }
@@ -1012,17 +1015,17 @@ class Assembler : public ValueObject {
     beq(CMPRES2, ZR, l);  // If CMPRES2 = 0, then rd >= rs.
   }
 
-  void BranchSignedGreaterEqual(Register rd, int32_t value, Label* l) {
+  void BranchSignedGreaterEqual(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
-    if (value == 0) {
+    if (imm.value() == 0) {
       bgez(rd, l);
     } else {
-      if (Utils::IsInt(kImmBits, value)) {
-        slti(CMPRES2, rd, Immediate(value));
+      if (Utils::IsInt(kImmBits, imm.value())) {
+        slti(CMPRES2, rd, imm);
         beq(CMPRES2, ZR, l);
       } else {
         ASSERT(rd != CMPRES2);
-        LoadImmediate(CMPRES2, value);
+        LoadImmediate(CMPRES2, imm.value());
         BranchSignedGreaterEqual(rd, CMPRES2, l);
       }
     }
@@ -1034,17 +1037,17 @@ class Assembler : public ValueObject {
     beq(CMPRES2, ZR, l);
   }
 
-  void BranchUnsignedGreaterEqual(Register rd, int32_t value, Label* l) {
+  void BranchUnsignedGreaterEqual(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
-    if (value == 0) {
+    if (imm.value() == 0) {
       b(l);
     } else {
-      if (Utils::IsUint(kImmBits, value)) {
-        sltiu(CMPRES2, rd, Immediate(value));
+      if (Utils::IsUint(kImmBits, imm.value())) {
+        sltiu(CMPRES2, rd, imm);
         beq(CMPRES2, ZR, l);
       } else {
         ASSERT(rd != CMPRES2);
-        LoadImmediate(CMPRES2, value);
+        LoadImmediate(CMPRES2, imm.value());
         BranchUnsignedGreaterEqual(rd, CMPRES2, l);
       }
     }
@@ -1055,17 +1058,17 @@ class Assembler : public ValueObject {
     BranchSignedGreater(rs, rd, l);
   }
 
-  void BranchSignedLess(Register rd, int32_t value, Label* l) {
+  void BranchSignedLess(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
-    if (value == 0) {
+    if (imm.value() == 0) {
       bltz(rd, l);
     } else {
-      if (Utils::IsInt(kImmBits, value)) {
-        slti(CMPRES2, rd, Immediate(value));
+      if (Utils::IsInt(kImmBits, imm.value())) {
+        slti(CMPRES2, rd, imm);
         bne(CMPRES2, ZR, l);
       } else {
         ASSERT(rd != CMPRES2);
-        LoadImmediate(CMPRES2, value);
+        LoadImmediate(CMPRES2, imm.value());
         BranchSignedGreater(CMPRES2, rd, l);
       }
     }
@@ -1076,15 +1079,15 @@ class Assembler : public ValueObject {
     BranchUnsignedGreater(rs, rd, l);
   }
 
-  void BranchUnsignedLess(Register rd, int32_t value, Label* l) {
+  void BranchUnsignedLess(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
-    ASSERT(value != 0);
-    if (Utils::IsUint(kImmBits, value)) {
-      sltiu(CMPRES2, rd, Immediate(value));
+    ASSERT(imm.value() != 0);
+    if (Utils::IsUint(kImmBits, imm.value())) {
+      sltiu(CMPRES2, rd, imm);
       bne(CMPRES2, ZR, l);
     } else {
       ASSERT(rd != CMPRES2);
-      LoadImmediate(CMPRES2, value);
+      LoadImmediate(CMPRES2, imm.value());
       BranchUnsignedGreater(CMPRES2, rd, l);
     }
   }
@@ -1094,13 +1097,13 @@ class Assembler : public ValueObject {
     BranchSignedGreaterEqual(rs, rd, l);
   }
 
-  void BranchSignedLessEqual(Register rd, int32_t value, Label* l) {
+  void BranchSignedLessEqual(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
-    if (value == 0) {
+    if (imm.value() == 0) {
       blez(rd, l);
     } else {
       ASSERT(rd != CMPRES2);
-      LoadImmediate(CMPRES2, value);
+      LoadImmediate(CMPRES2, imm.value());
       BranchSignedGreaterEqual(CMPRES2, rd, l);
     }
   }
@@ -1110,10 +1113,10 @@ class Assembler : public ValueObject {
     BranchUnsignedGreaterEqual(rs, rd, l);
   }
 
-  void BranchUnsignedLessEqual(Register rd, int32_t value, Label* l) {
+  void BranchUnsignedLessEqual(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
     ASSERT(rd != CMPRES2);
-    LoadImmediate(CMPRES2, value);
+    LoadImmediate(CMPRES2, imm.value());
     BranchUnsignedGreaterEqual(CMPRES2, rd, l);
   }
 

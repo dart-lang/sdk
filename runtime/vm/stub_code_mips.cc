@@ -65,7 +65,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   { Label ok;
     // Check that we are always entering from Dart code.
     __ lw(T0, Address(A0, Isolate::vm_tag_offset()));
-    __ BranchEqual(T0, VMTag::kDartTagId, &ok);
+    __ BranchEqual(T0, Immediate(VMTag::kDartTagId), &ok);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
   }
@@ -191,7 +191,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   { Label ok;
     // Check that we are always entering from Dart code.
     __ lw(T0, Address(A0, Isolate::vm_tag_offset()));
-    __ BranchEqual(T0, VMTag::kDartTagId, &ok);
+    __ BranchEqual(T0, Immediate(VMTag::kDartTagId), &ok);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
   }
@@ -306,7 +306,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   { Label ok;
     // Check that we are always entering from Dart code.
     __ lw(T0, Address(A0, Isolate::vm_tag_offset()));
-    __ BranchEqual(T0, VMTag::kDartTagId, &ok);
+    __ BranchEqual(T0, Immediate(VMTag::kDartTagId), &ok);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
   }
@@ -737,7 +737,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // Check for maximum allowed length.
   const intptr_t max_len =
       reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements));
-  __ BranchUnsignedGreater(T3, max_len, &slow_case);
+  __ BranchUnsignedGreater(T3, Immediate(max_len), &slow_case);
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(T2, fixed_size);
@@ -781,7 +781,8 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
     Label overflow, done;
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
 
-    __ BranchUnsignedGreater(T2, RawObject::SizeTag::kMaxSizeTag, &overflow);
+    __ BranchUnsignedGreater(
+        T2, Immediate(RawObject::SizeTag::kMaxSizeTag), &overflow);
     __ b(&done);
     __ delay_slot()->sll(T2, T2, shift);
     __ Bind(&overflow);
@@ -1482,9 +1483,9 @@ static void EmitFastSmiOp(Assembler* assembler,
   Label error, ok;
   const int32_t imm_smi_cid = reinterpret_cast<int32_t>(Smi::New(kSmiCid));
   __ lw(T4, Address(T0));
-  __ BranchNotEqual(T4, imm_smi_cid, &error);
+  __ BranchNotEqual(T4, Immediate(imm_smi_cid), &error);
   __ lw(T4, Address(T0, kWordSize));
-  __ BranchEqual(T4, imm_smi_cid, &ok);
+  __ BranchEqual(T4, Immediate(imm_smi_cid), &ok);
   __ Bind(&error);
   __ Stop("Incorrect IC data");
   __ Bind(&ok);
@@ -1526,7 +1527,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ lw(T0, FieldAddress(S5, ICData::state_bits_offset()));
     ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
     __ andi(T0, T0, Immediate(ICData::NumArgsTestedMask()));
-    __ BranchEqual(T0, num_args, &ok);
+    __ BranchEqual(T0, Immediate(num_args), &ok);
     __ Stop("Incorrect stub for IC data");
     __ Bind(&ok);
   }
@@ -1537,7 +1538,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   Label stepping, done_stepping;
   __ LoadIsolate(T0);
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, 0, &stepping);
+  __ BranchNotEqual(T0, Immediate(0), &stepping);
   __ Bind(&done_stepping);
 
   if (kind != Token::kILLEGAL) {
@@ -1612,7 +1613,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ lw(T4, Address(T0));  // Next class ID.
 
   __ Bind(&test);
-  __ BranchNotEqual(T4, Smi::RawValue(kIllegalCid), &loop);  // Done?
+  __ BranchNotEqual(T4, Immediate(Smi::RawValue(kIllegalCid)), &loop);  // Done?
 
   // IC miss.
   // Restore return address.
@@ -1793,7 +1794,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   Label stepping, done_stepping;
   __ LoadIsolate(T0);
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, 0, &stepping);
+  __ BranchNotEqual(T0, Immediate(0), &stepping);
   __ Bind(&done_stepping);
 
   // S5: IC data object (preserved).
@@ -1940,7 +1941,7 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   Label stepping, done_stepping;
   __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, 0, &stepping);
+  __ BranchNotEqual(T0, Immediate(0), &stepping);
   __ Bind(&done_stepping);
 
   __ Ret();
@@ -1975,7 +1976,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ LoadImmediate(T1, reinterpret_cast<intptr_t>(Object::null()));
     __ lw(T2, FieldAddress(T0,
         Class::type_arguments_field_offset_in_words_offset()));
-    __ BranchEqual(T2, Class::kNoTypeArguments, &has_no_type_arguments);
+    __ BranchEqual(
+        T2, Immediate(Class::kNoTypeArguments), &has_no_type_arguments);
     __ sll(T2, T2, 2);
     __ addu(T2, A0, T2);  // T2 <- A0 + T2 * 4
     __ lw(T1, FieldAddress(T2, 0));
@@ -2228,7 +2230,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   Label stepping, done_stepping;
   __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, 0, &stepping);
+  __ BranchNotEqual(T0, Immediate(0), &stepping);
   __ Bind(&done_stepping);
 
   const Register temp1 = T2;

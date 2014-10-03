@@ -401,9 +401,9 @@ void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
   } else {
     const uint16_t offset_low = Utils::Low16Bits(offset);
     const uint16_t offset_high = Utils::High16Bits(offset);
-    movz(dst, offset_low, 0);
+    movz(dst, Immediate(offset_low), 0);
     if (offset_high != 0) {
-      movk(dst, offset_high, 1);
+      movk(dst, Immediate(offset_high), 1);
     }
     ldr(dst, Address(pp, dst));
   }
@@ -595,7 +595,7 @@ void Assembler::LoadDecodableImmediate(Register reg, int64_t imm, Register pp) {
     LoadWordFromPoolOffset(reg, pp, offset);
     if (val_smi_tag != 0) {
       // Add back the tag bits.
-      orri(reg, reg, val_smi_tag);
+      orri(reg, reg, Immediate(val_smi_tag));
     }
   } else {
     // TODO(zra): Since this sequence only needs to be decodable, it can be
@@ -612,10 +612,10 @@ void Assembler::LoadImmediateFixed(Register reg, int64_t imm) {
   const uint16_t h1 = Utils::High16Bits(w0);
   const uint16_t h2 = Utils::Low16Bits(w1);
   const uint16_t h3 = Utils::High16Bits(w1);
-  movz(reg, h0, 0);
-  movk(reg, h1, 1);
-  movk(reg, h2, 2);
-  movk(reg, h3, 3);
+  movz(reg, Immediate(h0), 0);
+  movk(reg, Immediate(h1), 1);
+  movk(reg, Immediate(h2), 2);
+  movk(reg, Immediate(h3), 3);
 }
 
 
@@ -631,12 +631,12 @@ void Assembler::LoadImmediate(Register reg, int64_t imm, Register pp) {
     LoadWordFromPoolOffset(reg, pp, offset);
     if (val_smi_tag != 0) {
       // Add back the tag bits.
-      orri(reg, reg, val_smi_tag);
+      orri(reg, reg, Immediate(val_smi_tag));
     }
   } else {
     // 0. Is it 0?
     if (imm == 0) {
-      movz(reg, 0, 0);
+      movz(reg, Immediate(0), 0);
       return;
     }
 
@@ -645,7 +645,7 @@ void Assembler::LoadImmediate(Register reg, int64_t imm, Register pp) {
     Operand::OperandType ot;
     ot = Operand::CanHold(imm, kXRegSizeInBits, &op);
     if (ot == Operand::BitfieldImm) {
-      orri(reg, ZR, imm);
+      orri(reg, ZR, Immediate(imm));
       return;
     }
 
@@ -660,10 +660,10 @@ void Assembler::LoadImmediate(Register reg, int64_t imm, Register pp) {
     // Special case for w1 == 0xffffffff
     if (w1 == 0xffffffff) {
       if (h1 == 0xffff) {
-        movn(reg, ~h0, 0);
+        movn(reg, Immediate(~h0), 0);
       } else {
-        movn(reg, ~h1, 1);
-        movk(reg, h0, 0);
+        movn(reg, Immediate(~h1), 1);
+        movk(reg, Immediate(h0), 0);
       }
       return;
     }
@@ -671,42 +671,42 @@ void Assembler::LoadImmediate(Register reg, int64_t imm, Register pp) {
     // Special case for h3 == 0xffff
     if (h3 == 0xffff) {
       // We know h2 != 0xffff.
-      movn(reg, ~h2, 2);
+      movn(reg, Immediate(~h2), 2);
       if (h1 != 0xffff) {
-        movk(reg, h1, 1);
+        movk(reg, Immediate(h1), 1);
       }
       if (h0 != 0xffff) {
-        movk(reg, h0, 0);
+        movk(reg, Immediate(h0), 0);
       }
       return;
     }
 
     bool initialized = false;
     if (h0 != 0) {
-      movz(reg, h0, 0);
+      movz(reg, Immediate(h0), 0);
       initialized = true;
     }
     if (h1 != 0) {
       if (initialized) {
-        movk(reg, h1, 1);
+        movk(reg, Immediate(h1), 1);
       } else {
-        movz(reg, h1, 1);
+        movz(reg, Immediate(h1), 1);
         initialized = true;
       }
     }
     if (h2 != 0) {
       if (initialized) {
-        movk(reg, h2, 2);
+        movk(reg, Immediate(h2), 2);
       } else {
-        movz(reg, h2, 2);
+        movz(reg, Immediate(h2), 2);
         initialized = true;
       }
     }
     if (h3 != 0) {
       if (initialized) {
-        movk(reg, h3, 3);
+        movk(reg, Immediate(h3), 3);
       } else {
-        movz(reg, h3, 3);
+        movz(reg, Immediate(h3), 3);
       }
     }
   }
@@ -787,7 +787,7 @@ void Assembler::AndImmediate(
     Register rd, Register rn, int64_t imm, Register pp) {
   Operand imm_op;
   if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
-    andi(rd, rn, imm);
+    andi(rd, rn, Immediate(imm));
   } else {
     LoadImmediate(TMP, imm, pp);
     and_(rd, rn, Operand(TMP));
@@ -799,7 +799,7 @@ void Assembler::OrImmediate(
     Register rd, Register rn, int64_t imm, Register pp) {
   Operand imm_op;
   if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
-    orri(rd, rn, imm);
+    orri(rd, rn, Immediate(imm));
   } else {
     LoadImmediate(TMP, imm, pp);
     orr(rd, rn, Operand(TMP));
@@ -811,7 +811,7 @@ void Assembler::XorImmediate(
     Register rd, Register rn, int64_t imm, Register pp) {
   Operand imm_op;
   if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
-    eori(rd, rn, imm);
+    eori(rd, rn, Immediate(imm));
   } else {
     LoadImmediate(TMP, imm, pp);
     eor(rd, rn, Operand(TMP));
@@ -822,7 +822,7 @@ void Assembler::XorImmediate(
 void Assembler::TestImmediate(Register rn, int64_t imm, Register pp) {
   Operand imm_op;
   if (Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op)) {
-    tsti(rn, imm);
+    tsti(rn, Immediate(imm));
   } else {
     LoadImmediate(TMP, imm, pp);
     tst(rn, Operand(TMP));
@@ -964,7 +964,7 @@ void Assembler::StoreIntoObjectFilterNoSmi(Register object,
   // To check that, we compute value & ~object and skip the write barrier
   // if the bit is not set. We can't destroy the object.
   bic(TMP, value, Operand(object));
-  tsti(TMP, kNewObjectAlignmentOffset);
+  tsti(TMP, Immediate(kNewObjectAlignmentOffset));
   b(no_update, EQ);
 }
 
@@ -978,7 +978,7 @@ void Assembler::StoreIntoObjectFilter(Register object,
   and_(TMP, value, Operand(value, LSL, kObjectAlignmentLog2 - 1));
   // And the result with the negated space bit of the object.
   bic(TMP, TMP, Operand(object));
-  tsti(TMP, kNewObjectAlignmentOffset);
+  tsti(TMP, Immediate(kNewObjectAlignmentOffset));
   b(no_update, EQ);
 }
 
@@ -1118,7 +1118,7 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   // the case that object is a Smi..
   LoadObject(TMP, Object::null_object(), PP);
   // Check if the object is a Smi.
-  tsti(object, kSmiTagMask);
+  tsti(object, Immediate(kSmiTagMask));
   // If the object *is* a Smi, use the null object instead. o/w leave alone.
   csel(TMP, TMP, object, EQ);
   // Loads either the cid of the object if it isn't a Smi, or the cid of null
@@ -1141,7 +1141,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
     AddImmediate(SP, SP, -frame_space, kNoPP);
   }
   if (OS::ActivationFrameAlignment() > 1) {
-    andi(SP, SP, ~(OS::ActivationFrameAlignment() - 1));
+    andi(SP, SP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 }
 
@@ -1166,7 +1166,7 @@ void Assembler::LeaveFrame() {
 
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   // Setup the frame.
-  adr(TMP, -CodeSize());  // TMP gets PC marker.
+  adr(TMP, Immediate(-CodeSize()));  // TMP gets PC marker.
   EnterFrame(0);
   Push(TMP);  // Save PC Marker.
   TagAndPushPP();  // Save PP.
@@ -1183,7 +1183,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 
 void Assembler::EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp) {
   // Setup the frame.
-  adr(TMP, -CodeSize());  // TMP gets PC marker.
+  adr(TMP, Immediate(-CodeSize()));  // TMP gets PC marker.
   EnterFrame(0);
   Push(TMP);  // Save PC Marker.
   TagAndPushPP();  // Save PP.
@@ -1209,7 +1209,7 @@ void Assembler::EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp) {
 // allocate. We must also set up the pool pointer for the function.
 void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
   Comment("EnterOsrFrame");
-  adr(TMP, -CodeSize());
+  adr(TMP, Immediate(-CodeSize()));
 
   StoreToOffset(TMP, FP, kPcMarkerSlotFromFp * kWordSize, kNoPP);
 

@@ -2248,10 +2248,11 @@ void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
 }
 
 
-void Assembler::Lsl(Register rd, Register rm, uint32_t shift_imm,
+void Assembler::Lsl(Register rd, Register rm, const Operand& shift_imm,
                     Condition cond) {
-  ASSERT(shift_imm != 0);  // Do not use Lsl if no shift is wanted.
-  mov(rd, Operand(rm, LSL, shift_imm), cond);
+  ASSERT(shift_imm.type() == 1);
+  ASSERT(shift_imm.encoding() != 0);  // Do not use Lsl if no shift is wanted.
+  mov(rd, Operand(rm, LSL, shift_imm.encoding()), cond);
 }
 
 
@@ -2260,11 +2261,15 @@ void Assembler::Lsl(Register rd, Register rm, Register rs, Condition cond) {
 }
 
 
-void Assembler::Lsr(Register rd, Register rm, uint32_t shift_imm,
+void Assembler::Lsr(Register rd, Register rm, const Operand& shift_imm,
                     Condition cond) {
-  ASSERT(shift_imm != 0);  // Do not use Lsr if no shift is wanted.
-  if (shift_imm == 32) shift_imm = 0;  // Comply to UAL syntax.
-  mov(rd, Operand(rm, LSR, shift_imm), cond);
+  ASSERT(shift_imm.type() == 1);
+  uint32_t shift = shift_imm.encoding();
+  ASSERT(shift != 0);  // Do not use Lsr if no shift is wanted.
+  if (shift == 32) {
+    shift = 0;  // Comply to UAL syntax.
+  }
+  mov(rd, Operand(rm, LSR, shift), cond);
 }
 
 
@@ -2273,23 +2278,27 @@ void Assembler::Lsr(Register rd, Register rm, Register rs, Condition cond) {
 }
 
 
-void Assembler::Asr(Register rd, Register rm, uint32_t shift_imm,
+void Assembler::Asr(Register rd, Register rm, const Operand& shift_imm,
                     Condition cond) {
-  ASSERT(shift_imm != 0);  // Do not use Asr if no shift is wanted.
-  if (shift_imm == 32) {
-    shift_imm = 0;  // Comply to UAL syntax.
+  ASSERT(shift_imm.type() == 1);
+  uint32_t shift = shift_imm.encoding();
+  ASSERT(shift != 0);  // Do not use Asr if no shift is wanted.
+  if (shift == 32) {
+    shift = 0;  // Comply to UAL syntax.
   }
-  mov(rd, Operand(rm, ASR, shift_imm), cond);
+  mov(rd, Operand(rm, ASR, shift), cond);
 }
 
 
-void Assembler::Asrs(Register rd, Register rm, uint32_t shift_imm,
+void Assembler::Asrs(Register rd, Register rm, const Operand& shift_imm,
                      Condition cond) {
-  ASSERT(shift_imm != 0);  // Do not use Asr if no shift is wanted.
-  if (shift_imm == 32) {
-    shift_imm = 0;  // Comply to UAL syntax.
+  ASSERT(shift_imm.type() == 1);
+  uint32_t shift = shift_imm.encoding();
+  ASSERT(shift != 0);  // Do not use Asr if no shift is wanted.
+  if (shift == 32) {
+    shift = 0;  // Comply to UAL syntax.
   }
-  movs(rd, Operand(rm, ASR, shift_imm), cond);
+  movs(rd, Operand(rm, ASR, shift), cond);
 }
 
 
@@ -2298,10 +2307,11 @@ void Assembler::Asr(Register rd, Register rm, Register rs, Condition cond) {
 }
 
 
-void Assembler::Ror(Register rd, Register rm, uint32_t shift_imm,
+void Assembler::Ror(Register rd, Register rm, const Operand& shift_imm,
                     Condition cond) {
-  ASSERT(shift_imm != 0);  // Use Rrx instruction.
-  mov(rd, Operand(rm, ROR, shift_imm), cond);
+  ASSERT(shift_imm.type() == 1);
+  ASSERT(shift_imm.encoding() != 0);  // Use Rrx instruction.
+  mov(rd, Operand(rm, ROR, shift_imm.encoding()), cond);
 }
 
 
@@ -2316,7 +2326,7 @@ void Assembler::Rrx(Register rd, Register rm, Condition cond) {
 
 
 void Assembler::SignFill(Register rd, Register rm, Condition cond) {
-  Asr(rd, rm, 31, cond);
+  Asr(rd, rm, Operand(31), cond);
 }
 
 

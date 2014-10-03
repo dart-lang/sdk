@@ -33,7 +33,7 @@ ASSEMBLER_TEST_RUN(Simple, test) {
 // Move wide immediate tests.
 // movz
 ASSEMBLER_TEST_GENERATE(Movz0, assembler) {
-  __ movz(R0, 42, 0);
+  __ movz(R0, Immediate(42), 0);
   __ ret();
 }
 
@@ -45,8 +45,8 @@ ASSEMBLER_TEST_RUN(Movz0, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Movz1, assembler) {
-  __ movz(R0, 42, 0);  // Overwritten by next instruction.
-  __ movz(R0, 42, 1);
+  __ movz(R0, Immediate(42), 0);  // Overwritten by next instruction.
+  __ movz(R0, Immediate(42), 1);
   __ ret();
 }
 
@@ -58,7 +58,7 @@ ASSEMBLER_TEST_RUN(Movz1, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Movz2, assembler) {
-  __ movz(R0, 42, 2);
+  __ movz(R0, Immediate(42), 2);
   __ ret();
 }
 
@@ -70,7 +70,7 @@ ASSEMBLER_TEST_RUN(Movz2, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Movz3, assembler) {
-  __ movz(R0, 42, 3);
+  __ movz(R0, Immediate(42), 3);
   __ ret();
 }
 
@@ -83,7 +83,7 @@ ASSEMBLER_TEST_RUN(Movz3, test) {
 
 // movn
 ASSEMBLER_TEST_GENERATE(Movn0, assembler) {
-  __ movn(R0, 42, 0);
+  __ movn(R0, Immediate(42), 0);
   __ ret();
 }
 
@@ -95,7 +95,7 @@ ASSEMBLER_TEST_RUN(Movn0, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Movn1, assembler) {
-  __ movn(R0, 42, 1);
+  __ movn(R0, Immediate(42), 1);
   __ ret();
 }
 
@@ -107,7 +107,7 @@ ASSEMBLER_TEST_RUN(Movn1, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Movn2, assembler) {
-  __ movn(R0, 42, 2);
+  __ movn(R0, Immediate(42), 2);
   __ ret();
 }
 
@@ -119,7 +119,7 @@ ASSEMBLER_TEST_RUN(Movn2, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Movn3, assembler) {
-  __ movn(R0, 42, 3);
+  __ movn(R0, Immediate(42), 3);
   __ ret();
 }
 
@@ -131,8 +131,8 @@ ASSEMBLER_TEST_RUN(Movn3, test) {
 
 // movk
 ASSEMBLER_TEST_GENERATE(Movk0, assembler) {
-  __ movz(R0, 1, 3);
-  __ movk(R0, 42, 0);
+  __ movz(R0, Immediate(1), 3);
+  __ movk(R0, Immediate(42), 0);
   __ ret();
 }
 
@@ -145,8 +145,8 @@ ASSEMBLER_TEST_RUN(Movk0, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Movk1, assembler) {
-  __ movz(R0, 1, 0);
-  __ movk(R0, 42, 1);
+  __ movz(R0, Immediate(1), 0);
+  __ movk(R0, Immediate(42), 1);
   __ ret();
 }
 
@@ -159,8 +159,8 @@ ASSEMBLER_TEST_RUN(Movk1, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Movk2, assembler) {
-  __ movz(R0, 1, 0);
-  __ movk(R0, 42, 2);
+  __ movz(R0, Immediate(1), 0);
+  __ movk(R0, Immediate(42), 2);
   __ ret();
 }
 
@@ -173,8 +173,8 @@ ASSEMBLER_TEST_RUN(Movk2, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Movk3, assembler) {
-  __ movz(R0, 1, 0);
-  __ movk(R0, 42, 3);
+  __ movz(R0, Immediate(1), 0);
+  __ movk(R0, Immediate(42), 3);
   __ ret();
 }
 
@@ -187,7 +187,7 @@ ASSEMBLER_TEST_RUN(Movk3, test) {
 
 
 ASSEMBLER_TEST_GENERATE(MovzBig, assembler) {
-  __ movz(R0, 0x8000, 0);
+  __ movz(R0, Immediate(0x8000), 0);
   __ ret();
 }
 
@@ -200,8 +200,8 @@ ASSEMBLER_TEST_RUN(MovzBig, test) {
 
 // add tests.
 ASSEMBLER_TEST_GENERATE(AddReg, assembler) {
-  __ movz(R0, 20, 0);
-  __ movz(R1, 22, 0);
+  __ movz(R0, Immediate(20), 0);
+  __ movz(R1, Immediate(22), 0);
   __ add(R0, R0, Operand(R1));
   __ ret();
 }
@@ -214,8 +214,8 @@ ASSEMBLER_TEST_RUN(AddReg, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AddLSLReg, assembler) {
-  __ movz(R0, 20, 0);
-  __ movz(R1, 11, 0);
+  __ movz(R0, Immediate(20), 0);
+  __ movz(R1, Immediate(11), 0);
   __ add(R0, R0, Operand(R1, LSL, 1));
   __ ret();
 }
@@ -228,8 +228,8 @@ ASSEMBLER_TEST_RUN(AddLSLReg, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AddLSRReg, assembler) {
-  __ movz(R0, 20, 0);
-  __ movz(R1, 44, 0);
+  __ movz(R0, Immediate(20), 0);
+  __ movz(R1, Immediate(44), 0);
   __ add(R0, R0, Operand(R1, LSR, 1));
   __ ret();
 }
@@ -242,8 +242,8 @@ ASSEMBLER_TEST_RUN(AddLSRReg, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AddASRReg, assembler) {
-  __ movz(R0, 20, 0);
-  __ movz(R1, 44, 0);
+  __ movz(R0, Immediate(20), 0);
+  __ movz(R1, Immediate(44), 0);
   __ add(R0, R0, Operand(R1, ASR, 1));
   __ ret();
 }
@@ -256,8 +256,8 @@ ASSEMBLER_TEST_RUN(AddASRReg, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AddASRNegReg, assembler) {
-  __ movz(R0, 43, 0);
-  __ movn(R1, 0, 0);  // R1 <- -1
+  __ movz(R0, Immediate(43), 0);
+  __ movn(R1, Immediate(0), 0);  // R1 <- -1
   __ add(R1, ZR, Operand(R1, LSL, 3));  // R1 <- -8
   __ add(R0, R0, Operand(R1, ASR, 3));  // R0 <- 43 + (-8 >> 3)
   __ ret();
@@ -272,9 +272,9 @@ ASSEMBLER_TEST_RUN(AddASRNegReg, test) {
 
 // TODO(zra): test other sign extension modes.
 ASSEMBLER_TEST_GENERATE(AddExtReg, assembler) {
-  __ movz(R0, 43, 0);
-  __ movz(R1, 0xffff, 0);
-  __ movk(R1, 0xffff, 1);  // R1 <- -1 (32-bit)
+  __ movz(R0, Immediate(43), 0);
+  __ movz(R1, Immediate(0xffff), 0);
+  __ movk(R1, Immediate(0xffff), 1);  // R1 <- -1 (32-bit)
   __ add(R0, R0, Operand(R1, SXTW, 0));  // R0 <- R0 + (sign extended R1)
   __ ret();
 }
@@ -289,8 +289,8 @@ ASSEMBLER_TEST_RUN(AddExtReg, test) {
 // Loads and Stores.
 ASSEMBLER_TEST_GENERATE(SimpleLoadStore, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ movz(R0, 43, 0);
-  __ movz(R1, 42, 0);
+  __ movz(R0, Immediate(43), 0);
+  __ movz(R1, Immediate(42), 0);
   __ str(R1, Address(SP, -1*kWordSize, Address::PreIndex));
   __ ldr(R0, Address(SP, 1*kWordSize, Address::PostIndex));
   __ mov(CSP, SP);
@@ -306,8 +306,8 @@ ASSEMBLER_TEST_RUN(SimpleLoadStore, test) {
 
 ASSEMBLER_TEST_GENERATE(SimpleLoadStoreHeapTag, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ movz(R0, 43, 0);
-  __ movz(R1, 42, 0);
+  __ movz(R0, Immediate(43), 0);
+  __ movz(R1, Immediate(42), 0);
   __ add(R2, SP, Operand(1));
   __ str(R1, Address(R2, -1));
   __ ldr(R0, Address(R2, -1));
@@ -324,8 +324,8 @@ ASSEMBLER_TEST_RUN(SimpleLoadStoreHeapTag, test) {
 
 ASSEMBLER_TEST_GENERATE(LoadStoreLargeIndex, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ movz(R0, 43, 0);
-  __ movz(R1, 42, 0);
+  __ movz(R0, Immediate(43), 0);
+  __ movz(R1, Immediate(42), 0);
   // Largest negative offset that can fit in the signed 9-bit immediate field.
   __ str(R1, Address(SP, -32*kWordSize, Address::PreIndex));
   // Largest positive kWordSize aligned offset that we can fit.
@@ -345,8 +345,8 @@ ASSEMBLER_TEST_RUN(LoadStoreLargeIndex, test) {
 
 ASSEMBLER_TEST_GENERATE(LoadStoreLargeOffset, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ movz(R0, 43, 0);
-  __ movz(R1, 42, 0);
+  __ movz(R0, Immediate(43), 0);
+  __ movz(R1, Immediate(42), 0);
   __ sub(SP, SP, Operand(512*kWordSize));
   __ str(R1, Address(SP, 512*kWordSize, Address::Offset));
   __ add(SP, SP, Operand(512*kWordSize));
@@ -364,10 +364,10 @@ ASSEMBLER_TEST_RUN(LoadStoreLargeOffset, test) {
 
 ASSEMBLER_TEST_GENERATE(LoadStoreExtReg, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ movz(R0, 43, 0);
-  __ movz(R1, 42, 0);
-  __ movz(R2, 0xfff8, 0);
-  __ movk(R2, 0xffff, 1);  // R2 <- -8 (int32_t).
+  __ movz(R0, Immediate(43), 0);
+  __ movz(R1, Immediate(42), 0);
+  __ movz(R2, Immediate(0xfff8), 0);
+  __ movk(R2, Immediate(0xffff), 1);  // R2 <- -8 (int32_t).
   // This should sign extend R2, and add to SP to get address,
   // i.e. SP - kWordSize.
   __ str(R1, Address(SP, R2, SXTW));
@@ -387,9 +387,9 @@ ASSEMBLER_TEST_RUN(LoadStoreExtReg, test) {
 
 ASSEMBLER_TEST_GENERATE(LoadStoreScaledReg, assembler) {
   __ SetupDartSP(kTestStackSpace);
-  __ movz(R0, 43, 0);
-  __ movz(R1, 42, 0);
-  __ movz(R2, 10, 0);
+  __ movz(R0, Immediate(43), 0);
+  __ movz(R1, Immediate(42), 0);
+  __ movz(R2, Immediate(10), 0);
   __ sub(SP, SP, Operand(10*kWordSize));
   // Store R1 into SP + R2 * kWordSize.
   __ str(R1, Address(SP, R2, UXTX, Address::Scaled));
@@ -425,8 +425,8 @@ ASSEMBLER_TEST_RUN(LoadSigned32Bit, test) {
 
 // Logical register operations.
 ASSEMBLER_TEST_GENERATE(AndRegs, assembler) {
-  __ movz(R1, 43, 0);
-  __ movz(R2, 42, 0);
+  __ movz(R1, Immediate(43), 0);
+  __ movz(R2, Immediate(42), 0);
   __ and_(R0, R1, Operand(R2));
   __ ret();
 }
@@ -439,8 +439,8 @@ ASSEMBLER_TEST_RUN(AndRegs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AndShiftRegs, assembler) {
-  __ movz(R1, 42, 0);
-  __ movz(R2, 21, 0);
+  __ movz(R1, Immediate(42), 0);
+  __ movz(R2, Immediate(21), 0);
   __ and_(R0, R1, Operand(R2, LSL, 1));
   __ ret();
 }
@@ -453,8 +453,8 @@ ASSEMBLER_TEST_RUN(AndShiftRegs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(BicRegs, assembler) {
-  __ movz(R1, 42, 0);
-  __ movz(R2, 5, 0);
+  __ movz(R1, Immediate(42), 0);
+  __ movz(R2, Immediate(5), 0);
   __ bic(R0, R1, Operand(R2));
   __ ret();
 }
@@ -467,8 +467,8 @@ ASSEMBLER_TEST_RUN(BicRegs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(OrrRegs, assembler) {
-  __ movz(R1, 32, 0);
-  __ movz(R2, 10, 0);
+  __ movz(R1, Immediate(32), 0);
+  __ movz(R2, Immediate(10), 0);
   __ orr(R0, R1, Operand(R2));
   __ ret();
 }
@@ -481,9 +481,9 @@ ASSEMBLER_TEST_RUN(OrrRegs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(OrnRegs, assembler) {
-  __ movz(R1, 32, 0);
-  __ movn(R2, 0, 0);  // R2 <- 0xffffffffffffffff.
-  __ movk(R2, 0xffd5, 0);  // R2 <- 0xffffffffffffffe5.
+  __ movz(R1, Immediate(32), 0);
+  __ movn(R2, Immediate(0), 0);  // R2 <- 0xffffffffffffffff.
+  __ movk(R2, Immediate(0xffd5), 0);  // R2 <- 0xffffffffffffffe5.
   __ orn(R0, R1, Operand(R2));
   __ ret();
 }
@@ -496,8 +496,8 @@ ASSEMBLER_TEST_RUN(OrnRegs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(EorRegs, assembler) {
-  __ movz(R1, 0xffd5, 0);
-  __ movz(R2, 0xffff, 0);
+  __ movz(R1, Immediate(0xffd5), 0);
+  __ movz(R2, Immediate(0xffff), 0);
   __ eor(R0, R1, Operand(R2));
   __ ret();
 }
@@ -510,8 +510,8 @@ ASSEMBLER_TEST_RUN(EorRegs, test) {
 
 
 ASSEMBLER_TEST_GENERATE(EonRegs, assembler) {
-  __ movz(R1, 0xffd5, 0);
-  __ movn(R2, 0xffff, 0);
+  __ movz(R1, Immediate(0xffd5), 0);
+  __ movn(R2, Immediate(0xffff), 0);
   __ eon(R0, R1, Operand(R2));
   __ ret();
 }
@@ -525,8 +525,8 @@ ASSEMBLER_TEST_RUN(EonRegs, test) {
 
 // Logical immediate operations.
 ASSEMBLER_TEST_GENERATE(AndImm, assembler) {
-  __ movz(R1, 42, 0);
-  __ andi(R0, R1, 0xaaaaaaaaaaaaaaaaULL);
+  __ movz(R1, Immediate(42), 0);
+  __ andi(R0, R1, Immediate(0xaaaaaaaaaaaaaaaaULL));
   __ ret();
 }
 
@@ -538,8 +538,8 @@ ASSEMBLER_TEST_RUN(AndImm, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AndOneImm, assembler) {
-  __ movz(R1, 43, 0);
-  __ andi(R0, R1, 1);
+  __ movz(R1, Immediate(43), 0);
+  __ andi(R0, R1, Immediate(1));
   __ ret();
 }
 
@@ -551,10 +551,10 @@ ASSEMBLER_TEST_RUN(AndOneImm, test) {
 
 
 ASSEMBLER_TEST_GENERATE(OrrImm, assembler) {
-  __ movz(R1, 0, 0);
-  __ movz(R2, 0x3f, 0);
-  __ movz(R3, 0xa, 0);
-  __ orri(R1, R1, 0x0020002000200020ULL);
+  __ movz(R1, Immediate(0), 0);
+  __ movz(R2, Immediate(0x3f), 0);
+  __ movz(R3, Immediate(0xa), 0);
+  __ orri(R1, R1, Immediate(0x0020002000200020ULL));
   __ orr(R1, R1, Operand(R3));
   __ and_(R0, R1, Operand(R2));
   __ ret();
@@ -568,10 +568,10 @@ ASSEMBLER_TEST_RUN(OrrImm, test) {
 
 
 ASSEMBLER_TEST_GENERATE(EorImm, assembler) {
-  __ movn(R0, 0, 0);
-  __ movk(R0, 0xffd5, 0);  // R0 < 0xffffffffffffffd5.
-  __ movz(R1, 0x3f, 0);
-  __ eori(R0, R0, 0x3f3f3f3f3f3f3f3fULL);
+  __ movn(R0, Immediate(0), 0);
+  __ movk(R0, Immediate(0xffd5), 0);  // R0 < 0xffffffffffffffd5.
+  __ movz(R1, Immediate(0x3f), 0);
+  __ eori(R0, R0, Immediate(0x3f3f3f3f3f3f3f3fULL));
   __ and_(R0, R0, Operand(R1));
   __ ret();
 }
@@ -586,9 +586,9 @@ ASSEMBLER_TEST_RUN(EorImm, test) {
 // Comparisons, branching.
 ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
   Label l;
-  __ movz(R0, 42, 0);
+  __ movz(R0, Immediate(42), 0);
   __ b(&l, AL);
-  __ movz(R0, 0, 0);
+  __ movz(R0, Immediate(0), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -602,17 +602,17 @@ ASSEMBLER_TEST_RUN(BranchALForward, test) {
 
 ASSEMBLER_TEST_GENERATE(BranchALBackwards, assembler) {
   Label l, leave;
-  __ movz(R0, 42, 0);
+  __ movz(R0, Immediate(42), 0);
   __ b(&l, AL);
 
-  __ movz(R0, 0, 0);
+  __ movz(R0, Immediate(0), 0);
   __ Bind(&leave);
   __ ret();
-  __ movz(R0, 0, 0);
+  __ movz(R0, Immediate(0), 0);
 
   __ Bind(&l);
   __ b(&leave, AL);
-  __ movz(R0, 0, 0);
+  __ movz(R0, Immediate(0), 0);
   __ ret();
 }
 
@@ -626,13 +626,13 @@ ASSEMBLER_TEST_RUN(BranchALBackwards, test) {
 ASSEMBLER_TEST_GENERATE(CmpEqBranch, assembler) {
   Label l;
 
-  __ movz(R0, 42, 0);
-  __ movz(R1, 234, 0);
-  __ movz(R2, 234, 0);
+  __ movz(R0, Immediate(42), 0);
+  __ movz(R1, Immediate(234), 0);
+  __ movz(R2, Immediate(234), 0);
 
   __ cmp(R1, Operand(R2));
   __ b(&l, EQ);
-  __ movz(R0, 0, 0);
+  __ movz(R0, Immediate(0), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -647,13 +647,13 @@ ASSEMBLER_TEST_RUN(CmpEqBranch, test) {
 ASSEMBLER_TEST_GENERATE(CmpEqBranchNotTaken, assembler) {
   Label l;
 
-  __ movz(R0, 0, 0);
-  __ movz(R1, 233, 0);
-  __ movz(R2, 234, 0);
+  __ movz(R0, Immediate(0), 0);
+  __ movz(R1, Immediate(233), 0);
+  __ movz(R2, Immediate(234), 0);
 
   __ cmp(R1, Operand(R2));
   __ b(&l, EQ);
-  __ movz(R0, 42, 0);
+  __ movz(R0, Immediate(42), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -668,12 +668,12 @@ ASSEMBLER_TEST_RUN(CmpEqBranchNotTaken, test) {
 ASSEMBLER_TEST_GENERATE(CmpEq1Branch, assembler) {
   Label l;
 
-  __ movz(R0, 42, 0);
-  __ movz(R1, 1, 0);
+  __ movz(R0, Immediate(42), 0);
+  __ movz(R1, Immediate(1), 0);
 
   __ cmp(R1, Operand(1));
   __ b(&l, EQ);
-  __ movz(R0, 0, 0);
+  __ movz(R0, Immediate(0), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -688,12 +688,12 @@ ASSEMBLER_TEST_RUN(CmpEq1Branch, test) {
 ASSEMBLER_TEST_GENERATE(CmnEq1Branch, assembler) {
   Label l;
 
-  __ movz(R0, 42, 0);
-  __ movn(R1, 0, 0);  // R1 <- -1
+  __ movz(R0, Immediate(42), 0);
+  __ movn(R1, Immediate(0), 0);  // R1 <- -1
 
   __ cmn(R1, Operand(1));
   __ b(&l, EQ);
-  __ movz(R0, 0, 0);
+  __ movz(R0, Immediate(0), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -708,13 +708,13 @@ ASSEMBLER_TEST_RUN(CmnEq1Branch, test) {
 ASSEMBLER_TEST_GENERATE(CmpLtBranch, assembler) {
   Label l;
 
-  __ movz(R0, 42, 0);
-  __ movz(R1, 233, 0);
-  __ movz(R2, 234, 0);
+  __ movz(R0, Immediate(42), 0);
+  __ movz(R1, Immediate(233), 0);
+  __ movz(R2, Immediate(234), 0);
 
   __ cmp(R1, Operand(R2));
   __ b(&l, LT);
-  __ movz(R0, 0, 0);
+  __ movz(R0, Immediate(0), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -729,13 +729,13 @@ ASSEMBLER_TEST_RUN(CmpLtBranch, test) {
 ASSEMBLER_TEST_GENERATE(CmpLtBranchNotTaken, assembler) {
   Label l;
 
-  __ movz(R0, 0, 0);
-  __ movz(R1, 235, 0);
-  __ movz(R2, 234, 0);
+  __ movz(R0, Immediate(0), 0);
+  __ movz(R1, Immediate(235), 0);
+  __ movz(R2, Immediate(234), 0);
 
   __ cmp(R1, Operand(R2));
   __ b(&l, LT);
-  __ movz(R0, 42, 0);
+  __ movz(R0, Immediate(42), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -856,13 +856,13 @@ ASSEMBLER_TEST_RUN(FcmpzGtBranch, test) {
 ASSEMBLER_TEST_GENERATE(AndsBranch, assembler) {
   Label l;
 
-  __ movz(R0, 42, 0);
-  __ movz(R1, 2, 0);
-  __ movz(R2, 1, 0);
+  __ movz(R0, Immediate(42), 0);
+  __ movz(R1, Immediate(2), 0);
+  __ movz(R2, Immediate(1), 0);
 
   __ ands(R3, R1, Operand(R2));
   __ b(&l, EQ);
-  __ movz(R0, 0, 0);
+  __ movz(R0, Immediate(0), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -877,13 +877,13 @@ ASSEMBLER_TEST_RUN(AndsBranch, test) {
 ASSEMBLER_TEST_GENERATE(AndsBranchNotTaken, assembler) {
   Label l;
 
-  __ movz(R0, 0, 0);
-  __ movz(R1, 2, 0);
-  __ movz(R2, 2, 0);
+  __ movz(R0, Immediate(0), 0);
+  __ movz(R1, Immediate(2), 0);
+  __ movz(R2, Immediate(2), 0);
 
   __ ands(R3, R1, Operand(R2));
   __ b(&l, EQ);
-  __ movz(R0, 42, 0);
+  __ movz(R0, Immediate(42), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -898,13 +898,13 @@ ASSEMBLER_TEST_RUN(AndsBranchNotTaken, test) {
 ASSEMBLER_TEST_GENERATE(BicsBranch, assembler) {
   Label l;
 
-  __ movz(R0, 42, 0);
-  __ movz(R1, 2, 0);
-  __ movz(R2, 2, 0);
+  __ movz(R0, Immediate(42), 0);
+  __ movz(R1, Immediate(2), 0);
+  __ movz(R2, Immediate(2), 0);
 
   __ bics(R3, R1, Operand(R2));
   __ b(&l, EQ);
-  __ movz(R0, 0, 0);
+  __ movz(R0, Immediate(0), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -919,13 +919,13 @@ ASSEMBLER_TEST_RUN(BicsBranch, test) {
 ASSEMBLER_TEST_GENERATE(BicsBranchNotTaken, assembler) {
   Label l;
 
-  __ movz(R0, 0, 0);
-  __ movz(R1, 2, 0);
-  __ movz(R2, 1, 0);
+  __ movz(R0, Immediate(0), 0);
+  __ movz(R1, Immediate(2), 0);
+  __ movz(R2, Immediate(1), 0);
 
   __ bics(R3, R1, Operand(R2));
   __ b(&l, EQ);
-  __ movz(R0, 42, 0);
+  __ movz(R0, Immediate(42), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -940,12 +940,12 @@ ASSEMBLER_TEST_RUN(BicsBranchNotTaken, test) {
 ASSEMBLER_TEST_GENERATE(AndisBranch, assembler) {
   Label l;
 
-  __ movz(R0, 42, 0);
-  __ movz(R1, 2, 0);
+  __ movz(R0, Immediate(42), 0);
+  __ movz(R1, Immediate(2), 0);
 
-  __ andis(R3, R1, 1);
+  __ andis(R3, R1, Immediate(1));
   __ b(&l, EQ);
-  __ movz(R0, 0, 0);
+  __ movz(R0, Immediate(0), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -960,12 +960,12 @@ ASSEMBLER_TEST_RUN(AndisBranch, test) {
 ASSEMBLER_TEST_GENERATE(AndisBranchNotTaken, assembler) {
   Label l;
 
-  __ movz(R0, 0, 0);
-  __ movz(R1, 2, 0);
+  __ movz(R0, Immediate(0), 0);
+  __ movz(R1, Immediate(2), 0);
 
-  __ andis(R3, R1, 2);
+  __ andis(R3, R1, Immediate(2));
   __ b(&l, EQ);
-  __ movz(R0, 42, 0);
+  __ movz(R0, Immediate(42), 0);
   __ Bind(&l);
   __ ret();
 }
@@ -979,13 +979,14 @@ ASSEMBLER_TEST_RUN(AndisBranchNotTaken, test) {
 
 // Address of PC-rel offset, br, blr.
 ASSEMBLER_TEST_GENERATE(AdrBr, assembler) {
-  __ movz(R0, 123, 0);
-  __ adr(R1, 3 * Instr::kInstrSize);  // R1 <- PC + 3*Instr::kInstrSize
+  __ movz(R0, Immediate(123), 0);
+  // R1 <- PC + 3*Instr::kInstrSize
+  __ adr(R1, Immediate(3 * Instr::kInstrSize));
   __ br(R1);
   __ ret();
 
   // br goes here.
-  __ movz(R0, 42, 0);
+  __ movz(R0, Immediate(42), 0);
   __ ret();
 }
 
@@ -997,15 +998,16 @@ ASSEMBLER_TEST_RUN(AdrBr, test) {
 
 
 ASSEMBLER_TEST_GENERATE(AdrBlr, assembler) {
-  __ movz(R0, 123, 0);
+  __ movz(R0, Immediate(123), 0);
   __ add(R3, ZR, Operand(LR));  // Save LR.
-  __ adr(R1, 4 * Instr::kInstrSize);  // R1 <- PC + 4*Instr::kInstrSize
+  // R1 <- PC + 4*Instr::kInstrSize
+  __ adr(R1, Immediate(4 * Instr::kInstrSize));
   __ blr(R1);
   __ add(LR, ZR, Operand(R3));
   __ ret();
 
   // blr goes here.
-  __ movz(R0, 42, 0);
+  __ movz(R0, Immediate(42), 0);
   __ ret();
 }
 
@@ -1018,8 +1020,8 @@ ASSEMBLER_TEST_RUN(AdrBlr, test) {
 
 // Misc. arithmetic.
 ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
-  __ movz(R0, 27, 0);
-  __ movz(R1, 9, 0);
+  __ movz(R0, Immediate(27), 0);
+  __ movz(R1, Immediate(9), 0);
   __ udiv(R2, R0, R1);
   __ mov(R0, R2);
   __ ret();
@@ -1034,8 +1036,8 @@ ASSEMBLER_TEST_RUN(Udiv, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
-  __ movz(R0, 27, 0);
-  __ movz(R1, 9, 0);
+  __ movz(R0, Immediate(27), 0);
+  __ movz(R1, Immediate(9), 0);
   __ neg(R1, R1);
   __ sdiv(R2, R0, R1);
   __ mov(R0, R2);
@@ -1051,8 +1053,8 @@ ASSEMBLER_TEST_RUN(Sdiv, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
-  __ movz(R0, 27, 0);
-  __ movz(R1, 0, 0);
+  __ movz(R0, Immediate(27), 0);
+  __ movz(R1, Immediate(0), 0);
   __ udiv(R2, R0, R1);
   __ mov(R0, R2);
   __ ret();
@@ -1067,8 +1069,8 @@ ASSEMBLER_TEST_RUN(Udiv_zero, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
-  __ movz(R0, 27, 0);
-  __ movz(R1, 0, 0);
+  __ movz(R0, Immediate(27), 0);
+  __ movz(R1, Immediate(0), 0);
   __ sdiv(R2, R0, R1);
   __ mov(R0, R2);
   __ ret();
@@ -1083,8 +1085,8 @@ ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
-  __ movz(R0, 0x8000, 3);  // R0 <- 0x8000000000000000
-  __ movn(R1, 0, 0);  // R1 <- 0xffffffffffffffff
+  __ movz(R0, Immediate(0x8000), 3);  // R0 <- 0x8000000000000000
+  __ movn(R1, Immediate(0), 0);  // R1 <- 0xffffffffffffffff
   __ udiv(R2, R0, R1);
   __ mov(R0, R2);
   __ ret();
@@ -1099,8 +1101,8 @@ ASSEMBLER_TEST_RUN(Udiv_corner, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
-  __ movz(R3, 0x8000, 3);  // R0 <- 0x8000000000000000
-  __ movn(R1, 0, 0);  // R1 <- 0xffffffffffffffff
+  __ movz(R3, Immediate(0x8000), 3);  // R0 <- 0x8000000000000000
+  __ movn(R1, Immediate(0), 0);  // R1 <- 0xffffffffffffffff
   __ sdiv(R2, R3, R1);
   __ mov(R0, R2);
   __ ret();
@@ -1116,8 +1118,8 @@ ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Lslv, assembler) {
-  __ movz(R1, 21, 0);
-  __ movz(R2, 1, 0);
+  __ movz(R1, Immediate(21), 0);
+  __ movz(R2, Immediate(1), 0);
   __ lslv(R0, R1, R2);
   __ ret();
 }
@@ -1130,8 +1132,8 @@ ASSEMBLER_TEST_RUN(Lslv, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Lsrv, assembler) {
-  __ movz(R1, 84, 0);
-  __ movz(R2, 1, 0);
+  __ movz(R1, Immediate(84), 0);
+  __ movz(R2, Immediate(1), 0);
   __ lsrv(R0, R1, R2);
   __ ret();
 }
@@ -1144,8 +1146,8 @@ ASSEMBLER_TEST_RUN(Lsrv, test) {
 
 
 ASSEMBLER_TEST_GENERATE(LShiftingV, assembler) {
-  __ movz(R1, 1, 0);
-  __ movz(R2, 63, 0);
+  __ movz(R1, Immediate(1), 0);
+  __ movz(R2, Immediate(63), 0);
   __ lslv(R1, R1, R2);
   __ lsrv(R0, R1, R2);
   __ ret();
@@ -1159,8 +1161,8 @@ ASSEMBLER_TEST_RUN(LShiftingV, test) {
 
 
 ASSEMBLER_TEST_GENERATE(RShiftingV, assembler) {
-  __ movz(R1, 1, 0);
-  __ movz(R2, 63, 0);
+  __ movz(R1, Immediate(1), 0);
+  __ movz(R2, Immediate(63), 0);
   __ lslv(R1, R1, R2);
   __ asrv(R0, R1, R2);
   __ ret();
@@ -1174,8 +1176,8 @@ ASSEMBLER_TEST_RUN(RShiftingV, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Mult_pos, assembler) {
-  __ movz(R1, 6, 0);
-  __ movz(R2, 7, 0);
+  __ movz(R1, Immediate(6), 0);
+  __ movz(R2, Immediate(7), 0);
   __ mul(R0, R1, R2);
   __ ret();
 }
@@ -1188,8 +1190,8 @@ ASSEMBLER_TEST_RUN(Mult_pos, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Mult_neg, assembler) {
-  __ movz(R1, 6, 0);
-  __ movz(R2, 7, 0);
+  __ movz(R1, Immediate(6), 0);
+  __ movz(R2, Immediate(7), 0);
   __ neg(R2, R2);
   __ mul(R0, R1, R2);
   __ ret();
@@ -1203,8 +1205,8 @@ ASSEMBLER_TEST_RUN(Mult_neg, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Smulh_pos, assembler) {
-  __ movz(R1, 6, 0);
-  __ movz(R2, 7, 0);
+  __ movz(R1, Immediate(6), 0);
+  __ movz(R2, Immediate(7), 0);
   __ smulh(R0, R1, R2);
   __ ret();
 }
@@ -1217,8 +1219,8 @@ ASSEMBLER_TEST_RUN(Smulh_pos, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Smulh_neg, assembler) {
-  __ movz(R1, 6, 0);
-  __ movz(R2, 7, 0);
+  __ movz(R1, Immediate(6), 0);
+  __ movz(R2, Immediate(7), 0);
   __ neg(R2, R2);
   __ smulh(R0, R1, R2);
   __ ret();
@@ -1882,8 +1884,8 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdExtReg, assembler) {
   __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V0, 43.0, kNoPP);
   __ LoadDImmediate(V1, 42.0, kNoPP);
-  __ movz(R2, 0xfff8, 0);
-  __ movk(R2, 0xffff, 1);  // R2 <- -8 (int32_t).
+  __ movz(R2, Immediate(0xfff8), 0);
+  __ movk(R2, Immediate(0xffff), 1);  // R2 <- -8 (int32_t).
   // This should sign extend R2, and add to SP to get address,
   // i.e. SP - kWordSize.
   __ fstrd(V1, Address(SP, R2, SXTW));
@@ -1905,7 +1907,7 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdScaledReg, assembler) {
   __ SetupDartSP(kTestStackSpace);
   __ LoadDImmediate(V0, 43.0, kNoPP);
   __ LoadDImmediate(V1, 42.0, kNoPP);
-  __ movz(R2, 10, 0);
+  __ movz(R2, Immediate(10), 0);
   __ sub(SP, SP, Operand(10*kWordSize));
   // Store V1 into SP + R2 * kWordSize.
   __ fstrd(V1, Address(SP, R2, UXTX, Address::Scaled));

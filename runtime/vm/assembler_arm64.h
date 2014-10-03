@@ -22,6 +22,25 @@ namespace dart {
 // Forward declarations.
 class RuntimeEntry;
 
+class Immediate : public ValueObject {
+ public:
+  explicit Immediate(int64_t value) : value_(value) { }
+
+  Immediate(const Immediate& other) : ValueObject(), value_(other.value_) { }
+  Immediate& operator=(const Immediate& other) {
+    value_ = other.value_;
+    return *this;
+  }
+
+ private:
+  int64_t value_;
+
+  int64_t value() const { return value_; }
+
+  friend class Assembler;
+};
+
+
 class Label : public ValueObject {
  public:
   Label() : position_(0) { }
@@ -126,6 +145,10 @@ class Address : public ValueObject {
     base_ = crn;
   }
 
+  // This addressing mode does not exist.
+  Address(Register rn, Register offset, AddressType at,
+          OperandSize sz = kDoubleWord);
+
   static bool CanHoldOffset(int32_t offset, AddressType at = Offset,
                             OperandSize sz = kDoubleWord) {
     if (at == Offset) {
@@ -153,6 +176,9 @@ class Address : public ValueObject {
     addr.type_ = PCOffset;
     return addr;
   }
+
+  // This addressing mode does not exist.
+  static Address PC(Register r);
 
   enum Scaling {
     Unscaled,
@@ -246,6 +272,9 @@ class FieldAddress : public Address {
   FieldAddress(Register base, int32_t disp, OperandSize sz = kDoubleWord)
       : Address(base, disp - kHeapObjectTag, Offset, sz) { }
 
+  // This addressing mode does not exist.
+  FieldAddress(Register base, Register disp, OperandSize sz = kDoubleWord);
+
   FieldAddress(const FieldAddress& other) : Address(other) { }
 
   FieldAddress& operator=(const FieldAddress& other) {
@@ -296,6 +325,9 @@ class Operand : public ValueObject {
     type_ = Shifted;
   }
 
+  // This operand type does not exist.
+  Operand(Register rm, Shift shift, Register r);
+
   Operand(Register rm, Extend extend, int32_t imm) {
     ASSERT(Utils::IsUint(3, imm));
     ASSERT((rm != R31) && (rm != CSP));
@@ -307,6 +339,9 @@ class Operand : public ValueObject {
         ((imm & 0x7) << kImm3Shift);
     type_ = Extended;
   }
+
+  // This operand type does not exist.
+  Operand(Register rm, Extend extend, Register r);
 
   explicit Operand(int32_t imm) {
     if (Utils::IsUint(12, imm)) {
@@ -448,7 +483,6 @@ class Assembler : public ValueObject {
 
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
-  // TODO(zra): Make sure this is right.
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
@@ -485,32 +519,36 @@ class Assembler : public ValueObject {
   }
 
   // PC relative immediate add. imm is in bytes.
-  void adr(Register rd, int64_t imm) {
+  void adr(Register rd, const Immediate& imm) {
     EmitPCRelOp(ADR, rd, imm);
   }
 
   // Logical immediate operations.
-  void andi(Register rd, Register rn, uint64_t imm) {
+  void andi(Register rd, Register rn, const Immediate& imm) {
     Operand imm_op;
-    const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    const bool immok =
+        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
     ASSERT(immok);
     EmitLogicalImmOp(ANDI, rd, rn, imm_op, kDoubleWord);
   }
-  void orri(Register rd, Register rn, uint64_t imm) {
+  void orri(Register rd, Register rn, const Immediate& imm) {
     Operand imm_op;
-    const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    const bool immok =
+        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
     ASSERT(immok);
     EmitLogicalImmOp(ORRI, rd, rn, imm_op, kDoubleWord);
   }
-  void eori(Register rd, Register rn, uint64_t imm) {
+  void eori(Register rd, Register rn, const Immediate& imm) {
     Operand imm_op;
-    const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    const bool immok =
+        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
     ASSERT(immok);
     EmitLogicalImmOp(EORI, rd, rn, imm_op, kDoubleWord);
   }
-  void andis(Register rd, Register rn, uint64_t imm) {
+  void andis(Register rd, Register rn, const Immediate& imm) {
     Operand imm_op;
-    const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    const bool immok =
+        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
     ASSERT(immok);
     EmitLogicalImmOp(ANDIS, rd, rn, imm_op, kDoubleWord);
   }
@@ -574,17 +612,17 @@ class Assembler : public ValueObject {
   }
 
   // Move wide immediate.
-  void movk(Register rd, uint16_t imm, int hw_idx) {
+  void movk(Register rd, const Immediate& imm, int hw_idx) {
     ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitMoveWideOp(MOVK, crd, imm, hw_idx, kDoubleWord);
   }
-  void movn(Register rd, uint16_t imm, int hw_idx) {
+  void movn(Register rd, const Immediate& imm, int hw_idx) {
     ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitMoveWideOp(MOVN, crd, imm, hw_idx, kDoubleWord);
   }
-  void movz(Register rd, uint16_t imm, int hw_idx) {
+  void movz(Register rd, const Immediate& imm, int hw_idx) {
     ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitMoveWideOp(MOVZ, crd, imm, hw_idx, kDoubleWord);
@@ -998,7 +1036,7 @@ class Assembler : public ValueObject {
   void tst(Register rn, Operand o) {
     ands(ZR, rn, o);
   }
-  void tsti(Register rn, uint64_t imm) {
+  void tsti(Register rn, const Immediate& imm) {
     andis(ZR, rn, imm);
   }
 
@@ -1526,8 +1564,8 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void EmitMoveWideOp(MoveWideOp op, Register rd, uint16_t imm, int hw_idx,
-                      OperandSize sz) {
+  void EmitMoveWideOp(MoveWideOp op, Register rd, const Immediate& imm,
+                      int hw_idx, OperandSize sz) {
     ASSERT((hw_idx >= 0) && (hw_idx <= 3));
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
@@ -1535,7 +1573,7 @@ class Assembler : public ValueObject {
         op | size |
         (static_cast<int32_t>(rd) << kRdShift) |
         (static_cast<int32_t>(hw_idx) << kHWShift) |
-        (static_cast<int32_t>(imm) << kImm16Shift);
+        (static_cast<int32_t>(imm.value() & 0xffff) << kImm16Shift);
     Emit(encoding);
   }
 
@@ -1563,12 +1601,12 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void EmitPCRelOp(PCRelOp op, Register rd, int64_t imm) {
-    ASSERT(Utils::IsInt(21, imm));
+  void EmitPCRelOp(PCRelOp op, Register rd, const Immediate& imm) {
+    ASSERT(Utils::IsInt(21, imm.value()));
     ASSERT((rd != R31) && (rd != CSP));
     const Register crd = ConcreteRegister(rd);
-    const int32_t loimm = (imm & 0x3) << 29;
-    const int32_t hiimm = ((imm >> 2) << kImm19Shift) & kImm19Mask;
+    const int32_t loimm = (imm.value() & 0x3) << 29;
+    const int32_t hiimm = ((imm.value() >> 2) << kImm19Shift) & kImm19Mask;
     const int32_t encoding =
         op | loimm | hiimm |
         (static_cast<int32_t>(crd) << kRdShift);

@@ -952,7 +952,7 @@ ASSEMBLER_TEST_GENERATE(Clz, assembler) {
   __ clz(R1, R0);
   __ cmp(R1, Operand(0));
   __ b(&error, NE);
-  __ Lsr(R0, R0, 3);
+  __ Lsr(R0, R0, Operand(3));
   __ clz(R1, R0);
   __ cmp(R1, Operand(3));
   __ b(&error, NE);
@@ -1031,8 +1031,8 @@ ASSEMBLER_TEST_GENERATE(Lsr1, assembler) {
   Label skip;
 
   __ mov(R0, Operand(1));
-  __ Lsl(R0, R0, 31);
-  __ Lsr(R0, R0, 31);
+  __ Lsl(R0, R0, Operand(31));
+  __ Lsr(R0, R0, Operand(31));
   __ bx(LR);
 }
 
@@ -1048,8 +1048,8 @@ ASSEMBLER_TEST_GENERATE(Asr1, assembler) {
   Label skip;
 
   __ mov(R0, Operand(1));
-  __ Lsl(R0, R0, 31);
-  __ Asr(R0, R0, 31);
+  __ Lsl(R0, R0, Operand(31));
+  __ Asr(R0, R0, Operand(31));
   __ bx(LR);
 }
 

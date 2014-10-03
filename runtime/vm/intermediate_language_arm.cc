@@ -184,7 +184,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (is_power_of_two_kind) {
     const intptr_t shift =
         Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
-    __ Lsl(result, result, shift + kSmiTagSize);
+    __ Lsl(result, result, Operand(shift + kSmiTagSize));
   } else {
     __ sub(result, result, Operand(1));
     const int32_t val =
@@ -2863,12 +2863,12 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     ASSERT((0 < value) && (value < kCountLimit));
     if (shift_left->can_overflow()) {
       // Check for overflow (preserve left).
-      __ Lsl(IP, left, value);
+      __ Lsl(IP, left, Operand(value));
       __ cmp(left, Operand(IP, ASR, value));
       __ b(deopt, NE);  // Overflow.
     }
     // Shift for result now we know there is no overflow.
-    __ Lsl(result, left, value);
+    __ Lsl(result, left, Operand(value));
     return;
   }
 
@@ -3125,7 +3125,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // sarl operation masks the count to 5 bits.
         const intptr_t kCountLimit = 0x1F;
         intptr_t value = Smi::Cast(constant).Value();
-        __ Asr(result, left, Utils::Minimum(value + kSmiTagSize, kCountLimit));
+        __ Asr(result, left,
+            Operand(Utils::Minimum(value + kSmiTagSize, kCountLimit)));
         __ SmiTag(result);
         break;
       }
@@ -3316,12 +3317,12 @@ static void EmitInt32ShiftLeft(FlowGraphCompiler* compiler,
   ASSERT((0 < value) && (value < kCountLimit));
   if (shift_left->can_overflow()) {
     // Check for overflow (preserve left).
-    __ Lsl(IP, left, value);
+    __ Lsl(IP, left, Operand(value));
     __ cmp(left, Operand(IP, ASR, value));
     __ b(deopt, NE);  // Overflow.
   }
   // Shift for result now we know there is no overflow.
-  __ Lsl(result, left, value);
+  __ Lsl(result, left, Operand(value));
 }
 
 
@@ -3459,7 +3460,7 @@ void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kSHR: {
         // sarl operation masks the count to 5 bits.
         const intptr_t kCountLimit = 0x1F;
-        __ Asr(result, left, Utils::Minimum(value, kCountLimit));
+        __ Asr(result, left, Operand(Utils::Minimum(value, kCountLimit)));
         break;
       }
 
@@ -4126,18 +4127,18 @@ void Simd32x4GetSignMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // X lane.
   __ vmovrs(out, EvenSRegisterOf(dvalue0));
-  __ Lsr(out, out, 31);
+  __ Lsr(out, out, Operand(31));
   // Y lane.
   __ vmovrs(temp, OddSRegisterOf(dvalue0));
-  __ Lsr(temp, temp, 31);
+  __ Lsr(temp, temp, Operand(31));
   __ orr(out, out, Operand(temp, LSL, 1));
   // Z lane.
   __ vmovrs(temp, EvenSRegisterOf(dvalue1));
-  __ Lsr(temp, temp, 31);
+  __ Lsr(temp, temp, Operand(31));
   __ orr(out, out, Operand(temp, LSL, 2));
   // W lane.
   __ vmovrs(temp, OddSRegisterOf(dvalue1));
-  __ Lsr(temp, temp, 31);
+  __ Lsr(temp, temp, Operand(31));
   __ orr(out, out, Operand(temp, LSL, 3));
   // Tag.
   __ SmiTag(out);
@@ -4679,10 +4680,10 @@ void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // Upper 32-bits of X lane.
     __ vmovrs(out, OddSRegisterOf(dvalue0));
-    __ Lsr(out, out, 31);
+    __ Lsr(out, out, Operand(31));
     // Upper 32-bits of Y lane.
     __ vmovrs(TMP, OddSRegisterOf(dvalue1));
-    __ Lsr(TMP, TMP, 31);
+    __ Lsr(TMP, TMP, Operand(31));
     __ orr(out, out, Operand(TMP, LSL, 1));
     // Tag.
     __ SmiTag(out);
@@ -6293,29 +6294,29 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     switch (op_kind()) {
       case Token::kSHR: {
         if (shift < 32) {
-          __ Lsl(out_lo, left_hi, 32 - shift);
+          __ Lsl(out_lo, left_hi, Operand(32 - shift));
           __ orr(out_lo, out_lo, Operand(left_lo, LSR, shift));
-          __ Asr(out_hi, left_hi, shift);
+          __ Asr(out_hi, left_hi, Operand(shift));
         } else {
           if (shift == 32) {
             __ mov(out_lo, Operand(left_hi));
           } else {
-            __ Asr(out_lo, left_hi, shift - 32);
+            __ Asr(out_lo, left_hi, Operand(shift - 32));
           }
-          __ Asr(out_hi, left_hi, 31);
+          __ Asr(out_hi, left_hi, Operand(31));
         }
         break;
       }
       case Token::kSHL: {
         if (shift < 32) {
-          __ Lsr(out_hi, left_lo, 32 - shift);
+          __ Lsr(out_hi, left_lo, Operand(32 - shift));
           __ orr(out_hi, out_hi, Operand(left_hi, LSL, shift));
-          __ Lsl(out_lo, left_lo, shift);
+          __ Lsl(out_lo, left_lo, Operand(shift));
         } else {
           if (shift == 32) {
             __ mov(out_hi, Operand(left_lo));
           } else {
-            __ Lsl(out_hi, left_lo, shift - 32);
+            __ Lsl(out_hi, left_lo, Operand(shift - 32));
           }
           __ mov(out_lo, Operand(0));
         }
@@ -6356,7 +6357,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ cmp(shift, Operand(32));
 
         __ mov(out_lo, Operand(out_hi), HI);
-        __ Asr(out_hi, out_hi, 31, HI);
+        __ Asr(out_hi, out_hi, Operand(31), HI);
         __ sub(shift, shift, Operand(32), HI);
 
         __ rsb(IP, shift, Operand(32));
@@ -6534,10 +6535,10 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // Do the shift: (shift_value > 0) && (shift_value <= kShifterLimit).
       switch (op_kind()) {
         case Token::kSHR:
-          __ Lsr(out, left, shift_value);
+          __ Lsr(out, left, Operand(shift_value));
           break;
         case Token::kSHL:
-          __ Lsl(out, left, shift_value);
+          __ Lsl(out, left, Operand(shift_value));
           break;
         default:
           UNREACHABLE();
@@ -6547,7 +6548,6 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   // Non constant shift value.
-
   Register shifter = locs()->in(1).reg();
 
   __ mov(temp, Operand(shifter));
@@ -6641,7 +6641,7 @@ void BoxIntNInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         out,
         temp);
     if (from_representation() == kUnboxedInt32) {
-      __ Asr(temp, value, kBitsPerWord - 1);
+      __ Asr(temp, value, Operand(kBitsPerWord - 1));
     } else {
       ASSERT(from_representation() == kUnboxedUint32);
       __ eor(temp, temp, Operand(temp));

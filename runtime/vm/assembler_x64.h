@@ -185,12 +185,18 @@ class Address : public Operand {
     }
   }
 
+  // This addressing mode does not exist.
+  Address(Register base, Register r);
+
   Address(Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != RSP);  // Illegal addressing mode.
     SetModRM(0, RSP);
     SetSIB(scale, index, RBP);
     SetDisp32(disp);
   }
+
+  // This addressing mode does not exist.
+  Address(Register index, ScaleFactor scale, Register r);
 
   Address(Register base, Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != RSP);  // Illegal addressing mode.
@@ -208,6 +214,9 @@ class Address : public Operand {
     }
   }
 
+  // This addressing mode does not exist.
+  Address(Register base, Register index, ScaleFactor scale, Register r);
+
   Address(const Address& other) : Operand(other) { }
 
   Address& operator=(const Address& other) {
@@ -218,6 +227,9 @@ class Address : public Operand {
   static Address AddressBaseImm32(Register base, int32_t disp) {
     return Address(base, disp, true);
   }
+
+  // This addressing mode does not exist.
+  static Address AddressBaseImm32(Register base, Register r);
 
  private:
   Address(Register base, int32_t disp, bool fixed) {
@@ -236,8 +248,14 @@ class FieldAddress : public Address {
   FieldAddress(Register base, int32_t disp)
       : Address(base, disp - kHeapObjectTag) { }
 
+  // This addressing mode does not exist.
+  FieldAddress(Register base, Register r);
+
   FieldAddress(Register base, Register index, ScaleFactor scale, int32_t disp)
       : Address(base, index, scale, disp - kHeapObjectTag) { }
+
+  // This addressing mode does not exist.
+  FieldAddress(Register base, Register index, ScaleFactor scale, Register r);
 
   FieldAddress(const FieldAddress& other) : Address(other) { }
 

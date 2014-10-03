@@ -66,7 +66,7 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
     __ b(&checked_ok, EQ);
 
     // Check for int and num.
-    __ tsti(R2, kSmiTagMask);  // Value is Smi?
+    __ tsti(R2, Immediate(Immediate(kSmiTagMask)));  // Value is Smi?
     __ b(&fall_through, NE);  // Non-smi value.
     __ CompareObject(R0, Type::ZoneHandle(Type::IntType()), PP);
     __ b(&checked_ok, EQ);
@@ -75,7 +75,7 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
     __ Bind(&checked_ok);
   }
   __ ldr(R1, Address(SP, 1 * kWordSize));  // Index.
-  __ tsti(R1, kSmiTagMask);
+  __ tsti(R1, Immediate(kSmiTagMask));
   // Index not Smi.
   __ b(&fall_through, NE);
   __ ldr(R0, Address(SP, 2 * kWordSize));  // Array.
@@ -143,7 +143,7 @@ void Intrinsifier::GrowableArrayGetIndexed(Assembler* assembler) {
   __ ldr(R0, Address(SP, + 0 * kWordSize));  // Index
   __ ldr(R1, Address(SP, + 1 * kWordSize));  // Array
 
-  __ tsti(R0, kSmiTagMask);
+  __ tsti(R0, Immediate(kSmiTagMask));
   __ b(&fall_through, NE);  // Index is not an smi, fall through.
 
   // Range check.
@@ -170,7 +170,7 @@ void Intrinsifier::GrowableArraySetIndexed(Assembler* assembler) {
   Label fall_through;
   __ ldr(R1, Address(SP, 1 * kWordSize));  // Index.
   __ ldr(R0, Address(SP, 2 * kWordSize));  // GrowableArray.
-  __ tsti(R1, kSmiTagMask);
+  __ tsti(R1, Immediate(kSmiTagMask));
   __ b(&fall_through, NE);  // Non-smi index.
   // Range check using _length field.
   __ ldr(R2, FieldAddress(R0, GrowableObjectArray::length_offset()));
@@ -197,7 +197,7 @@ void Intrinsifier::GrowableArraySetLength(Assembler* assembler) {
   Label fall_through;
   __ ldr(R0, Address(SP, 1 * kWordSize));  // Growable array.
   __ ldr(R1, Address(SP, 0 * kWordSize));  // Length value.
-  __ tsti(R1, kSmiTagMask);  // Check for Smi.
+  __ tsti(R1, Immediate(kSmiTagMask));  // Check for Smi.
   __ b(&fall_through, NE);
   __ str(R1, FieldAddress(R0, GrowableObjectArray::length_offset()));
   __ ret();
@@ -215,7 +215,7 @@ void Intrinsifier::GrowableArraySetData(Assembler* assembler) {
   Label fall_through;
   __ ldr(R1, Address(SP, 0 * kWordSize));  // Data.
   // Check that data is an ObjectArray.
-  __ tsti(R1, kSmiTagMask);
+  __ tsti(R1, Immediate(kSmiTagMask));
   __ b(&fall_through, EQ);  // Data is Smi.
   __ CompareClassId(R1, kArrayCid, kNoPP);
   __ b(&fall_through, NE);
@@ -283,7 +283,7 @@ static int GetScaleFactor(intptr_t size) {
   __ ldr(R2, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
   /* Check that length is a positive Smi. */                                   \
   /* R2: requested array length argument. */                                   \
-  __ tsti(R2, kSmiTagMask);                                                    \
+  __ tsti(R2, Immediate(kSmiTagMask));                                         \
   __ b(&fall_through, NE);                                                     \
   __ CompareRegisters(R2, ZR);                                                 \
   __ b(&fall_through, LT);                                                     \
@@ -295,7 +295,7 @@ static int GetScaleFactor(intptr_t size) {
   __ LslImmediate(R2, R2, scale_shift);                                        \
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ AddImmediate(R2, R2, fixed_size, kNoPP);                                  \
-  __ andi(R2, R2, ~(kObjectAlignment - 1));                                    \
+  __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));                         \
   Heap* heap = Isolate::Current()->heap();                                     \
   Heap::Space space = heap->SpaceForAllocation(cid);                           \
   __ LoadImmediate(R0, heap->TopAddress(space), kNoPP);                        \
@@ -385,7 +385,7 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
   __ ldr(R0, Address(SP, + 0 * kWordSize));
   __ ldr(R1, Address(SP, + 1 * kWordSize));
   __ orr(TMP, R0, Operand(R1));
-  __ tsti(TMP, kSmiTagMask);
+  __ tsti(TMP, Immediate(kSmiTagMask));
   __ b(not_smi, NE);
 }
 
@@ -510,7 +510,7 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   __ ldr(R1, Address(SP, + 0 * kWordSize));
   __ ldr(R0, Address(SP, + 1 * kWordSize));
   __ orr(TMP, R0, Operand(R1));
-  __ tsti(TMP, kSmiTagMask);
+  __ tsti(TMP, Immediate(kSmiTagMask));
   __ b(&fall_through, NE);
   // R1: Tagged left (dividend).
   // R0: Tagged right (divisor).
@@ -564,7 +564,7 @@ void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
 void Intrinsifier::Integer_negate(Assembler* assembler) {
   Label fall_through;
   __ ldr(R0, Address(SP, + 0 * kWordSize));  // Grab first argument.
-  __ tsti(R0, kSmiTagMask);  // Test for Smi.
+  __ tsti(R0, Immediate(kSmiTagMask));  // Test for Smi.
   __ b(&fall_through, NE);
   __ negs(R0, R0);
   __ b(&fall_through, VS);
@@ -694,7 +694,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ b(&true_label, EQ);
 
   __ orr(R2, R0, Operand(R1));
-  __ tsti(R2, kSmiTagMask);
+  __ tsti(R2, Immediate(kSmiTagMask));
   __ b(&check_for_mint, NE);  // If R0 or R1 is not a smi do Mint checks.
 
   // Both arguments are smi, '===' is good enough.
@@ -708,7 +708,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   Label receiver_not_smi;
   __ Bind(&check_for_mint);
 
-  __ tsti(R1, kSmiTagMask);  // Check receiver.
+  __ tsti(R1, Immediate(kSmiTagMask));  // Check receiver.
   __ b(&receiver_not_smi, NE);
 
   // Left (receiver) is Smi, return false if right is not Double.
@@ -726,7 +726,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ CompareClassId(R1, kMintCid, kNoPP);
   __ b(&fall_through, NE);
   // Receiver is Mint, return false if right is Smi.
-  __ tsti(R0, kSmiTagMask);
+  __ tsti(R0, Immediate(kSmiTagMask));
   __ b(&fall_through, NE);
   __ LoadObject(R0, Bool::False(), PP);
   __ ret();
@@ -767,7 +767,7 @@ void Intrinsifier::Integer_sar(Assembler* assembler) {
 void Intrinsifier::Smi_bitNegate(Assembler* assembler) {
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ mvn(R0, R0);
-  __ andi(R0, R0, ~kSmiTagMask);  // Remove inverted smi-tag.
+  __ andi(R0, R0, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
   __ ret();
 }
 
@@ -838,7 +838,7 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
                                      Label* is_smi,
                                      Label* not_double_smi) {
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ tsti(R0, kSmiTagMask);
+  __ tsti(R0, Immediate(kSmiTagMask));
   __ b(is_smi, EQ);
   __ CompareClassId(R0, kDoubleCid, kNoPP);
   __ b(not_double_smi, NE);
@@ -955,7 +955,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   Label fall_through;
   // Only smis allowed.
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ tsti(R0, kSmiTagMask);
+  __ tsti(R0, Immediate(kSmiTagMask));
   __ b(&fall_through, NE);
   // Is Smi.
   __ SmiUntag(R0);
@@ -976,7 +976,7 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   Label fall_through;
 
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ tsti(R0, kSmiTagMask);
+  __ tsti(R0, Immediate(kSmiTagMask));
   __ b(&fall_through, NE);
   // Is Smi.
   __ SmiUntag(R0);
@@ -1026,7 +1026,7 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   // Check for negative zero by looking at the sign bit.
   __ fmovrd(R1, V0);
   __ LsrImmediate(R1, R1, 63);
-  __ tsti(R1, 1);
+  __ tsti(R1, Immediate(1));
   __ csel(R0, true_reg, false_reg, NE);  // Sign bit set.
   __ ret();
 }
@@ -1103,7 +1103,7 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ LoadImmediate(R0, a_int_value, kNoPP);
   __ LoadFromOffset(R2, R1, disp, kNoPP);
   __ LsrImmediate(R3, R2, 32);
-  __ andi(R2, R2, 0xffffffff);
+  __ andi(R2, R2, Immediate(0xffffffff));
   __ mul(R2, R0, R2);
   __ add(R2, R2, Operand(R3));
   __ StoreToOffset(R2, R1, disp, kNoPP);
@@ -1139,7 +1139,7 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
 
   __ ldr(R1, Address(SP, 0 * kWordSize));  // Index.
   __ ldr(R0, Address(SP, 1 * kWordSize));  // String.
-  __ tsti(R1, kSmiTagMask);
+  __ tsti(R1, Immediate(kSmiTagMask));
   __ b(&fall_through, NE);  // Index is not a Smi.
   // Range check.
   __ ldr(R2, FieldAddress(R0, String::length_offset()));
@@ -1171,7 +1171,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
 
   __ ldr(R1, Address(SP, 0 * kWordSize));  // Index.
   __ ldr(R0, Address(SP, 1 * kWordSize));  // String.
-  __ tsti(R1, kSmiTagMask);
+  __ tsti(R1, Immediate(kSmiTagMask));
   __ b(&fall_through, NE);  // Index is not a Smi.
   // Range check.
   __ ldr(R2, FieldAddress(R0, String::length_offset()));
@@ -1297,7 +1297,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ SmiUntag(length_reg);
   const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
   __ AddImmediate(length_reg, length_reg, fixed_size, kNoPP);
-  __ andi(length_reg, length_reg, ~(kObjectAlignment - 1));
+  __ andi(length_reg, length_reg, Immediate(~(kObjectAlignment - 1)));
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
@@ -1371,7 +1371,7 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   __ ldr(R2, Address(SP, kEndIndexOffset));
   __ ldr(TMP, Address(SP, kStartIndexOffset));
   __ orr(R3, R2,  Operand(TMP));
-  __ tsti(R3, kSmiTagMask);
+  __ tsti(R3, Immediate(kSmiTagMask));
   __ b(&fall_through, NE);  // 'start', 'end' not Smi.
 
   __ sub(R2, R2, Operand(TMP));
@@ -1454,7 +1454,7 @@ void StringEquality(Assembler* assembler, intptr_t string_cid) {
   __ b(&is_true, EQ);
 
   // Is other OneByteString?
-  __ tsti(R1, kSmiTagMask);
+  __ tsti(R1, Immediate(kSmiTagMask));
   __ b(&fall_through, EQ);
   __ CompareClassId(R1, string_cid, kNoPP);
   __ b(&fall_through, NE);

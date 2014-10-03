@@ -214,7 +214,7 @@ void Intrinsifier::GrowableArraySetData(Assembler* assembler) {
   __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
   __ beq(CMPRES1, ZR, &fall_through);  // Data is Smi.
   __ LoadClassId(CMPRES1, T1);
-  __ BranchNotEqual(CMPRES1, kArrayCid, &fall_through);
+  __ BranchNotEqual(CMPRES1, Immediate(kArrayCid), &fall_through);
   __ lw(T0, Address(SP, 1 * kWordSize));  // Growable array.
   __ StoreIntoObject(T0,
                      FieldAddress(T0, GrowableObjectArray::data_offset()),
@@ -266,11 +266,11 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* T2: requested array length argument. */                                   \
   __ andi(CMPRES1, T2, Immediate(kSmiTagMask));                                \
   __ bne(CMPRES1, ZR, &fall_through);                                          \
-  __ BranchSignedLess(T2, 0, &fall_through);                                   \
+  __ BranchSignedLess(T2, Immediate(0), &fall_through);                        \
   __ SmiUntag(T2);                                                             \
   /* Check for maximum allowed length. */                                      \
   /* T2: untagged array length. */                                             \
-  __ BranchSignedGreater(T2, max_len, &fall_through);                          \
+  __ BranchSignedGreater(T2, Immediate(max_len), &fall_through);               \
   __ sll(T2, T2, scale_shift);                                                 \
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ AddImmediate(T2, fixed_size);                                             \
@@ -305,7 +305,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* T2: allocation size. */                                                   \
   {                                                                            \
     Label size_tag_overflow, done;                                             \
-    __ BranchUnsignedGreater(T2, RawObject::SizeTag::kMaxSizeTag,              \
+    __ BranchUnsignedGreater(T2, Immediate(RawObject::SizeTag::kMaxSizeTag),   \
                              &size_tag_overflow);                              \
     __ b(&done);                                                               \
     __ delay_slot()->sll(T2, T2,                                               \
@@ -540,7 +540,7 @@ void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   __ mflo(V0);  // V0 <- LO
   // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
   // cannot tag the result.
-  __ BranchEqual(V0, 0x40000000, &fall_through);
+  __ BranchEqual(V0, Immediate(0x40000000), &fall_through);
   __ Ret();
   __ delay_slot()->SmiTag(V0);
   __ Bind(&fall_through);
@@ -611,7 +611,8 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   Label fall_through, overflow;
 
   TestBothArgumentsSmis(assembler, &fall_through);
-  __ BranchUnsignedGreater(T0, Smi::RawValue(Smi::kBits), &fall_through);
+  __ BranchUnsignedGreater(
+      T0, Immediate(Smi::RawValue(Smi::kBits)), &fall_through);
   __ SmiUntag(T0);
 
   // Check for overflow by shifting left and shifting back arithmetically.
@@ -672,7 +673,7 @@ static void Get64SmiOrMint(Assembler* assembler,
 
   __ Bind(&not_smi);
   __ LoadClassId(CMPRES1, reg);
-  __ BranchNotEqual(CMPRES1, kMintCid, not_smi_or_mint);
+  __ BranchNotEqual(CMPRES1, Immediate(kMintCid), not_smi_or_mint);
 
   // Mint.
   __ lw(res_lo, FieldAddress(reg, Mint::value_offset()));
@@ -812,7 +813,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   // represented by Smi.
 
   __ LoadClassId(CMPRES1, T0);
-  __ BranchEqual(CMPRES1, kDoubleCid, &fall_through);
+  __ BranchEqual(CMPRES1, Immediate(kDoubleCid), &fall_through);
   __ LoadObject(V0, Bool::False());  // Smi == Mint -> false.
   __ Ret();
 
@@ -820,7 +821,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   // T1:: receiver.
 
   __ LoadClassId(CMPRES1, T1);
-  __ BranchNotEqual(CMPRES1, kMintCid, &fall_through);
+  __ BranchNotEqual(CMPRES1, Immediate(kMintCid), &fall_through);
   // Receiver is Mint, return false if right is Smi.
   __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
   __ bne(CMPRES1, ZR, &fall_through);
@@ -935,7 +936,7 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
   __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
   __ beq(CMPRES1, ZR, is_smi);
   __ LoadClassId(CMPRES1, T0);
-  __ BranchNotEqual(CMPRES1, kDoubleCid, not_double_smi);
+  __ BranchNotEqual(CMPRES1, Immediate(kDoubleCid), not_double_smi);
   // Fall through with Double in T0.
 }
 
@@ -1294,7 +1295,8 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
   // Runtime throws exception.
   __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);
   __ LoadClassId(CMPRES1, T0);  // Class ID check.
-  __ BranchNotEqual(CMPRES1, kOneByteStringCid, &try_two_byte_string);
+  __ BranchNotEqual(
+      CMPRES1, Immediate(kOneByteStringCid), &try_two_byte_string);
 
   // Grab byte and return.
   __ SmiUntag(T1);
@@ -1304,7 +1306,7 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
   __ delay_slot()->SmiTag(V0);
 
   __ Bind(&try_two_byte_string);
-  __ BranchNotEqual(CMPRES1, kTwoByteStringCid, &fall_through);
+  __ BranchNotEqual(CMPRES1, Immediate(kTwoByteStringCid), &fall_through);
   ASSERT(kSmiTagShift == 1);
   __ addu(T2, T0, T1);
   __ lhu(V0, FieldAddress(T2, TwoByteString::data_offset()));
@@ -1328,14 +1330,15 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   // Runtime throws exception.
   __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);
   __ LoadClassId(CMPRES1, T0);  // Class ID check.
-  __ BranchNotEqual(CMPRES1, kOneByteStringCid, &try_two_byte_string);
+  __ BranchNotEqual(
+      CMPRES1, Immediate(kOneByteStringCid), &try_two_byte_string);
 
   // Grab byte and return.
   __ SmiUntag(T1);
   __ addu(T2, T0, T1);
   __ lbu(T2, FieldAddress(T2, OneByteString::data_offset()));
   __ BranchUnsignedGreaterEqual(
-      T2, Symbols::kNumberOfOneCharCodeSymbols, &fall_through);
+      T2, Immediate(Symbols::kNumberOfOneCharCodeSymbols), &fall_through);
   __ LoadImmediate(
       V0, reinterpret_cast<uword>(Symbols::PredefinedAddress()));
   __ AddImmediate(V0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
@@ -1345,12 +1348,12 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ delay_slot()->lw(V0, Address(T2));
 
   __ Bind(&try_two_byte_string);
-  __ BranchNotEqual(CMPRES1, kTwoByteStringCid, &fall_through);
+  __ BranchNotEqual(CMPRES1, Immediate(kTwoByteStringCid), &fall_through);
   ASSERT(kSmiTagShift == 1);
   __ addu(T2, T0, T1);
   __ lhu(T2, FieldAddress(T2, TwoByteString::data_offset()));
   __ BranchUnsignedGreaterEqual(
-      T2, Symbols::kNumberOfOneCharCodeSymbols, &fall_through);
+      T2, Immediate(Symbols::kNumberOfOneCharCodeSymbols), &fall_through);
   __ LoadImmediate(V0,
                    reinterpret_cast<uword>(Symbols::PredefinedAddress()));
   __ AddImmediate(V0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
@@ -1391,7 +1394,7 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
 
   Label done;
   // If the string is empty, set the hash to 1, and return.
-  __ BranchEqual(T2, Smi::RawValue(0), &done);
+  __ BranchEqual(T2, Immediate(Smi::RawValue(0)), &done);
   __ delay_slot()->mov(V0, ZR);
 
   __ SmiUntag(T2);
@@ -1495,7 +1498,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
     Label overflow, done;
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
 
-    __ BranchUnsignedGreater(T2, RawObject::SizeTag::kMaxSizeTag, &overflow);
+    __ BranchUnsignedGreater(
+        T2, Immediate(RawObject::SizeTag::kMaxSizeTag), &overflow);
     __ b(&done);
     __ delay_slot()->sll(T2, T2, shift);
     __ Bind(&overflow);
@@ -1615,7 +1619,7 @@ void StringEquality(Assembler* assembler, intptr_t string_cid) {
   __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
   __ beq(CMPRES1, ZR, &fall_through);  // Other is Smi.
   __ LoadClassId(CMPRES1, T1);  // Class ID check.
-  __ BranchNotEqual(CMPRES1, string_cid, &fall_through);
+  __ BranchNotEqual(CMPRES1, Immediate(string_cid), &fall_through);
 
   // Have same length?
   __ lw(T2, FieldAddress(T0, String::length_offset()));
@@ -1628,7 +1632,7 @@ void StringEquality(Assembler* assembler, intptr_t string_cid) {
   __ SmiUntag(T2);
   __ Bind(&loop);
   __ AddImmediate(T2, -1);
-  __ BranchSignedLess(T2, 0, &is_true);
+  __ BranchSignedLess(T2, Immediate(0), &is_true);
   if (string_cid == kOneByteStringCid) {
     __ lbu(V0, FieldAddress(T0, OneByteString::data_offset()));
     __ lbu(V1, FieldAddress(T1, OneByteString::data_offset()));
