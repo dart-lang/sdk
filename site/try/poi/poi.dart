@@ -8,14 +8,6 @@ import 'dart:async' show
     Completer,
     Future;
 
-import 'dart:io' show
-    File,
-    HttpClient,
-    HttpClientRequest,
-    HttpClientResponse,
-    Platform,
-    stdout;
-
 import 'dart:io' as io;
 
 import 'dart:convert' show
@@ -204,7 +196,7 @@ api.CompilerInputProvider simulateMutation(
           cachedFileName = '$cachedFileName.$count.dart';
         }
         printVerbose('Not using cached version of $cachedFileName');
-        cache = new File(cachedFileName).readAsBytes().then((data) {
+        cache = new io.File(cachedFileName).readAsBytes().then((data) {
           printVerbose('Read file $cachedFileName: ${UTF8.decode(data)}');
           return data;
         });
@@ -222,9 +214,9 @@ api.CompilerInputProvider simulateMutation(
 
 Future<String> prompt(message) {
   if (stdin is StdinIterator) {
-    stdout.write(message);
+    io.stdout.write(message);
   }
-  return stdout.flush().then((_) {
+  return io.stdout.flush().then((_) {
     stdin.moveNext();
     return stdin.current;
   });
@@ -239,10 +231,10 @@ Future queryDartMind(String prefix, String info) {
       '&arg0=$encodedArg0';
   Uri uri = Uri.parse(mindQuery);
 
-  HttpClient client = new HttpClient();
-  return client.getUrl(uri).then((HttpClientRequest request) {
+  io.HttpClient client = new io.HttpClient();
+  return client.getUrl(uri).then((io.HttpClientRequest request) {
     return request.close();
-  }).then((HttpClientResponse response) {
+  }).then((io.HttpClientResponse response) {
     Completer<String> completer = new Completer<String>();
     response.transform(UTF8.decoder).listen((contents) {
       completer.complete(contents);
@@ -363,7 +355,7 @@ Future<Element> runPoi(
     api.DiagnosticHandler handler) {
   Uri libraryRoot = Uri.base.resolve('sdk/');
   Uri packageRoot = Uri.base.resolveUri(
-      new Uri.file('${Platform.packageRoot}/'));
+      new Uri.file('${io.Platform.packageRoot}/'));
 
   var options = [
       '--analyze-main',

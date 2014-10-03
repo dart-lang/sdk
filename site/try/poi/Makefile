@@ -28,7 +28,7 @@ all:
 	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/elements/modelx\.dart\|[0-9]+\|8\|25\|' \
 	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/js_emitter/js_emitter\.dart\|[0-9]+\|8\|25\|' \
 	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/library_loader\.dart\|25\|8\|22\|' \
-	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/patch_parser\.dart\|120\|8\|22\|' \
+	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/patch_parser\.dart\|[0-9]+\|8\|22\|' \
 	| grep -v -E 'INFO\|HINT\|UNUSED_IMPORT\|.*/compiler/implementation/resolution/class_members\.dart\|22\|8\|25\|' \
 	| sed -e "s,$(PWD)/,," \
 	| awk -F'|' '{print $$4 ":" $$5 ":" $$6 ":\n [" n$$3 "]" $$8 }' \

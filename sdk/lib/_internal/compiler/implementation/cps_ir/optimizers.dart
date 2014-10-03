@@ -10,7 +10,6 @@ import '../constants/expressions.dart' show
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
 import '../dart2jslib.dart' as dart2js;
-import '../elements/elements.dart' show ClassElement;
 import '../tree/tree.dart' show LiteralDartString;
 import '../util/util.dart';
 import 'cps_ir_nodes.dart';
