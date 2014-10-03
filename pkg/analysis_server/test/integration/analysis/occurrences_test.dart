@@ -4,9 +4,10 @@
 
 library test.integration.analysis.occurrences;
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 @ReflectiveTestCase()
@@ -28,7 +29,7 @@ main() {
     writeFile(pathname, text);
     standardAnalysisSetup();
     sendAnalysisSetSubscriptions({
-      'OCCURRENCES': [pathname]
+      AnalysisService.OCCURRENCES: [pathname]
     });
     List occurrences;
     onAnalysisOccurrences.listen((params) {

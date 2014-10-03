@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
@@ -96,7 +97,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends
   Future standardAnalysisSetup({bool subscribeStatus: true}) {
     List<Future> futures = <Future>[];
     if (subscribeStatus) {
-      futures.add(sendServerSetSubscriptions(['STATUS']));
+      futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
     }
     futures.add(sendAnalysisSetAnalysisRoots([sourceDirectory.path], []));
     return Future.wait(futures);
@@ -143,11 +144,9 @@ abstract class AbstractAnalysisServerIntegrationTest extends
   }
 
   @override
-  Future sendServerSetSubscriptions(List<String> subscriptions, {bool
-      checkTypes: true}) {
-    _subscribedToServerStatus = subscriptions.contains('STATUS');
-    return super.sendServerSetSubscriptions(subscriptions, checkTypes:
-        checkTypes);
+  Future sendServerSetSubscriptions(List<ServerService> subscriptions) {
+    _subscribedToServerStatus = subscriptions.contains(ServerService.STATUS);
+    return super.sendServerSetSubscriptions(subscriptions);
   }
 
   /**

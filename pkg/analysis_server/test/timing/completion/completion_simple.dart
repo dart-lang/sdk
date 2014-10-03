@@ -6,6 +6,7 @@ library test.timing.simple;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol.dart';
 import 'package:path/path.dart';
 
 import '../timing_framework.dart';
@@ -86,10 +87,7 @@ f(C c) {
     });
     sendAnalysisSetAnalysisRoots([dirname(mainFilePath)], []);
     sendAnalysisUpdateContent({
-      mainFilePath: {
-        'type': 'add',
-        'content': originalContent
-      }
+      mainFilePath: new AddContentOverlay(originalContent)
     });
     return new Future.value();
   }
@@ -97,14 +95,8 @@ f(C c) {
   @override
   Future perform() {
     sendAnalysisUpdateContent({
-      mainFilePath: {
-        'type': 'change',
-        'edits': [{
-            'offset': cursorOffset,
-            'length': 0,
-            'replacement': '.'
-          }]
-      }
+      mainFilePath: new ChangeContentOverlay(
+          [new SourceEdit(cursorOffset, 0, '.')])
     });
     sendCompletionGetSuggestions(mainFilePath, cursorOffset + 1);
     return completionReceived.future;

@@ -6,9 +6,10 @@ library test.integration.search.domain;
 
 import 'dart:async';
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 /**
@@ -263,10 +264,7 @@ main /* target */ () {
   Future<HierarchyResults> typeHierarchyTest(String text) {
     int offset = text.indexOf(' /* target */') - 1;
     sendAnalysisUpdateContent({
-      pathname: {
-        'type': 'add',
-        'content': text
-      }
+      pathname: new AddContentOverlay(text)
     });
     return analysisFinished.then((_) => sendSearchGetTypeHierarchy(pathname,
         offset)).then((result) {

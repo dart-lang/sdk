@@ -4,9 +4,10 @@
 
 library test.integration.analysis.outline;
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 @ReflectiveTestCase()
@@ -38,7 +39,7 @@ class Class2 {
     writeFile(pathname, text);
     standardAnalysisSetup();
     sendAnalysisSetSubscriptions({
-      'OUTLINE': [pathname]
+      AnalysisService.OUTLINE: [pathname]
     });
     Map outline;
     onAnalysisOutline.listen((params) {

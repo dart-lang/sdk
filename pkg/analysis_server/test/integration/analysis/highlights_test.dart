@@ -4,9 +4,10 @@
 
 library test.integration.analysis.highlights;
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 @ReflectiveTestCase()
@@ -66,7 +67,7 @@ int topLevelVariable;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
-    sendAnalysisSetSubscriptions({'HIGHLIGHTS': [pathname]});
+    sendAnalysisSetSubscriptions({AnalysisService.HIGHLIGHTS: [pathname]});
     // Map from highlight type to highlighted text
     Map<String, Set<String>> highlights;
     onAnalysisHighlights.listen((params) {

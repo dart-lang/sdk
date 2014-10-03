@@ -4,9 +4,10 @@
 
 library test.integration.analysis.overrides;
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 @ReflectiveTestCase()
@@ -50,7 +51,7 @@ class Target extends Base implements Interface1, Interface2 {
     writeFile(pathname, text);
     standardAnalysisSetup();
     sendAnalysisSetSubscriptions({
-      'OVERRIDES': [pathname]
+      AnalysisService.OVERRIDES: [pathname]
     });
     List overrides;
     onAnalysisOverrides.listen((params) {

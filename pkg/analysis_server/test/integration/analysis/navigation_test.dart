@@ -4,9 +4,10 @@
 
 library test.integration.analysis.navigation;
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 @ReflectiveTestCase()
@@ -51,7 +52,7 @@ part of foo;
 ''';
     writeFile(pathname2, text2);
     standardAnalysisSetup();
-    sendAnalysisSetSubscriptions({'NAVIGATION': [pathname1]});
+    sendAnalysisSetSubscriptions({AnalysisService.NAVIGATION: [pathname1]});
     List regions;
     onAnalysisNavigation.listen((params) {
       expect(params['file'], equals(pathname1));

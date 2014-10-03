@@ -4,9 +4,10 @@
 
 library test.integration.analysis.update.content;
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 @ReflectiveTestCase()
@@ -24,44 +25,27 @@ main() {
       // The contents on disk (badText) are missing a semicolon.
       expect(currentAnalysisErrors[pathname], isNot(isEmpty));
     }).then((_) => sendAnalysisUpdateContent({
-      pathname: {
-        'type': 'add',
-        'content': goodText
-      }
+      pathname: new AddContentOverlay(goodText)
     })).then((result) => analysisFinished).then((_) {
       // There should be no errors now because the contents on disk have been
       // overriden with goodText.
       expect(currentAnalysisErrors[pathname], isEmpty);
       return sendAnalysisUpdateContent({
-        pathname: {
-          'type': 'change',
-          'edits': [{
-              'offset': goodText.indexOf(';'),
-              'length': 1,
-              'replacement': ''
-            }]
-        }
+        pathname: new ChangeContentOverlay(
+            [new SourceEdit(goodText.indexOf(';'), 1, '')])
       });
     }).then((result) => analysisFinished).then((_) {
       // There should be errors now because we've removed the semicolon.
       expect(currentAnalysisErrors[pathname], isNot(isEmpty));
       return sendAnalysisUpdateContent({
-        pathname: {
-          'type': 'change',
-          'edits': [{
-              'offset': goodText.indexOf(';'),
-              'length': 0,
-              'replacement': ';'
-            }]
-        }
+        pathname: new ChangeContentOverlay(
+            [new SourceEdit(goodText.indexOf(';'), 0, ';')])
       });
     }).then((result) => analysisFinished).then((_) {
       // There should be no errors now because we've added the semicolon back.
       expect(currentAnalysisErrors[pathname], isEmpty);
       return sendAnalysisUpdateContent({
-        pathname: {
-          'type': 'remove'
-        }
+        pathname: new RemoveContentOverlay()
       });
     }).then((result) => analysisFinished).then((_) {
       // Now there should be errors again, because the contents on disk are no

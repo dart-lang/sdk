@@ -10,6 +10,7 @@ library codegenInttestMethods;
 import 'dart:convert';
 
 import 'api.dart';
+import 'codegen_dart.dart';
 import 'codegen_tools.dart';
 import 'from_html.dart';
 import 'to_html.dart';
@@ -17,8 +18,8 @@ import 'to_html.dart';
 /**
  * Visitor that generates the code for integration_test_methods.dart
  */
-class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
-    CodeGenerator {
+class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
+    {
   /**
    * Visitor used to produce doc comments.
    */
@@ -50,6 +51,7 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
     writeln();
     writeln("import 'dart:async';");
     writeln();
+    writeln("import 'package:analysis_server/src/protocol.dart';");
     writeln("import 'package:unittest/unittest.dart';");
     writeln();
     writeln("import 'integration_tests.dart';");
@@ -99,8 +101,8 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
 
   @override
   visitNotification(Notification notification) {
-    String streamName = camelJoin(['on', notification.domainName,
-        notification.event]);
+    String streamName =
+        camelJoin(['on', notification.domainName, notification.event]);
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.translateHtml(notification.html);
@@ -119,8 +121,8 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
     notificationSwitchContents.add(collectCode(() {
       writeln('case ${JSON.encode(notification.longEvent)}:');
       indent(() {
-        String paramsValidator = camelJoin(['is', notification.domainName,
-            notification.event, 'params']);
+        String paramsValidator =
+            camelJoin(['is', notification.domainName, notification.event, 'params']);
         writeln('expect(params, $paramsValidator);');
         writeln('_$streamName.add(params);');
         writeln('break;');
@@ -142,8 +144,9 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
         }
       }
     }
-    optionalArgs.add('bool checkTypes: true');
-    args.add('{${optionalArgs.join(', ')}}');
+    if (optionalArgs.isNotEmpty) {
+      args.add('{${optionalArgs.join(', ')}}');
+    }
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.translateHtml(request.html);
@@ -152,40 +155,30 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
     }));
     writeln('Future $methodName(${args.join(', ')}) {');
     indent(() {
-      String paramsValidator = camelJoin(['is', request.domainName,
-          request.method, 'params']);
-      String resultValidator = camelJoin(['is', request.domainName,
-          request.method, 'result']);
+      String requestClass =
+          camelJoin([request.domainName, request.method, 'params'], doCapitalize: true);
+      String resultValidator =
+          camelJoin(['is', request.domainName, request.method, 'result']);
       String paramsVar = 'null';
       if (request.params != null) {
         paramsVar = 'params';
-        writeln('Map<String, dynamic> params = {};');
+        List<String> args = <String>[];
+        List<String> optionalArgs = <String>[];
         for (TypeObjectField field in request.params.fields) {
           if (field.optional) {
-            writeln('if (${field.name} != null) {');
-            indent(() {
-              populateField(field);
-            });
-            writeln('}');
+            optionalArgs.add('${field.name}: ${field.name}');
           } else {
-            populateField(field);
+            args.add(field.name);
           }
         }
-        writeln('if (checkTypes) {');
-        indent(() {
-          writeln('expect(params, $paramsValidator);');
-        });
-        writeln('}');
+        args.addAll(optionalArgs);
+        writeln('var params = new $requestClass(${args.join(', ')}).toJson();');
       }
       writeln(
           'return server.send(${JSON.encode(request.longMethod)}, $paramsVar)');
       indent(() {
         writeln('  .then((result) {');
-        writeln('if (checkTypes) {');
-        indent(() {
-          writeln('expect(result, $resultValidator);');
-        });
-        writeln('}');
+        writeln('expect(result, $resultValidator);');
         writeln('return result;');
       });
       writeln('});');
@@ -197,15 +190,7 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
    * Generate a function argument for the given parameter field.
    */
   String formatArgument(TypeObjectField field) =>
-      '${jsonType(field.type)} ${field.name}';
-
-  /**
-   * Generate code that populates the given parameter field based on the
-   * function argument from [formatArgument].
-   */
-  void populateField(TypeObjectField field) {
-    writeln('params[${JSON.encode(field.name)}] = ${field.name};');
-  }
+      '${dartType(field.type)} ${field.name}';
 
   /**
    * Figure out the appropriate Dart type for data having the given API
@@ -241,10 +226,10 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
   }
 }
 
-final GeneratedFile target = new GeneratedFile(
-    '../../test/integration/integration_test_methods.dart', () {
-  CodegenInttestMethodsVisitor visitor = new CodegenInttestMethodsVisitor(
-      readApi());
+final GeneratedFile target =
+    new GeneratedFile('../../test/integration/integration_test_methods.dart', () {
+  CodegenInttestMethodsVisitor visitor =
+      new CodegenInttestMethodsVisitor(readApi());
   return visitor.collectCode(visitor.visitApi);
 });
 

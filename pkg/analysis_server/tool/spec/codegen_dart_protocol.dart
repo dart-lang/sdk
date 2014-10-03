@@ -7,6 +7,7 @@ library codegen.protocol;
 import 'dart:convert';
 
 import 'api.dart';
+import 'codegen_dart.dart';
 import 'codegen_tools.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
@@ -185,15 +186,7 @@ typedef void CodegenCallback();
 /**
  * Visitor which produces Dart code representing the API.
  */
-class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
-  /**
-   * Type references in the spec that are named something else in Dart.
-   */
-  static const Map<String, String> _typeRenames = const {
-    'long': 'int',
-    'object': 'Map',
-  };
-
+class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /**
    * Class members for which the constructor argument should be optional, even
    * if the member is not an optional part of the protocol.  For list types,
@@ -567,11 +560,13 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
             [new dom.Text('Adds [edit] to the [FileEdit] for the given [source].')]);
         writeln('void addSourceEdit(engine.AnalysisContext context,');
         writeln('    engine.Source source, SourceEdit edit) =>');
-        writeln('    _addSourceEditToSourceChange(this, context, source, edit);');
+        writeln(
+            '    _addSourceEditToSourceChange(this, context, source, edit);');
         writeln();
         docComment(
             [new dom.Text('Adds [edit] to the [FileEdit] for the given [element].')]);
-        writeln('void addElementEdit(engine.Element element, SourceEdit edit) =>');
+        writeln(
+            'void addElementEdit(engine.Element element, SourceEdit edit) =>');
         writeln('    _addElementEditToSourceChange(this, element, edit);');
         writeln();
         docComment([new dom.Text('Adds the given [FileEdit].')]);
@@ -984,21 +979,24 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
     String humanReadableNameString =
         literalString(impliedType.humanReadableName);
     if (className == 'RefactoringFeedback') {
-      writeln('factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, '
-          'String jsonPath, Object json, Map responseJson) {');
+      writeln(
+          'factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, '
+              'String jsonPath, Object json, Map responseJson) {');
       indent(() {
-        writeln('return _refactoringFeedbackFromJson(jsonDecoder, jsonPath, '
-            'json, responseJson);');
+        writeln(
+            'return _refactoringFeedbackFromJson(jsonDecoder, jsonPath, '
+                'json, responseJson);');
       });
       writeln('}');
       return;
     }
     if (className == 'RefactoringOptions') {
-      writeln('factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, '
-          'String jsonPath, Object json, RefactoringKind kind) {');
+      writeln(
+          'factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, '
+              'String jsonPath, Object json, RefactoringKind kind) {');
       indent(() {
-        writeln('return _refactoringOptionsFromJson(jsonDecoder, jsonPath, '
-            'json, kind);');
+        writeln(
+            'return _refactoringOptionsFromJson(jsonDecoder, jsonPath, ' 'json, kind);');
       });
       writeln('}');
       return;
@@ -1112,17 +1110,18 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       if (referencedDefinition != null) {
         TypeDecl referencedType = referencedDefinition.type;
         if (referencedType is TypeObject || referencedType is TypeEnum) {
-          return new FromJsonSnippet(
-              (String jsonPath, String json) {
-                String typeName = dartType(type);
-                if (typeName == 'RefactoringFeedback') {
-                  return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, json)';
-                } else if (typeName == 'RefactoringOptions') {
-                  return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, kind)';
-                } else {
-                  return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json)';
-                }
-              });
+          return new FromJsonSnippet((String jsonPath, String json) {
+            String typeName = dartType(type);
+            if (typeName == 'RefactoringFeedback') {
+              return
+                  'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, json)';
+            } else if (typeName == 'RefactoringOptions') {
+              return
+                  'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, kind)';
+            } else {
+              return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json)';
+            }
+          });
         } else {
           return fromJsonCode(referencedType);
         }
@@ -1277,35 +1276,6 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
    */
   String literalString(String s) {
     return JSON.encode(s);
-  }
-
-  /**
-   * Convert the given [TypeDecl] to a Dart type.
-   */
-  String dartType(TypeDecl type) {
-    if (type is TypeReference) {
-      String typeName = type.typeName;
-      TypeDefinition referencedDefinition = api.types[typeName];
-      if (_typeRenames.containsKey(typeName)) {
-        return _typeRenames[typeName];
-      }
-      if (referencedDefinition == null) {
-        return typeName;
-      }
-      TypeDecl referencedType = referencedDefinition.type;
-      if (referencedType is TypeObject || referencedType is TypeEnum) {
-        return typeName;
-      }
-      return dartType(referencedType);
-    } else if (type is TypeList) {
-      return 'List<${dartType(type.itemType)}>';
-    } else if (type is TypeMap) {
-      return 'Map<${dartType(type.keyType)}, ${dartType(type.valueType)}>';
-    } else if (type is TypeUnion) {
-      return 'dynamic';
-    } else {
-      throw new Exception("Can't convert to a dart type");
-    }
   }
 }
 
