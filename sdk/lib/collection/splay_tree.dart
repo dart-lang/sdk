@@ -601,6 +601,15 @@ class _SplayTreeKeyIterable<K> extends IterableBase<K>
   int get length => _tree._count;
   bool get isEmpty => _tree._count == 0;
   Iterator<K> get iterator => new _SplayTreeKeyIterator<K>(_tree);
+
+  Set<K> toSet() {
+    var setOrMap = _tree;  // Both have _comparator and _validKey.
+    SplayTreeSet<K> set =
+        new SplayTreeSet<K>(setOrMap._comparator, setOrMap._validKey);
+    set._count = _tree._count;
+    set._root = set._copyNode(_tree._root);
+    return set;
+  }
 }
 
 class _SplayTreeValueIterable<K, V> extends IterableBase<V>
@@ -787,14 +796,16 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {
   SplayTreeSet<E> _clone() {
     var set = new SplayTreeSet<E>(_comparator, _validKey);
     set._count = _count;
-    set._root = _cloneNode(_root);
+    set._root = _copyNode(_root);
     return set;
   }
 
-  _SplayTreeNode<E> _cloneNode(_SplayTreeNode<E> node) {
+  // Copies the structure of a SplayTree into a new similar structure.
+  // Works on _SplayTreeMapNode as well, but only copies the keys,
+  _SplayTreeNode<E> _copyNode(_SplayTreeNode<E> node) {
     if (node == null) return null;
-    return new _SplayTreeNode<E>(node.key)..left = _cloneNode(node.left)
-                                          ..right = _cloneNode(node.right);
+    return new _SplayTreeNode<E>(node.key)..left = _copyNode(node.left)
+                                          ..right = _copyNode(node.right);
   }
 
   void clear() { _clear(); }
