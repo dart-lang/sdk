@@ -4,6 +4,8 @@
 
 library services.src.correction.strings;
 
+import 'dart:math';
+
 
 /**
  * "$"
@@ -58,6 +60,67 @@ int countMatches(String str, String sub) {
 }
 
 /**
+ * Returns the number of characters common to the end of [a] and the start
+ * of [b].
+ */
+int findCommonOverlap(String a, String b) {
+  int a_length = a.length;
+  int b_length = b.length;
+  // all empty
+  if (a_length == 0 || b_length == 0) {
+    return 0;
+  }
+  // truncate
+  if (a_length > b_length) {
+    a = a.substring(a_length - b_length);
+  } else if (a_length < b_length) {
+    b = b.substring(0, a_length);
+  }
+  int text_length = min(a_length, b_length);
+  // the worst case
+  if (a == b) {
+    return text_length;
+  }
+  // increase common length one by one
+  int length = 0;
+  while (length < text_length) {
+    if (a.codeUnitAt(text_length - 1 - length) != b.codeUnitAt(length)) {
+      break;
+    }
+    length++;
+  }
+  return length;
+}
+
+/**
+ * Return the number of characters common to the start of [a] and [b].
+ */
+int findCommonPrefix(String a, String b) {
+  int n = min(a.length, b.length);
+  for (int i = 0; i < n; i++) {
+    if (a.codeUnitAt(i) != b.codeUnitAt(i)) {
+      return i;
+    }
+  }
+  return n;
+}
+
+/**
+ * Return the number of characters common to the end of [a] and [b].
+ */
+int findCommonSuffix(String a, String b) {
+  int a_length = a.length;
+  int b_length = b.length;
+  int n = min(a_length, b_length);
+  for (int i = 1; i <= n; i++) {
+    if (a.codeUnitAt(a_length - i) != b.codeUnitAt(b_length - i)) {
+      return i - 1;
+    }
+  }
+  return n;
+}
+
+/**
  * Checks if [str] is `null`, empty or is whitespace.
  */
 bool isBlank(String str) {
@@ -100,12 +163,14 @@ bool isWhitespace(int c) {
   return isSpace(c) || c == 0x0D || c == 0x0A;
 }
 
+
 String remove(String str, String remove) {
   if (isEmpty(str) || isEmpty(remove)) {
     return str;
   }
   return str.replaceAll(remove, '');
 }
+
 
 String removeEnd(String str, String remove) {
   if (isEmpty(str) || isEmpty(remove)) {
@@ -116,6 +181,7 @@ String removeEnd(String str, String remove) {
   }
   return str;
 }
+
 
 String removeStart(String str, String remove) {
   if (isEmpty(str) || isEmpty(remove)) {

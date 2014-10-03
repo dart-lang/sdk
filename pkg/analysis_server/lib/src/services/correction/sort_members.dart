@@ -5,7 +5,7 @@
 library services.src.refactoring.sort_members;
 
 import 'package:analysis_server/src/protocol.dart' hide Element;
-import 'package:analysis_server/src/services/correction/diff.dart';
+import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';
 
 
@@ -66,13 +66,16 @@ class MemberSorter {
     // prepare edits
     List<SourceEdit> edits = <SourceEdit>[];
     if (code != initialCode) {
-      // TODO(scheglov) use better diff algorithm
-      int commonPrefix = findCommonPrefix(initialCode, code);
-      int commonSuffix = findCommonSuffix(initialCode, code);
+      int prefixLength = findCommonPrefix(initialCode, code);
+      int suffixLength = findCommonSuffix(initialCode, code);
+      String prefix = code.substring(0, prefixLength);
+      String suffix = code.substring(code.length - suffixLength, code.length);
+      int commonLength = findCommonOverlap(prefix, suffix);
+      suffixLength -= commonLength;
       SourceEdit edit = new SourceEdit(
-          commonPrefix,
-          initialCode.length - commonSuffix - commonPrefix,
-          code.substring(commonPrefix, code.length - commonSuffix));
+          prefixLength,
+          initialCode.length - suffixLength - prefixLength,
+          code.substring(prefixLength, code.length - suffixLength));
       edits.add(edit);
     }
     return edits;
