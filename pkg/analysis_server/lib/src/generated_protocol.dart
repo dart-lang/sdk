@@ -63,7 +63,7 @@ class ServerGetVersionResult implements HasToJson {
 
   factory ServerGetVersionResult.fromResponse(Response response) {
     return new ServerGetVersionResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -510,7 +510,7 @@ class AnalysisGetErrorsResult implements HasToJson {
 
   factory AnalysisGetErrorsResult.fromResponse(Response response) {
     return new AnalysisGetErrorsResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -661,7 +661,7 @@ class AnalysisGetHoverResult implements HasToJson {
 
   factory AnalysisGetHoverResult.fromResponse(Response response) {
     return new AnalysisGetHoverResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -1945,7 +1945,7 @@ class CompletionGetSuggestionsResult implements HasToJson {
 
   factory CompletionGetSuggestionsResult.fromResponse(Response response) {
     return new CompletionGetSuggestionsResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2259,7 +2259,7 @@ class SearchFindElementReferencesResult implements HasToJson {
 
   factory SearchFindElementReferencesResult.fromResponse(Response response) {
     return new SearchFindElementReferencesResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2398,7 +2398,7 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
 
   factory SearchFindMemberDeclarationsResult.fromResponse(Response response) {
     return new SearchFindMemberDeclarationsResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2530,7 +2530,7 @@ class SearchFindMemberReferencesResult implements HasToJson {
 
   factory SearchFindMemberReferencesResult.fromResponse(Response response) {
     return new SearchFindMemberReferencesResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2663,7 +2663,7 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
 
   factory SearchFindTopLevelDeclarationsResult.fromResponse(Response response) {
     return new SearchFindTopLevelDeclarationsResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2823,7 +2823,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
 
   factory SearchGetTypeHierarchyResult.fromResponse(Response response) {
     return new SearchGetTypeHierarchyResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3084,7 +3084,7 @@ class EditGetAssistsResult implements HasToJson {
 
   factory EditGetAssistsResult.fromResponse(Response response) {
     return new EditGetAssistsResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3246,7 +3246,7 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
 
   factory EditGetAvailableRefactoringsResult.fromResponse(Response response) {
     return new EditGetAvailableRefactoringsResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3393,7 +3393,7 @@ class EditGetFixesResult implements HasToJson {
 
   factory EditGetFixesResult.fromResponse(Response response) {
     return new EditGetFixesResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3684,7 +3684,7 @@ class EditGetRefactoringResult implements HasToJson {
 
   factory EditGetRefactoringResult.fromResponse(Response response) {
     return new EditGetRefactoringResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3838,7 +3838,7 @@ class EditSortMembersResult implements HasToJson {
 
   factory EditSortMembersResult.fromResponse(Response response) {
     return new EditSortMembersResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3970,7 +3970,7 @@ class ExecutionCreateContextResult implements HasToJson {
 
   factory ExecutionCreateContextResult.fromResponse(Response response) {
     return new ExecutionCreateContextResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -4229,7 +4229,7 @@ class ExecutionMapUriResult implements HasToJson {
 
   factory ExecutionMapUriResult.fromResponse(Response response) {
     return new ExecutionMapUriResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {

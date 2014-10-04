@@ -69,7 +69,7 @@ void _addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
  * Adds [edit] to the [FileEdit] for the given [file].
  */
 void _addEditToSourceChange(SourceChange change, String file, int fileStamp,
-                            SourceEdit edit) {
+    SourceEdit edit) {
   SourceFileEdit fileEdit = change.getFileEdit(file);
   if (fileEdit == null) {
     fileEdit = new SourceFileEdit(file, fileStamp);
@@ -170,7 +170,8 @@ String _applySequence(String code, Iterable<SourceEdit> edits) {
 /**
  * Map an element kind from the analyzer engine to a [CompletionSuggestionKind].
  */
-CompletionSuggestionKind _completionSuggestionKindFromElementKind(engine.ElementKind kind) {
+CompletionSuggestionKind
+    _completionSuggestionKindFromElementKind(engine.ElementKind kind) {
   //    ElementKind.ANGULAR_FORMATTER,
   //    ElementKind.ANGULAR_COMPONENT,
   //    ElementKind.ANGULAR_CONTROLLER,
@@ -181,30 +182,39 @@ CompletionSuggestionKind _completionSuggestionKindFromElementKind(engine.Element
   //    ElementKind.ANGULAR_VIEW,
   if (kind == engine.ElementKind.CLASS) return CompletionSuggestionKind.CLASS;
   //    ElementKind.COMPILATION_UNIT,
-  if (kind == engine.ElementKind.CONSTRUCTOR) return CompletionSuggestionKind.CONSTRUCTOR;
+  if (kind ==
+      engine.ElementKind.CONSTRUCTOR) return CompletionSuggestionKind.CONSTRUCTOR;
   //    ElementKind.DYNAMIC,
   //    ElementKind.EMBEDDED_HTML_SCRIPT,
   //    ElementKind.ERROR,
   //    ElementKind.EXPORT,
   //    ElementKind.EXTERNAL_HTML_SCRIPT,
   if (kind == engine.ElementKind.FIELD) return CompletionSuggestionKind.FIELD;
-  if (kind == engine.ElementKind.FUNCTION) return CompletionSuggestionKind.FUNCTION;
-  if (kind == engine.ElementKind.FUNCTION_TYPE_ALIAS) return CompletionSuggestionKind.FUNCTION_TYPE_ALIAS;
+  if (kind ==
+      engine.ElementKind.FUNCTION) return CompletionSuggestionKind.FUNCTION;
+  if (kind ==
+      engine.ElementKind.FUNCTION_TYPE_ALIAS) return
+          CompletionSuggestionKind.FUNCTION_TYPE_ALIAS;
   if (kind == engine.ElementKind.GETTER) return CompletionSuggestionKind.GETTER;
   //    ElementKind.HTML,
   if (kind == engine.ElementKind.IMPORT) return CompletionSuggestionKind.IMPORT;
   //    ElementKind.LABEL,
   //    ElementKind.LIBRARY,
-  if (kind == engine.ElementKind.LOCAL_VARIABLE) return CompletionSuggestionKind.LOCAL_VARIABLE;
+  if (kind ==
+      engine.ElementKind.LOCAL_VARIABLE) return
+          CompletionSuggestionKind.LOCAL_VARIABLE;
   if (kind == engine.ElementKind.METHOD) return CompletionSuggestionKind.METHOD;
   //    ElementKind.NAME,
-  if (kind == engine.ElementKind.PARAMETER) return CompletionSuggestionKind.PARAMETER;
+  if (kind ==
+      engine.ElementKind.PARAMETER) return CompletionSuggestionKind.PARAMETER;
   //    ElementKind.POLYMER_ATTRIBUTE,
   //    ElementKind.POLYMER_TAG_DART,
   //    ElementKind.POLYMER_TAG_HTML,
   //    ElementKind.PREFIX,
   if (kind == engine.ElementKind.SETTER) return CompletionSuggestionKind.SETTER;
-  if (kind == engine.ElementKind.TOP_LEVEL_VARIABLE) return CompletionSuggestionKind.TOP_LEVEL_VARIABLE;
+  if (kind ==
+      engine.ElementKind.TOP_LEVEL_VARIABLE) return
+          CompletionSuggestionKind.TOP_LEVEL_VARIABLE;
   //    ElementKind.TYPE_PARAMETER,
   //    ElementKind.UNIVERSE
   throw new ArgumentError('Unknown CompletionSuggestionKind for: $kind');
@@ -430,19 +440,21 @@ OverriddenMember _overriddenMemberFromEngine(engine.Element member) {
  */
 RefactoringFeedback _refactoringFeedbackFromJson(JsonDecoder jsonDecoder,
     String jsonPath, Object json, Map feedbackJson) {
-  String requestId;
-  if (jsonDecoder is ResponseDecoder) {
-    requestId = jsonDecoder.response.id;
-  }
-  RefactoringKind kind = REQUEST_ID_REFACTORING_KINDS.remove(requestId);
+  RefactoringKind kind = jsonDecoder.refactoringKind;
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-    return new ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return new ExtractLocalVariableFeedback.fromJson(
+        jsonDecoder,
+        jsonPath,
+        json);
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
     return new ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-    return new InlineLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return new InlineLocalVariableFeedback.fromJson(
+        jsonDecoder,
+        jsonPath,
+        json);
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
     return new InlineMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
@@ -460,7 +472,10 @@ RefactoringFeedback _refactoringFeedbackFromJson(JsonDecoder jsonDecoder,
 RefactoringOptions _refactoringOptionsFromJson(JsonDecoder jsonDecoder,
     String jsonPath, Object json, RefactoringKind kind) {
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-    return new ExtractLocalVariableOptions.fromJson(jsonDecoder, jsonPath, json);
+    return new ExtractLocalVariableOptions.fromJson(
+        jsonDecoder,
+        jsonPath,
+        json);
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
     return new ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
@@ -527,6 +542,13 @@ abstract class JsonDecoder {
    * the key [key].
    */
   dynamic missingKey(String jsonPath, String key);
+
+  /**
+   * Retrieve the RefactoringKind that should be assumed when decoding
+   * refactoring feedback objects, or null if no refactoring feedback object is
+   * expected to be encountered.
+   */
+  RefactoringKind get refactoringKind;
 
   /**
    * Decode a JSON object that is expected to be a boolean.  The strings "true"
@@ -679,7 +701,8 @@ class Notification {
    * Initialize a newly created instance based upon the given JSON data
    */
   factory Notification.fromJson(Map<String, Object> json) {
-    return new Notification(json[Notification.EVENT],
+    return new Notification(
+        json[Notification.EVENT],
         json[Notification.PARAMS]);
   }
 
@@ -819,6 +842,11 @@ class RequestDecoder extends JsonDecoder {
             jsonPath,
             'contain key ${JSON.encode(key)}'));
   }
+
+  RefactoringKind get refactoringKind {
+    // Refactoring feedback objects should never appear in requests.
+    return null;
+  }
 }
 
 
@@ -918,16 +946,15 @@ class Response {
       Object error = json[Response.ERROR];
       RequestError decodedError;
       if (error is Map) {
-        decodedError = new RequestError.fromJson(new ResponseDecoder(null),
-            '.error', error);
+        decodedError =
+            new RequestError.fromJson(new ResponseDecoder(null), '.error', error);
       }
       Object result = json[Response.RESULT];
       Map<String, Object> decodedResult;
       if (result is Map) {
         decodedResult = result;
       }
-      return new Response(id, error: decodedError,
-          result: decodedResult);
+      return new Response(id, error: decodedError, result: decodedResult);
     } catch (exception) {
       return null;
     }
@@ -938,10 +965,11 @@ class Response {
    * GET_ERRORS_INVALID_FILE error condition.
    */
   Response.getErrorsInvalidFile(Request request)
-    : this(
-        request.id,
-        error: new RequestError(RequestErrorCode.GET_ERRORS_INVALID_FILE,
-            'Error during `analysis.getErrors`: invalid file.'));
+      : this(
+          request.id,
+          error: new RequestError(
+              RequestErrorCode.GET_ERRORS_INVALID_FILE,
+              'Error during `analysis.getErrors`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -951,35 +979,42 @@ class Response {
    * [expectation] is a description of the type of data that was expected.
    */
   Response.invalidParameter(Request request, String path, String expectation)
-      : this(request.id, error: new RequestError(RequestErrorCode.INVALID_PARAMETER,
-          "Expected parameter $path to $expectation"));
+      : this(
+          request.id,
+          error: new RequestError(
+              RequestErrorCode.INVALID_PARAMETER,
+              "Expected parameter $path to $expectation"));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a malformed request.
    */
   Response.invalidRequestFormat()
-    : this('', error: new RequestError(RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
+      : this(
+          '',
+          error: new RequestError(RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
 
   /**
    * Initialize a newly created instance to represent the
    * SORT_MEMBERS_INVALID_FILE error condition.
    */
   Response.sortMembersInvalidFile(Request request)
-    : this(
-        request.id,
-        error: new RequestError(RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
-            'Error during `edit.sortMembers`: invalid file.'));
+      : this(
+          request.id,
+          error: new RequestError(
+              RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
+              'Error during `edit.sortMembers`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent the
    * SORT_MEMBERS_PARSE_ERRORS error condition.
    */
   Response.sortMembersParseErrors(Request request, int numErrors)
-    : this(
-        request.id,
-        error: new RequestError(RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
-            'Error during `edit.sortMembers`: file has $numErrors scan/parse errors.'));
+      : this(
+          request.id,
+          error: new RequestError(
+              RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
+              'Error during `edit.sortMembers`: file has $numErrors scan/parse errors.'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -987,17 +1022,25 @@ class Response {
    * that are not being analyzed.
    */
   Response.unanalyzedPriorityFiles(Request request, String fileNames)
-    : this(request.id, error: new RequestError(RequestErrorCode.UNANALYZED_PRIORITY_FILES, "Unanalyzed files cannot be a priority: '$fileNames'"));
+      : this(
+          request.id,
+          error: new RequestError(
+              RequestErrorCode.UNANALYZED_PRIORITY_FILES,
+              "Unanalyzed files cannot be a priority: '$fileNames'"));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] that cannot be handled by any known handlers.
    */
   Response.unknownRequest(Request request)
-    : this(request.id, error: new RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request'));
+      : this(
+          request.id,
+          error: new RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request'));
 
   Response.unsupportedFeature(String requestId, String message)
-    : this(requestId, error: new RequestError(RequestErrorCode.UNSUPPORTED_FEATURE, message));
+      : this(
+          requestId,
+          error: new RequestError(RequestErrorCode.UNSUPPORTED_FEATURE, message));
 
   /**
    * Return a table representing the structure of the Json object that will be
@@ -1021,9 +1064,9 @@ class Response {
  * used only for testing.  Errors are reported using bare [Exception] objects.
  */
 class ResponseDecoder extends JsonDecoder {
-  final Response response;
+  final RefactoringKind refactoringKind;
 
-  ResponseDecoder(this.response);
+  ResponseDecoder(this.refactoringKind);
 
   @override
   dynamic mismatch(String jsonPath, String expected) {

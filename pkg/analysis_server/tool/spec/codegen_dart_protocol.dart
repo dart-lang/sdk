@@ -1230,7 +1230,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         inputType = 'Response';
         inputName = 'response';
         fieldName = '_result';
-        makeDecoder = 'new ResponseDecoder(response)';
+        makeDecoder =
+            'new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id))';
         constructorName = 'fromResponse';
         break;
       case 'notificationParams':

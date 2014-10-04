@@ -35,11 +35,11 @@ abstract class IntegrationTestMixin {
    *
    *   The version number of the analysis server.
    */
-  Future sendServerGetVersion() {
+  Future<ServerGetVersionResult> sendServerGetVersion() {
     return server.send("server.getVersion", null)
         .then((result) {
-      expect(result, isServerGetVersionResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new ServerGetVersionResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -53,8 +53,8 @@ abstract class IntegrationTestMixin {
   Future sendServerShutdown() {
     return server.send("server.shutdown", null)
         .then((result) {
-      expect(result, isServerShutdownResult);
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -76,8 +76,8 @@ abstract class IntegrationTestMixin {
     var params = new ServerSetSubscriptionsParams(subscriptions).toJson();
     return server.send("server.setSubscriptions", params)
         .then((result) {
-      expect(result, isServerSetSubscriptionsResult);
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -180,12 +180,12 @@ abstract class IntegrationTestMixin {
    *
    *   The errors associated with the file.
    */
-  Future sendAnalysisGetErrors(String file) {
+  Future<AnalysisGetErrorsResult> sendAnalysisGetErrors(String file) {
     var params = new AnalysisGetErrorsParams(file).toJson();
     return server.send("analysis.getErrors", params)
         .then((result) {
-      expect(result, isAnalysisGetErrorsResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new AnalysisGetErrorsResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -214,12 +214,12 @@ abstract class IntegrationTestMixin {
    *   contexts in conflicting ways (such as a part that is included in
    *   multiple libraries).
    */
-  Future sendAnalysisGetHover(String file, int offset) {
+  Future<AnalysisGetHoverResult> sendAnalysisGetHover(String file, int offset) {
     var params = new AnalysisGetHoverParams(file, offset).toJson();
     return server.send("analysis.getHover", params)
         .then((result) {
-      expect(result, isAnalysisGetHoverResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new AnalysisGetHoverResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -232,8 +232,8 @@ abstract class IntegrationTestMixin {
   Future sendAnalysisReanalyze() {
     return server.send("analysis.reanalyze", null)
         .then((result) {
-      expect(result, isAnalysisReanalyzeResult);
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -274,8 +274,8 @@ abstract class IntegrationTestMixin {
     var params = new AnalysisSetAnalysisRootsParams(included, excluded).toJson();
     return server.send("analysis.setAnalysisRoots", params)
         .then((result) {
-      expect(result, isAnalysisSetAnalysisRootsResult);
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -308,8 +308,8 @@ abstract class IntegrationTestMixin {
     var params = new AnalysisSetPriorityFilesParams(files).toJson();
     return server.send("analysis.setPriorityFiles", params)
         .then((result) {
-      expect(result, isAnalysisSetPriorityFilesResult);
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -349,8 +349,8 @@ abstract class IntegrationTestMixin {
     var params = new AnalysisSetSubscriptionsParams(subscriptions).toJson();
     return server.send("analysis.setSubscriptions", params)
         .then((result) {
-      expect(result, isAnalysisSetSubscriptionsResult);
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -374,8 +374,8 @@ abstract class IntegrationTestMixin {
     var params = new AnalysisUpdateContentParams(files).toJson();
     return server.send("analysis.updateContent", params)
         .then((result) {
-      expect(result, isAnalysisUpdateContentResult);
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -395,8 +395,8 @@ abstract class IntegrationTestMixin {
     var params = new AnalysisUpdateOptionsParams(options).toJson();
     return server.send("analysis.updateOptions", params)
         .then((result) {
-      expect(result, isAnalysisUpdateOptionsResult);
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -628,12 +628,12 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this completion request.
    */
-  Future sendCompletionGetSuggestions(String file, int offset) {
+  Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(String file, int offset) {
     var params = new CompletionGetSuggestionsParams(file, offset).toJson();
     return server.send("completion.getSuggestions", params)
         .then((result) {
-      expect(result, isCompletionGetSuggestionsResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -723,12 +723,12 @@ abstract class IntegrationTestMixin {
    *   If no element was found at the given location, this field will be
    *   absent.
    */
-  Future sendSearchFindElementReferences(String file, int offset, bool includePotential) {
+  Future<SearchFindElementReferencesResult> sendSearchFindElementReferences(String file, int offset, bool includePotential) {
     var params = new SearchFindElementReferencesParams(file, offset, includePotential).toJson();
     return server.send("search.findElementReferences", params)
         .then((result) {
-      expect(result, isSearchFindElementReferencesResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new SearchFindElementReferencesResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -751,12 +751,12 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this search request.
    */
-  Future sendSearchFindMemberDeclarations(String name) {
+  Future<SearchFindMemberDeclarationsResult> sendSearchFindMemberDeclarations(String name) {
     var params = new SearchFindMemberDeclarationsParams(name).toJson();
     return server.send("search.findMemberDeclarations", params)
         .then((result) {
-      expect(result, isSearchFindMemberDeclarationsResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new SearchFindMemberDeclarationsResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -781,12 +781,12 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this search request.
    */
-  Future sendSearchFindMemberReferences(String name) {
+  Future<SearchFindMemberReferencesResult> sendSearchFindMemberReferences(String name) {
     var params = new SearchFindMemberReferencesParams(name).toJson();
     return server.send("search.findMemberReferences", params)
         .then((result) {
-      expect(result, isSearchFindMemberReferencesResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new SearchFindMemberReferencesResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -811,12 +811,12 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this search request.
    */
-  Future sendSearchFindTopLevelDeclarations(String pattern) {
+  Future<SearchFindTopLevelDeclarationsResult> sendSearchFindTopLevelDeclarations(String pattern) {
     var params = new SearchFindTopLevelDeclarationsParams(pattern).toJson();
     return server.send("search.findTopLevelDeclarations", params)
         .then((result) {
-      expect(result, isSearchFindTopLevelDeclarationsResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new SearchFindTopLevelDeclarationsResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -849,12 +849,12 @@ abstract class IntegrationTestMixin {
    *   not represent a type, or if the file has not been sufficiently analyzed
    *   to allow a type hierarchy to be produced.
    */
-  Future sendSearchGetTypeHierarchy(String file, int offset) {
+  Future<SearchGetTypeHierarchyResult> sendSearchGetTypeHierarchy(String file, int offset) {
     var params = new SearchGetTypeHierarchyParams(file, offset).toJson();
     return server.send("search.getTypeHierarchy", params)
         .then((result) {
-      expect(result, isSearchGetTypeHierarchyResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new SearchGetTypeHierarchyResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -912,12 +912,12 @@ abstract class IntegrationTestMixin {
    *
    *   The assists that are available at the given location.
    */
-  Future sendEditGetAssists(String file, int offset, int length) {
+  Future<EditGetAssistsResult> sendEditGetAssists(String file, int offset, int length) {
     var params = new EditGetAssistsParams(file, offset, length).toJson();
     return server.send("edit.getAssists", params)
         .then((result) {
-      expect(result, isEditGetAssistsResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditGetAssistsResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -945,12 +945,12 @@ abstract class IntegrationTestMixin {
    *
    *   The kinds of refactorings that are valid for the given selection.
    */
-  Future sendEditGetAvailableRefactorings(String file, int offset, int length) {
+  Future<EditGetAvailableRefactoringsResult> sendEditGetAvailableRefactorings(String file, int offset, int length) {
     var params = new EditGetAvailableRefactoringsParams(file, offset, length).toJson();
     return server.send("edit.getAvailableRefactorings", params)
         .then((result) {
-      expect(result, isEditGetAvailableRefactoringsResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditGetAvailableRefactoringsResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -974,12 +974,12 @@ abstract class IntegrationTestMixin {
    *
    *   The fixes that are available for the errors at the given offset.
    */
-  Future sendEditGetFixes(String file, int offset) {
+  Future<EditGetFixesResult> sendEditGetFixes(String file, int offset) {
     var params = new EditGetFixesParams(file, offset).toJson();
     return server.send("edit.getFixes", params)
         .then((result) {
-      expect(result, isEditGetFixesResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditGetFixesResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -1061,12 +1061,12 @@ abstract class IntegrationTestMixin {
    *   if the change field is omitted or if there are no potential edits for
    *   the refactoring.
    */
-  Future sendEditGetRefactoring(RefactoringKind kind, String file, int offset, int length, bool validateOnly, {RefactoringOptions options}) {
+  Future<EditGetRefactoringResult> sendEditGetRefactoring(RefactoringKind kind, String file, int offset, int length, bool validateOnly, {RefactoringOptions options}) {
     var params = new EditGetRefactoringParams(kind, file, offset, length, validateOnly, options: options).toJson();
     return server.send("edit.getRefactoring", params)
         .then((result) {
-      expect(result, isEditGetRefactoringResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(kind);
+      return new EditGetRefactoringResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -1093,12 +1093,12 @@ abstract class IntegrationTestMixin {
    *   The file edit that is to be applied to the given file to effect the
    *   sorting.
    */
-  Future sendEditSortMembers(String file) {
+  Future<EditSortMembersResult> sendEditSortMembers(String file) {
     var params = new EditSortMembersParams(file).toJson();
     return server.send("edit.sortMembers", params)
         .then((result) {
-      expect(result, isEditSortMembersResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditSortMembersResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -1120,12 +1120,12 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to refer to the execution context that was created.
    */
-  Future sendExecutionCreateContext(String contextRoot) {
+  Future<ExecutionCreateContextResult> sendExecutionCreateContext(String contextRoot) {
     var params = new ExecutionCreateContextParams(contextRoot).toJson();
     return server.send("execution.createContext", params)
         .then((result) {
-      expect(result, isExecutionCreateContextResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new ExecutionCreateContextResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -1144,8 +1144,8 @@ abstract class IntegrationTestMixin {
     var params = new ExecutionDeleteContextParams(id).toJson();
     return server.send("execution.deleteContext", params)
         .then((result) {
-      expect(result, isExecutionDeleteContextResult);
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -1182,12 +1182,12 @@ abstract class IntegrationTestMixin {
    *   The URI to which the file path was mapped. This field is omitted if the
    *   file field was not given in the request.
    */
-  Future sendExecutionMapUri(String id, {String file, String uri}) {
+  Future<ExecutionMapUriResult> sendExecutionMapUri(String id, {String file, String uri}) {
     var params = new ExecutionMapUriParams(id, file: file, uri: uri).toJson();
     return server.send("execution.mapUri", params)
         .then((result) {
-      expect(result, isExecutionMapUriResult);
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new ExecutionMapUriResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -1209,8 +1209,8 @@ abstract class IntegrationTestMixin {
     var params = new ExecutionSetSubscriptionsParams(subscriptions).toJson();
     return server.send("execution.setSubscriptions", params)
         .then((result) {
-      expect(result, isExecutionSetSubscriptionsResult);
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 

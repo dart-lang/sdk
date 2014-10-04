@@ -13,8 +13,8 @@ import '../integration_tests.dart';
 /**
  * Base class for testing the "analysis.getErrors" request.
  */
-class AnalysisDomainGetErrorsTest extends
-    AbstractAnalysisServerIntegrationTest {
+class AnalysisDomainGetErrorsTest extends AbstractAnalysisServerIntegrationTest
+    {
   /**
    * True if the "analysis.getErrors" request should be made after analysis is
    * complete.
@@ -33,7 +33,9 @@ main() {
     standardAnalysisSetup();
     Future finishTest() {
       return sendAnalysisGetErrors(pathname).then((result) {
-        expect(result['errors'], equals(currentAnalysisErrors[pathname]));
+        expect(
+            result.errors.map((error) => error.toJson()),
+            equals(currentAnalysisErrors[pathname]));
       });
     }
     if (afterAnalysis) {

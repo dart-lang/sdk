@@ -6,10 +6,11 @@ library test.integration.analysis.get.hover;
 
 import 'dart:async';
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 @ReflectiveTestCase()
@@ -111,49 +112,49 @@ main() {
       null, propagatedType: null}) {
     int offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) {
-      expect(result['hovers'], hasLength(1));
-      var info = result['hovers'][0];
-      expect(info['offset'], equals(offset));
-      expect(info['length'], equals(length));
+      expect(result.hovers, hasLength(1));
+      HoverInformation info = result.hovers[0];
+      expect(info.offset, equals(offset));
+      expect(info.length, equals(length));
       if (isCore) {
-        expect(basename(info['containingLibraryPath']), equals('core.dart'));
-        expect(info['containingLibraryName'], equals('dart.core'));
+        expect(basename(info.containingLibraryPath), equals('core.dart'));
+        expect(info.containingLibraryName, equals('dart.core'));
       } else if (isLiteral) {
-        expect(info['containingLibraryPath'], isNull);
-        expect(info['containingLibraryName'], isNull);
+        expect(info.containingLibraryPath, isNull);
+        expect(info.containingLibraryName, isNull);
       } else {
-        expect(info['containingLibraryPath'], equals(pathname));
-        expect(info['containingLibraryName'], equals('lib.test'));
+        expect(info.containingLibraryPath, equals(pathname));
+        expect(info.containingLibraryName, equals('lib.test'));
       }
       if (docRegexp == null) {
-        expect(info['dartdoc'], isNull);
+        expect(info.dartdoc, isNull);
       } else {
-        expect(info['dartdoc'], matches(docRegexp));
+        expect(info.dartdoc, matches(docRegexp));
       }
       if (descriptionRegexps == null) {
-        expect(info['elementDescription'], isNull);
+        expect(info.elementDescription, isNull);
       } else {
-        expect(info['elementDescription'], isString);
+        expect(info.elementDescription, isString);
         for (String descriptionRegexp in descriptionRegexps) {
-          expect(info['elementDescription'], matches(descriptionRegexp));
+          expect(info.elementDescription, matches(descriptionRegexp));
         }
       }
-      expect(info['elementKind'], equals(kind));
+      expect(info.elementKind, equals(kind));
       if (parameterRegexps == null) {
-        expect(info['parameter'], isNull);
+        expect(info.parameter, isNull);
       } else {
-        expect(info['parameter'], isString);
+        expect(info.parameter, isString);
         for (String parameterRegexp in parameterRegexps) {
-          expect(info['parameter'], matches(parameterRegexp));
+          expect(info.parameter, matches(parameterRegexp));
         }
       }
-      expect(info['propagatedType'], equals(propagatedType));
+      expect(info.propagatedType, equals(propagatedType));
       if (staticTypeRegexps == null) {
-        expect(info['staticType'], isNull);
+        expect(info.staticType, isNull);
       } else {
-        expect(info['staticType'], isString);
+        expect(info.staticType, isString);
         for (String staticTypeRegexp in staticTypeRegexps) {
-          expect(info['staticType'], matches(staticTypeRegexp));
+          expect(info.staticType, matches(staticTypeRegexp));
         }
       }
     });
@@ -166,7 +167,7 @@ main() {
   Future checkNoHover(String target) {
     int offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) {
-      expect(result['hovers'], hasLength(0));
+      expect(result.hovers, hasLength(0));
     });
   }
 }

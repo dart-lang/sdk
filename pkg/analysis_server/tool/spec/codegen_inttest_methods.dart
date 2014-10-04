@@ -153,12 +153,19 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
       toHtmlVisitor.describePayload(request.params, 'Parameters');
       toHtmlVisitor.describePayload(request.result, 'Returns');
     }));
-    writeln('Future $methodName(${args.join(', ')}) {');
+    String resultClass;
+    String futureClass;
+    if (request.result == null) {
+      futureClass = 'Future';
+    } else {
+      resultClass =
+          camelJoin([request.domainName, request.method, 'result'], doCapitalize: true);
+      futureClass = 'Future<$resultClass>';
+    }
+    writeln('$futureClass $methodName(${args.join(', ')}) {');
     indent(() {
       String requestClass =
           camelJoin([request.domainName, request.method, 'params'], doCapitalize: true);
-      String resultValidator =
-          camelJoin(['is', request.domainName, request.method, 'result']);
       String paramsVar = 'null';
       if (request.params != null) {
         paramsVar = 'params';
@@ -178,8 +185,18 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
           'return server.send(${JSON.encode(request.longMethod)}, $paramsVar)');
       indent(() {
         writeln('  .then((result) {');
-        writeln('expect(result, $resultValidator);');
-        writeln('return result;');
+        if (request.result != null) {
+          String kind = 'null';
+          if (requestClass == 'EditGetRefactoringParams') {
+            kind = 'kind';
+          }
+          writeln('ResponseDecoder decoder = new ResponseDecoder($kind);');
+          writeln(
+              "return new $resultClass.fromJson(decoder, 'result', result);");
+        } else {
+          writeln('expect(result, isNull);');
+          writeln('return null;');
+        }
       });
       writeln('});');
     });
