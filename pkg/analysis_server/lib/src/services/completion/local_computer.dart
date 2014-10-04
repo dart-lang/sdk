@@ -159,6 +159,16 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // InvocationComputer adds suggestions for prefixed elements
+    // but this computer adds suggestions for the prefix itself
+    SimpleIdentifier prefix = node.prefix;
+    if (prefix == null || request.offset <= prefix.end) {
+      visitNode(node);
+    }
+  }
+
+  @override
   visitForStatement(ForStatement node) {
     var varList = node.variables;
     if (varList != null) {

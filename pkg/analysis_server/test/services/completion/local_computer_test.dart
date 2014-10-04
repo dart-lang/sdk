@@ -124,6 +124,27 @@ class LocalComputerTest extends AbstractCompletionTest {
     assertSuggestLocalVariable('i', 'int');
   }
 
+  test_ForStatement_condition() {
+    // SimpleIdentifier  ForStatement
+    addTestSource('main() {for (int index = 0; i^)}');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalVariable('index', 'int');
+  }
+
+  test_ForStatement_updaters() {
+    // SimpleIdentifier  ForStatement
+    addTestSource('main() {for (int index = 0; index < 10; i^)}');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalVariable('index', 'int');
+  }
+
+  test_ForStatement_updaters_prefix_expression() {
+    // SimpleIdentifier  PrefixExpression  ForStatement
+    addTestSource('main() {for (int index = 0; index < 10; ++i^)}');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalVariable('index', 'int');
+  }
+
   test_FunctionExpression_body_function() {
     // Block  BlockFunctionBody  FunctionExpression
     addTestSource('String foo(List args) {x.then((R b) {^});}');
@@ -146,6 +167,20 @@ class LocalComputerTest extends AbstractCompletionTest {
     //assertNotSuggested('f');
     assertSuggestLocalVariable('f', null);
     assertNotSuggested('x');
+  }
+
+  test_InterpolationExpression() {
+    // SimpleIdentifier  InterpolationExpression  StringInterpolation
+    addTestSource('main() {String name; print("hello \$^");}');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalVariable('name', 'String');
+  }
+
+  test_InterpolationExpression_block() {
+    // SimpleIdentifier  InterpolationExpression  StringInterpolation
+    addTestSource('main() {String name; print("hello \${n^}");}');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalVariable('name', 'String');
   }
 
   test_MethodDeclaration_body_getters() {
@@ -198,6 +233,35 @@ class LocalComputerTest extends AbstractCompletionTest {
     assertSuggestParameter('y', 'int');
   }
 
+  test_PrefixedIdentifier() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('''
+      class A {var b; X _c;}
+      class X{}
+      main() {A a; a.^}''');
+    expect(computeFast(), isTrue);
+    // PrefixedIdentifier is handled by InvocationComputer
+    assertNotSuggested('b');
+    assertNotSuggested('_c');
+  }
+
+  test_PrefixedIdentifier_interpolation() {
+    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
+    addTestSource('main() {String name; print("hello \${name.^}");}');
+    expect(computeFast(), isTrue);
+    // InvocationComputer creates suggestions for prefixed identifiers
+    assertNotSuggested('name');
+    assertNotSuggested('length');
+  }
+
+  test_PrefixedIdentifier_prefix() {
+    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
+    addTestSource('main() {String name; print("hello \${nam^e.length}");}');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalVariable('name', 'String');
+    assertNotSuggested('length');
+  }
+
   test_TopLevelVariableDeclaration_typed_name() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
@@ -225,8 +289,8 @@ class LocalComputerTest extends AbstractCompletionTest {
   }
 
   test_VariableDeclaration_RHS() {
-
-        // VariableDeclaration  VariableDeclarationList  VariableDeclarationStatement
+    // VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement
     addTestSource('class A {a() {var f; {var x;} var e = ^ var g;}}');
     expect(computeFast(), isTrue);
     assertSuggestClass('A');

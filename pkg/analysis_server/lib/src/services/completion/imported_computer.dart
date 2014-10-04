@@ -66,6 +66,11 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     if (parent is ExpressionStatement) {
       return _addImportedElementSuggestions();
     }
+    if (parent is PrefixedIdentifier) {
+      if (request.offset <= parent.prefix.end) {
+        return _addImportedElementSuggestions();
+      }
+    }
     return new Future.value(false);
   }
 

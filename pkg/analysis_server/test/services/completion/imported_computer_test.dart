@@ -67,21 +67,8 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     });
   }
 
-  test_PrefixedIdentifier() {
-    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addTestSource('''
-      class A {var b; X _c;}
-      class X{}
-      main() {A a; a.^}''');
-    return computeFull(true).then((_) {
-      // PrefixedIdentifier is handled by InvocationComputer
-      assertNotSuggested('b');
-      assertNotSuggested('_c');
-      assertNotSuggested('Object');
-    });
-  }
-
   test_Block_function() {
+    // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addSource('/testA.dart', '''
       export "dart:math" hide max;
       @deprecated A() {int x;}
@@ -98,6 +85,7 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
       // Should not suggest compilation unit elements
       // which are returned by the LocalComputer
       assertNotSuggested('X');
+      assertNotSuggested('foo');
     });
   }
 
@@ -118,6 +106,9 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
       assertNotSuggested('_T2');
       assertSuggestTopLevelVar('T3', 'int', CompletionRelevance.LOW);
       assertNotSuggested('_T4');
+      // LocalComputer provides local suggestions
+      assertNotSuggested('C');
+      assertNotSuggested('foo');
     });
   }
 
@@ -210,6 +201,41 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
       main() {}''');
     return computeFull().then((_) {
       assertNotSuggested('Object');
+    });
+  }
+
+  test_PrefixedIdentifier() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addSource('/testA.dart', '''
+      class A() {int x;}
+      _B() {}''');
+    addTestSource('''
+      import "/testA.dart";
+      class X {foo(){A a; a.^}}''');
+    return computeFull().then((_) {
+      // InvocationComputer provides suggestions for prefixed expressions
+      assertNotSuggested('A');
+      assertNotSuggested('x');
+      assertNotSuggested('X');
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_PrefixedIdentifier_prefix() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addSource('/testA.dart', '''
+      class A {static int bar = 10;}
+      _B() {}''');
+    addTestSource('''
+      import "/testA.dart";
+      class X {foo(){A^.bar}}''');
+    return computeFull().then((_) {
+      // InvocationComputer provides suggestions for prefixed expressions
+      assertSuggestClass('A');
+      assertNotSuggested('bar');
+      assertNotSuggested('_B');
+      assertNotSuggested('X');
+      assertNotSuggested('foo');
     });
   }
 
