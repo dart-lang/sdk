@@ -67,7 +67,7 @@ class AbstractCompletionTest extends AbstractContextTest {
       bool isDeprecated = false, bool isPotential = false]) {
     CompletionSuggestion cs;
     request.suggestions.forEach((s) {
-      if (s.completion == completion) {
+      if (s.completion == completion && s.kind == kind) {
         if (cs == null) {
           cs = s;
         } else {
@@ -221,6 +221,12 @@ class AbstractCompletionTest extends AbstractContextTest {
 //        element.returnType,
 //        equals(returnType != null ? returnType : 'dynamic'));
     return cs;
+  }
+
+  void assertSuggestTopLevelVarGetterSetter(String name, String returnType,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    assertSuggestGetter(name, returnType);
+    assertSuggestSetter(name);
   }
 
   bool computeFast() {

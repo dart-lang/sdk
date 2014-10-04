@@ -14,6 +14,8 @@ import 'package:analysis_server/src/services/completion/suggestion_builder.dart'
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A computer for calculating imported class and top level variable
@@ -74,116 +76,118 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
       LibraryElementSuggestionBuilder.suggestionsFor(request, library);
       return new Future.value(true);
     }
+
     return new Future.value(false);
   }
 
   Future<bool> _addImportedElementSuggestions() {
-    var future = request.searchEngine.searchTopLevelDeclarations('');
-    return future.then((List<SearchMatch> matches) {
 
-      Set<LibraryElement> visibleLibs = new Set<LibraryElement>();
-      Set<LibraryElement> excludedLibs = new Set<LibraryElement>();
+    // Exclude elements from local library
+    // because they are provided by LocalComputer
+    Set<LibraryElement> excludedLibs = new Set<LibraryElement>();
+    excludedLibs.add(request.unit.element.enclosingElement);
 
-      Map<LibraryElement, Set<String>> showNames =
-          new Map<LibraryElement, Set<String>>();
-      Map<LibraryElement, Set<String>> hideNames =
-          new Map<LibraryElement, Set<String>>();
-
-      // Exclude elements from the local library
-      // as they will be included by the LocalComputer
-      excludedLibs.add(request.unit.element.library);
-
-      // Build the set of visible and excluded libraries
-      // and the list of names that should be shown or hidden
-      request.unit.directives.forEach((Directive directive) {
-        if (directive is ImportDirective) {
-          ImportElement element = directive.element;
-          if (element != null) {
-            LibraryElement lib = element.importedLibrary;
-            SimpleIdentifier prefix = directive.prefix;
-            if (prefix == null) {
-              visibleLibs.add(lib);
-              directive.combinators.forEach((Combinator combinator) {
-                if (combinator is ShowCombinator) {
-                  showNames[lib] =
-                      combinator.shownNames.map((SimpleIdentifier id) => id.name).toSet();
-                } else if (combinator is HideCombinator) {
-                  hideNames[lib] =
-                      combinator.hiddenNames.map((SimpleIdentifier id) => id.name).toSet();
-                }
-              });
-            } else {
-              String completion = prefix.name;
-              if (completion != null && completion.length > 0) {
-                CompletionSuggestion suggestion = new CompletionSuggestion(
-                    CompletionSuggestionKind.LIBRARY_PREFIX,
-                    CompletionRelevance.DEFAULT,
-                    completion,
-                    completion.length,
-                    0,
-                    element.isDeprecated,
-                    false);
-                suggestion.element = new protocol.Element.fromEngine(lib);
-                request.suggestions.add(suggestion);
-              }
-              excludedLibs.add(lib);
-            }
+    // Include explicitly imported elements
+    request.unit.directives.forEach((Directive directive) {
+      if (directive is ImportDirective) {
+        ImportElement importElem = directive.element;
+        if (importElem != null && importElem.importedLibrary != null) {
+          if (directive.prefix == null) {
+            Namespace importNamespace =
+                new NamespaceBuilder().createImportNamespaceForDirective(importElem);
+            importNamespace.definedNames.forEach((_, Element element) {
+              _addElementSuggestion(element, CompletionRelevance.DEFAULT);
+            });
+          } else {
+            // Exclude elements from prefixed imports
+            // because they are provided by InvocationComputer
+            excludedLibs.add(importElem.importedLibrary);
+            _addLibraryPrefixSuggestion(importElem);
           }
         }
-      });
+      }
+    });
 
-      // Compute the set of possible classes, functions, and top level variables
+    // Include implicitly imported dart:core elements
+    Source coreUri = request.context.sourceFactory.forUri('dart:core');
+    LibraryElement coreLib = request.context.getLibraryElement(coreUri);
+    Namespace coreNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(coreLib);
+    coreNamespace.definedNames.forEach((_, Element element) {
+      _addElementSuggestion(element, CompletionRelevance.DEFAULT);
+    });
+
+    // Add non-imported elements as low relevance
+    var future = request.searchEngine.searchTopLevelDeclarations('');
+    return future.then((List<SearchMatch> matches) {
+      Set<String> completionSet = new Set<String>();
+      request.suggestions.forEach((CompletionSuggestion suggestion) {
+        completionSet.add(suggestion.completion);
+      });
       matches.forEach((SearchMatch match) {
         if (match.kind == MatchKind.DECLARATION) {
           Element element = match.element;
-          LibraryElement lib = element.library;
-          if (element.isPublic && !excludedLibs.contains(lib)) {
-            String completion = element.displayName;
-            Set<String> show = showNames[lib];
-            Set<String> hide = hideNames[lib];
-            if ((show == null || show.contains(completion)) &&
-                (hide == null || !hide.contains(completion))) {
-
-              CompletionSuggestionKind kind =
-                  new CompletionSuggestionKind.fromElementKind(element.kind);
-
-              CompletionRelevance relevance;
-              if (visibleLibs.contains(lib) || lib.isDartCore) {
-                relevance = CompletionRelevance.DEFAULT;
-              } else {
-                relevance = CompletionRelevance.LOW;
-              }
-
-              CompletionSuggestion suggestion = new CompletionSuggestion(
-                  kind,
-                  relevance,
-                  completion,
-                  completion.length,
-                  0,
-                  element.isDeprecated,
-                  false);
-
-              suggestion.element = new protocol.Element.fromEngine(element);
-
-              DartType type;
-              if (element is TopLevelVariableElement) {
-                type = element.type;
-              } else if (element is FunctionElement) {
-                type = element.returnType;
-              }
-              if (type != null) {
-                String name = type.displayName;
-                if (name != null && name.length > 0 && name != 'dynamic') {
-                  suggestion.returnType = name;
-                }
-              }
-
-              request.suggestions.add(suggestion);
-            }
+          if (element.isPublic &&
+              !excludedLibs.contains(element.library) &&
+              !completionSet.contains(element.displayName)) {
+            _addElementSuggestion(element, CompletionRelevance.LOW);
           }
         }
       });
       return true;
     });
+  }
+
+  void _addElementSuggestion(Element element, CompletionRelevance relevance) {
+    CompletionSuggestionKind kind =
+        new CompletionSuggestionKind.fromElementKind(element.kind);
+
+    String completion = element.displayName;
+    CompletionSuggestion suggestion = new CompletionSuggestion(
+        kind,
+        relevance,
+        completion,
+        completion.length,
+        0,
+        element.isDeprecated,
+        false);
+
+    suggestion.element = new protocol.Element.fromEngine(element);
+
+    DartType type;
+    if (element is FunctionElement) {
+      type = element.returnType;
+    } else if (element is PropertyAccessorElement && element.isGetter) {
+      type = element.returnType;
+    } else if (element is TopLevelVariableElement) {
+      type = element.type;
+    }
+    if (type != null) {
+      String name = type.displayName;
+      if (name != null && name.length > 0 && name != 'dynamic') {
+        suggestion.returnType = name;
+      }
+    }
+
+    request.suggestions.add(suggestion);
+  }
+
+  void _addLibraryPrefixSuggestion(ImportElement importElem) {
+    String completion = importElem.prefix.displayName;
+    if (completion != null && completion.length > 0) {
+      CompletionSuggestion suggestion = new CompletionSuggestion(
+          CompletionSuggestionKind.LIBRARY_PREFIX,
+          CompletionRelevance.DEFAULT,
+          completion,
+          completion.length,
+          0,
+          importElem.isDeprecated,
+          false);
+      LibraryElement lib = importElem.importedLibrary;
+      if (lib != null) {
+        suggestion.element = new protocol.Element.fromEngine(lib);
+      }
+      request.suggestions.add(suggestion);
+    }
   }
 }

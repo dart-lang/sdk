@@ -50,9 +50,11 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
       assertNotSuggested('x');
       assertNotSuggested('_B');
       assertSuggestClass('C');
-      assertNotSuggested('D');
+      // hidden element suggested as low relevance
+      assertSuggestClass('D', CompletionRelevance.LOW);
       assertSuggestClass('EE');
-      assertNotSuggested('F');
+      // hidden element suggested as low relevance
+      assertSuggestClass('F', CompletionRelevance.LOW);
       assertSuggestLibraryPrefix('g');
       assertNotSuggested('G');
       assertSuggestClass('H', CompletionRelevance.LOW);
@@ -65,9 +67,23 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     });
   }
 
+  test_PrefixedIdentifier() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('''
+      class A {var b; X _c;}
+      class X{}
+      main() {A a; a.^}''');
+    return computeFull(true).then((_) {
+      // PrefixedIdentifier is handled by InvocationComputer
+      assertNotSuggested('b');
+      assertNotSuggested('_c');
+      assertNotSuggested('Object');
+    });
+  }
+
   test_Block_function() {
     addSource('/testA.dart', '''
-      export "dart:math" hide sin;
+      export "dart:math" hide max;
       @deprecated A() {int x;}
       _B() {}''');
     addTestSource('''
@@ -77,10 +93,8 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
       assertSuggestFunction('A', null, true);
       assertNotSuggested('x');
       assertNotSuggested('_B');
-      // TODO (danrubel) should suggest exported elements from imported lib
-      //assertSuggestFunction('cos', 'num', false);
-      assertNotSuggested('cos');
-      assertNotSuggested('sin');
+      assertSuggestFunction('min', 'num', false);
+      assertSuggestFunction('max', 'num', false, CompletionRelevance.LOW);
       // Should not suggest compilation unit elements
       // which are returned by the LocalComputer
       assertNotSuggested('X');
@@ -100,7 +114,7 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
       class C {foo(){^}}''');
     // pass true for full analysis to pick up unimported source
     return computeFull(true).then((_) {
-      assertSuggestTopLevelVar('T1', 'String');
+      assertSuggestTopLevelVarGetterSetter('T1', 'String');
       assertNotSuggested('_T2');
       assertSuggestTopLevelVar('T3', 'int', CompletionRelevance.LOW);
       assertNotSuggested('_T4');
