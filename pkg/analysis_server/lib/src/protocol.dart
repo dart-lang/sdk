@@ -882,6 +882,25 @@ abstract class RequestHandler {
 }
 
 /**
+ * Instances of the class [DomainHandler] implement a [RequestHandler] and
+ * also startup and shutdown methods.
+ */
+abstract class DomainHandler extends RequestHandler {
+  /**
+   * Perform any operations associated with the startup of the domain. This
+   * will be called before the first [Request].
+   */
+  void startup() { }
+
+  /**
+   * Perform any operations associated with the shutdown of the domain. It is
+   * not guaranteed that this method will be called. If it is, it will be
+   * called after the last [Request] has been made.
+   */
+  void shutdown() { }
+}
+
+/**
  * Instances of the class [Response] represent a response to a request.
  */
 class Response {
