@@ -1447,6 +1447,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         //          DartEntry dartEntry = (DartEntry) sourceEntry;
         //          if (dartEntry.getValue(DartEntry.IS_LAUNCHABLE) && dartEntry.getValue(DartEntry.IS_CLIENT)) {
         sources.add(source);
+        //          }
       }
     }
     return new List.from(sources);
@@ -1465,6 +1466,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         //          DartEntry dartEntry = (DartEntry) sourceEntry;
         //          if (dartEntry.getValue(DartEntry.IS_LAUNCHABLE) && !dartEntry.getValue(DartEntry.IS_CLIENT)) {
         sources.add(source);
+        //          }
       }
     }
     return new List.from(sources);
@@ -1668,6 +1670,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           statistics.putCacheItem(dartEntry, DartEntry.INCLUDED_PARTS);
           statistics.putCacheItem(dartEntry, DartEntry.IS_CLIENT);
           statistics.putCacheItem(dartEntry, DartEntry.IS_LAUNCHABLE);
+          // The public namespace isn't computed by performAnalysisTask() and therefore isn't
+          // interesting.
+          //statistics.putCacheItem(dartEntry, DartEntry.PUBLIC_NAMESPACE);
         }
         // get library-specific values
         List<Source> librarySources = getLibrariesContaining(source);
@@ -1688,6 +1693,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         statistics.putCacheItem(htmlEntry, HtmlEntry.PARSED_UNIT);
         statistics.putCacheItem(htmlEntry, HtmlEntry.RESOLUTION_ERRORS);
         statistics.putCacheItem(htmlEntry, HtmlEntry.RESOLVED_UNIT);
+        // We are not currently recording any hints related to HTML.
+        // statistics.putCacheItem(htmlEntry, HtmlEntry.HINTS);
       }
     }
     statistics.partitionData = _cache.partitionData;
@@ -1747,6 +1754,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // TODO(brianwilkerson) Decide whether we really need to copy the info.
         _cache.put(newSource, iterator.value.writableCopy);
       } else {
+        // TODO(brianwilkerson) Decide whether/how to merge the entries.
       }
     }
   }
@@ -1918,6 +1926,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _priorityOrder = Source.EMPTY_ARRAY;
     } else {
       while (sources.remove(null)) {
+        // Nothing else to do.
       }
       if (sources.isEmpty) {
         _priorityOrder = Source.EMPTY_ARRAY;
@@ -12011,6 +12020,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
       return ret;
     } finally {
       instrumentation.log2(2);
+      //Log if 1ms
     }
   }
 
@@ -12142,6 +12152,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
       return _basis.getResolvedCompilationUnit2(unitSource, librarySource);
     } finally {
       instrumentation.log2(2);
+      //Log if over 1ms
     }
   }
 
@@ -12154,6 +12165,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
       return _basis.getResolvedHtmlUnit(htmlSource);
     } finally {
       instrumentation.log2(2);
+      //Log if over 1ms
     }
   }
 
@@ -12165,6 +12177,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
       return _basis.sourceFactory;
     } finally {
       instrumentation.log2(2);
+      //Log if over 1ms
     }
   }
 
@@ -12268,6 +12281,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
       return result;
     } finally {
       instrumentation.log2(15);
+      //Log if >= 15ms
     }
   }
 
@@ -13734,6 +13748,8 @@ class PolymerHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
    * Resolves Polymer specific features.
    */
   void resolveUnit() {
+    // TODO(scheglov) implement it
+    //    unit.accept(this);
   }
 
   @override
@@ -13933,6 +13949,7 @@ class RecursiveXmlVisitor_ParseHtmlTask_getLibrarySources extends ht.RecursiveXm
           libraries.add(librarySource);
         }
       } on URISyntaxException catch (e) {
+        // ignored - invalid URI reported during resolution phase
       }
     }
     return super.visitHtmlScriptTagNode(node);
@@ -15424,6 +15441,7 @@ class WaitForAsyncTask extends AnalysisTask {
 
   @override
   void internalPerform() {
+    // There is no work to be done.
   }
 }
 

@@ -235,6 +235,7 @@ abstract class AnalysisErrorListener {
 class AnalysisErrorListener_NULL_LISTENER implements AnalysisErrorListener {
   @override
   void onError(AnalysisError event) {
+    // Ignore errors
   }
 }
 

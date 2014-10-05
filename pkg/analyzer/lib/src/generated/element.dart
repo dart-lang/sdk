@@ -3483,6 +3483,7 @@ abstract class ElementImpl implements Element {
 
   @override
   void visitChildren(ElementVisitor visitor) {
+    // There are no children to visit
   }
 
   /**
@@ -4401,6 +4402,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     // Elements within this element should have type parameters substituted, just like this element.
     //
     throw new UnsupportedOperationException();
+    //    return getBaseElement().getFunctions();
   }
 
   @override
@@ -4412,6 +4414,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     // Elements within this element should have type parameters substituted, just like this element.
     //
     throw new UnsupportedOperationException();
+    //    return getBaseElement().getLocalVariables();
   }
 
   @override
@@ -8420,6 +8423,7 @@ abstract class Member implements Element {
 
   @override
   void visitChildren(ElementVisitor visitor) {
+    // There are no children to visit
   }
 
   /**
@@ -9022,6 +9026,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   void visitChildren(ElementVisitor visitor) {
+    // There are no children to visit
   }
 }
 
@@ -11596,6 +11601,7 @@ abstract class VariableMember extends Member implements VariableElement {
     // Elements within this element should have type parameters substituted, just like this element.
     //
     throw new UnsupportedOperationException();
+    //    return getBaseElement().getInitializer();
   }
 
   @override

@@ -417,6 +417,7 @@
 //       _context.computeResolvableCompilationUnit(source);
 //       JUnitTestCase.fail("Expected AnalysisException");
 //     } on AnalysisException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_computeResolvableCompilationUnit_html_exception() {
@@ -425,6 +426,7 @@
 //       _context.computeResolvableCompilationUnit(source);
 //       JUnitTestCase.fail("Expected AnalysisException");
 //     } on AnalysisException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_computeResolvableCompilationUnit_valid() {
@@ -827,6 +829,10 @@
 //   void test_getStatistics() {
 //     AnalysisContextStatistics statistics = _context.statistics;
 //     JUnitTestCase.assertNotNull(statistics);
+//     // The following lines are fragile. The values depend on the number of libraries in the SDK.
+//     //    assertLength(0, statistics.getCacheRows());
+//     //    assertLength(0, statistics.getExceptions());
+//     //    assertLength(0, statistics.getSources());
 //   }
 //   void test_isClientLibrary_dart() {
 //     _context = AnalysisContextFactory.contextWithCore();
@@ -870,6 +876,7 @@
 //       _context.parseCompilationUnit(source);
 //       JUnitTestCase.fail("Expected AnalysisException");
 //     } on AnalysisException catch (exception) {
+//       // Expected.
 //     }
 //   }
 //   void test_parseCompilationUnit_html() {
@@ -888,6 +895,7 @@
 //       _context.parseCompilationUnit(source);
 //       JUnitTestCase.fail("Expected AnalysisException because file does not exist");
 //     } on AnalysisException catch (exception) {
+//       // Expected result
 //     }
 //   }
 //   void test_parseHtmlUnit_noErrors() {
@@ -1075,6 +1083,7 @@
 //     source.generateExceptionOnRead = true;
 //     do {
 //       _changeSource(source, "");
+//       // Ensure that the timestamp differs so that analysis engine notices the change
 //     } while (oldTimestamp == _context.getModificationStamp(source));
 //     _analyzeAll_assertFinished();
 //     JUnitTestCase.assertEquals(2, source.readCount);
@@ -1093,6 +1102,7 @@
 //     _context.parseCompilationUnit(source);
 //     while (initialTime == JavaSystem.currentTimeMillis()) {
 //       Thread.sleep(1);
+//       // Force the modification time to be different.
 //     }
 //     _context.setContents(source, "library test;");
 //     JUnitTestCase.assertTrue(initialTime != _context.getModificationStamp(source));
@@ -2193,6 +2203,7 @@
 //       entry.getState(DartEntry.RESOLUTION_ERRORS);
 //       JUnitTestCase.fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
 //     } on IllegalArgumentException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_getState_invalid_verificationErrors() {
@@ -2201,6 +2212,7 @@
 //       entry.getState(DartEntry.VERIFICATION_ERRORS);
 //       JUnitTestCase.fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
 //     } on IllegalArgumentException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_getStateInLibrary_invalid_element() {
@@ -2209,6 +2221,7 @@
 //       entry.getStateInLibrary(DartEntry.ELEMENT, new TestSource());
 //       JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
 //     } on IllegalArgumentException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_getValue_containingLibraries() {
@@ -2230,6 +2243,7 @@
 //       entry.getValue(DartEntry.RESOLUTION_ERRORS);
 //       JUnitTestCase.fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
 //     } on IllegalArgumentException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_getValue_invalid_verificationErrors() {
@@ -2238,6 +2252,7 @@
 //       entry.getValue(DartEntry.VERIFICATION_ERRORS);
 //       JUnitTestCase.fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
 //     } on IllegalArgumentException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_getValueInLibrary_invalid_element() {
@@ -2246,6 +2261,7 @@
 //       entry.getValueInLibrary(DartEntry.ELEMENT, new TestSource());
 //       JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
 //     } on IllegalArgumentException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_getValueInLibrary_invalid_resolutionErrors_multiple() {
@@ -2260,6 +2276,7 @@
 //       entry.getValueInLibrary(DartEntry.ELEMENT, source3);
 //       JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
 //     } on IllegalArgumentException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_getWritableCopy() {
@@ -2420,6 +2437,14 @@
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getState(DartEntry.SCAN_ERRORS));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getState(DartEntry.SOURCE_KIND));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getState(DartEntry.TOKEN_STREAM));
+//     // The following lines are commented out because we don't currently have any way of setting the
+//     // state for data associated with a library we don't know anything about.
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
 //   }
 //   void test_recordHintErrorInLibrary() {
 //     // TODO(brianwilkerson) This test should set the state for two libraries, record an error in one
@@ -2464,6 +2489,14 @@
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getState(DartEntry.SOURCE_KIND));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
+//     // The following lines are commented out because we don't currently have any way of setting the
+//     // state for data associated with a library we don't know anything about.
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
 //   }
 //   void test_recordParseInProcess() {
 //     DartEntryImpl entry = new DartEntryImpl();
@@ -2490,6 +2523,14 @@
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
+//     // The following lines are commented out because we don't currently have any way of setting the
+//     // state for data associated with a library we don't know anything about.
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
 //   }
 //   void test_recordResolutionErrorInLibrary() {
 //     // TODO(brianwilkerson) This test should set the state for two libraries, record an error in one
@@ -2534,6 +2575,14 @@
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getState(DartEntry.SCAN_ERRORS));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getState(DartEntry.SOURCE_KIND));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getState(DartEntry.TOKEN_STREAM));
+//     // The following lines are commented out because we don't currently have any way of setting the
+//     // state for data associated with a library we don't know anything about.
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+//     //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
 //   }
 //   void test_recordScanInProcess() {
 //     DartEntryImpl entry = new DartEntryImpl();
@@ -2643,6 +2692,7 @@
 //       entry.setStateInLibrary(DartEntry.ELEMENT, null, CacheState.FLUSHED);
 //       JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
 //     } on IllegalArgumentException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_setState_invalid_resolutionErrors() {
@@ -2651,6 +2701,7 @@
 //       entry.setState(DartEntry.RESOLUTION_ERRORS, CacheState.FLUSHED);
 //       JUnitTestCase.fail("Expected IllegalArgumentException for RESOLUTION_ERRORS");
 //     } on IllegalArgumentException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_setState_invalid_validState() {
@@ -2659,6 +2710,7 @@
 //       entry.setState(DartEntry.LINE_INFO, CacheState.VALID);
 //       JUnitTestCase.fail("Expected IllegalArgumentException for a state of VALID");
 //     } on IllegalArgumentException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_setState_invalid_verificationErrors() {
@@ -2667,6 +2719,7 @@
 //       entry.setState(DartEntry.VERIFICATION_ERRORS, CacheState.FLUSHED);
 //       JUnitTestCase.fail("Expected IllegalArgumentException for VERIFICATION_ERRORS");
 //     } on IllegalArgumentException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_setState_isClient() {
@@ -3427,6 +3480,7 @@
 //       entry.setValue(DartEntry.ELEMENT, null);
 //       JUnitTestCase.fail("Expected IllegalArgumentException for DartEntry.ELEMENT");
 //     } on IllegalArgumentException catch (exception) {
+//       // Expected
 //     }
 //   }
 //   void test_setValue_lineInfo() {
@@ -4004,6 +4058,7 @@
 //     SimpleIdentifier fooName = fooDecl.variables.variables[0].name;
 //     JUnitTestCase.assertEquals("foo", fooName.name);
 //     JUnitTestCase.assertNotNull(fooName.staticElement);
+//     // assert element reference is preserved
 //   }
 //   CompilationUnit _assertTask(String prefix, String removed, String added, String suffix) {
 //     String oldCode = EngineTestCase.createSource(["${prefix}${removed}${suffix}"]);

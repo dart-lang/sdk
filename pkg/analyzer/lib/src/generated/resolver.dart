@@ -1816,6 +1816,12 @@ class ConstantVisitor_ConstantVerifier_validateInitializerExpression extends Con
           } else if (type.isSubtypeOf(ConstantVerifier_this._stringType)) {
             return new DartObjectImpl(ConstantVerifier_this._typeProvider.stringType, StringState.UNKNOWN_VALUE);
           }
+          //
+          // We don't test for other types of objects (such as List, Map, Function or Type)
+          // because there are no operations allowed on such types other than '==' and '!=',
+          // which means that we don't need to know the type when there is no specific data
+          // about the state of such objects.
+          //
         }
         return new DartObjectImpl(type is InterfaceType ? type : ConstantVerifier_this._typeProvider.objectType, GenericState.UNKNOWN_VALUE);
       }
@@ -1934,6 +1940,24 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           }
         }
       }
+      // How do we want to handle the RHS? It isn't dead code, but "pointless" or "obscure"...
+      //      Expression rhsCondition = node.getRightOperand();
+      //      ValidResult rhsResult = getConstantBooleanValue(rhsCondition);
+      //      if (rhsResult != null) {
+      //        if (rhsResult == ValidResult.RESULT_TRUE && isBarBar) {
+      //          // report error on else block: !e! || true
+      //          errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
+      //          // only visit the RHS:
+      //          safelyVisit(rhsCondition);
+      //          return null;
+      //        } else if (rhsResult == ValidResult.RESULT_FALSE && isAmpAmp) {
+      //          // report error on if block: !e! && false
+      //          errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
+      //          // only visit the RHS:
+      //          safelyVisit(rhsCondition);
+      //          return null;
+      //        }
+      //      }
     }
     return super.visitBinaryExpression(node);
   }
@@ -2345,6 +2369,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
       ExecutableElement outerExecutable = _enclosingExecutable;
       try {
         if (element == null) {
+          // TODO(brianwilkerson) Report this internal error.
         } else {
           _enclosingExecutable = element.initializer;
         }
@@ -2607,6 +2632,7 @@ class DeclarationMatcher extends RecursiveAstVisitor<Object> {
       ExecutableElement outerExecutable = _enclosingExecutable;
       try {
         if (element == null) {
+          // TODO(brianwilkerson) Report this internal error.
         } else {
           _enclosingExecutable = element.initializer;
         }
@@ -2945,6 +2971,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       ExecutableElement outerExecutable = _enclosingExecutable;
       try {
         if (element == null) {
+          // TODO(brianwilkerson) Report this internal error.
         } else {
           _enclosingExecutable = element.initializer;
         }
@@ -3204,6 +3231,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       ExecutableElement outerExecutable = _enclosingExecutable;
       try {
         if (element == null) {
+          // TODO(brianwilkerson) Report this internal error.
         } else {
           _enclosingExecutable = element.initializer;
         }
@@ -4715,6 +4743,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // Each function must have the same number of params.
       if (ps_0.length != ps_i.length) {
         return null;
+        // TODO (collinsn): return an element representing [dynamic] here instead.
       } else {
         // Each function must have the same kind of params, with the same names,
         // in the same order.
@@ -4951,18 +4980,26 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
       }
       if (element == null) {
+        // TODO(brianwilkerson) Report this error?
+        //        resolver.reportError(
+        //            StaticWarningCode.UNDEFINED_IDENTIFIER,
+        //            simpleIdentifier,
+        //            simpleIdentifier.getName());
       } else {
         if (element.library == null || element.library != _definingLibrary) {
+          // TODO(brianwilkerson) Report this error?
         }
         simpleIdentifier.staticElement = element;
         if (node.newKeyword != null) {
           if (element is ClassElement) {
             ConstructorElement constructor = (element as ClassElement).unnamedConstructor;
             if (constructor == null) {
+              // TODO(brianwilkerson) Report this error.
             } else {
               simpleIdentifier.staticElement = constructor;
             }
           } else {
+            // TODO(brianwilkerson) Report this error.
           }
         }
       }
@@ -4972,6 +5009,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       SimpleIdentifier name = prefixedIdentifier.identifier;
       Element element = _resolveSimpleIdentifier(prefix);
       if (element == null) {
+        //        resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
       } else {
         if (element is PrefixElement) {
           prefix.staticElement = element;
@@ -4985,6 +5023,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           // TODO(brianwilkerson) We need to understand how the library could ever be null.
           AnalysisEngine.instance.logger.logError("Found element with null library: ${element.name}");
         } else if (library != _definingLibrary) {
+          // TODO(brianwilkerson) Report this error.
         }
         name.staticElement = element;
         if (node.newKeyword == null) {
@@ -4997,19 +5036,23 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               }
             }
             if (memberElement == null) {
+              //              reportGetterOrSetterNotFound(prefixedIdentifier, name, element.getDisplayName());
             } else {
               name.staticElement = memberElement;
             }
           } else {
+            // TODO(brianwilkerson) Report this error.
           }
         } else {
           if (element is ClassElement) {
             ConstructorElement constructor = (element as ClassElement).getNamedConstructor(name.name);
             if (constructor == null) {
+              // TODO(brianwilkerson) Report this error.
             } else {
               name.staticElement = constructor;
             }
           } else {
+            // TODO(brianwilkerson) Report this error.
           }
         }
       }
@@ -6257,9 +6300,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     LabelElementImpl labelElement = null;
     if (labelNode == null) {
       if (labelScope == null) {
+        // TODO(brianwilkerson) Do we need to report this error, or is this condition always caught in the parser?
+        // reportError(ResolverErrorCode.BREAK_OUTSIDE_LOOP);
       } else {
         labelElement = labelScope.lookup(LabelScope.EMPTY_LABEL) as LabelElementImpl;
         if (labelElement == null) {
+          // TODO(brianwilkerson) Do we need to report this error, or is this condition always caught in the parser?
+          // reportError(ResolverErrorCode.BREAK_OUTSIDE_LOOP);
         }
         //
         // The label element that was returned was a marker for look-up and isn't stored in the
@@ -9224,6 +9271,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           return false;
         }
       }
+      // no other switch member after this one
     } else {
       Statement statement = statements[statements.length - 1];
       // terminated with statement
@@ -10302,6 +10350,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     _errorReporter.reportTypeErrorForNode(StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, expression, [staticType, fieldType]);
     return true;
+    // TODO(brianwilkerson) Define a hint corresponding to these errors and report it if appropriate.
+    //    // test the propagated type of the expression
+    //    Type propagatedType = expression.getPropagatedType();
+    //    if (propagatedType != null && propagatedType.isAssignableTo(fieldType)) {
+    //      return false;
+    //    }
+    //    // report problem
+    //    if (isEnclosingConstructorConst) {
+    //      errorReporter.reportTypeErrorForNode(
+    //          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+    //          expression,
+    //          propagatedType == null ? staticType : propagatedType,
+    //          fieldType);
+    //    } else {
+    //      errorReporter.reportTypeErrorForNode(
+    //          StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+    //          expression,
+    //          propagatedType == null ? staticType : propagatedType,
+    //          fieldType);
+    //    }
+    //    return true;
   }
 
   /**
@@ -11355,8 +11424,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         PropertyAccessorElement propertyAccessorElement = missingOverridesArray[i] as PropertyAccessorElement;
         if (propertyAccessorElement.isGetter) {
           prefix = _GETTER_SPACE;
+          // "getter "
         } else {
           prefix = _SETTER_SPACE;
+          // "setter "
         }
       }
       if (enclosingElement != null) {
@@ -11844,6 +11915,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         expectedReturnType,
         _enclosingFunction.displayName]);
     return true;
+    // TODO(brianwilkerson) Define a hint corresponding to the warning and report it if appropriate.
+    //    Type propagatedReturnType = returnExpression.getPropagatedType();
+    //    boolean isPropagatedAssignable = propagatedReturnType.isAssignableTo(expectedReturnType);
+    //    if (isStaticAssignable || isPropagatedAssignable) {
+    //      return false;
+    //    }
+    //    errorReporter.reportTypeErrorForNode(
+    //        StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+    //        returnExpression,
+    //        staticReturnType,
+    //        expectedReturnType,
+    //        enclosingFunction.getDisplayName());
+    //    return true;
   }
 
   /**
@@ -12154,6 +12238,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     }
+    //    else {
+    //    // TODO(jwren) Report error, constructor initializer variable is a top level element
+    //    // (Either here or in ErrorVerifier#checkForAllFinalInitializedErrorCodes)
+    //    }
   }
 
   /**
@@ -13351,6 +13439,9 @@ class HintGenerator {
     unit.accept(new OverrideVerifier(_manager, errorReporter));
     // Find to-do comments
     new ToDoFinder(errorReporter).findIn(unit);
+    // pub analysis
+    // TODO(danrubel/jwren) Commented out until bugs in the pub verifier are fixed
+    //    unit.accept(new PubVerifier(context, errorReporter));
   }
 }
 
@@ -13902,6 +13993,7 @@ class ImportsVerifier extends RecursiveAstVisitor<Object> {
                   }
                   list.add(importDirective);
                 }
+                // TODO (jwren) Can the element ever not be a PrefixElement?
               }
             }
             //
@@ -15637,6 +15729,10 @@ class LibraryElementBuilder {
           if (partLibraryName == null) {
             _errorListener.onError(new AnalysisError.con2(librarySource, partUri.offset, partUri.length, CompileTimeErrorCode.PART_OF_NON_PART, [partUri.toSource()]));
           } else if (libraryNameNode == null) {
+            // TODO(brianwilkerson) Collect the names declared by the part. If they are all the same
+            // then we can use that name as the inferred name of the library and present it in a
+            // quick-fix.
+            // partLibraryNames.add(partLibraryName);
           } else if (libraryNameNode.name != partLibraryName) {
             _errorListener.onError(new AnalysisError.con2(librarySource, partUri.offset, partUri.length, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [libraryNameNode.name, partLibraryName]));
           }
@@ -15720,6 +15816,10 @@ class LibraryElementBuilder {
             if (partLibraryName == null) {
               _errorListener.onError(new AnalysisError.con2(librarySource, partUri.offset, partUri.length, CompileTimeErrorCode.PART_OF_NON_PART, [partUri.toSource()]));
             } else if (libraryNameNode == null) {
+              // TODO(brianwilkerson) Collect the names declared by the part. If they are all the same
+              // then we can use that name as the inferred name of the library and present it in a
+              // quick-fix.
+              // partLibraryNames.add(partLibraryName);
             } else if (libraryNameNode.name != partLibraryName) {
               _errorListener.onError(new AnalysisError.con2(librarySource, partUri.offset, partUri.length, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [libraryNameNode.name, partLibraryName]));
             }
@@ -16268,6 +16368,7 @@ class LibraryResolver {
       return targetLibrary.libraryElement;
     } finally {
       instrumentation.log2(15);
+      //Log if >= than 15ms
     }
   }
 
@@ -19717,6 +19818,8 @@ class ResolverVisitor extends ScopedVisitor {
     } finally {
       _overrideManager.exitScope();
     }
+    // TODO(brianwilkerson) If the loop can only be exited because the condition is false, then
+    // propagateFalseState(condition);
   }
 
   /**
@@ -20028,6 +20131,7 @@ class ResolverVisitor extends ScopedVisitor {
    * @param expression the expression that will have been evaluated
    */
   void _propagateState(Expression expression) {
+    // TODO(brianwilkerson) Implement this.
   }
 
   /**
@@ -22061,6 +22165,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       Expression realTarget = node.realTarget;
       staticType = _getTypeOfProperty(staticElement, realTarget != null ? _getStaticType(realTarget) : null);
     } else {
+      // TODO(brianwilkerson) Report this internal error.
     }
     _recordStaticType(propertyName, staticType);
     _recordStaticType(node, staticType);
@@ -22072,6 +22177,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       Expression realTarget = node.realTarget;
       propagatedType = _getTypeOfProperty(propagatedElement, realTarget != null ? realTarget.bestType : null);
     } else {
+      // TODO(brianwilkerson) Report this internal error.
     }
     if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
       _recordPropagatedType(propertyName, propagatedType);
@@ -22575,6 +22681,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
             return interfaceTypeContext.typeArguments[i];
           }
         }
+        // TODO(jwren) troubleshoot why call to substitute doesn't work
+        //        Type[] parameterTypes = TypeParameterTypeImpl.getTypes(parameterElements);
+        //        return returnType.substitute(argumentTypes, parameterTypes);
       }
     }
     return returnType;
@@ -23789,6 +23898,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       if (element is VariableElementImpl) {
         element.type = exceptionType;
       } else {
+        // TODO(brianwilkerson) Report the internal error
       }
     }
     SimpleIdentifier stackTrace = node.stackTraceParameter;
@@ -23914,6 +24024,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         _setFunctionTypedParameterType(parameter, node.type, node.parameters);
       }
     } else {
+      // TODO(brianwilkerson) Report this internal error
     }
     return null;
   }
@@ -23959,6 +24070,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (element is ParameterElementImpl) {
       _setFunctionTypedParameterType(element, node.returnType, node.parameters);
     } else {
+      // TODO(brianwilkerson) Report this internal error
     }
     return null;
   }
@@ -24019,6 +24131,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (element is ParameterElement) {
       (element as ParameterElementImpl).type = declaredType;
     } else {
+      // TODO(brianwilkerson) Report the internal error.
     }
     return null;
   }
@@ -24043,6 +24156,8 @@ class TypeResolverVisitor extends ScopedVisitor {
       if (typeName.name == _dynamicType.name) {
         _setElement(typeName, _dynamicType.element);
         if (argumentList != null) {
+          // TODO(brianwilkerson) Report this error
+          // reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, dynamicType.getName(), 0, argumentList.getArguments().size());
         }
         typeName.staticType = _dynamicType;
         node.type = _dynamicType;
@@ -24052,6 +24167,8 @@ class TypeResolverVisitor extends ScopedVisitor {
       if (typeName.name == voidType.name) {
         // There is no element for 'void'.
         if (argumentList != null) {
+          // TODO(brianwilkerson) Report this error
+          // reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, voidType.getName(), 0, argumentList.getArguments().size());
         }
         typeName.staticType = voidType;
         node.type = voidType;
@@ -24161,6 +24278,9 @@ class TypeResolverVisitor extends ScopedVisitor {
       _setElement(typeName, element);
       type = (element as TypeParameterElement).type;
       if (argumentList != null) {
+        // Type parameters cannot have type arguments.
+        // TODO(brianwilkerson) Report this error.
+        //      resolver.reportError(ResolverErrorCode.?, keyType);
       }
     } else if (element is MultiplyDefinedElement) {
       List<Element> elements = (element as MultiplyDefinedElement).conflictingElements;
@@ -24188,6 +24308,7 @@ class TypeResolverVisitor extends ScopedVisitor {
           parent = parent.parent;
         }
         if (parent is ExtendsClause || parent is ImplementsClause || parent is WithClause || parent is ClassTypeAlias) {
+          // Ignored. The error will be reported elsewhere.
         } else {
           reportErrorForNode(StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
         }
@@ -24225,6 +24346,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         FunctionTypeImpl functionType = type as FunctionTypeImpl;
         type = functionType.substitute3(typeArguments);
       } else {
+        // TODO(brianwilkerson) Report this internal error.
       }
     } else {
       //
@@ -24297,6 +24419,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         }
       }
     } else {
+      // TODO(brianwilkerson) Report the internal error.
     }
     return null;
   }

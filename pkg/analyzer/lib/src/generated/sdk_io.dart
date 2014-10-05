@@ -418,6 +418,7 @@ class DirectoryBasedDartSdk implements DartSdk {
           _sdkVersion = revision.trim();
         }
       } on JavaIOException catch (exception) {
+        // Fall through to return the default.
       }
     }
     return _sdkVersion;

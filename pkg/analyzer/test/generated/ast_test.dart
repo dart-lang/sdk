@@ -86,6 +86,7 @@ class BreadthFirstVisitorTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionDeclaration, FunctionDeclaration, nodes[3]);
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionDeclarationStatement, FunctionDeclarationStatement, nodes[27]);
     EngineTestCase.assertInstanceOf((obj) => obj is IntegerLiteral, IntegerLiteral, nodes[58]);
+    //3
   }
 
   static dartSuite() {
@@ -874,6 +875,7 @@ class NodeListTest extends EngineTestCase {
       list.insert(-1, AstFactory.booleanLiteral(true));
       JUnitTestCase.fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
+      // Expected
     }
   }
 
@@ -883,6 +885,7 @@ class NodeListTest extends EngineTestCase {
       list.insert(1, AstFactory.booleanLiteral(true));
       JUnitTestCase.fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
+      // Expected
     }
   }
 
@@ -939,6 +942,7 @@ class NodeListTest extends EngineTestCase {
       list[-1];
       JUnitTestCase.fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
+      // Expected
     }
   }
 
@@ -948,6 +952,7 @@ class NodeListTest extends EngineTestCase {
       list[1];
       JUnitTestCase.fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
+      // Expected
     }
   }
 
@@ -1017,6 +1022,7 @@ class NodeListTest extends EngineTestCase {
       list.removeAt(-1);
       JUnitTestCase.fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
+      // Expected
     }
   }
 
@@ -1026,6 +1032,7 @@ class NodeListTest extends EngineTestCase {
       list.removeAt(1);
       JUnitTestCase.fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
+      // Expected
     }
   }
 
@@ -1055,6 +1062,7 @@ class NodeListTest extends EngineTestCase {
       javaListSet(list, -1, node);
       JUnitTestCase.fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
+      // Expected
     }
   }
 
@@ -1065,6 +1073,7 @@ class NodeListTest extends EngineTestCase {
       javaListSet(list, 1, node);
       JUnitTestCase.fail("Expected IndexOutOfBoundsException");
     } on RangeError catch (exception) {
+      // Expected
     }
   }
 

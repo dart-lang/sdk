@@ -481,6 +481,7 @@ class IncrementalScannerTest extends EngineTestCase {
     }
     JUnitTestCase.assertSameMsg("Too many tokens", TokenType.EOF, incrementalToken.type);
     JUnitTestCase.assertSameMsg("Not enough tokens", TokenType.EOF, modifiedTokens.type);
+    // TODO(brianwilkerson) Verify that the errors are correct?
   }
 
   static dartSuite() {

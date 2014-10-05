@@ -431,6 +431,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       return _parser.parseStringLiteral();
     } else if (node.combinators.contains(_oldNode)) {
       throw new IncrementalParseException();
+      //return parser.parseCombinator();
     }
     return _notAChild(node);
   }
@@ -491,6 +492,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   AstNode visitForEachStatement(ForEachStatement node) {
     if (identical(_oldNode, node.loopVariable)) {
       throw new InsufficientContextException();
+      //return parser.parseDeclaredIdentifier();
     } else if (identical(_oldNode, node.identifier)) {
       return _parser.parseSimpleIdentifier();
     } else if (identical(_oldNode, node.body)) {
@@ -639,6 +641,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       return _parser.parseSimpleIdentifier();
     } else if (node.combinators.contains(_oldNode)) {
       throw new IncrementalParseException();
+      //return parser.parseCombinator();
     }
     return _notAChild(node);
   }
@@ -671,6 +674,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     if (identical(_oldNode, node.expression)) {
       if (node.leftBracket == null) {
         throw new InsufficientContextException();
+        //return parser.parseThisOrSimpleIdentifier();
       }
       return _parser.parseExpression2();
     }
@@ -768,6 +772,8 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.returnType)) {
       throw new InsufficientContextException();
+      //return parser.parseTypeName();
+      //return parser.parseReturnType();
     } else if (identical(_oldNode, node.name)) {
       if (node.operatorKeyword != null) {
         throw new InsufficientContextException();
@@ -1565,6 +1571,7 @@ class Parser {
       return parseCompilationUnit2();
     } finally {
       instrumentation.log2(2);
+      //Record if >= 2ms
     }
   }
 
@@ -1583,6 +1590,7 @@ class Parser {
       return _parseDirectives();
     } finally {
       instrumentation.log2(2);
+      //Record if >= 2ms
     }
   }
 
@@ -1600,6 +1608,7 @@ class Parser {
       return parseExpression2();
     } finally {
       instrumentation.log2(2);
+      //Record if >= 2ms
     }
   }
 
@@ -1617,6 +1626,7 @@ class Parser {
       return parseStatement2();
     } finally {
       instrumentation.log2(2);
+      //Record if >= 2ms
     }
   }
 
@@ -1634,6 +1644,7 @@ class Parser {
       return _parseStatementList();
     } finally {
       instrumentation.log2(2);
+      //Record if >= 2ms
     }
   }
 
@@ -3906,6 +3917,7 @@ class Parser {
         } else {
           _reportErrorForToken(ParserErrorCode.MULTIPLE_WITH_CLAUSES, withClause.withKeyword, []);
           parseWithClause();
+          // TODO(brianwilkerson) Should we merge the list of applied mixins into a single list?
         }
       } else if (_matchesKeyword(Keyword.IMPLEMENTS)) {
         if (implementsClause == null) {
@@ -3913,6 +3925,7 @@ class Parser {
         } else {
           _reportErrorForToken(ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, implementsClause.keyword, []);
           parseImplementsClause();
+          // TODO(brianwilkerson) Should we merge the list of implemented classes into a single list?
         }
       } else {
         foundClause = false;
@@ -4141,6 +4154,7 @@ class Parser {
         return null;
       }
     } catch (exception) {
+      // Ignored because we assume that it wasn't a real comment reference.
     }
     return null;
   }
@@ -4175,6 +4189,7 @@ class Parser {
             int firstChar = comment.codeUnitAt(leftIndex + 1);
             if (firstChar != 0x27 && firstChar != 0x22) {
               if (_isLinkText(comment, rightIndex)) {
+                // TODO(brianwilkerson) Handle the case where there's a library URI in the link text.
               } else {
                 CommentReference reference = _parseCommentReference(comment.substring(leftIndex + 1, rightIndex), nameOffset);
                 if (reference != null) {
@@ -4881,6 +4896,8 @@ class Parser {
               loopVariable = new DeclaredIdentifier(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, type, variable.name);
             } else {
               if (!commentAndMetadata.metadata.isEmpty) {
+                // TODO(jwren) metadata isn't allowed before the identifier in "identifier in expression",
+                // add warning if commentAndMetadata has content
               }
               identifier = variable.name;
             }
@@ -5999,6 +6016,7 @@ class Parser {
       try {
         value = double.parse(token.lexeme);
       } on FormatException catch (exception) {
+        // The invalid format should have been reported by the scanner.
       }
       return new DoubleLiteral(token, value);
     } else if (_matches(TokenType.HEXADECIMAL)) {
@@ -6007,6 +6025,7 @@ class Parser {
       try {
         value = int.parse(token.lexeme.substring(2), radix: 16);
       } on FormatException catch (exception) {
+        // The invalid format should have been reported by the scanner.
       }
       return new IntegerLiteral(token, value);
     } else if (_matches(TokenType.INT)) {
@@ -6015,6 +6034,7 @@ class Parser {
       try {
         value = int.parse(token.lexeme);
       } on FormatException catch (exception) {
+        // The invalid format should have been reported by the scanner.
       }
       return new IntegerLiteral(token, value);
     } else if (_matches(TokenType.STRING)) {
@@ -7369,16 +7389,22 @@ class Parser {
     currentChar = lexeme.codeUnitAt(currentIndex);
     if (currentChar == 0x6E) {
       builder.appendChar(0xA);
+      // newline
     } else if (currentChar == 0x72) {
       builder.appendChar(0xD);
+      // carriage return
     } else if (currentChar == 0x66) {
       builder.appendChar(0xC);
+      // form feed
     } else if (currentChar == 0x62) {
       builder.appendChar(0x8);
+      // backspace
     } else if (currentChar == 0x74) {
       builder.appendChar(0x9);
+      // tab
     } else if (currentChar == 0x76) {
       builder.appendChar(0xB);
+      // vertical tab
     } else if (currentChar == 0x78) {
       if (currentIndex + 2 >= length) {
         // Illegal escape sequence: not enough hex digits

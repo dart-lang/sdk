@@ -611,6 +611,10 @@ class ConstantValueComputer {
         // this is what the VM does.
         value = builtInDefaultValue;
       } else {
+        // The code didn't supply an explicit default.  The name doesn't exist in the environment.
+        // The VM would use the built-in default value, but we don't want to do that for analysis
+        // because it's likely to lead to cascading errors.  So just leave [value] in the unknown
+        // state.
       }
     }
     return value;
@@ -813,6 +817,7 @@ class ConstantValueComputer {
    * @param constant the constant that is not a valid compile-time constant
    */
   void _generateCycleError(List<AstNode> constantsInCycle, AstNode constant) {
+    // TODO(brianwilkerson) Implement this.
   }
 
   ConstructorElement _getConstructorBase(ConstructorElement constructor) {

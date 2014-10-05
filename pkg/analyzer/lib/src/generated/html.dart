@@ -192,6 +192,7 @@ abstract class AbstractScanner {
             _emitWithOffsetAndLength(TokenType.COMMENT, start, -1);
             // Capture <!--> and <!---> as tokens but report an error
             if (_tail.length < 7) {
+              // TODO (danrubel): Report invalid HTML comment
             }
           } else {
             // handle a declaration
@@ -204,6 +205,7 @@ abstract class AbstractScanner {
             }
             _emitWithOffsetAndLength(TokenType.DECLARATION, start, -1);
             if (!StringUtilities.endsWithChar(_tail.lexeme, 0x3E)) {
+              // TODO (danrubel): Report missing '>' in directive
             }
           }
         } else if (c == 0x3F) {
@@ -221,6 +223,7 @@ abstract class AbstractScanner {
           }
           _emitWithOffsetAndLength(TokenType.DIRECTIVE, start, -1);
           if (_tail.length < 4) {
+            // TODO (danrubel): Report invalid directive
           }
         } else if (c == 0x2F) {
           _emitWithOffset(TokenType.LT_SLASH, start);
@@ -1279,6 +1282,7 @@ class XmlAttributeNode extends XmlNode {
 
   @override
   void visitChildren(XmlVisitor visitor) {
+    // no children to visit
   }
 }
 
@@ -1803,6 +1807,7 @@ class XmlParser {
    * Report the current token as unexpected
    */
   void _reportUnexpectedToken() {
+    // TODO (danrubel): report unexpected token
   }
 }
 

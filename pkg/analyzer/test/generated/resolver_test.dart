@@ -616,6 +616,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD]);
+    // Cannot verify because "_name" cannot be resolved.
   }
 
   void test_ambiguousExport() {
@@ -1036,12 +1037,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource("const C = ~null;");
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    // no verify(), '~null' is not resolved
   }
 
   void test_constEvalThrowsException_unaryNegated_null() {
     Source source = addSource("const C = -null;");
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    // no verify(), '-null' is not resolved
   }
 
   void test_constEvalThrowsException_unaryNot_null() {
@@ -1375,6 +1378,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR]);
+    // no verify(), 'noSuchConstructor' is not resolved
   }
 
   void test_constWithUndefinedConstructorDefault() {
@@ -2599,12 +2603,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  B() : super();", "}", "class B {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME]);
+    // no verify() call, "B" is not resolved
   }
 
   void test_invalidConstructorName_notEnclosingClassName_undefined() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  B() : super();", "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME]);
+    // no verify() call, "B" is not resolved
   }
 
   void test_invalidFactoryNameNotAClass_notClassName() {
@@ -2618,6 +2624,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  factory B() {}", "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS]);
+    // no verify() call, "B" is not resolved
   }
 
   void test_invalidModifierOnConstructor_async() {
@@ -2809,6 +2816,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE]);
+    // We cannot verify resolution with unresolvable labels
   }
 
   void test_labelUndefined_break() {
@@ -2820,6 +2828,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.LABEL_UNDEFINED]);
+    // We cannot verify resolution with undefined labels
   }
 
   void test_labelUndefined_continue() {
@@ -2831,6 +2840,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.LABEL_UNDEFINED]);
+    // We cannot verify resolution with undefined labels
   }
 
   void test_memberWithClassName_field() {
@@ -2855,6 +2865,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   void test_memberWithClassName_method() {
+    // no test because indistinguishable from constructor
   }
 
   void test_methodAndGetterWithSameName() {
@@ -4092,6 +4103,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["var v = super + 0;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    // no verify(), 'super.v' is not resolved
   }
 
   void test_superInInvalidContext_constructorFieldInitializer() {
@@ -4105,6 +4117,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    // no verify(), 'super.m' is not resolved
   }
 
   void test_superInInvalidContext_factoryConstructor() {
@@ -4119,6 +4132,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    // no verify(), 'super.m' is not resolved
   }
 
   void test_superInInvalidContext_instanceVariableInitializer() {
@@ -4131,6 +4145,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    // no verify(), 'super.a' is not resolved
   }
 
   void test_superInInvalidContext_staticMethod() {
@@ -4143,6 +4158,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    // no verify(), 'super.m' is not resolved
   }
 
   void test_superInInvalidContext_staticVariableInitializer() {
@@ -4155,18 +4171,21 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    // no verify(), 'super.a' is not resolved
   }
 
   void test_superInInvalidContext_topLevelFunction() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  super.f();", "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    // no verify(), 'super.f' is not resolved
   }
 
   void test_superInInvalidContext_topLevelVariableInitializer() {
     Source source = addSource(EngineTestCase.createSource(["var v = super.y;"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    // no verify(), 'super.y' is not resolved
   }
 
   void test_superInRedirectingConstructor_redirectionSuper() {
@@ -4317,6 +4336,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
+    // no verify(), "super.named()" is not resolved
   }
 
   void test_undefinedConstructorInInitializer_explicit_unnamed() {
@@ -4355,6 +4375,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER]);
+    // no verify(), 'p' is not resolved
   }
 
   void test_uriDoesNotExist_export() {
@@ -4381,12 +4402,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, [
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
         StaticWarningCode.UNDEFINED_IDENTIFIER]);
+    // We cannot verify resolution with an unresolvable URI: 'stuff_$platform.dart'
   }
 
   void test_uriWithInterpolation_nonConstant() {
     Source source = addSource(EngineTestCase.createSource(["library lib;", "part '\${'a'}.dart';"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.URI_WITH_INTERPOLATION]);
+    // We cannot verify resolution with an unresolvable URI: '${'a'}.dart'
   }
 
   void test_wrongNumberOfParametersForOperator_minus() {
@@ -4484,6 +4507,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       verify([source]);
     } else {
       assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+      // no verify(), 'null x' is not resolved
     }
     reset();
   }
@@ -13383,6 +13407,7 @@ class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["import 'dart-ext:x';", "int m(a) native 'string';"]));
     resolve(source);
     assertNoErrors(source);
+    // Cannot verify the AST because the import's URI cannot be resolved.
   }
 
   void test_newWithAbstractClass_factory() {
@@ -13780,6 +13805,7 @@ class NonErrorResolverTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertNoErrors(source);
+    // operations on "p" are not resolved
   }
 
   void test_nonConstValueInInitializer_binary_int() {
@@ -14195,6 +14221,8 @@ class NonErrorResolverTest extends ResolverTestCase {
         "class B implements A{}",
         "class A implements B{}"]));
     resolve(source);
+    // Test is that a stack overflow isn't reached in resolution (previous line), no need to assert
+    // error set.
   }
 
   void test_recursiveConstructorRedirect() {
@@ -15046,12 +15074,14 @@ class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["main() {", "  (() => null).call();", "}"]));
     resolve(source);
     assertNoErrors(source);
+    // A call to verify(source) fails as '.call()' isn't resolved.
   }
 
   void test_undefinedMethod_functionExpression_directCall() {
     Source source = addSource(EngineTestCase.createSource(["main() {", "  (() => null)();", "}"]));
     resolve(source);
     assertNoErrors(source);
+    // A call to verify(source) fails as '(() => null)()' isn't resolved.
   }
 
   void test_undefinedOperator_index() {
@@ -18014,6 +18044,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     // TODO(brianwilkerson) If we start resolving function expressions, then conditionally check to
     // see whether the node was resolved correctly.
     return null;
+    //checkResolved(node, node.getElement(), FunctionElement.class);
   }
 
   @override
@@ -18298,6 +18329,7 @@ class ResolverTestCase extends EngineTestCase {
       }
     }
     return null;
+    // Not found
   }
 
   AnalysisContext get analysisContext => analysisContext2;
@@ -18511,6 +18543,7 @@ class ScopeBuilderTest extends EngineTestCase {
       ScopeBuilder.scopeFor(AstFactory.identifier3("x"), listener);
       JUnitTestCase.fail("Expected AnalysisException");
     } on AnalysisException catch (exception) {
+      // Expected
     }
   }
 
@@ -18520,6 +18553,7 @@ class ScopeBuilderTest extends EngineTestCase {
       ScopeBuilder.scopeFor(null, listener);
       JUnitTestCase.fail("Expected AnalysisException");
     } on AnalysisException catch (exception) {
+      // Expected
     }
   }
 
@@ -18529,6 +18563,7 @@ class ScopeBuilderTest extends EngineTestCase {
       ScopeBuilder.scopeFor(AstFactory.compilationUnit(), listener);
       JUnitTestCase.fail("Expected AnalysisException");
     } on AnalysisException catch (exception) {
+      // Expected
     }
   }
 
@@ -20827,6 +20862,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
       EngineTestCase.assertInstanceOf((obj) => obj is InterfaceTypeImpl, InterfaceTypeImpl, actualType);
       _assertType(expectedType, actualType as InterfaceTypeImpl);
     }
+    // TODO(brianwilkerson) Compare other kinds of types then make this a shared utility method
   }
 
   /**
@@ -21719,6 +21755,7 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+    // A call to verify(source) fails as A.x() cannot be resolved.
   }
 
   void test_invocationOfNonFunction_staticInvocation() {
@@ -21731,6 +21768,7 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+    // A call to verify(source) fails as g() cannot be resolved.
   }
 
   void test_invocationOfNonFunction_superExpression() {
@@ -25100,6 +25138,7 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR]);
+    // no verify(), 'name' is not resolved
   }
 
   void test_newWithUndefinedConstructorDefault() {
@@ -25958,6 +25997,7 @@ class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["f({a, b}) {}", "main() {", "  f(c: 1);", "}"]));
     resolve(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_NAMED_PARAMETER]);
+    // no verify(), 'c' is not resolved
   }
 
   void test_undefinedSetter() {
@@ -27761,6 +27801,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
       manager.exitScope();
       JUnitTestCase.fail("Expected IllegalStateException");
     } on IllegalStateException catch (exception) {
+      // Expected
     }
   }
 
@@ -27772,6 +27813,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
       manager.exitScope();
       JUnitTestCase.fail("Expected IllegalStateException");
     } on IllegalStateException catch (exception) {
+      // Expected
     }
   }
 
@@ -27785,6 +27827,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
       manager.exitScope();
       JUnitTestCase.fail("Expected IllegalStateException");
     } on IllegalStateException catch (exception) {
+      // Expected
     }
   }
 

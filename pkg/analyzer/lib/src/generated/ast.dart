@@ -3021,6 +3021,7 @@ class BooleanLiteral extends Literal {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 }
 
@@ -4831,7 +4832,13 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
     if (element is FieldElement) {
       FieldElement field = element;
       if (field.isStatic && field.isConst) {
+        //field.getConstantValue();
       }
+      //    } else if (element instanceof VariableElement) {
+      //      VariableElement variable = (VariableElement) element;
+      //      if (variable.isStatic() && variable.isConst()) {
+      //        //variable.getConstantValue();
+      //      }
     }
     return NOT_A_CONSTANT;
   }
@@ -5930,6 +5937,7 @@ class DoubleLiteral extends Literal {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 }
 
@@ -6121,6 +6129,7 @@ class EmptyFunctionBody extends FunctionBody {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // Empty function bodies have no children.
   }
 }
 
@@ -6156,6 +6165,7 @@ class EmptyStatement extends Statement {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 }
 
@@ -10264,6 +10274,7 @@ class IntegerLiteral extends Literal {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 }
 
@@ -11858,6 +11869,7 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
     try {
       node.accept(this);
     } on NodeLocator_NodeFoundException catch (exception) {
+      // A node with the right source position was found.
     } catch (exception) {
       AnalysisEngine.instance.logger.logInformation2("Unable to locate element at offset (${_startOffset} - ${_endOffset})", exception);
       return null;
@@ -13227,6 +13239,7 @@ class NullLiteral extends Literal {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 }
 
@@ -14862,6 +14875,7 @@ class RethrowExpression extends Expression {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 }
 
@@ -15109,6 +15123,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<Object> {
     if (_position < 0) {
       // if source position is not set then all nodes are in range
       return true;
+      // not reached
     }
     return node.end < _position;
   }
@@ -15147,6 +15162,7 @@ class ScriptTag extends AstNode {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 }
 
@@ -15846,6 +15862,7 @@ class SimpleIdentifier extends Identifier {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 
   /**
@@ -16035,6 +16052,7 @@ class SimpleStringLiteral extends StringLiteral {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 
   @override
@@ -16293,6 +16311,7 @@ class SuperExpression extends Expression {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 }
 
@@ -16595,6 +16614,7 @@ class SymbolLiteral extends Literal {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 }
 
@@ -16633,6 +16653,7 @@ class ThisExpression extends Expression {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
   }
 }
 
