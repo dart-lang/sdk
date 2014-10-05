@@ -906,33 +906,6 @@ class AnalysisServer {
   }
 
   /**
-   * Return the [CompilationUnit] of the Dart file with the given [path].
-   * Return `null` if the file is not a part of any context.
-   */
-  CompilationUnit test_getResolvedCompilationUnit(String path) {
-    // prepare AnalysisContext
-    AnalysisContext context = getAnalysisContext(path);
-    if (context == null) {
-      return null;
-    }
-    // prepare sources
-    Source unitSource = getSource(path);
-    List<Source> librarySources = context.getLibrariesContaining(unitSource);
-    if (librarySources.isEmpty) {
-      return null;
-    }
-    // get a resolved unit
-    return context.getResolvedCompilationUnit2(unitSource, librarySources[0]);
-  }
-
-  /**
-   * Return `true` if all operations have been performed in this [AnalysisServer].
-   */
-  bool test_areOperationsFinished() {
-    return operationQueue.isEmpty;
-  }
-
-  /**
    * Schedules [performOperation] exection.
    */
   void _schedulePerformOperation() {
