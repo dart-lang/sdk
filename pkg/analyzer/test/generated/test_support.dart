@@ -957,9 +957,32 @@ class TestLogger implements Logger {
 class TestSource implements Source {
   String _name;
   String _contents;
+  int modificationStamp = 0;
+  bool exists2 = true;
+
+  /**
+   * A flag indicating whether an exception should be generated when an attempt
+   * is made to access the contents of this source.
+   */
+  bool generateExceptionOnRead = false;
+
+  /**
+   * The number of times that the contents of this source have been requested.
+   */
+  int readCount = 0;
+
   TestSource([this._name = '/test.dart', this._contents]);
+
   TimestampedData<String> get contents {
+    readCount++;
+    if (generateExceptionOnRead) {
+      throw new Exception("I/O Exception while getting the contents of " + _name);
+    }
     return new TimestampedData<String>(0, _contents);
+  }
+  void setContents(String value) {
+    modificationStamp = new DateTime.now().millisecondsSinceEpoch;
+    _contents = value;
   }
   String get encoding {
     throw new UnsupportedOperationException();
@@ -971,9 +994,6 @@ class TestSource implements Source {
   bool get isInSystemLibrary {
     return false;
   }
-  int get modificationStamp {
-    return 0;
-  }
   String get shortName {
     return _name;
   }
@@ -983,10 +1003,13 @@ class TestSource implements Source {
   UriKind get uriKind {
     throw new UnsupportedOperationException();
   }
-  bool operator ==(Object object) {
-    return object is TestSource;
+  bool operator ==(Object other) {
+    if (other is TestSource) {
+      return other._name == _name;
+    }
+    return false;
   }
-  bool exists() => true;
+  bool exists() => exists2;
   void getContentsToReceiver(Source_ContentReceiver receiver) {
     throw new UnsupportedOperationException();
   }

@@ -998,11 +998,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Initialize a newly created analysis context.
    */
-  AnalysisContextImpl() : super() {
+  AnalysisContextImpl() {
     _resultRecorder = new AnalysisContextImpl_AnalysisTaskResultRecorder(this);
     _privatePartition = new UniversalCachePartition(this, AnalysisOptionsImpl.DEFAULT_CACHE_SIZE, new AnalysisContextImpl_ContextRetentionPolicy(this));
     _cache = createCacheFromSourceFactory(null);
   }
+
+  IncrementalAnalysisCache get test_incrementalAnalysisCache {
+    return _incrementalAnalysisCache;
+  }
+
+  set test_incrementalAnalysisCache(IncrementalAnalysisCache value) {
+    _incrementalAnalysisCache = value;
+  }
+
+  List<Source> get test_priorityOrder => _priorityOrder;
 
   @override
   void addListener(AnalysisListener listener) {
@@ -1400,8 +1410,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     List<Source> htmlSources = new List<Source>();
     while (true) {
-      if (sourceKind == SourceKind.LIBRARY) {
-      } else if (sourceKind == SourceKind.PART) {
+      if (sourceKind == SourceKind.PART) {
         List<Source> librarySources = getLibrariesContaining(source);
         MapIterator<Source, SourceEntry> partIterator = _cache.iterator();
         while (partIterator.moveNext()) {
@@ -1410,6 +1419,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             List<Source> referencedLibraries = (sourceEntry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
             if (_containsAny(referencedLibraries, librarySources)) {
               htmlSources.add(partIterator.key);
+            }
+          }
+        }
+      } else {
+        MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+        while (iterator.moveNext()) {
+          SourceEntry sourceEntry = iterator.value;
+          if (sourceEntry.kind == SourceKind.HTML) {
+            List<Source> referencedLibraries = (sourceEntry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
+            if (_contains(referencedLibraries, source)) {
+              htmlSources.add(iterator.key);
             }
           }
         }
@@ -13204,11 +13224,11 @@ class ParseHtmlTask extends AnalysisTask {
    */
   List<Source> get librarySources {
     List<Source> libraries = new List<Source>();
-    _unit.accept(new RecursiveXmlVisitor_ParseHtmlTask_getLibrarySources(this, libraries));
+    _unit.accept(new ParseHtmlTask_getLibrarySources(this, libraries));
     if (libraries.isEmpty) {
       return Source.EMPTY_ARRAY;
     }
-    return new List.from(libraries);
+    return libraries;
   }
 
   /**
@@ -13925,12 +13945,12 @@ class RecursiveXmlVisitor_AngularHtmlUnitResolver_visitModelDirectives extends h
   }
 }
 
-class RecursiveXmlVisitor_ParseHtmlTask_getLibrarySources extends ht.RecursiveXmlVisitor<Object> {
-  final ParseHtmlTask ParseHtmlTask_this;
+class ParseHtmlTask_getLibrarySources extends ht.RecursiveXmlVisitor<Object> {
+  final ParseHtmlTask _task;
 
   List<Source> libraries;
 
-  RecursiveXmlVisitor_ParseHtmlTask_getLibrarySources(this.ParseHtmlTask_this, this.libraries) : super();
+  ParseHtmlTask_getLibrarySources(this._task, this.libraries) : super();
 
   @override
   Object visitHtmlScriptTagNode(ht.HtmlScriptTagNode node) {
@@ -13944,11 +13964,11 @@ class RecursiveXmlVisitor_ParseHtmlTask_getLibrarySources extends ht.RecursiveXm
       try {
         Uri uri = new Uri(path: scriptAttribute.text);
         String fileName = uri.path;
-        Source librarySource = ParseHtmlTask_this.context.sourceFactory.resolveUri(ParseHtmlTask_this.source, fileName);
-        if (ParseHtmlTask_this.context.exists(librarySource)) {
+        Source librarySource = _task.context.sourceFactory.resolveUri(_task.source, fileName);
+        if (_task.context.exists(librarySource)) {
           libraries.add(librarySource);
         }
-      } on URISyntaxException catch (e) {
+      } on FormatException catch (e) {
         // ignored - invalid URI reported during resolution phase
       }
     }
@@ -15571,7 +15591,7 @@ class WorkManager {
  * work manager in the order in which they are to be analyzed.
  */
 class WorkManager_WorkIterator {
-  final WorkManager WorkManager_this;
+  final WorkManager _manager;
 
   /**
    * The index of the work queue through which we are currently iterating.
@@ -15586,7 +15606,7 @@ class WorkManager_WorkIterator {
   /**
    * Initialize a newly created iterator to be ready to return the first element in the iteration.
    */
-  WorkManager_WorkIterator(this.WorkManager_this) {
+  WorkManager_WorkIterator(this._manager) {
     _advance();
   }
 
@@ -15595,7 +15615,7 @@ class WorkManager_WorkIterator {
    *
    * @return `true` if there is another [Source] available for processing
    */
-  bool get hasNext => _queueIndex < WorkManager_this._workQueues.length;
+  bool get hasNext => _queueIndex < _manager._workQueues.length;
 
   /**
    * Return the next [Source] available for processing and advance so that the returned
@@ -15607,7 +15627,7 @@ class WorkManager_WorkIterator {
     if (!hasNext) {
       throw new NoSuchElementException();
     }
-    Source source = WorkManager_this._workQueues[_queueIndex][_index];
+    Source source = _manager._workQueues[_queueIndex][_index];
     _advance();
     return source;
   }
@@ -15618,10 +15638,10 @@ class WorkManager_WorkIterator {
    */
   void _advance() {
     _index++;
-    if (_index >= WorkManager_this._workQueues[_queueIndex].length) {
+    if (_index >= _manager._workQueues[_queueIndex].length) {
       _index = 0;
       _queueIndex++;
-      while (_queueIndex < WorkManager_this._workQueues.length && WorkManager_this._workQueues[_queueIndex].isEmpty) {
+      while (_queueIndex < _manager._workQueues.length && _manager._workQueues[_queueIndex].isEmpty) {
         _queueIndex++;
       }
     }

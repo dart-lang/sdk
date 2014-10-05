@@ -51,7 +51,7 @@ class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   static AnalysisContextImpl contextWithCore() {
-    AnalysisContextFactory_AnalysisContextForTests context = new AnalysisContextFactory_AnalysisContextForTests();
+    AnalysisContextForTests context = new AnalysisContextForTests();
     return initContextWithCore(context);
   }
 
@@ -63,7 +63,7 @@ class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   static AnalysisContextImpl contextWithCoreAndOptions(AnalysisOptions options) {
-    AnalysisContextFactory_AnalysisContextForTests context = new AnalysisContextFactory_AnalysisContextForTests();
+    AnalysisContextForTests context = new AnalysisContextForTests();
     context._internalSetAnalysisOptions(options);
     return initContextWithCore(context);
   }
@@ -243,7 +243,7 @@ class AnalysisContextFactory {
  * Instances of the class `AnalysisContextForTests` implement an analysis context that has a
  * fake SDK that is much smaller and faster for testing purposes.
  */
-class AnalysisContextFactory_AnalysisContextForTests extends AnalysisContextImpl {
+class AnalysisContextForTests extends AnalysisContextImpl {
   @override
   bool exists(Source source) => super.exists(source) || sourceFactory.dartSdk.context.exists(source);
 
