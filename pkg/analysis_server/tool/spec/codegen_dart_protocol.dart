@@ -620,15 +620,22 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       String arg = 'this.${field.name}';
       if (isOptionalConstructorArg(className, field)) {
         optionalArgs.add(arg);
-        TypeDecl fieldType = field.type;
-        if (fieldType is TypeList) {
-          extraInitCode.add(() {
-            writeln('if (${field.name} == null) {');
-            indent(() {
-              writeln('${field.name} = <${dartType(fieldType.itemType)}>[];');
+        if (!field.optional) {
+          // Optional constructor arg, but non-optional field.  If no arg is
+          // given, the constructor should populate with the empty list.
+          TypeDecl fieldType = field.type;
+          if (fieldType is TypeList) {
+            extraInitCode.add(() {
+              writeln('if (${field.name} == null) {');
+              indent(() {
+                writeln('${field.name} = <${dartType(fieldType.itemType)}>[];');
+              });
+              writeln('}');
             });
-            writeln('}');
-          });
+          } else {
+            throw new Exception(
+                "Don't know how to create default field value.");
+          }
         }
       } else {
         args.add(arg);
@@ -681,13 +688,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         String fieldToJson = toJsonCode(field.type).asSnippet(field.name);
         String populateField = 'result[$fieldNameString] = $fieldToJson;';
         if (field.optional) {
-          String condition;
-          if (field.type is TypeList) {
-            condition = '${field.name}.isNotEmpty';
-          } else {
-            condition = '${field.name} != null';
-          }
-          writeln('if ($condition) {');
+          writeln('if (${field.name} != null) {');
           indent(() {
             writeln(populateField);
           });
@@ -1047,12 +1048,6 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             indent(() {
               writeln(
                   "throw jsonDecoder.missingKey(jsonPath, $fieldNameString);");
-            });
-            writeln('}');
-          } else if (fieldType is TypeList) {
-            writeln(' else {');
-            indent(() {
-              writeln('${field.name} = <${dartType(fieldType.itemType)}>[];');
             });
             writeln('}');
           } else {

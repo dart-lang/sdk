@@ -269,14 +269,6 @@ main /* target */ () {
         offset)).then((result) {
       if (result.hierarchyItems == null) {
         return null;
-      } else if (result.hierarchyItems.isEmpty) {
-        // TODO(paulberry): As a result of bug 21230, a type hierarchy result
-        // with no hierarchyItems field gets misinterpreted as a type hierarchy
-        // result with a hierarchyItems which is an empty list.  To work around
-        // that, treat an empty hierarchyItems list as equivalent to
-        // hierarchyItems being absent.  Once bug 21230 is fixed we should
-        // remove this.
-        return null;
       } else {
         return new HierarchyResults(result.hierarchyItems);
       }

@@ -101,11 +101,7 @@ class Target extends Base implements Interface1, Interface2 {
           expect(actualOverridesInterfaces, equals(
               expectedOverridesInterfaces.toSet()));
         } else {
-          // TODO(paulberry): As a result of bug 21230, an Override with a
-          // missing interfaceMembers field is misinterpreted as having an
-          // interfaceMembers field which is an empty list.  Once bug 21230 is
-          // fixed this should be an "isNull" check.
-          expect(interfaceMembers, isEmpty);
+          expect(interfaceMembers, isNull);
         }
       }
       checkOverrides('method0', true, ['Interface1', 'Interface2']);

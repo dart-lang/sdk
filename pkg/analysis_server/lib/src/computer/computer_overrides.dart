@@ -68,12 +68,14 @@ class DartUnitOverridesComputer {
       OverriddenMember superMember = superEngineElement != null ?
           new OverriddenMember.fromEngine(superEngineElement) :
           null;
-      List<OverriddenMember> interfaceMembers =
-          interfaceEngineElements.map((engine.Element member) =>
-              new OverriddenMember.fromEngine(member)).toList();
+      List<OverriddenMember> interfaceMembers = interfaceEngineElements.map(
+          (engine.Element member) => new OverriddenMember.fromEngine(member)).toList();
       _overrides.add(
-          new Override(offset, length, superclassMember: superMember,
-              interfaceMembers: interfaceMembers));
+          new Override(
+              offset,
+              length,
+              superclassMember: superMember,
+              interfaceMembers: interfaceMembers.isEmpty ? null : interfaceMembers));
     }
   }
 

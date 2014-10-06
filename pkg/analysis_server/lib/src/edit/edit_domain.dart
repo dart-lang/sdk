@@ -280,7 +280,9 @@ class _RefactoringManager {
         // create change
         return refactoring.createChange().then((change) {
           result.change = change;
-          result.potentialEdits = refactoring.potentialEditIds;
+          if (!refactoring.potentialEditIds.isEmpty) {
+            result.potentialEdits = refactoring.potentialEditIds;
+          }
           return _sendResultResponse();
         });
       });

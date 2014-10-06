@@ -293,6 +293,12 @@ SourceFileEdit _getChangeFileEdit(SourceChange change, String file) {
  * list elements.
  */
 bool _listEqual(List listA, List listB, bool itemEqual(a, b)) {
+  if (listA == null) {
+    return listB == null;
+  }
+  if (listB == null) {
+    return false;
+  }
   if (listA.length != listB.length) {
     return false;
   }
