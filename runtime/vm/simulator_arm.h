@@ -179,12 +179,8 @@ class Simulator {
   void SetNZFlags(int32_t val);
   void SetCFlag(bool val);
   void SetVFlag(bool val);
-  bool CarryFrom(int32_t left, int32_t right);
-  bool BorrowFrom(int32_t left, int32_t right);
-  bool OverflowFrom(int32_t alu_out,
-                    int32_t left,
-                    int32_t right,
-                    bool addition);
+  bool CarryFrom(int32_t left, int32_t right, int32_t carry);
+  bool OverflowFrom(int32_t left, int32_t right, int32_t carry);
 
   // Helper functions to decode common "addressing" modes.
   int32_t GetShiftRm(Instr* instr, bool* carry_out);

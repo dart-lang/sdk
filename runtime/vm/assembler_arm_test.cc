@@ -752,6 +752,24 @@ ASSEMBLER_TEST_RUN(AddCarry, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
+  __ LoadImmediate(R2, 0xFFFFFFFF);
+  __ mov(R1, Operand(1));
+  __ mov(R0, Operand(0));
+  __ adds(IP, R2, Operand(R1));  // c_out = 1.
+  __ adcs(IP, R2, Operand(R0));  // c_in = 1, c_out = 1.
+  __ adc(R0, R0, Operand(R0));  // c_in = 1.
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(AddCarryInOut, test) {
+  EXPECT(test != NULL);
+  typedef int (*AddCarryInOut)() DART_UNUSED;
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(AddCarryInOut, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(SubCarry, assembler) {
   __ LoadImmediate(R2, 0x0);
   __ mov(R1, Operand(1));
@@ -766,6 +784,40 @@ ASSEMBLER_TEST_RUN(SubCarry, test) {
   EXPECT(test != NULL);
   typedef int (*SubCarry)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SubCarry, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(SubCarryInOut, assembler) {
+  __ mov(R1, Operand(1));
+  __ mov(R0, Operand(0));
+  __ subs(IP, R0, Operand(R1));  // c_out = 1.
+  __ sbcs(IP, R0, Operand(R0));  // c_in = 1, c_out = 1.
+  __ sbc(R0, R0, Operand(R0));  // c_in = 1.
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(SubCarryInOut, test) {
+  EXPECT(test != NULL);
+  typedef int (*SubCarryInOut)() DART_UNUSED;
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SubCarryInOut, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Overflow, assembler) {
+  __ LoadImmediate(R0, 0xFFFFFFFF);
+  __ LoadImmediate(R1, 0x7FFFFFFF);
+  __ adds(IP, R0, Operand(1));  // c_out = 1.
+  __ adcs(IP, R1, Operand(0));  // c_in = 1, c_out = 1, v = 1.
+  __ mov(R0, Operand(1), VS);
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(Overflow, test) {
+  EXPECT(test != NULL);
+  typedef int (*Overflow)() DART_UNUSED;
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Overflow, test->entry()));
 }
 
 

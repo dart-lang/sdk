@@ -1221,41 +1221,19 @@ void Simulator::SetVFlag(bool val) {
 }
 
 
-// Calculate C flag value for additions.
-bool Simulator::CarryFrom(int32_t left, int32_t right) {
-  uint32_t uleft = static_cast<uint32_t>(left);
-  uint32_t uright = static_cast<uint32_t>(right);
-  uint32_t urest  = 0xffffffffU - uleft;
-
-  return (uright > urest);
+// Calculate C flag value for additions (and subtractions with adjusted args).
+bool Simulator::CarryFrom(int32_t left, int32_t right, int32_t carry) {
+  uint64_t uleft = static_cast<uint32_t>(left);
+  uint64_t uright = static_cast<uint32_t>(right);
+  uint64_t ucarry = static_cast<uint32_t>(carry);
+  return ((uleft + uright + ucarry) >> 32) != 0;
 }
 
 
-// Calculate C flag value for subtractions.
-bool Simulator::BorrowFrom(int32_t left, int32_t right) {
-  uint32_t uleft = static_cast<uint32_t>(left);
-  uint32_t uright = static_cast<uint32_t>(right);
-
-  return (uright > uleft);
-}
-
-
-// Calculate V flag value for additions and subtractions.
-bool Simulator::OverflowFrom(int32_t alu_out,
-                             int32_t left, int32_t right, bool addition) {
-  bool overflow;
-  if (addition) {
-               // operands have the same sign
-    overflow = ((left >= 0 && right >= 0) || (left < 0 && right < 0))
-               // and operands and result have different sign
-               && ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
-  } else {
-               // operands have different signs
-    overflow = ((left < 0 && right >= 0) || (left >= 0 && right < 0))
-               // and first operand and result have different signs
-               && ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
-  }
-  return overflow;
+// Calculate V flag value for additions (and subtractions with adjusted args).
+bool Simulator::OverflowFrom(int32_t left, int32_t right, int32_t carry) {
+  int64_t result = static_cast<int64_t>(left) + right + carry;
+  return (result >> 31) != (result >> 32);
 }
 
 
@@ -2045,6 +2023,7 @@ void Simulator::DecodeType01(Instr* instr) {
       ASSERT(instr->TypeField() == 1);
       shifter_operand = GetImm(instr, &shifter_carry_out);
     }
+    int32_t carry_in;
     int32_t alu_out;
 
     switch (instr->OpcodeField()) {
@@ -2079,8 +2058,8 @@ void Simulator::DecodeType01(Instr* instr) {
         set_register(rd, alu_out);
         if (instr->HasS()) {
           SetNZFlags(alu_out);
-          SetCFlag(!BorrowFrom(rn_val, shifter_operand));
-          SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, false));
+          SetCFlag(CarryFrom(rn_val, ~shifter_operand, 1));
+          SetVFlag(OverflowFrom(rn_val, ~shifter_operand, 1));
         }
         break;
       }
@@ -2092,8 +2071,8 @@ void Simulator::DecodeType01(Instr* instr) {
         set_register(rd, alu_out);
         if (instr->HasS()) {
           SetNZFlags(alu_out);
-          SetCFlag(!BorrowFrom(shifter_operand, rn_val));
-          SetVFlag(OverflowFrom(alu_out, shifter_operand, rn_val, false));
+          SetCFlag(CarryFrom(shifter_operand, ~rn_val, 1));
+          SetVFlag(OverflowFrom(shifter_operand, ~rn_val, 1));
         }
         break;
       }
@@ -2105,8 +2084,8 @@ void Simulator::DecodeType01(Instr* instr) {
         set_register(rd, alu_out);
         if (instr->HasS()) {
           SetNZFlags(alu_out);
-          SetCFlag(CarryFrom(rn_val, shifter_operand));
-          SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, true));
+          SetCFlag(CarryFrom(rn_val, shifter_operand, 0));
+          SetVFlag(OverflowFrom(rn_val, shifter_operand, 0));
         }
         break;
       }
@@ -2114,12 +2093,13 @@ void Simulator::DecodeType01(Instr* instr) {
       case ADC: {
         // Format(instr, "adc'cond's 'rd, 'rn, 'shift_rm");
         // Format(instr, "adc'cond's 'rd, 'rn, 'imm");
-        alu_out = rn_val + shifter_operand + (c_flag_ ? 1 : 0);
+        carry_in = c_flag_ ? 1 : 0;
+        alu_out = rn_val + shifter_operand + carry_in;
         set_register(rd, alu_out);
         if (instr->HasS()) {
           SetNZFlags(alu_out);
-          SetCFlag(CarryFrom(rn_val, shifter_operand));
-          SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, true));
+          SetCFlag(CarryFrom(rn_val, shifter_operand, carry_in));
+          SetVFlag(OverflowFrom(rn_val, shifter_operand, carry_in));
         }
         break;
       }
@@ -2127,12 +2107,13 @@ void Simulator::DecodeType01(Instr* instr) {
       case SBC: {
         // Format(instr, "sbc'cond's 'rd, 'rn, 'shift_rm");
         // Format(instr, "sbc'cond's 'rd, 'rn, 'imm");
-        alu_out = rn_val - shifter_operand - (!c_flag_ ? 1 : 0);
+        carry_in = c_flag_ ? 1 : 0;
+        alu_out = rn_val + ~shifter_operand + carry_in;
         set_register(rd, alu_out);
         if (instr->HasS()) {
           SetNZFlags(alu_out);
-          SetCFlag(!BorrowFrom(rn_val, shifter_operand));
-          SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, false));
+          SetCFlag(CarryFrom(rn_val, ~shifter_operand, carry_in));
+          SetVFlag(OverflowFrom(rn_val, ~shifter_operand, carry_in));
         }
         break;
       }
@@ -2140,12 +2121,13 @@ void Simulator::DecodeType01(Instr* instr) {
       case RSC: {
         // Format(instr, "rsc'cond's 'rd, 'rn, 'shift_rm");
         // Format(instr, "rsc'cond's 'rd, 'rn, 'imm");
-        alu_out = shifter_operand - rn_val - (!c_flag_ ? 1 : 0);
+        carry_in = c_flag_ ? 1 : 0;
+        alu_out = shifter_operand + ~rn_val + carry_in;
         set_register(rd, alu_out);
         if (instr->HasS()) {
           SetNZFlags(alu_out);
-          SetCFlag(!BorrowFrom(shifter_operand, rn_val));
-          SetVFlag(OverflowFrom(alu_out, shifter_operand, rn_val, false));
+          SetCFlag(CarryFrom(shifter_operand, ~rn_val, carry_in));
+          SetVFlag(OverflowFrom(shifter_operand, ~rn_val, carry_in));
         }
         break;
       }
@@ -2182,8 +2164,8 @@ void Simulator::DecodeType01(Instr* instr) {
           // Format(instr, "cmp'cond 'rn, 'imm");
           alu_out = rn_val - shifter_operand;
           SetNZFlags(alu_out);
-          SetCFlag(!BorrowFrom(rn_val, shifter_operand));
-          SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, false));
+          SetCFlag(CarryFrom(rn_val, ~shifter_operand, 1));
+          SetVFlag(OverflowFrom(rn_val, ~shifter_operand, 1));
         } else {
           UnimplementedInstruction(instr);
         }
@@ -2196,8 +2178,8 @@ void Simulator::DecodeType01(Instr* instr) {
           // Format(instr, "cmn'cond 'rn, 'imm");
           alu_out = rn_val + shifter_operand;
           SetNZFlags(alu_out);
-          SetCFlag(CarryFrom(rn_val, shifter_operand));
-          SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, true));
+          SetCFlag(CarryFrom(rn_val, shifter_operand, 0));
+          SetVFlag(OverflowFrom(rn_val, shifter_operand, 0));
         } else {
           UnimplementedInstruction(instr);
         }
