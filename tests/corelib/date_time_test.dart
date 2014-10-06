@@ -932,6 +932,26 @@ void testToStrings() {
   test("1969-09-09", "00:09:09.009");
 }
 
+void testIsoString() {
+  var d = new DateTime(9999, 1, 1, 23, 59, 59, 999);
+  Expect.equals("9999-01-01T23:59:59.999", d.toIso8601String());
+  d = new DateTime(-9999, 1, 1, 23, 59, 59, 999);
+  Expect.equals("-9999-01-01T23:59:59.999", d.toIso8601String());
+  d = new DateTime.utc(9999, 1, 1, 23, 59, 59, 999);
+  Expect.equals("9999-01-01T23:59:59.999Z", d.toIso8601String());
+  d = new DateTime.utc(-9999, 1, 1, 23, 59, 59, 999);
+  Expect.equals("-9999-01-01T23:59:59.999Z", d.toIso8601String());
+
+  d = new DateTime(10000, 1, 1, 23, 59, 59, 999);
+  Expect.equals("+010000-01-01T23:59:59.999", d.toIso8601String());
+  d = new DateTime(-10000, 1, 1, 23, 59, 59, 999);
+  Expect.equals("-010000-01-01T23:59:59.999", d.toIso8601String());
+  d = new DateTime.utc(10000, 1, 1, 23, 59, 59, 999);
+  Expect.equals("+010000-01-01T23:59:59.999Z", d.toIso8601String());
+  d = new DateTime.utc(-10000, 1, 1, 23, 59, 59, 999);
+  Expect.equals("-010000-01-01T23:59:59.999Z", d.toIso8601String());
+}
+
 void main() {
   testNow();
   testValue();
@@ -947,4 +967,5 @@ void main() {
   testFarAwayDates();
   testWeekday();
   testToStrings();
+  testIsoString();
 }
