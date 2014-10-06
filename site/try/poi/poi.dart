@@ -89,6 +89,10 @@ int globalCounter = 0;
 /// really need.
 bool isVerbose = false;
 
+/// Enabled by the option --compile. Also compiles the program after analyzing
+/// the POI.
+bool isCompiler = false;
+
 /// When true (the default value) print serialized scope information at the
 /// provided position.
 const bool PRINT_SCOPE_INFO =
@@ -149,6 +153,9 @@ main(List<String> arguments) {
         case '-v':
         case '--verbose':
           isVerbose = true;
+          break;
+        case '--compile':
+          isCompiler = true;
           break;
         default:
           throw 'Unknown option: $argument.';
@@ -365,13 +372,16 @@ Future<Element> runPoi(
 
   var options = [
       '--analyze-main',
-      '--analyze-only',
       '--no-source-maps',
       '--verbose',
       '--categories=Client,Server',
       '--incremental-support',
       '--disable-type-inference',
   ];
+
+  if (!isCompiler) {
+    options.add('--analyze-only');
+  }
 
   LibraryUpdater updater =
       new LibraryUpdater(
@@ -389,8 +399,9 @@ Future<Element> runPoi(
       packageRoot: packageRoot,
       packagesAreImmutable: true,
       reuseLibrary: reuseLibrary).then((Compiler newCompiler) {
-    var filter = new ScriptOnlyFilter(script);
-    newCompiler.enqueuerFilter = filter;
+    if (!isCompiler) {
+      newCompiler.enqueuerFilter = new ScriptOnlyFilter(script);
+    }
     return runPoiInternal(newCompiler, sw, updater, position);
   });
 }
