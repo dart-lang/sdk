@@ -1458,7 +1458,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         }
       } else {
         // Note: we throw the errors away because this isn't actually a const.
-        BooleanErrorListener errorListener = new BooleanErrorListener();
+        AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
         ErrorReporter subErrorReporter = new ErrorReporter(errorListener, _errorReporter.source);
         DartObjectImpl result = key.accept(new ConstantVisitor.con1(_typeProvider, subErrorReporter));
         if (result != null) {
@@ -1725,7 +1725,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
             if (initializer != null) {
               // Ignore any errors produced during validation--if the constant can't be eavluated
               // we'll just report a single error.
-              BooleanErrorListener errorListener = new BooleanErrorListener();
+              AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
               ErrorReporter subErrorReporter = new ErrorReporter(errorListener, _errorReporter.source);
               DartObjectImpl result = initializer.accept(new ConstantVisitor.con1(_typeProvider, subErrorReporter));
               if (result == null) {
