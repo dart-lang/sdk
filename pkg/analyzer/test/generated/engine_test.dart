@@ -3014,13 +3014,6 @@ class DartEntryImplTest extends EngineTestCase {
     }
   }
 
-  void test_getWritableCopy() {
-    DartEntryImpl entry = new DartEntryImpl();
-    DartEntryImpl copy = entry.writableCopy;
-    JUnitTestCase.assertNotNull(copy);
-    JUnitTestCase.assertNotSame(entry, copy);
-  }
-
   void test_hasInvalidData_false() {
     DartEntryImpl entry = new DartEntryImpl();
     entry.recordScanError(new CaughtException(new AnalysisException(), null));
@@ -3808,30 +3801,6 @@ class DartEntryImplTest extends EngineTestCase {
     entry.removeResolution(source1);
   }
 
-  void test_resolutionState() {
-    DartEntryImpl entry1 = new DartEntryImpl();
-    Source libSrc1 = new TestSource("/test1.dart");
-    Source libSrc2 = new TestSource("/test2.dart");
-    ParserErrorCode errCode = ParserErrorCode.DIRECTIVE_AFTER_DECLARATION;
-    List<AnalysisError> errors1 = <AnalysisError>[
-        new AnalysisError.con2(libSrc1, 0, 10, errCode, [])];
-    List<AnalysisError> errors2 = <AnalysisError>[
-        new AnalysisError.con2(libSrc2, 0, 20, errCode, [])];
-    entry1.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, libSrc1, errors1);
-    entry1.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, libSrc2, errors2);
-    TestDartEntryImpl entry2 = new TestDartEntryImpl();
-    entry2.copyFrom(entry1);
-    EngineTestCase.assertExactElementsInArray(
-        entry2.allErrors,
-        [errors1[0], errors2[0]]);
-    entry1.removeResolution(libSrc2);
-    EngineTestCase.assertExactElementsInArray(entry1.allErrors, [errors1[0]]);
-    entry2.removeResolution(libSrc1);
-    EngineTestCase.assertExactElementsInArray(entry2.allErrors, [errors2[0]]);
-    entry2.removeResolution(libSrc2);
-    EngineTestCase.assertExactElementsInArray(entry2.allErrors, []);
-  }
-
   void test_setState_element() {
     state2 = DartEntry.ELEMENT;
   }
@@ -4166,10 +4135,6 @@ class DartEntryImplTest extends EngineTestCase {
         final __test = new DartEntryImplTest();
         runJUnitTest(__test, __test.test_getValue_invalid_verificationErrors);
       });
-      _ut.test('test_getWritableCopy', () {
-        final __test = new DartEntryImplTest();
-        runJUnitTest(__test, __test.test_getWritableCopy);
-      });
       _ut.test('test_hasInvalidData_false', () {
         final __test = new DartEntryImplTest();
         runJUnitTest(__test, __test.test_hasInvalidData_false);
@@ -4255,10 +4220,6 @@ class DartEntryImplTest extends EngineTestCase {
       _ut.test('test_removeResolution_single', () {
         final __test = new DartEntryImplTest();
         runJUnitTest(__test, __test.test_removeResolution_single);
-      });
-      _ut.test('test_resolutionState', () {
-        final __test = new DartEntryImplTest();
-        runJUnitTest(__test, __test.test_resolutionState);
       });
       _ut.test('test_setState_element', () {
         final __test = new DartEntryImplTest();
@@ -4845,13 +4806,6 @@ class HtmlEntryImplTest extends EngineTestCase {
     EngineTestCase.assertLength(6, entry.allErrors);
   }
 
-  void test_getWritableCopy() {
-    HtmlEntryImpl entry = new HtmlEntryImpl();
-    HtmlEntryImpl copy = entry.writableCopy;
-    JUnitTestCase.assertNotNull(copy);
-    JUnitTestCase.assertNotSame(entry, copy);
-  }
-
   void test_invalidateAllResolutionInformation() {
     HtmlEntryImpl entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(false);
@@ -5108,10 +5062,6 @@ class HtmlEntryImplTest extends EngineTestCase {
       _ut.test('test_getAllErrors', () {
         final __test = new HtmlEntryImplTest();
         runJUnitTest(__test, __test.test_getAllErrors);
-      });
-      _ut.test('test_getWritableCopy', () {
-        final __test = new HtmlEntryImplTest();
-        runJUnitTest(__test, __test.test_getWritableCopy);
       });
       _ut.test('test_invalidateAllResolutionInformation', () {
         final __test = new HtmlEntryImplTest();
@@ -6073,24 +6023,6 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(invoked[0]);
   }
 
-  void test_extractContext() {
-    List<bool> invoked = [false];
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_extractContext(invoked));
-    context.extractContext(null);
-    JUnitTestCase.assertTrue(invoked[0]);
-  }
-
-  void test_extractContextInto() {
-    List<bool> invoked = [false];
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_extractContextInto(invoked));
-    context.extractContextInto(null, null);
-    JUnitTestCase.assertTrue(invoked[0]);
-  }
-
   void test_getAnalysisOptions() {
     List<bool> invoked = [false];
     InstrumentedAnalysisContextImpl context =
@@ -6368,16 +6300,6 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(invoked[0]);
   }
 
-  void test_mergeContext() {
-    List<bool> invoked = [false];
-    InstrumentedAnalysisContextImpl context =
-        new InstrumentedAnalysisContextImpl.con1(
-            new TestAnalysisContext_test_mergeContext(invoked));
-    context.mergeContext(
-        new InstrumentedAnalysisContextImpl.con1(new TestAnalysisContext()));
-    JUnitTestCase.assertTrue(invoked[0]);
-  }
-
   void test_parseCompilationUnit() {
     List<bool> invoked = [false];
     InstrumentedAnalysisContextImpl context =
@@ -6544,14 +6466,6 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
         final __test = new InstrumentedAnalysisContextImplTest();
         runJUnitTest(__test, __test.test_exists);
       });
-      _ut.test('test_extractContext', () {
-        final __test = new InstrumentedAnalysisContextImplTest();
-        runJUnitTest(__test, __test.test_extractContext);
-      });
-      _ut.test('test_extractContextInto', () {
-        final __test = new InstrumentedAnalysisContextImplTest();
-        runJUnitTest(__test, __test.test_extractContextInto);
-      });
       _ut.test('test_getAnalysisOptions', () {
         final __test = new InstrumentedAnalysisContextImplTest();
         runJUnitTest(__test, __test.test_getAnalysisOptions);
@@ -6675,10 +6589,6 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
       _ut.test('test_isServerLibrary', () {
         final __test = new InstrumentedAnalysisContextImplTest();
         runJUnitTest(__test, __test.test_isServerLibrary);
-      });
-      _ut.test('test_mergeContext', () {
-        final __test = new InstrumentedAnalysisContextImplTest();
-        runJUnitTest(__test, __test.test_mergeContext);
       });
       _ut.test('test_parseCompilationUnit', () {
         final __test = new InstrumentedAnalysisContextImplTest();
@@ -7995,17 +7905,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return false;
   }
   @override
-  AnalysisContext extractContext(SourceContainer container) {
-    JUnitTestCase.fail("Unexpected invocation of extractContext");
-    return null;
-  }
-  @override
-  InternalAnalysisContext extractContextInto(SourceContainer container,
-      InternalAnalysisContext newContext) {
-    JUnitTestCase.fail("Unexpected invocation of extractContextInto");
-    return null;
-  }
-  @override
   AngularApplication getAngularApplicationWithHtml(Source htmlSource) {
     JUnitTestCase.fail(
         "Unexpected invocation of getAngularApplicationWithHtml");
@@ -8114,10 +8013,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   bool isServerLibrary(Source librarySource) {
     JUnitTestCase.fail("Unexpected invocation of isServerLibrary");
     return false;
-  }
-  @override
-  void mergeContext(AnalysisContext context) {
-    JUnitTestCase.fail("Unexpected invocation of mergeContext");
   }
   @override
   CompilationUnit parseCompilationUnit(Source source) {
@@ -8312,30 +8207,6 @@ class TestAnalysisContext_test_exists extends TestAnalysisContext {
   bool exists(Source source) {
     invoked[0] = true;
     return false;
-  }
-}
-
-
-class TestAnalysisContext_test_extractContext extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_extractContext(this.invoked);
-  @override
-  InternalAnalysisContext extractContextInto(SourceContainer container,
-      InternalAnalysisContext newContext) {
-    invoked[0] = true;
-    return null;
-  }
-}
-
-
-class TestAnalysisContext_test_extractContextInto extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_extractContextInto(this.invoked);
-  @override
-  InternalAnalysisContext extractContextInto(SourceContainer container,
-      InternalAnalysisContext newContext) {
-    invoked[0] = true;
-    return null;
   }
 }
 
@@ -8685,16 +8556,6 @@ class TestAnalysisContext_test_isServerLibrary extends TestAnalysisContext {
 }
 
 
-class TestAnalysisContext_test_mergeContext extends TestAnalysisContext {
-  List<bool> invoked;
-  TestAnalysisContext_test_mergeContext(this.invoked);
-  @override
-  void mergeContext(AnalysisContext context) {
-    invoked[0] = true;
-  }
-}
-
-
 class TestAnalysisContext_test_parseCompilationUnit extends TestAnalysisContext
     {
   List<bool> invoked;
@@ -8825,17 +8686,6 @@ class TestAnalysisContext_test_setSourceFactory extends TestAnalysisContext {
   @override
   void set sourceFactory(SourceFactory factory) {
     invoked[0] = true;
-  }
-}
-
-
-/**
- * This subclass of DartEntryImpl allows test code to invoke the copyFrom() method.
- */
-class TestDartEntryImpl extends DartEntryImpl {
-  @override
-  void copyFrom(SourceEntryImpl entry) {
-    super.copyFrom(entry);
   }
 }
 
