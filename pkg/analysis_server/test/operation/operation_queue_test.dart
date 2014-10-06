@@ -119,3 +119,7 @@ class ServerOperationMock extends TypedMock implements ServerOperation {
 class AnalysisServerMock extends TypedMock implements AnalysisServer {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
+
+class ServerContextManagerMock extends TypedMock implements ServerContextManager {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}

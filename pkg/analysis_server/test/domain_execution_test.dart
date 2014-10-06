@@ -177,8 +177,12 @@ main() {
       when(context.getLibrariesReferencedFromHtml(anyObject))
           .thenReturn([source6, source7]);
 
+      ServerContextManager manager = new ServerContextManagerMock();
+      when(manager.isInAnalysisRoot(anyString)).thenReturn(true);
+
       AnalysisServer server = new AnalysisServerMock();
       when(server.getAnalysisContexts()).thenReturn([context]);
+      when(server.contextDirectoryManager).thenReturn(manager);
       when(server.isAnalysisComplete()).thenReturn(false);
 
       StreamController controller = new StreamController.broadcast(sync: true);

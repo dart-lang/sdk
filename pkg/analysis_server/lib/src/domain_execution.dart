@@ -142,6 +142,9 @@ class ExecutionDomainHandler implements RequestHandler {
   void _fileAnalyzed(ChangeNotice notice) {
     Source source = notice.source;
     String filePath = source.fullName;
+    if (!_isInAnalysisRoot(filePath)) {
+      return;
+    }
     AnalysisContext context = server.getAnalysisContext(filePath);
     if (AnalysisEngine.isDartFileName(filePath)) {
       ExecutableKind kind = ExecutableKind.NOT_EXECUTABLE;
@@ -166,6 +169,13 @@ class ExecutionDomainHandler implements RequestHandler {
     }
   }
 
+  /**
+   * Return `true` if the given [filePath] represents a file that is in an
+   * analysis root.
+   */
+  bool _isInAnalysisRoot(String filePath)
+      => server.contextDirectoryManager.isInAnalysisRoot(filePath);
+
   void _reportCurrentFileStatus() {
     Map<String, List<String>> dartToHtml = new HashMap<String, List<String>>();
     Map<String, List<String>> htmlToDart = new HashMap<String, List<String>>();
@@ -175,38 +185,40 @@ class ExecutionDomainHandler implements RequestHandler {
       List<Source> serverSources = context.launchableServerLibrarySources;
       for (Source source in clientSources) {
         if (serverSources.remove(source)) {
-          server.sendNotification(
-              new ExecutionLaunchDataParams(
-                  source.fullName,
-                  kind: ExecutableKind.EITHER).toNotification());
+          _sendKindNotification(source.fullName, ExecutableKind.EITHER);
         } else {
-          server.sendNotification(
-              new ExecutionLaunchDataParams(
-                  source.fullName,
-                  kind: ExecutableKind.CLIENT).toNotification());
+          _sendKindNotification(source.fullName, ExecutableKind.CLIENT);
         }
         librarySources.remove(source);
       }
       for (Source source in serverSources) {
-        server.sendNotification(
-            new ExecutionLaunchDataParams(
-                source.fullName,
-                kind: ExecutableKind.SERVER).toNotification());
+        _sendKindNotification(source.fullName, ExecutableKind.SERVER);
         librarySources.remove(source);
       }
       for (Source source in librarySources) {
-        server.sendNotification(
-            new ExecutionLaunchDataParams(
-                source.fullName,
-                kind: ExecutableKind.NOT_EXECUTABLE).toNotification());
+        _sendKindNotification(source.fullName, ExecutableKind.NOT_EXECUTABLE);
       }
       for (Source source in context.htmlSources) {
-        List<Source> libraries = context.getLibrariesReferencedFromHtml(source);
-        server.sendNotification(
-            new ExecutionLaunchDataParams(
-                source.fullName,
-                referencedFiles: _getFullNames(libraries)).toNotification());
+        String filePath = source.fullName;
+        if (_isInAnalysisRoot(filePath)) {
+          List<Source> libraries = context.getLibrariesReferencedFromHtml(source);
+          server.sendNotification(
+              new ExecutionLaunchDataParams(
+                  filePath,
+                  referencedFiles: _getFullNames(libraries)).toNotification());
+          }
       }
+    }
+  }
+
+  /**
+   * Send a notification indicating the [kind] of the file with the given
+   * [filePath], but only if the file is in an analysis root.
+   */
+  void _sendKindNotification(String filePath, ExecutableKind kind) {
+    if (_isInAnalysisRoot(filePath)) {
+      server.sendNotification(
+          new ExecutionLaunchDataParams(filePath, kind: kind).toNotification());
     }
   }
 
