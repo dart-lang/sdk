@@ -40,6 +40,8 @@ class LibraryUpdaterTestCase extends CompilerTestCase {
         updater.canReuseLibrary(library, UTF8.encode(newSource));
     Expect.equals(expectedCanReuse, actualCanReuse);
 
+    Expect.equals(expectedCanReuse, updater.hasPendingUpdates);
+
     Expect.setEquals(
         expectedUpdates.toSet(),
         updater.updates.map((Update update) => update.before.name).toSet());

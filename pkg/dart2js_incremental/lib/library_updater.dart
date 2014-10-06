@@ -17,6 +17,7 @@ import 'package:compiler/implementation/dart2jslib.dart' show
     Script;
 
 import 'package:compiler/implementation/elements/elements.dart' show
+    Element,
     LibraryElement;
 
 import 'package:compiler/implementation/scanner/scannerlib.dart' show
@@ -52,6 +53,10 @@ class LibraryUpdater {
   // changed.
   final Uri uri;
 
+  // When [true], updates must be applied (using [applyUpdates]) before the
+  // [compiler]'s state correctly reflects the updated program.
+  bool hasPendingUpdates = false;
+
   final List<Update> updates = <Update>[];
 
   LibraryUpdater(
@@ -71,13 +76,7 @@ class LibraryUpdater {
       return new Future.value(false);
     }
     return inputProvider(uri).then((List<int> bytes) {
-      if (canReuseLibrary(library, bytes)) {
-        // TODO(ahe): Temporary. Since we don't yet apply the updates, the
-        // library cannot be reused if there are updates.
-        return updates.isEmpty;
-      } else {
-        return false;
-      }
+      return canReuseLibrary(library, bytes);
     });
   }
 
@@ -137,6 +136,7 @@ class LibraryUpdater {
         return false;
       }
     }
+    hasPendingUpdates = true;
 
     return true;
   }
@@ -170,6 +170,10 @@ class LibraryUpdater {
     print('Simple modification of ${after} detected');
     updates.add(new FunctionUpdate(compiler, before, after));
     return true;
+  }
+
+  List<Element> applyUpdates() {
+    return updates.map((Update update) => update.apply()).toList();
   }
 }
 
