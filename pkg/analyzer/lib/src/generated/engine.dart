@@ -928,18 +928,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   HashMap<Source, ChangeNoticeImpl> _pendingNotices = new HashMap<Source, ChangeNoticeImpl>();
 
   /**
-   * A set containing information about the tasks that have been performed since the last change
-   * notification. Used to detect infinite loops in [performAnalysisTask].
-   */
-  LinkedHashSet<String> _recentTasks = new LinkedHashSet<String>();
-
-  /**
-   * A flag indicating whether we have already reported an infinite loop in
-   * [performAnalysisTask].
-   */
-  bool _reportedLoop = false;
-
-  /**
    * The object used to synchronize access to all of the caches. The rules related to the use of
    * this lock object are
    * * no analysis work is done while holding the lock, and
@@ -1028,8 +1016,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (changeSet.isEmpty) {
       return;
     }
-    _recentTasks.clear();
-    _reportedLoop = false;
     //
     // First, compute the list of sources that have been removed.
     //
@@ -1729,18 +1715,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisResult(_getChangeNotices(true), getEnd - getStart, null, -1);
     }
     String taskDescription = task.toString();
-    //    if (!reportedLoop && !recentTasks.add(taskDescription)) {
-    //      reportedLoop = true;
-    //      @SuppressWarnings("resource")
-    //      PrintStringWriter writer = new PrintStringWriter();
-    //      writer.print("Performing repeated task: ");
-    //      writer.println(taskDescription);
-    //      for (String description : recentTasks) {
-    //        writer.print("  ");
-    //        writer.println(description);
-    //      }
-    //      logInformation(writer.toString());
-    //    }
     _notifyAboutToPerformTask(taskDescription);
     if (_TRACE_PERFORM_TASK) {
       print(taskDescription);
@@ -1893,8 +1867,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   void setChangedContents(Source source, String contents, int offset, int oldLength, int newLength) {
-    _recentTasks.clear();
-    _reportedLoop = false;
     String originalContents = _contentCache.setContents(source, contents);
     if (contents != null) {
       if (contents != originalContents) {
@@ -1916,8 +1888,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   void setContents(Source source, String contents) {
-    _recentTasks.clear();
-    _reportedLoop = false;
     String originalContents = _contentCache.setContents(source, contents);
     if (contents != null) {
       if (contents != originalContents) {
@@ -3687,8 +3657,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     _removeFromPartsUsingMap(oldPartMap);
-    _recentTasks.clear();
-    _reportedLoop = false;
   }
 
   /**
