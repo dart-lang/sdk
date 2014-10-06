@@ -78,9 +78,9 @@ class _AnyElement extends _IterableMatcher {
 }
 
 /// Returns a matcher which matches [Iterable]s that have the same
-/// length and the same elements as [expected], and in the same order.
-/// This is equivalent to equals but does not recurse.
-
+/// length and the same elements as [expected], in the same order.
+///
+/// This is equivalent to [equals] but does not recurse.
 Matcher orderedEquals(Iterable expected) => new _OrderedEquals(expected);
 
 class _OrderedEquals extends Matcher {
@@ -108,10 +108,10 @@ class _OrderedEquals extends Matcher {
   }
 }
 
-/// Returns a matcher which matches [Iterable]s that have the same
-/// length and the same elements as [expected], but not necessarily in
-/// the same order. Note that this is O(n^2) so should only be used on
-/// small objects.
+/// Returns a matcher which matches [Iterable]s that have the same length and
+/// the same elements as [expected], but not necessarily in the same order.
+///
+/// Note that this is O(n^2) so should only be used on small objects.
 Matcher unorderedEquals(Iterable expected) => new _UnorderedEquals(expected);
 
 class _UnorderedEquals extends _UnorderedMatches {
@@ -209,10 +209,11 @@ class _UnorderedMatches extends Matcher {
       mismatchDescription.add(_test(item));
 }
 
-/// A pairwise matcher for iterable. You can pass an arbitrary [comparator]
-/// function that takes an expected and actual argument which will be applied
-/// to each pair in order. [description]  should be a meaningful name for
-/// the comparator.
+/// A pairwise matcher for [Iterable]s.
+///
+/// The [comparator] function, taking an expected and an actual argument, and
+/// returning whether they match, will be applied to each pair in order.
+/// [description] should be a meaningful name for the comparator.
 Matcher pairwiseCompare(Iterable expected, bool comparator(a, b),
     String description) =>
         new _PairwiseCompare(expected, comparator, description);

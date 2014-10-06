@@ -26,13 +26,24 @@ class _IsEqualIgnoringCase extends _StringMatcher {
 }
 
 /// Returns a matcher which matches if the match argument is a string and
-/// is equal to [value] when compared with all runs of whitespace
-/// collapsed to single spaces and leading and trailing whitespace removed.
+/// is equal to [value], ignoring whitespace.
 ///
-/// For example, `equalsIgnoringCase("hello world")` will match
-/// "hello   world", "  hello world" and "hello world  ".
-Matcher equalsIgnoringWhitespace(String string) =>
-    new _IsEqualIgnoringWhitespace(string);
+/// In this matcher, "ignoring whitespace" means comparing with all runs of
+/// whitespace collapsed to single space characters and leading and trailing
+/// whitespace removed.
+///
+/// For example, the following will all match successfully:
+///
+///     expect("hello   world", equalsIgnoringCase("hello world"));
+///     expect("  hello world", equalsIgnoringCase("hello world"));
+///     expect("hello world  ", equalsIgnoringCase("hello world"));
+///
+/// The following will not match:
+///
+///     expect("helloworld", equalsIgnoringCase("hello world"));
+///     expect("he llo world", equalsIgnoringCase("hello world"));
+Matcher equalsIgnoringWhitespace(String value) =>
+    new _IsEqualIgnoringWhitespace(value);
 
 class _IsEqualIgnoringWhitespace extends _StringMatcher {
   final String _value;
@@ -125,9 +136,10 @@ class _StringContainsInOrder extends _StringMatcher {
 }
 
 /// Returns a matcher that matches if the match argument is a string and
-/// matches the regular expression given by [re]. [re] can be a [RegExp]
-/// instance or a [String]; in the latter case it will be used to create
-/// a RegExp instance.
+/// matches the regular expression given by [re].
+///
+/// [re] can be a [RegExp] instance or a [String]; in the latter case it will be
+/// used to create a RegExp instance.
 Matcher matches(re) => new _MatchesRegExp(re);
 
 class _MatchesRegExp extends _StringMatcher {
