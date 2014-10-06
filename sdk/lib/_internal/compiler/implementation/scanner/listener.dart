@@ -1127,9 +1127,11 @@ class ElementListener extends Listener {
     }
     if (compilationUnitElement != null) {
       if (compilationUnitElement is CompilationUnitElementX) {
-        Link<Element> members = compilationUnitElement.localMembers;
+        CompilationUnitElementX unit = compilationUnitElement;
+        Link<Element> members = unit.localMembers;
         while (!members.isEmpty) {
-          DeclarationSite site = members.head.declarationSite;
+          ElementX member = members.head;
+          DeclarationSite site = member.declarationSite;
           if (site is PartialElement) {
             result = findPrecedingTokenFromToken(site.endToken, token);
             if (result != null) {
