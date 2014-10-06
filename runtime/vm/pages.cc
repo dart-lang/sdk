@@ -34,7 +34,7 @@ DEFINE_FLAG(bool, log_code_drop, false,
 DEFINE_FLAG(bool, always_drop_code, false,
             "Always try to drop code if the function's usage counter is >= 0");
 #if defined(TARGET_ARCH_IA32)
-DEFINE_FLAG(bool, concurrent_sweep, false,
+DEFINE_FLAG(bool, concurrent_sweep, true,
             "Concurrent sweep for old generation.");
 #else  // TARGET_ARCH_IA32
 DEFINE_FLAG(bool, concurrent_sweep, false,
