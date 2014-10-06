@@ -4,6 +4,7 @@
 
 library computer.overrides;
 
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
@@ -75,7 +76,7 @@ class DartUnitOverridesComputer {
               offset,
               length,
               superclassMember: superMember,
-              interfaceMembers: interfaceMembers.isEmpty ? null : interfaceMembers));
+              interfaceMembers: nullIfEmpty(interfaceMembers)));
     }
   }
 

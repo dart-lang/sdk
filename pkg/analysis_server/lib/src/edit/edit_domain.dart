@@ -6,6 +6,7 @@ library edit.domain;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart' hide Element;
@@ -280,9 +281,7 @@ class _RefactoringManager {
         // create change
         return refactoring.createChange().then((change) {
           result.change = change;
-          if (!refactoring.potentialEditIds.isEmpty) {
-            result.potentialEdits = refactoring.potentialEditIds;
-          }
+          result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
           return _sendResultResponse();
         });
       });

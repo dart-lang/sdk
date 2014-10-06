@@ -4,6 +4,7 @@
 
 library computer.outline;
 
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
@@ -178,7 +179,7 @@ class DartUnitOutlineComputer {
         element,
         sourceRegion.offset,
         sourceRegion.length,
-        children: classContents.isEmpty ? null : classContents);
+        children: nullIfEmpty(classContents));
   }
 
   Outline _newClassTypeAlias(ClassTypeAlias alias) {
@@ -226,7 +227,7 @@ class DartUnitOutlineComputer {
         element,
         sourceRegion.offset,
         sourceRegion.length,
-        children: contents.isEmpty ? null : contents);
+        children: nullIfEmpty(contents));
     return outline;
   }
 
@@ -262,7 +263,7 @@ class DartUnitOutlineComputer {
         element,
         sourceRegion.offset,
         sourceRegion.length,
-        children: contents.isEmpty ? null : contents);
+        children: nullIfEmpty(contents));
     return outline;
   }
 
@@ -318,7 +319,7 @@ class DartUnitOutlineComputer {
         element,
         sourceRegion.offset,
         sourceRegion.length,
-        children: contents.isEmpty ? null : contents);
+        children: nullIfEmpty(contents));
     return outline;
   }
 
@@ -332,7 +333,7 @@ class DartUnitOutlineComputer {
         element,
         _unit.offset,
         _unit.length,
-        children: unitContents.isEmpty ? null : unitContents);
+        children: nullIfEmpty(unitContents));
   }
 
   Outline _newVariableOutline(String typeName, ElementKind kind,
