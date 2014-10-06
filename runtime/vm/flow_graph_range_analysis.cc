@@ -441,7 +441,7 @@ static RangeBoundary WidenMax(const Range* range,
 // if we can perform narrowing: use newly computed minimum to improve precision
 // of the computed range. We do it only if current minimum was widened and is
 // equal to MinSmi.
-// Newly computed minimum is expected to be greater of equal then old one as
+// Newly computed minimum is expected to be greater or equal than old one as
 // we are running after widening phase.
 static RangeBoundary NarrowMin(const Range* range,
                                const Range* new_range,
@@ -460,7 +460,7 @@ static RangeBoundary NarrowMin(const Range* range,
 // if we can perform narrowing: use newly computed maximum to improve precision
 // of the computed range. We do it only if current maximum was widened and is
 // equal to MaxSmi.
-// Newly computed minimum is expected to be greater of equal then old one as
+// Newly computed maximum is expected to be less or equal than old one as
 // we are running after widening phase.
 static RangeBoundary NarrowMax(const Range* range,
                                const Range* new_range,
@@ -1202,7 +1202,6 @@ static bool CanonicalizeMaxBoundary(RangeBoundary* a) {
 
   const int64_t offset = range->max().offset() + a->offset();
 
-
   *a = CanonicalizeBoundary(
       RangeBoundary::FromDefinition(range->max().symbol(), offset),
       RangeBoundary::PositiveInfinity());
@@ -1241,13 +1240,8 @@ static bool CanonicalizeForComparison(RangeBoundary* a,
     return false;
   }
 
-  if (DependOnSameSymbol(*a, *b)) {
-    return true;
-  }
-
-
-  RangeBoundary canonical_a = CanonicalizeBoundary(*a, overflow);
-  RangeBoundary canonical_b = CanonicalizeBoundary(*b, overflow);
+  RangeBoundary canonical_a = *a;
+  RangeBoundary canonical_b = *b;
 
   do {
     if (DependOnSameSymbol(canonical_a, canonical_b)) {
