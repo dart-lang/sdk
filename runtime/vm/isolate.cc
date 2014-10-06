@@ -1009,7 +1009,17 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
   ASSERT(top_resource() == NULL);
-  ASSERT((heap_ == NULL) || heap_->Verify());
+#if defined(DEBUG)
+  if (heap_ != NULL) {
+    // Wait for concurrent GC tasks to finish before final verification.
+    PageSpace* old_space = heap_->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    while (old_space->tasks() > 0) {
+      ml.Wait();
+    }
+    heap_->Verify(kForbidMarked);
+  }
+#endif  // DEBUG
 
   // Remove this isolate from the list *before* we start tearing it down, to
   // avoid exposing it in a state of decay.

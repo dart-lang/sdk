@@ -656,7 +656,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   }
 
   if (FLAG_verify_before_gc) {
-    OS::PrintErr("Verifying before MarkSweep...");
+    OS::PrintErr("Verifying before marking...");
     heap_->Verify();
     OS::PrintErr(" done.\n");
   }
@@ -689,6 +689,11 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   int64_t mid3 = 0;
 
   {
+    if (FLAG_verify_before_gc) {
+      OS::PrintErr("Verifying before sweeping...");
+      heap_->Verify(kAllowMarked);
+      OS::PrintErr(" done.\n");
+    }
     GCSweeper sweeper;
 
     // During stop-the-world phases we should use bulk lock when adding elements
@@ -744,6 +749,11 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
         // Advance to the next page.
         page = next_page;
       }
+      if (FLAG_verify_after_gc) {
+        OS::PrintErr("Verifying after sweeping...");
+        heap_->Verify(kForbidMarked);
+        OS::PrintErr(" done.\n");
+      }
     } else {
       // Start the concurrent sweeper task now.
       GCSweeper::SweepConcurrent(
@@ -770,12 +780,6 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     freelist_[HeapPage::kData].Print();
     OS::Print("Executable Freelist (after GC):\n");
     freelist_[HeapPage::kExecutable].Print();
-  }
-
-  if (FLAG_verify_after_gc) {
-    OS::PrintErr("Verifying after MarkSweep...");
-    heap_->Verify(FLAG_concurrent_sweep ? kAllowMarked : kForbidMarked);
-    OS::PrintErr(" done.\n");
   }
 
   // Done, reset the task count.

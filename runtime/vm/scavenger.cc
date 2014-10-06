@@ -797,10 +797,10 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   PageSpace* page_space = heap_->old_space();
   NoHandleScope no_handles(isolate);
 
-  if (FLAG_verify_before_gc) {
+  // TODO(koda): Make verification more compatible with concurrent sweep.
+  if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
     OS::PrintErr("Verifying before Scavenge...");
-    // TODO(koda): Check whether sweeper is actually running.
-    heap_->Verify(FLAG_concurrent_sweep ? kAllowMarked : kForbidMarked);
+    heap_->Verify(kForbidMarked);
     OS::PrintErr(" done.\n");
   }
 
@@ -837,10 +837,10 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
                                    visitor.bytes_promoted() >> kWordSizeLog2));
   Epilogue(isolate, &visitor, invoke_api_callbacks);
 
-  if (FLAG_verify_after_gc) {
+  // TODO(koda): Make verification more compatible with concurrent sweep.
+  if (FLAG_verify_after_gc && !FLAG_concurrent_sweep) {
     OS::PrintErr("Verifying after Scavenge...");
-    // TODO(koda): Check whether sweeper is actually running.
-    heap_->Verify(FLAG_concurrent_sweep ? kAllowMarked : kForbidMarked);
+    heap_->Verify(kForbidMarked);
     OS::PrintErr(" done.\n");
   }
 
