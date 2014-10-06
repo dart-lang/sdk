@@ -26,6 +26,7 @@ import 'package:compiler/compiler.dart' as api;
 
 import 'package:compiler/implementation/dart2jslib.dart' show
     Compiler,
+    CompilerTask,
     Enqueuer,
     QueueFilter,
     WorkItem;
@@ -94,6 +95,8 @@ const bool PRINT_SCOPE_INFO =
     const bool.fromEnvironment('PRINT_SCOPE_INFO', defaultValue: true);
 
 Stopwatch wallClock = new Stopwatch();
+
+PoiTask poiTask;
 
 Compiler cachedCompiler;
 
@@ -372,6 +375,9 @@ Future<Element> runPoi(
   LibraryUpdater updater =
       new LibraryUpdater(
           cachedCompiler, inputProvider, script, printWallClock, printVerbose);
+  Future<bool> reuseLibrary(LibraryElement library) {
+    return poiTask.measure(() => updater.reuseLibrary(library));
+  }
 
   return reuseCompiler(
       diagnosticHandler: handler,
@@ -381,7 +387,7 @@ Future<Element> runPoi(
       libraryRoot: libraryRoot,
       packageRoot: packageRoot,
       packagesAreImmutable: true,
-      reuseLibrary: updater.reuseLibrary).then((Compiler newCompiler) {
+      reuseLibrary: reuseLibrary).then((Compiler newCompiler) {
     var filter = new ScriptOnlyFilter(script);
     newCompiler.enqueuerFilter = filter;
     return runPoiInternal(newCompiler, updater, position);
@@ -392,7 +398,12 @@ Future<Element> runPoiInternal(
     Compiler newCompiler,
     LibraryUpdater updater,
     int position) {
+
   cachedCompiler = newCompiler;
+  if (poiTask == null || poiTask.compiler != cachedCompiler) {
+    poiTask = new PoiTask(cachedCompiler);
+    cachedCompiler.tasks.add(poiTask);
+  }
 
   Future<bool> compilation = cachedCompiler.run(updater.uri);
 
@@ -726,4 +737,10 @@ modelx.ScopeX localScope(modelx.LibraryElementX element) => element.localScope;
 
 modelx.ImportScope importScope(modelx.LibraryElementX element) {
   return element.importScope;
+}
+
+class PoiTask extends CompilerTask {
+  PoiTask(Compiler compiler) : super(compiler);
+
+  String get name => 'POI';
 }
