@@ -12,6 +12,7 @@
 #include "vm/pages.h"
 #include "vm/scavenger.h"
 #include "vm/spaces.h"
+#include "vm/verifier.h"
 #include "vm/weak_table.h"
 
 namespace dart {
@@ -156,7 +157,7 @@ class Heap {
                    intptr_t max_old_gen_words);
 
   // Verify that all pointers in the heap point to the heap.
-  bool Verify() const;
+  bool Verify(MarkExpectation mark_expectation = kForbidMarked) const;
 
   // Print heap sizes.
   void PrintSizes() const;
@@ -170,7 +171,7 @@ class Heap {
 
   intptr_t Collections(Space space) const;
 
-  ObjectSet* CreateAllocatedObjectSet() const;
+  ObjectSet* CreateAllocatedObjectSet(MarkExpectation mark_expectation) const;
 
   static const char* GCReasonToString(GCReason gc_reason);
 

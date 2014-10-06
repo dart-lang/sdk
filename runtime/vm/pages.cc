@@ -774,7 +774,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
 
   if (FLAG_verify_after_gc) {
     OS::PrintErr("Verifying after MarkSweep...");
-    heap_->Verify();
+    heap_->Verify(FLAG_concurrent_sweep ? kAllowMarked : kForbidMarked);
     OS::PrintErr(" done.\n");
   }
 

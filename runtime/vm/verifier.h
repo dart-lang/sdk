@@ -17,17 +17,29 @@ class Isolate;
 class ObjectSet;
 class RawObject;
 
+
+enum MarkExpectation {
+  kForbidMarked,
+  kAllowMarked,
+  kRequireMarked
+};
+
+
 class VerifyObjectVisitor : public ObjectVisitor {
  public:
-  VerifyObjectVisitor(Isolate* isolate, ObjectSet* allocated_set)
+  VerifyObjectVisitor(Isolate* isolate,
+                     ObjectSet* allocated_set,
+                     MarkExpectation mark_expectation)
       : ObjectVisitor(isolate),
-        allocated_set_(allocated_set) {
+        allocated_set_(allocated_set),
+        mark_expectation_(mark_expectation) {
   }
 
   virtual void VisitObject(RawObject* obj);
 
  private:
   ObjectSet* allocated_set_;
+  MarkExpectation mark_expectation_;
 
   DISALLOW_COPY_AND_ASSIGN(VerifyObjectVisitor);
 };
@@ -43,7 +55,7 @@ class VerifyPointersVisitor : public ObjectPointerVisitor {
 
   virtual void VisitPointers(RawObject** first, RawObject** last);
 
-  static void VerifyPointers();
+  static void VerifyPointers(MarkExpectation mark_expectation = kForbidMarked);
 
  private:
   ObjectSet* allocated_set_;

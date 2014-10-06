@@ -28,6 +28,7 @@ DEFINE_FLAG(int, early_tenuring_threshold, 66,
 DEFINE_FLAG(int, new_gen_garbage_threshold, 90,
             "Grow new gen when less than this percentage is garbage.");
 DEFINE_FLAG(int, new_gen_growth_factor, 4, "Grow new gen by this factor.");
+DECLARE_FLAG(bool, concurrent_sweep);
 
 // Scavenger uses RawObject::kMarkBit to distinguish forwaded and non-forwarded
 // objects. The kMarkBit does not intersect with the target address because of
@@ -798,7 +799,8 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
 
   if (FLAG_verify_before_gc) {
     OS::PrintErr("Verifying before Scavenge...");
-    heap_->Verify();
+    // TODO(koda): Check whether sweeper is actually running.
+    heap_->Verify(FLAG_concurrent_sweep ? kAllowMarked : kForbidMarked);
     OS::PrintErr(" done.\n");
   }
 
@@ -837,7 +839,8 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
 
   if (FLAG_verify_after_gc) {
     OS::PrintErr("Verifying after Scavenge...");
-    heap_->Verify();
+    // TODO(koda): Check whether sweeper is actually running.
+    heap_->Verify(FLAG_concurrent_sweep ? kAllowMarked : kForbidMarked);
     OS::PrintErr(" done.\n");
   }
 

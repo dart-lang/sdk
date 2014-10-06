@@ -460,7 +460,8 @@ void Heap::GetMergedAddressRange(uword* start, uword* end) const {
 }
 
 
-ObjectSet* Heap::CreateAllocatedObjectSet() const {
+ObjectSet* Heap::CreateAllocatedObjectSet(
+    MarkExpectation mark_expectation) const {
   uword start = static_cast<uword>(-1);
   uword end = 0;
   Isolate* vm_isolate = Dart::vm_isolate();
@@ -468,17 +469,23 @@ ObjectSet* Heap::CreateAllocatedObjectSet() const {
   this->GetMergedAddressRange(&start, &end);
 
   ObjectSet* allocated_set = new ObjectSet(start, end);
-
-  VerifyObjectVisitor object_visitor(isolate(), allocated_set);
-  this->IterateObjects(&object_visitor);
-  vm_isolate->heap()->IterateObjects(&object_visitor);
-
+  {
+    VerifyObjectVisitor object_visitor(
+        isolate(), allocated_set, mark_expectation);
+    this->IterateObjects(&object_visitor);
+  }
+  {
+    // VM isolate heap is premarked.
+    VerifyObjectVisitor vm_object_visitor(
+        isolate(), allocated_set, kRequireMarked);
+    vm_isolate->heap()->IterateObjects(&vm_object_visitor);
+  }
   return allocated_set;
 }
 
 
-bool Heap::Verify() const {
-  ObjectSet* allocated_set = CreateAllocatedObjectSet();
+bool Heap::Verify(MarkExpectation mark_expectation) const {
+  ObjectSet* allocated_set = CreateAllocatedObjectSet(mark_expectation);
   VerifyPointersVisitor visitor(isolate(), allocated_set);
   IteratePointers(&visitor);
   delete allocated_set;
