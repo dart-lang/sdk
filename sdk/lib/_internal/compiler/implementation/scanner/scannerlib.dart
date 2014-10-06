@@ -11,6 +11,7 @@ import '../elements/elements.dart';
 
 import '../elements/modelx.dart' show
     ClassElementX,
+    CompilationUnitElementX,
     ConstructorElementX,
     DeclarationSite,
     ElementX,

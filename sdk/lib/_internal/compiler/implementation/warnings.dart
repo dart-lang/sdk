@@ -1865,7 +1865,16 @@ main() {
       // See [MISSING_TOKEN_BEFORE_THIS], we don't have enough information to
       // give a good suggestion.
       howToFix: DONT_KNOW_HOW_TO_FIX,
-      examples: const ["main(x) {x}"]);
+      examples: const [
+          "main(x) {x}",
+"""
+class S1 {}
+class S2 {}
+class S3 {}
+class A = S1 with S2, S3
+main() => new A();
+"""
+]);
 
   static const MessageKind CONSIDER_ANALYZE_ALL = const MessageKind(
       "Could not find '#{main}'.  Nothing will be analyzed.",

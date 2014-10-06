@@ -1116,8 +1116,48 @@ class ElementListener extends Listener {
   /// Finds the preceding token via the begin token of the last AST node pushed
   /// on the [nodes] stack.
   Token findPrecedingToken(Token token) {
-    if (!nodes.isEmpty && nodes.head != null) {
-      Token current = nodes.head.getBeginToken();
+    Token result;
+    Link<Node> nodes = this.nodes;
+    while (!nodes.isEmpty) {
+      result = findPrecedingTokenFromNode(nodes.head, token);
+      if (result != null) {
+        return result;
+      }
+      nodes = nodes.tail;
+    }
+    if (compilationUnitElement != null) {
+      if (compilationUnitElement is CompilationUnitElementX) {
+        Link<Element> members = compilationUnitElement.localMembers;
+        while (!members.isEmpty) {
+          DeclarationSite site = members.head.declarationSite;
+          if (site is PartialElement) {
+            result = findPrecedingTokenFromToken(site.endToken, token);
+            if (result != null) {
+              return result;
+            }
+          }
+          members = members.tail;
+        }
+        result =
+            findPrecedingTokenFromNode(compilationUnitElement.partTag, token);
+        if (result != null) {
+          return result;
+        }
+      }
+    }
+    return token;
+  }
+
+  Token findPrecedingTokenFromNode(Node node, Token token) {
+    if (node != null) {
+      return findPrecedingTokenFromToken(node.getBeginToken(), token);
+    }
+    return null;
+  }
+
+  Token findPrecedingTokenFromToken(Token start, Token token) {
+    if (start != null) {
+      Token current = start;
       while (current.kind != EOF_TOKEN && current.next != token) {
         current = current.next;
       }
@@ -1125,7 +1165,7 @@ class ElementListener extends Listener {
         return current;
       }
     }
-    return token;
+    return null;
   }
 
   Token expectedIdentifier(Token token) {
