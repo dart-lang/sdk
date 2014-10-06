@@ -481,14 +481,14 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
                                    visitExpression(exp.values[i])));
     List<TypeAnnotation> typeArguments = exp.type.treatAsRaw
         ? null
-        : exp.type.typeArguments.map(emitType).toList(growable: false);
+        : exp.type.typeArguments.map(createTypeAnnotation).toList(growable: false);
     return new LiteralMap(entries, typeArguments: typeArguments);
   }
 
   Expression visitTypeOperator(tree.TypeOperator exp) {
     return new TypeOperator(visitExpression(exp.receiver),
                             exp.operator,
-                            emitType(exp.type));
+                            createTypeAnnotation(exp.type));
   }
 
   List<Argument> emitArguments(tree.Invoke exp) {
@@ -575,7 +575,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     List args = emitArguments(exp);
     FunctionElement constructor = exp.target;
     String name = constructor.name.isEmpty ? null : constructor.name;
-    return new CallNew(emitType(exp.type),
+    return new CallNew(createTypeAnnotation(exp.type),
                        args,
                        constructorName: name,
                        isConst: exp.constant != null)
@@ -629,43 +629,43 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     visitStatement(node.next);
   }
 
-  TypeAnnotation emitType(DartType type) {
-    if (type is GenericType) {
-      if (type.treatAsRaw) {
-        return new TypeAnnotation(type.element.name)..dartType = type;
-      }
-      return new TypeAnnotation(
-          type.element.name,
-          type.typeArguments.map(emitType).toList(growable:false))
-          ..dartType = type;
-    } else if (type is VoidType) {
-      return new TypeAnnotation('void')
-          ..dartType = type;
-    } else if (type is TypeVariableType) {
-      return new TypeAnnotation(type.name)
-          ..dartType = type;
-    } else if (type is DynamicType) {
-      return new TypeAnnotation("dynamic")
-          ..dartType = type;
-    } else if (type is MalformedType) {
-      return new TypeAnnotation(type.name)
-          ..dartType = type;
-    } else {
-      throw "Unsupported type annotation: $type";
-    }
-  }
-
-  /// Like [emitType] except the dynamic type is converted to null.
+  /// Like [createTypeAnnotation] except the dynamic type is converted to null.
   TypeAnnotation emitOptionalType(DartType type) {
     if (type.treatAsDynamic) {
       return null;
     } else {
-      return emitType(type);
+      return createTypeAnnotation(type);
     }
   }
 
   Expression emitConstant(ConstantExpression exp) {
     return new ConstantEmitter(this).visit(exp);
+  }
+}
+
+TypeAnnotation createTypeAnnotation(DartType type) {
+  if (type is GenericType) {
+    if (type.treatAsRaw) {
+      return new TypeAnnotation(type.element.name)..dartType = type;
+    }
+    return new TypeAnnotation(
+        type.element.name,
+        type.typeArguments.map(createTypeAnnotation).toList(growable:false))
+        ..dartType = type;
+  } else if (type is VoidType) {
+    return new TypeAnnotation('void')
+        ..dartType = type;
+  } else if (type is TypeVariableType) {
+    return new TypeAnnotation(type.name)
+        ..dartType = type;
+  } else if (type is DynamicType) {
+    return new TypeAnnotation("dynamic")
+        ..dartType = type;
+  } else if (type is MalformedType) {
+    return new TypeAnnotation(type.name)
+        ..dartType = type;
+  } else {
+    throw "Unsupported type annotation: $type";
   }
 }
 
@@ -726,7 +726,7 @@ class ConstantEmitter extends ConstantExpressionVisitor<Expression> {
                                    visit(exp.values[i])));
     List<TypeAnnotation> typeArguments = exp.type.treatAsRaw
         ? null
-        : exp.type.typeArguments.map(parent.emitType).toList();
+        : exp.type.typeArguments.map(createTypeAnnotation).toList();
     return new LiteralMap(entries, isConst: true, typeArguments: typeArguments);
   }
 
@@ -743,7 +743,7 @@ class ConstantEmitter extends ConstantExpressionVisitor<Expression> {
 
     FunctionElement constructor = exp.target;
     String name = constructor.name.isEmpty ? null : constructor.name;
-    return new CallNew(parent.emitType(exp.type),
+    return new CallNew(createTypeAnnotation(exp.type),
                        args,
                        constructorName: name,
                        isConst: true)

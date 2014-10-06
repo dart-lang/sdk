@@ -92,10 +92,11 @@ class Unparser extends Indentation implements Visitor {
   }
 
   unparseClassWithBody(ClassNode node, members) {
-    addToken(node.beginToken);
-    if (node.beginToken.stringValue == 'abstract') {
-      addToken(node.beginToken.next);
+    if (!node.modifiers.nodes.isEmpty) {
+      visit(node.modifiers);
+      write(' ');
     }
+    write('class ');
     visit(node.name);
     if (node.typeParameters != null) {
       visit(node.typeParameters);

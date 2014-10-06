@@ -1296,7 +1296,9 @@ abstract class ClassElement extends TypeDeclarationElement
   bool get hasBackendMembers;
   bool get hasLocalScopeMembers;
 
-  bool isObject(Compiler compiler);
+  /// Returns `true` if this class is `Object` from dart:core.
+  bool get isObject;
+
   bool isSubclassOf(ClassElement cls);
   /// Returns true if `this` explicitly/nominally implements [intrface].
   ///

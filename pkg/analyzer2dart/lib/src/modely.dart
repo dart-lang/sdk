@@ -485,6 +485,9 @@ class ClassElementY extends TypeDeclarationElementY
 
   dart2js.ElementKind get kind => dart2js.ElementKind.CLASS;
 
+  @override
+  bool get isObject => element.type.isObject;
+
   ClassElementY(ElementConverter converter, analyzer.ClassElement element)
       : super(converter, element);
 
@@ -569,9 +572,6 @@ class ClassElementY extends TypeDeclarationElementY
   get interfaces => unsupported('interfaces');
 
   @override
-  bool isObject(compiler) => unsupported('isObject');
-
-  @override
   bool get isProxy => unsupported('isProxy');
 
   @override
@@ -629,6 +629,9 @@ class ClassElementY extends TypeDeclarationElementY
   @override
   dart2js.ClassElement get superclass => unsupported('superclass');
 
+  // TODO(johnniwinther): Semantic difference: Dart2js points to unnamed
+  // mixin applications, analyzer points to the type in the extends clause or
+  // Object if omitted.
   @override
   dart2js.DartType get supertype => unsupported('supertype');
 

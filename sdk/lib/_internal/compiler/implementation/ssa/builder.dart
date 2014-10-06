@@ -1847,7 +1847,7 @@ class SsaBuilder extends ResolvedVisitor {
       // the class is not Object.
       ClassElement enclosingClass = constructor.enclosingClass;
       ClassElement superClass = enclosingClass.superclass;
-      if (!enclosingClass.isObject(compiler)) {
+      if (!enclosingClass.isObject) {
         assert(superClass != null);
         assert(superClass.resolutionState == STATE_DONE);
         Selector selector =

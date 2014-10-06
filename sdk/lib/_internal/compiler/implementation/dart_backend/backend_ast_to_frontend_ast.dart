@@ -12,6 +12,7 @@ import '../tree/tree.dart' as tree;
 import '../scanner/scannerlib.dart';
 import '../util/util.dart';
 import 'backend_ast_nodes.dart';
+import 'backend_ast_emitter.dart' show createTypeAnnotation;
 
 /// Translates the backend AST to Dart frontend AST.
 tree.FunctionExpression emit(dart2js.TreeElementMapping treeElements,
@@ -107,6 +108,10 @@ class TreePrinter {
   final Token finallyToken = makeIdToken('finally');
   final Token getToken = makeIdToken('get');
   final Token setToken = makeIdToken('set');
+  final Token classToken = makeIdToken('class');
+  final Token extendsToken = makeIdToken('extends');
+  final Token withToken = makeIdToken('with');
+  final Token implementsToken = makeIdToken('implements');
 
   static tree.Identifier makeIdentifier(String name) {
     return new tree.Identifier(
@@ -922,32 +927,196 @@ class TreePrinter {
     return new tree.Modifiers(blankList());
   }
 
-  tree.Modifiers makeVarModifiers({bool isConst: false,
-                               bool isFinal: false,
-                               bool useVar: false}) {
+  tree.Modifiers makeModifiers({bool isStatic: false,
+                                bool isAbstract: false,
+                                bool isFactory: false,
+                                bool isConst: false,
+                                bool isFinal: false,
+                                bool isVar: false}) {
     List<tree.Node> nodes = [];
+    if (isStatic) {
+      nodes.add(makeIdentifier('static'));
+    }
+    if (isAbstract) {
+      nodes.add(makeIdentifier('abstract'));
+    }
+    if (isFactory) {
+      nodes.add(makeIdentifier('factory'));
+    }
     if (isConst) {
       nodes.add(makeIdentifier('const'));
     }
     if (isFinal) {
       nodes.add(makeIdentifier('final'));
     }
-    if (useVar && nodes.isEmpty) {
+    if (isVar) {
       nodes.add(makeIdentifier('var'));
     }
     return new tree.Modifiers(makeList('', nodes));
   }
 
+  tree.Modifiers makeVarModifiers({bool isConst: false,
+                                   bool isFinal: false,
+                                   bool useVar: false}) {
+    return makeModifiers(isConst: isConst,
+                         isFinal: isFinal,
+                         isVar: useVar && !(isConst || isFinal));
+  }
+
   tree.Modifiers makeFunctionModifiers(FunctionExpression exp) {
     if (exp.element == null) return makeEmptyModifiers();
-    List<tree.Node> modifiers = new List<tree.Node>();
-    if (exp.element.isFactoryConstructor) {
-      modifiers.add(makeIdentifier("factory"));
+    return makeModifiers(isStatic: exp.element.isStatic,
+                         isFactory: exp.element.isFactoryConstructor);
+  }
+
+  tree.Node makeNodeForClassElement(elements.ClassElement cls) {
+    if (cls.isMixinApplication) {
+      return makeNamedMixinApplication(cls);
+    } else {
+      return makeClassNode(cls);
     }
-    if (exp.element.isStatic) {
-      modifiers.add(makeIdentifier("static"));
+  }
+
+  /// Create a [tree.NodeList] containing the type variable declarations in
+  /// [typeVaraiables.
+  tree.NodeList makeTypeParameters(List<types.DartType> typeVariables) {
+    if (typeVariables.isEmpty) {
+      return new tree.NodeList.empty();
+    } else {
+      List<tree.Node> typeVariableList = <tree.Node>[];
+      for (types.TypeVariableType typeVariable in typeVariables) {
+        tree.Node id = makeIdentifier(typeVariable.name);
+        treeElements[id] = typeVariable.element;
+        tree.Node bound;
+        if (!typeVariable.element.bound.isObject) {
+          bound = makeType(createTypeAnnotation(typeVariable.element.bound));
+        }
+        tree.TypeVariable node = new tree.TypeVariable(id, bound);
+        treeElements.setType(node, typeVariable);
+        typeVariableList.add(node);
+      }
+      return makeList(',', typeVariableList, open: lt, close: gt);
     }
-    return new tree.Modifiers(makeList('', modifiers));
+  }
+
+  /// Create a [tree.NodeList] containing the declared interfaces.
+  ///
+  /// [interfaces] is from [elements.ClassElement] in reverse declaration order
+  /// and it contains mixins. To produce a list of the declared interfaces only,
+  /// interfaces in [mixinTypes] are omitted.
+  ///
+  /// [forNamedMixinApplication] is because the structure of the [tree.NodeList]
+  /// differs between [tree.NamedMixinApplication] and [tree.ClassNode].
+  // TODO(johnniwinther): Normalize interfaces on[tree.NamedMixinApplication]
+  // and [tree.ClassNode].
+  tree.NodeList makeInterfaces(Link<types.DartType> interfaces,
+                               Set<types.DartType> mixinTypes,
+                               {bool forNamedMixinApplication: false}) {
+    Link<tree.Node> typeAnnotations = const Link<tree.Node>();
+    for (Link<types.DartType> link = interfaces;
+         !link.isEmpty;
+         link = link.tail) {
+      types.DartType interface = link.head;
+      if (!mixinTypes.contains(interface)) {
+        typeAnnotations =
+            typeAnnotations.prepend(makeType(createTypeAnnotation(interface)));
+      }
+    }
+    if (typeAnnotations.isEmpty) {
+      return forNamedMixinApplication ? null : new tree.NodeList.empty();
+    } else {
+      return new tree.NodeList(
+          forNamedMixinApplication ? null : implementsToken,
+          typeAnnotations, null, ',');
+    }
+  }
+
+  /// Creates a [tree.NamedMixinApplication] node for [cls].
+  // TODO(johnniwinther): Unify creation of mixin lists between
+  // [NamedMixinApplicationElement] and [ClassElement].
+  tree.NamedMixinApplication makeNamedMixinApplication(
+       elements.MixinApplicationElement cls) {
+
+    assert(dart2js.invariant(cls, !cls.isUnnamedMixinApplication,
+        message: "Cannot create ClassNode for unnamed mixin application "
+                 "$cls."));
+    tree.Modifiers modifiers = makeModifiers(isAbstract: cls.isAbstract);
+    tree.Identifier name = makeIdentifier(cls.name);
+    tree.NodeList typeParameters = makeTypeParameters(cls.typeVariables);
+
+    Set<types.DartType> mixinTypes = new Set<types.DartType>();
+    Link<tree.Node> mixins = const Link<tree.Node>();
+
+    void addMixin(types.DartType mixinType) {
+      mixinTypes.add(mixinType);
+      mixins = mixins.prepend(makeType(createTypeAnnotation(mixinType)));
+    }
+
+    addMixin(cls.mixinType);
+
+    tree.Node superclass;
+    types.InterfaceType supertype = cls.supertype;
+    while (supertype.element.isUnnamedMixinApplication) {
+      elements.MixinApplicationElement mixinApplication = supertype.element;
+      addMixin(cls.asInstanceOf(mixinApplication.mixin));
+      supertype = mixinApplication.supertype;
+    }
+    superclass =
+        makeType(createTypeAnnotation(cls.asInstanceOf(supertype.element)));
+    tree.Node supernode = new tree.MixinApplication(
+        superclass, new tree.NodeList(null, mixins, null, ','));
+
+    tree.NodeList interfaces = makeInterfaces(
+        cls.interfaces, mixinTypes, forNamedMixinApplication: true);
+
+    return new tree.NamedMixinApplication(
+        name, typeParameters, modifiers, supernode,
+        interfaces, classToken, semicolon);
+  }
+
+  /// Creates a [tree.ClassNode] node for [cls].
+  tree.ClassNode makeClassNode(elements.ClassElement cls) {
+    assert(dart2js.invariant(cls, !cls.isUnnamedMixinApplication,
+        message: "Cannot create ClassNode for unnamed mixin application "
+                 "$cls."));
+    tree.Modifiers modifiers = makeModifiers(isAbstract: cls.isAbstract);
+    tree.Identifier name = makeIdentifier(cls.name);
+    tree.NodeList typeParameters = makeTypeParameters(cls.typeVariables);
+    tree.Node supernode;
+    types.InterfaceType supertype = cls.supertype;
+    Set<types.DartType> mixinTypes = new Set<types.DartType>();
+    Link<tree.Node> mixins = const Link<tree.Node>();
+
+    void addMixin(types.DartType mixinType) {
+      mixinTypes.add(mixinType);
+      mixins = mixins.prepend(makeType(createTypeAnnotation(mixinType)));
+    }
+
+    if (supertype != null) {
+      tree.Node superclass;
+      if (supertype.element.isUnnamedMixinApplication) {
+        while (supertype.element.isUnnamedMixinApplication) {
+          elements.MixinApplicationElement mixinApplication = supertype.element;
+          addMixin(cls.asInstanceOf(mixinApplication.mixin));
+          supertype = mixinApplication.supertype;
+        }
+        tree.Node superclass =
+            makeType(createTypeAnnotation(cls.asInstanceOf(supertype.element)));
+        supernode = new tree.MixinApplication(
+            superclass, new tree.NodeList(null, mixins, null, ','));
+      } else if (!supertype.isObject) {
+        supernode = makeType(createTypeAnnotation(supertype));
+      }
+    }
+    tree.NodeList interfaces = makeInterfaces(
+        cls.interfaces, mixinTypes);
+
+    Token extendsKeyword = supernode != null ? extendsToken : null;
+    return new tree.ClassNode(
+        modifiers, name, typeParameters, supernode,
+        interfaces, openBrace, extendsKeyword,
+        null, // No body.
+        closeBrace);
   }
 
   tree.Node functionName(FunctionExpression exp) {

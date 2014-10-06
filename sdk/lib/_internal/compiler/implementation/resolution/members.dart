@@ -1079,7 +1079,7 @@ class ResolverTask extends CompilerTask {
     }
 
     // Check that the mixed in class has Object as its superclass.
-    if (!mixin.superclass.isObject(compiler)) {
+    if (!mixin.superclass.isObject) {
       compiler.reportError(mixin, MessageKind.ILLEGAL_MIXIN_SUPERCLASS);
     }
 
@@ -1125,7 +1125,7 @@ class ResolverTask extends CompilerTask {
 
   void checkClassMembers(ClassElement cls) {
     assert(invariant(cls, cls.isDeclaration));
-    if (cls.isObject(compiler)) return;
+    if (cls.isObject) return;
     // TODO(johnniwinther): Should this be done on the implementation element as
     // well?
     List<Element> constConstructors = <Element>[];

@@ -2006,11 +2006,11 @@ abstract class BaseClassElementX extends ElementX
     return allSupertypesAndSelf.asInstanceOf(cls);
   }
 
-  /**
-   * Return [:true:] if this element is the [:Object:] class for the [compiler].
-   */
-  bool isObject(Compiler compiler) =>
-      identical(declaration, compiler.objectClass);
+  bool get isObject {
+    assert(invariant(this, isResolved,
+        message: "isObject has not been computed for $this."));
+    return supertype == null;
+  }
 
   void ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
