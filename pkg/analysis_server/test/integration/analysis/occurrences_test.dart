@@ -31,17 +31,17 @@ main() {
     sendAnalysisSetSubscriptions({
       AnalysisService.OCCURRENCES: [pathname]
     });
-    List occurrences;
-    onAnalysisOccurrences.listen((params) {
-      expect(params['file'], equals(pathname));
-      occurrences = params['occurrences'];
+    List<Occurrences> occurrences;
+    onAnalysisOccurrences.listen((AnalysisOccurrencesParams params) {
+      expect(params.file, equals(pathname));
+      occurrences = params.occurrences;
     });
     return analysisFinished.then((_) {
       expect(currentAnalysisErrors[pathname], isEmpty);
       Set<int> findOffsets(String elementName) {
-        for (Map occurrence in occurrences) {
-          if (occurrence['element']['name'] == elementName) {
-            return occurrence['offsets'].toSet();
+        for (Occurrences occurrence in occurrences) {
+          if (occurrence.element.name == elementName) {
+            return occurrence.offsets.toSet();
           }
         }
         fail('No element found matching $elementName');

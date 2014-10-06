@@ -41,27 +41,27 @@ class Class2 {
     sendAnalysisSetSubscriptions({
       AnalysisService.OUTLINE: [pathname]
     });
-    Map outline;
-    onAnalysisOutline.listen((params) {
-      expect(params['file'], equals(pathname));
-      outline = params['outline'];
+    Outline outline;
+    onAnalysisOutline.listen((AnalysisOutlineParams params) {
+      expect(params.file, equals(pathname));
+      outline = params.outline;
     });
     return analysisFinished.then((_) {
-      expect(outline['element']['kind'], equals('COMPILATION_UNIT'));
-      expect(outline['offset'], equals(0));
-      expect(outline['length'], equals(text.length));
-      List classes = outline['children'];
+      expect(outline.element.kind, equals(ElementKind.COMPILATION_UNIT));
+      expect(outline.offset, equals(0));
+      expect(outline.length, equals(text.length));
+      List<Outline> classes = outline.children;
       expect(classes, hasLength(2));
-      expect(classes[0]['element']['name'], equals('Class1'));
-      expect(classes[1]['element']['name'], equals('Class2'));
+      expect(classes[0].element.name, equals('Class1'));
+      expect(classes[1].element.name, equals('Class2'));
       checkConnected(classes);
-      List members = classes[0]['children'];
+      List<Outline> members = classes[0].children;
       expect(members, hasLength(5));
-      expect(members[0]['element']['name'], equals('field'));
-      expect(members[1]['element']['name'], equals('method'));
-      expect(members[2]['element']['name'], equals('staticMethod'));
-      expect(members[3]['element']['name'], equals('getter'));
-      expect(members[4]['element']['name'], equals('setter'));
+      expect(members[0].element.name, equals('field'));
+      expect(members[1].element.name, equals('method'));
+      expect(members[2].element.name, equals('staticMethod'));
+      expect(members[3].element.name, equals('getter'));
+      expect(members[4].element.name, equals('setter'));
       checkConnected(members);
     });
   }
@@ -71,10 +71,10 @@ class Class2 {
    * is connected (the end of each object in the list corresponds to the start
    * of the next).
    */
-  void checkConnected(List outlineObjects) {
+  void checkConnected(List<Outline> outlineObjects) {
     for (int i = 0; i < outlineObjects.length - 1; i++) {
-      expect(outlineObjects[i + 1]['offset'], equals(outlineObjects[i]['offset']
-          + outlineObjects[i]['length']));
+      expect(outlineObjects[i + 1].offset, equals(outlineObjects[i].offset
+          + outlineObjects[i].length));
     }
   }
 }

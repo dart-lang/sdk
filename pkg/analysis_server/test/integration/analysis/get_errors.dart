@@ -33,9 +33,7 @@ main() {
     standardAnalysisSetup();
     Future finishTest() {
       return sendAnalysisGetErrors(pathname).then((result) {
-        expect(
-            result.errors.map((error) => error.toJson()),
-            equals(currentAnalysisErrors[pathname]));
+        expect(result.errors, equals(currentAnalysisErrors[pathname]));
       });
     }
     if (afterAnalysis) {

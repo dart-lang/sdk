@@ -53,17 +53,17 @@ class Target extends Base implements Interface1, Interface2 {
     sendAnalysisSetSubscriptions({
       AnalysisService.OVERRIDES: [pathname]
     });
-    List overrides;
-    onAnalysisOverrides.listen((params) {
-      expect(params['file'], equals(pathname));
-      overrides = params['overrides'];
+    List<Override> overrides;
+    onAnalysisOverrides.listen((AnalysisOverridesParams params) {
+      expect(params.file, equals(pathname));
+      overrides = params.overrides;
     });
     return analysisFinished.then((_) {
       int targetOffset = text.indexOf('Target');
-      Map findOverride(String methodName) {
+      Override findOverride(String methodName) {
         int methodOffset = text.indexOf(methodName, targetOffset);
-        for (Map override in overrides) {
-          if (override['offset'] == methodOffset) {
+        for (Override override in overrides) {
+          if (override.offset == methodOffset) {
             return override;
           }
         }
@@ -71,7 +71,7 @@ class Target extends Base implements Interface1, Interface2 {
       }
       void checkOverrides(String methodName, bool
           expectedOverridesBase, List<String> expectedOverridesInterfaces) {
-        Map override = findOverride(methodName);
+        Override override = findOverride(methodName);
         if (!expectedOverridesBase && expectedOverridesInterfaces.isEmpty) {
           // This method overrides nothing, so it should not appear in the
           // overrides list.
@@ -80,28 +80,32 @@ class Target extends Base implements Interface1, Interface2 {
         } else {
           expect(override, isNotNull);
         }
-        expect(override['length'], equals(methodName.length));
-        Map superclassMember = override['superclassMember'];
+        expect(override.length, equals(methodName.length));
+        OverriddenMember superclassMember = override.superclassMember;
         if (expectedOverridesBase) {
-          expect(superclassMember['element']['name'], equals(methodName));
-          expect(superclassMember['className'], equals('Base'));
+          expect(superclassMember.element.name, equals(methodName));
+          expect(superclassMember.className, equals('Base'));
         } else {
           expect(superclassMember, isNull);
         }
-        List interfaceMembers = override['interfaceMembers'];
+        List<OverriddenMember> interfaceMembers = override.interfaceMembers;
         if (expectedOverridesInterfaces.isNotEmpty) {
           expect(interfaceMembers, isNotNull);
           Set<String> actualOverridesInterfaces = new Set<String>();
-          for (Map overriddenMember in interfaceMembers) {
-            expect(overriddenMember['element']['name'], equals(methodName));
-            String className = overriddenMember['className'];
+          for (OverriddenMember overriddenMember in interfaceMembers) {
+            expect(overriddenMember.element.name, equals(methodName));
+            String className = overriddenMember.className;
             bool wasAdded = actualOverridesInterfaces.add(className);
             expect(wasAdded, isTrue);
           }
           expect(actualOverridesInterfaces, equals(
               expectedOverridesInterfaces.toSet()));
         } else {
-          expect(interfaceMembers, isNull);
+          // TODO(paulberry): As a result of bug 21230, an Override with a
+          // missing interfaceMembers field is misinterpreted as having an
+          // interfaceMembers field which is an empty list.  Once bug 21230 is
+          // fixed this should be an "isNull" check.
+          expect(interfaceMembers, isEmpty);
         }
       }
       checkOverrides('method0', true, ['Interface1', 'Interface2']);

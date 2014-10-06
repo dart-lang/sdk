@@ -88,12 +88,12 @@ abstract class IntegrationTestMixin {
    *
    * It is not possible to subscribe to or unsubscribe from this notification.
    */
-  Stream onServerConnected;
+  Stream<ServerConnectedParams> onServerConnected;
 
   /**
    * Stream controller for [onServerConnected].
    */
-  StreamController _onServerConnected;
+  StreamController<ServerConnectedParams> _onServerConnected;
 
   /**
    * Reports that an unexpected error has occurred while executing the server.
@@ -120,12 +120,12 @@ abstract class IntegrationTestMixin {
    *   The stack trace associated with the generation of the error, used for
    *   debugging the server.
    */
-  Stream onServerError;
+  Stream<ServerErrorParams> onServerError;
 
   /**
    * Stream controller for [onServerError].
    */
-  StreamController _onServerError;
+  StreamController<ServerErrorParams> _onServerError;
 
   /**
    * Reports the current status of the server. Parameters are omitted if there
@@ -142,12 +142,12 @@ abstract class IntegrationTestMixin {
    *   The current status of analysis, including whether analysis is being
    *   performed and if so what is being analyzed.
    */
-  Stream onServerStatus;
+  Stream<ServerStatusParams> onServerStatus;
 
   /**
    * Stream controller for [onServerStatus].
    */
-  StreamController _onServerStatus;
+  StreamController<ServerStatusParams> _onServerStatus;
 
   /**
    * Return the errors associated with the given file. If the errors for the
@@ -418,12 +418,12 @@ abstract class IntegrationTestMixin {
    *
    *   The errors contained in the file.
    */
-  Stream onAnalysisErrors;
+  Stream<AnalysisErrorsParams> onAnalysisErrors;
 
   /**
    * Stream controller for [onAnalysisErrors].
    */
-  StreamController _onAnalysisErrors;
+  StreamController<AnalysisErrorsParams> _onAnalysisErrors;
 
   /**
    * Reports that any analysis results that were previously associated with the
@@ -444,12 +444,12 @@ abstract class IntegrationTestMixin {
    *
    *   The files that are no longer being analyzed.
    */
-  Stream onAnalysisFlushResults;
+  Stream<AnalysisFlushResultsParams> onAnalysisFlushResults;
 
   /**
    * Stream controller for [onAnalysisFlushResults].
    */
-  StreamController _onAnalysisFlushResults;
+  StreamController<AnalysisFlushResultsParams> _onAnalysisFlushResults;
 
   /**
    * Reports the folding regions associated with a given file. Folding regions
@@ -471,12 +471,12 @@ abstract class IntegrationTestMixin {
    *
    *   The folding regions contained in the file.
    */
-  Stream onAnalysisFolding;
+  Stream<AnalysisFoldingParams> onAnalysisFolding;
 
   /**
    * Stream controller for [onAnalysisFolding].
    */
-  StreamController _onAnalysisFolding;
+  StreamController<AnalysisFoldingParams> _onAnalysisFolding;
 
   /**
    * Reports the highlight regions associated with a given file.
@@ -499,12 +499,12 @@ abstract class IntegrationTestMixin {
    *   overlap other highlight regions if there is more than one meaning
    *   associated with a particular region.
    */
-  Stream onAnalysisHighlights;
+  Stream<AnalysisHighlightsParams> onAnalysisHighlights;
 
   /**
    * Stream controller for [onAnalysisHighlights].
    */
-  StreamController _onAnalysisHighlights;
+  StreamController<AnalysisHighlightsParams> _onAnalysisHighlights;
 
   /**
    * Reports the navigation targets associated with a given file.
@@ -529,12 +529,12 @@ abstract class IntegrationTestMixin {
    *   navigation regions that are returned do not overlap other navigation
    *   regions.
    */
-  Stream onAnalysisNavigation;
+  Stream<AnalysisNavigationParams> onAnalysisNavigation;
 
   /**
    * Stream controller for [onAnalysisNavigation].
    */
-  StreamController _onAnalysisNavigation;
+  StreamController<AnalysisNavigationParams> _onAnalysisNavigation;
 
   /**
    * Reports the occurrences of references to elements within a single file.
@@ -553,12 +553,12 @@ abstract class IntegrationTestMixin {
    *
    *   The occurrences of references to elements within the file.
    */
-  Stream onAnalysisOccurrences;
+  Stream<AnalysisOccurrencesParams> onAnalysisOccurrences;
 
   /**
    * Stream controller for [onAnalysisOccurrences].
    */
-  StreamController _onAnalysisOccurrences;
+  StreamController<AnalysisOccurrencesParams> _onAnalysisOccurrences;
 
   /**
    * Reports the outline associated with a single file.
@@ -577,12 +577,12 @@ abstract class IntegrationTestMixin {
    *
    *   The outline associated with the file.
    */
-  Stream onAnalysisOutline;
+  Stream<AnalysisOutlineParams> onAnalysisOutline;
 
   /**
    * Stream controller for [onAnalysisOutline].
    */
-  StreamController _onAnalysisOutline;
+  StreamController<AnalysisOutlineParams> _onAnalysisOutline;
 
   /**
    * Reports the overridding members in a file.
@@ -601,12 +601,12 @@ abstract class IntegrationTestMixin {
    *
    *   The overrides associated with the file.
    */
-  Stream onAnalysisOverrides;
+  Stream<AnalysisOverridesParams> onAnalysisOverrides;
 
   /**
    * Stream controller for [onAnalysisOverrides].
    */
-  StreamController _onAnalysisOverrides;
+  StreamController<AnalysisOverridesParams> _onAnalysisOverrides;
 
   /**
    * Request that completion suggestions for the given offset in the given file
@@ -675,12 +675,12 @@ abstract class IntegrationTestMixin {
    *   True if this is that last set of results that will be returned for the
    *   indicated completion.
    */
-  Stream onCompletionResults;
+  Stream<CompletionResultsParams> onCompletionResults;
 
   /**
    * Stream controller for [onCompletionResults].
    */
-  StreamController _onCompletionResults;
+  StreamController<CompletionResultsParams> _onCompletionResults;
 
   /**
    * Perform a search for references to the element defined or referenced at
@@ -879,12 +879,12 @@ abstract class IntegrationTestMixin {
    *   True if this is that last set of results that will be returned for the
    *   indicated search.
    */
-  Stream onSearchResults;
+  Stream<SearchResultsParams> onSearchResults;
 
   /**
    * Stream controller for [onSearchResults].
    */
-  StreamController _onSearchResults;
+  StreamController<SearchResultsParams> _onSearchResults;
 
   /**
    * Return the set of assists that are available at the given location. An
@@ -1238,45 +1238,45 @@ abstract class IntegrationTestMixin {
    *   A list of the Dart files that are referenced by the file. This field is
    *   omitted if the file is not an HTML file.
    */
-  Stream onExecutionLaunchData;
+  Stream<ExecutionLaunchDataParams> onExecutionLaunchData;
 
   /**
    * Stream controller for [onExecutionLaunchData].
    */
-  StreamController _onExecutionLaunchData;
+  StreamController<ExecutionLaunchDataParams> _onExecutionLaunchData;
 
   /**
    * Initialize the fields in InttestMixin, and ensure that notifications will
    * be handled.
    */
   void initializeInttestMixin() {
-    _onServerConnected = new StreamController(sync: true);
+    _onServerConnected = new StreamController<ServerConnectedParams>(sync: true);
     onServerConnected = _onServerConnected.stream.asBroadcastStream();
-    _onServerError = new StreamController(sync: true);
+    _onServerError = new StreamController<ServerErrorParams>(sync: true);
     onServerError = _onServerError.stream.asBroadcastStream();
-    _onServerStatus = new StreamController(sync: true);
+    _onServerStatus = new StreamController<ServerStatusParams>(sync: true);
     onServerStatus = _onServerStatus.stream.asBroadcastStream();
-    _onAnalysisErrors = new StreamController(sync: true);
+    _onAnalysisErrors = new StreamController<AnalysisErrorsParams>(sync: true);
     onAnalysisErrors = _onAnalysisErrors.stream.asBroadcastStream();
-    _onAnalysisFlushResults = new StreamController(sync: true);
+    _onAnalysisFlushResults = new StreamController<AnalysisFlushResultsParams>(sync: true);
     onAnalysisFlushResults = _onAnalysisFlushResults.stream.asBroadcastStream();
-    _onAnalysisFolding = new StreamController(sync: true);
+    _onAnalysisFolding = new StreamController<AnalysisFoldingParams>(sync: true);
     onAnalysisFolding = _onAnalysisFolding.stream.asBroadcastStream();
-    _onAnalysisHighlights = new StreamController(sync: true);
+    _onAnalysisHighlights = new StreamController<AnalysisHighlightsParams>(sync: true);
     onAnalysisHighlights = _onAnalysisHighlights.stream.asBroadcastStream();
-    _onAnalysisNavigation = new StreamController(sync: true);
+    _onAnalysisNavigation = new StreamController<AnalysisNavigationParams>(sync: true);
     onAnalysisNavigation = _onAnalysisNavigation.stream.asBroadcastStream();
-    _onAnalysisOccurrences = new StreamController(sync: true);
+    _onAnalysisOccurrences = new StreamController<AnalysisOccurrencesParams>(sync: true);
     onAnalysisOccurrences = _onAnalysisOccurrences.stream.asBroadcastStream();
-    _onAnalysisOutline = new StreamController(sync: true);
+    _onAnalysisOutline = new StreamController<AnalysisOutlineParams>(sync: true);
     onAnalysisOutline = _onAnalysisOutline.stream.asBroadcastStream();
-    _onAnalysisOverrides = new StreamController(sync: true);
+    _onAnalysisOverrides = new StreamController<AnalysisOverridesParams>(sync: true);
     onAnalysisOverrides = _onAnalysisOverrides.stream.asBroadcastStream();
-    _onCompletionResults = new StreamController(sync: true);
+    _onCompletionResults = new StreamController<CompletionResultsParams>(sync: true);
     onCompletionResults = _onCompletionResults.stream.asBroadcastStream();
-    _onSearchResults = new StreamController(sync: true);
+    _onSearchResults = new StreamController<SearchResultsParams>(sync: true);
     onSearchResults = _onSearchResults.stream.asBroadcastStream();
-    _onExecutionLaunchData = new StreamController(sync: true);
+    _onExecutionLaunchData = new StreamController<ExecutionLaunchDataParams>(sync: true);
     onExecutionLaunchData = _onExecutionLaunchData.stream.asBroadcastStream();
   }
 
@@ -1285,62 +1285,63 @@ abstract class IntegrationTestMixin {
    * [params], to the appropriate stream.
    */
   void dispatchNotification(String event, params) {
+    ResponseDecoder decoder = new ResponseDecoder(null);
     switch (event) {
       case "server.connected":
         expect(params, isServerConnectedParams);
-        _onServerConnected.add(params);
+        _onServerConnected.add(new ServerConnectedParams());
         break;
       case "server.error":
         expect(params, isServerErrorParams);
-        _onServerError.add(params);
+        _onServerError.add(new ServerErrorParams.fromJson(decoder, 'params', params));
         break;
       case "server.status":
         expect(params, isServerStatusParams);
-        _onServerStatus.add(params);
+        _onServerStatus.add(new ServerStatusParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.errors":
         expect(params, isAnalysisErrorsParams);
-        _onAnalysisErrors.add(params);
+        _onAnalysisErrors.add(new AnalysisErrorsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.flushResults":
         expect(params, isAnalysisFlushResultsParams);
-        _onAnalysisFlushResults.add(params);
+        _onAnalysisFlushResults.add(new AnalysisFlushResultsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.folding":
         expect(params, isAnalysisFoldingParams);
-        _onAnalysisFolding.add(params);
+        _onAnalysisFolding.add(new AnalysisFoldingParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.highlights":
         expect(params, isAnalysisHighlightsParams);
-        _onAnalysisHighlights.add(params);
+        _onAnalysisHighlights.add(new AnalysisHighlightsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.navigation":
         expect(params, isAnalysisNavigationParams);
-        _onAnalysisNavigation.add(params);
+        _onAnalysisNavigation.add(new AnalysisNavigationParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.occurrences":
         expect(params, isAnalysisOccurrencesParams);
-        _onAnalysisOccurrences.add(params);
+        _onAnalysisOccurrences.add(new AnalysisOccurrencesParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.outline":
         expect(params, isAnalysisOutlineParams);
-        _onAnalysisOutline.add(params);
+        _onAnalysisOutline.add(new AnalysisOutlineParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.overrides":
         expect(params, isAnalysisOverridesParams);
-        _onAnalysisOverrides.add(params);
+        _onAnalysisOverrides.add(new AnalysisOverridesParams.fromJson(decoder, 'params', params));
         break;
       case "completion.results":
         expect(params, isCompletionResultsParams);
-        _onCompletionResults.add(params);
+        _onCompletionResults.add(new CompletionResultsParams.fromJson(decoder, 'params', params));
         break;
       case "search.results":
         expect(params, isSearchResultsParams);
-        _onSearchResults.add(params);
+        _onSearchResults.add(new SearchResultsParams.fromJson(decoder, 'params', params));
         break;
       case "execution.launchData":
         expect(params, isExecutionLaunchDataParams);
-        _onExecutionLaunchData.add(params);
+        _onExecutionLaunchData.add(new ExecutionLaunchDataParams.fromJson(decoder, 'params', params));
         break;
       default:
         fail('Unexpected notification: $event');

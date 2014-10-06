@@ -83,6 +83,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
       }));
       writeln('void dispatchNotification(String event, params) {');
       indent(() {
+        writeln('ResponseDecoder decoder = new ResponseDecoder(null);');
         writeln('switch (event) {');
         indent(() {
           write(notificationSwitchContents.join());
@@ -103,19 +104,20 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
   visitNotification(Notification notification) {
     String streamName =
         camelJoin(['on', notification.domainName, notification.event]);
+    String className = camelJoin([notification.domainName, notification.event, 'params'], doCapitalize: true);
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.translateHtml(notification.html);
       toHtmlVisitor.describePayload(notification.params, 'Parameters');
     }));
-    writeln('Stream $streamName;');
+    writeln('Stream<$className> $streamName;');
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.write('Stream controller for [$streamName].');
     }));
-    writeln('StreamController _$streamName;');
+    writeln('StreamController<$className> _$streamName;');
     fieldInitializationCode.add(collectCode(() {
-      writeln('_$streamName = new StreamController(sync: true);');
+      writeln('_$streamName = new StreamController<$className>(sync: true);');
       writeln('$streamName = _$streamName.stream.asBroadcastStream();');
     }));
     notificationSwitchContents.add(collectCode(() {
@@ -124,7 +126,13 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor with CodeGenerator
         String paramsValidator =
             camelJoin(['is', notification.domainName, notification.event, 'params']);
         writeln('expect(params, $paramsValidator);');
-        writeln('_$streamName.add(params);');
+        String constructorCall;
+        if (notification.params == null) {
+          constructorCall = 'new $className()';
+        } else {
+          constructorCall = "new $className.fromJson(decoder, 'params', params)";
+        }
+        writeln('_$streamName.add($constructorCall);');
         writeln('break;');
       });
     }));

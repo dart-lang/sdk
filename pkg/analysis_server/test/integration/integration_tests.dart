@@ -42,8 +42,8 @@ abstract class AbstractAnalysisServerIntegrationTest extends
    * Map from file path to the list of analysis errors which have most recently
    * been received for the file.
    */
-  HashMap<String, dynamic> currentAnalysisErrors = new HashMap<String, dynamic>(
-      );
+  HashMap<String, List<AnalysisError>> currentAnalysisErrors =
+      new HashMap<String, List<AnalysisError>>();
 
   /**
    * True if the teardown process should skip sending a "server.shutdown"
@@ -118,19 +118,11 @@ abstract class AbstractAnalysisServerIntegrationTest extends
     // This will only work if the caller has already subscribed to
     // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
     expect(_subscribedToServerStatus, isTrue);
-    subscription = onServerStatus.listen((params) {
-      bool analysisComplete = false;
-      try {
-        analysisComplete = !params['analysis']['isAnalyzing'];
-      } catch (_) {
-        // Status message was mal-formed or missing optional parameters.  That's
-        // fine, since we'll detect a mal-formed status message below.
-      }
-      if (analysisComplete) {
+    subscription = onServerStatus.listen((ServerStatusParams params) {
+      if (!params.analysis.isAnalyzing) {
         completer.complete(params);
         subscription.cancel();
       }
-      expect(params, isServerStatusParams);
     });
     return completer.future;
   }
@@ -156,8 +148,8 @@ abstract class AbstractAnalysisServerIntegrationTest extends
   Future setUp() {
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
 
-    onAnalysisErrors.listen((params) {
-      currentAnalysisErrors[params['file']] = params['errors'];
+    onAnalysisErrors.listen((AnalysisErrorsParams params) {
+      currentAnalysisErrors[params.file] = params.errors;
     });
     Completer serverConnected = new Completer();
     onServerConnected.listen((_) {
@@ -247,8 +239,8 @@ abstract class _RecursiveMatcher extends Matcher {
   }
 
   @override
-  Description describeMismatch(item, Description mismatchDescription, Map
-      matchState, bool verbose) {
+  Description describeMismatch(item, Description mismatchDescription,
+      Map matchState, bool verbose) {
     List<MismatchDescriber> mismatches = matchState['mismatches'];
     if (mismatches != null) {
       for (int i = 0; i < mismatches.length; i++) {
@@ -266,7 +258,10 @@ abstract class _RecursiveMatcher extends Matcher {
       }
       return mismatchDescription;
     } else {
-      return super.describeMismatch(item, mismatchDescription, matchState,
+      return super.describeMismatch(
+          item,
+          mismatchDescription,
+          matchState,
           verbose);
     }
   }
@@ -280,8 +275,8 @@ abstract class _RecursiveMatcher extends Matcher {
   /**
    * Create a [MismatchDescriber] describing a mismatch with a simple string.
    */
-  MismatchDescriber simpleDescription(String description) => (Description
-      mismatchDescription) {
+  MismatchDescriber simpleDescription(String description) =>
+      (Description mismatchDescription) {
     mismatchDescription.add(description);
   };
 
@@ -291,20 +286,23 @@ abstract class _RecursiveMatcher extends Matcher {
    * the mismatch.  [describeSubstructure] is used to describe which
    * substructure did not match.
    */
-  checkSubstructure(item, Matcher matcher, List<MismatchDescriber>
-      mismatches, Description describeSubstructure(Description)) {
+  checkSubstructure(item, Matcher matcher, List<MismatchDescriber> mismatches,
+      Description describeSubstructure(Description)) {
     Map subState = {};
     if (!matcher.matches(item, subState)) {
       mismatches.add((Description mismatchDescription) {
         mismatchDescription = mismatchDescription.add('contains malformed ');
         mismatchDescription = describeSubstructure(mismatchDescription);
-        mismatchDescription = mismatchDescription.add(' (should be '
-            ).addDescriptionOf(matcher);
-        String subDescription = matcher.describeMismatch(item,
-            new StringDescription(), subState, false).toString();
+        mismatchDescription =
+            mismatchDescription.add(' (should be ').addDescriptionOf(matcher);
+        String subDescription = matcher.describeMismatch(
+            item,
+            new StringDescription(),
+            subState,
+            false).toString();
         if (subDescription.isNotEmpty) {
-          mismatchDescription = mismatchDescription.add('; ').add(subDescription
-              );
+          mismatchDescription =
+              mismatchDescription.add('; ').add(subDescription);
         }
         return mismatchDescription.add(')');
       });
@@ -334,8 +332,8 @@ class MatchesEnum extends Matcher {
   }
 
   @override
-  Description describe(Description description) => description.add(
-      this.description);
+  Description describe(Description description) =>
+      description.add(this.description);
 }
 
 /**
@@ -360,8 +358,8 @@ class MatchesJsonObject extends _RecursiveMatcher {
    */
   final Map<String, Matcher> optionalFields;
 
-  const
-      MatchesJsonObject(this.description, this.requiredFields, {this.optionalFields});
+  const MatchesJsonObject(this.description, this.requiredFields,
+      {this.optionalFields});
 
   @override
   void populateMismatches(item, List<MismatchDescriber> mismatches) {
@@ -372,9 +370,11 @@ class MatchesJsonObject extends _RecursiveMatcher {
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
         if (!item.containsKey(key)) {
-          mismatches.add((Description mismatchDescription) =>
-              mismatchDescription.add('is missing field ').addDescriptionOf(key).add(' ('
-              ).addDescriptionOf(valueMatcher).add(')'));
+          mismatches.add(
+              (Description mismatchDescription) =>
+                  mismatchDescription.add(
+                      'is missing field ').addDescriptionOf(
+                          key).add(' (').addDescriptionOf(valueMatcher).add(')'));
         } else {
           _checkField(key, item[key], valueMatcher, mismatches);
         }
@@ -386,25 +386,29 @@ class MatchesJsonObject extends _RecursiveMatcher {
       } else if (optionalFields != null && optionalFields.containsKey(key)) {
         _checkField(key, value, optionalFields[key], mismatches);
       } else {
-        mismatches.add((Description mismatchDescription) =>
-            mismatchDescription.add('has unexpected field ').addDescriptionOf(key));
+        mismatches.add(
+            (Description mismatchDescription) =>
+                mismatchDescription.add('has unexpected field ').addDescriptionOf(key));
       }
     });
   }
 
   @override
-  Description describe(Description description) => description.add(
-      this.description);
+  Description describe(Description description) =>
+      description.add(this.description);
 
   /**
    * Check the type of a field called [key], having value [value], using
    * [valueMatcher].  If it doesn't match, record a closure in [mismatches]
    * which can describe the mismatch.
    */
-  void _checkField(String key, value, Matcher
-      valueMatcher, List<MismatchDescriber> mismatches) {
-    checkSubstructure(value, valueMatcher, mismatches, (Description description)
-        => description.add('field ').addDescriptionOf(key));
+  void _checkField(String key, value, Matcher valueMatcher,
+      List<MismatchDescriber> mismatches) {
+    checkSubstructure(
+        value,
+        valueMatcher,
+        mismatches,
+        (Description description) => description.add('field ').addDescriptionOf(key));
   }
 }
 
@@ -436,18 +440,24 @@ class _ListOf extends Matcher {
   }
 
   @override
-  Description describe(Description description) => description.add('List of '
-      ).addDescriptionOf(elementMatcher);
+  Description describe(Description description) =>
+      description.add('List of ').addDescriptionOf(elementMatcher);
 
   @override
-  Description describeMismatch(item, Description mismatchDescription, Map
-      matchState, bool verbose) {
+  Description describeMismatch(item, Description mismatchDescription,
+      Map matchState, bool verbose) {
     if (item is! List) {
-      return super.describeMismatch(item, mismatchDescription, matchState,
+      return super.describeMismatch(
+          item,
+          mismatchDescription,
+          matchState,
           verbose);
     } else {
-      return iterableMatcher.describeMismatch(item, mismatchDescription,
-          matchState, verbose);
+      return iterableMatcher.describeMismatch(
+          item,
+          mismatchDescription,
+          matchState,
+          verbose);
     }
   }
 }
@@ -486,9 +496,14 @@ class LazyMatcher implements Matcher {
   }
 
   @override
-  Description describeMismatch(item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(item, Description mismatchDescription,
+      Map matchState, bool verbose) {
     _createMatcher();
-    return _wrappedMatcher.describeMismatch(item, mismatchDescription, matchState, verbose);
+    return _wrappedMatcher.describeMismatch(
+        item,
+        mismatchDescription,
+        matchState,
+        verbose);
   }
 
   @override
@@ -575,20 +590,28 @@ class _MapOf extends _RecursiveMatcher {
       return;
     }
     item.forEach((key, value) {
-      checkSubstructure(key, keyMatcher, mismatches, (Description description)
-          => description.add('key ').addDescriptionOf(key));
-      checkSubstructure(value, valueMatcher, mismatches, (Description
-          description) => description.add('field ').addDescriptionOf(key));
+      checkSubstructure(
+          key,
+          keyMatcher,
+          mismatches,
+          (Description description) => description.add('key ').addDescriptionOf(key));
+      checkSubstructure(
+          value,
+          valueMatcher,
+          mismatches,
+          (Description description) => description.add('field ').addDescriptionOf(key));
     });
   }
 
   @override
-  Description describe(Description description) => description.add('Map from '
-      ).addDescriptionOf(keyMatcher).add(' to ').addDescriptionOf(valueMatcher);
+  Description describe(Description description) =>
+      description.add(
+          'Map from ').addDescriptionOf(
+              keyMatcher).add(' to ').addDescriptionOf(valueMatcher);
 }
 
-Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) => new _MapOf(
-    keyMatcher, valueMatcher);
+Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) =>
+    new _MapOf(keyMatcher, valueMatcher);
 
 /**
  * Type of callbacks used to process notifications.
@@ -610,7 +633,7 @@ class Server {
    * the [Completer] objects which should be completed when acknowledgement is
    * received.
    */
-  final HashMap<String, Completer> _pendingCommands = <String, Completer> {};
+  final HashMap<String, Completer> _pendingCommands = <String, Completer>{};
 
   /**
    * Number which should be used to compute the 'id' to send in the next command
@@ -674,8 +697,8 @@ class Server {
     // TODO(paulberry): move the logic for finding the script, the dart
     // executable, and the package root into a shell script.
     String dartBinary = Platform.executable;
-    String rootDir = findRoot(Platform.script.toFilePath(windows:
-        Platform.isWindows));
+    String rootDir =
+        findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
     String serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
     List<String> arguments = [];
     if (debugServer) {
@@ -688,8 +711,8 @@ class Server {
     arguments.add(serverPath);
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
-      process.stdout.transform((new Utf8Codec()).decoder).transform(
-          new LineSplitter()).listen((String line) {
+      process.stdout.transform(
+          (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
         String trimmedLine = line.trim();
         _recordStdio('RECV: $trimmedLine');
         var message;
@@ -712,8 +735,9 @@ class Server {
           }
           if (messageAsMap.containsKey('error')) {
             // TODO(paulberry): propagate the error info to the completer.
-            completer.completeError(new UnimplementedError(
-                'Server responded with an error: ${JSON.encode(message)}'));
+            completer.completeError(
+                new UnimplementedError(
+                    'Server responded with an error: ${JSON.encode(message)}'));
           } else {
             completer.complete(messageAsMap['result']);
           }
@@ -733,8 +757,8 @@ class Server {
           expect(message, isNotification);
         }
       });
-      process.stderr.transform((new Utf8Codec()).decoder).transform(
-          new LineSplitter()).listen((String line) {
+      process.stderr.transform(
+          (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
         String trimmedLine = line.trim();
         _recordStdio('ERR:  $trimmedLine');
         _badDataFromServer();
@@ -773,7 +797,7 @@ class Server {
    */
   Future send(String method, Map<String, dynamic> params) {
     String id = '${_nextId++}';
-    Map<String, dynamic> command = <String, dynamic> {
+    Map<String, dynamic> command = <String, dynamic>{
       'id': id,
       'method': method
     };
