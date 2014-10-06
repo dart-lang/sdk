@@ -60,6 +60,9 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
     PartialElement,
     Token;
 
+import 'package:compiler/implementation/js/js.dart' show
+    prettyPrint;
+
 /// Enabled by the option --enable-dart-mind.  Controls if this program should
 /// be querying Dart Mind.
 bool isDartMindEnabled = false;
@@ -424,7 +427,34 @@ Future<Element> runPoiInternal(
   }
   sw.reset();
 
-  Future<bool> compilation = cachedCompiler.run(updater.uri);
+  Future<bool> compilation;
+
+  if (updater.hasPendingUpdates) {
+    List<Element> updatedElements = updater.applyUpdates();
+    compilation = new Future(() {
+      cachedCompiler.progress.reset();
+      for (Element element in updatedElements) {
+        cachedCompiler.enqueuer.resolution.addToWorkList(element);
+      }
+      cachedCompiler.processQueue(cachedCompiler.enqueuer.resolution, null);
+
+      cachedCompiler.phase = Compiler.PHASE_DONE_RESOLVING;
+
+      for (Element element in updatedElements) {
+        cachedCompiler.enqueuer.codegen.addToWorkList(element);
+      }
+      cachedCompiler.processQueue(cachedCompiler.enqueuer.codegen, null);
+
+      for (Element element in updatedElements) {
+        var node = cachedCompiler.enqueuer.codegen.generatedCode[element];
+        print(prettyPrint(node, cachedCompiler).getText());
+      }
+
+      return !cachedCompiler.compilationFailed;
+    });
+  } else {
+    compilation = cachedCompiler.run(updater.uri);
+  }
 
   return compilation.then((success) {
     printVerbose('Compiler queue processed in ${sw.elapsedMicroseconds}us');
