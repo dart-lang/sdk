@@ -53,8 +53,8 @@ main() {
   ResolveHtmlTaskTest.dartSuite();
   ScanDartTaskTest.dartSuite();
   AnalysisCacheTest.dartSuite();
-  DartEntryImplTest.dartSuite();
-  HtmlEntryImplTest.dartSuite();
+  DartEntryTest.dartSuite();
+  HtmlEntryTest.dartSuite();
   PartitionManagerTest.dartSuite();
   SdkCachePartitionTest.dartSuite();
   UniversalCachePartitionTest.dartSuite();
@@ -78,7 +78,7 @@ class AnalysisCacheTest extends EngineTestCase {
         new UniversalCachePartition(null, 8, new DefaultRetentionPolicy());
     AnalysisCache cache = new AnalysisCache(<CachePartition>[partition]);
     TestSource source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     cache.put(source, entry);
     MapIterator<Source, SourceEntry> iterator = cache.iterator();
     JUnitTestCase.assertTrue(iterator.moveNext());
@@ -92,7 +92,7 @@ class AnalysisCacheTest extends EngineTestCase {
         new UniversalCachePartition(null, 8, new DefaultRetentionPolicy());
     AnalysisCache cache = new AnalysisCache(<CachePartition>[partition]);
     TestSource source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     cache.put(source, entry);
     JUnitTestCase.assertSame(entry, cache.get(source));
   }
@@ -106,7 +106,7 @@ class AnalysisCacheTest extends EngineTestCase {
     int size = 6;
     for (int i = 0; i < size; i++) {
       Source source = new TestSource("/test${i}.dart");
-      DartEntryImpl entry = new DartEntryImpl();
+      DartEntry entry = new DartEntry();
       entry.setValue(DartEntry.PARSED_UNIT, null);
       cache.put(source, entry);
       cache.accessedAst(source);
@@ -124,7 +124,7 @@ class AnalysisCacheTest extends EngineTestCase {
     int size = 4;
     for (int i = 0; i < size; i++) {
       Source source = new TestSource("/test${i}.dart");
-      cache.put(source, new DartEntryImpl());
+      cache.put(source, new DartEntry());
       cache.accessedAst(source);
     }
     JUnitTestCase.assertEquals(size, cache.size());
@@ -2707,9 +2707,9 @@ class CompilationUnitMock extends TypedMock implements CompilationUnit {
 }
 
 
-class DartEntryImplTest extends EngineTestCase {
+class DartEntryTest extends EngineTestCase {
   void set state2(DataDescriptor descriptor) {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     JUnitTestCase.assertNotSame(CacheState.FLUSHED, entry.getState(descriptor));
     entry.setState(descriptor, CacheState.FLUSHED);
     JUnitTestCase.assertSame(CacheState.FLUSHED, entry.getState(descriptor));
@@ -2717,7 +2717,7 @@ class DartEntryImplTest extends EngineTestCase {
 
   void set state3(DataDescriptor descriptor) {
     Source source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     JUnitTestCase.assertNotSame(
         CacheState.FLUSHED,
         entry.getStateInLibrary(descriptor, source));
@@ -2729,7 +2729,7 @@ class DartEntryImplTest extends EngineTestCase {
 
   void test_creation() {
     Source librarySource = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     JUnitTestCase.assertSame(
         CacheState.INVALID,
         entry.getState(SourceEntry.CONTENT));
@@ -2788,7 +2788,7 @@ class DartEntryImplTest extends EngineTestCase {
 
   void test_getAllErrors() {
     Source source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     EngineTestCase.assertLength(0, entry.allErrors);
     entry.setValue(
         DartEntry.SCAN_ERRORS,
@@ -2825,7 +2825,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_getResolvableCompilationUnit_none() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     JUnitTestCase.assertNull(entry.resolvableCompilationUnit);
   }
 
@@ -2849,7 +2849,7 @@ class DartEntryImplTest extends EngineTestCase {
     partDirective.uriContent = partUri;
     CompilationUnit unit =
         AstFactory.compilationUnit3([importDirective, exportDirective, partDirective]);
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.setValue(DartEntry.PARSED_UNIT, unit);
     entry.getValue(DartEntry.PARSED_UNIT);
     CompilationUnit result = entry.resolvableCompilationUnit;
@@ -2868,7 +2868,7 @@ class DartEntryImplTest extends EngineTestCase {
 
   void test_getResolvableCompilationUnit_parsed_notAccessed() {
     CompilationUnit unit = AstFactory.compilationUnit();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.setValue(DartEntry.PARSED_UNIT, unit);
     JUnitTestCase.assertSame(unit, entry.resolvableCompilationUnit);
   }
@@ -2893,7 +2893,7 @@ class DartEntryImplTest extends EngineTestCase {
     partDirective.uriContent = partUri;
     CompilationUnit unit =
         AstFactory.compilationUnit3([importDirective, exportDirective, partDirective]);
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.setValueInLibrary(
         DartEntry.RESOLVED_UNIT,
         new TestSource("lib.dart"),
@@ -2913,7 +2913,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_getStateInLibrary_invalid_element() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     try {
       entry.getStateInLibrary(DartEntry.ELEMENT, new TestSource());
       JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
@@ -2923,7 +2923,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_getState_invalid_resolutionErrors() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     try {
       entry.getState(DartEntry.RESOLUTION_ERRORS);
       JUnitTestCase.fail(
@@ -2934,7 +2934,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_getState_invalid_verificationErrors() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     try {
       entry.getState(DartEntry.VERIFICATION_ERRORS);
       JUnitTestCase.fail(
@@ -2945,7 +2945,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_getValueInLibrary_invalid_element() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     try {
       entry.getValueInLibrary(DartEntry.ELEMENT, new TestSource());
       JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
@@ -2958,7 +2958,7 @@ class DartEntryImplTest extends EngineTestCase {
     Source source1 = new TestSource();
     Source source2 = new TestSource();
     Source source3 = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.setValueInLibrary(
         DartEntry.RESOLVED_UNIT,
         source1,
@@ -2981,7 +2981,7 @@ class DartEntryImplTest extends EngineTestCase {
 
   void test_getValue_containingLibraries() {
     Source testSource = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     List<Source> value = entry.getValue(DartEntry.CONTAINING_LIBRARIES);
     EngineTestCase.assertLength(0, value);
     entry.addContainingLibrary(testSource);
@@ -2994,7 +2994,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_getValue_invalid_resolutionErrors() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     try {
       entry.getValue(DartEntry.RESOLUTION_ERRORS);
       JUnitTestCase.fail(
@@ -3004,7 +3004,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_getValue_invalid_verificationErrors() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     try {
       entry.getValue(DartEntry.VERIFICATION_ERRORS);
       JUnitTestCase.fail(
@@ -3015,7 +3015,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_hasInvalidData_false() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.recordScanError(new CaughtException(new AnalysisException(), null));
     JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.ELEMENT));
     JUnitTestCase.assertFalse(
@@ -3039,7 +3039,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_hasInvalidData_true() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.ELEMENT));
     JUnitTestCase.assertTrue(
         entry.hasInvalidData(DartEntry.EXPORTED_LIBRARIES));
@@ -3061,7 +3061,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_invalidateAllInformation() {
-    DartEntryImpl entry = _entryWithValidState();
+    DartEntry entry = _entryWithValidState();
     entry.invalidateAllInformation();
     JUnitTestCase.assertSame(
         CacheState.INVALID,
@@ -3102,7 +3102,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_invalidateAllResolutionInformation() {
-    DartEntryImpl entry = _entryWithValidState();
+    DartEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(false);
     JUnitTestCase.assertSame(
         CacheState.INVALID,
@@ -3137,7 +3137,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_invalidateAllResolutionInformation_includingUris() {
-    DartEntryImpl entry = _entryWithValidState();
+    DartEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(true);
     JUnitTestCase.assertSame(
         CacheState.INVALID,
@@ -3172,7 +3172,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_isClient() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     // true
     entry.setValue(DartEntry.IS_CLIENT, true);
     JUnitTestCase.assertTrue(entry.getValue(DartEntry.IS_CLIENT));
@@ -3193,7 +3193,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_isLaunchable() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     // true
     entry.setValue(DartEntry.IS_LAUNCHABLE, true);
     JUnitTestCase.assertTrue(entry.getValue(DartEntry.IS_LAUNCHABLE));
@@ -3218,7 +3218,7 @@ class DartEntryImplTest extends EngineTestCase {
     // record an error in one library, then verify that the data for the other
     // library is still valid.
     Source source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.recordBuildElementErrorInLibrary(
         source,
         new CaughtException(new AnalysisException(), null));
@@ -3279,8 +3279,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_recordContentError() {
-    //    Source source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.recordContentError(
         new CaughtException(new AnalysisException(), null));
     JUnitTestCase.assertSame(
@@ -3341,7 +3340,7 @@ class DartEntryImplTest extends EngineTestCase {
     // record an error in one library, then verify that the data for the other
     // library is still valid.
     Source source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.recordHintErrorInLibrary(
         source,
         new CaughtException(new AnalysisException(), null));
@@ -3402,8 +3401,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_recordParseError() {
-    //    Source source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.recordParseError(new CaughtException(new AnalysisException(), null));
     JUnitTestCase.assertSame(
         CacheState.INVALID,
@@ -3459,7 +3457,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_recordParseInProcess() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.recordParseInProcess();
     JUnitTestCase.assertSame(
         CacheState.IN_PROCESS,
@@ -3474,7 +3472,7 @@ class DartEntryImplTest extends EngineTestCase {
 
   void test_recordResolutionError() {
     //    Source source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.recordResolutionError(
         new CaughtException(new AnalysisException(), null));
     JUnitTestCase.assertSame(
@@ -3535,7 +3533,7 @@ class DartEntryImplTest extends EngineTestCase {
     // record an error in one library, then verify that the data for the other
     // library is still valid.
     Source source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.recordResolutionErrorInLibrary(
         source,
         new CaughtException(new AnalysisException(), null));
@@ -3597,7 +3595,7 @@ class DartEntryImplTest extends EngineTestCase {
 
   void test_recordScanError() {
     //    Source source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.recordScanError(new CaughtException(new AnalysisException(), null));
     JUnitTestCase.assertSame(
         CacheState.INVALID,
@@ -3653,7 +3651,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_recordScanInProcess() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.recordScanInProcess();
     JUnitTestCase.assertSame(
         CacheState.IN_PROCESS,
@@ -3671,7 +3669,7 @@ class DartEntryImplTest extends EngineTestCase {
     // record an error in one library, then verify that the data for the other
     // library is still valid.
     Source source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.recordVerificationErrorInLibrary(
         source,
         new CaughtException(new AnalysisException(), null));
@@ -3735,7 +3733,7 @@ class DartEntryImplTest extends EngineTestCase {
     Source source1 = new TestSource();
     Source source2 = new TestSource();
     Source source3 = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.setValueInLibrary(
         DartEntry.RESOLVED_UNIT,
         source1,
@@ -3755,7 +3753,7 @@ class DartEntryImplTest extends EngineTestCase {
     Source source1 = new TestSource();
     Source source2 = new TestSource();
     Source source3 = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.setValueInLibrary(
         DartEntry.RESOLVED_UNIT,
         source1,
@@ -3775,7 +3773,7 @@ class DartEntryImplTest extends EngineTestCase {
     Source source1 = new TestSource();
     Source source2 = new TestSource();
     Source source3 = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.setValueInLibrary(
         DartEntry.RESOLVED_UNIT,
         source1,
@@ -3793,7 +3791,7 @@ class DartEntryImplTest extends EngineTestCase {
 
   void test_removeResolution_single() {
     Source source1 = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     entry.setValueInLibrary(
         DartEntry.RESOLVED_UNIT,
         source1,
@@ -3822,7 +3820,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_setState_invalid_element() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     try {
       entry.setStateInLibrary(DartEntry.ELEMENT, null, CacheState.FLUSHED);
       JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
@@ -3832,7 +3830,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_setState_invalid_resolutionErrors() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     try {
       entry.setState(DartEntry.RESOLUTION_ERRORS, CacheState.FLUSHED);
       JUnitTestCase.fail(
@@ -3843,7 +3841,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_setState_invalid_validState() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     try {
       entry.setState(SourceEntry.LINE_INFO, CacheState.VALID);
       JUnitTestCase.fail(
@@ -3853,7 +3851,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void test_setState_invalid_verificationErrors() {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     try {
       entry.setState(DartEntry.VERIFICATION_ERRORS, CacheState.FLUSHED);
       JUnitTestCase.fail(
@@ -4003,8 +4001,8 @@ class DartEntryImplTest extends EngineTestCase {
             new AnalysisError.con1(null, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, [])]);
   }
 
-  DartEntryImpl _entryWithValidState() {
-    DartEntryImpl entry = new DartEntryImpl();
+  DartEntry _entryWithValidState() {
+    DartEntry entry = new DartEntry();
     entry.setValue(DartEntry.ELEMENT, null);
     entry.setValue(DartEntry.EXPORTED_LIBRARIES, null);
     entry.setValue(DartEntry.IMPORTED_LIBRARIES, null);
@@ -4049,7 +4047,7 @@ class DartEntryImplTest extends EngineTestCase {
   }
 
   void _setValue2(DataDescriptor descriptor, Object newValue) {
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     Object value = entry.getValue(descriptor);
     JUnitTestCase.assertNotSame(value, newValue);
     entry.setValue(descriptor, newValue);
@@ -4059,7 +4057,7 @@ class DartEntryImplTest extends EngineTestCase {
 
   void _setValue3(DataDescriptor descriptor, Object newValue) {
     Source source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     Object value = entry.getValueInLibrary(descriptor, source);
     JUnitTestCase.assertNotSame(value, newValue);
     entry.setValueInLibrary(descriptor, source, newValue);
@@ -4074,303 +4072,303 @@ class DartEntryImplTest extends EngineTestCase {
   static dartSuite() {
     _ut.group('DartEntryImplTest', () {
       _ut.test('test_creation', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_creation);
       });
       _ut.test('test_getAllErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_getAllErrors);
       });
       _ut.test('test_getResolvableCompilationUnit_none', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_getResolvableCompilationUnit_none);
       });
       _ut.test('test_getResolvableCompilationUnit_parsed_accessed', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(
             __test,
             __test.test_getResolvableCompilationUnit_parsed_accessed);
       });
       _ut.test('test_getResolvableCompilationUnit_parsed_notAccessed', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(
             __test,
             __test.test_getResolvableCompilationUnit_parsed_notAccessed);
       });
       _ut.test('test_getResolvableCompilationUnit_resolved', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_getResolvableCompilationUnit_resolved);
       });
       _ut.test('test_getStateInLibrary_invalid_element', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_getStateInLibrary_invalid_element);
       });
       _ut.test('test_getState_invalid_resolutionErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_getState_invalid_resolutionErrors);
       });
       _ut.test('test_getState_invalid_verificationErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_getState_invalid_verificationErrors);
       });
       _ut.test('test_getValueInLibrary_invalid_element', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_getValueInLibrary_invalid_element);
       });
       _ut.test('test_getValueInLibrary_invalid_resolutionErrors_multiple', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(
             __test,
             __test.test_getValueInLibrary_invalid_resolutionErrors_multiple);
       });
       _ut.test('test_getValue_containingLibraries', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_getValue_containingLibraries);
       });
       _ut.test('test_getValue_invalid_resolutionErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_getValue_invalid_resolutionErrors);
       });
       _ut.test('test_getValue_invalid_verificationErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_getValue_invalid_verificationErrors);
       });
       _ut.test('test_hasInvalidData_false', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_hasInvalidData_false);
       });
       _ut.test('test_hasInvalidData_true', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_hasInvalidData_true);
       });
       _ut.test('test_invalidateAllInformation', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_invalidateAllInformation);
       });
       _ut.test('test_invalidateAllResolutionInformation', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_invalidateAllResolutionInformation);
       });
       _ut.test('test_invalidateAllResolutionInformation_includingUris', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(
             __test,
             __test.test_invalidateAllResolutionInformation_includingUris);
       });
       _ut.test('test_isClient', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_isClient);
       });
       _ut.test('test_isLaunchable', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_isLaunchable);
       });
       _ut.test('test_recordBuildElementErrorInLibrary', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_recordBuildElementErrorInLibrary);
       });
       _ut.test('test_recordContentError', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_recordContentError);
       });
       _ut.test('test_recordHintErrorInLibrary', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_recordHintErrorInLibrary);
       });
       _ut.test('test_recordParseError', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_recordParseError);
       });
       _ut.test('test_recordParseInProcess', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_recordParseInProcess);
       });
       _ut.test('test_recordResolutionError', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_recordResolutionError);
       });
       _ut.test('test_recordResolutionErrorInLibrary', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_recordResolutionErrorInLibrary);
       });
       _ut.test('test_recordScanError', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_recordScanError);
       });
       _ut.test('test_recordScanInProcess', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_recordScanInProcess);
       });
       _ut.test('test_recordVerificationErrorInLibrary', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_recordVerificationErrorInLibrary);
       });
       _ut.test('test_removeResolution_multiple_first', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_removeResolution_multiple_first);
       });
       _ut.test('test_removeResolution_multiple_last', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_removeResolution_multiple_last);
       });
       _ut.test('test_removeResolution_multiple_middle', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_removeResolution_multiple_middle);
       });
       _ut.test('test_removeResolution_single', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_removeResolution_single);
       });
       _ut.test('test_setState_element', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_element);
       });
       _ut.test('test_setState_exportedLibraries', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_exportedLibraries);
       });
       _ut.test('test_setState_hints', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_hints);
       });
       _ut.test('test_setState_importedLibraries', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_importedLibraries);
       });
       _ut.test('test_setState_includedParts', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_includedParts);
       });
       _ut.test('test_setState_invalid_element', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_invalid_element);
       });
       _ut.test('test_setState_invalid_resolutionErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_invalid_resolutionErrors);
       });
       _ut.test('test_setState_invalid_validState', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_invalid_validState);
       });
       _ut.test('test_setState_invalid_verificationErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_invalid_verificationErrors);
       });
       _ut.test('test_setState_isClient', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_isClient);
       });
       _ut.test('test_setState_isLaunchable', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_isLaunchable);
       });
       _ut.test('test_setState_lineInfo', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_lineInfo);
       });
       _ut.test('test_setState_parseErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_parseErrors);
       });
       _ut.test('test_setState_parsedUnit', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_parsedUnit);
       });
       _ut.test('test_setState_publicNamespace', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_publicNamespace);
       });
       _ut.test('test_setState_resolutionErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_resolutionErrors);
       });
       _ut.test('test_setState_resolvedUnit', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_resolvedUnit);
       });
       _ut.test('test_setState_scanErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_scanErrors);
       });
       _ut.test('test_setState_sourceKind', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_sourceKind);
       });
       _ut.test('test_setState_tokenStream', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_tokenStream);
       });
       _ut.test('test_setState_verificationErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setState_verificationErrors);
       });
       _ut.test('test_setValue_element', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_element);
       });
       _ut.test('test_setValue_exportedLibraries', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_exportedLibraries);
       });
       _ut.test('test_setValue_hints', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_hints);
       });
       _ut.test('test_setValue_importedLibraries', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_importedLibraries);
       });
       _ut.test('test_setValue_includedParts', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_includedParts);
       });
       _ut.test('test_setValue_isClient', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_isClient);
       });
       _ut.test('test_setValue_isLaunchable', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_isLaunchable);
       });
       _ut.test('test_setValue_lineInfo', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_lineInfo);
       });
       _ut.test('test_setValue_parseErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_parseErrors);
       });
       _ut.test('test_setValue_parsedUnit', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_parsedUnit);
       });
       _ut.test('test_setValue_publicNamespace', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_publicNamespace);
       });
       _ut.test('test_setValue_resolutionErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_resolutionErrors);
       });
       _ut.test('test_setValue_resolvedUnit', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_resolvedUnit);
       });
       _ut.test('test_setValue_scanErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_scanErrors);
       });
       _ut.test('test_setValue_sourceKind', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_sourceKind);
       });
       _ut.test('test_setValue_tokenStream', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_tokenStream);
       });
       _ut.test('test_setValue_verificationErrors', () {
-        final __test = new DartEntryImplTest();
+        final __test = new DartEntryTest();
         runJUnitTest(__test, __test.test_setValue_verificationErrors);
       });
     });
@@ -4763,22 +4761,22 @@ class GetContentTaskTestTV_perform_valid extends TestTaskVisitor<bool> {
 }
 
 
-class HtmlEntryImplTest extends EngineTestCase {
+class HtmlEntryTest extends EngineTestCase {
   void set state(DataDescriptor descriptor) {
-    HtmlEntryImpl entry = new HtmlEntryImpl();
+    HtmlEntry entry = new HtmlEntry();
     JUnitTestCase.assertNotSame(CacheState.FLUSHED, entry.getState(descriptor));
     entry.setState(descriptor, CacheState.FLUSHED);
     JUnitTestCase.assertSame(CacheState.FLUSHED, entry.getState(descriptor));
   }
 
   void test_creation() {
-    HtmlEntryImpl entry = new HtmlEntryImpl();
+    HtmlEntry entry = new HtmlEntry();
     JUnitTestCase.assertNotNull(entry);
   }
 
   void test_getAllErrors() {
     Source source = new TestSource();
-    HtmlEntryImpl entry = new HtmlEntryImpl();
+    HtmlEntry entry = new HtmlEntry();
     EngineTestCase.assertLength(0, entry.allErrors);
     entry.setValue(
         HtmlEntry.PARSE_ERRORS,
@@ -4807,7 +4805,7 @@ class HtmlEntryImplTest extends EngineTestCase {
   }
 
   void test_invalidateAllResolutionInformation() {
-    HtmlEntryImpl entry = _entryWithValidState();
+    HtmlEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(false);
     JUnitTestCase.assertSame(
         CacheState.VALID,
@@ -4851,7 +4849,7 @@ class HtmlEntryImplTest extends EngineTestCase {
   }
 
   void test_invalidateAllResolutionInformation_includingUris() {
-    HtmlEntryImpl entry = _entryWithValidState();
+    HtmlEntry entry = _entryWithValidState();
     entry.invalidateAllResolutionInformation(true);
     JUnitTestCase.assertSame(
         CacheState.VALID,
@@ -4952,7 +4950,7 @@ class HtmlEntryImplTest extends EngineTestCase {
   }
 
   void test_setValue_illegal() {
-    HtmlEntryImpl entry = new HtmlEntryImpl();
+    HtmlEntry entry = new HtmlEntry();
     try {
       entry.setValue(DartEntry.ELEMENT, null);
       JUnitTestCase.fail(
@@ -5001,8 +4999,8 @@ class HtmlEntryImplTest extends EngineTestCase {
             new AnalysisError.con1(null, HtmlWarningCode.INVALID_URI, ["-"])]);
   }
 
-  HtmlEntryImpl _entryWithValidState() {
-    HtmlEntryImpl entry = new HtmlEntryImpl();
+  HtmlEntry _entryWithValidState() {
+    HtmlEntry entry = new HtmlEntry();
     entry.setValue(HtmlEntry.ANGULAR_ERRORS, null);
     entry.setValue(HtmlEntry.ELEMENT, null);
     entry.setValue(HtmlEntry.HINTS, null);
@@ -5045,7 +5043,7 @@ class HtmlEntryImplTest extends EngineTestCase {
   }
 
   void _setValue(DataDescriptor descriptor, Object newValue) {
-    HtmlEntryImpl entry = new HtmlEntryImpl();
+    HtmlEntry entry = new HtmlEntry();
     Object value = entry.getValue(descriptor);
     JUnitTestCase.assertNotSame(value, newValue);
     entry.setValue(descriptor, newValue);
@@ -5056,105 +5054,105 @@ class HtmlEntryImplTest extends EngineTestCase {
   static dartSuite() {
     _ut.group('HtmlEntryImplTest', () {
       _ut.test('test_creation', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_creation);
       });
       _ut.test('test_getAllErrors', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_getAllErrors);
       });
       _ut.test('test_invalidateAllResolutionInformation', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_invalidateAllResolutionInformation);
       });
       _ut.test('test_invalidateAllResolutionInformation_includingUris', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(
             __test,
             __test.test_invalidateAllResolutionInformation_includingUris);
       });
       _ut.test('test_setState_angularErrors', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setState_angularErrors);
       });
       _ut.test('test_setState_element', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setState_element);
       });
       _ut.test('test_setState_hints', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setState_hints);
       });
       _ut.test('test_setState_lineInfo', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setState_lineInfo);
       });
       _ut.test('test_setState_parseErrors', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setState_parseErrors);
       });
       _ut.test('test_setState_parsedUnit', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setState_parsedUnit);
       });
       _ut.test('test_setState_polymerBuildErrors', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setState_polymerBuildErrors);
       });
       _ut.test('test_setState_polymerResolutionErrors', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setState_polymerResolutionErrors);
       });
       _ut.test('test_setState_referencedLibraries', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setState_referencedLibraries);
       });
       _ut.test('test_setState_resolutionErrors', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setState_resolutionErrors);
       });
       _ut.test('test_setValue_angularErrors', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setValue_angularErrors);
       });
       _ut.test('test_setValue_element', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setValue_element);
       });
       _ut.test('test_setValue_hints', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setValue_hints);
       });
       _ut.test('test_setValue_illegal', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setValue_illegal);
       });
       _ut.test('test_setValue_lineInfo', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setValue_lineInfo);
       });
       _ut.test('test_setValue_parseErrors', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setValue_parseErrors);
       });
       _ut.test('test_setValue_parsedUnit', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setValue_parsedUnit);
       });
       _ut.test('test_setValue_polymerBuildErrors', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setValue_polymerBuildErrors);
       });
       _ut.test('test_setValue_polymerResolutionErrors', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setValue_polymerResolutionErrors);
       });
       _ut.test('test_setValue_referencedLibraries', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setValue_referencedLibraries);
       });
       _ut.test('test_setValue_resolutionErrors', () {
-        final __test = new HtmlEntryImplTest();
+        final __test = new HtmlEntryTest();
         runJUnitTest(__test, __test.test_setValue_resolutionErrors);
       });
     });
@@ -5164,7 +5162,7 @@ class HtmlEntryImplTest extends EngineTestCase {
 
 class IncrementalAnalysisCacheTest extends JUnitTestCase {
   Source _source = new TestSource();
-  DartEntryImpl _entry = new DartEntryImpl();
+  DartEntry _entry = new DartEntry();
   CompilationUnit _unit = new CompilationUnitMock();
   IncrementalAnalysisCache _result;
   @override
@@ -5260,7 +5258,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         2,
         3,
         _entry);
-    DartEntryImpl newEntry = new DartEntryImpl();
+    DartEntry newEntry = new DartEntry();
     _result = IncrementalAnalysisCache.update(
         cache,
         _source,
@@ -5292,7 +5290,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
     CompilationUnit newUnit = new CompilationUnitMock();
     cache = IncrementalAnalysisCache.cacheResult(cache, newUnit);
     JUnitTestCase.assertNotNull(cache);
-    DartEntryImpl newEntry = new DartEntryImpl();
+    DartEntry newEntry = new DartEntry();
     _result = IncrementalAnalysisCache.update(
         cache,
         _source,
@@ -5321,7 +5319,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         2,
         3,
         _entry);
-    DartEntryImpl newEntry = new DartEntryImpl();
+    DartEntry newEntry = new DartEntry();
     CompilationUnit newUnit = new CompilationUnitMock();
     newEntry.setValueInLibrary(DartEntry.RESOLVED_UNIT, _source, newUnit);
     _result = IncrementalAnalysisCache.update(
@@ -5352,7 +5350,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         2,
         3,
         _entry);
-    DartEntryImpl newEntry = new DartEntryImpl();
+    DartEntry newEntry = new DartEntry();
     _result = IncrementalAnalysisCache.update(
         cache,
         _source,
@@ -5381,7 +5379,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         2,
         3,
         _entry);
-    DartEntryImpl newEntry = new DartEntryImpl();
+    DartEntry newEntry = new DartEntry();
     _result = IncrementalAnalysisCache.update(
         cache,
         _source,
@@ -5410,7 +5408,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         2,
         3,
         _entry);
-    DartEntryImpl newEntry = new DartEntryImpl();
+    DartEntry newEntry = new DartEntry();
     _result = IncrementalAnalysisCache.update(
         cache,
         _source,
@@ -5432,7 +5430,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
         2,
         3,
         _entry);
-    DartEntryImpl newEntry = new DartEntryImpl();
+    DartEntry newEntry = new DartEntry();
     _result = IncrementalAnalysisCache.update(
         cache,
         _source,
@@ -5446,7 +5444,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
   }
   void test_update_newSource_entry() {
     Source oldSource = new TestSource("blat.dart", "blat");
-    DartEntryImpl oldEntry = new DartEntryImpl();
+    DartEntry oldEntry = new DartEntry();
     CompilationUnit oldUnit = new CompilationUnitMock();
     oldEntry.setValueInLibrary(DartEntry.RESOLVED_UNIT, _source, oldUnit);
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -5480,7 +5478,7 @@ class IncrementalAnalysisCacheTest extends JUnitTestCase {
   }
   void test_update_newSource_noEntry() {
     Source oldSource = new TestSource("blat.dart", "blat");
-    DartEntryImpl oldEntry = new DartEntryImpl();
+    DartEntry oldEntry = new DartEntry();
     CompilationUnit oldUnit = new CompilationUnitMock();
     oldEntry.setValueInLibrary(DartEntry.RESOLVED_UNIT, _source, oldUnit);
     IncrementalAnalysisCache cache = IncrementalAnalysisCache.update(
@@ -5848,7 +5846,7 @@ class IncrementalAnalysisTaskTest extends EngineTestCase {
         EngineTestCase.createSource(["${prefix}${added}${suffix}"]);
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     Source source = new TestSource("/test.dart", oldCode);
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     CompilationUnit oldUnit = context.resolveCompilationUnit2(source, source);
     JUnitTestCase.assertNotNull(oldUnit);
     entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, source, oldUnit);
@@ -8791,7 +8789,7 @@ class UniversalCachePartitionTest extends EngineTestCase {
     UniversalCachePartition partition =
         new UniversalCachePartition(null, 8, null);
     TestSource source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     partition.put(source, entry);
     JavaIterator<MapEntry<Source, SourceEntry>> entries =
         new JavaIterator(getMapEntrySet(partition.map));
@@ -8811,7 +8809,7 @@ class UniversalCachePartitionTest extends EngineTestCase {
     UniversalCachePartition partition =
         new UniversalCachePartition(null, 8, null);
     TestSource source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     partition.put(source, entry);
     JUnitTestCase.assertSame(entry, partition.get(source));
   }
@@ -8819,7 +8817,7 @@ class UniversalCachePartitionTest extends EngineTestCase {
     UniversalCachePartition partition =
         new UniversalCachePartition(null, 8, null);
     TestSource source = new TestSource();
-    DartEntryImpl entry = new DartEntryImpl();
+    DartEntry entry = new DartEntry();
     partition.put(source, entry);
     JUnitTestCase.assertSame(entry, partition.get(source));
     partition.remove(source);
@@ -8833,7 +8831,7 @@ class UniversalCachePartitionTest extends EngineTestCase {
     int size = 6;
     for (int i = 0; i < size; i++) {
       Source source = new TestSource("/test${i}.dart");
-      DartEntryImpl entry = new DartEntryImpl();
+      DartEntry entry = new DartEntry();
       entry.setValue(DartEntry.PARSED_UNIT, null);
       partition.put(source, entry);
       partition.accessedAst(source);
@@ -8849,7 +8847,7 @@ class UniversalCachePartitionTest extends EngineTestCase {
     int size = 4;
     for (int i = 0; i < size; i++) {
       Source source = new TestSource("/test${i}.dart");
-      partition.put(source, new DartEntryImpl());
+      partition.put(source, new DartEntry());
       partition.accessedAst(source);
     }
     JUnitTestCase.assertEquals(size, partition.size());
