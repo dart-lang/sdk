@@ -1135,7 +1135,7 @@ class _ExternalBuffer {
     int bytesRead = 0;
     // Loop over zero, one, or two linear data ranges.
     while (bytesRead < bytes) {
-      int toRead = min(bytes, linearLength);
+      int toRead = min(bytes - bytesRead, linearLength);
       result.setRange(bytesRead,
                       bytesRead + toRead,
                       data,
