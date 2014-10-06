@@ -358,6 +358,7 @@ Future<Element> runPoi(
     int position,
     api.CompilerInputProvider inputProvider,
     api.DiagnosticHandler handler) {
+  Stopwatch sw = new Stopwatch()..start();
   Uri libraryRoot = Uri.base.resolve('sdk/');
   Uri packageRoot = Uri.base.resolveUri(
       new Uri.file('${io.Platform.packageRoot}/'));
@@ -390,24 +391,32 @@ Future<Element> runPoi(
       reuseLibrary: reuseLibrary).then((Compiler newCompiler) {
     var filter = new ScriptOnlyFilter(script);
     newCompiler.enqueuerFilter = filter;
-    return runPoiInternal(newCompiler, updater, position);
+    return runPoiInternal(newCompiler, sw, updater, position);
   });
 }
 
 Future<Element> runPoiInternal(
     Compiler newCompiler,
+    Stopwatch sw,
     LibraryUpdater updater,
     int position) {
-
+  bool isFullCompile = cachedCompiler != newCompiler;
   cachedCompiler = newCompiler;
   if (poiTask == null || poiTask.compiler != cachedCompiler) {
     poiTask = new PoiTask(cachedCompiler);
     cachedCompiler.tasks.add(poiTask);
   }
 
+  if (!isFullCompile) {
+    printFormattedTime(
+        'Analyzing changes and updating elements took', sw.elapsedMicroseconds);
+  }
+  sw.reset();
+
   Future<bool> compilation = cachedCompiler.run(updater.uri);
 
   return compilation.then((success) {
+    printVerbose('Compiler queue processed in ${sw.elapsedMicroseconds}us');
     if (isVerbose) {
       for (final task in cachedCompiler.tasks) {
         int time = task.timingMicroseconds;
