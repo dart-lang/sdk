@@ -432,11 +432,6 @@ class EngineTestCase extends JUnitTestCase {
     return writer.toString();
   }
 
-  static dartSuite() {
-    _ut.group('EngineTestCase', () {
-    });
-  }
-
   /**
    * @return the [AstNode] with requested type at offset of the "prefix".
    */
@@ -672,11 +667,8 @@ class GatheringErrorListener implements AnalysisErrorListener {
       }
     }
     //
-
-
-
-
-        // Check that there are no more errors in the actual-errors map, otherwise, record message.
+    // Check that there are no more errors in the actual-errors map,
+    // otherwise record message.
     //
     for (MapEntry<ErrorCode, List<AnalysisError>> entry in getMapEntrySet(
         errorsByCode)) {
@@ -976,7 +968,8 @@ class TestSource implements Source {
   TimestampedData<String> get contents {
     readCount++;
     if (generateExceptionOnRead) {
-      throw new Exception("I/O Exception while getting the contents of " + _name);
+      String msg = "I/O Exception while getting the contents of " + _name;
+      throw new Exception(msg);
     }
     return new TimestampedData<String>(0, _contents);
   }

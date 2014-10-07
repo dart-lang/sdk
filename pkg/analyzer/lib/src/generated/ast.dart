@@ -16048,12 +16048,12 @@ class SimpleStringLiteral extends SingleStringLiteral {
   @override
   bool get isMultiline {
     String lexeme = literal.lexeme;
-    if (lexeme.length < 6) {
+    if (lexeme.length < 3) {
       return false;
     }
     // skip 'r'
     int offset = 0;
-    if (lexeme.codeUnitAt(0) == 0x72) {
+    if (isRaw) {
       offset = 1;
     }
     // check prefix
