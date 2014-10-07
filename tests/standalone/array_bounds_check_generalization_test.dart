@@ -33,7 +33,7 @@ test3(a, b) {
 test4(a, b) {
   var e;
   if (a.length < 2) {
-    return;
+    return null;
   }
 
   for (var i = 0, j = 1, k = 0; i < a.length - 1; i++, j++, k++) {
@@ -45,11 +45,11 @@ test4(a, b) {
 test5(a, b, k0) {
   var e;
   if (a.length < 2) {
-    return;
+    return null;
   }
 
   if (k0 > 1) {
-    return;
+    return null;
   }
 
   for (var i = 0, j = 1, k = 0; i < a.length - 1; i++, j++, k++) {
