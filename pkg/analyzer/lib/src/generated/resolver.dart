@@ -211,7 +211,7 @@ class AngularCompilationUnitBuilder {
    * Parses given [SimpleStringLiteral] using [parseSelector].
    */
   static AngularSelectorElement _parseSelectorFromString(SimpleStringLiteral literal) {
-    int offset = literal.valueOffset;
+    int offset = literal.contentsOffset;
     String text = literal.stringValue;
     return parseSelector(offset, text);
   }
@@ -326,7 +326,7 @@ class AngularCompilationUnitBuilder {
    */
   int _getStringArgumentOffset(String name) {
     Expression argument = _getArgument(name);
-    return (argument as SimpleStringLiteral).valueOffset;
+    return (argument as SimpleStringLiteral).contentsOffset;
   }
 
   /**
@@ -455,7 +455,7 @@ class AngularCompilationUnitBuilder {
             SimpleStringLiteral nameLiteral = _getOnlySimpleStringLiteralArgument(annotation);
             FieldElement field = _getOnlyFieldElement(fieldDeclaration);
             if (nameLiteral != null && field != null) {
-              AngularPropertyElementImpl property = new AngularPropertyElementImpl(nameLiteral.value, nameLiteral.valueOffset);
+              AngularPropertyElementImpl property = new AngularPropertyElementImpl(nameLiteral.value, nameLiteral.contentsOffset);
               property.field = field;
               property.propertyKind = kind;
               properties.add(property);
@@ -491,7 +491,7 @@ class AngularCompilationUnitBuilder {
       }
       SimpleStringLiteral nameLiteral = nameExpression as SimpleStringLiteral;
       String name = nameLiteral.value;
-      int nameOffset = nameLiteral.valueOffset;
+      int nameOffset = nameLiteral.contentsOffset;
       // prepare field specification
       Expression specExpression = entry.value;
       if (specExpression is! SimpleStringLiteral) {
@@ -523,7 +523,7 @@ class AngularCompilationUnitBuilder {
         continue;
       }
       String fieldName = spec.substring(fieldNameOffset);
-      fieldNameOffset += specLiteral.valueOffset;
+      fieldNameOffset += specLiteral.contentsOffset;
       // prepare field
       PropertyAccessorElement setter = _classElement.type.lookUpSetter(fieldName, _classElement.library);
       if (setter == null) {
@@ -18172,7 +18172,7 @@ class PolymerCompilationUnitBuilder {
       if (nameExpression is SimpleStringLiteral) {
         SimpleStringLiteral nameLiteral = nameExpression;
         String name = nameLiteral.value;
-        int nameOffset = nameLiteral.valueOffset;
+        int nameOffset = nameLiteral.contentsOffset;
         PolymerTagDartElementImpl element = new PolymerTagDartElementImpl(name, nameOffset, _classElement);
         _classElement.addToolkitObjects(element);
         nameLiteral.toolkitElement = element;
@@ -18363,7 +18363,7 @@ class RecursiveAstVisitor_AngularCompilationUnitBuilder_parseScopeProperties ext
       return;
     }
     // do add property
-    int nameOffset = nameNode.valueOffset;
+    int nameOffset = nameNode.contentsOffset;
     AngularScopePropertyElement property = new AngularScopePropertyElementImpl(name, nameOffset, node.rightHandSide.bestType);
     nameNode.toolkitElement = property;
     properties.add(property);
@@ -18445,7 +18445,7 @@ class RecursiveAstVisitor_AngularCompilationUnitBuilder_parseViews extends Recur
     }
     // add AngularViewElement
     String templateUri = literal.stringValue;
-    int templateUriOffset = literal.valueOffset;
+    int templateUriOffset = literal.contentsOffset;
     views.add(new AngularViewElementImpl(templateUri, templateUriOffset));
   }
 

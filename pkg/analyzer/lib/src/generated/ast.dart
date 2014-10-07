@@ -8559,12 +8559,14 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitSimpleIdentifier(SimpleIdentifier node) => visitIdentifier(node);
 
   @override
-  R visitSimpleStringLiteral(SimpleStringLiteral node) => visitStringLiteral(node);
+  R visitSimpleStringLiteral(SimpleStringLiteral node) => visitSingleStringLiteral(node);
+
+  R visitSingleStringLiteral(SingleStringLiteral node) => visitStringLiteral(node);
 
   R visitStatement(Statement node) => visitNode(node);
 
   @override
-  R visitStringInterpolation(StringInterpolation node) => visitStringLiteral(node);
+  R visitStringInterpolation(StringInterpolation node) => visitSingleStringLiteral(node);
 
   R visitStringLiteral(StringLiteral node) => visitLiteral(node);
 
@@ -10440,6 +10442,39 @@ class InterpolationString extends InterpolationElement {
 
   @override
   void visitChildren(AstVisitor visitor) {
+  }
+
+  /**
+   * Return the offset of the after-last contents character.
+   */
+  int get contentsEnd {
+    int end = _contents.end;
+    String lexeme = _contents.lexeme;
+    if (StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) ||
+        StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27)) {
+      end -= 3;
+    } else {
+      end -= 1;
+    }
+    return end;
+  }
+
+  /**
+   * Return the offset of the first contents character.
+   */
+  int get contentsOffset {
+    int offset = _contents.offset;
+    String lexeme = _contents.lexeme;
+    if (lexeme.codeUnitAt(0) == 0x72) {
+      offset += 1;
+    }
+    if (StringUtilities.startsWith3(lexeme, offset, 0x22, 0x22, 0x22) ||
+        StringUtilities.startsWith3(lexeme, offset, 0x27, 0x27, 0x27)) {
+      offset += 3;
+    } else {
+      offset += 1;
+    }
+    return offset;
   }
 }
 
@@ -15942,7 +15977,7 @@ class SimpleIdentifier extends Identifier {
  *     '"' characters '"'
  * </pre>
  */
-class SimpleStringLiteral extends StringLiteral {
+class SimpleStringLiteral extends SingleStringLiteral {
   /**
    * The token representing the literal.
    */
@@ -15975,6 +16010,25 @@ class SimpleStringLiteral extends StringLiteral {
   Token get beginToken => literal;
 
   @override
+  int get contentsOffset {
+    int contentsOffset = 0;
+    if (isRaw) {
+      contentsOffset += 1;
+    }
+    if (isMultiline) {
+      contentsOffset += 3;
+    } else {
+      contentsOffset += 1;
+    }
+    return offset + contentsOffset;
+  }
+
+  @override
+  int get contentsEnd {
+    return contentsOffset + value.length;
+  }
+
+  @override
   Token get endToken => literal;
 
   /**
@@ -15992,24 +16046,6 @@ class SimpleStringLiteral extends StringLiteral {
   String get value => _value;
 
   /**
-   * Return the offset of the first value character.
-   *
-   * @return the offset of the first value character
-   */
-  int get valueOffset {
-    int valueOffset = 0;
-    if (isRaw) {
-      valueOffset += 1;
-    }
-    if (isMultiline) {
-      valueOffset += 3;
-    } else {
-      valueOffset += 1;
-    }
-    return offset + valueOffset;
-  }
-
-  /**
    * Return `true` if this string literal is a multi-line string.
    *
    * @return `true` if this string literal is a multi-line string
@@ -16022,11 +16058,6 @@ class SimpleStringLiteral extends StringLiteral {
     return StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) || StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27);
   }
 
-  /**
-   * Return `true` if this string literal is a raw string.
-   *
-   * @return `true` if this string literal is a raw string
-   */
   bool get isRaw => literal.lexeme.codeUnitAt(0) == 0x72;
 
   @override
@@ -16095,7 +16126,7 @@ abstract class Statement extends AstNode {
  *   | '"' [InterpolationElement]* '"'
  * </pre>
  */
-class StringInterpolation extends StringLiteral {
+class StringInterpolation extends SingleStringLiteral {
   /**
    * The elements that will be composed to produce the resulting string.
    */
@@ -16136,6 +16167,21 @@ class StringInterpolation extends StringLiteral {
   void appendStringValue(JavaStringBuilder builder) {
     throw new IllegalArgumentException();
   }
+
+  @override
+  int get contentsOffset {
+    InterpolationString element = _elements.first;
+    return element.contentsOffset;
+  }
+
+  @override
+  int get contentsEnd {
+    InterpolationString element = _elements.last;
+    return element.contentsEnd;
+  }
+
+  @override
+  bool get isRaw => false;
 }
 
 /**
@@ -16173,6 +16219,33 @@ abstract class StringLiteral extends Literal {
    *           interpolation
    */
   void appendStringValue(JavaStringBuilder builder);
+}
+
+/**
+ * Instances of the class [SingleStringLiteral] represent a single string
+ * literal expression.
+ *
+ * <pre>
+ * singleStringLiteral ::=
+ *     [SimpleStringLiteral]
+ *   | [StringInterpolation]
+ * </pre>
+ */
+abstract class SingleStringLiteral extends StringLiteral {
+  /**
+   * Return the offset of the first contents character.
+   */
+  int get contentsOffset;
+
+  /**
+   * Return the offset of the after-last contents character.
+   */
+  int get contentsEnd;
+
+  /**
+   * Return `true` if this string literal is a raw string.
+   */
+  bool get isRaw;
 }
 
 /**

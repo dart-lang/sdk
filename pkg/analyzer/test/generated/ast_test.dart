@@ -1573,15 +1573,26 @@ class SimpleIdentifierTest extends ParserTestCase {
 }
 
 class SimpleStringLiteralTest extends ParserTestCase {
-  void test_getValueOffset() {
-    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").valueOffset);
-    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").valueOffset);
-    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").valueOffset);
-    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").valueOffset);
-    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").valueOffset);
-    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").valueOffset);
-    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").valueOffset);
-    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").valueOffset);
+  void test_contentsOffset() {
+    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").contentsOffset);
+    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").contentsOffset);
+    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").contentsOffset);
+    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").contentsOffset);
+    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").contentsOffset);
+    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").contentsOffset);
+    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").contentsOffset);
+    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").contentsOffset);
+  }
+
+  void test_contentsEnd() {
+    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").contentsEnd);
+    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.tokenFromString("\"X\""), "X").contentsEnd);
+    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("\"\"\"X\"\"\""), "X").contentsEnd);
+    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.tokenFromString("'''X'''"), "X").contentsEnd);
+    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").contentsEnd);
+    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"X\""), "X").contentsEnd);
+    JUnitTestCase.assertEquals(5, new SimpleStringLiteral(TokenFactory.tokenFromString("r\"\"\"X\"\"\""), "X").contentsEnd);
+    JUnitTestCase.assertEquals(5, new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").contentsEnd);
   }
 
   void test_isMultiline() {
@@ -1617,9 +1628,13 @@ class SimpleStringLiteralTest extends ParserTestCase {
 
   static dartSuite() {
     _ut.group('SimpleStringLiteralTest', () {
-      _ut.test('test_getValueOffset', () {
+      _ut.test('test_contentsOffset', () {
         final __test = new SimpleStringLiteralTest();
-        runJUnitTest(__test, __test.test_getValueOffset);
+        runJUnitTest(__test, __test.test_contentsOffset);
+      });
+      _ut.test('test_contentsEnd', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_contentsEnd);
       });
       _ut.test('test_isMultiline', () {
         final __test = new SimpleStringLiteralTest();
@@ -1632,6 +1647,88 @@ class SimpleStringLiteralTest extends ParserTestCase {
       _ut.test('test_simple', () {
         final __test = new SimpleStringLiteralTest();
         runJUnitTest(__test, __test.test_simple);
+      });
+    });
+  }
+}
+
+class StringInterpolationTest extends ParserTestCase {
+  void test_contentsOffsetEnd() {
+    var be = AstFactory.interpolationExpression(AstFactory.identifier3('bb'));
+    // 'a${bb}ccc'
+    {
+      var ae = AstFactory.interpolationString("'a", "a");
+      var cToken = new StringToken(TokenType.STRING, "ccc'", 10);
+      var cElement = new InterpolationString(cToken, 'ccc');
+      StringInterpolation node = AstFactory.string([ae, ae, cElement]);
+      JUnitTestCase.assertEquals(1, node.contentsOffset);
+      JUnitTestCase.assertEquals(10 + 4 - 1, node.contentsEnd);
+    }
+    // '''a${bb}ccc'''
+    {
+      var ae = AstFactory.interpolationString("'''a", "a");
+      var cToken = new StringToken(TokenType.STRING, "ccc'''", 10);
+      var cElement = new InterpolationString(cToken, 'ccc');
+      StringInterpolation node = AstFactory.string([ae, ae, cElement]);
+      JUnitTestCase.assertEquals(3, node.contentsOffset);
+      JUnitTestCase.assertEquals(10 + 4 - 1, node.contentsEnd);
+    }
+    // """a${bb}ccc"""
+    {
+      var ae = AstFactory.interpolationString('"""a', "a");
+      var cToken = new StringToken(TokenType.STRING, 'ccc"""', 10);
+      var cElement = new InterpolationString(cToken, 'ccc');
+      StringInterpolation node = AstFactory.string([ae, ae, cElement]);
+      JUnitTestCase.assertEquals(3, node.contentsOffset);
+      JUnitTestCase.assertEquals(10 + 4 - 1, node.contentsEnd);
+    }
+    // r'a${bb}ccc'
+    {
+      var ae = AstFactory.interpolationString("r'a", "a");
+      var cToken = new StringToken(TokenType.STRING, "ccc'", 10);
+      var cElement = new InterpolationString(cToken, 'ccc');
+      StringInterpolation node = AstFactory.string([ae, ae, cElement]);
+      JUnitTestCase.assertEquals(2, node.contentsOffset);
+      JUnitTestCase.assertEquals(10 + 4 - 1, node.contentsEnd);
+    }
+    // r'''a${bb}ccc'''
+    {
+      var ae = AstFactory.interpolationString("r'''a", "a");
+      var cToken = new StringToken(TokenType.STRING, "ccc'''", 10);
+      var cElement = new InterpolationString(cToken, 'ccc');
+      StringInterpolation node = AstFactory.string([ae, ae, cElement]);
+      JUnitTestCase.assertEquals(4, node.contentsOffset);
+      JUnitTestCase.assertEquals(10 + 4 - 1, node.contentsEnd);
+    }
+    // r"""a${bb}ccc"""
+    {
+      var ae = AstFactory.interpolationString('r"""a', "a");
+      var cToken = new StringToken(TokenType.STRING, 'ccc"""', 10);
+      var cElement = new InterpolationString(cToken, 'ccc');
+      StringInterpolation node = AstFactory.string([ae, ae, cElement]);
+      JUnitTestCase.assertEquals(4, node.contentsOffset);
+      JUnitTestCase.assertEquals(10 + 4 - 1, node.contentsEnd);
+    }
+  }
+
+  void test_isRaw() {
+    var ae = AstFactory.interpolationString("'a", "a");
+    var be = AstFactory.interpolationExpression(AstFactory.identifier3('bb'));
+    var cToken = new StringToken(TokenType.STRING, "ccc'", 10);
+    var ce = new InterpolationString(cToken, 'ccc');
+    StringInterpolation node = AstFactory.string([ae, ae, ce]);
+    JUnitTestCase.assertFalse(node.isRaw);
+  }
+
+  static dartSuite() {
+    _ut.group('StringInterpolationTest', () {
+      _ut.test('test_contentsOffsetEnd', () {
+        final __test = new StringInterpolationTest();
+        runJUnitTest(__test, __test.test_contentsOffsetEnd);
+      });
+      _ut.test('test_isRaw', () {
+        final __test = new StringInterpolationTest();
+        runJUnitTest(__test, __test.test_isRaw);
       });
     });
   }
@@ -4056,5 +4153,6 @@ main() {
   NodeListTest.dartSuite();
   SimpleIdentifierTest.dartSuite();
   SimpleStringLiteralTest.dartSuite();
+  StringInterpolationTest.dartSuite();
   VariableDeclarationTest.dartSuite();
 }
