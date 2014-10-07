@@ -24,6 +24,40 @@ class IsolateSpawnException implements Exception {
   final String _s;
 }
 
+/**
+ * An isolated Dart execution context.
+ *
+ * All Dart code runs in an isolate, and code can access classes and values
+ * only from the same isolate. Different isolates can communicate by sending
+ * values through ports (see [ReceivePort], [SendPort]).
+ *
+ * An `Isolate` object is a reference to an isolate, usually different from
+ * the current isolate.
+ * It represents, and can be used control, the other isolate.
+ *
+ * When spawning a new isolate, the spawning isolate receives an `Isolate`
+ * object representing the new isolate when the spawn operation succeeds.
+ *
+ * Isolates run code in its own event loop, and each event may run smaller tasks
+ * in a nested microtask queue.
+ *
+ * An `Isolate` object allows other isolates to control the event loop
+ * of the isolate that it represents, and to inspect the isolate,
+ * for example by pausing the isolate or by getting events when the isolate
+ * has an uncaught error.
+ *
+ * The [controlPort] gives access to controlling the isolate, and the
+ * [pauseCapability] and [terminateCapability] guard access to some control
+ * operations.
+ * The `Isolate` object provided by a spawn operation will have the
+ * control port and capabilities needed to control the isolate.
+ * New isolates objects can be created without some of these capabilities
+ * if necessary.
+ *
+ * An `Isolate` object cannot be sent over a `SendPort`, but the control port
+ * and capabilities can be sent, and can be used to create a new functioning
+ * `Isolate` object in the receiving port's isolate.
+ */
 class Isolate {
   /** Argument to `ping` and `kill`: Ask for immediate action. */
   static const int IMMEDIATE = 0;
@@ -37,15 +71,31 @@ class Isolate {
    *
    * This class provides helper functions that sends control messages
    * to the control port.
+   *
+   * The control port identifies the isolate.
    */
   final SendPort controlPort;
+
   /**
    * Capability granting the ability to pause the isolate.
+   *
+   * This capability is used by [pause].
+   * If the capability is not the correct pause capability of the isolate,
+   * including if the capability is `null`, then calls to `pause` will have no
+   * effect.
+   *
+   * If the isolate is started in a paused state, use this capability as
+   * argument to [resume] to resume the isolate.
    */
   final Capability pauseCapability;
 
   /**
    * Capability granting the ability to terminate the isolate.
+   *
+   * This capability is used by [kill] and [setErrorsFatal].
+   * If the capability is not the correct termination capability of the isolate,
+   * including if the capability is `null`, then calls to those methods will
+   * have no effect.
    */
   final Capability terminateCapability;
 
@@ -261,9 +311,9 @@ class Isolate {
    *     It may happen earlier if the system has a way to shut down cleanly
    *     at an earlier time, even during the execution of another event.
    * * `BEFORE_NEXT_EVENT`: The shutdown is scheduled for the next time
-   *     control returns to the event loop of the receiving isolate.
-   *     If more than one such event are scheduled, they are executed in
-   *     the order their control messages were received.
+   *     control returns to the event loop of the receiving isolate,
+   *     after the current event, and any already scheduled control events,
+   *     are completed.
    * * `AS_EVENT`: The shutdown does not happen until all prevously sent
    *     non-control messages from the current isolate to the receiving isolate
    *     have been processed.
@@ -287,11 +337,12 @@ class Isolate {
    * The response is sent at different times depending on the ping type:
    *
    * * `IMMEDIATE`: The the isolate responds as soon as it receives the
-   *     control message.
+   *     control message. This is after any previous control message
+   *     from the same isolate has been received.
    * * `BEFORE_NEXT_EVENT`: The response is scheduled for the next time
-   *     control returns to the event loop of the receiving isolate.
-   *     If more than one such event are scheduled, they are executed in
-   *     the order their control messages were received.
+   *     control returns to the event loop of the receiving isolate,
+   *     after the current event, and any already scheduled control events,
+   *     are completed.
    * * `AS_EVENT`: The response is not sent until all prevously sent
    *     non-control messages from the current isolate to the receiving isolate
    *     have been processed.

@@ -61,7 +61,7 @@ abstract class Timer {
    *
    * The exact timing depends on the underlying timer implementation.
    * No more than `n` callbacks will be made in `duration * n` time,
-   * but the time between two consequtive callbacks
+   * but the time between two consecutive callbacks
    * can be shorter and longer than `duration`.
    *
    * In particular, an implementation may schedule the next callback, e.g.,
