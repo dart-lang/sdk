@@ -211,7 +211,7 @@ To define help text for an entire option, use the `help:` parameter:
 
 For non-flag options, you can also provide a help string for the parameter:
 
-    parser.addOption('out', help: 'The output path', helpValue: 'path',
+    parser.addOption('out', help: 'The output path', valueHelp: 'path',
         allowed: ['debug', 'release']);
 
 For non-flag options, you can also provide detailed help for each expected value
