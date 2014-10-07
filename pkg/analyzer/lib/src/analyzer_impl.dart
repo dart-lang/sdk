@@ -34,6 +34,20 @@ DirectoryBasedDartSdk sdk;
 
 /// Analyzes single library [File].
 class AnalyzerImpl {
+  /**
+   * Compute the severity of the error; however, if
+   * [escalateCheckedModeCompileTimeErrors] is true, then escalate it to
+   * [ErrorSeverity.ERROR].
+   */
+  static ErrorSeverity computeSeverity(
+      AnalysisError error, bool escalateCheckedModeCompileTimeErrors) {
+    if (escalateCheckedModeCompileTimeErrors
+        && error.errorCode.type == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
+      return ErrorSeverity.ERROR;
+    }
+    return error.errorCode.errorSeverity;
+  }
+
   final String sourcePath;
   final CommandLineOptions options;
   final int startTime;
@@ -162,8 +176,16 @@ class AnalyzerImpl {
     });
   }
 
-  bool _excludeTodo(AnalysisError error) =>
-      error.errorCode.type != ErrorType.TODO;
+  bool _isDesiredError(AnalysisError error) {
+    if (error.errorCode.type == ErrorType.TODO) {
+      return false;
+    }
+    if (computeSeverity(error, options.enableTypeChecks) == ErrorSeverity.INFO
+        && options.disableHints) {
+      return false;
+    }
+    return true;
+  }
 
   _printErrorsAndPerf() {
     // The following is a hack. We currently print out to stderr to ensure that
@@ -175,7 +197,7 @@ class AnalyzerImpl {
     IOSink sink = options.machineFormat ? stderr : stdout;
 
     // print errors
-    ErrorFormatter formatter = new ErrorFormatter(sink, options, _excludeTodo);
+    ErrorFormatter formatter = new ErrorFormatter(sink, options, _isDesiredError);
     formatter.formatErrors(errorInfos);
 
     // print performance numbers
@@ -230,7 +252,10 @@ class AnalyzerImpl {
     var status = ErrorSeverity.NONE;
     for (AnalysisErrorInfo errorInfo in errorInfos) {
       for (AnalysisError error in errorInfo.errors) {
-        var severity = error.errorCode.errorSeverity;
+        if (!_isDesiredError(error)) {
+          continue;
+        }
+        var severity = computeSeverity(error, options.enableTypeChecks);
         status = status.max(severity);
       }
     }

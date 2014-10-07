@@ -419,6 +419,191 @@ class ChangeSetTest extends EngineTestCase {
 }
 
 class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
+  void test_fieldFormalParameterAssignableToField_extends() {
+    // According to checked-mode type checking rules, a value of type B is
+    // assignable to a field of type A, because B extends A (and hence is a
+    // subtype of A).
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A();",
+        "}",
+        "class B extends A {",
+        "  const B();",
+        "}",
+        "class C {",
+        "  final A a;",
+        "  const C(this.a);",
+        "}",
+        "var v = const C(const B());"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterAssignableToField_implements() {
+    // According to checked-mode type checking rules, a value of type B is
+    // assignable to a field of type A, because B implements A (and hence is a
+    // subtype of A).
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {}",
+        "class B implements A {",
+        "  const B();",
+        "}",
+        "class C {",
+        "  final A a;",
+        "  const C(this.a);",
+        "}",
+        "var v = const C(const B());"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterAssignableToField_notype() {
+    // If a field is declared without a type, then any value may be assigned to
+    // it.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  final x;",
+        "  const A(this.x);",
+        "}",
+        "var v = const A(5);"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterAssignableToField_null() {
+    // Null is assignable to anything.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  final int x;",
+        "  const A(this.x);",
+        "}",
+        "var v = const A(null);"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterAssignableToField_typedef() {
+    // foo has the runtime type dynamic -> dynamic, so it should be assignable
+    // to A.f.
+    Source source = addSource(EngineTestCase.createSource([
+        "typedef String Int2String(int x);",
+        "class A {",
+        "  final Int2String f;",
+        "  const A(this.f);",
+        "}",
+        "foo(x) => 1;"
+        "var v = const A(foo);"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterAssignableToField_typeSubstitution() {
+    // foo has the runtime type dynamic -> dynamic, so it should be assignable
+    // to A.f.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A<T> {",
+        "  final T x;",
+        "  const A(this.x);",
+        "}",
+        "var v = const A<int>(3);"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterNotAssignableToField() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  final int x;",
+        "  const A(this.x);",
+        "}",
+        "var v = const A('foo');"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterNotAssignableToField_extends() {
+    // According to checked-mode type checking rules, a value of type A is not
+    // assignable to a field of type B, because B extends A (the subtyping
+    // relationship is in the wrong direction).
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A();",
+        "}",
+        "class B extends A {",
+        "  const B();",
+        "}",
+        "class C {",
+        "  final B b;",
+        "  const C(this.b);",
+        "}",
+        "var v = const C(const A());"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterNotAssignableToField_implements() {
+    // According to checked-mode type checking rules, a value of type A is not
+    // assignable to a field of type B, because B implements A (the subtyping
+    // relationship is in the wrong direction).
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A();",
+        "}",
+        "class B implements A {}",
+        "class C {",
+        "  final B b;",
+        "  const C(this.b);",
+        "}",
+        "var v = const C(const A());"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterNotAssignableToField_optional() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  final int x;",
+        "  const A([this.x = 'foo']);",
+        "}",
+        "var v = const A();"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+        StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterNotAssignableToField_typedef() {
+    // foo has the runtime type String -> int, so it should not be assignable
+    // to A.f (A.f requires it to be int -> String).
+    Source source = addSource(EngineTestCase.createSource([
+        "typedef String Int2String(int x);",
+        "class A {",
+        "  final Int2String f;",
+        "  const A(this.f);",
+        "}",
+        "int foo(String x) => 1;"
+        "var v = const A(foo);"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
   void test_fieldInitializerNotAssignable() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -456,6 +641,55 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, [
         CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  void test_parameterAssignable_null() {
+    // Null is assignable to anything.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(int x);",
+        "}",
+        "var v = const A(null);"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_parameterAssignable_typeSubstitution() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A<T> {",
+        "  const A(T x);",
+        "}",
+        "var v = const A<int>(3);"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_parameterNotAssignable() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(int x);",
+        "}",
+        "var v = const A('foo');"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  void test_parameterNotAssignable_typeSubstitution() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A<T> {",
+        "  const A(T x);",
+        "}",
+        "var v = const A<int>('foo');"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 }
@@ -18050,7 +18284,9 @@ class StaticWarningCodeTest extends ResolverTestCase {
         "  const A(42);",
         "}"]));
     resolve(source);
-    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    assertErrors(source, [
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
     verify([source]);
   }
 

@@ -20,6 +20,7 @@ main() {
       expect(options.displayVersion, isFalse);
       expect(options.enableAsync, isFalse);
       expect(options.enableEnum, isFalse);
+      expect(options.enableTypeChecks, isFalse);
       expect(options.ignoreUnrecognizedFlags, isFalse);
       expect(options.log, isFalse);
       expect(options.machineFormat, isFalse);
@@ -56,6 +57,12 @@ main() {
       CommandLineOptions options = CommandLineOptions
           .parse(['--dart-sdk', '.', '--enable-enum', 'foo.dart']);
       expect(options.enableEnum, isTrue);
+    });
+
+    test('enable type checks', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '--enable_type_cheks', 'foo.dart']);
+      expect(options.enableTypeChecks, isTrue);
     });
 
     test('log', () {

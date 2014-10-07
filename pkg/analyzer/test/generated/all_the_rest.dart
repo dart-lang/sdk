@@ -3456,7 +3456,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
     EvaluationResult result = _getExpressionValue(contents);
     DartObject value = result.value;
     JUnitTestCase.assertNotNull(value);
-    InterfaceType type = value.type;
+    ParameterizedType type = value.type;
     JUnitTestCase.assertNotNull(type);
     JUnitTestCase.assertEquals("String", type.name);
     JUnitTestCase.assertEquals(expectedValue, value.stringValue);

@@ -506,7 +506,7 @@ class ConstantValueComputer {
       if (!((arguments[1] as NamedExpression).name.label.name == _DEFAULT_VALUE_PARAM)) {
         return false;
       }
-      InterfaceType defaultValueType = namedArgumentValues[_DEFAULT_VALUE_PARAM].type;
+      ParameterizedType defaultValueType = namedArgumentValues[_DEFAULT_VALUE_PARAM].type;
       if (!(identical(defaultValueType, expectedDefaultValueType) || identical(defaultValueType, typeProvider.nullType))) {
         return false;
       }
@@ -623,16 +623,20 @@ class ConstantValueComputer {
   DartObjectImpl _evaluateConstructorCall(AstNode node, NodeList<Expression> arguments, ConstructorElement constructor, ConstantVisitor constantVisitor, ErrorReporter errorReporter) {
     int argumentCount = arguments.length;
     List<DartObjectImpl> argumentValues = new List<DartObjectImpl>(argumentCount);
+    List<Expression> argumentNodes = new List<Expression>(argumentCount);
     HashMap<String, DartObjectImpl> namedArgumentValues = new HashMap<String, DartObjectImpl>();
+    HashMap<String, NamedExpression> namedArgumentNodes =
+        new HashMap<String, NamedExpression>();
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
       if (argument is NamedExpression) {
-        NamedExpression namedExpression = argument;
-        String name = namedExpression.name.label.name;
-        namedArgumentValues[name] = constantVisitor._valueOf(namedExpression.expression);
+        String name = argument.name.label.name;
+        namedArgumentValues[name] = constantVisitor._valueOf(argument.expression);
+        namedArgumentNodes[name] = argument;
         argumentValues[i] = constantVisitor.null2;
       } else {
         argumentValues[i] = constantVisitor._valueOf(argument);
+        argumentNodes[i] = argument;
       }
     }
     constructor = _followConstantRedirectionChain(constructor);
@@ -686,24 +690,34 @@ class ConstantValueComputer {
     }
     HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
     HashMap<String, DartObjectImpl> parameterMap = new HashMap<String, DartObjectImpl>();
-    List<ParameterElement> parameters = constructorBase.parameters;
+    List<ParameterElement> parameters = constructor.parameters;
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       ParameterElement parameter = parameters[i];
-      while (parameter is ParameterMember) {
-        parameter = (parameter as ParameterMember).baseElement;
+      ParameterElement baseParameter = parameter;
+      while (baseParameter is ParameterMember) {
+        baseParameter = (baseParameter as ParameterMember).baseElement;
       }
       DartObjectImpl argumentValue = null;
-      if (parameter.parameterKind == ParameterKind.NAMED) {
-        argumentValue = namedArgumentValues[parameter.name];
+      AstNode errorTarget = null;
+      if (baseParameter.parameterKind == ParameterKind.NAMED) {
+        argumentValue = namedArgumentValues[baseParameter.name];
+        errorTarget = namedArgumentNodes[baseParameter.name];
       } else if (i < argumentCount) {
         argumentValue = argumentValues[i];
+        errorTarget = argumentNodes[i];
       }
-      if (argumentValue == null && parameter is ParameterElementImpl) {
+      if (errorTarget == null) {
+        // No argument node that we can direct error messages to, because we
+        // are handling an optional parameter that wasn't specified.  So just
+        // direct error messages to the constructor call.
+        errorTarget = node;
+      }
+      if (argumentValue == null && baseParameter is ParameterElementImpl) {
         // The parameter is an optional positional parameter for which no value was provided, so
         // use the default value.
-        beforeGetParameterDefault(parameter);
-        EvaluationResultImpl evaluationResult = (parameter as ParameterElementImpl).evaluationResult;
+        beforeGetParameterDefault(baseParameter);
+        EvaluationResultImpl evaluationResult = (baseParameter as ParameterElementImpl).evaluationResult;
         if (evaluationResult == null) {
           // No default was provided, so the default value is null.
           argumentValue = constantVisitor.null2;
@@ -712,14 +726,20 @@ class ConstantValueComputer {
         }
       }
       if (argumentValue != null) {
-        if (parameter.isInitializingFormal) {
-          FieldElement field = (parameter as FieldFormalParameterElement).field;
+        if (!argumentValue.isNull && !argumentValue.type.isSubtypeOf(parameter.type)) {
+          errorReporter.reportErrorForNode(
+              CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+              errorTarget,
+              [argumentValue.type, parameter.type]);
+        }
+        if (baseParameter.isInitializingFormal) {
+          FieldElement field = (baseParameter as FieldFormalParameterElement).field;
           if (field != null) {
             String fieldName = field.name;
             fieldMap[fieldName] = argumentValue;
           }
         } else {
-          String name = parameter.name;
+          String name = baseParameter.name;
           parameterMap[name] = argumentValue;
         }
       }
@@ -1047,8 +1067,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (conditionResult.isFalse) {
       return elseResult;
     }
-    InterfaceType thenType = thenResult.type;
-    InterfaceType elseType = elseResult.type;
+    ParameterizedType thenType = thenResult.type;
+    ParameterizedType elseType = elseResult.type;
     return _validWithUnknownValue(thenType.getLeastUpperBound(elseType) as InterfaceType);
   }
 
@@ -1349,7 +1369,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (element is ExecutableElement) {
       ExecutableElement function = element;
       if (function.isStatic) {
-        return new DartObjectImpl(_typeProvider.functionType, new FunctionState(function));
+        ParameterizedType functionType = function.type;
+        if (functionType == null) {
+          functionType = _typeProvider.functionType;
+        }
+        return new DartObjectImpl(functionType, new FunctionState(function));
       }
     } else if (element is ClassElement || element is FunctionTypeAliasElement) {
       return new DartObjectImpl(_typeProvider.typeType, new TypeState(element));
@@ -1420,7 +1444,7 @@ abstract class DartObject {
    *
    * @return the run-time type of this object
    */
-  InterfaceType get type;
+  ParameterizedType get type;
 
   /**
    * Return this object's value if it can be represented exactly, or `null` if either the
@@ -1785,7 +1809,7 @@ class DartObjectImpl implements DartObject {
   /**
    * The run-time type of this object.
    */
-  final InterfaceType type;
+  final ParameterizedType type;
 
   /**
    * The state of the object.

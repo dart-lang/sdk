@@ -8,6 +8,7 @@ import 'generated/engine.dart';
 import 'generated/error.dart';
 import 'generated/source_io.dart';
 import '../options.dart';
+import 'package:analyzer/src/analyzer_impl.dart';
 
 /// Returns `true` if [AnalysisError] should be printed.
 typedef bool _ErrorFilter(AnalysisError error);
@@ -40,7 +41,11 @@ class ErrorFormatter {
     // sort errors
     errors.sort((AnalysisError error1, AnalysisError error2) {
       // severity
-      int compare = error2.errorCode.errorSeverity.compareTo(error1.errorCode.errorSeverity);
+      ErrorSeverity severity1 = AnalyzerImpl.computeSeverity(
+          error1, options.enableTypeChecks);
+      ErrorSeverity severity2 = AnalyzerImpl.computeSeverity(
+          error2, options.enableTypeChecks);
+      int compare = severity2.compareTo(severity1);
       if (compare != 0) {
         return compare;
       }
@@ -57,7 +62,8 @@ class ErrorFormatter {
     int warnCount = 0;
     int hintCount = 0;
     for (AnalysisError error in errors) {
-      var severity = error.errorCode.errorSeverity;
+      ErrorSeverity severity = AnalyzerImpl.computeSeverity(
+          error, options.enableTypeChecks);
       if (severity == ErrorSeverity.ERROR) {
         errorCount++;
       } else if (severity == ErrorSeverity.WARNING) {
@@ -119,7 +125,8 @@ class ErrorFormatter {
     Source source = error.source;
     LineInfo_Location location = errorToLine[error].getLocation(error.offset);
     int length = error.length;
-    var severity = error.errorCode.errorSeverity;
+    ErrorSeverity severity = AnalyzerImpl.computeSeverity(
+        error, options.enableTypeChecks);
     if (options.machineFormat) {
       if (severity == ErrorSeverity.WARNING && options.warningsAreFatal) {
         severity = ErrorSeverity.ERROR;
@@ -140,7 +147,7 @@ class ErrorFormatter {
       out.write('|');
       out.write(escapePipe(error.message));
     } else {
-      String errorType = error.errorCode.errorSeverity.displayName;
+      String errorType = severity.displayName;
       if (error.errorCode.type == ErrorType.HINT) {
         errorType = error.errorCode.type.displayName;
       }

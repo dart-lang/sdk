@@ -392,6 +392,16 @@ class BooleanErrorListener implements AnalysisErrorListener {
  */
 class CheckedModeCompileTimeErrorCode extends Enum<CheckedModeCompileTimeErrorCode> implements ErrorCode {
   /**
+   * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
+   * uncaught exception being thrown.
+   */
+  static const CheckedModeCompileTimeErrorCode CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH =
+      const CheckedModeCompileTimeErrorCode.con1(
+          'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
+          0,
+          "The object type '{0}' cannot be assigned to a parameter of type '{1}'");
+
+  /**
    * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error if o is not
    * <b>null</b> and the interface of the class of <i>o</i> is not a subtype of the static type of
    * the field <i>v</i>.
@@ -402,7 +412,7 @@ class CheckedModeCompileTimeErrorCode extends Enum<CheckedModeCompileTimeErrorCo
    * @param initializerType the name of the type of the initializer expression
    * @param fieldType the name of the type of the field
    */
-  static const CheckedModeCompileTimeErrorCode CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE = const CheckedModeCompileTimeErrorCode.con1('CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE', 0, "The initializer type '{0}' cannot be assigned to the field type '{1}'");
+  static const CheckedModeCompileTimeErrorCode CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE = const CheckedModeCompileTimeErrorCode.con1('CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE', 1, "The initializer type '{0}' cannot be assigned to the field type '{1}'");
 
   /**
    * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i> ...
@@ -416,7 +426,7 @@ class CheckedModeCompileTimeErrorCode extends Enum<CheckedModeCompileTimeErrorCo
    * It is a static warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1 &lt;=
    * j &lt;= m</i>.
    */
-  static const CheckedModeCompileTimeErrorCode LIST_ELEMENT_TYPE_NOT_ASSIGNABLE = const CheckedModeCompileTimeErrorCode.con1('LIST_ELEMENT_TYPE_NOT_ASSIGNABLE', 1, "The element type '{0}' cannot be assigned to the list type '{1}'");
+  static const CheckedModeCompileTimeErrorCode LIST_ELEMENT_TYPE_NOT_ASSIGNABLE = const CheckedModeCompileTimeErrorCode.con1('LIST_ELEMENT_TYPE_NOT_ASSIGNABLE', 2, "The element type '{0}' cannot be assigned to the list type '{1}'");
 
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
@@ -430,7 +440,7 @@ class CheckedModeCompileTimeErrorCode extends Enum<CheckedModeCompileTimeErrorCo
    * It is a static warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1 &lt;=
    * j &lt;= m</i>.
    */
-  static const CheckedModeCompileTimeErrorCode MAP_KEY_TYPE_NOT_ASSIGNABLE = const CheckedModeCompileTimeErrorCode.con1('MAP_KEY_TYPE_NOT_ASSIGNABLE', 2, "The element type '{0}' cannot be assigned to the map key type '{1}'");
+  static const CheckedModeCompileTimeErrorCode MAP_KEY_TYPE_NOT_ASSIGNABLE = const CheckedModeCompileTimeErrorCode.con1('MAP_KEY_TYPE_NOT_ASSIGNABLE', 3, "The element type '{0}' cannot be assigned to the map key type '{1}'");
 
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt; [<i>k<sub>1</sub></i> :
@@ -444,9 +454,10 @@ class CheckedModeCompileTimeErrorCode extends Enum<CheckedModeCompileTimeErrorCo
    * It is a static warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1 &lt;=
    * j &lt;= m</i>.
    */
-  static const CheckedModeCompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE = const CheckedModeCompileTimeErrorCode.con1('MAP_VALUE_TYPE_NOT_ASSIGNABLE', 3, "The element type '{0}' cannot be assigned to the map value type '{1}'");
+  static const CheckedModeCompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE = const CheckedModeCompileTimeErrorCode.con1('MAP_VALUE_TYPE_NOT_ASSIGNABLE', 4, "The element type '{0}' cannot be assigned to the map value type '{1}'");
 
   static const List<CheckedModeCompileTimeErrorCode> values = const [
+      CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
       LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
       MAP_KEY_TYPE_NOT_ASSIGNABLE,
