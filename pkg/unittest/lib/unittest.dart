@@ -297,9 +297,13 @@ void solo_test(String spec, TestFunction body) {
 /// the upper bound to the same value as [count]; i.e. the callback should be
 /// called exactly [count] times. A value of -1 for [max] will mean no upper
 /// bound.
+///
+/// [reason] is optional and is typically not supplied, as a reason is generated
+/// by the unittest package; if reason is included it is appended to the
+/// generated reason.
 Function expectAsync(Function callback,
-    {int count: 1, int max: 0, String id}) =>
-  new _SpreadArgsHelper(callback, count, max, id).func;
+    {int count: 1, int max: 0, String id, String reason}) =>
+  new _SpreadArgsHelper(callback, count, max, id, reason).func;
 
 /// Indicate that [callback] is expected to be called until [isDone] returns
 /// true. The unittest framework check [isDone] after each callback and only
@@ -309,8 +313,13 @@ Function expectAsync(Function callback,
 /// arguments (named arguments are not supported). [id] can be used to
 /// identify the callback in error messages (for example if it is called
 /// after the test case is complete).
-Function expectAsyncUntil(Function callback, bool isDone(), {String id}) =>
-    new _SpreadArgsHelper(callback, 0, -1, id, isDone: isDone).func;
+///
+/// [reason] is optional and is typically not supplied, as a reason is generated
+/// by the unittest package; if reason is included it is appended to the
+/// generated reason.
+Function expectAsyncUntil(Function callback, bool isDone(),
+    {String id, String reason}) =>
+  new _SpreadArgsHelper(callback, 0, -1, id, reason, isDone: isDone).func;
 
 /// Creates a new named group of tests. Calls to group() or test() within the
 /// body of the function passed to this will inherit this group's description.

@@ -1,3 +1,8 @@
+##0.11.1
+
+* Add `reason` named argument to `expectAsync` and `expectAsyncUntil`, which has
+  the same definition as `expect`'s `reason` argument.
+
 ##0.11.0+6
 
 * Refactored package tests.
