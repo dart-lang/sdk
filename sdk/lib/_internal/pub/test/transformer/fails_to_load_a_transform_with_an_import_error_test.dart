@@ -29,7 +29,7 @@ main() {
 
       createLockFile('myapp', pkg: ['barback']);
       var pub = startPubServe();
-      pub.stderr.expect("'Unhandled exception:");
+      pub.stderr.expect("Unhandled exception:");
       pub.stderr.expect(startsWith("Uncaught Error: Failure getting "));
       pub.shouldExit(1);
     });
