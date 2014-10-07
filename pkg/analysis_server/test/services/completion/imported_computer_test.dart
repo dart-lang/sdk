@@ -296,6 +296,33 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     });
   }
 
+  xtest_ConstructorName_importedClass() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addSource('/testB.dart', '''
+      lib B;
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      var m;
+      main() {new X.^}''');
+    return computeFull().then((_) {
+      assertNoSuggestions();
+    });
+  }
+
+  xtest_ConstructorName_localClass() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addTestSource('''
+      var m;
+      class X {X.c(); X._d(); z() {}}
+      main() {new X.^}''');
+    return computeFull().then((_) {
+      assertNoSuggestions();
+    });
+  }
+
   // TODO (danrubel) implement
   xtest_InstanceCreationExpression() {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
@@ -312,6 +339,35 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
       // Should not suggest compilation unit elements
       // which are returned by the LocalComputer
       assertNotSuggested('C');
+    });
+  }
+
+  // TODO (danrubel) implement
+  xtest_IsExpression_imported() {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addSource('/testB.dart', '''
+      lib B;
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      main() {var x; if (x is ^) { }}''');
+    return computeFull().then((_) {
+      assertSuggestConstructor('c');
+      assertNotSuggested('main');
+      assertNotSuggested('X');
+      assertNotSuggested('B');
+      assertNotSuggested('x');
+    });
+  }
+
+  // TODO (danrubel) implement
+  xtest_IsExpression_local() {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+      class X {X.c(); X._d(); z() {}}
+      main() {var x; if (x is ^) { }}''');
+    return computeFull().then((_) {
+      assertNoSuggestions();
     });
   }
 

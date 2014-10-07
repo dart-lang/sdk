@@ -52,6 +52,10 @@ class AbstractCompletionTest extends AbstractContextTest {
         new DartCompletionRequest(context, searchEngine, testSource, completionOffset);
   }
 
+  void assertNoSuggestions() {
+    expect(request.suggestions, equals(0));
+  }
+
   void assertNotSuggested(String completion) {
     CompletionSuggestion suggestion = request.suggestions.firstWhere(
         (cs) => cs.completion == completion,
@@ -78,7 +82,7 @@ class AbstractCompletionTest extends AbstractContextTest {
       }
     });
     if (cs == null) {
-      _failedCompletion('expected $completion', request.suggestions);
+      _failedCompletion('expected $completion $kind', request.suggestions);
     }
     expect(cs.kind, equals(kind));
     expect(cs.relevance, equals(relevance));
@@ -96,6 +100,18 @@ class AbstractCompletionTest extends AbstractContextTest {
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CLASS));
+    expect(element.name, equals(name));
+    expect(element.returnType, isNull);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestConstructor(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    CompletionSuggestion cs =
+        assertSuggest(CompletionSuggestionKind.CONSTRUCTOR, name, relevance);
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
     expect(element.name, equals(name));
     expect(element.returnType, isNull);
     return cs;

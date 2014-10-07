@@ -155,20 +155,6 @@ class LocalComputerTest extends AbstractCompletionTest {
     assertSuggestParameter('b', 'R');
   }
 
-  test_InstanceCreationExpression() {
-    // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
-    addTestSource('class A {a() {var f; {var x;} new ^}} class B { }');
-    expect(computeFast(), isTrue);
-    assertSuggestClass('A');
-    assertSuggestClass('B');
-    // TODO (danrubel) should only suggest types
-    //assertNotSuggested('a');
-    assertSuggestMethod('a', 'A', null);
-    //assertNotSuggested('f');
-    assertSuggestLocalVariable('f', null);
-    assertNotSuggested('x');
-  }
-
   test_InterpolationExpression() {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addTestSource('main() {String name; print("hello \$^");}');
@@ -297,5 +283,75 @@ class LocalComputerTest extends AbstractCompletionTest {
     assertSuggestLocalVariable('f', null);
     assertNotSuggested('g');
     assertNotSuggested('x');
+  }
+
+  //TODO (danrubel) implement
+  xtest_ConstructorName_importedClass() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addSource('/testB.dart', '''
+      lib B;
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      var m;
+      main() {new X.^}''');
+    return computeFull().then((_) {
+      assertNoSuggestions();
+    });
+  }
+
+  //TODO (danrubel) implement
+  xtest_ConstructorName_localClass() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addTestSource('''
+      var m;
+      class X {X.c(); X._d(); z() {}}
+      main() {new X.^}''');
+    return computeFull().then((_) {
+      assertNoSuggestions();
+    });
+  }
+
+  //TODO (danrubel) implement
+  xtest_InstanceCreationExpression() {
+    // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
+    addTestSource('class A {a() {var f; {var x;} new ^}} class B { }');
+    expect(computeFast(), isTrue);
+    assertSuggestClass('A');
+    assertSuggestClass('B');
+    assertNotSuggested('a');
+    assertNotSuggested('f');
+    assertNotSuggested('x');
+  }
+
+  //TODO (danrubel) implement
+  xtest_IsExpression_imported() {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addSource('/testB.dart', '''
+      lib B;
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      main() {var x; if (x is ^) { }}''');
+    return computeFull().then((_) {
+      assertNoSuggestions();
+    });
+  }
+
+  //TODO (danrubel) implement
+  xtest_IsExpression_local() {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+      class X {X.c(); X._d(); z() {}}
+      main() {var x; if (x is ^) { }}''');
+    return computeFull().then((_) {
+      assertSuggestConstructor('c');
+      assertNotSuggested('main');
+      assertNotSuggested('X');
+      assertNotSuggested('B');
+      assertNotSuggested('x');
+    });
   }
 }

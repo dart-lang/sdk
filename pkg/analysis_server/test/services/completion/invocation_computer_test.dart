@@ -26,6 +26,77 @@ class InvocationComputerTest extends AbstractCompletionTest {
     computer = new InvocationComputer();
   }
 
+  test_CascadeExpression_selector1() {
+    // PropertyAccess  CascadeExpression  ExpressionStatement
+    addTestSource('''
+      class A {var b; X _c;}
+      class X{}
+      // looks like a cascade to the parser
+      // but the user is trying to get completions for a non-cascade
+      main() {A a; a.^.b}''');
+    return computeFull(true).then((_) {
+      assertSuggestGetter('b', null);
+      assertSuggestGetter('_c', 'X');
+    });
+  }
+
+  test_CascadeExpression_selector2() {
+    // PropertyAccess  CascadeExpression  ExpressionStatement
+    addTestSource('''
+      class A {var b; X _c;}
+      class X{}
+      main() {A a; a..^b}''');
+    return computeFull().then((_) {
+      assertSuggestGetter('b', null);
+      assertSuggestGetter('_c', 'X');
+    });
+  }
+
+  test_CascadeExpression_target() {
+    // PropertyAccess  CascadeExpression  ExpressionStatement
+    addTestSource('''
+      class A {var b; X _c;}
+      class X{}
+      main() {A a; a^..b}''');
+    return computeFull().then((_) {
+      assertNotSuggested('b');
+      assertNotSuggested('_c');
+    });
+  }
+
+  test_ConstructorName_importedClass() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addSource('/testB.dart', '''
+      lib B;
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      var m;
+      main() {new X.^}''');
+    return computeFull().then((_) {
+      assertSuggest(CompletionSuggestionKind.CONSTRUCTOR, 'c');
+      assertNotSuggested('_d');
+      assertNotSuggested('z');
+      assertNotSuggested('m');
+    });
+  }
+
+  test_ConstructorName_localClass() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addTestSource('''
+      var m;
+      class X {X.c(); X._d(); z() {}}
+      main() {new X.^}''');
+    return computeFull().then((_) {
+      assertSuggest(CompletionSuggestionKind.CONSTRUCTOR, 'c');
+      assertSuggest(CompletionSuggestionKind.CONSTRUCTOR, '_d');
+      assertNotSuggested('z');
+      assertNotSuggested('m');
+    });
+  }
+
   test_PrefixedIdentifier_field() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
@@ -53,7 +124,6 @@ class InvocationComputerTest extends AbstractCompletionTest {
     });
   }
 
-  // TODO (danrubel) implement
   test_PrefixedIdentifier_getter() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
@@ -88,6 +158,14 @@ class InvocationComputerTest extends AbstractCompletionTest {
     return computeFull().then((_) {
       assertSuggestGetter('b', 'S');
       assertSuggestGetter('_c', 'A');
+    });
+  }
+
+  test_PrefixedIdentifier_interpolation() {
+    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
+    addTestSource('main() {String name; print("hello \${name.^}");}');
+    return computeFull().then((_) {
+      assertSuggestGetter('length', 'int');
     });
   }
 
@@ -163,6 +241,16 @@ class InvocationComputerTest extends AbstractCompletionTest {
     });
   }
 
+  test_PrefixedIdentifier_prefix() {
+    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
+    addTestSource('main() {String name; print("hello \${nam^e.length}");}');
+    return computeFull().then((_) {
+      // LocalComputer generates suggestions for prefix
+      assertNotSuggested('name');
+      assertNotSuggested('length');
+    });
+  }
+
   test_PrefixedIdentifier_setter() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
@@ -188,19 +276,17 @@ class InvocationComputerTest extends AbstractCompletionTest {
     });
   }
 
-  xtest_ConstructorName() {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
-    // InstanceCreationExpression
+  //TODO (danrubel) implement
+  xtest_IsExpression() {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addSource('/testB.dart', '''
       lib B;
       class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
       import "/testB.dart";
-      main() {new X.^}''');
+      main() {var x; if (x is ^) { }}''');
     return computeFull().then((_) {
-      assertSuggest(CompletionSuggestionKind.CONSTRUCTOR, 'c');
-      assertNotSuggested('_d');
-      assertNotSuggested('z');
+      assertNoSuggestions();
     });
   }
 }

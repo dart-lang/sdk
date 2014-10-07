@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/completion/dart_completion_manager.
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * A computer for calculating invocation / access suggestions
@@ -35,9 +36,18 @@ class InvocationComputer extends DartCompletionComputer {
  */
 class _InvocationAstVisitor extends GeneralizingAstVisitor<Future<bool>> {
   final DartCompletionRequest request;
-  AstNode completionNode;
 
   _InvocationAstVisitor(this.request);
+
+  @override
+  Future<bool> visitConstructorName(ConstructorName node) {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    Token period = node.period;
+    if (period != null && period.end <= request.offset) {
+      return _addNamedConstructorSuggestions(node);
+    }
+    return super.visitConstructorName(node);
+  }
 
   @override
   Future<bool> visitNode(AstNode node) {
@@ -46,24 +56,60 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<Future<bool>> {
 
   @override
   Future<bool> visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (node.identifier == completionNode) {
-      return _addSuggestions(node.prefix.bestElement);
+    if (request.offset > node.period.offset) {
+      SimpleIdentifier prefix = node.prefix;
+      if (prefix != null) {
+        return _addElementSuggestions(prefix.bestElement);
+      }
     }
     return super.visitPrefixedIdentifier(node);
   }
 
   @override
+  Future<bool> visitPropertyAccess(PropertyAccess node) {
+    if (request.offset > node.offset) {
+      return _addExpressionSuggestions(node.realTarget);
+    }
+    return super.visitPropertyAccess(node);
+  }
+
+  @override
   Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
-    completionNode = node;
     return node.parent.accept(this);
   }
 
   /**
    * Add invocation / access suggestions for the given element.
    */
-  Future<bool> _addSuggestions(Element element) {
+  Future<bool> _addElementSuggestions(Element element) {
     if (element != null) {
       return element.accept(new _InvocationElementVisitor(request));
+    }
+    return new Future.value(false);
+  }
+
+  /**
+   * Add invocation / access suggestions for the given expression.
+   */
+  Future<bool> _addExpressionSuggestions(Expression target) {
+    if (target != null) {
+      DartType type = target.bestType;
+      if (type != null) {
+        ClassElementSuggestionBuilder.suggestionsFor(request, type.element);
+        return new Future.value(true);
+      }
+    }
+    return new Future.value(false);
+  }
+
+  Future<bool> _addNamedConstructorSuggestions(ConstructorName node) {
+    TypeName typeName = node.type;
+    if (typeName != null) {
+      DartType type = typeName.type;
+      if (type != null) {
+        NamedConstructorSuggestionBuilder.suggestionsFor(request, type.element);
+        return new Future.value(true);
+      }
     }
     return new Future.value(false);
   }
