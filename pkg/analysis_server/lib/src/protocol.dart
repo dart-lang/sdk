@@ -7,8 +7,6 @@ library protocol;
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:analysis_server/src/services/json.dart';
-
 part 'generated_protocol.dart';
 
 
@@ -233,6 +231,19 @@ RefactoringOptions _refactoringOptionsFromJson(JsonDecoder jsonDecoder,
  * the part to decode.
  */
 typedef Object JsonDecoderCallback(String jsonPath, Object value);
+
+
+/**
+ * Instances of the class [HasToJson] implement [toJson] method that returns
+ * a JSON presentation.
+ */
+abstract class HasToJson {
+  /**
+   * Returns a JSON presentation of the object.
+   */
+  Map<String, Object> toJson();
+}
+
 
 /**
  * Base class for decoding JSON objects.  The derived class must implement
