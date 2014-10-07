@@ -34,7 +34,7 @@
 var recordedEventList = [];
 var timestampOfFirstEvent = null;
 
-var STATUS_UPDATE_INTERVALL = 10000;
+var STATUS_UPDATE_INTERVAL = 10000;
 
 function getCurrentTimestamp() {
   if (timestampOfFirstEvent == null) {
@@ -200,7 +200,7 @@ function notifyDone(testOutcome) {
 // Repeatedly send back the current status of this test.
 function sendStatusUpdate(isFirstMessage) {
   notifyUpdate('', isFirstMessage, true, false);
-  setTimeout(function() {sendStatusUpdate(false)}, STATUS_UPDATE_INTERVALL);
+  setTimeout(function() {sendStatusUpdate(false)}, STATUS_UPDATE_INTERVAL);
 }
 
 // We call notifyStart here to notify the encapsulating browser.
