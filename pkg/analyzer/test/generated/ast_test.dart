@@ -1595,6 +1595,60 @@ class SimpleStringLiteralTest extends ParserTestCase {
     JUnitTestCase.assertEquals(5, new SimpleStringLiteral(TokenFactory.tokenFromString("r'''X'''"), "X").contentsEnd);
   }
 
+  void test_isSingleQuoted() {
+    // '
+    {
+      var token = TokenFactory.tokenFromString("'X'");
+      var node = new SimpleStringLiteral(token, null);
+      JUnitTestCase.assertTrue(node.isSingleQuoted);
+    }
+    // '''
+    {
+      var token = TokenFactory.tokenFromString("'''X'''");
+      var node = new SimpleStringLiteral(token, null);
+      JUnitTestCase.assertTrue(node.isSingleQuoted);
+    }
+    // "
+    {
+      var token = TokenFactory.tokenFromString('"X"');
+      var node = new SimpleStringLiteral(token, null);
+      JUnitTestCase.assertFalse(node.isSingleQuoted);
+    }
+    // """
+    {
+      var token = TokenFactory.tokenFromString('"""X"""');
+      var node = new SimpleStringLiteral(token, null);
+      JUnitTestCase.assertFalse(node.isSingleQuoted);
+    }
+  }
+
+  void test_isSingleQuoted_raw() {
+    // r'
+    {
+      var token = TokenFactory.tokenFromString("r'X'");
+      var node = new SimpleStringLiteral(token, null);
+      JUnitTestCase.assertTrue(node.isSingleQuoted);
+    }
+    // r'''
+    {
+      var token = TokenFactory.tokenFromString("r'''X'''");
+      var node = new SimpleStringLiteral(token, null);
+      JUnitTestCase.assertTrue(node.isSingleQuoted);
+    }
+    // r"
+    {
+      var token = TokenFactory.tokenFromString('r"X"');
+      var node = new SimpleStringLiteral(token, null);
+      JUnitTestCase.assertFalse(node.isSingleQuoted);
+    }
+    // r"""
+    {
+      var token = TokenFactory.tokenFromString('r"""X"""');
+      var node = new SimpleStringLiteral(token, null);
+      JUnitTestCase.assertFalse(node.isSingleQuoted);
+    }
+  }
+
   void test_isMultiline() {
     JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("'X'"), "X").isMultiline);
     JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.tokenFromString("r'X'"), "X").isMultiline);
@@ -1643,6 +1697,14 @@ class SimpleStringLiteralTest extends ParserTestCase {
       _ut.test('test_isRaw', () {
         final __test = new SimpleStringLiteralTest();
         runJUnitTest(__test, __test.test_isRaw);
+      });
+      _ut.test('test_isSingleQuoted', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_isSingleQuoted);
+      });
+      _ut.test('test_isSingleQuoted_raw', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_isSingleQuoted_raw);
       });
       _ut.test('test_simple', () {
         final __test = new SimpleStringLiteralTest();
@@ -1711,12 +1773,72 @@ class StringInterpolationTest extends ParserTestCase {
     }
   }
 
+  void test_isMultiline() {
+    var b = AstFactory.interpolationExpression(AstFactory.identifier3('bb'));
+    // '
+    {
+      var a = AstFactory.interpolationString("'a", "a");
+      var c = AstFactory.interpolationString("ccc'", "ccc");
+      StringInterpolation node = AstFactory.string([a, b, c]);
+      JUnitTestCase.assertFalse(node.isMultiline);
+    }
+    // '''
+    {
+      var a = AstFactory.interpolationString("'''a", "a");
+      var c = AstFactory.interpolationString("ccc'''", "ccc");
+      StringInterpolation node = AstFactory.string([a, b, c]);
+      JUnitTestCase.assertTrue(node.isMultiline);
+    }
+    // "
+    {
+      var a = AstFactory.interpolationString('"a', "a");
+      var c = AstFactory.interpolationString('ccc"', "ccc");
+      StringInterpolation node = AstFactory.string([a, b, c]);
+      JUnitTestCase.assertFalse(node.isMultiline);
+    }
+    // """
+    {
+      var a = AstFactory.interpolationString('"""a', "a");
+      var c = AstFactory.interpolationString('ccc"""', "ccc");
+      StringInterpolation node = AstFactory.string([a, b, c]);
+      JUnitTestCase.assertTrue(node.isMultiline);
+    }
+  }
+
+  void test_isSingleQuoted() {
+    var b = AstFactory.interpolationExpression(AstFactory.identifier3('bb'));
+    // "
+    {
+      var a = AstFactory.interpolationString('"a', "a");
+      var c = AstFactory.interpolationString('ccc"', "ccc");
+      StringInterpolation node = AstFactory.string([a, b, c]);
+      JUnitTestCase.assertFalse(node.isSingleQuoted);
+    }
+    // """
+    {
+      var a = AstFactory.interpolationString('"""a', "a");
+      var c = AstFactory.interpolationString('ccc"""', "ccc");
+      StringInterpolation node = AstFactory.string([a, b, c]);
+      JUnitTestCase.assertFalse(node.isSingleQuoted);
+    }
+    // '
+    {
+      var a = AstFactory.interpolationString("'a", "a");
+      var c = AstFactory.interpolationString("ccc'", "ccc");
+      StringInterpolation node = AstFactory.string([a, b, c]);
+      JUnitTestCase.assertTrue(node.isSingleQuoted);
+    }
+    // '''
+    {
+      var a = AstFactory.interpolationString("'''a", "a");
+      var c = AstFactory.interpolationString("ccc'''", "ccc");
+      StringInterpolation node = AstFactory.string([a, b, c]);
+      JUnitTestCase.assertTrue(node.isSingleQuoted);
+    }
+  }
+
   void test_isRaw() {
-    var ae = AstFactory.interpolationString("'a", "a");
-    var be = AstFactory.interpolationExpression(AstFactory.identifier3('bb'));
-    var cToken = new StringToken(TokenType.STRING, "ccc'", 10);
-    var ce = new InterpolationString(cToken, 'ccc');
-    StringInterpolation node = AstFactory.string([ae, ae, ce]);
+    StringInterpolation node = AstFactory.string([]);
     JUnitTestCase.assertFalse(node.isRaw);
   }
 
@@ -1726,9 +1848,17 @@ class StringInterpolationTest extends ParserTestCase {
         final __test = new StringInterpolationTest();
         runJUnitTest(__test, __test.test_contentsOffsetEnd);
       });
+      _ut.test('test_isMultiline', () {
+        final __test = new StringInterpolationTest();
+        runJUnitTest(__test, __test.test_isMultiline);
+      });
       _ut.test('test_isRaw', () {
         final __test = new StringInterpolationTest();
         runJUnitTest(__test, __test.test_isRaw);
+      });
+      _ut.test('test_isSingleQuoted', () {
+        final __test = new StringInterpolationTest();
+        runJUnitTest(__test, __test.test_isSingleQuoted);
       });
     });
   }

@@ -16045,20 +16045,37 @@ class SimpleStringLiteral extends SingleStringLiteral {
    */
   String get value => _value;
 
-  /**
-   * Return `true` if this string literal is a multi-line string.
-   *
-   * @return `true` if this string literal is a multi-line string
-   */
+  @override
   bool get isMultiline {
     String lexeme = literal.lexeme;
     if (lexeme.length < 6) {
       return false;
     }
-    return StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) || StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27);
+    // skip 'r'
+    int offset = 0;
+    if (lexeme.codeUnitAt(0) == 0x72) {
+      offset = 1;
+    }
+    // check prefix
+    return StringUtilities.startsWith3(lexeme, offset, 0x22, 0x22, 0x22) ||
+        StringUtilities.startsWith3(lexeme, offset, 0x27, 0x27, 0x27);
   }
 
+  @override
   bool get isRaw => literal.lexeme.codeUnitAt(0) == 0x72;
+
+  @override
+  bool get isSingleQuoted {
+    String lexeme = literal.lexeme;
+    if (lexeme.isEmpty) {
+      return false;
+    }
+    int codeZero = lexeme.codeUnitAt(0);
+    if (codeZero == 0x72) {
+      return lexeme.length > 1 && lexeme.codeUnitAt(1) == 0x27;
+    }
+    return codeZero == 0x27;
+  }
 
   @override
   bool get isSynthetic => literal.isSynthetic;
@@ -16181,7 +16198,26 @@ class StringInterpolation extends SingleStringLiteral {
   }
 
   @override
+  bool get isMultiline {
+    InterpolationString element = _elements.first;
+    String lexeme = element._contents.lexeme;
+    if (lexeme.length < 3) {
+      return false;
+    }
+    return StringUtilities.startsWith3(lexeme, 0, 0x22, 0x22, 0x22) ||
+        StringUtilities.startsWith3(lexeme, 0, 0x27, 0x27, 0x27);
+  }
+
+  @override
   bool get isRaw => false;
+
+
+  @override
+  bool get isSingleQuoted {
+    InterpolationString lastString = _elements.first;
+    String lexeme = lastString._contents.lexeme;
+    return StringUtilities.startsWithChar(lexeme, 0x27);
+  }
 }
 
 /**
@@ -16243,9 +16279,20 @@ abstract class SingleStringLiteral extends StringLiteral {
   int get contentsEnd;
 
   /**
+   * Return `true` if this string literal is a multi-line string.
+   */
+  bool get isMultiline;
+
+  /**
    * Return `true` if this string literal is a raw string.
    */
   bool get isRaw;
+
+  /**
+   * Return `true` if this string literal uses single qoutes (' or ''').
+   * Return `false` if this string literal uses double qoutes (" or """).
+   */
+  bool get isSingleQuoted;
 }
 
 /**
