@@ -1307,6 +1307,7 @@ class OldEmitter implements Emitter {
   }
 
   void emitProgram(Program program) {
+    bool isProgramSplit = compiler.deferredLoadTask.isProgramSplit;
     // Maps each output unit to a codebuffers with the library descriptors of
     // the output unit emitted to it.
     Map<OutputUnit, CodeBuffer> libraryDescriptorBuffers =
@@ -1317,18 +1318,20 @@ class OldEmitter implements Emitter {
     mainBuffer.add(buildGeneratedBy());
     addComment(HOOKS_API_USAGE, mainBuffer);
 
-    /// For deferred loading we communicate the initializers via this global
-    /// variable. The deferred hunks will add their initialization to this.
-    /// The semicolon is important in minified mode, without it the
-    /// following parenthesis looks like a call to the object literal.
-    mainBuffer..add(
-        'if$_(typeof(${deferredInitializers})$_===$_"undefined")$_'
-        '${deferredInitializers} = Object.create(null);$n');
+    if (isProgramSplit) {
+      /// For deferred loading we communicate the initializers via this global
+      /// variable. The deferred hunks will add their initialization to this.
+      /// The semicolon is important in minified mode, without it the
+      /// following parenthesis looks like a call to the object literal.
+      mainBuffer..add(
+          'self.${deferredInitializers} = self.${deferredInitializers} || '
+          'Object.create(null);$n');
+    }
 
     // Using a named function here produces easier to read stack traces in
     // Chrome/V8.
     mainBuffer.add('(function(${namer.currentIsolate})$_{\n');
-    if (compiler.deferredLoadTask.isProgramSplit) {
+    if (isProgramSplit) {
       /// We collect all the global state of the, so it can be passed to the
       /// initializer of deferred files.
       mainBuffer.add('var ${globalsHolder}$_=${_}Object.create(null)$N');
@@ -1344,14 +1347,14 @@ class OldEmitter implements Emitter {
       // fast objects by calling "convertToFastObject" (see
       // [emitConvertToFastObjectFunction]).
       mainBuffer.write('var ${globalObject}$_=${_}');
-      if(compiler.deferredLoadTask.isProgramSplit) {
+      if(isProgramSplit) {
         mainBuffer.add('${globalsHolder}.$globalObject$_=${_}');
       }
       mainBuffer.write('new dart$N');
     }
 
     mainBuffer.add('function ${namer.isolateName}()$_{}\n');
-    if (compiler.deferredLoadTask.isProgramSplit) {
+    if (isProgramSplit) {
       mainBuffer
         .write('${globalsHolder}.${namer.isolateName}$_=$_'
                '${namer.isolateName}$N'
@@ -1545,7 +1548,7 @@ class OldEmitter implements Emitter {
     task.computeNeededConstants();
     emitCompileTimeConstants(mainBuffer, mainOutputUnit);
 
-    if (compiler.deferredLoadTask.isProgramSplit) {
+    if (isProgramSplit) {
       /// Map from OutputUnit to a hash of its content. The hash uniquely
       /// identifies the code of the output-unit. It does not include
       /// boilerplate JS code, like the sourcemap directives or the hash
