@@ -397,6 +397,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   test_Block() {
+    // Block  BlockFunctionBody  MethodDeclaration
     addSource('/testAB.dart', '''
       class A {int x;}
       class _B { }''');
@@ -445,6 +446,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   test_CascadeExpression_selector1() {
+    // PropertyAccess  CascadeExpression  ExpressionStatement  Block
     addSource('/testB.dart', '''
       class B { }''');
     addTestSource('''
@@ -467,6 +469,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   test_CascadeExpression_selector2() {
+    // SimpleIdentifier  PropertyAccess  CascadeExpression  ExpressionStatement
     addSource('/testB.dart', '''
       class B { }''');
     addTestSource('''
@@ -475,7 +478,6 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X{}
       main() {A a; a..^z}''');
     computeFast();
-    assertNoSuggestions();
     return computeFull(true).then((_) {
       assertSuggestInvocationGetter('b', null);
       assertSuggestInvocationGetter('_c', 'X');
@@ -484,6 +486,23 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('B');
       assertNotSuggested('X');
       assertNotSuggested('z');
+    });
+  }
+
+  test_CascadeExpression_target() {
+    // SimpleIdentifier  CascadeExpression  ExpressionStatement
+    addTestSource('''
+      class A {var b; X _c;}
+      class X{}
+      main() {A a; a^..b}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNotSuggested('b');
+      assertNotSuggested('_c');
+      assertSuggestLocalVariable('a', 'A');
+      assertSuggestLocalClass('A');
+      assertSuggestLocalClass('X');
+      assertSuggestImportedClass('Object');
     });
   }
 }

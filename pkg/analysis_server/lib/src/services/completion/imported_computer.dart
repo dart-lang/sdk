@@ -6,7 +6,8 @@ library services.completion.computer.dart.toplevel;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart' hide Element, ElementKind;
+import 'package:analysis_server/src/protocol_server.dart' hide Element,
+    ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -51,25 +52,50 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
+  Future<bool> visitCombinator(Combinator node) {
+    return _addCombinatorSuggestions(node);
+  }
+
+  @override
+  Future<bool> visitExpressionStatement(ExpressionStatement node) {
+    Expression expression = node.expression;
+    // A pre-variable declaration (e.g. C ^) is parsed as an expression
+    // statement. Do not make suggestions for the variable name.
+    if (expression is SimpleIdentifier && request.offset <= expression.end) {
+      return _addImportedElementSuggestions();
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitNode(AstNode node) {
     return new Future.value(false);
   }
 
   @override
-  Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
-    AstNode parent = node.parent;
-    if (parent is Combinator) {
-      return _addCombinatorSuggestions(parent);
-    }
-    if (parent is ExpressionStatement) {
+  Future<bool> visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // Make suggestions for the prefix, but not for the selector
+    // InvocationComputer makes selector suggestions
+    if (request.offset <= node.prefix.end) {
       return _addImportedElementSuggestions();
     }
-    if (parent is PrefixedIdentifier) {
-      if (request.offset <= parent.prefix.end) {
-        return _addImportedElementSuggestions();
-      }
+    return new Future.value(false);
+  }
+
+  @override
+  Future<bool> visitCascadeExpression(CascadeExpression node) {
+    // Make suggestions for the target, but not for the selector
+    // InvocationComputer makes selector suggestions
+    Expression target = node.target;
+    if (target != null && request.offset <= target.end) {
+      return _addImportedElementSuggestions();
     }
     return new Future.value(false);
+  }
+
+  @override
+  Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
+    return node.parent.accept(this);
   }
 
   Future _addCombinatorSuggestions(Combinator node) {
@@ -81,6 +107,40 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     }
 
     return new Future.value(false);
+  }
+
+  void _addElementSuggestion(Element element, CompletionRelevance relevance) {
+    CompletionSuggestionKind kind =
+        newCompletionSuggestionKind_fromElementKind(element.kind);
+
+    String completion = element.displayName;
+    CompletionSuggestion suggestion = new CompletionSuggestion(
+        kind,
+        relevance,
+        completion,
+        completion.length,
+        0,
+        element.isDeprecated,
+        false);
+
+    suggestion.element = newElement_fromEngine(element);
+
+    DartType type;
+    if (element is FunctionElement) {
+      type = element.returnType;
+    } else if (element is PropertyAccessorElement && element.isGetter) {
+      type = element.returnType;
+    } else if (element is TopLevelVariableElement) {
+      type = element.type;
+    }
+    if (type != null) {
+      String name = type.displayName;
+      if (name != null && name.length > 0 && name != 'dynamic') {
+        suggestion.returnType = name;
+      }
+    }
+
+    request.suggestions.add(suggestion);
   }
 
   Future<bool> _addImportedElementSuggestions() {
@@ -139,40 +199,6 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
       });
       return true;
     });
-  }
-
-  void _addElementSuggestion(Element element, CompletionRelevance relevance) {
-    CompletionSuggestionKind kind =
-        newCompletionSuggestionKind_fromElementKind(element.kind);
-
-    String completion = element.displayName;
-    CompletionSuggestion suggestion = new CompletionSuggestion(
-        kind,
-        relevance,
-        completion,
-        completion.length,
-        0,
-        element.isDeprecated,
-        false);
-
-    suggestion.element = newElement_fromEngine(element);
-
-    DartType type;
-    if (element is FunctionElement) {
-      type = element.returnType;
-    } else if (element is PropertyAccessorElement && element.isGetter) {
-      type = element.returnType;
-    } else if (element is TopLevelVariableElement) {
-      type = element.type;
-    }
-    if (type != null) {
-      String name = type.displayName;
-      if (name != null && name.length > 0 && name != 'dynamic') {
-        suggestion.returnType = name;
-      }
-    }
-
-    request.suggestions.add(suggestion);
   }
 
   void _addLibraryPrefixSuggestion(ImportElement importElem) {

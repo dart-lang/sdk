@@ -26,18 +26,6 @@ class InvocationComputerTest extends AbstractSelectorSuggestionTest {
     computer = new InvocationComputer();
   }
 
-  test_CascadeExpression_target() {
-    // PropertyAccess  CascadeExpression  ExpressionStatement
-    addTestSource('''
-      class A {var b; X _c;}
-      class X{}
-      main() {A a; a^..b}''');
-    return computeFull().then((_) {
-      assertNotSuggested('b');
-      assertNotSuggested('_c');
-    });
-  }
-
   test_ConstructorName_importedClass() {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
