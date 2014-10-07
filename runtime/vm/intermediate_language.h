@@ -1858,7 +1858,7 @@ struct BranchLabels {
 };
 
 
-struct InductionVariableInfo;
+class InductionVariableInfo;
 
 
 class PhiInstr : public Definition {

@@ -128,11 +128,11 @@ static ConstraintInstr* FindBoundingConstraint(PhiInstr* phi,
 
 static InductionVariableInfo* DetectSimpleInductionVariable(PhiInstr* phi) {
   if (phi->Type()->ToCid() != kSmiCid) {
-    return false;
+    return NULL;
   }
 
   if (phi->InputCount() != 2) {
-    return false;
+    return NULL;
   }
 
   BitVector* loop_info = phi->block()->loop_info();
