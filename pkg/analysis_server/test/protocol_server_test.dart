@@ -4,22 +4,110 @@
 
 library test.computer.element;
 
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/ast.dart' as engine;
 import 'package:analyzer/src/generated/element.dart' as engine;
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
+import 'package:analyzer/src/generated/error.dart' as engine;
+import 'package:analyzer/src/generated/source.dart' as engine;
+import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
-import '../abstract_context.dart';
-import '../reflective_tests.dart';
+import 'abstract_context.dart';
+import 'mocks.dart';
+import 'reflective_tests.dart';
 
 
 
 main() {
   groupSep = ' | ';
+  runReflectiveTests(AnalysisErrorTest);
   runReflectiveTests(ElementTest);
   runReflectiveTests(ElementKindTest);
+}
+
+
+class AnalysisErrorMock extends TypedMock implements engine.AnalysisError {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+
+@ReflectiveTestCase()
+class AnalysisErrorTest {
+  engine.Source source = new MockSource();
+  engine.LineInfo lineInfo;
+  engine.AnalysisError engineError = new AnalysisErrorMock();
+
+  void setUp() {
+    // prepare Source
+    when(source.fullName).thenReturn('foo.dart');
+    // prepare LineInfo
+    lineInfo = new engine.LineInfo([0, 5, 9, 20]);
+    // prepare AnalysisError
+    when(engineError.source).thenReturn(source);
+    when(
+        engineError.errorCode).thenReturn(engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT);
+    when(engineError.message).thenReturn('my message');
+    when(engineError.offset).thenReturn(10);
+    when(engineError.length).thenReturn(20);
+  }
+
+  void tearDown() {
+    source = null;
+    engineError = null;
+  }
+
+  void test_fromEngine_hasCorrection() {
+    when(engineError.correction).thenReturn('my correction');
+    AnalysisError error = newAnalysisError_fromEngine(lineInfo, engineError);
+    expect(error.toJson(), {
+      SEVERITY: 'ERROR',
+      TYPE: 'COMPILE_TIME_ERROR',
+      LOCATION: {
+        FILE: 'foo.dart',
+        OFFSET: 10,
+        LENGTH: 20,
+        START_LINE: 3,
+        START_COLUMN: 2
+      },
+      MESSAGE: 'my message',
+      CORRECTION: 'my correction'
+    });
+  }
+
+  void test_fromEngine_noCorrection() {
+    when(engineError.correction).thenReturn(null);
+    AnalysisError error = newAnalysisError_fromEngine(lineInfo, engineError);
+    expect(error.toJson(), {
+      SEVERITY: 'ERROR',
+      TYPE: 'COMPILE_TIME_ERROR',
+      LOCATION: {
+        FILE: 'foo.dart',
+        OFFSET: 10,
+        LENGTH: 20,
+        START_LINE: 3,
+        START_COLUMN: 2
+      },
+      MESSAGE: 'my message'
+    });
+  }
+
+  void test_fromEngine_noLineInfo() {
+    when(engineError.correction).thenReturn(null);
+    AnalysisError error = newAnalysisError_fromEngine(null, engineError);
+    expect(error.toJson(), {
+      SEVERITY: 'ERROR',
+      TYPE: 'COMPILE_TIME_ERROR',
+      LOCATION: {
+        FILE: 'foo.dart',
+        OFFSET: 10,
+        LENGTH: 20,
+        START_LINE: -1,
+        START_COLUMN: -1
+      },
+      MESSAGE: 'my message'
+    });
+  }
 }
 
 
@@ -128,16 +216,16 @@ class ElementKindTest {
 
 @ReflectiveTestCase()
 class ElementTest extends AbstractContextTest {
-  engine.Element findElementInUnit(CompilationUnit unit, String name,
+  engine.Element findElementInUnit(engine.CompilationUnit unit, String name,
       [engine.ElementKind kind]) {
     return findChildElement(unit.element, name, kind);
   }
 
   void test_fromElement_CLASS() {
-    Source source = addSource('/test.dart', '''
+    engine.Source source = addSource('/test.dart', '''
 @deprecated
 abstract class _MyClass {}''');
-    CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = resolveLibraryUnit(source);
     engine.ClassElement engineElement = findElementInUnit(unit, '_MyClass');
     // create notification Element
     Element element = newElement_fromEngine(engineElement);
@@ -157,11 +245,11 @@ abstract class _MyClass {}''');
   }
 
   void test_fromElement_CONSTRUCTOR() {
-    Source source = addSource('/test.dart', '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   const A.myConstructor(int a, [String b]);
 }''');
-    CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = resolveLibraryUnit(source);
     engine.ConstructorElement engineElement =
         findElementInUnit(unit, 'myConstructor');
     // create notification Element
@@ -182,11 +270,11 @@ class A {
   }
 
   void test_fromElement_FIELD() {
-    Source source = addSource('/test.dart', '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   static const myField = 42;
 }''');
-    CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = resolveLibraryUnit(source);
     engine.FieldElement engineElement = findElementInUnit(unit, 'myField');
     // create notification Element
     Element element = newElement_fromEngine(engineElement);
@@ -206,11 +294,11 @@ class A {
   }
 
   void test_fromElement_GETTER() {
-    Source source = addSource('/test.dart', '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   String myGetter => 42;
 }''');
-    CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = resolveLibraryUnit(source);
     engine.PropertyAccessorElement engineElement =
         findElementInUnit(unit, 'myGetter', engine.ElementKind.GETTER);
     // create notification Element
@@ -231,14 +319,14 @@ class A {
   }
 
   void test_fromElement_LABEL() {
-    Source source = addSource('/test.dart', '''
+    engine.Source source = addSource('/test.dart', '''
 main() {
 myLabel:
   while (true) {
     break myLabel;
   }
 }''');
-    CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = resolveLibraryUnit(source);
     engine.LabelElement engineElement = findElementInUnit(unit, 'myLabel');
     // create notification Element
     Element element = newElement_fromEngine(engineElement);
@@ -258,13 +346,13 @@ myLabel:
   }
 
   void test_fromElement_METHOD() {
-    Source source = addSource('/test.dart', '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   static List<String> myMethod(int a, {String b}) {
     return null;
   }
 }''');
-    CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = resolveLibraryUnit(source);
     engine.MethodElement engineElement = findElementInUnit(unit, 'myMethod');
     // create notification Element
     Element element = newElement_fromEngine(engineElement);
@@ -284,11 +372,11 @@ class A {
   }
 
   void test_fromElement_SETTER() {
-    Source source = addSource('/test.dart', '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   set mySetter(String x) {}
 }''');
-    CompilationUnit unit = resolveLibraryUnit(source);
+    engine.CompilationUnit unit = resolveLibraryUnit(source);
     engine.FieldElement engineFieldElement =
         findElementInUnit(unit, 'mySetter', engine.ElementKind.FIELD);
     engine.PropertyAccessorElement engineElement = engineFieldElement.setter;

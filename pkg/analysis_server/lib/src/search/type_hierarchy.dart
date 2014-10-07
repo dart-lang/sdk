@@ -7,9 +7,8 @@ library analysis.type_hierarhy;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/computer/element.dart' show
-    elementFromEngine;
-import 'package:analysis_server/src/protocol.dart' show TypeHierarchyItem;
+import 'package:analysis_server/src/protocol_server.dart' show
+    TypeHierarchyItem, newElement_fromEngine;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -50,7 +49,8 @@ class TypeHierarchyComputer {
     return new Future.value(null);
   }
 
-  Future _createSubclasses(TypeHierarchyItem item, int itemId, InterfaceType type) {
+  Future _createSubclasses(TypeHierarchyItem item, int itemId,
+      InterfaceType type) {
     var future = getDirectSubClasses(_searchEngine, type.element);
     return future.then((Set<ClassElement> subElements) {
       List<int> subItemIds = <int>[];
@@ -65,9 +65,10 @@ class TypeHierarchyComputer {
         // create a subclass item
         ExecutableElement subMemberElement = _findMemberElement(subElement);
         subItem = new TypeHierarchyItem(
-            elementFromEngine(subElement),
+            newElement_fromEngine(subElement),
             memberElement: subMemberElement != null ?
-                elementFromEngine(subMemberElement) : null,
+                newElement_fromEngine(subMemberElement) :
+                null,
             superclass: itemId);
         int subItemId = _items.length;
         // remember
@@ -104,10 +105,11 @@ class TypeHierarchyComputer {
       ClassElement classElement = type.element;
       ExecutableElement memberElement = _findMemberElement(classElement);
       item = new TypeHierarchyItem(
-          elementFromEngine(classElement),
+          newElement_fromEngine(classElement),
           displayName: displayName,
           memberElement: memberElement != null ?
-              elementFromEngine(memberElement) : null);
+              newElement_fromEngine(memberElement) :
+              null);
       _elementItemMap[classElement] = item;
       itemId = _items.length;
       _items.add(item);
