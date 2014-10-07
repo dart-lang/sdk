@@ -61,7 +61,7 @@ main() {
 
     test('enable type checks', () {
       CommandLineOptions options = CommandLineOptions
-          .parse(['--dart-sdk', '.', '--enable_type_cheks', 'foo.dart']);
+          .parse(['--dart-sdk', '.', '--enable_type_checks', 'foo.dart']);
       expect(options.enableTypeChecks, isTrue);
     });
 
