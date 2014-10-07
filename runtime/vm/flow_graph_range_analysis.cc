@@ -21,12 +21,8 @@ DECLARE_FLAG(bool, trace_constant_propagation);
 
 void RangeAnalysis::Analyze() {
   CollectValues();
-
-  if (FLAG_trace_range_analysis) {
-    FlowGraphPrinter::PrintGraph("Range Analysis (BBB)", flow_graph_);
-  }
-
   InsertConstraints();
+  DiscoverSimpleInductionVariables();
   InferRanges();
   EliminateRedundantBoundsChecks();
   MarkUnreachableBlocks();
@@ -40,16 +36,189 @@ void RangeAnalysis::Analyze() {
 }
 
 
+static Definition* UnwrapConstraint(Definition* defn) {
+  while (defn->IsConstraint()) {
+    defn = defn->AsConstraint()->value()->definition();
+  }
+  return defn;
+}
+
+
+// Simple induction variable is a variable that satisfies the following pattern:
+//
+//                         v1 <- phi(v0, v1 + 1)
+//
+// If there are two simple induction variables in the same block and one of
+// them is constrained - then another one is constrained as well, e.g.
+// from
+//
+//                        B1:
+//                         v3 <- phi(v0, v3 + 1)
+//                         v4 <- phi(v2, v4 + 1)
+//                        Bx:
+//                         v3 is constrained to [v0, v1]
+//
+// it follows that
+//
+//                        Bx:
+//                         v4 is constrained to [v2, v2 + (v0 - v1)]
+//
+// This pass essentially pattern matches induction variables introduced
+// like this:
+//
+//                  for (var i = i0, j = j0; i < L; i++, j++) {
+//                      j is known to be within [j0, j0 + (L - i0 - 1)]
+//                  }
+//
+class InductionVariableInfo : public ZoneAllocated {
+ public:
+  InductionVariableInfo(PhiInstr* phi,
+                        Definition* initial_value,
+                        BinarySmiOpInstr* increment,
+                        ConstraintInstr* limit)
+      : phi_(phi),
+        initial_value_(initial_value),
+        increment_(increment),
+        limit_(limit),
+        bound_(NULL) { }
+
+  PhiInstr* phi() const { return phi_; }
+  Definition* initial_value() const { return initial_value_; }
+  BinarySmiOpInstr* increment() const { return increment_; }
+
+  // Outermost constraint that constrains this induction variable into
+  // [-inf, X] range.
+  ConstraintInstr* limit() const { return limit_; }
+
+  // Induction variable from the same join block that has limiting constraint.
+  PhiInstr* bound() const { return bound_; }
+  void set_bound(PhiInstr* bound) { bound_ = bound; }
+
+ private:
+  PhiInstr* phi_;
+  Definition* initial_value_;
+  BinarySmiOpInstr* increment_;
+  ConstraintInstr* limit_;
+
+  PhiInstr* bound_;
+};
+
+
+static ConstraintInstr* FindBoundingConstraint(PhiInstr* phi,
+                                               Definition* defn) {
+  ConstraintInstr* limit = NULL;
+  for (ConstraintInstr* constraint = defn->AsConstraint();
+       constraint != NULL;
+       constraint = constraint->value()->definition()->AsConstraint()) {
+    if (constraint->target() == NULL) {
+      continue;  // Only interested in non-artifical constraints.
+    }
+
+    Range* constraining_range = constraint->constraint();
+    if (constraining_range->min().Equals(RangeBoundary::MinSmi()) &&
+        (constraining_range->max().IsSymbol() &&
+         phi->IsDominatedBy(constraining_range->max().symbol()))) {
+      limit = constraint;
+    }
+  }
+
+  return limit;
+}
+
+
+static InductionVariableInfo* DetectSimpleInductionVariable(PhiInstr* phi) {
+  if (phi->Type()->ToCid() != kSmiCid) {
+    return false;
+  }
+
+  if (phi->InputCount() != 2) {
+    return false;
+  }
+
+  BitVector* loop_info = phi->block()->loop_info();
+
+  const intptr_t backedge_idx =
+      loop_info->Contains(phi->block()->PredecessorAt(0)->preorder_number())
+          ? 0 : 1;
+
+  Definition* initial_value =
+      phi->InputAt(1 - backedge_idx)->definition();
+
+  BinarySmiOpInstr* increment =
+      UnwrapConstraint(phi->InputAt(backedge_idx)->definition())->
+          AsBinarySmiOp();
+
+  if ((increment != NULL) &&
+      (increment->op_kind() == Token::kADD) &&
+      (UnwrapConstraint(increment->left()->definition()) == phi) &&
+      increment->right()->BindsToConstant() &&
+      increment->right()->BoundConstant().IsSmi() &&
+      (Smi::Cast(increment->right()->BoundConstant()).Value() == 1)) {
+    return new InductionVariableInfo(
+        phi,
+        initial_value,
+        increment,
+        FindBoundingConstraint(phi, increment->left()->definition()));
+  }
+
+  return NULL;
+}
+
+
+void RangeAnalysis::DiscoverSimpleInductionVariables() {
+  GrowableArray<InductionVariableInfo*> loop_variables;
+
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+
+    JoinEntryInstr* join = block->AsJoinEntry();
+    if (join != NULL && join->loop_info() != NULL) {
+      loop_variables.Clear();
+
+      for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
+        PhiInstr* current = phi_it.Current();
+
+        InductionVariableInfo* info = DetectSimpleInductionVariable(current);
+        if (info != NULL) {
+          if (FLAG_trace_range_analysis) {
+            OS::Print("Simple loop variable: %s bound <%s>\n",
+                       current->ToCString(),
+                       info->limit() != NULL ?
+                           info->limit()->ToCString() : "?");
+          }
+
+          loop_variables.Add(info);
+        }
+      }
+    }
+
+    InductionVariableInfo* bound = NULL;
+    for (intptr_t i = 0; i < loop_variables.length(); i++) {
+      if (loop_variables[i]->limit() != NULL) {
+        bound = loop_variables[i];
+        break;
+      }
+    }
+
+    if (bound != NULL) {
+      for (intptr_t i = 0; i < loop_variables.length(); i++) {
+        InductionVariableInfo* info = loop_variables[i];
+        info->set_bound(bound->phi());
+        info->phi()->set_induction_variable_info(info);
+      }
+    }
+  }
+}
+
+
 void RangeAnalysis::CollectValues() {
   const GrowableArray<Definition*>& initial =
       *flow_graph_->graph_entry()->initial_definitions();
   for (intptr_t i = 0; i < initial.length(); ++i) {
     Definition* current = initial[i];
-    if (current->Type()->ToCid() == kSmiCid) {
-      values_.Add(current);
-    } else if (current->IsMintDefinition()) {
-      values_.Add(current);
-    } else if (current->IsInt32Definition()) {
+    if (IsIntegerDefinition(current)) {
       values_.Add(current);
     }
   }
@@ -66,11 +235,7 @@ void RangeAnalysis::CollectValues() {
           : *block->AsCatchBlockEntry()->initial_definitions();
       for (intptr_t i = 0; i < initial.length(); ++i) {
         Definition* current = initial[i];
-        if (current->Type()->ToCid() == kSmiCid) {
-          values_.Add(current);
-        } else if (current->IsMintDefinition()) {
-          values_.Add(current);
-        } else if (current->IsInt32Definition()) {
+        if (IsIntegerDefinition(current)) {
           values_.Add(current);
         }
       }
@@ -80,9 +245,8 @@ void RangeAnalysis::CollectValues() {
     if (join != NULL) {
       for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
         PhiInstr* current = phi_it.Current();
-        if (current->Type()->ToCid() == kSmiCid) {
-          values_.Add(current);
-        } else if (current->representation() == kUnboxedInt32) {
+        if ((current->Type()->ToCid() == kSmiCid) ||
+            (current->representation() == kUnboxedInt32)) {
           values_.Add(current);
         }
       }
@@ -94,19 +258,13 @@ void RangeAnalysis::CollectValues() {
       Instruction* current = instr_it.Current();
       Definition* defn = current->AsDefinition();
       if (defn != NULL) {
-        if ((defn->Type()->ToCid() == kSmiCid) &&
-            (defn->ssa_temp_index() != -1)) {
-          values_.Add(defn);
-        } else if ((defn->IsMintDefinition()) &&
-                   (defn->ssa_temp_index() != -1)) {
+        if (defn->HasSSATemp() && IsIntegerDefinition(defn)) {
           values_.Add(defn);
           if (defn->IsBinaryMintOp()) {
             binary_mint_ops_.Add(defn->AsBinaryMintOp());
           } else if (defn->IsShiftMintOp()) {
             shift_mint_ops_.Add(defn->AsShiftMintOp());
           }
-        } else if (defn->IsInt32Definition()) {
-          values_.Add(defn);
         }
       } else if (current->IsCheckArrayBound()) {
         bounds_checks_.Add(current->AsCheckArrayBound());
@@ -238,7 +396,7 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Value* use,
 }
 
 
-void RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
+bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
   BranchInstr* branch = use->instruction()->AsBranch();
   RelationalOpInstr* rel_op = branch->comparison()->AsRelationalOp();
   if ((rel_op != NULL) && (rel_op->operation_cid() == kSmiCid)) {
@@ -263,10 +421,7 @@ void RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
                             defn,
                             ConstraintSmiRange(op_kind, boundary),
                             branch->true_successor());
-    // Mark true_constraint an artificial use of boundary. This ensures
-    // that constraint's range is recalculated if boundary's range changes.
     if (true_constraint != NULL) {
-      true_constraint->AddDependency(boundary);
       true_constraint->set_target(branch->true_successor());
     }
 
@@ -277,13 +432,14 @@ void RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
             defn,
             ConstraintSmiRange(Token::NegateComparison(op_kind), boundary),
             branch->false_successor());
-    // Mark false_constraint an artificial use of boundary. This ensures
-    // that constraint's range is recalculated if boundary's range changes.
     if (false_constraint != NULL) {
-      false_constraint->AddDependency(boundary);
       false_constraint->set_target(branch->false_successor());
     }
+
+    return true;
   }
+
+  return false;
 }
 
 
@@ -292,7 +448,12 @@ void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
        use != NULL;
        use = use->next_use()) {
     if (use->instruction()->IsBranch()) {
-      ConstrainValueAfterBranch(use, defn);
+      if (ConstrainValueAfterBranch(use, defn)) {
+        Value* other_value = use->instruction()->InputAt(1 - use->use_index());
+        if (!IsIntegerDefinition(other_value->definition())) {
+          ConstrainValueAfterBranch(other_value, other_value->definition());
+        }
+      }
     } else if (use->instruction()->IsCheckArrayBound()) {
       ConstrainValueAfterCheckArrayBound(use, defn);
     }
@@ -353,14 +514,6 @@ const Range* RangeAnalysis::GetSmiRange(Value* value) const {
   }
 
   return range;
-}
-
-
-static Definition* UnwrapConstraint(Definition* defn) {
-  while (defn->IsConstraint()) {
-    defn = defn->AsConstraint()->value()->definition();
-  }
-  return defn;
 }
 
 
@@ -526,7 +679,7 @@ bool RangeAnalysis::InferRange(JoinOperator op,
 }
 
 
-void RangeAnalysis::CollectDefinitions(BlockEntryInstr* block, BitVector* set) {
+void RangeAnalysis::CollectDefinitions(BitVector* set) {
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
        !block_it.Done();
        block_it.Advance()) {
@@ -545,7 +698,7 @@ void RangeAnalysis::CollectDefinitions(BlockEntryInstr* block, BitVector* set) {
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Definition* defn = it.Current()->AsDefinition();
       if ((defn != NULL) &&
-          (defn->ssa_temp_index() != -1) &&
+          defn->HasSSATemp() &&
           set->Contains(defn->ssa_temp_index())) {
         definitions_.Add(defn);
       }
@@ -597,7 +750,7 @@ void RangeAnalysis::InferRanges() {
       definitions_.Add(definition);
     }
   }
-  CollectDefinitions(flow_graph_->graph_entry(), set);
+  CollectDefinitions(set);
 
   // Perform an iteration of range inference just propagating ranges
   // through the graph as-is without applying widening or narrowing.
@@ -625,15 +778,738 @@ void RangeAnalysis::InferRanges() {
 }
 
 
+void RangeAnalysis::AssignRangesRecursively(Definition* defn) {
+  if (!Range::IsUnknown(defn->range())) {
+    return;
+  }
+
+  if (!IsIntegerDefinition(defn)) {
+    return;
+  }
+
+  for (intptr_t i = 0; i < defn->InputCount(); i++) {
+    Definition* input_defn = defn->InputAt(i)->definition();
+    if (!input_defn->HasSSATemp() || input_defn->IsConstant()) {
+      AssignRangesRecursively(input_defn);
+    }
+  }
+
+  Range new_range;
+  defn->InferRange(this, &new_range);
+  if (!Range::IsUnknown(&new_range)) {
+    defn->set_range(new_range);
+  }
+}
+
+
+// Scheduler is a helper class that inserts floating control-flow less
+// subgraphs into the flow graph.
+// It always attempts to schedule instructions into the loop preheader in the
+// way similar to LICM optimization pass.
+// Scheduler supports rollback - that is it keeps track of instructions it
+// schedules and can remove all instructions it inserted from the graph.
+class Scheduler {
+ public:
+  explicit Scheduler(FlowGraph* flow_graph)
+      : flow_graph_(flow_graph),
+        loop_headers_(flow_graph->LoopHeaders()),
+        pre_headers_(loop_headers_.length()) {
+    for (intptr_t i = 0; i < loop_headers_.length(); i++) {
+      pre_headers_.Add(loop_headers_[i]->ImmediateDominator());
+    }
+  }
+
+  // Clear the list of emitted instructions.
+  void Start() {
+    emitted_.Clear();
+  }
+
+  // Given the floating instruction attempt to schedule it into one of the
+  // loop preheaders that dominates given post_dominator instruction.
+  // Some of the instruction inputs can potentially be unscheduled as well.
+  // Returns NULL is the scheduling fails (e.g. inputs are not invariant for
+  // any loop containing post_dominator).
+  // Resulting schedule should be equivalent to one obtained by inserting
+  // instructions right before post_dominator and running CSE and LICM passes.
+  template<typename T>
+  T* Emit(T* instruction, Instruction* post_dominator) {
+    return static_cast<T*>(EmitRecursively(instruction, post_dominator));
+  }
+
+  // Undo all insertions recorded in the list of emitted instructions.
+  void Rollback() {
+    for (intptr_t i = emitted_.length() - 1; i >= 0; i--) {
+      emitted_[i]->RemoveFromGraph();
+    }
+    emitted_.Clear();
+  }
+
+ private:
+  typedef DirectChainedHashMap<PointerKeyValueTrait<Instruction> >  Map;
+
+  Instruction* EmitRecursively(Instruction* instruction,
+                               Instruction* sink) {
+    // Schedule all unscheduled inputs and unwrap all constrained inputs.
+    for (intptr_t i = 0; i < instruction->InputCount(); i++) {
+      Definition* defn = instruction->InputAt(i)->definition();
+
+      // Instruction is not in the graph yet which means that none of
+      // its input uses should be recorded at defn's use chains.
+      // Verify this assumption to ensure that we are not going to
+      // leave use-lists in an inconsistent state when we start
+      // rewriting inputs via set_definition.
+      ASSERT(instruction->InputAt(i)->IsSingleUse() &&
+             !defn->HasOnlyInputUse(instruction->InputAt(i)));
+
+      if (!defn->HasSSATemp()) {
+        Definition* scheduled = Emit(defn, sink);
+        if (scheduled == NULL) {
+          return NULL;
+        }
+        instruction->InputAt(i)->set_definition(scheduled);
+      } else if (defn->IsConstraint()) {
+        instruction->InputAt(i)->set_definition(UnwrapConstraint(defn));
+      }
+    }
+
+    // Attempt to find equivalent instruction that was already scheduled.
+    // If the instruction is still in the graph (it could have been
+    // un-scheduled by a rollback action) and it dominates the sink - use it.
+    Instruction* emitted = map_.Lookup(instruction);
+    if (emitted != NULL &&
+        !emitted->WasEliminated() &&
+        sink->IsDominatedBy(emitted)) {
+      return emitted;
+    }
+
+    // Attempt to find suitable pre-header. Iterate loop headers backwards to
+    // attempt scheduling into the outermost loop first.
+    for (intptr_t i = loop_headers_.length() - 1; i >= 0; i--) {
+      BlockEntryInstr* header = loop_headers_[i];
+      BlockEntryInstr* pre_header = pre_headers_[i];
+
+      if (pre_header == NULL) {
+        continue;
+      }
+
+      if (!sink->IsDominatedBy(header)) {
+        continue;
+      }
+
+      Instruction* last = pre_header->last_instruction();
+
+      bool inputs_are_invariant = true;
+      for (intptr_t j = 0; j < instruction->InputCount(); j++) {
+        Definition* defn = instruction->InputAt(j)->definition();
+        if (!last->IsDominatedBy(defn)) {
+          inputs_are_invariant = false;
+          break;
+        }
+      }
+
+      if (inputs_are_invariant) {
+        EmitTo(pre_header, instruction);
+        return instruction;
+      }
+    }
+
+    return NULL;
+  }
+
+  void EmitTo(BlockEntryInstr* block, Instruction* instr) {
+    GotoInstr* last = block->last_instruction()->AsGoto();
+    flow_graph_->InsertBefore(last,
+                              instr,
+                              last->env(),
+                              instr->IsDefinition() ? FlowGraph::kValue
+                                                    : FlowGraph::kEffect);
+    instr->deopt_id_ = last->GetDeoptId();
+    instr->env()->set_deopt_id(instr->deopt_id_);
+
+    map_.Insert(instr);
+    emitted_.Add(instr);
+  }
+
+  FlowGraph* flow_graph_;
+  Map map_;
+  const ZoneGrowableArray<BlockEntryInstr*>& loop_headers_;
+  GrowableArray<BlockEntryInstr*> pre_headers_;
+  GrowableArray<Instruction*> emitted_;
+};
+
+
+// If bounds check 0 <= index < length is not redundant we attempt to
+// replace it with a sequence of checks that guarantee
+//
+//           0 <= LowerBound(index) < UpperBound(index) < length
+//
+// and hoist all of those checks out of the enclosing loop.
+//
+// Upper/Lower bounds are symbolic arithmetic expressions with +, -, *
+// operations.
+class BoundsCheckGeneralizer {
+ public:
+  BoundsCheckGeneralizer(RangeAnalysis* range_analysis,
+                         FlowGraph* flow_graph)
+      : range_analysis_(range_analysis),
+        flow_graph_(flow_graph),
+        scheduler_(flow_graph) { }
+
+  void TryGeneralize(CheckArrayBoundInstr* check,
+                     const RangeBoundary& array_length) {
+    Definition* upper_bound =
+        ConstructUpperBound(check->index()->definition(), check);
+    if (upper_bound == UnwrapConstraint(check->index()->definition())) {
+      // Unable to construct upper bound for the index.
+      if (FLAG_trace_range_analysis) {
+        OS::Print("Failed to construct upper bound for %s index\n",
+                  check->ToCString());
+      }
+      return;
+    }
+
+    // Re-associate subexpressions inside upper_bound to collect all constants
+    // together. This will expose more redundancies when we are going to emit
+    // upper bound through scheduler.
+    if (!Simplify(&upper_bound, NULL)) {
+      if (FLAG_trace_range_analysis) {
+        OS::Print("Failed to simplify upper bound for %s index\n",
+                  check->ToCString());
+      }
+      return;
+    }
+    upper_bound = ApplyConstraints(upper_bound, check);
+    range_analysis_->AssignRangesRecursively(upper_bound);
+
+    // We are going to constrain any symbols participating in + and * operations
+    // to guarantee that they are positive. Find all symbols that need
+    // constraining. If there is a subtraction subexpression with non-positive
+    // range give up on generalization for simplicity.
+    GrowableArray<Definition*> non_positive_symbols;
+    if (!FindNonPositiveSymbols(&non_positive_symbols, upper_bound)) {
+      if (FLAG_trace_range_analysis) {
+        OS::Print("Failed to generalize %s index to %s"
+                  " (can't ensure positivity)\n",
+                  check->ToCString(),
+                  IndexBoundToCString(upper_bound));
+      }
+      return;
+    }
+
+    // Check that we can statically prove that lower bound of the index is
+    // non-negative under the assumption that all potentially non-positive
+    // symbols are positive.
+    GrowableArray<ConstraintInstr*> positive_constraints(
+        non_positive_symbols.length());
+    Range* positive_range = new Range(
+        RangeBoundary::FromConstant(0),
+        RangeBoundary::MaxConstant(RangeBoundary::kRangeBoundarySmi));
+    for (intptr_t i = 0; i < non_positive_symbols.length(); i++) {
+      Definition* symbol = non_positive_symbols[i];
+      positive_constraints.Add(new ConstraintInstr(
+          new Value(symbol),
+          positive_range));
+    }
+
+    Definition* lower_bound =
+      ConstructLowerBound(check->index()->definition(), check);
+    // No need to simplify lower bound before applying constraints as
+    // we are not going to emit it.
+    lower_bound = ApplyConstraints(lower_bound, check, &positive_constraints);
+    range_analysis_->AssignRangesRecursively(lower_bound);
+
+    if (!RangeUtils::IsPositive(lower_bound->range())) {
+      // Can't prove that lower bound is positive even with additional checks
+      // against potentially non-positive symbols. Give up.
+      if (FLAG_trace_range_analysis) {
+        OS::Print("Failed to generalize %s index to %s"
+                  " (lower bound is not positive)\n",
+                  check->ToCString(),
+                  IndexBoundToCString(upper_bound));
+      }
+      return;
+    }
+
+    if (FLAG_trace_range_analysis) {
+      OS::Print("For %s computed index bounds [%s, %s]\n",
+                check->ToCString(),
+                IndexBoundToCString(lower_bound),
+                IndexBoundToCString(upper_bound));
+    }
+
+    // At this point we know that 0 <= index < UpperBound(index) under
+    // certain preconditions. Start by emitting this preconditions.
+    scheduler_.Start();
+
+    ConstantInstr* max_smi =
+        flow_graph_->GetConstant(Smi::Handle(Smi::New(Smi::kMaxValue)));
+    for (intptr_t i = 0; i < non_positive_symbols.length(); i++) {
+      CheckArrayBoundInstr* precondition = new CheckArrayBoundInstr(
+          new Value(max_smi),
+          new Value(non_positive_symbols[i]),
+          Isolate::kNoDeoptId);
+      precondition->mark_generalized();
+      precondition = scheduler_.Emit(precondition, check);
+      if (precondition == NULL) {
+        if (FLAG_trace_range_analysis) {
+          OS::Print("  => failed to insert positivity constraint\n");
+        }
+        scheduler_.Rollback();
+        return;
+      }
+    }
+
+    CheckArrayBoundInstr* new_check = new CheckArrayBoundInstr(
+          new Value(UnwrapConstraint(check->length()->definition())),
+          new Value(upper_bound),
+          Isolate::kNoDeoptId);
+    new_check->mark_generalized();
+    if (new_check->IsRedundant(array_length)) {
+      if (FLAG_trace_range_analysis) {
+        OS::Print("  => generalized check is redundant\n");
+      }
+      RemoveGeneralizedCheck(check);
+      return;
+    }
+
+    new_check = scheduler_.Emit(new_check, check);
+    if (new_check != NULL) {
+      if (FLAG_trace_range_analysis) {
+        OS::Print("  => generalized check was hoisted into B%" Pd "\n",
+                  new_check->GetBlock()->block_id());
+      }
+      RemoveGeneralizedCheck(check);
+    } else {
+      if (FLAG_trace_range_analysis) {
+        OS::Print("  => generalized check can't be hoisted\n");
+      }
+      scheduler_.Rollback();
+    }
+  }
+
+  static void RemoveGeneralizedCheck(CheckArrayBoundInstr* check) {
+    BinarySmiOpInstr* binary_op =
+        check->index()->definition()->AsBinarySmiOp();
+    if (binary_op != NULL) {
+      binary_op->set_can_overflow(false);
+    }
+    check->RemoveFromGraph();
+  }
+
+ private:
+  BinarySmiOpInstr* MakeBinaryOp(Token::Kind op_kind,
+                                 Definition* left,
+                                 Definition* right) {
+    return new BinarySmiOpInstr(op_kind,
+                                new Value(left),
+                                new Value(right),
+                                Isolate::kNoDeoptId);
+  }
+
+
+  BinarySmiOpInstr* MakeBinaryOp(Token::Kind op_kind,
+                                 Definition* left,
+                                 intptr_t right) {
+    ConstantInstr* constant_right =
+        flow_graph_->GetConstant(Smi::Handle(Smi::New(right)));
+    return MakeBinaryOp(op_kind, left, constant_right);
+  }
+
+  Definition* RangeBoundaryToDefinition(const RangeBoundary& bound) {
+    Definition* symbol = UnwrapConstraint(bound.symbol());
+    if (bound.offset() == 0) {
+      return symbol;
+    } else {
+      return MakeBinaryOp(Token::kADD, symbol, bound.offset());
+    }
+  }
+
+  typedef Definition* (BoundsCheckGeneralizer::*PhiBoundFunc)(
+      PhiInstr*, Instruction*);
+
+  // Construct symbolic lower bound for a value at the given point.
+  Definition* ConstructLowerBound(Definition* value, Instruction* point) {
+    return ConstructBound(&BoundsCheckGeneralizer::InductionVariableLowerBound,
+                          value,
+                          point);
+  }
+
+  // Construct symbolic upper bound for a value at the given point.
+  Definition* ConstructUpperBound(Definition* value, Instruction* point) {
+    return ConstructBound(&BoundsCheckGeneralizer::InductionVariableUpperBound,
+                          value,
+                          point);
+  }
+
+  // Construct symbolic bound for a value at the given point:
+  //
+  //   1. if value is an induction variable use its bounds;
+  //   2. if value is addition or multiplication construct bounds for left
+  //      and right hand sides separately and use addition/multiplication
+  //      of bounds as a bound (addition and multiplication are monotone
+  //      operations for both operands);
+  //   3. if value is a substraction then construct bound for the left hand
+  //      side and use substraction of the right hand side from the left hand
+  //      side bound as a bound for an expression (substraction is monotone for
+  //      the left hand side operand).
+  //
+  Definition* ConstructBound(PhiBoundFunc phi_bound_func,
+                             Definition* value,
+                             Instruction* point) {
+    value = UnwrapConstraint(value);
+    if (value->IsPhi()) {
+      PhiInstr* phi = value->AsPhi();
+      if (phi->induction_variable_info() != NULL) {
+        return (this->*phi_bound_func)(phi, point);
+      }
+    } else if (value->IsBinarySmiOp()) {
+      BinarySmiOpInstr* bin_op = value->AsBinarySmiOp();
+      if ((bin_op->op_kind() == Token::kADD) ||
+          (bin_op->op_kind() == Token::kMUL) ||
+          (bin_op->op_kind() == Token::kSUB)) {
+        Definition* new_left =
+            ConstructBound(phi_bound_func, bin_op->left()->definition(), point);
+        Definition* new_right = (bin_op->op_kind() != Token::kSUB)
+            ? ConstructBound(phi_bound_func,
+                             bin_op->right()->definition(),
+                             point)
+            : UnwrapConstraint(bin_op->right()->definition());
+
+        if ((new_left != UnwrapConstraint(bin_op->left()->definition())) ||
+            (new_right != UnwrapConstraint(bin_op->right()->definition()))) {
+          return MakeBinaryOp(bin_op->op_kind(), new_left, new_right);
+        }
+      }
+    }
+
+    return value;
+  }
+
+  Definition* InductionVariableUpperBound(PhiInstr* phi,
+                                          Instruction* point) {
+    const InductionVariableInfo& info = *phi->induction_variable_info();
+    if (info.bound() == phi) {
+      if (point->IsDominatedBy(info.limit())) {
+        // Given induction variable
+        //
+        //          x <- phi(x0, x + 1)
+        //
+        // and a constraint x <= M that dominates the given
+        // point we conclude that M is an upper bound for x.
+        return RangeBoundaryToDefinition(info.limit()->constraint()->max());
+      }
+    } else {
+      const InductionVariableInfo& bound_info =
+          *info.bound()->induction_variable_info();
+      if (point->IsDominatedBy(bound_info.limit())) {
+        // Given two induction variables
+        //
+        //          x <- phi(x0, x + 1)
+        //          y <- phi(y0, y + 1)
+        //
+        // and a constraint x <= M that dominates the given
+        // point we can conclude that
+        //
+        //          y <= y0 + (M - x0)
+        //
+        Definition* limit = RangeBoundaryToDefinition(
+            bound_info.limit()->constraint()->max());
+        BinarySmiOpInstr* loop_length =
+            MakeBinaryOp(Token::kSUB,
+                         ConstructUpperBound(limit, point),
+                         ConstructLowerBound(bound_info.initial_value(),
+                                             point));
+        return MakeBinaryOp(Token::kADD,
+                            ConstructUpperBound(info.initial_value(), point),
+                            loop_length);
+      }
+    }
+
+    return phi;
+  }
+
+  Definition* InductionVariableLowerBound(PhiInstr* phi,
+                                          Instruction* point) {
+    // Given induction variable
+    //
+    //          x <- phi(x0, x + 1)
+    //
+    // we can conclude that LowerBound(x) == x0.
+    const InductionVariableInfo& info = *phi->induction_variable_info();
+    return ConstructLowerBound(info.initial_value(), point);
+  }
+
+  // Try to re-associate binary operations in the floating DAG of operations
+  // to collect all constants together, e.g. x + C0 + y + C1 is simplified into
+  // x + y + (C0 + C1).
+  bool Simplify(Definition** defn, intptr_t* constant) {
+    if ((*defn)->IsBinarySmiOp()) {
+      BinarySmiOpInstr* binary_op = (*defn)->AsBinarySmiOp();
+      Definition* left = binary_op->left()->definition();
+      Definition* right = binary_op->right()->definition();
+
+      intptr_t c = 0;
+      if (binary_op->op_kind() == Token::kADD) {
+        intptr_t left_const = 0;
+        intptr_t right_const = 0;
+        if (!Simplify(&left, &left_const) || !Simplify(&right, &right_const)) {
+          return false;
+        }
+
+        c = left_const + right_const;
+        if (Utils::WillAddOverflow(left_const, right_const) ||
+            !Smi::IsValid(c)) {
+          return false;  // Abort.
+        }
+
+        if (constant != NULL) {
+          *constant = c;
+        }
+
+        if ((left == NULL) && (right == NULL)) {
+          if (constant != NULL) {
+            *defn = NULL;
+          } else {
+            *defn = flow_graph_->GetConstant(Smi::Handle(Smi::New(c)));
+          }
+          return true;
+        }
+
+        if (left == NULL) {
+          if ((constant != NULL) || (c == 0)) {
+            *defn = right;
+            return true;
+          } else {
+            left = right;
+            right = NULL;
+          }
+        }
+
+        if (right == NULL) {
+          if ((constant != NULL) || (c == 0)) {
+            *defn = left;
+            return true;
+          } else {
+            right = flow_graph_->GetConstant(Smi::Handle(Smi::New(c)));
+            c = 0;
+          }
+        }
+
+      } else if (binary_op->op_kind() == Token::kSUB) {
+        intptr_t left_const = 0;
+        intptr_t right_const = 0;
+        if (!Simplify(&left, &left_const) || !Simplify(&right, &right_const)) {
+          return false;
+        }
+
+        c = (left_const - right_const);
+        if (Utils::WillSubOverflow(left_const, right_const) ||
+            !Smi::IsValid(c)) {
+          return false;  // Abort.
+        }
+
+        if (constant != NULL) {
+          *constant = c;
+        }
+
+        if ((left == NULL) && (right == NULL)) {
+          if (constant != NULL) {
+            *defn = NULL;
+          } else {
+            *defn = flow_graph_->GetConstant(Smi::Handle(Smi::New(c)));
+          }
+          return true;
+        }
+
+        if (left == NULL) {
+          left = flow_graph_->GetConstant(Smi::Handle(Smi::New(0)));
+        }
+
+        if (right == NULL) {
+          if ((constant != NULL) || (c == 0)) {
+            *defn = left;
+            return true;
+          } else {
+            right = flow_graph_->GetConstant(Smi::Handle(Smi::New(-c)));
+            c = 0;
+          }
+        }
+
+      } else {
+        if (!Simplify(&left, NULL) || !Simplify(&right, NULL)) {
+          return false;
+        }
+      }
+
+      ASSERT(left != NULL);
+      ASSERT(right != NULL);
+
+      const bool left_changed = (left != binary_op->left()->definition());
+      const bool right_changed = (right != binary_op->right()->definition());
+      if (left_changed || right_changed) {
+        if (!(*defn)->HasSSATemp()) {
+          if (left_changed) binary_op->left()->set_definition(left);
+          if (right_changed) binary_op->right()->set_definition(right);
+          *defn = binary_op;
+        } else {
+          *defn = MakeBinaryOp(binary_op->op_kind(),
+                               UnwrapConstraint(left),
+                               UnwrapConstraint(right));
+        }
+      }
+
+      if ((c != 0) && (constant == NULL)) {
+        *defn = MakeBinaryOp(Token::kADD, *defn, c);
+      }
+    } else if ((*defn)->IsConstant()) {
+      ConstantInstr* constant_defn = (*defn)->AsConstant();
+      if ((constant != NULL) && constant_defn->value().IsSmi()) {
+        *defn = NULL;
+        *constant = Smi::Cast(constant_defn->value()).Value();
+      }
+    }
+
+    return true;
+  }
+
+  // If possible find a set of symbols that need to be non-negative to
+  // guarantee that expression as whole is non-negative.
+  bool FindNonPositiveSymbols(GrowableArray<Definition*>* symbols,
+                              Definition* defn) {
+    if (defn->IsConstant()) {
+      const Object& value = defn->AsConstant()->value();
+      return value.IsSmi() && (Smi::Cast(value).Value() >= 0);
+    } else if (defn->HasSSATemp()) {
+      if (!RangeUtils::IsPositive(defn->range())) {
+        symbols->Add(defn);
+      }
+      return true;
+    } else if (defn->IsBinarySmiOp()) {
+      BinarySmiOpInstr* binary_op = defn->AsBinarySmiOp();
+      ASSERT((binary_op->op_kind() == Token::kADD) ||
+             (binary_op->op_kind() == Token::kSUB) ||
+             (binary_op->op_kind() == Token::kMUL));
+
+      if (RangeUtils::IsPositive(defn->range())) {
+        // We can statically prove that this subexpression is always positive.
+        // No need to inspect its subexpressions.
+        return true;
+      }
+
+      if (binary_op->op_kind() == Token::kSUB) {
+        // For addition and multiplication it's enough to ensure that
+        // lhs and rhs are positive to guarantee that defn as whole is
+        // positive. This does not work for substraction so just give up.
+        return false;
+      }
+
+      return FindNonPositiveSymbols(symbols, binary_op->left()->definition()) &&
+        FindNonPositiveSymbols(symbols, binary_op->right()->definition());
+    }
+    UNREACHABLE();
+    return false;
+  }
+
+  // Find innermost constraint for the given definition dominating given
+  // instruction.
+  static Definition* FindInnermostConstraint(Definition* defn,
+                                             Instruction* post_dominator) {
+    for (Value* use = defn->input_use_list();
+         use != NULL;
+         use = use->next_use()) {
+      ConstraintInstr* constraint = use->instruction()->AsConstraint();
+      if ((constraint != NULL) && post_dominator->IsDominatedBy(constraint)) {
+        return FindInnermostConstraint(constraint, post_dominator);
+      }
+    }
+    return defn;
+  }
+
+  // Replace symbolic parts of the boundary with respective constraints
+  // that hold at the given point in the flow graph signified by
+  // post_dominator.
+  // Constraints array allows to provide a set of additional floating
+  // constraints that were not inserted into the graph.
+  static Definition* ApplyConstraints(
+      Definition* defn,
+      Instruction* post_dominator,
+      GrowableArray<ConstraintInstr*>* constraints = NULL) {
+    if (defn->HasSSATemp()) {
+      defn = FindInnermostConstraint(defn, post_dominator);
+      if (constraints != NULL) {
+        for (intptr_t i = 0; i < constraints->length(); i++) {
+          ConstraintInstr* constraint = (*constraints)[i];
+          if (constraint->value()->definition() == defn) {
+            return constraint;
+          }
+        }
+      }
+      return defn;
+    }
+
+    for (intptr_t i = 0; i < defn->InputCount(); i++) {
+      defn->InputAt(i)->set_definition(
+          ApplyConstraints(defn->InputAt(i)->definition(),
+                           post_dominator,
+                           constraints));
+    }
+
+    return defn;
+  }
+
+  static void PrettyPrintIndexBoundRecursively(BufferFormatter* f,
+                                               Definition* index_bound) {
+    BinarySmiOpInstr* binary_op = index_bound->AsBinarySmiOp();
+    if (binary_op != NULL) {
+      f->Print("(");
+      PrettyPrintIndexBoundRecursively(f, binary_op->left()->definition());
+      f->Print(" %s ", Token::Str(binary_op->op_kind()));
+      PrettyPrintIndexBoundRecursively(f, binary_op->right()->definition());
+      f->Print(")");
+    } else if (index_bound->IsConstant()) {
+      f->Print("%" Pd "",
+               Smi::Cast(index_bound->AsConstant()->value()).Value());
+    } else {
+      f->Print("v%" Pd "", index_bound->ssa_temp_index());
+    }
+    f->Print(" {%s}", Range::ToCString(index_bound->range()));
+  }
+
+
+  static const char* IndexBoundToCString(Definition* index_bound) {
+    char buffer[1024];
+    BufferFormatter f(buffer, sizeof(buffer));
+    PrettyPrintIndexBoundRecursively(&f, index_bound);
+    return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+  }
+
+  RangeAnalysis* range_analysis_;
+  FlowGraph* flow_graph_;
+  Scheduler scheduler_;
+};
+
+
 void RangeAnalysis::EliminateRedundantBoundsChecks() {
   if (FLAG_array_bounds_check_elimination) {
+    const Function& function = flow_graph_->parsed_function().function();
+    const bool try_generalization =
+        function.allows_bounds_check_generalization();
+
+    BoundsCheckGeneralizer generalizer(this, flow_graph_);
+
     for (intptr_t i = 0; i < bounds_checks_.length(); i++) {
       CheckArrayBoundInstr* check = bounds_checks_[i];
       RangeBoundary array_length =
           RangeBoundary::FromDefinition(check->length()->definition());
       if (check->IsRedundant(array_length)) {
         check->RemoveFromGraph();
+      } else if (try_generalization) {
+        generalizer.TryGeneralize(check, array_length);
       }
+    }
+
+    if (FLAG_trace_range_analysis) {
+      FlowGraphPrinter::PrintGraph("RangeAnalysis (ABCE)", flow_graph_);
     }
   }
 }
@@ -793,7 +1669,7 @@ void IntegerInstructionSelector::FindPotentialUint32Definitions() {
          instr_it.Advance()) {
       Instruction* current = instr_it.Current();
       Definition* defn = current->AsDefinition();
-      if ((defn != NULL) && (defn->ssa_temp_index() != -1)) {
+      if ((defn != NULL) && defn->HasSSATemp()) {
         if (IsPotentialUint32Definition(defn)) {
           if (FLAG_trace_integer_ir_selection) {
            OS::Print("Adding %s\n", current->ToCString());
@@ -852,7 +1728,7 @@ bool IntegerInstructionSelector::AllUsesAreUint32Narrowing(Value* list_head) {
     Value* use = it.Current();
     Definition* defn = use->instruction()->AsDefinition();
     if ((defn == NULL) ||
-        (defn->ssa_temp_index() == -1) ||
+        !defn->HasSSATemp() ||
         !selected_uint32_defs_->Contains(defn->ssa_temp_index())) {
       return false;
     }
@@ -1376,54 +2252,28 @@ int64_t RangeBoundary::ConstantValue() const {
 
 
 bool Range::IsPositive() const {
-  if (min().IsNegativeInfinity()) {
-    return false;
-  }
-  if (min().LowerBound().ConstantValue() < 0) {
-    return false;
-  }
-  if (max().IsPositiveInfinity()) {
-    return true;
-  }
-  return max().UpperBound().ConstantValue() >= 0;
+  return OnlyGreaterThanOrEqualTo(0);
 }
 
 
 bool Range::OnlyLessThanOrEqualTo(int64_t val) const {
-  if (max().IsPositiveInfinity()) {
-    // Cannot be true.
-    return false;
-  }
-  if (max().UpperBound().ConstantValue() > val) {
-    // Not true.
-    return false;
-  }
-  return true;
+  const RangeBoundary upper_bound = max().UpperBound();
+  return !upper_bound.IsPositiveInfinity() &&
+      (upper_bound.ConstantValue() <= val);
 }
 
 
 bool Range::OnlyGreaterThanOrEqualTo(int64_t val) const {
-  if (min().IsNegativeInfinity()) {
-    return false;
-  }
-  if (min().LowerBound().ConstantValue() < val) {
-    return false;
-  }
-  return true;
+  const RangeBoundary lower_bound = min().LowerBound();
+  return !lower_bound.IsNegativeInfinity() &&
+      (lower_bound.ConstantValue() >= val);
 }
 
 
 // Inclusive.
 bool Range::IsWithin(int64_t min_int, int64_t max_int) const {
-  RangeBoundary lower_min = min().LowerBound();
-  if (lower_min.IsNegativeInfinity() || (lower_min.ConstantValue() < min_int)) {
-    return false;
-  }
-  RangeBoundary upper_max = max().UpperBound();
-  if (upper_max.IsPositiveInfinity() || (upper_max.ConstantValue() > max_int)) {
-    return false;
-  }
-  return true;
+  return OnlyGreaterThanOrEqualTo(min_int) &&
+      OnlyLessThanOrEqualTo(max_int);
 }
 
 
@@ -1452,10 +2302,7 @@ bool Range::IsUnsatisfiable() const {
     return true;
   }
   // Symbol case: For example [v+1, v].
-  if (DependOnSameSymbol(min(), max()) && min().offset() > max().offset()) {
-    return true;
-  }
-  return false;
+  return DependOnSameSymbol(min(), max()) && min().offset() > max().offset();
 }
 
 
@@ -2142,7 +2989,15 @@ bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
 
   // Range of the index is unknown can't decide if the check is redundant.
   if (index_range == NULL) {
-    return false;
+    if (!(index()->BindsToConstant() && index()->BoundConstant().IsSmi())) {
+      return false;
+    }
+
+    Range range;
+    index()->definition()->InferRange(NULL, &range);
+    ASSERT(!Range::IsUnknown(&range));
+    index()->definition()->set_range(range);
+    index_range = index()->definition()->range();
   }
 
   // Range of the index is not positive. Check can't be redundant.
@@ -2150,8 +3005,9 @@ bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
     return false;
   }
 
-  RangeBoundary max = CanonicalizeBoundary(index_range->max(),
-                                           RangeBoundary::PositiveInfinity());
+  RangeBoundary max = CanonicalizeBoundary(
+      RangeBoundary::FromDefinition(index()->definition()),
+      RangeBoundary::PositiveInfinity());
 
   if (max.OverflowedSmi()) {
     return false;

@@ -559,6 +559,7 @@ void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
   CompilerDeoptInfo* info =
       new CompilerDeoptInfo(deopt_id,
                             ICData::kDeoptAtCall,
+                            0,  // No flags.
                             pending_deoptimization_env_);
   info->set_pc_offset(assembler()->CodeSize());
   deopt_infos_.Add(info);
@@ -735,7 +736,8 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
 
 
 Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
-                                       ICData::DeoptReasonId reason) {
+                                       ICData::DeoptReasonId reason,
+                                       uint32_t flags) {
   if (intrinsic_mode()) {
     return &intrinsic_slow_path_label_;
   }
@@ -744,6 +746,7 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
   CompilerDeoptInfoWithStub* stub =
       new CompilerDeoptInfoWithStub(deopt_id,
                                     reason,
+                                    flags,
                                     pending_deoptimization_env_);
   deopt_infos_.Add(stub);
   return stub->entry_label();
@@ -787,12 +790,14 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
         Array::Handle(Array::New(deopt_info_table_size, Heap::kOld));
     Smi& offset = Smi::Handle();
     DeoptInfo& info = DeoptInfo::Handle();
-    Smi& reason = Smi::Handle();
+    Smi& reason_and_flags = Smi::Handle();
     for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
       offset = Smi::New(deopt_infos_[i]->pc_offset());
       info = deopt_infos_[i]->CreateDeoptInfo(this, &builder, array);
-      reason = Smi::New(deopt_infos_[i]->reason());
-      DeoptTable::SetEntry(array, i, offset, info, reason);
+      reason_and_flags = DeoptTable::EncodeReasonAndFlags(
+          deopt_infos_[i]->reason(),
+          deopt_infos_[i]->flags());
+      DeoptTable::SetEntry(array, i, offset, info, reason_and_flags);
     }
     code.set_deopt_info_array(array);
     const Array& object_array =

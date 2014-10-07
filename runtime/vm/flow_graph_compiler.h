@@ -115,10 +115,12 @@ class CompilerDeoptInfo : public ZoneAllocated {
  public:
   CompilerDeoptInfo(intptr_t deopt_id,
                     ICData::DeoptReasonId reason,
+                    uint32_t flags,
                     Environment* deopt_env)
       : pc_offset_(-1),
         deopt_id_(deopt_id),
         reason_(reason),
+        flags_(flags),
         deopt_env_(deopt_env) {
     ASSERT(deopt_env != NULL);
   }
@@ -137,6 +139,7 @@ class CompilerDeoptInfo : public ZoneAllocated {
 
   intptr_t deopt_id() const { return deopt_id_; }
   ICData::DeoptReasonId reason() const { return reason_; }
+  uint32_t flags() const { return flags_; }
   const Environment* deopt_env() const { return deopt_env_; }
 
  private:
@@ -148,6 +151,7 @@ class CompilerDeoptInfo : public ZoneAllocated {
   intptr_t pc_offset_;
   const intptr_t deopt_id_;
   const ICData::DeoptReasonId reason_;
+  const uint32_t flags_;
   Environment* deopt_env_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilerDeoptInfo);
@@ -158,8 +162,9 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
  public:
   CompilerDeoptInfoWithStub(intptr_t deopt_id,
                             ICData::DeoptReasonId reason,
+                            uint32_t flags,
                             Environment* deopt_env)
-      : CompilerDeoptInfo(deopt_id, reason, deopt_env), entry_label_() {
+      : CompilerDeoptInfo(deopt_id, reason, flags, deopt_env), entry_label_() {
     ASSERT(reason != ICData::kDeoptAtCall);
   }
 
@@ -447,7 +452,9 @@ class FlowGraphCompiler : public ValueObject {
 
   void RecordSafepoint(LocationSummary* locs);
 
-  Label* AddDeoptStub(intptr_t deopt_id, ICData::DeoptReasonId reason);
+  Label* AddDeoptStub(intptr_t deopt_id,
+                      ICData::DeoptReasonId reason,
+                      uint32_t flags = 0);
 
   void AddDeoptIndexAtCall(intptr_t deopt_id, intptr_t token_pos);
 

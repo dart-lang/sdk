@@ -98,6 +98,7 @@ ConstantInstr* FlowGraph::GetConstant(const Object& object) {
     constant = new(isolate()) ConstantInstr(
         Object::ZoneHandle(isolate(), object.raw()));
     constant->set_ssa_temp_index(alloc_ssa_temp_index());
+
     AddToInitialDefinitions(constant);
     constant_instr_pool_.Insert(constant);
   }

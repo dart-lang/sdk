@@ -25,7 +25,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
                            fpu_register_t* fpu_registers,
                            intptr_t* cpu_registers)
     : code_(code.raw()),
-      object_table_(Array::null()),
+      object_table_(code.object_table()),
       deopt_info_(DeoptInfo::null()),
       dest_frame_is_allocated_(false),
       dest_frame_(NULL),
@@ -37,18 +37,15 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       fpu_registers_(fpu_registers),
       num_args_(0),
       deopt_reason_(ICData::kDeoptUnknown),
+      deopt_flags_(0),
       isolate_(Isolate::Current()),
       deferred_slots_(NULL),
       deferred_objects_count_(0),
       deferred_objects_(NULL) {
-  object_table_ = code.object_table();
-
-  ICData::DeoptReasonId deopt_reason = ICData::kDeoptUnknown;
-  const DeoptInfo& deopt_info =
-      DeoptInfo::Handle(code.GetDeoptInfoAtPc(frame->pc(), &deopt_reason));
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(
+      code.GetDeoptInfoAtPc(frame->pc(), &deopt_reason_, &deopt_flags_));
   ASSERT(!deopt_info.IsNull());
   deopt_info_ = deopt_info.raw();
-  deopt_reason_ = deopt_reason;
 
   const Function& function = Function::Handle(code.function());
 
@@ -96,8 +93,8 @@ DeoptContext::DeoptContext(const StackFrame* frame,
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
     OS::PrintErr(
         "Deoptimizing (reason %d '%s') at pc %#" Px " '%s' (count %d)\n",
-        deopt_reason,
-        DeoptReasonToCString(deopt_reason_),
+        deopt_reason(),
+        DeoptReasonToCString(deopt_reason()),
         frame->pc(),
         function.ToFullyQualifiedCString(),
         function.deoptimization_counter());
@@ -392,10 +389,16 @@ class DeoptRetAddressInstr : public DeoptInstr {
       if (!ic_data.IsNull()) {
         ic_data.AddDeoptReason(deopt_context->deopt_reason());
       }
-    } else if (deopt_context->deopt_reason() ==
-               ICData::kDeoptHoistedCheckClass) {
-      // Prevent excessive deoptimization.
-      Function::Handle(code.function()).set_allows_hoisting_check_class(false);
+    } else {
+      const Function& function = Function::Handle(code.function());
+      if (deopt_context->HasDeoptFlag(ICData::kHoisted)) {
+        // Prevent excessive deoptimization.
+        function.set_allows_hoisting_check_class(false);
+      }
+
+      if (deopt_context->HasDeoptFlag(ICData::kGeneralized)) {
+        function.set_allows_bounds_check_generalization(false);
+      }
     }
   }
 

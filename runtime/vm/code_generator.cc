@@ -1407,8 +1407,9 @@ DEOPT_REASONS(DEOPT_REASON_TO_TEXT)
 void DeoptimizeAt(const Code& optimized_code, uword pc) {
   ASSERT(optimized_code.is_optimized());
   ICData::DeoptReasonId deopt_reason = ICData::kDeoptUnknown;
-  const DeoptInfo& deopt_info =
-      DeoptInfo::Handle(optimized_code.GetDeoptInfoAtPc(pc, &deopt_reason));
+  uint32_t deopt_flags = 0;
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(
+      optimized_code.GetDeoptInfoAtPc(pc, &deopt_reason, &deopt_flags));
   ASSERT(!deopt_info.IsNull());
   const Function& function = Function::Handle(optimized_code.function());
   const Code& unoptimized_code = Code::Handle(function.unoptimized_code());

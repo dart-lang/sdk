@@ -781,6 +781,10 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // instruction.
   Instruction* AppendInstruction(Instruction* tail);
 
+  virtual bool AllowsDCE() const {
+    return false;
+  }
+
   // Returns true if CSE and LICM are allowed for this instruction.
   virtual bool AllowsCSE() const {
     return false;
@@ -833,6 +837,8 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   void InheritDeoptTargetAfter(Isolate* isolate, Instruction* other);
 
   virtual bool MayThrow() const = 0;
+
+  bool IsDominatedBy(Instruction* dom);
 
  protected:
   // Fetch deopt id without checking if this computation can deoptimize.
@@ -893,6 +899,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class CheckArrayBoundInstr;
   friend class CheckEitherNonSmiInstr;
   friend class LICM;
+  friend class Scheduler;
   friend class DoubleToSmiInstr;
   friend class DoubleToDoubleInstr;
   friend class DoubleToFloatInstr;
@@ -1106,6 +1113,7 @@ class BlockEntryInstr : public Instruction {
   intptr_t end_pos() const { return end_pos_; }
 
   BlockEntryInstr* dominator() const { return dominator_; }
+  BlockEntryInstr* ImmediateDominator() const;
 
   const GrowableArray<BlockEntryInstr*>& dominated_blocks() {
     return dominated_blocks_;
@@ -1850,6 +1858,9 @@ struct BranchLabels {
 };
 
 
+struct InductionVariableInfo;
+
+
 class PhiInstr : public Definition {
  public:
   PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
@@ -1857,7 +1868,8 @@ class PhiInstr : public Definition {
       inputs_(num_inputs),
       is_alive_(false),
       representation_(kTagged),
-      reaching_defs_(NULL) {
+      reaching_defs_(NULL),
+      loop_variable_info_(NULL) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
       inputs_.Add(NULL);
     }
@@ -1921,6 +1933,14 @@ class PhiInstr : public Definition {
   // A phi is redundant if all input operands are the same.
   bool IsRedundant() const;
 
+  void set_induction_variable_info(InductionVariableInfo* info) {
+    loop_variable_info_ = info;
+  }
+
+  InductionVariableInfo* induction_variable_info() {
+    return loop_variable_info_;
+  }
+
  private:
   // Direct access to inputs_ in order to resize it due to unreachable
   // predecessors.
@@ -1934,6 +1954,7 @@ class PhiInstr : public Definition {
   Representation representation_;
 
   BitVector* reaching_defs_;
+  InductionVariableInfo* loop_variable_info_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
@@ -2411,7 +2432,7 @@ class RedefinitionInstr : public TemplateDefinition<1> {
 };
 
 
-class ConstraintInstr : public TemplateDefinition<2> {
+class ConstraintInstr : public TemplateDefinition<1> {
  public:
   ConstraintInstr(Value* value, Range* constraint)
       : constraint_(constraint),
@@ -2420,10 +2441,6 @@ class ConstraintInstr : public TemplateDefinition<2> {
   }
 
   DECLARE_INSTRUCTION(Constraint)
-
-  virtual intptr_t InputCount() const {
-    return (inputs_[1] == NULL) ? 1 : 2;
-  }
 
   virtual CompileType ComputeType() const;
 
@@ -2445,12 +2462,6 @@ class ConstraintInstr : public TemplateDefinition<2> {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  void AddDependency(Definition* defn) {
-    Value* val = new Value(defn);
-    defn->AddInputUse(val);
-    SetInputAt(1, val);
-  }
-
   // Constraints for branches have their target block stored in order
   // to find the the comparsion that generated the constraint:
   // target->predecessor->last_instruction->comparison.
@@ -2462,10 +2473,6 @@ class ConstraintInstr : public TemplateDefinition<2> {
   }
 
  private:
-  Value* dependency() {
-    return inputs_[1];
-  }
-
   Range* constraint_;
   TargetEntryInstr* target_;
 
@@ -6937,6 +6944,25 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
+  virtual bool AllowsDCE() const {
+    switch (op_kind()) {
+      case Token::kADD:
+      case Token::kSUB:
+      case Token::kMUL:
+      case Token::kBIT_AND:
+      case Token::kBIT_OR:
+      case Token::kBIT_XOR:
+        return true;
+
+      case Token::kSHR:
+      case Token::kSHL:
+        // These instructions throw on negative shifts.
+        return !CanDeoptimize();
+
+      default:
+        return false;
+    }
+  }
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
@@ -7907,7 +7933,8 @@ class CheckClassIdInstr : public TemplateInstruction<1> {
 
 class CheckArrayBoundInstr : public TemplateInstruction<2> {
  public:
-  CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id) {
+  CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
+      : generalized_(false) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
     // Override generated deopt-id.
@@ -7924,6 +7951,10 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
   virtual bool CanDeoptimize() const { return true; }
 
   bool IsRedundant(const RangeBoundary& length);
+
+  void mark_generalized() {
+    generalized_ = true;
+  }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -7946,6 +7977,8 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
   };
 
  private:
+  bool generalized_;
+
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };
 

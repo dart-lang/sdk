@@ -4067,14 +4067,14 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
       vmlib.LookupClass(String::Handle(Symbols::New("A"))));
   const Function& func_b =
       Function::Handle(GetFunction(class_a, "b"));
-  EXPECT(func_b.IsInlineable());
+  EXPECT(func_b.CanBeInlined());
 
   // After setting a breakpoint in a function A.b, it is no longer inlineable.
   SourceBreakpoint* bpt =
       Isolate::Current()->debugger()->SetBreakpointAtLine(name,
                                                           kBreakpointLine);
   ASSERT(bpt != NULL);
-  EXPECT(!func_b.IsInlineable());
+  EXPECT(!func_b.CanBeInlined());
 }
 
 

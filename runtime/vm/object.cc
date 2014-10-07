@@ -5436,42 +5436,10 @@ void Function::set_modifier(RawFunction::AsyncModifier value) const {
 }
 
 
-void Function::set_is_intrinsic(bool value) const {
-  set_kind_tag(IntrinsicBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
 void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
   // Prevent multiple settings of kind.
   ASSERT((value == MethodRecognizer::kUnknown) || !IsRecognized());
   set_kind_tag(RecognizedBits::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_redirecting(bool value) const {
-  set_kind_tag(RedirectingBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_static(bool value) const {
-  set_kind_tag(StaticBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_const(bool value) const {
-  set_kind_tag(ConstBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_external(bool value) const {
-  set_kind_tag(ExternalBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_async_closure(bool value) const {
-  set_kind_tag(AsyncClosureBit::update(value, raw_ptr()->kind_tag_));
-  // Prohibit inlining as the closure is used for implementing a continuation.
-  set_is_inlinable(false);
 }
 
 
@@ -5555,41 +5523,11 @@ void Function::SetIsNativeAutoSetupScope(bool value) const {
 }
 
 
-void Function::set_is_optimizable(bool value) const {
-  set_kind_tag(OptimizableBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_allows_hoisting_check_class(bool value) const {
-  set_kind_tag(
-      AllowsHoistingCheckClassBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_native(bool value) const {
-  set_kind_tag(NativeBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_abstract(bool value) const {
-  set_kind_tag(AbstractBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_inlinable(bool value) const {
-  set_kind_tag(InlinableBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-bool Function::IsInlineable() const {
-  return (InlinableBit::decode(raw_ptr()->kind_tag_) &&
-          HasCode() &&
-          !Isolate::Current()->debugger()->HasBreakpoint(*this));
-}
-
-
-void Function::set_is_visible(bool value) const {
-  set_kind_tag(VisibleBit::update(value, raw_ptr()->kind_tag_));
+bool Function::CanBeInlined() const {
+  return is_inlinable() &&
+         !is_async_closure() &&
+         HasCode() &&
+         !Isolate::Current()->debugger()->HasBreakpoint(*this);
 }
 
 
@@ -6128,6 +6066,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
+  result.set_allows_bounds_check_generalization(true);
   result.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
@@ -6781,7 +6720,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("const", is_const());
   jsobj.AddProperty("optimizable", is_optimizable());
-  jsobj.AddProperty("inlinable", IsInlineable());
+  jsobj.AddProperty("inlinable", CanBeInlined());
   jsobj.AddProperty("unoptimizedCode", Object::Handle(unoptimized_code()));
   jsobj.AddProperty("usageCounter", usage_counter());
   jsobj.AddProperty("optimizedCallSiteCount", optimized_call_site_count());
@@ -11145,7 +11084,7 @@ void DeoptInfo::ToInstructions(const Array& table,
   ASSERT(instructions->is_empty());
   Smi& offset = Smi::Handle();
   DeoptInfo& info = DeoptInfo::Handle(raw());
-  Smi& reason = Smi::Handle();
+  Smi& reason_and_flags = Smi::Handle();
   intptr_t index = 0;
   intptr_t length = TranslationLength();
   while (index < length) {
@@ -11157,7 +11096,8 @@ void DeoptInfo::ToInstructions(const Array& table,
       intptr_t info_number = 0;
       intptr_t suffix_length =
           DeoptInstr::DecodeSuffix(from_index, &info_number);
-      DeoptTable::GetEntry(table, info_number, &offset, &info, &reason);
+      DeoptTable::GetEntry(
+          table, info_number, &offset, &info, &reason_and_flags);
       length = info.TranslationLength();
       index = length - suffix_length;
     } else {
@@ -11933,8 +11873,9 @@ bool Code::HasBreakpoint() const {
 }
 
 
-RawDeoptInfo* Code::GetDeoptInfoAtPc(
-    uword pc, ICData::DeoptReasonId* deopt_reason) const {
+RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc,
+                                     ICData::DeoptReasonId* deopt_reason,
+                                     uint32_t* deopt_flags) const {
   ASSERT(is_optimized());
   const Instructions& instrs = Instructions::Handle(instructions());
   uword code_entry = instrs.EntryPoint();
@@ -11943,15 +11884,14 @@ RawDeoptInfo* Code::GetDeoptInfoAtPc(
   // Linear search for the PC offset matching the target PC.
   intptr_t length = DeoptTable::GetLength(table);
   Smi& offset = Smi::Handle();
-  Smi& reason = Smi::Handle();
+  Smi& reason_and_flags = Smi::Handle();
   DeoptInfo& info = DeoptInfo::Handle();
   for (intptr_t i = 0; i < length; ++i) {
-    DeoptTable::GetEntry(table, i, &offset, &info, &reason);
+    DeoptTable::GetEntry(table, i, &offset, &info, &reason_and_flags);
     if (pc == (code_entry + offset.Value())) {
       ASSERT(!info.IsNull());
-      ASSERT((0 <= reason.Value()) &&
-             (reason.Value() < ICData::kDeoptNumReasons));
-      *deopt_reason = static_cast<ICData::DeoptReasonId>(reason.Value());
+      *deopt_reason = DeoptTable::ReasonField::decode(reason_and_flags.Value());
+      *deopt_flags = DeoptTable::FlagsField::decode(reason_and_flags.Value());
       return info.raw();
     }
   }

@@ -4726,42 +4726,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
 // Smi widening pass is only meaningful on platforms where Smi
 // is smaller than 32bit. For now only support it on ARM and ia32.
-
-class DefinitionWorklist : public ValueObject {
- public:
-  DefinitionWorklist(FlowGraph* flow_graph,
-                     intptr_t initial_capacity)
-      : defs_(initial_capacity),
-        contains_vector_(new(flow_graph->isolate()) BitVector(
-            flow_graph->isolate(), flow_graph->current_ssa_temp_index())) {
-  }
-
-  void Add(Definition* defn) {
-    if (!Contains(defn)) {
-      defs_.Add(defn);
-      contains_vector_->Add(defn->ssa_temp_index());
-    }
-  }
-
-  bool Contains(Definition* defn) const {
-    return (defn->ssa_temp_index() >= 0) &&
-        contains_vector_->Contains(defn->ssa_temp_index());
-  }
-
-  const GrowableArray<Definition*>& definitions() const { return defs_; }
-  BitVector* contains_vector() const { return contains_vector_; }
-
-  void Clear() {
-    defs_.TruncateTo(0);
-    contains_vector_->Clear();
-  }
-
- private:
-  GrowableArray<Definition*> defs_;
-  BitVector* contains_vector_;
-};
-
-
 static bool CanBeWidened(BinarySmiOpInstr* smi_op) {
   return BinaryInt32OpInstr::IsSupported(smi_op->op_kind(),
                                          smi_op->left(),
@@ -5060,17 +5024,6 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
 }
 
 
-static BlockEntryInstr* FindPreHeader(BlockEntryInstr* header) {
-  for (intptr_t j = 0; j < header->PredecessorCount(); ++j) {
-    BlockEntryInstr* candidate = header->PredecessorAt(j);
-    if (header->dominator() == candidate) {
-      return candidate;
-    }
-  }
-  return NULL;
-}
-
-
 LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
   ASSERT(flow_graph->is_licm_allowed());
 }
@@ -5189,7 +5142,7 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     JoinEntryInstr* header = loop_headers[i]->AsJoinEntry();
     // Skip loop that don't have a pre-header block.
-    BlockEntryInstr* pre_header = FindPreHeader(header);
+    BlockEntryInstr* pre_header = header->ImmediateDominator();
     if (pre_header == NULL) continue;
 
     for (PhiIterator it(header); !it.Done(); it.Advance()) {
@@ -5217,7 +5170,7 @@ void LICM::Optimize() {
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     BlockEntryInstr* header = loop_headers[i];
     // Skip loop that don't have a pre-header block.
-    BlockEntryInstr* pre_header = FindPreHeader(header);
+    BlockEntryInstr* pre_header = header->ImmediateDominator();
     if (pre_header == NULL) continue;
 
     for (BitVector::Iterator loop_it(header->loop_info());
@@ -6743,7 +6696,7 @@ class LoadOptimizer : public ValueObject {
 
     for (intptr_t i = 0; i < loop_headers.length(); i++) {
       BlockEntryInstr* header = loop_headers[i];
-      BlockEntryInstr* pre_header = FindPreHeader(header);
+      BlockEntryInstr* pre_header = header->ImmediateDominator();
       if (pre_header == NULL) {
         invariant_loads->Add(NULL);
         continue;

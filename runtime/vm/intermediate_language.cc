@@ -771,6 +771,34 @@ void BranchInstr::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
 }
 
 
+bool Instruction::IsDominatedBy(Instruction* dom) {
+  BlockEntryInstr* block = GetBlock();
+  BlockEntryInstr* dom_block = dom->GetBlock();
+
+  if (dom->IsPhi()) {
+    dom = dom_block;
+  }
+
+  if (block == dom_block) {
+    if ((block == dom) || (this == block->last_instruction())) {
+      return true;
+    }
+
+    if (IsPhi()) {
+      return false;
+    }
+
+    for (Instruction* curr = dom->next(); curr != NULL; curr = curr->next()) {
+      if (curr == this) return true;
+    }
+
+    return false;
+  }
+
+  return dom_block->Dominates(block);
+}
+
+
 void Definition::ReplaceWith(Definition* other,
                              ForwardInstructionIterator* iterator) {
   // Record other's input uses.
@@ -960,6 +988,15 @@ bool BlockEntryInstr::Dominates(BlockEntryInstr* other) const {
     current = current->dominator();
   }
   return current == this;
+}
+
+
+BlockEntryInstr* BlockEntryInstr::ImmediateDominator() const {
+  Instruction* last = dominator()->last_instruction();
+  if ((last->SuccessorCount() == 1) && (last->SuccessorAt(0) == this)) {
+    return dominator();
+  }
+  return NULL;
 }
 
 

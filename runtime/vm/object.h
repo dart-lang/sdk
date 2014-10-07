@@ -1770,9 +1770,6 @@ class Function : public Object {
 
   static const char* KindToCString(RawFunction::Kind kind);
 
-  bool is_static() const { return StaticBit::decode(raw_ptr()->kind_tag_); }
-  bool is_const() const { return ConstBit::decode(raw_ptr()->kind_tag_); }
-  bool is_external() const { return ExternalBit::decode(raw_ptr()->kind_tag_); }
   bool IsConstructor() const {
     return (kind() == RawFunction::kConstructor) && !is_static();
   }
@@ -1914,29 +1911,7 @@ class Function : public Object {
   void SetIsOptimizable(bool value) const;
   void SetIsNativeAutoSetupScope(bool value) const;
 
-  bool is_async_closure() const {
-    return AsyncClosureBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_async_closure(bool value) const;
-
-  bool is_native() const { return NativeBit::decode(raw_ptr()->kind_tag_); }
-  void set_is_native(bool value) const;
-
-  bool is_abstract() const { return AbstractBit::decode(raw_ptr()->kind_tag_); }
-  void set_is_abstract(bool value) const;
-
-  bool IsInlineable() const;
-  void set_is_inlinable(bool value) const;
-
-  bool is_visible() const {
-    return VisibleBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_visible(bool value) const;
-
-  bool is_intrinsic() const {
-    return IntrinsicBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_intrinsic(bool value) const;
+  bool CanBeInlined() const;
 
   MethodRecognizer::Kind recognized_kind() const {
     return RecognizedBits::decode(raw_ptr()->kind_tag_);
@@ -1946,31 +1921,6 @@ class Function : public Object {
   bool IsRecognized() const {
     return recognized_kind() != MethodRecognizer::kUnknown;
   }
-
-  bool is_redirecting() const {
-    return RedirectingBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_redirecting(bool value) const;
-
-  bool allows_hoisting_check_class() const {
-    return AllowsHoistingCheckClassBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_allows_hoisting_check_class(bool value) const;
-
-  bool always_inline() const {
-    return AlwaysInlineBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_always_inline(bool value) const {
-    set_kind_tag(AlwaysInlineBit::update(value, raw_ptr()->kind_tag_));
-  }
-
-  bool is_polymorphic_target() const {
-    return PolymorphicTargetBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_polymorphic_target(bool value) const {
-    set_kind_tag(PolymorphicTargetBit::update(value, raw_ptr()->kind_tag_));
-  }
-
 
   bool HasOptimizedCode() const;
 
@@ -2141,6 +2091,33 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
+#define FOR_EACH_FUNCTION_KIND_BIT(V)                                          \
+  V(Static, is_static)                                                         \
+  V(Const, is_const)                                                           \
+  V(Abstract, is_abstract)                                                     \
+  V(Visible, is_visible)                                                       \
+  V(Optimizable, is_optimizable)                                               \
+  V(Inlinable, is_inlinable)                                                   \
+  V(Intrinsic, is_intrinsic)                                                   \
+  V(Native, is_native)                                                         \
+  V(Redirecting, is_redirecting)                                               \
+  V(External, is_external)                                                     \
+  V(AllowsHoistingCheckClass, allows_hoisting_check_class)                     \
+  V(AllowsBoundsCheckGeneralization, allows_bounds_check_generalization)       \
+  V(AsyncClosure, is_async_closure)                                            \
+  V(AlwaysInline, always_inline)                                               \
+  V(PolymorphicTarget, is_polymorphic_target)                                  \
+
+#define DEFINE_ACCESSORS(name, accessor_name)                                  \
+  void set_##accessor_name(bool value) const {                                 \
+    set_kind_tag(name##Bit::update(value, raw_ptr()->kind_tag_));              \
+  }                                                                            \
+  bool accessor_name() const {                                                 \
+    return name##Bit::decode(raw_ptr()->kind_tag_);                            \
+  }
+FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
+#undef DEFINE_ACCESSORS
+
  private:
   void set_ic_data_array(const Array& value) const;
 
@@ -2149,22 +2126,11 @@ class Function : public Object {
     kKindTagSize = 4,
     kRecognizedTagPos = kKindTagPos + kKindTagSize,
     kRecognizedTagSize = 8,
+    kModifierPos = kRecognizedTagPos + kRecognizedTagSize,
     // Single bit sized fields start here.
-    kStaticBit = kRecognizedTagPos + kRecognizedTagSize,
-    kConstBit,
-    kAbstractBit,
-    kVisibleBit,
-    kOptimizableBit,
-    kInlinableBit,
-    kIntrinsicBit,
-    kNativeBit,
-    kRedirectingBit,
-    kExternalBit,
-    kAllowsHoistingCheckClassBit,
-    kModifierPos,
-    kAsyncClosureBit,
-    kAlwaysInlineBit,
-    kPolymorphicTargetBit,
+#define DECLARE_BIT(name, _) k##name##Bit,
+FOR_EACH_FUNCTION_KIND_BIT(DECLARE_BIT)
+#undef DECLARE_BIT
     kNumTagBits
   };
 
@@ -2179,30 +2145,16 @@ class Function : public Object {
   class RecognizedBits : public BitField<MethodRecognizer::Kind,
                                          kRecognizedTagPos,
                                          kRecognizedTagSize> {};
-  class StaticBit : public BitField<bool, kStaticBit, 1> {};
-  class ConstBit : public BitField<bool, kConstBit, 1> {};
-  class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
-  class VisibleBit : public BitField<bool, kVisibleBit, 1> {};
-  class OptimizableBit : public BitField<bool, kOptimizableBit, 1> {};
-  class InlinableBit : public BitField<bool, kInlinableBit, 1> {};
-  class IntrinsicBit : public BitField<bool, kIntrinsicBit, 1> {};
-  class NativeBit : public BitField<bool, kNativeBit, 1> {};
-  class ExternalBit : public BitField<bool, kExternalBit, 1> {};
-  class RedirectingBit : public BitField<bool, kRedirectingBit, 1> {};
-  class AllowsHoistingCheckClassBit :
-      public BitField<bool, kAllowsHoistingCheckClassBit, 1> {};  // NOLINT
   class ModifierBits :
       public BitField<RawFunction::AsyncModifier, kModifierPos, 1> {};  // NOLINT
-  class AsyncClosureBit : public BitField<bool, kAsyncClosureBit, 1> {};
-  class AlwaysInlineBit : public BitField<bool, kAlwaysInlineBit, 1> {};
-  class PolymorphicTargetBit :
-      public BitField<bool, kPolymorphicTargetBit, 1> {};  // NOLINT
+
+#define DEFINE_BIT(name, _) \
+  class name##Bit : public BitField<bool, k##name##Bit, 1> {};
+FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
+#undef DEFINE_BIT
 
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
-  void set_is_static(bool value) const;
-  void set_is_const(bool value) const;
-  void set_is_external(bool value) const;
   void set_parent_function(const Function& value) const;
   void set_owner(const Object& value) const;
   RawFunction* implicit_closure_function() const;
@@ -2214,10 +2166,6 @@ class Function : public Object {
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(intptr_t value) const;
   void set_data(const Object& value) const;
-  bool is_optimizable() const {
-    return OptimizableBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_optimizable(bool value) const;
 
   static RawFunction* New();
 
@@ -3529,7 +3477,6 @@ class ICData : public Object {
     V(UnaryOp)                                                                 \
     V(UnboxInteger)                                                            \
     V(CheckClass)                                                              \
-    V(HoistedCheckClass)                                                       \
     V(CheckSmi)                                                                \
     V(CheckArrayBound)                                                         \
     V(AtCall)                                                                  \
@@ -3544,6 +3491,14 @@ class ICData : public Object {
   #define DEFINE_ENUM_LIST(name) kDeopt##name,
   DEOPT_REASONS(DEFINE_ENUM_LIST)
   #undef DEFINE_ENUM_LIST
+  };
+
+  enum DeoptFlags {
+    // Deoptimization is caused by an optimistically hoisted instruction.
+    kHoisted = 1 << 0,
+
+    // Deoptimization is caused by an optimistically generalized bounds check.
+    kGeneralized = 1 << 1
   };
 
   bool HasDeoptReasons() const { return DeoptReasons() != 0; }
@@ -3789,8 +3744,9 @@ class Code : public Object {
     return raw_ptr()->static_calls_target_table_;
   }
 
-  RawDeoptInfo* GetDeoptInfoAtPc(
-      uword pc, ICData::DeoptReasonId* deopt_reason) const;
+  RawDeoptInfo* GetDeoptInfoAtPc(uword pc,
+                                 ICData::DeoptReasonId* deopt_reason,
+                                 uint32_t* deopt_flags) const;
 
   // Returns null if there is no static call at 'pc'.
   RawFunction* GetStaticCallTargetFunctionAt(uword pc) const;

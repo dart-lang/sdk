@@ -712,17 +712,18 @@ static void DisassembleCode(const Function& function, bool optimized) {
     OS::Print("DeoptInfo: {\n");
     Smi& offset = Smi::Handle();
     DeoptInfo& info = DeoptInfo::Handle();
-    Smi& reason = Smi::Handle();
+    Smi& reason_and_flags = Smi::Handle();
     for (intptr_t i = 0; i < deopt_table_length; ++i) {
-      DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason);
-      ASSERT((0 <= reason.Value()) &&
-             (reason.Value() < ICData::kDeoptNumReasons));
+      DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason_and_flags);
+      const intptr_t reason =
+          DeoptTable::ReasonField::decode(reason_and_flags.Value());
+      ASSERT((0 <= reason) && (reason < ICData::kDeoptNumReasons));
       OS::Print("%4" Pd ": 0x%" Px "  %s  (%s)\n",
                 i,
                 start + offset.Value(),
                 info.ToCString(),
                 DeoptReasonToCString(
-                    static_cast<ICData::DeoptReasonId>(reason.Value())));
+                    static_cast<ICData::DeoptReasonId>(reason)));
     }
     OS::Print("}\n");
   }

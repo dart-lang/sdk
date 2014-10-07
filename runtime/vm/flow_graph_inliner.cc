@@ -577,7 +577,7 @@ class CallSiteInliner : public ValueObject {
     // from the function while we are trying to inline it.
     const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
     // Abort if the inlinable bit on the function is low.
-    if (!function.IsInlineable()) {
+    if (!function.CanBeInlined()) {
       TRACE_INLINING(OS::Print("     Bailout: not inlinable\n"));
       PRINT_INLINING_TREE("Not inlinable",
           &call_data->caller, &function, call_data->call);
