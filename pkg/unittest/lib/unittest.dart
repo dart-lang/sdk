@@ -154,9 +154,10 @@ part 'src/test_case.dart';
 
 Configuration _config;
 
-/// [Configuration] used by the unittest library. Note that if a
-/// configuration has not been set, calling this getter will create
-/// a default configuration.
+/// [Configuration] used by the unittest library.
+///
+/// Note that if a configuration has not been set, calling this getter will
+/// create a default configuration.
 Configuration get unittestConfiguration {
   if (_config == null) {
     _config = new Configuration();
@@ -285,13 +286,17 @@ void solo_test(String spec, TestFunction body) {
 }
 
 /// Indicate that [callback] is expected to be called a [count] number of times
-/// (by default 1). The unittest framework will wait for the callback to run the
+/// (by default 1).
+///
+/// The unittest framework will wait for the callback to run the
 /// specified [count] times before it continues with the following test.  Using
 /// [expectAsync] will also ensure that errors that occur within [callback] are
 /// tracked and reported. [callback] should take 0 positional arguments (named
 /// arguments are not supported). [id] can be used to provide more
 /// descriptive error messages if the callback is called more often than
-/// expected. [max] can be used to specify an upper bound on the number of
+/// expected.
+///
+/// [max] can be used to specify an upper bound on the number of
 /// calls; if this is exceeded the test will fail (or be marked as in error if
 /// it was already complete). A value of 0 for [max] (the default) will set
 /// the upper bound to the same value as [count]; i.e. the callback should be
@@ -306,7 +311,9 @@ Function expectAsync(Function callback,
   new _SpreadArgsHelper(callback, count, max, id, reason).func;
 
 /// Indicate that [callback] is expected to be called until [isDone] returns
-/// true. The unittest framework check [isDone] after each callback and only
+/// true.
+///
+/// The unittest framework checks [isDone] after each callback and only
 /// when it returns true will it continue with the following test. Using
 /// [expectAsyncUntil] will also ensure that errors that occur within
 /// [callback] are tracked and reported. [callback] should take 0 positional
@@ -321,8 +328,10 @@ Function expectAsyncUntil(Function callback, bool isDone(),
     {String id, String reason}) =>
   new _SpreadArgsHelper(callback, 0, -1, id, reason, isDone: isDone).func;
 
-/// Creates a new named group of tests. Calls to group() or test() within the
-/// body of the function passed to this will inherit this group's description.
+/// Creates a new named group of tests.
+///
+/// Calls to group() or test() within the body of the function passed to this
+/// named group will inherit this group's description.
 void group(String description, void body()) {
   ensureInitialized();
   _requireNotRunning();
@@ -358,8 +367,9 @@ void solo_group(String description, void body()) {
   }
 }
 
-/// Register a [setUp] function for a test [group]. This function will
-/// be called before each test in the group is run.
+/// Register a [setUp] function for a test [group].
+///
+/// This function will be called before each test in the group is run.
 /// [setUp] and [tearDown] should be called within the [group] before any
 /// calls to [test]. The [setupTest] function can be asynchronous; in this
 /// case it must return a [Future].
@@ -368,12 +378,14 @@ void setUp(Function setupTest) {
   _currentContext.testSetup = setupTest;
 }
 
-/// Register a [tearDown] function for a test [group]. This function will
-/// be called after each test in the group is run. Note that if groups
-/// are nested only the most locally scoped [teardownTest] function will be run.
-/// [setUp] and [tearDown] should be called within the [group] before any
-/// calls to [test]. The [teardownTest] function can be asynchronous; in this
-/// case it must return a [Future].
+/// Register a [tearDown] function for a test [group].
+///
+/// This function will be called after each test in the group is run.
+///
+/// Note that if groups are nested only the most locally scoped [teardownTest]
+/// function will be run. [setUp] and [tearDown] should be called within the
+/// [group] before any calls to [test]. The [teardownTest] function can be
+/// asynchronous; in this case it must return a [Future].
 void tearDown(Function teardownTest) {
   _requireNotRunning();
   _currentContext.testTeardown = teardownTest;
@@ -398,8 +410,10 @@ void handleExternalError(e, String message, [stack]) {
   }
 }
 
-/// Filter the tests. [testFilter] can be a [RegExp], a [String] or a
-/// predicate function. This is different to enabling/disabling tests
+/// Filter the tests by [testFilter].
+///
+/// [testFilter] can be a [RegExp], a [String] or a
+/// predicate function. This is different from enabling or disabling tests
 /// in that it removes the tests completely.
 void filterTests(testFilter) {
   var filterFunction;
@@ -563,7 +577,9 @@ typedef dynamic TestFunction();
 bool formatStacks = true;
 
 /// A flag that controls whether we try to filter out irrelevant frames from
-/// the stack trace. Requires formatStacks to be set.
+/// the stack trace.
+///
+/// Requires [formatStacks] to be set.
 bool filterStacks = true;
 
 void _requireNotRunning() {
