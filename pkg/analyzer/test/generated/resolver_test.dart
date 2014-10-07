@@ -328,6 +328,45 @@ class AnalysisContextHelper {
   }
 }
 
+class AnalysisDeltaTest extends EngineTestCase {
+  TestSource source1 = new TestSource('/1.dart');
+  TestSource source2 = new TestSource('/2.dart');
+  TestSource source3 = new TestSource('/3.dart');
+
+  void test_getAddedSources() {
+    AnalysisDelta delta = new AnalysisDelta();
+    delta.setAnalysisLevel(source1, AnalysisLevel.ALL);
+    delta.setAnalysisLevel(source2, AnalysisLevel.ERRORS);
+    delta.setAnalysisLevel(source3, AnalysisLevel.NONE);
+    List<Source> addedSources = delta.addedSources;
+    EngineTestCase.assertLength(2, addedSources);
+    EngineTestCase.assertContains(addedSources, [source1, source2]);
+  }
+
+  void test_getAnalysisLevels() {
+    AnalysisDelta delta = new AnalysisDelta();
+    JUnitTestCase.assertEquals(0, delta.analysisLevels.length);
+  }
+
+  void test_setAnalysisLevel() {
+    AnalysisDelta delta = new AnalysisDelta();
+    delta.setAnalysisLevel(source1, AnalysisLevel.ALL);
+    delta.setAnalysisLevel(source2, AnalysisLevel.ERRORS);
+    Map<Source, AnalysisLevel> levels = delta.analysisLevels;
+    JUnitTestCase.assertEquals(2, levels.length);
+    JUnitTestCase.assertEquals(AnalysisLevel.ALL, levels[source1]);
+    JUnitTestCase.assertEquals(AnalysisLevel.ERRORS, levels[source2]);
+  }
+
+  void test_toString() {
+    AnalysisDelta delta = new AnalysisDelta();
+    delta.setAnalysisLevel(new TestSource(), AnalysisLevel.ALL);
+    String result = delta.toString();
+    JUnitTestCase.assertNotNull(result);
+    JUnitTestCase.assertTrue(result.length > 0);
+  }
+}
+
 class ChangeSetTest extends EngineTestCase {
   void test_changedContent() {
     TestSource source = new TestSource();
@@ -22922,6 +22961,8 @@ class TypeResolverVisitorTest extends EngineTestCase {
 
 main() {
   _ut.groupSep = ' | ';
+  runReflectiveTests(AnalysisDeltaTest);
+  runReflectiveTests(ChangeSetTest);
   runReflectiveTests(EnclosedScopeTest);
   runReflectiveTests(LibraryImportScopeTest);
   runReflectiveTests(LibraryScopeTest);
@@ -22952,6 +22993,4 @@ main() {
   runReflectiveTests(StaticWarningCodeTest);
   runReflectiveTests(StrictModeTest);
   runReflectiveTests(TypePropagationTest);
-  //runReflectiveTests(AnalysisDeltaTest);
-  runReflectiveTests(ChangeSetTest);
 }

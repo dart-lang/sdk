@@ -5898,13 +5898,13 @@ class AnalysisDelta {
    *
    * @return a collection of the sources
    */
-  Iterable<Source> get addedSources {
+  List<Source> get addedSources {
     List<Source> result = new List<Source>();
-    for (MapEntry<Source, AnalysisLevel> entry in getMapEntrySet(_analysisMap)) {
-      if (entry.getValue() != AnalysisLevel.NONE) {
-        result.add(entry.getKey());
+    _analysisMap.forEach((Source source, AnalysisLevel level) {
+      if (level != AnalysisLevel.NONE) {
+        result.add(source);
       }
-    }
+    });
     return result;
   }
 
