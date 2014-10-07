@@ -2025,6 +2025,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
                                    intptr_t num_elements,
                                    Label* slow_path,
                                    Label* done) {
+  const int kInlineArraySize = 12;  // Same as kInlineInstanceSize.
   const Register kLengthReg = A1;
   const Register kElemTypeReg = A0;
   const intptr_t instance_size = Array::InstanceSize(num_elements);
@@ -2054,14 +2055,22 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // data area to be initialized.
   // T7: null.
   if (num_elements > 0) {
+    const intptr_t array_size = instance_size - sizeof(RawArray);
     __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
     __ AddImmediate(T2, V0, sizeof(RawArray) - kHeapObjectTag);
-
-    Label init_loop;
-    __ Bind(&init_loop);
-    __ sw(T7, Address(T2, 0));
-    __ addiu(T2, T2, Immediate(kWordSize));
-    __ BranchUnsignedLess(T2, T1, &init_loop);
+    if (array_size < (kInlineArraySize * kWordSize)) {
+      intptr_t current_offset = 0;
+      while (current_offset < array_size) {
+        __ sw(T7, Address(T2, current_offset));
+        current_offset += kWordSize;
+      }
+    } else {
+      Label init_loop;
+      __ Bind(&init_loop);
+      __ sw(T7, Address(T2, 0));
+      __ addiu(T2, T2, Immediate(kWordSize));
+      __ BranchUnsignedLess(T2, T1, &init_loop);
+    }
   }
   __ b(done);
 }

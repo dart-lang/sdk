@@ -2062,6 +2062,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
                                   intptr_t num_elements,
                                   Label* slow_path,
                                   Label* done) {
+  const int kInlineArraySize = 12;  // Same as kInlineInstanceSize.
   const Register kLengthReg = EDX;
   const Register kElemTypeReg = ECX;
   const intptr_t instance_size = Array::InstanceSize(num_elements);
@@ -2088,15 +2089,25 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // EDI: iterator which initially points to the start of the variable
   // data area to be initialized.
   if (num_elements > 0) {
+    const intptr_t array_size = instance_size - sizeof(RawArray);
     const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ leal(EDI, FieldAddress(EAX, sizeof(RawArray)));
-    Label init_loop;
-    __ Bind(&init_loop);
-    __ movl(Address(EDI, 0), raw_null);
-    __ addl(EDI, Immediate(kWordSize));
-    __ cmpl(EDI, EBX);
-    __ j(BELOW, &init_loop, Assembler::kNearJump);
+    if (array_size < (kInlineArraySize * kWordSize)) {
+      intptr_t current_offset = 0;
+      __ movl(EBX, raw_null);
+      while (current_offset < array_size) {
+        __ movl(Address(EDI, current_offset), EBX);
+        current_offset += kWordSize;
+      }
+    } else {
+      Label init_loop;
+      __ Bind(&init_loop);
+      __ movl(Address(EDI, 0), raw_null);
+      __ addl(EDI, Immediate(kWordSize));
+      __ cmpl(EDI, EBX);
+      __ j(BELOW, &init_loop, Assembler::kNearJump);
+    }
   }
   __ jmp(done, Assembler::kNearJump);
 }

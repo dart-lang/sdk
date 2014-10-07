@@ -1973,10 +1973,95 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
+// Inlines array allocation for known constant values.
+static void InlineArrayAllocation(FlowGraphCompiler* compiler,
+                                   intptr_t num_elements,
+                                   Label* slow_path,
+                                   Label* done) {
+  const int kInlineArraySize = 12;  // Same as kInlineInstanceSize.
+  const Register kLengthReg = R2;
+  const Register kElemTypeReg = R1;
+  const intptr_t instance_size = Array::InstanceSize(num_elements);
+
+  __ TryAllocateArray(kArrayCid, instance_size, slow_path,
+                      R0,  // instance
+                      R3,  // end address
+                      R6,
+                      R8);
+  // R0: new object start as a tagged pointer.
+  // R3: new object end address.
+
+  // Store the type argument field.
+  __ StoreIntoObjectNoBarrier(R0,
+                              FieldAddress(R0, Array::type_arguments_offset()),
+                              kElemTypeReg);
+
+  // Set the length field.
+  __ StoreIntoObjectNoBarrier(R0,
+                              FieldAddress(R0, Array::length_offset()),
+                              kLengthReg);
+
+  // TODO(zra): Use stp once added.
+  // Initialize all array elements to raw_null.
+  // R0: new object start as a tagged pointer.
+  // R3: new object end address.
+  // R8: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  // R6: null
+  if (num_elements > 0) {
+    const intptr_t array_size = instance_size - sizeof(RawArray);
+    __ LoadObject(R6, Object::null_object(), PP);
+    __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag, PP);
+    if (array_size < (kInlineArraySize * kWordSize)) {
+      intptr_t current_offset = 0;
+      while (current_offset < array_size) {
+        __ str(R6, Address(R8, current_offset));
+        current_offset += kWordSize;
+      }
+    } else {
+      Label end_loop, init_loop;
+      __ Bind(&init_loop);
+      __ CompareRegisters(R8, R3);
+      __ b(&end_loop, CS);
+      __ str(R6, Address(R8));
+      __ AddImmediate(R8, R8, kWordSize, kNoPP);
+      __ b(&init_loop);
+      __ Bind(&end_loop);
+    }
+  }
+  __ b(done);
+}
+
+
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Allocate the array.  R2 = length, R1 = element type.
-  ASSERT(locs()->in(kElementTypePos).reg() == R1);
-  ASSERT(locs()->in(kLengthPos).reg() == R2);
+  const Register kLengthReg = R2;
+  const Register kElemTypeReg = R1;
+  const Register kResultReg = R0;
+
+  ASSERT(locs()->in(kElementTypePos).reg() == kElemTypeReg);
+  ASSERT(locs()->in(kLengthPos).reg() == kLengthReg);
+
+  if (num_elements()->BindsToConstant() &&
+      num_elements()->BoundConstant().IsSmi()) {
+    const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
+    if ((length >= 0) && (length <= Array::kMaxElements)) {
+      Label slow_path, done;
+      InlineArrayAllocation(compiler, length, &slow_path, &done);
+      __ Bind(&slow_path);
+      __ PushObject(Object::null_object(), PP);  // Make room for the result.
+      __ Push(kLengthReg);  // length.
+      __ Push(kElemTypeReg);
+      compiler->GenerateRuntimeCall(token_pos(),
+                                    deopt_id(),
+                                    kAllocateArrayRuntimeEntry,
+                                    2,
+                                    locs());
+      __ Drop(2);
+      __ Pop(kResultReg);
+      __ Bind(&done);
+      return;
+    }
+  }
   Isolate* isolate = compiler->isolate();
   const Code& stub = Code::Handle(
       isolate, isolate->stub_code()->GetAllocateArrayStub());
@@ -1986,7 +2071,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          RawPcDescriptors::kOther,
                          locs());
   compiler->AddStubCallTarget(stub);
-  ASSERT(locs()->out(0).reg() == R0);
+  ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
 

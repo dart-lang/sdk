@@ -1920,6 +1920,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
                                    intptr_t num_elements,
                                    Label* slow_path,
                                    Label* done) {
+  const int kInlineArraySize = 12;  // Same as kInlineInstanceSize.
   const Register kLengthReg = R10;
   const Register kElemTypeReg = RBX;
   const intptr_t instance_size = Array::InstanceSize(num_elements);
@@ -1945,14 +1946,23 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // RDI: iterator which initially points to the start of the variable
   // data area to be initialized.
   if (num_elements > 0) {
+    const intptr_t array_size = instance_size - sizeof(RawArray);
     __ LoadObject(R12, Object::null_object(), PP);
     __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
-    Label init_loop;
-    __ Bind(&init_loop);
-    __ movq(Address(RDI, 0), R12);
-    __ addq(RDI, Immediate(kWordSize));
-    __ cmpq(RDI, RCX);
-    __ j(BELOW, &init_loop, Assembler::kNearJump);
+    if (array_size < (kInlineArraySize * kWordSize)) {
+      intptr_t current_offset = 0;
+      while (current_offset < array_size) {
+        __ movq(Address(RDI, current_offset), R12);
+        current_offset += kWordSize;
+      }
+    } else {
+      Label init_loop;
+      __ Bind(&init_loop);
+      __ movq(Address(RDI, 0), R12);
+      __ addq(RDI, Immediate(kWordSize));
+      __ cmpq(RDI, RCX);
+      __ j(BELOW, &init_loop, Assembler::kNearJump);
+    }
   }
   __ jmp(done, Assembler::kNearJump);
 }

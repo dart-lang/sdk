@@ -1713,6 +1713,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineIndexedOp(Instruction* call,
   return array_cid;
 }
 
+
 bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
                                           Instruction* call,
                                           Definition* receiver,

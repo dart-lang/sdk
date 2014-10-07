@@ -2218,17 +2218,18 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
                                    intptr_t num_elements,
                                    Label* slow_path,
                                    Label* done) {
+  const int kInlineArraySize = 12;  // Same as kInlineInstanceSize.
   const Register kLengthReg = R2;
   const Register kElemTypeReg = R1;
   const intptr_t instance_size = Array::InstanceSize(num_elements);
 
   __ TryAllocateArray(kArrayCid, instance_size, slow_path,
                       R0,  // instance
-                      R7,  // end address
+                      R3,  // end address
                       R6,
                       R8);
   // R0: new object start as a tagged pointer.
-  // R7: new object end address.
+  // R3: new object end address.
 
   // Store the type argument field.
   __ StoreIntoObjectNoBarrier(R0,
@@ -2242,20 +2243,34 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
 
   // Initialize all array elements to raw_null.
   // R0: new object start as a tagged pointer.
-  // R7: new object end address.
+  // R3: new object end address.
   // R8: iterator which initially points to the start of the variable
   // data area to be initialized.
-  // R3: null
+  // R6, R7: null
   if (num_elements > 0) {
-    __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
+    const intptr_t array_size = instance_size - sizeof(RawArray);
+    __ LoadImmediate(R6, reinterpret_cast<intptr_t>(Object::null()));
+    __ mov(R7, Operand(R6));
     __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
-
-    Label init_loop;
-    __ Bind(&init_loop);
-    __ cmp(R8, Operand(R7));
-    __ str(R3, Address(R8, 0), CC);
-    __ AddImmediate(R8, kWordSize, CC);
-    __ b(&init_loop, CC);
+    if (array_size < (kInlineArraySize * kWordSize)) {
+      intptr_t current_offset = 0;
+      while (current_offset + kWordSize < array_size) {
+        __ strd(R6, Address(R8, current_offset));
+        current_offset += 2*kWordSize;
+      }
+      while (current_offset < array_size) {
+        __ str(R6, Address(R8, current_offset));
+        current_offset += kWordSize;
+      }
+    } else {
+      Label init_loop;
+      __ Bind(&init_loop);
+      __ AddImmediate(R8, 2 * kWordSize);
+      __ cmp(R8, Operand(R3));
+      __ strd(R6, Address(R8, -2 * kWordSize), LS);
+      __ b(&init_loop, CC);
+      __ str(R6, Address(R8, -2 * kWordSize), HI);
+    }
   }
   __ b(done);
 }
