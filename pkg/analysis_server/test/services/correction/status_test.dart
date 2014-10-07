@@ -4,16 +4,17 @@
 
 library test.services.correction.status;
 
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/correction/source_range.dart';
-import '../../abstract_single_unit.dart';
-import '../../reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
-import 'package:analysis_server/src/protocol.dart' hide Element;
+
+import '../../abstract_single_unit.dart';
+import '../../reflective_tests.dart';
 
 
 main() {
@@ -29,7 +30,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     // check
-    Location location = new Location.fromElement(element);
+    Location location = newLocation_fromElement(element);
     expect(location.file, '/test.dart');
     expect(location.offset, 6);
     expect(location.length, 7);
@@ -43,7 +44,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     SourceRange range = rangeElementName(element);
     SearchMatch match = new SearchMatch(null, element, range, true, false);
     // check
-    Location location = new Location.fromMatch(match);
+    Location location = newLocation_fromMatch(match);
     expect(location.file, '/test.dart');
     expect(location.offset, range.offset);
     expect(location.length, range.length);
@@ -56,7 +57,7 @@ main() {
 ''');
     AstNode node = findNodeAtString('main');
     // check
-    Location location = new Location.fromNode(node);
+    Location location = newLocation_fromNode(node);
     expect(location.file, '/test.dart');
     expect(location.offset, node.offset);
     expect(location.length, node.length);
@@ -66,7 +67,7 @@ main() {
     resolveTestUnit('');
     SourceRange range = rangeStartLength(10, 20);
     // check
-    Location location = new Location.fromUnit(testUnit, range);
+    Location location = newLocation_fromUnit(testUnit, range);
     expect(location.file, '/test.dart');
     expect(location.offset, range.offset);
     expect(location.length, range.length);

@@ -4,8 +4,8 @@
 
 library services.completion.suggestion.builder;
 
-import 'package:analysis_server/src/protocol.dart' as protocol show Element, ElementKind;
-import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/protocol_server.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -96,7 +96,7 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
         0,
         element.isDeprecated,
         false);
-    suggestion.element = new protocol.Element.fromEngine(element);
+    suggestion.element = newElement_fromEngine(element);
     if (suggestion.element != null) {
       if (element is FieldElement) {
         suggestion.element.kind = protocol.ElementKind.GETTER;
@@ -167,7 +167,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
       String completion = element.name;
       if (completion != null && completion.length > 0) {
         CompletionSuggestion suggestion = new CompletionSuggestion(
-            new CompletionSuggestionKind.fromElementKind(element.kind),
+            protocol.newCompletionSuggestionKind_fromElementKind(element.kind),
             CompletionRelevance.DEFAULT,
             completion,
             completion.length,
@@ -175,7 +175,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
             element.isDeprecated,
             false);
 
-        suggestion.element = new protocol.Element.fromEngine(element);
+        suggestion.element = newElement_fromEngine(element);
 
         request.suggestions.add(suggestion);
       }

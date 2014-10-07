@@ -4,7 +4,7 @@
 
 library computer.element;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 
@@ -14,17 +14,18 @@ Element elementFromEngine(engine.Element element) {
   String elementParameters = _getParametersString(element);
   String elementReturnType = _getReturnTypeString(element);
   return new Element(
-    new ElementKind.fromEngine(element.kind),
-    name,
-    Element.makeFlags(isPrivate: element.isPrivate,
-        isDeprecated: element.isDeprecated,
-        isAbstract: _isAbstract(element),
-        isConst: _isConst(element),
-        isFinal: _isFinal(element),
-        isStatic: _isStatic(element)),
-    location: new Location.fromElement(element),
-    parameters: elementParameters,
-    returnType: elementReturnType);
+      newElementKind_fromEngine(element.kind),
+      name,
+      Element.makeFlags(
+          isPrivate: element.isPrivate,
+          isDeprecated: element.isDeprecated,
+          isAbstract: _isAbstract(element),
+          isConst: _isConst(element),
+          isFinal: _isFinal(element),
+          isStatic: _isStatic(element)),
+      location: newLocation_fromElement(element),
+      parameters: elementParameters,
+      returnType: elementReturnType);
 }
 
 String _getParametersString(engine.Element element) {

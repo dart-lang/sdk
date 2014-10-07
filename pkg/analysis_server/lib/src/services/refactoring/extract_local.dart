@@ -5,8 +5,9 @@
 library services.src.refactoring.extract_local;
 
 import 'dart:async';
+import 'dart:collection';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
@@ -22,7 +23,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'dart:collection';
 
 
 const String _TOKEN_SEPARATOR = "\uFFFF";
@@ -125,7 +125,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
       String declarationSource = '$keyword $name = ';
       SourceEdit edit =
           new SourceEdit(singleExpression.offset, 0, declarationSource);
-      change.addElementEdit(unitElement, edit);
+      doSourceChange_addElementEdit(change, unitElement, edit);
       return new Future.value(change);
     }
     // add variable declaration
@@ -161,20 +161,22 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
         String prefix = utils.getNodePrefix(target);
         SourceEdit edit =
             new SourceEdit(target.offset, 0, declarationSource + eol + prefix);
-        change.addElementEdit(unitElement, edit);
+        doSourceChange_addElementEdit(change, unitElement, edit);
       } else if (target is ExpressionFunctionBody) {
         String prefix = utils.getNodePrefix(target.parent);
         String indent = utils.getIndent(1);
         String declStatement = prefix + indent + declarationSource + eol;
         String exprStatement = prefix + indent + 'return ';
         Expression expr = target.expression;
-        change.addElementEdit(
+        doSourceChange_addElementEdit(
+            change,
             unitElement,
             new SourceEdit(
                 target.offset,
                 expr.offset - target.offset,
                 '{' + eol + declStatement + exprStatement));
-        change.addElementEdit(
+        doSourceChange_addElementEdit(
+            change,
             unitElement,
             new SourceEdit(expr.end, 0, ';' + eol + prefix + '}'));
       }
@@ -186,8 +188,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     }
     // replace occurrences with variable reference
     for (SourceRange range in occurrences) {
-      SourceEdit edit = new SourceEdit.range(range, occurrenceReplacement);
-      change.addElementEdit(unitElement, edit);
+      SourceEdit edit = newSourceEdit_range(range, occurrenceReplacement);
+      doSourceChange_addElementEdit(change, unitElement, edit);
     }
     // done
     return new Future.value(change);
@@ -259,6 +261,56 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     // invalid selection
     return new RefactoringStatus.fatal(
         'Expression must be selected to activate this refactoring.');
+  }
+
+  /**
+   * Return an unique identifier for the given [Element], or `null` if [element]
+   * is `null`.
+   */
+  int _encodeElement(Element element) {
+    if (element == null) {
+      return null;
+    }
+    int id = elementIds[element];
+    if (id == null) {
+      id = elementIds.length;
+      elementIds[element] = id;
+    }
+    return id;
+  }
+
+  /**
+   * Returns an [Element]-sensitive encoding of [tokens].
+   * Each [Token] with a [LocalVariableElement] has a suffix of the element id.
+   *
+   * So, we can distingush different local variables with the same name, if
+   * there are multiple variables with the same name are declared in the
+   * function we are searching occurrences in.
+   */
+  String _encodeExpressionTokens(Expression expr, List<Token> tokens) {
+    // no expression, i.e. a part of a string
+    if (expr == null) {
+      return tokens.join(_TOKEN_SEPARATOR);
+    }
+    // prepare Token -> LocalElement map
+    Map<Token, Element> map = new HashMap<Token, Element>(
+        equals: (Token a, Token b) => a.lexeme == b.lexeme,
+        hashCode: (Token t) => t.lexeme.hashCode);
+    expr.accept(new _TokenLocalElementVisitor(map));
+    // map and join tokens
+    return tokens.map((Token token) {
+      String tokenString = token.lexeme;
+      // append token's Element id
+      Element element = map[token];
+      if (element != null) {
+        int elementId = _encodeElement(element);
+        if (elementId != null) {
+          tokenString += '-$elementId';
+        }
+      }
+      // done
+      return tokenString;
+    }).join(_TOKEN_SEPARATOR);
   }
 
   /**
@@ -393,70 +445,6 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
       lengths.add(occurrence.length);
     }
   }
-
-  /**
-   * Return an unique identifier for the given [Element], or `null` if [element]
-   * is `null`.
-   */
-  int _encodeElement(Element element) {
-    if (element == null) {
-      return null;
-    }
-    int id = elementIds[element];
-    if (id == null) {
-      id = elementIds.length;
-      elementIds[element] = id;
-    }
-    return id;
-  }
-
-  /**
-   * Returns an [Element]-sensitive encoding of [tokens].
-   * Each [Token] with a [LocalVariableElement] has a suffix of the element id.
-   *
-   * So, we can distingush different local variables with the same name, if
-   * there are multiple variables with the same name are declared in the
-   * function we are searching occurrences in.
-   */
-  String _encodeExpressionTokens(Expression expr, List<Token> tokens) {
-    // no expression, i.e. a part of a string
-    if (expr == null) {
-      return tokens.join(_TOKEN_SEPARATOR);
-    }
-    // prepare Token -> LocalElement map
-    Map<Token, Element> map = new HashMap<Token, Element>(
-        equals: (Token a, Token b) => a.lexeme == b.lexeme,
-        hashCode: (Token t) => t.lexeme.hashCode);
-    expr.accept(new _TokenLocalElementVisitor(map));
-    // map and join tokens
-    return tokens.map((Token token) {
-      String tokenString = token.lexeme;
-      // append token's Element id
-      Element element = map[token];
-      if (element != null) {
-        int elementId = _encodeElement(element);
-        if (elementId != null) {
-          tokenString += '-$elementId';
-        }
-      }
-      // done
-      return tokenString;
-    }).join(_TOKEN_SEPARATOR);
-  }
-}
-
-
-class _TokenLocalElementVisitor extends RecursiveAstVisitor {
-  final Map<Token, Element> map;
-
-  _TokenLocalElementVisitor(this.map);
-
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is LocalVariableElement) {
-      map[node.token] = element;
-    }
-  }
 }
 
 
@@ -482,7 +470,7 @@ class _ExtractExpressionAnalyzer extends SelectionAnalyzer {
     if (_isFirstSelectedNode(lhs)) {
       _invalidSelection(
           'Cannot extract the left-hand side of an assignment.',
-          new Location.fromNode(lhs));
+          newLocation_fromNode(lhs));
     }
     return null;
   }
@@ -632,6 +620,20 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
       int occuEnd = nodeOffset + endToken.end;
       SourceRange occuRange = rangeStartEnd(occuStart, occuEnd);
       _addOccurrence(occuRange);
+    }
+  }
+}
+
+
+class _TokenLocalElementVisitor extends RecursiveAstVisitor {
+  final Map<Token, Element> map;
+
+  _TokenLocalElementVisitor(this.map);
+
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    Element element = node.staticElement;
+    if (element is LocalVariableElement) {
+      map[node.token] = element;
     }
   }
 }

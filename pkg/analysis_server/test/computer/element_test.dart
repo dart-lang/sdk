@@ -4,7 +4,7 @@
 
 library test.computer.element;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
@@ -26,52 +26,52 @@ main() {
 class ElementKindTest {
   void test_fromEngine() {
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.CLASS),
+        newElementKind_fromEngine(engine.ElementKind.CLASS),
         ElementKind.CLASS);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.COMPILATION_UNIT),
+        newElementKind_fromEngine(engine.ElementKind.COMPILATION_UNIT),
         ElementKind.COMPILATION_UNIT);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.CONSTRUCTOR),
+        newElementKind_fromEngine(engine.ElementKind.CONSTRUCTOR),
         ElementKind.CONSTRUCTOR);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.FIELD),
+        newElementKind_fromEngine(engine.ElementKind.FIELD),
         ElementKind.FIELD);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.FUNCTION),
+        newElementKind_fromEngine(engine.ElementKind.FUNCTION),
         ElementKind.FUNCTION);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.FUNCTION_TYPE_ALIAS),
+        newElementKind_fromEngine(engine.ElementKind.FUNCTION_TYPE_ALIAS),
         ElementKind.FUNCTION_TYPE_ALIAS);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.GETTER),
+        newElementKind_fromEngine(engine.ElementKind.GETTER),
         ElementKind.GETTER);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.LABEL),
+        newElementKind_fromEngine(engine.ElementKind.LABEL),
         ElementKind.LABEL);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.LIBRARY),
+        newElementKind_fromEngine(engine.ElementKind.LIBRARY),
         ElementKind.LIBRARY);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.LOCAL_VARIABLE),
+        newElementKind_fromEngine(engine.ElementKind.LOCAL_VARIABLE),
         ElementKind.LOCAL_VARIABLE);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.METHOD),
+        newElementKind_fromEngine(engine.ElementKind.METHOD),
         ElementKind.METHOD);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.PARAMETER),
+        newElementKind_fromEngine(engine.ElementKind.PARAMETER),
         ElementKind.PARAMETER);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.SETTER),
+        newElementKind_fromEngine(engine.ElementKind.SETTER),
         ElementKind.SETTER);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.TOP_LEVEL_VARIABLE),
+        newElementKind_fromEngine(engine.ElementKind.TOP_LEVEL_VARIABLE),
         ElementKind.TOP_LEVEL_VARIABLE);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.TYPE_PARAMETER),
+        newElementKind_fromEngine(engine.ElementKind.TYPE_PARAMETER),
         ElementKind.TYPE_PARAMETER);
     expect(
-        new ElementKind.fromEngine(engine.ElementKind.ANGULAR_COMPONENT),
+        newElementKind_fromEngine(engine.ElementKind.ANGULAR_COMPONENT),
         ElementKind.UNKNOWN);
   }
 
@@ -140,7 +140,7 @@ abstract class _MyClass {}''');
     CompilationUnit unit = resolveLibraryUnit(source);
     engine.ClassElement engineElement = findElementInUnit(unit, '_MyClass');
     // create notification Element
-    Element element = new Element.fromEngine(engineElement);
+    Element element = newElement_fromEngine(engineElement);
     expect(element.kind, ElementKind.CLASS);
     expect(element.name, '_MyClass');
     {
@@ -165,7 +165,7 @@ class A {
     engine.ConstructorElement engineElement =
         findElementInUnit(unit, 'myConstructor');
     // create notification Element
-    Element element = new Element.fromEngine(engineElement);
+    Element element = newElement_fromEngine(engineElement);
     expect(element.kind, ElementKind.CONSTRUCTOR);
     expect(element.name, 'myConstructor');
     {
@@ -189,7 +189,7 @@ class A {
     CompilationUnit unit = resolveLibraryUnit(source);
     engine.FieldElement engineElement = findElementInUnit(unit, 'myField');
     // create notification Element
-    Element element = new Element.fromEngine(engineElement);
+    Element element = newElement_fromEngine(engineElement);
     expect(element.kind, ElementKind.FIELD);
     expect(element.name, 'myField');
     {
@@ -214,7 +214,7 @@ class A {
     engine.PropertyAccessorElement engineElement =
         findElementInUnit(unit, 'myGetter', engine.ElementKind.GETTER);
     // create notification Element
-    Element element = new Element.fromEngine(engineElement);
+    Element element = newElement_fromEngine(engineElement);
     expect(element.kind, ElementKind.GETTER);
     expect(element.name, 'myGetter');
     {
@@ -241,7 +241,7 @@ myLabel:
     CompilationUnit unit = resolveLibraryUnit(source);
     engine.LabelElement engineElement = findElementInUnit(unit, 'myLabel');
     // create notification Element
-    Element element = new Element.fromEngine(engineElement);
+    Element element = newElement_fromEngine(engineElement);
     expect(element.kind, ElementKind.LABEL);
     expect(element.name, 'myLabel');
     {
@@ -267,7 +267,7 @@ class A {
     CompilationUnit unit = resolveLibraryUnit(source);
     engine.MethodElement engineElement = findElementInUnit(unit, 'myMethod');
     // create notification Element
-    Element element = new Element.fromEngine(engineElement);
+    Element element = newElement_fromEngine(engineElement);
     expect(element.kind, ElementKind.METHOD);
     expect(element.name, 'myMethod');
     {
@@ -293,7 +293,7 @@ class A {
         findElementInUnit(unit, 'mySetter', engine.ElementKind.FIELD);
     engine.PropertyAccessorElement engineElement = engineFieldElement.setter;
     // create notification Element
-    Element element = new Element.fromEngine(engineElement);
+    Element element = newElement_fromEngine(engineElement);
     expect(element.kind, ElementKind.SETTER);
     expect(element.name, 'mySetter');
     {
@@ -312,7 +312,7 @@ class A {
   void test_fromElement_dynamic() {
     var engineElement = engine.DynamicElementImpl.instance;
     // create notification Element
-    Element element = new Element.fromEngine(engineElement);
+    Element element = newElement_fromEngine(engineElement);
     expect(element.kind, ElementKind.UNKNOWN);
     expect(element.name, 'dynamic');
     expect(element.location, isNull);

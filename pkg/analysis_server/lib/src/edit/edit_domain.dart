@@ -6,10 +6,10 @@ library edit.domain;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
@@ -113,12 +113,12 @@ class EditDomainHandler implements RequestHandler {
             List<Fix> fixes = computeFixes(searchEngine, unit, error);
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
-                  new AnalysisError.fromEngine(lineInfo, error);
+                  newAnalysisError_fromEngine(lineInfo, error);
               AnalysisErrorFixes errorFixes =
                   new AnalysisErrorFixes(serverError);
               errorFixesList.add(errorFixes);
               fixes.forEach((fix) {
-                errorFixes.addFix(fix);
+                errorFixes.fixes.add(fix.change);
               });
             }
           }

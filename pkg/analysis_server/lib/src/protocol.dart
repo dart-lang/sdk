@@ -7,19 +7,7 @@ library protocol;
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:analysis_server/src/computer/element.dart' show
-    elementFromEngine;
-import 'package:analysis_server/src/search/search_result.dart' show
-    searchResultFromMatch;
-import 'package:analysis_server/src/services/correction/fix.dart' show Fix;
 import 'package:analysis_server/src/services/json.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart' as
-    engine;
-import 'package:analyzer/src/generated/ast.dart' as engine;
-import 'package:analyzer/src/generated/element.dart' as engine;
-import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/error.dart' as engine;
-import 'package:analyzer/src/generated/source.dart' as engine;
 
 part 'generated_protocol.dart';
 
@@ -79,69 +67,6 @@ void _addEditToSourceChange(SourceChange change, String file, int fileStamp,
 }
 
 
-void _addElementEditToSourceChange(SourceChange change, engine.Element element,
-    SourceEdit edit) {
-  engine.AnalysisContext context = element.context;
-  engine.Source source = element.source;
-  _addSourceEditToSourceChange(change, context, source, edit);
-}
-
-
-void _addSourceEditToSourceChange(SourceChange change,
-    engine.AnalysisContext context, engine.Source source, SourceEdit edit) {
-  String file = source.fullName;
-  int fileStamp = context.getModificationStamp(source);
-  change.addEdit(file, fileStamp, edit);
-}
-
-/**
- * Create an AnalysisError based on error information from the analyzer
- * engine.  Access via AnalysisError.fromEngine().
- */
-AnalysisError _analysisErrorFromEngine(engine.LineInfo lineInfo,
-    engine.AnalysisError error) {
-  engine.ErrorCode errorCode = error.errorCode;
-  // prepare location
-  Location location;
-  {
-    String file = error.source.fullName;
-    int offset = error.offset;
-    int length = error.length;
-    int startLine = -1;
-    int startColumn = -1;
-    if (lineInfo != null) {
-      engine.LineInfo_Location lineLocation = lineInfo.getLocation(offset);
-      if (lineLocation != null) {
-        startLine = lineLocation.lineNumber;
-        startColumn = lineLocation.columnNumber;
-      }
-    }
-    location = new Location(file, offset, length, startLine, startColumn);
-  }
-  // done
-  var severity = new AnalysisErrorSeverity(errorCode.errorSeverity.name);
-  var type = new AnalysisErrorType(errorCode.type.name);
-  String message = error.message;
-  String correction = error.correction;
-  return new AnalysisError(
-      severity,
-      type,
-      location,
-      message,
-      correction: correction);
-}
-
-/**
- * Returns a list of AnalysisErrors correponding to the given list of Engine
- * errors.  Access via AnalysisError.listFromEngine().
- */
-List<AnalysisError> _analysisErrorListFromEngine(engine.LineInfo lineInfo,
-    List<engine.AnalysisError> errors) {
-  return errors.map((engine.AnalysisError error) {
-    return new AnalysisError.fromEngine(lineInfo, error);
-  }).toList();
-}
-
 /**
  * Get the result of applying the edit to the given [code].  Access via
  * SourceEdit.apply().
@@ -165,115 +90,6 @@ String _applySequence(String code, Iterable<SourceEdit> edits) {
     code = edit.apply(code);
   });
   return code;
-}
-
-/**
- * Map an element kind from the analyzer engine to a [CompletionSuggestionKind].
- */
-CompletionSuggestionKind
-    _completionSuggestionKindFromElementKind(engine.ElementKind kind) {
-  //    ElementKind.ANGULAR_FORMATTER,
-  //    ElementKind.ANGULAR_COMPONENT,
-  //    ElementKind.ANGULAR_CONTROLLER,
-  //    ElementKind.ANGULAR_DIRECTIVE,
-  //    ElementKind.ANGULAR_PROPERTY,
-  //    ElementKind.ANGULAR_SCOPE_PROPERTY,
-  //    ElementKind.ANGULAR_SELECTOR,
-  //    ElementKind.ANGULAR_VIEW,
-  if (kind == engine.ElementKind.CLASS) return CompletionSuggestionKind.CLASS;
-  //    ElementKind.COMPILATION_UNIT,
-  if (kind ==
-      engine.ElementKind.CONSTRUCTOR) return CompletionSuggestionKind.CONSTRUCTOR;
-  //    ElementKind.DYNAMIC,
-  //    ElementKind.EMBEDDED_HTML_SCRIPT,
-  //    ElementKind.ERROR,
-  //    ElementKind.EXPORT,
-  //    ElementKind.EXTERNAL_HTML_SCRIPT,
-  if (kind == engine.ElementKind.FIELD) return CompletionSuggestionKind.FIELD;
-  if (kind ==
-      engine.ElementKind.FUNCTION) return CompletionSuggestionKind.FUNCTION;
-  if (kind ==
-      engine.ElementKind.FUNCTION_TYPE_ALIAS) return
-          CompletionSuggestionKind.FUNCTION_TYPE_ALIAS;
-  if (kind == engine.ElementKind.GETTER) return CompletionSuggestionKind.GETTER;
-  //    ElementKind.HTML,
-  if (kind == engine.ElementKind.IMPORT) return CompletionSuggestionKind.IMPORT;
-  //    ElementKind.LABEL,
-  //    ElementKind.LIBRARY,
-  if (kind ==
-      engine.ElementKind.LOCAL_VARIABLE) return
-          CompletionSuggestionKind.LOCAL_VARIABLE;
-  if (kind == engine.ElementKind.METHOD) return CompletionSuggestionKind.METHOD;
-  //    ElementKind.NAME,
-  if (kind ==
-      engine.ElementKind.PARAMETER) return CompletionSuggestionKind.PARAMETER;
-  //    ElementKind.POLYMER_ATTRIBUTE,
-  //    ElementKind.POLYMER_TAG_DART,
-  //    ElementKind.POLYMER_TAG_HTML,
-  //    ElementKind.PREFIX,
-  if (kind == engine.ElementKind.SETTER) return CompletionSuggestionKind.SETTER;
-  if (kind ==
-      engine.ElementKind.TOP_LEVEL_VARIABLE) return
-          CompletionSuggestionKind.TOP_LEVEL_VARIABLE;
-  //    ElementKind.TYPE_PARAMETER,
-  //    ElementKind.UNIVERSE
-  throw new ArgumentError('Unknown CompletionSuggestionKind for: $kind');
-}
-
-/**
- * Create an ElementKind based on a value from the analyzer engine.  Access
- * this function via new ElementKind.fromEngine().
- */
-ElementKind _elementKindFromEngine(engine.ElementKind kind) {
-  if (kind == engine.ElementKind.CLASS) {
-    return ElementKind.CLASS;
-  }
-  if (kind == engine.ElementKind.COMPILATION_UNIT) {
-    return ElementKind.COMPILATION_UNIT;
-  }
-  if (kind == engine.ElementKind.CONSTRUCTOR) {
-    return ElementKind.CONSTRUCTOR;
-  }
-  if (kind == engine.ElementKind.FIELD) {
-    return ElementKind.FIELD;
-  }
-  if (kind == engine.ElementKind.FUNCTION) {
-    return ElementKind.FUNCTION;
-  }
-  if (kind == engine.ElementKind.FUNCTION_TYPE_ALIAS) {
-    return ElementKind.FUNCTION_TYPE_ALIAS;
-  }
-  if (kind == engine.ElementKind.GETTER) {
-    return ElementKind.GETTER;
-  }
-  if (kind == engine.ElementKind.LABEL) {
-    return ElementKind.LABEL;
-  }
-  if (kind == engine.ElementKind.LIBRARY) {
-    return ElementKind.LIBRARY;
-  }
-  if (kind == engine.ElementKind.LOCAL_VARIABLE) {
-    return ElementKind.LOCAL_VARIABLE;
-  }
-  if (kind == engine.ElementKind.METHOD) {
-    return ElementKind.METHOD;
-  }
-  if (kind == engine.ElementKind.PARAMETER) {
-    return ElementKind.PARAMETER;
-  }
-  if (kind == engine.ElementKind.PREFIX) {
-    return ElementKind.PREFIX;
-  }
-  if (kind == engine.ElementKind.SETTER) {
-    return ElementKind.SETTER;
-  }
-  if (kind == engine.ElementKind.TOP_LEVEL_VARIABLE) {
-    return ElementKind.TOP_LEVEL_VARIABLE;
-  }
-  if (kind == engine.ElementKind.TYPE_PARAMETER) {
-    return ElementKind.TYPE_PARAMETER;
-  }
-  return ElementKind.UNKNOWN;
 }
 
 /**
@@ -308,85 +124,6 @@ bool _listEqual(List listA, List listB, bool itemEqual(a, b)) {
     }
   }
   return true;
-}
-
-/**
- * Creates a new [Location].
- */
-Location _locationForArgs(engine.AnalysisContext context, engine.Source source,
-    engine.SourceRange range) {
-  int startLine = 0;
-  int startColumn = 0;
-  {
-    engine.LineInfo lineInfo = context.getLineInfo(source);
-    if (lineInfo != null) {
-      engine.LineInfo_Location offsetLocation =
-          lineInfo.getLocation(range.offset);
-      startLine = offsetLocation.lineNumber;
-      startColumn = offsetLocation.columnNumber;
-    }
-  }
-  return new Location(
-      source.fullName,
-      range.offset,
-      range.length,
-      startLine,
-      startColumn);
-}
-
-/**
- * Creates a new [Location] for the given [engine.Element].
- */
-Location _locationFromElement(engine.Element element) {
-  engine.AnalysisContext context = element.context;
-  engine.Source source = element.source;
-  if (context == null || source == null) {
-    return null;
-  }
-  String name = element.displayName;
-  int offset = element.nameOffset;
-  int length = name != null ? name.length : 0;
-  if (element is engine.CompilationUnitElement) {
-    offset = 0;
-    length = 0;
-  }
-  engine.SourceRange range = new engine.SourceRange(offset, length);
-  return _locationForArgs(context, source, range);
-}
-
-/**
- * Creates a new [Location] for the given [engine.SearchMatch].
- */
-Location _locationFromMatch(engine.SearchMatch match) {
-  engine.Element enclosingElement = match.element;
-  return _locationForArgs(
-      enclosingElement.context,
-      enclosingElement.source,
-      match.sourceRange);
-}
-
-/**
- * Creates a new [Location] for the given [engine.AstNode].
- */
-Location _locationFromNode(engine.AstNode node) {
-  engine.CompilationUnit unit =
-      node.getAncestor((node) => node is engine.CompilationUnit);
-  engine.CompilationUnitElement unitElement = unit.element;
-  engine.AnalysisContext context = unitElement.context;
-  engine.Source source = unitElement.source;
-  engine.SourceRange range = new engine.SourceRange(node.offset, node.length);
-  return _locationForArgs(context, source, range);
-}
-
-/**
- * Creates a new [Location] for the given [engine.CompilationUnit].
- */
-Location _locationFromUnit(engine.CompilationUnit unit,
-    engine.SourceRange range) {
-  engine.CompilationUnitElement unitElement = unit.element;
-  engine.AnalysisContext context = unitElement.context;
-  engine.Source source = unitElement.source;
-  return _locationForArgs(context, source, range);
 }
 
 /**
@@ -429,15 +166,6 @@ RefactoringProblemSeverity
     }
   }
   return a;
-}
-
-/**
- * Create an OverriddenMember based on an element from the analyzer engine.
- */
-OverriddenMember _overriddenMemberFromEngine(engine.Element member) {
-  Element element = elementFromEngine(member);
-  String className = member.enclosingElement.displayName;
-  return new OverriddenMember(element, className);
 }
 
 
@@ -496,32 +224,6 @@ RefactoringOptions _refactoringOptionsFromJson(JsonDecoder jsonDecoder,
     return new RenameOptions.fromJson(jsonDecoder, jsonPath, json);
   }
   return null;
-}
-
-
-/**
- * Create a SearchResultKind based on a value from the search engine.
- */
-SearchResultKind _searchResultKindFromEngine(engine.MatchKind kind) {
-  if (kind == engine.MatchKind.DECLARATION) {
-    return SearchResultKind.DECLARATION;
-  }
-  if (kind == engine.MatchKind.READ) {
-    return SearchResultKind.READ;
-  }
-  if (kind == engine.MatchKind.READ_WRITE) {
-    return SearchResultKind.READ_WRITE;
-  }
-  if (kind == engine.MatchKind.WRITE) {
-    return SearchResultKind.WRITE;
-  }
-  if (kind == engine.MatchKind.INVOCATION) {
-    return SearchResultKind.INVOCATION;
-  }
-  if (kind == engine.MatchKind.REFERENCE) {
-    return SearchResultKind.REFERENCE;
-  }
-  return SearchResultKind.UNKNOWN;
 }
 
 

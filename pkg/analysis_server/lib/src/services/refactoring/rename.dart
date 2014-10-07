@@ -6,7 +6,7 @@ library services.src.refactoring.rename;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -132,8 +132,8 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
   void addDeclarationEdit(Element element) {
     if (element != null) {
       SourceRange range = rangeElementName(element);
-      SourceEdit edit = new SourceEdit.range(range, newName);
-      change.addElementEdit(element, edit);
+      SourceEdit edit = newSourceEdit_range(range, newName);
+      doSourceChange_addElementEdit(change, element, edit);
     }
   }
 

@@ -6,7 +6,8 @@ library services.src.refactoring.rename_unit_member;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' show Location, SourceChange;
+import 'package:analysis_server/src/protocol_server.dart' show
+    newLocation_fromElement, newLocation_fromMatch;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
@@ -200,7 +201,7 @@ class _RenameUnitMemberValidator {
                   getElementKindName(element),
                   getElementKindName(shadow),
                   getElementQualifiedName(shadow));
-              result.addError(message, new Location.fromElement(shadow));
+              result.addError(message, newLocation_fromElement(shadow));
             }
           });
         }
@@ -219,7 +220,7 @@ class _RenameUnitMemberValidator {
             "Library already declares {0} with name '{1}'.",
             getElementKindName(element),
             name);
-        result.addError(message, new Location.fromElement(element));
+        result.addError(message, newLocation_fromElement(element));
       }
     });
   }
@@ -257,7 +258,7 @@ class _RenameUnitMemberValidator {
                 elementKind.displayName,
                 getElementKindName(member),
                 getElementQualifiedName(member));
-            result.addError(message, new Location.fromMatch(memberReference));
+            result.addError(message, newLocation_fromMatch(memberReference));
           }
         });
       });

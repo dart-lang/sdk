@@ -11,7 +11,7 @@ import 'package:analysis_server/src/computer/computer_occurrences.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/operation/operation.dart';
-import 'package:analysis_server/src/protocol.dart' as protocol;
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -23,7 +23,7 @@ import 'package:analyzer/src/generated/source.dart';
 void sendAnalysisNotificationErrors(AnalysisServer server, String file,
     LineInfo lineInfo, List<AnalysisError> errors) {
   server.sendNotification(new protocol.AnalysisErrorsParams(file,
-      protocol.AnalysisError.listFromEngine(lineInfo, errors)).toNotification());
+      protocol.doAnalysisError_listFromEngine(lineInfo, errors)).toNotification());
 }
 
 

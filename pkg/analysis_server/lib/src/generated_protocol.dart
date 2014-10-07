@@ -4518,13 +4518,6 @@ class AddContentOverlay implements HasToJson {
  */
 class AnalysisError implements HasToJson {
   /**
-   * Returns a list of AnalysisErrors correponding to the given list of Engine
-   * errors.
-   */
-  static List<AnalysisError> listFromEngine(engine.LineInfo lineInfo, List<engine.AnalysisError> errors) =>
-      _analysisErrorListFromEngine(lineInfo, errors);
-
-  /**
    * The severity of the error.
    */
   AnalysisErrorSeverity severity;
@@ -4592,12 +4585,6 @@ class AnalysisError implements HasToJson {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisError");
     }
   }
-
-  /**
-   * Construct based on error information from the analyzer engine.
-   */
-  factory AnalysisError.fromEngine(engine.LineInfo lineInfo, engine.AnalysisError error) =>
-      _analysisErrorFromEngine(lineInfo, error);
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
@@ -4691,13 +4678,6 @@ class AnalysisErrorFixes implements HasToJson {
     result["error"] = error.toJson();
     result["fixes"] = fixes.map((SourceChange value) => value.toJson()).toList();
     return result;
-  }
-
-  /**
-   * Add a [Fix]
-   */
-  void addFix(Fix fix) {
-    fixes.add(fix.change);
   }
 
   @override
@@ -5677,12 +5657,6 @@ class CompletionSuggestionKind {
     throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestionKind");
   }
 
-  /**
-   * Construct from an analyzer engine element kind.
-   */
-  factory CompletionSuggestionKind.fromElementKind(engine.ElementKind kind) =>
-      _completionSuggestionKindFromElementKind(kind);
-
   @override
   String toString() => "CompletionSuggestionKind.$name";
 
@@ -5805,12 +5779,6 @@ class Element implements HasToJson {
       throw jsonDecoder.mismatch(jsonPath, "Element");
     }
   }
-
-  /**
-   * Construct based on a value from the analyzer engine.
-   */
-  factory Element.fromEngine(engine.Element element) =>
-      elementFromEngine(element);
 
   bool get isAbstract => (flags & FLAG_ABSTRACT) != 0;
   bool get isConst => (flags & FLAG_CONST) != 0;
@@ -5992,12 +5960,6 @@ class ElementKind {
     }
     throw jsonDecoder.mismatch(jsonPath, "ElementKind");
   }
-
-  /**
-   * Construct based on a value from the analyzer engine.
-   */
-  factory ElementKind.fromEngine(engine.ElementKind kind) =>
-      _elementKindFromEngine(kind);
 
   @override
   String toString() => "ElementKind.$name";
@@ -7142,30 +7104,6 @@ class Location implements HasToJson {
     }
   }
 
-  /**
-   * Create a Location based on an [engine.Element].
-   */
-  factory Location.fromElement(engine.Element element) =>
-      _locationFromElement(element);
-
-  /**
-   * Create a Location based on an [engine.SearchMatch].
-   */
-  factory Location.fromMatch(engine.SearchMatch match) =>
-      _locationFromMatch(match);
-
-  /**
-   * Create a Location based on an [engine.AstNode].
-   */
-  factory Location.fromNode(engine.AstNode node) =>
-      _locationFromNode(node);
-
-  /**
-   * Create a Location based on an [engine.CompilationUnit].
-   */
-  factory Location.fromUnit(engine.CompilationUnit unit, engine.SourceRange range) =>
-      _locationFromUnit(unit, range);
-
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
@@ -7633,12 +7571,6 @@ class OverriddenMember implements HasToJson {
       throw jsonDecoder.mismatch(jsonPath, "OverriddenMember");
     }
   }
-
-  /**
-   * Construct based on an element from the analyzer engine.
-   */
-  factory OverriddenMember.fromEngine(engine.Element member) =>
-      _overriddenMemberFromEngine(member);
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
@@ -8562,12 +8494,6 @@ class SearchResult implements HasToJson {
     }
   }
 
-  /**
-   * Construct based on a value from the search engine.
-   */
-  factory SearchResult.fromMatch(engine.SearchMatch match) =>
-      searchResultFromMatch(match);
-
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["location"] = location.toJson();
@@ -8686,12 +8612,6 @@ class SearchResultKind {
     }
     throw jsonDecoder.mismatch(jsonPath, "SearchResultKind");
   }
-
-  /**
-   * Construct based on a value from the search engine.
-   */
-  factory SearchResultKind.fromEngine(engine.MatchKind kind) =>
-      _searchResultKindFromEngine(kind);
 
   @override
   String toString() => "SearchResultKind.$name";
@@ -8830,19 +8750,6 @@ class SourceChange implements HasToJson {
       _addEditToSourceChange(this, file, fileStamp, edit);
 
   /**
-   * Adds [edit] to the [FileEdit] for the given [source].
-   */
-  void addSourceEdit(engine.AnalysisContext context,
-      engine.Source source, SourceEdit edit) =>
-      _addSourceEditToSourceChange(this, context, source, edit);
-
-  /**
-   * Adds [edit] to the [FileEdit] for the given [element].
-   */
-  void addElementEdit(engine.Element element, SourceEdit edit) =>
-      _addElementEditToSourceChange(this, element, edit);
-
-  /**
    * Adds the given [FileEdit].
    */
   void addFileEdit(SourceFileEdit edit) {
@@ -8966,12 +8873,6 @@ class SourceEdit implements HasToJson {
       throw jsonDecoder.mismatch(jsonPath, "SourceEdit");
     }
   }
-
-  /**
-   * Construct based on a SourceRange.
-   */
-  SourceEdit.range(engine.SourceRange range, String replacement, {String id})
-      : this(range.offset, range.length, replacement, id: id);
 
   /**
    * The end of the region to be modified.

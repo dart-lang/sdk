@@ -5,10 +5,11 @@
 library test.services.correction.change;
 
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../reflective_tests.dart';
 
 
 main() {
@@ -145,7 +146,17 @@ class EditTest {
   void test_applySequence() {
     SourceEdit edit1 = new SourceEdit(5, 2, 'abc');
     SourceEdit edit2 = new SourceEdit(1, 0, '!');
-    expect(SourceEdit.applySequence('0123456789', [edit1, edit2]), '0!1234abc789');
+    expect(
+        SourceEdit.applySequence('0123456789', [edit1, edit2]),
+        '0!1234abc789');
+  }
+
+  void test_editFromRange() {
+    SourceRange range = new SourceRange(1, 2);
+    SourceEdit edit = newSourceEdit_range(range, 'foo');
+    expect(edit.offset, 1);
+    expect(edit.length, 2);
+    expect(edit.replacement, 'foo');
   }
 
   void test_eqEq() {
@@ -164,17 +175,12 @@ class EditTest {
     expect(edit.offset, 1);
     expect(edit.length, 2);
     expect(edit.replacement, 'foo');
-    expect(
-        edit.toJson(),
-        {'offset': 1, 'length': 2, 'replacement': 'foo', 'id': 'my-id'});
-  }
-
-  void test_editFromRange() {
-    SourceRange range = new SourceRange(1, 2);
-    SourceEdit edit = new SourceEdit.range(range, 'foo');
-    expect(edit.offset, 1);
-    expect(edit.length, 2);
-    expect(edit.replacement, 'foo');
+    expect(edit.toJson(), {
+      'offset': 1,
+      'length': 2,
+      'replacement': 'foo',
+      'id': 'my-id'
+    });
   }
   void test_toJson() {
     SourceEdit edit = new SourceEdit(1, 2, 'foo');
@@ -255,8 +261,7 @@ class LinkedEditGroupTest {
     group.addPosition(new Position('/b.dart', 10), 2);
     expect(
         group.toString(),
-        '{"positions":['
-            '{"file":"/a.dart","offset":1},'
+        '{"positions":[' '{"file":"/a.dart","offset":1},'
             '{"file":"/b.dart","offset":10}],"length":2,"suggestions":[]}');
   }
 

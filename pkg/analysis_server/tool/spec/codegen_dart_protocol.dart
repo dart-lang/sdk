@@ -350,16 +350,6 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    */
   bool emitSpecialStaticMembers(String className) {
     switch (className) {
-      case 'AnalysisError':
-        docComment(
-            [
-                new dom.Text(
-                    'Returns a list of AnalysisErrors ' +
-                        'correponding to the given list of Engine errors.')]);
-        writeln(
-            'static List<AnalysisError> listFromEngine(engine.LineInfo lineInfo, List<engine.AnalysisError> errors) =>');
-        writeln('    _analysisErrorListFromEngine(lineInfo, errors);');
-        return true;
       case 'Element':
         List<String> makeFlagsArgs = <String>[];
         List<String> makeFlagsStatements = <String>[];
@@ -403,67 +393,10 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    */
   bool emitSpecialConstructors(String className) {
     switch (className) {
-      case 'AnalysisError':
-        docComment(
-            [
-                new dom.Text(
-                    'Construct based on error information from the analyzer engine.')]);
-        writeln(
-            'factory AnalysisError.fromEngine(engine.LineInfo lineInfo, engine.AnalysisError error) =>');
-        writeln('    _analysisErrorFromEngine(lineInfo, error);');
-        return true;
-      case 'CompletionSuggestionKind':
-        docComment(
-            [new dom.Text('Construct from an analyzer engine element kind.')]);
-        writeln(
-            'factory CompletionSuggestionKind.fromElementKind(engine.ElementKind kind) =>');
-        writeln('    _completionSuggestionKindFromElementKind(kind);');
-        return true;
-      case 'Element':
-        docComment(
-            [new dom.Text('Construct based on a value from the analyzer engine.')]);
-        writeln('factory Element.fromEngine(engine.Element element) =>');
-        writeln('    elementFromEngine(element);');
-        return true;
-      case 'ElementKind':
-        docComment(
-            [new dom.Text('Construct based on a value from the analyzer engine.')]);
-        writeln('factory ElementKind.fromEngine(engine.ElementKind kind) =>');
-        writeln('    _elementKindFromEngine(kind);');
-        return true;
       case 'LinkedEditGroup':
         docComment([new dom.Text('Construct an empty LinkedEditGroup.')]);
         writeln(
             'LinkedEditGroup.empty() : this(<Position>[], 0, <LinkedEditSuggestion>[]);');
-        return true;
-      case 'Location':
-        docComment(
-            [new dom.Text('Create a Location based on an [engine.Element].')]);
-        writeln('factory Location.fromElement(engine.Element element) =>');
-        writeln('    _locationFromElement(element);');
-        writeln();
-        docComment(
-            [new dom.Text('Create a Location based on an [engine.SearchMatch].')]);
-        writeln('factory Location.fromMatch(engine.SearchMatch match) =>');
-        writeln('    _locationFromMatch(match);');
-        writeln();
-        docComment(
-            [new dom.Text('Create a Location based on an [engine.AstNode].')]);
-        writeln('factory Location.fromNode(engine.AstNode node) =>');
-        writeln('    _locationFromNode(node);');
-        writeln();
-        docComment(
-            [new dom.Text('Create a Location based on an [engine.CompilationUnit].')]);
-        writeln(
-            'factory Location.fromUnit(engine.CompilationUnit unit, engine.SourceRange range) =>');
-        writeln('    _locationFromUnit(unit, range);');
-        return true;
-      case 'OverriddenMember':
-        docComment(
-            [new dom.Text('Construct based on an element from the analyzer engine.')]);
-        writeln(
-            'factory OverriddenMember.fromEngine(engine.Element member) =>');
-        writeln('    _overriddenMemberFromEngine(member);');
         return true;
       case 'RefactoringProblemSeverity':
         docComment(
@@ -473,25 +406,6 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         writeln(
             'static RefactoringProblemSeverity max(RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>');
         writeln('    _maxRefactoringProblemSeverity(a, b);');
-        return true;
-      case 'SearchResult':
-        docComment(
-            [new dom.Text('Construct based on a value from the search engine.')]);
-        writeln('factory SearchResult.fromMatch(engine.SearchMatch match) =>');
-        writeln('    searchResultFromMatch(match);');
-        return true;
-      case 'SearchResultKind':
-        docComment(
-            [new dom.Text('Construct based on a value from the search engine.')]);
-        writeln(
-            'factory SearchResultKind.fromEngine(engine.MatchKind kind) =>');
-        writeln('    _searchResultKindFromEngine(kind);');
-        return true;
-      case 'SourceEdit':
-        docComment([new dom.Text('Construct based on a SourceRange.')]);
-        writeln(
-            'SourceEdit.range(engine.SourceRange range, String replacement, {String id})');
-        writeln('    : this(range.offset, range.length, replacement, id: id);');
         return true;
       default:
         return false;
@@ -526,14 +440,6 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    */
   bool emitSpecialMethods(String className) {
     switch (className) {
-      case 'AnalysisErrorFixes':
-        docComment([new dom.Text('Add a [Fix]')]);
-        writeln('void addFix(Fix fix) {');
-        indent(() {
-          writeln('fixes.add(fix.change);');
-        });
-        writeln('}');
-        return true;
       case 'LinkedEditGroup':
         docComment([new dom.Text('Add a new position and change the length.')]);
         writeln('void addPosition(Position position, int length) {');
@@ -555,19 +461,6 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             [new dom.Text('Adds [edit] to the [FileEdit] for the given [file].')]);
         writeln('void addEdit(String file, int fileStamp, SourceEdit edit) =>');
         writeln('    _addEditToSourceChange(this, file, fileStamp, edit);');
-        writeln();
-        docComment(
-            [new dom.Text('Adds [edit] to the [FileEdit] for the given [source].')]);
-        writeln('void addSourceEdit(engine.AnalysisContext context,');
-        writeln('    engine.Source source, SourceEdit edit) =>');
-        writeln(
-            '    _addSourceEditToSourceChange(this, context, source, edit);');
-        writeln();
-        docComment(
-            [new dom.Text('Adds [edit] to the [FileEdit] for the given [element].')]);
-        writeln(
-            'void addElementEdit(engine.Element element, SourceEdit edit) =>');
-        writeln('    _addElementEditToSourceChange(this, element, edit);');
         writeln();
         docComment([new dom.Text('Adds the given [FileEdit].')]);
         writeln('void addFileEdit(SourceFileEdit edit) {');

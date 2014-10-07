@@ -6,9 +6,7 @@ library services.completion.computer.dart.toplevel;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' as protocol show Element,
-    ElementKind;
-import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/src/protocol_server.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -145,7 +143,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
 
   void _addElementSuggestion(Element element, CompletionRelevance relevance) {
     CompletionSuggestionKind kind =
-        new CompletionSuggestionKind.fromElementKind(element.kind);
+        newCompletionSuggestionKind_fromElementKind(element.kind);
 
     String completion = element.displayName;
     CompletionSuggestion suggestion = new CompletionSuggestion(
@@ -157,7 +155,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
         element.isDeprecated,
         false);
 
-    suggestion.element = new protocol.Element.fromEngine(element);
+    suggestion.element = newElement_fromEngine(element);
 
     DartType type;
     if (element is FunctionElement) {
@@ -190,7 +188,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
           false);
       LibraryElement lib = importElem.importedLibrary;
       if (lib != null) {
-        suggestion.element = new protocol.Element.fromEngine(lib);
+        suggestion.element = newElement_fromEngine(lib);
       }
       request.suggestions.add(suggestion);
     }

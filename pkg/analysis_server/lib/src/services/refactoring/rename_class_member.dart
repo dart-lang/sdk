@@ -6,7 +6,8 @@ library services.src.refactoring.rename_class_member;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/src/protocol_server.dart' hide Element,
+    ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
@@ -163,7 +164,7 @@ class _ClassMemberValidator {
               elementClass.displayName,
               getElementKindName(newNameMember),
               name),
-          new Location.fromElement(newNameMember));
+          newLocation_fromElement(newNameMember));
     }
     // do chained computations
     Set<ClassElement> superClasses = getSuperClasses(elementClass);
@@ -188,7 +189,7 @@ class _ClassMemberValidator {
                     elementKind.displayName,
                     getElementKindName(nameElement),
                     getElementQualifiedName(nameElement)),
-                new Location.fromElement(nameElement));
+                newLocation_fromElement(nameElement));
           }
           // renamed Element is shadowed by member of subclass
           if (isRename && subClasses.contains(nameClass)) {
@@ -198,7 +199,7 @@ class _ClassMemberValidator {
                     elementKind.displayName,
                     getElementKindName(nameElement),
                     getElementQualifiedName(nameElement)),
-                new Location.fromElement(nameElement));
+                newLocation_fromElement(nameElement));
           }
           // renamed Element is shadowed by local
           if (nameElement is LocalElement) {
@@ -215,7 +216,7 @@ class _ClassMemberValidator {
                           elementKind.displayName,
                           getElementKindName(localElement),
                           localElement.displayName),
-                      new Location.fromMatch(reference));
+                      newLocation_fromMatch(reference));
                 }
               }
             }

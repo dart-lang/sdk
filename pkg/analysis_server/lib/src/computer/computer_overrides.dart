@@ -5,7 +5,7 @@
 library computer.overrides;
 
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 
@@ -67,10 +67,10 @@ class DartUnitOverridesComputer {
     // is there any override?
     if (superEngineElement != null || interfaceEngineElements.isNotEmpty) {
       OverriddenMember superMember = superEngineElement != null ?
-          new OverriddenMember.fromEngine(superEngineElement) :
+          newOverriddenMember_fromEngine(superEngineElement) :
           null;
       List<OverriddenMember> interfaceMembers = interfaceEngineElements.map(
-          (engine.Element member) => new OverriddenMember.fromEngine(member)).toList();
+          (engine.Element member) => newOverriddenMember_fromEngine(member)).toList();
       _overrides.add(
           new Override(
               offset,

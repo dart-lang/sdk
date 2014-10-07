@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 
@@ -47,7 +47,7 @@ class AnalysisDomainHandler implements RequestHandler {
           if (errorInfo == null) {
             server.sendResponse(new Response.getErrorsInvalidFile(request));
           } else {
-            errors = AnalysisError.listFromEngine(errorInfo.lineInfo,
+            errors = doAnalysisError_listFromEngine(errorInfo.lineInfo,
                 errorInfo.errors);
             server.sendResponse(new AnalysisGetErrorsResult(errors).toResponse(
                 request.id));

@@ -7,7 +7,8 @@ library search.element_references;
 import 'dart:async';
 
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/protocol.dart' show SearchResult;
+import 'package:analysis_server/src/protocol_server.dart' show SearchResult,
+    newSearchResult_fromMatch;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -91,18 +92,17 @@ class ElementReferencesComputer {
   SearchResult _newDeclarationResult(Element refElement) {
     int nameOffset = refElement.nameOffset;
     int nameLength = refElement.name.length;
-    SearchMatch searchMatch =
-        new SearchMatch(
-            MatchKind.DECLARATION,
-            refElement,
-            new SourceRange(nameOffset, nameLength),
-            true,
-            false);
-    return new SearchResult.fromMatch(searchMatch);
+    SearchMatch searchMatch = new SearchMatch(
+        MatchKind.DECLARATION,
+        refElement,
+        new SourceRange(nameOffset, nameLength),
+        true,
+        false);
+    return newSearchResult_fromMatch(searchMatch);
   }
 
   static SearchResult toResult(SearchMatch match) {
-    return new SearchResult.fromMatch(match);
+    return newSearchResult_fromMatch(match);
   }
 
   static bool _isMemberElement(Element element) {

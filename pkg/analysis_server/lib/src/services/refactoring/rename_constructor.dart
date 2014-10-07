@@ -6,7 +6,7 @@ library services.src.refactoring.rename_constructor;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
@@ -67,15 +67,12 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     // check if there are members with "newName" in the same ClassElement
     ClassElement parentClass = element.enclosingElement;
     for (Element newNameMember in getChildren(parentClass, newName)) {
-      String message =
-          format(
-              "Class '{0}' already declares {1} with name '{2}'.",
-              parentClass.displayName,
-              getElementKindName(newNameMember),
-              newName);
-      result.addError(
-          message,
-          new Location.fromElement(newNameMember));
+      String message = format(
+          "Class '{0}' already declares {1} with name '{2}'.",
+          parentClass.displayName,
+          getElementKindName(newNameMember),
+          newName);
+      result.addError(message, newLocation_fromElement(newNameMember));
     }
   }
 }

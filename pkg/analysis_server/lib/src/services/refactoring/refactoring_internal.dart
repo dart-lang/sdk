@@ -7,7 +7,7 @@ library services.src.refactoring;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -97,14 +97,14 @@ class SourceReference {
    */
   void addEdit(SourceChange change, String newText, {String id}) {
     SourceEdit edit = createEdit(newText, id: id);
-    change.addElementEdit(element, edit);
+    doSourceChange_addElementEdit(change, element, edit);
   }
 
   /**
    * Returns the [SourceEdit] to replace this reference.
    */
   SourceEdit createEdit(String newText, {String id}) {
-    return new SourceEdit.range(range, newText, id: id);
+    return newSourceEdit_range(range, newText, id: id);
   }
 
   @override

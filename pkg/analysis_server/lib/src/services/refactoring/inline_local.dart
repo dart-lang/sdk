@@ -6,7 +6,7 @@ library services.src.refactoring.inline_local;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -98,7 +98,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
           "Local variable '{0}' is not initialized at declaration.",
           _variableElement.displayName);
       result =
-          new RefactoringStatus.fatal(message, new Location.fromNode(_variableNode));
+          new RefactoringStatus.fatal(message, newLocation_fromNode(_variableNode));
       return new Future.value(result);
     }
     // prepare references
@@ -112,7 +112,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
               [_variableElement.displayName]);
           return new RefactoringStatus.fatal(
               message,
-              new Location.fromMatch(reference));
+              newLocation_fromMatch(reference));
         }
       }
       // done
@@ -128,7 +128,10 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
       Statement declarationStatement =
           _variableNode.getAncestor((node) => node is VariableDeclarationStatement);
       SourceRange range = utils.getLinesRangeStatements([declarationStatement]);
-      change.addElementEdit(unitElement, new SourceEdit.range(range, ''));
+      doSourceChange_addElementEdit(
+          change,
+          unitElement,
+          newSourceEdit_range(range, ''));
     }
     // prepare initializer
     Expression initializer = _variableNode.initializer;
@@ -139,9 +142,10 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
       SourceRange range = reference.sourceRange;
       String sourceForReference =
           _getSourceForReference(range, initializerSource, initializerPrecedence);
-      change.addElementEdit(
+      doSourceChange_addElementEdit(
+          change,
           unitElement,
-          new SourceEdit.range(range, sourceForReference));
+          newSourceEdit_range(range, sourceForReference));
     }
     // done
     return new Future.value(change);
