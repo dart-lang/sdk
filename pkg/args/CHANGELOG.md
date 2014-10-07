@@ -1,3 +1,8 @@
+## 0.12.1
+
+* Replace `ArgParser.getUsage()` with `ArgParser.usage`, a getter.
+  `ArgParser.getUsage()` is now deprecated, to be removed in args version 1.0.0.
+
 ## 0.12.0+2
 
 * Widen the version constraint on the `collection` package.
