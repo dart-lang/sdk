@@ -13,8 +13,6 @@ built_in_identifier_prefix_test: CompileTimeError # Issue 12694
 override_field_test/03: fail
 method_override7_test/03: Fail # Issue 11496
 
-type_check_const_function_typedef2_test/00: MissingCompileTimeError, Ok # Compile-time error in checked mode, because of constants.
-
 external_test/21: Fail
 external_test/24: Fail
 external_test/25: Fail

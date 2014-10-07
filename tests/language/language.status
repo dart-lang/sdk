@@ -66,11 +66,6 @@ unicode_bom_test: Fail # Issue 16067
 [ $compiler == none && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
 
-[ $compiler == none && $unchecked ]
-# Only checked mode reports an error on type assignment
-# problems in compile time constants.
-type_check_const_function_typedef2_test/00: Fail, OK
-
 [ $compiler == none ]
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 

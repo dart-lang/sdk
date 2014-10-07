@@ -148,9 +148,6 @@ canonical_const2_test: RuntimeError, OK # Issue 1533
 bit_operations_test: RuntimeError, OK # Issue 1533
 expect_test: RuntimeError, OK # Issue 13080
 
-[ ($compiler == dart2js || $compiler == dart2dart) && $unchecked ]
-type_check_const_function_typedef2_test/00: MissingCompileTimeError, OK
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
