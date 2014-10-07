@@ -52,6 +52,17 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
+  Future<bool> visitCascadeExpression(CascadeExpression node) {
+    // Make suggestions for the target, but not for the selector
+    // InvocationComputer makes selector suggestions
+    Expression target = node.target;
+    if (target != null && request.offset <= target.end) {
+      return _addImportedElementSuggestions();
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitCombinator(Combinator node) {
     return _addCombinatorSuggestions(node);
   }
@@ -83,19 +94,13 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
-  Future<bool> visitCascadeExpression(CascadeExpression node) {
-    // Make suggestions for the target, but not for the selector
-    // InvocationComputer makes selector suggestions
-    Expression target = node.target;
-    if (target != null && request.offset <= target.end) {
-      return _addImportedElementSuggestions();
-    }
-    return new Future.value(false);
+  Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
+    return node.parent.accept(this);
   }
 
   @override
-  Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
-    return node.parent.accept(this);
+  Future<bool> visitTypeName(TypeName node) {
+    return _addImportedElementSuggestions(typesOnly: true);
   }
 
   Future _addCombinatorSuggestions(Combinator node) {
@@ -143,7 +148,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     request.suggestions.add(suggestion);
   }
 
-  Future<bool> _addImportedElementSuggestions() {
+  Future<bool> _addImportedElementSuggestions({bool typesOnly: false}) {
 
     // Exclude elements from local library
     // because they are provided by LocalComputer
@@ -159,7 +164,9 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
             Namespace importNamespace =
                 new NamespaceBuilder().createImportNamespaceForDirective(importElem);
             importNamespace.definedNames.forEach((_, Element element) {
-              _addElementSuggestion(element, CompletionRelevance.DEFAULT);
+              if (!typesOnly || element is ClassElement) {
+                _addElementSuggestion(element, CompletionRelevance.DEFAULT);
+              }
             });
           } else {
             // Exclude elements from prefixed imports
@@ -177,7 +184,9 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     Namespace coreNamespace =
         new NamespaceBuilder().createPublicNamespaceForLibrary(coreLib);
     coreNamespace.definedNames.forEach((_, Element element) {
-      _addElementSuggestion(element, CompletionRelevance.DEFAULT);
+      if (!typesOnly || element is ClassElement) {
+        _addElementSuggestion(element, CompletionRelevance.DEFAULT);
+      }
     });
 
     // Add non-imported elements as low relevance
@@ -193,7 +202,9 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
           if (element.isPublic &&
               !excludedLibs.contains(element.library) &&
               !completionSet.contains(element.displayName)) {
-            _addElementSuggestion(element, CompletionRelevance.LOW);
+            if (!typesOnly || element is ClassElement) {
+              _addElementSuggestion(element, CompletionRelevance.LOW);
+            }
           }
         }
       });

@@ -378,8 +378,9 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
-  CompletionSuggestion assertSuggestInvocationGetter(String name, String returnType,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+  CompletionSuggestion assertSuggestInvocationGetter(String name,
+      String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
     if (computer is InvocationComputer) {
       return assertSuggestGetter(name, returnType, relevance);
     } else {
@@ -503,6 +504,26 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('A');
       assertSuggestLocalClass('X');
       assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_IsExpression_type() {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addSource('/testB.dart', '''
+      lib B;
+      foo() { }
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      class Y {Y.c(); Y._d(); z() {}}
+      main() {var x; if (x is ^) { }}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestImportedClass('X');
+      assertSuggestLocalClass('Y');
+      assertNotSuggested('x');
+      assertNotSuggested('main');
+      assertNotSuggested('foo');
     });
   }
 }

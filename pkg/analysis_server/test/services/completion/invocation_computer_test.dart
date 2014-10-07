@@ -59,19 +59,6 @@ class InvocationComputerTest extends AbstractSelectorSuggestionTest {
     });
   }
 
-  test_IsExpression() {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
-    addSource('/testB.dart', '''
-      lib B;
-      class X {X.c(); X._d(); z() {}}''');
-    addTestSource('''
-      import "/testB.dart";
-      main() {var x; if (x is ^) { }}''');
-    return computeFull().then((_) {
-      assertNoSuggestions();
-    });
-  }
-
   test_PrefixedIdentifier_field() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''

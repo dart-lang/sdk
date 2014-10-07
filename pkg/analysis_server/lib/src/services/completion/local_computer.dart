@@ -6,7 +6,8 @@ library services.completion.computer.dart.local;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' as protocol show Element, ElementKind;
+import 'package:analysis_server/src/protocol.dart' as protocol show Element,
+    ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -56,6 +57,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       null);
 
   final DartCompletionRequest request;
+  bool typesOnly = false;
 
   _LocalVisitor(this.request);
 
@@ -83,10 +85,19 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
+  visitCascadeExpression(CascadeExpression node) {
+    Expression target = node.target;
+    // This computer handles the expression
+    // while InvocationComputer handles the cascade selector
+    if (target != null && request.offset <= target.end) {
+      visitNode(node);
+    }
+  }
+
+  @override
   visitCatchClause(CatchClause node) {
     _addParamSuggestion(node.exceptionParameter, node.exceptionType);
-    CompletionSuggestion suggestion =
-        _addParamSuggestion(node.stackTraceParameter, STACKTRACE_TYPE);
+    _addParamSuggestion(node.stackTraceParameter, STACKTRACE_TYPE);
     visitNode(node);
   }
 
@@ -159,16 +170,6 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
-  visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // InvocationComputer adds suggestions for prefixed elements
-    // but this computer adds suggestions for the prefix itself
-    SimpleIdentifier prefix = node.prefix;
-    if (prefix == null || request.offset <= prefix.end) {
-      visitNode(node);
-    }
-  }
-
-  @override
   visitForStatement(ForStatement node) {
     var varList = node.variables;
     if (varList != null) {
@@ -204,13 +205,21 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
-  visitCascadeExpression(CascadeExpression node) {
-    Expression target = node.target;
-    // This computer handles the expression
-    // while InvocationComputer handles the cascade selector
-    if (target != null && request.offset <= target.end) {
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // InvocationComputer adds suggestions for prefixed elements
+    // but this computer adds suggestions for the prefix itself
+    SimpleIdentifier prefix = node.prefix;
+    if (prefix == null || request.offset <= prefix.end) {
       visitNode(node);
     }
+  }
+
+  @override
+  visitTypeName(TypeName node) {
+    // If suggesting completions within a TypeName node
+    // then limit suggestions to only types
+    typesOnly = true;
+    return visitNode(node);
   }
 
   @override
@@ -238,6 +247,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   void _addFieldSuggestions(ClassDeclaration node, FieldDeclaration fieldDecl) {
+    if (typesOnly) {
+      return;
+    }
     bool isDeprecated = _isDeprecated(fieldDecl.metadata);
     fieldDecl.fields.variables.forEach((VariableDeclaration varDecl) {
       CompletionSuggestion suggestion = _addSuggestion(
@@ -257,6 +269,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   void _addFunctionSuggestion(FunctionDeclaration declaration) {
+    if (typesOnly) {
+      return;
+    }
     CompletionSuggestion suggestion = _addSuggestion(
         declaration.name,
         CompletionSuggestionKind.FUNCTION,
@@ -273,6 +288,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   void _addLocalVarSuggestion(SimpleIdentifier id, TypeName returnType) {
+    if (typesOnly) {
+      return;
+    }
     CompletionSuggestion suggestion =
         _addSuggestion(id, CompletionSuggestionKind.LOCAL_VARIABLE, returnType, null);
     if (suggestion != null) {
@@ -286,6 +304,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   void _addMethodSuggestion(ClassDeclaration node, MethodDeclaration classMbr) {
+    if (typesOnly) {
+      return;
+    }
     protocol.ElementKind kind;
     CompletionSuggestionKind csKind;
     if (classMbr.isGetter) {
@@ -309,6 +330,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   void _addParamListSuggestions(FormalParameterList paramList) {
+    if (typesOnly) {
+      return;
+    }
     if (paramList != null) {
       paramList.parameters.forEach((FormalParameter param) {
         NormalFormalParameter normalParam;
@@ -330,15 +354,16 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
   }
 
-  CompletionSuggestion _addParamSuggestion(SimpleIdentifier identifier,
-      TypeName type) {
+  void _addParamSuggestion(SimpleIdentifier identifier, TypeName type) {
+    if (typesOnly) {
+      return;
+    }
     CompletionSuggestion suggestion =
         _addSuggestion(identifier, CompletionSuggestionKind.PARAMETER, type, null);
     if (suggestion != null) {
       suggestion.element =
           _createElement(protocol.ElementKind.PARAMETER, identifier, type, false, false);
     }
-    return suggestion;
   }
 
   CompletionSuggestion _addSuggestion(SimpleIdentifier id,
@@ -380,6 +405,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   void _addTopLevelVarSuggestions(VariableDeclarationList varList) {
+    if (typesOnly) {
+      return;
+    }
     if (varList != null) {
       bool isDeprecated = _isDeprecated(varList.metadata);
       varList.variables.forEach((VariableDeclaration varDecl) {

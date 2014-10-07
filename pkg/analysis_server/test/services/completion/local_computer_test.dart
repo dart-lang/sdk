@@ -312,31 +312,4 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
     assertNotSuggested('f');
     assertNotSuggested('x');
   }
-
-  xtest_IsExpression_imported() {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
-    addSource('/testB.dart', '''
-      lib B;
-      class X {X.c(); X._d(); z() {}}''');
-    addTestSource('''
-      import "/testB.dart";
-      main() {var x; if (x is ^) { }}''');
-    return computeFull().then((_) {
-      assertNoSuggestions();
-    });
-  }
-
-  xtest_IsExpression_local() {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
-    addTestSource('''
-      class X {X.c(); X._d(); z() {}}
-      main() {var x; if (x is ^) { }}''');
-    return computeFull().then((_) {
-      assertSuggestConstructor('c');
-      assertNotSuggested('main');
-      assertNotSuggested('X');
-      assertNotSuggested('B');
-      assertNotSuggested('x');
-    });
-  }
 }
