@@ -6,7 +6,7 @@ homepage: http://www.dartlang.org
 environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
-  analyzer: 0.23.0-dev.6
+  analyzer: 0.23.0-dev.9
   args: any
   logging: any
   path: any
