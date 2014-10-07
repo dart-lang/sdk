@@ -1724,6 +1724,100 @@ void Simulator::DecodeLoadStoreReg(Instr* instr) {
 }
 
 
+void Simulator::DecodeLoadStoreRegPair(Instr* instr) {
+  const int32_t opc = instr->Bits(23, 3);
+  const Register rn = instr->RnField();
+  const Register rt = instr->RtField();
+  const Register rt2 = instr->Rt2Field();
+  const int64_t rn_val = get_register(rn, R31IsSP);
+  const intptr_t shift = 2 + instr->SFField();
+  const intptr_t size = 1 << shift;
+  const int32_t offset = (instr->SImm7Field() << shift);
+  uword address = 0;
+  uword wb_address = 0;
+  bool wb = false;
+
+  if ((instr->Bits(30, 2) == 3) || (instr->Bit(26) != 0)) {
+    UnimplementedInstruction(instr);
+    return;
+  }
+
+  // Calculate address.
+  switch (opc) {
+    case 1:
+      address = rn_val;
+      wb_address = rn_val + offset;
+      wb = true;
+      break;
+    case 2:
+      address = rn_val + offset;
+      break;
+    case 3:
+      address = rn_val + offset;
+      wb_address = address;
+      wb = true;
+      break;
+    default:
+      UnimplementedInstruction(instr);
+      return;
+  }
+
+  // Check the address.
+  if (IsIllegalAddress(address)) {
+    HandleIllegalAccess(address, instr);
+    return;
+  }
+
+  // Do access.
+  if (instr->Bit(22)) {
+    // Format(instr, "ldp'sf 'rt, 'ra, 'memop");
+    const bool signd = instr->Bit(30) == 1;
+    int64_t val1 = 0;  // Sign extend into an int64_t.
+    int64_t val2 = 0;
+    if (instr->Bit(31) == 1) {
+      // 64-bit read.
+      val1 = ReadX(address, instr);
+      val2 = ReadX(address + size, instr);
+    } else {
+      if (signd) {
+        val1 = static_cast<int64_t>(ReadW(address, instr));
+        val2 = static_cast<int64_t>(ReadW(address + size, instr));
+      } else {
+        val1 = static_cast<int64_t>(ReadWU(address, instr));
+        val2 = static_cast<int64_t>(ReadWU(address + size, instr));
+      }
+    }
+
+    // Write to register.
+    if (instr->Bit(31) == 1) {
+      set_register(instr, rt, val1, R31IsZR);
+      set_register(instr, rt2, val2, R31IsZR);
+    } else {
+      set_wregister(rt, static_cast<int32_t>(val1), R31IsZR);
+      set_wregister(rt2, static_cast<int32_t>(val2), R31IsZR);
+    }
+  } else {
+    // Format(instr, "stp'sf 'rt, 'ra, 'memop");
+    if (instr->Bit(31) == 1) {
+      const int64_t val1 = get_register(rt, R31IsZR);
+      const int64_t val2 = get_register(rt2, R31IsZR);
+      WriteX(address, val1, instr);
+      WriteX(address + size, val2, instr);
+    } else {
+      const int32_t val1 = get_wregister(rt, R31IsZR);
+      const int32_t val2 = get_wregister(rt2, R31IsZR);
+      WriteW(address, val1, instr);
+      WriteW(address + size, val2, instr);
+    }
+  }
+
+  // Do writeback.
+  if (wb) {
+    set_register(instr, rn, wb_address, R31IsSP);
+  }
+}
+
+
 void Simulator::DecodeLoadRegLiteral(Instr* instr) {
   if ((instr->Bit(31) != 0) || (instr->Bit(29) != 0) ||
       (instr->Bits(24, 3) != 0)) {
@@ -1748,6 +1842,8 @@ void Simulator::DecodeLoadRegLiteral(Instr* instr) {
 void Simulator::DecodeLoadStore(Instr* instr) {
   if (instr->IsLoadStoreRegOp()) {
     DecodeLoadStoreReg(instr);
+  } else if (instr->IsLoadStoreRegPairOp()) {
+    DecodeLoadStoreRegPair(instr);
   } else if (instr->IsLoadRegLiteralOp()) {
     DecodeLoadRegLiteral(instr);
   } else {

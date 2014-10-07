@@ -423,6 +423,44 @@ ASSEMBLER_TEST_RUN(LoadSigned32Bit, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(SimpleLoadStorePair, assembler) {
+  __ SetupDartSP(kTestStackSpace);
+  __ LoadImmediate(R2, 43, kNoPP);
+  __ LoadImmediate(R3, 42, kNoPP);
+  __ stp(R2, R3, Address(SP, -2*kWordSize, Address::PairPreIndex));
+  __ ldp(R0, R1, Address(SP, 2*kWordSize, Address::PairPostIndex));
+  __ sub(R0, R0, Operand(R1));
+  __ mov(CSP, SP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(SimpleLoadStorePair, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadStorePairOffset, assembler) {
+  __ SetupDartSP(kTestStackSpace);
+  __ LoadImmediate(R2, 43, kNoPP);
+  __ LoadImmediate(R3, 42, kNoPP);
+  __ sub(SP, SP, Operand(4 * kWordSize));
+  __ stp(R2, R3, Address::Pair(SP, 2 * kWordSize));
+  __ ldp(R0, R1, Address::Pair(SP, 2 * kWordSize));
+  __ add(SP, SP, Operand(4 * kWordSize));
+  __ sub(R0, R0, Operand(R1));
+  __ mov(CSP, SP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadStorePairOffset, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
 // Logical register operations.
 ASSEMBLER_TEST_GENERATE(AndRegs, assembler) {
   __ movz(R1, Immediate(43), 0);

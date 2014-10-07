@@ -34,6 +34,7 @@ class ARM64Decoder : public ValueObject {
   void PrintVRegister(int reg);
   void PrintShiftExtendRm(Instr* instr);
   void PrintMemOperand(Instr* instr);
+  void PrintPairMemOperand(Instr* instr);
   void PrintS(Instr* instr);
   void PrintCondition(Instr* instr);
 
@@ -216,9 +217,9 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
         Print("[");
         PrintRegister(rn, R31IsSP);
         buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                           remaining_size_in_buffer(),
-                           ", #%d",
-                           imm9);
+                                   remaining_size_in_buffer(),
+                                   ", #%d",
+                                   imm9);
         Print("]");
         break;
       }
@@ -268,6 +269,41 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
         Print("???");
       }
     }
+  }
+}
+
+
+void ARM64Decoder::PrintPairMemOperand(Instr* instr) {
+  const Register rn = instr->RnField();
+  const int32_t simm7 = instr->SImm7Field();
+  const int32_t offset = simm7 << (2 + instr->Bit(31));
+  Print("[");
+  PrintRegister(rn, R31IsSP);
+  switch (instr->Bits(23, 3)) {
+    case 1:
+      // rn + (imm7 << (2 + B31)), post-index, writeback.
+      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                 remaining_size_in_buffer(),
+                                 "], #%d !",
+                                 offset);
+      break;
+    case 2:
+      // rn + (imm7 << (2 + B31)), pre-index, no writeback.
+      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                 remaining_size_in_buffer(),
+                                 ", #%d ]",
+                                 offset);
+      break;
+    case 3:
+      // rn + (imm7 << (2 + B31)), pre-index, writeback.
+      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                 remaining_size_in_buffer(),
+                                 ", #%d ]!",
+                                 offset);
+      break;
+    default:
+      Print(", ???]");
+      break;
   }
 }
 
@@ -511,28 +547,34 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       return 5;
     }
     case 'p': {
-      if (format[2] == 'a') {
-        ASSERT(STRING_STARTS_WITH(format, "pcadr"));
-        const int64_t immhi = instr->SImm19Field();
-        const int64_t immlo = instr->Bits(29, 2);
-        const int64_t off = (immhi << 2) | immlo;
-        const int64_t pc = reinterpret_cast<int64_t>(instr);
-        const int64_t dest = pc + off;
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   "0x%"Px64,
-                                   dest);
+      if (format[1] == 'c') {
+        if (format[2] == 'a') {
+          ASSERT(STRING_STARTS_WITH(format, "pcadr"));
+          const int64_t immhi = instr->SImm19Field();
+          const int64_t immlo = instr->Bits(29, 2);
+          const int64_t off = (immhi << 2) | immlo;
+          const int64_t pc = reinterpret_cast<int64_t>(instr);
+          const int64_t dest = pc + off;
+          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                     remaining_size_in_buffer(),
+                                     "0x%"Px64,
+                                     dest);
+        } else {
+          ASSERT(STRING_STARTS_WITH(format, "pcldr"));
+          const int64_t off = instr->SImm19Field() << 2;
+          const int64_t pc = reinterpret_cast<int64_t>(instr);
+          const int64_t dest = pc + off;
+          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                     remaining_size_in_buffer(),
+                                     "0x%"Px64,
+                                     dest);
+        }
+        return 5;
       } else {
-        ASSERT(STRING_STARTS_WITH(format, "pcldr"));
-        const int64_t off = instr->SImm19Field() << 2;
-        const int64_t pc = reinterpret_cast<int64_t>(instr);
-        const int64_t dest = pc + off;
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(),
-                                   "0x%"Px64,
-                                   dest);
+        ASSERT(STRING_STARTS_WITH(format, "pmemop"));
+        PrintPairMemOperand(instr);
+        return 6;
       }
-      return 5;
     }
     case 'r': {
       return FormatRegister(instr, format);
@@ -670,6 +712,17 @@ void ARM64Decoder::DecodeLoadStoreReg(Instr* instr) {
     } else {
       Format(instr, "ldr'sz 'rt, 'memop");
     }
+  }
+}
+
+
+void ARM64Decoder::DecodeLoadStoreRegPair(Instr* instr) {
+  if (instr->Bit(22) == 1) {
+    // Load.
+    Format(instr, "ldp'sf 'rt, 'ra, 'pmemop");
+  } else {
+    // Store.
+    Format(instr, "stp'sf 'rt, 'ra, 'pmemop");
   }
 }
 
@@ -881,6 +934,8 @@ void ARM64Decoder::DecodeCompareBranch(Instr* instr) {
 void ARM64Decoder::DecodeLoadStore(Instr* instr) {
   if (instr->IsLoadStoreRegOp()) {
     DecodeLoadStoreReg(instr);
+  } else if (instr->IsLoadStoreRegPairOp()) {
+    DecodeLoadStoreRegPair(instr);
   } else if (instr->IsLoadRegLiteralOp()) {
     DecodeLoadRegLiteral(instr);
   } else {

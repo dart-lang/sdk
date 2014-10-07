@@ -105,6 +105,9 @@ class Address : public ValueObject {
     Offset,
     PreIndex,
     PostIndex,
+    PairOffset,
+    PairPreIndex,
+    PairPostIndex,
     Reg,
     PCOffset,
     Unknown,
@@ -132,14 +135,29 @@ class Address : public ValueObject {
       encoding_ =
           ((offset & 0x1ff) << kImm9Shift) |
           (static_cast<int32_t>(crn) << kRnShift);
-    } else {
+    } else if ((at == PreIndex) || (at == PostIndex)) {
       ASSERT(Utils::IsInt(9, offset));
-      ASSERT((at == PreIndex) || (at == PostIndex));
       int32_t idx = (at == PostIndex) ? B10 : (B11 | B10);
       encoding_ =
           idx |
           ((offset & 0x1ff) << kImm9Shift) |
           (static_cast<int32_t>(crn) << kRnShift);
+    } else {
+      ASSERT((at == PairOffset) || (at == PairPreIndex) ||
+             (at == PairPostIndex));
+      ASSERT(Utils::IsInt(7 + scale, offset) &&
+             (offset == ((offset >> scale) << scale)));
+      int32_t idx = 0;
+      switch (at) {
+        case PairPostIndex: idx = B23; break;
+        case PairPreIndex: idx = B24 | B23; break;
+        case PairOffset: idx = B24; break;
+        default: UNREACHABLE(); break;
+      }
+      encoding_ =
+        idx |
+        (((offset >> scale) << kImm7Shift) & kImm7Mask) |
+        (static_cast<int32_t>(crn) << kRnShift);
     }
     type_ = at;
     base_ = crn;
@@ -161,9 +179,14 @@ class Address : public ValueObject {
     } else if (at == PCOffset) {
       return Utils::IsInt(21, offset) &&
              (offset == ((offset >> 2) << 2));
-    } else {
-      ASSERT((at == PreIndex) || (at == PostIndex));
+    } else if ((at == PreIndex) || (at == PostIndex)) {
       return Utils::IsInt(9, offset);
+    } else {
+      ASSERT((at == PairOffset) || (at == PairPreIndex) ||
+             (at == PairPostIndex));
+      const int32_t scale = Log2OperandSizeBytes(sz);
+      return (Utils::IsInt(7 + scale, offset) &&
+              (offset == ((offset >> scale) << scale)));
     }
   }
 
@@ -175,6 +198,13 @@ class Address : public ValueObject {
     addr.base_ = kNoRegister;
     addr.type_ = PCOffset;
     return addr;
+  }
+
+  static Address Pair(Register rn,
+                      int32_t offset = 0,
+                      AddressType at = PairOffset,
+                      OperandSize sz = kDoubleWord) {
+    return Address(rn, offset, at, sz);
   }
 
   // This addressing mode does not exist.
@@ -630,6 +660,9 @@ class Assembler : public ValueObject {
 
   // Loads and Stores.
   void ldr(Register rt, Address a, OperandSize sz = kDoubleWord) {
+    ASSERT((a.type() != Address::PairOffset) &&
+           (a.type() != Address::PairPostIndex) &&
+           (a.type() != Address::PairPreIndex));
     if (a.type() == Address::PCOffset) {
       ASSERT(sz == kDoubleWord);
       EmitLoadRegLiteral(LDRpc, rt, a, sz);
@@ -648,7 +681,23 @@ class Assembler : public ValueObject {
     }
   }
   void str(Register rt, Address a, OperandSize sz = kDoubleWord) {
+    ASSERT((a.type() != Address::PairOffset) &&
+           (a.type() != Address::PairPostIndex) &&
+           (a.type() != Address::PairPreIndex));
     EmitLoadStoreReg(STR, rt, a, sz);
+  }
+
+  void ldp(Register rt, Register rt2, Address a, OperandSize sz = kDoubleWord) {
+    ASSERT((a.type() == Address::PairOffset) ||
+           (a.type() == Address::PairPostIndex) ||
+           (a.type() == Address::PairPreIndex));
+    EmitLoadStoreRegPair(LDP, rt, rt2, a, sz);
+  }
+  void stp(Register rt, Register rt2, Address a, OperandSize sz = kDoubleWord) {
+    ASSERT((a.type() == Address::PairOffset) ||
+           (a.type() == Address::PairPostIndex) ||
+           (a.type() == Address::PairPreIndex));
+    EmitLoadStoreRegPair(STP, rt, rt2, a, sz);
   }
 
   // Conditional select.
@@ -1598,6 +1647,29 @@ class Assembler : public ValueObject {
         op | size |
         (static_cast<int32_t>(crt) << kRtShift) |
         a.encoding();
+    Emit(encoding);
+  }
+
+  void EmitLoadStoreRegPair(LoadStoreRegPairOp op,
+                            Register rt, Register rt2, Address a,
+                            OperandSize sz) {
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
+    ASSERT((rt != CSP) && (rt != R31));
+    ASSERT((rt2 != CSP) && (rt2 != R31));
+    const Register crt = ConcreteRegister(rt);
+    const Register crt2 = ConcreteRegister(rt2);
+    int32_t opc;
+    switch (sz) {
+      case kDoubleWord: opc = B31; break;
+      case kWord: opc = B30; break;
+      case kUnsignedWord: opc = 0; break;
+      default: UNREACHABLE(); break;
+    }
+    const int32_t encoding =
+      opc | op |
+      (static_cast<int32_t>(crt) << kRtShift) |
+      (static_cast<int32_t>(crt2) << kRt2Shift) |
+      a.encoding();
     Emit(encoding);
   }
 
