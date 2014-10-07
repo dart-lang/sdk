@@ -37,6 +37,14 @@ class Pubspec {
       return _version;
     }
     var span = fields.nodes['version'].span;
+    if (version is num) {
+      var fixed = '$version.0';
+      if (version is int) {
+        fixed = '$fixed.0';
+      }
+      _error('"version" field must have three numeric components: major, '
+          'minor, and patch. Instead of "$version", consider "$fixed".', span);
+    }
     if (version is! String) {
       _error('"version" field must be a string.', span);
     }

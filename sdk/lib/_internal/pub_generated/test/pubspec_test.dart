@@ -194,7 +194,21 @@ dependencies:
           (pubspec) => pubspec.name);
     });
     test("throws if version is not a string", () {
-      expectPubspecException('version: 1.0', (pubspec) => pubspec.version);
+      expectPubspecException('version: [2, 0, 0]',
+          (pubspec) => pubspec.version,
+          '"version" field must be a string');
+    });
+    test("throws if version is malformed (looking like a double)", () {
+      expectPubspecException('version: 2.1',
+          (pubspec) => pubspec.version,
+          '"version" field must have three numeric components: major, minor, '
+          'and patch. Instead of "2.1", consider "2.1.0"');
+    });
+    test("throws if version is malformed (looking like an int)", () {
+      expectPubspecException('version: 2',
+          (pubspec) => pubspec.version,
+          '"version" field must have three numeric components: major, minor, '
+          'and patch. Instead of "2", consider "2.0.0"');
     });
     test("throws if version is not a version", () {
       expectPubspecException(
