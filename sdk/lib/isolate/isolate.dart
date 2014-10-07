@@ -18,10 +18,10 @@ part "capability.dart";
  * Thrown when an isolate cannot be created.
  */
 class IsolateSpawnException implements Exception {
-  // TODO(floitsch): clean up spawn exception.
-  const IsolateSpawnException(String this._s);
-  String toString() => "IsolateSpawnException: '$_s'";
-  final String _s;
+  /** Error message reported by the spawn operation. */
+  final String message;
+  IsolateSpawnException(this.message);
+  String toString() => "IsolateSpawnException: $message";
 }
 
 /**
