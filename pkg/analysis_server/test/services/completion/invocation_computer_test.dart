@@ -18,38 +18,12 @@ main() {
 }
 
 @ReflectiveTestCase()
-class InvocationComputerTest extends AbstractCompletionTest {
+class InvocationComputerTest extends AbstractSelectorSuggestionTest {
 
   @override
   void setUp() {
     super.setUp();
     computer = new InvocationComputer();
-  }
-
-  test_CascadeExpression_selector1() {
-    // PropertyAccess  CascadeExpression  ExpressionStatement
-    addTestSource('''
-      class A {var b; X _c;}
-      class X{}
-      // looks like a cascade to the parser
-      // but the user is trying to get completions for a non-cascade
-      main() {A a; a.^.b}''');
-    return computeFull(true).then((_) {
-      assertSuggestGetter('b', null);
-      assertSuggestGetter('_c', 'X');
-    });
-  }
-
-  test_CascadeExpression_selector2() {
-    // PropertyAccess  CascadeExpression  ExpressionStatement
-    addTestSource('''
-      class A {var b; X _c;}
-      class X{}
-      main() {A a; a..^b}''');
-    return computeFull().then((_) {
-      assertSuggestGetter('b', null);
-      assertSuggestGetter('_c', 'X');
-    });
   }
 
   test_CascadeExpression_target() {
@@ -94,6 +68,19 @@ class InvocationComputerTest extends AbstractCompletionTest {
       assertSuggest(CompletionSuggestionKind.CONSTRUCTOR, '_d');
       assertNotSuggested('z');
       assertNotSuggested('m');
+    });
+  }
+
+  test_IsExpression() {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addSource('/testB.dart', '''
+      lib B;
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      main() {var x; if (x is ^) { }}''');
+    return computeFull().then((_) {
+      assertNoSuggestions();
     });
   }
 
@@ -273,20 +260,6 @@ class InvocationComputerTest extends AbstractCompletionTest {
     return computeFull().then((_) {
       assertSuggestSetter('y');
       assertNotSuggested('_z');
-    });
-  }
-
-  //TODO (danrubel) implement
-  xtest_IsExpression() {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
-    addSource('/testB.dart', '''
-      lib B;
-      class X {X.c(); X._d(); z() {}}''');
-    addTestSource('''
-      import "/testB.dart";
-      main() {var x; if (x is ^) { }}''');
-    return computeFull().then((_) {
-      assertNoSuggestions();
     });
   }
 }

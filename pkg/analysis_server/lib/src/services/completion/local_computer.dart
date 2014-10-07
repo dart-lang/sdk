@@ -204,6 +204,16 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
+  visitCascadeExpression(CascadeExpression node) {
+    Expression target = node.target;
+    // This computer handles the expression
+    // while InvocationComputer handles the cascade selector
+    if (target != null && request.offset <= target.end) {
+      visitNode(node);
+    }
+  }
+
+  @override
   visitVariableDeclaration(VariableDeclaration node) {
     // Do not add suggestions if editing the name in a var declaration
     SimpleIdentifier name = node.name;

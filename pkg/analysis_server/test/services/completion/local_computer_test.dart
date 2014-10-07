@@ -16,7 +16,7 @@ main() {
 }
 
 @ReflectiveTestCase()
-class LocalComputerTest extends AbstractCompletionTest {
+class LocalComputerTest extends AbstractSelectorSuggestionTest {
 
   @override
   void setUp() {
@@ -40,16 +40,6 @@ class LocalComputerTest extends AbstractCompletionTest {
     expect(computeFast(), isTrue);
     assertSuggestLocalVariable('a', 'int');
     assertNotSuggested('b');
-  }
-
-  test_Block() {
-    // Block  BlockFunctionBody
-    addTestSource('class A {a() {var f; {var x;} ^ var g;}}');
-    expect(computeFast(), isTrue);
-    assertSuggestClass('A');
-    assertSuggestLocalVariable('f', null);
-    assertNotSuggested('g');
-    assertNotSuggested('x');
   }
 
   test_CatchClause_typed() {
@@ -285,7 +275,6 @@ class LocalComputerTest extends AbstractCompletionTest {
     assertNotSuggested('x');
   }
 
-  //TODO (danrubel) implement
   xtest_ConstructorName_importedClass() {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
@@ -301,7 +290,6 @@ class LocalComputerTest extends AbstractCompletionTest {
     });
   }
 
-  //TODO (danrubel) implement
   xtest_ConstructorName_localClass() {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
@@ -314,7 +302,6 @@ class LocalComputerTest extends AbstractCompletionTest {
     });
   }
 
-  //TODO (danrubel) implement
   xtest_InstanceCreationExpression() {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addTestSource('class A {a() {var f; {var x;} new ^}} class B { }');
@@ -326,7 +313,6 @@ class LocalComputerTest extends AbstractCompletionTest {
     assertNotSuggested('x');
   }
 
-  //TODO (danrubel) implement
   xtest_IsExpression_imported() {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addSource('/testB.dart', '''
@@ -340,7 +326,6 @@ class LocalComputerTest extends AbstractCompletionTest {
     });
   }
 
-  //TODO (danrubel) implement
   xtest_IsExpression_local() {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addTestSource('''

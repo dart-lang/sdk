@@ -10,6 +10,9 @@ import 'package:analysis_server/src/protocol.dart' as protocol show Element,
     ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/services/completion/imported_computer.dart';
+import 'package:analysis_server/src/services/completion/invocation_computer.dart';
+import 'package:analysis_server/src/services/completion/local_computer.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -53,10 +56,10 @@ class AbstractCompletionTest extends AbstractContextTest {
   }
 
   void assertNoSuggestions() {
-    expect(request.suggestions, equals(0));
+    expect(request.suggestions, hasLength(0));
   }
 
-  void assertNotSuggested(String completion) {
+  CompletionSuggestion assertNotSuggested(String completion) {
     CompletionSuggestion suggestion = request.suggestions.firstWhere(
         (cs) => cs.completion == completion,
         orElse: () => null);
@@ -64,6 +67,7 @@ class AbstractCompletionTest extends AbstractContextTest {
       _failedCompletion(
           'did not expect completion: $completion\n  $suggestion');
     }
+    return null;
   }
 
   CompletionSuggestion assertSuggest(CompletionSuggestionKind kind,
@@ -154,29 +158,39 @@ class AbstractCompletionTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggestLibraryPrefix(String prefix,
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
-    CompletionSuggestion cs =
-        assertSuggest(CompletionSuggestionKind.LIBRARY_PREFIX, prefix, relevance);
-    protocol.Element element = cs.element;
-    expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.LIBRARY));
-    expect(element.returnType, isNull);
-    return cs;
+    // Library prefix should only be suggested by ImportedComputer
+    if (computer is ImportedComputer) {
+      CompletionSuggestion cs =
+          assertSuggest(CompletionSuggestionKind.LIBRARY_PREFIX, prefix, relevance);
+      protocol.Element element = cs.element;
+      expect(element, isNotNull);
+      expect(element.kind, equals(protocol.ElementKind.LIBRARY));
+      expect(element.returnType, isNull);
+      return cs;
+    } else {
+      return null;
+    }
   }
 
   CompletionSuggestion assertSuggestLocalVariable(String name,
       String returnType, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
-    CompletionSuggestion cs =
-        assertSuggest(CompletionSuggestionKind.LOCAL_VARIABLE, name, relevance);
-    expect(cs.returnType, equals(returnType));
-    protocol.Element element = cs.element;
-    expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.LOCAL_VARIABLE));
-    expect(element.name, equals(name));
-    expect(
-        element.returnType,
-        equals(returnType != null ? returnType : 'dynamic'));
-    return cs;
+    // Local variables should only be suggested by LocalComputer
+    if (computer is LocalComputer) {
+      CompletionSuggestion cs =
+          assertSuggest(CompletionSuggestionKind.LOCAL_VARIABLE, name, relevance);
+      expect(cs.returnType, equals(returnType));
+      protocol.Element element = cs.element;
+      expect(element, isNotNull);
+      expect(element.kind, equals(protocol.ElementKind.LOCAL_VARIABLE));
+      expect(element.name, equals(name));
+      expect(
+          element.returnType,
+          equals(returnType != null ? returnType : 'dynamic'));
+      return cs;
+    } else {
+      return null;
+    }
   }
 
   CompletionSuggestion assertSuggestMethod(String name, String declaringType,
@@ -336,5 +350,140 @@ class AbstractCompletionTest extends AbstractContextTest {
       }
     }
     fail(sb.toString());
+  }
+}
+
+/**
+ * Common tests for `ImportedTypeComputerTest`, `InvocationComputerTest`,
+ * and `LocalComputerTest`.
+ */
+class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
+
+  CompletionSuggestion assertLocalSuggestMethod(String name,
+      String declaringType, String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is LocalComputer) {
+      return assertSuggestMethod(name, declaringType, returnType, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestImportedClass(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    if (computer is ImportedComputer) {
+      return assertSuggestClass(name, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestInvocationGetter(String name, String returnType,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    if (computer is InvocationComputer) {
+      return assertSuggestGetter(name, returnType, relevance);
+    } else {
+      return null;
+    }
+  }
+
+  CompletionSuggestion assertSuggestLocalClass(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    if (computer is LocalComputer) {
+      return assertSuggestClass(name, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  test_Block() {
+    addSource('/testAB.dart', '''
+      class A {int x;}
+      class _B { }''');
+    addSource('/testCD.dart', '''
+      class C { }
+      class D { }''');
+    addSource('/testEEF.dart', '''
+      class EE { }
+      class F { }''');
+    addSource('/testG.dart', 'class G { }');
+    addSource('/testH.dart', 'class H { }'); // not imported
+    addTestSource('''
+      import "/testAB.dart";
+      import "/testCD.dart" hide D;
+      import "/testEEF.dart" show EE;
+      import "/testG.dart" as g;
+      class X {a() {var f; {var x;} ^ var r;} Z b() { }}
+      class Z { }''');
+    computeFast();
+    return computeFull(true).then((_) {
+
+      assertSuggestLocalClass('X');
+      assertSuggestLocalClass('Z');
+      assertLocalSuggestMethod('a', 'X', null);
+      assertLocalSuggestMethod('b', 'X', 'Z');
+      assertSuggestLocalVariable('f', null);
+      // Don't suggest locals out of scope
+      assertNotSuggested('r');
+      assertNotSuggested('x');
+
+      assertSuggestImportedClass('A');
+      assertNotSuggested('_B');
+      assertSuggestImportedClass('C');
+      // hidden element suggested as low relevance
+      assertSuggestImportedClass('D', CompletionRelevance.LOW);
+      assertSuggestImportedClass('EE');
+      // hidden element suggested as low relevance
+      assertSuggestImportedClass('F', CompletionRelevance.LOW);
+      assertSuggestLibraryPrefix('g');
+      assertNotSuggested('G');
+      assertSuggestImportedClass('H', CompletionRelevance.LOW);
+      assertSuggestImportedClass('Object');
+      // TODO (danrubel) suggest HtmlElement as low relevance
+      assertNotSuggested('HtmlElement');
+    });
+  }
+
+  test_CascadeExpression_selector1() {
+    addSource('/testB.dart', '''
+      class B { }''');
+    addTestSource('''
+      import "/testB.dart";
+      class A {var b; X _c;}
+      class X{}
+      // looks like a cascade to the parser
+      // but the user is trying to get completions for a non-cascade
+      main() {A a; a.^.z}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('b', null);
+      assertSuggestInvocationGetter('_c', 'X');
+      assertNotSuggested('Object');
+      assertNotSuggested('A');
+      assertNotSuggested('B');
+      assertNotSuggested('X');
+      assertNotSuggested('z');
+    });
+  }
+
+  test_CascadeExpression_selector2() {
+    addSource('/testB.dart', '''
+      class B { }''');
+    addTestSource('''
+      import "/testB.dart";
+      class A {var b; X _c;}
+      class X{}
+      main() {A a; a..^z}''');
+    computeFast();
+    assertNoSuggestions();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('b', null);
+      assertSuggestInvocationGetter('_c', 'X');
+      assertNotSuggested('Object');
+      assertNotSuggested('A');
+      assertNotSuggested('B');
+      assertNotSuggested('X');
+      assertNotSuggested('z');
+    });
   }
 }

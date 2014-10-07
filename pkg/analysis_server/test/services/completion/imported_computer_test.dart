@@ -17,54 +17,12 @@ main() {
 }
 
 @ReflectiveTestCase()
-class ImportedTypeComputerTest extends AbstractCompletionTest {
+class ImportedTypeComputerTest extends AbstractSelectorSuggestionTest {
 
   @override
   void setUp() {
     super.setUp();
     computer = new ImportedComputer();
-  }
-
-  test_Block_class() {
-    // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
-    addSource('/testAB.dart', '''
-      class A {int x;}
-      class _B { }''');
-    addSource('/testCD.dart', '''
-      class C { }
-      class D { }''');
-    addSource('/testEEF.dart', '''
-      class EE { }
-      class F { }''');
-    addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', 'class H { }'); // not imported
-    addTestSource('''
-      import "/testAB.dart";
-      import "/testCD.dart" hide D;
-      import "/testEEF.dart" show EE;
-      import "/testG.dart" as g;
-      class X {foo(){^}}''');
-    // pass true for full analysis to pick up unimported source
-    return computeFull(true).then((_) {
-      assertSuggestClass('A');
-      assertNotSuggested('x');
-      assertNotSuggested('_B');
-      assertSuggestClass('C');
-      // hidden element suggested as low relevance
-      assertSuggestClass('D', CompletionRelevance.LOW);
-      assertSuggestClass('EE');
-      // hidden element suggested as low relevance
-      assertSuggestClass('F', CompletionRelevance.LOW);
-      assertSuggestLibraryPrefix('g');
-      assertNotSuggested('G');
-      assertSuggestClass('H', CompletionRelevance.LOW);
-      // Should not suggest compilation unit elements
-      // which are returned by the LocalComputer
-      assertNotSuggested('X');
-      assertSuggestClass('Object');
-      // TODO (danrubel) suggest HtmlElement as low relevance
-      assertNotSuggested('HtmlElement');
-    });
   }
 
   test_Block_function() {
@@ -109,6 +67,33 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
       // LocalComputer provides local suggestions
       assertNotSuggested('C');
       assertNotSuggested('foo');
+    });
+  }
+
+  test_ConstructorName_importedClass() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addSource('/testB.dart', '''
+      lib B;
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      var m;
+      main() {new X.^}''');
+    return computeFull().then((_) {
+      assertNoSuggestions();
+    });
+  }
+
+  test_ConstructorName_localClass() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addTestSource('''
+      var m;
+      class X {X.c(); X._d(); z() {}}
+      main() {new X.^}''');
+    return computeFull().then((_) {
+      assertNoSuggestions();
     });
   }
 
@@ -204,6 +189,16 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     });
   }
 
+  test_IsExpression_local() {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+      class X {X.c(); X._d(); z() {}}
+      main() {var x; if (x is ^) { }}''');
+    return computeFull().then((_) {
+      assertNoSuggestions();
+    });
+  }
+
   test_PrefixedIdentifier() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addSource('/testA.dart', '''
@@ -296,34 +291,6 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     });
   }
 
-  xtest_ConstructorName_importedClass() {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
-    // InstanceCreationExpression
-    addSource('/testB.dart', '''
-      lib B;
-      class X {X.c(); X._d(); z() {}}''');
-    addTestSource('''
-      import "/testB.dart";
-      var m;
-      main() {new X.^}''');
-    return computeFull().then((_) {
-      assertNoSuggestions();
-    });
-  }
-
-  xtest_ConstructorName_localClass() {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
-    // InstanceCreationExpression
-    addTestSource('''
-      var m;
-      class X {X.c(); X._d(); z() {}}
-      main() {new X.^}''');
-    return computeFull().then((_) {
-      assertNoSuggestions();
-    });
-  }
-
-  // TODO (danrubel) implement
   xtest_InstanceCreationExpression() {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addSource('/testA.dart', '''
@@ -342,7 +309,6 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     });
   }
 
-  // TODO (danrubel) implement
   xtest_IsExpression_imported() {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addSource('/testB.dart', '''
@@ -360,18 +326,6 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     });
   }
 
-  // TODO (danrubel) implement
-  xtest_IsExpression_local() {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
-    addTestSource('''
-      class X {X.c(); X._d(); z() {}}
-      main() {var x; if (x is ^) { }}''');
-    return computeFull().then((_) {
-      assertNoSuggestions();
-    });
-  }
-
-  // TODO (danrubel) implement
   xtest_VariableDeclarationStatement_RHS() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
