@@ -1227,6 +1227,30 @@ main() {
 ''');
   }
 
+  void test_importLibraryProject_withFunction_unresolvedMethod() {
+    addSource('/lib.dart', '''
+library lib;
+myFunction() {}
+''');
+    _indexTestUnit('''
+class A {
+  main() {
+    myFunction();
+  }
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import 'lib.dart';
+
+class A {
+  main() {
+    myFunction();
+  }
+}
+''');
+  }
+
   void test_importLibraryProject_withTopLevelVariable() {
     addSource('/lib.dart', '''
 library lib;

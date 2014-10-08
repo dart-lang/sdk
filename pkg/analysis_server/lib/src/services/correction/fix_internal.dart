@@ -225,6 +225,7 @@ class FixProcessor {
     }
     if (errorCode == HintCode.UNDEFINED_METHOD ||
         errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
+      _addFix_importLibrary_withFunction();
       _addFix_undefinedMethod_useSimilar();
       _addFix_undefinedMethod_create();
       _addFix_undefinedFunction_create();
