@@ -1014,7 +1014,7 @@ ASSEMBLER_TEST_RUN(MultiplyAccumAccum32To64, test) {
   EXPECT(test != NULL);
   typedef int64_t (*MultiplyAccumAccum32To64)
       (int64_t operand0, int64_t operand1) DART_UNUSED;
-  EXPECT_EQ((3LL << 32) + 7 + 5 * 11,
+  EXPECT_EQ(3 + 7 + 5 * 11,
             EXECUTE_TEST_CODE_INT64_LL(MultiplyAccumAccum32To64, test->entry(),
                                        (3LL << 32) + 7, (5LL << 32) + 11));
 }
