@@ -85,6 +85,11 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
+  Future<bool> visitCombinator(Combinator node) {
+    // Handled by ImportedComputer
+  }
+
+  @override
   visitCascadeExpression(CascadeExpression node) {
     Expression target = node.target;
     // This computer handles the expression

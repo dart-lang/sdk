@@ -73,6 +73,7 @@ class ImportedTypeComputerTest extends AbstractSelectorSuggestionTest {
   test_ExpressionStatement_class() {
     // SimpleIdentifier  ExpressionStatement  Block
     addSource('/testA.dart', '''
+      _B F1() { }
       class A {int x;}
       class _B { }''');
     addTestSource('''
@@ -80,6 +81,7 @@ class ImportedTypeComputerTest extends AbstractSelectorSuggestionTest {
       class C {foo(){O^}}''');
     return computeFull().then((_) {
       assertSuggestClass('A');
+      assertSuggestFunction('F1', '_B', false);
       assertNotSuggested('x');
       assertNotSuggested('_B');
       // Should not suggest compilation unit elements
@@ -125,60 +127,12 @@ class ImportedTypeComputerTest extends AbstractSelectorSuggestionTest {
     });
   }
 
-  test_HideCombinator_class() {
-    // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/testAB.dart', '''
-      library libAB;
-      part '/partAB.dart';
-      class A { }
-      class B { }''');
-    addSource('/partAB.dart', '''
-      part of libAB;
-      class PB { }''');
-    addSource('/testCD.dart', '''
-      class C { }
-      class D { }''');
-    addTestSource('''
-      import "/testAB.dart" hide ^;
-      import "/testCD.dart";
-      class X {}''');
-    return computeFull().then((_) {
-      assertSuggestClass('A');
-      assertSuggestClass('B');
-      assertSuggestClass('PB');
-      assertNotSuggested('C');
-      assertNotSuggested('D');
-      assertNotSuggested('Object');
-    });
-  }
-
   test_ImportDirective_dart() {
     // SimpleStringLiteral  ImportDirective
     addTestSource('''
       import "dart^";
       main() {}''');
     return computeFull().then((_) {
-      assertNotSuggested('Object');
-    });
-  }
-
-  test_ShowCombinator_class() {
-    // SimpleIdentifier  ShowCombinator  ImportDirective
-    addSource('/testAB.dart', '''
-      class A { }
-      class B { }''');
-    addSource('/testCD.dart', '''
-      class C { }
-      class D { }''');
-    addTestSource('''
-      import "/testAB.dart" show ^;
-      import "/testCD.dart";
-      class X {}''');
-    return computeFull().then((_) {
-      assertSuggestClass('A');
-      assertSuggestClass('B');
-      assertNotSuggested('C');
-      assertNotSuggested('D');
       assertNotSuggested('Object');
     });
   }

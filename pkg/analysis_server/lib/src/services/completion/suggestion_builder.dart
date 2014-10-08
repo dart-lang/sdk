@@ -82,15 +82,14 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
  * the visible members in that library. Clients should call
  * [LibraryElementSuggestionBuilder.suggestionsFor].
  */
-class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
+class LibraryElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 
-  final DartCompletionRequest request;
-
-  LibraryElementSuggestionBuilder(this.request);
+  LibraryElementSuggestionBuilder(DartCompletionRequest request)
+      : super(request);
 
   @override
   visitClassElement(ClassElement element) {
-    _addSuggestion(element);
+    _addElementSuggestion(element, CompletionSuggestionKind.CLASS, null, null);
   }
 
   @override
@@ -104,33 +103,30 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   }
 
   @override
+  visitFunctionElement(FunctionElement element) {
+    _addElementSuggestion(
+        element,
+        CompletionSuggestionKind.FUNCTION,
+        element.returnType,
+        null);
+  }
+
+  @override
   visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    _addSuggestion(element);
+    _addElementSuggestion(
+        element,
+        CompletionSuggestionKind.FUNCTION_TYPE_ALIAS,
+        element.returnType,
+        null);
   }
 
   @override
   visitTopLevelVariableElement(TopLevelVariableElement element) {
-    _addSuggestion(element);
-  }
-
-  void _addSuggestion(Element element) {
-    if (element != null) {
-      String completion = element.name;
-      if (completion != null && completion.length > 0) {
-        CompletionSuggestion suggestion = new CompletionSuggestion(
-            protocol.newCompletionSuggestionKind_fromElementKind(element.kind),
-            CompletionRelevance.DEFAULT,
-            completion,
-            completion.length,
-            0,
-            element.isDeprecated,
-            false);
-
-        suggestion.element = newElement_fromEngine(element);
-
-        request.suggestions.add(suggestion);
-      }
-    }
+    _addElementSuggestion(
+        element,
+        CompletionSuggestionKind.TOP_LEVEL_VARIABLE,
+        element.type,
+        null);
   }
 
   /**

@@ -383,6 +383,26 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestImportedTopLevelVar(String name,
+      String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is ImportedComputer) {
+      return assertSuggestTopLevelVar(name, returnType, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestImportedFunction(String name,
+      String returnType, [bool isDeprecated = false, CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is ImportedComputer) {
+      return assertSuggestFunction(name, returnType, isDeprecated, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
   CompletionSuggestion assertSuggestInvocationClass(String name,
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
     if (computer is InvocationComputer) {
@@ -402,30 +422,10 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
-  CompletionSuggestion assertSuggestInvocationTopLevelVar(String name,
-      String returnType, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
-    if (computer is InvocationComputer) {
-      return assertSuggestTopLevelVar(name, returnType, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
-  }
-
   CompletionSuggestion assertSuggestInvocationMethod(String name,
       String declaringType, String returnType, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
     if (computer is InvocationComputer) {
-      return assertSuggestMethod(name, declaringType, returnType, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
-  }
-
-  CompletionSuggestion assertSuggestLocalMethod(String name,
-      String declaringType, String returnType, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
-    if (computer is LocalComputer) {
       return assertSuggestMethod(name, declaringType, returnType, relevance);
     } else {
       return assertNotSuggested(name);
@@ -441,10 +441,30 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestInvocationTopLevelVar(String name,
+      String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is InvocationComputer) {
+      return assertSuggestTopLevelVar(name, returnType, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
   CompletionSuggestion assertSuggestLocalClass(String name,
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
     if (computer is LocalComputer) {
       return assertSuggestClass(name, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestLocalMethod(String name,
+      String declaringType, String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is LocalComputer) {
+      return assertSuggestMethod(name, declaringType, returnType, relevance);
     } else {
       return assertNotSuggested(name);
     }
@@ -557,6 +577,72 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('A');
       assertSuggestLocalClass('X');
       assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_Combinator_hide() {
+    // SimpleIdentifier  HideCombinator  ImportDirective
+    addSource('/testAB.dart', '''
+      library libAB;
+      part '/partAB.dart';
+      class A { }
+      class B { }''');
+    addSource('/partAB.dart', '''
+      part of libAB;
+      var T1;
+      PB F1() => new PB();
+      class PB { }''');
+    addSource('/testCD.dart', '''
+      class C { }
+      class D { }''');
+    addTestSource('''
+      import "/testAB.dart" hide ^;
+      import "/testCD.dart";
+      class X {}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestImportedClass('A');
+      assertSuggestImportedClass('B');
+      assertSuggestImportedClass('PB');
+      assertSuggestImportedTopLevelVar('T1', null);
+      assertSuggestImportedFunction('F1', 'PB');
+      assertNotSuggested('C');
+      assertNotSuggested('D');
+      assertNotSuggested('X');
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_Combinator_show() {
+    // SimpleIdentifier  HideCombinator  ImportDirective
+    addSource('/testAB.dart', '''
+      library libAB;
+      part '/partAB.dart';
+      class A { }
+      class B { }''');
+    addSource('/partAB.dart', '''
+      part of libAB;
+      var T1;
+      PB F1() => new PB();
+      class PB { }''');
+    addSource('/testCD.dart', '''
+      class C { }
+      class D { }''');
+    addTestSource('''
+      import "/testAB.dart" show ^;
+      import "/testCD.dart";
+      class X {}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestImportedClass('A');
+      assertSuggestImportedClass('B');
+      assertSuggestImportedClass('PB');
+      assertSuggestImportedTopLevelVar('T1', null);
+      assertSuggestImportedFunction('F1', 'PB');
+      assertNotSuggested('C');
+      assertNotSuggested('D');
+      assertNotSuggested('X');
+      assertNotSuggested('Object');
     });
   }
 
