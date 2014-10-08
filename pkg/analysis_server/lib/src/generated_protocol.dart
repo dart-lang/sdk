@@ -4755,6 +4755,7 @@ class AnalysisErrorSeverity {
  *
  * enum {
  *   ANGULAR
+ *   CHECKED_MODE_COMPILE_TIME_ERROR
  *   COMPILE_TIME_ERROR
  *   HINT
  *   POLYMER
@@ -4766,6 +4767,8 @@ class AnalysisErrorSeverity {
  */
 class AnalysisErrorType {
   static const ANGULAR = const AnalysisErrorType._("ANGULAR");
+
+  static const CHECKED_MODE_COMPILE_TIME_ERROR = const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
 
   static const COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
 
@@ -4789,6 +4792,8 @@ class AnalysisErrorType {
     switch (name) {
       case "ANGULAR":
         return ANGULAR;
+      case "CHECKED_MODE_COMPILE_TIME_ERROR":
+        return CHECKED_MODE_COMPILE_TIME_ERROR;
       case "COMPILE_TIME_ERROR":
         return COMPILE_TIME_ERROR;
       case "HINT":

@@ -867,6 +867,7 @@ final Matcher isAnalysisErrorSeverity = new MatchesEnum("AnalysisErrorSeverity",
  *
  * enum {
  *   ANGULAR
+ *   CHECKED_MODE_COMPILE_TIME_ERROR
  *   COMPILE_TIME_ERROR
  *   HINT
  *   POLYMER
@@ -878,6 +879,7 @@ final Matcher isAnalysisErrorSeverity = new MatchesEnum("AnalysisErrorSeverity",
  */
 final Matcher isAnalysisErrorType = new MatchesEnum("AnalysisErrorType", [
   "ANGULAR",
+  "CHECKED_MODE_COMPILE_TIME_ERROR",
   "COMPILE_TIME_ERROR",
   "HINT",
   "POLYMER",
