@@ -1753,11 +1753,11 @@ void Simulator::DecodeType01(Instr* instr) {
             if (instr->Bits(21, 3) == 4) {  // umull
               uint64_t left_op  = static_cast<uint32_t>(rm_val);
               uint64_t right_op = static_cast<uint32_t>(rs_val);
-              result = left_op * right_op;  // Unsigned nultiplication.
+              result = left_op * right_op;  // Unsigned multiplication.
             } else {  // smull
               int64_t left_op  = static_cast<int32_t>(rm_val);
               int64_t right_op = static_cast<int32_t>(rs_val);
-              result = left_op * right_op;  // Signed nultiplication.
+              result = left_op * right_op;  // Signed multiplication.
             }
             int32_t hi_res = Utils::High32Bits(result);
             int32_t lo_res = Utils::Low32Bits(result);
@@ -1774,6 +1774,9 @@ void Simulator::DecodeType01(Instr* instr) {
             }
             break;
           }
+          case 2:
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "umaal'cond's 'rd, 'rn, 'rm, 'rs");
           case 5:
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");
@@ -1789,11 +1792,19 @@ void Simulator::DecodeType01(Instr* instr) {
             if (instr->Bits(21, 3) == 5) {  // umlal
               uint64_t left_op  = static_cast<uint32_t>(rm_val);
               uint64_t right_op = static_cast<uint32_t>(rs_val);
-              result = accum + left_op * right_op;  // Unsigned nultiplication.
-            } else {  // smlal
+              result = accum + left_op * right_op;  // Unsigned multiplication.
+            } else if (instr->Bits(21, 3) == 7) {  // smlal
               int64_t left_op  = static_cast<int32_t>(rm_val);
               int64_t right_op = static_cast<int32_t>(rs_val);
-              result = accum + left_op * right_op;  // Signed nultiplication.
+              result = accum + left_op * right_op;  // Signed multiplication.
+            } else {
+              ASSERT(instr->Bits(21, 3) == 2);  // umaal
+              ASSERT(!instr->HasS());
+              uint64_t left_op  = static_cast<uint32_t>(rm_val);
+              uint64_t right_op = static_cast<uint32_t>(rs_val);
+              result = left_op * right_op +  // Unsigned multiplication.
+                  static_cast<uint32_t>(rd_lo_val) +
+                  static_cast<uint32_t>(rd_hi_val);
             }
             int32_t hi_res = Utils::High32Bits(result);
             int32_t lo_res = Utils::Low32Bits(result);

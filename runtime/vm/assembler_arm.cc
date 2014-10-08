@@ -465,6 +465,14 @@ void Assembler::umlal(Register rd_lo, Register rd_hi,
 }
 
 
+void Assembler::umaal(Register rd_lo, Register rd_hi,
+                      Register rn, Register rm, Condition cond) {
+  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+  // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+  EmitMulOp(cond, B22, rd_lo, rd_hi, rn, rm);
+}
+
+
 void Assembler::EmitDivOp(Condition cond, int32_t opcode,
                           Register rd, Register rn, Register rm) {
   ASSERT(TargetCPUFeatures::integer_division_supported());

@@ -920,6 +920,7 @@ ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
     __ Pop(R4);
   } else {
     __ LoadImmediate(R0, 6);
+    __ LoadImmediate(R1, 0);
   }
   __ bx(LR);
 #if defined(USING_SIMULATOR)
@@ -946,6 +947,7 @@ ASSEMBLER_TEST_GENERATE(Multiply32To64, assembler) {
     __ smull(R0, R1, R0, R2);
   } else {
     __ LoadImmediate(R0, 6);
+    __ LoadImmediate(R1, 0);
   }
   __ bx(LR);
 #if defined(USING_SIMULATOR)
@@ -972,6 +974,7 @@ ASSEMBLER_TEST_GENERATE(MultiplyAccum32To64, assembler) {
     __ smlal(R0, R1, R0, R2);
   } else {
     __ LoadImmediate(R0, 3);
+    __ LoadImmediate(R1, 0);
   }
   __ bx(LR);
 #if defined(USING_SIMULATOR)
@@ -982,10 +985,38 @@ ASSEMBLER_TEST_GENERATE(MultiplyAccum32To64, assembler) {
 
 ASSEMBLER_TEST_RUN(MultiplyAccum32To64, test) {
   EXPECT(test != NULL);
-  typedef int64_t (*Multiply32To64)
+  typedef int64_t (*MultiplyAccum32To64)
       (int64_t operand0, int64_t operand1) DART_UNUSED;
-  EXPECT_EQ(3,
-            EXECUTE_TEST_CODE_INT64_LL(Multiply32To64, test->entry(), -3, -2));
+  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT64_LL(MultiplyAccum32To64, test->entry(),
+                                          -3, -2));
+}
+
+
+ASSEMBLER_TEST_GENERATE(MultiplyAccumAccum32To64, assembler) {
+#if defined(USING_SIMULATOR)
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  HostCPUFeatures::set_arm_version(ARMv7);
+#endif
+  if (TargetCPUFeatures::arm_version() == ARMv7) {
+    __ umaal(R0, R1, R2, R3);
+  } else {
+    __ LoadImmediate(R0, 3 + 7 + 5 * 11);
+    __ LoadImmediate(R1, 0);
+  }
+  __ bx(LR);
+#if defined(USING_SIMULATOR)
+  HostCPUFeatures::set_arm_version(version);
+#endif
+}
+
+
+ASSEMBLER_TEST_RUN(MultiplyAccumAccum32To64, test) {
+  EXPECT(test != NULL);
+  typedef int64_t (*MultiplyAccumAccum32To64)
+      (int64_t operand0, int64_t operand1) DART_UNUSED;
+  EXPECT_EQ((3LL << 32) + 7 + 5 * 11,
+            EXECUTE_TEST_CODE_INT64_LL(MultiplyAccumAccum32To64, test->entry(),
+                                       (3LL << 32) + 7, (5LL << 32) + 11));
 }
 
 

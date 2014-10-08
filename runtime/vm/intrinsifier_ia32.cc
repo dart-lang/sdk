@@ -1036,7 +1036,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   //                     Uint32List m_digits, int i,
   //                     Uint32List a_digits, int j, int n) {
   //   uint32_t x = x_digits[xi >> 1];  // xi is Smi.
-  //   if (x == 0  || n == 0) {
+  //   if (x == 0 || n == 0) {
   //     return;
   //   }
   //   uint32_t* mip = &m_digits[i >> 1];  // i is Smi.
@@ -1178,7 +1178,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // }
 
   // EDI = xip = &x_digits[i >> 1]
-  __ movl(EDI, Address(ESP, 4 * kWordSize));  // m_digits
+  __ movl(EDI, Address(ESP, 4 * kWordSize));  // x_digits
   __ movl(EAX, Address(ESP, 3 * kWordSize));  // i is Smi
   __ leal(EDI, FieldAddress(EDI, EAX, TIMES_2, TypedData::data_offset()));
 
@@ -1207,7 +1207,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ movl(Address(ESI, 0), EAX);
   __ addl(ESI, Immediate(kWordSize));
 
-  // int n = used - i - 1;  // All Smi.
+  // int n = used - i - 1
   __ movl(EAX, Address(ESP, 2 * kWordSize));  // used is Smi
   __ subl(EAX, Address(ESP, 4 * kWordSize));  // i is Smi
   __ SmiUntag(EAX);
@@ -1263,21 +1263,16 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&done);
-  // uint32_t aj = *ajp;
-  __ movl(EAX, Address(ESI, 0));
-
-  // uint64_t t = aj + c;  // 32-bit + 33-bit -> 34-bit.
+  // uint64_t t = aj + c
   __ movl(EAX, cl_addr);  // t = c
   __ movl(EDX, ch_addr);
-  __ addl(EAX, Address(ESI, 0));  // t += aj
+  __ addl(EAX, Address(ESI, 0));  // t += *ajp
   __ adcl(EDX, Immediate(0));
 
-  // *ajp++ = low32(t);
+  // *ajp++ = low32(t)
+  // *ajp = high32(t)
   __ movl(Address(ESI, 0), EAX);
-  __ addl(ESI, Immediate(kWordSize));
-
-  // *ajp = high32(t);
-  __ movl(Address(ESI, 0), EDX);
+  __ movl(Address(ESI, kWordSize), EDX);
 
   // Restore CTX and return.
   __ Drop(3);

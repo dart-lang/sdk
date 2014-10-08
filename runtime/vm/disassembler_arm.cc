@@ -714,6 +714,11 @@ void ARMDecoder::DecodeType01(Instr* instr) {
             Format(instr, "mla'cond's 'rn, 'rm, 'rs, 'rd");
             break;
           }
+          case 2: {
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            Format(instr, "umaal'cond's 'rd, 'rn, 'rm, 'rs");
+            break;
+          }
           case 3: {
             // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
             Format(instr, "mls'cond's 'rn, 'rm, 'rs, 'rd");
