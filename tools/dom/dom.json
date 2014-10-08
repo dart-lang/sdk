@@ -13702,6 +13702,12 @@
       },
       "HIGH_FLOAT": {},
       "HIGH_INT": {},
+      "IMPLEMENTATION_COLOR_READ_FORMAT": {
+        "support_level": "untriaged"
+      },
+      "IMPLEMENTATION_COLOR_READ_TYPE": {
+        "support_level": "untriaged"
+      },
       "INCR": {},
       "INCR_WRAP": {},
       "INT": {},

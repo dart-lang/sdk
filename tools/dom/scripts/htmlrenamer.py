@@ -126,6 +126,7 @@ _removed_html_interfaces = [
   'SVGTRefElement',
   'SVGVKernElement',
   'SubtleCrypto',
+  'WebGLRenderingContextBase',
   'WebKitCSSFilterValue',
   'WebKitCSSMatrix',
   'WebKitCSSMixFunctionValue',
