@@ -70,33 +70,6 @@ class ImportedTypeComputerTest extends AbstractSelectorSuggestionTest {
     });
   }
 
-  test_ConstructorName_importedClass() {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
-    // InstanceCreationExpression
-    addSource('/testB.dart', '''
-      lib B;
-      class X {X.c(); X._d(); z() {}}''');
-    addTestSource('''
-      import "/testB.dart";
-      var m;
-      main() {new X.^}''');
-    return computeFull().then((_) {
-      assertNoSuggestions();
-    });
-  }
-
-  test_ConstructorName_localClass() {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
-    // InstanceCreationExpression
-    addTestSource('''
-      var m;
-      class X {X.c(); X._d(); z() {}}
-      main() {new X.^}''');
-    return computeFull().then((_) {
-      assertNoSuggestions();
-    });
-  }
-
   test_ExpressionStatement_class() {
     // SimpleIdentifier  ExpressionStatement  Block
     addSource('/testA.dart', '''
@@ -266,53 +239,6 @@ class ImportedTypeComputerTest extends AbstractSelectorSuggestionTest {
       class C {} var ^''');
     return computeFull().then((_) {
       assertNotSuggested('B');
-    });
-  }
-
-  test_VariableDeclaration_name() {
-    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
-    // VariableDeclarationStatement  Block
-    addSource('/testA.dart', 'var T1;');
-    addTestSource('''
-      import "/testA.dart";
-      class C {a() {var ^}}''');
-    return computeFull().then((_) {
-      assertNotSuggested('T1');
-    });
-  }
-
-  xtest_InstanceCreationExpression() {
-    // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
-    addSource('/testA.dart', '''
-      class A {int x;}
-      B() { }''');
-    addTestSource('''
-      import "/testA.dart";
-      class C {foo(){new ^}}''');
-    return computeFull().then((_) {
-      assertSuggestClass('A');
-      assertNotSuggested('x');
-      assertNotSuggested('B');
-      // Should not suggest compilation unit elements
-      // which are returned by the LocalComputer
-      assertNotSuggested('C');
-    });
-  }
-
-  xtest_VariableDeclarationStatement_RHS() {
-    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
-    // VariableDeclarationStatement
-    addSource('/testA.dart', 'class A {int x;} class _B { }');
-    addTestSource('''
-      import "/testA.dart";
-      class C {foo(){var e = ^}}''');
-    return computeFull().then((_) {
-      assertSuggestClass('A');
-      assertNotSuggested('x');
-      assertNotSuggested('_B');
-      // Should not suggest compilation unit elements
-      // which are returned by the LocalComputer
-      assertNotSuggested('C');
     });
   }
 }

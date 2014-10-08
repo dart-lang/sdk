@@ -5,7 +5,6 @@
 library test.services.completion.invocation;
 
 
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
 import 'package:unittest/unittest.dart';
 
@@ -24,39 +23,6 @@ class InvocationComputerTest extends AbstractSelectorSuggestionTest {
   void setUp() {
     super.setUp();
     computer = new InvocationComputer();
-  }
-
-  test_ConstructorName_importedClass() {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
-    // InstanceCreationExpression
-    addSource('/testB.dart', '''
-      lib B;
-      class X {X.c(); X._d(); z() {}}''');
-    addTestSource('''
-      import "/testB.dart";
-      var m;
-      main() {new X.^}''');
-    return computeFull().then((_) {
-      assertSuggest(CompletionSuggestionKind.CONSTRUCTOR, 'c');
-      assertNotSuggested('_d');
-      assertNotSuggested('z');
-      assertNotSuggested('m');
-    });
-  }
-
-  test_ConstructorName_localClass() {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
-    // InstanceCreationExpression
-    addTestSource('''
-      var m;
-      class X {X.c(); X._d(); z() {}}
-      main() {new X.^}''');
-    return computeFull().then((_) {
-      assertSuggest(CompletionSuggestionKind.CONSTRUCTOR, 'c');
-      assertSuggest(CompletionSuggestionKind.CONSTRUCTOR, '_d');
-      assertNotSuggested('z');
-      assertNotSuggested('m');
-    });
   }
 
   test_PrefixedIdentifier_field() {

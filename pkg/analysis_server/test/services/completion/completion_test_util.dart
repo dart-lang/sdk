@@ -109,18 +109,6 @@ class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestConstructor(String name,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
-    CompletionSuggestion cs =
-        assertSuggest(CompletionSuggestionKind.CONSTRUCTOR, name, relevance);
-    protocol.Element element = cs.element;
-    expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
-    expect(element.name, equals(name));
-    expect(element.returnType, isNull);
-    return cs;
-  }
-
   CompletionSuggestion assertSuggestFunction(String name, String returnType,
       bool isDeprecated, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
@@ -208,6 +196,23 @@ class AbstractCompletionTest extends AbstractContextTest {
         element.returnType,
         equals(returnType != null ? returnType : 'dynamic'));
     return cs;
+  }
+
+  CompletionSuggestion assertSuggestNamedConstructor(String name,
+      String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is InvocationComputer) {
+      CompletionSuggestion cs =
+          assertSuggest(CompletionSuggestionKind.CONSTRUCTOR, name, relevance);
+      protocol.Element element = cs.element;
+      expect(element, isNotNull);
+      expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
+      expect(element.name, equals(name));
+      expect(element.returnType, equals(returnType));
+      return cs;
+    } else {
+      return null;
+    }
   }
 
   CompletionSuggestion assertSuggestParameter(String name, String returnType,
@@ -507,6 +512,76 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_ConstructorName_importedClass() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addSource('/testB.dart', '''
+      lib B;
+      int T1;
+      F1() { }
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      var m;
+      main() {new X.^}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestNamedConstructor('c', 'X');
+      assertNotSuggested('F1');
+      assertNotSuggested('T1');
+      assertNotSuggested('_d');
+      assertNotSuggested('z');
+      assertNotSuggested('m');
+    });
+  }
+
+  test_ConstructorName_localClass() {
+    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // InstanceCreationExpression
+    addTestSource('''
+      int T1;
+      F1() { }
+      class X {X.c(); X._d(); z() {}}
+      main() {new X.^}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestNamedConstructor('c', 'X');
+      assertSuggestNamedConstructor('_d', 'X');
+      assertNotSuggested('F1');
+      assertNotSuggested('T1');
+      assertNotSuggested('z');
+      assertNotSuggested('m');
+    });
+  }
+
+  test_InstanceCreationExpression_imported() {
+    // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
+    addSource('/testA.dart', '''
+      int T1;
+      F1() { }
+      class A {int x;}''');
+    addTestSource('''
+      import "/testA.dart";
+      int T2;
+      F2() { }
+      class B {int x;}
+      class C {foo(){var f; {var x;} new ^}}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestImportedClass('Object');
+      assertSuggestImportedClass('A');
+      assertSuggestLocalClass('B');
+      assertSuggestLocalClass('C');
+      assertNotSuggested('f');
+      assertNotSuggested('x');
+      assertNotSuggested('foo');
+      assertNotSuggested('F1');
+      assertNotSuggested('F2');
+      assertNotSuggested('T1');
+      assertNotSuggested('T2');
+    });
+  }
+
   test_IsExpression_type() {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addSource('/testB.dart', '''
@@ -524,6 +599,72 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('x');
       assertNotSuggested('main');
       assertNotSuggested('foo');
+    });
+  }
+
+  test_VariableDeclaration_name() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addSource('/testB.dart', '''
+      lib B;
+      foo() { }
+      class _B { }
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      class Y {Y.c(); Y._d(); z() {}}
+      main() {var ^}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNoSuggestions();
+    });
+  }
+
+  test_VariableDeclarationStatement_RHS() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement
+    addSource('/testB.dart', '''
+      lib B;
+      foo() { }
+      class _B { }
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      class Y {Y.c(); Y._d(); z() {}}
+      class C {bar(){var f; {var x;} var e = ^}}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestImportedClass('X');
+      assertNotSuggested('_B');
+      assertSuggestLocalClass('Y');
+      assertSuggestLocalClass('C');
+      assertSuggestLocalVariable('f', null);
+      assertNotSuggested('x');
+      assertNotSuggested('e');
+    });
+  }
+
+  test_VariableDeclarationStatement_RHS_missing_semicolon() {
+    // VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement
+    addSource('/testB.dart', '''
+      lib B;
+      foo() { }
+      class _B { }
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      class Y {Y.c(); Y._d(); z() {}}
+      class C {bar(){var f; {var x;} var e = ^ var g}}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestImportedClass('X');
+      assertNotSuggested('_B');
+      assertSuggestLocalClass('Y');
+      assertSuggestLocalClass('C');
+      assertSuggestLocalVariable('f', null);
+      assertNotSuggested('x');
+      assertNotSuggested('e');
     });
   }
 }

@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -101,6 +102,16 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   @override
   Future<bool> visitTypeName(TypeName node) {
     return _addImportedElementSuggestions(typesOnly: true);
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    Token equals = node.equals;
+    // Make suggestions for the RHS of a variable declaration
+    if (equals != null && request.offset >= equals.end) {
+      return _addImportedElementSuggestions();
+    }
+    return new Future.value(false);
   }
 
   Future _addCombinatorSuggestions(Combinator node) {
