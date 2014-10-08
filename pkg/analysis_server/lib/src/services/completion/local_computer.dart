@@ -205,6 +205,11 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
+  visitNamespaceDirective(NamespaceDirective node) {
+    // No suggestions
+  }
+
+  @override
   visitNode(AstNode node) {
     node.parent.accept(this);
   }

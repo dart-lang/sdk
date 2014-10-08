@@ -56,7 +56,9 @@ class AbstractCompletionTest extends AbstractContextTest {
   }
 
   void assertNoSuggestions() {
-    expect(request.suggestions, hasLength(0));
+    if (request.suggestions.length > 0) {
+      _failedCompletion('Expected no suggestions', request.suggestions);
+    }
   }
 
   CompletionSuggestion assertNotSuggested(String completion) {
@@ -383,21 +385,21 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
-  CompletionSuggestion assertSuggestImportedTopLevelVar(String name,
-      String returnType, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
-    if (computer is ImportedComputer) {
-      return assertSuggestTopLevelVar(name, returnType, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
-  }
-
   CompletionSuggestion assertSuggestImportedFunction(String name,
       String returnType, [bool isDeprecated = false, CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
     if (computer is ImportedComputer) {
       return assertSuggestFunction(name, returnType, isDeprecated, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestImportedTopLevelVar(String name,
+      String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is ImportedComputer) {
+      return assertSuggestTopLevelVar(name, returnType, relevance);
     } else {
       return assertNotSuggested(name);
     }
@@ -685,6 +687,17 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('T1');
       assertNotSuggested('z');
       assertNotSuggested('m');
+    });
+  }
+
+  test_ImportDirective_dart() {
+    // SimpleStringLiteral  ImportDirective
+    addTestSource('''
+      import "dart^";
+      main() {}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNoSuggestions();
     });
   }
 

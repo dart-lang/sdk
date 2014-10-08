@@ -126,14 +126,4 @@ class ImportedTypeComputerTest extends AbstractSelectorSuggestionTest {
       assertNotSuggested('A');
     });
   }
-
-  test_ImportDirective_dart() {
-    // SimpleStringLiteral  ImportDirective
-    addTestSource('''
-      import "dart^";
-      main() {}''');
-    return computeFull().then((_) {
-      assertNotSuggested('Object');
-    });
-  }
 }
