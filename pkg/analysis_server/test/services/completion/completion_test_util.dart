@@ -383,13 +383,61 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestInvocationClass(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    if (computer is InvocationComputer) {
+      return assertSuggestClass(name, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
   CompletionSuggestion assertSuggestInvocationGetter(String name,
       String returnType, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
     if (computer is InvocationComputer) {
       return assertSuggestGetter(name, returnType, relevance);
     } else {
-      return null;
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestInvocationTopLevelVar(String name,
+      String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is InvocationComputer) {
+      return assertSuggestTopLevelVar(name, returnType, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestInvocationMethod(String name,
+      String declaringType, String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is InvocationComputer) {
+      return assertSuggestMethod(name, declaringType, returnType, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestLocalMethod(String name,
+      String declaringType, String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is LocalComputer) {
+      return assertSuggestMethod(name, declaringType, returnType, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestInvocationSetter(String name,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    if (computer is InvocationComputer) {
+      return assertSuggestSetter(name);
+    } else {
+      return assertNotSuggested(name);
     }
   }
 
@@ -582,7 +630,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
-  test_IsExpression_type() {
+  test_IsExpression() {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addSource('/testB.dart', '''
       lib B;
@@ -602,18 +650,164 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
-  test_VariableDeclaration_name() {
-    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
-    // VariableDeclarationStatement  Block
+  test_PrefixedIdentifier_class_imported() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addSource('/testB.dart', '''
       lib B;
-      foo() { }
-      class _B { }
-      class X {X.c(); X._d(); z() {}}''');
+      class I {X get f => new A();get _g => new A();}
+      class A implements I {
+        var b; X _c;
+        X get d => new A();get _e => new A();
+        set s1(I x) {} set _s2(I x) {}
+        m(X x) {} I _n(X x) {}}
+      class X{}''');
     addTestSource('''
       import "/testB.dart";
-      class Y {Y.c(); Y._d(); z() {}}
-      main() {var ^}''');
+      main() {A a; a.^}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('b', null);
+      assertNotSuggested('_c');
+      assertSuggestInvocationGetter('d', 'X');
+      assertNotSuggested('_e');
+      assertSuggestInvocationGetter('f', 'X');
+      assertNotSuggested('_g');
+      assertSuggestInvocationSetter('s1');
+      assertNotSuggested('_s2');
+      assertSuggestInvocationMethod('m', 'A', null);
+      assertNotSuggested('_n');
+      assertNotSuggested('a');
+      assertNotSuggested('A');
+      assertNotSuggested('X');
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_PrefixedIdentifier_class_local() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('''
+      main() {A a; a.^}
+      class I {X get f => new A();get _g => new A();}
+      class A implements I {
+        var b; X _c;
+        X get d => new A();get _e => new A();
+        set s1(I x) {} set _s2(I x) {}
+        m(X x) {} I _n(X x) {}}
+      class X{}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('b', null);
+      assertSuggestInvocationGetter('_c', 'X');
+      assertSuggestInvocationGetter('d', 'X');
+      assertSuggestInvocationGetter('_e', null);
+      assertSuggestInvocationGetter('f', 'X');
+      assertSuggestInvocationGetter('_g', null);
+      assertSuggestInvocationSetter('s1');
+      assertSuggestInvocationSetter('_s2');
+      assertSuggestInvocationMethod('m', 'A', null);
+      assertSuggestInvocationMethod('_n', 'A', 'I');
+      assertNotSuggested('a');
+      assertNotSuggested('A');
+      assertNotSuggested('X');
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_PrefixedIdentifier_interpolation() {
+    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
+    addTestSource('main() {String name; print("hello \${name.^}");}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('length', 'int');
+      assertNotSuggested('name');
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_PrefixedIdentifier_library() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addSource('/testB.dart', '''
+      lib B;
+      var T1;
+      class X { }
+      class Y { }''');
+    addTestSource('''
+      import "/testB.dart" as b;
+      var T2;
+      class A { }
+      main() {b.^}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationClass('X');
+      assertSuggestInvocationClass('Y');
+      assertSuggestInvocationTopLevelVar('T1', null);
+      assertNotSuggested('T2');
+      assertNotSuggested('Object');
+      assertNotSuggested('b');
+      assertNotSuggested('A');
+    });
+  }
+
+  test_PrefixedIdentifier_parameter() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addSource('/testB.dart', '''
+      lib B;
+      class _W {M y; var _z;}
+      class X extends _W {}
+      class M{}''');
+    addTestSource('''
+      import "/testB.dart";
+      foo(X x) {x.^}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('y', 'M');
+      assertNotSuggested('_z');
+    });
+  }
+
+  test_PrefixedIdentifier_prefix() {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addSource('/testA.dart', '''
+      class A {static int bar = 10;}
+      _B() {}''');
+    addTestSource('''
+      import "/testA.dart";
+      class X {foo(){A^.bar}}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestImportedClass('A');
+      assertSuggestLocalClass('X');
+      assertSuggestLocalMethod('foo', 'X', null);
+      assertNotSuggested('bar');
+      assertNotSuggested('_B');
+    });
+  }
+
+  test_PrefixedIdentifier_prefix_interpolation() {
+    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
+    addTestSource('main() {String name; print("hello \${nam^e.length}");}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('name', 'String');
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('length');
+    });
+  }
+
+  test_TopLevelVariableDeclaration_typed_name() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addTestSource('class A {} B ^');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNoSuggestions();
+    });
+  }
+
+  test_TopLevelVariableDeclaration_untyped_name() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    addTestSource('class A {} var ^');
     computeFast();
     return computeFull(true).then((_) {
       assertNoSuggestions();
@@ -665,6 +859,24 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalVariable('f', null);
       assertNotSuggested('x');
       assertNotSuggested('e');
+    });
+  }
+
+  test_VariableDeclaration_name() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addSource('/testB.dart', '''
+      lib B;
+      foo() { }
+      class _B { }
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      class Y {Y.c(); Y._d(); z() {}}
+      main() {var ^}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNoSuggestions();
     });
   }
 }

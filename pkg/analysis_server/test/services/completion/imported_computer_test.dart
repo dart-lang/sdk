@@ -162,41 +162,6 @@ class ImportedTypeComputerTest extends AbstractSelectorSuggestionTest {
     });
   }
 
-  test_PrefixedIdentifier() {
-    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testA.dart', '''
-      class A() {int x;}
-      _B() {}''');
-    addTestSource('''
-      import "/testA.dart";
-      class X {foo(){A a; a.^}}''');
-    return computeFull().then((_) {
-      // InvocationComputer provides suggestions for prefixed expressions
-      assertNotSuggested('A');
-      assertNotSuggested('x');
-      assertNotSuggested('X');
-      assertNotSuggested('Object');
-    });
-  }
-
-  test_PrefixedIdentifier_prefix() {
-    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testA.dart', '''
-      class A {static int bar = 10;}
-      _B() {}''');
-    addTestSource('''
-      import "/testA.dart";
-      class X {foo(){A^.bar}}''');
-    return computeFull().then((_) {
-      // InvocationComputer provides suggestions for prefixed expressions
-      assertSuggestClass('A');
-      assertNotSuggested('bar');
-      assertNotSuggested('_B');
-      assertNotSuggested('X');
-      assertNotSuggested('foo');
-    });
-  }
-
   test_ShowCombinator_class() {
     // SimpleIdentifier  ShowCombinator  ImportDirective
     addSource('/testAB.dart', '''
@@ -215,30 +180,6 @@ class ImportedTypeComputerTest extends AbstractSelectorSuggestionTest {
       assertNotSuggested('C');
       assertNotSuggested('D');
       assertNotSuggested('Object');
-    });
-  }
-
-  test_TopLevelVariableDeclaration_name() {
-    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
-    // TopLevelVariableDeclaration
-    addSource('/testA.dart', 'class B { };');
-    addTestSource('''
-      import "/testA.dart";
-      class C {} B ^''');
-    return computeFull().then((_) {
-      assertNotSuggested('B');
-    });
-  }
-
-  test_TopLevelVariableDeclaration_name_untyped() {
-    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
-    // TopLevelVariableDeclaration
-    addSource('/testA.dart', 'class B { };');
-    addTestSource('''
-      import "/testA.dart";
-      class C {} var ^''');
-    return computeFull().then((_) {
-      assertNotSuggested('B');
     });
   }
 }

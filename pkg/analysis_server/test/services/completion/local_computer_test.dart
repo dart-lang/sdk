@@ -208,49 +208,4 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
     assertSuggestParameter('x', 'X');
     assertSuggestParameter('y', 'int');
   }
-
-  test_PrefixedIdentifier() {
-    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addTestSource('''
-      class A {var b; X _c;}
-      class X{}
-      main() {A a; a.^}''');
-    expect(computeFast(), isTrue);
-    // PrefixedIdentifier is handled by InvocationComputer
-    assertNotSuggested('b');
-    assertNotSuggested('_c');
-  }
-
-  test_PrefixedIdentifier_interpolation() {
-    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
-    addTestSource('main() {String name; print("hello \${name.^}");}');
-    expect(computeFast(), isTrue);
-    // InvocationComputer creates suggestions for prefixed identifiers
-    assertNotSuggested('name');
-    assertNotSuggested('length');
-  }
-
-  test_PrefixedIdentifier_prefix() {
-    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
-    addTestSource('main() {String name; print("hello \${nam^e.length}");}');
-    expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('name', 'String');
-    assertNotSuggested('length');
-  }
-
-  test_TopLevelVariableDeclaration_typed_name() {
-    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
-    // TopLevelVariableDeclaration
-    addTestSource('class A {} B ^');
-    expect(computeFast(), isTrue);
-    assertNotSuggested('A');
-  }
-
-  test_TopLevelVariableDeclaration_untyped_name() {
-    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
-    // TopLevelVariableDeclaration
-    addTestSource('class A {} var ^');
-    expect(computeFast(), isTrue);
-    assertNotSuggested('A');
-  }
 }
