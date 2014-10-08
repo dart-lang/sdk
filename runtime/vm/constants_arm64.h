@@ -420,6 +420,14 @@ enum AddSubShiftExtOp {
   SUB = AddSubShiftExtFixed | B30,
 };
 
+// C3.5.3
+enum AddSubWithCarryOp {
+  AddSubWithCarryMask = 0x1fe00000,
+  AddSubWithCarryFixed = DPRegisterFixed | B28,
+  ADC = AddSubWithCarryFixed,
+  SBC = AddSubWithCarryFixed | B30,
+};
+
 // C3.5.6
 enum ConditionalSelectOp {
   ConditionalSelectMask = 0x1fe00000,
@@ -596,6 +604,7 @@ _V(LogicalImm)                                                                 \
 _V(MoveWide)                                                                   \
 _V(PCRel)                                                                      \
 _V(AddSubShiftExt)                                                             \
+_V(AddSubWithCarry)                                                            \
 _V(ConditionalSelect)                                                          \
 _V(MiscDP2Source)                                                              \
 _V(MiscDP3Source)                                                              \

@@ -969,6 +969,23 @@ void ARM64Decoder::DecodeAddSubShiftExt(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeAddSubWithCarry(Instr* instr) {
+  switch (instr->Bit(30)) {
+    case 0: {
+      Format(instr, "adc'sf's 'rd, 'rn, 'rm");
+      break;
+    }
+    case 1: {
+      Format(instr, "sbc'sf's 'rd, 'rn, 'rm");
+      break;
+    }
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+
 void ARM64Decoder::DecodeLogicalShift(Instr* instr) {
   const int op = (instr->Bits(29, 2) << 1) | instr->Bit(21);
   switch (op) {
@@ -1074,6 +1091,8 @@ void ARM64Decoder::DecodeConditionalSelect(Instr* instr) {
 void ARM64Decoder::DecodeDPRegister(Instr* instr) {
   if (instr->IsAddSubShiftExtOp()) {
     DecodeAddSubShiftExt(instr);
+  } else if (instr->IsAddSubWithCarryOp()) {
+    DecodeAddSubWithCarry(instr);
   } else if (instr->IsLogicalShiftOp()) {
     DecodeLogicalShift(instr);
   } else if (instr->IsMiscDP2SourceOp()) {

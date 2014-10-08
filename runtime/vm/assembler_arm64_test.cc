@@ -286,6 +286,108 @@ ASSEMBLER_TEST_RUN(AddExtReg, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
+  __ LoadImmediate(R2, -1, kNoPP);
+  __ LoadImmediate(R1, 1, kNoPP);
+  __ LoadImmediate(R0, 0, kNoPP);
+  __ adds(IP0, R2, Operand(R1));  // c_out = 1.
+  __ adcs(IP0, R2, R0);  // c_in = 1, c_out = 1.
+  __ adc(R0, R0, R0);  // c_in = 1.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AddCarryInOut, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(SubCarryInOut, assembler) {
+  __ LoadImmediate(R1, 1, kNoPP);
+  __ LoadImmediate(R0, 0, kNoPP);
+  __ subs(IP0, R0, Operand(R1));  // c_out = 1.
+  __ sbcs(IP0, R0, R0);  // c_in = 1, c_out = 1.
+  __ sbc(R0, R0, R0);  // c_in = 1.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(SubCarryInOut, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Overflow, assembler) {
+  __ LoadImmediate(R0, 0, kNoPP);
+  __ LoadImmediate(R1, 1, kNoPP);
+  __ LoadImmediate(R2, 0xFFFFFFFFFFFFFFFF, kNoPP);
+  __ LoadImmediate(R3, 0x7FFFFFFFFFFFFFFF, kNoPP);
+  __ adds(IP0, R2, Operand(R1));  // c_out = 1.
+  __ adcs(IP0, R3, R0);  // c_in = 1, c_out = 1, v = 1.
+  __ csinc(R0, R0, R0, VS);  // R0 = v ? R0 : R0 + 1.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Overflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(WordAddCarryInOut, assembler) {
+  __ LoadImmediate(R2, -1, kNoPP);
+  __ LoadImmediate(R1, 1, kNoPP);
+  __ LoadImmediate(R0, 0, kNoPP);
+  __ addsw(IP0, R2, Operand(R1));  // c_out = 1.
+  __ adcsw(IP0, R2, R0);  // c_in = 1, c_out = 1.
+  __ adcw(R0, R0, R0);  // c_in = 1.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(WordAddCarryInOut, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(WordSubCarryInOut, assembler) {
+  __ LoadImmediate(R1, 1, kNoPP);
+  __ LoadImmediate(R0, 0, kNoPP);
+  __ subsw(IP0, R0, Operand(R1));  // c_out = 1.
+  __ sbcsw(IP0, R0, R0);  // c_in = 1, c_out = 1.
+  __ sbcw(R0, R0, R0);  // c_in = 1.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(WordSubCarryInOut, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0x0FFFFFFFF, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(WordOverflow, assembler) {
+  __ LoadImmediate(R0, 0, kNoPP);
+  __ LoadImmediate(R1, 1, kNoPP);
+  __ LoadImmediate(R2, 0xFFFFFFFF, kNoPP);
+  __ LoadImmediate(R3, 0x7FFFFFFF, kNoPP);
+  __ addsw(IP0, R2, Operand(R1));  // c_out = 1.
+  __ adcsw(IP0, R3, R0);  // c_in = 1, c_out = 1, v = 1.
+  __ csinc(R0, R0, R0, VS);  // R0 = v ? R0 : R0 + 1.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(WordOverflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+
 // Loads and Stores.
 ASSEMBLER_TEST_GENERATE(SimpleLoadStore, assembler) {
   __ SetupDartSP(kTestStackSpace);

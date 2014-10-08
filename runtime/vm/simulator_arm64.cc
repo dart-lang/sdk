@@ -939,41 +939,19 @@ void Simulator::SetNZFlagsW(int32_t val) {
 }
 
 
-// Calculate C flag value for additions.
-bool Simulator::CarryFromW(int32_t left, int32_t right) {
-  uint32_t uleft = static_cast<uint32_t>(left);
-  uint32_t uright = static_cast<uint32_t>(right);
-  uint32_t urest  = 0xffffffffU - uleft;
-
-  return (uright > urest);
+// Calculate C flag value for additions (and subtractions with adjusted args).
+bool Simulator::CarryFromW(int32_t left, int32_t right, int32_t carry) {
+  uint64_t uleft = static_cast<uint32_t>(left);
+  uint64_t uright = static_cast<uint32_t>(right);
+  uint64_t ucarry = static_cast<uint32_t>(carry);
+  return ((uleft + uright + ucarry) >> 32) != 0;
 }
 
 
-// Calculate C flag value for subtractions.
-bool Simulator::BorrowFromW(int32_t left, int32_t right) {
-  uint32_t uleft = static_cast<uint32_t>(left);
-  uint32_t uright = static_cast<uint32_t>(right);
-
-  return (uright > uleft);
-}
-
-
-// Calculate V flag value for additions and subtractions.
-bool Simulator::OverflowFromW(int32_t alu_out,
-                              int32_t left, int32_t right, bool addition) {
-  bool overflow;
-  if (addition) {
-               // operands have the same sign
-    overflow = ((left >= 0 && right >= 0) || (left < 0 && right < 0))
-               // and operands and result have different sign
-               && ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
-  } else {
-               // operands have different signs
-    overflow = ((left < 0 && right >= 0) || (left >= 0 && right < 0))
-               // and first operand and result have different signs
-               && ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
-  }
-  return overflow;
+// Calculate V flag value for additions (and subtractions with adjusted args).
+bool Simulator::OverflowFromW(int32_t left, int32_t right, int32_t carry) {
+  int64_t result = static_cast<int64_t>(left) + right + carry;
+  return (result >> 31) != (result >> 32);
 }
 
 
@@ -984,41 +962,25 @@ void Simulator::SetNZFlagsX(int64_t val) {
 }
 
 
-// Calculate C flag value for additions.
-bool Simulator::CarryFromX(int64_t left, int64_t right) {
-  uint64_t uleft = static_cast<uint64_t>(left);
-  uint64_t uright = static_cast<uint64_t>(right);
-  uint64_t urest  = 0xffffffffffffffffULL - uleft;
-
-  return (uright > urest);
-}
-
-
-// Calculate C flag value for subtractions.
-bool Simulator::BorrowFromX(int64_t left, int64_t right) {
-  uint64_t uleft = static_cast<uint64_t>(left);
-  uint64_t uright = static_cast<uint64_t>(right);
-
-  return (uright > uleft);
+// Calculate C flag value for additions and subtractions.
+bool Simulator::CarryFromX(int64_t alu_out,
+                           int64_t left, int64_t right, bool addition) {
+  if (addition) {
+    return (((left & right) | ((left | right) & ~alu_out)) >> 63) != 0;
+  } else {
+    return (((~left & right) | ((~left | right) & alu_out)) >> 63) == 0;
+  }
 }
 
 
 // Calculate V flag value for additions and subtractions.
 bool Simulator::OverflowFromX(int64_t alu_out,
                               int64_t left, int64_t right, bool addition) {
-  bool overflow;
   if (addition) {
-               // operands have the same sign
-    overflow = ((left >= 0 && right >= 0) || (left < 0 && right < 0))
-               // and operands and result have different sign
-               && ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
+    return (((alu_out ^ left) & (alu_out ^ right)) >> 63) != 0;
   } else {
-               // operands have different signs
-    overflow = ((left < 0 && right >= 0) || (left >= 0 && right < 0))
-               // and first operand and result have different signs
-               && ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
+    return (((left ^ right) & (alu_out ^ left)) >> 63) != 0;
   }
-  return overflow;
 }
 
 
@@ -1079,13 +1041,13 @@ void Simulator::DecodeMoveWide(Instr* instr) {
 
 
 void Simulator::DecodeAddSubImm(Instr* instr) {
-  bool addition = (instr->Bit(30) == 0);
+  const bool addition = (instr->Bit(30) == 0);
   // Format(instr, "addi'sf's 'rd, 'rn, 'imm12s");
   // Format(instr, "subi'sf's 'rd, 'rn, 'imm12s");
   const Register rd = instr->RdField();
   const Register rn = instr->RnField();
-  const uint32_t imm = (instr->Bit(22) == 1) ? (instr->Imm12Field() << 12)
-                                             : (instr->Imm12Field());
+  uint32_t imm = (instr->Bit(22) == 1) ? (instr->Imm12Field() << 12)
+                                       : (instr->Imm12Field());
   if (instr->SFField()) {
     // 64-bit add.
     const int64_t rn_val = get_register(rn, instr->RnMode());
@@ -1093,26 +1055,23 @@ void Simulator::DecodeAddSubImm(Instr* instr) {
     set_register(instr, rd, alu_out, instr->RdMode());
     if (instr->HasS()) {
       SetNZFlagsX(alu_out);
-      if (addition) {
-        SetCFlag(CarryFromX(rn_val, imm));
-      } else {
-        SetCFlag(!BorrowFromX(rn_val, imm));
-      }
+      SetCFlag(CarryFromX(alu_out, rn_val, imm, addition));
       SetVFlag(OverflowFromX(alu_out, rn_val, imm, addition));
     }
   } else {
     // 32-bit add.
     const int32_t rn_val = get_wregister(rn, instr->RnMode());
-    const int32_t alu_out = addition ? (rn_val + imm) : (rn_val - imm);
+    int32_t carry_in = 0;
+    if (!addition) {
+      carry_in = 1;
+      imm = ~imm;
+    }
+    const int32_t alu_out = rn_val + imm + carry_in;
     set_wregister(rd, alu_out, instr->RdMode());
     if (instr->HasS()) {
       SetNZFlagsW(alu_out);
-      if (addition) {
-        SetCFlag(CarryFromW(rn_val, imm));
-      } else {
-        SetCFlag(!BorrowFromW(rn_val, imm));
-      }
-      SetVFlag(OverflowFromW(alu_out, rn_val, imm, addition));
+      SetCFlag(CarryFromW(rn_val, imm, carry_in));
+      SetVFlag(OverflowFromW(rn_val, imm, carry_in));
     }
   }
 }
@@ -1943,48 +1902,73 @@ int64_t Simulator::DecodeShiftExtendOperand(Instr* instr) {
 void Simulator::DecodeAddSubShiftExt(Instr* instr) {
   // Format(instr, "add'sf's 'rd, 'rn, 'shift_op");
   // also, sub, cmp, etc.
-  const bool subtract = instr->Bit(30) == 1;
+  const bool addition = (instr->Bit(30) == 0);
   const Register rd = instr->RdField();
   const Register rn = instr->RnField();
   const int64_t rm_val = DecodeShiftExtendOperand(instr);
   if (instr->SFField()) {
     // 64-bit add.
     const int64_t rn_val = get_register(rn, instr->RnMode());
-    int64_t alu_out = 0;
-    if (subtract) {
-      alu_out = rn_val - rm_val;
-    } else {
-      alu_out = rn_val + rm_val;
-    }
+    const int64_t alu_out = rn_val + (addition ? rm_val : -rm_val);
     set_register(instr, rd, alu_out, instr->RdMode());
     if (instr->HasS()) {
       SetNZFlagsX(alu_out);
-      if (subtract) {
-        SetCFlag(!BorrowFromX(rn_val, rm_val));
-      } else {
-        SetCFlag(CarryFromX(rn_val, rm_val));
-      }
-      SetVFlag(OverflowFromX(alu_out, rn_val, rm_val, !subtract));
+      SetCFlag(CarryFromX(alu_out, rn_val, rm_val, addition));
+      SetVFlag(OverflowFromX(alu_out, rn_val, rm_val, addition));
     }
   } else {
     // 32-bit add.
     const int32_t rn_val = get_wregister(rn, instr->RnMode());
-    const int32_t rm_val32 = static_cast<int32_t>(rm_val & kWRegMask);
-    int32_t alu_out = 0;
-    if (subtract) {
-      alu_out = rn_val - rm_val32;
-    } else {
-      alu_out = rn_val + rm_val32;
+    int32_t rm_val32 = static_cast<int32_t>(rm_val & kWRegMask);
+    int32_t carry_in = 0;
+    if (!addition) {
+      carry_in = 1;
+      rm_val32 = ~rm_val32;
     }
+    const int32_t alu_out = rn_val + rm_val32 + carry_in;
     set_wregister(rd, alu_out, instr->RdMode());
     if (instr->HasS()) {
       SetNZFlagsW(alu_out);
-      if (subtract) {
-        SetCFlag(!BorrowFromW(rn_val, rm_val32));
-      } else {
-        SetCFlag(CarryFromW(rn_val, rm_val32));
-      }
-      SetVFlag(OverflowFromW(alu_out, rn_val, rm_val32, !subtract));
+      SetCFlag(CarryFromW(rn_val, rm_val32, carry_in));
+      SetVFlag(OverflowFromW(rn_val, rm_val32, carry_in));
+    }
+  }
+}
+
+
+void Simulator::DecodeAddSubWithCarry(Instr* instr) {
+  // Format(instr, "adc'sf's 'rd, 'rn, 'rm");
+  // Format(instr, "sbc'sf's 'rd, 'rn, 'rm");
+  const bool addition = (instr->Bit(30) == 0);
+  const Register rd = instr->RdField();
+  const Register rn = instr->RnField();
+  const Register rm = instr->RmField();
+  const int64_t rn_val64 = get_register(rn, R31IsZR);
+  const int32_t rn_val32 = get_wregister(rn, R31IsZR);
+  const int64_t rm_val64 = get_register(rm, R31IsZR);
+  int32_t rm_val32 = get_wregister(rm, R31IsZR);
+  const int32_t carry_in = c_flag_ ? 1 : 0;
+  if (instr->SFField()) {
+    // 64-bit add.
+    const int64_t alu_out =
+        rn_val64 + (addition ? rm_val64 : ~rm_val64) + carry_in;
+    set_register(instr, rd, alu_out, R31IsZR);
+    if (instr->HasS()) {
+      SetNZFlagsX(alu_out);
+      SetCFlag(CarryFromX(alu_out, rn_val64, rm_val64, addition));
+      SetVFlag(OverflowFromX(alu_out, rn_val64, rm_val64, addition));
+    }
+  } else {
+    // 32-bit add.
+    if (!addition) {
+      rm_val32 = ~rm_val32;
+    }
+    const int32_t alu_out = rn_val32 + rm_val32 + carry_in;
+    set_wregister(rd, alu_out, R31IsZR);
+    if (instr->HasS()) {
+      SetNZFlagsW(alu_out);
+      SetCFlag(CarryFromW(rn_val32, rm_val32, carry_in));
+      SetVFlag(OverflowFromW(rn_val32, rm_val32, carry_in));
     }
   }
 }
@@ -2271,6 +2255,8 @@ void Simulator::DecodeConditionalSelect(Instr* instr) {
 void Simulator::DecodeDPRegister(Instr* instr) {
   if (instr->IsAddSubShiftExtOp()) {
     DecodeAddSubShiftExt(instr);
+  } else if (instr->IsAddSubWithCarryOp()) {
+    DecodeAddSubWithCarry(instr);
   } else if (instr->IsLogicalShiftOp()) {
     DecodeLogicalShift(instr);
   } else if (instr->IsMiscDP2SourceOp()) {

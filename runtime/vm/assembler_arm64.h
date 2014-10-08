@@ -541,11 +541,46 @@ class Assembler : public ValueObject {
   void addw(Register rd, Register rn, Operand o) {
     AddSubHelper(kWord, false, false, rd, rn, o);
   }
+  void addsw(Register rd, Register rn, Operand o) {
+    AddSubHelper(kWord, true, false, rd, rn, o);
+  }
   void sub(Register rd, Register rn, Operand o) {
     AddSubHelper(kDoubleWord, false, true, rd, rn, o);
   }
   void subs(Register rd, Register rn, Operand o) {
     AddSubHelper(kDoubleWord, true, true, rd, rn, o);
+  }
+  void subw(Register rd, Register rn, Operand o) {
+    AddSubHelper(kWord, false, true, rd, rn, o);
+  }
+  void subsw(Register rd, Register rn, Operand o) {
+    AddSubHelper(kWord, true, true, rd, rn, o);
+  }
+
+  // Addition and subtraction with carry.
+  void adc(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kDoubleWord, false, false, rd, rn, rm);
+  }
+  void adcs(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kDoubleWord, true, false, rd, rn, rm);
+  }
+  void adcw(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kWord, false, false, rd, rn, rm);
+  }
+  void adcsw(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kWord, true, false, rd, rn, rm);
+  }
+  void sbc(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kDoubleWord, false, true, rd, rn, rm);
+  }
+  void sbcs(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kDoubleWord, true, true, rd, rn, rm);
+  }
+  void sbcw(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kWord, false, true, rd, rn, rm);
+  }
+  void sbcsw(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kWord, true, true, rd, rn, rm);
   }
 
   // PC relative immediate add. imm is in bytes.
@@ -1425,6 +1460,24 @@ class Assembler : public ValueObject {
       ASSERT((rd != CSP) && (rn != ZR));
       EmitAddSubShiftExtOp(subtract ? SUB : ADD, crd, crn, o, os, set_flags);
     }
+  }
+
+  void AddSubWithCarryHelper(OperandSize sz, bool set_flags, bool subtract,
+                             Register rd, Register rn, Register rm) {
+    ASSERT((rd != R31) && (rn != R31) && (rm != R31));
+    ASSERT((rd != CSP) && (rn != CSP) && (rm != CSP));
+    const Register crd = ConcreteRegister(rd);
+    const Register crn = ConcreteRegister(rn);
+    const Register crm = ConcreteRegister(rm);
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const int32_t s = set_flags ? B29 : 0;
+    const int32_t op = subtract ? SBC : ADC;
+    const int32_t encoding =
+        op | size | s |
+        (static_cast<int32_t>(crd) << kRdShift) |
+        (static_cast<int32_t>(crn) << kRnShift) |
+        (static_cast<int32_t>(crm) << kRmShift);
+    Emit(encoding);
   }
 
   void EmitAddSubImmOp(AddSubImmOp op, Register rd, Register rn,
