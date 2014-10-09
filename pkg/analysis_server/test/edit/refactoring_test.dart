@@ -1258,6 +1258,48 @@ main() {
 ''');
   }
 
+  test_importPrefix_add() {
+    addTestFile('''
+import 'dart:math';
+import 'dart:async';
+main() {
+  Random r;
+  Future f;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest("import 'dart:async';", 'new_name');
+    }, '''
+import 'dart:math';
+import 'dart:async' as new_name;
+main() {
+  Random r;
+  new_name.Future f;
+}
+''');
+  }
+
+  test_importPrefix_remove() {
+    addTestFile('''
+import 'dart:math' as test;
+import 'dart:async' as test;
+main() {
+  test.Random r;
+  test.Future f;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest("import 'dart:async' as test;", '');
+    }, '''
+import 'dart:math' as test;
+import 'dart:async';
+main() {
+  test.Random r;
+  Future f;
+}
+''');
+  }
+
   test_init_fatalError_noElement() {
     addTestFile('// nothing to rename');
     return getRefactoringResult(() {

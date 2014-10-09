@@ -185,6 +185,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
       if (prefix != null) {
         return prefix.displayName;
       }
+      return '';
     }
     return element.displayName;
   }
