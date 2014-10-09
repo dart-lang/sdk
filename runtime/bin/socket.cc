@@ -83,7 +83,9 @@ void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
   if (available >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(available));
   } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    // Available failed. Mark socket as having data, to trigger a future read
+    // event where the actual error can be reported.
+    Dart_SetReturnValue(args, Dart_NewInteger(1));
   }
 }
 

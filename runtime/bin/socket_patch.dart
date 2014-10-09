@@ -744,14 +744,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           if (isListening) {
             available++;
           } else {
-            var avail = nativeAvailable();
-            if (avail is int) {
-              available = avail;
-            } else {
-              // Available failed. Mark socket as having data, to ensure read
-              // events, and thus reporting of this error.
-              available = 1;
-            }
+            available = nativeAvailable();
             issueReadEvent();
             continue;
           }
