@@ -912,8 +912,6 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 }
 
 
-// TODO(regis): Once this intrinsic is implemented on all architectures, the
-// corresponding Dart method will be untested. Add a test with --no-intrinsify.
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   // static void _absAdd(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
@@ -967,13 +965,11 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
 
   // Restore CTX and return.
   __ popl(CTX);
-  // TODO(regis): Confirm that returning Object::null() is not required.
+  // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
 
 
-// TODO(regis): Once this intrinsic is implemented on all architectures, the
-// corresponding Dart method will be untested. Add a test with --no-intrinsify.
 void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   // static void _absSub(Uint32List digits, int used,
   //                     Uint32List a_digits, int a_used,
@@ -1023,13 +1019,11 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   __ Bind(&done);
   // Restore CTX and return.
   __ popl(CTX);
-  // TODO(regis): Confirm that returning Object::null() is not required.
+  // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
 
 
-// TODO(regis): Once this intrinsic is implemented on all architectures, the
-// corresponding Dart method will be untested. Add a test with --no-intrinsify.
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // Pseudo code:
   // static void _mulAdd(Uint32List x_digits, int xi,
@@ -1144,13 +1138,11 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ popl(CTX);
 
   __ Bind(&no_op);
-  // TODO(regis): Confirm that returning Object::null() is not required.
+  // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
 
 
-// TODO(regis): Once this intrinsic is implemented on all architectures, the
-// corresponding Dart method will be untested. Add a test with --no-intrinsify.
 void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // Pseudo code:
   // static void _sqrAdd(Uint32List x_digits, int i,
@@ -1278,13 +1270,11 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ Drop(3);
   __ popl(CTX);
   __ Bind(&x_zero);
-  // TODO(regis): Confirm that returning Object::null() is not required.
+  // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
 
 
-// TODO(regis): Once this intrinsic is implemented on all architectures, the
-// corresponding Dart method will be untested. Add a test with --no-intrinsify.
 void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
   // Pseudo code:
   // static void _estQuotientDigit(Uint32List args, Uint32List digits, int i) {
@@ -1333,13 +1323,11 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
   // args[1] = qd
   __ movl(FieldAddress(EDI, TypedData::data_offset() + kWordSize), EAX);
 
-  // TODO(regis): Confirm that returning Object::null() is not required.
+  // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
 
 
-// TODO(regis): Once this intrinsic is implemented on all architectures, the
-// corresponding Dart method will be untested. Add a test with --no-intrinsify.
 void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   // Pseudo code:
   // static void _mulMod(Uint32List args, Uint32List digits, int i) {
@@ -1366,7 +1354,7 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   // args[1] = t mod DIGIT_BASE = low32(t)
   __ movl(FieldAddress(EDI, TypedData::data_offset() + kWordSize), EAX);
 
-  // TODO(regis): Confirm that returning Object::null() is not required.
+  // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
 
