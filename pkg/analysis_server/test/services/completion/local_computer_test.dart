@@ -24,48 +24,6 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
     computer = new LocalComputer();
   }
 
-  test_ForEachStatement_body_typed() {
-    // Block  ForEachStatement
-    addTestSource('main(args) {for (int foo in bar) {^}}');
-    expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('foo', 'int');
-  }
-
-  test_ForEachStatement_body_untyped() {
-    // Block  ForEachStatement
-    addTestSource('main(args) {for (foo in bar) {^}}');
-    expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('foo', null);
-  }
-
-  test_ForStatement_body() {
-    // Block  ForStatement
-    addTestSource('main(args) {for (int i; i < 10; ++i) {^}}');
-    expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('i', 'int');
-  }
-
-  test_ForStatement_condition() {
-    // SimpleIdentifier  ForStatement
-    addTestSource('main() {for (int index = 0; i^)}');
-    expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('index', 'int');
-  }
-
-  test_ForStatement_updaters() {
-    // SimpleIdentifier  ForStatement
-    addTestSource('main() {for (int index = 0; index < 10; i^)}');
-    expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('index', 'int');
-  }
-
-  test_ForStatement_updaters_prefix_expression() {
-    // SimpleIdentifier  PrefixExpression  ForStatement
-    addTestSource('main() {for (int index = 0; index < 10; ++i^)}');
-    expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('index', 'int');
-  }
-
   test_FunctionExpression_body_function() {
     // Block  BlockFunctionBody  FunctionExpression
     addTestSource('String foo(List args) {x.then((R b) {^});}');

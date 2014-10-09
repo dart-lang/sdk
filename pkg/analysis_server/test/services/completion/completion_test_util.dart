@@ -882,6 +882,74 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_ForEachStatement_body_typed() {
+    // Block  ForEachStatement
+    addTestSource('main(args) {for (int foo in bar) {^}}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('foo', 'int');
+      assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_ForEachStatement_body_untyped() {
+    // Block  ForEachStatement
+    addTestSource('main(args) {for (foo in bar) {^}}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('foo', null);
+      assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_ForStatement_body() {
+    // Block  ForStatement
+    addTestSource('main(args) {for (int i; i < 10; ++i) {^}}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('i', 'int');
+      assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_ForStatement_condition() {
+    // SimpleIdentifier  ForStatement
+    addTestSource('main() {for (int index = 0; i^)}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('index', 'int');
+    });
+  }
+
+  test_ForStatement_initializer() {
+    // SimpleIdentifier  ForStatement
+    addTestSource('main() {List a; for (^)}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('a', 'List');
+      assertSuggestImportedClass('Object');
+      assertSuggestImportedClass('int');
+    });
+  }
+
+  test_ForStatement_updaters() {
+    // SimpleIdentifier  ForStatement
+    addTestSource('main() {for (int index = 0; index < 10; i^)}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('index', 'int');
+    });
+  }
+
+  test_ForStatement_updaters_prefix_expression() {
+    // SimpleIdentifier  PrefixExpression  ForStatement
+    addTestSource('main() {for (int index = 0; index < 10; ++i^)}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('index', 'int');
+    });
+  }
+
   test_ImportDirective_dart() {
     // SimpleStringLiteral  ImportDirective
     addTestSource('''

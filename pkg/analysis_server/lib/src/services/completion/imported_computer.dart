@@ -95,6 +95,15 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
+  Future<bool> visitForStatement(ForStatement node) {
+    Token leftParenthesis = node.leftParenthesis;
+    if (leftParenthesis != null && request.offset >= leftParenthesis.end) {
+      return _addImportedElementSuggestions();
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitNode(AstNode node) {
     return new Future.value(false);
   }
