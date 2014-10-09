@@ -989,6 +989,48 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_InterpolationExpression() {
+    // SimpleIdentifier  InterpolationExpression  StringInterpolation
+    addTestSource('main() {String name; print("hello \$^");}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('name', 'String');
+      assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_InterpolationExpression_block() {
+    // SimpleIdentifier  InterpolationExpression  StringInterpolation
+    addTestSource('main() {String name; print("hello \${n^}");}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('name', 'String');
+      assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_InterpolationExpression_prefix_selector() {
+    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
+    addTestSource('main() {String name; print("hello \${name.^}");}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('length', 'int');
+      assertNotSuggested('name');
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_InterpolationExpression_prefix_target() {
+    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
+    addTestSource('main() {String name; print("hello \${nam^e.length}");}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('name', 'String');
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('length');
+    });
+  }
+
   test_IsExpression() {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addSource('/testB.dart', '''
@@ -1072,17 +1114,6 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
-  test_PrefixedIdentifier_interpolation() {
-    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
-    addTestSource('main() {String name; print("hello \${name.^}");}');
-    computeFast();
-    return computeFull(true).then((_) {
-      assertSuggestInvocationGetter('length', 'int');
-      assertNotSuggested('name');
-      assertNotSuggested('Object');
-    });
-  }
-
   test_PrefixedIdentifier_library() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addSource('/testB.dart', '''
@@ -1139,17 +1170,6 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalMethod('foo', 'X', null);
       assertNotSuggested('bar');
       assertNotSuggested('_B');
-    });
-  }
-
-  test_PrefixedIdentifier_prefix_interpolation() {
-    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
-    addTestSource('main() {String name; print("hello \${nam^e.length}");}');
-    computeFast();
-    return computeFull(true).then((_) {
-      assertSuggestLocalVariable('name', 'String');
-      assertSuggestImportedClass('Object');
-      assertNotSuggested('length');
     });
   }
 

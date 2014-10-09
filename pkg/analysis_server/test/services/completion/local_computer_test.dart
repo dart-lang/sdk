@@ -34,20 +34,6 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
     assertSuggestParameter('b', 'R');
   }
 
-  test_InterpolationExpression() {
-    // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addTestSource('main() {String name; print("hello \$^");}');
-    expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('name', 'String');
-  }
-
-  test_InterpolationExpression_block() {
-    // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addTestSource('main() {String name; print("hello \${n^}");}');
-    expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('name', 'String');
-  }
-
   test_MethodDeclaration_body_getters() {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {@deprecated X get f => 0; Z a() {^} get _g => 1;}');

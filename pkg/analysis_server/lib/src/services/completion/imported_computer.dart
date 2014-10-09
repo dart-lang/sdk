@@ -104,6 +104,15 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
+  Future<bool> visitInterpolationExpression(InterpolationExpression node) {
+    Expression expression = node.expression;
+    if (expression is SimpleIdentifier) {
+      return _addImportedElementSuggestions();
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitNode(AstNode node) {
     return new Future.value(false);
   }
