@@ -64,6 +64,16 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
+  Future<bool> visitClassDeclaration(ClassDeclaration node) {
+    // Make suggestions in the body of the class declaration
+    Token leftBracket = node.leftBracket;
+    if (leftBracket != null && request.offset >= leftBracket.end) {
+      return _addImportedElementSuggestions();
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitCombinator(Combinator node) {
     return _addCombinatorSuggestions(node);
   }

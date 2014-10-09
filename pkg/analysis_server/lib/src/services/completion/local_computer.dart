@@ -85,7 +85,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
-  Future<bool> visitCombinator(Combinator node) {
+  visitCombinator(Combinator node) {
     // Handled by ImportedComputer
   }
 

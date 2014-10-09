@@ -24,57 +24,6 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
     computer = new LocalComputer();
   }
 
-  test_CatchClause_typed() {
-    // Block  CatchClause  TryStatement
-    addTestSource('class A {a() {try{} on E catch (e) {^}}}');
-    expect(computeFast(), isTrue);
-    assertSuggestParameter('e', 'E');
-  }
-
-  test_CatchClause_untyped() {
-    // Block  CatchClause  TryStatement
-    addTestSource('class A {a() {try{} catch (e, s) {^}}}');
-    expect(computeFast(), isTrue);
-    assertSuggestParameter('e', null);
-    assertSuggestParameter('s', 'StackTrace');
-  }
-
-  test_ClassDeclaration_body() {
-    // ClassDeclaration  CompilationUnit
-    addTestSource( //
-    'import "boo.dart" as x;' //
-    ' @deprecated class A {^}' //
-    ' class _B {}' //
-    ' A T;');
-    expect(computeFast(), isTrue);
-    var a = assertSuggestClass('A');
-    expect(a.element.isDeprecated, isTrue);
-    expect(a.element.isPrivate, isFalse);
-    var b = assertSuggestClass('_B');
-    expect(b.element.isDeprecated, isFalse);
-    expect(b.element.isPrivate, isTrue);
-    assertSuggestTopLevelVar('T', 'A');
-    // Library prefix suggestion is provided by ImportedComputer
-    assertNotSuggested('x');
-  }
-
-  test_ExpressionStatement_name() {
-    // ExpressionStatement  Block
-    addTestSource('class A {a() {var f; A ^}}');
-    expect(computeFast(), isTrue);
-    assertNotSuggested('A');
-    assertNotSuggested('a');
-    assertNotSuggested('f');
-  }
-
-  test_FieldDeclaration_name() {
-    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
-    // FieldDeclaration
-    addTestSource('class A {B ^}}');
-    expect(computeFast(), isTrue);
-    assertNotSuggested('A');
-  }
-
   test_ForEachStatement_body_typed() {
     // Block  ForEachStatement
     addTestSource('main(args) {for (int foo in bar) {^}}');
