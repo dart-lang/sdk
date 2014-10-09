@@ -863,13 +863,10 @@ static bool IsMarked(BlockEntryInstr* block,
 
 
 // Base class implementation used for JoinEntry and TargetEntry.
-void BlockEntryInstr::DiscoverBlocks(
+bool BlockEntryInstr::DiscoverBlock(
     BlockEntryInstr* predecessor,
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<intptr_t>* parent,
-    intptr_t variable_count,
-    intptr_t fixed_parameter_count) {
+    GrowableArray<intptr_t>* parent) {
   // If this block has a predecessor (i.e., is not the graph entry) we can
   // assume the preorder array is non-empty.
   ASSERT((predecessor == NULL) || !preorder->is_empty());
@@ -881,7 +878,7 @@ void BlockEntryInstr::DiscoverBlocks(
   if (IsMarked(this, preorder)) {
     ASSERT(predecessor != NULL);
     AddPredecessor(predecessor);
-    return;
+    return false;
   }
 
   // 2. Otherwise, clear the predecessors which might have been computed on
@@ -913,20 +910,7 @@ void BlockEntryInstr::DiscoverBlocks(
   }
   set_last_instruction(last);
 
-  // Visit the block's successors in reverse so that they appear forwards
-  // the reverse postorder block ordering.
-  for (intptr_t i = last->SuccessorCount() - 1; i >= 0; --i) {
-    last->SuccessorAt(i)->DiscoverBlocks(this,
-                                         preorder,
-                                         postorder,
-                                         parent,
-                                         variable_count,
-                                         fixed_parameter_count);
-  }
-
-  // 6. Assign postorder number and add the block entry to the list.
-  set_postorder_number(postorder->length());
-  postorder->Add(this);
+  return true;
 }
 
 

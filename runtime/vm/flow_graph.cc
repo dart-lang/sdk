@@ -150,20 +150,62 @@ Instruction* FlowGraph::AppendTo(Instruction* prev,
 }
 
 
+// A wrapper around block entries including an index of the next successor to
+// be read.
+class BlockTraversalState {
+ public:
+  explicit BlockTraversalState(BlockEntryInstr* block)
+    : block_(block),
+      next_successor_ix_(block->last_instruction()->SuccessorCount() - 1) { }
+
+  bool HasNextSuccessor() const { return next_successor_ix_ >= 0; }
+  BlockEntryInstr* NextSuccessor() {
+    ASSERT(HasNextSuccessor());
+    return block_->last_instruction()->SuccessorAt(next_successor_ix_--);
+  }
+
+  BlockEntryInstr* block() const { return block_; }
+
+ private:
+  BlockEntryInstr* block_;
+  intptr_t next_successor_ix_;
+
+  DISALLOW_ALLOCATION();
+};
+
+
 void FlowGraph::DiscoverBlocks() {
+  StackZone zone(isolate());
+
   // Initialize state.
   preorder_.Clear();
   postorder_.Clear();
   reverse_postorder_.Clear();
   parent_.Clear();
-  // Perform a depth-first traversal of the graph to build preorder and
-  // postorder block orders.
-  graph_entry_->DiscoverBlocks(NULL,  // Entry block predecessor.
-                               &preorder_,
-                               &postorder_,
-                               &parent_,
-                               variable_count(),
-                               num_non_copied_params());
+
+  GrowableArray<BlockTraversalState> block_stack;
+  graph_entry_->DiscoverBlock(NULL, &preorder_, &parent_);
+  block_stack.Add(BlockTraversalState(graph_entry_));
+  while (!block_stack.is_empty()) {
+    BlockTraversalState &state = block_stack.Last();
+    BlockEntryInstr* block = state.block();
+    if (state.HasNextSuccessor()) {
+      // Process successors one-by-one.
+      BlockEntryInstr* succ = state.NextSuccessor();
+      if (succ->DiscoverBlock(block, &preorder_, &parent_)) {
+        block_stack.Add(BlockTraversalState(succ));
+      }
+    } else {
+      // All successors have been processed, pop the current block entry node
+      // and add it to the postorder list.
+      block_stack.RemoveLast();
+      block->set_postorder_number(postorder_.length());
+      postorder_.Add(block);
+    }
+  }
+
+  ASSERT(postorder_.length() == preorder_.length());
+
   // Create an array of blocks in reverse postorder.
   intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; ++i) {

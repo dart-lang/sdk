@@ -1145,26 +1145,22 @@ class BlockEntryInstr : public Instruction {
     return parallel_move_;
   }
 
-  // Discover basic-block structure by performing a recursive depth first
-  // traversal of the instruction graph reachable from this instruction.  As
-  // a side effect, the block entry instructions in the graph are assigned
-  // numbers in both preorder and postorder.  The array 'preorder' maps
-  // preorder block numbers to the block entry instruction with that number
-  // and analogously for the array 'postorder'.  The depth first spanning
-  // tree is recorded in the array 'parent', which maps preorder block
-  // numbers to the preorder number of the block's spanning-tree parent.
-  // The array 'assigned_vars' maps preorder block numbers to the set of
-  // assigned frame-allocated local variables in the block.  As a side
-  // effect of this function, the set of basic block predecessors (e.g.,
-  // block entry instructions of predecessor blocks) and also the last
-  // instruction in the block is recorded in each entry instruction.
-  void DiscoverBlocks(
+  // Discover basic-block structure of the current block.  Must be called
+  // on all graph blocks in preorder to yield valid results.  As a side effect,
+  // the block entry instructions in the graph are assigned preorder numbers.
+  // The array 'preorder' maps preorder block numbers to the block entry
+  // instruction with that number.  The depth first spanning tree is recorded
+  // in the array 'parent', which maps preorder block numbers to the preorder
+  // number of the block's spanning-tree parent.  As a side effect of this
+  // function, the set of basic block predecessors (e.g., block entry
+  // instructions of predecessor blocks) and also the last instruction in the
+  // block is recorded in each entry instruction.  Returns true when called the
+  // first time on this particular block within one graph traversal, and false
+  // on all successive calls.
+  bool DiscoverBlock(
       BlockEntryInstr* predecessor,
       GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent,
-      intptr_t variable_count,
-      intptr_t fixed_parameter_count);
+      GrowableArray<intptr_t>* parent);
 
   // Perform a depth first search to prune code not reachable from an OSR
   // entry point.
