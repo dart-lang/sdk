@@ -311,7 +311,9 @@ class MemberSorter {
           return o1.offset - o2.offset;
         }
         // sort all other members by name
-        return o1.name.compareTo(o2.name);
+        String name1 = o1.name.toLowerCase();
+        String name2 = o2.name.toLowerCase();
+        return name1.compareTo(name2);
       }
       return priority1 - priority2;
     });
