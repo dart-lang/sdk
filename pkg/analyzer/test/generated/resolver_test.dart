@@ -13683,7 +13683,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, [
         CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT]);
+        HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT]);
   }
 
   void test_import_packageWithLeadingDotDot() {
@@ -13691,7 +13691,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, [
         CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT]);
+        HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT]);
   }
 
   void test_import_referenceIntoLibDirectory() {
@@ -13699,7 +13699,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/lib/other.dart", "");
     Source source = addNamedSource("/myproj/web/test.dart", EngineTestCase.createSource(["import '../lib/other.dart';"]));
     resolve(source);
-    assertErrors(source, [PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE]);
+    assertErrors(source, [HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE]);
   }
 
   void test_import_referenceIntoLibDirectory_no_pubspec() {
@@ -13714,7 +13714,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/web/other.dart", "");
     Source source = addNamedSource("/myproj/lib/test.dart", EngineTestCase.createSource(["import '../web/other.dart';"]));
     resolve(source);
-    assertErrors(source, [PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE]);
+    assertErrors(source, [HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE]);
   }
 
   void test_import_referenceOutOfLibDirectory_no_pubspec() {

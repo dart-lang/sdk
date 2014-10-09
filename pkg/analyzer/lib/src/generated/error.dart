@@ -2396,44 +2396,37 @@ class ErrorType extends Enum<ErrorType> {
   static const ErrorType CHECKED_MODE_COMPILE_TIME_ERROR = const ErrorType('CHECKED_MODE_COMPILE_TIME_ERROR', 3, ErrorSeverity.INFO);
 
   /**
-   * Suggestions made in situations where the user has deviated from recommended pub programming
-   * practices.
-   */
-  static const ErrorType PUB_SUGGESTION = const ErrorType('PUB_SUGGESTION', 4, ErrorSeverity.WARNING);
-
-  /**
    * Static warnings are those warnings reported by the static checker. They have no effect on
    * execution. Static warnings must be provided by Dart compilers used during development.
    */
-  static const ErrorType STATIC_WARNING = const ErrorType('STATIC_WARNING', 5, ErrorSeverity.WARNING);
+  static const ErrorType STATIC_WARNING = const ErrorType('STATIC_WARNING', 4, ErrorSeverity.WARNING);
 
   /**
    * Many, but not all, static warnings relate to types, in which case they are known as static type
    * warnings.
    */
-  static const ErrorType STATIC_TYPE_WARNING = const ErrorType('STATIC_TYPE_WARNING', 6, ErrorSeverity.WARNING);
+  static const ErrorType STATIC_TYPE_WARNING = const ErrorType('STATIC_TYPE_WARNING', 5, ErrorSeverity.WARNING);
 
   /**
    * Syntactic errors are errors produced as a result of input that does not conform to the grammar.
    */
-  static const ErrorType SYNTACTIC_ERROR = const ErrorType('SYNTACTIC_ERROR', 7, ErrorSeverity.ERROR);
+  static const ErrorType SYNTACTIC_ERROR = const ErrorType('SYNTACTIC_ERROR', 6, ErrorSeverity.ERROR);
 
   /**
    * Angular specific semantic problems.
    */
-  static const ErrorType ANGULAR = const ErrorType('ANGULAR', 8, ErrorSeverity.INFO);
+  static const ErrorType ANGULAR = const ErrorType('ANGULAR', 7, ErrorSeverity.INFO);
 
   /**
    * Polymer specific semantic problems.
    */
-  static const ErrorType POLYMER = const ErrorType('POLYMER', 9, ErrorSeverity.INFO);
+  static const ErrorType POLYMER = const ErrorType('POLYMER', 8, ErrorSeverity.INFO);
 
   static const List<ErrorType> values = const [
       TODO,
       HINT,
       COMPILE_TIME_ERROR,
       CHECKED_MODE_COMPILE_TIME_ERROR,
-      PUB_SUGGESTION,
       STATIC_WARNING,
       STATIC_TYPE_WARNING,
       SYNTACTIC_ERROR,
@@ -2657,6 +2650,29 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    */
   static const HintCode USE_OF_VOID_RESULT = const HintCode.con1('USE_OF_VOID_RESULT', 28, "The result of '{0}' is being used, even though it is declared to be 'void'");
 
+  /**
+   * It is a bad practice for a source file in a package "lib" directory hierarchy to traverse
+   * outside that directory hierarchy. For example, a source file in the "lib" directory should not
+   * contain a directive such as `import '../web/some.dart'` which references a file outside
+   * the lib directory.
+   */
+  static const HintCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE = const HintCode.con1('FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE', 29, "A file in the 'lib' directory hierarchy should not reference a file outside that hierarchy");
+
+  /**
+   * It is a bad practice for a source file ouside a package "lib" directory hierarchy to traverse
+   * into that directory hierarchy. For example, a source file in the "web" directory should not
+   * contain a directive such as `import '../lib/some.dart'` which references a file inside
+   * the lib directory.
+   */
+  static const HintCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE = const HintCode.con1('FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE', 30, "A file outside the 'lib' directory hierarchy should not reference a file inside that hierarchy. Use a package: reference instead.");
+
+  /**
+   * It is a bad practice for a package import to reference anything outside the given package, or
+   * more generally, it is bad practice for a package import to contain a "..". For example, a
+   * source file should not contain a directive such as `import 'package:foo/../some.dart'`.
+   */
+  static const HintCode PACKAGE_IMPORT_CONTAINS_DOT_DOT = const HintCode.con1('PACKAGE_IMPORT_CONTAINS_DOT_DOT', 31, "A package import should not contain '..'");
+
   static const List<HintCode> values = const [
       ARGUMENT_TYPE_NOT_ASSIGNABLE,
       DEAD_CODE,
@@ -2686,7 +2702,10 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
       UNNECESSARY_TYPE_CHECK_FALSE,
       UNNECESSARY_TYPE_CHECK_TRUE,
       UNUSED_IMPORT,
-      USE_OF_VOID_RESULT];
+      USE_OF_VOID_RESULT,
+      FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
+      FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
+      PACKAGE_IMPORT_CONTAINS_DOT_DOT];
 
   /**
    * The template used to create the message to be displayed for this error.
@@ -2832,77 +2851,6 @@ class PolymerCode extends Enum<PolymerCode> implements ErrorCode {
 
   @override
   ErrorType get type => ErrorType.POLYMER;
-
-  @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
-}
-
-/**
- * The enumeration `PubSuggestionCode` defines the suggestions used for reporting deviations
- * from pub best practices. The convention for this class is for the name of the bad practice to
- * indicate the problem that caused the suggestion to be generated and for the message to explain
- * what is wrong and, when appropriate, how the situation can be corrected.
- */
-class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
-  /**
-   * It is a bad practice for a source file in a package "lib" directory hierarchy to traverse
-   * outside that directory hierarchy. For example, a source file in the "lib" directory should not
-   * contain a directive such as `import '../web/some.dart'` which references a file outside
-   * the lib directory.
-   */
-  static const PubSuggestionCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE = const PubSuggestionCode.con1('FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE', 0, "A file in the 'lib' directory hierarchy should not reference a file outside that hierarchy");
-
-  /**
-   * It is a bad practice for a source file ouside a package "lib" directory hierarchy to traverse
-   * into that directory hierarchy. For example, a source file in the "web" directory should not
-   * contain a directive such as `import '../lib/some.dart'` which references a file inside
-   * the lib directory.
-   */
-  static const PubSuggestionCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE = const PubSuggestionCode.con1('FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE', 1, "A file outside the 'lib' directory hierarchy should not reference a file inside that hierarchy. Use a package: reference instead.");
-
-  /**
-   * It is a bad practice for a package import to reference anything outside the given package, or
-   * more generally, it is bad practice for a package import to contain a "..". For example, a
-   * source file should not contain a directive such as `import 'package:foo/../some.dart'`.
-   */
-  static const PubSuggestionCode PACKAGE_IMPORT_CONTAINS_DOT_DOT = const PubSuggestionCode.con1('PACKAGE_IMPORT_CONTAINS_DOT_DOT', 2, "A package import should not contain '..'");
-
-  static const List<PubSuggestionCode> values = const [
-      FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
-      FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
-      PACKAGE_IMPORT_CONTAINS_DOT_DOT];
-
-  /**
-   * The template used to create the message to be displayed for this error.
-   */
-  final String message;
-
-  /**
-   * The template used to create the correction to be displayed for this error, or `null` if
-   * there is no correction information for this error.
-   */
-  final String correction;
-
-  /**
-   * Initialize a newly created error code to have the given message.
-   *
-   * @param message the message template used to create the message to be displayed for the error
-   */
-  const PubSuggestionCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, null);
-
-  /**
-   * Initialize a newly created error code to have the given message and correction.
-   *
-   * @param message the template used to create the message to be displayed for the error
-   * @param correction the template used to create the correction to be displayed for the error
-   */
-  const PubSuggestionCode.con2(String name, int ordinal, this.message, this.correction) : super(name, ordinal);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorType.PUB_SUGGESTION.severity;
-
-  @override
-  ErrorType get type => ErrorType.PUB_SUGGESTION;
 
   @override
   String get uniqueName => "${runtimeType.toString()}.${name}";
