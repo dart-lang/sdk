@@ -24,24 +24,6 @@ class LocalComputerTest extends AbstractSelectorSuggestionTest {
     computer = new LocalComputer();
   }
 
-  test_BinaryExpression_LHS() {
-    // SimpleIdentifier  BinaryExpression  VariableDeclaration
-    // VariableDeclarationList  VariableDeclarationStatement
-    addTestSource('main() {int a = 1, b = ^ + 2;}');
-    expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('a', 'int');
-    assertNotSuggested('b');
-  }
-
-  test_BinaryExpression_RHS() {
-    // SimpleIdentifier  BinaryExpression  VariableDeclaration
-    // VariableDeclarationList  VariableDeclarationStatement
-    addTestSource('main() {int a = 1, b = 2 + ^;}');
-    expect(computeFast(), isTrue);
-    assertSuggestLocalVariable('a', 'int');
-    assertNotSuggested('b');
-  }
-
   test_CatchClause_typed() {
     // Block  CatchClause  TryStatement
     addTestSource('class A {a() {try{} on E catch (e) {^}}}');

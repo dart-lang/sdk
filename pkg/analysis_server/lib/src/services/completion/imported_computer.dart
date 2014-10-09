@@ -69,6 +69,11 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
+  Future<bool> visitExpression(Expression node) {
+    return _addImportedElementSuggestions();
+  }
+
+  @override
   Future<bool> visitExpressionStatement(ExpressionStatement node) {
     Expression expression = node.expression;
     // A pre-variable declaration (e.g. C ^) is parsed as an expression
@@ -88,7 +93,19 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   Future<bool> visitPrefixedIdentifier(PrefixedIdentifier node) {
     // Make suggestions for the prefix, but not for the selector
     // InvocationComputer makes selector suggestions
-    if (request.offset <= node.prefix.end) {
+    Token period = node.period;
+    if (period != null && request.offset <= period.offset) {
+      return _addImportedElementSuggestions();
+    }
+    return new Future.value(false);
+  }
+
+  @override
+  Future<bool> visitPropertyAccess(PropertyAccess node) {
+    // Make suggestions for the target, but not for the property name
+    // InvocationComputer makes property name suggestions
+    var operator = node.operator;
+    if (operator != null && request.offset < operator.offset) {
       return _addImportedElementSuggestions();
     }
     return new Future.value(false);
@@ -97,6 +114,11 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   @override
   Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
     return node.parent.accept(this);
+  }
+
+  @override
+  Future<bool> visitStringLiteral(StringLiteral node) {
+    return new Future.value(false);
   }
 
   @override

@@ -978,4 +978,28 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNoSuggestions();
     });
   }
+
+  test_BinaryExpression_LHS() {
+    // SimpleIdentifier  BinaryExpression  VariableDeclaration
+    // VariableDeclarationList  VariableDeclarationStatement
+    addTestSource('main() {int a = 1, b = ^ + 2;}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('a', 'int');
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('b');
+    });
+  }
+
+  test_BinaryExpression_RHS() {
+    // SimpleIdentifier  BinaryExpression  VariableDeclaration
+    // VariableDeclarationList  VariableDeclarationStatement
+    addTestSource('main() {int a = 1, b = 2 + ^;}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('a', 'int');
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('b');
+    });
+  }
 }
