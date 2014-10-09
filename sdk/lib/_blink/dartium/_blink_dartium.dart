@@ -1073,6 +1073,8 @@ class BlinkCompositionEvent {
 
   static data_Getter(mthis) native "CompositionEvent_data_Getter";
 
+  static getSegments_Callback(mthis) native "CompositionEvent_getSegments_Callback";
+
   static initCompositionEvent_Callback_DOMString_boolean_boolean_Window_DOMString(mthis, typeArg, canBubbleArg, cancelableArg, viewArg, dataArg) native "CompositionEvent_initCompositionEvent_Callback_DOMString_boolean_boolean_Window_DOMString";
 }
 
@@ -4047,9 +4049,13 @@ class BlinkMIDIMessageEvent {
 }
 
 class BlinkMIDIOutput {
+  static send_Callback_Uint8Array(mthis, data) native "MIDIOutput_send_Callback_Uint8Array";
+
   static send_Callback_Uint8Array_double(mthis, data, timestamp) native "MIDIOutput_send_Callback_Uint8Array_double";
 
-  static send_Callback_Uint8Array(mthis, data) native "MIDIOutput_send_Callback_Uint8Array";
+  static send_Callback_SEQ_ul_SEQ(mthis, data) native "MIDIOutput_send_Callback_sequence<unsigned long>";
+
+  static send_Callback_SEQ_ul_SEQ_double(mthis, data, timestamp) native "MIDIOutput_send_Callback_sequence<unsigned long>_double";
 }
 
 class BlinkMediaController {
@@ -7860,7 +7866,9 @@ class BlinkWebGLDebugShaders {
 
 class BlinkWebGLDepthTexture {}
 
-class BlinkWebGLDrawBuffers {}
+class BlinkWebGLDrawBuffers {
+  static drawBuffersWEBGL_Callback_SEQ_ul_SEQ(mthis, buffers) native "WebGLDrawBuffers_drawBuffersWEBGL_Callback_sequence<unsigned long>";
+}
 
 class BlinkWebGLFramebuffer {}
 

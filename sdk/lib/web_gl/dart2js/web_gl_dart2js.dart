@@ -787,6 +787,11 @@ class DrawBuffers extends Interceptor {
   @DomName('WebGLDrawBuffers.MAX_DRAW_BUFFERS_WEBGL')
   @DocsEditable()
   static const int MAX_DRAW_BUFFERS_WEBGL = 0x8824;
+
+  @JSName('drawBuffersWEBGL')
+  @DomName('WebGLDrawBuffers.drawBuffersWEBGL')
+  @DocsEditable()
+  void drawBuffersWebgl(List<int> buffers) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
