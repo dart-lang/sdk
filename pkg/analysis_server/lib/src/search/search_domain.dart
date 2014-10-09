@@ -56,6 +56,8 @@ class SearchDomainHandler implements protocol.RequestHandler {
         return element.variable;
       }
       return element;
+    }).where((Element element) {
+      return element != null;
     }).toList();
     // schedule search
     String searchId = (_nextSearchId++).toString();

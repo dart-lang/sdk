@@ -341,7 +341,14 @@ List<Element> _computePath(engine.Element element) {
   List<Element> path = <Element>[];
   while (element != null) {
     path.add(newElement_fromEngine(element));
-    element = element.enclosingElement;
+    // go up
+    if (element is engine.PrefixElement) {
+      // imports are library children, but they are physically in the unit
+      engine.LibraryElement library = element.enclosingElement;
+      element = library.definingCompilationUnit;
+    } else {
+      element = element.enclosingElement;
+    }
   }
   return path;
 }
