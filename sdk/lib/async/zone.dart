@@ -607,7 +607,8 @@ abstract class _Zone implements Zone {
   Map get _map;
 
   bool inSameErrorZone(Zone otherZone) {
-    return identical(errorZone, otherZone.errorZone);
+    return identical(this, otherZone) ||
+           identical(errorZone, otherZone.errorZone);
   }
 }
 
@@ -940,7 +941,8 @@ AsyncError _rootErrorCallback(Zone self, ZoneDelegate parent, Zone zone,
 
 void _rootScheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) {
   if (!identical(_ROOT_ZONE, zone)) {
-    f = zone.bindCallback(f);
+    bool hasErrorHandler = !_ROOT_ZONE.inSameErrorZone(zone);
+    f = zone.bindCallback(f, runGuarded: hasErrorHandler);
   }
   _scheduleAsyncCallback(f);
 }
