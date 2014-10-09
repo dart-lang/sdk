@@ -1,7 +1,11 @@
+#### 0.15.1-dev
+  * Upgraded to polymer [0.4.2][]
+
 #### 0.15.0+1
   * Widen web_components version constraint.
 
 #### 0.15.0
+  * Upgraded to polymer 0.4.1
   * Added Polymer.forceReady method. This forces a ready state regardless of
     whether or not there are still polymer-element declarations waiting for
     their class definitions to be loaded.
@@ -273,5 +277,6 @@
 #### 0.9.2+2
   * fix enteredView in dart2js, by using custom_element >= 0.9.1+1
 
+[0.4.2]: https://github.com/Polymer/polymer-dev/commit/8c339cf8614eb65145ec1ccbdba7ecbadf65b343
 [6ad2d61]:https://github.com/Polymer/polymer-dev/commit/6a3e1b0e2a0bbe546f6896b3f4f064950d7aee8f
 [3b690ad]:https://github.com/Polymer/polymer-dev/commit/3b690ad0d995a7ea339ed601075de2f84d92bafd

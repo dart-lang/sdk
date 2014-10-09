@@ -1,3 +1,7 @@
+#### Pub version 0.9.0-dev
+  * Updated to platform version 0.4.2, internally a deprecated API was removed,
+    hence the bump in the version number.
+
 #### Pub version 0.8.0
   * Re-apply changes from 0.7.1+1 and also cherry pick 
     [efdbbc](https://github.com/polymer/CustomElements/commit/efdbbc) to fix
