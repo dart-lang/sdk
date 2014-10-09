@@ -5680,6 +5680,26 @@ class AliasedSet : public ZoneAllocated {
       const intptr_t alias_id = LookupAliasId(place.ToAlias());
       if (alias_id != kNoAlias) {
         *killed = GetKilledSet(alias_id);
+      } else if (!place.IsFinalField()) {
+        // We encountered unknown alias: this means intrablock load forwarding
+        // refined parameter of this store, for example
+        //
+        //     o   <- alloc()
+        //     a.f <- o
+        //     u   <- a.f
+        //     u.x <- null ;; this store alias is *.x
+        //
+        // after intrablock load forwarding
+        //
+        //     o   <- alloc()
+        //     a.f <- o
+        //     o.x <- null ;; this store alias is o.x
+        //
+        // In this case we fallback to using place id recorded in the
+        // instruction that still points to the old place with a more generic
+        // alias.
+        *killed = GetKilledSet(
+            LookupAliasId(places_[instr->place_id()]->ToAlias()));
       }
     }
     return is_store;
@@ -6198,6 +6218,7 @@ static AliasedSet* NumberPlaces(
        !it.Done();
        it.Advance()) {
     BlockEntryInstr* block = it.Current();
+
     for (ForwardInstructionIterator instr_it(block);
          !instr_it.Done();
          instr_it.Advance()) {

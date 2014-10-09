@@ -471,6 +471,21 @@ testAliasingStoreIndexed(array) {
   return z.x;
 }
 
+class ZZ {
+  var f;
+}
+
+var zz, f0 = 42;
+
+testAliasesRefinement() {
+  zz = new ZZ();
+  var b = zz;
+  if (b.f == null) {
+    b.f = f0;
+  }
+  return b.f;
+}
+
 main() {
   final fixed = new List(10);
   final growable = [];
@@ -498,6 +513,7 @@ main() {
     testPhiForwarding4();
     Expect.equals(4, testPhiForwarding5(cs));
     testEqualPhisElimination();
+    Expect.equals(f0, testAliasesRefinement());
   }
 
   Expect.equals(1, testImmutableVMFields([], false));
