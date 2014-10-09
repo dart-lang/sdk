@@ -120,7 +120,8 @@ TEST_CASE(FreeListProtectedTinyObjects) {
   const intptr_t kObjectSize = 2 * kWordSize;
   uword* objects = new uword[kBlobSize / kObjectSize];
 
-  VirtualMemory* blob = VirtualMemory::ReserveAligned(kBlobSize, 4096);
+  VirtualMemory* blob = VirtualMemory::Reserve(kBlobSize);
+  ASSERT(Utils::IsAligned(blob->start(), 4096));
   blob->Commit(/* is_executable = */ false);
   blob->Protect(VirtualMemory::kReadWrite);
 
@@ -162,7 +163,8 @@ TEST_CASE(FreeListProtectedVariableSizeObjects) {
     objects[i] = static_cast<uword>(NULL);
   }
 
-  VirtualMemory* blob = VirtualMemory::ReserveAligned(kBlobSize, 4096);
+  VirtualMemory* blob = VirtualMemory::Reserve(kBlobSize);
+  ASSERT(Utils::IsAligned(blob->start(), 4096));
   blob->Commit(/* is_executable = */ false);
   blob->Protect(VirtualMemory::kReadWrite);
 

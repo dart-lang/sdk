@@ -28,7 +28,7 @@ void VirtualMemory::InitOnce() {
 }
 
 
-VirtualMemory* VirtualMemory::Reserve(intptr_t size) {
+VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
   ASSERT((size & (PageSize() - 1)) == 0);
   void* address = mmap(NULL, size, PROT_NONE,
                        MAP_PRIVATE | MAP_ANON | MAP_NORESERVE,
@@ -37,7 +37,7 @@ VirtualMemory* VirtualMemory::Reserve(intptr_t size) {
     return NULL;
   }
   MemoryRegion region(address, size);
-  return new VirtualMemory(region, NULL);
+  return new VirtualMemory(region);
 }
 
 
@@ -53,12 +53,13 @@ static void unmap(void* address, intptr_t size) {
 
 
 VirtualMemory::~VirtualMemory() {
-  unmap(address(), size());
+  unmap(address(), reserved_size_);
 }
 
 
 void VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   unmap(address, size);
+  return true;
 }
 
 

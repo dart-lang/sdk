@@ -37,11 +37,6 @@ UNIT_TEST_CASE(AllocateVirtualMemory) {
   EXPECT_STREQ("ac/dc", buf);
 
   delete vm;
-
-  const intptr_t kAlignment = 1 * MB;
-  vm = VirtualMemory::ReserveAligned(kVirtualMemoryBlockSize, kAlignment);
-  ASSERT((vm->start() & (kAlignment - 1)) == 0);
-  delete vm;
 }
 
 }  // namespace dart

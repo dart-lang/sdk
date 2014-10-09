@@ -15,34 +15,15 @@ bool VirtualMemory::InSamePage(uword address0, uword address1) {
 }
 
 
-VirtualMemory* VirtualMemory::ReserveAligned(intptr_t size,
-                                             intptr_t alignment) {
-  ASSERT((size & (PageSize() - 1)) == 0);
-  ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(alignment >= PageSize());
-  VirtualMemory* result = VirtualMemory::Reserve(size + alignment);
-  if (result == NULL) {
-    FATAL("Out of memory.\n");
-  }
-  uword start = result->start();
-  uword real_start = (start + alignment - 1) & ~(alignment - 1);
-  result->Truncate(real_start, size);
-  return result;
-}
-
-
-void VirtualMemory::Truncate(uword new_start, intptr_t new_size) {
-  ASSERT(new_start >= start());
+void VirtualMemory::Truncate(intptr_t new_size, bool try_unmap) {
   ASSERT((new_size & (PageSize() - 1)) == 0);
-  if (new_start > start()) {
-    uword split = new_start - start();
-    ASSERT((split & (PageSize() - 1)) == 0);
-    FreeSubSegment(address(), split);
-    region_.Subregion(region_, split, size() - split);
-  }
   ASSERT(new_size <= size());
-  FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
-                 size() - new_size);
+  if (try_unmap &&
+      (reserved_size_ == size()) &&  /* Don't create holes in reservation. */
+      FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
+                     size() - new_size)) {
+    reserved_size_ = new_size;
+  }
   region_.Subregion(region_, 0, new_size);
 }
 

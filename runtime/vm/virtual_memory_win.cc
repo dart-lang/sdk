@@ -22,7 +22,7 @@ void VirtualMemory::InitOnce() {
 }
 
 
-VirtualMemory* VirtualMemory::Reserve(intptr_t size) {
+VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
   void* address = VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
   if (address == NULL) {
     return NULL;
@@ -33,23 +33,20 @@ VirtualMemory* VirtualMemory::Reserve(intptr_t size) {
 
 
 VirtualMemory::~VirtualMemory() {
-  if (size() == 0) {
+  if (reserved_size_ == 0) {
     return;
   }
-
-  // Since sub-segments are not freed, free the entire virtual segment
-  // here by passing the originally reserved pointer to VirtualFree.
-  ASSERT(reserved_pointer_ != NULL);
-  if (VirtualFree(reserved_pointer_, 0, MEM_RELEASE) == 0) {
+  if (VirtualFree(address(), 0, MEM_RELEASE) == 0) {
     FATAL("VirtualFree failed");
   }
 }
 
 
-void VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
+bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   // On Windows only the entire segment returned by VirtualAlloc
   // can be freed. Therefore we will have to waste these unused
   // virtual memory sub-segments.
+  return false;
 }
 
 

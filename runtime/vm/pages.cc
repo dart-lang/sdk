@@ -227,7 +227,7 @@ void PageSpace::TruncateLargePage(HeapPage* page,
   VirtualMemory* memory = page->memory_;
   const intptr_t old_page_size_in_words = (memory->size() >> kWordSizeLog2);
   if (new_page_size_in_words < old_page_size_in_words) {
-    memory->Truncate(memory->start(), new_page_size_in_words << kWordSizeLog2);
+    memory->Truncate(new_page_size_in_words << kWordSizeLog2);
     usage_.capacity_in_words -= old_page_size_in_words;
     usage_.capacity_in_words += new_page_size_in_words;
     page->set_object_end(page->object_start() + new_object_size_in_bytes);
