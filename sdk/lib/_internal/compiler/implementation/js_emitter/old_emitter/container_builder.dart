@@ -342,11 +342,18 @@ class ContainerBuilder extends CodeEmitterHelper {
   }
 
   void addMemberMethod(FunctionElement member, ClassBuilder builder) {
-    if (member.isAbstract) return;
+    MemberInfo info = analyzeMemberMethod(member);
+    if (info != null) {
+      addMemberMethodFromInfo(info, builder);
+    }
+  }
+
+  MemberInfo analyzeMemberMethod(FunctionElement member) {
+    if (member.isAbstract) return null;
     jsAst.Expression code = backend.generatedCode[member];
-    if (code == null) return;
+    if (code == null) return null;
     String name = namer.getNameOfMember(member);
-    emitter.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
+
     FunctionSignature parameters = member.functionSignature;
     bool needsStubs = !parameters.optionalParameters.isEmpty;
     bool canTearOff = false;
@@ -383,6 +390,43 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     final bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied;
+
+    if (canTearOff) {
+      assert(invariant(member, !member.isGenerativeConstructor));
+      assert(invariant(member, !member.isGenerativeConstructorBody));
+      assert(invariant(member, !member.isConstructor));
+    }
+
+    return new MemberInfo(
+        member,
+        name,
+        parameters,
+        code,
+        needsStubs: needsStubs,
+        canTearOff: canTearOff,
+        isClosure: isClosure,
+        tearOffName: tearOffName,
+        canBeReflected: canBeReflected,
+        canBeApplied: canBeApplied,
+        needStructuredInfo: needStructuredInfo);
+
+  }
+
+  void addMemberMethodFromInfo(MemberInfo info, ClassBuilder builder) {
+    final FunctionElement member = info.member;
+    final String name = info.name;
+    final FunctionSignature parameters = info.parameters;
+    jsAst.Expression code = info.code;
+    final bool needsStubs = info.needsStubs;
+    final bool canTearOff = info.canTearOff;
+    final bool isClosure = info.isClosure;
+    final String tearOffName = info.tearOffName;
+    final bool canBeReflected = info.canBeReflected;
+    final bool canBeApplied = info.canBeApplied;
+    final bool needStructuredInfo = info.needStructuredInfo;
+
+    emitter.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
+
     if (!needStructuredInfo) {
       compiler.dumpInfoTask.registerElementAst(member,
           builder.addProperty(name, code));
@@ -397,11 +441,6 @@ class ContainerBuilder extends CodeEmitterHelper {
       return;
     }
 
-    if (canTearOff) {
-      assert(invariant(member, !member.isGenerativeConstructor));
-      assert(invariant(member, !member.isGenerativeConstructorBody));
-      assert(invariant(member, !member.isConstructor));
-    }
 
     // This element is needed for reflection or needs additional stubs. So we
     // need to retain additional information.
@@ -550,5 +589,54 @@ class ContainerBuilder extends CodeEmitterHelper {
 
   void addMemberField(VariableElement member, ClassBuilder builder) {
     // For now, do nothing.
+  }
+}
+
+class MemberInfo {
+  final FunctionElement member;
+
+  final String name;
+
+  final FunctionSignature parameters;
+
+  final jsAst.Expression code;
+
+  final bool needsStubs;
+
+  final bool canTearOff;
+
+  final bool isClosure;
+
+  final String tearOffName;
+
+  final bool canBeReflected;
+
+  final bool canBeApplied;
+
+  final bool needStructuredInfo;
+
+  MemberInfo(
+      this.member,
+      this.name,
+      this.parameters,
+      this.code,
+      {this.needsStubs,
+       this.canTearOff,
+       this.isClosure,
+       this.tearOffName,
+       this.canBeReflected,
+       this.canBeApplied,
+       this.needStructuredInfo}) {
+    assert(member != null);
+    assert(name != null);
+    assert(parameters != null);
+    assert(code != null);
+    assert(needsStubs != null);
+    assert(canTearOff != null);
+    assert(isClosure != null);
+    assert(tearOffName != null || !canTearOff);
+    assert(canBeReflected != null);
+    assert(canBeApplied != null);
+    assert(needStructuredInfo != null);
   }
 }
