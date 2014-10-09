@@ -28,7 +28,7 @@ VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
     return NULL;
   }
   MemoryRegion region(address, size);
-  return new VirtualMemory(region, address);
+  return new VirtualMemory(region);
 }
 
 
