@@ -57,7 +57,7 @@ VirtualMemory::~VirtualMemory() {
 }
 
 
-void VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
+bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   unmap(address, size);
   return true;
 }
