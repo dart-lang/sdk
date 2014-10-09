@@ -32,6 +32,16 @@ import 'package:compiler/implementation/source_file.dart' show
 import 'package:compiler/implementation/tree/tree.dart' show
     FunctionExpression;
 
+import 'package:compiler/implementation/js/js.dart' show
+    js;
+
+import 'package:compiler/implementation/js/js.dart' as jsAst;
+
+import 'package:compiler/implementation/js_emitter/js_emitter.dart' show
+    ClassBuilder;
+
+import 'package:compiler/js_lib/shared/embedded_names.dart' as embeddedNames;
+
 import 'diff.dart' show
     Difference,
     computeDifference;
@@ -174,6 +184,63 @@ class LibraryUpdater {
 
   List<Element> applyUpdates() {
     return updates.map((Update update) => update.apply()).toList();
+  }
+
+  String computeUpdateJs() {
+    List<Element> updatedElements = applyUpdates();
+    compiler.progress.reset();
+    for (Element element in updatedElements) {
+      compiler.enqueuer.resolution.addToWorkList(element);
+    }
+    compiler.processQueue(compiler.enqueuer.resolution, null);
+
+    compiler.phase = Compiler.PHASE_DONE_RESOLVING;
+
+    for (Element element in updatedElements) {
+      compiler.enqueuer.codegen.addToWorkList(element);
+    }
+    compiler.processQueue(compiler.enqueuer.codegen, null);
+
+    List<jsAst.Statement> updates = <jsAst.Statement>[];
+    for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {
+      updates.add(computeMemberUpdateJs(element));
+    }
+
+    if (updates.length == 1) {
+      return prettyPrintJs(updates.single);
+    } else {
+      return prettyPrintJs(js.statement('{#}', [updates]));
+    }
+  }
+
+  jsAst.Node computeMemberUpdateJs(Element element) {
+    ClassBuilder builder = new ClassBuilder(element, compiler.backend.namer);
+
+    compiler.backend.emitter.oldEmitter.containerBuilder.addMember(
+        element, builder);
+    jsAst.Property property = builder.properties.single;
+    jsAst.Node name = property.name;
+    jsAst.Node function = property.value;
+    jsAst.Node elementAccess = compiler.backend.namer.elementAccess(element);
+    jsAst.Expression globalFunctionsAccess =
+        compiler.backend.emitter.generateEmbeddedGlobalAccess(
+            embeddedNames.GLOBAL_FUNCTIONS);
+    List<jsAst.Statement> statements = <jsAst.Statement>[];
+    statements.add(
+        js.statement(
+            '#.# = # = f',
+            [globalFunctionsAccess, name, elementAccess]));
+    // Create a scope by creating a new function. The updated function literal
+    // is passed as an argument to this function which ensures that temporary
+    // names in updateScope don't shadow global names.
+    jsAst.Fun updateScope = js('function (f) { # }', [statements]);
+    return js.statement('(#)(#)', [updateScope, function]);
+  }
+
+  String prettyPrintJs(jsAst.Node node) {
+    jsAst.Printer printer = new jsAst.Printer(compiler, null);
+    printer.blockOutWithoutBraces(node);
+    return printer.outBuffer.getText();
   }
 }
 

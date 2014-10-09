@@ -61,7 +61,7 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
     Token;
 
 import 'package:compiler/implementation/js/js.dart' show
-    prettyPrint;
+    js;
 
 /// Enabled by the option --enable-dart-mind.  Controls if this program should
 /// be querying Dart Mind.
@@ -95,6 +95,10 @@ bool isVerbose = false;
 /// Enabled by the option --compile. Also compiles the program after analyzing
 /// the POI.
 bool isCompiler = false;
+
+/// Enabled by the option --minify. Passes the same option to the compiler to
+/// generate minified output.
+bool enableMinification = false;
 
 /// When true (the default value) print serialized scope information at the
 /// provided position.
@@ -160,6 +164,9 @@ main(List<String> arguments) {
         case '--compile':
           isCompiler = true;
           break;
+        case '--minify':
+          enableMinification = true;
+          break;
         default:
           throw 'Unknown option: $argument.';
       }
@@ -212,7 +219,7 @@ api.CompilerInputProvider simulateMutation(
         cache = new io.File(cachedFileName).readAsBytes().then((data) {
           printVerbose(
               'Read file $cachedFileName: '
-              '${UTF8.decode(data.sublist(0, 100), allowMalformed: true)}...');
+              '${UTF8.decode(data.take(100).toList(), allowMalformed: true)}...');
           return data;
         });
         count++;
@@ -386,6 +393,10 @@ Future<Element> runPoi(
     options.add('--analyze-only');
   }
 
+  if (enableMinification) {
+    options.add('--minify');
+  }
+
   LibraryUpdater updater =
       new LibraryUpdater(
           cachedCompiler, inputProvider, script, printWallClock, printVerbose);
@@ -430,25 +441,10 @@ Future<Element> runPoiInternal(
   Future<bool> compilation;
 
   if (updater.hasPendingUpdates) {
-    List<Element> updatedElements = updater.applyUpdates();
     compilation = new Future(() {
-      cachedCompiler.progress.reset();
-      for (Element element in updatedElements) {
-        cachedCompiler.enqueuer.resolution.addToWorkList(element);
-      }
-      cachedCompiler.processQueue(cachedCompiler.enqueuer.resolution, null);
-
-      cachedCompiler.phase = Compiler.PHASE_DONE_RESOLVING;
-
-      for (Element element in updatedElements) {
-        cachedCompiler.enqueuer.codegen.addToWorkList(element);
-      }
-      cachedCompiler.processQueue(cachedCompiler.enqueuer.codegen, null);
-
-      for (Element element in updatedElements) {
-        var node = cachedCompiler.enqueuer.codegen.generatedCode[element];
-        print(prettyPrint(node, cachedCompiler).getText());
-      }
+      var node = js.statement(
+          r'var $dart_patch = #', js.escapedString(updater.computeUpdateJs()));
+      print(updater.prettyPrintJs(node));
 
       return !cachedCompiler.compilationFailed;
     });

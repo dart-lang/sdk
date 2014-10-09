@@ -1105,6 +1105,9 @@ class OldEmitter implements Emitter {
       Element isolateMain =
         backend.isolateHelperLibrary.find(JavaScriptBackend.START_ROOT_ISOLATE);
       mainCallClosure = buildIsolateSetupClosure(main, isolateMain);
+    } else if (compiler.hasIncrementalSupport) {
+      mainCallClosure =
+          js('function() { return #(); }', namer.elementAccess(main));
     } else {
       mainCallClosure = namer.elementAccess(main);
     }
@@ -1331,6 +1334,12 @@ class OldEmitter implements Emitter {
     // Using a named function here produces easier to read stack traces in
     // Chrome/V8.
     mainBuffer.add('(function(${namer.currentIsolate})$_{\n');
+    if (compiler.hasIncrementalSupport) {
+      mainBuffer.add(
+          '(this.\$dart_unsafe_eval ='
+          ' this.\$dart_unsafe_eval || Object.create(null))'
+          '.patch = function(a) { eval(a) }$N');
+    }
     if (isProgramSplit) {
       /// We collect all the global state of the, so it can be passed to the
       /// initializer of deferred files.

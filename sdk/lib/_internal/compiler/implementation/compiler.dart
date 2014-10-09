@@ -966,6 +966,11 @@ abstract class Compiler implements DiagnosticListener {
         this.outputProvider = (outputProvider == null)
             ? NullSink.outputProvider
             : outputProvider {
+    if (hasIncrementalSupport) {
+      // TODO(ahe): This is too much. Any method from platform and package
+      // libraries can be inlined.
+      disableInlining = true;
+    }
     world = new World(this);
     types = new Types(this);
     tracer = new Tracer(this, this.outputProvider);

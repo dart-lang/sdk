@@ -857,9 +857,6 @@ class CodegenEnqueuer extends Enqueuer {
   }
 
   bool internalAddToWorkList(Element element) {
-    if (compiler.hasIncrementalSupport) {
-      newlyEnqueuedElements.add(element);
-    }
     // Don't generate code for foreign elements.
     if (element.isForeign(compiler.backend)) return false;
 
@@ -870,6 +867,10 @@ class CodegenEnqueuer extends Enqueuer {
           || element.enclosingElement.isClosure) {
         return false;
       }
+    }
+
+    if (compiler.hasIncrementalSupport && !isProcessed(element)) {
+      newlyEnqueuedElements.add(element);
     }
 
     if (queueIsClosed) {
