@@ -36,14 +36,14 @@ DirectoryBasedDartSdk sdk;
 class AnalyzerImpl {
   /**
    * Compute the severity of the error; however, if
-   * [escalateCheckedModeCompileTimeErrors] is true, then escalate it to
-   * [ErrorSeverity.ERROR].
+   * [enableTypeChecks] is false, then de-escalate checked-mode compile time
+   * errors to a severity of [ErrorSeverity.INFO].
    */
   static ErrorSeverity computeSeverity(
-      AnalysisError error, bool escalateCheckedModeCompileTimeErrors) {
-    if (escalateCheckedModeCompileTimeErrors
+      AnalysisError error, bool enableTypeChecks) {
+    if (!enableTypeChecks
         && error.errorCode.type == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
-      return ErrorSeverity.ERROR;
+      return ErrorSeverity.INFO;
     }
     return error.errorCode.errorSeverity;
   }

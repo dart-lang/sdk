@@ -2393,7 +2393,7 @@ class ErrorType extends Enum<ErrorType> {
   /**
    * Checked mode compile-time errors are errors that preclude execution in checked mode.
    */
-  static const ErrorType CHECKED_MODE_COMPILE_TIME_ERROR = const ErrorType('CHECKED_MODE_COMPILE_TIME_ERROR', 3, ErrorSeverity.INFO);
+  static const ErrorType CHECKED_MODE_COMPILE_TIME_ERROR = const ErrorType('CHECKED_MODE_COMPILE_TIME_ERROR', 3, ErrorSeverity.ERROR);
 
   /**
    * Static warnings are those warnings reported by the static checker. They have no effect on
