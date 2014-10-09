@@ -574,10 +574,10 @@ enum FPImmOp {
 enum FPIntCvtOp {
   FPIntCvtMask = 0x5f20fc00,
   FPIntCvtFixed = FPFixed | B21,
-  FMOVRD = FPIntCvtFixed | B31 | B22 | B18 | B17,
-  FMOVDR = FPIntCvtFixed | B31 | B22 | B18 | B17 | B16,
-  FCVTZDS = FPIntCvtFixed | B31 | B22 | B20 | B19,
-  SCVTFD = FPIntCvtFixed | B31 | B22 | B17,
+  FMOVRD = FPIntCvtFixed | B22 | B18 | B17,
+  FMOVDR = FPIntCvtFixed | B22 | B18 | B17 | B16,
+  FCVTZDS = FPIntCvtFixed | B22 | B20 | B19,
+  SCVTFD = FPIntCvtFixed |  B22 | B17,
 };
 
 

@@ -1289,12 +1289,24 @@ void Assembler::andpd(XmmRegister dst, const Address& src) {
 }
 
 
-void Assembler::cvtsi2sd(XmmRegister dst, Register src) {
+void Assembler::cvtsi2sdq(XmmRegister dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(dst <= XMM15);
   Operand operand(src);
   EmitUint8(0xF2);
   EmitOperandREX(dst, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0x2A);
+  EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::cvtsi2sdl(XmmRegister dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(dst <= XMM15);
+  Operand operand(src);
+  EmitUint8(0xF2);
+  EmitOperandREX(dst, operand, REX_NONE);
   EmitUint8(0x0F);
   EmitUint8(0x2A);
   EmitOperand(dst & 7, operand);

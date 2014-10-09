@@ -840,11 +840,17 @@ class Assembler : public ValueObject {
     const Register crd = ConcreteRegister(rd);
     EmitFPIntCvtOp(FMOVRD, crd, static_cast<Register>(vn));
   }
-  void scvtfd(VRegister vd, Register rn) {
+  void scvtfdx(VRegister vd, Register rn) {
     ASSERT(rn != R31);
     ASSERT(rn != CSP);
     const Register crn = ConcreteRegister(rn);
     EmitFPIntCvtOp(SCVTFD, static_cast<Register>(vd), crn);
+  }
+  void scvtfdw(VRegister vd, Register rn) {
+    ASSERT(rn != R31);
+    ASSERT(rn != CSP);
+    const Register crn = ConcreteRegister(rn);
+    EmitFPIntCvtOp(SCVTFD, static_cast<Register>(vd), crn, kWord);
   }
   void fcvtzds(Register rd, VRegister vn) {
     ASSERT(rd != R31);
@@ -1800,11 +1806,15 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void EmitFPIntCvtOp(FPIntCvtOp op, Register rd, Register rn) {
+  void EmitFPIntCvtOp(FPIntCvtOp op, Register rd, Register rn,
+                      OperandSize sz = kDoubleWord) {
+    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    const int32_t sfield = (sz == kDoubleWord) ? B31 : 0;
     const int32_t encoding =
         op |
         (static_cast<int32_t>(rd) << kRdShift) |
-        (static_cast<int32_t>(rn) << kRnShift);
+        (static_cast<int32_t>(rn) << kRnShift) |
+        sfield;
     Emit(encoding);
   }
 

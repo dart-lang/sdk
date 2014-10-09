@@ -477,7 +477,8 @@ class Assembler : public ValueObject {
   void shufpd(XmmRegister dst, XmmRegister src, const Immediate& mask);
 
   void comisd(XmmRegister a, XmmRegister b);
-  void cvtsi2sd(XmmRegister a, Register b);
+  void cvtsi2sdq(XmmRegister a, Register b);
+  void cvtsi2sdl(XmmRegister a, Register b);
   void cvttsd2siq(Register dst, XmmRegister src);
 
   void cvtss2sd(XmmRegister dst, XmmRegister src);

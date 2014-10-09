@@ -993,9 +993,11 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataUint16ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
       return kTagged;
+    case kTypedDataInt32ArrayCid:
+      return kUnboxedInt32;
+    case kTypedDataUint32ArrayCid:
+      return kUnboxedUint32;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1093,6 +1095,25 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
+  if ((representation() == kUnboxedInt32) ||
+      (representation() == kUnboxedUint32)) {
+    const Register result = locs()->out(0).reg();
+    switch (class_id()) {
+      case kTypedDataInt32ArrayCid:
+        ASSERT(representation() == kUnboxedInt32);
+        __ ldr(result, element_address, kWord);
+        break;
+      case kTypedDataUint32ArrayCid:
+        ASSERT(representation() == kUnboxedUint32);
+        __ ldr(result, element_address, kUnsignedWord);
+        break;
+      default:
+        UNREACHABLE();
+      }
+    return;
+  }
+
+  ASSERT(representation() == kTagged);
   const Register result = locs()->out(0).reg();
   switch (class_id()) {
     case kTypedDataInt8ArrayCid:
@@ -1116,14 +1137,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint16ArrayCid:
     case kTwoByteStringCid:
       __ ldr(result, element_address, kUnsignedHalfword);
-      __ SmiTag(result);
-      break;
-    case kTypedDataInt32ArrayCid:
-      __ ldr(result, element_address, kWord);
-      __ SmiTag(result);
-      break;
-    case kTypedDataUint32ArrayCid:
-      __ ldr(result, element_address, kUnsignedWord);
       __ SmiTag(result);
       break;
     default:
@@ -3090,7 +3103,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadDFieldFromOffset(result, value, Double::value_offset(), PP);
   } else if (value_cid == kSmiCid) {
     __ SmiUntag(TMP, value);  // Untag input before conversion.
-    __ scvtfd(result, TMP);
+    __ scvtfdx(result, TMP);
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
                                           ICData::kDeoptBinaryDoubleOp);
@@ -3110,7 +3123,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ b(&done);
       __ Bind(&is_smi);
       __ SmiUntag(TMP, value);  // Copy and untag.
-      __ scvtfd(result, TMP);
+      __ scvtfdx(result, TMP);
       __ Bind(&done);
     }
   }
@@ -4472,7 +4485,23 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-DEFINE_UNIMPLEMENTED_INSTRUCTION(Int32ToDoubleInstr)
+LocationSummary* Int32ToDoubleInstr::MakeLocationSummary(Isolate* isolate,
+                                                       bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresRegister());
+  result->set_out(0, Location::RequiresFpuRegister());
+  return result;
+}
+
+
+void Int32ToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register value = locs()->in(0).reg();
+  const VRegister result = locs()->out(0).fpu_reg();
+  __ scvtfdw(result, value);
+}
 
 
 LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Isolate* isolate,
@@ -4491,7 +4520,7 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const VRegister result = locs()->out(0).fpu_reg();
   __ SmiUntag(TMP, value);
-  __ scvtfd(result, TMP);
+  __ scvtfdx(result, TMP);
 }
 
 

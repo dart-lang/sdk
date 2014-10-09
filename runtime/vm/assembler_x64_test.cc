@@ -2439,25 +2439,27 @@ ASSEMBLER_TEST_RUN(DoubleFPOperations, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Int32ToDoubleConversion, assembler) {
-  __ movl(RDX, Immediate(6));
-  __ cvtsi2sd(XMM0, RDX);
-  __ movl(RDX, Immediate(8));
-  __ cvtsi2sd(XMM8, RDX);
+  // Fill upper bits with garbage.
+  __ movq(R11, Immediate(0x1111111100000006));
+  __ cvtsi2sdl(XMM0, R11);
+  // Fill upper bits with garbage.
+  __ movq(R11, Immediate(0x2222222200000008));
+  __ cvtsi2sdl(XMM8, R11);
   __ subsd(XMM0, XMM8);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(Int32ToDoubleConversion, test) {
-  typedef double (*IntToDoubleConversionCode)();
-  double res = reinterpret_cast<IntToDoubleConversionCode>(test->entry())();
+  typedef double (*Int32ToDoubleConversion)();
+  double res = reinterpret_cast<Int32ToDoubleConversion>(test->entry())();
   EXPECT_FLOAT_EQ(-2.0, res, 0.001);
 }
 
 
 ASSEMBLER_TEST_GENERATE(Int64ToDoubleConversion, assembler) {
   __ movq(RDX, Immediate(12LL << 32));
-  __ cvtsi2sd(XMM0, RDX);
+  __ cvtsi2sdq(XMM0, RDX);
   __ movsd(XMM15, XMM0);  // Move to high register
   __ addsd(XMM0, XMM0);  // Stomp XMM0
   __ movsd(XMM0, XMM15);  // Move back to XMM0
@@ -2815,7 +2817,7 @@ ASSEMBLER_TEST_RUN(Cosine, test) {
 
 ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
   __ movq(RDX, Immediate(6));
-  __ cvtsi2sd(XMM0, RDX);
+  __ cvtsi2sdq(XMM0, RDX);
   __ ret();
 }
 

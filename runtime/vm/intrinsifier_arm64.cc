@@ -873,7 +873,7 @@ static void CompareDoubles(Assembler* assembler, Condition true_condition) {
 
   __ Bind(&is_smi);  // Convert R0 to a double.
   __ SmiUntag(R0);
-  __ scvtfd(V1, R0);
+  __ scvtfdx(V1, R0);
   __ b(&double_op);  // Then do the comparison.
   __ Bind(&fall_through);
 }
@@ -959,7 +959,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ b(&fall_through, NE);
   // Is Smi.
   __ SmiUntag(R0);
-  __ scvtfd(V1, R0);
+  __ scvtfdx(V1, R0);
   __ ldr(R0, Address(SP, 1 * kWordSize));
   __ LoadDFieldFromOffset(V0, R0, Double::value_offset(), kNoPP);
   __ fmuld(V0, V0, V1);
@@ -980,7 +980,7 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   __ b(&fall_through, NE);
   // Is Smi.
   __ SmiUntag(R0);
-  __ scvtfd(V0, R0);
+  __ scvtfdx(V0, R0);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class, &fall_through, R0, R1, kNoPP);
@@ -1068,7 +1068,7 @@ void Intrinsifier::MathSqrt(Assembler* assembler) {
   __ ret();
   __ Bind(&is_smi);
   __ SmiUntag(R0);
-  __ scvtfd(V1, R0);
+  __ scvtfdx(V1, R0);
   __ b(&double_op);
   __ Bind(&fall_through);
 }

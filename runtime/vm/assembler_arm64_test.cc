@@ -1826,14 +1826,28 @@ ASSEMBLER_TEST_RUN(Fcvtzds, test) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(Scvtfd, assembler) {
+ASSEMBLER_TEST_GENERATE(Scvtfdx, assembler) {
   __ LoadImmediate(R0, 42, kNoPP);
-  __ scvtfd(V0, R0);
+  __ scvtfdx(V0, R0);
   __ ret();
 }
 
 
-ASSEMBLER_TEST_RUN(Scvtfd, test) {
+ASSEMBLER_TEST_RUN(Scvtfdx, test) {
+  typedef double (*DoubleReturn)() DART_UNUSED;
+  EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Scvtfdw, assembler) {
+  // Fill upper 32-bits with garbage.
+  __ LoadImmediate(R0, 0x111111110000002A, kNoPP);
+  __ scvtfdw(V0, R0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Scvtfdw, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }

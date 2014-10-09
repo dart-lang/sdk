@@ -2749,28 +2749,30 @@ void Simulator::DecodeFPIntCvt(Instr* instr) {
   const Register rd = instr->RdField();
   const Register rn = instr->RnField();
 
-  if ((instr->SFField() != 1) || (instr->Bit(29) != 0) ||
-      (instr->Bits(22, 2) != 1)) {
+  if ((instr->Bit(29) != 0) || (instr->Bits(22, 2) != 1) ||
+      ((instr->SFField() == 0) && (instr->Bits(16, 5) != 2))) {
     UnimplementedInstruction(instr);
     return;
   }
   if (instr->Bits(16, 5) == 2) {
-    // Format(instr, "scvtfd 'vd, 'vn");
-    const int64_t rn_val = get_register(rn, instr->RnMode());
-    const double vn_dbl = static_cast<double>(rn_val);
+    // Format(instr, "scvtfd'sf 'vd, 'rn");
+    const int64_t rn_val64 = get_register(rn, instr->RnMode());
+    const int32_t rn_val32 = get_wregister(rn, instr->RnMode());
+    const double vn_dbl = (instr->SFField() == 1) ?
+        static_cast<double>(rn_val64) : static_cast<double>(rn_val32);
     set_vregisterd(vd, 0, bit_cast<int64_t, double>(vn_dbl));
     set_vregisterd(vd, 1, 0);
   } else if (instr->Bits(16, 5) == 6) {
-    // Format(instr, "fmovrd 'rd, 'vn");
+    // Format(instr, "fmovrd'sf 'rd, 'vn");
     const int64_t vn_val = get_vregisterd(vn, 0);
     set_register(instr, rd, vn_val, R31IsZR);
   } else if (instr->Bits(16, 5) == 7) {
-    // Format(instr, "fmovdr 'vd, 'rn");
+    // Format(instr, "fmovdr'sf 'vd, 'rn");
     const int64_t rn_val = get_register(rn, R31IsZR);
     set_vregisterd(vd, 0, rn_val);
     set_vregisterd(vd, 1, 0);
   } else if (instr->Bits(16, 5) == 24) {
-    // Format(instr, "fcvtzds 'rd, 'vn");
+    // Format(instr, "fcvtzds'sf 'rd, 'vn");
     const double vn_val = bit_cast<double, int64_t>(get_vregisterd(vn, 0));
     set_register(instr, rd, static_cast<int64_t>(vn_val), instr->RdMode());
   } else {

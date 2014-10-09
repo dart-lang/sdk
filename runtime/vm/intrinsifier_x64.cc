@@ -891,7 +891,7 @@ static void CompareDoubles(Assembler* assembler, Condition true_condition) {
   __ ret();
   __ Bind(&is_smi);
   __ SmiUntag(RAX);
-  __ cvtsi2sd(XMM1, RAX);
+  __ cvtsi2sdq(XMM1, RAX);
   __ jmp(&double_op);
   __ Bind(&fall_through);
 }
@@ -979,7 +979,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
   // Is Smi.
   __ SmiUntag(RAX);
-  __ cvtsi2sd(XMM1, RAX);
+  __ cvtsi2sdq(XMM1, RAX);
   __ movq(RAX, Address(RSP, + 2 * kWordSize));
   __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
   __ mulsd(XMM0, XMM1);
@@ -1004,7 +1004,7 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
   // Is Smi.
   __ SmiUntag(RAX);
-  __ cvtsi2sd(XMM0, RAX);
+  __ cvtsi2sdq(XMM0, RAX);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class,
@@ -1090,7 +1090,7 @@ void Intrinsifier::MathSqrt(Assembler* assembler) {
   __ ret();
   __ Bind(&is_smi);
   __ SmiUntag(RAX);
-  __ cvtsi2sd(XMM1, RAX);
+  __ cvtsi2sdq(XMM1, RAX);
   __ jmp(&double_op);
   __ Bind(&fall_through);
 }

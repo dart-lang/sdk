@@ -968,9 +968,11 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataUint16ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
       return kTagged;
+    case kTypedDataInt32ArrayCid:
+      return kUnboxedInt32;
+    case kTypedDataUint32ArrayCid:
+      return kUnboxedUint32;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1052,6 +1054,29 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
+  if ((representation() == kUnboxedUint32) ||
+      (representation() == kUnboxedInt32)) {
+    if ((index_scale() == 1) && index.IsRegister()) {
+      __ SmiUntag(index.reg());
+    }
+    Register result = locs()->out(0).reg();
+    switch (class_id()) {
+      case kTypedDataInt32ArrayCid:
+        ASSERT(representation() == kUnboxedInt32);
+        __ movsxd(result, element_address);
+        break;
+      case kTypedDataUint32ArrayCid:
+        ASSERT(representation() == kUnboxedUint32);
+        __ movl(result, element_address);
+        break;
+      default:
+        UNREACHABLE();
+    }
+    return;
+  }
+
+  ASSERT(representation() == kTagged);
+
   if ((index_scale() == 1) && index.IsRegister()) {
     __ SmiUntag(index.reg());
   }
@@ -1076,14 +1101,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint16ArrayCid:
     case kTwoByteStringCid:
       __ movzxw(result, element_address);
-      __ SmiTag(result);
-      break;
-    case kTypedDataInt32ArrayCid:
-      __ movsxd(result, element_address);
-      __ SmiTag(result);
-      break;
-    case kTypedDataUint32ArrayCid:
-      __ movl(result, element_address);
       __ SmiTag(result);
       break;
     default:
@@ -1272,7 +1289,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint32ArrayCid: {
       Register value = locs()->in(2).reg();
       __ movl(element_address, value);
-        break;
+      break;
     }
     case kTypedDataFloat32ArrayCid:
       __ movss(element_address, locs()->in(2).fpu_reg());
@@ -3188,7 +3205,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ movsd(result, FieldAddress(value, Double::value_offset()));
   } else if (value_cid == kSmiCid) {
     __ SmiUntag(value);  // Untag input before conversion.
-    __ cvtsi2sd(result, value);
+    __ cvtsi2sdq(result, value);
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
                                           ICData::kDeoptBinaryDoubleOp);
@@ -3210,7 +3227,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ jmp(&done);
       __ Bind(&is_smi);
       __ SmiUntag(value);
-      __ cvtsi2sd(result, value);
+      __ cvtsi2sdq(result, value);
       __ Bind(&done);
     }
   }
@@ -4629,7 +4646,23 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-DEFINE_UNIMPLEMENTED_INSTRUCTION(Int32ToDoubleInstr)
+LocationSummary* Int32ToDoubleInstr::MakeLocationSummary(Isolate* isolate,
+                                                       bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresRegister());
+  result->set_out(0, Location::RequiresFpuRegister());
+  return result;
+}
+
+
+void Int32ToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  FpuRegister result = locs()->out(0).fpu_reg();
+  __ cvtsi2sdl(result, value);
+}
 
 
 LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Isolate* isolate,
@@ -4648,7 +4681,7 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   FpuRegister result = locs()->out(0).fpu_reg();
   __ SmiUntag(value);
-  __ cvtsi2sd(result, value);
+  __ cvtsi2sdq(result, value);
 }
 
 
