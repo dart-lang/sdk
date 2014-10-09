@@ -226,6 +226,18 @@ RefactoringOptions _refactoringOptionsFromJson(JsonDecoder jsonDecoder,
 
 
 /**
+ * Classes implementing [Enum] represent enumerated types in the protocol.
+ */
+abstract class Enum {
+  /**
+   * The name of the enumerated value.  This should match the name of the
+   * static getter which provides access to this enumerated value.
+   */
+  String get name;
+}
+
+
+/**
  * Type of callbacks used to decode parts of JSON objects.  [jsonPath] is a
  * string describing the part of the JSON object being decoded, and [value] is
  * the part to decode.

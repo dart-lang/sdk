@@ -4710,7 +4710,7 @@ class AnalysisErrorFixes implements HasToJson {
  *   ERROR
  * }
  */
-class AnalysisErrorSeverity {
+class AnalysisErrorSeverity implements Enum {
   static const INFO = const AnalysisErrorSeverity._("INFO");
 
   static const WARNING = const AnalysisErrorSeverity._("WARNING");
@@ -4765,7 +4765,7 @@ class AnalysisErrorSeverity {
  *   TODO
  * }
  */
-class AnalysisErrorType {
+class AnalysisErrorType implements Enum {
   static const ANGULAR = const AnalysisErrorType._("ANGULAR");
 
   static const CHECKED_MODE_COMPILE_TIME_ERROR = const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
@@ -4961,7 +4961,7 @@ class AnalysisOptions implements HasToJson {
  *   OVERRIDES
  * }
  */
-class AnalysisService {
+class AnalysisService implements Enum {
   static const FOLDING = const AnalysisService._("FOLDING");
 
   static const HIGHLIGHTS = const AnalysisService._("HIGHLIGHTS");
@@ -5158,7 +5158,7 @@ class ChangeContentOverlay implements HasToJson {
  *   HIGH
  * }
  */
-class CompletionRelevance {
+class CompletionRelevance implements Enum {
   static const LOW = const CompletionRelevance._("LOW");
 
   static const DEFAULT = const CompletionRelevance._("DEFAULT");
@@ -5556,7 +5556,7 @@ class CompletionSuggestion implements HasToJson {
  *   TYPE_PARAMETER
  * }
  */
-class CompletionSuggestionKind {
+class CompletionSuggestionKind implements Enum {
   static const ARGUMENT_LIST = const CompletionSuggestionKind._("ARGUMENT_LIST");
 
   static const CLASS = const CompletionSuggestionKind._("CLASS");
@@ -5864,7 +5864,7 @@ class Element implements HasToJson {
  *   UNKNOWN
  * }
  */
-class ElementKind {
+class ElementKind implements Enum {
   static const CLASS = const ElementKind._("CLASS");
 
   static const CLASS_TYPE_ALIAS = const ElementKind._("CLASS_TYPE_ALIAS");
@@ -6054,7 +6054,7 @@ class ExecutableFile implements HasToJson {
  *   SERVER
  * }
  */
-class ExecutableKind {
+class ExecutableKind implements Enum {
   static const CLIENT = const ExecutableKind._("CLIENT");
 
   static const EITHER = const ExecutableKind._("EITHER");
@@ -6105,7 +6105,7 @@ class ExecutableKind {
  *   LAUNCH_DATA
  * }
  */
-class ExecutionService {
+class ExecutionService implements Enum {
   static const LAUNCH_DATA = const ExecutionService._("LAUNCH_DATA");
 
   final String name;
@@ -6148,7 +6148,7 @@ class ExecutionService {
  *   TOP_LEVEL_DECLARATION
  * }
  */
-class FoldingKind {
+class FoldingKind implements Enum {
   static const COMMENT = const FoldingKind._("COMMENT");
 
   static const CLASS_MEMBER = const FoldingKind._("CLASS_MEMBER");
@@ -6412,7 +6412,7 @@ class HighlightRegion implements HasToJson {
  *   TYPE_PARAMETER
  * }
  */
-class HighlightRegionType {
+class HighlightRegionType implements Enum {
   static const ANNOTATION = const HighlightRegionType._("ANNOTATION");
 
   static const BUILT_IN = const HighlightRegionType._("BUILT_IN");
@@ -6983,7 +6983,7 @@ class LinkedEditSuggestion implements HasToJson {
  *   VARIABLE
  * }
  */
-class LinkedEditSuggestionKind {
+class LinkedEditSuggestionKind implements Enum {
   static const METHOD = const LinkedEditSuggestionKind._("METHOD");
 
   static const PARAMETER = const LinkedEditSuggestionKind._("PARAMETER");
@@ -7692,7 +7692,7 @@ class Position implements HasToJson {
  *   SORT_MEMBERS
  * }
  */
-class RefactoringKind {
+class RefactoringKind implements Enum {
   static const CONVERT_GETTER_TO_METHOD = const RefactoringKind._("CONVERT_GETTER_TO_METHOD");
 
   static const CONVERT_METHOD_TO_GETTER = const RefactoringKind._("CONVERT_METHOD_TO_GETTER");
@@ -7958,7 +7958,7 @@ class RefactoringOptions implements HasToJson {
  *   NAMED
  * }
  */
-class RefactoringMethodParameterKind {
+class RefactoringMethodParameterKind implements Enum {
   static const REQUIRED = const RefactoringMethodParameterKind._("REQUIRED");
 
   static const POSITIONAL = const RefactoringMethodParameterKind._("POSITIONAL");
@@ -8097,7 +8097,7 @@ class RefactoringProblem implements HasToJson {
  *   FATAL
  * }
  */
-class RefactoringProblemSeverity {
+class RefactoringProblemSeverity implements Enum {
   static const INFO = const RefactoringProblemSeverity._("INFO");
 
   static const WARNING = const RefactoringProblemSeverity._("WARNING");
@@ -8301,7 +8301,7 @@ class RequestError implements HasToJson {
  *   UNSUPPORTED_FEATURE
  * }
  */
-class RequestErrorCode {
+class RequestErrorCode implements Enum {
   /**
    * An "analysis.getErrors" request specified a FilePath which does not match
    * a file currently subject to analysis.
@@ -8546,7 +8546,7 @@ class SearchResult implements HasToJson {
  *   WRITE
  * }
  */
-class SearchResultKind {
+class SearchResultKind implements Enum {
   /**
    * The declaration of an element.
    */
@@ -8631,7 +8631,7 @@ class SearchResultKind {
  *   STATUS
  * }
  */
-class ServerService {
+class ServerService implements Enum {
   static const STATUS = const ServerService._("STATUS");
 
   final String name;

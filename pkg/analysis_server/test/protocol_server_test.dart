@@ -4,8 +4,11 @@
 
 library test.computer.element;
 
+import 'dart:mirrors';
+
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart' as engine;
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
@@ -24,6 +27,7 @@ main() {
   runReflectiveTests(AnalysisErrorTest);
   runReflectiveTests(ElementTest);
   runReflectiveTests(ElementKindTest);
+  runReflectiveTests(EnumTest);
 }
 
 
@@ -407,5 +411,108 @@ class A {
     expect(element.parameters, isNull);
     expect(element.returnType, isNull);
     expect(element.flags, 0);
+  }
+}
+
+/**
+ * Helper class for testing the correspondence between an analysis engine enum
+ * and an analysis server API enum.
+ */
+class EnumTester<EngineEnum, ApiEnum extends Enum> {
+  /**
+   * Test that the function [convert] properly converts all possible values of
+   * [EngineEnum] to an [ApiEnum] with the same name, with the exceptions noted
+   * in [exceptions].  For each key in [exceptions], if the corresponding value
+   * is null, then we check that converting the given key results in an error.
+   * If the corresponding value is an [ApiEnum], then we check that converting
+   * the given key results in the given value.
+   */
+  void run(ApiEnum convert(EngineEnum value), {Map<EngineEnum,
+      ApiEnum> exceptions: const {}}) {
+    ClassMirror engineClass = reflectClass(EngineEnum);
+    engineClass.staticMembers.forEach((Symbol symbol, MethodMirror method) {
+      if (symbol == #values) {
+        return;
+      }
+      if (!method.isGetter) {
+        return;
+      }
+      String enumName = MirrorSystem.getName(symbol);
+      EngineEnum engineValue = engineClass.getField(symbol).reflectee;
+      expect(engineValue, new isInstanceOf<EngineEnum>());
+      if (exceptions.containsKey(engineValue)) {
+        ApiEnum expectedResult = exceptions[engineValue];
+        if (expectedResult == null) {
+          expect(() {
+            convert(engineValue);
+          }, throws);
+        } else {
+          ApiEnum apiValue = convert(engineValue);
+          expect(apiValue, equals(expectedResult));
+        }
+      } else {
+        ApiEnum apiValue = convert(engineValue);
+        expect(apiValue.name, equals(enumName));
+      }
+    });
+  }
+}
+
+
+@ReflectiveTestCase()
+class EnumTest {
+  void test_AnalysisErrorSeverity() {
+    new EnumTester<engine.ErrorSeverity, AnalysisErrorSeverity>().run(
+        (engine.ErrorSeverity engineErrorSeverity) =>
+            new AnalysisErrorSeverity(engineErrorSeverity.name),
+        exceptions: {
+      engine.ErrorSeverity.NONE: null
+    });
+  }
+
+  void test_AnalysisErrorType() {
+    new EnumTester<engine.ErrorType, AnalysisErrorType>().run(
+        (engine.ErrorType engineErrorType) =>
+            new AnalysisErrorType(engineErrorType.name));
+  }
+
+  void test_ElementKind() {
+    new EnumTester<engine.ElementKind, ElementKind>().run(
+        newElementKind_fromEngine,
+        exceptions: {
+      // TODO(paulberry): do any of the exceptions below constitute bugs?
+      engine.ElementKind.ANGULAR_FORMATTER: ElementKind.UNKNOWN,
+      engine.ElementKind.ANGULAR_COMPONENT: ElementKind.UNKNOWN,
+      engine.ElementKind.ANGULAR_CONTROLLER: ElementKind.UNKNOWN,
+      engine.ElementKind.ANGULAR_DIRECTIVE: ElementKind.UNKNOWN,
+      engine.ElementKind.ANGULAR_PROPERTY: ElementKind.UNKNOWN,
+      engine.ElementKind.ANGULAR_SCOPE_PROPERTY: ElementKind.UNKNOWN,
+      engine.ElementKind.ANGULAR_SELECTOR: ElementKind.UNKNOWN,
+      engine.ElementKind.ANGULAR_VIEW: ElementKind.UNKNOWN,
+      engine.ElementKind.DYNAMIC: ElementKind.UNKNOWN,
+      engine.ElementKind.EMBEDDED_HTML_SCRIPT: ElementKind.UNKNOWN,
+      engine.ElementKind.ERROR: ElementKind.UNKNOWN,
+      engine.ElementKind.EXPORT: ElementKind.UNKNOWN,
+      engine.ElementKind.EXTERNAL_HTML_SCRIPT: ElementKind.UNKNOWN,
+      engine.ElementKind.HTML: ElementKind.UNKNOWN,
+      engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
+      engine.ElementKind.NAME: ElementKind.UNKNOWN,
+      engine.ElementKind.POLYMER_ATTRIBUTE: ElementKind.UNKNOWN,
+      engine.ElementKind.POLYMER_TAG_DART: ElementKind.UNKNOWN,
+      engine.ElementKind.POLYMER_TAG_HTML: ElementKind.UNKNOWN,
+      engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN
+    });
+  }
+
+  void test_SearchResultKind() {
+    // TODO(paulberry): why does the MatchKind class exist at all?  Can't we
+    // use SearchResultKind inside the analysis server?
+    new EnumTester<MatchKind, SearchResultKind>().run(
+        newSearchResultKind_fromEngine,
+        exceptions: {
+          // TODO(paulberry): do any of the exceptions below constitute bugs?
+          MatchKind.ANGULAR_REFERENCE: SearchResultKind.UNKNOWN,
+          MatchKind.ANGULAR_CLOSING_TAG_REFERENCE: SearchResultKind.UNKNOWN
+        });
   }
 }

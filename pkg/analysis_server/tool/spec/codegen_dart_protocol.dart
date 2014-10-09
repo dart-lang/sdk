@@ -720,7 +720,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         toHtmlVisitor.showType(null, impliedType.type);
       }
     }));
-    writeln('class $className {');
+    writeln('class $className implements Enum {');
     indent(() {
       if (emitSpecialStaticMembers(className)) {
         writeln();
