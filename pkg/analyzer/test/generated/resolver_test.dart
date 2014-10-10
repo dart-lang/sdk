@@ -459,6 +459,69 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_fieldFormalParameterAssignableToField_list_dynamic() {
+    // [1, 2, 3] has type List<dynamic>, which is a subtype of List<int>.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(List<int> x);",
+        "}",
+        "var x = const A(const [1, 2, 3]);"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterAssignableToField_list_nonDynamic() {
+    // <int>[1, 2, 3] has type List<int>, which is a subtype of List<num>.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(List<num> x);",
+        "}",
+        "var x = const A(const <int>[1, 2, 3]);"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterAssignableToField_map_dynamic() {
+    // {1: 2} has type Map<dynamic, dynamic>, which is a subtype of
+    // Map<int, int>.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(Map<int, int> x);",
+        "}",
+        "var x = const A(const {1: 2});"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterAssignableToField_map_keyDifferent() {
+    // <int, int>{1: 2} has type Map<int, int>, which is a subtype of
+    // Map<num, int>.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(Map<num, int> x);",
+        "}",
+        "var x = const A(const <int, int>{1: 2});"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterAssignableToField_map_valueDifferent() {
+    // <int, int>{1: 2} has type Map<int, int>, which is a subtype of
+    // Map<int, num>.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(Map<int, num> x);",
+        "}",
+        "var x = const A(const <int, int>{1: 2});"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_fieldFormalParameterAssignableToField_notype() {
     // If a field is declared without a type, then any value may be assigned to
     // it.
@@ -486,6 +549,20 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_fieldFormalParameterAssignableToField_typeSubstitution() {
+    // foo has the runtime type dynamic -> dynamic, so it should be assignable
+    // to A.f.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A<T> {",
+        "  final T x;",
+        "  const A(this.x);",
+        "}",
+        "var v = const A<int>(3);"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_fieldFormalParameterAssignableToField_typedef() {
     // foo has the runtime type dynamic -> dynamic, so it should be assignable
     // to A.f.
@@ -497,20 +574,6 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "foo(x) => 1;"
         "var v = const A(foo);"]));
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_fieldFormalParameterAssignableToField_typeSubstitution() {
-    // foo has the runtime type dynamic -> dynamic, so it should be assignable
-    // to A.f.
-    Source source = addSource(EngineTestCase.createSource([
-        "class A<T> {",
-        "  final T x;",
-        "  const A(this.x);",
-        "}",
-        "var v = const A<int>(3);"]));
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -566,6 +629,47 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
         "  const C(this.b);",
         "}",
         "var v = const C(const A());"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterNotAssignableToField_list() {
+    // <num>[1, 2, 3] has type List<num>, which is not a subtype of List<int>.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(List<int> x);",
+        "}",
+        "var x = const A(const <num>[1, 2, 3]);"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterNotAssignableToField_map_keyMismatch() {
+    // <num, int>{1: 2} has type Map<num, int>, which is not a subtype of
+    // Map<int, int>.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(Map<int, int> x);",
+        "}",
+        "var x = const A(const <num, int>{1: 2});"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
+    verify([source]);
+  }
+
+  void test_fieldFormalParameterNotAssignableToField_map_valueMismatch() {
+    // <int, num>{1: 2} has type Map<int, num>, which is not a subtype of
+    // Map<int, int>.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(Map<int, int> x);",
+        "}",
+        "var x = const A(const <int, num>{1: 2});"]));
     resolve(source);
     assertErrors(source, [
         CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);

@@ -1127,7 +1127,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (errorOccurred) {
       return null;
     }
-    return new DartObjectImpl(_typeProvider.listType, new ListState(new List.from(elements)));
+    DartType elementType = _typeProvider.dynamicType;
+    if (node.typeArguments != null && node.typeArguments.arguments.length == 1) {
+      DartType type = node.typeArguments.arguments[0].type;
+      if (type != null) {
+        elementType = type;
+      }
+    }
+    InterfaceType listType = _typeProvider.listType.substitute4([elementType]);
+    return new DartObjectImpl(listType, new ListState(new List.from(elements)));
   }
 
   @override
@@ -1150,7 +1158,21 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (errorOccurred) {
       return null;
     }
-    return new DartObjectImpl(_typeProvider.mapType, new MapState(map));
+    DartType keyType = _typeProvider.dynamicType;
+    DartType valueType = _typeProvider.dynamicType;
+    if (node.typeArguments != null && node.typeArguments.arguments.length == 2) {
+      DartType keyTypeCandidate = node.typeArguments.arguments[0].type;
+      if (keyTypeCandidate != null) {
+        keyType = keyTypeCandidate;
+      }
+      DartType valueTypeCandidate = node.typeArguments.arguments[1].type;
+      if (valueTypeCandidate != null) {
+        valueType = valueTypeCandidate;
+      }
+    }
+    InterfaceType mapType = _typeProvider.mapType.substitute4(
+        [keyType, valueType]);
+    return new DartObjectImpl(mapType, new MapState(map));
   }
 
   @override
