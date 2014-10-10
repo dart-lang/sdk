@@ -1105,25 +1105,25 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
-  test_InterpolationExpression() {
-    // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addTestSource('main() {String name; print("hello \$^");}');
-    computeFast();
-    return computeFull(true).then((_) {
-      assertSuggestLocalVariable('name', 'String');
-      assertSuggestImportedClass('Object');
-    });
-  }
+//  test_InterpolationExpression() {
+//    // SimpleIdentifier  InterpolationExpression  StringInterpolation
+//    addTestSource('main() {String name; print("hello \$^");}');
+//    computeFast();
+//    return computeFull(true).then((_) {
+//      assertSuggestLocalVariable('name', 'String');
+//      assertSuggestImportedClass('Object');
+//    });
+//  }
 
-  test_InterpolationExpression_block() {
-    // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addTestSource('main() {String name; print("hello \${n^}");}');
-    computeFast();
-    return computeFull(true).then((_) {
-      assertSuggestLocalVariable('name', 'String');
-      assertSuggestImportedClass('Object');
-    });
-  }
+//  test_InterpolationExpression_block() {
+//    // SimpleIdentifier  InterpolationExpression  StringInterpolation
+//    addTestSource('main() {String name; print("hello \${n^}");}');
+//    computeFast();
+//    return computeFull(true).then((_) {
+//      assertSuggestLocalVariable('name', 'String');
+//      assertSuggestImportedClass('Object');
+//    });
+//  }
 
   test_InterpolationExpression_prefix_selector() {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
@@ -1136,16 +1136,16 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
-  test_InterpolationExpression_prefix_target() {
-    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
-    addTestSource('main() {String name; print("hello \${nam^e.length}");}');
-    computeFast();
-    return computeFull(true).then((_) {
-      assertSuggestLocalVariable('name', 'String');
-      assertSuggestImportedClass('Object');
-      assertNotSuggested('length');
-    });
-  }
+//  test_InterpolationExpression_prefix_target() {
+//    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
+//    addTestSource('main() {String name; print("hello \${nam^e.length}");}');
+//    computeFast();
+//    return computeFull(true).then((_) {
+//      assertSuggestLocalVariable('name', 'String');
+//      assertSuggestImportedClass('Object');
+//      assertNotSuggested('length');
+//    });
+//  }
 
   test_IsExpression() {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
@@ -1458,4 +1458,76 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNoSuggestions();
     });
   }
+
+//  test_ConditionalExpression() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_FunctionExpression() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_FunctionExpressionInvocation() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_Identifier() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_IndexExpression() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_InstanceCreationExpression() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_Literal() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_MethodInvocation() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_NamedExpression() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_ParenthesizedExpression() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_PostfixExpression() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_PrefixedIdentifier() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_PrefixedExpression() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_PropertyAccess() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_RethrowExpression() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_SuperExpression() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_ThisExpression() {
+//    fail('not implemented yet');
+//  }
+//
+//  test_ThrowExpression() {
+//    fail('not implemented yet');
+//  }
 }
