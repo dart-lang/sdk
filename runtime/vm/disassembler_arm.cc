@@ -1320,9 +1320,12 @@ void ARMDecoder::DecodeType7(Instr* instr) {
         } else {
           Format(instr, "vmovd'cond 'dn[1], 'rd");
         }
-      } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0) &&
-                 (instr->Bits(12, 4) == 0xf)) {
-        Format(instr, "vmstat'cond");
+      } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0)) {
+        if (instr->Bits(12, 4) == 0xf) {
+          Format(instr, "vmrs'cond APSR, FPSCR");
+        } else {
+          Format(instr, "vmrs'cond 'rd, FPSCR");
+        }
       } else {
         Unknown(instr);
       }

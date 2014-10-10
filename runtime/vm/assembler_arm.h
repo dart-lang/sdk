@@ -558,7 +558,8 @@ class Assembler : public ValueObject {
   void vcmpd(DRegister dd, DRegister dm, Condition cond = AL);
   void vcmpsz(SRegister sd, Condition cond = AL);
   void vcmpdz(DRegister dd, Condition cond = AL);
-  void vmstat(Condition cond = AL);  // VMRS APSR_nzcv, FPSCR
+  void vmrs(Register rd, Condition cond = AL);
+  void vmstat(Condition cond = AL);
 
   // Duplicates the operand of size sz at index idx from dm to all elements of
   // qd. This is a special case of vtbl.

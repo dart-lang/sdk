@@ -2961,13 +2961,21 @@ void Simulator::DecodeType7(Instr* instr) {
           SRegister sd = OddSRegisterOf(dn);
           set_sregister_bits(sd, get_register(rd));
         }
-      } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0) &&
-                 (instr->Bits(12, 4) == 0xf)) {
-        // Format(instr, "vmstat'cond");
-        n_flag_ = fp_n_flag_;
-        z_flag_ = fp_z_flag_;
-        c_flag_ = fp_c_flag_;
-        v_flag_ = fp_v_flag_;
+      } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0)) {
+        if (instr->Bits(12, 4) == 0xf) {
+          // Format(instr, "vmrs'cond APSR, FPSCR");
+          n_flag_ = fp_n_flag_;
+          z_flag_ = fp_z_flag_;
+          c_flag_ = fp_c_flag_;
+          v_flag_ = fp_v_flag_;
+        } else {
+          // Format(instr, "vmrs'cond 'rd, FPSCR");
+          const int32_t n_flag = fp_n_flag_ ? (1 << 31) : 0;
+          const int32_t z_flag = fp_z_flag_ ? (1 << 30) : 0;
+          const int32_t c_flag = fp_c_flag_ ? (1 << 29) : 0;
+          const int32_t v_flag = fp_v_flag_ ? (1 << 28) : 0;
+          set_register(instr->RdField(), n_flag | z_flag | c_flag | v_flag);
+        }
       } else {
         UnimplementedInstruction(instr);
       }

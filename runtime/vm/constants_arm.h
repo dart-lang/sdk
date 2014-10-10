@@ -238,6 +238,9 @@ const Register FPREG = FP;  // Frame pointer register.
 const Register ICREG = R5;  // IC data register.
 const Register ARGS_DESC_REG = R4;
 
+// R15 encodes APSR in the vmrs instruction.
+const Register APSR = R15;
+
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.
 const Register kExceptionObjectReg = R0;
