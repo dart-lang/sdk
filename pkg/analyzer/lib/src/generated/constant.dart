@@ -545,10 +545,17 @@ class ConstantValueComputer {
     beforeComputeValue(constNode);
     if (constNode is VariableDeclaration) {
       VariableDeclaration declaration = constNode;
-      Element element = declaration.element;
+      VariableElement element = declaration.element;
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter = new ErrorReporter(errorListener, element.source);
       DartObjectImpl dartObject = declaration.initializer.accept(createConstantVisitor(errorReporter));
+      if (dartObject != null) {
+        if (!dartObject.isNull && !dartObject.type.isSubtypeOf(element.type)) {
+          errorReporter.reportErrorForNode(
+              CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
+              declaration, [dartObject.type, element.type]);
+        }
+      }
       (element as VariableElementImpl).evaluationResult = new EvaluationResultImpl.con2(dartObject, errorListener.errors);
     } else if (constNode is InstanceCreationExpression) {
       InstanceCreationExpression expression = constNode;

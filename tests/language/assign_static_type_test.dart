@@ -8,7 +8,7 @@
 int a = "String";  /// 01: static type warning, dynamic type error
 
 class A {
-  static const int c = "String"; /// 02: static type warning, dynamic type error
+  static const int c = "String"; /// 02: static type warning, checked mode compile-time error
   final int d = "String"; /// 03: static type warning, dynamic type error
   int e = "String"; /// 04: static type warning, dynamic type error
    A() {

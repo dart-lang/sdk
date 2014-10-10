@@ -391,6 +391,13 @@ class BooleanErrorListener implements AnalysisErrorListener {
  * depending whether it is compiling it "checked" mode).
  */
 class CheckedModeCompileTimeErrorCode extends Enum<CheckedModeCompileTimeErrorCode> implements ErrorCode {
+  // TODO(paulberry): improve the text of these error messages so that it's
+  // clear to the user that the error is coming from constant evaluation (and
+  // hence the constant needs to be a subtype of the annotated type) as opposed
+  // to static type analysis (which only requires that the two types be
+  // assignable).  Also consider populating the "correction" field for these
+  // errors.
+
   /**
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
    * uncaught exception being thrown.
@@ -456,12 +463,23 @@ class CheckedModeCompileTimeErrorCode extends Enum<CheckedModeCompileTimeErrorCo
    */
   static const CheckedModeCompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE = const CheckedModeCompileTimeErrorCode.con1('MAP_VALUE_TYPE_NOT_ASSIGNABLE', 4, "The element type '{0}' cannot be assigned to the map value type '{1}'");
 
+  /**
+   * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
+   * uncaught exception being thrown.
+   */
+  static const CheckedModeCompileTimeErrorCode VARIABLE_TYPE_MISMATCH =
+      const CheckedModeCompileTimeErrorCode.con1(
+          'VARIABLE_TYPE_MISMATCH',
+          5,
+          "The object type '{0}' cannot be assigned to a variable of type '{1}'");
+
   static const List<CheckedModeCompileTimeErrorCode> values = const [
       CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
       LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
       MAP_KEY_TYPE_NOT_ASSIGNABLE,
-      MAP_VALUE_TYPE_NOT_ASSIGNABLE];
+      MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+      VARIABLE_TYPE_MISMATCH];
 
   /**
    * The template used to create the message to be displayed for this error.

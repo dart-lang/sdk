@@ -1537,11 +1537,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         result = new EvaluationResultImpl.con1(_validate(initializer, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE));
         element.evaluationResult = result;
         return null;
-      } else if (result.value == null) {
-        // TODO(paulberry): report errors even if valid result.
-        _reportErrors(result.errors, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
-        return null;
       }
+      _reportErrors(result.errors, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
       _reportErrorIfFromDeferredLibrary(initializer, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
     }
     return null;
@@ -1623,7 +1620,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL) ||
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_INT) ||
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) ||
-          identical(dataErrorCode, CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH)) {
+          identical(dataErrorCode, CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
+          identical(dataErrorCode, CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH)) {
         _errorReporter.reportError(data);
       } else if (errorCode != null) {
         _errorReporter.reportError(new AnalysisError.con2(data.source, data.offset, data.length, errorCode, []));

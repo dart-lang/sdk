@@ -810,6 +810,24 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
+
+  void test_topLevelVarAssignable_null() {
+    Source source = addSource(EngineTestCase.createSource([
+        "const int x = null;"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_topLevelVarNotAssignable() {
+    Source source = addSource(EngineTestCase.createSource([
+        "const int x = 'foo';"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
+        StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
 }
 
 class CompileTimeErrorCodeTest extends ResolverTestCase {
