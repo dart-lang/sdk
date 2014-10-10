@@ -75,6 +75,7 @@ analysis_server/test/domain_server_test: Skip  # Times out
 analysis_server/test/integration/analysis/update_content_test: Skip # Times out
 analyzer/test/generated/element_test: Skip  # Times out
 analyzer/test/generated/parser_test: Skip  # Times out
+analyzer/test/generated/resolver_test: Skip # Times out
 code_transformers/test/resolver_test: Skip  # Times out
 docgen/test/*: Skip # Slow
 polymer/test/build/all_phases_test: Skip # Slow
