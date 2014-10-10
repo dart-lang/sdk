@@ -169,6 +169,8 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
 /// dart2dart.
 class Dart2xCompilerConfiguration extends CompilerConfiguration {
   final String moniker;
+  static Map<String, List<Uri>> _bootstrapDependenciesCache =
+      new Map<String, List<Uri>>();
 
   Dart2xCompilerConfiguration(
       this.moniker,
@@ -214,10 +216,9 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
 
   List<Uri> bootstrapDependencies(String buildDir) {
     if (!useSdk) return const <Uri>[];
-
-    Uri absoluteBuildDir = Uri.base.resolveUri(nativeDirectoryToUri(buildDir));
-    return [absoluteBuildDir.resolve(
-          'dart-sdk/bin/snapshots/dart2js.dart.snapshot')];
+    return _bootstrapDependenciesCache.putIfAbsent(buildDir, () =>
+      [Uri.base.resolveUri(nativeDirectoryToUri(buildDir))
+               .resolve('dart-sdk/bin/snapshots/dart2js.dart.snapshot')]);
   }
 }
 

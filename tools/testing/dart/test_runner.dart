@@ -48,9 +48,6 @@ class Command {
   /** A descriptive name for this command. */
   String displayName;
 
-  /** The actual command line that will be executed. */
-  String commandLine;
-
   /** Number of times this command *can* be retried */
   int get maxNumRetries => 2;
 
@@ -72,23 +69,16 @@ class Command {
     return _cachedHashCode;
   }
 
-  operator ==(other) {
-    if (other is Command) {
-      return identical(this, other) || _equal(other as Command);
-    }
-    return false;
-  }
+  operator ==(other) => identical(this, other) ||
+      (runtimeType == other.runtimeType && _equal(other));
 
   void _buildHashCode(HashCodeBuilder builder) {
-    builder.add(commandLine);
-    builder.add(displayName);
+    builder.addJson(displayName);
   }
 
-  bool _equal(Command other) {
-    return hashCode == other.hashCode &&
-        commandLine == other.commandLine &&
-        displayName == other.displayName;
-  }
+  bool _equal(Command other) =>
+      hashCode == other.hashCode &&
+      displayName == other.displayName;
 
   String toString() => reproductionCommand;
 
@@ -123,37 +113,18 @@ class ProcessCommand extends Command {
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
-    builder.add(executable);
-    builder.add(workingDirectory);
-    for (var object in arguments) builder.add(object);
-    if (environmentOverrides != null) {
-      for (var key in environmentOverrides.keys) {
-        builder.add(key);
-        builder.add(environmentOverrides[key]);
-      }
-    }
+    builder.addJson(executable);
+    builder.addJson(workingDirectory);
+    builder.addJson(arguments);
+    builder.addJson(environmentOverrides);
   }
 
-  bool _equal(Command other) {
-    if (other is ProcessCommand) {
-      if (!super._equal(other)) return false;
-
-      if (hashCode != other.hashCode ||
-          executable != other.executable ||
-          arguments.length != other.arguments.length) {
-        return false;
-      }
-
-      if (!deepJsonCompare(arguments, other.arguments)) return false;
-      if (workingDirectory != other.workingDirectory) return false;
-      if (!deepJsonCompare(environmentOverrides, other.environmentOverrides)) {
-        return false;
-      }
-
-      return true;
-    }
-    return false;
-  }
+  bool _equal(ProcessCommand other) =>
+      super._equal(other) &&
+      executable == other.executable &&
+      deepJsonCompare(arguments, other.arguments) &&
+      workingDirectory == other.workingDirectory &&
+      deepJsonCompare(environmentOverrides, other.environmentOverrides);
 
   String get reproductionCommand {
     var command = ([executable]..addAll(arguments))
@@ -168,22 +139,18 @@ class ProcessCommand extends Command {
 }
 
 class CompilationCommand extends ProcessCommand {
-  String _outputFile;
-  bool _neverSkipCompilation;
-  List<Uri> _bootstrapDependencies;
+  final String _outputFile;
+  final bool _neverSkipCompilation;
+  final List<Uri> _bootstrapDependencies;
 
   CompilationCommand._(String displayName,
                        this._outputFile,
                        this._neverSkipCompilation,
-                       List<Uri> bootstrapDependencies,
+                       this._bootstrapDependencies,
                        String executable,
                        List<String> arguments,
                        Map<String, String> environmentOverrides)
-      : super._(displayName, executable, arguments, environmentOverrides) {
-    // We sort here, so we can do a fast hashCode/operator==
-    _bootstrapDependencies = new List.from(bootstrapDependencies);
-    _bootstrapDependencies.sort();
-  }
+      : super._(displayName, executable, arguments, environmentOverrides);
 
   Future<bool> get outputIsUpToDate {
     if (_neverSkipCompilation) return new Future.value(false);
@@ -228,26 +195,27 @@ class CompilationCommand extends ProcessCommand {
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
-    builder.add(_outputFile);
-    builder.add(_neverSkipCompilation);
-    for (var uri in _bootstrapDependencies) builder.add(uri);
+    builder.addJson(_outputFile);
+    builder.addJson(_neverSkipCompilation);
+    builder.addJson(_bootstrapDependencies);
   }
 
-  bool _equal(Command other) {
-    if (other is CompilationCommand &&
-        super._equal(other) &&
-        _outputFile == other._outputFile &&
-        _neverSkipCompilation == other._neverSkipCompilation &&
-        _bootstrapDependencies.length == other._bootstrapDependencies.length) {
-      for (var i = 0; i < _bootstrapDependencies.length; i++) {
-        if (_bootstrapDependencies[i] != other._bootstrapDependencies[i]) {
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
-  }
+  bool _equal(CompilationCommand other) =>
+      super._equal(other) &&
+      _outputFile == other._outputFile &&
+      _neverSkipCompilation == other._neverSkipCompilation &&
+      deepJsonCompare(_bootstrapDependencies, other._bootstrapDependencies);
+}
+
+/// This is just a Pair(String, Map) class with hashCode and operator ==
+class AddFlagsKey {
+  final String flags;
+  final Map env;
+  AddFlagsKey(this.flags, this.env);
+  // Just use object identity for environment map
+  bool operator ==(other) =>
+    other is AddFlagsKey && flags == other.flags && env == other.env;
+  int get hashCode => flags.hashCode ^ env.hashCode;
 }
 
 class ContentShellCommand extends ProcessCommand {
@@ -261,19 +229,23 @@ class ContentShellCommand extends ProcessCommand {
                _getArguments(options, htmlFile),
                _getEnvironment(environmentOverrides, dartFlags));
 
-  static Map _getEnvironment(Map<String, String> env, List<String> dartFlags) {
+  // Cache the modified environments in a map from the old environment and
+  // the string of Dart flags to the new environment.  Avoid creating new
+  // environment object for each command object.
+  static Map<AddFlagsKey, Map> environments =
+      new Map<AddFlagsKey, Map>();
+
+  static Map _getEnvironment(Map env, List<String> dartFlags) {
     var needDartFlags = dartFlags != null && dartFlags.length > 0;
-
     if (needDartFlags) {
-      if (env != null) {
-        env = new Map<String, String>.from(env);
-      } else {
-        env = new Map<String, String>();
+      if (env == null) {
+        env = const { };
       }
-      env['DART_FLAGS'] = dartFlags.join(" ");
-      env['DART_FORWARDING_PRINT'] = '1';
+      var flags = dartFlags.join(' ');
+      return environments.putIfAbsent(new AddFlagsKey(flags, env),
+          () => new Map.from(env)
+              ..addAll({'DART_FLAGS': flags, 'DART_FORWARDING_PRINT': '1'}));
     }
-
     return env;
   }
 
@@ -281,10 +253,6 @@ class ContentShellCommand extends ProcessCommand {
     var arguments = new List.from(options);
     arguments.add(htmlFile);
     return arguments;
-  }
-
-  bool _equal(Command other) {
-    return other is ContentShellCommand && super._equal(other);
   }
 
   int get maxNumRetries => 3;
@@ -302,19 +270,16 @@ class BrowserTestCommand extends Command {
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
-    builder.add(browser);
-    builder.add(url);
+    builder.addJson(browser);
+    builder.addJson(url);
     builder.add(configuration);
   }
 
-  bool _equal(Command other) {
-    return
-        other is BrowserTestCommand &&
-        super._equal(other) &&
-        browser == other.browser &&
-        url == other.url &&
-        identical(configuration, other.configuration);
-  }
+  bool _equal(BrowserTestCommand other) =>
+      super._equal(other) &&
+      browser == other.browser &&
+      url == other.url &&
+      identical(configuration, other.configuration);
 
   String get reproductionCommand {
     var parts = [TestUtils.dartTestExecutable.toString(),
@@ -337,15 +302,12 @@ class AnalysisCommand extends ProcessCommand {
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
-    builder.add(flavor);
+    builder.addJson(flavor);
   }
 
-  bool _equal(Command other) {
-    return
-        other is AnalysisCommand &&
-        super._equal(other) &&
-        flavor == other.flavor;
-  }
+  bool _equal(AnalysisCommand other) =>
+      super._equal(other) &&
+      flavor == other.flavor;
 }
 
 class VmCommand extends ProcessCommand {
@@ -381,15 +343,12 @@ class PubCommand extends ProcessCommand {
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
-    builder.add(command);
+    builder.addJson(command);
   }
 
-  bool _equal(Command other) {
-    return
-        other is PubCommand &&
-        super._equal(other) &&
-        command == other.command;
-  }
+  bool _equal(PubCommand other) =>
+      super._equal(other) &&
+      command == other.command;
 }
 
 /* [ScriptCommand]s are executed by dart code. */
@@ -436,17 +395,14 @@ class CleanDirectoryCopyCommand extends ScriptCommand {
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
-    builder.add(_sourceDirectory);
-    builder.add(_destinationDirectory);
+    builder.addJson(_sourceDirectory);
+    builder.addJson(_destinationDirectory);
   }
 
-  bool _equal(Command other) {
-    return
-        other is CleanDirectoryCopyCommand &&
-        super._equal(other) &&
-        _sourceDirectory == other._sourceDirectory &&
-        _destinationDirectory == other._destinationDirectory;
-  }
+  bool _equal(CleanDirectoryCopyCommand other) =>
+      super._equal(other) &&
+      _sourceDirectory == other._sourceDirectory &&
+      _destinationDirectory == other._destinationDirectory;
 }
 
 class ModifyPubspecYamlCommand extends ScriptCommand {
@@ -510,19 +466,16 @@ class ModifyPubspecYamlCommand extends ScriptCommand {
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
-    builder.add(_pubspecYamlFile);
-    builder.add(_destinationFile);
+    builder.addJson(_pubspecYamlFile);
+    builder.addJson(_destinationFile);
     builder.addJson(_dependencyOverrides);
   }
 
-  bool _equal(Command other) {
-    return
-        other is ModifyPubspecYamlCommand &&
-        super._equal(other) &&
-        _pubspecYamlFile == other._pubspecYamlFile &&
-        _destinationFile == other._destinationFile &&
-        deepJsonCompare(_dependencyOverrides, other._dependencyOverrides);
-  }
+  bool _equal(ModifyPubspecYamlCommand other) =>
+      super._equal(other) &&
+      _pubspecYamlFile == other._pubspecYamlFile &&
+      _destinationFile == other._destinationFile &&
+      deepJsonCompare(_dependencyOverrides, other._dependencyOverrides);
 }
 
 /*
@@ -560,17 +513,14 @@ class MakeSymlinkCommand extends ScriptCommand {
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
-    builder.add(_link);
-    builder.add(_target);
+    builder.addJson(_link);
+    builder.addJson(_target);
   }
 
-  bool _equal(Command other) {
-    return
-        other is MakeSymlinkCommand &&
-        super._equal(other) &&
-        _link == other._link &&
-        _target == other._target;
-  }
+  bool _equal(MakeSymlinkCommand other) =>
+      super._equal(other) &&
+      _link == other._link &&
+      _target == other._target;
 }
 
 class CommandBuilder {

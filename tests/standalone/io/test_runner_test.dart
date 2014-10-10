@@ -57,7 +57,7 @@ class TestController {
 
 
 class CustomTestSuite extends TestSuite {
-  CustomTestSuite() : super({}, "CustomTestSuite");
+  CustomTestSuite(Map configuration) : super(configuration, "CustomTestSuite");
 
   void forEachTest(TestCaseEvent onTest, Map testCache, [onDone]) {
     void enqueueTestCase(testCase) {
@@ -117,7 +117,7 @@ void testProcessQueue() {
   var maxBrowserProcesses = maxProcesses;
   var config = new TestOptionsParser().parse(['--nobatch'])[0];
   new ProcessQueue(config, maxProcesses, maxBrowserProcesses,
-      new DateTime.now(), [new CustomTestSuite()],
+      new DateTime.now(), [new CustomTestSuite(config)],
       [new EventListener()], TestController.finished);
 }
 
