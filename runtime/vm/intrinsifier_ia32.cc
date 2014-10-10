@@ -929,24 +929,24 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   __ SmiUntag(ECX);  // a_used > 0.
   __ movl(EBX, Address(ESP, 2 * kWordSize));  // r_digits
 
-  // Precompute 'used - a_used' now so that CF is not lost later.
+  // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subl(EAX, ECX);
   __ incl(EAX);  // To account for the extra test between loops.
   __ pushl(EAX);
 
-  __ xorl(EDX, EDX);  // EDX = 0, CF = 0.
+  __ xorl(EDX, EDX);  // EDX = 0, carry flag = 0.
   Label add_loop;
   __ Bind(&add_loop);
   __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
   __ adcl(EAX, FieldAddress(ESI, EDX, TIMES_4, TypedData::data_offset()));
   __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
-  __ incl(EDX);  // Does not affect CF.
-  __ decl(ECX);  // Does not affect CF.
+  __ incl(EDX);  // Does not affect carry flag.
+  __ decl(ECX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &add_loop, Assembler::kNearJump);
 
   Label last_carry;
   __ popl(ECX);
-  __ decl(ECX);  // Does not affect CF.
+  __ decl(ECX);  // Does not affect carry flag.
   __ j(ZERO, &last_carry, Assembler::kNearJump);
 
   Label carry_loop;
@@ -954,8 +954,8 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
   __ adcl(EAX, Immediate(0));
   __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
-  __ incl(EDX);  // Does not affect CF.
-  __ decl(ECX);  // Does not affect CF.
+  __ incl(EDX);  // Does not affect carry flag.
+  __ decl(ECX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
 
   __ Bind(&last_carry);
@@ -987,24 +987,24 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   __ SmiUntag(ECX);  // a_used > 0.
   __ movl(EBX, Address(ESP, 2 * kWordSize));  // r_digits
 
-  // Precompute 'used - a_used' now so that CF is not lost later.
+  // Precompute 'used - a_used' now so that carry flag is not lost later.
   __ subl(EAX, ECX);
   __ incl(EAX);  // To account for the extra test between loops.
   __ pushl(EAX);
 
-  __ xorl(EDX, EDX);  // EDX = 0, CF = 0.
+  __ xorl(EDX, EDX);  // EDX = 0, carry flag = 0.
   Label sub_loop;
   __ Bind(&sub_loop);
   __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
   __ sbbl(EAX, FieldAddress(ESI, EDX, TIMES_4, TypedData::data_offset()));
   __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
-  __ incl(EDX);  // Does not affect CF.
-  __ decl(ECX);  // Does not affect CF.
+  __ incl(EDX);  // Does not affect carry flag.
+  __ decl(ECX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &sub_loop, Assembler::kNearJump);
 
   Label done;
   __ popl(ECX);
-  __ decl(ECX);  // Does not affect CF.
+  __ decl(ECX);  // Does not affect carry flag.
   __ j(ZERO, &done, Assembler::kNearJump);
 
   Label carry_loop;
@@ -1012,8 +1012,8 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
   __ sbbl(EAX, Immediate(0));
   __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
-  __ incl(EDX);  // Does not affect CF.
-  __ decl(ECX);  // Does not affect CF.
+  __ incl(EDX);  // Does not affect carry flag.
+  __ decl(ECX);  // Does not affect carry flag.
   __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
 
   __ Bind(&done);

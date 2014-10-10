@@ -879,36 +879,129 @@ void Intrinsifier::Smi_bitLength(Assembler* assembler) {
 
 
 void Intrinsifier::Bigint_setNeg(Assembler* assembler) {
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ ldr(R1, Address(SP, 1 * kWordSize));
+  __ ldrd(R0, Address(SP, 0 * kWordSize));  // R0 = this, R1 = neg value.
   __ StoreIntoObject(R1, FieldAddress(R1, Bigint::neg_offset()), R0, false);
   __ Ret();
 }
 
 
 void Intrinsifier::Bigint_setUsed(Assembler* assembler) {
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ ldr(R1, Address(SP, 1 * kWordSize));
+  __ ldrd(R0, Address(SP, 0 * kWordSize));  // R0 = this, R1 = used value.
   __ StoreIntoObject(R1, FieldAddress(R1, Bigint::used_offset()), R0);
   __ Ret();
 }
 
 
 void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
-  __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ ldr(R1, Address(SP, 1 * kWordSize));
+  __ ldrd(R0, Address(SP, 0 * kWordSize));  // R0 = this, R1 = digits value.
   __ StoreIntoObject(R1, FieldAddress(R1, Bigint::digits_offset()), R0, false);
   __ Ret();
 }
 
 
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _absAdd(Uint32List digits, int used,
+  //                     Uint32List a_digits, int a_used,
+  //                     Uint32List r_digits)
+
+  // R2 = used, R3 = digits
+  __ ldrd(R2, Address(SP, 3 * kWordSize));
+  __ add(R3, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
+
+  // R4 = a_used, R5 = a_digits
+  __ ldrd(R4, Address(SP, 1 * kWordSize));
+  __ add(R5, R5, Operand(TypedData::data_offset() - kHeapObjectTag));
+
+  // R6 = r_digits
+  __ ldr(R6, Address(SP, 0 * kWordSize));
+  __ add(R6, R6, Operand(TypedData::data_offset() - kHeapObjectTag));
+
+  // R7 = &digits[a_used >> 1], a_used is Smi.
+  __ add(R7, R3, Operand(R4, LSL, 1));
+
+  // R8 = &digits[used >> 1], used is Smi.
+  __ add(R8, R3, Operand(R2, LSL, 1));
+
+  __ adds(R0, R0, Operand(0));  // carry flag = 0
+  Label add_loop;
+  __ Bind(&add_loop);
+  __ ldr(R0, Address(R3, kWordSize, Address::PostIndex));
+  __ ldr(R1, Address(R5, kWordSize, Address::PostIndex));
+  __ adcs(R0, R0, Operand(R1));
+  __ teq(R3, Operand(R7));  // Does not affect carry flag.
+  __ str(R0, Address(R6, kWordSize, Address::PostIndex));
+  __ b(&add_loop, NE);
+
+  Label last_carry;
+  __ teq(R3, Operand(R8));  // Does not affect carry flag.
+  __ b(&last_carry, EQ);
+
+  Label carry_loop;
+  __ Bind(&carry_loop);
+  __ ldr(R0, Address(R3, kWordSize, Address::PostIndex));
+  __ adcs(R0, R0, Operand(0));
+  __ teq(R3, Operand(R8));  // Does not affect carry flag.
+  __ str(R0, Address(R6, kWordSize, Address::PostIndex));
+  __ b(&carry_loop, NE);
+
+  __ Bind(&last_carry);
+  __ mov(R0, Operand(0));
+  __ adc(R0, R0, Operand(0));
+  __ str(R0, Address(R6, 0));
+
+  // Returning Object::null() is not required, since this method is private.
+  __ Ret();
 }
 
 
 void Intrinsifier::Bigint_absSub(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _absSub(Uint32List digits, int used,
+  //                     Uint32List a_digits, int a_used,
+  //                     Uint32List r_digits)
+
+  // R2 = used, R3 = digits
+  __ ldrd(R2, Address(SP, 3 * kWordSize));
+  __ add(R3, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
+
+  // R4 = a_used, R5 = a_digits
+  __ ldrd(R4, Address(SP, 1 * kWordSize));
+  __ add(R5, R5, Operand(TypedData::data_offset() - kHeapObjectTag));
+
+  // R6 = r_digits
+  __ ldr(R6, Address(SP, 0 * kWordSize));
+  __ add(R6, R6, Operand(TypedData::data_offset() - kHeapObjectTag));
+
+  // R7 = &digits[a_used >> 1], a_used is Smi.
+  __ add(R7, R3, Operand(R4, LSL, 1));
+
+  // R8 = &digits[used >> 1], used is Smi.
+  __ add(R8, R3, Operand(R2, LSL, 1));
+
+  __ subs(R0, R0, Operand(0));  // carry flag = 1
+  Label sub_loop;
+  __ Bind(&sub_loop);
+  __ ldr(R0, Address(R3, kWordSize, Address::PostIndex));
+  __ ldr(R1, Address(R5, kWordSize, Address::PostIndex));
+  __ sbcs(R0, R0, Operand(R1));
+  __ teq(R3, Operand(R7));  // Does not affect carry flag.
+  __ str(R0, Address(R6, kWordSize, Address::PostIndex));
+  __ b(&sub_loop, NE);
+
+  Label done;
+  __ teq(R3, Operand(R8));  // Does not affect carry flag.
+  __ b(&done, EQ);
+
+  Label carry_loop;
+  __ Bind(&carry_loop);
+  __ ldr(R0, Address(R3, kWordSize, Address::PostIndex));
+  __ sbcs(R0, R0, Operand(0));
+  __ teq(R3, Operand(R8));  // Does not affect carry flag.
+  __ str(R0, Address(R6, kWordSize, Address::PostIndex));
+  __ b(&carry_loop, NE);
+
+  __ Bind(&done);
+  // Returning Object::null() is not required, since this method is private.
+  __ Ret();
 }
 
 
@@ -944,8 +1037,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
 
   Label done;
   // R3 = x, no_op if x == 0
-  __ ldr(R1, Address(SP, 6 * kWordSize));  // x_digits
-  __ ldr(R0, Address(SP, 5 * kWordSize));  // xi is Smi
+  __ ldrd(R0, Address(SP, 5 * kWordSize));  // R0 = xi as Smi, R1 = x_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R3, FieldAddress(R1, TypedData::data_offset()));
   __ tst(R3, Operand(R3));
@@ -957,14 +1049,12 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ b(&done, EQ);
 
   // R4 = mip = &m_digits[i >> 1]
-  __ ldr(R1, Address(SP, 4 * kWordSize));  // m_digits
-  __ ldr(R0, Address(SP, 3 * kWordSize));  // i is Smi
+  __ ldrd(R0, Address(SP, 3 * kWordSize));  // R0 = i as Smi, R1 = m_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ add(R4, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R5 = ajp = &a_digits[j >> 1]
-  __ ldr(R1, Address(SP, 2 * kWordSize));  // a_digits
-  __ ldr(R0, Address(SP, 1 * kWordSize));  // j is Smi
+  __ ldrd(R0, Address(SP, 1 * kWordSize));  // R0 = j as Smi, R1 = a_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ add(R5, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
 
@@ -1014,6 +1104,7 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ b(&propagate_carry_loop, CS);
 
   __ Bind(&done);
+  // Returning Object::null() is not required, since this method is private.
   __ Ret();
 }
 
@@ -1048,10 +1139,9 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // }
 
   // R4 = xip = &x_digits[i >> 1]
-  __ ldr(R1, Address(SP, 3 * kWordSize));  // x_digits
-  __ ldr(R6, Address(SP, 2 * kWordSize));  // i is Smi
-  __ add(R1, R1, Operand(R6, LSL, 1));
-  __ add(R4, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
+  __ ldrd(R2, Address(SP, 2 * kWordSize));  // R2 = i as Smi, R3 = x_digits
+  __ add(R3, R3, Operand(R2, LSL, 1));
+  __ add(R4, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R3 = x = *xip++, return if x == 0
   Label x_zero;
@@ -1061,26 +1151,26 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
 
   // R5 = ajp = &a_digits[i]
   __ ldr(R1, Address(SP, 1 * kWordSize));  // a_digits
-  __ add(R1, R1, Operand(R6, LSL, 2));  // j == 2*i, i is Smi.
+  __ add(R1, R1, Operand(R2, LSL, 2));  // j == 2*i, i is Smi.
   __ add(R5, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
 
-  // R7:R0 = t = x*x + *ajp
+  // R6:R0 = t = x*x + *ajp
   __ ldr(R0, Address(R5, 0));
-  __ mov(R7, Operand(0));
-  __ umaal(R0, R7, R3, R3);  // R7:R0 = R3*R3 + R7 + R0.
+  __ mov(R6, Operand(0));
+  __ umaal(R0, R6, R3, R3);  // R6:R0 = R3*R3 + R6 + R0.
 
   // *ajp++ = low32(t) = R0
   __ str(R0, Address(R5, kWordSize, Address::PostIndex));
 
-  // R7 = low32(c) = high32(t)
-  // R8 = high32(c) = 0
-  __ mov(R8, Operand(0));
+  // R6 = low32(c) = high32(t)
+  // R7 = high32(c) = 0
+  __ mov(R7, Operand(0));
 
   // int n = used - i - 1
   __ ldr(R0, Address(SP, 0 * kWordSize));  // used is Smi
-  __ sub(R6, R0, Operand(R6));
+  __ sub(R8, R0, Operand(R2));
   __ mov(R0, Operand(2));  // while (--n >= 0)
-  __ rsbs(R6, R0, Operand(R6, ASR, kSmiTagSize));
+  __ rsbs(R8, R0, Operand(R8, ASR, kSmiTagSize));
 
   Label loop, done;
   __ b(&done, MI);
@@ -1089,9 +1179,9 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // x:   R3
   // xip: R4
   // ajp: R5
-  // c:   R8:R7
+  // c:   R7:R6
   // t:   R2:R1:R0 (not live at loop entry)
-  // n:   R6
+  // n:   R8
 
   // uint32_t xi = *xip++
   __ ldr(R2, Address(R4, kWordSize, Address::PostIndex));
@@ -1102,17 +1192,17 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // uint96_t t = R2:R1:R0 = 2*x*xi + aj + c
   __ mov(R0, Operand(0));
   __ umaal(R0, R1, R2, R3);  // R1:R0 = R3*R2 + R1 + R0 = x*xi + aj + 0.
-  __ umlal(R7, R8, R2, R3);  // R8:R7 += R3*R2; c += x*xi.
-  __ adds(R0, R0, Operand(R7));
-  __ adcs(R7, R1, Operand(R8));
-  __ mov(R8, Operand(0));
-  __ adc(R8, R8, Operand(0));  // R8:R7:R0 = R1:R0 + R8:R7 = 2*x*xi + aj + c.
+  __ umlal(R6, R7, R2, R3);  // R7:R6 += R3*R2; c += x*xi.
+  __ adds(R0, R0, Operand(R6));
+  __ adcs(R6, R1, Operand(R7));
+  __ mov(R7, Operand(0));
+  __ adc(R7, R7, Operand(0));  // R7:R6:R0 = R1:R0 + R7:R6 = 2*x*xi + aj + c.
 
   // *ajp++ = low32(t) = R0
   __ str(R0, Address(R5, kWordSize, Address::PostIndex));
 
   // while (--n >= 0)
-  __ subs(R6, R6, Operand(1));  // --n
+  __ subs(R8, R8, Operand(1));  // --n
   __ b(&loop, PL);
 
   __ Bind(&done);
@@ -1120,15 +1210,15 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ ldr(R0, Address(R5, 0));
 
   // uint64_t t = aj + c
-  __ adds(R7, R7, Operand(R0));
-  __ adc(R8, R8, Operand(0));
+  __ adds(R6, R6, Operand(R0));
+  __ adc(R7, R7, Operand(0));
 
-  // *ajp++ = low32(t)
-  // *ajp = high32(t)
-  __ str(R7, Address(R5, 0));
-  __ str(R8, Address(R5, kWordSize));
+  // *ajp = low32(t) = R6
+  // *(ajp + 1) = high32(t) = R7
+  __ strd(R6, Address(R5, 0));
 
   __ Bind(&x_zero);
+  // Returning Object::null() is not required, since this method is private.
   __ Ret();
 }
 
@@ -1139,7 +1229,36 @@ void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
 
 
 void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
-  // TODO(regis): Implement.
+  if (TargetCPUFeatures::arm_version() != ARMv7) {
+    return;
+  }
+  // Pseudo code:
+  // static void _mulMod(Uint32List args, Uint32List digits, int i) {
+  //   uint32_t rho = args[_RHO];  // _RHO == 0.
+  //   uint32_t d = digits[i >> 1];  // i is Smi.
+  //   uint64_t t = rho*d;
+  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 1.
+  // }
+
+  // R4 = args
+  __ ldr(R4, Address(SP, 2 * kWordSize));  // args
+
+  // R3 = rho = args[0]
+  __ ldr(R3, FieldAddress(R4, TypedData::data_offset()));
+
+  // R2 = digits[i >> 1]
+  __ ldrd(R0, Address(SP, 0 * kWordSize));  // R0 = i as Smi, R1 = digits
+  __ add(R1, R1, Operand(R0, LSL, 1));
+  __ ldr(R2, FieldAddress(R1, TypedData::data_offset()));
+
+  // R1:R0 = t = rho*d
+  __ umull(R0, R1, R2, R3);
+
+  // args[1] = t mod DIGIT_BASE = low32(t)
+  __ str(R0, FieldAddress(R4, TypedData::data_offset() + kWordSize));
+
+  // Returning Object::null() is not required, since this method is private.
+  __ Ret();
 }
 
 
