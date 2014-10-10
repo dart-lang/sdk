@@ -5362,6 +5362,7 @@ class Bigint : public Integer {
 
   static const intptr_t kExtraDigits = 4;  // Same as _Bigint.EXTRA_DIGITS
   static const intptr_t kBitsPerDigit = 32;  // Same as _Bigint.DIGIT_BITS
+  static const intptr_t kBytesPerDigit = 4;
   static const int64_t kDigitBase = 1LL << kBitsPerDigit;
   static const int64_t kDigitMask = kDigitBase - 1;
 

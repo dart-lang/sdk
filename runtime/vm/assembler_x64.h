@@ -546,31 +546,40 @@ class Assembler : public ValueObject {
   void XorImmediate(Register dst, const Immediate& imm, Register pp);
 
   void addl(Register dst, Register src);
-  void addl(const Address& address, const Immediate& imm);
+  void addl(Register dst, const Address& address);
+  void addl(const Address& address, Register src);
+  void adcl(Register dst, Register src);
+  void adcl(Register dst, const Immediate& imm);
+  void adcl(Register dst, const Address& address);
 
   void addq(Register dst, Register src);
-  void addq(Register reg, const Immediate& imm);
-  void addq(Register reg, const Address& address);
+  void addq(Register dst, const Immediate& imm);
+  void addq(Register dst, const Address& address);
   void addq(const Address& address, const Immediate& imm);
-  void addq(const Address& address, Register reg);
-
-  void adcl(Register dst, Register src);
-
-  void subl(Register dst, Register src);
+  void addq(const Address& address, Register src);
 
   void cdq();
   void cqo();
 
   void idivl(Register reg);
+  void divl(Register reg);
+
   void idivq(Register reg);
 
   void imull(Register dst, Register src);
   void imull(Register reg, const Immediate& imm);
+  void mull(Register reg);
 
   void imulq(Register dst, Register src);
   void imulq(Register dst, const Address& address);
   void imulq(Register dst, const Immediate& imm);
   void MulImmediate(Register reg, const Immediate& imm, Register pp);
+
+  void subl(Register dst, Register src);
+  void subl(Register dst, const Address& address);
+  void sbbl(Register dst, Register src);
+  void sbbl(Register dst, const Immediate& imm);
+  void sbbl(Register dst, const Address& address);
 
   void subq(Register dst, Register src);
   void subq(Register reg, const Immediate& imm);
@@ -584,6 +593,7 @@ class Assembler : public ValueObject {
   void shrl(Register operand, Register shifter);
   void sarl(Register reg, const Immediate& imm);
   void sarl(Register operand, Register shifter);
+  void shldl(Register dst, Register src, const Immediate& imm);
 
   void shlq(Register reg, const Immediate& imm);
   void shlq(Register operand, Register shifter);
@@ -1033,7 +1043,6 @@ class Assembler : public ValueObject {
   inline void EmitInt64(int64_t value);
 
   inline void EmitRegisterREX(Register reg, uint8_t rex);
-  inline void EmitRegisterOperand(int rm, int reg);
   inline void EmitOperandREX(int rm, const Operand& operand, uint8_t rex);
   inline void EmitXmmRegisterOperand(int rm, XmmRegister reg);
   inline void EmitFixup(AssemblerFixup* fixup);

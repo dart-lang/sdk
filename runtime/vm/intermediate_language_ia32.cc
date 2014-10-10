@@ -5929,7 +5929,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             __ sarl(left_lo, Immediate(shift - 32));
           }
         } else {
-          __ shrd(left_lo, left_hi, Immediate(shift));
+          __ shrdl(left_lo, left_hi, Immediate(shift));
           __ sarl(left_hi, Immediate(shift));
         }
         break;
@@ -5952,7 +5952,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             __ cmpl(temp1, temp2);
             __ j(NOT_EQUAL, deopt);
           } else {
-            __ shld(left_hi, left_lo, Immediate(shift));
+            __ shldl(left_hi, left_lo, Immediate(shift));
             __ shll(left_lo, Immediate(shift));
             // Check for overflow by shifting back the high 32 bits
             // and comparing with the input.
@@ -5969,7 +5969,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
               __ shll(left_hi, Immediate(shift - 32));
             }
           } else {
-            __ shld(left_hi, left_lo, Immediate(shift));
+            __ shldl(left_hi, left_lo, Immediate(shift));
             __ shll(left_lo, Immediate(shift));
           }
         }
@@ -5982,7 +5982,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Code for a variable shift amount.
     // Deoptimize if shift count is > 63.
     // sarl operation masks the count to 5 bits and
-    // shrd is undefined with count > operand size (32)
+    // shrdl is undefined with count > operand size (32)
     __ SmiUntag(ECX);
     if (has_shift_count_check()) {
       __ cmpl(ECX, Immediate(kMintShiftCountLimit));
@@ -5994,7 +5994,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ cmpl(ECX, Immediate(31));
         __ j(ABOVE, &large_shift);
 
-        __ shrd(left_lo, left_hi);  // Shift count in CL.
+        __ shrdl(left_lo, left_hi);  // Shift count in CL.
         __ sarl(left_hi, ECX);  // Shift count in CL.
         __ jmp(&done, Assembler::kNearJump);
 
@@ -6013,7 +6013,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ cmpl(ECX, Immediate(31));
           __ j(ABOVE, &large_shift);
 
-          __ shld(left_hi, left_lo);  // Shift count in CL.
+          __ shldl(left_hi, left_lo);  // Shift count in CL.
           __ shll(left_lo, ECX);  // Shift count in CL.
           // Check for overflow by shifting back the high 32 bits
           // and comparing with the input.
@@ -6038,7 +6038,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ cmpl(ECX, Immediate(31));
           __ j(ABOVE, &large_shift);
 
-          __ shld(left_hi, left_lo);  // Shift count in CL.
+          __ shldl(left_hi, left_lo);  // Shift count in CL.
           __ shll(left_lo, ECX);  // Shift count in CL.
           __ jmp(&done, Assembler::kNearJump);
 

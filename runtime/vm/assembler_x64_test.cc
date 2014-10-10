@@ -386,6 +386,21 @@ ASSEMBLER_TEST_RUN(SignedMultiply, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(UnsignedMultiply, assembler) {
+  __ movl(RAX, Immediate(-1));  // RAX = 0xFFFFFFFF
+  __ movl(RCX, Immediate(16));  // RCX = 0x10
+  __ mull(RCX);  // RDX:RAX = RAX * RCX = 0x0FFFFFFFF0
+  __ movq(RAX, RDX);  // Return high32(0x0FFFFFFFF0) == 0x0F
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(UnsignedMultiply, test) {
+  typedef int (*UnsignedMultiply)();
+  EXPECT_EQ(15, reinterpret_cast<UnsignedMultiply>(test->entry())());
+}
+
+
 ASSEMBLER_TEST_GENERATE(SignedMultiply64, assembler) {
   __ pushq(R15);  // Callee saved.
   __ movq(RAX, Immediate(2));
@@ -505,6 +520,25 @@ ASSEMBLER_TEST_GENERATE(SignedDivide, assembler) {
 ASSEMBLER_TEST_RUN(SignedDivide, test) {
   typedef int32_t (*SignedDivide)();
   EXPECT_EQ(-87 / 42, reinterpret_cast<SignedDivide>(test->entry())());
+}
+
+
+ASSEMBLER_TEST_GENERATE(UnsignedDivide, assembler) {
+  const int32_t low = 0;
+  const int32_t high = 0xf0000000;
+  const int32_t divisor = 0xffffffff;
+  __ movl(RAX, Immediate(low));
+  __ movl(RDX, Immediate(high));
+  __ movl(RCX, Immediate(divisor));
+  __ divl(RCX);  // RAX = RDX:RAX / RCX =
+                 //     = 0xf000000000000000 / 0xffffffff = 0xf0000000
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(UnsignedDivide, test) {
+  typedef uint32_t (*UnsignedDivide)();
+  EXPECT_EQ(0xf0000000, reinterpret_cast<UnsignedDivide>(test->entry())());
 }
 
 
@@ -646,6 +680,126 @@ ASSEMBLER_TEST_GENERATE(MoveWordRex, assembler) {
 ASSEMBLER_TEST_RUN(MoveWordRex, test) {
   typedef int (*MoveWordRex)();
   EXPECT_EQ(0xffff, reinterpret_cast<MoveWordRex>(test->entry())());
+}
+
+
+ASSEMBLER_TEST_GENERATE(LongAddReg, assembler) {
+  __ pushq(CallingConventions::kArg2Reg);
+  __ pushq(CallingConventions::kArg1Reg);
+  __ movl(RAX, Address(RSP, 0));  // left low.
+  __ movl(RDX, Address(RSP, 4));  // left high.
+  __ movl(RCX, Address(RSP, 8));  // right low.
+  __ movl(RBX, Address(RSP, 12));  // right high
+  __ addl(RAX, RCX);
+  __ adcl(RDX, RBX);
+  // Result is in RAX/RDX.
+  __ movl(Address(RSP, 0), RAX);  // result low.
+  __ movl(Address(RSP, 4), RDX);  // result high.
+  __ popq(RAX);
+  __ popq(RDX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LongAddReg, test) {
+  typedef int64_t (*LongAddRegCode)(int64_t a, int64_t b);
+  int64_t a = 12;
+  int64_t b = 14;
+  int64_t res = reinterpret_cast<LongAddRegCode>(test->entry())(a, b);
+  EXPECT_EQ((a + b), res);
+  a = 2147483647;
+  b = 600000;
+  res = reinterpret_cast<LongAddRegCode>(test->entry())(a, b);
+  EXPECT_EQ((a + b), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(LongAddAddress, assembler) {
+  __ pushq(CallingConventions::kArg2Reg);
+  __ pushq(CallingConventions::kArg1Reg);
+  __ movl(RAX, Address(RSP, 0));  // left low.
+  __ movl(RDX, Address(RSP, 4));  // left high.
+  __ addl(RAX, Address(RSP, 8));  // low.
+  __ adcl(RDX, Address(RSP, 12));  // high.
+  // Result is in RAX/RDX.
+  __ movl(Address(RSP, 0), RAX);  // result low.
+  __ movl(Address(RSP, 4), RDX);  // result high.
+  __ popq(RAX);
+  __ popq(RDX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LongAddAddress, test) {
+  typedef int64_t (*LongAddAddressCode)(int64_t a, int64_t b);
+  int64_t a = 12;
+  int64_t b = 14;
+  int64_t res = reinterpret_cast<LongAddAddressCode>(test->entry())(a, b);
+  EXPECT_EQ((a + b), res);
+  a = 2147483647;
+  b = 600000;
+  res = reinterpret_cast<LongAddAddressCode>(test->entry())(a, b);
+  EXPECT_EQ((a + b), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(LongSubReg, assembler) {
+  __ pushq(CallingConventions::kArg2Reg);
+  __ pushq(CallingConventions::kArg1Reg);
+  __ movl(RAX, Address(RSP, 0));  // left low.
+  __ movl(RDX, Address(RSP, 4));  // left high.
+  __ movl(RCX, Address(RSP, 8));  // right low.
+  __ movl(RBX, Address(RSP, 12));  // right high
+  __ subl(RAX, RCX);
+  __ sbbl(RDX, RBX);
+  // Result is in RAX/RDX.
+  __ movl(Address(RSP, 0), RAX);  // result low.
+  __ movl(Address(RSP, 4), RDX);  // result high.
+  __ popq(RAX);
+  __ popq(RDX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LongSubReg, test) {
+  typedef int64_t (*LongSubRegCode)(int64_t a, int64_t b);
+  int64_t a = 12;
+  int64_t b = 14;
+  int64_t res = reinterpret_cast<LongSubRegCode>(test->entry())(a, b);
+  EXPECT_EQ((a - b), res);
+  a = 600000;
+  b = 2147483647;
+  res = reinterpret_cast<LongSubRegCode>(test->entry())(a, b);
+  EXPECT_EQ((a - b), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(LongSubAddress, assembler) {
+  __ pushq(CallingConventions::kArg2Reg);
+  __ pushq(CallingConventions::kArg1Reg);
+  __ movl(RAX, Address(RSP, 0));  // left low.
+  __ movl(RDX, Address(RSP, 4));  // left high.
+  __ subl(RAX, Address(RSP, 8));  // low.
+  __ sbbl(RDX, Address(RSP, 12));  // high.
+  // Result is in RAX/RDX.
+  __ movl(Address(RSP, 0), RAX);  // result low.
+  __ movl(Address(RSP, 4), RDX);  // result high.
+  __ popq(RAX);
+  __ popq(RDX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LongSubAddress, test) {
+  typedef int64_t (*LongSubAddressCode)(int64_t a, int64_t b);
+  int64_t a = 12;
+  int64_t b = 14;
+  int64_t res = reinterpret_cast<LongSubAddressCode>(test->entry())(a, b);
+  EXPECT_EQ((a - b), res);
+  a = 600000;
+  b = 2147483647;
+  res = reinterpret_cast<LongSubAddressCode>(test->entry())(a, b);
+  EXPECT_EQ((a - b), res);
 }
 
 
@@ -904,6 +1058,21 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ movl(RAX, Immediate(0));
   __ movl(Address(RAX, 0), RAX);
   __ Bind(&donetest13a);
+
+  Label donetest15a;
+  const int32_t left = 0xff000000;
+  const int32_t right = 0xffffffff;
+  const int32_t shifted = 0xf0000003;
+  __ movl(RDX, Immediate(left));
+  __ movl(RAX, Immediate(right));
+  __ movl(RCX, Immediate(2));
+  __ shll(RDX, RCX);  // RDX = 0xff000000 << 2 == 0xfc000000
+  __ shldl(RDX, RAX, Immediate(2));  // RDX = high32(0xfc000000:0xffffffff << 2)
+                                     //     = 0xf0000003
+  __ cmpl(RDX, Immediate(shifted));
+  __ j(EQUAL, &donetest15a);
+  __ int3();
+  __ Bind(&donetest15a);
 
   __ movl(RAX, Immediate(0));
   __ ret();

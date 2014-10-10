@@ -552,7 +552,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ movl(EAX, Immediate(0));
   __ movl(ECX, Immediate(3));
   __ sarl(Address(ESP, 0), ECX);
-  __ shrd(Address(ESP, 0), EAX);
+  __ shrdl(Address(ESP, 0), EAX);
   __ cmpl(Address(ESP, 0), Immediate(0x1e000000));
   __ j(EQUAL, &donetest14);
   __ int3();
@@ -565,7 +565,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ movl(EAX, Immediate(-1));
   __ movl(ECX, Immediate(2));
   __ shll(Address(ESP, 0), ECX);
-  __ shld(Address(ESP, 0), EAX);
+  __ shldl(Address(ESP, 0), EAX);
   __ cmpl(Address(ESP, 0), Immediate(0xF0000003));
   __ j(EQUAL, &donetest15);
   __ int3();
@@ -577,7 +577,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ movl(EAX, Immediate(0));
   __ movl(ECX, Immediate(3));
   __ sarl(EDX, Immediate(3));
-  __ shrd(EDX, EAX, Immediate(3));
+  __ shrdl(EDX, EAX, Immediate(3));
   __ cmpl(EDX, Immediate(0x1e000000));
   __ j(EQUAL, &donetest16);
   __ int3();
@@ -587,7 +587,7 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ movl(EDX, Immediate(0xFF000000));
   __ movl(EAX, Immediate(-1));
   __ shll(EDX, Immediate(2));
-  __ shld(EDX, EAX, Immediate(2));
+  __ shldl(EDX, EAX, Immediate(2));
   __ cmpl(EDX, Immediate(0xF0000003));
   __ j(EQUAL, &donetest17);
   __ int3();

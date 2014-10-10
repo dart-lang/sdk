@@ -823,32 +823,411 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 
 
 void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _absAdd(Uint32List digits, int used,
+  //                     Uint32List a_digits, int a_used,
+  //                     Uint32List r_digits)
+
+  __ movq(RDI, Address(RSP, 5 * kWordSize));  // digits
+  __ movq(R8, Address(RSP, 4 * kWordSize));  // used is Smi
+  __ SmiUntag(R8);  // used > 0.
+  __ movq(RSI, Address(RSP, 3 * kWordSize));  // a_digits
+  __ movq(RCX, Address(RSP, 2 * kWordSize));  // a_used is Smi
+  __ SmiUntag(RCX);  // a_used > 0.
+  __ movq(RBX, Address(RSP, 1 * kWordSize));  // r_digits
+
+  // Precompute 'used - a_used' now so that carry flag is not lost later.
+  __ subq(R8, RCX);
+  __ incq(R8);  // To account for the extra test between loops.
+
+  __ xorq(RDX, RDX);  // RDX = 0, carry flag = 0.
+  Label add_loop;
+  __ Bind(&add_loop);
+  // Loop a_used times, RCX = a_used, RCX > 0.
+  __ movl(RAX, FieldAddress(RDI, RDX, TIMES_4, TypedData::data_offset()));
+  __ adcl(RAX, FieldAddress(RSI, RDX, TIMES_4, TypedData::data_offset()));
+  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  __ incq(RDX);  // Does not affect carry flag.
+  __ decq(RCX);  // Does not affect carry flag.
+  __ j(NOT_ZERO, &add_loop, Assembler::kNearJump);
+
+  Label last_carry;
+  __ decq(R8);  // Does not affect carry flag.
+  __ j(ZERO, &last_carry, Assembler::kNearJump);  // If used - a_used == 0.
+
+  Label carry_loop;
+  __ Bind(&carry_loop);
+  // Loop used - a_used times, R8 = used - a_used, R8 > 0.
+  __ movl(RAX, FieldAddress(RDI, RDX, TIMES_4, TypedData::data_offset()));
+  __ adcl(RAX, Immediate(0));
+  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  __ incq(RDX);  // Does not affect carry flag.
+  __ decq(R8);  // Does not affect carry flag.
+  __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
+
+  __ Bind(&last_carry);
+  __ movl(RAX, Immediate(0));
+  __ adcl(RAX, Immediate(0));
+  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
 }
 
 
 void Intrinsifier::Bigint_absSub(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // static void _absSub(Uint32List digits, int used,
+  //                     Uint32List a_digits, int a_used,
+  //                     Uint32List r_digits)
+
+  __ movq(RDI, Address(RSP, 5 * kWordSize));  // digits
+  __ movq(R8, Address(RSP, 4 * kWordSize));  // used is Smi
+  __ SmiUntag(R8);  // used > 0.
+  __ movq(RSI, Address(RSP, 3 * kWordSize));  // a_digits
+  __ movq(RCX, Address(RSP, 2 * kWordSize));  // a_used is Smi
+  __ SmiUntag(RCX);  // a_used > 0.
+  __ movq(RBX, Address(RSP, 1 * kWordSize));  // r_digits
+
+  // Precompute 'used - a_used' now so that carry flag is not lost later.
+  __ subq(R8, RCX);
+  __ incq(R8);  // To account for the extra test between loops.
+
+  __ xorq(RDX, RDX);  // RDX = 0, carry flag = 0.
+  Label sub_loop;
+  __ Bind(&sub_loop);
+  // Loop a_used times, RCX = a_used, RCX > 0.
+  __ movl(RAX, FieldAddress(RDI, RDX, TIMES_4, TypedData::data_offset()));
+  __ sbbl(RAX, FieldAddress(RSI, RDX, TIMES_4, TypedData::data_offset()));
+  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  __ incq(RDX);  // Does not affect carry flag.
+  __ decq(RCX);  // Does not affect carry flag.
+  __ j(NOT_ZERO, &sub_loop, Assembler::kNearJump);
+
+  Label done;
+  __ decq(R8);  // Does not affect carry flag.
+  __ j(ZERO, &done, Assembler::kNearJump);  // If used - a_used == 0.
+
+  Label carry_loop;
+  __ Bind(&carry_loop);
+  // Loop used - a_used times, R8 = used - a_used, R8 > 0.
+  __ movl(RAX, FieldAddress(RDI, RDX, TIMES_4, TypedData::data_offset()));
+  __ sbbl(RAX, Immediate(0));
+  __ movl(FieldAddress(RBX, RDX, TIMES_4, TypedData::data_offset()), RAX);
+  __ incq(RDX);  // Does not affect carry flag.
+  __ decq(R8);  // Does not affect carry flag.
+  __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
+
+  __ Bind(&done);
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
 }
 
 
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // Pseudo code:
+  // static void _mulAdd(Uint32List x_digits, int xi,
+  //                     Uint32List m_digits, int i,
+  //                     Uint32List a_digits, int j, int n) {
+  //   uint32_t x = x_digits[xi >> 1];  // xi is Smi.
+  //   if (x == 0 || n == 0) {
+  //     return;
+  //   }
+  //   uint32_t* mip = &m_digits[i >> 1];  // i is Smi.
+  //   uint32_t* ajp = &a_digits[j >> 1];  // j is Smi.
+  //   uint32_t c = 0;
+  //   SmiUntag(n);
+  //   do {
+  //     uint32_t mi = *mip++;
+  //     uint32_t aj = *ajp;
+  //     uint64_t t = x*mi + aj + c;  // 32-bit * 32-bit -> 64-bit.
+  //     *ajp++ = low32(t);
+  //     c = high32(t);
+  //   } while (--n > 0);
+  //   while (c != 0) {
+  //     uint64_t t = *ajp + c;
+  //     *ajp++ = low32(t);
+  //     c = high32(t);  // c == 0 or 1.
+  //   }
+  // }
+
+  Label done;
+  // RBX = x, done if x == 0
+  __ movq(RCX, Address(RSP, 7 * kWordSize));  // x_digits
+  __ movq(RAX, Address(RSP, 6 * kWordSize));  // xi is Smi
+  __ movl(RBX, FieldAddress(RCX, RAX, TIMES_2, TypedData::data_offset()));
+  __ testl(RBX, RBX);
+  __ j(ZERO, &done, Assembler::kNearJump);
+
+  // R8 = SmiUntag(n), no_op if n == 0
+  __ movq(R8, Address(RSP, 1 * kWordSize));
+  __ SmiUntag(R8);
+  __ j(ZERO, &done, Assembler::kNearJump);
+
+  // RDI = mip = &m_digits[i >> 1]
+  __ movq(RDI, Address(RSP, 5 * kWordSize));  // m_digits
+  __ movq(RAX, Address(RSP, 4 * kWordSize));  // i is Smi
+  __ leaq(RDI, FieldAddress(RDI, RAX, TIMES_2, TypedData::data_offset()));
+
+  // RSI = ajp = &a_digits[j >> 1]
+  __ movq(RSI, Address(RSP, 3 * kWordSize));  // a_digits
+  __ movq(RAX, Address(RSP, 2 * kWordSize));  // j is Smi
+  __ leaq(RSI, FieldAddress(RSI, RAX, TIMES_2, TypedData::data_offset()));
+
+  // RCX = c = 0
+  __ xorq(RCX, RCX);
+
+  Label muladd_loop;
+  __ Bind(&muladd_loop);
+  // x:   RBX
+  // mip: RDI
+  // ajp: RSI
+  // c:   RCX
+  // t:   RDX:RAX (not live at loop entry)
+  // n:   R8
+
+  // uint32_t mi = *mip++
+  __ movl(RAX, Address(RDI, 0));
+  __ addq(RDI, Immediate(Bigint::kBytesPerDigit));
+
+  // uint64_t t = x*mi
+  __ mull(RBX);  // t = RDX:RAX = RAX * RBX, 32-bit * 32-bit -> 64-bit
+  __ addl(RAX, RCX);  // t += c
+  __ adcl(RDX, Immediate(0));
+
+  // uint32_t aj = *ajp; t += aj
+  __ addl(RAX, Address(RSI, 0));
+  __ adcl(RDX, Immediate(0));
+
+  // *ajp++ = low32(t)
+  __ movl(Address(RSI, 0), RAX);
+  __ addq(RSI, Immediate(Bigint::kBytesPerDigit));
+
+  // c = high32(t)
+  __ movl(RCX, RDX);
+
+  // while (--n > 0)
+  __ decq(R8);  // --n
+  __ j(NOT_ZERO, &muladd_loop, Assembler::kNearJump);
+
+  __ testl(RCX, RCX);
+  __ j(ZERO, &done, Assembler::kNearJump);
+
+  // *ajp += c
+  __ addl(Address(RSI, 0), RCX);
+  __ j(NOT_CARRY, &done, Assembler::kNearJump);
+
+  Label propagate_carry_loop;
+  __ Bind(&propagate_carry_loop);
+  __ addq(RSI, Immediate(Bigint::kBytesPerDigit));
+  __ incl(Address(RSI, 0));  // c == 0 or 1
+  __ j(CARRY, &propagate_carry_loop, Assembler::kNearJump);
+
+  __ Bind(&done);
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
 }
 
 
 void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // Pseudo code:
+  // static void _sqrAdd(Uint32List x_digits, int i,
+  //                     Uint32List a_digits, int used) {
+  //   uint32_t* xip = &x_digits[i >> 1];  // i is Smi.
+  //   uint32_t x = *xip++;
+  //   if (x == 0) return;
+  //   uint32_t* ajp = &a_digits[i];  // j == 2*i, i is Smi.
+  //   uint32_t aj = *ajp;
+  //   uint64_t t = x*x + aj;
+  //   *ajp++ = low32(t);
+  //   uint64_t c = high32(t);
+  //   int n = ((used - i) >> 1) - 1;  // used and i are Smi.
+  //   while (--n >= 0) {
+  //     uint32_t xi = *xip++;
+  //     uint32_t aj = *ajp;
+  //     uint96_t t = 2*x*xi + aj + c;  // 2-bit * 32-bit * 32-bit -> 65-bit.
+  //     *ajp++ = low32(t);
+  //     c = high64(t);  // 33-bit.
+  //   }
+  //   uint32_t aj = *ajp;
+  //   uint64_t t = aj + c;  // 32-bit + 33-bit -> 34-bit.
+  //   *ajp++ = low32(t);
+  //   *ajp = high32(t);
+  // }
+
+  // RDI = xip = &x_digits[i >> 1]
+  __ movq(RDI, Address(RSP, 4 * kWordSize));  // x_digits
+  __ movq(RAX, Address(RSP, 3 * kWordSize));  // i is Smi
+  __ leaq(RDI, FieldAddress(RDI, RAX, TIMES_2, TypedData::data_offset()));
+
+  // RBX = x = *xip++, return if x == 0
+  Label x_zero;
+  __ movl(RBX, Address(RDI, 0));
+  __ cmpl(RBX, Immediate(0));
+  __ j(EQUAL, &x_zero, Assembler::kNearJump);
+  __ addq(RDI, Immediate(Bigint::kBytesPerDigit));
+
+  // RSI = ajp = &a_digits[i]
+  __ movq(RSI, Address(RSP, 2 * kWordSize));  // a_digits
+  __ leaq(RSI, FieldAddress(RSI, RAX, TIMES_4, TypedData::data_offset()));
+
+  // RDX:RAX = t = x*x + *ajp
+  __ movl(RAX, RBX);
+  __ mull(RBX);
+  __ addl(RAX, Address(RSI, 0));
+  __ adcl(RDX, Immediate(0));
+
+  // *ajp++ = low32(t)
+  __ movl(Address(RSI, 0), RAX);
+  __ addq(RSI, Immediate(Bigint::kBytesPerDigit));
+
+  // int n = used - i - 1
+  __ movq(R8, Address(RSP, 1 * kWordSize));  // used is Smi
+  __ subq(R8, Address(RSP, 3 * kWordSize));  // i is Smi
+  __ SmiUntag(R8);
+  __ decq(R8);
+
+  // uint64_t c = high32(t)
+  __ xorl(R13, R13);  // R13 = high32(c) == 0
+  __ movl(R12, RDX);  // R12 = low32(c) == high32(t)
+
+  Label loop, done;
+  __ Bind(&loop);
+  // x:   RBX
+  // xip: RDI
+  // ajp: RSI
+  // c:   R13:R12
+  // t:   RCX:RDX:RAX (not live at loop entry)
+  // n:   R8
+
+  // while (--n >= 0)
+  __ decq(R8);  // --n
+  __ j(NEGATIVE, &done, Assembler::kNearJump);
+
+  // uint32_t xi = *xip++
+  __ movl(RAX, Address(RDI, 0));
+  __ addq(RDI, Immediate(Bigint::kBytesPerDigit));
+
+  // uint96_t t = RCX:RDX:RAX = 2*x*xi + aj + c
+  __ mull(RBX);  // RDX:RAX = RAX * RBX
+  __ xorl(RCX, RCX);  // RCX = 0
+  __ shldl(RCX, RDX, Immediate(1));
+  __ shldl(RDX, RAX, Immediate(1));
+  __ shll(RAX, Immediate(1));  // RCX:RDX:RAX <<= 1
+  __ addl(RAX, Address(RSI, 0));  // t += aj
+  __ adcl(RDX, Immediate(0));
+  __ adcl(RCX, Immediate(0));
+  __ addl(RAX, R12);  // t += low32(c)
+  __ adcl(RDX, R13);  // t += high32(c) << 32
+  __ adcl(RCX, Immediate(0));
+
+  // *ajp++ = low32(t)
+  __ movl(Address(RSI, 0), RAX);
+  __ addq(RSI, Immediate(Bigint::kBytesPerDigit));
+
+  // c = high64(t)
+  __ movl(R12, RDX);
+  __ movl(R13, RCX);
+
+  __ jmp(&loop, Assembler::kNearJump);
+
+  __ Bind(&done);
+  // uint64_t t = aj + c
+  __ addl(R12, Address(RSI, 0));  // t = c, t += *ajp
+  __ adcl(R13, Immediate(0));
+
+  // *ajp++ = low32(t)
+  // *ajp = high32(t)
+  __ movl(Address(RSI, 0), R12);
+  __ movl(Address(RSI, Bigint::kBytesPerDigit), R13);
+
+  __ Bind(&x_zero);
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
 }
 
 
 void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // Pseudo code:
+  // static void _estQuotientDigit(Uint32List args, Uint32List digits, int i) {
+  //   uint32_t yt = args[_YT];  // _YT == 0.
+  //   uint32_t* dp = &digits[i >> 1];  // i is Smi.
+  //   uint32_t dh = dp[0];  // dh == digits[i >> 1].
+  //   uint32_t qd;
+  //   if (dh == yt) {
+  //     qd = DIGIT_MASK;
+  //   } else {
+  //     dl = dp[-1];  // dl == digits[(i - 1) >> 1].
+  //     qd = dh:dl / yt;  // No overflow possible, because dh < yt.
+  //   }
+  //   args[_QD] = qd;  // _QD == 1;
+  // }
+
+  // RDI = args
+  __ movq(RDI, Address(RSP, 3 * kWordSize));  // args
+
+  // RCX = yt = args[0]
+  __ movl(RCX, FieldAddress(RDI, TypedData::data_offset()));
+
+  // RBX = dp = &digits[i >> 1]
+  __ movq(RBX, Address(RSP, 2 * kWordSize));  // digits
+  __ movq(RAX, Address(RSP, 1 * kWordSize));  // i is Smi
+  __ leaq(RBX, FieldAddress(RBX, RAX, TIMES_2, TypedData::data_offset()));
+
+  // RDX = dh = dp[0]
+  __ movl(RDX, Address(RBX, 0));
+
+  // RAX = qd = DIGIT_MASK = -1
+  __ movl(RAX, Immediate(-1));
+
+  // Return qd if dh == yt
+  Label return_qd;
+  __ cmpl(RDX, RCX);
+  __ j(EQUAL, &return_qd, Assembler::kNearJump);
+
+  // RAX = dl = dp[-1]
+  __ movl(RAX, Address(RBX, -Bigint::kBytesPerDigit));
+
+  // RAX = qd = dh:dl / yt = RDX:RAX / RCX
+  __ divl(RCX);
+
+  __ Bind(&return_qd);
+  // args[1] = qd
+  __ movl(FieldAddress(RDI, TypedData::data_offset() + Bigint::kBytesPerDigit),
+          RAX);
+
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
 }
 
 
 void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
-  // TODO(regis): Implement.
+  // Pseudo code:
+  // static void _mulMod(Uint32List args, Uint32List digits, int i) {
+  //   uint32_t rho = args[_RHO];  // _RHO == 0.
+  //   uint32_t d = digits[i >> 1];  // i is Smi.
+  //   uint64_t t = rho*d;
+  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 1.
+  // }
+
+  // RDI = args
+  __ movq(RDI, Address(RSP, 3 * kWordSize));  // args
+
+  // RCX = rho = args[0]
+  __ movl(RCX, FieldAddress(RDI, TypedData::data_offset()));
+
+  // RAX = digits[i >> 1]
+  __ movq(RBX, Address(RSP, 2 * kWordSize));  // digits
+  __ movq(RAX, Address(RSP, 1 * kWordSize));  // i is Smi
+  __ movl(RAX, FieldAddress(RBX, RAX, TIMES_2, TypedData::data_offset()));
+
+  // RDX:RAX = t = rho*d
+  __ mull(RCX);
+
+  // args[1] = t mod DIGIT_BASE = low32(t)
+  __ movl(FieldAddress(RDI, TypedData::data_offset() + Bigint::kBytesPerDigit),
+          RAX);
+
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
 }
 
 
@@ -1319,7 +1698,7 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
 
 // Allocates one-byte string of length 'end - start'. The content is not
 // initialized. 'length-reg' contains tagged length.
-// Returns new string as tagged pointer in EAX.
+// Returns new string as tagged pointer in RAX.
 static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
@@ -1459,7 +1838,7 @@ void Intrinsifier::OneByteString_allocate(Assembler* assembler) {
   __ movq(RDI, Address(RSP, + 1 * kWordSize));  // Length.v=
   Label fall_through, ok;
   TryAllocateOnebyteString(assembler, &ok, &fall_through, RDI);
-  // EDI: Start address to copy from (untagged).
+  // RDI: Start address to copy from (untagged).
 
   __ Bind(&ok);
   __ ret();
