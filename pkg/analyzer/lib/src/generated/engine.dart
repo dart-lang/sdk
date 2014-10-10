@@ -1942,34 +1942,31 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Record the results produced by performing a [ResolveDartLibraryCycleTask]. If the results
-   * were computed from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @return an entry containing the computed results
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   DartEntry recordResolveDartLibraryCycleTaskResults(ResolveDartLibraryCycleTask task) {
     LibraryResolver2 resolver = task.libraryResolver;
     CaughtException thrownException = task.exception;
-    DartEntry unitEntry = null;
     Source unitSource = task.unitSource;
+    DartEntry unitEntry = _getReadableDartEntry(unitSource);
     if (resolver != null) {
       //
-      // The resolver should only be null if an exception was thrown before (or while) it was
-      // being created.
+      // The resolver should only be null if an exception was thrown before (or
+      // while) it was being created.
       //
       List<ResolvableLibrary> resolvedLibraries = resolver.resolvedLibraries;
       if (resolvedLibraries == null) {
         //
-        // The resolved libraries should only be null if an exception was thrown during resolution.
+        // The resolved libraries should only be null if an exception was thrown
+        // during resolution.
         //
-        unitEntry = _getReadableDartEntry(unitSource);
-        if (unitEntry == null) {
-          throw new AnalysisException("A Dart file became a non-Dart file: ${unitSource.fullName}");
-        }
         if (thrownException == null) {
-          unitEntry.recordResolutionError(new CaughtException(new AnalysisException("In recordResolveDartLibraryCycleTaskResults, resolvedLibraries was null and there was no thrown exception"), null));
+          var message = "In recordResolveDartLibraryCycleTaskResults, "
+              "resolvedLibraries was null and there was no thrown exception";
+          unitEntry.recordResolutionError(new CaughtException(
+              new AnalysisException(message),
+              null));
         } else {
           unitEntry.recordResolutionError(thrownException);
         }
@@ -1979,107 +1976,79 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
         return unitEntry;
       }
-      if (_allModificationTimesMatch(resolvedLibraries)) {
-        Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
-        RecordingErrorListener errorListener = resolver.errorListener;
-        for (ResolvableLibrary library in resolvedLibraries) {
-          Source librarySource = library.librarySource;
-          for (Source source in library.compilationUnitSources) {
-            CompilationUnit unit = library.getAST(source);
-            List<AnalysisError> errors = errorListener.getErrorsForSource(source);
-            LineInfo lineInfo = getLineInfo(source);
-            DartEntry dartEntry = _cache.get(source);
-            if (thrownException == null) {
-              dartEntry.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
-              dartEntry.setValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource, unit);
-              dartEntry.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
-              if (source == librarySource) {
-                _recordElementData(dartEntry, library.libraryElement, librarySource, htmlSource);
-              }
-              _cache.storedAst(source);
-            } else {
-              dartEntry.recordResolutionErrorInLibrary(librarySource, thrownException);
-              _cache.remove(source);
+      Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
+      RecordingErrorListener errorListener = resolver.errorListener;
+      for (ResolvableLibrary library in resolvedLibraries) {
+        Source librarySource = library.librarySource;
+        for (Source source in library.compilationUnitSources) {
+          CompilationUnit unit = library.getAST(source);
+          List<AnalysisError> errors = errorListener.getErrorsForSource(source);
+          LineInfo lineInfo = getLineInfo(source);
+          DartEntry dartEntry = _cache.get(source);
+          if (thrownException == null) {
+            dartEntry.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+            dartEntry.setValueInLibrary(
+                DartEntry.RESOLVED_UNIT,
+                librarySource,
+                unit);
+            dartEntry.setValueInLibrary(
+                DartEntry.RESOLUTION_ERRORS,
+                librarySource,
+                errors);
+            if (source == librarySource) {
+              _recordElementData(
+                  dartEntry,
+                  library.libraryElement,
+                  librarySource, htmlSource);
             }
-            if (source != librarySource) {
-              _workManager.add(source, SourcePriority.PRIORITY_PART);
-            }
-            if (source == unitSource) {
-              unitEntry = dartEntry;
-            }
-            ChangeNoticeImpl notice = _getNotice(source);
-            notice.compilationUnit = unit;
-            notice.setErrors(dartEntry.allErrors, lineInfo);
+            _cache.storedAst(source);
+          } else {
+            dartEntry.recordResolutionErrorInLibrary(
+                librarySource,
+                thrownException);
+            _cache.remove(source);
           }
-        }
-      } else {
-        PrintStringWriter writer = new PrintStringWriter();
-        writer.println("Library resolution results discarded for");
-        for (ResolvableLibrary library in resolvedLibraries) {
-          for (Source source in library.compilationUnitSources) {
-            DartEntry dartEntry = _getReadableDartEntry(source);
-            if (dartEntry != null) {
-              int resultTime = library.getModificationTime(source);
-              writer.println("  ${_debuggingString(source)}; sourceTime = ${getModificationStamp(source)}, resultTime = ${resultTime}, cacheTime = ${dartEntry.modificationTime}");
-              if (thrownException == null || resultTime >= 0) {
-                //
-                // The analysis was performed on out-of-date sources. Mark the cache so that the
-                // sources will be re-analyzed using the up-to-date sources.
-                //
-                dartEntry.recordResolutionNotInProcess();
-              } else {
-                //
-                // We could not determine whether the sources were up-to-date or out-of-date. Mark
-                // the cache so that we won't attempt to re-analyze the sources until there's a
-                // good chance that we'll be able to do so without error.
-                //
-                dartEntry.recordResolutionError(thrownException);
-                _cache.remove(source);
-              }
-              if (source == unitSource) {
-                unitEntry = dartEntry;
-              }
-            } else {
-              writer.println("  ${_debuggingString(source)}; sourceTime = ${getModificationStamp(source)}, no entry");
-            }
+          if (source != librarySource) {
+            _workManager.add(source, SourcePriority.PRIORITY_PART);
           }
+          ChangeNoticeImpl notice = _getNotice(source);
+          notice.compilationUnit = unit;
+          notice.setErrors(dartEntry.allErrors, lineInfo);
         }
-        _logInformation(writer.toString());
       }
     }
     if (thrownException != null) {
       throw new AnalysisException('<rethrow>', thrownException);
-    }
-    if (unitEntry == null) {
-      unitEntry = _getReadableDartEntry(unitSource);
-      if (unitEntry == null) {
-        throw new AnalysisException("A Dart file became a non-Dart file: ${unitSource.fullName}");
-      }
     }
     return unitEntry;
   }
 
+  /**
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
+   */
   DartEntry recordResolveDartLibraryTaskResults(ResolveDartLibraryTask task) {
     LibraryResolver resolver = task.libraryResolver;
     CaughtException thrownException = task.exception;
-    DartEntry unitEntry = null;
     Source unitSource = task.unitSource;
+    DartEntry unitEntry = _getReadableDartEntry(unitSource);
     if (resolver != null) {
       //
-      // The resolver should only be null if an exception was thrown before (or while) it was
-      // being created.
+      // The resolver should only be null if an exception was thrown before (or
+      // while) it was being created.
       //
       Set<Library> resolvedLibraries = resolver.resolvedLibraries;
       if (resolvedLibraries == null) {
         //
-        // The resolved libraries should only be null if an exception was thrown during resolution.
+        // The resolved libraries should only be null if an exception was thrown
+        // during resolution.
         //
-        unitEntry = _getReadableDartEntry(unitSource);
-        if (unitEntry == null) {
-          throw new AnalysisException("A Dart file became a non-Dart file: ${unitSource.fullName}");
-        }
         if (thrownException == null) {
-          unitEntry.recordResolutionError(new CaughtException(new AnalysisException("In recordResolveDartLibraryTaskResults, resolvedLibraries was null and there was no thrown exception"), null));
+          String message = "In recordResolveDartLibraryTaskResults, "
+              "resolvedLibraries was null and there was no thrown exception";
+          unitEntry.recordResolutionError(new CaughtException(
+              new AnalysisException(message),
+              null));
         } else {
           unitEntry.recordResolutionError(thrownException);
         }
@@ -2089,92 +2058,50 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
         return unitEntry;
       }
-      if (_allModificationTimesMatch2(resolvedLibraries)) {
-        Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
-        RecordingErrorListener errorListener = resolver.errorListener;
-        for (Library library in resolvedLibraries) {
-          Source librarySource = library.librarySource;
-          for (Source source in library.compilationUnitSources) {
-            CompilationUnit unit = library.getAST(source);
-            List<AnalysisError> errors = errorListener.getErrorsForSource(source);
-            LineInfo lineInfo = getLineInfo(source);
-            DartEntry dartEntry = _cache.get(source);
-            int sourceTime = getModificationStamp(source);
-            if (dartEntry.modificationTime != sourceTime) {
-              // The source has changed without the context being notified. Simulate notification.
-              _sourceChanged(source);
-              dartEntry = _getReadableDartEntry(source);
-              if (dartEntry == null) {
-                throw new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}");
-              }
+      Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
+      RecordingErrorListener errorListener = resolver.errorListener;
+      for (Library library in resolvedLibraries) {
+        Source librarySource = library.librarySource;
+        for (Source source in library.compilationUnitSources) {
+          CompilationUnit unit = library.getAST(source);
+          List<AnalysisError> errors = errorListener.getErrorsForSource(source);
+          LineInfo lineInfo = getLineInfo(source);
+          DartEntry dartEntry = _cache.get(source);
+          if (thrownException == null) {
+            dartEntry.setValue(SourceEntry.LINE_INFO, lineInfo);
+            dartEntry.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+            dartEntry.setValueInLibrary(
+                DartEntry.RESOLVED_UNIT,
+                librarySource,
+                unit);
+            dartEntry.setValueInLibrary(
+                DartEntry.RESOLUTION_ERRORS,
+                librarySource,
+                errors);
+            if (source == librarySource) {
+              _recordElementData(
+                  dartEntry,
+                  library.libraryElement,
+                  librarySource, htmlSource);
             }
-            if (thrownException == null) {
-              dartEntry.setValue(SourceEntry.LINE_INFO, lineInfo);
-              dartEntry.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
-              dartEntry.setValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource, unit);
-              dartEntry.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
-              if (source == librarySource) {
-                _recordElementData(dartEntry, library.libraryElement, librarySource, htmlSource);
-              }
-              _cache.storedAst(source);
-            } else {
-              dartEntry.recordResolutionErrorInLibrary(librarySource, thrownException);
-              _cache.remove(source);
-            }
-            if (source != librarySource) {
-              _workManager.add(source, SourcePriority.PRIORITY_PART);
-            }
-            if (source == unitSource) {
-              unitEntry = dartEntry;
-            }
-            ChangeNoticeImpl notice = _getNotice(source);
-            notice.compilationUnit = unit;
-            notice.setErrors(dartEntry.allErrors, lineInfo);
+            _cache.storedAst(source);
+          } else {
+            dartEntry.recordResolutionErrorInLibrary(
+                librarySource,
+                thrownException);
+            _cache.remove(source);
           }
-        }
-      } else {
-        PrintStringWriter writer = new PrintStringWriter();
-        writer.println("Library resolution results discarded for");
-        for (Library library in resolvedLibraries) {
-          for (Source source in library.compilationUnitSources) {
-            DartEntry dartEntry = _getReadableDartEntry(source);
-            if (dartEntry != null) {
-              int resultTime = library.getModificationTime(source);
-              writer.println("  ${_debuggingString(source)}; sourceTime = ${getModificationStamp(source)}, resultTime = ${resultTime}, cacheTime = ${dartEntry.modificationTime}");
-              if (thrownException == null || resultTime >= 0) {
-                //
-                // The analysis was performed on out-of-date sources. Mark the cache so that the
-                // sources will be re-analyzed using the up-to-date sources.
-                //
-                dartEntry.recordResolutionNotInProcess();
-              } else {
-                //
-                // We could not determine whether the sources were up-to-date or out-of-date. Mark
-                // the cache so that we won't attempt to re-analyze the sources until there's a
-                // good chance that we'll be able to do so without error.
-                //
-                dartEntry.recordResolutionError(thrownException);
-                _cache.remove(source);
-              }
-              if (source == unitSource) {
-                unitEntry = dartEntry;
-              }
-            } else {
-              writer.println("  ${_debuggingString(source)}; sourceTime = ${getModificationStamp(source)}, no entry");
-            }
+          if (source != librarySource) {
+            _workManager.add(source, SourcePriority.PRIORITY_PART);
           }
+          ChangeNoticeImpl notice = _getNotice(source);
+          notice.compilationUnit = unit;
+          notice.setErrors(dartEntry.allErrors, lineInfo);
         }
-        _logInformation(writer.toString());
       }
     }
     if (thrownException != null) {
       throw new AnalysisException('<rethrow>', thrownException);
-    }
-    if (unitEntry == null) {
-      unitEntry = _getReadableDartEntry(unitSource);
-      if (unitEntry == null) {
-        throw new AnalysisException("A Dart file became a non-Dart file: ${unitSource.fullName}");
-      }
     }
     return unitEntry;
   }
@@ -3960,79 +3887,31 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Record the results produced by performing a [GenerateDartErrorsTask]. If the results were
-   * computed from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @return an entry containing the computed results
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   DartEntry _recordGenerateDartErrorsTask(GenerateDartErrorsTask task) {
     Source source = task.source;
+    DartEntry dartEntry = _cache.get(source);
     Source librarySource = task.libraryElement.source;
     CaughtException thrownException = task.exception;
-    SourceEntry sourceEntry = _cache.get(source);
-    if (sourceEntry == null) {
-      throw new ObsoleteSourceAnalysisException(source);
-    } else if (sourceEntry is! DartEntry) {
-      // This shouldn't be possible because we should never have performed the task if the source
-      // didn't represent a Dart file, but check to be safe.
-      throw new AnalysisException("Internal error: attempting to verify non-Dart file as a Dart file: ${source.fullName}");
-    }
-    DartEntry dartEntry = sourceEntry;
-    int sourceTime = getModificationStamp(source);
-    int resultTime = task.modificationTime;
-    if (sourceTime == resultTime) {
-      if (dartEntry.modificationTime != sourceTime) {
-        // The source has changed without the context being notified. Simulate notification.
-        _sourceChanged(source);
-        dartEntry = _getReadableDartEntry(source);
-        if (dartEntry == null) {
-          throw new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}");
-        }
-      }
-      if (thrownException == null) {
-        dartEntry.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, task.errors);
-        ChangeNoticeImpl notice = _getNotice(source);
-        notice.setErrors(dartEntry.allErrors, dartEntry.getValue(SourceEntry.LINE_INFO));
-      } else {
-        dartEntry.recordVerificationErrorInLibrary(librarySource, thrownException);
-      }
-    } else {
-      _logInformation2("Generated errors discarded for ${_debuggingString(source)}; sourceTime = ${sourceTime}, resultTime = ${resultTime}, cacheTime = ${dartEntry.modificationTime}", thrownException);
-      if (thrownException == null || resultTime >= 0) {
-        //
-        // The analysis was performed on out-of-date sources. Mark the cache so that the source
-        // will be re-verified using the up-to-date sources.
-        //
-        //          dartCopy.setState(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.INVALID);
-        _removeFromParts(source, dartEntry);
-        dartEntry.invalidateAllInformation();
-        dartEntry.modificationTime = sourceTime;
-        _cache.removedAst(source);
-        _workManager.add(source, SourcePriority.UNKNOWN);
-      } else {
-        //
-        // We could not determine whether the sources were up-to-date or out-of-date. Mark the
-        // cache so that we won't attempt to re-verify the source until there's a good chance
-        // that we'll be able to do so without error.
-        //
-        dartEntry.recordVerificationErrorInLibrary(librarySource, thrownException);
-      }
-    }
     if (thrownException != null) {
+      dartEntry.recordVerificationErrorInLibrary(librarySource, thrownException);
       throw new AnalysisException('<rethrow>', thrownException);
     }
+    dartEntry.setValueInLibrary(
+        DartEntry.VERIFICATION_ERRORS,
+        librarySource,
+            task.errors);
+    ChangeNoticeImpl notice = _getNotice(source);
+    LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
+    notice.setErrors(dartEntry.allErrors, lineInfo);
     return dartEntry;
   }
 
   /**
-   * Record the results produced by performing a [GenerateDartHintsTask]. If the results were
-   * computed from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @return an entry containing the computed results
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   DartEntry _recordGenerateDartHintsTask(GenerateDartHintsTask task) {
     Source librarySource = task.libraryElement.source;
@@ -4040,78 +3919,31 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     DartEntry libraryEntry = null;
     HashMap<Source, TimestampedData<List<AnalysisError>>> hintMap = task.hintMap;
     if (hintMap == null) {
-      // We don't have any information about which sources to mark as invalid other than the library
-      // source.
-      SourceEntry sourceEntry = _cache.get(librarySource);
-      if (sourceEntry == null) {
-        throw new ObsoleteSourceAnalysisException(librarySource);
-      } else if (sourceEntry is! DartEntry) {
-        // This shouldn't be possible because we should never have performed the task if the source
-        // didn't represent a Dart file, but check to be safe.
-        throw new AnalysisException("Internal error: attempting to generate hints for non-Dart file as a Dart file: ${librarySource.fullName}");
-      }
+      // We don't have any information about which sources to mark as invalid
+      // other than the library source.
+      DartEntry libraryEntry = _cache.get(librarySource);
       if (thrownException == null) {
-        thrownException = new CaughtException(new AnalysisException("GenerateDartHintsTask returned a null hint map without throwing an exception: ${librarySource.fullName}"), null);
+        String message = "GenerateDartHintsTask returned a null hint map "
+            "without throwing an exception: ${librarySource.fullName}";
+        thrownException = new CaughtException(new AnalysisException(message), null);
       }
-      (sourceEntry as DartEntry).recordHintErrorInLibrary(librarySource, thrownException);
+      libraryEntry.recordHintErrorInLibrary(librarySource, thrownException);
       throw new AnalysisException('<rethrow>', thrownException);
     }
-    for (MapEntry<Source, TimestampedData<List<AnalysisError>>> entry in getMapEntrySet(hintMap)) {
-      Source unitSource = entry.getKey();
-      TimestampedData<List<AnalysisError>> results = entry.getValue();
-      SourceEntry sourceEntry = _cache.get(unitSource);
-      if (sourceEntry is! DartEntry) {
-        // This shouldn't be possible because we should never have performed the task if the source
-        // didn't represent a Dart file, but check to be safe.
-        throw new AnalysisException("Internal error: attempting to parse non-Dart file as a Dart file: ${unitSource.fullName}");
-      }
-      DartEntry dartEntry = sourceEntry;
+    hintMap.forEach((Source unitSource, TimestampedData<List<AnalysisError>> results) {
+      DartEntry dartEntry = _cache.get(unitSource);
       if (unitSource == librarySource) {
         libraryEntry = dartEntry;
       }
-      int sourceTime = getModificationStamp(unitSource);
-      int resultTime = results.modificationTime;
-      if (sourceTime == resultTime) {
-        if (dartEntry.modificationTime != sourceTime) {
-          // The source has changed without the context being notified. Simulate notification.
-          _sourceChanged(unitSource);
-          dartEntry = _getReadableDartEntry(unitSource);
-          if (dartEntry == null) {
-            throw new AnalysisException("A Dart file became a non-Dart file: ${unitSource.fullName}");
-          }
-        }
-        if (thrownException == null) {
-          dartEntry.setValueInLibrary(DartEntry.HINTS, librarySource, results.data);
-          ChangeNoticeImpl notice = _getNotice(unitSource);
-          notice.setErrors(dartEntry.allErrors, dartEntry.getValue(SourceEntry.LINE_INFO));
-        } else {
-          dartEntry.recordHintErrorInLibrary(librarySource, thrownException);
-        }
+      if (thrownException == null) {
+        dartEntry.setValueInLibrary(DartEntry.HINTS, librarySource, results.data);
+        ChangeNoticeImpl notice = _getNotice(unitSource);
+        LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
+        notice.setErrors(dartEntry.allErrors, lineInfo);
       } else {
-        _logInformation2("Generated hints discarded for ${_debuggingString(unitSource)}; sourceTime = ${sourceTime}, resultTime = ${resultTime}, cacheTime = ${dartEntry.modificationTime}", thrownException);
-        if (dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource) == CacheState.IN_PROCESS) {
-          if (thrownException == null || resultTime >= 0) {
-            //
-            // The analysis was performed on out-of-date sources. Mark the cache so that the sources
-            // will be re-analyzed using the up-to-date sources.
-            //
-            //              dartCopy.setState(DartEntry.HINTS, librarySource, CacheState.INVALID);
-            _removeFromParts(unitSource, dartEntry);
-            dartEntry.invalidateAllInformation();
-            dartEntry.modificationTime = sourceTime;
-            _cache.removedAst(unitSource);
-            _workManager.add(unitSource, SourcePriority.UNKNOWN);
-          } else {
-            //
-            // We could not determine whether the sources were up-to-date or out-of-date. Mark the
-            // cache so that we won't attempt to re-analyze the sources until there's a good chance
-            // that we'll be able to do so without error.
-            //
-            dartEntry.recordHintErrorInLibrary(librarySource, thrownException);
-          }
-        }
+        dartEntry.recordHintErrorInLibrary(librarySource, thrownException);
       }
-    }
+    });
     if (thrownException != null) {
       throw new AnalysisException('<rethrow>', thrownException);
     }
@@ -4119,32 +3951,23 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Record the results produced by performing a [GetContentTask].
-   *
-   * @param task the task that was performed
-   * @return an entry containing the computed results
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   SourceEntry _recordGetContentsTask(GetContentTask task) {
     if (!task.isComplete) {
       return null;
     }
     Source source = task.source;
-    CaughtException thrownException = task.exception;
     SourceEntry sourceEntry = _cache.get(source);
-    if (sourceEntry == null) {
-      throw new ObsoleteSourceAnalysisException(source);
-    }
-    if (thrownException == null) {
-      sourceEntry.modificationTime = task.modificationTime;
-      sourceEntry.setValue(SourceEntry.CONTENT, task.content);
-    } else {
+    CaughtException thrownException = task.exception;
+    if (thrownException != null) {
       sourceEntry.recordContentError(thrownException);
       _workManager.remove(source);
-    }
-    if (thrownException != null) {
       throw new AnalysisException('<rethrow>', thrownException);
     }
+    sourceEntry.modificationTime = task.modificationTime;
+    sourceEntry.setValue(SourceEntry.CONTENT, task.content);
     return sourceEntry;
   }
 
@@ -4160,680 +3983,253 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (unit != null) {
       ChangeNoticeImpl notice = _getNotice(task.source);
       notice.compilationUnit = unit;
-      _incrementalAnalysisCache = IncrementalAnalysisCache.cacheResult(task.cache, unit);
+      _incrementalAnalysisCache = IncrementalAnalysisCache.cacheResult(
+          task.cache,
+          unit);
     }
     return null;
   }
 
   /**
-   * Record the results produced by performing a [ParseDartTask]. If the results were computed
-   * from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @return an entry containing the computed results
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   DartEntry _recordParseDartTaskResults(ParseDartTask task) {
     Source source = task.source;
+    DartEntry dartEntry = _cache.get(source);
+    _removeFromParts(source, dartEntry);
     CaughtException thrownException = task.exception;
-    SourceEntry sourceEntry = _cache.get(source);
-    if (sourceEntry == null) {
-      throw new ObsoleteSourceAnalysisException(source);
-    } else if (sourceEntry is! DartEntry) {
-      // This shouldn't be possible because we should never have performed the task if the source
-      // didn't represent a Dart file, but check to be safe.
-      throw new AnalysisException("Internal error: attempting to parse non-Dart file as a Dart file: ${source.fullName}");
-    }
-    DartEntry dartEntry = sourceEntry as DartEntry;
-    int sourceTime = getModificationStamp(source);
-    int resultTime = task.modificationTime;
-    if (sourceTime == resultTime) {
-      if (dartEntry.modificationTime != sourceTime) {
-        // The source has changed without the context being notified. Simulate notification.
-        _sourceChanged(source);
-        dartEntry = _getReadableDartEntry(source);
-        if (dartEntry == null) {
-          throw new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}");
-        }
-      }
-      _removeFromParts(source, dartEntry);
-      if (thrownException == null) {
-        if (task.hasNonPartOfDirective) {
-          dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
-          dartEntry.containingLibrary = source;
-          _workManager.add(source, SourcePriority.LIBRARY);
-        } else if (task.hasPartOfDirective) {
-          dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
-          dartEntry.removeContainingLibrary(source);
-          _workManager.add(source, SourcePriority.NORMAL_PART);
-        } else {
-          // The file contains no directives.
-          List<Source> containingLibraries = dartEntry.containingLibraries;
-          if (containingLibraries.length > 1 || (containingLibraries.length == 1 && containingLibraries[0] != source)) {
-            dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
-            dartEntry.removeContainingLibrary(source);
-            _workManager.add(source, SourcePriority.NORMAL_PART);
-          } else {
-            dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
-            dartEntry.containingLibrary = source;
-            _workManager.add(source, SourcePriority.LIBRARY);
-          }
-        }
-        List<Source> newParts = task.includedSources;
-        for (int i = 0; i < newParts.length; i++) {
-          Source partSource = newParts[i];
-          DartEntry partEntry = _getReadableDartEntry(partSource);
-          if (partEntry != null && !identical(partEntry, dartEntry)) {
-            // TODO(brianwilkerson) Change the kind of the "part" if it was marked as a library
-            // and it has no directives.
-            partEntry.addContainingLibrary(source);
-          }
-        }
-        dartEntry.setValue(DartEntry.PARSED_UNIT, task.compilationUnit);
-        dartEntry.setValue(DartEntry.PARSE_ERRORS, task.errors);
-        dartEntry.setValue(DartEntry.EXPORTED_LIBRARIES, task.exportedSources);
-        dartEntry.setValue(DartEntry.IMPORTED_LIBRARIES, task.importedSources);
-        dartEntry.setValue(DartEntry.INCLUDED_PARTS, newParts);
-        _cache.storedAst(source);
-        ChangeNoticeImpl notice = _getNotice(source);
-        notice.setErrors(dartEntry.allErrors, task.lineInfo);
-        // Verify that the incrementally parsed and resolved unit in the incremental cache
-        // is structurally equivalent to the fully parsed unit
-        _incrementalAnalysisCache = IncrementalAnalysisCache.verifyStructure(_incrementalAnalysisCache, source, task.compilationUnit);
-      } else {
-        _removeFromParts(source, dartEntry);
-        dartEntry.recordParseError(thrownException);
-        _cache.removedAst(source);
-      }
-    } else {
-      _logInformation2("Parse results discarded for ${_debuggingString(source)}; sourceTime = ${sourceTime}, resultTime = ${resultTime}, cacheTime = ${dartEntry.modificationTime}", thrownException);
-      if (thrownException == null || resultTime >= 0) {
-        //
-        // The analysis was performed on out-of-date sources. Mark the cache so that the sources
-        // will be re-analyzed using the up-to-date sources.
-        //
-        //          dartCopy.recordParseNotInProcess();
-        _removeFromParts(source, dartEntry);
-        dartEntry.invalidateAllInformation();
-        dartEntry.modificationTime = sourceTime;
-        _cache.removedAst(source);
-        _workManager.add(source, SourcePriority.UNKNOWN);
-      } else {
-        //
-        // We could not determine whether the sources were up-to-date or out-of-date. Mark the
-        // cache so that we won't attempt to re-analyze the sources until there's a good chance
-        // that we'll be able to do so without error.
-        //
-        dartEntry.recordParseError(thrownException);
-      }
-    }
     if (thrownException != null) {
+      _removeFromParts(source, dartEntry);
+      dartEntry.recordParseError(thrownException);
+      _cache.removedAst(source);
       throw new AnalysisException('<rethrow>', thrownException);
     }
+    if (task.hasNonPartOfDirective) {
+      dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+      dartEntry.containingLibrary = source;
+      _workManager.add(source, SourcePriority.LIBRARY);
+    } else if (task.hasPartOfDirective) {
+      dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
+      dartEntry.removeContainingLibrary(source);
+      _workManager.add(source, SourcePriority.NORMAL_PART);
+    } else {
+      // The file contains no directives.
+      List<Source> containingLibraries = dartEntry.containingLibraries;
+      if (containingLibraries.length > 1
+          || (containingLibraries.length == 1
+              && containingLibraries[0] != source)) {
+        dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
+        dartEntry.removeContainingLibrary(source);
+        _workManager.add(source, SourcePriority.NORMAL_PART);
+      } else {
+        dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+        dartEntry.containingLibrary = source;
+        _workManager.add(source, SourcePriority.LIBRARY);
+      }
+    }
+    List<Source> newParts = task.includedSources;
+    for (int i = 0; i < newParts.length; i++) {
+      Source partSource = newParts[i];
+      DartEntry partEntry = _getReadableDartEntry(partSource);
+      if (partEntry != null && !identical(partEntry, dartEntry)) {
+        // TODO(brianwilkerson) Change the kind of the "part" if it was marked
+        // as a library and it has no directives.
+        partEntry.addContainingLibrary(source);
+      }
+    }
+    dartEntry.setValue(DartEntry.PARSED_UNIT, task.compilationUnit);
+    dartEntry.setValue(DartEntry.PARSE_ERRORS, task.errors);
+    dartEntry.setValue(DartEntry.EXPORTED_LIBRARIES, task.exportedSources);
+    dartEntry.setValue(DartEntry.IMPORTED_LIBRARIES, task.importedSources);
+    dartEntry.setValue(DartEntry.INCLUDED_PARTS, newParts);
+    _cache.storedAst(source);
+    ChangeNoticeImpl notice = _getNotice(source);
+    notice.setErrors(dartEntry.allErrors, task.lineInfo);
+    // Verify that the incrementally parsed and resolved unit in the incremental
+    // cache is structurally equivalent to the fully parsed unit
+    _incrementalAnalysisCache = IncrementalAnalysisCache.verifyStructure(
+        _incrementalAnalysisCache,
+        source,
+        task.compilationUnit);
     return dartEntry;
   }
 
   /**
-   * Record the results produced by performing a [ParseHtmlTask]. If the results were computed
-   * from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @return an entry containing the computed results
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   HtmlEntry _recordParseHtmlTaskResults(ParseHtmlTask task) {
     Source source = task.source;
+    HtmlEntry htmlEntry = _cache.get(source);
     CaughtException thrownException = task.exception;
-    SourceEntry sourceEntry = _cache.get(source);
-    if (sourceEntry == null) {
-      throw new ObsoleteSourceAnalysisException(source);
-    } else if (sourceEntry is! HtmlEntry) {
-      // This shouldn't be possible because we should never have performed the task if the source
-      // didn't represent an HTML file, but check to be safe.
-      throw new AnalysisException("Internal error: attempting to parse non-HTML file as a HTML file: ${source.fullName}");
-    }
-    HtmlEntry htmlEntry = sourceEntry;
-    int sourceTime = getModificationStamp(source);
-    int resultTime = task.modificationTime;
-    if (sourceTime == resultTime) {
-      if (htmlEntry.modificationTime != sourceTime) {
-        // The source has changed without the context being notified. Simulate notification.
-        _sourceChanged(source);
-        htmlEntry = _getReadableHtmlEntry(source);
-        if (htmlEntry == null) {
-          throw new AnalysisException("An HTML file became a non-HTML file: ${source.fullName}");
-        }
-      }
-      if (thrownException == null) {
-        LineInfo lineInfo = task.lineInfo;
-        ht.HtmlUnit unit = task.htmlUnit;
-        htmlEntry.setValue(SourceEntry.LINE_INFO, lineInfo);
-        htmlEntry.setValue(HtmlEntry.PARSED_UNIT, unit);
-        htmlEntry.setValue(HtmlEntry.PARSE_ERRORS, task.errors);
-        htmlEntry.setValue(HtmlEntry.REFERENCED_LIBRARIES, task.referencedLibraries);
-        _cache.storedAst(source);
-        ChangeNoticeImpl notice = _getNotice(source);
-        notice.setErrors(htmlEntry.allErrors, lineInfo);
-      } else {
-        htmlEntry.recordParseError(thrownException);
-        _cache.removedAst(source);
-      }
-    } else {
-      _logInformation2("Parse results discarded for ${_debuggingString(source)}; sourceTime = ${sourceTime}, resultTime = ${resultTime}, cacheTime = ${htmlEntry.modificationTime}", thrownException);
-      if (thrownException == null || resultTime >= 0) {
-        //
-        // The analysis was performed on out-of-date sources. Mark the cache so that the sources
-        // will be re-analyzed using the up-to-date sources.
-        //
-        //          if (htmlCopy.getState(SourceEntry.LINE_INFO) == CacheState.IN_PROCESS) {
-        //            htmlCopy.setState(SourceEntry.LINE_INFO, CacheState.INVALID);
-        //          }
-        //          if (htmlCopy.getState(HtmlEntry.PARSED_UNIT) == CacheState.IN_PROCESS) {
-        //            htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.INVALID);
-        //          }
-        //          if (htmlCopy.getState(HtmlEntry.REFERENCED_LIBRARIES) == CacheState.IN_PROCESS) {
-        //            htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.INVALID);
-        //          }
-        htmlEntry.invalidateAllInformation();
-        htmlEntry.modificationTime = sourceTime;
-        _cache.removedAst(source);
-      } else {
-        //
-        // We could not determine whether the sources were up-to-date or out-of-date. Mark the
-        // cache so that we won't attempt to re-analyze the sources until there's a good chance
-        // that we'll be able to do so without error.
-        //
-        htmlEntry.recordParseError(thrownException);
-      }
-    }
     if (thrownException != null) {
+      htmlEntry.recordParseError(thrownException);
+      _cache.removedAst(source);
       throw new AnalysisException('<rethrow>', thrownException);
     }
+    LineInfo lineInfo = task.lineInfo;
+    htmlEntry.setValue(SourceEntry.LINE_INFO, lineInfo);
+    htmlEntry.setValue(HtmlEntry.PARSED_UNIT, task.htmlUnit);
+    htmlEntry.setValue(HtmlEntry.PARSE_ERRORS, task.errors);
+    htmlEntry.setValue(HtmlEntry.REFERENCED_LIBRARIES, task.referencedLibraries);
+    _cache.storedAst(source);
+    ChangeNoticeImpl notice = _getNotice(source);
+    notice.setErrors(htmlEntry.allErrors, lineInfo);
     return htmlEntry;
   }
 
   /**
-   * Record the results produced by performing a [PolymerBuildHtmlTask]. If the results were
-   * computed from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   HtmlEntry _recordPolymerBuildHtmlTaskResults(PolymerBuildHtmlTask task) {
     Source source = task.source;
+    HtmlEntry htmlEntry = _cache.get(source);
     CaughtException thrownException = task.exception;
-    SourceEntry sourceEntry = _cache.get(source);
-    if (sourceEntry == null) {
-      throw new ObsoleteSourceAnalysisException(source);
-    } else if (sourceEntry is! HtmlEntry) {
-      // This shouldn't be possible because we should never have performed the task if the source
-      // didn't represent an HTML file, but check to be safe.
-      throw new AnalysisException("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
-    }
-    HtmlEntry htmlEntry = sourceEntry;
-    int sourceTime = getModificationStamp(source);
-    int resultTime = task.modificationTime;
-    if (sourceTime == resultTime) {
-      if (htmlEntry.modificationTime != sourceTime) {
-        // The source has changed without the context being notified. Simulate notification.
-        _sourceChanged(source);
-        htmlEntry = _getReadableHtmlEntry(source);
-        if (htmlEntry == null) {
-          throw new AnalysisException("An HTML file became a non-HTML file: ${source.fullName}");
-        }
-      }
-      if (thrownException == null) {
-        htmlEntry.setValue(HtmlEntry.POLYMER_BUILD_ERRORS, task.errors);
-        // notify about errors
-        ChangeNoticeImpl notice = _getNotice(source);
-        notice.setErrors(htmlEntry.allErrors, htmlEntry.getValue(SourceEntry.LINE_INFO));
-      } else {
-        htmlEntry.recordResolutionError(thrownException);
-      }
-    } else {
-      if (thrownException == null || resultTime >= 0) {
-        //
-        // The analysis was performed on out-of-date sources. Mark the cache so that the sources
-        // will be re-analyzed using the up-to-date sources.
-        //
-        htmlEntry.invalidateAllInformation();
-        htmlEntry.modificationTime = sourceTime;
-        _cache.removedAst(source);
-      } else {
-        //
-        // We could not determine whether the sources were up-to-date or out-of-date. Mark the
-        // cache so that we won't attempt to re-analyze the sources until there's a good chance
-        // that we'll be able to do so without error.
-        //
-        htmlEntry.recordResolutionError(thrownException);
-      }
-    }
     if (thrownException != null) {
+      htmlEntry.recordResolutionError(thrownException);
       throw new AnalysisException('<rethrow>', thrownException);
     }
+    htmlEntry.setValue(HtmlEntry.POLYMER_BUILD_ERRORS, task.errors);
+    // notify about errors
+    ChangeNoticeImpl notice = _getNotice(source);
+    LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
+    notice.setErrors(htmlEntry.allErrors, lineInfo);
     return htmlEntry;
   }
 
   /**
-   * Record the results produced by performing a [PolymerResolveHtmlTask]. If the results were
-   * computed from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   HtmlEntry _recordPolymerResolveHtmlTaskResults(PolymerResolveHtmlTask task) {
     Source source = task.source;
+    HtmlEntry htmlEntry = _cache.get(source);
     CaughtException thrownException = task.exception;
-    SourceEntry sourceEntry = _cache.get(source);
-    if (sourceEntry == null) {
-      throw new ObsoleteSourceAnalysisException(source);
-    } else if (sourceEntry is! HtmlEntry) {
-      // This shouldn't be possible because we should never have performed the task if the source
-      // didn't represent an HTML file, but check to be safe.
-      throw new AnalysisException("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
-    }
-    HtmlEntry htmlEntry = sourceEntry;
-    int sourceTime = getModificationStamp(source);
-    int resultTime = task.modificationTime;
-    if (sourceTime == resultTime) {
-      if (htmlEntry.modificationTime != sourceTime) {
-        // The source has changed without the context being notified. Simulate notification.
-        _sourceChanged(source);
-        htmlEntry = _getReadableHtmlEntry(source);
-        if (htmlEntry == null) {
-          throw new AnalysisException("An HTML file became a non-HTML file: ${source.fullName}");
-        }
-      }
-      if (thrownException == null) {
-        htmlEntry.setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, task.errors);
-        // notify about errors
-        ChangeNoticeImpl notice = _getNotice(source);
-        notice.setErrors(htmlEntry.allErrors, htmlEntry.getValue(SourceEntry.LINE_INFO));
-      } else {
-        htmlEntry.recordResolutionError(thrownException);
-      }
-    } else {
-      if (thrownException == null || resultTime >= 0) {
-        //
-        // The analysis was performed on out-of-date sources. Mark the cache so that the sources
-        // will be re-analyzed using the up-to-date sources.
-        //
-        htmlEntry.invalidateAllInformation();
-        htmlEntry.modificationTime = sourceTime;
-        _cache.removedAst(source);
-      } else {
-        //
-        // We could not determine whether the sources were up-to-date or out-of-date. Mark the
-        // cache so that we won't attempt to re-analyze the sources until there's a good chance
-        // that we'll be able to do so without error.
-        //
-        htmlEntry.recordResolutionError(thrownException);
-      }
-    }
     if (thrownException != null) {
+      htmlEntry.recordResolutionError(thrownException);
       throw new AnalysisException('<rethrow>', thrownException);
     }
+    htmlEntry.setValue(HtmlEntry.POLYMER_RESOLUTION_ERRORS, task.errors);
+    // notify about errors
+    ChangeNoticeImpl notice = _getNotice(source);
+    LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
+    notice.setErrors(htmlEntry.allErrors, lineInfo);
     return htmlEntry;
   }
 
   /**
-   * Record the results produced by performing a [ResolveAngularComponentTemplateTask]. If the
-   * results were computed from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   HtmlEntry _recordResolveAngularComponentTemplateTaskResults(ResolveAngularComponentTemplateTask task) {
     Source source = task.source;
+    HtmlEntry htmlEntry = _cache.get(source);
     CaughtException thrownException = task.exception;
-    SourceEntry sourceEntry = _cache.get(source);
-    if (sourceEntry == null) {
-      throw new ObsoleteSourceAnalysisException(source);
-    } else if (sourceEntry is! HtmlEntry) {
-      // This shouldn't be possible because we should never have performed the task if the source
-      // didn't represent an HTML file, but check to be safe.
-      throw new AnalysisException("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
-    }
-    HtmlEntry htmlEntry = sourceEntry;
-    int sourceTime = getModificationStamp(source);
-    int resultTime = task.modificationTime;
-    if (sourceTime == resultTime) {
-      if (htmlEntry.modificationTime != sourceTime) {
-        // The source has changed without the context being notified. Simulate notification.
-        _sourceChanged(source);
-        htmlEntry = _getReadableHtmlEntry(source);
-        if (htmlEntry == null) {
-          throw new AnalysisException("An HTML file became a non-HTML file: ${source.fullName}");
-        }
-      }
-      if (thrownException == null) {
-        htmlEntry.setValue(HtmlEntry.ANGULAR_ERRORS, task.resolutionErrors);
-        // notify about errors
-        ChangeNoticeImpl notice = _getNotice(source);
-        notice.htmlUnit = task.resolvedUnit;
-        notice.setErrors(htmlEntry.allErrors, htmlEntry.getValue(SourceEntry.LINE_INFO));
-      } else {
-        htmlEntry.recordResolutionError(thrownException);
-      }
-    } else {
-      if (thrownException == null || resultTime >= 0) {
-        //
-        // The analysis was performed on out-of-date sources. Mark the cache so that the sources
-        // will be re-analyzed using the up-to-date sources.
-        //
-        //          if (htmlCopy.getState(HtmlEntry.ANGULAR_ERRORS) == CacheState.IN_PROCESS) {
-        //            htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
-        //          }
-        //          if (htmlCopy.getState(HtmlEntry.ELEMENT) == CacheState.IN_PROCESS) {
-        //            htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
-        //          }
-        //          if (htmlCopy.getState(HtmlEntry.RESOLUTION_ERRORS) == CacheState.IN_PROCESS) {
-        //            htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.INVALID);
-        //          }
-        htmlEntry.invalidateAllInformation();
-        htmlEntry.modificationTime = sourceTime;
-        _cache.removedAst(source);
-      } else {
-        //
-        // We could not determine whether the sources were up-to-date or out-of-date. Mark the
-        // cache so that we won't attempt to re-analyze the sources until there's a good chance
-        // that we'll be able to do so without error.
-        //
-        htmlEntry.recordResolutionError(thrownException);
-      }
-    }
     if (thrownException != null) {
+      htmlEntry.recordResolutionError(thrownException);
       throw new AnalysisException('<rethrow>', thrownException);
     }
+    htmlEntry.setValue(HtmlEntry.ANGULAR_ERRORS, task.resolutionErrors);
+    // notify about errors
+    ChangeNoticeImpl notice = _getNotice(source);
+    notice.htmlUnit = task.resolvedUnit;
+    LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
+    notice.setErrors(htmlEntry.allErrors, lineInfo);
     return htmlEntry;
   }
 
   /**
-   * Record the results produced by performing a [ResolveAngularEntryHtmlTask]. If the results
-   * were computed from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   HtmlEntry _recordResolveAngularEntryHtmlTaskResults(ResolveAngularEntryHtmlTask task) {
     Source source = task.source;
+    HtmlEntry htmlEntry = _cache.get(source);
     CaughtException thrownException = task.exception;
-    SourceEntry sourceEntry = _cache.get(source);
-    if (sourceEntry == null) {
-      throw new ObsoleteSourceAnalysisException(source);
-    } else if (sourceEntry is! HtmlEntry) {
-      // This shouldn't be possible because we should never have performed the task if the source
-      // didn't represent an HTML file, but check to be safe.
-      throw new AnalysisException("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
-    }
-    HtmlEntry htmlEntry = sourceEntry as HtmlEntry;
-    int sourceTime = getModificationStamp(source);
-    int resultTime = task.modificationTime;
-    if (sourceTime == resultTime) {
-      if (htmlEntry.modificationTime != sourceTime) {
-        // The source has changed without the context being notified. Simulate notification.
-        _sourceChanged(source);
-        htmlEntry = _getReadableHtmlEntry(source);
-        if (htmlEntry == null) {
-          throw new AnalysisException("An HTML file became a non-HTML file: ${source.fullName}");
-        }
-      }
-      if (thrownException == null) {
-        htmlEntry.setValue(HtmlEntry.RESOLVED_UNIT, task.resolvedUnit);
-        _recordAngularEntryPoint(htmlEntry, task);
-        _cache.storedAst(source);
-        ChangeNoticeImpl notice = _getNotice(source);
-        notice.htmlUnit = task.resolvedUnit;
-        notice.setErrors(htmlEntry.allErrors, htmlEntry.getValue(SourceEntry.LINE_INFO));
-      } else {
-        htmlEntry.recordResolutionError(thrownException);
-      }
-    } else {
-      if (thrownException == null || resultTime >= 0) {
-        //
-        // The analysis was performed on out-of-date sources. Mark the cache so that the sources
-        // will be re-analyzed using the up-to-date sources.
-        //
-        //          if (htmlCopy.getState(HtmlEntry.ANGULAR_ERRORS) == CacheState.IN_PROCESS) {
-        //            htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
-        //          }
-        //          if (htmlCopy.getState(HtmlEntry.ELEMENT) == CacheState.IN_PROCESS) {
-        //            htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
-        //          }
-        //          if (htmlCopy.getState(HtmlEntry.RESOLUTION_ERRORS) == CacheState.IN_PROCESS) {
-        //            htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.INVALID);
-        //          }
-        htmlEntry.invalidateAllInformation();
-        htmlEntry.modificationTime = sourceTime;
-        _cache.removedAst(source);
-      } else {
-        //
-        // We could not determine whether the sources were up-to-date or out-of-date. Mark the
-        // cache so that we won't attempt to re-analyze the sources until there's a good chance
-        // that we'll be able to do so without error.
-        //
-        htmlEntry.recordResolutionError(thrownException);
-      }
-    }
     if (thrownException != null) {
+      htmlEntry.recordResolutionError(thrownException);
       throw new AnalysisException('<rethrow>', thrownException);
     }
+    htmlEntry.setValue(HtmlEntry.RESOLVED_UNIT, task.resolvedUnit);
+    _recordAngularEntryPoint(htmlEntry, task);
+    _cache.storedAst(source);
+    ChangeNoticeImpl notice = _getNotice(source);
+    notice.htmlUnit = task.resolvedUnit;
+    LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
+    notice.setErrors(htmlEntry.allErrors, lineInfo);
     return htmlEntry;
   }
 
   /**
-   * Record the results produced by performing a [ResolveDartUnitTask]. If the results were
-   * computed from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @return an entry containing the computed results
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   DartEntry _recordResolveDartUnitTaskResults(ResolveDartUnitTask task) {
     Source unitSource = task.source;
+    DartEntry dartEntry = _cache.get(unitSource);
     Source librarySource = task.librarySource;
     CaughtException thrownException = task.exception;
-    SourceEntry sourceEntry = _cache.get(unitSource);
-    if (sourceEntry == null) {
-      throw new ObsoleteSourceAnalysisException(unitSource);
-    } else if (sourceEntry is! DartEntry) {
-      // This shouldn't be possible because we should never have performed the task if the source
-      // didn't represent a Dart file, but check to be safe.
-      throw new AnalysisException("Internal error: attempting to resolve non-Dart file as a Dart file: ${unitSource.fullName}");
-    }
-    DartEntry dartEntry = sourceEntry as DartEntry;
-    int sourceTime = getModificationStamp(unitSource);
-    int resultTime = task.modificationTime;
-    if (sourceTime == resultTime) {
-      if (dartEntry.modificationTime != sourceTime) {
-        // The source has changed without the context being notified. Simulate notification.
-        _sourceChanged(unitSource);
-        dartEntry = _getReadableDartEntry(unitSource);
-        if (dartEntry == null) {
-          throw new AnalysisException("A Dart file became a non-Dart file: ${unitSource.fullName}");
-        }
-      }
-      if (thrownException == null) {
-        dartEntry.setValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource, task.resolvedUnit);
-        _cache.storedAst(unitSource);
-      } else {
-        dartEntry.recordResolutionErrorInLibrary(librarySource, thrownException);
-        _cache.removedAst(unitSource);
-      }
-    } else {
-      _logInformation2("Resolution results discarded for ${_debuggingString(unitSource)}; sourceTime = ${sourceTime}, resultTime = ${resultTime}, cacheTime = ${dartEntry.modificationTime}", thrownException);
-      if (thrownException == null || resultTime >= 0) {
-        //
-        // The analysis was performed on out-of-date sources. Mark the cache so that the sources
-        // will be re-analyzed using the up-to-date sources.
-        //
-        //          if (dartCopy.getState(DartEntry.RESOLVED_UNIT) == CacheState.IN_PROCESS) {
-        //            dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.INVALID);
-        //          }
-        _removeFromParts(unitSource, dartEntry);
-        dartEntry.invalidateAllInformation();
-        dartEntry.modificationTime = sourceTime;
-        _cache.removedAst(unitSource);
-        _workManager.add(unitSource, SourcePriority.UNKNOWN);
-      } else {
-        //
-        // We could not determine whether the sources were up-to-date or out-of-date. Mark the
-        // cache so that we won't attempt to re-analyze the sources until there's a good chance
-        // that we'll be able to do so without error.
-        //
-        dartEntry.recordResolutionErrorInLibrary(librarySource, thrownException);
-      }
-    }
     if (thrownException != null) {
+      dartEntry.recordResolutionErrorInLibrary(librarySource, thrownException);
+      _cache.removedAst(unitSource);
       throw new AnalysisException('<rethrow>', thrownException);
     }
+    dartEntry.setValueInLibrary(
+        DartEntry.RESOLVED_UNIT,
+        librarySource,
+        task.resolvedUnit);
+    _cache.storedAst(unitSource);
     return dartEntry;
   }
 
   /**
-   * Record the results produced by performing a [ResolveHtmlTask]. If the results were
-   * computed from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @return an entry containing the computed results
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   HtmlEntry _recordResolveHtmlTaskResults(ResolveHtmlTask task) {
     Source source = task.source;
+    HtmlEntry htmlEntry = _cache.get(source);
     CaughtException thrownException = task.exception;
-    SourceEntry sourceEntry = _cache.get(source);
-    if (sourceEntry == null) {
-      throw new ObsoleteSourceAnalysisException(source);
-    } else if (sourceEntry is! HtmlEntry) {
-      // This shouldn't be possible because we should never have performed the task if the source
-      // didn't represent an HTML file, but check to be safe.
-      throw new AnalysisException("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
-    }
-    HtmlEntry htmlEntry = sourceEntry;
-    int sourceTime = getModificationStamp(source);
-    int resultTime = task.modificationTime;
-    if (sourceTime == resultTime) {
-      if (htmlEntry.modificationTime != sourceTime) {
-        // The source has changed without the context being notified. Simulate notification.
-        _sourceChanged(source);
-        htmlEntry = _getReadableHtmlEntry(source);
-        if (htmlEntry == null) {
-          throw new AnalysisException("An HTML file became a non-HTML file: ${source.fullName}");
-        }
-      }
-      if (thrownException == null) {
-        htmlEntry.setState(HtmlEntry.PARSED_UNIT, CacheState.FLUSHED);
-        htmlEntry.setValue(HtmlEntry.RESOLVED_UNIT, task.resolvedUnit);
-        htmlEntry.setValue(HtmlEntry.ELEMENT, task.element);
-        htmlEntry.setValue(HtmlEntry.RESOLUTION_ERRORS, task.resolutionErrors);
-        _cache.storedAst(source);
-        ChangeNoticeImpl notice = _getNotice(source);
-        notice.htmlUnit = task.resolvedUnit;
-        notice.setErrors(htmlEntry.allErrors, htmlEntry.getValue(SourceEntry.LINE_INFO));
-      } else {
-        htmlEntry.recordResolutionError(thrownException);
-        _cache.removedAst(source);
-      }
-    } else {
-      _logInformation2("Resolution results discarded for ${_debuggingString(source)}; sourceTime = ${sourceTime}, resultTime = ${resultTime}, cacheTime = ${htmlEntry.modificationTime}", thrownException);
-      if (thrownException == null || resultTime >= 0) {
-        //
-        // The analysis was performed on out-of-date sources. Mark the cache so that the sources
-        // will be re-analyzed using the up-to-date sources.
-        //
-        //          if (htmlCopy.getState(HtmlEntry.ELEMENT) == CacheState.IN_PROCESS) {
-        //            htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
-        //          }
-        //          if (htmlCopy.getState(HtmlEntry.RESOLUTION_ERRORS) == CacheState.IN_PROCESS) {
-        //            htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.INVALID);
-        //          }
-        htmlEntry.invalidateAllInformation();
-        htmlEntry.modificationTime = sourceTime;
-        _cache.removedAst(source);
-      } else {
-        //
-        // We could not determine whether the sources were up-to-date or out-of-date. Mark the
-        // cache so that we won't attempt to re-analyze the sources until there's a good chance
-        // that we'll be able to do so without error.
-        //
-        htmlEntry.recordResolutionError(thrownException);
-      }
-    }
     if (thrownException != null) {
+      htmlEntry.recordResolutionError(thrownException);
+      _cache.removedAst(source);
       throw new AnalysisException('<rethrow>', thrownException);
     }
+    htmlEntry.setState(HtmlEntry.PARSED_UNIT, CacheState.FLUSHED);
+    htmlEntry.setValue(HtmlEntry.RESOLVED_UNIT, task.resolvedUnit);
+    htmlEntry.setValue(HtmlEntry.ELEMENT, task.element);
+    htmlEntry.setValue(HtmlEntry.RESOLUTION_ERRORS, task.resolutionErrors);
+    _cache.storedAst(source);
+    ChangeNoticeImpl notice = _getNotice(source);
+    notice.htmlUnit = task.resolvedUnit;
+    LineInfo lineInfo = htmlEntry.getValue(SourceEntry.LINE_INFO);
+    notice.setErrors(htmlEntry.allErrors, lineInfo);
     return htmlEntry;
   }
 
   /**
-   * Record the results produced by performing a [ScanDartTask]. If the results were computed
-   * from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @return an entry containing the computed results
-   * @throws AnalysisException if the results could not be recorded
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
    */
   DartEntry _recordScanDartTaskResults(ScanDartTask task) {
     Source source = task.source;
+    DartEntry dartEntry = _cache.get(source);
     CaughtException thrownException = task.exception;
-    SourceEntry sourceEntry = _cache.get(source);
-    if (sourceEntry == null) {
-      throw new ObsoleteSourceAnalysisException(source);
-    } else if (sourceEntry is! DartEntry) {
-      // This shouldn't be possible because we should never have performed the task if the source
-      // didn't represent a Dart file, but check to be safe.
-      throw new AnalysisException("Internal error: attempting to parse non-Dart file as a Dart file: ${source.fullName}");
-    }
-    DartEntry dartEntry = sourceEntry;
-    int sourceTime = getModificationStamp(source);
-    int resultTime = task.modificationTime;
-    if (sourceTime == resultTime) {
-      if (dartEntry.modificationTime != sourceTime) {
-        // The source has changed without the context being notified. Simulate notification.
-        _sourceChanged(source);
-        dartEntry = _getReadableDartEntry(source);
-        if (dartEntry == null) {
-          throw new AnalysisException("A Dart file became a non-Dart file: ${source.fullName}");
-        }
-      }
-      if (thrownException == null) {
-        LineInfo lineInfo = task.lineInfo;
-        dartEntry.setValue(SourceEntry.LINE_INFO, lineInfo);
-        dartEntry.setValue(DartEntry.TOKEN_STREAM, task.tokenStream);
-        dartEntry.setValue(DartEntry.SCAN_ERRORS, task.errors);
-        _cache.storedAst(source);
-        ChangeNoticeImpl notice = _getNotice(source);
-        notice.setErrors(dartEntry.allErrors, lineInfo);
-      } else {
-        _removeFromParts(source, dartEntry);
-        dartEntry.recordScanError(thrownException);
-        _cache.removedAst(source);
-      }
-    } else {
-      _logInformation2("Scan results discarded for ${_debuggingString(source)}; sourceTime = ${sourceTime}, resultTime = ${resultTime}, cacheTime = ${dartEntry.modificationTime}", thrownException);
-      if (thrownException == null || resultTime >= 0) {
-        //
-        // The analysis was performed on out-of-date sources. Mark the cache so that the sources
-        // will be re-analyzed using the up-to-date sources.
-        //
-        //          dartCopy.recordScanNotInProcess();
-        _removeFromParts(source, dartEntry);
-        dartEntry.invalidateAllInformation();
-        dartEntry.modificationTime = sourceTime;
-        _cache.removedAst(source);
-        _workManager.add(source, SourcePriority.UNKNOWN);
-      } else {
-        //
-        // We could not determine whether the sources were up-to-date or out-of-date. Mark the
-        // cache so that we won't attempt to re-analyze the sources until there's a good chance
-        // that we'll be able to do so without error.
-        //
-        dartEntry.recordScanError(thrownException);
-      }
-    }
     if (thrownException != null) {
+      _removeFromParts(source, dartEntry);
+      dartEntry.recordScanError(thrownException);
+      _cache.removedAst(source);
       throw new AnalysisException('<rethrow>', thrownException);
     }
+    LineInfo lineInfo = task.lineInfo;
+    dartEntry.setValue(SourceEntry.LINE_INFO, lineInfo);
+    dartEntry.setValue(DartEntry.TOKEN_STREAM, task.tokenStream);
+    dartEntry.setValue(DartEntry.SCAN_ERRORS, task.errors);
+    _cache.storedAst(source);
+    ChangeNoticeImpl notice = _getNotice(source);
+    notice.setErrors(dartEntry.allErrors, lineInfo);
     return dartEntry;
   }
 
