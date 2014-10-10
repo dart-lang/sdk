@@ -1740,25 +1740,32 @@ bool Object::IsNotTemporaryScopedHandle() const {
 
 
 
-RawObject* Object::Clone(const Object& src, Heap::Space space) {
-  const Class& cls = Class::Handle(src.clazz());
-  intptr_t size = src.raw()->Size();
-  RawObject* raw_obj = Object::Allocate(cls.id(), size, space);
+RawObject* Object::Clone(const Object& orig, Heap::Space space) {
+  const Class& cls = Class::Handle(orig.clazz());
+  intptr_t size = orig.raw()->Size();
+  RawObject* raw_clone = Object::Allocate(cls.id(), size, space);
   NoGCScope no_gc;
-  // Newly allocated objects are white ...
   // TODO(koda): This will trip when we start allocating black.
-  // Update unmarking code below at that point.
-  ASSERT(!raw_obj->IsMarked());
-  memmove(raw_obj->ptr(), src.raw()->ptr(), size);
-  // ... so ensure clone is too (see issue 21236).
-  if (raw_obj->IsMarked()) {
-    raw_obj->ClearMarkBit();
+  // Revisit code below at that point, to account for the new write barrier.
+  ASSERT(!raw_clone->IsMarked());
+  // Copy the body of the original into the clone.
+  uword orig_addr = RawObject::ToAddr(orig.raw());
+  uword clone_addr = RawObject::ToAddr(raw_clone);
+  static const intptr_t kHeaderSizeInBytes = sizeof(RawObject);
+  memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
+          reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
+          size - kHeaderSizeInBytes);
+  // Add clone to store buffer, if needed.
+  if (!raw_clone->IsOldObject()) {
+    // No need to remember an object in new space.
+    return raw_clone;
+  } else if (orig.raw()->IsOldObject() && !orig.raw()->IsRemembered()) {
+    // Old original doesn't need to be remembered, so neither does the clone.
+    return raw_clone;
   }
-  if ((space == Heap::kOld) && !raw_obj->IsRemembered()) {
-    StoreBufferUpdateVisitor visitor(Isolate::Current(), raw_obj);
-    raw_obj->VisitPointers(&visitor);
-  }
-  return raw_obj;
+  StoreBufferUpdateVisitor visitor(Isolate::Current(), raw_clone);
+  raw_clone->VisitPointers(&visitor);
+  return raw_clone;
 }
 
 

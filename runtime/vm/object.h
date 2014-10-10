@@ -315,8 +315,6 @@ class Object {
 
   bool IsNotTemporaryScopedHandle() const;
 
-  static RawObject* Clone(const Object& src, Heap::Space space = Heap::kNew);
-
   static Object& Handle(Isolate* isolate, RawObject* raw_ptr) {
     Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(isolate));
     initializeHandle(obj, raw_ptr);
@@ -618,6 +616,9 @@ class Object {
   CLASS_LIST(STORE_NON_POINTER_ILLEGAL_TYPE);
   void UnimplementedMethod() const;
 #undef STORE_NON_POINTER_ILLEGAL_TYPE
+
+  // Allocate an object and copy the body of 'orig'.
+  static RawObject* Clone(const Object& orig, Heap::Space space);
 
   RawObject* raw_;  // The raw object reference.
 
