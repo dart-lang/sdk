@@ -530,8 +530,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
   __ EnterFrame(0);
-  __ Push(ZR);
-  __ TagAndPushPP();
+  __ TagAndPushPPAndPcMarker(ZR);
 
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
@@ -568,8 +567,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
   __ EnterFrame(0);
-  __ Push(ZR);
-  __ TagAndPushPP();
+  __ TagAndPushPPAndPcMarker(ZR);
 
   if (preserve_result) {
     __ Push(R1);  // Preserve result as first local.

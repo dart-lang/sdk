@@ -1147,8 +1147,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 
 
 void Assembler::EnterFrame(intptr_t frame_size) {
-  Push(LR);
-  Push(FP);
+  PushPair(LR, FP);
   mov(FP, SP);
 
   if (frame_size > 0) {
@@ -1159,8 +1158,7 @@ void Assembler::EnterFrame(intptr_t frame_size) {
 
 void Assembler::LeaveFrame() {
   mov(SP, FP);
-  Pop(FP);
-  Pop(LR);
+  PopPair(LR, FP);
 }
 
 
@@ -1168,8 +1166,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   // Setup the frame.
   adr(TMP, Immediate(-CodeSize()));  // TMP gets PC marker.
   EnterFrame(0);
-  Push(TMP);  // Save PC Marker.
-  TagAndPushPP();  // Save PP.
+  TagAndPushPPAndPcMarker(TMP);  // Save PP and PC marker.
 
   // Load the pool pointer.
   LoadPoolPointer(PP);
@@ -1185,8 +1182,7 @@ void Assembler::EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp) {
   // Setup the frame.
   adr(TMP, Immediate(-CodeSize()));  // TMP gets PC marker.
   EnterFrame(0);
-  Push(TMP);  // Save PC Marker.
-  TagAndPushPP();  // Save PP.
+  TagAndPushPPAndPcMarker(TMP);  // Save PP and PC marker.
 
   // Load the pool pointer.
   if (new_pp == kNoPP) {
@@ -1283,8 +1279,7 @@ void Assembler::LeaveCallRuntimeFrame() {
     PopDouble(reg);
   }
 
-  Pop(FP);
-  Pop(LR);
+  PopPair(LR, FP);
 }
 
 
@@ -1296,8 +1291,8 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 
 void Assembler::EnterStubFrame(bool load_pp) {
   EnterFrame(0);
-  Push(ZR);  // Push 0 in the saved PC area for stub frames.
-  TagAndPushPP();  // Save caller's pool pointer
+  // Save caller's pool pointer. Push 0 in the saved PC area for stub frames.
+  TagAndPushPPAndPcMarker(ZR);
   if (load_pp) {
     LoadPoolPointer(PP);
   }

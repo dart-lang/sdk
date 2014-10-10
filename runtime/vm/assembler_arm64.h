@@ -1096,6 +1096,14 @@ class Assembler : public ValueObject {
     ASSERT(reg != PP);  // Only pop PP with PopAndUntagPP().
     ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
   }
+  void PushPair(Register first, Register second) {
+    ASSERT((first != PP) && (second != PP));
+    stp(second, first, Address(SP, -2 * kWordSize, Address::PairPreIndex));
+  }
+  void PopPair(Register first, Register second) {
+    ASSERT((first != PP) && (second != PP));
+    ldp(second, first, Address(SP, 2 * kWordSize, Address::PairPostIndex));
+  }
   void PushFloat(VRegister reg) {
     fstrs(reg, Address(SP, -1 * kFloatSize, Address::PreIndex));
   }
@@ -1118,6 +1126,13 @@ class Assembler : public ValueObject {
     // Add the heap object tag back to PP before putting it on the stack.
     add(TMP, PP, Operand(kHeapObjectTag));
     str(TMP, Address(SP, -1 * kWordSize, Address::PreIndex));
+  }
+  void TagAndPushPPAndPcMarker(Register pc_marker_reg) {
+    ASSERT(pc_marker_reg != TMP2);
+    // Add the heap object tag back to PP before putting it on the stack.
+    add(TMP2, PP, Operand(kHeapObjectTag));
+    stp(TMP2, pc_marker_reg,
+        Address(SP, -2 * kWordSize, Address::PairPreIndex));
   }
   void PopAndUntagPP() {
     ldr(PP, Address(SP, 1 * kWordSize, Address::PostIndex));
@@ -1717,7 +1732,7 @@ class Assembler : public ValueObject {
     ASSERT((rt2 != CSP) && (rt2 != R31));
     const Register crt = ConcreteRegister(rt);
     const Register crt2 = ConcreteRegister(rt2);
-    int32_t opc;
+    int32_t opc = 0;
     switch (sz) {
       case kDoubleWord: opc = B31; break;
       case kWord: opc = B30; break;
