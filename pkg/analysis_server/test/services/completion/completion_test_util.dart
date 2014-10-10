@@ -481,6 +481,15 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestLocalGetter(String name, String returnType,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    if (computer is LocalComputer) {
+      return assertSuggestGetter(name, returnType, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
   CompletionSuggestion assertSuggestLocalMethod(String name,
       String declaringType, String returnType, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
@@ -499,6 +508,34 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     } else {
       return assertNotSuggested(name);
     }
+  }
+
+  test_AsExpression_target() {
+    // IfStatement  Block  BlockFunctionBody
+    addTestSource('''
+      class A {int x; int y() => 0;}
+      main(){var a; if (^ is A)}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('a', null);
+      assertSuggestLocalFunction('main', null);
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_AsExpression_type() {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+      class A {int x; int y() => 0;}
+      main(){var a; if (a is ^)}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNotSuggested('a');
+      assertNotSuggested('main');
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('Object');
+    });
   }
 
   test_BinaryExpression_LHS() {
@@ -950,6 +987,35 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_FunctionExpression_body_function() {
+    // Block  BlockFunctionBody  FunctionExpression
+    addTestSource('String foo(List args) {x.then((R b) {^});}');
+    computeFast();
+    return computeFull(true).then((_) {
+      var f = assertSuggestLocalFunction('foo', 'String', false);
+      if (f != null) {
+        expect(f.element.isPrivate, isFalse);
+      }
+      assertSuggestParameter('args', 'List');
+      assertSuggestParameter('b', 'R');
+      assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_IfStatement_condition() {
+    // SimpleIdentifier  IfStatement  Block  BlockFunctionBody
+    addTestSource('''
+      class A {int x; int y() => 0;}
+      main(){var a; if (^)}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('a', null);
+      assertSuggestLocalFunction('main', null);
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('Object');
+    });
+  }
+
   test_ImportDirective_dart() {
     // SimpleStringLiteral  ImportDirective
     addTestSource('''
@@ -1048,6 +1114,81 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('x');
       assertNotSuggested('main');
       assertNotSuggested('foo');
+    });
+  }
+
+  test_MethodDeclaration_body_getters() {
+    // Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class A {@deprecated X get f => 0; Z a() {^} get _g => 1;}');
+    computeFast();
+    return computeFull(true).then((_) {
+      CompletionSuggestion methodA = assertSuggestLocalMethod('a', 'A', 'Z');
+      if (methodA != null) {
+        expect(methodA.element.isDeprecated, isFalse);
+        expect(methodA.element.isPrivate, isFalse);
+      }
+      CompletionSuggestion getterF = assertSuggestLocalGetter('f', 'X');
+      if (getterF != null) {
+        expect(getterF.element.isDeprecated, isTrue);
+        expect(getterF.element.isPrivate, isFalse);
+      }
+      CompletionSuggestion getterG = assertSuggestLocalGetter('_g', null);
+      if (getterG != null) {
+        expect(getterG.element.isDeprecated, isFalse);
+        expect(getterG.element.isPrivate, isTrue);
+      }
+    });
+  }
+
+  test_MethodDeclaration_members() {
+    // Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class A {@deprecated X f; Z _a() {^} var _g;}');
+    computeFast();
+    return computeFull(true).then((_) {
+      CompletionSuggestion methodA = assertSuggestLocalMethod('_a', 'A', 'Z');
+      if (methodA != null) {
+        expect(methodA.element.isDeprecated, isFalse);
+        expect(methodA.element.isPrivate, isTrue);
+      }
+      CompletionSuggestion getterF = assertSuggestLocalGetter('f', 'X');
+      if (getterF != null) {
+        expect(getterF.element.isDeprecated, isTrue);
+        expect(getterF.element.isPrivate, isFalse);
+      }
+      CompletionSuggestion getterG = assertSuggestLocalGetter('_g', null);
+      if (getterG != null) {
+        expect(getterG.element.isDeprecated, isFalse);
+        expect(getterG.element.isPrivate, isTrue);
+      }
+      assertSuggestImportedClass('bool');
+    });
+  }
+
+  test_MethodDeclaration_parameters_named() {
+    // Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class A {@deprecated Z a(X x, {y: boo}) {^}}');
+    computeFast();
+    return computeFull(true).then((_) {
+      CompletionSuggestion methodA = assertSuggestLocalMethod('a', 'A', 'Z');
+      if (methodA != null) {
+        expect(methodA.element.isDeprecated, isTrue);
+        expect(methodA.element.isPrivate, isFalse);
+      }
+      assertSuggestParameter('x', 'X');
+      assertSuggestParameter('y', null);
+      assertSuggestImportedClass('int');
+    });
+  }
+
+  test_MethodDeclaration_parameters_positional() {
+    // Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class A {Z a(X x, [int y=1]) {^}}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalMethod('a', 'A', 'Z');
+      assertSuggestParameter('x', 'X');
+      assertSuggestParameter('y', 'int');
+      assertSuggestImportedClass('String');
     });
   }
 

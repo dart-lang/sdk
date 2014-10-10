@@ -104,6 +104,18 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
+  Future<bool> visitIfStatement(IfStatement node) {
+    Token leftParen = node.leftParenthesis;
+    if (leftParen != null && request.offset >= leftParen.end) {
+      Token rightParen = node.rightParenthesis;
+      if (rightParen == null || request.offset <= rightParen.offset) {
+        return _addImportedElementSuggestions();
+      }
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitInterpolationExpression(InterpolationExpression node) {
     Expression expression = node.expression;
     if (expression is SimpleIdentifier) {
