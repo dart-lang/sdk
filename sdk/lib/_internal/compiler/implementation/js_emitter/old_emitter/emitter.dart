@@ -1748,7 +1748,8 @@ class OldEmitter implements Emitter {
     // Function for initializing a loaded hunk, given its hash.
     buffer.write(jsAst.prettyPrint(
         js('# = function(hunkHash) {'
-           '  $deferredInitializers[hunkHash]($globalsHolder)'
+           '  $deferredInitializers[hunkHash]('
+                '$globalsHolder, ${namer.currentIsolate})'
            '}',
            generateEmbeddedGlobalAccess(
                embeddedNames.INITIALIZE_LOADED_HUNK)),
@@ -1858,6 +1859,16 @@ class OldEmitter implements Emitter {
 
       classesCollector = oldClassesCollector;
 
+      // Set the currentIsolate variable to the current isolate (which is
+      // provided as second argument).
+      // We need to do this, because we use the same variable for setting up
+      // the isolate-properties and for storing the current isolate. During
+      // the setup (the code above this lines) we must set the variable to
+      // the isolate-properties.
+      // After we have done the setup (finishing with `finishClasses`) it must
+      // point to the current Isolate. Otherwise all methods/functions
+      // accessing isolate variables will access the wrong object.
+      outputBuffer.write("${namer.currentIsolate}$_=${_}arguments[1]$N");
       typeTestEmitter.emitRuntimeTypeSupport(outputBuffer, outputUnit);
 
       emitCompileTimeConstants(outputBuffer, outputUnit);
