@@ -538,6 +538,56 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_AssignmentExpression_RHS() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addTestSource('class A {} main() {int a; int b = ^}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('a', 'int');
+      assertSuggestLocalFunction('main', null);
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_AssignmentExpression_name() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addTestSource('class A {} main() {int a; int ^b = 1;}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNoSuggestions();
+    });
+  }
+
+  test_AssignmentExpression_type() {
+    // SimpleIdentifier  TypeName  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addTestSource('class A {} main() {int a; int^ b = 1;}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('int');
+      assertNotSuggested('a');
+      assertNotSuggested('main');
+    });
+  }
+
+  test_AwaitExpression() {
+    // SimpleIdentifier  AwaitExpression  ExpressionStatement
+    addTestSource('''
+      class A {int x; int y() => 0;}
+      main(){A a; await ^}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('a', 'A');
+      assertSuggestLocalFunction('main', null);
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('Object');
+    });
+  }
+
   test_BinaryExpression_LHS() {
     // SimpleIdentifier  BinaryExpression  VariableDeclaration
     // VariableDeclarationList  VariableDeclarationStatement
@@ -590,7 +640,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       int T5;
       var _T6;
       Z D2() {int x;}
-      class X {a() {var f; {var x;} ^ var r;} Z b() { }}
+      class X {a() {var f; {var x;} ^ var r;} void b() { }}
       class Z { }''');
     computeFast();
     return computeFull(true).then((_) {
@@ -598,7 +648,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('X');
       assertSuggestLocalClass('Z');
       assertLocalSuggestMethod('a', 'X', null);
-      assertLocalSuggestMethod('b', 'X', 'Z');
+      assertLocalSuggestMethod('b', 'X', 'void');
       assertSuggestLocalVariable('f', null);
       // Don't suggest locals out of scope
       assertNotSuggested('r');
@@ -1114,6 +1164,15 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('x');
       assertNotSuggested('main');
       assertNotSuggested('foo');
+    });
+  }
+
+  test_Literal_string() {
+    // SimpleStringLiteral  ExpressionStatement  Block
+    addTestSource('class A {a() {"hel^lo"}}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNoSuggestions();
     });
   }
 

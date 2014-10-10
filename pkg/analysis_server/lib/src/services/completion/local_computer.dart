@@ -85,11 +85,6 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
-  visitCombinator(Combinator node) {
-    // Handled by ImportedComputer
-  }
-
-  @override
   visitCascadeExpression(CascadeExpression node) {
     Expression target = node.target;
     // This computer handles the expression
@@ -116,6 +111,11 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       }
     });
     visitNode(node);
+  }
+
+  @override
+  visitCombinator(Combinator node) {
+    // Handled by ImportedComputer
   }
 
   @override
@@ -199,6 +199,11 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
+  visitInterpolationExpression(InterpolationExpression node) {
+    visitNode(node);
+  }
+
+  @override
   visitMethodDeclaration(MethodDeclaration node) {
     _addParamListSuggestions(node.parameters);
     visitNode(node);
@@ -222,6 +227,11 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     if (prefix == null || request.offset <= prefix.end) {
       visitNode(node);
     }
+  }
+
+  @override
+  visitStringLiteral(StringLiteral node) {
+    // ignore
   }
 
   @override
