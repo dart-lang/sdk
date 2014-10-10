@@ -689,9 +689,9 @@ ASSEMBLER_TEST_GENERATE(LongAddReg, assembler) {
   __ movl(RAX, Address(RSP, 0));  // left low.
   __ movl(RDX, Address(RSP, 4));  // left high.
   __ movl(RCX, Address(RSP, 8));  // right low.
-  __ movl(RBX, Address(RSP, 12));  // right high
+  __ movl(R8, Address(RSP, 12));  // right high
   __ addl(RAX, RCX);
-  __ adcl(RDX, RBX);
+  __ adcl(RDX, R8);
   // Result is in RAX/RDX.
   __ movl(Address(RSP, 0), RAX);  // result low.
   __ movl(Address(RSP, 4), RDX);  // result high.
@@ -749,9 +749,9 @@ ASSEMBLER_TEST_GENERATE(LongSubReg, assembler) {
   __ movl(RAX, Address(RSP, 0));  // left low.
   __ movl(RDX, Address(RSP, 4));  // left high.
   __ movl(RCX, Address(RSP, 8));  // right low.
-  __ movl(RBX, Address(RSP, 12));  // right high
+  __ movl(R8, Address(RSP, 12));  // right high
   __ subl(RAX, RCX);
-  __ sbbl(RDX, RBX);
+  __ sbbl(RDX, R8);
   // Result is in RAX/RDX.
   __ movl(Address(RSP, 0), RAX);  // result low.
   __ movl(Address(RSP, 4), RDX);  // result high.
