@@ -461,8 +461,6 @@ compile_time_constant10_test/none: CompileTimeError # Issue 21177
 # Issue 16391. These tests are supposed to produce a compile time
 # error in checked mode, but they don't:
 [ $compiler == dart2analyzer && $checked ]
-compile_time_constant_checked2_test/04: MissingCompileTimeError # Issue 16391
-compile_time_constant_checked3_test/04: MissingCompileTimeError # Issue 16391
 compile_time_constant_checked_test/02: MissingCompileTimeError # Issue 16391
 const_constructor2_test/22: MissingCompileTimeError # Issue 16391
 const_constructor2_test/24: MissingCompileTimeError # Issue 16391

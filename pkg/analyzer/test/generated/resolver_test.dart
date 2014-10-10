@@ -593,6 +593,20 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_fieldFormalParameterNotAssignableToField_fieldType() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  final int x;",
+        "  const A(String this.x);",
+        "}",
+        "var v = const A('foo');"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+        StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
   void test_fieldFormalParameterNotAssignableToField_extends() {
     // According to checked-mode type checking rules, a value of type A is not
     // assignable to a field of type B, because B extends A (the subtyping

@@ -4675,7 +4675,13 @@ class FieldFormalParameterMember extends ParameterMember implements FieldFormalP
   accept(ElementVisitor visitor) => visitor.visitFieldFormalParameterElement(this);
 
   @override
-  FieldElement get field => (baseElement as FieldFormalParameterElement).field;
+  FieldElement get field {
+    FieldElement field = (baseElement as FieldFormalParameterElement).field;
+    if (field is FieldElement) {
+      return FieldMember.from(field, definingType);
+    }
+    return field;
+  }
 }
 
 /**

@@ -733,8 +733,21 @@ class ConstantValueComputer {
               [argumentValue.type, parameter.type]);
         }
         if (baseParameter.isInitializingFormal) {
-          FieldElement field = (baseParameter as FieldFormalParameterElement).field;
+          FieldElement field = (parameter as FieldFormalParameterElement).field;
           if (field != null) {
+            DartType fieldType = field.type;
+            if (fieldType != parameter.type) {
+              // We've already checked that the argument can be assigned to the
+              // parameter; we also need to check that it can be assigned to
+              // the field.
+              if (!argumentValue.isNull &&
+                  !argumentValue.type.isSubtypeOf(fieldType)) {
+                errorReporter.reportErrorForNode(
+                    CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+                    errorTarget,
+                    [argumentValue.type, fieldType]);
+              }
+            }
             String fieldName = field.name;
             fieldMap[fieldName] = argumentValue;
           }
