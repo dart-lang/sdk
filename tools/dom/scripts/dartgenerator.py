@@ -28,7 +28,7 @@ class DartGenerator(object):
 
   def __init__(self, logging_level=logging.WARNING):
     self._auxiliary_files = {}
-    self._dart_templates_re = re.compile(r'[\w.:]+<([\w\.<>:]+)>')
+    self._dart_templates_re = re.compile(r'[\w.:]+<([\w \.<>:]+)>')
     _logger.setLevel(logging_level)
 
   def _StripModules(self, type_name):

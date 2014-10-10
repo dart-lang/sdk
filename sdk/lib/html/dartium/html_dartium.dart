@@ -3366,6 +3366,11 @@ class CompositionEvent extends UIEvent {
   @DocsEditable()
   String get data => _blink.BlinkCompositionEvent.data_Getter(this);
 
+  @DomName('CompositionEvent.getSegments')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<int> getSegments() => _blink.BlinkCompositionEvent.getSegments_Callback(this);
+
   @DomName('CompositionEvent.initCompositionEvent')
   @DocsEditable()
   void _initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) => _blink.BlinkCompositionEvent.initCompositionEvent_Callback_DOMString_boolean_boolean_Window_DOMString(this, typeArg, canBubbleArg, cancelableArg, viewArg, dataArg);
@@ -21644,13 +21649,24 @@ class MidiOutput extends MidiPort {
   // To suppress missing implicit constructor warnings.
   factory MidiOutput._() { throw new UnsupportedError("Not supported"); }
 
-  void send(Uint8List data, [num timestamp]) {
-    if (timestamp != null) {
+  void send(data, [num timestamp]) {
+    if ((data is Uint8List || data == null) && timestamp == null) {
+      _blink.BlinkMIDIOutput.send_Callback_Uint8Array(this, data);
+      return;
+    }
+    if ((timestamp is num || timestamp == null) && (data is Uint8List || data == null)) {
       _blink.BlinkMIDIOutput.send_Callback_Uint8Array_double(this, data, timestamp);
       return;
     }
-    _blink.BlinkMIDIOutput.send_Callback_Uint8Array(this, data);
-    return;
+    if ((data is List<int> || data == null) && timestamp == null) {
+      _blink.BlinkMIDIOutput.send_Callback_SEQ_ul_SEQ(this, data);
+      return;
+    }
+    if ((timestamp is num || timestamp == null) && (data is List<int> || data == null)) {
+      _blink.BlinkMIDIOutput.send_Callback_SEQ_ul_SEQ_double(this, data, timestamp);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
 }

@@ -873,6 +873,10 @@ class DrawBuffers extends NativeFieldWrapperClass2 {
   @DocsEditable()
   static const int MAX_DRAW_BUFFERS_WEBGL = 0x8824;
 
+  @DomName('WebGLDrawBuffers.drawBuffersWEBGL')
+  @DocsEditable()
+  void drawBuffersWebgl(List<int> buffers) => _blink.BlinkWebGLDrawBuffers.drawBuffersWEBGL_Callback_SEQ_ul_SEQ(this, buffers);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

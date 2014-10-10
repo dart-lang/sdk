@@ -2511,6 +2511,11 @@ class CompositionEvent extends UIEvent {
   @DocsEditable()
   final String data;
 
+  @DomName('CompositionEvent.getSegments')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<int> getSegments() native;
+
   @JSName('initCompositionEvent')
   @DomName('CompositionEvent.initCompositionEvent')
   @DocsEditable()
@@ -19860,7 +19865,7 @@ class MidiOutput extends MidiPort {
 
   @DomName('MIDIOutput.send')
   @DocsEditable()
-  void send(Uint8List data, [num timestamp]) native;
+  void send(data, [num timestamp]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

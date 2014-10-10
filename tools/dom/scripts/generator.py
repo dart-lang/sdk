@@ -1273,7 +1273,7 @@ class TypeRegistry(object):
     return self.TypeInfo(type_name).dart_type()
 
   def _TypeInfo(self, type_name):
-    match = re.match(r'(?:sequence<(\w+)>|(\w+)\[\])$', type_name)
+    match = re.match(r'(?:sequence<([\w ]+)>|(\w+)\[\])$', type_name)
     if match:
       type_data = TypeData('Sequence')
       item_info = self.TypeInfo(match.group(1) or match.group(2))

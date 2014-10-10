@@ -1256,6 +1256,9 @@
         "support_level": "untriaged"
       },
       "data": {},
+      "getSegments": {
+        "support_level": "untriaged"
+      },
       "initCompositionEvent": {}
     },
     "support_level": "stable"
