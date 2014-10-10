@@ -24,9 +24,11 @@ class GCSweeper {
   ~GCSweeper() {}
 
   // Sweep the memory area for the page while clearing the mark bits and adding
-  // all the unmarked objects to the pre-locked freelist.
-  // Returns true if the page is in use.
-  bool SweepPage(HeapPage* page, FreeList* freelist);
+  // all the unmarked objects to the freelist. Whether the freelist is
+  // pre-locked is indicated by the locked parameter.
+  // Returns true if the page is in use. Freelist is untouched if page is not
+  // in use.
+  bool SweepPage(HeapPage* page, FreeList* freelist, bool locked);
 
   // Returns the number of words from page->object_start() to the end of the
   // last marked object.

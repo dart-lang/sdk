@@ -722,7 +722,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     FreeList* freelist = &freelist_[HeapPage::kExecutable];
     while (page != NULL) {
       HeapPage* next_page = page->next();
-      bool page_in_use = sweeper.SweepPage(page, freelist);
+      bool page_in_use = sweeper.SweepPage(page, freelist, true);
       if (page_in_use) {
         prev_page = page;
       } else {
@@ -740,7 +740,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
       page = pages_;
       while (page != NULL) {
         HeapPage* next_page = page->next();
-        bool page_in_use = sweeper.SweepPage(page, &freelist_[page->type()]);
+        bool page_in_use = sweeper.SweepPage(
+            page, &freelist_[page->type()], true);
         if (page_in_use) {
           prev_page = page;
         } else {

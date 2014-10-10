@@ -13,7 +13,7 @@
 
 namespace dart {
 
-bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
+bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
   // Keep track whether this page is still in use.
   bool in_use = false;
 
@@ -47,7 +47,11 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
       }
       if ((current != start) || (free_end != end)) {
         // Only add to the free list if not covering the whole page.
-        freelist->FreeLocked(current, obj_size);
+        if (locked) {
+          freelist->FreeLocked(current, obj_size);
+        } else {
+          freelist->Free(current, obj_size);
+        }
       }
     }
     current += obj_size;
@@ -112,11 +116,7 @@ class SweeperTask : public ThreadPool::Task {
     while (page != NULL) {
       HeapPage* next_page = page->next();
       ASSERT(page->type() == HeapPage::kData);
-      bool page_in_use = true;
-      {
-        MutexLocker ml(freelist_->mutex());
-        page_in_use = sweeper.SweepPage(page, freelist_);
-      }
+      bool page_in_use = sweeper.SweepPage(page, freelist_, false);
       if (page_in_use) {
         prev_page = page;
       } else {
