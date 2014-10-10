@@ -46,7 +46,7 @@ final web_glBlinkMap = {
   'WebGLProgram': () => Program,
   'WebGLRenderbuffer': () => Renderbuffer,
   'WebGLRenderingContext': () => RenderingContext,
-  'WebGLRenderingContextBase': () => RenderingContextBase,
+  'WebGLRenderingContextBase': () => _WebGLRenderingContextBase,
   'WebGLShader': () => Shader,
   'WebGLShaderPrecisionFormat': () => ShaderPrecisionFormat,
   'WebGLTexture': () => Texture,
@@ -59,302 +59,302 @@ final web_glBlinkMap = {
 // BSD-style license that can be found in the LICENSE file.
 
 
-const int ACTIVE_ATTRIBUTES = RenderingContextBase.ACTIVE_ATTRIBUTES;
-const int ACTIVE_TEXTURE = RenderingContextBase.ACTIVE_TEXTURE;
-const int ACTIVE_UNIFORMS = RenderingContextBase.ACTIVE_UNIFORMS;
-const int ALIASED_LINE_WIDTH_RANGE = RenderingContextBase.ALIASED_LINE_WIDTH_RANGE;
-const int ALIASED_POINT_SIZE_RANGE = RenderingContextBase.ALIASED_POINT_SIZE_RANGE;
-const int ALPHA = RenderingContextBase.ALPHA;
-const int ALPHA_BITS = RenderingContextBase.ALPHA_BITS;
-const int ALWAYS = RenderingContextBase.ALWAYS;
-const int ARRAY_BUFFER = RenderingContextBase.ARRAY_BUFFER;
-const int ARRAY_BUFFER_BINDING = RenderingContextBase.ARRAY_BUFFER_BINDING;
-const int ATTACHED_SHADERS = RenderingContextBase.ATTACHED_SHADERS;
-const int BACK = RenderingContextBase.BACK;
-const int BLEND = RenderingContextBase.BLEND;
-const int BLEND_COLOR = RenderingContextBase.BLEND_COLOR;
-const int BLEND_DST_ALPHA = RenderingContextBase.BLEND_DST_ALPHA;
-const int BLEND_DST_RGB = RenderingContextBase.BLEND_DST_RGB;
-const int BLEND_EQUATION = RenderingContextBase.BLEND_EQUATION;
-const int BLEND_EQUATION_ALPHA = RenderingContextBase.BLEND_EQUATION_ALPHA;
-const int BLEND_EQUATION_RGB = RenderingContextBase.BLEND_EQUATION_RGB;
-const int BLEND_SRC_ALPHA = RenderingContextBase.BLEND_SRC_ALPHA;
-const int BLEND_SRC_RGB = RenderingContextBase.BLEND_SRC_RGB;
-const int BLUE_BITS = RenderingContextBase.BLUE_BITS;
-const int BOOL = RenderingContextBase.BOOL;
-const int BOOL_VEC2 = RenderingContextBase.BOOL_VEC2;
-const int BOOL_VEC3 = RenderingContextBase.BOOL_VEC3;
-const int BOOL_VEC4 = RenderingContextBase.BOOL_VEC4;
-const int BROWSER_DEFAULT_WEBGL = RenderingContextBase.BROWSER_DEFAULT_WEBGL;
-const int BUFFER_SIZE = RenderingContextBase.BUFFER_SIZE;
-const int BUFFER_USAGE = RenderingContextBase.BUFFER_USAGE;
-const int BYTE = RenderingContextBase.BYTE;
-const int CCW = RenderingContextBase.CCW;
-const int CLAMP_TO_EDGE = RenderingContextBase.CLAMP_TO_EDGE;
-const int COLOR_ATTACHMENT0 = RenderingContextBase.COLOR_ATTACHMENT0;
-const int COLOR_BUFFER_BIT = RenderingContextBase.COLOR_BUFFER_BIT;
-const int COLOR_CLEAR_VALUE = RenderingContextBase.COLOR_CLEAR_VALUE;
-const int COLOR_WRITEMASK = RenderingContextBase.COLOR_WRITEMASK;
-const int COMPILE_STATUS = RenderingContextBase.COMPILE_STATUS;
-const int COMPRESSED_TEXTURE_FORMATS = RenderingContextBase.COMPRESSED_TEXTURE_FORMATS;
-const int CONSTANT_ALPHA = RenderingContextBase.CONSTANT_ALPHA;
-const int CONSTANT_COLOR = RenderingContextBase.CONSTANT_COLOR;
-const int CONTEXT_LOST_WEBGL = RenderingContextBase.CONTEXT_LOST_WEBGL;
-const int CULL_FACE = RenderingContextBase.CULL_FACE;
-const int CULL_FACE_MODE = RenderingContextBase.CULL_FACE_MODE;
-const int CURRENT_PROGRAM = RenderingContextBase.CURRENT_PROGRAM;
-const int CURRENT_VERTEX_ATTRIB = RenderingContextBase.CURRENT_VERTEX_ATTRIB;
-const int CW = RenderingContextBase.CW;
-const int DECR = RenderingContextBase.DECR;
-const int DECR_WRAP = RenderingContextBase.DECR_WRAP;
-const int DELETE_STATUS = RenderingContextBase.DELETE_STATUS;
-const int DEPTH_ATTACHMENT = RenderingContextBase.DEPTH_ATTACHMENT;
-const int DEPTH_BITS = RenderingContextBase.DEPTH_BITS;
-const int DEPTH_BUFFER_BIT = RenderingContextBase.DEPTH_BUFFER_BIT;
-const int DEPTH_CLEAR_VALUE = RenderingContextBase.DEPTH_CLEAR_VALUE;
-const int DEPTH_COMPONENT = RenderingContextBase.DEPTH_COMPONENT;
-const int DEPTH_COMPONENT16 = RenderingContextBase.DEPTH_COMPONENT16;
-const int DEPTH_FUNC = RenderingContextBase.DEPTH_FUNC;
-const int DEPTH_RANGE = RenderingContextBase.DEPTH_RANGE;
-const int DEPTH_STENCIL = RenderingContextBase.DEPTH_STENCIL;
-const int DEPTH_STENCIL_ATTACHMENT = RenderingContextBase.DEPTH_STENCIL_ATTACHMENT;
-const int DEPTH_TEST = RenderingContextBase.DEPTH_TEST;
-const int DEPTH_WRITEMASK = RenderingContextBase.DEPTH_WRITEMASK;
-const int DITHER = RenderingContextBase.DITHER;
-const int DONT_CARE = RenderingContextBase.DONT_CARE;
-const int DST_ALPHA = RenderingContextBase.DST_ALPHA;
-const int DST_COLOR = RenderingContextBase.DST_COLOR;
-const int DYNAMIC_DRAW = RenderingContextBase.DYNAMIC_DRAW;
-const int ELEMENT_ARRAY_BUFFER = RenderingContextBase.ELEMENT_ARRAY_BUFFER;
-const int ELEMENT_ARRAY_BUFFER_BINDING = RenderingContextBase.ELEMENT_ARRAY_BUFFER_BINDING;
-const int EQUAL = RenderingContextBase.EQUAL;
-const int FASTEST = RenderingContextBase.FASTEST;
-const int FLOAT = RenderingContextBase.FLOAT;
-const int FLOAT_MAT2 = RenderingContextBase.FLOAT_MAT2;
-const int FLOAT_MAT3 = RenderingContextBase.FLOAT_MAT3;
-const int FLOAT_MAT4 = RenderingContextBase.FLOAT_MAT4;
-const int FLOAT_VEC2 = RenderingContextBase.FLOAT_VEC2;
-const int FLOAT_VEC3 = RenderingContextBase.FLOAT_VEC3;
-const int FLOAT_VEC4 = RenderingContextBase.FLOAT_VEC4;
-const int FRAGMENT_SHADER = RenderingContextBase.FRAGMENT_SHADER;
-const int FRAMEBUFFER = RenderingContextBase.FRAMEBUFFER;
-const int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = RenderingContextBase.FRAMEBUFFER_ATTACHMENT_OBJECT_NAME;
-const int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = RenderingContextBase.FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE;
-const int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = RenderingContextBase.FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE;
-const int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = RenderingContextBase.FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL;
-const int FRAMEBUFFER_BINDING = RenderingContextBase.FRAMEBUFFER_BINDING;
-const int FRAMEBUFFER_COMPLETE = RenderingContextBase.FRAMEBUFFER_COMPLETE;
-const int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = RenderingContextBase.FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
-const int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = RenderingContextBase.FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
-const int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = RenderingContextBase.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
-const int FRAMEBUFFER_UNSUPPORTED = RenderingContextBase.FRAMEBUFFER_UNSUPPORTED;
-const int FRONT = RenderingContextBase.FRONT;
-const int FRONT_AND_BACK = RenderingContextBase.FRONT_AND_BACK;
-const int FRONT_FACE = RenderingContextBase.FRONT_FACE;
-const int FUNC_ADD = RenderingContextBase.FUNC_ADD;
-const int FUNC_REVERSE_SUBTRACT = RenderingContextBase.FUNC_REVERSE_SUBTRACT;
-const int FUNC_SUBTRACT = RenderingContextBase.FUNC_SUBTRACT;
-const int GENERATE_MIPMAP_HINT = RenderingContextBase.GENERATE_MIPMAP_HINT;
-const int GEQUAL = RenderingContextBase.GEQUAL;
-const int GREATER = RenderingContextBase.GREATER;
-const int GREEN_BITS = RenderingContextBase.GREEN_BITS;
+const int ACTIVE_ATTRIBUTES = RenderingContext.ACTIVE_ATTRIBUTES;
+const int ACTIVE_TEXTURE = RenderingContext.ACTIVE_TEXTURE;
+const int ACTIVE_UNIFORMS = RenderingContext.ACTIVE_UNIFORMS;
+const int ALIASED_LINE_WIDTH_RANGE = RenderingContext.ALIASED_LINE_WIDTH_RANGE;
+const int ALIASED_POINT_SIZE_RANGE = RenderingContext.ALIASED_POINT_SIZE_RANGE;
+const int ALPHA = RenderingContext.ALPHA;
+const int ALPHA_BITS = RenderingContext.ALPHA_BITS;
+const int ALWAYS = RenderingContext.ALWAYS;
+const int ARRAY_BUFFER = RenderingContext.ARRAY_BUFFER;
+const int ARRAY_BUFFER_BINDING = RenderingContext.ARRAY_BUFFER_BINDING;
+const int ATTACHED_SHADERS = RenderingContext.ATTACHED_SHADERS;
+const int BACK = RenderingContext.BACK;
+const int BLEND = RenderingContext.BLEND;
+const int BLEND_COLOR = RenderingContext.BLEND_COLOR;
+const int BLEND_DST_ALPHA = RenderingContext.BLEND_DST_ALPHA;
+const int BLEND_DST_RGB = RenderingContext.BLEND_DST_RGB;
+const int BLEND_EQUATION = RenderingContext.BLEND_EQUATION;
+const int BLEND_EQUATION_ALPHA = RenderingContext.BLEND_EQUATION_ALPHA;
+const int BLEND_EQUATION_RGB = RenderingContext.BLEND_EQUATION_RGB;
+const int BLEND_SRC_ALPHA = RenderingContext.BLEND_SRC_ALPHA;
+const int BLEND_SRC_RGB = RenderingContext.BLEND_SRC_RGB;
+const int BLUE_BITS = RenderingContext.BLUE_BITS;
+const int BOOL = RenderingContext.BOOL;
+const int BOOL_VEC2 = RenderingContext.BOOL_VEC2;
+const int BOOL_VEC3 = RenderingContext.BOOL_VEC3;
+const int BOOL_VEC4 = RenderingContext.BOOL_VEC4;
+const int BROWSER_DEFAULT_WEBGL = RenderingContext.BROWSER_DEFAULT_WEBGL;
+const int BUFFER_SIZE = RenderingContext.BUFFER_SIZE;
+const int BUFFER_USAGE = RenderingContext.BUFFER_USAGE;
+const int BYTE = RenderingContext.BYTE;
+const int CCW = RenderingContext.CCW;
+const int CLAMP_TO_EDGE = RenderingContext.CLAMP_TO_EDGE;
+const int COLOR_ATTACHMENT0 = RenderingContext.COLOR_ATTACHMENT0;
+const int COLOR_BUFFER_BIT = RenderingContext.COLOR_BUFFER_BIT;
+const int COLOR_CLEAR_VALUE = RenderingContext.COLOR_CLEAR_VALUE;
+const int COLOR_WRITEMASK = RenderingContext.COLOR_WRITEMASK;
+const int COMPILE_STATUS = RenderingContext.COMPILE_STATUS;
+const int COMPRESSED_TEXTURE_FORMATS = RenderingContext.COMPRESSED_TEXTURE_FORMATS;
+const int CONSTANT_ALPHA = RenderingContext.CONSTANT_ALPHA;
+const int CONSTANT_COLOR = RenderingContext.CONSTANT_COLOR;
+const int CONTEXT_LOST_WEBGL = RenderingContext.CONTEXT_LOST_WEBGL;
+const int CULL_FACE = RenderingContext.CULL_FACE;
+const int CULL_FACE_MODE = RenderingContext.CULL_FACE_MODE;
+const int CURRENT_PROGRAM = RenderingContext.CURRENT_PROGRAM;
+const int CURRENT_VERTEX_ATTRIB = RenderingContext.CURRENT_VERTEX_ATTRIB;
+const int CW = RenderingContext.CW;
+const int DECR = RenderingContext.DECR;
+const int DECR_WRAP = RenderingContext.DECR_WRAP;
+const int DELETE_STATUS = RenderingContext.DELETE_STATUS;
+const int DEPTH_ATTACHMENT = RenderingContext.DEPTH_ATTACHMENT;
+const int DEPTH_BITS = RenderingContext.DEPTH_BITS;
+const int DEPTH_BUFFER_BIT = RenderingContext.DEPTH_BUFFER_BIT;
+const int DEPTH_CLEAR_VALUE = RenderingContext.DEPTH_CLEAR_VALUE;
+const int DEPTH_COMPONENT = RenderingContext.DEPTH_COMPONENT;
+const int DEPTH_COMPONENT16 = RenderingContext.DEPTH_COMPONENT16;
+const int DEPTH_FUNC = RenderingContext.DEPTH_FUNC;
+const int DEPTH_RANGE = RenderingContext.DEPTH_RANGE;
+const int DEPTH_STENCIL = RenderingContext.DEPTH_STENCIL;
+const int DEPTH_STENCIL_ATTACHMENT = RenderingContext.DEPTH_STENCIL_ATTACHMENT;
+const int DEPTH_TEST = RenderingContext.DEPTH_TEST;
+const int DEPTH_WRITEMASK = RenderingContext.DEPTH_WRITEMASK;
+const int DITHER = RenderingContext.DITHER;
+const int DONT_CARE = RenderingContext.DONT_CARE;
+const int DST_ALPHA = RenderingContext.DST_ALPHA;
+const int DST_COLOR = RenderingContext.DST_COLOR;
+const int DYNAMIC_DRAW = RenderingContext.DYNAMIC_DRAW;
+const int ELEMENT_ARRAY_BUFFER = RenderingContext.ELEMENT_ARRAY_BUFFER;
+const int ELEMENT_ARRAY_BUFFER_BINDING = RenderingContext.ELEMENT_ARRAY_BUFFER_BINDING;
+const int EQUAL = RenderingContext.EQUAL;
+const int FASTEST = RenderingContext.FASTEST;
+const int FLOAT = RenderingContext.FLOAT;
+const int FLOAT_MAT2 = RenderingContext.FLOAT_MAT2;
+const int FLOAT_MAT3 = RenderingContext.FLOAT_MAT3;
+const int FLOAT_MAT4 = RenderingContext.FLOAT_MAT4;
+const int FLOAT_VEC2 = RenderingContext.FLOAT_VEC2;
+const int FLOAT_VEC3 = RenderingContext.FLOAT_VEC3;
+const int FLOAT_VEC4 = RenderingContext.FLOAT_VEC4;
+const int FRAGMENT_SHADER = RenderingContext.FRAGMENT_SHADER;
+const int FRAMEBUFFER = RenderingContext.FRAMEBUFFER;
+const int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = RenderingContext.FRAMEBUFFER_ATTACHMENT_OBJECT_NAME;
+const int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = RenderingContext.FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE;
+const int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = RenderingContext.FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE;
+const int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = RenderingContext.FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL;
+const int FRAMEBUFFER_BINDING = RenderingContext.FRAMEBUFFER_BINDING;
+const int FRAMEBUFFER_COMPLETE = RenderingContext.FRAMEBUFFER_COMPLETE;
+const int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = RenderingContext.FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+const int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = RenderingContext.FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
+const int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = RenderingContext.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+const int FRAMEBUFFER_UNSUPPORTED = RenderingContext.FRAMEBUFFER_UNSUPPORTED;
+const int FRONT = RenderingContext.FRONT;
+const int FRONT_AND_BACK = RenderingContext.FRONT_AND_BACK;
+const int FRONT_FACE = RenderingContext.FRONT_FACE;
+const int FUNC_ADD = RenderingContext.FUNC_ADD;
+const int FUNC_REVERSE_SUBTRACT = RenderingContext.FUNC_REVERSE_SUBTRACT;
+const int FUNC_SUBTRACT = RenderingContext.FUNC_SUBTRACT;
+const int GENERATE_MIPMAP_HINT = RenderingContext.GENERATE_MIPMAP_HINT;
+const int GEQUAL = RenderingContext.GEQUAL;
+const int GREATER = RenderingContext.GREATER;
+const int GREEN_BITS = RenderingContext.GREEN_BITS;
 const int HALF_FLOAT_OES = OesTextureHalfFloat.HALF_FLOAT_OES;
-const int HIGH_FLOAT = RenderingContextBase.HIGH_FLOAT;
-const int HIGH_INT = RenderingContextBase.HIGH_INT;
-const int INCR = RenderingContextBase.INCR;
-const int INCR_WRAP = RenderingContextBase.INCR_WRAP;
-const int INT = RenderingContextBase.INT;
-const int INT_VEC2 = RenderingContextBase.INT_VEC2;
-const int INT_VEC3 = RenderingContextBase.INT_VEC3;
-const int INT_VEC4 = RenderingContextBase.INT_VEC4;
-const int INVALID_ENUM = RenderingContextBase.INVALID_ENUM;
-const int INVALID_FRAMEBUFFER_OPERATION = RenderingContextBase.INVALID_FRAMEBUFFER_OPERATION;
-const int INVALID_OPERATION = RenderingContextBase.INVALID_OPERATION;
-const int INVALID_VALUE = RenderingContextBase.INVALID_VALUE;
-const int INVERT = RenderingContextBase.INVERT;
-const int KEEP = RenderingContextBase.KEEP;
-const int LEQUAL = RenderingContextBase.LEQUAL;
-const int LESS = RenderingContextBase.LESS;
-const int LINEAR = RenderingContextBase.LINEAR;
-const int LINEAR_MIPMAP_LINEAR = RenderingContextBase.LINEAR_MIPMAP_LINEAR;
-const int LINEAR_MIPMAP_NEAREST = RenderingContextBase.LINEAR_MIPMAP_NEAREST;
-const int LINES = RenderingContextBase.LINES;
-const int LINE_LOOP = RenderingContextBase.LINE_LOOP;
-const int LINE_STRIP = RenderingContextBase.LINE_STRIP;
-const int LINE_WIDTH = RenderingContextBase.LINE_WIDTH;
-const int LINK_STATUS = RenderingContextBase.LINK_STATUS;
-const int LOW_FLOAT = RenderingContextBase.LOW_FLOAT;
-const int LOW_INT = RenderingContextBase.LOW_INT;
-const int LUMINANCE = RenderingContextBase.LUMINANCE;
-const int LUMINANCE_ALPHA = RenderingContextBase.LUMINANCE_ALPHA;
-const int MAX_COMBINED_TEXTURE_IMAGE_UNITS = RenderingContextBase.MAX_COMBINED_TEXTURE_IMAGE_UNITS;
-const int MAX_CUBE_MAP_TEXTURE_SIZE = RenderingContextBase.MAX_CUBE_MAP_TEXTURE_SIZE;
-const int MAX_FRAGMENT_UNIFORM_VECTORS = RenderingContextBase.MAX_FRAGMENT_UNIFORM_VECTORS;
-const int MAX_RENDERBUFFER_SIZE = RenderingContextBase.MAX_RENDERBUFFER_SIZE;
-const int MAX_TEXTURE_IMAGE_UNITS = RenderingContextBase.MAX_TEXTURE_IMAGE_UNITS;
-const int MAX_TEXTURE_SIZE = RenderingContextBase.MAX_TEXTURE_SIZE;
-const int MAX_VARYING_VECTORS = RenderingContextBase.MAX_VARYING_VECTORS;
-const int MAX_VERTEX_ATTRIBS = RenderingContextBase.MAX_VERTEX_ATTRIBS;
-const int MAX_VERTEX_TEXTURE_IMAGE_UNITS = RenderingContextBase.MAX_VERTEX_TEXTURE_IMAGE_UNITS;
-const int MAX_VERTEX_UNIFORM_VECTORS = RenderingContextBase.MAX_VERTEX_UNIFORM_VECTORS;
-const int MAX_VIEWPORT_DIMS = RenderingContextBase.MAX_VIEWPORT_DIMS;
-const int MEDIUM_FLOAT = RenderingContextBase.MEDIUM_FLOAT;
-const int MEDIUM_INT = RenderingContextBase.MEDIUM_INT;
-const int MIRRORED_REPEAT = RenderingContextBase.MIRRORED_REPEAT;
-const int NEAREST = RenderingContextBase.NEAREST;
-const int NEAREST_MIPMAP_LINEAR = RenderingContextBase.NEAREST_MIPMAP_LINEAR;
-const int NEAREST_MIPMAP_NEAREST = RenderingContextBase.NEAREST_MIPMAP_NEAREST;
-const int NEVER = RenderingContextBase.NEVER;
-const int NICEST = RenderingContextBase.NICEST;
-const int NONE = RenderingContextBase.NONE;
-const int NOTEQUAL = RenderingContextBase.NOTEQUAL;
-const int NO_ERROR = RenderingContextBase.NO_ERROR;
-const int ONE = RenderingContextBase.ONE;
-const int ONE_MINUS_CONSTANT_ALPHA = RenderingContextBase.ONE_MINUS_CONSTANT_ALPHA;
-const int ONE_MINUS_CONSTANT_COLOR = RenderingContextBase.ONE_MINUS_CONSTANT_COLOR;
-const int ONE_MINUS_DST_ALPHA = RenderingContextBase.ONE_MINUS_DST_ALPHA;
-const int ONE_MINUS_DST_COLOR = RenderingContextBase.ONE_MINUS_DST_COLOR;
-const int ONE_MINUS_SRC_ALPHA = RenderingContextBase.ONE_MINUS_SRC_ALPHA;
-const int ONE_MINUS_SRC_COLOR = RenderingContextBase.ONE_MINUS_SRC_COLOR;
-const int OUT_OF_MEMORY = RenderingContextBase.OUT_OF_MEMORY;
-const int PACK_ALIGNMENT = RenderingContextBase.PACK_ALIGNMENT;
-const int POINTS = RenderingContextBase.POINTS;
-const int POLYGON_OFFSET_FACTOR = RenderingContextBase.POLYGON_OFFSET_FACTOR;
-const int POLYGON_OFFSET_FILL = RenderingContextBase.POLYGON_OFFSET_FILL;
-const int POLYGON_OFFSET_UNITS = RenderingContextBase.POLYGON_OFFSET_UNITS;
-const int RED_BITS = RenderingContextBase.RED_BITS;
-const int RENDERBUFFER = RenderingContextBase.RENDERBUFFER;
-const int RENDERBUFFER_ALPHA_SIZE = RenderingContextBase.RENDERBUFFER_ALPHA_SIZE;
-const int RENDERBUFFER_BINDING = RenderingContextBase.RENDERBUFFER_BINDING;
-const int RENDERBUFFER_BLUE_SIZE = RenderingContextBase.RENDERBUFFER_BLUE_SIZE;
-const int RENDERBUFFER_DEPTH_SIZE = RenderingContextBase.RENDERBUFFER_DEPTH_SIZE;
-const int RENDERBUFFER_GREEN_SIZE = RenderingContextBase.RENDERBUFFER_GREEN_SIZE;
-const int RENDERBUFFER_HEIGHT = RenderingContextBase.RENDERBUFFER_HEIGHT;
-const int RENDERBUFFER_INTERNAL_FORMAT = RenderingContextBase.RENDERBUFFER_INTERNAL_FORMAT;
-const int RENDERBUFFER_RED_SIZE = RenderingContextBase.RENDERBUFFER_RED_SIZE;
-const int RENDERBUFFER_STENCIL_SIZE = RenderingContextBase.RENDERBUFFER_STENCIL_SIZE;
-const int RENDERBUFFER_WIDTH = RenderingContextBase.RENDERBUFFER_WIDTH;
-const int RENDERER = RenderingContextBase.RENDERER;
-const int REPEAT = RenderingContextBase.REPEAT;
-const int REPLACE = RenderingContextBase.REPLACE;
-const int RGB = RenderingContextBase.RGB;
-const int RGB565 = RenderingContextBase.RGB565;
-const int RGB5_A1 = RenderingContextBase.RGB5_A1;
-const int RGBA = RenderingContextBase.RGBA;
-const int RGBA4 = RenderingContextBase.RGBA4;
-const int SAMPLER_2D = RenderingContextBase.SAMPLER_2D;
-const int SAMPLER_CUBE = RenderingContextBase.SAMPLER_CUBE;
-const int SAMPLES = RenderingContextBase.SAMPLES;
-const int SAMPLE_ALPHA_TO_COVERAGE = RenderingContextBase.SAMPLE_ALPHA_TO_COVERAGE;
-const int SAMPLE_BUFFERS = RenderingContextBase.SAMPLE_BUFFERS;
-const int SAMPLE_COVERAGE = RenderingContextBase.SAMPLE_COVERAGE;
-const int SAMPLE_COVERAGE_INVERT = RenderingContextBase.SAMPLE_COVERAGE_INVERT;
-const int SAMPLE_COVERAGE_VALUE = RenderingContextBase.SAMPLE_COVERAGE_VALUE;
-const int SCISSOR_BOX = RenderingContextBase.SCISSOR_BOX;
-const int SCISSOR_TEST = RenderingContextBase.SCISSOR_TEST;
-const int SHADER_TYPE = RenderingContextBase.SHADER_TYPE;
-const int SHADING_LANGUAGE_VERSION = RenderingContextBase.SHADING_LANGUAGE_VERSION;
-const int SHORT = RenderingContextBase.SHORT;
-const int SRC_ALPHA = RenderingContextBase.SRC_ALPHA;
-const int SRC_ALPHA_SATURATE = RenderingContextBase.SRC_ALPHA_SATURATE;
-const int SRC_COLOR = RenderingContextBase.SRC_COLOR;
-const int STATIC_DRAW = RenderingContextBase.STATIC_DRAW;
-const int STENCIL_ATTACHMENT = RenderingContextBase.STENCIL_ATTACHMENT;
-const int STENCIL_BACK_FAIL = RenderingContextBase.STENCIL_BACK_FAIL;
-const int STENCIL_BACK_FUNC = RenderingContextBase.STENCIL_BACK_FUNC;
-const int STENCIL_BACK_PASS_DEPTH_FAIL = RenderingContextBase.STENCIL_BACK_PASS_DEPTH_FAIL;
-const int STENCIL_BACK_PASS_DEPTH_PASS = RenderingContextBase.STENCIL_BACK_PASS_DEPTH_PASS;
-const int STENCIL_BACK_REF = RenderingContextBase.STENCIL_BACK_REF;
-const int STENCIL_BACK_VALUE_MASK = RenderingContextBase.STENCIL_BACK_VALUE_MASK;
-const int STENCIL_BACK_WRITEMASK = RenderingContextBase.STENCIL_BACK_WRITEMASK;
-const int STENCIL_BITS = RenderingContextBase.STENCIL_BITS;
-const int STENCIL_BUFFER_BIT = RenderingContextBase.STENCIL_BUFFER_BIT;
-const int STENCIL_CLEAR_VALUE = RenderingContextBase.STENCIL_CLEAR_VALUE;
-const int STENCIL_FAIL = RenderingContextBase.STENCIL_FAIL;
-const int STENCIL_FUNC = RenderingContextBase.STENCIL_FUNC;
-const int STENCIL_INDEX = RenderingContextBase.STENCIL_INDEX;
-const int STENCIL_INDEX8 = RenderingContextBase.STENCIL_INDEX8;
-const int STENCIL_PASS_DEPTH_FAIL = RenderingContextBase.STENCIL_PASS_DEPTH_FAIL;
-const int STENCIL_PASS_DEPTH_PASS = RenderingContextBase.STENCIL_PASS_DEPTH_PASS;
-const int STENCIL_REF = RenderingContextBase.STENCIL_REF;
-const int STENCIL_TEST = RenderingContextBase.STENCIL_TEST;
-const int STENCIL_VALUE_MASK = RenderingContextBase.STENCIL_VALUE_MASK;
-const int STENCIL_WRITEMASK = RenderingContextBase.STENCIL_WRITEMASK;
-const int STREAM_DRAW = RenderingContextBase.STREAM_DRAW;
-const int SUBPIXEL_BITS = RenderingContextBase.SUBPIXEL_BITS;
-const int TEXTURE = RenderingContextBase.TEXTURE;
-const int TEXTURE0 = RenderingContextBase.TEXTURE0;
-const int TEXTURE1 = RenderingContextBase.TEXTURE1;
-const int TEXTURE10 = RenderingContextBase.TEXTURE10;
-const int TEXTURE11 = RenderingContextBase.TEXTURE11;
-const int TEXTURE12 = RenderingContextBase.TEXTURE12;
-const int TEXTURE13 = RenderingContextBase.TEXTURE13;
-const int TEXTURE14 = RenderingContextBase.TEXTURE14;
-const int TEXTURE15 = RenderingContextBase.TEXTURE15;
-const int TEXTURE16 = RenderingContextBase.TEXTURE16;
-const int TEXTURE17 = RenderingContextBase.TEXTURE17;
-const int TEXTURE18 = RenderingContextBase.TEXTURE18;
-const int TEXTURE19 = RenderingContextBase.TEXTURE19;
-const int TEXTURE2 = RenderingContextBase.TEXTURE2;
-const int TEXTURE20 = RenderingContextBase.TEXTURE20;
-const int TEXTURE21 = RenderingContextBase.TEXTURE21;
-const int TEXTURE22 = RenderingContextBase.TEXTURE22;
-const int TEXTURE23 = RenderingContextBase.TEXTURE23;
-const int TEXTURE24 = RenderingContextBase.TEXTURE24;
-const int TEXTURE25 = RenderingContextBase.TEXTURE25;
-const int TEXTURE26 = RenderingContextBase.TEXTURE26;
-const int TEXTURE27 = RenderingContextBase.TEXTURE27;
-const int TEXTURE28 = RenderingContextBase.TEXTURE28;
-const int TEXTURE29 = RenderingContextBase.TEXTURE29;
-const int TEXTURE3 = RenderingContextBase.TEXTURE3;
-const int TEXTURE30 = RenderingContextBase.TEXTURE30;
-const int TEXTURE31 = RenderingContextBase.TEXTURE31;
-const int TEXTURE4 = RenderingContextBase.TEXTURE4;
-const int TEXTURE5 = RenderingContextBase.TEXTURE5;
-const int TEXTURE6 = RenderingContextBase.TEXTURE6;
-const int TEXTURE7 = RenderingContextBase.TEXTURE7;
-const int TEXTURE8 = RenderingContextBase.TEXTURE8;
-const int TEXTURE9 = RenderingContextBase.TEXTURE9;
-const int TEXTURE_2D = RenderingContextBase.TEXTURE_2D;
-const int TEXTURE_BINDING_2D = RenderingContextBase.TEXTURE_BINDING_2D;
-const int TEXTURE_BINDING_CUBE_MAP = RenderingContextBase.TEXTURE_BINDING_CUBE_MAP;
-const int TEXTURE_CUBE_MAP = RenderingContextBase.TEXTURE_CUBE_MAP;
-const int TEXTURE_CUBE_MAP_NEGATIVE_X = RenderingContextBase.TEXTURE_CUBE_MAP_NEGATIVE_X;
-const int TEXTURE_CUBE_MAP_NEGATIVE_Y = RenderingContextBase.TEXTURE_CUBE_MAP_NEGATIVE_Y;
-const int TEXTURE_CUBE_MAP_NEGATIVE_Z = RenderingContextBase.TEXTURE_CUBE_MAP_NEGATIVE_Z;
-const int TEXTURE_CUBE_MAP_POSITIVE_X = RenderingContextBase.TEXTURE_CUBE_MAP_POSITIVE_X;
-const int TEXTURE_CUBE_MAP_POSITIVE_Y = RenderingContextBase.TEXTURE_CUBE_MAP_POSITIVE_Y;
-const int TEXTURE_CUBE_MAP_POSITIVE_Z = RenderingContextBase.TEXTURE_CUBE_MAP_POSITIVE_Z;
-const int TEXTURE_MAG_FILTER = RenderingContextBase.TEXTURE_MAG_FILTER;
-const int TEXTURE_MIN_FILTER = RenderingContextBase.TEXTURE_MIN_FILTER;
-const int TEXTURE_WRAP_S = RenderingContextBase.TEXTURE_WRAP_S;
-const int TEXTURE_WRAP_T = RenderingContextBase.TEXTURE_WRAP_T;
-const int TRIANGLES = RenderingContextBase.TRIANGLES;
-const int TRIANGLE_FAN = RenderingContextBase.TRIANGLE_FAN;
-const int TRIANGLE_STRIP = RenderingContextBase.TRIANGLE_STRIP;
-const int UNPACK_ALIGNMENT = RenderingContextBase.UNPACK_ALIGNMENT;
-const int UNPACK_COLORSPACE_CONVERSION_WEBGL = RenderingContextBase.UNPACK_COLORSPACE_CONVERSION_WEBGL;
-const int UNPACK_FLIP_Y_WEBGL = RenderingContextBase.UNPACK_FLIP_Y_WEBGL;
-const int UNPACK_PREMULTIPLY_ALPHA_WEBGL = RenderingContextBase.UNPACK_PREMULTIPLY_ALPHA_WEBGL;
-const int UNSIGNED_BYTE = RenderingContextBase.UNSIGNED_BYTE;
-const int UNSIGNED_INT = RenderingContextBase.UNSIGNED_INT;
-const int UNSIGNED_SHORT = RenderingContextBase.UNSIGNED_SHORT;
-const int UNSIGNED_SHORT_4_4_4_4 = RenderingContextBase.UNSIGNED_SHORT_4_4_4_4;
-const int UNSIGNED_SHORT_5_5_5_1 = RenderingContextBase.UNSIGNED_SHORT_5_5_5_1;
-const int UNSIGNED_SHORT_5_6_5 = RenderingContextBase.UNSIGNED_SHORT_5_6_5;
-const int VALIDATE_STATUS = RenderingContextBase.VALIDATE_STATUS;
-const int VENDOR = RenderingContextBase.VENDOR;
-const int VERSION = RenderingContextBase.VERSION;
-const int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = RenderingContextBase.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING;
-const int VERTEX_ATTRIB_ARRAY_ENABLED = RenderingContextBase.VERTEX_ATTRIB_ARRAY_ENABLED;
-const int VERTEX_ATTRIB_ARRAY_NORMALIZED = RenderingContextBase.VERTEX_ATTRIB_ARRAY_NORMALIZED;
-const int VERTEX_ATTRIB_ARRAY_POINTER = RenderingContextBase.VERTEX_ATTRIB_ARRAY_POINTER;
-const int VERTEX_ATTRIB_ARRAY_SIZE = RenderingContextBase.VERTEX_ATTRIB_ARRAY_SIZE;
-const int VERTEX_ATTRIB_ARRAY_STRIDE = RenderingContextBase.VERTEX_ATTRIB_ARRAY_STRIDE;
-const int VERTEX_ATTRIB_ARRAY_TYPE = RenderingContextBase.VERTEX_ATTRIB_ARRAY_TYPE;
-const int VERTEX_SHADER = RenderingContextBase.VERTEX_SHADER;
-const int VIEWPORT = RenderingContextBase.VIEWPORT;
-const int ZERO = RenderingContextBase.ZERO;
+const int HIGH_FLOAT = RenderingContext.HIGH_FLOAT;
+const int HIGH_INT = RenderingContext.HIGH_INT;
+const int INCR = RenderingContext.INCR;
+const int INCR_WRAP = RenderingContext.INCR_WRAP;
+const int INT = RenderingContext.INT;
+const int INT_VEC2 = RenderingContext.INT_VEC2;
+const int INT_VEC3 = RenderingContext.INT_VEC3;
+const int INT_VEC4 = RenderingContext.INT_VEC4;
+const int INVALID_ENUM = RenderingContext.INVALID_ENUM;
+const int INVALID_FRAMEBUFFER_OPERATION = RenderingContext.INVALID_FRAMEBUFFER_OPERATION;
+const int INVALID_OPERATION = RenderingContext.INVALID_OPERATION;
+const int INVALID_VALUE = RenderingContext.INVALID_VALUE;
+const int INVERT = RenderingContext.INVERT;
+const int KEEP = RenderingContext.KEEP;
+const int LEQUAL = RenderingContext.LEQUAL;
+const int LESS = RenderingContext.LESS;
+const int LINEAR = RenderingContext.LINEAR;
+const int LINEAR_MIPMAP_LINEAR = RenderingContext.LINEAR_MIPMAP_LINEAR;
+const int LINEAR_MIPMAP_NEAREST = RenderingContext.LINEAR_MIPMAP_NEAREST;
+const int LINES = RenderingContext.LINES;
+const int LINE_LOOP = RenderingContext.LINE_LOOP;
+const int LINE_STRIP = RenderingContext.LINE_STRIP;
+const int LINE_WIDTH = RenderingContext.LINE_WIDTH;
+const int LINK_STATUS = RenderingContext.LINK_STATUS;
+const int LOW_FLOAT = RenderingContext.LOW_FLOAT;
+const int LOW_INT = RenderingContext.LOW_INT;
+const int LUMINANCE = RenderingContext.LUMINANCE;
+const int LUMINANCE_ALPHA = RenderingContext.LUMINANCE_ALPHA;
+const int MAX_COMBINED_TEXTURE_IMAGE_UNITS = RenderingContext.MAX_COMBINED_TEXTURE_IMAGE_UNITS;
+const int MAX_CUBE_MAP_TEXTURE_SIZE = RenderingContext.MAX_CUBE_MAP_TEXTURE_SIZE;
+const int MAX_FRAGMENT_UNIFORM_VECTORS = RenderingContext.MAX_FRAGMENT_UNIFORM_VECTORS;
+const int MAX_RENDERBUFFER_SIZE = RenderingContext.MAX_RENDERBUFFER_SIZE;
+const int MAX_TEXTURE_IMAGE_UNITS = RenderingContext.MAX_TEXTURE_IMAGE_UNITS;
+const int MAX_TEXTURE_SIZE = RenderingContext.MAX_TEXTURE_SIZE;
+const int MAX_VARYING_VECTORS = RenderingContext.MAX_VARYING_VECTORS;
+const int MAX_VERTEX_ATTRIBS = RenderingContext.MAX_VERTEX_ATTRIBS;
+const int MAX_VERTEX_TEXTURE_IMAGE_UNITS = RenderingContext.MAX_VERTEX_TEXTURE_IMAGE_UNITS;
+const int MAX_VERTEX_UNIFORM_VECTORS = RenderingContext.MAX_VERTEX_UNIFORM_VECTORS;
+const int MAX_VIEWPORT_DIMS = RenderingContext.MAX_VIEWPORT_DIMS;
+const int MEDIUM_FLOAT = RenderingContext.MEDIUM_FLOAT;
+const int MEDIUM_INT = RenderingContext.MEDIUM_INT;
+const int MIRRORED_REPEAT = RenderingContext.MIRRORED_REPEAT;
+const int NEAREST = RenderingContext.NEAREST;
+const int NEAREST_MIPMAP_LINEAR = RenderingContext.NEAREST_MIPMAP_LINEAR;
+const int NEAREST_MIPMAP_NEAREST = RenderingContext.NEAREST_MIPMAP_NEAREST;
+const int NEVER = RenderingContext.NEVER;
+const int NICEST = RenderingContext.NICEST;
+const int NONE = RenderingContext.NONE;
+const int NOTEQUAL = RenderingContext.NOTEQUAL;
+const int NO_ERROR = RenderingContext.NO_ERROR;
+const int ONE = RenderingContext.ONE;
+const int ONE_MINUS_CONSTANT_ALPHA = RenderingContext.ONE_MINUS_CONSTANT_ALPHA;
+const int ONE_MINUS_CONSTANT_COLOR = RenderingContext.ONE_MINUS_CONSTANT_COLOR;
+const int ONE_MINUS_DST_ALPHA = RenderingContext.ONE_MINUS_DST_ALPHA;
+const int ONE_MINUS_DST_COLOR = RenderingContext.ONE_MINUS_DST_COLOR;
+const int ONE_MINUS_SRC_ALPHA = RenderingContext.ONE_MINUS_SRC_ALPHA;
+const int ONE_MINUS_SRC_COLOR = RenderingContext.ONE_MINUS_SRC_COLOR;
+const int OUT_OF_MEMORY = RenderingContext.OUT_OF_MEMORY;
+const int PACK_ALIGNMENT = RenderingContext.PACK_ALIGNMENT;
+const int POINTS = RenderingContext.POINTS;
+const int POLYGON_OFFSET_FACTOR = RenderingContext.POLYGON_OFFSET_FACTOR;
+const int POLYGON_OFFSET_FILL = RenderingContext.POLYGON_OFFSET_FILL;
+const int POLYGON_OFFSET_UNITS = RenderingContext.POLYGON_OFFSET_UNITS;
+const int RED_BITS = RenderingContext.RED_BITS;
+const int RENDERBUFFER = RenderingContext.RENDERBUFFER;
+const int RENDERBUFFER_ALPHA_SIZE = RenderingContext.RENDERBUFFER_ALPHA_SIZE;
+const int RENDERBUFFER_BINDING = RenderingContext.RENDERBUFFER_BINDING;
+const int RENDERBUFFER_BLUE_SIZE = RenderingContext.RENDERBUFFER_BLUE_SIZE;
+const int RENDERBUFFER_DEPTH_SIZE = RenderingContext.RENDERBUFFER_DEPTH_SIZE;
+const int RENDERBUFFER_GREEN_SIZE = RenderingContext.RENDERBUFFER_GREEN_SIZE;
+const int RENDERBUFFER_HEIGHT = RenderingContext.RENDERBUFFER_HEIGHT;
+const int RENDERBUFFER_INTERNAL_FORMAT = RenderingContext.RENDERBUFFER_INTERNAL_FORMAT;
+const int RENDERBUFFER_RED_SIZE = RenderingContext.RENDERBUFFER_RED_SIZE;
+const int RENDERBUFFER_STENCIL_SIZE = RenderingContext.RENDERBUFFER_STENCIL_SIZE;
+const int RENDERBUFFER_WIDTH = RenderingContext.RENDERBUFFER_WIDTH;
+const int RENDERER = RenderingContext.RENDERER;
+const int REPEAT = RenderingContext.REPEAT;
+const int REPLACE = RenderingContext.REPLACE;
+const int RGB = RenderingContext.RGB;
+const int RGB565 = RenderingContext.RGB565;
+const int RGB5_A1 = RenderingContext.RGB5_A1;
+const int RGBA = RenderingContext.RGBA;
+const int RGBA4 = RenderingContext.RGBA4;
+const int SAMPLER_2D = RenderingContext.SAMPLER_2D;
+const int SAMPLER_CUBE = RenderingContext.SAMPLER_CUBE;
+const int SAMPLES = RenderingContext.SAMPLES;
+const int SAMPLE_ALPHA_TO_COVERAGE = RenderingContext.SAMPLE_ALPHA_TO_COVERAGE;
+const int SAMPLE_BUFFERS = RenderingContext.SAMPLE_BUFFERS;
+const int SAMPLE_COVERAGE = RenderingContext.SAMPLE_COVERAGE;
+const int SAMPLE_COVERAGE_INVERT = RenderingContext.SAMPLE_COVERAGE_INVERT;
+const int SAMPLE_COVERAGE_VALUE = RenderingContext.SAMPLE_COVERAGE_VALUE;
+const int SCISSOR_BOX = RenderingContext.SCISSOR_BOX;
+const int SCISSOR_TEST = RenderingContext.SCISSOR_TEST;
+const int SHADER_TYPE = RenderingContext.SHADER_TYPE;
+const int SHADING_LANGUAGE_VERSION = RenderingContext.SHADING_LANGUAGE_VERSION;
+const int SHORT = RenderingContext.SHORT;
+const int SRC_ALPHA = RenderingContext.SRC_ALPHA;
+const int SRC_ALPHA_SATURATE = RenderingContext.SRC_ALPHA_SATURATE;
+const int SRC_COLOR = RenderingContext.SRC_COLOR;
+const int STATIC_DRAW = RenderingContext.STATIC_DRAW;
+const int STENCIL_ATTACHMENT = RenderingContext.STENCIL_ATTACHMENT;
+const int STENCIL_BACK_FAIL = RenderingContext.STENCIL_BACK_FAIL;
+const int STENCIL_BACK_FUNC = RenderingContext.STENCIL_BACK_FUNC;
+const int STENCIL_BACK_PASS_DEPTH_FAIL = RenderingContext.STENCIL_BACK_PASS_DEPTH_FAIL;
+const int STENCIL_BACK_PASS_DEPTH_PASS = RenderingContext.STENCIL_BACK_PASS_DEPTH_PASS;
+const int STENCIL_BACK_REF = RenderingContext.STENCIL_BACK_REF;
+const int STENCIL_BACK_VALUE_MASK = RenderingContext.STENCIL_BACK_VALUE_MASK;
+const int STENCIL_BACK_WRITEMASK = RenderingContext.STENCIL_BACK_WRITEMASK;
+const int STENCIL_BITS = RenderingContext.STENCIL_BITS;
+const int STENCIL_BUFFER_BIT = RenderingContext.STENCIL_BUFFER_BIT;
+const int STENCIL_CLEAR_VALUE = RenderingContext.STENCIL_CLEAR_VALUE;
+const int STENCIL_FAIL = RenderingContext.STENCIL_FAIL;
+const int STENCIL_FUNC = RenderingContext.STENCIL_FUNC;
+const int STENCIL_INDEX = RenderingContext.STENCIL_INDEX;
+const int STENCIL_INDEX8 = RenderingContext.STENCIL_INDEX8;
+const int STENCIL_PASS_DEPTH_FAIL = RenderingContext.STENCIL_PASS_DEPTH_FAIL;
+const int STENCIL_PASS_DEPTH_PASS = RenderingContext.STENCIL_PASS_DEPTH_PASS;
+const int STENCIL_REF = RenderingContext.STENCIL_REF;
+const int STENCIL_TEST = RenderingContext.STENCIL_TEST;
+const int STENCIL_VALUE_MASK = RenderingContext.STENCIL_VALUE_MASK;
+const int STENCIL_WRITEMASK = RenderingContext.STENCIL_WRITEMASK;
+const int STREAM_DRAW = RenderingContext.STREAM_DRAW;
+const int SUBPIXEL_BITS = RenderingContext.SUBPIXEL_BITS;
+const int TEXTURE = RenderingContext.TEXTURE;
+const int TEXTURE0 = RenderingContext.TEXTURE0;
+const int TEXTURE1 = RenderingContext.TEXTURE1;
+const int TEXTURE10 = RenderingContext.TEXTURE10;
+const int TEXTURE11 = RenderingContext.TEXTURE11;
+const int TEXTURE12 = RenderingContext.TEXTURE12;
+const int TEXTURE13 = RenderingContext.TEXTURE13;
+const int TEXTURE14 = RenderingContext.TEXTURE14;
+const int TEXTURE15 = RenderingContext.TEXTURE15;
+const int TEXTURE16 = RenderingContext.TEXTURE16;
+const int TEXTURE17 = RenderingContext.TEXTURE17;
+const int TEXTURE18 = RenderingContext.TEXTURE18;
+const int TEXTURE19 = RenderingContext.TEXTURE19;
+const int TEXTURE2 = RenderingContext.TEXTURE2;
+const int TEXTURE20 = RenderingContext.TEXTURE20;
+const int TEXTURE21 = RenderingContext.TEXTURE21;
+const int TEXTURE22 = RenderingContext.TEXTURE22;
+const int TEXTURE23 = RenderingContext.TEXTURE23;
+const int TEXTURE24 = RenderingContext.TEXTURE24;
+const int TEXTURE25 = RenderingContext.TEXTURE25;
+const int TEXTURE26 = RenderingContext.TEXTURE26;
+const int TEXTURE27 = RenderingContext.TEXTURE27;
+const int TEXTURE28 = RenderingContext.TEXTURE28;
+const int TEXTURE29 = RenderingContext.TEXTURE29;
+const int TEXTURE3 = RenderingContext.TEXTURE3;
+const int TEXTURE30 = RenderingContext.TEXTURE30;
+const int TEXTURE31 = RenderingContext.TEXTURE31;
+const int TEXTURE4 = RenderingContext.TEXTURE4;
+const int TEXTURE5 = RenderingContext.TEXTURE5;
+const int TEXTURE6 = RenderingContext.TEXTURE6;
+const int TEXTURE7 = RenderingContext.TEXTURE7;
+const int TEXTURE8 = RenderingContext.TEXTURE8;
+const int TEXTURE9 = RenderingContext.TEXTURE9;
+const int TEXTURE_2D = RenderingContext.TEXTURE_2D;
+const int TEXTURE_BINDING_2D = RenderingContext.TEXTURE_BINDING_2D;
+const int TEXTURE_BINDING_CUBE_MAP = RenderingContext.TEXTURE_BINDING_CUBE_MAP;
+const int TEXTURE_CUBE_MAP = RenderingContext.TEXTURE_CUBE_MAP;
+const int TEXTURE_CUBE_MAP_NEGATIVE_X = RenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_X;
+const int TEXTURE_CUBE_MAP_NEGATIVE_Y = RenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_Y;
+const int TEXTURE_CUBE_MAP_NEGATIVE_Z = RenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_Z;
+const int TEXTURE_CUBE_MAP_POSITIVE_X = RenderingContext.TEXTURE_CUBE_MAP_POSITIVE_X;
+const int TEXTURE_CUBE_MAP_POSITIVE_Y = RenderingContext.TEXTURE_CUBE_MAP_POSITIVE_Y;
+const int TEXTURE_CUBE_MAP_POSITIVE_Z = RenderingContext.TEXTURE_CUBE_MAP_POSITIVE_Z;
+const int TEXTURE_MAG_FILTER = RenderingContext.TEXTURE_MAG_FILTER;
+const int TEXTURE_MIN_FILTER = RenderingContext.TEXTURE_MIN_FILTER;
+const int TEXTURE_WRAP_S = RenderingContext.TEXTURE_WRAP_S;
+const int TEXTURE_WRAP_T = RenderingContext.TEXTURE_WRAP_T;
+const int TRIANGLES = RenderingContext.TRIANGLES;
+const int TRIANGLE_FAN = RenderingContext.TRIANGLE_FAN;
+const int TRIANGLE_STRIP = RenderingContext.TRIANGLE_STRIP;
+const int UNPACK_ALIGNMENT = RenderingContext.UNPACK_ALIGNMENT;
+const int UNPACK_COLORSPACE_CONVERSION_WEBGL = RenderingContext.UNPACK_COLORSPACE_CONVERSION_WEBGL;
+const int UNPACK_FLIP_Y_WEBGL = RenderingContext.UNPACK_FLIP_Y_WEBGL;
+const int UNPACK_PREMULTIPLY_ALPHA_WEBGL = RenderingContext.UNPACK_PREMULTIPLY_ALPHA_WEBGL;
+const int UNSIGNED_BYTE = RenderingContext.UNSIGNED_BYTE;
+const int UNSIGNED_INT = RenderingContext.UNSIGNED_INT;
+const int UNSIGNED_SHORT = RenderingContext.UNSIGNED_SHORT;
+const int UNSIGNED_SHORT_4_4_4_4 = RenderingContext.UNSIGNED_SHORT_4_4_4_4;
+const int UNSIGNED_SHORT_5_5_5_1 = RenderingContext.UNSIGNED_SHORT_5_5_5_1;
+const int UNSIGNED_SHORT_5_6_5 = RenderingContext.UNSIGNED_SHORT_5_6_5;
+const int VALIDATE_STATUS = RenderingContext.VALIDATE_STATUS;
+const int VENDOR = RenderingContext.VENDOR;
+const int VERSION = RenderingContext.VERSION;
+const int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = RenderingContext.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING;
+const int VERTEX_ATTRIB_ARRAY_ENABLED = RenderingContext.VERTEX_ATTRIB_ARRAY_ENABLED;
+const int VERTEX_ATTRIB_ARRAY_NORMALIZED = RenderingContext.VERTEX_ATTRIB_ARRAY_NORMALIZED;
+const int VERTEX_ATTRIB_ARRAY_POINTER = RenderingContext.VERTEX_ATTRIB_ARRAY_POINTER;
+const int VERTEX_ATTRIB_ARRAY_SIZE = RenderingContext.VERTEX_ATTRIB_ARRAY_SIZE;
+const int VERTEX_ATTRIB_ARRAY_STRIDE = RenderingContext.VERTEX_ATTRIB_ARRAY_STRIDE;
+const int VERTEX_ATTRIB_ARRAY_TYPE = RenderingContext.VERTEX_ATTRIB_ARRAY_TYPE;
+const int VERTEX_SHADER = RenderingContext.VERTEX_SHADER;
+const int VIEWPORT = RenderingContext.VIEWPORT;
+const int ZERO = RenderingContext.ZERO;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1184,6 +1184,1196 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DomName('WebGLRenderingContext.ACTIVE_ATTRIBUTES')
+  @DocsEditable()
+  static const int ACTIVE_ATTRIBUTES = 0x8B89;
+
+  @DomName('WebGLRenderingContext.ACTIVE_TEXTURE')
+  @DocsEditable()
+  static const int ACTIVE_TEXTURE = 0x84E0;
+
+  @DomName('WebGLRenderingContext.ACTIVE_UNIFORMS')
+  @DocsEditable()
+  static const int ACTIVE_UNIFORMS = 0x8B86;
+
+  @DomName('WebGLRenderingContext.ALIASED_LINE_WIDTH_RANGE')
+  @DocsEditable()
+  static const int ALIASED_LINE_WIDTH_RANGE = 0x846E;
+
+  @DomName('WebGLRenderingContext.ALIASED_POINT_SIZE_RANGE')
+  @DocsEditable()
+  static const int ALIASED_POINT_SIZE_RANGE = 0x846D;
+
+  @DomName('WebGLRenderingContext.ALPHA')
+  @DocsEditable()
+  static const int ALPHA = 0x1906;
+
+  @DomName('WebGLRenderingContext.ALPHA_BITS')
+  @DocsEditable()
+  static const int ALPHA_BITS = 0x0D55;
+
+  @DomName('WebGLRenderingContext.ALWAYS')
+  @DocsEditable()
+  static const int ALWAYS = 0x0207;
+
+  @DomName('WebGLRenderingContext.ARRAY_BUFFER')
+  @DocsEditable()
+  static const int ARRAY_BUFFER = 0x8892;
+
+  @DomName('WebGLRenderingContext.ARRAY_BUFFER_BINDING')
+  @DocsEditable()
+  static const int ARRAY_BUFFER_BINDING = 0x8894;
+
+  @DomName('WebGLRenderingContext.ATTACHED_SHADERS')
+  @DocsEditable()
+  static const int ATTACHED_SHADERS = 0x8B85;
+
+  @DomName('WebGLRenderingContext.BACK')
+  @DocsEditable()
+  static const int BACK = 0x0405;
+
+  @DomName('WebGLRenderingContext.BLEND')
+  @DocsEditable()
+  static const int BLEND = 0x0BE2;
+
+  @DomName('WebGLRenderingContext.BLEND_COLOR')
+  @DocsEditable()
+  static const int BLEND_COLOR = 0x8005;
+
+  @DomName('WebGLRenderingContext.BLEND_DST_ALPHA')
+  @DocsEditable()
+  static const int BLEND_DST_ALPHA = 0x80CA;
+
+  @DomName('WebGLRenderingContext.BLEND_DST_RGB')
+  @DocsEditable()
+  static const int BLEND_DST_RGB = 0x80C8;
+
+  @DomName('WebGLRenderingContext.BLEND_EQUATION')
+  @DocsEditable()
+  static const int BLEND_EQUATION = 0x8009;
+
+  @DomName('WebGLRenderingContext.BLEND_EQUATION_ALPHA')
+  @DocsEditable()
+  static const int BLEND_EQUATION_ALPHA = 0x883D;
+
+  @DomName('WebGLRenderingContext.BLEND_EQUATION_RGB')
+  @DocsEditable()
+  static const int BLEND_EQUATION_RGB = 0x8009;
+
+  @DomName('WebGLRenderingContext.BLEND_SRC_ALPHA')
+  @DocsEditable()
+  static const int BLEND_SRC_ALPHA = 0x80CB;
+
+  @DomName('WebGLRenderingContext.BLEND_SRC_RGB')
+  @DocsEditable()
+  static const int BLEND_SRC_RGB = 0x80C9;
+
+  @DomName('WebGLRenderingContext.BLUE_BITS')
+  @DocsEditable()
+  static const int BLUE_BITS = 0x0D54;
+
+  @DomName('WebGLRenderingContext.BOOL')
+  @DocsEditable()
+  static const int BOOL = 0x8B56;
+
+  @DomName('WebGLRenderingContext.BOOL_VEC2')
+  @DocsEditable()
+  static const int BOOL_VEC2 = 0x8B57;
+
+  @DomName('WebGLRenderingContext.BOOL_VEC3')
+  @DocsEditable()
+  static const int BOOL_VEC3 = 0x8B58;
+
+  @DomName('WebGLRenderingContext.BOOL_VEC4')
+  @DocsEditable()
+  static const int BOOL_VEC4 = 0x8B59;
+
+  @DomName('WebGLRenderingContext.BROWSER_DEFAULT_WEBGL')
+  @DocsEditable()
+  static const int BROWSER_DEFAULT_WEBGL = 0x9244;
+
+  @DomName('WebGLRenderingContext.BUFFER_SIZE')
+  @DocsEditable()
+  static const int BUFFER_SIZE = 0x8764;
+
+  @DomName('WebGLRenderingContext.BUFFER_USAGE')
+  @DocsEditable()
+  static const int BUFFER_USAGE = 0x8765;
+
+  @DomName('WebGLRenderingContext.BYTE')
+  @DocsEditable()
+  static const int BYTE = 0x1400;
+
+  @DomName('WebGLRenderingContext.CCW')
+  @DocsEditable()
+  static const int CCW = 0x0901;
+
+  @DomName('WebGLRenderingContext.CLAMP_TO_EDGE')
+  @DocsEditable()
+  static const int CLAMP_TO_EDGE = 0x812F;
+
+  @DomName('WebGLRenderingContext.COLOR_ATTACHMENT0')
+  @DocsEditable()
+  static const int COLOR_ATTACHMENT0 = 0x8CE0;
+
+  @DomName('WebGLRenderingContext.COLOR_BUFFER_BIT')
+  @DocsEditable()
+  static const int COLOR_BUFFER_BIT = 0x00004000;
+
+  @DomName('WebGLRenderingContext.COLOR_CLEAR_VALUE')
+  @DocsEditable()
+  static const int COLOR_CLEAR_VALUE = 0x0C22;
+
+  @DomName('WebGLRenderingContext.COLOR_WRITEMASK')
+  @DocsEditable()
+  static const int COLOR_WRITEMASK = 0x0C23;
+
+  @DomName('WebGLRenderingContext.COMPILE_STATUS')
+  @DocsEditable()
+  static const int COMPILE_STATUS = 0x8B81;
+
+  @DomName('WebGLRenderingContext.COMPRESSED_TEXTURE_FORMATS')
+  @DocsEditable()
+  static const int COMPRESSED_TEXTURE_FORMATS = 0x86A3;
+
+  @DomName('WebGLRenderingContext.CONSTANT_ALPHA')
+  @DocsEditable()
+  static const int CONSTANT_ALPHA = 0x8003;
+
+  @DomName('WebGLRenderingContext.CONSTANT_COLOR')
+  @DocsEditable()
+  static const int CONSTANT_COLOR = 0x8001;
+
+  @DomName('WebGLRenderingContext.CONTEXT_LOST_WEBGL')
+  @DocsEditable()
+  static const int CONTEXT_LOST_WEBGL = 0x9242;
+
+  @DomName('WebGLRenderingContext.CULL_FACE')
+  @DocsEditable()
+  static const int CULL_FACE = 0x0B44;
+
+  @DomName('WebGLRenderingContext.CULL_FACE_MODE')
+  @DocsEditable()
+  static const int CULL_FACE_MODE = 0x0B45;
+
+  @DomName('WebGLRenderingContext.CURRENT_PROGRAM')
+  @DocsEditable()
+  static const int CURRENT_PROGRAM = 0x8B8D;
+
+  @DomName('WebGLRenderingContext.CURRENT_VERTEX_ATTRIB')
+  @DocsEditable()
+  static const int CURRENT_VERTEX_ATTRIB = 0x8626;
+
+  @DomName('WebGLRenderingContext.CW')
+  @DocsEditable()
+  static const int CW = 0x0900;
+
+  @DomName('WebGLRenderingContext.DECR')
+  @DocsEditable()
+  static const int DECR = 0x1E03;
+
+  @DomName('WebGLRenderingContext.DECR_WRAP')
+  @DocsEditable()
+  static const int DECR_WRAP = 0x8508;
+
+  @DomName('WebGLRenderingContext.DELETE_STATUS')
+  @DocsEditable()
+  static const int DELETE_STATUS = 0x8B80;
+
+  @DomName('WebGLRenderingContext.DEPTH_ATTACHMENT')
+  @DocsEditable()
+  static const int DEPTH_ATTACHMENT = 0x8D00;
+
+  @DomName('WebGLRenderingContext.DEPTH_BITS')
+  @DocsEditable()
+  static const int DEPTH_BITS = 0x0D56;
+
+  @DomName('WebGLRenderingContext.DEPTH_BUFFER_BIT')
+  @DocsEditable()
+  static const int DEPTH_BUFFER_BIT = 0x00000100;
+
+  @DomName('WebGLRenderingContext.DEPTH_CLEAR_VALUE')
+  @DocsEditable()
+  static const int DEPTH_CLEAR_VALUE = 0x0B73;
+
+  @DomName('WebGLRenderingContext.DEPTH_COMPONENT')
+  @DocsEditable()
+  static const int DEPTH_COMPONENT = 0x1902;
+
+  @DomName('WebGLRenderingContext.DEPTH_COMPONENT16')
+  @DocsEditable()
+  static const int DEPTH_COMPONENT16 = 0x81A5;
+
+  @DomName('WebGLRenderingContext.DEPTH_FUNC')
+  @DocsEditable()
+  static const int DEPTH_FUNC = 0x0B74;
+
+  @DomName('WebGLRenderingContext.DEPTH_RANGE')
+  @DocsEditable()
+  static const int DEPTH_RANGE = 0x0B70;
+
+  @DomName('WebGLRenderingContext.DEPTH_STENCIL')
+  @DocsEditable()
+  static const int DEPTH_STENCIL = 0x84F9;
+
+  @DomName('WebGLRenderingContext.DEPTH_STENCIL_ATTACHMENT')
+  @DocsEditable()
+  static const int DEPTH_STENCIL_ATTACHMENT = 0x821A;
+
+  @DomName('WebGLRenderingContext.DEPTH_TEST')
+  @DocsEditable()
+  static const int DEPTH_TEST = 0x0B71;
+
+  @DomName('WebGLRenderingContext.DEPTH_WRITEMASK')
+  @DocsEditable()
+  static const int DEPTH_WRITEMASK = 0x0B72;
+
+  @DomName('WebGLRenderingContext.DITHER')
+  @DocsEditable()
+  static const int DITHER = 0x0BD0;
+
+  @DomName('WebGLRenderingContext.DONT_CARE')
+  @DocsEditable()
+  static const int DONT_CARE = 0x1100;
+
+  @DomName('WebGLRenderingContext.DST_ALPHA')
+  @DocsEditable()
+  static const int DST_ALPHA = 0x0304;
+
+  @DomName('WebGLRenderingContext.DST_COLOR')
+  @DocsEditable()
+  static const int DST_COLOR = 0x0306;
+
+  @DomName('WebGLRenderingContext.DYNAMIC_DRAW')
+  @DocsEditable()
+  static const int DYNAMIC_DRAW = 0x88E8;
+
+  @DomName('WebGLRenderingContext.ELEMENT_ARRAY_BUFFER')
+  @DocsEditable()
+  static const int ELEMENT_ARRAY_BUFFER = 0x8893;
+
+  @DomName('WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING')
+  @DocsEditable()
+  static const int ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
+
+  @DomName('WebGLRenderingContext.EQUAL')
+  @DocsEditable()
+  static const int EQUAL = 0x0202;
+
+  @DomName('WebGLRenderingContext.FASTEST')
+  @DocsEditable()
+  static const int FASTEST = 0x1101;
+
+  @DomName('WebGLRenderingContext.FLOAT')
+  @DocsEditable()
+  static const int FLOAT = 0x1406;
+
+  @DomName('WebGLRenderingContext.FLOAT_MAT2')
+  @DocsEditable()
+  static const int FLOAT_MAT2 = 0x8B5A;
+
+  @DomName('WebGLRenderingContext.FLOAT_MAT3')
+  @DocsEditable()
+  static const int FLOAT_MAT3 = 0x8B5B;
+
+  @DomName('WebGLRenderingContext.FLOAT_MAT4')
+  @DocsEditable()
+  static const int FLOAT_MAT4 = 0x8B5C;
+
+  @DomName('WebGLRenderingContext.FLOAT_VEC2')
+  @DocsEditable()
+  static const int FLOAT_VEC2 = 0x8B50;
+
+  @DomName('WebGLRenderingContext.FLOAT_VEC3')
+  @DocsEditable()
+  static const int FLOAT_VEC3 = 0x8B51;
+
+  @DomName('WebGLRenderingContext.FLOAT_VEC4')
+  @DocsEditable()
+  static const int FLOAT_VEC4 = 0x8B52;
+
+  @DomName('WebGLRenderingContext.FRAGMENT_SHADER')
+  @DocsEditable()
+  static const int FRAGMENT_SHADER = 0x8B30;
+
+  @DomName('WebGLRenderingContext.FRAMEBUFFER')
+  @DocsEditable()
+  static const int FRAMEBUFFER = 0x8D40;
+
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_ATTACHMENT_OBJECT_NAME')
+  @DocsEditable()
+  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
+
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE')
+  @DocsEditable()
+  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
+
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE')
+  @DocsEditable()
+  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
+
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL')
+  @DocsEditable()
+  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
+
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_BINDING')
+  @DocsEditable()
+  static const int FRAMEBUFFER_BINDING = 0x8CA6;
+
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_COMPLETE')
+  @DocsEditable()
+  static const int FRAMEBUFFER_COMPLETE = 0x8CD5;
+
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_INCOMPLETE_ATTACHMENT')
+  @DocsEditable()
+  static const int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
+
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_INCOMPLETE_DIMENSIONS')
+  @DocsEditable()
+  static const int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 0x8CD9;
+
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT')
+  @DocsEditable()
+  static const int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
+
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_UNSUPPORTED')
+  @DocsEditable()
+  static const int FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
+
+  @DomName('WebGLRenderingContext.FRONT')
+  @DocsEditable()
+  static const int FRONT = 0x0404;
+
+  @DomName('WebGLRenderingContext.FRONT_AND_BACK')
+  @DocsEditable()
+  static const int FRONT_AND_BACK = 0x0408;
+
+  @DomName('WebGLRenderingContext.FRONT_FACE')
+  @DocsEditable()
+  static const int FRONT_FACE = 0x0B46;
+
+  @DomName('WebGLRenderingContext.FUNC_ADD')
+  @DocsEditable()
+  static const int FUNC_ADD = 0x8006;
+
+  @DomName('WebGLRenderingContext.FUNC_REVERSE_SUBTRACT')
+  @DocsEditable()
+  static const int FUNC_REVERSE_SUBTRACT = 0x800B;
+
+  @DomName('WebGLRenderingContext.FUNC_SUBTRACT')
+  @DocsEditable()
+  static const int FUNC_SUBTRACT = 0x800A;
+
+  @DomName('WebGLRenderingContext.GENERATE_MIPMAP_HINT')
+  @DocsEditable()
+  static const int GENERATE_MIPMAP_HINT = 0x8192;
+
+  @DomName('WebGLRenderingContext.GEQUAL')
+  @DocsEditable()
+  static const int GEQUAL = 0x0206;
+
+  @DomName('WebGLRenderingContext.GREATER')
+  @DocsEditable()
+  static const int GREATER = 0x0204;
+
+  @DomName('WebGLRenderingContext.GREEN_BITS')
+  @DocsEditable()
+  static const int GREEN_BITS = 0x0D53;
+
+  @DomName('WebGLRenderingContext.HIGH_FLOAT')
+  @DocsEditable()
+  static const int HIGH_FLOAT = 0x8DF2;
+
+  @DomName('WebGLRenderingContext.HIGH_INT')
+  @DocsEditable()
+  static const int HIGH_INT = 0x8DF5;
+
+  @DomName('WebGLRenderingContext.IMPLEMENTATION_COLOR_READ_FORMAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int IMPLEMENTATION_COLOR_READ_FORMAT = 0x8B9B;
+
+  @DomName('WebGLRenderingContext.IMPLEMENTATION_COLOR_READ_TYPE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int IMPLEMENTATION_COLOR_READ_TYPE = 0x8B9A;
+
+  @DomName('WebGLRenderingContext.INCR')
+  @DocsEditable()
+  static const int INCR = 0x1E02;
+
+  @DomName('WebGLRenderingContext.INCR_WRAP')
+  @DocsEditable()
+  static const int INCR_WRAP = 0x8507;
+
+  @DomName('WebGLRenderingContext.INT')
+  @DocsEditable()
+  static const int INT = 0x1404;
+
+  @DomName('WebGLRenderingContext.INT_VEC2')
+  @DocsEditable()
+  static const int INT_VEC2 = 0x8B53;
+
+  @DomName('WebGLRenderingContext.INT_VEC3')
+  @DocsEditable()
+  static const int INT_VEC3 = 0x8B54;
+
+  @DomName('WebGLRenderingContext.INT_VEC4')
+  @DocsEditable()
+  static const int INT_VEC4 = 0x8B55;
+
+  @DomName('WebGLRenderingContext.INVALID_ENUM')
+  @DocsEditable()
+  static const int INVALID_ENUM = 0x0500;
+
+  @DomName('WebGLRenderingContext.INVALID_FRAMEBUFFER_OPERATION')
+  @DocsEditable()
+  static const int INVALID_FRAMEBUFFER_OPERATION = 0x0506;
+
+  @DomName('WebGLRenderingContext.INVALID_OPERATION')
+  @DocsEditable()
+  static const int INVALID_OPERATION = 0x0502;
+
+  @DomName('WebGLRenderingContext.INVALID_VALUE')
+  @DocsEditable()
+  static const int INVALID_VALUE = 0x0501;
+
+  @DomName('WebGLRenderingContext.INVERT')
+  @DocsEditable()
+  static const int INVERT = 0x150A;
+
+  @DomName('WebGLRenderingContext.KEEP')
+  @DocsEditable()
+  static const int KEEP = 0x1E00;
+
+  @DomName('WebGLRenderingContext.LEQUAL')
+  @DocsEditable()
+  static const int LEQUAL = 0x0203;
+
+  @DomName('WebGLRenderingContext.LESS')
+  @DocsEditable()
+  static const int LESS = 0x0201;
+
+  @DomName('WebGLRenderingContext.LINEAR')
+  @DocsEditable()
+  static const int LINEAR = 0x2601;
+
+  @DomName('WebGLRenderingContext.LINEAR_MIPMAP_LINEAR')
+  @DocsEditable()
+  static const int LINEAR_MIPMAP_LINEAR = 0x2703;
+
+  @DomName('WebGLRenderingContext.LINEAR_MIPMAP_NEAREST')
+  @DocsEditable()
+  static const int LINEAR_MIPMAP_NEAREST = 0x2701;
+
+  @DomName('WebGLRenderingContext.LINES')
+  @DocsEditable()
+  static const int LINES = 0x0001;
+
+  @DomName('WebGLRenderingContext.LINE_LOOP')
+  @DocsEditable()
+  static const int LINE_LOOP = 0x0002;
+
+  @DomName('WebGLRenderingContext.LINE_STRIP')
+  @DocsEditable()
+  static const int LINE_STRIP = 0x0003;
+
+  @DomName('WebGLRenderingContext.LINE_WIDTH')
+  @DocsEditable()
+  static const int LINE_WIDTH = 0x0B21;
+
+  @DomName('WebGLRenderingContext.LINK_STATUS')
+  @DocsEditable()
+  static const int LINK_STATUS = 0x8B82;
+
+  @DomName('WebGLRenderingContext.LOW_FLOAT')
+  @DocsEditable()
+  static const int LOW_FLOAT = 0x8DF0;
+
+  @DomName('WebGLRenderingContext.LOW_INT')
+  @DocsEditable()
+  static const int LOW_INT = 0x8DF3;
+
+  @DomName('WebGLRenderingContext.LUMINANCE')
+  @DocsEditable()
+  static const int LUMINANCE = 0x1909;
+
+  @DomName('WebGLRenderingContext.LUMINANCE_ALPHA')
+  @DocsEditable()
+  static const int LUMINANCE_ALPHA = 0x190A;
+
+  @DomName('WebGLRenderingContext.MAX_COMBINED_TEXTURE_IMAGE_UNITS')
+  @DocsEditable()
+  static const int MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
+
+  @DomName('WebGLRenderingContext.MAX_CUBE_MAP_TEXTURE_SIZE')
+  @DocsEditable()
+  static const int MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
+
+  @DomName('WebGLRenderingContext.MAX_FRAGMENT_UNIFORM_VECTORS')
+  @DocsEditable()
+  static const int MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
+
+  @DomName('WebGLRenderingContext.MAX_RENDERBUFFER_SIZE')
+  @DocsEditable()
+  static const int MAX_RENDERBUFFER_SIZE = 0x84E8;
+
+  @DomName('WebGLRenderingContext.MAX_TEXTURE_IMAGE_UNITS')
+  @DocsEditable()
+  static const int MAX_TEXTURE_IMAGE_UNITS = 0x8872;
+
+  @DomName('WebGLRenderingContext.MAX_TEXTURE_SIZE')
+  @DocsEditable()
+  static const int MAX_TEXTURE_SIZE = 0x0D33;
+
+  @DomName('WebGLRenderingContext.MAX_VARYING_VECTORS')
+  @DocsEditable()
+  static const int MAX_VARYING_VECTORS = 0x8DFC;
+
+  @DomName('WebGLRenderingContext.MAX_VERTEX_ATTRIBS')
+  @DocsEditable()
+  static const int MAX_VERTEX_ATTRIBS = 0x8869;
+
+  @DomName('WebGLRenderingContext.MAX_VERTEX_TEXTURE_IMAGE_UNITS')
+  @DocsEditable()
+  static const int MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
+
+  @DomName('WebGLRenderingContext.MAX_VERTEX_UNIFORM_VECTORS')
+  @DocsEditable()
+  static const int MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
+
+  @DomName('WebGLRenderingContext.MAX_VIEWPORT_DIMS')
+  @DocsEditable()
+  static const int MAX_VIEWPORT_DIMS = 0x0D3A;
+
+  @DomName('WebGLRenderingContext.MEDIUM_FLOAT')
+  @DocsEditable()
+  static const int MEDIUM_FLOAT = 0x8DF1;
+
+  @DomName('WebGLRenderingContext.MEDIUM_INT')
+  @DocsEditable()
+  static const int MEDIUM_INT = 0x8DF4;
+
+  @DomName('WebGLRenderingContext.MIRRORED_REPEAT')
+  @DocsEditable()
+  static const int MIRRORED_REPEAT = 0x8370;
+
+  @DomName('WebGLRenderingContext.NEAREST')
+  @DocsEditable()
+  static const int NEAREST = 0x2600;
+
+  @DomName('WebGLRenderingContext.NEAREST_MIPMAP_LINEAR')
+  @DocsEditable()
+  static const int NEAREST_MIPMAP_LINEAR = 0x2702;
+
+  @DomName('WebGLRenderingContext.NEAREST_MIPMAP_NEAREST')
+  @DocsEditable()
+  static const int NEAREST_MIPMAP_NEAREST = 0x2700;
+
+  @DomName('WebGLRenderingContext.NEVER')
+  @DocsEditable()
+  static const int NEVER = 0x0200;
+
+  @DomName('WebGLRenderingContext.NICEST')
+  @DocsEditable()
+  static const int NICEST = 0x1102;
+
+  @DomName('WebGLRenderingContext.NONE')
+  @DocsEditable()
+  static const int NONE = 0;
+
+  @DomName('WebGLRenderingContext.NOTEQUAL')
+  @DocsEditable()
+  static const int NOTEQUAL = 0x0205;
+
+  @DomName('WebGLRenderingContext.NO_ERROR')
+  @DocsEditable()
+  static const int NO_ERROR = 0;
+
+  @DomName('WebGLRenderingContext.ONE')
+  @DocsEditable()
+  static const int ONE = 1;
+
+  @DomName('WebGLRenderingContext.ONE_MINUS_CONSTANT_ALPHA')
+  @DocsEditable()
+  static const int ONE_MINUS_CONSTANT_ALPHA = 0x8004;
+
+  @DomName('WebGLRenderingContext.ONE_MINUS_CONSTANT_COLOR')
+  @DocsEditable()
+  static const int ONE_MINUS_CONSTANT_COLOR = 0x8002;
+
+  @DomName('WebGLRenderingContext.ONE_MINUS_DST_ALPHA')
+  @DocsEditable()
+  static const int ONE_MINUS_DST_ALPHA = 0x0305;
+
+  @DomName('WebGLRenderingContext.ONE_MINUS_DST_COLOR')
+  @DocsEditable()
+  static const int ONE_MINUS_DST_COLOR = 0x0307;
+
+  @DomName('WebGLRenderingContext.ONE_MINUS_SRC_ALPHA')
+  @DocsEditable()
+  static const int ONE_MINUS_SRC_ALPHA = 0x0303;
+
+  @DomName('WebGLRenderingContext.ONE_MINUS_SRC_COLOR')
+  @DocsEditable()
+  static const int ONE_MINUS_SRC_COLOR = 0x0301;
+
+  @DomName('WebGLRenderingContext.OUT_OF_MEMORY')
+  @DocsEditable()
+  static const int OUT_OF_MEMORY = 0x0505;
+
+  @DomName('WebGLRenderingContext.PACK_ALIGNMENT')
+  @DocsEditable()
+  static const int PACK_ALIGNMENT = 0x0D05;
+
+  @DomName('WebGLRenderingContext.POINTS')
+  @DocsEditable()
+  static const int POINTS = 0x0000;
+
+  @DomName('WebGLRenderingContext.POLYGON_OFFSET_FACTOR')
+  @DocsEditable()
+  static const int POLYGON_OFFSET_FACTOR = 0x8038;
+
+  @DomName('WebGLRenderingContext.POLYGON_OFFSET_FILL')
+  @DocsEditable()
+  static const int POLYGON_OFFSET_FILL = 0x8037;
+
+  @DomName('WebGLRenderingContext.POLYGON_OFFSET_UNITS')
+  @DocsEditable()
+  static const int POLYGON_OFFSET_UNITS = 0x2A00;
+
+  @DomName('WebGLRenderingContext.RED_BITS')
+  @DocsEditable()
+  static const int RED_BITS = 0x0D52;
+
+  @DomName('WebGLRenderingContext.RENDERBUFFER')
+  @DocsEditable()
+  static const int RENDERBUFFER = 0x8D41;
+
+  @DomName('WebGLRenderingContext.RENDERBUFFER_ALPHA_SIZE')
+  @DocsEditable()
+  static const int RENDERBUFFER_ALPHA_SIZE = 0x8D53;
+
+  @DomName('WebGLRenderingContext.RENDERBUFFER_BINDING')
+  @DocsEditable()
+  static const int RENDERBUFFER_BINDING = 0x8CA7;
+
+  @DomName('WebGLRenderingContext.RENDERBUFFER_BLUE_SIZE')
+  @DocsEditable()
+  static const int RENDERBUFFER_BLUE_SIZE = 0x8D52;
+
+  @DomName('WebGLRenderingContext.RENDERBUFFER_DEPTH_SIZE')
+  @DocsEditable()
+  static const int RENDERBUFFER_DEPTH_SIZE = 0x8D54;
+
+  @DomName('WebGLRenderingContext.RENDERBUFFER_GREEN_SIZE')
+  @DocsEditable()
+  static const int RENDERBUFFER_GREEN_SIZE = 0x8D51;
+
+  @DomName('WebGLRenderingContext.RENDERBUFFER_HEIGHT')
+  @DocsEditable()
+  static const int RENDERBUFFER_HEIGHT = 0x8D43;
+
+  @DomName('WebGLRenderingContext.RENDERBUFFER_INTERNAL_FORMAT')
+  @DocsEditable()
+  static const int RENDERBUFFER_INTERNAL_FORMAT = 0x8D44;
+
+  @DomName('WebGLRenderingContext.RENDERBUFFER_RED_SIZE')
+  @DocsEditable()
+  static const int RENDERBUFFER_RED_SIZE = 0x8D50;
+
+  @DomName('WebGLRenderingContext.RENDERBUFFER_STENCIL_SIZE')
+  @DocsEditable()
+  static const int RENDERBUFFER_STENCIL_SIZE = 0x8D55;
+
+  @DomName('WebGLRenderingContext.RENDERBUFFER_WIDTH')
+  @DocsEditable()
+  static const int RENDERBUFFER_WIDTH = 0x8D42;
+
+  @DomName('WebGLRenderingContext.RENDERER')
+  @DocsEditable()
+  static const int RENDERER = 0x1F01;
+
+  @DomName('WebGLRenderingContext.REPEAT')
+  @DocsEditable()
+  static const int REPEAT = 0x2901;
+
+  @DomName('WebGLRenderingContext.REPLACE')
+  @DocsEditable()
+  static const int REPLACE = 0x1E01;
+
+  @DomName('WebGLRenderingContext.RGB')
+  @DocsEditable()
+  static const int RGB = 0x1907;
+
+  @DomName('WebGLRenderingContext.RGB565')
+  @DocsEditable()
+  static const int RGB565 = 0x8D62;
+
+  @DomName('WebGLRenderingContext.RGB5_A1')
+  @DocsEditable()
+  static const int RGB5_A1 = 0x8057;
+
+  @DomName('WebGLRenderingContext.RGBA')
+  @DocsEditable()
+  static const int RGBA = 0x1908;
+
+  @DomName('WebGLRenderingContext.RGBA4')
+  @DocsEditable()
+  static const int RGBA4 = 0x8056;
+
+  @DomName('WebGLRenderingContext.SAMPLER_2D')
+  @DocsEditable()
+  static const int SAMPLER_2D = 0x8B5E;
+
+  @DomName('WebGLRenderingContext.SAMPLER_CUBE')
+  @DocsEditable()
+  static const int SAMPLER_CUBE = 0x8B60;
+
+  @DomName('WebGLRenderingContext.SAMPLES')
+  @DocsEditable()
+  static const int SAMPLES = 0x80A9;
+
+  @DomName('WebGLRenderingContext.SAMPLE_ALPHA_TO_COVERAGE')
+  @DocsEditable()
+  static const int SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
+
+  @DomName('WebGLRenderingContext.SAMPLE_BUFFERS')
+  @DocsEditable()
+  static const int SAMPLE_BUFFERS = 0x80A8;
+
+  @DomName('WebGLRenderingContext.SAMPLE_COVERAGE')
+  @DocsEditable()
+  static const int SAMPLE_COVERAGE = 0x80A0;
+
+  @DomName('WebGLRenderingContext.SAMPLE_COVERAGE_INVERT')
+  @DocsEditable()
+  static const int SAMPLE_COVERAGE_INVERT = 0x80AB;
+
+  @DomName('WebGLRenderingContext.SAMPLE_COVERAGE_VALUE')
+  @DocsEditable()
+  static const int SAMPLE_COVERAGE_VALUE = 0x80AA;
+
+  @DomName('WebGLRenderingContext.SCISSOR_BOX')
+  @DocsEditable()
+  static const int SCISSOR_BOX = 0x0C10;
+
+  @DomName('WebGLRenderingContext.SCISSOR_TEST')
+  @DocsEditable()
+  static const int SCISSOR_TEST = 0x0C11;
+
+  @DomName('WebGLRenderingContext.SHADER_TYPE')
+  @DocsEditable()
+  static const int SHADER_TYPE = 0x8B4F;
+
+  @DomName('WebGLRenderingContext.SHADING_LANGUAGE_VERSION')
+  @DocsEditable()
+  static const int SHADING_LANGUAGE_VERSION = 0x8B8C;
+
+  @DomName('WebGLRenderingContext.SHORT')
+  @DocsEditable()
+  static const int SHORT = 0x1402;
+
+  @DomName('WebGLRenderingContext.SRC_ALPHA')
+  @DocsEditable()
+  static const int SRC_ALPHA = 0x0302;
+
+  @DomName('WebGLRenderingContext.SRC_ALPHA_SATURATE')
+  @DocsEditable()
+  static const int SRC_ALPHA_SATURATE = 0x0308;
+
+  @DomName('WebGLRenderingContext.SRC_COLOR')
+  @DocsEditable()
+  static const int SRC_COLOR = 0x0300;
+
+  @DomName('WebGLRenderingContext.STATIC_DRAW')
+  @DocsEditable()
+  static const int STATIC_DRAW = 0x88E4;
+
+  @DomName('WebGLRenderingContext.STENCIL_ATTACHMENT')
+  @DocsEditable()
+  static const int STENCIL_ATTACHMENT = 0x8D20;
+
+  @DomName('WebGLRenderingContext.STENCIL_BACK_FAIL')
+  @DocsEditable()
+  static const int STENCIL_BACK_FAIL = 0x8801;
+
+  @DomName('WebGLRenderingContext.STENCIL_BACK_FUNC')
+  @DocsEditable()
+  static const int STENCIL_BACK_FUNC = 0x8800;
+
+  @DomName('WebGLRenderingContext.STENCIL_BACK_PASS_DEPTH_FAIL')
+  @DocsEditable()
+  static const int STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
+
+  @DomName('WebGLRenderingContext.STENCIL_BACK_PASS_DEPTH_PASS')
+  @DocsEditable()
+  static const int STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
+
+  @DomName('WebGLRenderingContext.STENCIL_BACK_REF')
+  @DocsEditable()
+  static const int STENCIL_BACK_REF = 0x8CA3;
+
+  @DomName('WebGLRenderingContext.STENCIL_BACK_VALUE_MASK')
+  @DocsEditable()
+  static const int STENCIL_BACK_VALUE_MASK = 0x8CA4;
+
+  @DomName('WebGLRenderingContext.STENCIL_BACK_WRITEMASK')
+  @DocsEditable()
+  static const int STENCIL_BACK_WRITEMASK = 0x8CA5;
+
+  @DomName('WebGLRenderingContext.STENCIL_BITS')
+  @DocsEditable()
+  static const int STENCIL_BITS = 0x0D57;
+
+  @DomName('WebGLRenderingContext.STENCIL_BUFFER_BIT')
+  @DocsEditable()
+  static const int STENCIL_BUFFER_BIT = 0x00000400;
+
+  @DomName('WebGLRenderingContext.STENCIL_CLEAR_VALUE')
+  @DocsEditable()
+  static const int STENCIL_CLEAR_VALUE = 0x0B91;
+
+  @DomName('WebGLRenderingContext.STENCIL_FAIL')
+  @DocsEditable()
+  static const int STENCIL_FAIL = 0x0B94;
+
+  @DomName('WebGLRenderingContext.STENCIL_FUNC')
+  @DocsEditable()
+  static const int STENCIL_FUNC = 0x0B92;
+
+  @DomName('WebGLRenderingContext.STENCIL_INDEX')
+  @DocsEditable()
+  static const int STENCIL_INDEX = 0x1901;
+
+  @DomName('WebGLRenderingContext.STENCIL_INDEX8')
+  @DocsEditable()
+  static const int STENCIL_INDEX8 = 0x8D48;
+
+  @DomName('WebGLRenderingContext.STENCIL_PASS_DEPTH_FAIL')
+  @DocsEditable()
+  static const int STENCIL_PASS_DEPTH_FAIL = 0x0B95;
+
+  @DomName('WebGLRenderingContext.STENCIL_PASS_DEPTH_PASS')
+  @DocsEditable()
+  static const int STENCIL_PASS_DEPTH_PASS = 0x0B96;
+
+  @DomName('WebGLRenderingContext.STENCIL_REF')
+  @DocsEditable()
+  static const int STENCIL_REF = 0x0B97;
+
+  @DomName('WebGLRenderingContext.STENCIL_TEST')
+  @DocsEditable()
+  static const int STENCIL_TEST = 0x0B90;
+
+  @DomName('WebGLRenderingContext.STENCIL_VALUE_MASK')
+  @DocsEditable()
+  static const int STENCIL_VALUE_MASK = 0x0B93;
+
+  @DomName('WebGLRenderingContext.STENCIL_WRITEMASK')
+  @DocsEditable()
+  static const int STENCIL_WRITEMASK = 0x0B98;
+
+  @DomName('WebGLRenderingContext.STREAM_DRAW')
+  @DocsEditable()
+  static const int STREAM_DRAW = 0x88E0;
+
+  @DomName('WebGLRenderingContext.SUBPIXEL_BITS')
+  @DocsEditable()
+  static const int SUBPIXEL_BITS = 0x0D50;
+
+  @DomName('WebGLRenderingContext.TEXTURE')
+  @DocsEditable()
+  static const int TEXTURE = 0x1702;
+
+  @DomName('WebGLRenderingContext.TEXTURE0')
+  @DocsEditable()
+  static const int TEXTURE0 = 0x84C0;
+
+  @DomName('WebGLRenderingContext.TEXTURE1')
+  @DocsEditable()
+  static const int TEXTURE1 = 0x84C1;
+
+  @DomName('WebGLRenderingContext.TEXTURE10')
+  @DocsEditable()
+  static const int TEXTURE10 = 0x84CA;
+
+  @DomName('WebGLRenderingContext.TEXTURE11')
+  @DocsEditable()
+  static const int TEXTURE11 = 0x84CB;
+
+  @DomName('WebGLRenderingContext.TEXTURE12')
+  @DocsEditable()
+  static const int TEXTURE12 = 0x84CC;
+
+  @DomName('WebGLRenderingContext.TEXTURE13')
+  @DocsEditable()
+  static const int TEXTURE13 = 0x84CD;
+
+  @DomName('WebGLRenderingContext.TEXTURE14')
+  @DocsEditable()
+  static const int TEXTURE14 = 0x84CE;
+
+  @DomName('WebGLRenderingContext.TEXTURE15')
+  @DocsEditable()
+  static const int TEXTURE15 = 0x84CF;
+
+  @DomName('WebGLRenderingContext.TEXTURE16')
+  @DocsEditable()
+  static const int TEXTURE16 = 0x84D0;
+
+  @DomName('WebGLRenderingContext.TEXTURE17')
+  @DocsEditable()
+  static const int TEXTURE17 = 0x84D1;
+
+  @DomName('WebGLRenderingContext.TEXTURE18')
+  @DocsEditable()
+  static const int TEXTURE18 = 0x84D2;
+
+  @DomName('WebGLRenderingContext.TEXTURE19')
+  @DocsEditable()
+  static const int TEXTURE19 = 0x84D3;
+
+  @DomName('WebGLRenderingContext.TEXTURE2')
+  @DocsEditable()
+  static const int TEXTURE2 = 0x84C2;
+
+  @DomName('WebGLRenderingContext.TEXTURE20')
+  @DocsEditable()
+  static const int TEXTURE20 = 0x84D4;
+
+  @DomName('WebGLRenderingContext.TEXTURE21')
+  @DocsEditable()
+  static const int TEXTURE21 = 0x84D5;
+
+  @DomName('WebGLRenderingContext.TEXTURE22')
+  @DocsEditable()
+  static const int TEXTURE22 = 0x84D6;
+
+  @DomName('WebGLRenderingContext.TEXTURE23')
+  @DocsEditable()
+  static const int TEXTURE23 = 0x84D7;
+
+  @DomName('WebGLRenderingContext.TEXTURE24')
+  @DocsEditable()
+  static const int TEXTURE24 = 0x84D8;
+
+  @DomName('WebGLRenderingContext.TEXTURE25')
+  @DocsEditable()
+  static const int TEXTURE25 = 0x84D9;
+
+  @DomName('WebGLRenderingContext.TEXTURE26')
+  @DocsEditable()
+  static const int TEXTURE26 = 0x84DA;
+
+  @DomName('WebGLRenderingContext.TEXTURE27')
+  @DocsEditable()
+  static const int TEXTURE27 = 0x84DB;
+
+  @DomName('WebGLRenderingContext.TEXTURE28')
+  @DocsEditable()
+  static const int TEXTURE28 = 0x84DC;
+
+  @DomName('WebGLRenderingContext.TEXTURE29')
+  @DocsEditable()
+  static const int TEXTURE29 = 0x84DD;
+
+  @DomName('WebGLRenderingContext.TEXTURE3')
+  @DocsEditable()
+  static const int TEXTURE3 = 0x84C3;
+
+  @DomName('WebGLRenderingContext.TEXTURE30')
+  @DocsEditable()
+  static const int TEXTURE30 = 0x84DE;
+
+  @DomName('WebGLRenderingContext.TEXTURE31')
+  @DocsEditable()
+  static const int TEXTURE31 = 0x84DF;
+
+  @DomName('WebGLRenderingContext.TEXTURE4')
+  @DocsEditable()
+  static const int TEXTURE4 = 0x84C4;
+
+  @DomName('WebGLRenderingContext.TEXTURE5')
+  @DocsEditable()
+  static const int TEXTURE5 = 0x84C5;
+
+  @DomName('WebGLRenderingContext.TEXTURE6')
+  @DocsEditable()
+  static const int TEXTURE6 = 0x84C6;
+
+  @DomName('WebGLRenderingContext.TEXTURE7')
+  @DocsEditable()
+  static const int TEXTURE7 = 0x84C7;
+
+  @DomName('WebGLRenderingContext.TEXTURE8')
+  @DocsEditable()
+  static const int TEXTURE8 = 0x84C8;
+
+  @DomName('WebGLRenderingContext.TEXTURE9')
+  @DocsEditable()
+  static const int TEXTURE9 = 0x84C9;
+
+  @DomName('WebGLRenderingContext.TEXTURE_2D')
+  @DocsEditable()
+  static const int TEXTURE_2D = 0x0DE1;
+
+  @DomName('WebGLRenderingContext.TEXTURE_BINDING_2D')
+  @DocsEditable()
+  static const int TEXTURE_BINDING_2D = 0x8069;
+
+  @DomName('WebGLRenderingContext.TEXTURE_BINDING_CUBE_MAP')
+  @DocsEditable()
+  static const int TEXTURE_BINDING_CUBE_MAP = 0x8514;
+
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP')
+  @DocsEditable()
+  static const int TEXTURE_CUBE_MAP = 0x8513;
+
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_X')
+  @DocsEditable()
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
+
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_Y')
+  @DocsEditable()
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
+
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_Z')
+  @DocsEditable()
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
+
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_POSITIVE_X')
+  @DocsEditable()
+  static const int TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
+
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_POSITIVE_Y')
+  @DocsEditable()
+  static const int TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
+
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_POSITIVE_Z')
+  @DocsEditable()
+  static const int TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
+
+  @DomName('WebGLRenderingContext.TEXTURE_MAG_FILTER')
+  @DocsEditable()
+  static const int TEXTURE_MAG_FILTER = 0x2800;
+
+  @DomName('WebGLRenderingContext.TEXTURE_MIN_FILTER')
+  @DocsEditable()
+  static const int TEXTURE_MIN_FILTER = 0x2801;
+
+  @DomName('WebGLRenderingContext.TEXTURE_WRAP_S')
+  @DocsEditable()
+  static const int TEXTURE_WRAP_S = 0x2802;
+
+  @DomName('WebGLRenderingContext.TEXTURE_WRAP_T')
+  @DocsEditable()
+  static const int TEXTURE_WRAP_T = 0x2803;
+
+  @DomName('WebGLRenderingContext.TRIANGLES')
+  @DocsEditable()
+  static const int TRIANGLES = 0x0004;
+
+  @DomName('WebGLRenderingContext.TRIANGLE_FAN')
+  @DocsEditable()
+  static const int TRIANGLE_FAN = 0x0006;
+
+  @DomName('WebGLRenderingContext.TRIANGLE_STRIP')
+  @DocsEditable()
+  static const int TRIANGLE_STRIP = 0x0005;
+
+  @DomName('WebGLRenderingContext.UNPACK_ALIGNMENT')
+  @DocsEditable()
+  static const int UNPACK_ALIGNMENT = 0x0CF5;
+
+  @DomName('WebGLRenderingContext.UNPACK_COLORSPACE_CONVERSION_WEBGL')
+  @DocsEditable()
+  static const int UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
+
+  @DomName('WebGLRenderingContext.UNPACK_FLIP_Y_WEBGL')
+  @DocsEditable()
+  static const int UNPACK_FLIP_Y_WEBGL = 0x9240;
+
+  @DomName('WebGLRenderingContext.UNPACK_PREMULTIPLY_ALPHA_WEBGL')
+  @DocsEditable()
+  static const int UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241;
+
+  @DomName('WebGLRenderingContext.UNSIGNED_BYTE')
+  @DocsEditable()
+  static const int UNSIGNED_BYTE = 0x1401;
+
+  @DomName('WebGLRenderingContext.UNSIGNED_INT')
+  @DocsEditable()
+  static const int UNSIGNED_INT = 0x1405;
+
+  @DomName('WebGLRenderingContext.UNSIGNED_SHORT')
+  @DocsEditable()
+  static const int UNSIGNED_SHORT = 0x1403;
+
+  @DomName('WebGLRenderingContext.UNSIGNED_SHORT_4_4_4_4')
+  @DocsEditable()
+  static const int UNSIGNED_SHORT_4_4_4_4 = 0x8033;
+
+  @DomName('WebGLRenderingContext.UNSIGNED_SHORT_5_5_5_1')
+  @DocsEditable()
+  static const int UNSIGNED_SHORT_5_5_5_1 = 0x8034;
+
+  @DomName('WebGLRenderingContext.UNSIGNED_SHORT_5_6_5')
+  @DocsEditable()
+  static const int UNSIGNED_SHORT_5_6_5 = 0x8363;
+
+  @DomName('WebGLRenderingContext.VALIDATE_STATUS')
+  @DocsEditable()
+  static const int VALIDATE_STATUS = 0x8B83;
+
+  @DomName('WebGLRenderingContext.VENDOR')
+  @DocsEditable()
+  static const int VENDOR = 0x1F00;
+
+  @DomName('WebGLRenderingContext.VERSION')
+  @DocsEditable()
+  static const int VERSION = 0x1F02;
+
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING')
+  @DocsEditable()
+  static const int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
+
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_ENABLED')
+  @DocsEditable()
+  static const int VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
+
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_NORMALIZED')
+  @DocsEditable()
+  static const int VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
+
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_POINTER')
+  @DocsEditable()
+  static const int VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
+
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_SIZE')
+  @DocsEditable()
+  static const int VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
+
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_STRIDE')
+  @DocsEditable()
+  static const int VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
+
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_TYPE')
+  @DocsEditable()
+  static const int VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
+
+  @DomName('WebGLRenderingContext.VERTEX_SHADER')
+  @DocsEditable()
+  static const int VERTEX_SHADER = 0x8B31;
+
+  @DomName('WebGLRenderingContext.VIEWPORT')
+  @DocsEditable()
+  static const int VIEWPORT = 0x0BA2;
+
+  @DomName('WebGLRenderingContext.ZERO')
+  @DocsEditable()
+  static const int ZERO = 0;
+
   @DomName('WebGLRenderingContext.canvas')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1918,2317 +3108,6 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
 
 @DocsEditable()
-@DomName('WebGLRenderingContextBase')
-@Experimental() // untriaged
-abstract class RenderingContextBase extends NativeFieldWrapperClass2 {
-  // To suppress missing implicit constructor warnings.
-  factory RenderingContextBase._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('WebGLRenderingContextBase.ACTIVE_ATTRIBUTES')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ACTIVE_ATTRIBUTES = 0x8B89;
-
-  @DomName('WebGLRenderingContextBase.ACTIVE_TEXTURE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ACTIVE_TEXTURE = 0x84E0;
-
-  @DomName('WebGLRenderingContextBase.ACTIVE_UNIFORMS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ACTIVE_UNIFORMS = 0x8B86;
-
-  @DomName('WebGLRenderingContextBase.ALIASED_LINE_WIDTH_RANGE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ALIASED_LINE_WIDTH_RANGE = 0x846E;
-
-  @DomName('WebGLRenderingContextBase.ALIASED_POINT_SIZE_RANGE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ALIASED_POINT_SIZE_RANGE = 0x846D;
-
-  @DomName('WebGLRenderingContextBase.ALPHA')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ALPHA = 0x1906;
-
-  @DomName('WebGLRenderingContextBase.ALPHA_BITS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ALPHA_BITS = 0x0D55;
-
-  @DomName('WebGLRenderingContextBase.ALWAYS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ALWAYS = 0x0207;
-
-  @DomName('WebGLRenderingContextBase.ARRAY_BUFFER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ARRAY_BUFFER = 0x8892;
-
-  @DomName('WebGLRenderingContextBase.ARRAY_BUFFER_BINDING')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ARRAY_BUFFER_BINDING = 0x8894;
-
-  @DomName('WebGLRenderingContextBase.ATTACHED_SHADERS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ATTACHED_SHADERS = 0x8B85;
-
-  @DomName('WebGLRenderingContextBase.BACK')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BACK = 0x0405;
-
-  @DomName('WebGLRenderingContextBase.BLEND')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BLEND = 0x0BE2;
-
-  @DomName('WebGLRenderingContextBase.BLEND_COLOR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BLEND_COLOR = 0x8005;
-
-  @DomName('WebGLRenderingContextBase.BLEND_DST_ALPHA')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BLEND_DST_ALPHA = 0x80CA;
-
-  @DomName('WebGLRenderingContextBase.BLEND_DST_RGB')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BLEND_DST_RGB = 0x80C8;
-
-  @DomName('WebGLRenderingContextBase.BLEND_EQUATION')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BLEND_EQUATION = 0x8009;
-
-  @DomName('WebGLRenderingContextBase.BLEND_EQUATION_ALPHA')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BLEND_EQUATION_ALPHA = 0x883D;
-
-  @DomName('WebGLRenderingContextBase.BLEND_EQUATION_RGB')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BLEND_EQUATION_RGB = 0x8009;
-
-  @DomName('WebGLRenderingContextBase.BLEND_SRC_ALPHA')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BLEND_SRC_ALPHA = 0x80CB;
-
-  @DomName('WebGLRenderingContextBase.BLEND_SRC_RGB')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BLEND_SRC_RGB = 0x80C9;
-
-  @DomName('WebGLRenderingContextBase.BLUE_BITS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BLUE_BITS = 0x0D54;
-
-  @DomName('WebGLRenderingContextBase.BOOL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BOOL = 0x8B56;
-
-  @DomName('WebGLRenderingContextBase.BOOL_VEC2')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BOOL_VEC2 = 0x8B57;
-
-  @DomName('WebGLRenderingContextBase.BOOL_VEC3')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BOOL_VEC3 = 0x8B58;
-
-  @DomName('WebGLRenderingContextBase.BOOL_VEC4')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BOOL_VEC4 = 0x8B59;
-
-  @DomName('WebGLRenderingContextBase.BROWSER_DEFAULT_WEBGL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BROWSER_DEFAULT_WEBGL = 0x9244;
-
-  @DomName('WebGLRenderingContextBase.BUFFER_SIZE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BUFFER_SIZE = 0x8764;
-
-  @DomName('WebGLRenderingContextBase.BUFFER_USAGE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BUFFER_USAGE = 0x8765;
-
-  @DomName('WebGLRenderingContextBase.BYTE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int BYTE = 0x1400;
-
-  @DomName('WebGLRenderingContextBase.CCW')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int CCW = 0x0901;
-
-  @DomName('WebGLRenderingContextBase.CLAMP_TO_EDGE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int CLAMP_TO_EDGE = 0x812F;
-
-  @DomName('WebGLRenderingContextBase.COLOR_ATTACHMENT0')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int COLOR_ATTACHMENT0 = 0x8CE0;
-
-  @DomName('WebGLRenderingContextBase.COLOR_BUFFER_BIT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int COLOR_BUFFER_BIT = 0x00004000;
-
-  @DomName('WebGLRenderingContextBase.COLOR_CLEAR_VALUE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int COLOR_CLEAR_VALUE = 0x0C22;
-
-  @DomName('WebGLRenderingContextBase.COLOR_WRITEMASK')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int COLOR_WRITEMASK = 0x0C23;
-
-  @DomName('WebGLRenderingContextBase.COMPILE_STATUS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int COMPILE_STATUS = 0x8B81;
-
-  @DomName('WebGLRenderingContextBase.COMPRESSED_TEXTURE_FORMATS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int COMPRESSED_TEXTURE_FORMATS = 0x86A3;
-
-  @DomName('WebGLRenderingContextBase.CONSTANT_ALPHA')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int CONSTANT_ALPHA = 0x8003;
-
-  @DomName('WebGLRenderingContextBase.CONSTANT_COLOR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int CONSTANT_COLOR = 0x8001;
-
-  @DomName('WebGLRenderingContextBase.CONTEXT_LOST_WEBGL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int CONTEXT_LOST_WEBGL = 0x9242;
-
-  @DomName('WebGLRenderingContextBase.CULL_FACE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int CULL_FACE = 0x0B44;
-
-  @DomName('WebGLRenderingContextBase.CULL_FACE_MODE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int CULL_FACE_MODE = 0x0B45;
-
-  @DomName('WebGLRenderingContextBase.CURRENT_PROGRAM')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int CURRENT_PROGRAM = 0x8B8D;
-
-  @DomName('WebGLRenderingContextBase.CURRENT_VERTEX_ATTRIB')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int CURRENT_VERTEX_ATTRIB = 0x8626;
-
-  @DomName('WebGLRenderingContextBase.CW')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int CW = 0x0900;
-
-  @DomName('WebGLRenderingContextBase.DECR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DECR = 0x1E03;
-
-  @DomName('WebGLRenderingContextBase.DECR_WRAP')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DECR_WRAP = 0x8508;
-
-  @DomName('WebGLRenderingContextBase.DELETE_STATUS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DELETE_STATUS = 0x8B80;
-
-  @DomName('WebGLRenderingContextBase.DEPTH_ATTACHMENT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DEPTH_ATTACHMENT = 0x8D00;
-
-  @DomName('WebGLRenderingContextBase.DEPTH_BITS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DEPTH_BITS = 0x0D56;
-
-  @DomName('WebGLRenderingContextBase.DEPTH_BUFFER_BIT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DEPTH_BUFFER_BIT = 0x00000100;
-
-  @DomName('WebGLRenderingContextBase.DEPTH_CLEAR_VALUE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DEPTH_CLEAR_VALUE = 0x0B73;
-
-  @DomName('WebGLRenderingContextBase.DEPTH_COMPONENT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DEPTH_COMPONENT = 0x1902;
-
-  @DomName('WebGLRenderingContextBase.DEPTH_COMPONENT16')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DEPTH_COMPONENT16 = 0x81A5;
-
-  @DomName('WebGLRenderingContextBase.DEPTH_FUNC')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DEPTH_FUNC = 0x0B74;
-
-  @DomName('WebGLRenderingContextBase.DEPTH_RANGE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DEPTH_RANGE = 0x0B70;
-
-  @DomName('WebGLRenderingContextBase.DEPTH_STENCIL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DEPTH_STENCIL = 0x84F9;
-
-  @DomName('WebGLRenderingContextBase.DEPTH_STENCIL_ATTACHMENT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DEPTH_STENCIL_ATTACHMENT = 0x821A;
-
-  @DomName('WebGLRenderingContextBase.DEPTH_TEST')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DEPTH_TEST = 0x0B71;
-
-  @DomName('WebGLRenderingContextBase.DEPTH_WRITEMASK')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DEPTH_WRITEMASK = 0x0B72;
-
-  @DomName('WebGLRenderingContextBase.DITHER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DITHER = 0x0BD0;
-
-  @DomName('WebGLRenderingContextBase.DONT_CARE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DONT_CARE = 0x1100;
-
-  @DomName('WebGLRenderingContextBase.DST_ALPHA')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DST_ALPHA = 0x0304;
-
-  @DomName('WebGLRenderingContextBase.DST_COLOR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DST_COLOR = 0x0306;
-
-  @DomName('WebGLRenderingContextBase.DYNAMIC_DRAW')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int DYNAMIC_DRAW = 0x88E8;
-
-  @DomName('WebGLRenderingContextBase.ELEMENT_ARRAY_BUFFER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ELEMENT_ARRAY_BUFFER = 0x8893;
-
-  @DomName('WebGLRenderingContextBase.ELEMENT_ARRAY_BUFFER_BINDING')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
-
-  @DomName('WebGLRenderingContextBase.EQUAL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int EQUAL = 0x0202;
-
-  @DomName('WebGLRenderingContextBase.FASTEST')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FASTEST = 0x1101;
-
-  @DomName('WebGLRenderingContextBase.FLOAT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FLOAT = 0x1406;
-
-  @DomName('WebGLRenderingContextBase.FLOAT_MAT2')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FLOAT_MAT2 = 0x8B5A;
-
-  @DomName('WebGLRenderingContextBase.FLOAT_MAT3')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FLOAT_MAT3 = 0x8B5B;
-
-  @DomName('WebGLRenderingContextBase.FLOAT_MAT4')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FLOAT_MAT4 = 0x8B5C;
-
-  @DomName('WebGLRenderingContextBase.FLOAT_VEC2')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FLOAT_VEC2 = 0x8B50;
-
-  @DomName('WebGLRenderingContextBase.FLOAT_VEC3')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FLOAT_VEC3 = 0x8B51;
-
-  @DomName('WebGLRenderingContextBase.FLOAT_VEC4')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FLOAT_VEC4 = 0x8B52;
-
-  @DomName('WebGLRenderingContextBase.FRAGMENT_SHADER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRAGMENT_SHADER = 0x8B30;
-
-  @DomName('WebGLRenderingContextBase.FRAMEBUFFER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRAMEBUFFER = 0x8D40;
-
-  @DomName('WebGLRenderingContextBase.FRAMEBUFFER_ATTACHMENT_OBJECT_NAME')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
-
-  @DomName('WebGLRenderingContextBase.FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
-
-  @DomName('WebGLRenderingContextBase.FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
-
-  @DomName('WebGLRenderingContextBase.FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
-
-  @DomName('WebGLRenderingContextBase.FRAMEBUFFER_BINDING')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRAMEBUFFER_BINDING = 0x8CA6;
-
-  @DomName('WebGLRenderingContextBase.FRAMEBUFFER_COMPLETE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRAMEBUFFER_COMPLETE = 0x8CD5;
-
-  @DomName('WebGLRenderingContextBase.FRAMEBUFFER_INCOMPLETE_ATTACHMENT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
-
-  @DomName('WebGLRenderingContextBase.FRAMEBUFFER_INCOMPLETE_DIMENSIONS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 0x8CD9;
-
-  @DomName('WebGLRenderingContextBase.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
-
-  @DomName('WebGLRenderingContextBase.FRAMEBUFFER_UNSUPPORTED')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
-
-  @DomName('WebGLRenderingContextBase.FRONT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRONT = 0x0404;
-
-  @DomName('WebGLRenderingContextBase.FRONT_AND_BACK')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRONT_AND_BACK = 0x0408;
-
-  @DomName('WebGLRenderingContextBase.FRONT_FACE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FRONT_FACE = 0x0B46;
-
-  @DomName('WebGLRenderingContextBase.FUNC_ADD')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FUNC_ADD = 0x8006;
-
-  @DomName('WebGLRenderingContextBase.FUNC_REVERSE_SUBTRACT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FUNC_REVERSE_SUBTRACT = 0x800B;
-
-  @DomName('WebGLRenderingContextBase.FUNC_SUBTRACT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int FUNC_SUBTRACT = 0x800A;
-
-  @DomName('WebGLRenderingContextBase.GENERATE_MIPMAP_HINT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int GENERATE_MIPMAP_HINT = 0x8192;
-
-  @DomName('WebGLRenderingContextBase.GEQUAL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int GEQUAL = 0x0206;
-
-  @DomName('WebGLRenderingContextBase.GREATER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int GREATER = 0x0204;
-
-  @DomName('WebGLRenderingContextBase.GREEN_BITS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int GREEN_BITS = 0x0D53;
-
-  @DomName('WebGLRenderingContextBase.HIGH_FLOAT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int HIGH_FLOAT = 0x8DF2;
-
-  @DomName('WebGLRenderingContextBase.HIGH_INT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int HIGH_INT = 0x8DF5;
-
-  @DomName('WebGLRenderingContextBase.IMPLEMENTATION_COLOR_READ_FORMAT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int IMPLEMENTATION_COLOR_READ_FORMAT = 0x8B9B;
-
-  @DomName('WebGLRenderingContextBase.IMPLEMENTATION_COLOR_READ_TYPE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int IMPLEMENTATION_COLOR_READ_TYPE = 0x8B9A;
-
-  @DomName('WebGLRenderingContextBase.INCR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int INCR = 0x1E02;
-
-  @DomName('WebGLRenderingContextBase.INCR_WRAP')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int INCR_WRAP = 0x8507;
-
-  @DomName('WebGLRenderingContextBase.INT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int INT = 0x1404;
-
-  @DomName('WebGLRenderingContextBase.INT_VEC2')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int INT_VEC2 = 0x8B53;
-
-  @DomName('WebGLRenderingContextBase.INT_VEC3')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int INT_VEC3 = 0x8B54;
-
-  @DomName('WebGLRenderingContextBase.INT_VEC4')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int INT_VEC4 = 0x8B55;
-
-  @DomName('WebGLRenderingContextBase.INVALID_ENUM')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int INVALID_ENUM = 0x0500;
-
-  @DomName('WebGLRenderingContextBase.INVALID_FRAMEBUFFER_OPERATION')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int INVALID_FRAMEBUFFER_OPERATION = 0x0506;
-
-  @DomName('WebGLRenderingContextBase.INVALID_OPERATION')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int INVALID_OPERATION = 0x0502;
-
-  @DomName('WebGLRenderingContextBase.INVALID_VALUE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int INVALID_VALUE = 0x0501;
-
-  @DomName('WebGLRenderingContextBase.INVERT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int INVERT = 0x150A;
-
-  @DomName('WebGLRenderingContextBase.KEEP')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int KEEP = 0x1E00;
-
-  @DomName('WebGLRenderingContextBase.LEQUAL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LEQUAL = 0x0203;
-
-  @DomName('WebGLRenderingContextBase.LESS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LESS = 0x0201;
-
-  @DomName('WebGLRenderingContextBase.LINEAR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LINEAR = 0x2601;
-
-  @DomName('WebGLRenderingContextBase.LINEAR_MIPMAP_LINEAR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LINEAR_MIPMAP_LINEAR = 0x2703;
-
-  @DomName('WebGLRenderingContextBase.LINEAR_MIPMAP_NEAREST')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LINEAR_MIPMAP_NEAREST = 0x2701;
-
-  @DomName('WebGLRenderingContextBase.LINES')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LINES = 0x0001;
-
-  @DomName('WebGLRenderingContextBase.LINE_LOOP')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LINE_LOOP = 0x0002;
-
-  @DomName('WebGLRenderingContextBase.LINE_STRIP')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LINE_STRIP = 0x0003;
-
-  @DomName('WebGLRenderingContextBase.LINE_WIDTH')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LINE_WIDTH = 0x0B21;
-
-  @DomName('WebGLRenderingContextBase.LINK_STATUS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LINK_STATUS = 0x8B82;
-
-  @DomName('WebGLRenderingContextBase.LOW_FLOAT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LOW_FLOAT = 0x8DF0;
-
-  @DomName('WebGLRenderingContextBase.LOW_INT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LOW_INT = 0x8DF3;
-
-  @DomName('WebGLRenderingContextBase.LUMINANCE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LUMINANCE = 0x1909;
-
-  @DomName('WebGLRenderingContextBase.LUMINANCE_ALPHA')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int LUMINANCE_ALPHA = 0x190A;
-
-  @DomName('WebGLRenderingContextBase.MAX_COMBINED_TEXTURE_IMAGE_UNITS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
-
-  @DomName('WebGLRenderingContextBase.MAX_CUBE_MAP_TEXTURE_SIZE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
-
-  @DomName('WebGLRenderingContextBase.MAX_FRAGMENT_UNIFORM_VECTORS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
-
-  @DomName('WebGLRenderingContextBase.MAX_RENDERBUFFER_SIZE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MAX_RENDERBUFFER_SIZE = 0x84E8;
-
-  @DomName('WebGLRenderingContextBase.MAX_TEXTURE_IMAGE_UNITS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MAX_TEXTURE_IMAGE_UNITS = 0x8872;
-
-  @DomName('WebGLRenderingContextBase.MAX_TEXTURE_SIZE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MAX_TEXTURE_SIZE = 0x0D33;
-
-  @DomName('WebGLRenderingContextBase.MAX_VARYING_VECTORS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MAX_VARYING_VECTORS = 0x8DFC;
-
-  @DomName('WebGLRenderingContextBase.MAX_VERTEX_ATTRIBS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MAX_VERTEX_ATTRIBS = 0x8869;
-
-  @DomName('WebGLRenderingContextBase.MAX_VERTEX_TEXTURE_IMAGE_UNITS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
-
-  @DomName('WebGLRenderingContextBase.MAX_VERTEX_UNIFORM_VECTORS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
-
-  @DomName('WebGLRenderingContextBase.MAX_VIEWPORT_DIMS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MAX_VIEWPORT_DIMS = 0x0D3A;
-
-  @DomName('WebGLRenderingContextBase.MEDIUM_FLOAT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MEDIUM_FLOAT = 0x8DF1;
-
-  @DomName('WebGLRenderingContextBase.MEDIUM_INT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MEDIUM_INT = 0x8DF4;
-
-  @DomName('WebGLRenderingContextBase.MIRRORED_REPEAT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int MIRRORED_REPEAT = 0x8370;
-
-  @DomName('WebGLRenderingContextBase.NEAREST')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int NEAREST = 0x2600;
-
-  @DomName('WebGLRenderingContextBase.NEAREST_MIPMAP_LINEAR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int NEAREST_MIPMAP_LINEAR = 0x2702;
-
-  @DomName('WebGLRenderingContextBase.NEAREST_MIPMAP_NEAREST')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int NEAREST_MIPMAP_NEAREST = 0x2700;
-
-  @DomName('WebGLRenderingContextBase.NEVER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int NEVER = 0x0200;
-
-  @DomName('WebGLRenderingContextBase.NICEST')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int NICEST = 0x1102;
-
-  @DomName('WebGLRenderingContextBase.NONE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int NONE = 0;
-
-  @DomName('WebGLRenderingContextBase.NOTEQUAL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int NOTEQUAL = 0x0205;
-
-  @DomName('WebGLRenderingContextBase.NO_ERROR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int NO_ERROR = 0;
-
-  @DomName('WebGLRenderingContextBase.ONE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ONE = 1;
-
-  @DomName('WebGLRenderingContextBase.ONE_MINUS_CONSTANT_ALPHA')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ONE_MINUS_CONSTANT_ALPHA = 0x8004;
-
-  @DomName('WebGLRenderingContextBase.ONE_MINUS_CONSTANT_COLOR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ONE_MINUS_CONSTANT_COLOR = 0x8002;
-
-  @DomName('WebGLRenderingContextBase.ONE_MINUS_DST_ALPHA')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ONE_MINUS_DST_ALPHA = 0x0305;
-
-  @DomName('WebGLRenderingContextBase.ONE_MINUS_DST_COLOR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ONE_MINUS_DST_COLOR = 0x0307;
-
-  @DomName('WebGLRenderingContextBase.ONE_MINUS_SRC_ALPHA')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ONE_MINUS_SRC_ALPHA = 0x0303;
-
-  @DomName('WebGLRenderingContextBase.ONE_MINUS_SRC_COLOR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ONE_MINUS_SRC_COLOR = 0x0301;
-
-  @DomName('WebGLRenderingContextBase.OUT_OF_MEMORY')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int OUT_OF_MEMORY = 0x0505;
-
-  @DomName('WebGLRenderingContextBase.PACK_ALIGNMENT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int PACK_ALIGNMENT = 0x0D05;
-
-  @DomName('WebGLRenderingContextBase.POINTS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int POINTS = 0x0000;
-
-  @DomName('WebGLRenderingContextBase.POLYGON_OFFSET_FACTOR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int POLYGON_OFFSET_FACTOR = 0x8038;
-
-  @DomName('WebGLRenderingContextBase.POLYGON_OFFSET_FILL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int POLYGON_OFFSET_FILL = 0x8037;
-
-  @DomName('WebGLRenderingContextBase.POLYGON_OFFSET_UNITS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int POLYGON_OFFSET_UNITS = 0x2A00;
-
-  @DomName('WebGLRenderingContextBase.RED_BITS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RED_BITS = 0x0D52;
-
-  @DomName('WebGLRenderingContextBase.RENDERBUFFER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RENDERBUFFER = 0x8D41;
-
-  @DomName('WebGLRenderingContextBase.RENDERBUFFER_ALPHA_SIZE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RENDERBUFFER_ALPHA_SIZE = 0x8D53;
-
-  @DomName('WebGLRenderingContextBase.RENDERBUFFER_BINDING')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RENDERBUFFER_BINDING = 0x8CA7;
-
-  @DomName('WebGLRenderingContextBase.RENDERBUFFER_BLUE_SIZE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RENDERBUFFER_BLUE_SIZE = 0x8D52;
-
-  @DomName('WebGLRenderingContextBase.RENDERBUFFER_DEPTH_SIZE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RENDERBUFFER_DEPTH_SIZE = 0x8D54;
-
-  @DomName('WebGLRenderingContextBase.RENDERBUFFER_GREEN_SIZE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RENDERBUFFER_GREEN_SIZE = 0x8D51;
-
-  @DomName('WebGLRenderingContextBase.RENDERBUFFER_HEIGHT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RENDERBUFFER_HEIGHT = 0x8D43;
-
-  @DomName('WebGLRenderingContextBase.RENDERBUFFER_INTERNAL_FORMAT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RENDERBUFFER_INTERNAL_FORMAT = 0x8D44;
-
-  @DomName('WebGLRenderingContextBase.RENDERBUFFER_RED_SIZE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RENDERBUFFER_RED_SIZE = 0x8D50;
-
-  @DomName('WebGLRenderingContextBase.RENDERBUFFER_STENCIL_SIZE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RENDERBUFFER_STENCIL_SIZE = 0x8D55;
-
-  @DomName('WebGLRenderingContextBase.RENDERBUFFER_WIDTH')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RENDERBUFFER_WIDTH = 0x8D42;
-
-  @DomName('WebGLRenderingContextBase.RENDERER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RENDERER = 0x1F01;
-
-  @DomName('WebGLRenderingContextBase.REPEAT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int REPEAT = 0x2901;
-
-  @DomName('WebGLRenderingContextBase.REPLACE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int REPLACE = 0x1E01;
-
-  @DomName('WebGLRenderingContextBase.RGB')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RGB = 0x1907;
-
-  @DomName('WebGLRenderingContextBase.RGB565')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RGB565 = 0x8D62;
-
-  @DomName('WebGLRenderingContextBase.RGB5_A1')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RGB5_A1 = 0x8057;
-
-  @DomName('WebGLRenderingContextBase.RGBA')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RGBA = 0x1908;
-
-  @DomName('WebGLRenderingContextBase.RGBA4')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int RGBA4 = 0x8056;
-
-  @DomName('WebGLRenderingContextBase.SAMPLER_2D')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SAMPLER_2D = 0x8B5E;
-
-  @DomName('WebGLRenderingContextBase.SAMPLER_CUBE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SAMPLER_CUBE = 0x8B60;
-
-  @DomName('WebGLRenderingContextBase.SAMPLES')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SAMPLES = 0x80A9;
-
-  @DomName('WebGLRenderingContextBase.SAMPLE_ALPHA_TO_COVERAGE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
-
-  @DomName('WebGLRenderingContextBase.SAMPLE_BUFFERS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SAMPLE_BUFFERS = 0x80A8;
-
-  @DomName('WebGLRenderingContextBase.SAMPLE_COVERAGE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SAMPLE_COVERAGE = 0x80A0;
-
-  @DomName('WebGLRenderingContextBase.SAMPLE_COVERAGE_INVERT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SAMPLE_COVERAGE_INVERT = 0x80AB;
-
-  @DomName('WebGLRenderingContextBase.SAMPLE_COVERAGE_VALUE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SAMPLE_COVERAGE_VALUE = 0x80AA;
-
-  @DomName('WebGLRenderingContextBase.SCISSOR_BOX')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SCISSOR_BOX = 0x0C10;
-
-  @DomName('WebGLRenderingContextBase.SCISSOR_TEST')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SCISSOR_TEST = 0x0C11;
-
-  @DomName('WebGLRenderingContextBase.SHADER_TYPE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SHADER_TYPE = 0x8B4F;
-
-  @DomName('WebGLRenderingContextBase.SHADING_LANGUAGE_VERSION')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SHADING_LANGUAGE_VERSION = 0x8B8C;
-
-  @DomName('WebGLRenderingContextBase.SHORT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SHORT = 0x1402;
-
-  @DomName('WebGLRenderingContextBase.SRC_ALPHA')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SRC_ALPHA = 0x0302;
-
-  @DomName('WebGLRenderingContextBase.SRC_ALPHA_SATURATE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SRC_ALPHA_SATURATE = 0x0308;
-
-  @DomName('WebGLRenderingContextBase.SRC_COLOR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SRC_COLOR = 0x0300;
-
-  @DomName('WebGLRenderingContextBase.STATIC_DRAW')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STATIC_DRAW = 0x88E4;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_ATTACHMENT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_ATTACHMENT = 0x8D20;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_BACK_FAIL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_BACK_FAIL = 0x8801;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_BACK_FUNC')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_BACK_FUNC = 0x8800;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_BACK_PASS_DEPTH_FAIL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_BACK_PASS_DEPTH_PASS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_BACK_REF')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_BACK_REF = 0x8CA3;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_BACK_VALUE_MASK')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_BACK_VALUE_MASK = 0x8CA4;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_BACK_WRITEMASK')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_BACK_WRITEMASK = 0x8CA5;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_BITS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_BITS = 0x0D57;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_BUFFER_BIT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_BUFFER_BIT = 0x00000400;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_CLEAR_VALUE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_CLEAR_VALUE = 0x0B91;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_FAIL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_FAIL = 0x0B94;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_FUNC')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_FUNC = 0x0B92;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_INDEX')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_INDEX = 0x1901;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_INDEX8')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_INDEX8 = 0x8D48;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_PASS_DEPTH_FAIL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_PASS_DEPTH_FAIL = 0x0B95;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_PASS_DEPTH_PASS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_PASS_DEPTH_PASS = 0x0B96;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_REF')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_REF = 0x0B97;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_TEST')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_TEST = 0x0B90;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_VALUE_MASK')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_VALUE_MASK = 0x0B93;
-
-  @DomName('WebGLRenderingContextBase.STENCIL_WRITEMASK')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STENCIL_WRITEMASK = 0x0B98;
-
-  @DomName('WebGLRenderingContextBase.STREAM_DRAW')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int STREAM_DRAW = 0x88E0;
-
-  @DomName('WebGLRenderingContextBase.SUBPIXEL_BITS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int SUBPIXEL_BITS = 0x0D50;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE = 0x1702;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE0')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE0 = 0x84C0;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE1')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE1 = 0x84C1;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE10')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE10 = 0x84CA;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE11')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE11 = 0x84CB;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE12')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE12 = 0x84CC;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE13')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE13 = 0x84CD;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE14')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE14 = 0x84CE;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE15')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE15 = 0x84CF;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE16')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE16 = 0x84D0;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE17')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE17 = 0x84D1;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE18')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE18 = 0x84D2;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE19')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE19 = 0x84D3;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE2')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE2 = 0x84C2;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE20')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE20 = 0x84D4;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE21')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE21 = 0x84D5;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE22')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE22 = 0x84D6;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE23')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE23 = 0x84D7;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE24')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE24 = 0x84D8;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE25')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE25 = 0x84D9;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE26')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE26 = 0x84DA;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE27')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE27 = 0x84DB;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE28')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE28 = 0x84DC;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE29')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE29 = 0x84DD;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE3')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE3 = 0x84C3;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE30')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE30 = 0x84DE;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE31')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE31 = 0x84DF;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE4')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE4 = 0x84C4;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE5')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE5 = 0x84C5;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE6')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE6 = 0x84C6;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE7')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE7 = 0x84C7;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE8')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE8 = 0x84C8;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE9')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE9 = 0x84C9;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_2D')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_2D = 0x0DE1;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_BINDING_2D')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_BINDING_2D = 0x8069;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_BINDING_CUBE_MAP')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_BINDING_CUBE_MAP = 0x8514;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_CUBE_MAP')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_CUBE_MAP = 0x8513;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_CUBE_MAP_NEGATIVE_X')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_CUBE_MAP_NEGATIVE_Y')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_CUBE_MAP_NEGATIVE_Z')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_CUBE_MAP_POSITIVE_X')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_CUBE_MAP_POSITIVE_Y')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_CUBE_MAP_POSITIVE_Z')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_MAG_FILTER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_MAG_FILTER = 0x2800;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_MIN_FILTER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_MIN_FILTER = 0x2801;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_WRAP_S')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_WRAP_S = 0x2802;
-
-  @DomName('WebGLRenderingContextBase.TEXTURE_WRAP_T')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TEXTURE_WRAP_T = 0x2803;
-
-  @DomName('WebGLRenderingContextBase.TRIANGLES')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TRIANGLES = 0x0004;
-
-  @DomName('WebGLRenderingContextBase.TRIANGLE_FAN')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TRIANGLE_FAN = 0x0006;
-
-  @DomName('WebGLRenderingContextBase.TRIANGLE_STRIP')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int TRIANGLE_STRIP = 0x0005;
-
-  @DomName('WebGLRenderingContextBase.UNPACK_ALIGNMENT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int UNPACK_ALIGNMENT = 0x0CF5;
-
-  @DomName('WebGLRenderingContextBase.UNPACK_COLORSPACE_CONVERSION_WEBGL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
-
-  @DomName('WebGLRenderingContextBase.UNPACK_FLIP_Y_WEBGL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int UNPACK_FLIP_Y_WEBGL = 0x9240;
-
-  @DomName('WebGLRenderingContextBase.UNPACK_PREMULTIPLY_ALPHA_WEBGL')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241;
-
-  @DomName('WebGLRenderingContextBase.UNSIGNED_BYTE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int UNSIGNED_BYTE = 0x1401;
-
-  @DomName('WebGLRenderingContextBase.UNSIGNED_INT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int UNSIGNED_INT = 0x1405;
-
-  @DomName('WebGLRenderingContextBase.UNSIGNED_SHORT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int UNSIGNED_SHORT = 0x1403;
-
-  @DomName('WebGLRenderingContextBase.UNSIGNED_SHORT_4_4_4_4')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int UNSIGNED_SHORT_4_4_4_4 = 0x8033;
-
-  @DomName('WebGLRenderingContextBase.UNSIGNED_SHORT_5_5_5_1')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int UNSIGNED_SHORT_5_5_5_1 = 0x8034;
-
-  @DomName('WebGLRenderingContextBase.UNSIGNED_SHORT_5_6_5')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int UNSIGNED_SHORT_5_6_5 = 0x8363;
-
-  @DomName('WebGLRenderingContextBase.VALIDATE_STATUS')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VALIDATE_STATUS = 0x8B83;
-
-  @DomName('WebGLRenderingContextBase.VENDOR')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VENDOR = 0x1F00;
-
-  @DomName('WebGLRenderingContextBase.VERSION')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VERSION = 0x1F02;
-
-  @DomName('WebGLRenderingContextBase.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
-
-  @DomName('WebGLRenderingContextBase.VERTEX_ATTRIB_ARRAY_ENABLED')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
-
-  @DomName('WebGLRenderingContextBase.VERTEX_ATTRIB_ARRAY_NORMALIZED')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
-
-  @DomName('WebGLRenderingContextBase.VERTEX_ATTRIB_ARRAY_POINTER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
-
-  @DomName('WebGLRenderingContextBase.VERTEX_ATTRIB_ARRAY_SIZE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
-
-  @DomName('WebGLRenderingContextBase.VERTEX_ATTRIB_ARRAY_STRIDE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
-
-  @DomName('WebGLRenderingContextBase.VERTEX_ATTRIB_ARRAY_TYPE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
-
-  @DomName('WebGLRenderingContextBase.VERTEX_SHADER')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VERTEX_SHADER = 0x8B31;
-
-  @DomName('WebGLRenderingContextBase.VIEWPORT')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int VIEWPORT = 0x0BA2;
-
-  @DomName('WebGLRenderingContextBase.ZERO')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int ZERO = 0;
-
-  @DomName('WebGLRenderingContextBase.canvas')
-  @DocsEditable()
-  @Experimental() // untriaged
-  CanvasElement get canvas => _blink.BlinkWebGLRenderingContextBase.canvas_Getter(this);
-
-  @DomName('WebGLRenderingContextBase.drawingBufferHeight')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get drawingBufferHeight => _blink.BlinkWebGLRenderingContextBase.drawingBufferHeight_Getter(this);
-
-  @DomName('WebGLRenderingContextBase.drawingBufferWidth')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get drawingBufferWidth => _blink.BlinkWebGLRenderingContextBase.drawingBufferWidth_Getter(this);
-
-  @DomName('WebGLRenderingContextBase.activeTexture')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void activeTexture(int texture) => _blink.BlinkWebGLRenderingContextBase.activeTexture_Callback_ul(this, texture);
-
-  @DomName('WebGLRenderingContextBase.attachShader')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void attachShader(Program program, Shader shader) => _blink.BlinkWebGLRenderingContextBase.attachShader_Callback_WebGLProgram_WebGLShader(this, program, shader);
-
-  @DomName('WebGLRenderingContextBase.bindAttribLocation')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void bindAttribLocation(Program program, int index, String name) => _blink.BlinkWebGLRenderingContextBase.bindAttribLocation_Callback_WebGLProgram_ul_DOMString(this, program, index, name);
-
-  @DomName('WebGLRenderingContextBase.bindBuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void bindBuffer(int target, Buffer buffer) => _blink.BlinkWebGLRenderingContextBase.bindBuffer_Callback_ul_WebGLBuffer(this, target, buffer);
-
-  @DomName('WebGLRenderingContextBase.bindFramebuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void bindFramebuffer(int target, Framebuffer framebuffer) => _blink.BlinkWebGLRenderingContextBase.bindFramebuffer_Callback_ul_WebGLFramebuffer(this, target, framebuffer);
-
-  @DomName('WebGLRenderingContextBase.bindRenderbuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void bindRenderbuffer(int target, Renderbuffer renderbuffer) => _blink.BlinkWebGLRenderingContextBase.bindRenderbuffer_Callback_ul_WebGLRenderbuffer(this, target, renderbuffer);
-
-  @DomName('WebGLRenderingContextBase.bindTexture')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void bindTexture(int target, Texture texture) => _blink.BlinkWebGLRenderingContextBase.bindTexture_Callback_ul_WebGLTexture(this, target, texture);
-
-  @DomName('WebGLRenderingContextBase.blendColor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void blendColor(num red, num green, num blue, num alpha) => _blink.BlinkWebGLRenderingContextBase.blendColor_Callback_float_float_float_float(this, red, green, blue, alpha);
-
-  @DomName('WebGLRenderingContextBase.blendEquation')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void blendEquation(int mode) => _blink.BlinkWebGLRenderingContextBase.blendEquation_Callback_ul(this, mode);
-
-  @DomName('WebGLRenderingContextBase.blendEquationSeparate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void blendEquationSeparate(int modeRGB, int modeAlpha) => _blink.BlinkWebGLRenderingContextBase.blendEquationSeparate_Callback_ul_ul(this, modeRGB, modeAlpha);
-
-  @DomName('WebGLRenderingContextBase.blendFunc')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void blendFunc(int sfactor, int dfactor) => _blink.BlinkWebGLRenderingContextBase.blendFunc_Callback_ul_ul(this, sfactor, dfactor);
-
-  @DomName('WebGLRenderingContextBase.blendFuncSeparate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) => _blink.BlinkWebGLRenderingContextBase.blendFuncSeparate_Callback_ul_ul_ul_ul(this, srcRGB, dstRGB, srcAlpha, dstAlpha);
-
-  @DomName('WebGLRenderingContextBase.bufferByteData')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void bufferByteData(int target, ByteBuffer data, int usage) => _blink.BlinkWebGLRenderingContextBase.bufferData_Callback_ul_ArrayBuffer_ul(this, target, data, usage);
-
-  void bufferData(int target, data_OR_size, int usage) {
-    if ((usage is int || usage == null) && (data_OR_size is int || data_OR_size == null) && (target is int || target == null)) {
-      _blink.BlinkWebGLRenderingContextBase.bufferData_Callback_ul_ll_ul(this, target, data_OR_size, usage);
-      return;
-    }
-    if ((usage is int || usage == null) && (data_OR_size is TypedData || data_OR_size == null) && (target is int || target == null)) {
-      _blink.BlinkWebGLRenderingContextBase.bufferData_Callback_ul_ArrayBufferView_ul(this, target, data_OR_size, usage);
-      return;
-    }
-    if ((usage is int || usage == null) && (data_OR_size is ByteBuffer || data_OR_size == null) && (target is int || target == null)) {
-      _blink.BlinkWebGLRenderingContextBase.bufferData_Callback_ul_ArrayBuffer_ul(this, target, data_OR_size, usage);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @DomName('WebGLRenderingContextBase.bufferDataTyped')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void bufferDataTyped(int target, TypedData data, int usage) => _blink.BlinkWebGLRenderingContextBase.bufferData_Callback_ul_ArrayBufferView_ul(this, target, data, usage);
-
-  @DomName('WebGLRenderingContextBase.bufferSubByteData')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void bufferSubByteData(int target, int offset, ByteBuffer data) => _blink.BlinkWebGLRenderingContextBase.bufferSubData_Callback_ul_ll_ArrayBuffer(this, target, offset, data);
-
-  void bufferSubData(int target, int offset, data) {
-    if ((data is TypedData || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
-      _blink.BlinkWebGLRenderingContextBase.bufferSubData_Callback_ul_ll_ArrayBufferView(this, target, offset, data);
-      return;
-    }
-    if ((data is ByteBuffer || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
-      _blink.BlinkWebGLRenderingContextBase.bufferSubData_Callback_ul_ll_ArrayBuffer(this, target, offset, data);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @DomName('WebGLRenderingContextBase.bufferSubDataTyped')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void bufferSubDataTyped(int target, int offset, TypedData data) => _blink.BlinkWebGLRenderingContextBase.bufferSubData_Callback_ul_ll_ArrayBufferView(this, target, offset, data);
-
-  @DomName('WebGLRenderingContextBase.checkFramebufferStatus')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int checkFramebufferStatus(int target) => _blink.BlinkWebGLRenderingContextBase.checkFramebufferStatus_Callback_ul(this, target);
-
-  @DomName('WebGLRenderingContextBase.clear')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void clear(int mask) => _blink.BlinkWebGLRenderingContextBase.clear_Callback_ul(this, mask);
-
-  @DomName('WebGLRenderingContextBase.clearColor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void clearColor(num red, num green, num blue, num alpha) => _blink.BlinkWebGLRenderingContextBase.clearColor_Callback_float_float_float_float(this, red, green, blue, alpha);
-
-  @DomName('WebGLRenderingContextBase.clearDepth')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void clearDepth(num depth) => _blink.BlinkWebGLRenderingContextBase.clearDepth_Callback_float(this, depth);
-
-  @DomName('WebGLRenderingContextBase.clearStencil')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void clearStencil(int s) => _blink.BlinkWebGLRenderingContextBase.clearStencil_Callback_long(this, s);
-
-  @DomName('WebGLRenderingContextBase.colorMask')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void colorMask(bool red, bool green, bool blue, bool alpha) => _blink.BlinkWebGLRenderingContextBase.colorMask_Callback_boolean_boolean_boolean_boolean(this, red, green, blue, alpha);
-
-  @DomName('WebGLRenderingContextBase.compileShader')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void compileShader(Shader shader) => _blink.BlinkWebGLRenderingContextBase.compileShader_Callback_WebGLShader(this, shader);
-
-  @DomName('WebGLRenderingContextBase.compressedTexImage2D')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, TypedData data) => _blink.BlinkWebGLRenderingContextBase.compressedTexImage2D_Callback_ul_long_ul_long_long_long_ArrayBufferView(this, target, level, internalformat, width, height, border, data);
-
-  @DomName('WebGLRenderingContextBase.compressedTexSubImage2D')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, TypedData data) => _blink.BlinkWebGLRenderingContextBase.compressedTexSubImage2D_Callback_ul_long_long_long_long_long_ul_ArrayBufferView(this, target, level, xoffset, yoffset, width, height, format, data);
-
-  @DomName('WebGLRenderingContextBase.copyTexImage2D')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) => _blink.BlinkWebGLRenderingContextBase.copyTexImage2D_Callback_ul_long_ul_long_long_long_long_long(this, target, level, internalformat, x, y, width, height, border);
-
-  @DomName('WebGLRenderingContextBase.copyTexSubImage2D')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) => _blink.BlinkWebGLRenderingContextBase.copyTexSubImage2D_Callback_ul_long_long_long_long_long_long_long(this, target, level, xoffset, yoffset, x, y, width, height);
-
-  @DomName('WebGLRenderingContextBase.createBuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Buffer createBuffer() => _blink.BlinkWebGLRenderingContextBase.createBuffer_Callback(this);
-
-  @DomName('WebGLRenderingContextBase.createFramebuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Framebuffer createFramebuffer() => _blink.BlinkWebGLRenderingContextBase.createFramebuffer_Callback(this);
-
-  @DomName('WebGLRenderingContextBase.createProgram')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Program createProgram() => _blink.BlinkWebGLRenderingContextBase.createProgram_Callback(this);
-
-  @DomName('WebGLRenderingContextBase.createRenderbuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Renderbuffer createRenderbuffer() => _blink.BlinkWebGLRenderingContextBase.createRenderbuffer_Callback(this);
-
-  @DomName('WebGLRenderingContextBase.createShader')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Shader createShader(int type) => _blink.BlinkWebGLRenderingContextBase.createShader_Callback_ul(this, type);
-
-  @DomName('WebGLRenderingContextBase.createTexture')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Texture createTexture() => _blink.BlinkWebGLRenderingContextBase.createTexture_Callback(this);
-
-  @DomName('WebGLRenderingContextBase.cullFace')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void cullFace(int mode) => _blink.BlinkWebGLRenderingContextBase.cullFace_Callback_ul(this, mode);
-
-  @DomName('WebGLRenderingContextBase.deleteBuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void deleteBuffer(Buffer buffer) => _blink.BlinkWebGLRenderingContextBase.deleteBuffer_Callback_WebGLBuffer(this, buffer);
-
-  @DomName('WebGLRenderingContextBase.deleteFramebuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void deleteFramebuffer(Framebuffer framebuffer) => _blink.BlinkWebGLRenderingContextBase.deleteFramebuffer_Callback_WebGLFramebuffer(this, framebuffer);
-
-  @DomName('WebGLRenderingContextBase.deleteProgram')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void deleteProgram(Program program) => _blink.BlinkWebGLRenderingContextBase.deleteProgram_Callback_WebGLProgram(this, program);
-
-  @DomName('WebGLRenderingContextBase.deleteRenderbuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void deleteRenderbuffer(Renderbuffer renderbuffer) => _blink.BlinkWebGLRenderingContextBase.deleteRenderbuffer_Callback_WebGLRenderbuffer(this, renderbuffer);
-
-  @DomName('WebGLRenderingContextBase.deleteShader')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void deleteShader(Shader shader) => _blink.BlinkWebGLRenderingContextBase.deleteShader_Callback_WebGLShader(this, shader);
-
-  @DomName('WebGLRenderingContextBase.deleteTexture')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void deleteTexture(Texture texture) => _blink.BlinkWebGLRenderingContextBase.deleteTexture_Callback_WebGLTexture(this, texture);
-
-  @DomName('WebGLRenderingContextBase.depthFunc')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void depthFunc(int func) => _blink.BlinkWebGLRenderingContextBase.depthFunc_Callback_ul(this, func);
-
-  @DomName('WebGLRenderingContextBase.depthMask')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void depthMask(bool flag) => _blink.BlinkWebGLRenderingContextBase.depthMask_Callback_boolean(this, flag);
-
-  @DomName('WebGLRenderingContextBase.depthRange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void depthRange(num zNear, num zFar) => _blink.BlinkWebGLRenderingContextBase.depthRange_Callback_float_float(this, zNear, zFar);
-
-  @DomName('WebGLRenderingContextBase.detachShader')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void detachShader(Program program, Shader shader) => _blink.BlinkWebGLRenderingContextBase.detachShader_Callback_WebGLProgram_WebGLShader(this, program, shader);
-
-  @DomName('WebGLRenderingContextBase.disable')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void disable(int cap) => _blink.BlinkWebGLRenderingContextBase.disable_Callback_ul(this, cap);
-
-  @DomName('WebGLRenderingContextBase.disableVertexAttribArray')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void disableVertexAttribArray(int index) => _blink.BlinkWebGLRenderingContextBase.disableVertexAttribArray_Callback_ul(this, index);
-
-  @DomName('WebGLRenderingContextBase.drawArrays')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void drawArrays(int mode, int first, int count) => _blink.BlinkWebGLRenderingContextBase.drawArrays_Callback_ul_long_long(this, mode, first, count);
-
-  @DomName('WebGLRenderingContextBase.drawElements')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void drawElements(int mode, int count, int type, int offset) => _blink.BlinkWebGLRenderingContextBase.drawElements_Callback_ul_long_ul_ll(this, mode, count, type, offset);
-
-  @DomName('WebGLRenderingContextBase.enable')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void enable(int cap) => _blink.BlinkWebGLRenderingContextBase.enable_Callback_ul(this, cap);
-
-  @DomName('WebGLRenderingContextBase.enableVertexAttribArray')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void enableVertexAttribArray(int index) => _blink.BlinkWebGLRenderingContextBase.enableVertexAttribArray_Callback_ul(this, index);
-
-  @DomName('WebGLRenderingContextBase.finish')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void finish() => _blink.BlinkWebGLRenderingContextBase.finish_Callback(this);
-
-  @DomName('WebGLRenderingContextBase.flush')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void flush() => _blink.BlinkWebGLRenderingContextBase.flush_Callback(this);
-
-  @DomName('WebGLRenderingContextBase.framebufferRenderbuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, Renderbuffer renderbuffer) => _blink.BlinkWebGLRenderingContextBase.framebufferRenderbuffer_Callback_ul_ul_ul_WebGLRenderbuffer(this, target, attachment, renderbuffertarget, renderbuffer);
-
-  @DomName('WebGLRenderingContextBase.framebufferTexture2D')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void framebufferTexture2D(int target, int attachment, int textarget, Texture texture, int level) => _blink.BlinkWebGLRenderingContextBase.framebufferTexture2D_Callback_ul_ul_ul_WebGLTexture_long(this, target, attachment, textarget, texture, level);
-
-  @DomName('WebGLRenderingContextBase.frontFace')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void frontFace(int mode) => _blink.BlinkWebGLRenderingContextBase.frontFace_Callback_ul(this, mode);
-
-  @DomName('WebGLRenderingContextBase.generateMipmap')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void generateMipmap(int target) => _blink.BlinkWebGLRenderingContextBase.generateMipmap_Callback_ul(this, target);
-
-  @DomName('WebGLRenderingContextBase.getActiveAttrib')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ActiveInfo getActiveAttrib(Program program, int index) => _blink.BlinkWebGLRenderingContextBase.getActiveAttrib_Callback_WebGLProgram_ul(this, program, index);
-
-  @DomName('WebGLRenderingContextBase.getActiveUniform')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ActiveInfo getActiveUniform(Program program, int index) => _blink.BlinkWebGLRenderingContextBase.getActiveUniform_Callback_WebGLProgram_ul(this, program, index);
-
-  @DomName('WebGLRenderingContextBase.getAttachedShaders')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<Shader> getAttachedShaders(Program program) => _blink.BlinkWebGLRenderingContextBase.getAttachedShaders_Callback_WebGLProgram(this, program);
-
-  @DomName('WebGLRenderingContextBase.getAttribLocation')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int getAttribLocation(Program program, String name) => _blink.BlinkWebGLRenderingContextBase.getAttribLocation_Callback_WebGLProgram_DOMString(this, program, name);
-
-  @DomName('WebGLRenderingContextBase.getBufferParameter')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object getBufferParameter(int target, int pname) => _blink.BlinkWebGLRenderingContextBase.getBufferParameter_Callback_ul_ul(this, target, pname);
-
-  @DomName('WebGLRenderingContextBase.getContextAttributes')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ContextAttributes getContextAttributes() => _blink.BlinkWebGLRenderingContextBase.getContextAttributes_Callback(this);
-
-  @DomName('WebGLRenderingContextBase.getError')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int getError() => _blink.BlinkWebGLRenderingContextBase.getError_Callback(this);
-
-  @DomName('WebGLRenderingContextBase.getExtension')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object getExtension(String name) => _blink.BlinkWebGLRenderingContextBase.getExtension_Callback_DOMString(this, name);
-
-  @DomName('WebGLRenderingContextBase.getFramebufferAttachmentParameter')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) => _blink.BlinkWebGLRenderingContextBase.getFramebufferAttachmentParameter_Callback_ul_ul_ul(this, target, attachment, pname);
-
-  @DomName('WebGLRenderingContextBase.getParameter')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object getParameter(int pname) => _blink.BlinkWebGLRenderingContextBase.getParameter_Callback_ul(this, pname);
-
-  @DomName('WebGLRenderingContextBase.getProgramInfoLog')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String getProgramInfoLog(Program program) => _blink.BlinkWebGLRenderingContextBase.getProgramInfoLog_Callback_WebGLProgram(this, program);
-
-  @DomName('WebGLRenderingContextBase.getProgramParameter')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object getProgramParameter(Program program, int pname) => _blink.BlinkWebGLRenderingContextBase.getProgramParameter_Callback_WebGLProgram_ul(this, program, pname);
-
-  @DomName('WebGLRenderingContextBase.getRenderbufferParameter')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object getRenderbufferParameter(int target, int pname) => _blink.BlinkWebGLRenderingContextBase.getRenderbufferParameter_Callback_ul_ul(this, target, pname);
-
-  @DomName('WebGLRenderingContextBase.getShaderInfoLog')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String getShaderInfoLog(Shader shader) => _blink.BlinkWebGLRenderingContextBase.getShaderInfoLog_Callback_WebGLShader(this, shader);
-
-  @DomName('WebGLRenderingContextBase.getShaderParameter')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object getShaderParameter(Shader shader, int pname) => _blink.BlinkWebGLRenderingContextBase.getShaderParameter_Callback_WebGLShader_ul(this, shader, pname);
-
-  @DomName('WebGLRenderingContextBase.getShaderPrecisionFormat')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) => _blink.BlinkWebGLRenderingContextBase.getShaderPrecisionFormat_Callback_ul_ul(this, shadertype, precisiontype);
-
-  @DomName('WebGLRenderingContextBase.getShaderSource')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String getShaderSource(Shader shader) => _blink.BlinkWebGLRenderingContextBase.getShaderSource_Callback_WebGLShader(this, shader);
-
-  @DomName('WebGLRenderingContextBase.getSupportedExtensions')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<String> getSupportedExtensions() => _blink.BlinkWebGLRenderingContextBase.getSupportedExtensions_Callback(this);
-
-  @DomName('WebGLRenderingContextBase.getTexParameter')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object getTexParameter(int target, int pname) => _blink.BlinkWebGLRenderingContextBase.getTexParameter_Callback_ul_ul(this, target, pname);
-
-  @DomName('WebGLRenderingContextBase.getUniform')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object getUniform(Program program, UniformLocation location) => _blink.BlinkWebGLRenderingContextBase.getUniform_Callback_WebGLProgram_WebGLUniformLocation(this, program, location);
-
-  @DomName('WebGLRenderingContextBase.getUniformLocation')
-  @DocsEditable()
-  @Experimental() // untriaged
-  UniformLocation getUniformLocation(Program program, String name) => _blink.BlinkWebGLRenderingContextBase.getUniformLocation_Callback_WebGLProgram_DOMString(this, program, name);
-
-  @DomName('WebGLRenderingContextBase.getVertexAttrib')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object getVertexAttrib(int index, int pname) => _blink.BlinkWebGLRenderingContextBase.getVertexAttrib_Callback_ul_ul(this, index, pname);
-
-  @DomName('WebGLRenderingContextBase.getVertexAttribOffset')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int getVertexAttribOffset(int index, int pname) => _blink.BlinkWebGLRenderingContextBase.getVertexAttribOffset_Callback_ul_ul(this, index, pname);
-
-  @DomName('WebGLRenderingContextBase.hint')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void hint(int target, int mode) => _blink.BlinkWebGLRenderingContextBase.hint_Callback_ul_ul(this, target, mode);
-
-  @DomName('WebGLRenderingContextBase.isBuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool isBuffer(Buffer buffer) => _blink.BlinkWebGLRenderingContextBase.isBuffer_Callback_WebGLBuffer(this, buffer);
-
-  @DomName('WebGLRenderingContextBase.isContextLost')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool isContextLost() => _blink.BlinkWebGLRenderingContextBase.isContextLost_Callback(this);
-
-  @DomName('WebGLRenderingContextBase.isEnabled')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool isEnabled(int cap) => _blink.BlinkWebGLRenderingContextBase.isEnabled_Callback_ul(this, cap);
-
-  @DomName('WebGLRenderingContextBase.isFramebuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool isFramebuffer(Framebuffer framebuffer) => _blink.BlinkWebGLRenderingContextBase.isFramebuffer_Callback_WebGLFramebuffer(this, framebuffer);
-
-  @DomName('WebGLRenderingContextBase.isProgram')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool isProgram(Program program) => _blink.BlinkWebGLRenderingContextBase.isProgram_Callback_WebGLProgram(this, program);
-
-  @DomName('WebGLRenderingContextBase.isRenderbuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool isRenderbuffer(Renderbuffer renderbuffer) => _blink.BlinkWebGLRenderingContextBase.isRenderbuffer_Callback_WebGLRenderbuffer(this, renderbuffer);
-
-  @DomName('WebGLRenderingContextBase.isShader')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool isShader(Shader shader) => _blink.BlinkWebGLRenderingContextBase.isShader_Callback_WebGLShader(this, shader);
-
-  @DomName('WebGLRenderingContextBase.isTexture')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool isTexture(Texture texture) => _blink.BlinkWebGLRenderingContextBase.isTexture_Callback_WebGLTexture(this, texture);
-
-  @DomName('WebGLRenderingContextBase.lineWidth')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void lineWidth(num width) => _blink.BlinkWebGLRenderingContextBase.lineWidth_Callback_float(this, width);
-
-  @DomName('WebGLRenderingContextBase.linkProgram')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void linkProgram(Program program) => _blink.BlinkWebGLRenderingContextBase.linkProgram_Callback_WebGLProgram(this, program);
-
-  @DomName('WebGLRenderingContextBase.pixelStorei')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void pixelStorei(int pname, int param) => _blink.BlinkWebGLRenderingContextBase.pixelStorei_Callback_ul_long(this, pname, param);
-
-  @DomName('WebGLRenderingContextBase.polygonOffset')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void polygonOffset(num factor, num units) => _blink.BlinkWebGLRenderingContextBase.polygonOffset_Callback_float_float(this, factor, units);
-
-  @DomName('WebGLRenderingContextBase.readPixels')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void readPixels(int x, int y, int width, int height, int format, int type, TypedData pixels) => _blink.BlinkWebGLRenderingContextBase.readPixels_Callback_long_long_long_long_ul_ul_ArrayBufferView(this, x, y, width, height, format, type, pixels);
-
-  @DomName('WebGLRenderingContextBase.renderbufferStorage')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void renderbufferStorage(int target, int internalformat, int width, int height) => _blink.BlinkWebGLRenderingContextBase.renderbufferStorage_Callback_ul_ul_long_long(this, target, internalformat, width, height);
-
-  @DomName('WebGLRenderingContextBase.sampleCoverage')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void sampleCoverage(num value, bool invert) => _blink.BlinkWebGLRenderingContextBase.sampleCoverage_Callback_float_boolean(this, value, invert);
-
-  @DomName('WebGLRenderingContextBase.scissor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void scissor(int x, int y, int width, int height) => _blink.BlinkWebGLRenderingContextBase.scissor_Callback_long_long_long_long(this, x, y, width, height);
-
-  @DomName('WebGLRenderingContextBase.shaderSource')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void shaderSource(Shader shader, String string) => _blink.BlinkWebGLRenderingContextBase.shaderSource_Callback_WebGLShader_DOMString(this, shader, string);
-
-  @DomName('WebGLRenderingContextBase.stencilFunc')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void stencilFunc(int func, int ref, int mask) => _blink.BlinkWebGLRenderingContextBase.stencilFunc_Callback_ul_long_ul(this, func, ref, mask);
-
-  @DomName('WebGLRenderingContextBase.stencilFuncSeparate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void stencilFuncSeparate(int face, int func, int ref, int mask) => _blink.BlinkWebGLRenderingContextBase.stencilFuncSeparate_Callback_ul_ul_long_ul(this, face, func, ref, mask);
-
-  @DomName('WebGLRenderingContextBase.stencilMask')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void stencilMask(int mask) => _blink.BlinkWebGLRenderingContextBase.stencilMask_Callback_ul(this, mask);
-
-  @DomName('WebGLRenderingContextBase.stencilMaskSeparate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void stencilMaskSeparate(int face, int mask) => _blink.BlinkWebGLRenderingContextBase.stencilMaskSeparate_Callback_ul_ul(this, face, mask);
-
-  @DomName('WebGLRenderingContextBase.stencilOp')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void stencilOp(int fail, int zfail, int zpass) => _blink.BlinkWebGLRenderingContextBase.stencilOp_Callback_ul_ul_ul(this, fail, zfail, zpass);
-
-  @DomName('WebGLRenderingContextBase.stencilOpSeparate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void stencilOpSeparate(int face, int fail, int zfail, int zpass) => _blink.BlinkWebGLRenderingContextBase.stencilOpSeparate_Callback_ul_ul_ul_ul(this, face, fail, zfail, zpass);
-
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
-    if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (format is int || format == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null)) {
-      _blink.BlinkWebGLRenderingContextBase.texImage2D_Callback_ul_long_ul_long_long_long_ul_ul_ArrayBufferView(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
-      return;
-    }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContextBase.texImage2D_Callback_ul_long_ul_ul_ul_ImageData(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContextBase.texImage2D_Callback_ul_long_ul_ul_ul_HTMLImageElement(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContextBase.texImage2D_Callback_ul_long_ul_ul_ul_HTMLCanvasElement(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContextBase.texImage2D_Callback_ul_long_ul_ul_ul_HTMLVideoElement(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @DomName('WebGLRenderingContextBase.texImage2DCanvas')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void texImage2DCanvas(int target, int level, int internalformat, int format, int type, CanvasElement canvas) => _blink.BlinkWebGLRenderingContextBase.texImage2D_Callback_ul_long_ul_ul_ul_HTMLCanvasElement(this, target, level, internalformat, format, type, canvas);
-
-  @DomName('WebGLRenderingContextBase.texImage2DImage')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void texImage2DImage(int target, int level, int internalformat, int format, int type, ImageElement image) => _blink.BlinkWebGLRenderingContextBase.texImage2D_Callback_ul_long_ul_ul_ul_HTMLImageElement(this, target, level, internalformat, format, type, image);
-
-  @DomName('WebGLRenderingContextBase.texImage2DImageData')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void texImage2DImageData(int target, int level, int internalformat, int format, int type, ImageData pixels) => _blink.BlinkWebGLRenderingContextBase.texImage2D_Callback_ul_long_ul_ul_ul_ImageData(this, target, level, internalformat, format, type, pixels);
-
-  @DomName('WebGLRenderingContextBase.texImage2DVideo')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void texImage2DVideo(int target, int level, int internalformat, int format, int type, VideoElement video) => _blink.BlinkWebGLRenderingContextBase.texImage2D_Callback_ul_long_ul_ul_ul_HTMLVideoElement(this, target, level, internalformat, format, type, video);
-
-  @DomName('WebGLRenderingContextBase.texParameterf')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void texParameterf(int target, int pname, num param) => _blink.BlinkWebGLRenderingContextBase.texParameterf_Callback_ul_ul_float(this, target, pname, param);
-
-  @DomName('WebGLRenderingContextBase.texParameteri')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void texParameteri(int target, int pname, int param) => _blink.BlinkWebGLRenderingContextBase.texParameteri_Callback_ul_ul_long(this, target, pname, param);
-
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
-    if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null)) {
-      _blink.BlinkWebGLRenderingContextBase.texSubImage2D_Callback_ul_long_long_long_long_long_ul_ul_ArrayBufferView(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
-      return;
-    }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContextBase.texSubImage2D_Callback_ul_long_long_long_ul_ul_ImageData(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContextBase.texSubImage2D_Callback_ul_long_long_long_ul_ul_HTMLImageElement(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContextBase.texSubImage2D_Callback_ul_long_long_long_ul_ul_HTMLCanvasElement(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContextBase.texSubImage2D_Callback_ul_long_long_long_ul_ul_HTMLVideoElement(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @DomName('WebGLRenderingContextBase.texSubImage2DCanvas')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void texSubImage2DCanvas(int target, int level, int xoffset, int yoffset, int format, int type, CanvasElement canvas) => _blink.BlinkWebGLRenderingContextBase.texSubImage2D_Callback_ul_long_long_long_ul_ul_HTMLCanvasElement(this, target, level, xoffset, yoffset, format, type, canvas);
-
-  @DomName('WebGLRenderingContextBase.texSubImage2DImage')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void texSubImage2DImage(int target, int level, int xoffset, int yoffset, int format, int type, ImageElement image) => _blink.BlinkWebGLRenderingContextBase.texSubImage2D_Callback_ul_long_long_long_ul_ul_HTMLImageElement(this, target, level, xoffset, yoffset, format, type, image);
-
-  @DomName('WebGLRenderingContextBase.texSubImage2DImageData')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void texSubImage2DImageData(int target, int level, int xoffset, int yoffset, int format, int type, ImageData pixels) => _blink.BlinkWebGLRenderingContextBase.texSubImage2D_Callback_ul_long_long_long_ul_ul_ImageData(this, target, level, xoffset, yoffset, format, type, pixels);
-
-  @DomName('WebGLRenderingContextBase.texSubImage2DVideo')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void texSubImage2DVideo(int target, int level, int xoffset, int yoffset, int format, int type, VideoElement video) => _blink.BlinkWebGLRenderingContextBase.texSubImage2D_Callback_ul_long_long_long_ul_ul_HTMLVideoElement(this, target, level, xoffset, yoffset, format, type, video);
-
-  @DomName('WebGLRenderingContextBase.uniform1f')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform1f(UniformLocation location, num x) => _blink.BlinkWebGLRenderingContextBase.uniform1f_Callback_WebGLUniformLocation_float(this, location, x);
-
-  @DomName('WebGLRenderingContextBase.uniform1fv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform1fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContextBase.uniform1fv_Callback_WebGLUniformLocation_Float32Array(this, location, v);
-
-  @DomName('WebGLRenderingContextBase.uniform1i')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform1i(UniformLocation location, int x) => _blink.BlinkWebGLRenderingContextBase.uniform1i_Callback_WebGLUniformLocation_long(this, location, x);
-
-  @DomName('WebGLRenderingContextBase.uniform1iv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform1iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContextBase.uniform1iv_Callback_WebGLUniformLocation_Int32Array(this, location, v);
-
-  @DomName('WebGLRenderingContextBase.uniform2f')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform2f(UniformLocation location, num x, num y) => _blink.BlinkWebGLRenderingContextBase.uniform2f_Callback_WebGLUniformLocation_float_float(this, location, x, y);
-
-  @DomName('WebGLRenderingContextBase.uniform2fv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform2fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContextBase.uniform2fv_Callback_WebGLUniformLocation_Float32Array(this, location, v);
-
-  @DomName('WebGLRenderingContextBase.uniform2i')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform2i(UniformLocation location, int x, int y) => _blink.BlinkWebGLRenderingContextBase.uniform2i_Callback_WebGLUniformLocation_long_long(this, location, x, y);
-
-  @DomName('WebGLRenderingContextBase.uniform2iv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform2iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContextBase.uniform2iv_Callback_WebGLUniformLocation_Int32Array(this, location, v);
-
-  @DomName('WebGLRenderingContextBase.uniform3f')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform3f(UniformLocation location, num x, num y, num z) => _blink.BlinkWebGLRenderingContextBase.uniform3f_Callback_WebGLUniformLocation_float_float_float(this, location, x, y, z);
-
-  @DomName('WebGLRenderingContextBase.uniform3fv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform3fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContextBase.uniform3fv_Callback_WebGLUniformLocation_Float32Array(this, location, v);
-
-  @DomName('WebGLRenderingContextBase.uniform3i')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform3i(UniformLocation location, int x, int y, int z) => _blink.BlinkWebGLRenderingContextBase.uniform3i_Callback_WebGLUniformLocation_long_long_long(this, location, x, y, z);
-
-  @DomName('WebGLRenderingContextBase.uniform3iv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform3iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContextBase.uniform3iv_Callback_WebGLUniformLocation_Int32Array(this, location, v);
-
-  @DomName('WebGLRenderingContextBase.uniform4f')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform4f(UniformLocation location, num x, num y, num z, num w) => _blink.BlinkWebGLRenderingContextBase.uniform4f_Callback_WebGLUniformLocation_float_float_float_float(this, location, x, y, z, w);
-
-  @DomName('WebGLRenderingContextBase.uniform4fv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform4fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContextBase.uniform4fv_Callback_WebGLUniformLocation_Float32Array(this, location, v);
-
-  @DomName('WebGLRenderingContextBase.uniform4i')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform4i(UniformLocation location, int x, int y, int z, int w) => _blink.BlinkWebGLRenderingContextBase.uniform4i_Callback_WebGLUniformLocation_long_long_long_long(this, location, x, y, z, w);
-
-  @DomName('WebGLRenderingContextBase.uniform4iv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniform4iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContextBase.uniform4iv_Callback_WebGLUniformLocation_Int32Array(this, location, v);
-
-  @DomName('WebGLRenderingContextBase.uniformMatrix2fv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniformMatrix2fv(UniformLocation location, bool transpose, Float32List array) => _blink.BlinkWebGLRenderingContextBase.uniformMatrix2fv_Callback_WebGLUniformLocation_boolean_Float32Array(this, location, transpose, array);
-
-  @DomName('WebGLRenderingContextBase.uniformMatrix3fv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniformMatrix3fv(UniformLocation location, bool transpose, Float32List array) => _blink.BlinkWebGLRenderingContextBase.uniformMatrix3fv_Callback_WebGLUniformLocation_boolean_Float32Array(this, location, transpose, array);
-
-  @DomName('WebGLRenderingContextBase.uniformMatrix4fv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void uniformMatrix4fv(UniformLocation location, bool transpose, Float32List array) => _blink.BlinkWebGLRenderingContextBase.uniformMatrix4fv_Callback_WebGLUniformLocation_boolean_Float32Array(this, location, transpose, array);
-
-  @DomName('WebGLRenderingContextBase.useProgram')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void useProgram(Program program) => _blink.BlinkWebGLRenderingContextBase.useProgram_Callback_WebGLProgram(this, program);
-
-  @DomName('WebGLRenderingContextBase.validateProgram')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void validateProgram(Program program) => _blink.BlinkWebGLRenderingContextBase.validateProgram_Callback_WebGLProgram(this, program);
-
-  @DomName('WebGLRenderingContextBase.vertexAttrib1f')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void vertexAttrib1f(int indx, num x) => _blink.BlinkWebGLRenderingContextBase.vertexAttrib1f_Callback_ul_float(this, indx, x);
-
-  @DomName('WebGLRenderingContextBase.vertexAttrib1fv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void vertexAttrib1fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContextBase.vertexAttrib1fv_Callback_ul_Float32Array(this, indx, values);
-
-  @DomName('WebGLRenderingContextBase.vertexAttrib2f')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void vertexAttrib2f(int indx, num x, num y) => _blink.BlinkWebGLRenderingContextBase.vertexAttrib2f_Callback_ul_float_float(this, indx, x, y);
-
-  @DomName('WebGLRenderingContextBase.vertexAttrib2fv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void vertexAttrib2fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContextBase.vertexAttrib2fv_Callback_ul_Float32Array(this, indx, values);
-
-  @DomName('WebGLRenderingContextBase.vertexAttrib3f')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void vertexAttrib3f(int indx, num x, num y, num z) => _blink.BlinkWebGLRenderingContextBase.vertexAttrib3f_Callback_ul_float_float_float(this, indx, x, y, z);
-
-  @DomName('WebGLRenderingContextBase.vertexAttrib3fv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void vertexAttrib3fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContextBase.vertexAttrib3fv_Callback_ul_Float32Array(this, indx, values);
-
-  @DomName('WebGLRenderingContextBase.vertexAttrib4f')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void vertexAttrib4f(int indx, num x, num y, num z, num w) => _blink.BlinkWebGLRenderingContextBase.vertexAttrib4f_Callback_ul_float_float_float_float(this, indx, x, y, z, w);
-
-  @DomName('WebGLRenderingContextBase.vertexAttrib4fv')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void vertexAttrib4fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContextBase.vertexAttrib4fv_Callback_ul_Float32Array(this, indx, values);
-
-  @DomName('WebGLRenderingContextBase.vertexAttribPointer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) => _blink.BlinkWebGLRenderingContextBase.vertexAttribPointer_Callback_ul_long_ul_boolean_long_ll(this, indx, size, type, normalized, stride, offset);
-
-  @DomName('WebGLRenderingContextBase.viewport')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void viewport(int x, int y, int width, int height) => _blink.BlinkWebGLRenderingContextBase.viewport_Callback_long_long_long_long(this, x, y, width, height);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('WebGLShader')
 class Shader extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
@@ -4303,5 +3182,20 @@ class UniformLocation extends NativeFieldWrapperClass2 {
 class VertexArrayObject extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory VertexArrayObject._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebGLRenderingContextBase')
+@Experimental() // untriaged
+abstract class _WebGLRenderingContextBase extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory _WebGLRenderingContextBase._() { throw new UnsupportedError("Not supported"); }
 
 }

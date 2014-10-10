@@ -865,6 +865,18 @@
     "comment": "http://dev.w3.org/csswg/cssom/",
     "dart_action": "suppress",
     "members": {
+      "CSS_CUSTOM": {
+        "support_level": "untriaged"
+      },
+      "CSS_INHERIT": {
+        "support_level": "untriaged"
+      },
+      "CSS_PRIMITIVE_VALUE": {
+        "support_level": "untriaged"
+      },
+      "CSS_VALUE_LIST": {
+        "support_level": "untriaged"
+      },
       "item": {},
       "length": {}
     },
@@ -10262,7 +10274,25 @@
     "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFEFuncAElement",
     "dart_action": "unstable",
     "members": {
-      "SVGFEFuncAElement": {}
+      "SVGFEFuncAElement": {},
+      "SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_GAMMA": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_LINEAR": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_TABLE": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "stable"
   },
@@ -10270,7 +10300,25 @@
     "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFEFuncBElement",
     "dart_action": "unstable",
     "members": {
-      "SVGFEFuncBElement": {}
+      "SVGFEFuncBElement": {},
+      "SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_GAMMA": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_LINEAR": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_TABLE": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "stable"
   },
@@ -10278,7 +10326,25 @@
     "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFEFuncGElement",
     "dart_action": "unstable",
     "members": {
-      "SVGFEFuncGElement": {}
+      "SVGFEFuncGElement": {},
+      "SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_GAMMA": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_LINEAR": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_TABLE": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "stable"
   },
@@ -10286,7 +10352,25 @@
     "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFEFuncRElement",
     "dart_action": "unstable",
     "members": {
-      "SVGFEFuncRElement": {}
+      "SVGFEFuncRElement": {},
+      "SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_GAMMA": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_LINEAR": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_TABLE": {
+        "support_level": "untriaged"
+      },
+      "SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "stable"
   },
@@ -11820,6 +11904,15 @@
     "comment": "http://www.w3.org/TR/SVG/struct.html#InterfaceSVGSVGElement",
     "dart_action": "unstable",
     "members": {
+      "SVG_ZOOMANDPAN_DISABLE": {
+        "support_level": "untriaged"
+      },
+      "SVG_ZOOMANDPAN_MAGNIFY": {
+        "support_level": "untriaged"
+      },
+      "SVG_ZOOMANDPAN_UNKNOWN": {
+        "support_level": "untriaged"
+      },
       "animationsPaused": {},
       "checkEnclosure": {},
       "checkIntersection": {},
@@ -12374,6 +12467,15 @@
     "dart_action": "unstable",
     "members": {
       "SVGViewElement": {},
+      "SVG_ZOOMANDPAN_DISABLE": {
+        "support_level": "untriaged"
+      },
+      "SVG_ZOOMANDPAN_MAGNIFY": {
+        "support_level": "untriaged"
+      },
+      "SVG_ZOOMANDPAN_UNKNOWN": {
+        "support_level": "untriaged"
+      },
       "externalResourcesRequired": {
         "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
@@ -12394,6 +12496,15 @@
     "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGViewSpec",
     "dart_action": "unstable",
     "members": {
+      "SVG_ZOOMANDPAN_DISABLE": {
+        "support_level": "untriaged"
+      },
+      "SVG_ZOOMANDPAN_MAGNIFY": {
+        "support_level": "untriaged"
+      },
+      "SVG_ZOOMANDPAN_UNKNOWN": {
+        "support_level": "untriaged"
+      },
       "preserveAspectRatio": {
         "dart_action": "experimental",
         "support_level": "nonstandard"
@@ -14224,6 +14335,12 @@
       },
       "HIGH_FLOAT": {},
       "HIGH_INT": {},
+      "IMPLEMENTATION_COLOR_READ_FORMAT": {
+        "support_level": "untriaged"
+      },
+      "IMPLEMENTATION_COLOR_READ_TYPE": {
+        "support_level": "untriaged"
+      },
       "INCR": {},
       "INCR_WRAP": {},
       "INT": {},

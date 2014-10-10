@@ -134,6 +134,7 @@ _removed_html_interfaces = [
   'WebKitCSSTransformValue',
   'WebKitMediaSource',
   'WebKitNotification',
+  'WebGLRenderingContextBase',
   'WebKitSourceBuffer',
   'WebKitSourceBufferList',
   'WorkerLocation', # Workers
