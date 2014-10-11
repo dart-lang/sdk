@@ -680,6 +680,7 @@ void Object::InitOnce() {
     empty_array_->StoreSmi(&empty_array_->raw_ptr()->length_, Smi::New(0));
   }
 
+  Smi& smi = Smi::Handle();
   // Allocate and initialize the zero_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(1), Heap::kOld);
@@ -688,8 +689,8 @@ void Object::InitOnce() {
         zero_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
     zero_array_->StoreSmi(&zero_array_->raw_ptr()->length_, Smi::New(1));
-    zero_array_->StorePointer(&zero_array_->raw_ptr()->data()[0],
-                              static_cast<RawObject*>(Smi::New(0)));
+    smi = Smi::New(0);
+    zero_array_->SetAt(0, smi);
   }
 
   // Allocate and initialize the empty_descriptors instance.
@@ -716,7 +717,8 @@ void Object::InitOnce() {
     LocalVarDescriptors::initializeHandle(
         empty_var_descriptors_,
         reinterpret_cast<RawLocalVarDescriptors*>(address + kHeapObjectTag));
-    empty_var_descriptors_->raw_ptr()->num_entries_ = 0;
+    empty_var_descriptors_->StoreNonPointer(
+        &empty_var_descriptors_->raw_ptr()->num_entries_, 0);
   }
 
   // Allocate and initialize the canonical empty exception handler info object.
@@ -731,7 +733,8 @@ void Object::InitOnce() {
     ExceptionHandlers::initializeHandle(
         empty_exception_handlers_,
         reinterpret_cast<RawExceptionHandlers*>(address + kHeapObjectTag));
-    empty_exception_handlers_->raw_ptr()->num_entries_ = 0;
+    empty_exception_handlers_->StoreNonPointer(
+        &empty_exception_handlers_->raw_ptr()->num_entries_, 0);
   }
 
   cls = Class::New<Instance>(kDynamicCid);
@@ -4779,7 +4782,7 @@ RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
 
 
 
-RawAbstractType** TypeArguments::TypeAddr(intptr_t index) const {
+RawAbstractType* const* TypeArguments::TypeAddr(intptr_t index) const {
   // TODO(iposva): Determine if we should throw an exception here.
   ASSERT((index >= 0) && (index < Length()));
   return &raw_ptr()->types()[index];
@@ -7002,8 +7005,8 @@ intptr_t Field::guarded_list_length_in_object_offset() const {
 
 void Field::set_guarded_list_length_in_object_offset(
     intptr_t list_length_offset) const {
-  raw_ptr()->guarded_list_length_in_object_offset_ =
-      static_cast<int8_t>(list_length_offset - kHeapObjectTag);
+  StoreNonPointer(&raw_ptr()->guarded_list_length_in_object_offset_,
+                  static_cast<int8_t>(list_length_offset - kHeapObjectTag));
   ASSERT(guarded_list_length_in_object_offset() == list_length_offset);
 }
 
@@ -8544,7 +8547,7 @@ void Library::SetLoadInProgress() const {
 void Library::SetLoadRequested() const {
   // Must not be already loaded.
   ASSERT(raw_ptr()->load_state_ == RawLibrary::kAllocated);
-  raw_ptr()->load_state_ = RawLibrary::kLoadRequested;
+  StoreNonPointer(&raw_ptr()->load_state_, RawLibrary::kLoadRequested);
 }
 
 
@@ -9425,7 +9428,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
-  result.raw_ptr()->load_error_ = Instance::null();
+  result.StorePointer(&result.raw_ptr()->load_error_, Instance::null());
   result.set_native_entry_resolver(NULL);
   result.set_native_entry_symbol_resolver(NULL);
   result.StoreNonPointer(&result.raw_ptr()->corelib_imported_, true);
@@ -10422,7 +10425,7 @@ intptr_t PcDescriptors::RecordSizeInBytes() const {
 
 
 void PcDescriptors::SetRecordSizeInBytes(intptr_t value) const {
-  raw_ptr()->record_size_in_bytes_ = value;
+  StoreNonPointer(&raw_ptr()->record_size_in_bytes_, value);
 }
 
 
@@ -10613,7 +10616,8 @@ void Stackmap::SetBit(intptr_t bit_index, bool value) const {
   int byte_index = bit_index >> kBitsPerByteLog2;
   int bit_remainder = bit_index & (kBitsPerByte - 1);
   uint8_t byte_mask = 1U << bit_remainder;
-  uint8_t* byte_addr = &(raw_ptr()->data()[byte_index]);
+  NoGCScope no_gc;
+  uint8_t* byte_addr = UnsafeMutableNonPointer(&raw_ptr()->data()[byte_index]);
   if (value) {
     *byte_addr |= byte_mask;
   } else {
@@ -10897,7 +10901,9 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        bool needs_stacktrace,
                                        bool has_catch_all) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
-  RawExceptionHandlers::HandlerInfo* info = &raw_ptr()->data()[try_index];
+  NoGCScope no_gc;
+  RawExceptionHandlers::HandlerInfo* info =
+      UnsafeMutableNonPointer(&raw_ptr()->data()[try_index]);
   info->outer_try_index = outer_try_index;
   info->handler_pc = handler_pc;
   info->needs_stacktrace = needs_stacktrace;
@@ -11050,11 +11056,13 @@ intptr_t DeoptInfo::Length() const {
 
 
 intptr_t DeoptInfo::FromIndex(intptr_t index) const {
+  NoGCScope no_gc;
   return *(EntryAddr(index, kFromIndex));
 }
 
 
 intptr_t DeoptInfo::Instruction(intptr_t index) const {
+  NoGCScope no_gc;
   return *(EntryAddr(index, kInstruction));
 }
 
@@ -11192,6 +11200,7 @@ void DeoptInfo::SetLength(intptr_t value) const {
 void DeoptInfo::SetAt(intptr_t index,
                       intptr_t instr_kind,
                       intptr_t from_index) const {
+  NoGCScope no_gc;
   *(EntryAddr(index, kInstruction)) = instr_kind;
   *(EntryAddr(index, kFromIndex)) = from_index;
 }
@@ -11247,8 +11256,8 @@ intptr_t ICData::NumArgsTested() const {
 
 void ICData::SetNumArgsTested(intptr_t value) const {
   ASSERT(Utils::IsUint(2, value));
-  raw_ptr()->state_bits_ =
-      NumArgsTestedBits::update(value, raw_ptr()->state_bits_);
+  StoreNonPointer(&raw_ptr()->state_bits_,
+                  NumArgsTestedBits::update(value, raw_ptr()->state_bits_));
 }
 
 
@@ -11258,8 +11267,8 @@ uint32_t ICData::DeoptReasons() const {
 
 
 void ICData::SetDeoptReasons(uint32_t reasons) const {
-  raw_ptr()->state_bits_ =
-      DeoptReasonBits::update(reasons, raw_ptr()->state_bits_);
+  StoreNonPointer(&raw_ptr()->state_bits_,
+                  DeoptReasonBits::update(reasons, raw_ptr()->state_bits_));
 }
 
 
@@ -11279,8 +11288,8 @@ bool ICData::IssuedJSWarning() const {
 
 
 void ICData::SetIssuedJSWarning() const {
-  raw_ptr()->state_bits_ =
-      IssuedJSWarningBit::update(true, raw_ptr()->state_bits_);
+  StoreNonPointer(&raw_ptr()->state_bits_,
+                  IssuedJSWarningBit::update(true, raw_ptr()->state_bits_));
 }
 
 
@@ -12104,8 +12113,10 @@ RawCode* Code::FinalizeCode(const char* name,
       instrs.set_object_pool(Array::MakeArray(object_pool));
     }
     if (FLAG_write_protect_code) {
+      uword address = RawObject::ToAddr(instrs.raw());
       bool status = VirtualMemory::Protect(
-          reinterpret_cast<void*>(instrs.raw_ptr()), instrs.raw()->Size(),
+          reinterpret_cast<void*>(address),
+          instrs.raw()->Size(),
           VirtualMemory::kReadExecute);
       ASSERT(status);
     }
@@ -13384,7 +13395,7 @@ bool Instance::IsIdenticalTo(const Instance& other) const {
 
 
 intptr_t* Instance::NativeFieldsDataAddr() const {
-  NoGCScope no_gc;
+  ASSERT(Isolate::Current()->no_gc_scope_depth() > 0);
   RawTypedData* native_fields =
       reinterpret_cast<RawTypedData*>(*NativeFieldsAddr());
   if (native_fields == TypedData::null()) {
@@ -16103,7 +16114,7 @@ void Bigint::set_neg(const Bool& value) const {
 
 
 void Bigint::set_used(const Smi& value) const {
-  raw_ptr()->used_ = value.raw();
+  StoreSmi(&raw_ptr()->used_, value.raw());
 }
 
 
@@ -16907,6 +16918,7 @@ void StringHasher::Add(const String& str, intptr_t begin_index, intptr_t len) {
   ASSERT((begin_index + len) <= str.Length());
   if (str.IsOneByteString()) {
     for (intptr_t i = 0; i < len; i++) {
+      NoGCScope no_gc;
       Add(*OneByteString::CharAddr(str, i + begin_index));
     }
   } else {
@@ -17781,8 +17793,7 @@ RawString* String::MakeExternal(void* array,
         old_tags = tags;
         uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
         new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
-        tags = AtomicOperations::CompareAndSwapWord(
-            &raw_ptr()->tags_, old_tags, new_tags);
+        tags = CompareAndSwapTags(old_tags, new_tags);
       } while (tags != old_tags);
       result = this->raw();
       const uint8_t* ext_array = reinterpret_cast<const uint8_t*>(array);
@@ -17820,8 +17831,7 @@ RawString* String::MakeExternal(void* array,
         old_tags = tags;
         uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
         new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
-        tags = AtomicOperations::CompareAndSwapWord(
-            &raw_ptr()->tags_, old_tags, new_tags);
+        tags = CompareAndSwapTags(old_tags, new_tags);
       } while (tags != old_tags);
       result = this->raw();
       const uint16_t* ext_array = reinterpret_cast<const uint16_t*>(array);
@@ -18030,7 +18040,7 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
   if (len > 0) {
     intptr_t num_escapes = 0;
     for (intptr_t i = 0; i < len; i++) {
-      num_escapes += EscapeOverhead(*CharAddr(str, i));
+      num_escapes += EscapeOverhead(CharAt(str, i));
     }
     const String& dststr = String::Handle(
         OneByteString::New(len + num_escapes, Heap::kNew));
@@ -18064,7 +18074,7 @@ RawOneByteString* ExternalOneByteString::EscapeSpecialCharacters(
   if (len > 0) {
     intptr_t num_escapes = 0;
     for (intptr_t i = 0; i < len; i++) {
-      num_escapes += EscapeOverhead(*CharAddr(str, i));
+      num_escapes += EscapeOverhead(CharAt(str, i));
     }
     const String& dststr = String::Handle(
         OneByteString::New(len + num_escapes, Heap::kNew));
@@ -18082,7 +18092,7 @@ RawOneByteString* ExternalOneByteString::EscapeSpecialCharacters(
         OneByteString::SetCharAt(dststr, index + 3, GetHexCharacter(ch & 0xF));
         index += 4;
       } else {
-        *(OneByteString::CharAddr(dststr, index)) = ch;
+        OneByteString::SetCharAt(dststr, index, ch);
         index += 1;
       }
     }
@@ -18130,6 +18140,7 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
   const String& result =String::Handle(OneByteString::New(len, space));
+  NoGCScope no_gc;
   for (intptr_t i = 0; i < len; ++i) {
     ASSERT(Utf::IsLatin1(characters[i]));
     *CharAddr(result, i) = characters[i];
@@ -18142,6 +18153,7 @@ RawOneByteString* OneByteString::New(const int32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
   const String& result = String::Handle(OneByteString::New(len, space));
+  NoGCScope no_gc;
   for (intptr_t i = 0; i < len; ++i) {
     ASSERT(Utf::IsLatin1(characters[i]));
     *CharAddr(result, i) = characters[i];
@@ -18248,6 +18260,7 @@ RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
   ASSERT(!str.IsNull());
   intptr_t len = str.Length();
   const String& result = String::Handle(OneByteString::New(len, space));
+  NoGCScope no_gc;
   for (intptr_t i = 0; i < len; ++i) {
     int32_t ch = mapping(str.CharAt(i));
     ASSERT(Utf::IsLatin1(ch));
@@ -18272,7 +18285,7 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
   NoGCScope no_gc;
   if (length > 0) {
     uint8_t* dest = &result->ptr()->data()[0];
-    uint8_t* src =  &raw_ptr(str)->data()[begin_index];
+    const uint8_t* src =  &raw_ptr(str)->data()[begin_index];
     memmove(dest, src, length);
   }
   return result;
@@ -18303,7 +18316,7 @@ RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
   if (len > 0) {
     intptr_t num_escapes = 0;
     for (intptr_t i = 0; i < len; i++) {
-      num_escapes += EscapeOverhead(*CharAddr(str, i));
+      num_escapes += EscapeOverhead(CharAt(str, i));
     }
     const String& dststr = String::Handle(
         TwoByteString::New(len + num_escapes, Heap::kNew));
@@ -18442,6 +18455,7 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
   const String& result = String::Handle(TwoByteString::New(len, space));
   String::CodePointIterator it(str);
   intptr_t i = 0;
+  NoGCScope no_gc;
   while (it.Next()) {
     int32_t src = it.Current();
     int32_t dst = mapping(src);
@@ -18654,16 +18668,7 @@ RawArray* Array::Slice(intptr_t start,
   // allocated array with values from the given source array instead of
   // null-initializing all elements.
   Array& dest = Array::Handle(Array::New(count));
-  if (dest.raw()->IsNewObject()) {
-    NoGCScope no_gc_scope;
-    memmove(dest.ObjectAddr(0), ObjectAddr(start), count * kWordSize);
-  } else {
-    PassiveObject& obj = PassiveObject::Handle();
-    for (intptr_t i = 0; i < count; i++) {
-      obj = At(start + i);
-      dest.SetAt(i, obj);
-    }
-  }
+  dest.StorePointers(dest.ObjectAddr(0), ObjectAddr(start), count);
 
   if (with_type_argument) {
     dest.SetTypeArguments(TypeArguments::Handle(GetTypeArguments()));
@@ -18681,8 +18686,7 @@ void Array::MakeImmutable() const {
     old_tags = tags;
     uword new_tags = RawObject::ClassIdTag::update(kImmutableArrayCid,
                                                    old_tags);
-    tags = AtomicOperations::CompareAndSwapWord(
-        &raw_ptr()->tags_, old_tags, new_tags);
+    tags = CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
 }
 
@@ -18777,8 +18781,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   do {
     old_tags = tags;
     uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
-    tags = AtomicOperations::CompareAndSwapWord(
-        &array.raw_ptr()->tags_, old_tags, new_tags);
+    tags = array.CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
   array.SetLength(used_len);
 
@@ -19169,7 +19172,7 @@ simd128_value_t Float32x4::value() const {
 
 
 void Float32x4::set_value(simd128_value_t value) const {
-  value.writeTo(&raw_ptr()->value_[0]);
+  StoreSimd128(&raw_ptr()->value_[0], value);
 }
 
 
@@ -19314,7 +19317,7 @@ simd128_value_t Int32x4::value() const {
 
 
 void Int32x4::set_value(simd128_value_t value) const {
-  value.writeTo(&raw_ptr()->value_[0]);
+  StoreSimd128(&raw_ptr()->value_[0], value);
 }
 
 
@@ -19396,7 +19399,7 @@ simd128_value_t Float64x2::value() const {
 
 
 void Float64x2::set_value(simd128_value_t value) const {
-  value.writeTo(&raw_ptr()->value_[0]);
+  StoreSimd128(&raw_ptr()->value_[0], value);
 }
 
 
@@ -19455,7 +19458,7 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
   if (len != other_typed_data.LengthInBytes()) {
     return false;
   }
-
+  NoGCScope no_gc;
   return (len == 0) ||
       (memcmp(DataAddr(0), other_typed_data.DataAddr(0), len) == 0);
 }

@@ -949,9 +949,12 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   stream ^= reader->ReadObjectImpl();
   script.set_tokens(stream);
 
-  script.raw_ptr()->line_offset_ = reader->Read<int32_t>();
-  script.raw_ptr()->col_offset_ = reader->Read<int32_t>();
-  script.raw_ptr()->kind_ = reader->Read<int8_t>();
+  script.StoreNonPointer(&script.raw_ptr()->line_offset_,
+                         reader->Read<int32_t>());
+  script.StoreNonPointer(&script.raw_ptr()->col_offset_,
+                         reader->Read<int32_t>());
+  script.StoreNonPointer(&script.raw_ptr()->kind_,
+                         reader->Read<int8_t>());
 
   return script.raw();
 }
@@ -1006,13 +1009,20 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     library.set_tags(tags);
 
     // Set all non object fields.
-    library.raw_ptr()->index_ = reader->Read<int32_t>();
-    library.raw_ptr()->num_imports_ = reader->Read<int32_t>();
-    library.raw_ptr()->num_anonymous_ = reader->Read<int32_t>();
-    library.raw_ptr()->corelib_imported_ = reader->Read<bool>();
-    library.raw_ptr()->is_dart_scheme_ = reader->Read<bool>();
-    library.raw_ptr()->debuggable_ = reader->Read<bool>();
-    library.raw_ptr()->load_state_ = reader->Read<int8_t>();
+    library.StoreNonPointer(&library.raw_ptr()->index_,
+                            reader->Read<int32_t>());
+    library.StoreNonPointer(&library.raw_ptr()->num_imports_,
+                            reader->Read<int32_t>());
+    library.StoreNonPointer(&library.raw_ptr()->num_anonymous_,
+                            reader->Read<int32_t>());
+    library.StoreNonPointer(&library.raw_ptr()->corelib_imported_,
+                            reader->Read<bool>());
+    library.StoreNonPointer(&library.raw_ptr()->is_dart_scheme_,
+                            reader->Read<bool>());
+    library.StoreNonPointer(&library.raw_ptr()->debuggable_,
+                            reader->Read<bool>());
+    library.StoreNonPointer(&library.raw_ptr()->load_state_,
+                            reader->Read<int8_t>());
     // The native resolver is not serialized.
     Dart_NativeEntryResolver resolver =
         reader->Read<Dart_NativeEntryResolver>();
@@ -1024,7 +1034,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     ASSERT(symbol_resolver == NULL);
     library.set_native_entry_symbol_resolver(symbol_resolver);
     // The cache of loaded scripts is not serialized.
-    library.raw_ptr()->loaded_scripts_ = Array::null();
+    library.StorePointer(&library.raw_ptr()->loaded_scripts_, Array::null());
 
     // Set all the object fields.
     // TODO(5411462): Need to assert No GC can happen here, even though
@@ -1103,9 +1113,11 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   prefix.set_tags(tags);
 
   // Set all non object fields.
-  prefix.raw_ptr()->num_imports_ = reader->Read<int32_t>();
-  prefix.raw_ptr()->is_deferred_load_ = reader->Read<bool>();
-  prefix.raw_ptr()->is_loaded_ = reader->Read<bool>();
+  prefix.StoreNonPointer(&prefix.raw_ptr()->num_imports_,
+                         reader->Read<int32_t>());
+  prefix.StoreNonPointer(&prefix.raw_ptr()->is_deferred_load_,
+                         reader->Read<bool>());
+  prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_, reader->Read<bool>());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -1854,6 +1866,7 @@ void String::ReadFromImpl(SnapshotReader* reader,
     *str_obj = StringType::New(len, HEAP_SPACE(kind));
     str_obj->set_tags(tags);
     str_obj->SetHash(0);  // Will get computed when needed.
+    NoGCScope no_gc;
     for (intptr_t i = 0; i < len; i++) {
       *StringType::CharAddr(*str_obj, i) = reader->Read<CharacterType>();
     }
@@ -1906,6 +1919,7 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
     str_obj = obj;
     str_obj.set_tags(tags);
     obj->ptr()->hash_ = Smi::New(hash);
+    NoGCScope no_gc;
     uint16_t* raw_ptr = (len > 0)? CharAddr(str_obj, 0) : NULL;
     for (intptr_t i = 0; i < len; i++) {
       ASSERT(CharAddr(str_obj, i) == raw_ptr);  // Will trigger assertions.
@@ -2374,6 +2388,7 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid: {
+      NoGCScope no_gc;
       uint8_t* data = reinterpret_cast<uint8_t*>(result.DataAddr(0));
       reader->ReadBytes(data, length_in_bytes);
       break;
@@ -2722,10 +2737,12 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   regex.set_tags(tags);
 
   // Read and Set all the other fields.
-  regex.raw_ptr()->num_bracket_expressions_ = reader->ReadAsSmi();
+  regex.StoreSmi(&regex.raw_ptr()->num_bracket_expressions_,
+                 reader->ReadAsSmi());
   *reader->StringHandle() ^= reader->ReadObjectImpl();
   regex.set_pattern(*reader->StringHandle());
-  regex.raw_ptr()->type_flags_ = reader->Read<int8_t>();
+  regex.StoreNonPointer(&regex.raw_ptr()->type_flags_,
+                        reader->Read<int8_t>());
 
   // TODO(5411462): Need to implement a way of recompiling the regex.
 
@@ -2773,8 +2790,10 @@ RawWeakProperty* WeakProperty::ReadFrom(SnapshotReader* reader,
   weak_property.set_tags(tags);
 
   // Set all the object fields.
-  weak_property.raw_ptr()->key_ = reader->ReadObjectRef();
-  weak_property.raw_ptr()->value_ = reader->ReadObjectRef();
+  weak_property.StorePointer(&weak_property.raw_ptr()->key_,
+                             reader->ReadObjectRef());
+  weak_property.StorePointer(&weak_property.raw_ptr()->value_,
+                             reader->ReadObjectRef());
 
   return weak_property.raw();
 }
