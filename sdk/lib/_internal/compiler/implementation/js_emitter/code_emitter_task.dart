@@ -138,19 +138,22 @@ class CodeEmitterTask extends CompilerTask {
         }
       }
       for (ClassElement cls in neededClasses) {
-        backend.retainMetadataOf(cls);
-        oldEmitter.classEmitter.visitFields(cls, false,
-            (Element member,
-             String name,
-             String accessorName,
-             bool needsGetter,
-             bool needsSetter,
-             bool needsCheckedSetter) {
-          bool needsAccessor = needsGetter || needsSetter;
-          if (needsAccessor && backend.isAccessibleByReflection(member)) {
-            backend.retainMetadataOf(member);
-          }
-        });
+        final onlyForRti = typeTestEmitter.rtiNeededClasses.contains(cls);
+        if (!onlyForRti) {
+          backend.retainMetadataOf(cls);
+          oldEmitter.classEmitter.visitFields(cls, false,
+              (Element member,
+               String name,
+               String accessorName,
+               bool needsGetter,
+               bool needsSetter,
+               bool needsCheckedSetter) {
+            bool needsAccessor = needsGetter || needsSetter;
+            if (needsAccessor && backend.isAccessibleByReflection(member)) {
+              backend.retainMetadataOf(member);
+            }
+          });
+        }
       }
       typedefsNeededForReflection.forEach(backend.retainMetadataOf);
     }
