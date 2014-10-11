@@ -122,6 +122,39 @@ class CodeEmitterTask extends CompilerTask {
    * Compute all the constants that must be emitted.
    */
   void computeNeededConstants() {
+    // Make sure we retain all metadata of all elements. This could add new
+    // constants to the handler.
+    if (backend.mustRetainMetadata) {
+      // TODO(floitsch): verify that we don't run through the same elements
+      // multiple times.
+      for (Element element in backend.generatedCode.keys) {
+        if (backend.isAccessibleByReflection(element)) {
+          bool shouldRetainMetadata = backend.retainMetadataOf(element);
+          if (shouldRetainMetadata && element.isFunction) {
+            FunctionElement function = element;
+            function.functionSignature.forEachParameter(
+                backend.retainMetadataOf);
+          }
+        }
+      }
+      for (ClassElement cls in neededClasses) {
+        backend.retainMetadataOf(cls);
+        oldEmitter.classEmitter.visitFields(cls, false,
+            (Element member,
+             String name,
+             String accessorName,
+             bool needsGetter,
+             bool needsSetter,
+             bool needsCheckedSetter) {
+          bool needsAccessor = needsGetter || needsSetter;
+          if (needsAccessor && backend.isAccessibleByReflection(member)) {
+            backend.retainMetadataOf(member);
+          }
+        });
+      }
+      typedefsNeededForReflection.forEach(backend.retainMetadataOf);
+    }
+
     JavaScriptConstantCompiler handler = backend.constants;
     List<ConstantValue> constants = handler.getConstantsForEmission(
         compiler.hasIncrementalSupport ? null : emitter.compareConstants);
@@ -262,8 +295,7 @@ class CodeEmitterTask extends CompilerTask {
       typeTestEmitter.computeRequiredTypeChecks();
 
       computeNeededDeclarations();
-      // TODO(floitsch): we want to call computeNeededConstants here, but
-      // the oldEmitter creates new constants during emission... :(
+      computeNeededConstants();
 
       Program program;
       if (USE_NEW_EMITTER) {

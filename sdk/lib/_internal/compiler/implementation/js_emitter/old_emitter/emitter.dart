@@ -1554,7 +1554,6 @@ class OldEmitter implements Emitter {
     // which may need getInterceptor (and one-shot interceptor) methods, so
     // we have to make sure that [emitGetInterceptorMethods] and
     // [emitOneShotInterceptors] have been called.
-    task.computeNeededConstants();
     emitCompileTimeConstants(mainBuffer, mainOutputUnit);
 
     if (isProgramSplit) {

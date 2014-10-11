@@ -12,6 +12,11 @@ class MetadataEmitter extends CodeEmitterHelper {
   /// A map used to canonicalize the entries of globalMetadata.
   final Map<String, int> globalMetadataMap = <String, int>{};
 
+  bool mustEmitMetadataFor(Element element) {
+    return backend.mustRetainMetadata &&
+        backend.referencedFromMirrorSystem(element);
+  }
+
   /// The metadata function returns the metadata associated with
   /// [element] in generated code.  The metadata needs to be wrapped
   /// in a function as it refers to constants that may not have been
@@ -19,7 +24,7 @@ class MetadataEmitter extends CodeEmitterHelper {
   /// annotated with itself.  The metadata function is used by
   /// mirrors_patch to implement DeclarationMirror.metadata.
   jsAst.Fun buildMetadataFunction(Element element) {
-    if (!backend.retainMetadataOf(element)) return null;
+    if (!mustEmitMetadataFor(element)) return null;
     return compiler.withCurrentElement(element, () {
       var metadata = [];
       Link link = element.metadata;
@@ -117,7 +122,7 @@ class MetadataEmitter extends CodeEmitterHelper {
 
   List<int> computeMetadata(FunctionElement element) {
     return compiler.withCurrentElement(element, () {
-      if (!backend.retainMetadataOf(element)) return const <int>[];
+      if (!mustEmitMetadataFor(element)) return const <int>[];
       List<int> metadata = <int>[];
       Link link = element.metadata;
       // TODO(ahe): Why is metadata sometimes null?
