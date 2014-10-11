@@ -735,6 +735,31 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_fieldTypeMismatch() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(x) : y = x;",
+        "  final int y;",
+        "}",
+        "var v = const A('foo');"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH]);
+    verify([source]);
+  }
+
+  void test_fieldTypeOk_null() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(x) : y = x;",
+        "  final int y;",
+        "}",
+        "var v = const A(null);"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_listElementTypeNotAssignable() {
     Source source = addSource(EngineTestCase.createSource(["var v = const <String> [42];"]));
     resolve(source);
