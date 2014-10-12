@@ -1539,12 +1539,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     while (iterator.moveNext()) {
       SourceEntry sourceEntry = iterator.value;
       if (sourceEntry is DartEntry) {
-        if (!sourceEntry.isRefactoringSafe) {
-          sources.add(iterator.key);
+        Source source = iterator.key;
+        if (!source.isInSystemLibrary && !sourceEntry.isRefactoringSafe) {
+          sources.add(source);
         }
       }
     }
-    return new List.from(sources);
+    return sources;
   }
 
   @override
@@ -11893,15 +11894,22 @@ class PartitionManager {
   }
 
   /**
-   * Return the partition being used for the given SDK, creating the partition if necessary.
+   * Return the partition being used for the given SDK, creating the partition
+   * if necessary.
    *
-   * @param sdk the SDK for which a partition is being requested
-   * @return the partition being used for the given SDK
+   * [sdk] - the SDK for which a partition is being requested.
    */
   SdkCachePartition forSdk(DartSdk sdk) {
+    // Call sdk.context now, because when it creates a new
+    // InternalAnalysisContext instance, it calls forSdk() again, so creates an
+    // SdkCachePartition instance.
+    // So, if we initialize context after "partition == null", we end up
+    // with two SdkCachePartition instances.
+    InternalAnalysisContext sdkContext = sdk.context;
+    // Check cache for an existing partition.
     SdkCachePartition partition = _sdkPartitions[sdk];
     if (partition == null) {
-      partition = new SdkCachePartition(sdk.context as InternalAnalysisContext, _DEFAULT_SDK_CACHE_SIZE);
+      partition = new SdkCachePartition(sdkContext, _DEFAULT_SDK_CACHE_SIZE);
       _sdkPartitions[sdk] = partition;
     }
     return partition;

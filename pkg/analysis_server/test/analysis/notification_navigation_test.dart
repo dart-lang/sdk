@@ -186,6 +186,19 @@ AAA aaa;
     });
   }
 
+  test_class_fromSDK() {
+    addTestFile('''
+int V = 42;
+''');
+    return prepareNavigation().then((_) {
+      assertHasRegion('int V');
+      Element target = testTargets[0];
+      Location location = target.location;
+      expect(location.startLine, greaterThan(0));
+      expect(location.startColumn, greaterThan(0));
+    });
+  }
+
   test_constructor_named() {
     addTestFile('''
 class A {
