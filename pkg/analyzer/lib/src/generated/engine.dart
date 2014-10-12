@@ -1212,7 +1212,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) {
+  CompilationUnit computeResolvableCompilationUnit(Source source) {
     DartEntry dartEntry = _getReadableDartEntry(source);
     if (dartEntry == null) {
       throw new AnalysisException("computeResolvableCompilationUnit for non-Dart: ${source.fullName}");
@@ -1222,7 +1222,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (unit == null) {
       throw new AnalysisException("Internal error: computeResolvableCompilationUnit could not parse ${source.fullName}", new CaughtException(dartEntry.exception, null));
     }
-    return new ResolvableCompilationUnit.con1(dartEntry.modificationTime, unit);
+    return unit;
   }
 
   @override
@@ -2135,68 +2135,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return `true` if the modification times of the sources used by the given library resolver
-   * to resolve one or more libraries are consistent with the modification times in the cache.
-   *
-   * @param resolver the library resolver used to resolve one or more libraries
-   * @return `true` if we should record the results of the resolution
-   * @throws AnalysisException if any of the modification times could not be determined (this should
-   *           not happen)
-   */
-  bool _allModificationTimesMatch(List<ResolvableLibrary> resolvedLibraries) {
-    bool allTimesMatch = true;
-    for (ResolvableLibrary library in resolvedLibraries) {
-      for (Source source in library.compilationUnitSources) {
-        DartEntry dartEntry = _getReadableDartEntry(source);
-        if (dartEntry == null) {
-          // This shouldn't be possible because we should never have performed the task if the
-          // source didn't represent a Dart file, but check to be safe.
-          throw new AnalysisException("Internal error: attempting to resolve non-Dart file as a Dart file: ${source.fullName}");
-        }
-        int sourceTime = getModificationStamp(source);
-        int resultTime = library.getModificationTime(source);
-        if (sourceTime != resultTime) {
-          // The source has changed without the context being notified. Simulate notification.
-          _sourceChanged(source);
-          allTimesMatch = false;
-        }
-      }
-    }
-    return allTimesMatch;
-  }
-
-  /**
-   * Return `true` if the modification times of the sources used by the given library resolver
-   * to resolve one or more libraries are consistent with the modification times in the cache.
-   *
-   * @param resolver the library resolver used to resolve one or more libraries
-   * @return `true` if we should record the results of the resolution
-   * @throws AnalysisException if any of the modification times could not be determined (this should
-   *           not happen)
-   */
-  bool _allModificationTimesMatch2(Set<Library> resolvedLibraries) {
-    bool allTimesMatch = true;
-    for (Library library in resolvedLibraries) {
-      for (Source source in library.compilationUnitSources) {
-        DartEntry dartEntry = _getReadableDartEntry(source);
-        if (dartEntry == null) {
-          // This shouldn't be possible because we should never have performed the task if the
-          // source didn't represent a Dart file, but check to be safe.
-          throw new AnalysisException("Internal error: attempting to resolve non-Dart file as a Dart file: ${source.fullName}");
-        }
-        int sourceTime = getModificationStamp(source);
-        int resultTime = library.getModificationTime(source);
-        if (sourceTime != resultTime) {
-          // The source has changed without the context being notified. Simulate notification.
-          _sourceChanged(source);
-          allTimesMatch = false;
-        }
-      }
-    }
-    return allTimesMatch;
-  }
-
-  /**
    * Given a source for a Dart file and the library that contains it, return a cache entry in which
    * the state of the data represented by the given descriptor is either [CacheState.VALID] or
    * [CacheState#ERROR]. This method assumes that the data can be produced by generating hints
@@ -2274,7 +2212,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // change, this loop will eventually terminate.
       //
       dartEntry = _cacheDartScanData(source, dartEntry, DartEntry.TOKEN_STREAM);
-      dartEntry = new ParseDartTask(this, source, dartEntry.modificationTime, dartEntry.getValue(DartEntry.TOKEN_STREAM), dartEntry.getValue(SourceEntry.LINE_INFO)).perform(_resultRecorder) as DartEntry;
+      dartEntry = new ParseDartTask(this, source, dartEntry.getValue(DartEntry.TOKEN_STREAM), dartEntry.getValue(SourceEntry.LINE_INFO)).perform(_resultRecorder) as DartEntry;
       state = dartEntry.getState(descriptor);
     }
     return dartEntry;
@@ -2341,7 +2279,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (dartEntry.getState(SourceEntry.CONTENT) != CacheState.VALID) {
           dartEntry = new GetContentTask(this, source).perform(_resultRecorder) as DartEntry;
         }
-        dartEntry = new ScanDartTask(this, source, dartEntry.modificationTime, dartEntry.getValue(SourceEntry.CONTENT)).perform(_resultRecorder) as DartEntry;
+        dartEntry = new ScanDartTask(this, source, dartEntry.getValue(SourceEntry.CONTENT)).perform(_resultRecorder) as DartEntry;
       } on AnalysisException catch (exception) {
         throw exception;
       } catch (exception, stackTrace) {
@@ -2382,7 +2320,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (unit == null) {
         throw new AnalysisException("Could not resolve compilation unit ${unitSource.fullName} in ${librarySource.fullName}");
       }
-      dartEntry = new GenerateDartErrorsTask(this, unitSource, dartEntry.modificationTime, unit, library).perform(_resultRecorder) as DartEntry;
+      dartEntry = new GenerateDartErrorsTask(this, unitSource, unit, library).perform(_resultRecorder) as DartEntry;
       state = dartEntry.getStateInLibrary(descriptor, librarySource);
     }
     return dartEntry;
@@ -2423,7 +2361,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (htmlEntry.getState(SourceEntry.CONTENT) != CacheState.VALID) {
           htmlEntry = new GetContentTask(this, source).perform(_resultRecorder) as HtmlEntry;
         }
-        htmlEntry = new ParseHtmlTask(this, source, htmlEntry.modificationTime, htmlEntry.getValue(SourceEntry.CONTENT)).perform(_resultRecorder) as HtmlEntry;
+        htmlEntry = new ParseHtmlTask(this, source, htmlEntry.getValue(SourceEntry.CONTENT)).perform(_resultRecorder) as HtmlEntry;
       } on AnalysisException catch (exception) {
         throw exception;
       } catch (exception, stackTrace) {
@@ -2562,7 +2500,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
     unitEntry.setStateInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.IN_PROCESS);
-    return new AnalysisContextImpl_TaskData(new GenerateDartErrorsTask(this, unitSource, unitEntry.modificationTime, unit, libraryElement), false);
+    return new AnalysisContextImpl_TaskData(new GenerateDartErrorsTask(this, unitSource, unit, libraryElement), false);
   }
 
   /**
@@ -2628,7 +2566,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     Token tokenStream = dartEntry.getValue(DartEntry.TOKEN_STREAM);
     dartEntry.setState(DartEntry.TOKEN_STREAM, CacheState.FLUSHED);
     dartEntry.setState(DartEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
-    return new AnalysisContextImpl_TaskData(new ParseDartTask(this, source, dartEntry.modificationTime, tokenStream, dartEntry.getValue(SourceEntry.LINE_INFO)), false);
+    return new AnalysisContextImpl_TaskData(new ParseDartTask(this, source, tokenStream, dartEntry.getValue(SourceEntry.LINE_INFO)), false);
   }
 
   /**
@@ -2646,7 +2584,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     String content = htmlEntry.getValue(SourceEntry.CONTENT);
     htmlEntry.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
     htmlEntry.setState(HtmlEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
-    return new AnalysisContextImpl_TaskData(new ParseHtmlTask(this, source, htmlEntry.modificationTime, content), false);
+    return new AnalysisContextImpl_TaskData(new ParseHtmlTask(this, source, content), false);
   }
 
   /**
@@ -2662,7 +2600,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return _createResolveHtmlTask(source, htmlEntry);
     }
     htmlEntry.setState(HtmlEntry.POLYMER_BUILD_ERRORS, CacheState.IN_PROCESS);
-    return new AnalysisContextImpl_TaskData(new PolymerBuildHtmlTask(this, source, htmlEntry.modificationTime, htmlEntry.getValue(SourceEntry.LINE_INFO), htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT)), false);
+    return new AnalysisContextImpl_TaskData(new PolymerBuildHtmlTask(this, source, htmlEntry.getValue(SourceEntry.LINE_INFO), htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT)), false);
   }
 
   /**
@@ -2678,7 +2616,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return _createResolveHtmlTask(source, htmlEntry);
     }
     htmlEntry.setState(HtmlEntry.POLYMER_RESOLUTION_ERRORS, CacheState.IN_PROCESS);
-    return new AnalysisContextImpl_TaskData(new PolymerResolveHtmlTask(this, source, htmlEntry.modificationTime, htmlEntry.getValue(SourceEntry.LINE_INFO), htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT)), false);
+    return new AnalysisContextImpl_TaskData(new PolymerResolveHtmlTask(this, source, htmlEntry.getValue(SourceEntry.LINE_INFO), htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT)), false);
   }
 
   /**
@@ -2696,7 +2634,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     AngularApplication application = htmlEntry.getValue(HtmlEntry.ANGULAR_APPLICATION);
     AngularComponentElement component = htmlEntry.getValue(HtmlEntry.ANGULAR_COMPONENT);
     htmlEntry.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
-    return new AnalysisContextImpl_TaskData(new ResolveAngularComponentTemplateTask(this, source, htmlEntry.modificationTime, htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT), component, application), false);
+    return new AnalysisContextImpl_TaskData(new ResolveAngularComponentTemplateTask(this, source, htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT), component, application), false);
   }
 
   /**
@@ -2712,7 +2650,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return _createResolveHtmlTask(source, htmlEntry);
     }
     htmlEntry.setState(HtmlEntry.ANGULAR_ENTRY, CacheState.IN_PROCESS);
-    return new AnalysisContextImpl_TaskData(new ResolveAngularEntryHtmlTask(this, source, htmlEntry.modificationTime, htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT)), false);
+    return new AnalysisContextImpl_TaskData(new ResolveAngularEntryHtmlTask(this, source, htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT)), false);
   }
 
   /**
@@ -2769,7 +2707,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     String content = dartEntry.getValue(SourceEntry.CONTENT);
     dartEntry.setState(SourceEntry.CONTENT, CacheState.FLUSHED);
     dartEntry.setState(DartEntry.SCAN_ERRORS, CacheState.IN_PROCESS);
-    return new AnalysisContextImpl_TaskData(new ScanDartTask(this, source, dartEntry.modificationTime, content), false);
+    return new AnalysisContextImpl_TaskData(new ScanDartTask(this, source, content), false);
   }
 
   /**
@@ -3917,7 +3855,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     Source librarySource = task.libraryElement.source;
     CaughtException thrownException = task.exception;
     DartEntry libraryEntry = null;
-    HashMap<Source, TimestampedData<List<AnalysisError>>> hintMap = task.hintMap;
+    HashMap<Source, List<AnalysisError>> hintMap = task.hintMap;
     if (hintMap == null) {
       // We don't have any information about which sources to mark as invalid
       // other than the library source.
@@ -3930,13 +3868,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       libraryEntry.recordHintErrorInLibrary(librarySource, thrownException);
       throw new AnalysisException('<rethrow>', thrownException);
     }
-    hintMap.forEach((Source unitSource, TimestampedData<List<AnalysisError>> results) {
+    hintMap.forEach((Source unitSource, List<AnalysisError> hints) {
       DartEntry dartEntry = _cache.get(unitSource);
       if (unitSource == librarySource) {
         libraryEntry = dartEntry;
       }
       if (thrownException == null) {
-        dartEntry.setValueInLibrary(DartEntry.HINTS, librarySource, results.data);
+        dartEntry.setValueInLibrary(DartEntry.HINTS, librarySource, hints);
         ChangeNoticeImpl notice = _getNotice(unitSource);
         LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
         notice.setErrors(dartEntry.allErrors, lineInfo);
@@ -4807,7 +4745,7 @@ class AnalysisContextImpl_CycleBuilder {
       CycleBuilder_SourceEntryPair entryPair = entryPairs[i];
       Source source = entryPair.source;
       DartEntry dartEntry = entryPair.entry;
-      units[i] = new ResolvableCompilationUnit.con2(dartEntry.modificationTime, dartEntry.resolvableCompilationUnit, source);
+      units[i] = new ResolvableCompilationUnit(source, dartEntry.resolvableCompilationUnit);
     }
     library.resolvableCompilationUnits = units;
   }
@@ -9267,11 +9205,6 @@ class GenerateDartErrorsTask extends AnalysisTask {
   final Source source;
 
   /**
-   * The time at which the contents of the source were last modified.
-   */
-  final int modificationTime;
-
-  /**
    * The compilation unit used to resolve the dependencies.
    */
   final CompilationUnit _unit;
@@ -9291,11 +9224,10 @@ class GenerateDartErrorsTask extends AnalysisTask {
    *
    * @param context the context in which the task is to be performed
    * @param source the source for which errors and warnings are to be produced
-   * @param modificationTime the time at which the contents of the source were last modified
    * @param unit the compilation unit used to resolve the dependencies
    * @param libraryElement the element model for the library containing the source
    */
-  GenerateDartErrorsTask(InternalAnalysisContext context, this.source, this.modificationTime, this._unit, this.libraryElement) : super(context);
+  GenerateDartErrorsTask(InternalAnalysisContext context, this.source, this._unit, this.libraryElement) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitGenerateDartErrorsTask(this);
@@ -9355,10 +9287,10 @@ class GenerateDartHintsTask extends AnalysisTask {
   final LibraryElement libraryElement;
 
   /**
-   * A table mapping the sources that were analyzed to the hints that were generated for the
-   * sources.
+   * A table mapping the sources that were analyzed to the hints that were
+   * generated for the sources.
    */
-  HashMap<Source, TimestampedData<List<AnalysisError>>> _hintMap;
+  HashMap<Source, List<AnalysisError>> _hintMap;
 
   /**
    * Initialize a newly created task to perform analysis within the given context.
@@ -9381,7 +9313,7 @@ class GenerateDartHintsTask extends AnalysisTask {
    * @return a table mapping the sources that were analyzed to the hints that were generated for the
    *         sources
    */
-  HashMap<Source, TimestampedData<List<AnalysisError>>> get hintMap => _hintMap;
+  HashMap<Source, List<AnalysisError>> get hintMap => _hintMap;
 
   @override
   String get taskDescription {
@@ -9411,12 +9343,10 @@ class GenerateDartHintsTask extends AnalysisTask {
     //
     // Store the results.
     //
-    _hintMap = new HashMap<Source, TimestampedData<List<AnalysisError>>>();
+    _hintMap = new HashMap<Source, List<AnalysisError>>();
     for (int i = 0; i < unitCount; i++) {
-      int modificationTime = _units[i].modificationTime;
       Source source = _units[i].data.element.source;
-      List<AnalysisError> errors = errorListener.getErrorsForSource(source);
-      _hintMap[source] = new TimestampedData<List<AnalysisError>>(modificationTime, errors);
+      _hintMap[source] = errorListener.getErrorsForSource(source);
     }
   }
 }
@@ -10556,7 +10486,8 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) => _basis.computeResolvableCompilationUnit(source);
+  CompilationUnit computeResolvableCompilationUnit(Source source)
+      => _basis.computeResolvableCompilationUnit(source);
 
   @override
   void dispose() {
@@ -11182,7 +11113,7 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * @return the AST structure representing the content of the source
    * @throws AnalysisException if the analysis could not be performed
    */
-  ResolvableCompilationUnit computeResolvableCompilationUnit(Source source);
+  CompilationUnit computeResolvableCompilationUnit(Source source);
 
   /**
    * Return context that owns the given source.
@@ -11616,11 +11547,6 @@ class ParseDartTask extends AnalysisTask {
   final Source source;
 
   /**
-   * The time at which the contents of the source were last modified.
-   */
-  final int modificationTime;
-
-  /**
    * The head of the token stream used for parsing.
    */
   final Token _tokenStream;
@@ -11670,11 +11596,10 @@ class ParseDartTask extends AnalysisTask {
    *
    * @param context the context in which the task is to be performed
    * @param source the source to be parsed
-   * @param modificationTime the time at which the contents of the source were last modified
    * @param tokenStream the head of the token stream used for parsing
    * @param lineInfo the line information associated with the source
    */
-  ParseDartTask(InternalAnalysisContext context, this.source, this.modificationTime, this._tokenStream, this.lineInfo) : super(context);
+  ParseDartTask(InternalAnalysisContext context, this.source, this._tokenStream, this.lineInfo) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitParseDartTask(this);
@@ -11814,11 +11739,6 @@ class ParseHtmlTask extends AnalysisTask {
   final Source source;
 
   /**
-   * The time at which the contents of the source were last modified.
-   */
-  final int modificationTime;
-
-  /**
    * The contents of the source.
    */
   final String _content;
@@ -11858,10 +11778,9 @@ class ParseHtmlTask extends AnalysisTask {
    *
    * @param context the context in which the task is to be performed
    * @param source the source to be parsed
-   * @param modificationTime the time at which the contents of the source were last modified
    * @param content the contents of the source
    */
-  ParseHtmlTask(InternalAnalysisContext context, this.source, this.modificationTime, this._content) : super(context);
+  ParseHtmlTask(InternalAnalysisContext context, this.source, this._content) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitParseHtmlTask(this);
@@ -12058,11 +11977,6 @@ class PolymerBuildHtmlTask extends AnalysisTask {
   final Source source;
 
   /**
-   * The time at which the contents of the source were last modified.
-   */
-  final int modificationTime;
-
-  /**
    * The line information associated with the source.
    */
   final LineInfo _lineInfo;
@@ -12082,11 +11996,10 @@ class PolymerBuildHtmlTask extends AnalysisTask {
    *
    * @param context the context in which the task is to be performed
    * @param source the source to be resolved
-   * @param modificationTime the time at which the contents of the source were last modified
    * @param lineInfo the line information associated with the source
    * @param unit the HTML unit to build Polymer elements for
    */
-  PolymerBuildHtmlTask(InternalAnalysisContext context, this.source, this.modificationTime, this._lineInfo, this._unit) : super(context);
+  PolymerBuildHtmlTask(InternalAnalysisContext context, this.source, this._lineInfo, this._unit) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitPolymerBuildHtmlTask(this);
@@ -12496,11 +12409,6 @@ class PolymerResolveHtmlTask extends AnalysisTask {
   final Source source;
 
   /**
-   * The time at which the contents of the source were last modified.
-   */
-  final int modificationTime;
-
-  /**
    * The line information associated with the source.
    */
   final LineInfo _lineInfo;
@@ -12520,10 +12428,9 @@ class PolymerResolveHtmlTask extends AnalysisTask {
    *
    * @param context the context in which the task is to be performed
    * @param source the source to be resolved
-   * @param modificationTime the time at which the contents of the source were last modified
    * @param unit the HTML unit to be resolved
    */
-  PolymerResolveHtmlTask(InternalAnalysisContext context, this.source, this.modificationTime, this._lineInfo, this._unit) : super(context);
+  PolymerResolveHtmlTask(InternalAnalysisContext context, this.source, this._lineInfo, this._unit) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitPolymerResolveHtmlTask(this);
@@ -13100,61 +13007,27 @@ class ResolutionState {
 }
 
 /**
- * Instances of the class `ResolvableCompilationUnit` represent a compilation unit that is not
- * referenced by any other objects and for which we have modification stamp information. It is used
- * by the [LibraryResolver] to resolve a library.
+ * A `ResolvableCompilationUnit` is a compilation unit that is not referenced by
+ * any other objects. It is used by the [LibraryResolver] to resolve a library.
  */
-class ResolvableCompilationUnit extends TimestampedData<CompilationUnit> {
+class ResolvableCompilationUnit {
   /**
    * The source of the compilation unit.
    */
   final Source source;
 
   /**
-   * Initialize a newly created holder to hold the given values.
-   *
-   * @param modificationTime the modification time of the source from which the AST was created
-   * @param unit the AST that was created from the source
+   * The compilation unit.
    */
-  ResolvableCompilationUnit.con1(int modificationTime, CompilationUnit unit) : this.con2(modificationTime, unit, null);
+  final CompilationUnit compilationUnit;
 
   /**
    * Initialize a newly created holder to hold the given values.
    *
-   * @param modificationTime the modification time of the source from which the AST was created
-   * @param unit the AST that was created from the source
    * @param source the source of the compilation unit
-   */
-  ResolvableCompilationUnit.con2(int modificationTime, CompilationUnit unit, this.source) : super(modificationTime, unit);
-
-  /**
-   * Return the AST that was created from the source.
-   *
-   * @return the AST that was created from the source
-   */
-  CompilationUnit get compilationUnit => data;
-}
-
-/**
- * Instances of the class `ResolvableHtmlUnit` represent an HTML unit that is not referenced
- * by any other objects and for which we have modification stamp information. It is used by the
- * [ResolveHtmlTask] to resolve an HTML source.
- */
-class ResolvableHtmlUnit extends TimestampedData<ht.HtmlUnit> {
-  /**
-   * Initialize a newly created holder to hold the given values.
-   *
-   * @param modificationTime the modification time of the source from which the AST was created
    * @param unit the AST that was created from the source
    */
-  ResolvableHtmlUnit(int modificationTime, ht.HtmlUnit unit) : super(modificationTime, unit);
-
-  /**
-   * Return the AST that was created from the source.
-   *
-   * @return the AST that was created from the source
-   */
-  ht.HtmlUnit get compilationUnit => data;
+  ResolvableCompilationUnit(this.source, this.compilationUnit);
 }
 
 /**
@@ -13166,11 +13039,6 @@ class ResolveAngularComponentTemplateTask extends AnalysisTask {
    * The source to be resolved.
    */
   final Source source;
-
-  /**
-   * The time at which the contents of the source were last modified.
-   */
-  final int modificationTime;
 
   /**
    * The HTML unit to be resolved.
@@ -13202,12 +13070,11 @@ class ResolveAngularComponentTemplateTask extends AnalysisTask {
    *
    * @param context the context in which the task is to be performed
    * @param source the source to be resolved
-   * @param modificationTime the time at which the contents of the source were last modified
    * @param unit the HTML unit to be resolved
    * @param component the component that uses this HTML template, not `null`
    * @param application the Angular application to resolve in context of
    */
-  ResolveAngularComponentTemplateTask(InternalAnalysisContext context, this.source, this.modificationTime, this._unit, this._component, this._application) : super(context);
+  ResolveAngularComponentTemplateTask(InternalAnalysisContext context, this.source, this._unit, this._component, this._application) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitResolveAngularComponentTemplateTask(this);
@@ -13257,11 +13124,6 @@ class ResolveAngularEntryHtmlTask extends AnalysisTask {
   final Source source;
 
   /**
-   * The time at which the contents of the source were last modified.
-   */
-  final int modificationTime;
-
-  /**
    * The HTML unit to be resolved.
    */
   final ht.HtmlUnit _unit;
@@ -13291,10 +13153,9 @@ class ResolveAngularEntryHtmlTask extends AnalysisTask {
    *
    * @param context the context in which the task is to be performed
    * @param source the source to be resolved
-   * @param modificationTime the time at which the contents of the source were last modified
    * @param unit the HTML unit to be resolved
    */
-  ResolveAngularEntryHtmlTask(InternalAnalysisContext context, this.source, this.modificationTime, this._unit) : super(context);
+  ResolveAngularEntryHtmlTask(InternalAnalysisContext context, this.source, this._unit) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitResolveAngularEntryHtmlTask(this);
@@ -13485,11 +13346,6 @@ class ResolveDartUnitTask extends AnalysisTask {
   final LibraryElement _libraryElement;
 
   /**
-   * The time at which the contents of the source were last modified.
-   */
-  int _modificationTime = -1;
-
-  /**
    * The compilation unit that was resolved by this task.
    */
   CompilationUnit _resolvedUnit;
@@ -13514,14 +13370,6 @@ class ResolveDartUnitTask extends AnalysisTask {
   Source get librarySource => _libraryElement.source;
 
   /**
-   * Return the time at which the contents of the source that was parsed were last modified, or a
-   * negative value if the task has not yet been performed or if an exception occurred.
-   *
-   * @return the time at which the contents of the source that was parsed were last modified
-   */
-  int get modificationTime => _modificationTime;
-
-  /**
    * Return the compilation unit that was resolved by this task.
    *
    * @return the compilation unit that was resolved by this task
@@ -13540,9 +13388,7 @@ class ResolveDartUnitTask extends AnalysisTask {
   @override
   void internalPerform() {
     TypeProvider typeProvider = (_libraryElement.context as InternalAnalysisContext).typeProvider;
-    ResolvableCompilationUnit resolvableUnit = context.computeResolvableCompilationUnit(source);
-    _modificationTime = resolvableUnit.modificationTime;
-    CompilationUnit unit = resolvableUnit.compilationUnit;
+    CompilationUnit unit = context.computeResolvableCompilationUnit(source);
     if (unit == null) {
       throw new AnalysisException("Internal error: computeResolvableCompilationUnit returned a value without a parsed Dart unit");
     }
@@ -13732,11 +13578,6 @@ class ScanDartTask extends AnalysisTask {
   final Source source;
 
   /**
-   * The time at which the contents of the source were last modified.
-   */
-  final int modificationTime;
-
-  /**
    * The contents of the source.
    */
   final String _content;
@@ -13761,10 +13602,9 @@ class ScanDartTask extends AnalysisTask {
    *
    * @param context the context in which the task is to be performed
    * @param source the source to be parsed
-   * @param modificationTime the time at which the contents of the source were last modified
    * @param content the contents of the source
    */
-  ScanDartTask(InternalAnalysisContext context, this.source, this.modificationTime, this._content) : super(context);
+  ScanDartTask(InternalAnalysisContext context, this.source, this._content) : super(context);
 
   @override
   accept(AnalysisTaskVisitor visitor) => visitor.visitScanDartTask(this);

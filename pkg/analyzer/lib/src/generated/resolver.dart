@@ -13548,7 +13548,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
         EmbeddedHtmlScriptElementImpl script = new EmbeddedHtmlScriptElementImpl(node);
         try {
           LibraryResolver resolver = new LibraryResolver(_context);
-          LibraryElementImpl library = resolver.resolveEmbeddedLibrary(htmlSource, _modificationStamp, node.script, true) as LibraryElementImpl;
+          LibraryElementImpl library = resolver.resolveEmbeddedLibrary(htmlSource, node.script, true);
           script.scriptLibrary = library;
           _resolvedLibraries.addAll(resolver.resolvedLibraries);
           _errorListener.addAll(resolver.errorListener);
@@ -15408,7 +15408,7 @@ class Library {
    * A table mapping the sources for the compilation units in this library to their corresponding
    * AST structures.
    */
-  HashMap<Source, ResolvableCompilationUnit> _astMap = new HashMap<Source, ResolvableCompilationUnit>();
+  HashMap<Source, CompilationUnit> _astMap = new HashMap<Source, CompilationUnit>();
 
   /**
    * The library scope used when resolving elements within this library's compilation units.
@@ -15444,12 +15444,12 @@ class Library {
    * @throws AnalysisException if an AST structure could not be created for the compilation unit
    */
   CompilationUnit getAST(Source source) {
-    ResolvableCompilationUnit holder = _astMap[source];
-    if (holder == null) {
-      holder = _analysisContext.computeResolvableCompilationUnit(source);
-      _astMap[source] = holder;
+    CompilationUnit unit = _astMap[source];
+    if (unit == null) {
+      unit = _analysisContext.computeResolvableCompilationUnit(source);
+      _astMap[source] = unit;
     }
-    return holder.compilationUnit;
+    return unit;
   }
 
   /**
@@ -15559,23 +15559,6 @@ class Library {
   }
 
   /**
-   * Return the modification time associated with the given source.
-   *
-   * @param source the source representing the compilation unit whose modification time is to be
-   *          returned
-   * @return the modification time associated with the given source
-   * @throws AnalysisException if an AST structure could not be created for the compilation unit
-   */
-  int getModificationTime(Source source) {
-    ResolvableCompilationUnit holder = _astMap[source];
-    if (holder == null) {
-      holder = _analysisContext.computeResolvableCompilationUnit(source);
-      _astMap[source] = holder;
-    }
-    return holder.modificationTime;
-  }
-
-  /**
    * Return the result of resolving the URI of the given URI-based directive against the URI of the
    * library, or `null` if the URI is not valid. If the URI is not valid, report the error.
    *
@@ -15617,12 +15600,10 @@ class Library {
    * Set the AST structure associated with the defining compilation unit for this library to the
    * given AST structure.
    *
-   * @param modificationStamp the modification time of the source from which the compilation unit
-   *          was created
    * @param unit the AST structure associated with the defining compilation unit for this library
    */
-  void setDefiningCompilationUnit(int modificationStamp, CompilationUnit unit) {
-    _astMap[librarySource] = new ResolvableCompilationUnit.con1(modificationStamp, unit);
+  void setDefiningCompilationUnit(CompilationUnit unit) {
+    _astMap[librarySource] = unit;
   }
 
   /**
@@ -16207,14 +16188,12 @@ class LibraryResolver {
    *
    * @param librarySource the source specifying the defining compilation unit of the library to be
    *          resolved
-   * @param modificationStamp the time stamp of the source from which the compilation unit was
-   *          created
    * @param unit the compilation unit representing the embedded library
    * @param fullAnalysis `true` if a full analysis should be performed
    * @return the element representing the resolved library
    * @throws AnalysisException if the library could not be resolved for some reason
    */
-  LibraryElement resolveEmbeddedLibrary(Source librarySource, int modificationStamp, CompilationUnit unit, bool fullAnalysis) {
+  LibraryElement resolveEmbeddedLibrary(Source librarySource, CompilationUnit unit, bool fullAnalysis) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.LibraryResolver.resolveEmbeddedLibrary");
     try {
       instrumentation.metric("fullAnalysis", fullAnalysis);
@@ -16222,7 +16201,7 @@ class LibraryResolver {
       //
       // Create the objects representing the library being resolved and the core library.
       //
-      Library targetLibrary = _createLibraryWithUnit(librarySource, modificationStamp, unit);
+      Library targetLibrary = _createLibraryWithUnit(librarySource, unit);
       _coreLibrary = _libraryMap[_coreLibrarySource];
       if (_coreLibrary == null) {
         // This will be true unless the library being analyzed is the core library.
@@ -16828,15 +16807,13 @@ class LibraryResolver {
    * with the given source.
    *
    * @param librarySource the source of the library's defining compilation unit
-   * @param modificationStamp the modification time of the source from which the compilation unit
-   *          was created
    * @param unit the compilation unit that defines the library
    * @return the library object that was created
    * @throws AnalysisException if the library source is not valid
    */
-  Library _createLibraryWithUnit(Source librarySource, int modificationStamp, CompilationUnit unit) {
+  Library _createLibraryWithUnit(Source librarySource, CompilationUnit unit) {
     Library library = new Library(analysisContext, _errorListener, librarySource);
-    library.setDefiningCompilationUnit(modificationStamp, unit);
+    library.setDefiningCompilationUnit(unit);
     _libraryMap[librarySource] = library;
     return library;
   }
@@ -18540,9 +18517,9 @@ class RedirectingConstructorKind extends Enum<RedirectingConstructorKind> {
 }
 
 /**
- * Instances of the class `Library` represent the data about a single library during the
- * resolution of some (possibly different) library. They are not intended to be used except during
- * the resolution process.
+ * A `ResolvableLibrary` represents a single library during the resolution of
+ * some (possibly different) library. They are not intended to be used except
+ * during the resolution process.
  */
 class ResolvableLibrary {
   /**
@@ -18566,8 +18543,8 @@ class ResolvableLibrary {
   List<ResolvableLibrary> _exportedLibraries = _EMPTY_ARRAY;
 
   /**
-   * An array containing the compilation units that comprise this library. The defining compilation
-   * unit is always first.
+   * An array containing the compilation units that comprise this library. The
+   * defining compilation unit is always first.
    */
   List<ResolvableCompilationUnit> _compilationUnits;
 
@@ -18722,24 +18699,6 @@ class ResolvableLibrary {
       _libraryScope = new LibraryScope(_libraryElement, _errorListener);
     }
     return _libraryScope;
-  }
-
-  /**
-   * Return the modification time associated with the given source.
-   *
-   * @param source the source representing the compilation unit whose modification time is to be
-   *          returned
-   * @return the modification time associated with the given source
-   * @throws AnalysisException if an AST structure could not be created for the compilation unit
-   */
-  int getModificationTime(Source source) {
-    int count = _compilationUnits.length;
-    for (int i = 0; i < count; i++) {
-      if (source == _compilationUnits[i].source) {
-        return _compilationUnits[i].modificationTime;
-      }
-    }
-    return -1;
   }
 
   /**

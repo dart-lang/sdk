@@ -541,7 +541,7 @@ class AnalysisContextImplTest extends EngineTestCase {
     CompilationUnit parsedUnit = _context.parseCompilationUnit(source);
     JUnitTestCase.assertNotNull(parsedUnit);
     CompilationUnit resolvedUnit =
-        _context.computeResolvableCompilationUnit(source).compilationUnit;
+        _context.computeResolvableCompilationUnit(source);
     JUnitTestCase.assertNotNull(resolvedUnit);
     JUnitTestCase.assertNotSame(parsedUnit, resolvedUnit);
   }
@@ -3444,14 +3444,14 @@ class DartEntryTest extends EngineTestCase {
 class GenerateDartErrorsTaskTest extends EngineTestCase {
   void test_accept() {
     GenerateDartErrorsTask task =
-        new GenerateDartErrorsTask(null, null, 0, null, null);
+        new GenerateDartErrorsTask(null, null, null, null);
     JUnitTestCase.assertTrue(
         task.accept(new GenerateDartErrorsTaskTestTV_accept()));
   }
 
   void test_getException() {
     GenerateDartErrorsTask task =
-        new GenerateDartErrorsTask(null, null, 0, null, null);
+        new GenerateDartErrorsTask(null, null, null, null);
     JUnitTestCase.assertNull(task.exception);
   }
 
@@ -3459,7 +3459,7 @@ class GenerateDartErrorsTaskTest extends EngineTestCase {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     LibraryElement element = ElementFactory.library(context, "lib");
     GenerateDartErrorsTask task =
-        new GenerateDartErrorsTask(context, null, 0, null, element);
+        new GenerateDartErrorsTask(context, null, null, element);
     JUnitTestCase.assertSame(element, task.libraryElement);
   }
 
@@ -3467,7 +3467,7 @@ class GenerateDartErrorsTaskTest extends EngineTestCase {
     Source source =
         new FileBasedSource.con1(FileUtilities2.createFile("/test.dart"));
     GenerateDartErrorsTask task =
-        new GenerateDartErrorsTask(null, source, 0, null, null);
+        new GenerateDartErrorsTask(null, source, null, null);
     JUnitTestCase.assertSame(source, task.source);
   }
 
@@ -3488,7 +3488,6 @@ class GenerateDartErrorsTaskTest extends EngineTestCase {
     GenerateDartErrorsTask task = new GenerateDartErrorsTask(
         context,
         source,
-        context.getModificationStamp(source),
         unit,
         libraryElement);
     task.perform(
@@ -3519,7 +3518,6 @@ class GenerateDartErrorsTaskTest extends EngineTestCase {
     GenerateDartErrorsTask task = new GenerateDartErrorsTask(
         context,
         source,
-        context.getModificationStamp(source),
         unit,
         libraryElement);
     task.perform(
@@ -3656,11 +3654,10 @@ class GenerateDartHintsTaskTestTV_perform extends TestTaskVisitor<bool> {
       throw exception;
     }
     JUnitTestCase.assertNotNull(task.libraryElement);
-    HashMap<Source, TimestampedData<List<AnalysisError>>> hintMap =
-        task.hintMap;
+    HashMap<Source, List<AnalysisError>> hintMap = task.hintMap;
     EngineTestCase.assertSizeOfMap(2, hintMap);
-    EngineTestCase.assertLength(1, hintMap[librarySource].data);
-    EngineTestCase.assertLength(0, hintMap[partSource].data);
+    EngineTestCase.assertLength(1, hintMap[librarySource]);
+    EngineTestCase.assertLength(0, hintMap[partSource]);
     return true;
   }
 }
@@ -5151,45 +5148,38 @@ class InstrumentedAnalysisContextImplTest extends EngineTestCase {
 
 class ParseDartTaskTest extends EngineTestCase {
   void test_accept() {
-    ParseDartTask task = new ParseDartTask(null, null, 0, null, null);
+    ParseDartTask task = new ParseDartTask(null, null, null, null);
     JUnitTestCase.assertTrue(task.accept(new ParseDartTaskTestTV_accept()));
   }
 
   void test_getCompilationUnit() {
-    ParseDartTask task = new ParseDartTask(null, null, 0, null, null);
+    ParseDartTask task = new ParseDartTask(null, null, null, null);
     JUnitTestCase.assertNull(task.compilationUnit);
   }
 
   void test_getErrors() {
-    ParseDartTask task = new ParseDartTask(null, null, 0, null, null);
+    ParseDartTask task = new ParseDartTask(null, null, null, null);
     EngineTestCase.assertLength(0, task.errors);
   }
 
   void test_getException() {
-    ParseDartTask task = new ParseDartTask(null, null, 0, null, null);
+    ParseDartTask task = new ParseDartTask(null, null, null, null);
     JUnitTestCase.assertNull(task.exception);
-  }
-
-  void test_getModificationTime() {
-    int modificationTime = 26;
-    ParseDartTask task =
-        new ParseDartTask(null, null, modificationTime, null, null);
-    JUnitTestCase.assertEquals(modificationTime, task.modificationTime);
   }
 
   void test_getSource() {
     Source source = new TestSource('/test.dart');
-    ParseDartTask task = new ParseDartTask(null, source, 0, null, null);
+    ParseDartTask task = new ParseDartTask(null, source, null, null);
     JUnitTestCase.assertSame(source, task.source);
   }
 
   void test_hasNonPartOfDirective() {
-    ParseDartTask task = new ParseDartTask(null, null, 0, null, null);
+    ParseDartTask task = new ParseDartTask(null, null, null, null);
     JUnitTestCase.assertFalse(task.hasNonPartOfDirective);
   }
 
   void test_hasPartOfDirective() {
-    ParseDartTask task = new ParseDartTask(null, null, 0, null, null);
+    ParseDartTask task = new ParseDartTask(null, null, null, null);
     JUnitTestCase.assertFalse(task.hasPartOfDirective);
   }
 
@@ -5198,7 +5188,7 @@ class ParseDartTaskTest extends EngineTestCase {
     source.generateExceptionOnRead = true;
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.sourceFactory = new SourceFactory([new FileUriResolver()]);
-    ParseDartTask task = new ParseDartTask(context, source, 0, null, null);
+    ParseDartTask task = new ParseDartTask(context, source, null, null);
     task.perform(new ParseDartTaskTestTV_perform_exception());
   }
 
@@ -5259,13 +5249,11 @@ class ParseDartTaskTest extends EngineTestCase {
     ScanDartTask scanTask = new ScanDartTask(
         context,
         source,
-        context.getModificationStamp(source),
         content);
     scanTask.perform(new ParseDartTaskTestTV_createParseTask());
     return new ParseDartTask(
         context,
         source,
-        scanTask.modificationTime,
         scanTask.tokenStream,
         scanTask.lineInfo);
   }
@@ -5305,9 +5293,6 @@ class ParseDartTaskTestTV_perform_library extends TestTaskVisitor<Object> {
     }
     JUnitTestCase.assertNotNull(task.compilationUnit);
     EngineTestCase.assertLength(1, task.errors);
-    JUnitTestCase.assertEquals(
-        context.getModificationStamp(source),
-        task.modificationTime);
     JUnitTestCase.assertSame(source, task.source);
     JUnitTestCase.assertTrue(task.hasNonPartOfDirective);
     JUnitTestCase.assertFalse(task.hasPartOfDirective);
@@ -5328,9 +5313,6 @@ class ParseDartTaskTestTV_perform_part extends TestTaskVisitor<Object> {
     }
     JUnitTestCase.assertNotNull(task.compilationUnit);
     EngineTestCase.assertLength(0, task.errors);
-    JUnitTestCase.assertEquals(
-        context.getModificationStamp(source),
-        task.modificationTime);
     JUnitTestCase.assertSame(source, task.source);
     JUnitTestCase.assertFalse(task.hasNonPartOfDirective);
     JUnitTestCase.assertTrue(task.hasPartOfDirective);
@@ -5357,9 +5339,6 @@ class ParseDartTaskTestTV_perform_validateDirectives extends
         [
             CompileTimeErrorCode.URI_WITH_INTERPOLATION,
             CompileTimeErrorCode.INVALID_URI]);
-    JUnitTestCase.assertEquals(
-        context.getModificationStamp(source),
-        task.modificationTime);
     JUnitTestCase.assertSame(source, task.source);
     JUnitTestCase.assertTrue(task.hasNonPartOfDirective);
     JUnitTestCase.assertFalse(task.hasPartOfDirective);
@@ -5384,7 +5363,6 @@ class ParseHtmlTaskTest extends EngineTestCase {
     ParseHtmlTask task = new ParseHtmlTask(
         context,
         source,
-        context.getModificationStamp(source),
         contents);
     Logger oldLogger = AnalysisEngine.instance.logger;
     try {
@@ -5397,33 +5375,33 @@ class ParseHtmlTaskTest extends EngineTestCase {
   }
 
   void test_accept() {
-    ParseHtmlTask task = new ParseHtmlTask(null, null, 0, "");
+    ParseHtmlTask task = new ParseHtmlTask(null, null, "");
     JUnitTestCase.assertTrue(task.accept(new ParseHtmlTaskTestTV_accept()));
   }
 
   void test_getException() {
-    ParseHtmlTask task = new ParseHtmlTask(null, null, 0, "");
+    ParseHtmlTask task = new ParseHtmlTask(null, null, "");
     JUnitTestCase.assertNull(task.exception);
   }
 
   void test_getHtmlUnit() {
-    ParseHtmlTask task = new ParseHtmlTask(null, null, 0, "");
+    ParseHtmlTask task = new ParseHtmlTask(null, null, "");
     JUnitTestCase.assertNull(task.htmlUnit);
   }
 
   void test_getLineInfo() {
-    ParseHtmlTask task = new ParseHtmlTask(null, null, 0, "");
+    ParseHtmlTask task = new ParseHtmlTask(null, null, "");
     JUnitTestCase.assertNull(task.lineInfo);
   }
 
   void test_getReferencedLibraries() {
-    ParseHtmlTask task = new ParseHtmlTask(null, null, 0, "");
+    ParseHtmlTask task = new ParseHtmlTask(null, null, "");
     EngineTestCase.assertLength(0, task.referencedLibraries);
   }
 
   void test_getSource() {
     Source source = new TestSource('/test.dart');
-    ParseHtmlTask task = new ParseHtmlTask(null, source, 0, "");
+    ParseHtmlTask task = new ParseHtmlTask(null, source, "");
     JUnitTestCase.assertSame(source, task.source);
   }
 
@@ -5540,9 +5518,6 @@ class ParseHtmlTaskTestTV_parseSource extends TestTaskVisitor<bool> {
     }
     JUnitTestCase.assertNotNull(task.htmlUnit);
     JUnitTestCase.assertNotNull(task.lineInfo);
-    JUnitTestCase.assertEquals(
-        context.getModificationStamp(source),
-        task.modificationTime);
     JUnitTestCase.assertSame(source, task.source);
     return true;
   }
@@ -5692,11 +5667,6 @@ class ResolveDartUnitTaskTest extends EngineTestCase {
     JUnitTestCase.assertSame(source, task.librarySource);
   }
 
-  void test_getModificationTime() {
-    ResolveDartUnitTask task = new ResolveDartUnitTask(null, null, null);
-    JUnitTestCase.assertEquals(-1, task.modificationTime);
-  }
-
   void test_getResolvedUnit() {
     ResolveDartUnitTask task = new ResolveDartUnitTask(null, null, null);
     JUnitTestCase.assertNull(task.resolvedUnit);
@@ -5771,9 +5741,6 @@ class ResolveDartUnitTaskTestTV_perform_library extends TestTaskVisitor<bool> {
       throw exception;
     }
     JUnitTestCase.assertSame(source, task.librarySource);
-    JUnitTestCase.assertEquals(
-        context.getModificationStamp(source),
-        task.modificationTime);
     JUnitTestCase.assertNotNull(task.resolvedUnit);
     JUnitTestCase.assertSame(source, task.source);
     return true;
@@ -5795,13 +5762,6 @@ class ResolveHtmlTaskTest extends EngineTestCase {
   void test_getException() {
     ResolveHtmlTask task = new ResolveHtmlTask(null, null, 0, null);
     JUnitTestCase.assertNull(task.exception);
-  }
-
-  void test_getModificationTime() {
-    int modificationTime = 28;
-    ResolveHtmlTask task =
-        new ResolveHtmlTask(null, null, modificationTime, null);
-    JUnitTestCase.assertEquals(modificationTime, task.modificationTime);
   }
 
   void test_getResolutionErrors() {
@@ -5839,12 +5799,12 @@ class ResolveHtmlTaskTest extends EngineTestCase {
     Source source = new TestSource("/test.html", content);
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     ParseHtmlTask parseTask =
-        new ParseHtmlTask(context, source, modificationStamp, content);
+        new ParseHtmlTask(context, source, content);
     parseTask.perform(new ResolveHtmlTaskTestTV_perform_valid_2());
     ResolveHtmlTask task = new ResolveHtmlTask(
         context,
         source,
-        parseTask.modificationTime,
+        modificationStamp,
         parseTask.htmlUnit);
     task.perform(
         new ResolveHtmlTaskTestTV_perform_valid(modificationStamp, source));
@@ -5878,7 +5838,6 @@ class ResolveHtmlTaskTestTV_perform_valid extends TestTaskVisitor<Object> {
       throw exception;
     }
     JUnitTestCase.assertNotNull(task.element);
-    JUnitTestCase.assertEquals(modificationStamp, task.modificationTime);
     EngineTestCase.assertLength(1, task.resolutionErrors);
     JUnitTestCase.assertSame(source, task.source);
     return null;
@@ -5894,33 +5853,28 @@ class ResolveHtmlTaskTestTV_perform_valid_2 extends TestTaskVisitor<Object> {
 
 class ScanDartTaskTest extends EngineTestCase {
   void test_accept() {
-    ScanDartTask task = new ScanDartTask(null, null, 0, null);
+    ScanDartTask task = new ScanDartTask(null, null, null);
     JUnitTestCase.assertTrue(task.accept(new ScanDartTaskTestTV_accept()));
   }
 
   void test_getErrors() {
-    ScanDartTask task = new ScanDartTask(null, null, 0, null);
+    ScanDartTask task = new ScanDartTask(null, null, null);
     EngineTestCase.assertLength(0, task.errors);
   }
 
   void test_getException() {
-    ScanDartTask task = new ScanDartTask(null, null, 0, null);
+    ScanDartTask task = new ScanDartTask(null, null, null);
     JUnitTestCase.assertNull(task.exception);
   }
 
   void test_getLineInfo() {
-    ScanDartTask task = new ScanDartTask(null, null, 0, null);
+    ScanDartTask task = new ScanDartTask(null, null, null);
     JUnitTestCase.assertNull(task.lineInfo);
-  }
-
-  void test_getModificationTime() {
-    ScanDartTask task = new ScanDartTask(null, null, 0, null);
-    JUnitTestCase.assertEquals(0, task.modificationTime);
   }
 
   void test_getSource() {
     Source source = new TestSource('test.dart', '');
-    ScanDartTask task = new ScanDartTask(null, source, 0, null);
+    ScanDartTask task = new ScanDartTask(null, source, null);
     JUnitTestCase.assertSame(source, task.source);
   }
 
@@ -5930,7 +5884,7 @@ class ScanDartTaskTest extends EngineTestCase {
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.sourceFactory = new SourceFactory([new FileUriResolver()]);
     ScanDartTask task =
-        new ScanDartTask(context, source, source.modificationStamp, content);
+        new ScanDartTask(context, source, content);
     task.perform(new ScanDartTaskTestTV_perform_valid(context, source));
   }
 }
@@ -5955,9 +5909,6 @@ class ScanDartTaskTestTV_perform_valid extends TestTaskVisitor<bool> {
     JUnitTestCase.assertNotNull(task.tokenStream);
     EngineTestCase.assertLength(0, task.errors);
     JUnitTestCase.assertNotNull(task.lineInfo);
-    JUnitTestCase.assertEquals(
-        context.getModificationStamp(source),
-        task.modificationTime);
     JUnitTestCase.assertSame(source, task.source);
     return true;
   }
@@ -6121,7 +6072,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
-  ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) {
+  CompilationUnit computeResolvableCompilationUnit(Source source) {
     JUnitTestCase.fail(
         "Unexpected invocation of computeResolvableCompilationUnit");
     return null;
@@ -6414,7 +6365,7 @@ class TestAnalysisContext_test_computeResolvableCompilationUnit extends
   List<bool> invoked;
   TestAnalysisContext_test_computeResolvableCompilationUnit(this.invoked);
   @override
-  ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) {
+  CompilationUnit computeResolvableCompilationUnit(Source source) {
     invoked[0] = true;
     return null;
   }

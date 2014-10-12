@@ -8533,7 +8533,9 @@ class LibraryResolver2Test extends ResolverTestCase {
   ResolvableLibrary _createResolvableLibrary(Source source) {
     CompilationUnit unit = analysisContext2.parseCompilationUnit(source);
     ResolvableLibrary resolvableLibrary = new ResolvableLibrary(source);
-    resolvableLibrary.resolvableCompilationUnits = <ResolvableCompilationUnit> [new ResolvableCompilationUnit.con2(analysisContext2.getModificationStamp(source), unit, source)];
+    resolvableLibrary.resolvableCompilationUnits = <ResolvableCompilationUnit>[
+        new ResolvableCompilationUnit(source, unit)
+    ];
     return resolvableLibrary;
   }
 }
