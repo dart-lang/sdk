@@ -6,6 +6,7 @@ library test.engine;
 
 import 'package:unittest/unittest.dart';
 
+import 'enum_test.dart' as enum_test;
 import 'error_test.dart' as error;
 import 'file_system/test_all.dart' as file_system;
 import 'generated/test_all.dart' as generated;
@@ -18,6 +19,7 @@ import 'source/test_all.dart' as source;
 main() {
   groupSep = ' | ';
   group('analysis engine', () {
+    enum_test.main();
     error.main();
     file_system.main();
     generated.main();
