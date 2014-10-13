@@ -2562,9 +2562,9 @@ A {\em symbol literal} denotes the name of a declaration in a Dart program.
       `\#'  (operator $|$ (identifier (`{\escapegrammar .}' identifier)*))  .
 \end{grammar}
 
-A symbol literal \code{\#id} where \code{id} does not begin with an underscore (‘\code{\_}’)  is equivalent to the expression \code{\CONST{} Symbol(‘id’)}.  
+A symbol literal \code{\#id} where \code{id} does not begin with an underscore ('\code{\_}')  is equivalent to the expression \code{\CONST{} Symbol('id')}.  
 
-A symbol literal \code{\#\_id} evaluates to the object that would be returned by the call \code{mirror.getPrivateSymbol(‘id’)} where mirror is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library. 
+A symbol literal \code{\#\_id} evaluates to the object that would be returned by the call \code{mirror.getPrivateSymbol('id')} where mirror is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library. 
 
 \rationale{
 One may well ask what is the motivation for introducing literal symbols? In some languages, symbols are canonicalized whereas strings are not. However literal strings are already canonicalized in Dart.  Symbols are slightly easier to type compared to strings and their use can become strangely addictive, but this is not nearly sufficient justification for adding a literal form to the language. The primary motivation is related to the use of reflection and a web specific practice known as minification. 
@@ -5467,7 +5467,7 @@ If $I$ is a deferred import, no evaluation takes place. Instead, an mapping the 
 The deferred prefix object has the following methods:
 
 \begin{itemize}
-\item \code{loadLibrary}. This method returns a future $f$. When called, the method causes an immediate import $I’$ to be executed at some future time, where $I’$ is is derived from $I$ by eliding the word \DEFERRED{} and adding a \HIDE{} \code{loadLibrary}  combinator clause. When $I’$ executes without error, $f$ completes successfully. If $I’$ executes without error, we say that the call to \code{loadLibrary} has succeeded, otherwise we say the call has failed.
+\item \code{loadLibrary}. This method returns a future $f$. When called, the method causes an immediate import $I'$ to be executed at some future time, where $I'$ is is derived from $I$ by eliding the word \DEFERRED{} and adding a \HIDE{} \code{loadLibrary}  combinator clause. When $I'$ executes without error, $f$ completes successfully. If $I'$ executes without error, we say that the call to \code{loadLibrary} has succeeded, otherwise we say the call has failed.
 \item  For every top level function $f$ named $id$ in $L$, a corresponding method named $id$ with the same signature as $f$. Calling the method results in a runtime error.
 \item For every top level getter $g$ named $id$ in $L$, a corresponding getter named $id$ with the same signature as $g$.  Calling the method results in a runtime error.
 \item For every top level setter $s$ named $id$ in $L$, a corresponding setter named $id$ with the same signature as $s$.  Calling the method results in a runtime error.
@@ -5560,7 +5560,7 @@ imports of two libraries, $L_1$ and $L_2$, and the exported namespace of $L_1$ b
 \end{itemize}
 
 \rationale {
-Whereas normal conflicts are resolved at deployment time, the functionality of \code{dart:} libraries is injected into an application at run time, and may vary over time as browsers are upgraded.  Thus, conflicts with \code{dart:} libraries can arise at runtime, outside the developer’s control. To avoid breaking deployed applications in this way, conflicts with the \code{dart:} libraries are treated specially.
+Whereas normal conflicts are resolved at deployment time, the functionality of \code{dart:} libraries is injected into an application at run time, and may vary over time as browsers are upgraded.  Thus, conflicts with \code{dart:} libraries can arise at runtime, outside the developer's control. To avoid breaking deployed applications in this way, conflicts with the \code{dart:} libraries are treated specially.
 
 It is recommended that tools that deploy Dart code produce output in which all imports use show clauses to ensure that additions to the namespace of a library never impact deployed code.
 }
