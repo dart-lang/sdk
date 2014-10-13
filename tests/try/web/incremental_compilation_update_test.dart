@@ -17,7 +17,8 @@ import 'sandbox.dart' show
     listener;
 
 import 'web_compiler_test_case.dart' show
-    WebCompilerTestCase;
+    WebCompilerTestCase,
+    WebInputProvider;
 
 void main() => asyncTest(() {
   listener.start();
@@ -30,16 +31,29 @@ void main() => asyncTest(() {
           ..style.height = '90vh';
 
   return listener.expect('iframe-ready').then((_) {
-    Future<String> future =
-        new WebCompilerTestCase("main() { print('Hello, World!'); }").run();
-    return future.then((String jsCode) {
+    WebCompilerTestCase test =
+        new WebCompilerTestCase("main() { print('Hello, World!'); }");
+    return test.run().then((String jsCode) {
         var objectUrl =
             Url.createObjectUrl(new Blob([jsCode], 'application/javascript'));
 
         iframe.contentWindow.postMessage(['add-script', objectUrl], '*');
         return listener.expect(['Hello, World!', 'iframe-dart-main-done']).then(
             (_) {
-              // TODO(ahe): Add incremental compilation here.
+              WebInputProvider inputProvider =
+                  test.incrementalCompiler.inputProvider;
+              Uri uri = test.scriptUri.resolve('?v2');
+              inputProvider.cachedSources[uri] = new Future.value(
+                  "main() { print('Hello, Brave New World!'); }");
+              Future future = test.incrementalCompiler.compileUpdates(
+                  {test.scriptUri: uri});
+              return future.then((String update) {
+                iframe.contentWindow.postMessage(['apply-update', update], '*');
+
+                return listener.expect(
+                    ['Hello, Brave New World!',
+                     'iframe-dart-updated-main-done']);
+              });
             });
     });
   }).then((_) {

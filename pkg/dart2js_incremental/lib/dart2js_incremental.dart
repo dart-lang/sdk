@@ -28,6 +28,10 @@ import 'package:compiler/implementation/js_backend/js_backend.dart' show
 import 'package:compiler/implementation/elements/elements.dart' show
     LibraryElement;
 
+import 'library_updater.dart' show
+    LibraryUpdater,
+    Logger;
+
 part 'caching_compiler.dart';
 
 const List<String> INCREMENTAL_OPTIONS = const <String>[
@@ -69,10 +73,18 @@ class IncrementalCompiler {
   }
 
   Future<bool> compile(Uri script) {
+    return _reuseCompiler(null).then((Compiler compiler) {
+      _compiler = compiler;
+      return compiler.run(script);
+    });
+  }
+
+  Future<Compiler> _reuseCompiler(
+      Future<bool> reuseLibrary(LibraryElement library)) {
     List<String> options = this.options == null
         ? <String> [] : new List<String>.from(this.options);
     options.addAll(INCREMENTAL_OPTIONS);
-    Future<Compiler> future = reuseCompiler(
+    return reuseCompiler(
         cachedCompiler: _compiler,
         libraryRoot: libraryRoot,
         packageRoot: packageRoot,
@@ -80,10 +92,38 @@ class IncrementalCompiler {
         diagnosticHandler: diagnosticHandler,
         options: options,
         outputProvider: outputProvider,
-        environment: environment);
+        environment: environment,
+        reuseLibrary: reuseLibrary);
+  }
+
+  Future<String> compileUpdates(
+      Map<Uri, Uri> updatedFiles,
+      {Logger logTime,
+       Logger logVerbose}) {
+    if (logTime == null) {
+      logTime = (_) {};
+    }
+    if (logVerbose == null) {
+      logVerbose = (_) {};
+    }
+    Future mappingInputProvider(Uri uri) {
+      Uri updatedFile = updatedFiles[uri];
+      return inputProvider(updatedFile == null ? uri : updatedFile);
+    }
+    LibraryUpdater updater = new LibraryUpdater(
+        _compiler,
+        mappingInputProvider,
+        _compiler.mainApp.canonicalUri,
+        logTime,
+        logVerbose);
+    Future<Compiler> future = _reuseCompiler(updater.reuseLibrary);
     return future.then((Compiler compiler) {
       _compiler = compiler;
-      return compiler.run(script);
+      if (compiler.compilationFailed) {
+        return null;
+      } else {
+        return updater.computeUpdateJs();
+      }
     });
   }
 }

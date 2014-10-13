@@ -85,7 +85,7 @@ class LibraryUpdater {
     } else if (library != compiler.mainApp) {
       return new Future.value(false);
     }
-    return inputProvider(uri).then((List<int> bytes) {
+    return inputProvider(uri).then((bytes) {
       return canReuseLibrary(library, bytes);
     });
   }
@@ -94,9 +94,9 @@ class LibraryUpdater {
   ///
   /// This methods also computes the [updates] (patches) needed to have
   /// [library] reflect the modifications in [bytes].
-  bool canReuseLibrary(LibraryElement library, List<int> bytes) {
+  bool canReuseLibrary(LibraryElement library, bytes) {
     logTime('Attempting to reuse mainApp.');
-    String newSource = UTF8.decode(bytes);
+    String newSource = bytes is String ? bytes : UTF8.decode(bytes);
     logTime('Decoded UTF8');
 
     // TODO(ahe): Can't use compiler.mainApp in general.
@@ -188,7 +188,9 @@ class LibraryUpdater {
 
   String computeUpdateJs() {
     List<Element> updatedElements = applyUpdates();
-    compiler.progress.reset();
+    if (compiler.progress != null) {
+      compiler.progress.reset();
+    }
     for (Element element in updatedElements) {
       compiler.enqueuer.resolution.addToWorkList(element);
     }
