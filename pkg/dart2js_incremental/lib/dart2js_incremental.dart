@@ -47,6 +47,8 @@ class IncrementalCompiler {
 
   Compiler _compiler;
 
+  bool get compilerWasCancelled => _compiler.compilerWasCancelled;
+
   IncrementalCompiler({
       this.libraryRoot,
       this.packageRoot,
@@ -67,7 +69,8 @@ class IncrementalCompiler {
   }
 
   Future<bool> compile(Uri script) {
-    List<String> options = new List<String>.from(this.options);
+    List<String> options = this.options == null
+        ? <String> [] : new List<String>.from(this.options);
     options.addAll(INCREMENTAL_OPTIONS);
     Future<Compiler> future = reuseCompiler(
         cachedCompiler: _compiler,
