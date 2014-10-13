@@ -5,6 +5,7 @@
 library tree_ir_builder;
 
 import '../dart2jslib.dart' as dart2js;
+import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import 'tree_ir_nodes.dart';
@@ -439,8 +440,8 @@ class Builder extends cps_ir.Visitor<Node> {
 
   Node visitCreateFunction(cps_ir.CreateFunction node) {
     FunctionDefinition def = makeSubFunction(node.definition);
-    FunctionSignature signature = node.definition.element.functionSignature;
-    bool hasReturnType = !signature.type.returnType.treatAsDynamic;
+    FunctionType type = node.definition.element.type;
+    bool hasReturnType = !type.returnType.treatAsDynamic;
     if (hasReturnType) {
       // This function cannot occur in expression context.
       // The successor will be filled in by visitLetPrim.

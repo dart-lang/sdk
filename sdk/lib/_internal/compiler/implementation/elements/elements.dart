@@ -1134,6 +1134,9 @@ abstract class FunctionElement extends Element
   @deprecated FunctionSignature computeSignature(Compiler compiler);
 
   bool get hasFunctionSignature;
+
+  /// The type of this function.
+  FunctionType get type;
 }
 
 /// A top level, static or instance function.

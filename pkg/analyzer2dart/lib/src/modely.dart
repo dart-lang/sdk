@@ -350,44 +350,11 @@ class TopLevelFunctionElementY extends ElementY
     implements dart2js.FunctionElement {
   analyzer.FunctionElement get element => super.element;
 
-  dart2js.FunctionSignature _functionSignature;
-
-  // TODO(johnniwinther): Avoid the need for these.
-  @override
-  dart2js.FunctionSignature get functionSignature {
-    if (_functionSignature == null) {
-      util.LinkBuilder<dart2js.Element> parameterBuilder =
-          new util.LinkBuilder<dart2js.Element>();
-      List<dart2js.DartType> parameterTypes = <dart2js.DartType>[];
-      element.parameters.forEach((analyzer.ParameterElement parameter) {
-        if (parameter.parameterKind.isOptional) {
-          unsupported('Optional parameter.');
-        } else {
-          dart2js.ParameterElement convertedParameter =
-              converter.convertElement(parameter);
-          parameterBuilder.addLast(convertedParameter);
-          parameterTypes.add(convertedParameter.type);
-        }
-      });
-      // TODO(johnniwinther): Convert parameter and return types.
-      util.Link<dart2js.Element> parameters = parameterBuilder.toLink();
-      _functionSignature = new modelx.FunctionSignatureX(
-            parameters,
-            const util.Link<dart2js.Element>(),
-            parameterBuilder.length, 0, false,
-            parameters.toList(),
-            new dart2js.FunctionType.synthesized(
-                converter.convertType(element.returnType),
-                parameterTypes));
-    }
-    return _functionSignature;
-  }
-
-  @override
-  bool get hasFunctionSignature => true;
-
   @override
   dart2js.ElementKind get kind => dart2js.ElementKind.FUNCTION;
+
+  @override
+  dart2js.FunctionType get type => converter.convertType(element.type);
 
   TopLevelFunctionElementY(ElementConverter converter,
                            analyzer.FunctionElement element)
@@ -403,7 +370,10 @@ class TopLevelFunctionElementY extends ElementY
   get memberContext => unsupported('memberContext');
 
   @override
-  dart2js.FunctionType get type => functionSignature.type;
+  get functionSignature => unsupported('functionSignature');
+
+  @override
+  bool get hasFunctionSignature => unsupported('hasFunctionSignature');
 }
 
 class ParameterElementY extends ElementY
@@ -417,10 +387,6 @@ class ParameterElementY extends ElementY
 
   @override
   dart2js.DartType get type => converter.convertType(element.type);
-
-  // TODO(johnniwinther): Avoid the need for this.
-  @override
-  dart2js.FunctionSignature get functionSignature => null;
 
   @override
   bool get isLocal => true;
@@ -448,6 +414,9 @@ class ParameterElementY extends ElementY
 
   @override
   get memberContext => unsupported('memberContext');
+
+  @override
+  get functionSignature => unsupported('functionSignature');
 }
 
 class TypeDeclarationElementY extends ElementY

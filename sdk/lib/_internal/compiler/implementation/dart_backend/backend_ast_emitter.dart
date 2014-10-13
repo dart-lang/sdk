@@ -154,48 +154,86 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     }
   }
 
-  Parameter emitParameterFromElement(FormalElement element, [String name]) {
-    if (name == null) {
+  /// TODO(johnniwinther): Remove this when issue 21283 has been resolved.
+  int pseudoNameCounter = 0;
+
+  Parameter emitParameter(DartType type,
+                          {String name,
+                           Element element,
+                           ConstantExpression defaultValue}) {
+    if (name == null && element != null) {
       name = element.name;
     }
-    if (element.functionSignature != null) {
-      FunctionSignature signature = element.functionSignature;
-      TypeAnnotation returnType = emitOptionalType(signature.type.returnType);
-      Parameters innerParameters = emitParameters(signature);
-      return new Parameter.function(name, returnType, innerParameters)
-                 ..element = element;
+    if (name == null) {
+      name = '_${pseudoNameCounter++}';
+    }
+    Parameter parameter;
+    if (type.isFunctionType) {
+      FunctionType functionType = type;
+      TypeAnnotation returnType = emitOptionalType(functionType.returnType);
+      Parameters innerParameters = emitParametersFromType(functionType);
+      parameter = new Parameter.function(name, returnType, innerParameters);
     } else {
-      TypeAnnotation type = emitOptionalType(element.type);
-      return new Parameter(name, type:type)
-                 ..element = element;
+      TypeAnnotation typeAnnotation = emitOptionalType(type);
+      parameter = new Parameter(name, type: typeAnnotation);
+    }
+    parameter.element = element;
+    if (defaultValue != null && !defaultValue.value.isNull) {
+      parameter.defaultValue = emitConstant(defaultValue);
+    }
+    return parameter;
+  }
+
+  Parameters emitParametersFromType(FunctionType functionType) {
+    if (functionType.namedParameters.isEmpty) {
+      return new Parameters(
+          emitParameters(functionType.parameterTypes),
+          emitParameters(functionType.optionalParameterTypes),
+          false);
+    } else {
+      return new Parameters(
+          emitParameters(functionType.parameterTypes),
+          emitParameters(functionType.namedParameterTypes,
+                         names: functionType.namedParameters),
+          true);
     }
   }
 
-  Parameters emitParameters(FunctionSignature signature) {
-    return new Parameters(
-        signature.requiredParameters.mapToList(emitParameterFromElement),
-        signature.optionalParameters.mapToList(emitParameterFromElement),
-        signature.optionalParametersAreNamed);
+  List<Parameter> emitParameters(
+      Iterable<DartType> parameterTypes,
+      {Iterable<String> names: const <String>[],
+       Iterable<ConstantExpression> defaultValues: const <ConstantExpression>[],
+       Iterable<Element> elements: const <Element>[]}) {
+    Iterator<String> name = names.iterator;
+    Iterator<ConstantExpression> defaultValue = defaultValues.iterator;
+    Iterator<Element> element = elements.iterator;
+    return parameterTypes.map((DartType type) {
+      name.moveNext();
+      defaultValue.moveNext();
+      element.moveNext();
+      return emitParameter(type,
+                           name: name.current,
+                           defaultValue: defaultValue.current,
+                           element: element.current);
+    }).toList();
   }
 
   /// Emits parameters that are not nested inside other parameters.
   /// Root parameters can have default values, while inner parameters cannot.
   Parameters emitRootParameters(tree.FunctionDefinition function) {
-    FunctionSignature signature = function.element.functionSignature;
-    List<ConstantExpression> defaults = function.defaultParameterValues;
-    List<Parameter> required =
-        signature.requiredParameters.mapToList(emitParameterFromElement);
-    List<Parameter> optional = new List<Parameter>(defaults.length);
-    for (int i = 0; i < defaults.length; i++) {
-      ParameterElement element = signature.orderedOptionalParameters[i];
-      optional[i] = emitParameterFromElement(element);
-      Expression constant = emitConstant(defaults[i]);
-      if (!isNullLiteral(constant)) {
-        optional[i].defaultValue = constant;
-      }
-    }
-    return new Parameters(required, optional,
-        signature.optionalParametersAreNamed);
+    FunctionType functionType = function.element.type;
+    List<Parameter> required = emitParameters(
+        functionType.parameterTypes,
+        elements: function.parameters.map((p) => p.element));
+    bool optionalParametersAreNamed = !functionType.namedParameters.isEmpty;
+    List<Parameter> optional = emitParameters(
+        optionalParametersAreNamed
+            ? functionType.namedParameterTypes
+            : functionType.optionalParameterTypes,
+        defaultValues: function.defaultParameterValues,
+        elements: function.parameters.skip(required.length)
+            .map((p) => p.element));
+    return new Parameters(required, optional, optionalParametersAreNamed);
   }
 
   /// True if the two expressions are a reference to the same variable.

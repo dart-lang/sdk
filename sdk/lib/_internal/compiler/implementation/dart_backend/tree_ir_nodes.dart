@@ -283,7 +283,7 @@ class FunctionExpression extends Expression {
   final FunctionDefinition definition;
 
   FunctionExpression(this.definition) {
-    assert(definition.element.functionSignature.type.returnType.treatAsDynamic);
+    assert(definition.element.type.returnType.treatAsDynamic);
   }
 
   accept(ExpressionVisitor visitor) => visitor.visitFunctionExpression(this);

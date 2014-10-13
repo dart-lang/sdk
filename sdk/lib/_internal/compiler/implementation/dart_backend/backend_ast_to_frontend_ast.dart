@@ -891,7 +891,9 @@ class TreePrinter {
           makeEmptyModifiers(), // TODO: Function parameter modifiers?
           null, // initializers
           null); // get/set
-      setElement(definition, param.element, param);
+      if (param.element != null) {
+        setElement(definition, param.element, param);
+      }
       if (param.defaultValue != null) {
         return new tree.SendSet(
             null,
@@ -915,7 +917,9 @@ class TreePrinter {
       } else {
         definition = makeIdentifier(param.name);
       }
-      setElement(definition, param.element, param);
+      if (param.element != null) {
+        setElement(definition, param.element, param);
+      }
       return new tree.VariableDefinitions(
           param.type == null ? null : makeType(param.type),
           makeEmptyModifiers(), // TODO: Parameter modifiers?
