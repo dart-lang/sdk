@@ -40,7 +40,7 @@ abstract class Enqueuer {
       = new Map<String, Set<Element>>();
   final Map<String, Set<Element>> instanceFunctionsByName
       = new Map<String, Set<Element>>();
-  final Set<ClassElement> seenClasses = new Set<ClassElement>();
+  final Set<ClassElement> _seenClasses = new Set<ClassElement>();
   Set<ClassElement> recentClasses = new Setlet<ClassElement>();
   final Universe universe = new Universe();
 
@@ -85,30 +85,18 @@ abstract class Enqueuer {
   bool internalAddToWorkList(Element element);
 
   void registerInstantiatedType(InterfaceType type, Registry registry,
-                                {mirrorUsage: false}) {
+                                {bool mirrorUsage: false}) {
     task.measure(() {
       ClassElement cls = type.element;
       registry.registerDependency(cls);
       cls.ensureResolved(compiler);
-      universe.instantiatedTypes.add(type);
-      if (!cls.isAbstract
-          // We can't use the closed-world assumption with native abstract
-          // classes; a native abstract class may have non-abstract subclasses
-          // not declared to the program.  Instances of these classes are
-          // indistinguishable from the abstract class.
-          || cls.isNative
-          // Likewise, if this registration comes from the mirror system,
-          // all bets are off.
-          // TODO(herhut): Track classes required by mirrors seperately.
-          || mirrorUsage) {
-        universe.instantiatedClasses.add(cls);
-      }
+      universe.registerTypeInstantiation(type, byMirrors: mirrorUsage);
       onRegisterInstantiatedClass(cls);
     });
   }
 
   void registerInstantiatedClass(ClassElement cls, Registry registry,
-                                 {mirrorUsage: false}) {
+                                 {bool mirrorUsage: false}) {
     cls.ensureResolved(compiler);
     registerInstantiatedType(cls.rawType, registry, mirrorUsage: mirrorUsage);
   }
@@ -228,15 +216,15 @@ abstract class Enqueuer {
 
   void onRegisterInstantiatedClass(ClassElement cls) {
     task.measure(() {
-      if (seenClasses.contains(cls)) return;
+      if (_seenClasses.contains(cls)) return;
       // The class must be resolved to compute the set of all
       // supertypes.
       cls.ensureResolved(compiler);
 
       void processClass(ClassElement cls) {
-        if (seenClasses.contains(cls)) return;
+        if (_seenClasses.contains(cls)) return;
 
-        seenClasses.add(cls);
+        _seenClasses.add(cls);
         recentClasses.add(cls);
         cls.ensureResolved(compiler);
         cls.implementation.forEachMember(processInstantiatedClassMember);
@@ -422,7 +410,7 @@ abstract class Enqueuer {
       // as recently seen, as we do not know how many rounds of resolution might
       // have run before tree shaking is disabled and thus everything is
       // enqueued.
-      recents = seenClasses.toSet();
+      recents = _seenClasses.toSet();
       compiler.log('Enqueuing everything');
       for (LibraryElement lib in compiler.libraryLoader.libraries) {
         enqueueReflectiveElementsInLibrary(lib, recents);
@@ -651,7 +639,7 @@ abstract class Enqueuer {
 
   void forgetElement(Element element) {
     universe.forgetElement(element, compiler);
-    seenClasses.remove(element);
+    _seenClasses.remove(element);
   }
 }
 
@@ -694,14 +682,9 @@ class ResolutionEnqueuer extends Enqueuer {
     resolvedElements.add(element);
   }
 
-  /// Returns `true` if the resolution world considers [cls] to be instantiated.
-  bool isInstantiated(ClassElement cls) {
-    return seenClasses.contains(cls);
-  }
-
   /// Returns [:true:] if [element] has actually been used.
   bool isLive(Element element) {
-    if (seenClasses.contains(element)) return true;
+    if (_seenClasses.contains(element)) return true;
     if (hasBeenResolved(element)) return true;
     return false;
   }

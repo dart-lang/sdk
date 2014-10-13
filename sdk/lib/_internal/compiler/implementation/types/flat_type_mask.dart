@@ -542,7 +542,7 @@ class FlatTypeMask implements TypeMask {
                                Selector selector,
                                World world) {
     assert(invariant(cls,
-        world.compiler.enqueuer.resolution.isInstantiated(cls),
+        world.compiler.resolverWorld.isInstantiated(cls),
         message: '$cls has not been instantiated.'));
     Element element = findMatchIn(cls, selector);
     if (element == null) return false;

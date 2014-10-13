@@ -2252,7 +2252,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool checkIndexingBehavior(HInstruction input, {bool negative: false}) {
-    if (!compiler.enqueuer.resolution.seenClasses.contains(
+    if (!compiler.resolverWorld.isInstantiated(
           backend.jsIndexingBehaviorInterface)) {
       return false;
     }

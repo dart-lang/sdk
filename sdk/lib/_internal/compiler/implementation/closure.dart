@@ -92,17 +92,7 @@ class ClosureTask extends CompilerTask {
           closure, 'Not a closure: $closure (${closure.runtimeType}).');
     }
     namer.forgetElement(cls);
-    Universe universe = compiler.enqueuer.codegen.universe;
-    universe.instantiatedTypes
-        ..remove(cls.rawType)
-        ..remove(cls.thisType);
-    universe.instantiatedClasses.remove(cls);
-    cls.forEachLocalMember((Element e) {
-      universe.closurizedMembers.remove(e);
-      universe.fieldSetters.remove(e);
-      universe.fieldGetters.remove(e);
-    });
-    compiler.enqueuer.codegen.seenClasses.remove(cls);
+    compiler.enqueuer.codegen.forgetElement(cls);
   }
 }
 

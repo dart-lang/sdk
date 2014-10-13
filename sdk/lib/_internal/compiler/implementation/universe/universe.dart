@@ -15,14 +15,27 @@ part 'function_set.dart';
 part 'side_effects.dart';
 
 class Universe {
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: Elements are declaration elements.
-   */
-  // TODO(karlklose): these sets should be merged.
-  final Set<ClassElement> instantiatedClasses = new Set<ClassElement>();
-  final Set<DartType> instantiatedTypes = new Set<DartType>();
+  /// The set of all directly instantiated classes, that is, classes with a
+  /// generative constructor that has been called directly and not only through
+  /// a super-call.
+  ///
+  /// Invariant: Elements are declaration elements.
+  // TODO(johnniwinther): [_directlyInstantiatedClasses] and
+  // [_instantiatedTypes] sets should be merged.
+  final Set<ClassElement> _directlyInstantiatedClasses =
+      new Set<ClassElement>();
+
+  /// The set of all directly instantiated types, that is, the types of the
+  /// directly instantiated classes.
+  ///
+  /// See [_directlyInstantiatedClasses].
+  final Set<DartType> _instantiatedTypes = new Set<DartType>();
+
+  /// The set of all instantiated classes, either directly, as superclasses or
+  /// as supertypes.
+  ///
+  /// Invariant: Elements are declaration elements.
+  final Set<ClassElement> _allInstantiatedClasses = new Set<ClassElement>();
 
   /**
    * Documentation wanted -- johnniwinther
@@ -82,6 +95,65 @@ class Universe {
 
   bool usingFactoryWithTypeArguments = false;
 
+  /// All directly instantiated classes, that is, classes with a generative
+  /// constructor that has been called directly and not only through a
+  /// super-call.
+  // TODO(johnniwinther): Improve semantic precision.
+  Iterable<ClassElement> get instantiatedClasses {
+    return _directlyInstantiatedClasses;
+  }
+
+  /// All instantiated classes, either directly, as superclasses or as
+  /// supertypes.
+  // TODO(johnniwinther): Improve semantic precision.
+  Iterable<ClassElement> get allInstantiatedClasses {
+    return _allInstantiatedClasses;
+  }
+
+  /// All directly instantiated types, that is, the types of the directly
+  /// instantiated classes.
+  ///
+  /// See [instantiatedClasses].
+  // TODO(johnniwinther): Improve semantic precision.
+  Iterable<DartType> get instantiatedTypes => _instantiatedTypes;
+
+  /// Returns `true` if [cls] is considered to be instantiated, either directly,
+  /// through subclasses or throught subtypes.
+  // TODO(johnniwinther): Improve semantic precision.
+  bool isInstantiated(ClassElement cls) {
+    return _allInstantiatedClasses.contains(cls);
+  }
+
+  /// Register [type] as (directly) instantiated.
+  ///
+  /// If [byMirrors] is `true`, the instantiation is through mirrors.
+  // TODO(johnniwinther): Fully enforce the separation between exact, through
+  // subclass and through subtype instantiated types/classes.
+  // TODO(johnniwinther): Support unknown type arguments for generic types.
+  void registerTypeInstantiation(InterfaceType type,
+                                 {bool byMirrors: false}) {
+    _instantiatedTypes.add(type);
+    ClassElement cls = type.element;
+    if (!cls.isAbstract
+        // We can't use the closed-world assumption with native abstract
+        // classes; a native abstract class may have non-abstract subclasses
+        // not declared to the program.  Instances of these classes are
+        // indistinguishable from the abstract class.
+        || cls.isNative
+        // Likewise, if this registration comes from the mirror system,
+        // all bets are off.
+        // TODO(herhut): Track classes required by mirrors seperately.
+        || byMirrors) {
+      _directlyInstantiatedClasses.add(cls);
+    }
+
+    // TODO(johnniwinther): Replace this by separate more specific mappings.
+    if (!_allInstantiatedClasses.add(cls)) return;
+    cls.allSupertypes.forEach((InterfaceType supertype) {
+      _allInstantiatedClasses.add(supertype.element);
+    });
+  }
+
   bool hasMatchingSelector(Set<Selector> selectors,
                            Element member,
                            World world) {
@@ -119,12 +191,13 @@ class Universe {
     closurizedMembers.remove(element);
     fieldSetters.remove(element);
     fieldGetters.remove(element);
-    instantiatedClasses.remove(element);
+    _directlyInstantiatedClasses.remove(element);
+    _allInstantiatedClasses.remove(element);
     if (element is ClassElement) {
       assert(invariant(
           element, element.thisType.isRaw,
           message: 'Generic classes not supported (${element.thisType}).'));
-      instantiatedTypes
+      _instantiatedTypes
           ..remove(element.rawType)
           ..remove(element.thisType);
     }

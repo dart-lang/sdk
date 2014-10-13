@@ -385,7 +385,7 @@ class World implements ClassWorld {
     // classes: if the superclass of these classes require RTI, then
     // they also need RTI, so that a constructor passes the type
     // variables to the super constructor.
-    compiler.enqueuer.resolution.seenClasses.forEach(addSubtypes);
+    compiler.resolverWorld.allInstantiatedClasses.forEach(addSubtypes);
   }
 
   void registerMixinUse(MixinApplicationElement mixinApplication,
