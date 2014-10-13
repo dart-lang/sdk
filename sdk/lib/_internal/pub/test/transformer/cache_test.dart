@@ -4,6 +4,7 @@
 
 library pub_tests;
 
+import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
@@ -53,6 +54,8 @@ void setUp() {
         d.file("transformer.dart", replaceTransformer("Goodbye", "See ya"))
       ])
     ]);
+
+    builder.serve("baz", "1.2.3");
   });
 
   d.dir(appPath, [
@@ -265,6 +268,60 @@ main() {
     process = pubRun(args: ['myapp']);
     process.stdout.expect("See ya!");
     process.shouldExit();
+  });
+
+  // Issue 21298.
+  integration("doesn't recache when a transformer is removed", () {
+    setUp();
+
+    d.dir(appPath, [
+      d.pubspec({
+        "name": "myapp",
+        "dependencies": {
+          "foo": "1.2.3",
+          "bar": "1.2.3"
+        },
+        "transformers": ["foo", "bar"]
+      }),
+      d.dir("bin", [
+        d.file("myapp.dart", "main() => print('Hello!');")
+      ])
+    ]).create();
+
+    var process = pubRun(args: ['myapp']);
+    process.stdout.expect("See ya!");
+    process.shouldExit();
+
+    d.dir(appPath, [
+      d.pubspec({
+        "name": "myapp",
+        "dependencies": {
+          "foo": "1.2.3",
+          // Add a new dependency to trigger another "pub get". This works
+          // around issue 20498.
+          "baz": "1.2.3"
+        },
+        "transformers": ["foo"]
+      }),
+      d.dir("bin", [
+        d.file("myapp.dart", "main() => print('Hello!');")
+      ])
+    ]).create();
+
+    process = pubRun(args: ['myapp']);
+    process.stdout.expect(
+        "Your pubspec has changed, so we need to update your lockfile:");
+    process.stdout.expect(consumeThrough("Goodbye!"));
+    process.shouldExit();
+
+    // "bar" should still be in the manifest, since there's no reason to
+    // recompile the cache.
+    d.dir(appPath, [
+      d.dir(".pub/transformers", [
+        d.file("manifest.txt", "0.1.2+3\nbar,foo"),
+        d.matcherFile("transformers.snapshot", isNot(isEmpty))
+      ])
+    ]).validate();
   });
 }
 

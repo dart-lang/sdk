@@ -19,6 +19,7 @@ class TransformerCache {
   }
   void clearIfOutdated(Set<String> changedPackages) {
     var snapshotDependencies = unionAll(_oldTransformers.map((id) {
+      if (!_graph.packages.containsKey(id.package)) return new Set();
       return _graph.transitiveDependencies(
           id.package).map((package) => package.name).toSet();
     }));

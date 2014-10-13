@@ -1,4 +1,5 @@
 library pub_tests;
+import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
@@ -40,6 +41,7 @@ void setUp() {
             d.dir(
                 "lib",
                 [d.file("transformer.dart", replaceTransformer("Goodbye", "See ya"))])]);
+    builder.serve("baz", "1.2.3");
   });
   d.dir(appPath, [d.pubspec({
       "name": "myapp",
@@ -214,6 +216,43 @@ main() {
     process = pubRun(args: ['myapp']);
     process.stdout.expect("See ya!");
     process.shouldExit();
+  });
+  integration("doesn't recache when a transformer is removed", () {
+    setUp();
+    d.dir(appPath, [d.pubspec({
+        "name": "myapp",
+        "dependencies": {
+          "foo": "1.2.3",
+          "bar": "1.2.3"
+        },
+        "transformers": ["foo", "bar"]
+      }),
+          d.dir("bin", [d.file("myapp.dart", "main() => print('Hello!');")])]).create();
+    var process = pubRun(args: ['myapp']);
+    process.stdout.expect("See ya!");
+    process.shouldExit();
+    d.dir(appPath, [d.pubspec({
+        "name": "myapp",
+        "dependencies": {
+          "foo": "1.2.3",
+          "baz": "1.2.3"
+        },
+        "transformers": ["foo"]
+      }),
+          d.dir("bin", [d.file("myapp.dart", "main() => print('Hello!');")])]).create();
+    process = pubRun(args: ['myapp']);
+    process.stdout.expect(
+        "Your pubspec has changed, so we need to update your lockfile:");
+    process.stdout.expect(consumeThrough("Goodbye!"));
+    process.shouldExit();
+    d.dir(
+        appPath,
+        [
+            d.dir(
+                ".pub/transformers",
+                [
+                    d.file("manifest.txt", "0.1.2+3\nbar,foo"),
+                    d.matcherFile("transformers.snapshot", isNot(isEmpty))])]).validate();
   });
 }
 String replaceTransformer(String input, String output) {
