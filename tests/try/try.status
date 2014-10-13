@@ -18,6 +18,9 @@ web/end_to_end_test: Fail, OK # http://dartbug.com/17935
 [ $runtime == safari ]
 web/cursor_position_test: Fail # http://dartbug.com/19836
 
+[ $runtime == safari && $checked ]
+web/source_update_test: Fail, Pass # Safari is flaky, suspect bad optimization.
+
 [ $browser ]
 poi/poi_test: SkipByDesign # Uses dart:io.
 poi/poi_find_test: SkipByDesign # Uses dart:io.
