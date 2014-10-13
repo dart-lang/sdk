@@ -27,10 +27,10 @@ import 'messages.dart';
 class Linter extends Transformer with PolymerTransformer {
   final TransformOptions options;
 
-  /// Only run on .html files.
-  final String allowedExtensions = '.html';
-
   Linter(this.options);
+
+  isPrimary(AssetId id) =>
+      id.extension == '.html' && options.lint.shouldLint(id.path);
 
   Future apply(Transform transform) {
     var seen = new Set<AssetId>();

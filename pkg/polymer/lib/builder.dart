@@ -346,7 +346,7 @@ List<String> _parseEntryPointsFromPubspec() {
     var polymer = t['polymer'];
     if (polymer == null || polymer is! Map) return;
 
-    var parsedEntryPoints = readEntrypoints(polymer['entry_points']);
+    var parsedEntryPoints = readFileList(polymer['entry_points']);
     if (parsedEntryPoints == null) return;
 
     entryPoints.addAll(parsedEntryPoints);

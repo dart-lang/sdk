@@ -42,30 +42,61 @@ TransformOptions _parseSettings(BarbackSettings settings) {
   bool releaseMode = settings.mode == BarbackMode.RELEASE;
   bool jsOption = args['js'];
   bool csp = args['csp'] == true; // defaults to false
-  bool lint = args['lint'] != false; // defaults to true
   bool injectBuildLogs =
       !releaseMode && args['inject_build_logs_in_output'] != false;
   bool injectPlatformJs = args['inject_platform_js'] != false;
   return new TransformOptions(
-      entryPoints: readEntrypoints(args['entry_points']),
+      entryPoints: readFileList(args['entry_points']),
       inlineStylesheets: _readInlineStylesheets(args['inline_stylesheets']),
       directlyIncludeJS: jsOption == null ? releaseMode : jsOption,
       contentSecurityPolicy: csp,
       releaseMode: releaseMode,
-      lint: lint,
+      lint: _parseLintOption(args['lint']),
       injectBuildLogsInOutput: injectBuildLogs,
       injectPlatformJs: injectPlatformJs);
 }
 
-readEntrypoints(value) {
+// Lint option can be empty (all files), false, true, or a map indicating
+// include/exclude files.
+_parseLintOption(value) {
+  var lint = null;
+  if (value == null || value == true) return new LintOptions();
+  if (value == false) return new LintOptions.disabled();
+  if (value is Map && value.length == 1) {
+    var key = value.keys.single;
+    var files = readFileList(value[key]);
+    if (key == 'include') {
+      return new LintOptions.include(files);
+    } else if (key == 'exclude') {
+      return new LintOptions.exclude(files);
+    }
+  }
+
+  // Any other case it is an error:
+  print('Invalid value for "lint" in the polymer transformer. '
+        'Expected one of the following: \n'
+        '    lint: true  # or\n'
+        '    lint: false # or\n'
+        '    lint: \n'
+        '      include: \n'
+        '        - file1 \n'
+        '        - file2 # or \n'
+        '    lint: \n'
+        '      exclude: \n'
+        '        - file1 \n'
+        '        - file2 \n');
+  return new LintOptions();
+}
+
+readFileList(value) {
   if (value == null) return null;
-  var entryPoints = [];
+  var files = [];
   bool error;
   if (value is List) {
-    entryPoints = value;
+    files = value;
     error = value.any((e) => e is! String);
   } else if (value is String) {
-    entryPoints = [value];
+    files = [value];
     error = false;
   } else {
     error = true;
@@ -73,7 +104,7 @@ readEntrypoints(value) {
   if (error) {
     print('Invalid value for "entry_points" in the polymer transformer.');
   }
-  return entryPoints;
+  return files;
 }
 
 Map<String, bool> _readInlineStylesheets(settingValue) {
@@ -120,7 +151,7 @@ List<List<Transformer>> createDeployPhases(
   // TODO(sigmund): this should be done differently. We should lint everything
   // that is reachable and have the option to lint the rest (similar to how
   // dart2js can analyze reachable code or entire libraries).
-  var phases = options.lint ? [[new Linter(options)]] : [];
+  var phases = options.lint.enabled ? [[new Linter(options)]] : [];
   phases.addAll([
     [new ImportInliner(options)],
     [new ObservableTransformer()],
