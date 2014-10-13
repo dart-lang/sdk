@@ -260,12 +260,12 @@ class ForgetElementTestCase extends CompilerTestCase {
   }
 
   Iterable codegenSeenClassesIn(LibraryElement library) {
-    return compiler.enqueuer.codegen.seenClasses.where(
+    return compiler.codegenWorld.allInstantiatedClasses.where(
         (e) => e.library == library);
   }
 
   Iterable resolutionSeenClassesIn(LibraryElement library) {
-    return compiler.enqueuer.resolution.seenClasses.where(
+    return compiler.resolverWorld.allInstantiatedClasses.where(
         (e) => e.library == library);
   }
 }
