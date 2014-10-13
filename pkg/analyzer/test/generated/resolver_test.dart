@@ -2736,13 +2736,13 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "A a = const A();"]));
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD]);
+    assertErrors(source, [CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD]);
   }
 
-  void test_initializerForNonExistant_initializer() {
+  void test_initializerForNonExistent_initializer() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  A() : x = 0 {}", "}"]));
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD]);
+    assertErrors(source, [CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD]);
   }
 
   void test_initializerForStaticField() {
@@ -2752,14 +2752,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_initializingFormalForNonExistantField() {
+  void test_initializingFormalForNonExistentField() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  A(this.x) {}", "}"]));
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD]);
+    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
     verify([source]);
   }
 
-  void test_initializingFormalForNonExistantField_notInEnclosingClass() {
+  void test_initializingFormalForNonExistentField_notInEnclosingClass() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
         "int x;",
@@ -2768,21 +2768,21 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B(this.x) {}",
         "}"]));
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD]);
+    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
     verify([source]);
   }
 
-  void test_initializingFormalForNonExistantField_optional() {
+  void test_initializingFormalForNonExistentField_optional() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  A([this.x]) {}", "}"]));
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD]);
+    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
     verify([source]);
   }
 
-  void test_initializingFormalForNonExistantField_synthetic() {
+  void test_initializingFormalForNonExistentField_synthetic() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  int get x => 1;", "  A(this.x) {}", "}"]));
     resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD]);
+    assertErrors(source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
     verify([source]);
   }
 
@@ -10287,7 +10287,7 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void test_initializingFormalForNonExistantField() {
+  void test_initializingFormalForNonExistentField() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  int x;", "  A(this.x) {}", "}"]));
     resolve(source);
     assertNoErrors(source);

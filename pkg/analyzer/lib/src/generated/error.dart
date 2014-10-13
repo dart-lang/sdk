@@ -1130,9 +1130,9 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param id the name of the initializing formal that is not an instance variable in the
    *          immediately enclosing class
-   * @see #INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD
+   * @see #INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD
    */
-  static const CompileTimeErrorCode INITIALIZER_FOR_NON_EXISTANT_FIELD = const CompileTimeErrorCode.con1('INITIALIZER_FOR_NON_EXISTANT_FIELD', 75, "'{0}' is not a variable in the enclosing class");
+  static const CompileTimeErrorCode INITIALIZER_FOR_NON_EXISTENT_FIELD = const CompileTimeErrorCode.con1('INITIALIZER_FOR_NON_EXISTENT_FIELD', 75, "'{0}' is not a variable in the enclosing class");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
@@ -1153,9 +1153,9 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param id the name of the initializing formal that is not an instance variable in the
    *          immediately enclosing class
    * @see #INITIALIZING_FORMAL_FOR_STATIC_FIELD
-   * @see #INITIALIZER_FOR_NON_EXISTANT_FIELD
+   * @see #INITIALIZER_FOR_NON_EXISTENT_FIELD
    */
-  static const CompileTimeErrorCode INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD = const CompileTimeErrorCode.con1('INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD', 77, "'{0}' is not a variable in the enclosing class");
+  static const CompileTimeErrorCode INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD = const CompileTimeErrorCode.con1('INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD', 77, "'{0}' is not a variable in the enclosing class");
 
   /**
    * 7.6.1 Generative Constructors: An initializing formal has the form <i>this.id</i>. It is a
@@ -1962,9 +1962,9 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
       IMPORT_INTERNAL_LIBRARY,
       IMPORT_OF_NON_LIBRARY,
       INCONSISTENT_CASE_EXPRESSION_TYPES,
-      INITIALIZER_FOR_NON_EXISTANT_FIELD,
+      INITIALIZER_FOR_NON_EXISTENT_FIELD,
       INITIALIZER_FOR_STATIC_FIELD,
-      INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
+      INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
       INITIALIZING_FORMAL_FOR_STATIC_FIELD,
       INSTANCE_MEMBER_ACCESS_FROM_FACTORY,
       INSTANCE_MEMBER_ACCESS_FROM_STATIC,

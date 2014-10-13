@@ -10855,12 +10855,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (staticElement is FieldElement) {
       FieldElement fieldElement = staticElement;
       if (fieldElement.isSynthetic) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD, node, [fieldName]);
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, node, [fieldName]);
       } else if (fieldElement.isStatic) {
         _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, node, [fieldName]);
       }
     } else {
-      _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD, node, [fieldName]);
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, node, [fieldName]);
       return;
     }
   }
@@ -12220,7 +12220,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (element is FieldFormalParameterElement) {
       FieldElement fieldElement = element.field;
       if (fieldElement == null || fieldElement.isSynthetic) {
-        _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD, node, [node.identifier.name]);
+        _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD, node, [node.identifier.name]);
       } else {
         ParameterElement parameterElement = node.element;
         if (parameterElement is FieldFormalParameterElementImpl) {
@@ -12228,7 +12228,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           DartType declaredType = fieldFormal.type;
           DartType fieldType = fieldElement.type;
           if (fieldElement.isSynthetic) {
-            _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD, node, [node.identifier.name]);
+            _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD, node, [node.identifier.name]);
           } else if (fieldElement.isStatic) {
             _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD, node, [node.identifier.name]);
           } else if (declaredType != null && fieldType != null && !declaredType.isAssignableTo(fieldType)) {
@@ -12236,7 +12236,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           }
         } else {
           if (fieldElement.isSynthetic) {
-            _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD, node, [node.identifier.name]);
+            _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD, node, [node.identifier.name]);
           } else if (fieldElement.isStatic) {
             _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD, node, [node.identifier.name]);
           }
