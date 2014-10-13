@@ -776,12 +776,14 @@ class ConstantValueComputer {
           String fieldName = constructorFieldInitializer.fieldName.name;
           fieldMap[fieldName] = evaluationResult;
           PropertyAccessorElement getter = definingClass.getGetter(fieldName);
-          PropertyInducingElement field = getter.variable;
-          if (!evaluationResult.isNull &&
-              !evaluationResult.type.isSubtypeOf(field.type)) {
-            errorReporter.reportErrorForNode(
-                CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-                node, [evaluationResult.type, fieldName, field.type]);
+          if (getter != null) {
+            PropertyInducingElement field = getter.variable;
+            if (!evaluationResult.isNull &&
+                !evaluationResult.type.isSubtypeOf(field.type)) {
+              errorReporter.reportErrorForNode(
+                  CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+                  node, [evaluationResult.type, fieldName, field.type]);
+            }
           }
         }
       } else if (initializer is SuperConstructorInvocation) {

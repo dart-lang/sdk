@@ -2727,6 +2727,18 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_initializerForNonExistent_const() {
+    // Check that the absence of a matching field doesn't cause a
+    // crash during constant evaluation.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A() : x = 'foo';",
+        "}",
+        "A a = const A();"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD]);
+  }
+
   void test_initializerForNonExistant_initializer() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  A() : x = 0 {}", "}"]));
     resolve(source);
