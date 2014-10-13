@@ -309,6 +309,10 @@ class _LinterVisitor extends TreeVisitor {
       _dartTagSeen = true;
     }
 
+    if (src != null && src.endsWith('web_components/dart_support.js')) {
+      _logger.warning(DART_SUPPORT_NO_LONGER_REQUIRED, span: node.sourceSpan);
+    }
+
     var isEmpty = node.innerHtml.trim() == '';
 
     if (src == null) {

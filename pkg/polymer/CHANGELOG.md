@@ -1,5 +1,6 @@
 #### 0.15.1-dev
   * Upgraded to polymer [0.4.2][]
+  * No need to include dart_support.js in your entrypoints anymore.
 
 #### 0.15.0+1
   * Widen web_components version constraint.

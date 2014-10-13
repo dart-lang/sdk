@@ -2,6 +2,11 @@
   * Updated to platform version 0.4.2, internally a deprecated API was removed,
     hence the bump in the version number.
 
+  * split dart_support.js in two. dart_support.js only contains what is
+    necessary in order to use platform.js,
+    interop_support.js/interop_support.html can be imported separately when
+    providing Dart APIs for js custom elements.
+
 #### Pub version 0.8.0
   * Re-apply changes from 0.7.1+1 and also cherry pick 
     [efdbbc](https://github.com/polymer/CustomElements/commit/efdbbc) to fix

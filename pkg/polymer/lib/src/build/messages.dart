@@ -558,3 +558,25 @@ If you would like to hide this warning and keep it inlined, do the same thing
 but assign the value to true.
 '''
 );
+
+const DART_SUPPORT_NO_LONGER_REQUIRED = const MessageTemplate(
+    const MessageId('polymer', 43),
+    'No need to include "dart_support.js" by hand anymore.',
+    '"dart_support.js" not necessary',
+    '''
+The script `packages/web_components/dart_support.js` is still used, but you no
+longer need to put it in your application's entrypoint.
+
+In the past this file served two purposes:
+
+  * to make dart2js work well with the platform polyfills, and
+  * to support registering Dart APIs for JavaScript custom elements.
+
+Now, the code from `dart_support.js` is split in two halves. The half for
+dart2js is now injected by the polymer transformers automatically during `pub
+build`. The `web_components` package provides an HTML file containing the other
+half.  Developers of packages that wrap JavaScript custom elements (like
+`core_elements` and `paper_elements`) will import that file directly, so
+application developers don't have to worry about it anymore.
+'''
+);

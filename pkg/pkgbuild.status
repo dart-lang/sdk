@@ -17,6 +17,7 @@ samples/third_party/angular_todo: Fail # angular needs to be updated
 
 [ $use_public_packages ]
 samples/third_party/angular_todo: Pass, Slow
+pkg/polymer: PubGetError # web_components is not published
 
 [ $builder_tag == russian ]
 samples/pop_pop_win: Fail # Issue 16356
