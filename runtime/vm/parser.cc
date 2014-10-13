@@ -3153,6 +3153,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   SequenceNode* body = CloseBlock();
   if (func.IsAsyncFunction() && !func.is_async_closure()) {
     body = CloseAsyncFunction(async_closure, body);
+    async_closure.set_end_token_pos(end_token_pos);
   } else if (func.is_async_closure()) {
     body = CloseAsyncClosure(body);
   }
@@ -5737,14 +5738,36 @@ void Parser::OpenAsyncTryBlock() {
 
 RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
   TRACE_PARSER("OpenAsyncFunction");
-
   AddAsyncClosureVariables();
+  Function& closure = Function::Handle(I);
+  bool is_new_closure = false;
 
-  // Create the closure containing the old body of this function.
-  Class& sig_cls = Class::ZoneHandle(I);
-  Type& sig_type = Type::ZoneHandle(I);
-  Function& closure = Function::ZoneHandle(I);
-  String& sig = String::ZoneHandle(I);
+  // Check whether a function for the asynchronous function body of
+  // this async function has already been created by a previous
+  // compilation of this function.
+  const Function& found_func = Function::Handle(
+      I, current_class().LookupClosureFunction(formal_param_pos));
+  if (!found_func.IsNull() &&
+      (found_func.token_pos() == formal_param_pos) &&
+      (found_func.script() == innermost_function().script()) &&
+      (found_func.parent_function() == innermost_function().raw())) {
+    ASSERT(found_func.is_async_closure());
+    closure = found_func.raw();
+  } else {
+    // Create the closure containing the body of this async function.
+    const String& async_func_name =
+        String::Handle(I, innermost_function().name());
+    String& closure_name = String::Handle(I,
+        String::NewFormatted("<%s_async_body>", async_func_name.ToCString()));
+    closure = Function::NewClosureFunction(
+        String::Handle(I, Symbols::New(closure_name)),
+        innermost_function(),
+        formal_param_pos);
+    closure.set_is_async_closure(true);
+    closure.set_result_type(AbstractType::Handle(Type::DynamicType()));
+    is_new_closure = true;
+  }
+  // Create the parameter list for the async body closure.
   ParamList closure_params;
   const Type& dynamic_type = Type::ZoneHandle(I, Type::DynamicType());
   closure_params.AddFinalParameter(
@@ -5753,41 +5776,40 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
   result_param.name = &Symbols::AsyncOperationParam();
   result_param.default_value = &Object::null_instance();
   result_param.type = &dynamic_type;
+  closure_params.parameters->Add(result_param);
   ParamDesc error_param;
   error_param.name = &Symbols::AsyncOperationErrorParam();
   error_param.default_value = &Object::null_instance();
   error_param.type = &dynamic_type;
-  closure_params.parameters->Add(result_param);
   closure_params.parameters->Add(error_param);
   closure_params.has_optional_positional_parameters = true;
   closure_params.num_optional_parameters += 2;
-  closure = Function::NewClosureFunction(
-      Symbols::AnonymousClosure(),
-      innermost_function(),
-      formal_param_pos);
-  AddFormalParamsToFunction(&closure_params, closure);
-  closure.set_is_async_closure(true);
-  closure.set_result_type(AbstractType::Handle(Type::DynamicType()));
-  sig = closure.Signature();
-  sig_cls = library_.LookupLocalClass(sig);
-  if (sig_cls.IsNull()) {
-    sig_cls = Class::NewSignatureClass(sig, closure, script_, formal_param_pos);
-    library_.AddClass(sig_cls);
+
+  if (is_new_closure) {
+    // Add the parameters to the newly created closure.
+    AddFormalParamsToFunction(&closure_params, closure);
+
+    // Create and set the signature class of the closure.
+    const String& sig = String::Handle(I, closure.Signature());
+    Class& sig_cls = Class::Handle(I, library_.LookupLocalClass(sig));
+    if (sig_cls.IsNull()) {
+      sig_cls =
+          Class::NewSignatureClass(sig, closure, script_, formal_param_pos);
+      library_.AddClass(sig_cls);
+    }
+    closure.set_signature_class(sig_cls);
+    const Type& sig_type = Type::Handle(I, sig_cls.SignatureType());
+    if (!sig_type.IsFinalized()) {
+      ClassFinalizer::FinalizeType(
+          sig_cls, sig_type, ClassFinalizer::kCanonicalize);
+    }
+    ASSERT(AbstractType::Handle(I, closure.result_type()).IsResolved());
+    ASSERT(closure.NumParameters() == closure_params.parameters->length());
   }
-  closure.set_signature_class(sig_cls);
-  sig_type = sig_cls.SignatureType();
-  if (!sig_type.IsFinalized()) {
-    ClassFinalizer::FinalizeType(
-        sig_cls, sig_type, ClassFinalizer::kCanonicalize);
-  }
-  ASSERT(AbstractType::Handle(I, closure.result_type()).IsResolved());
-  ASSERT(closure.NumParameters() == closure_params.parameters->length());
   OpenFunctionBlock(closure);
   AddFormalParamsToScope(&closure_params, current_block_->scope);
   OpenBlock();
-
   async_temp_scope_ = current_block_->scope;
-
   return closure.raw();
 }
 
