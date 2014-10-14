@@ -3755,6 +3755,12 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
               Type::ZoneHandle(I, Type::DynamicType()));  // Type.
           temp_local->set_index(param_frame_index);
 
+          // Mark this local as captured parameter so that the optimizer
+          // correctly handles these when compiling try-catch: Captured
+          // parameters are not in the stack environment, therefore they
+          // must be skipped when emitting sync-code in try-blocks.
+          temp_local->set_is_captured_parameter(true);
+
           // Copy parameter from local frame to current context.
           Value* load = Bind(BuildLoadLocal(*temp_local));
           Do(BuildStoreLocal(parameter, load));

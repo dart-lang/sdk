@@ -411,6 +411,8 @@ void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
   const intptr_t num_non_copied_params = flow_graph().num_non_copied_params();
   ParallelMoveInstr* move_instr = new ParallelMoveInstr();
   for (; i < num_non_copied_params; ++i) {
+    // Don't sync captured parameters. They are not in the environment.
+    if (flow_graph().captured_parameters()->Contains(i)) continue;
     if ((*idefs)[i]->IsConstant()) continue;  // Common constants
     Location src = env->LocationAt(i);
     intptr_t dest_index = i - num_non_copied_params;
@@ -423,6 +425,8 @@ void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
   intptr_t ex_idx = local_base - catch_block->exception_var().index();
   intptr_t st_idx = local_base - catch_block->stacktrace_var().index();
   for (; i < flow_graph().variable_count(); ++i) {
+    // Don't sync captured parameters. They are not in the environment.
+    if (flow_graph().captured_parameters()->Contains(i)) continue;
     if (i == ex_idx || i == st_idx) continue;
     if ((*idefs)[i]->IsConstant()) continue;
     Location src = env->LocationAt(i);

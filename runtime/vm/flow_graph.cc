@@ -41,7 +41,9 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     loop_headers_(NULL),
     loop_invariant_loads_(NULL),
     guarded_fields_(builder.guarded_fields()),
-    deferred_prefixes_(builder.deferred_prefixes()) {
+    deferred_prefixes_(builder.deferred_prefixes()),
+    captured_parameters_(
+        new(isolate_) BitVector(isolate_, variable_count())) {
   DiscoverBlocks();
 }
 
@@ -959,6 +961,14 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           if (variable_liveness->IsLastLoad(block_entry, load)) {
             (*env)[index] = constant_dead();
           }
+
+          // Record captured parameters so that they can be skipped when
+          // emitting sync code inside optimized try-blocks.
+          if (load->local().is_captured_parameter()) {
+            intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
+            captured_parameters_->Add(index);
+          }
+
         } else if (push != NULL) {
           result = push->value()->definition();
           env->Add(result);

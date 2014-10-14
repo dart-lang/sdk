@@ -263,6 +263,10 @@ class FlowGraph : public ZoneAllocated {
     return deferred_prefixes_;
   }
 
+  BitVector* captured_parameters() const {
+    return captured_parameters_;
+  }
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;
@@ -338,6 +342,7 @@ class FlowGraph : public ZoneAllocated {
   ZoneGrowableArray<const Field*>* guarded_fields_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
   DirectChainedHashMap<ConstantPoolTrait> constant_instr_pool_;
+  BitVector* captured_parameters_;
 };
 
 
