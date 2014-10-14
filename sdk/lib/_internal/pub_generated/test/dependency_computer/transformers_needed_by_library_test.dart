@@ -1,9 +1,16 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub_tests;
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import 'utils.dart';
+
 void main() {
   initConfig();
+
   integration("reports a dependency if the library itself is transformed", () {
     d.dir(appPath, [d.pubspec({
         "name": "myapp",
@@ -20,13 +27,16 @@ void main() {
       }),
           d.dir(
               "bin",
-              [d.file("myapp.dart", "import 'package:myapp/lib.dart';")])]).create();
+              [d.file("myapp.dart", "import 'package:myapp/lib.dart';"),])]).create();
+
     d.dir("foo", [d.pubspec({
         "name": "foo",
         "version": "1.0.0"
       }), d.dir("lib", [d.file("foo.dart", transformer())])]).create();
+
     expectLibraryDependencies('myapp|bin/myapp.dart', ['foo']);
   });
+
   integration(
       "reports a dependency if a transformed local file is imported",
       () {
@@ -43,16 +53,19 @@ void main() {
             }
           }]
       }),
-          d.dir("lib", [d.file("lib.dart", "")]),
+          d.dir("lib", [d.file("lib.dart", ""),]),
           d.dir(
               "bin",
-              [d.file("myapp.dart", "import 'package:myapp/lib.dart';")])]).create();
+              [d.file("myapp.dart", "import 'package:myapp/lib.dart';"),])]).create();
+
     d.dir("foo", [d.pubspec({
         "name": "foo",
         "version": "1.0.0"
       }), d.dir("lib", [d.file("foo.dart", transformer())])]).create();
+
     expectLibraryDependencies('myapp|bin/myapp.dart', ['foo']);
   });
+
   integration(
       "reports a dependency if a transformed foreign file is imported",
       () {
@@ -62,11 +75,12 @@ void main() {
           "foo": {
             "path": "../foo"
           }
-        }
+        },
       }),
           d.dir(
               "bin",
               [d.file("myapp.dart", "import 'package:foo/foo.dart';")])]).create();
+
     d.dir("foo", [d.pubspec({
         "name": "foo",
         "version": "1.0.0",
@@ -79,8 +93,10 @@ void main() {
           d.dir(
               "lib",
               [d.file("foo.dart", ""), d.file("transformer.dart", transformer())])]).create();
+
     expectLibraryDependencies('myapp|bin/myapp.dart', ['foo']);
   });
+
   integration(
       "doesn't report a dependency if no transformed files are " "imported",
       () {
@@ -97,15 +113,19 @@ void main() {
             }
           }]
       }),
-          d.dir("lib", [d.file("lib.dart", ""), d.file("untransformed.dart", "")]),
+          d.dir("lib", [d.file("lib.dart", ""), d.file("untransformed.dart", ""),]),
           d.dir(
               "bin",
               [
-                  d.file("myapp.dart", "import 'package:myapp/untransformed.dart';")])]).create();
+                  d.file(
+                      "myapp.dart",
+                      "import 'package:myapp/untransformed.dart';"),])]).create();
+
     d.dir("foo", [d.pubspec({
         "name": "foo",
         "version": "1.0.0"
       }), d.dir("lib", [d.file("foo.dart", transformer())])]).create();
+
     expectLibraryDependencies('myapp|bin/myapp.dart', []);
   });
 }

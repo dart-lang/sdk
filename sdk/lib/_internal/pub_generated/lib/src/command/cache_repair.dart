@@ -1,15 +1,24 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub.command.cache_repair;
+
 import 'dart:async';
+
 import '../command.dart';
 import '../exit_codes.dart' as exit_codes;
 import '../io.dart';
 import '../log.dart' as log;
 import '../source/cached.dart';
 import '../utils.dart';
+
+/// Handles the `cache repair` pub command.
 class CacheRepairCommand extends PubCommand {
   String get description => "Reinstall cached packages.";
   String get usage => "pub cache repair";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-cache.html";
+
   Future onRun() {
     final completer0 = new Completer();
     scheduleMicrotask(() {
@@ -17,24 +26,22 @@ class CacheRepairCommand extends PubCommand {
         var successes = 0;
         var failures = 0;
         var it0 = cache.sources.iterator;
-        break0(x3) {
+        break0() {
           join0() {
             join1() {
               join2() {
                 join3() {
-                  completer0.complete(null);
+                  completer0.complete();
                 }
                 if (failures > 0) {
                   flushThenExit(exit_codes.UNAVAILABLE).then((x0) {
                     try {
                       x0;
                       join3();
-                    } catch (e0) {
-                      completer0.completeError(e0);
+                    } catch (e0, s0) {
+                      completer0.completeError(e0, s0);
                     }
-                  }, onError: (e1) {
-                    completer0.completeError(e1);
-                  });
+                  }, onError: completer0.completeError);
                 } else {
                   join3();
                 }
@@ -63,37 +70,40 @@ class CacheRepairCommand extends PubCommand {
             join0();
           }
         }
-        continue0(x4) {
+        var trampoline0;
+        continue0() {
+          trampoline0 = null;
           if (it0.moveNext()) {
-            Future.wait([]).then((x2) {
-              var source = it0.current;
-              join4() {
-                source.repairCachedPackages().then((x1) {
+            var source = it0.current;
+            join4() {
+              source.repairCachedPackages().then((x1) {
+                trampoline0 = () {
+                  trampoline0 = null;
                   try {
                     var results = x1;
                     successes += results.first;
                     failures += results.last;
-                    continue0(null);
-                  } catch (e2) {
-                    completer0.completeError(e2);
+                    trampoline0 = continue0;
+                  } catch (e1, s1) {
+                    completer0.completeError(e1, s1);
                   }
-                }, onError: (e3) {
-                  completer0.completeError(e3);
-                });
-              }
-              if (source is! CachedSource) {
-                continue0(null);
-              } else {
-                join4();
-              }
-            });
+                };
+                do trampoline0(); while (trampoline0 != null);
+              }, onError: completer0.completeError);
+            }
+            if (source is! CachedSource) {
+              continue0();
+            } else {
+              join4();
+            }
           } else {
-            break0(null);
+            break0();
           }
         }
-        continue0(null);
-      } catch (e4) {
-        completer0.completeError(e4);
+        trampoline0 = continue0;
+        do trampoline0(); while (trampoline0 != null);
+      } catch (e, s) {
+        completer0.completeError(e, s);
       }
     });
     return completer0.future;

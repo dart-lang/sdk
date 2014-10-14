@@ -1,7 +1,13 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS d.file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub_tests;
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import 'utils.dart';
+
 const DECLARING_TRANSFORMER = """
 import 'dart:async';
 
@@ -27,6 +33,7 @@ class DeclaringRewriteTransformer extends Transformer
   }
 }
 """;
+
 main() {
   initConfig();
   withBarbackVersions("any", () {
@@ -37,16 +44,19 @@ main() {
         }),
             d.dir(
                 "lib",
-                [
-                    d.dir(
-                        "src",
-                        [
-                            d.file("lazy.dart", LAZY_TRANSFORMER),
-                            d.file("declaring.dart", DECLARING_TRANSFORMER)])]),
-            d.dir("web", [d.file("foo.txt", "foo")])]).create();
+                [d.dir("src", [// Include a lazy transformer before the declaring transformer,
+            // because otherwise its behavior is indistinguishable from a normal
+            // transformer.
+            d.file("lazy.dart", LAZY_TRANSFORMER),
+                d.file("declaring.dart", DECLARING_TRANSFORMER)])]),
+                d.dir("web", [d.file("foo.txt", "foo")])]).create();
+
       createLockFile('myapp', pkg: ['barback']);
+
       var server = pubServe();
+      // The build should complete without either transformer logging anything.
       server.stdout.expect('Build completed successfully');
+
       requestShouldSucceed("foo.final", "foo.out.final");
       server.stdout.expect(
           emitsLines(

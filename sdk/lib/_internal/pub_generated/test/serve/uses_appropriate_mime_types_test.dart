@@ -1,8 +1,15 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS d.file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub_tests;
+
 import 'package:scheduled_test/scheduled_test.dart';
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import 'utils.dart';
+
 main() {
   initConfig();
   integration("uses appropriate mime types", () {
@@ -17,6 +24,7 @@ main() {
                     d.file("file.dart", "main() => print('hello');"),
                     d.file("file.js", "console.log('hello');"),
                     d.file("file.css", "body {color: blue}")])]).create();
+
     pubServe();
     requestShouldSucceed(
         "index.html",

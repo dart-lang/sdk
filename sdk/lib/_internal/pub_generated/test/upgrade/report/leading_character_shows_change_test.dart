@@ -1,6 +1,12 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub_tests;
+
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+
 main() {
   initConfig();
   integration("the character before each package describes the change", () {
@@ -15,19 +21,24 @@ main() {
       builder.serve("upgraded", "2.0.0");
       builder.serve("unchanged", "1.0.0");
     });
+
     d.dir(
         "description_changed_1",
         [
             d.libDir("description_changed"),
             d.libPubspec("description_changed", "1.0.0")]).create();
+
     d.dir(
         "description_changed_2",
         [
             d.libDir("description_changed"),
             d.libPubspec("description_changed", "1.0.0")]).create();
+
     d.dir(
         "source_changed",
         [d.libDir("source_changed"), d.libPubspec("source_changed", "1.0.0")]).create();
+
+    // Create the first lockfile.
     d.dir(appPath, [d.pubspec({
         "name": "myapp",
         "dependencies": {
@@ -44,7 +55,10 @@ main() {
           "overridden": "any"
         }
       })]).create();
+
     pubGet();
+
+    // Change the pubspec.
     d.dir(appPath, [d.pubspec({
         "name": "myapp",
         "dependencies": {
@@ -63,6 +77,8 @@ main() {
           "overridden": "any"
         }
       })]).create();
+
+    // Upgrade everything.
     pubUpgrade(output: new RegExp(r"""
 Resolving dependencies\.\.\..*
 \+ added .*

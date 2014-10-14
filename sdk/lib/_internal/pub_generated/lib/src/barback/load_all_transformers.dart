@@ -1,6 +1,13 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub.load_all_transformers;
+
 import 'dart:async';
+
 import 'package:barback/barback.dart';
+
 import '../log.dart' as log;
 import '../package_graph.dart';
 import '../utils.dart';
@@ -9,6 +16,18 @@ import 'barback_server.dart';
 import 'dependency_computer.dart';
 import 'transformer_id.dart';
 import 'transformer_loader.dart';
+
+/// Loads all transformers depended on by packages in [environment].
+///
+/// This uses [environment]'s primary server to serve the Dart files from which
+/// transformers are loaded, then adds the transformers to
+/// `environment.barback`.
+///
+/// Any built-in transformers that are provided by the environment will
+/// automatically be added to the end of the root package's cascade.
+///
+/// If [entrypoints] is passed, only transformers necessary to run those
+/// entrypoints will be loaded.
 Future loadAllTransformers(AssetEnvironment environment,
     BarbackServer transformerServer, {Iterable<AssetId> entrypoints}) {
   final completer0 = new Completer();
@@ -38,7 +57,7 @@ Future loadAllTransformers(AssetEnvironment environment,
           var cache = x0;
           var first = true;
           var it0 = stagedTransformers.iterator;
-          break0(x6) {
+          break0() {
             join2() {
               Future.wait(environment.graph.packages.values.map(((package) {
                 final completer0 = new Completer();
@@ -52,9 +71,12 @@ Future loadAllTransformers(AssetEnvironment environment,
                             environment.getBuiltInTransformers(package);
                         join0() {
                           join1() {
-                            newFuture(
-                                (() => environment.barback.updateTransformers(package.name, phases)));
-                            completer0.complete(null);
+                            newFuture((() {
+                              return environment.barback.updateTransformers(
+                                  package.name,
+                                  phases);
+                            }));
+                            completer0.complete();
                           }
                           if (phases.isEmpty) {
                             completer0.complete(null);
@@ -68,27 +90,23 @@ Future loadAllTransformers(AssetEnvironment environment,
                         } else {
                           join0();
                         }
-                      } catch (e0) {
-                        completer0.completeError(e0);
+                      } catch (e0, s0) {
+                        completer0.completeError(e0, s0);
                       }
-                    }, onError: (e1) {
-                      completer0.completeError(e1);
-                    });
-                  } catch (e2) {
-                    completer0.completeError(e2);
+                    }, onError: completer0.completeError);
+                  } catch (e, s) {
+                    completer0.completeError(e, s);
                   }
                 });
                 return completer0.future;
               }))).then((x1) {
                 try {
                   x1;
-                  completer0.complete(null);
-                } catch (e0) {
-                  completer0.completeError(e0);
+                  completer0.complete();
+                } catch (e0, s0) {
+                  completer0.completeError(e0, s0);
                 }
-              }, onError: (e1) {
-                completer0.completeError(e1);
-              });
+              }, onError: completer0.completeError);
             }
             if (cache != null) {
               cache.save();
@@ -97,18 +115,22 @@ Future loadAllTransformers(AssetEnvironment environment,
               join2();
             }
           }
-          continue0(x7) {
+          var trampoline0;
+          continue0() {
+            trampoline0 = null;
             if (it0.moveNext()) {
-              Future.wait([]).then((x5) {
-                var stage = it0.current;
-                join3(x2) {
-                  var snapshotPath = x2;
-                  first = false;
-                  loader.load(stage, snapshot: snapshotPath).then((x3) {
+              var stage = it0.current;
+              join3(x2) {
+                var snapshotPath = x2;
+                first = false;
+                loader.load(stage, snapshot: snapshotPath).then((x3) {
+                  trampoline0 = () {
+                    trampoline0 = null;
                     try {
                       x3;
-                      var packagesToUpdate =
-                          unionAll(stage.map(((id) => packagesThatUseTransformers[id])));
+                      var packagesToUpdate = unionAll(stage.map(((id) {
+                        return packagesThatUseTransformers[id];
+                      })));
                       Future.wait(packagesToUpdate.map(((packageName) {
                         final completer0 = new Completer();
                         scheduleMicrotask(() {
@@ -122,46 +144,46 @@ Future loadAllTransformers(AssetEnvironment environment,
                                 environment.barback.updateTransformers(
                                     packageName,
                                     phases);
-                                completer0.complete(null);
-                              } catch (e0) {
-                                completer0.completeError(e0);
+                                completer0.complete();
+                              } catch (e0, s0) {
+                                completer0.completeError(e0, s0);
                               }
-                            }, onError: (e1) {
-                              completer0.completeError(e1);
-                            });
-                          } catch (e2) {
-                            completer0.completeError(e2);
+                            }, onError: completer0.completeError);
+                          } catch (e, s) {
+                            completer0.completeError(e, s);
                           }
                         });
                         return completer0.future;
                       }))).then((x4) {
-                        try {
-                          x4;
-                          continue0(null);
-                        } catch (e3) {
-                          completer0.completeError(e3);
-                        }
-                      }, onError: (e4) {
-                        completer0.completeError(e4);
-                      });
-                    } catch (e2) {
-                      completer0.completeError(e2);
+                        trampoline0 = () {
+                          trampoline0 = null;
+                          try {
+                            x4;
+                            trampoline0 = continue0;
+                          } catch (e1, s1) {
+                            completer0.completeError(e1, s1);
+                          }
+                        };
+                        do trampoline0(); while (trampoline0 != null);
+                      }, onError: completer0.completeError);
+                    } catch (e2, s2) {
+                      completer0.completeError(e2, s2);
                     }
-                  }, onError: (e5) {
-                    completer0.completeError(e5);
-                  });
-                }
-                if (cache == null || !first) {
-                  join3(null);
-                } else {
-                  join3(cache.snapshotPath(stage));
-                }
-              });
+                  };
+                  do trampoline0(); while (trampoline0 != null);
+                }, onError: completer0.completeError);
+              }
+              if (cache == null || !first) {
+                join3(null);
+              } else {
+                join3(cache.snapshotPath(stage));
+              }
             } else {
-              break0(null);
+              break0();
             }
           }
-          continue0(null);
+          trampoline0 = continue0;
+          do trampoline0(); while (trampoline0 != null);
         }
         if (environment.rootPackage.dir == null) {
           join1(null);
@@ -192,16 +214,26 @@ Future loadAllTransformers(AssetEnvironment environment,
       } else {
         join0();
       }
-    } catch (e6) {
-      completer0.completeError(e6);
+    } catch (e, s) {
+      completer0.completeError(e, s);
     }
   });
   return completer0.future;
 }
+
+/// Given [transformerDependencies], a directed acyclic graph, returns a list of
+/// "stages" (sets of transformers).
+///
+/// Each stage must be fully loaded and passed to barback before the next stage
+/// can be safely loaded. However, transformers within a stage can be safely
+/// loaded in parallel.
 List<Set<TransformerId>> _stageTransformers(Map<TransformerId,
     Set<TransformerId>> transformerDependencies) {
+  // A map from transformer ids to the indices of the stages that those
+  // transformer ids should end up in. Populated by [stageNumberFor].
   var stageNumbers = {};
   var stages = [];
+
   stageNumberFor(id) {
     if (stageNumbers.containsKey(id)) return stageNumbers[id];
     var dependencies = transformerDependencies[id];
@@ -209,14 +241,19 @@ List<Set<TransformerId>> _stageTransformers(Map<TransformerId,
         dependencies.isEmpty ? 0 : maxAll(dependencies.map(stageNumberFor)) + 1;
     return stageNumbers[id];
   }
+
   for (var id in transformerDependencies.keys) {
     var stageNumber = stageNumberFor(id);
     if (stages.length <= stageNumber) stages.length = stageNumber + 1;
     if (stages[stageNumber] == null) stages[stageNumber] = new Set();
     stages[stageNumber].add(id);
   }
+
   return stages;
 }
+
+/// Returns a map from transformer ids to all packages in [graph] that use each
+/// transformer.
 Map<TransformerId, Set<String>> _packagesThatUseTransformers(PackageGraph graph)
     {
   var results = {};

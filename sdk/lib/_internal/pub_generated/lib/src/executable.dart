@@ -1,15 +1,36 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub.executable;
+
 import 'dart:async';
 import 'dart:io';
+
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
+
 import 'barback/asset_environment.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'io.dart';
 import 'log.dart' as log;
 import 'utils.dart';
+
+/// Runs [executable] from [package] reachable from [entrypoint].
+///
+/// The executable string is a relative Dart file path using native path
+/// separators with or without a trailing ".dart" extension. It is contained
+/// within [package], which should either be the entrypoint package or an
+/// immediate dependency of it.
+///
+/// Arguments from [args] will be passed to the spawned Dart application.
+///
+/// If [mode] is passed, it's used as the barback mode; it defaults to
+/// [BarbackMode.RELEASE].
+///
+/// Returns the exit code of the spawned app.
 Future<int> runExecutable(Entrypoint entrypoint, String package,
     String executable, Iterable<String> args, {bool isGlobal: false,
     BarbackMode mode}) {
@@ -61,14 +82,12 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
                                   process.stdout.listen(stdout.add);
                                   stdin.listen(process.stdin.add);
                                   completer0.complete(process.exitCode);
-                                } catch (e0) {
-                                  completer0.completeError(e0);
+                                } catch (e0, s0) {
+                                  completer0.completeError(e0, s0);
                                 }
-                              }, onError: (e1) {
-                                completer0.completeError(e1);
-                              });
-                            } catch (e2) {
-                              completer0.completeError(e2);
+                              }, onError: completer0.completeError);
+                            } catch (e, s) {
+                              completer0.completeError(e, s);
                             }
                           });
                           return completer0.future;
@@ -90,31 +109,25 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
                           try {
                             server = x1;
                             join6();
-                          } catch (e1) {
-                            completer0.completeError(e1);
+                          } catch (e0, s0) {
+                            completer0.completeError(e0, s0);
                           }
-                        }, onError: (e2) {
-                          completer0.completeError(e2);
-                        });
+                        }, onError: completer0.completeError);
                       } else {
                         environment.servePackageBinDirectory(
                             package).then((x2) {
                           try {
                             server = x2;
                             join6();
-                          } catch (e3) {
-                            completer0.completeError(e3);
+                          } catch (e1, s1) {
+                            completer0.completeError(e1, s1);
                           }
-                        }, onError: (e4) {
-                          completer0.completeError(e4);
-                        });
+                        }, onError: completer0.completeError);
                       }
-                    } catch (e0) {
-                      completer0.completeError(e0);
+                    } catch (e2, s2) {
+                      completer0.completeError(e2, s2);
                     }
-                  }, onError: (e5) {
-                    completer0.completeError(e5);
-                  });
+                  }, onError: completer0.completeError);
                 }
                 if (parts.length > 1) {
                   assert(!isGlobal && package == entrypoint.root.name);
@@ -149,7 +162,9 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
           }
         }
         if (entrypoint.root.name != package &&
-            !entrypoint.root.immediateDependencies.any(((dep) => dep.name == package))) {
+            !entrypoint.root.immediateDependencies.any(((dep) {
+          return dep.name == package;
+        }))) {
           entrypoint.loadPackageGraph().then((x3) {
             try {
               var graph = x3;
@@ -166,12 +181,10 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
                     'Could not find package "${package}". Did you forget to add a ' 'dependency?');
                 join7();
               }
-            } catch (e6) {
-              completer0.completeError(e6);
+            } catch (e3, s3) {
+              completer0.completeError(e3, s3);
             }
-          }, onError: (e7) {
-            completer0.completeError(e7);
-          });
+          }, onError: completer0.completeError);
         } else {
           join1();
         }
@@ -182,12 +195,25 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
       } else {
         join0();
       }
-    } catch (e8) {
-      completer0.completeError(e8);
+    } catch (e, s) {
+      completer0.completeError(e, s);
     }
   });
   return completer0.future;
 }
+
+/// Runs the snapshot at [path] with [args] and hooks its stdout, stderr, and
+/// sdtin to this process's.
+///
+/// If [recompile] is passed, it's called if the snapshot is out-of-date. It's
+/// expected to regenerate a snapshot at [path], after which the snapshot will
+/// be re-run. It may return a Future.
+///
+/// If [checked] is set, runs the snapshot in checked mode.
+///
+/// Returns the snapshot's exit code.
+///
+/// This doesn't do any validation of the snapshot's SDK version.
 Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
     bool checked: false}) {
   final completer0 = new Completer();
@@ -209,14 +235,12 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
                     process.stdout.listen(stdout.add);
                     input.listen(process.stdin.add);
                     completer0.complete(process.exitCode);
-                  } catch (e0) {
-                    completer0.completeError(e0);
+                  } catch (e0, s0) {
+                    completer0.completeError(e0, s0);
                   }
-                }, onError: (e1) {
-                  completer0.completeError(e1);
-                });
-              } catch (e2) {
-                completer0.completeError(e2);
+                }, onError: completer0.completeError);
+              } catch (e, s) {
+                completer0.completeError(e, s);
               }
             });
             return completer0.future;
@@ -229,24 +253,20 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
                   try {
                     x1;
                     completer0.complete(runProcess(stdin2));
-                  } catch (e1) {
-                    completer0.completeError(e1);
+                  } catch (e0, s0) {
+                    completer0.completeError(e0, s0);
                   }
-                }, onError: (e2) {
-                  completer0.completeError(e2);
-                });
+                }, onError: completer0.completeError);
               }
               if (recompile == null || exitCode != 255) {
                 completer0.complete(exitCode);
               } else {
                 join2();
               }
-            } catch (e0) {
-              completer0.completeError(e0);
+            } catch (e1, s1) {
+              completer0.completeError(e1, s1);
             }
-          }, onError: (e3) {
-            completer0.completeError(e3);
-          });
+          }, onError: completer0.completeError);
         }
         if (recompile == null) {
           stdin1 = stdin;
@@ -264,12 +284,14 @@ Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
       } else {
         join0();
       }
-    } catch (e4) {
-      completer0.completeError(e4);
+    } catch (e, s) {
+      completer0.completeError(e, s);
     }
   });
   return completer0.future;
 }
+
+/// Runs the executable snapshot at [snapshotPath].
 Future<int> _runCachedExecutable(Entrypoint entrypoint, String snapshotPath,
     List<String> args) {
   return runSnapshot(snapshotPath, args, checked: true, recompile: () {

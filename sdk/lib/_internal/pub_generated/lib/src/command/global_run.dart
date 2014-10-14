@@ -1,10 +1,19 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub.command.global_run;
+
 import 'dart:async';
+
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as p;
+
 import '../command.dart';
 import '../io.dart';
 import '../utils.dart';
+
+/// Handles the `global run` pub command.
 class GlobalRunCommand extends PubCommand {
   bool get takesArguments => true;
   bool get allowTrailingOptions => false;
@@ -12,13 +21,17 @@ class GlobalRunCommand extends PubCommand {
       "Run an executable from a globally activated package.\n"
           "NOTE: We are currently optimizing this command's startup time.";
   String get usage => "pub global run <package>:<executable> [args...]";
+
+  /// The mode for barback transformers.
   BarbackMode get mode => new BarbackMode(commandOptions["mode"]);
+
   GlobalRunCommand() {
     commandParser.addOption(
         "mode",
         defaultsTo: "release",
         help: 'Mode to run transformers in.');
   }
+
   Future onRun() {
     final completer0 = new Completer();
     scheduleMicrotask(() {
@@ -39,19 +52,15 @@ class GlobalRunCommand extends PubCommand {
                   flushThenExit(exitCode).then((x1) {
                     try {
                       x1;
-                      completer0.complete(null);
-                    } catch (e1) {
-                      completer0.completeError(e1);
+                      completer0.complete();
+                    } catch (e0, s0) {
+                      completer0.completeError(e0, s0);
                     }
-                  }, onError: (e2) {
-                    completer0.completeError(e2);
-                  });
-                } catch (e0) {
-                  completer0.completeError(e0);
+                  }, onError: completer0.completeError);
+                } catch (e1, s1) {
+                  completer0.completeError(e1, s1);
                 }
-              }, onError: (e3) {
-                completer0.completeError(e3);
-              });
+              }, onError: completer0.completeError);
             }
             if (p.split(executable).length > 1) {
               usageError(
@@ -77,8 +86,8 @@ class GlobalRunCommand extends PubCommand {
         } else {
           join0();
         }
-      } catch (e4) {
-        completer0.completeError(e4);
+      } catch (e, s) {
+        completer0.completeError(e, s);
       }
     });
     return completer0.future;

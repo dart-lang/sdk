@@ -1,9 +1,18 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub.validator.name;
+
 import 'dart:async';
+
 import 'package:path/path.dart' as path;
+
 import '../entrypoint.dart';
 import '../utils.dart';
 import '../validator.dart';
+
+/// Dart reserved words, from the Dart spec.
 final _RESERVED_WORDS = [
     "assert",
     "break",
@@ -36,14 +45,19 @@ final _RESERVED_WORDS = [
     "void",
     "while",
     "with"];
+
+/// A validator that validates the name of the package and its libraries.
 class NameValidator extends Validator {
-  NameValidator(Entrypoint entrypoint) : super(entrypoint);
+  NameValidator(Entrypoint entrypoint)
+      : super(entrypoint);
+
   Future validate() {
     return new Future.sync(() {
       _checkName(
           entrypoint.root.name,
           'Package name "${entrypoint.root.name}"',
           isPackage: true);
+
       var libraries = _libraries;
       for (var library in libraries) {
         var libName = path.basenameWithoutExtension(library);
@@ -52,6 +66,7 @@ class NameValidator extends Validator {
             'The name of "$library", "$libName",',
             isPackage: false);
       }
+
       if (libraries.length == 1) {
         var libName = path.basenameWithoutExtension(libraries[0]);
         if (libName == entrypoint.root.name) return;
@@ -62,6 +77,9 @@ class NameValidator extends Validator {
       }
     });
   }
+
+  /// Returns a list of all libraries in the current package as paths relative
+  /// to the package's root directory.
   List<String> get _libraries {
     var libDir = entrypoint.root.path("lib");
     return entrypoint.root.listFiles(
@@ -74,8 +92,11 @@ class NameValidator extends Validator {
                             (file) =>
                                 !path.split(file).contains("src") && path.extension(file) == '.dart').toList();
   }
+
   void _checkName(String name, String description, {bool isPackage}) {
+    // Packages names are more stringent than libraries.
     var messages = isPackage ? errors : warnings;
+
     if (name == "") {
       errors.add("$description may not be empty.");
     } else if (!new RegExp(r"^[a-zA-Z0-9_]*$").hasMatch(name)) {
@@ -95,6 +116,7 @@ class NameValidator extends Validator {
           '$description should be lower-case. Maybe use ' '"${_unCamelCase(name)}"?');
     }
   }
+
   String _unCamelCase(String source) {
     var builder = new StringBuffer();
     var lastMatchEnd = 0;
