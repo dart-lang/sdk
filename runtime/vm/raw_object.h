@@ -793,9 +793,12 @@ class RawScript : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->url_); }
   RawString* url_;
-  RawString* source_;
   RawTokenStream* tokens_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->tokens_); }
+  RawObject** to_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->tokens_);
+  }
+  RawString* source_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }
 
   int32_t line_offset_;
   int32_t col_offset_;

@@ -68,7 +68,9 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     // allocations may happen.
     intptr_t num_flds = (cls.raw()->to() - cls.raw()->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
-      *(cls.raw()->from() + i) = reader->ReadObjectRef();
+      (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+       cls.StorePointer((cls.raw()->from() + i),
+                       reader->PassiveObjectHandle()->raw());
     }
   } else {
     cls ^= reader->ReadClassId(object_id);
@@ -531,7 +533,9 @@ RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (cls.raw()->to() - cls.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(cls.raw()->from() + i) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    cls.StorePointer((cls.raw()->from() + i),
+                     reader->PassiveObjectHandle()->raw());
   }
 
   return cls.raw();
@@ -640,7 +644,9 @@ RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (data.raw()->to() - data.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(data.raw()->from() + i) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    data.StorePointer((data.raw()->from() + i),
+                      reader->PassiveObjectHandle()->raw());
   }
 
   return data.raw();
@@ -701,7 +707,9 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (func.raw()->to_snapshot() - func.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(func.raw()->from() + i) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    func.StorePointer((func.raw()->from() + i),
+                      reader->PassiveObjectHandle()->raw());
   }
 
   // Initialize all fields that are not part of the snapshot.
@@ -770,7 +778,9 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (field.raw()->to() - field.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(field.raw()->from() + i) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    field.StorePointer((field.raw()->from() + i),
+                       reader->PassiveObjectHandle()->raw());
   }
 
   field.InitializeGuardedListLengthInObjectOffset();
@@ -824,10 +834,16 @@ RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
   // Read the token attributes.
   Token::Kind token_kind = static_cast<Token::Kind>(reader->Read<int32_t>());
   literal_token.set_kind(token_kind);
-  *reader->StringHandle() ^= reader->ReadObjectImpl();
-  literal_token.set_literal(*reader->StringHandle());
-  *reader->PassiveObjectHandle() = reader->ReadObjectImpl();
-  literal_token.set_value(*reader->PassiveObjectHandle());
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (literal_token.raw()->to() - literal_token.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    literal_token.StorePointer((literal_token.raw()->from() + i),
+                               reader->PassiveObjectHandle()->raw());
+  }
 
   return literal_token.raw();
 }
@@ -849,9 +865,9 @@ void RawLiteralToken::WriteTo(SnapshotWriter* writer,
   // Write out the kind field.
   writer->Write<int32_t>(ptr()->kind_);
 
-  // Write out literal and value fields.
-  writer->WriteObjectImpl(ptr()->literal_);
-  writer->WriteObjectImpl(ptr()->value_);
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
 }
 
 
@@ -938,23 +954,25 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   // Set the object tags.
   script.set_tags(tags);
 
-  // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  *reader->StringHandle() ^= reader->ReadObjectImpl();
-  script.set_url(*reader->StringHandle());
-  *reader->StringHandle() ^= String::null();
-  script.set_source(*reader->StringHandle());
-  TokenStream& stream = TokenStream::Handle();
-  stream ^= reader->ReadObjectImpl();
-  script.set_tokens(stream);
-
   script.StoreNonPointer(&script.raw_ptr()->line_offset_,
                          reader->Read<int32_t>());
   script.StoreNonPointer(&script.raw_ptr()->col_offset_,
                          reader->Read<int32_t>());
   script.StoreNonPointer(&script.raw_ptr()->kind_,
                          reader->Read<int8_t>());
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (script.raw()->to_snapshot() - script.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    script.StorePointer((script.raw()->from() + i),
+                        reader->PassiveObjectHandle()->raw());
+  }
+  // Script wasn't allocated with nulls?
+  *reader->StringHandle() ^= String::null();
+  script.set_source(*reader->StringHandle());
 
   return script.raw();
 }
@@ -976,13 +994,14 @@ void RawScript::WriteTo(SnapshotWriter* writer,
   writer->WriteVMIsolateObject(kScriptCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
-  // Write out all the object pointer fields.
-  writer->WriteObjectImpl(ptr()->url_);
-  writer->WriteObjectImpl(ptr()->tokens_);
-
+  // Write out all the non object fields.
   writer->Write<int32_t>(ptr()->line_offset_);
   writer->Write<int32_t>(ptr()->col_offset_);
   writer->Write<int8_t>(ptr()->kind_);
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to_snapshot());
 }
 
 
@@ -1041,7 +1060,9 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     // allocations may happen.
     intptr_t num_flds = (library.raw()->to() - library.raw()->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
-      *(library.raw()->from() + i) = reader->ReadObjectRef();
+      (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+      library.StorePointer((library.raw()->from() + i),
+                           reader->PassiveObjectHandle()->raw());
     }
     if (kind != Snapshot::kFull) {
       library.Register();
@@ -1124,7 +1145,9 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (prefix.raw()->to() - prefix.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(prefix.raw()->from() + i) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    prefix.StorePointer((prefix.raw()->from() + i),
+                         reader->PassiveObjectHandle()->raw());
   }
 
   return prefix.raw();
@@ -1179,7 +1202,9 @@ RawNamespace* Namespace::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (ns.raw()->to() - ns.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(ns.raw()->from() + i) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    ns.StorePointer((ns.raw()->from() + i),
+                    reader->PassiveObjectHandle()->raw());
   }
 
   return ns.raw();
@@ -1577,8 +1602,11 @@ RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (result.raw()->to() - result.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(result.raw()->from() + i) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    result.StorePointer((result.raw()->from() + i),
+                         reader->PassiveObjectHandle()->raw());
   }
+
   return result.raw();
 }
 
@@ -2665,19 +2693,15 @@ RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
                                                 reader->NewStacktrace());
     reader->AddBackRef(object_id, &result, kIsDeserialized);
 
-    // There are no non object pointer fields.
-
-    // Read all the object pointer fields.
-    Array& array = Array::Handle(reader->isolate());
-    array ^= reader->ReadObjectRef();
-    result.set_code_array(array);
-    array ^= reader->ReadObjectRef();
-    result.set_pc_offset_array(array);
-
-    array ^= reader->ReadObjectRef();
-    result.set_catch_code_array(array);
-    array ^= reader->ReadObjectRef();
-    result.set_catch_pc_offset_array(array);
+    // Set all the object fields.
+    // TODO(5411462): Need to assert No GC can happen here, even though
+    // allocations may happen.
+    intptr_t num_flds = (result.raw()->to() - result.raw()->from());
+    for (intptr_t i = 0; i <= num_flds; i++) {
+      (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+      result.StorePointer((result.raw()->from() + i),
+                          reader->PassiveObjectHandle()->raw());
+    }
 
     bool expand_inlined = reader->Read<bool>();
     result.set_expand_inlined(expand_inlined);
@@ -2790,10 +2814,15 @@ RawWeakProperty* WeakProperty::ReadFrom(SnapshotReader* reader,
   weak_property.set_tags(tags);
 
   // Set all the object fields.
-  weak_property.StorePointer(&weak_property.raw_ptr()->key_,
-                             reader->ReadObjectRef());
-  weak_property.StorePointer(&weak_property.raw_ptr()->value_,
-                             reader->ReadObjectRef());
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (weak_property.raw()->to() -
+                       weak_property.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    weak_property.StorePointer((weak_property.raw()->from() + i),
+                               reader->PassiveObjectHandle()->raw());
+  }
 
   return weak_property.raw();
 }
@@ -2811,9 +2840,9 @@ void RawWeakProperty::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kWeakPropertyCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
-  // Write out all the other fields.
-  writer->Write<RawObject*>(ptr()->key_);
-  writer->Write<RawObject*>(ptr()->value_);
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
 }
 
 
