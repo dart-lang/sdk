@@ -23539,6 +23539,11 @@ abstract class TypeProvider {
    * @return the type representing the built-in type 'Type'
    */
   InterfaceType get typeType;
+
+  /**
+   * Return the type representing typenames that can't be resolved.
+   */
+  DartType get undefinedType;
 }
 
 /**
@@ -23627,6 +23632,11 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType _typeType;
 
   /**
+   * The type representing typenames that can't be resolved.
+   */
+  DartType _undefinedType;
+
+  /**
    * Initialize a newly created type provider to provide the types defined in the given library.
    *
    * @param coreLibrary the element representing the core library (dart:core).
@@ -23683,6 +23693,9 @@ class TypeProviderImpl implements TypeProvider {
   @override
   InterfaceType get typeType => _typeType;
 
+  @override
+  DartType get undefinedType => _undefinedType;
+
   /**
    * Return the type with the given name from the given namespace, or `null` if there is no
    * class with the given name.
@@ -23723,6 +23736,7 @@ class TypeProviderImpl implements TypeProvider {
     _stringType = _getType(namespace, "String");
     _symbolType = _getType(namespace, "Symbol");
     _typeType = _getType(namespace, "Type");
+    _undefinedType = UndefinedTypeImpl.instance;
   }
 }
 
@@ -23764,6 +23778,11 @@ class TypeResolverVisitor extends ScopedVisitor {
   DartType _dynamicType;
 
   /**
+   * The type representing typenames that can't be resolved.
+   */
+  DartType _undefinedType;
+
+  /**
    * The flag specifying if currently visited class references 'super' expression.
    */
   bool _hasReferenceToSuper = false;
@@ -23777,6 +23796,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    */
   TypeResolverVisitor.con1(Library library, Source source, TypeProvider typeProvider) : super.con1(library, source, typeProvider) {
     _dynamicType = typeProvider.dynamicType;
+    _undefinedType = typeProvider.undefinedType;
   }
 
   /**
@@ -23791,6 +23811,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    */
   TypeResolverVisitor.con2(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, AnalysisErrorListener errorListener) : super.con2(definingLibrary, source, typeProvider, errorListener) {
     _dynamicType = typeProvider.dynamicType;
+    _undefinedType = typeProvider.undefinedType;
   }
 
   /**
@@ -23805,6 +23826,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    */
   TypeResolverVisitor.con3(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, Scope nameScope, AnalysisErrorListener errorListener) : super.con3(definingLibrary, source, typeProvider, nameScope, errorListener) {
     _dynamicType = typeProvider.dynamicType;
+    _undefinedType = typeProvider.undefinedType;
   }
 
   /**
@@ -23816,6 +23838,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    */
   TypeResolverVisitor.con4(ResolvableLibrary library, Source source, TypeProvider typeProvider) : super.con4(library, source, typeProvider) {
     _dynamicType = typeProvider.dynamicType;
+    _undefinedType = typeProvider.undefinedType;
   }
 
   @override
@@ -24229,8 +24252,8 @@ class TypeResolverVisitor extends ScopedVisitor {
       } else {
         _setElement(typeName, _dynamicType.element);
       }
-      typeName.staticType = _dynamicType;
-      node.type = _dynamicType;
+      typeName.staticType = _undefinedType;
+      node.type = _undefinedType;
       return null;
     }
     DartType type = null;
@@ -24518,7 +24541,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   DartType _getType(TypeName typeName) {
     DartType type = typeName.type;
     if (type == null) {
-      return _dynamicType;
+      return _undefinedType;
     }
     return type;
   }

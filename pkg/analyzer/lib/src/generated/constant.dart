@@ -550,7 +550,7 @@ class ConstantValueComputer {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, element.source);
       DartObjectImpl dartObject = declaration.initializer.accept(createConstantVisitor(errorReporter));
       if (dartObject != null) {
-        if (!dartObject.isNull && !dartObject.type.isSubtypeOf(element.type)) {
+        if (!_runtimeTypeMatch(dartObject, element.type)) {
           errorReporter.reportErrorForNode(
               CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
               declaration, [dartObject.type, element.type]);
@@ -733,7 +733,7 @@ class ConstantValueComputer {
         }
       }
       if (argumentValue != null) {
-        if (!argumentValue.isNull && !argumentValue.type.isSubtypeOf(parameter.type)) {
+        if (!_runtimeTypeMatch(argumentValue, parameter.type)) {
           errorReporter.reportErrorForNode(
               CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
               errorTarget,
@@ -747,8 +747,7 @@ class ConstantValueComputer {
               // We've already checked that the argument can be assigned to the
               // parameter; we also need to check that it can be assigned to
               // the field.
-              if (!argumentValue.isNull &&
-                  !argumentValue.type.isSubtypeOf(fieldType)) {
+              if (!_runtimeTypeMatch(argumentValue, fieldType)) {
                 errorReporter.reportErrorForNode(
                     CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
                     errorTarget,
@@ -778,8 +777,7 @@ class ConstantValueComputer {
           PropertyAccessorElement getter = definingClass.getGetter(fieldName);
           if (getter != null) {
             PropertyInducingElement field = getter.variable;
-            if (!evaluationResult.isNull &&
-                !evaluationResult.type.isSubtypeOf(field.type)) {
+            if (!_runtimeTypeMatch(evaluationResult, field.type)) {
               errorReporter.reportErrorForNode(
                   CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
                   node, [evaluationResult.type, fieldName, field.type]);
@@ -875,6 +873,20 @@ class ConstantValueComputer {
       constructor = (constructor as ConstructorMember).baseElement;
     }
     return constructor;
+  }
+
+  /**
+   * Check if the object [obj] matches the type [type] according
+   * to runtime type checking rules.
+   */
+  bool _runtimeTypeMatch(DartObjectImpl obj, DartType type) {
+    if (obj.isNull) {
+      return true;
+    }
+    if (type.isUndefined) {
+      return false;
+    }
+    return obj.type.isSubtypeOf(type);
   }
 }
 

@@ -437,6 +437,21 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_fieldFormalParameterAssignableToField_fieldType_unresolved_null() {
+    // Null always passes runtime type checks, even when the type is
+    // unresolved.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  final Unresolved x;",
+        "  const A(String this.x);",
+        "}",
+        "var v = const A(null);"]));
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.UNDEFINED_CLASS]);
+    verify([source]);
+  }
+
   void test_fieldFormalParameterAssignableToField_implements() {
     // According to checked-mode type checking rules, a value of type B is
     // assignable to a field of type A, because B implements A (and hence is a
@@ -604,6 +619,20 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_fieldFormalParameterNotAssignableToField_fieldType_unresolved() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  final Unresolved x;",
+        "  const A(String this.x);",
+        "}",
+        "var v = const A('foo');"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+        StaticWarningCode.UNDEFINED_CLASS]);
+    verify([source]);
+  }
+
   void test_fieldFormalParameterNotAssignableToField_extends() {
     // According to checked-mode type checking rules, a value of type A is not
     // assignable to a field of type B, because B extends A (the subtyping
@@ -745,6 +774,20 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_fieldTypeMismatch_unresolved() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(x) : y = x;",
+        "  final Unresolved y;",
+        "}",
+        "var v = const A('foo');"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+        StaticWarningCode.UNDEFINED_CLASS]);
+    verify([source]);
+  }
+
   void test_fieldTypeOk_null() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -754,6 +797,21 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
         "var v = const A(null);"]));
     resolve(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_fieldTypeOk_unresolved_null() {
+    // Null always passes runtime type checks, even when the type is
+    // unresolved.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(x) : y = x;",
+        "  final Unresolved y;",
+        "}",
+        "var v = const A(null);"]));
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
 
@@ -796,6 +854,20 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_parameterAssignable_undefined_null() {
+    // Null always passes runtime type checks, even when the type is
+    // unresolved.
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(Unresolved x);",
+        "}",
+        "var v = const A(null);"]));
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.UNDEFINED_CLASS]);
+    verify([source]);
+  }
+
   void test_parameterAssignable_typeSubstitution() {
     Source source = addSource(EngineTestCase.createSource([
         "class A<T> {",
@@ -820,6 +892,19 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_parameterNotAssignable_undefined() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A(Unresolved x);",
+        "}",
+        "var v = const A('foo');"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+        StaticWarningCode.UNDEFINED_CLASS]);
+    verify([source]);
+  }
+
   void test_parameterNotAssignable_typeSubstitution() {
     Source source = addSource(EngineTestCase.createSource([
         "class A<T> {",
@@ -841,6 +926,17 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_topLevelVarAssignable_undefined_null() {
+    // Null always passes runtime type checks, even when the type is
+    // unresolved.
+    Source source = addSource(EngineTestCase.createSource([
+        "const Unresolved x = null;"]));
+    resolve(source);
+    assertErrors(source, [
+        StaticWarningCode.UNDEFINED_CLASS]);
+    verify([source]);
+  }
+
   void test_topLevelVarNotAssignable() {
     Source source = addSource(EngineTestCase.createSource([
         "const int x = 'foo';"]));
@@ -848,6 +944,16 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, [
         CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
         StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
+  void test_topLevelVarNotAssignable_undefined() {
+    Source source = addSource(EngineTestCase.createSource([
+        "const Unresolved x = 'foo';"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
+        StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
 }
@@ -8445,7 +8551,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     // In cases where we have a prefixed identifier where the prefix is dynamic, we don't want to
     // assert that the node will have a type.
-    if (node.staticType == null && identical(node.prefix.staticType, DynamicTypeImpl.instance)) {
+    if (node.staticType == null && node.prefix.staticType.isDynamic) {
       return null;
     }
     return super.visitPrefixedIdentifier(node);
@@ -8838,6 +8944,11 @@ class TestTypeProvider implements TypeProvider {
    */
   InterfaceType _typeType;
 
+  /**
+   * The type representing typenames that can't be resolved.
+   */
+  DartType _undefinedType;
+
   @override
   InterfaceType get boolType {
     if (_boolType == null) {
@@ -9044,6 +9155,14 @@ class TestTypeProvider implements TypeProvider {
       _typeType = ElementFactory.classElement2("Type", []).type;
     }
     return _typeType;
+  }
+
+  @override
+  DartType get undefinedType {
+    if (_undefinedType == null) {
+      _undefinedType = UndefinedTypeImpl.instance;
+    }
+    return _undefinedType;
   }
 
   /**

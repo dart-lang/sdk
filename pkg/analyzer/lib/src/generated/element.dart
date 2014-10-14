@@ -2721,6 +2721,12 @@ abstract class DartType {
   bool isSupertypeOf(DartType type);
 
   /**
+   * Return `true` if this type represents a typename that couldn't be
+   * resolved.
+   */
+  bool get isUndefined;
+
+  /**
    * Return `true` if this type represents the type 'void'.
    *
    * @return `true` if this type represents the type 'void'
@@ -2835,7 +2841,7 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  static DynamicTypeImpl _INSTANCE = new DynamicTypeImpl();
+  static DynamicTypeImpl _INSTANCE = new DynamicTypeImpl._();
 
   /**
    * Return the unique instance of this class.
@@ -2847,7 +2853,7 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * Prevent the creation of instances of this class.
    */
-  DynamicTypeImpl() : super(new DynamicElementImpl(), Keyword.DYNAMIC.syntax) {
+  DynamicTypeImpl._() : super(new DynamicElementImpl(), Keyword.DYNAMIC.syntax) {
     (element as DynamicElementImpl).type = this;
   }
 
@@ -7284,7 +7290,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     // The test to determine whether S is dynamic is done here because dynamic is not an instance of
     // InterfaceType.
     //
-    if (identical(type, DynamicTypeImpl.instance)) {
+    if (type.isDynamic) {
       return true;
     } else if (type is UnionType) {
       return (type as UnionTypeImpl).internalUnionTypeIsLessSpecificThan(this, withDynamic, visitedTypePairs);
@@ -10858,6 +10864,9 @@ abstract class TypeImpl implements DartType {
   bool isSupertypeOf(DartType type) => type.isSubtypeOf(this);
 
   @override
+  bool get isUndefined => false;
+
+  @override
   bool get isVoid => false;
 
   @override
@@ -11135,6 +11144,75 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
  * do not make sense and will return useless results.
  */
 abstract class UndefinedElement implements Element {
+}
+
+/**
+ * The unique instance of the class `UndefinedTypeImpl` implements the type of
+ * typenames that couldn't be resolved.
+ *
+ * This class behaves like DynamicTypeImpl in almost every respect, to reduce
+ * cascading errors.
+ */
+class UndefinedTypeImpl extends TypeImpl {
+  /**
+   * The unique instance of this class.
+   */
+  static UndefinedTypeImpl _INSTANCE = new UndefinedTypeImpl._();
+
+  /**
+   * Return the unique instance of this class.
+   *
+   * @return the unique instance of this class
+   */
+  static UndefinedTypeImpl get instance => _INSTANCE;
+
+  /**
+   * Prevent the creation of instances of this class.
+   */
+  UndefinedTypeImpl._()
+      : super(DynamicElementImpl.instance, Keyword.DYNAMIC.syntax);
+
+  @override
+  bool operator ==(Object object) => identical(object, this);
+
+  @override
+  int get hashCode => 1;
+
+  @override
+  bool get isDynamic => true;
+
+  @override
+  bool isSupertypeOf(DartType type) => true;
+
+  @override
+  bool get isUndefined => true;
+
+  @override
+  DartType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) {
+    int length = parameterTypes.length;
+    for (int i = 0; i < length; i++) {
+      if (parameterTypes[i] == this) {
+        return argumentTypes[i];
+      }
+    }
+    return this;
+  }
+
+  @override
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
+
+  @override
+  bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // T is S
+    if (identical(this, type)) {
+      return true;
+    }
+    // else
+    return withDynamic;
+  }
+
+  @override
+  bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
 }
 
 /**
@@ -11688,6 +11766,6 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
     // void <: void (by reflexivity)
     // bottom <: void (as bottom is a subtype of all types).
     // void <: dynamic (as dynamic is a supertype of all types)
-    return identical(type, this) || identical(type, DynamicTypeImpl.instance);
+    return identical(type, this) || type.isDynamic;
   }
 }
