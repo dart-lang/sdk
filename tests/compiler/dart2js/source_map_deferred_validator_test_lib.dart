@@ -9,10 +9,3 @@ class HelloClass {
     }();
   }
 }
-
-void main() {
-  () {
-    HelloClass helloClass = new HelloClass();
-    helloClass.printHello();
-  }();
-}
