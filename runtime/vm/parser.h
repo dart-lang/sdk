@@ -332,7 +332,7 @@ class Parser : public ValueObject {
   String* ExpectUserDefinedTypeIdentifier(const char* msg);
   String* ExpectIdentifier(const char* msg);
   bool IsLiteral(const char* literal);
-  bool IsAwaitAsKeyword();
+  bool IsAwaitKeyword();
 
   void SkipIf(Token::Kind);
   void SkipBlock();
@@ -519,7 +519,6 @@ class Parser : public ValueObject {
                                  Array* default_parameter_values);
   SequenceNode* ParseFunc(const Function& func,
                           Array* default_parameter_values);
-  RawClass* GetClassForAsync(const String& class_name);
 
   void ParseNativeFunctionBlock(const ParamList* params, const Function& func);
 

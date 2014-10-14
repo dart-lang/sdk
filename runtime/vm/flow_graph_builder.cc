@@ -259,7 +259,7 @@ FlowGraphBuilder::FlowGraphBuilder(
         args_pushed_(0),
         nesting_stack_(NULL),
         osr_id_(osr_id),
-        jump_cnt_(0),
+        jump_count_(0),
         await_joins_(new(I) ZoneGrowableArray<JoinEntryInstr*>()),
         await_levels_(new(I) ZoneGrowableArray<intptr_t>()) { }
 
@@ -1095,6 +1095,14 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
 
 
   AddReturnExit(node->token_pos(), return_value);
+
+  if (function.is_async_closure() &&
+      (node->return_type() == ReturnNode::kContinuationTarget)) {
+    JoinEntryInstr* const join = new(I) JoinEntryInstr(
+        owner()->AllocateBlockId(), owner()->try_index());
+    owner()->await_joins()->Add(join);
+    exit_ = join;
+  }
 }
 
 
@@ -2214,43 +2222,28 @@ void EffectGraphVisitor::VisitAwaitNode(AwaitNode* node) {
 
 
 void EffectGraphVisitor::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
-  if (node->marker_type() == AwaitMarkerNode::kNewContinuationState) {
-    // We need to create a new await state which involves:
-    // * Increase the jump counter. Sanity check against the list of targets.
-    // * Save the current context for resuming.
-    ASSERT(node->scope() != NULL);
-    LocalVariable* jump_var = node->scope()->LookupVariable(
-        Symbols::AwaitJumpVar(), false);
-    LocalVariable* ctx_var = node->scope()->LookupVariable(
-        Symbols::AwaitContextVar(), false);
-    ASSERT((jump_var != NULL) && jump_var->is_captured());
-    ASSERT((ctx_var != NULL) && ctx_var->is_captured());
-    const intptr_t jump_cnt = owner()->next_await_counter();
-    ASSERT(jump_cnt >= 0);
-    // Sanity check that we always add a JoinEntryInstr before adding a new
-    // state.
-    ASSERT(jump_cnt == owner()->await_joins()->length());
-    // Store the counter in :await_jump_var.
-    Value* jump_val = Bind(new (I) ConstantInstr(
-        Smi::ZoneHandle(I, Smi::New(jump_cnt))));
-    Do(BuildStoreLocal(*jump_var, jump_val));
-    // Save the current context for resuming.
-    BuildSaveContext(*ctx_var);
-    owner()->await_levels()->Add(owner()->context_level());
-    return;
-  }
-  if (node->marker_type() == AwaitMarkerNode::kTargetForContinuation) {
-    // We need to create a new await target which involves:
-    // * Append a join that is also added to the list that will later result in
-    //   a preamble.
-    JoinEntryInstr* const join = new(I) JoinEntryInstr(
-        owner()->AllocateBlockId(), owner()->try_index());
-    owner()->await_joins()->Add(join);
-    Goto(join);
-    exit_ = join;
-    return;
-  }
-  UNREACHABLE();
+  // We need to create a new await state which involves:
+  // * Increase the jump counter. Sanity check against the list of targets.
+  // * Save the current context for resuming.
+  ASSERT(node->scope() != NULL);
+  LocalVariable* jump_var = node->scope()->LookupVariable(
+      Symbols::AwaitJumpVar(), false);
+  LocalVariable* ctx_var = node->scope()->LookupVariable(
+      Symbols::AwaitContextVar(), false);
+  ASSERT((jump_var != NULL) && jump_var->is_captured());
+  ASSERT((ctx_var != NULL) && ctx_var->is_captured());
+  const intptr_t jump_count = owner()->next_await_counter();
+  ASSERT(jump_count >= 0);
+  // Sanity check that we always add a JoinEntryInstr before adding a new
+  // state.
+  ASSERT(jump_count == owner()->await_joins()->length());
+  // Store the counter in :await_jump_var.
+  Value* jump_val = Bind(new (I) ConstantInstr(
+      Smi::ZoneHandle(I, Smi::New(jump_count))));
+  Do(BuildStoreLocal(*jump_var, jump_val));
+  // Save the current context for resuming.
+  BuildSaveContext(*ctx_var);
+  owner()->await_levels()->Add(owner()->context_level());
 }
 
 
@@ -3884,19 +3877,19 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     entry_ = NULL;
     exit_ = NULL;
 
-    LoadLocalNode* load_jump_cnt = new(I) LoadLocalNode(
+    LoadLocalNode* load_jump_count = new(I) LoadLocalNode(
         Scanner::kNoSourcePos, jump_var);
-    ComparisonNode* check_jump_cnt;
+    ComparisonNode* check_jump_count;
     const intptr_t num_await_states = owner()->await_joins()->length();
     for (intptr_t i = 0; i < num_await_states; i++) {
-      check_jump_cnt = new(I) ComparisonNode(
+      check_jump_count = new(I) ComparisonNode(
           Scanner::kNoSourcePos,
           Token::kEQ,
-          load_jump_cnt,
+          load_jump_count,
           new(I) LiteralNode(
               Scanner::kNoSourcePos, Smi::ZoneHandle(I, Smi::New(i))));
       TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
-      check_jump_cnt->Visit(&for_test);
+      check_jump_count->Visit(&for_test);
       EffectGraphVisitor for_true(owner());
       EffectGraphVisitor for_false(owner());
 

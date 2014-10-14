@@ -1457,6 +1457,8 @@ RawError* Object::Init(Isolate* isolate) {
   CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
 
+  object_store->InitAsyncObjects();
+
   return Error::null();
 }
 

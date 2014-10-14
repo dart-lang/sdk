@@ -45,10 +45,21 @@ void AstPrinter::VisitArgumentListNode(ArgumentListNode* arguments) {
 
 
 void AstPrinter::VisitReturnNode(ReturnNode* node) {
-  OS::Print("(%s %s",
-            node->PrettyName(),
-            (node->return_type() == ReturnNode::kContinuation) ?
-                "continuation " : "");
+  const char* kind;
+  switch (node->return_type()) {
+    case ReturnNode::kContinuation:
+      kind = "continuation ";
+      break;
+    case ReturnNode::kContinuationTarget:
+      kind = "continuation-target ";
+      break;
+    case ReturnNode::kRegular:
+      kind = "";
+      break;
+    default:
+      UNREACHABLE();
+  }
+  OS::Print("(%s %s", node->PrettyName(), kind);
   node->VisitChildren(this);
   OS::Print(")");
 }

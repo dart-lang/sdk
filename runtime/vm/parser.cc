@@ -2925,18 +2925,6 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 }
 
 
-// TODO(mlippautz): Once we know where these classes should come from, adjust
-// how we get their definition.
-RawClass* Parser::GetClassForAsync(const String& class_name) {
-  const Class& cls = Class::Handle(library_.LookupClass(class_name));
-  if (cls.IsNull()) {
-    ReportError("async modifier requires dart:async to be imported without "
-                "prefix");
-  }
-  return cls.raw();
-}
-
-
 // Parser is at the opening parenthesis of the formal parameter
 // declaration of the function or constructor.
 // Parse the formal parameters and code.
@@ -3087,9 +3075,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   }
 
   bool saved_await_is_keyword = await_is_keyword_;
-  if (func.IsAsyncFunction() || func.is_async_closure()) {
-    await_is_keyword_ = true;
-  }
+  await_is_keyword_ = func.IsAsyncFunction() || func.is_async_closure();
 
   intptr_t end_token_pos = 0;
   if (CurrentToken() == Token::kLBRACE) {
@@ -4068,8 +4054,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   }
   Class& cls = Class::Handle(I);
   TypeArguments& orig_type_parameters = TypeArguments::Handle(I);
-  Object& obj = Object::Handle(I,
-                               library_.LookupLocalObject(class_name));
+  Object& obj = Object::Handle(I, library_.LookupLocalObject(class_name));
   if (obj.IsNull()) {
     if (is_patch) {
       ReportError(classname_pos, "missing class '%s' cannot be patched",
@@ -4276,8 +4261,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
 
   if (cls.is_patch()) {
     // Apply the changes to the patched class looked up above.
-    Object& obj = Object::Handle(I,
-                                 library_.LookupLocalObject(class_name));
+    Object& obj = Object::Handle(I, library_.LookupLocalObject(class_name));
     // The patched class must not be finalized yet.
     const Class& orig_class = Class::Cast(obj);
     ASSERT(!orig_class.is_finalized());
@@ -4372,8 +4356,7 @@ void Parser::ParseMixinAppAlias(
     OS::Print("toplevel parsing mixin application alias class '%s'\n",
               class_name.ToCString());
   }
-  const Object& obj = Object::Handle(I,
-                                     library_.LookupLocalObject(class_name));
+  const Object& obj = Object::Handle(I, library_.LookupLocalObject(class_name));
   if (!obj.IsNull()) {
     ReportError(classname_pos, "'%s' is already defined",
                 class_name.ToCString());
@@ -4494,8 +4477,8 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
 
   // Lookup alias name and report an error if it is already defined in
   // the library scope.
-  const Object& obj = Object::Handle(I,
-                                     library_.LookupLocalObject(*alias_name));
+  const Object& obj =
+      Object::Handle(I, library_.LookupLocalObject(*alias_name));
   if (!obj.IsNull()) {
     ReportError(alias_name_pos,
                 "'%s' is already defined", alias_name->ToCString());
@@ -4560,8 +4543,8 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   // Lookup the signature class, i.e. the class whose name is the signature.
   // We only lookup in the current library, but not in its imports, and only
   // create a new canonical signature class if it does not exist yet.
-  Class& signature_class = Class::ZoneHandle(I,
-      library_.LookupLocalClass(signature));
+  Class& signature_class =
+      Class::ZoneHandle(I, library_.LookupLocalClass(signature));
   if (signature_class.IsNull()) {
     signature_class = Class::NewSignatureClass(signature,
                                                signature_function,
@@ -4906,11 +4889,12 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
 
 
 RawFunction::AsyncModifier Parser::ParseFunctionModifier() {
-  if (FLAG_enable_async) {
-    if (CurrentLiteral()->raw() == Symbols::Async().raw()) {
-      ConsumeToken();
-      return RawFunction::kAsync;
+  if (CurrentLiteral()->raw() == Symbols::Async().raw()) {
+    if (!FLAG_enable_async) {
+      ReportError("use flag --enable-async to enable async/await features");
     }
+    ConsumeToken();
+    return RawFunction::kAsync;
   }
   return RawFunction::kNoModifier;
 }
@@ -5885,14 +5869,14 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   // No need to capture parameters or other variables, since they have already
   // been captured in the corresponding scope as the body has been parsed within
   // a nested block (contained in the async funtion's block).
-  const Class& future = Class::ZoneHandle(I,
-      GetClassForAsync(Symbols::Future()));
+  const Class& future =
+      Class::ZoneHandle(I, I->object_store()->future_class());
   ASSERT(!future.IsNull());
   const Function& constructor = Function::ZoneHandle(I,
       future.LookupFunction(Symbols::FutureConstructor()));
   ASSERT(!constructor.IsNull());
-  const Class& completer = Class::ZoneHandle(I,
-      GetClassForAsync(Symbols::Completer()));
+  const Class& completer =
+      Class::ZoneHandle(I, I->object_store()->completer_class());
   ASSERT(!completer.IsNull());
   const Function& completer_constructor = Function::ZoneHandle(I,
       completer.LookupFunction(Symbols::CompleterConstructor()));
@@ -6614,7 +6598,7 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
 
 // Returns true if the current token is kIDENT or a pseudo-keyword.
 bool Parser::IsIdentifier() {
-  return Token::IsIdentifier(CurrentToken()) && !IsAwaitAsKeyword();
+  return Token::IsIdentifier(CurrentToken()) && !IsAwaitKeyword();
 }
 
 
@@ -6763,8 +6747,7 @@ bool Parser::IsFunctionDeclaration() {
         (CurrentToken() == Token::kARROW) ||
         (is_top_level_ && IsLiteral("native")) ||
         is_external ||
-        (FLAG_enable_async &&
-            CurrentLiteral()->raw() == Symbols::Async().raw())) {
+        (CurrentLiteral()->raw() == Symbols::Async().raw())) {
       SetPosition(saved_pos);
       return true;
     }
@@ -8309,7 +8292,7 @@ bool Parser::IsLiteral(const char* literal) {
 }
 
 
-bool Parser::IsAwaitAsKeyword() {
+bool Parser::IsAwaitKeyword() {
   return await_is_keyword_ &&
          (CurrentLiteral()->raw() == Symbols::Await().raw());
 }
@@ -8874,7 +8857,6 @@ AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
     // are created.
     OpenBlock();
     AwaitTransformer at(current_block_->statements,
-                        library_,
                         parsed_function(),
                         async_temp_scope_);
     AstNode* result = at.Transform(expr);
@@ -8985,7 +8967,7 @@ AstNode* Parser::ParseUnaryExpr() {
   TRACE_PARSER("ParseUnaryExpr");
   AstNode* expr = NULL;
   const intptr_t op_pos = TokenPos();
-  if (IsAwaitAsKeyword()) {
+  if (IsAwaitKeyword()) {
     TRACE_PARSER("ParseAwaitExpr");
     ConsumeToken();
     parsed_function()->record_await();

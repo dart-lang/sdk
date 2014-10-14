@@ -178,7 +178,7 @@ class FlowGraphBuilder: public ValueObject {
   void set_catch_try_index(intptr_t value) { catch_try_index_ = value; }
   intptr_t catch_try_index() const { return catch_try_index_; }
 
-  intptr_t next_await_counter() { return jump_cnt_++; }
+  intptr_t next_await_counter() { return jump_count_++; }
 
   ZoneGrowableArray<intptr_t>* await_levels() const { return await_levels_; }
   ZoneGrowableArray<JoinEntryInstr*>* await_joins() const {
@@ -268,7 +268,7 @@ class FlowGraphBuilder: public ValueObject {
   // for OSR.
   const intptr_t osr_id_;
 
-  intptr_t jump_cnt_;
+  intptr_t jump_count_;
   ZoneGrowableArray<JoinEntryInstr*>* await_joins_;
   ZoneGrowableArray<intptr_t>* await_levels_;
 

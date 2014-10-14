@@ -81,6 +81,7 @@ class ObjectPointerVisitor;
   V(AwaitJumpVar, ":await_jump_var")                                           \
   V(Future, "Future")                                                          \
   V(FutureConstructor, "Future.")                                              \
+  V(FutureValue, "Future.value")                                               \
   V(FutureThen, "then")                                                        \
   V(FutureCatchError, "catchError")                                            \
   V(Completer, "Completer")                                                    \

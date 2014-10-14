@@ -35,6 +35,8 @@ ObjectStore::ObjectStore()
     int32x4_type_(Type::null()),
     float64x2_type_(Type::null()),
     string_type_(Type::null()),
+    future_class_(Class::null()),
+    completer_class_(Class::null()),
     one_byte_string_class_(Class::null()),
     two_byte_string_class_(Class::null()),
     external_one_byte_string_class_(Class::null()),
@@ -164,6 +166,22 @@ bool ObjectStore::PreallocateObjects() {
   set_preallocated_stack_trace(stack_trace);
 
   return true;
+}
+
+
+void ObjectStore::InitAsyncObjects() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL && isolate->object_store() == this);
+
+  const Library& async_lib = Library::Handle(async_library());
+  ASSERT(!async_lib.IsNull());
+  Class& cls = Class::Handle(isolate);
+  cls = async_lib.LookupClass(Symbols::Future());
+  ASSERT(!cls.IsNull());
+  set_future_class(cls);
+  cls = async_lib.LookupClass(Symbols::Completer());
+  ASSERT(!cls.IsNull());
+  set_completer_class(cls);
 }
 
 }  // namespace dart

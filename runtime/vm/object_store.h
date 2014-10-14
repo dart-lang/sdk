@@ -114,6 +114,16 @@ class ObjectStore {
     string_type_ = value.raw();
   }
 
+  RawClass* future_class() const { return future_class_; }
+  void set_future_class(const Class& value) {
+    future_class_ = value.raw();
+  }
+
+  RawClass* completer_class() const { return completer_class_; }
+  void set_completer_class(const Class& value) {
+    completer_class_ = value.raw();
+  }
+
   RawClass* one_byte_string_class() const { return one_byte_string_class_; }
   void set_one_byte_string_class(const Class& value) {
     one_byte_string_class_ = value.raw();
@@ -407,6 +417,8 @@ class ObjectStore {
   // information is stored in sticky_error().
   bool PreallocateObjects();
 
+  void InitAsyncObjects();
+
   static void Init(Isolate* isolate);
 
  private:
@@ -433,6 +445,8 @@ class ObjectStore {
   RawType* int32x4_type_;
   RawType* float64x2_type_;
   RawType* string_type_;
+  RawClass* future_class_;
+  RawClass* completer_class_;
   RawClass* one_byte_string_class_;
   RawClass* two_byte_string_class_;
   RawClass* external_one_byte_string_class_;

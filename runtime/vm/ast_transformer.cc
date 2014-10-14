@@ -4,6 +4,7 @@
 
 #include "vm/ast_transformer.h"
 
+#include "vm/object_store.h"
 #include "vm/parser.h"
 
 namespace dart {
@@ -43,12 +44,10 @@ FOR_EACH_UNREACHABLE_NODE(DEFINE_UNREACHABLE)
 #undef DEFINE_UNREACHABLE
 
 AwaitTransformer::AwaitTransformer(SequenceNode* preamble,
-                                   const Library& library,
                                    ParsedFunction* const parsed_function,
                                    LocalScope* function_top)
     : preamble_(preamble),
       temp_cnt_(0),
-      library_(library),
       parsed_function_(parsed_function),
       function_top_(function_top),
       isolate_(Isolate::Current()) {
@@ -114,13 +113,14 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   //
   //   :await_temp_var_X = <expr>;
   //   :result_param = :await_temp_var_X;
-  //   if (:result_param is Future) {
-  //     AwaitMarker(kNewContinuationState);
-  //     :result_param = :result_param.then(:async_op);
-  //     _asyncCatchHelper(:result_param.catchError, :async_op);
-  //     return;  // (return_type() == kContinuation)
+  //   if (:result_param is !Future) {
+  //     :result_param = Future.value(:result_param);
   //   }
-  //   AwaitMarker(kTargetForContinuation);  // Join happens here.
+  //   AwaitMarker(kNewContinuationState);
+  //   :result_param = :result_param.then(:async_op);
+  //   _asyncCatchHelper(:result_param.catchError, :async_op);
+  //   return;  // (return_type() == kContinuationTarget)
+  //
   //   :saved_try_ctx_var = :await_saved_try_ctx_var_y;
   //   :await_temp_var_(X+1) = :result_param;
 
@@ -131,30 +131,64 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   LocalVariable* error_param = GetVariableInScope(
       preamble_->scope(), Symbols::AsyncOperationErrorParam());
 
-  node->expr()->Visit(this);
+  AstNode* transformed_expr = Transform(node->expr());
   preamble_->Add(new(I) StoreLocalNode(
-      Scanner::kNoSourcePos, result_param, result_));
+      Scanner::kNoSourcePos, result_param, transformed_expr));
+
   LoadLocalNode* load_result_param = new(I) LoadLocalNode(
       Scanner::kNoSourcePos, result_param);
-  LocalScope* is_future_scope = ChainNewScope(preamble_->scope());
-  SequenceNode* is_future_branch = new (I) SequenceNode(
-      Scanner::kNoSourcePos, is_future_scope);
-  AwaitMarkerNode* await_marker = new (I) AwaitMarkerNode(
-      AwaitMarkerNode::kNewContinuationState);
-  await_marker->set_scope(is_future_scope);
-  GetVariableInScope(is_future_scope, Symbols::AwaitJumpVar());
-  GetVariableInScope(is_future_scope, Symbols::AwaitContextVar());
-  is_future_branch->Add(await_marker);
+
+  const Class& future_cls =
+      Class::ZoneHandle(I, I->object_store()->future_class());
+  ASSERT(!future_cls.IsNull());
+  const AbstractType& future_type =
+      AbstractType::ZoneHandle(I, future_cls.RareType());
+  ASSERT(!future_type.IsNull());
+
+  LocalScope* is_not_future_scope = ChainNewScope(preamble_->scope());
+  SequenceNode* is_not_future_branch =
+      new (I) SequenceNode(Scanner::kNoSourcePos, is_not_future_scope);
+
+  // if (:result_param is !Future) {
+  //   :result_param = Future.value(:result_param);
+  // }
+  const Function& value_ctor = Function::ZoneHandle(
+      I, future_cls.LookupFunction(Symbols::FutureValue()));
+  ASSERT(!value_ctor.IsNull());
+  ArgumentListNode* ctor_args = new (I) ArgumentListNode(Scanner::kNoSourcePos);
+  ctor_args->Add(new (I) LoadLocalNode(Scanner::kNoSourcePos, result_param));
+  ConstructorCallNode* ctor_call =
+      new (I) ConstructorCallNode(Scanner::kNoSourcePos,
+                                  TypeArguments::ZoneHandle(I),
+                                  value_ctor,
+                                  ctor_args);
+  is_not_future_branch->Add(new (I) StoreLocalNode(
+      Scanner::kNoSourcePos, result_param, ctor_call));
+  AstNode* is_not_future_test = new (I) ComparisonNode(
+      Scanner::kNoSourcePos,
+      Token::kISNOT,
+      load_result_param,
+      new (I) TypeNode(Scanner::kNoSourcePos, future_type));
+  preamble_->Add(new(I) IfNode(Scanner::kNoSourcePos,
+                               is_not_future_test,
+                               is_not_future_branch,
+                               NULL));
+
+  AwaitMarkerNode* await_marker = new (I) AwaitMarkerNode();
+  await_marker->set_scope(preamble_->scope());
+  GetVariableInScope(preamble_->scope(), Symbols::AwaitJumpVar());
+  GetVariableInScope(preamble_->scope(), Symbols::AwaitContextVar());
+  preamble_->Add(await_marker);
   ArgumentListNode* args = new(I) ArgumentListNode(Scanner::kNoSourcePos);
+
   args->Add(new(I) LoadLocalNode(Scanner::kNoSourcePos, async_op));
-  is_future_branch->Add(new (I) StoreLocalNode(
+  preamble_->Add(new (I) StoreLocalNode(
       Scanner::kNoSourcePos,
       result_param,
-      new(I) InstanceCallNode(
-          Scanner::kNoSourcePos,
-          load_result_param,
-          Symbols::FutureThen(),
-          args)));
+      new(I) InstanceCallNode(Scanner::kNoSourcePos,
+                              load_result_param,
+                              Symbols::FutureThen(),
+                              args)));
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Function& async_catch_helper = Function::ZoneHandle(
       I, core_lib.LookupFunctionAllowPrivate(Symbols::AsyncCatchHelper()));
@@ -168,29 +202,13 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   catch_helper_args->Add(catch_error_getter);
   catch_helper_args->Add(new (I) LoadLocalNode(
       Scanner::kNoSourcePos, async_op));
-  is_future_branch->Add(new (I) StaticCallNode(
+  preamble_->Add(new (I) StaticCallNode(
       Scanner::kNoSourcePos,
       async_catch_helper,
       catch_helper_args));
   ReturnNode* continuation_return = new(I) ReturnNode(Scanner::kNoSourcePos);
-  continuation_return->set_return_type(ReturnNode::kContinuation);
-  is_future_branch->Add(continuation_return);
-
-  const Class& cls = Class::ZoneHandle(
-      I, library_.LookupClass(Symbols::Future()));
-  const AbstractType& future_type = AbstractType::ZoneHandle(I, cls.RareType());
-  ASSERT(!future_type.IsNull());
-  preamble_->Add(new(I) IfNode(
-      Scanner::kNoSourcePos,
-      new (I) ComparisonNode(
-          Scanner::kNoSourcePos,
-          Token::kIS,
-          load_result_param,
-          new (I) TypeNode(Scanner::kNoSourcePos, future_type)),
-      is_future_branch,
-      NULL));
-  preamble_->Add(new (I) AwaitMarkerNode(
-      AwaitMarkerNode::kTargetForContinuation));
+  continuation_return->set_return_type(ReturnNode::kContinuationTarget);
+  preamble_->Add(continuation_return);
 
   // If this expression is part of a try block, also append the code for
   // restoring the saved try context that lives on the stack.

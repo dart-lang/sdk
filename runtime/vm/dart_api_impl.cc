@@ -1876,10 +1876,8 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
   if (obj.IsInstance()) {
-    const Library& async_lib =
-        Library::Handle(isolate, Library::AsyncLibrary());
     const Class& future_class =
-        Class::Handle(isolate, async_lib.LookupClass(Symbols::Future()));
+        Class::Handle(isolate->object_store()->future_class());
     ASSERT(!future_class.IsNull());
     const Class& obj_class = Class::Handle(isolate, obj.clazz());
     Error& malformed_type_error = Error::Handle(isolate);

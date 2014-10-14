@@ -27,6 +27,7 @@ async_test/*: Skip
 async_control_structures_test: Skip
 await_test: Skip
 await_future_test: Skip
+await_nonfuture_test: Skip
 await_exceptions_test: Skip
 await_backwards_compatibility_test/*: Skip
 vm/optimized_await_regress_test: Skip
@@ -37,6 +38,7 @@ async_test/*: Skip
 async_control_structures_test: Skip
 await_test: Skip
 await_future_test: Skip
+await_nonfuture_test: Skip
 await_exceptions_test: Skip
 await_backwards_compatibility_test/*: Skip
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523
