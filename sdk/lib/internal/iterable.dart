@@ -175,10 +175,15 @@ abstract class ListIterable<E> extends IterableBase<E>
   Iterable map(f(E element)) => new MappedListIterable(this, f);
 
   E reduce(E combine(var value, E element)) {
+    int length = this.length;
     if (length == 0) throw IterableElementError.noElement();
     E value = elementAt(0);
     for (int i = 1; i < length; i++) {
       value = combine(value, elementAt(i));
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+
     }
     return value;
   }

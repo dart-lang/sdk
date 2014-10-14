@@ -72,18 +72,18 @@ abstract class ListMixin<E> implements List<E> {
   bool get isNotEmpty => !isEmpty;
 
   E get first {
-    if (length == 0) throw new StateError("No elements");
+    if (length == 0) throw IterableElementError.noElement();
     return this[0];
   }
 
   E get last {
-    if (length == 0) throw new StateError("No elements");
+    if (length == 0) throw IterableElementError.noElement();
     return this[length - 1];
   }
 
   E get single {
-    if (length == 0) throw new StateError("No elements");
-    if (length > 1) throw new StateError("Too many elements");
+    if (length == 0) throw IterableElementError.noElement();
+    if (length > 1) throw IterableElementError.tooMany();
     return this[0];
   }
 
@@ -130,7 +130,7 @@ abstract class ListMixin<E> implements List<E> {
       }
     }
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   dynamic lastWhere(bool test(E element), { Object orElse() }) {
@@ -143,7 +143,7 @@ abstract class ListMixin<E> implements List<E> {
       }
     }
     if (orElse != null) return orElse();
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   E singleWhere(bool test(E element)) {
@@ -154,7 +154,7 @@ abstract class ListMixin<E> implements List<E> {
       E element = this[i];
       if (test(element)) {
         if (matchFound) {
-          throw new StateError("More than one matching element");
+          throw IterableElementError.tooMany();
         }
         matchFound = true;
         match = element;
@@ -164,7 +164,7 @@ abstract class ListMixin<E> implements List<E> {
       }
     }
     if (matchFound) return match;
-    throw new StateError("No matching element");
+    throw IterableElementError.noElement();
   }
 
   String join([String separator = ""]) {
@@ -181,10 +181,14 @@ abstract class ListMixin<E> implements List<E> {
       new ExpandIterable<E, dynamic>(this, f);
 
   E reduce(E combine(E previousValue, E element)) {
-    if (length == 0) throw new StateError("No elements");
+    int length = this.length;
+    if (length == 0) throw IterableElementError.noElement();
     E value = this[0];
     for (int i = 1; i < length; i++) {
       value = combine(value, this[i]);
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
     }
     return value;
   }
@@ -290,7 +294,7 @@ abstract class ListMixin<E> implements List<E> {
 
   E removeLast() {
     if (length == 0) {
-      throw new StateError("No elements");
+      throw IterableElementError.noElement();
     }
     E result = this[length - 1];
     length--;
@@ -378,7 +382,7 @@ abstract class ListMixin<E> implements List<E> {
       otherStart = 0;
     }
     if (otherStart + length > otherList.length) {
-      throw new StateError("Not enough elements");
+      throw IterableElementError.tooFew();
     }
     if (otherStart < start) {
       // Copy backwards to ensure correct copy if [from] is this.
