@@ -133,6 +133,8 @@ generic_closure_test: RuntimeError # Issue 12605
 const_switch_test/02: RuntimeError # Issue 17960
 const_switch_test/04: RuntimeError # Issue 17960
 
+deferred_constant_list_test: RuntimeError # Issue 21293
+
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793
 map_literal3_test: CompileTimeError # Issue 12793
