@@ -1,3 +1,7 @@
+## 0.5.6-dev
+
+* Fixed `createMiddleware` to only catch errors in `errorHandler` is provided.
+
 ## 0.5.5+1
 
 * Updated `Request.change` to include the original `onHijack` callback if one
