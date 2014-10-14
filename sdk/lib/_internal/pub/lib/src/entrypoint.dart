@@ -190,9 +190,10 @@ class Entrypoint {
           unionAll(dependenciesToPrecompile.map(graph.transitiveDependencies))
           .map((package) => package.name).toSet();
 
-      for (var package in dependenciesToPrecompile) {
-        deleteEntry(path.join(depsDir, package));
-      }
+      // TODO(nweiz): Use for/in here when
+      // https://github.com/dart-lang/async_await/issues/68 is fixed.
+      dependenciesToPrecompile.forEach((package) =>
+          deleteEntry(path.join(depsDir, package)));
 
       var environment = await AssetEnvironment.create(this, BarbackMode.DEBUG,
           packages: packagesToLoad, useDart2JS: false);
