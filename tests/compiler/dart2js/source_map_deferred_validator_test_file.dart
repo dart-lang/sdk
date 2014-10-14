@@ -2,17 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class HelloClass {
-  void printHello() {
-    () {
-      print('Hello World!');
-    }();
-  }
-}
+import 'source_map_deferred_validator_test_lib.dart' deferred as def;
 
 void main() {
-  () {
-    HelloClass helloClass = new HelloClass();
-    helloClass.printHello();
-  }();
+  def.loadLibrary().then((_) {
+    () {
+      var helloClass = new def.HelloClass();
+      helloClass.printHello();
+    }();
+  });
 }

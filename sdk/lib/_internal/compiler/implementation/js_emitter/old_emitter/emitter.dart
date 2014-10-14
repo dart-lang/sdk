@@ -1293,7 +1293,7 @@ class OldEmitter implements Emitter {
     cspPrecompiledConstructorNamesFor(outputUnit).add(js('#', constructorName));
   }
 
-  /// Returns a name composed of the main output file name and [name].
+  /// Extracts the output name of the compiler's outputUri.
   String deferredPartFileName(OutputUnit outputUnit,
                               {bool addExtension: true}) {
     String outPath = compiler.outputUri != null
@@ -1646,15 +1646,14 @@ class OldEmitter implements Emitter {
     }
 
     String assembledCode = mainBuffer.getText();
-    String sourceMapTags = "";
     if (generateSourceMap) {
       outputSourceMap(assembledCode, mainBuffer, '',
           compiler.sourceMapUri, compiler.outputUri);
-      sourceMapTags =
-          generateSourceMapTag(compiler.sourceMapUri, compiler.outputUri);
+      mainBuffer.add(
+          generateSourceMapTag(compiler.sourceMapUri, compiler.outputUri));
+      assembledCode = mainBuffer.getText();
     }
-    mainBuffer.add(sourceMapTags);
-    assembledCode = mainBuffer.getText();
+
     compiler.outputProvider('', 'js')
         ..add(assembledCode)
         ..close();
@@ -1884,23 +1883,47 @@ class OldEmitter implements Emitter {
                 allowVariableMinification: false).getText());
       }
 
-      String code = outputBuffer.getText();
-
       // Make a unique hash of the code (before the sourcemaps are added)
       // This will be used to retrieve the initializing function from the global
       // variable.
-      String hash = hashOfString(code);
+      String hash = hashOfString(outputBuffer.getText());
+
+      outputBuffer.add('${deferredInitializers}["$hash"]$_=$_'
+                       '${deferredInitializers}.current$N');
+
+      String partPrefix = deferredPartFileName(outputUnit, addExtension: false);
+      if (generateSourceMap) {
+        Uri mapUri, partUri;
+        Uri sourceMapUri = compiler.sourceMapUri;
+        Uri outputUri = compiler.outputUri;
+
+        String partName = "$partPrefix.part";
+
+        if (sourceMapUri != null) {
+          String mapFileName = partName + ".js.map";
+          List<String> mapSegments = sourceMapUri.pathSegments.toList();
+          mapSegments[mapSegments.length - 1] = mapFileName;
+          mapUri = compiler.sourceMapUri.replace(pathSegments: mapSegments);
+        }
+
+        if (outputUri != null) {
+          String partFileName = partName + ".js";
+          List<String> partSegments = outputUri.pathSegments.toList();
+          partSegments[partSegments.length - 1] = partFileName;
+          partUri = compiler.outputUri.replace(pathSegments: partSegments);
+        }
+
+        outputSourceMap(outputBuffer.getText(), outputBuffer, partName,
+            mapUri, partUri);
+        outputBuffer.add(generateSourceMapTag(mapUri, partUri));
+      }
 
       outputBuffers[outputUnit] = outputBuffer;
-      compiler.outputProvider(
-          deferredPartFileName(outputUnit, addExtension: false), 'part.js')
-        ..add(code)
-        ..add('${deferredInitializers}["$hash"]$_=$_'
-                '${deferredInitializers}.current$N')
+      compiler.outputProvider(partPrefix, 'part.js')
+        ..add(outputBuffer.getText())
         ..close();
 
       hunkHashes[outputUnit] = hash;
-      // TODO(johnniwinther): Support source maps for deferred code.
     }
     return hunkHashes;
   }
