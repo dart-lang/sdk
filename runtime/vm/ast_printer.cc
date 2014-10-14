@@ -57,6 +57,7 @@ void AstPrinter::VisitReturnNode(ReturnNode* node) {
       kind = "";
       break;
     default:
+      kind = "";
       UNREACHABLE();
   }
   OS::Print("(%s %s", node->PrettyName(), kind);
