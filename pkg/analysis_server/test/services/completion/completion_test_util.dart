@@ -510,31 +510,13 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
-  test_AsExpression_target() {
-    // IfStatement  Block  BlockFunctionBody
-    addTestSource('''
-      class A {int x; int y() => 0;}
-      main(){var a; if (^ is A)}''');
+  test_AssignmentExpression_name() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addTestSource('class A {} main() {int a; int ^b = 1;}');
     computeFast();
     return computeFull(true).then((_) {
-      assertSuggestLocalVariable('a', null);
-      assertSuggestLocalFunction('main', null);
-      assertSuggestLocalClass('A');
-      assertSuggestImportedClass('Object');
-    });
-  }
-
-  test_AsExpression_type() {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
-    addTestSource('''
-      class A {int x; int y() => 0;}
-      main(){var a; if (a is ^)}''');
-    computeFast();
-    return computeFull(true).then((_) {
-      assertNotSuggested('a');
-      assertNotSuggested('main');
-      assertSuggestLocalClass('A');
-      assertSuggestImportedClass('Object');
+      assertNoSuggestions();
     });
   }
 
@@ -548,16 +530,6 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalFunction('main', null);
       assertSuggestLocalClass('A');
       assertSuggestImportedClass('Object');
-    });
-  }
-
-  test_AssignmentExpression_name() {
-    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
-    // VariableDeclarationStatement  Block
-    addTestSource('class A {} main() {int a; int ^b = 1;}');
-    computeFast();
-    return computeFull(true).then((_) {
-      assertNoSuggestions();
     });
   }
 
@@ -1105,25 +1077,25 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
-//  test_InterpolationExpression() {
-//    // SimpleIdentifier  InterpolationExpression  StringInterpolation
-//    addTestSource('main() {String name; print("hello \$^");}');
-//    computeFast();
-//    return computeFull(true).then((_) {
-//      assertSuggestLocalVariable('name', 'String');
-//      assertSuggestImportedClass('Object');
-//    });
-//  }
+  test_InterpolationExpression() {
+    // SimpleIdentifier  InterpolationExpression  StringInterpolation
+    addTestSource('main() {String name; print("hello \$^");}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('name', 'String');
+      assertSuggestImportedClass('Object');
+    });
+  }
 
-//  test_InterpolationExpression_block() {
-//    // SimpleIdentifier  InterpolationExpression  StringInterpolation
-//    addTestSource('main() {String name; print("hello \${n^}");}');
-//    computeFast();
-//    return computeFull(true).then((_) {
-//      assertSuggestLocalVariable('name', 'String');
-//      assertSuggestImportedClass('Object');
-//    });
-//  }
+  test_InterpolationExpression_block() {
+    // SimpleIdentifier  InterpolationExpression  StringInterpolation
+    addTestSource('main() {String name; print("hello \${n^}");}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('name', 'String');
+      assertSuggestImportedClass('Object');
+    });
+  }
 
   test_InterpolationExpression_prefix_selector() {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
@@ -1136,16 +1108,16 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
-//  test_InterpolationExpression_prefix_target() {
-//    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
-//    addTestSource('main() {String name; print("hello \${nam^e.length}");}');
-//    computeFast();
-//    return computeFull(true).then((_) {
-//      assertSuggestLocalVariable('name', 'String');
-//      assertSuggestImportedClass('Object');
-//      assertNotSuggested('length');
-//    });
-//  }
+  test_InterpolationExpression_prefix_target() {
+    // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
+    addTestSource('main() {String name; print("hello \${nam^e.length}");}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('name', 'String');
+      assertSuggestImportedClass('Object');
+      assertNotSuggested('length');
+    });
+  }
 
   test_IsExpression() {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
@@ -1164,6 +1136,34 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('x');
       assertNotSuggested('main');
       assertNotSuggested('foo');
+    });
+  }
+
+  test_IsExpression_target() {
+    // IfStatement  Block  BlockFunctionBody
+    addTestSource('''
+      class A {int x; int y() => 0;}
+      main(){var a; if (^ is A)}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalVariable('a', null);
+      assertSuggestLocalFunction('main', null);
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('Object');
+    });
+  }
+
+  test_IsExpression_type() {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+      class A {int x; int y() => 0;}
+      main(){var a; if (a is ^)}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNotSuggested('a');
+      assertNotSuggested('main');
+      assertSuggestLocalClass('A');
+      assertSuggestImportedClass('Object');
     });
   }
 
@@ -1373,6 +1373,30 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_PropertyAccess_expression() {
+    // SimpleIdentifier  MethodInvocation  PropertyAccess  ExpressionStatement
+    addTestSource('class A {a() {"hello".to^String().length}}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('length', 'int');
+      assertNotSuggested('A');
+      assertNotSuggested('a');
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_PropertyAccess_selector() {
+    // SimpleIdentifier  PropertyAccess  ExpressionStatement  Block
+    addTestSource('class A {a() {"hello".length.^}}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('isEven', 'bool');
+      assertNotSuggested('A');
+      assertNotSuggested('a');
+      assertNotSuggested('Object');
+    });
+  }
+
   test_TopLevelVariableDeclaration_typed_name() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
@@ -1387,6 +1411,24 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
     addTestSource('class A {} var ^');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertNoSuggestions();
+    });
+  }
+
+  test_VariableDeclaration_name() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // VariableDeclarationStatement  Block
+    addSource('/testB.dart', '''
+      lib B;
+      foo() { }
+      class _B { }
+      class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+      import "/testB.dart";
+      class Y {Y.c(); Y._d(); z() {}}
+      main() {var ^}''');
     computeFast();
     return computeFull(true).then((_) {
       assertNoSuggestions();
@@ -1440,94 +1482,4 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('e');
     });
   }
-
-  test_VariableDeclaration_name() {
-    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
-    // VariableDeclarationStatement  Block
-    addSource('/testB.dart', '''
-      lib B;
-      foo() { }
-      class _B { }
-      class X {X.c(); X._d(); z() {}}''');
-    addTestSource('''
-      import "/testB.dart";
-      class Y {Y.c(); Y._d(); z() {}}
-      main() {var ^}''');
-    computeFast();
-    return computeFull(true).then((_) {
-      assertNoSuggestions();
-    });
-  }
-
-//  test_ConditionalExpression() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_FunctionExpression() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_FunctionExpressionInvocation() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_Identifier() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_IndexExpression() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_InstanceCreationExpression() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_Literal() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_MethodInvocation() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_NamedExpression() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_ParenthesizedExpression() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_PostfixExpression() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_PrefixedIdentifier() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_PrefixedExpression() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_PropertyAccess() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_RethrowExpression() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_SuperExpression() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_ThisExpression() {
-//    fail('not implemented yet');
-//  }
-//
-//  test_ThrowExpression() {
-//    fail('not implemented yet');
-//  }
 }

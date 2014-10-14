@@ -230,6 +230,16 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
+  visitPropertyAccess(PropertyAccess node) {
+    // InvocationComputer adds suggestions for property access selector
+  }
+
+  @override
+  visitStringInterpolation(StringInterpolation node) {
+    visitNode(node);
+  }
+
+  @override
   visitStringLiteral(StringLiteral node) {
     // ignore
   }

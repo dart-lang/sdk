@@ -50,6 +50,15 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
+  Future<bool> visitMethodInvocation(MethodInvocation node) {
+    Token period = node.period;
+    if (period == null || period.offset < request.offset) {
+      _addExpressionSuggestions(node.target);
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitNode(AstNode node) {
     return new Future.value(false);
   }
@@ -67,7 +76,8 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<Future<bool>> {
 
   @override
   Future<bool> visitPropertyAccess(PropertyAccess node) {
-    if (request.offset > node.offset) {
+    Token operator = node.operator;
+    if (operator != null && operator.offset < request.offset) {
       return _addExpressionSuggestions(node.realTarget);
     }
     return super.visitPropertyAccess(node);

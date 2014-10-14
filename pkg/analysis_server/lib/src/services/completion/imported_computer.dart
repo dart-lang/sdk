@@ -125,6 +125,15 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
+  Future<bool> visitMethodInvocation(MethodInvocation node) {
+    Token period = node.period;
+    if (period == null || request.offset <= period.offset) {
+      return _addImportedElementSuggestions();
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitNode(AstNode node) {
     return new Future.value(false);
   }
