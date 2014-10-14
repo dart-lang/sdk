@@ -116,16 +116,31 @@ class Request extends Message {
   ///
   /// See also [hijack].
   // TODO(kevmoo) finish documenting the rest of the arguments.
-  Request(this.method, Uri requestedUri, {String protocolVersion,
+  Request(String method, Uri requestedUri, {String protocolVersion,
+      Map<String, String> headers, Uri url, String scriptName,
+      Stream<List<int>> body, Map<String, Object> context,
+      OnHijackCallback onHijack})
+        : this._(method, requestedUri, protocolVersion: protocolVersion,
+            headers: headers, url: url, scriptName: scriptName,
+            body: body, context: context,
+            onHijack: onHijack == null ? null : new _OnHijack(onHijack));
+
+  /// This constructor has the same signature as [new Request] except that
+  /// accepts [onHijack] as [_OnHijack].
+  ///
+  /// Any [Request] created by calling [change] will pass [_onHijack] from the
+  /// source [Request] to ensure that [hijack] can only be called once, even
+  /// from a changed [Request].
+  Request._(this.method, Uri requestedUri, {String protocolVersion,
     Map<String, String> headers, Uri url, String scriptName,
     Stream<List<int>> body, Map<String, Object> context,
-    OnHijackCallback onHijack})
+    _OnHijack onHijack})
       : this.requestedUri = requestedUri,
         this.protocolVersion = protocolVersion == null ?
             '1.1' : protocolVersion,
         this.url = _computeUrl(requestedUri, url, scriptName),
         this.scriptName = _computeScriptName(requestedUri, url, scriptName),
-        this._onHijack = onHijack == null ? null : new _OnHijack(onHijack),
+        this._onHijack = onHijack,
         super(body == null ? new Stream.fromIterable([]) : body,
             headers: headers, context: context) {
     if (method.isEmpty) throw new ArgumentError('method cannot be empty.');
@@ -194,9 +209,10 @@ class Request extends Message {
     if (url == null) url = this.url;
     if (scriptName == null) scriptName = this.scriptName;
 
-    return new Request(this.method, this.requestedUri,
+    return new Request._(this.method, this.requestedUri,
         protocolVersion: this.protocolVersion, headers: headers, url: url,
-        scriptName: scriptName, body: this.read(), context: context);
+        scriptName: scriptName, body: this.read(), context: context,
+        onHijack: _onHijack);
   }
 
   /// Takes control of the underlying request socket.
