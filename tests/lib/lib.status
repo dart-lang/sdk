@@ -29,6 +29,7 @@ mirrors/generic_interface_test: RuntimeError # Issue 12087
 mirrors/generic_local_function_test: RuntimeError # Issue 12333
 mirrors/generic_mixin_test: RuntimeError # Issue 12333
 mirrors/generic_mixin_applications_test: RuntimeError # Issue 12333
+mirrors/get_field_static_test/00: RuntimeError # Issue 21323
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 15262
 mirrors/hot_get_field_test: CompileTimeError # Issue 12164
 mirrors/hot_set_field_test: CompileTimeError # Issue 12164

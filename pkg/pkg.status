@@ -107,6 +107,8 @@ third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 analyzer/test/generated/engine_test: Skip # Slow
 
+analyzer/test/enum_test: Fail # Issue 21323
+
 analysis_server/test/search/element_references_test: Pass, Slow
 analysis_server/test/services/index/store/codec_test: Pass, Slow
 
