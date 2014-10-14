@@ -581,6 +581,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalVariable('a', 'int');
       assertSuggestImportedClass('Object');
       assertNotSuggested('b');
+      assertNotSuggested('==');
     });
   }
 
@@ -652,6 +653,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('_T4');
       assertSuggestLocalTopLevelVar('T5', 'int');
       assertSuggestLocalTopLevelVar('_T6', null);
+      assertNotSuggested('==');
       // TODO (danrubel) suggest HtmlElement as low relevance
       assertNotSuggested('HtmlElement');
     });
@@ -677,6 +679,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('B');
       assertNotSuggested('X');
       assertNotSuggested('z');
+      assertNotSuggested('==');
     });
   }
 
@@ -698,6 +701,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('B');
       assertNotSuggested('X');
       assertNotSuggested('z');
+      assertNotSuggested('==');
     });
   }
 
@@ -715,6 +719,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('A');
       assertSuggestLocalClass('X');
       assertSuggestImportedClass('Object');
+      assertNotSuggested('==');
     });
   }
 
@@ -1105,6 +1110,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestInvocationGetter('length', 'int');
       assertNotSuggested('name');
       assertNotSuggested('Object');
+      assertNotSuggested('==');
     });
   }
 
@@ -1281,6 +1287,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('A');
       assertNotSuggested('X');
       assertNotSuggested('Object');
+      assertNotSuggested('==');
     });
   }
 
@@ -1311,6 +1318,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('A');
       assertNotSuggested('X');
       assertNotSuggested('Object');
+      assertNotSuggested('==');
     });
   }
 
@@ -1335,6 +1343,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('Object');
       assertNotSuggested('b');
       assertNotSuggested('A');
+      assertNotSuggested('==');
     });
   }
 
@@ -1352,6 +1361,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull(true).then((_) {
       assertSuggestInvocationGetter('y', 'M');
       assertNotSuggested('_z');
+      assertNotSuggested('==');
     });
   }
 
@@ -1379,9 +1389,11 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     computeFast();
     return computeFull(true).then((_) {
       assertSuggestInvocationGetter('length', 'int');
+      assertNotSuggested('==');
       assertNotSuggested('A');
       assertNotSuggested('a');
       assertNotSuggested('Object');
+      assertNotSuggested('==');
     });
   }
 
@@ -1394,6 +1406,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('A');
       assertNotSuggested('a');
       assertNotSuggested('Object');
+      assertNotSuggested('==');
     });
   }
 

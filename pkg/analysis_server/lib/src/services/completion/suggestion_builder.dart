@@ -43,6 +43,9 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 
   @override
   visitMethodElement(MethodElement element) {
+    if (element.isOperator) {
+      return;
+    }
     _addElementSuggestion(
         element,
         CompletionSuggestionKind.METHOD,
