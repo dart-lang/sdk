@@ -29,6 +29,7 @@ await_test: Skip
 await_future_test: Skip
 await_exceptions_test: Skip
 await_backwards_compatibility_test/*: Skip
+vm/optimized_await_regress_test: Skip
 
 [ $compiler == dart2dart]
 # Async/await not yet supported in dart2dart.
