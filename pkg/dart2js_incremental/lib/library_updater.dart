@@ -18,6 +18,7 @@ import 'package:compiler/implementation/dart2jslib.dart' show
 
 import 'package:compiler/implementation/elements/elements.dart' show
     Element,
+    FunctionElement,
     LibraryElement;
 
 import 'package:compiler/implementation/scanner/scannerlib.dart' show
@@ -38,9 +39,14 @@ import 'package:compiler/implementation/js/js.dart' show
 import 'package:compiler/implementation/js/js.dart' as jsAst;
 
 import 'package:compiler/implementation/js_emitter/js_emitter.dart' show
-    ClassBuilder;
+    CodeEmitterTask,
+    MemberInfo;
 
 import 'package:compiler/js_lib/shared/embedded_names.dart' as embeddedNames;
+
+import 'package:compiler/implementation/js_backend/js_backend.dart' show
+    JavaScriptBackend,
+    Namer;
 
 import 'diff.dart' show
     Difference,
@@ -75,6 +81,12 @@ class LibraryUpdater {
       this.uri,
       this.logTime,
       this.logVerbose);
+
+  JavaScriptBackend get backend => compiler.backend;
+
+  Namer get namer => backend.namer;
+
+  CodeEmitterTask get emitter => backend.emitter;
 
   /// Used as tear-off passed to [LibraryLoaderTask.resetAsync].
   Future<bool> reuseLibrary(LibraryElement library) {
@@ -205,7 +217,9 @@ class LibraryUpdater {
 
     List<jsAst.Statement> updates = <jsAst.Statement>[];
     for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {
-      updates.add(computeMemberUpdateJs(element));
+      if (!element.isField) {
+        updates.add(computeMemberUpdateJs(element));
+      }
     }
 
     if (updates.length == 1) {
@@ -216,22 +230,28 @@ class LibraryUpdater {
   }
 
   jsAst.Node computeMemberUpdateJs(Element element) {
-    ClassBuilder builder = new ClassBuilder(element, compiler.backend.namer);
-
-    compiler.backend.emitter.oldEmitter.containerBuilder.addMember(
-        element, builder);
-    jsAst.Property property = builder.properties.single;
-    jsAst.Node name = property.name;
-    jsAst.Node function = property.value;
-    jsAst.Node elementAccess = compiler.backend.namer.elementAccess(element);
+    MemberInfo info = emitter.oldEmitter.containerBuilder
+        .analyzeMemberMethod(element);
+    if (info == null) {
+      compiler.internalError(element, '${element.runtimeType}');
+    }
+    String name = info.name;
+    jsAst.Node function = info.code;
+    jsAst.Node elementAccess = namer.elementAccess(element);
     jsAst.Expression globalFunctionsAccess =
-        compiler.backend.emitter.generateEmbeddedGlobalAccess(
-            embeddedNames.GLOBAL_FUNCTIONS);
+        emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
     List<jsAst.Statement> statements = <jsAst.Statement>[];
     statements.add(
         js.statement(
             '#.# = # = f',
             [globalFunctionsAccess, name, elementAccess]));
+    if (info.canTearOff) {
+      String globalName = namer.globalObjectFor(element);
+      statements.add(
+          js.statement(
+              '#.#().# = f',
+              [globalName, info.tearOffName, callNameFor(element)]));
+    }
     // Create a scope by creating a new function. The updated function literal
     // is passed as an argument to this function which ensures that temporary
     // names in updateScope don't shadow global names.
@@ -243,6 +263,13 @@ class LibraryUpdater {
     jsAst.Printer printer = new jsAst.Printer(compiler, null);
     printer.blockOutWithoutBraces(node);
     return printer.outBuffer.getText();
+  }
+
+  String callNameFor(FunctionElement element) {
+    // TODO(ahe): Call a method in the compiler to obtain this name.
+    String callPrefix = namer.callPrefix;
+    int parameterCount = element.functionSignature.parameterCount;
+    return '$callPrefix\$$parameterCount';
   }
 }
 
