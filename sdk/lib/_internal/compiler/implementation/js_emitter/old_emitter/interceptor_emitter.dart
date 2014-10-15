@@ -151,7 +151,8 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
     } else {
       ClassElement jsUnknown = backend.jsUnknownJavaScriptObjectClass;
-      if (compiler.codegenWorld.instantiatedClasses.contains(jsUnknown)) {
+      if (compiler.codegenWorld
+              .directlyInstantiatedClasses.contains(jsUnknown)) {
         statements.add(
             js.statement('if (!(receiver instanceof #)) return #;',
                 [namer.elementAccess(compiler.objectClass),

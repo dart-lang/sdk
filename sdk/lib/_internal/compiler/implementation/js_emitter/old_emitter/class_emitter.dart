@@ -393,7 +393,7 @@ class ClassEmitter extends CodeEmitterHelper {
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can simplify its JavaScript constructor.
     bool isInstantiated =
-        compiler.codegenWorld.instantiatedClasses.contains(element);
+        compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
 
     void visitField(Element holder, VariableElement field) {
       assert(invariant(element, field.isDeclaration));

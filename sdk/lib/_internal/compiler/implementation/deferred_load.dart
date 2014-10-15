@@ -296,7 +296,7 @@ class DeferredLoadTask extends CompilerTask {
       // to.  Static members are not relevant, unless we are processing
       // extra dependencies due to mirrors.
       void addLiveInstanceMember(Element element) {
-        if (!compiler.enqueuer.resolution.isLive(element)) return;
+        if (!compiler.enqueuer.resolution.hasBeenResolved(element)) return;
         if (!isMirrorUsage && !element.isInstanceMember) return;
         collectDependencies(element.implementation);
       }

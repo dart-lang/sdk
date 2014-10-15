@@ -3200,6 +3200,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     });
 
     registry.registerStaticUse(redirectionTarget);
+    // TODO(johnniwinther): Register the effective target type instead.
     registry.registerInstantiatedClass(
         redirectionTarget.enclosingClass.declaration);
     if (isSymbolConstructor) {
@@ -3297,6 +3298,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       compiler.reportError(node.send.selector,
                            MessageKind.TYPE_VARIABLE_IN_CONSTANT);
     }
+    // TODO(johniwinther): Avoid registration of `type` in face of redirecting
+    // factory constructors.
     registry.registerInstantiatedType(type);
     if (constructor.isFactoryConstructor && !type.typeArguments.isEmpty) {
       registry.registerFactoryWithTypeArguments();

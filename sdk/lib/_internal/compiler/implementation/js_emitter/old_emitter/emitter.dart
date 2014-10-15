@@ -1721,7 +1721,7 @@ class OldEmitter implements Emitter {
       // native elements.
       ClassElement cls =
           element.enclosingClassOrCompilationUnit.declaration;
-      if (compiler.codegenWorld.instantiatedClasses.contains(cls)
+      if (compiler.codegenWorld.directlyInstantiatedClasses.contains(cls)
           && !cls.isNative) {
         owner = cls;
       }

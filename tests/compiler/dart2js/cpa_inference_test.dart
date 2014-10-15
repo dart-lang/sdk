@@ -1459,8 +1459,9 @@ testJsCall() {
     final expectedType = [result.bool];
     result.checkNodeHasType('h', expectedType);
     result.checkNodeHasType('hNull', maybe(expectedType));
-    final expectedIType = [result.base('A'), result.base('B'),
-                           result.base('BB'), result.base('C'),
+    final expectedIType = [result.base('B'),
+                           result.base('BB'),
+                           result.base('C'),
                            result.base('D')];
     result.checkNodeHasType('i', expectedIType);
     result.checkNodeHasType('iNull', maybe(expectedIType));

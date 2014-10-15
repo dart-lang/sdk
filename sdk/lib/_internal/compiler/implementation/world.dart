@@ -148,7 +148,7 @@ class World implements ClassWorld {
 
   /// Returns `true` if [cls] is instantiated.
   bool isInstantiated(ClassElement cls) {
-    return compiler.enqueuer.resolution.isLive(cls);
+    return compiler.resolverWorld.isInstantiated(cls);
   }
 
   /// Returns an iterable over the live classes that extend [cls] including
@@ -385,7 +385,7 @@ class World implements ClassWorld {
     // classes: if the superclass of these classes require RTI, then
     // they also need RTI, so that a constructor passes the type
     // variables to the super constructor.
-    compiler.resolverWorld.allInstantiatedClasses.forEach(addSubtypes);
+    compiler.resolverWorld.directlyInstantiatedClasses.forEach(addSubtypes);
   }
 
   void registerMixinUse(MixinApplicationElement mixinApplication,

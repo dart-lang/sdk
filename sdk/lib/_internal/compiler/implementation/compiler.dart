@@ -1885,7 +1885,7 @@ abstract class Compiler implements DiagnosticListener {
   void reportUnusedCode() {
     void checkLive(member) {
       if (member.isFunction) {
-        if (!enqueuer.resolution.isLive(member)) {
+        if (!enqueuer.resolution.hasBeenResolved(member)) {
           reportHint(member, MessageKind.UNUSED_METHOD,
                      {'name': member.name});
         }

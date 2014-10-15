@@ -40,7 +40,7 @@ abstract class Enqueuer {
       = new Map<String, Set<Element>>();
   final Map<String, Set<Element>> instanceFunctionsByName
       = new Map<String, Set<Element>>();
-  final Set<ClassElement> _seenClasses = new Set<ClassElement>();
+  final Set<ClassElement> _processedClasses = new Set<ClassElement>();
   Set<ClassElement> recentClasses = new Setlet<ClassElement>();
   final Universe universe = new Universe();
 
@@ -91,7 +91,7 @@ abstract class Enqueuer {
       registry.registerDependency(cls);
       cls.ensureResolved(compiler);
       universe.registerTypeInstantiation(type, byMirrors: mirrorUsage);
-      onRegisterInstantiatedClass(cls);
+      processInstantiatedClass(cls);
     });
   }
 
@@ -105,7 +105,7 @@ abstract class Enqueuer {
     return filter.checkNoEnqueuedInvokedInstanceMethods(this);
   }
 
-  void processInstantiatedClass(ClassElement cls) {
+  void processInstantiatedClassMembers(ClassElement cls) {
     cls.implementation.forEachMember(processInstantiatedClassMember);
   }
 
@@ -214,17 +214,17 @@ abstract class Enqueuer {
   void enableNoSuchMethod(Element element) {}
   void enableIsolateSupport() {}
 
-  void onRegisterInstantiatedClass(ClassElement cls) {
+  void processInstantiatedClass(ClassElement cls) {
     task.measure(() {
-      if (_seenClasses.contains(cls)) return;
+      if (_processedClasses.contains(cls)) return;
       // The class must be resolved to compute the set of all
       // supertypes.
       cls.ensureResolved(compiler);
 
       void processClass(ClassElement cls) {
-        if (_seenClasses.contains(cls)) return;
+        if (_processedClasses.contains(cls)) return;
 
-        _seenClasses.add(cls);
+        _processedClasses.add(cls);
         recentClasses.add(cls);
         cls.ensureResolved(compiler);
         cls.implementation.forEachMember(processInstantiatedClassMember);
@@ -410,7 +410,7 @@ abstract class Enqueuer {
       // as recently seen, as we do not know how many rounds of resolution might
       // have run before tree shaking is disabled and thus everything is
       // enqueued.
-      recents = _seenClasses.toSet();
+      recents = _processedClasses.toSet();
       compiler.log('Enqueuing everything');
       for (LibraryElement lib in compiler.libraryLoader.libraries) {
         enqueueReflectiveElementsInLibrary(lib, recents);
@@ -639,7 +639,7 @@ abstract class Enqueuer {
 
   void forgetElement(Element element) {
     universe.forgetElement(element, compiler);
-    _seenClasses.remove(element);
+    _processedClasses.remove(element);
   }
 }
 
@@ -680,13 +680,6 @@ class ResolutionEnqueuer extends Enqueuer {
   /// Registers [element] as resolved for the resolution enqueuer.
   void registerResolvedElement(AstElement element) {
     resolvedElements.add(element);
-  }
-
-  /// Returns [:true:] if [element] has actually been used.
-  bool isLive(Element element) {
-    if (_seenClasses.contains(element)) return true;
-    if (hasBeenResolved(element)) return true;
-    return false;
   }
 
   /**
@@ -888,11 +881,12 @@ class QueueFilter {
   bool checkNoEnqueuedInvokedInstanceMethods(Enqueuer enqueuer) {
     enqueuer.task.measure(() {
       // Run through the classes and see if we need to compile methods.
-      for (ClassElement classElement in enqueuer.universe.instantiatedClasses) {
+      for (ClassElement classElement in
+               enqueuer.universe.directlyInstantiatedClasses) {
         for (ClassElement currentClass = classElement;
              currentClass != null;
              currentClass = currentClass.superclass) {
-          enqueuer.processInstantiatedClass(currentClass);
+          enqueuer.processInstantiatedClassMembers(currentClass);
         }
       }
     });

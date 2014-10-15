@@ -1929,36 +1929,36 @@ class JavaScriptBackend extends Backend {
     bool foundClosure = false;
     Set<Element> reflectableMembers = new Set<Element>();
     ResolutionEnqueuer resolution = compiler.enqueuer.resolution;
-    for (ClassElement cls in resolution.universe.instantiatedClasses) {
+    for (ClassElement cls in resolution.universe.directlyInstantiatedClasses) {
       // Do not process internal classes.
       if (cls.library.isInternalLibrary || cls.isInjected) continue;
       if (referencedFromMirrorSystem(cls)) {
         Set<Name> memberNames = new Set<Name>();
-        // 1) the class (should be live)
-        assert(invariant(cls, resolution.isLive(cls)));
+        // 1) the class (should be resolved)
+        assert(invariant(cls, cls.isResolved));
         reflectableMembers.add(cls);
-        // 2) its constructors (if live)
+        // 2) its constructors (if resolved)
         cls.constructors.forEach((Element constructor) {
-          if (resolution.isLive(constructor)) {
+          if (resolution.hasBeenResolved(constructor)) {
             reflectableMembers.add(constructor);
           }
         });
-        // 3) all members, including fields via getter/setters (if live)
+        // 3) all members, including fields via getter/setters (if resolved)
         cls.forEachClassMember((Member member) {
-          if (resolution.isLive(member.element)) {
+          if (resolution.hasBeenResolved(member.element)) {
             memberNames.add(member.name);
             reflectableMembers.add(member.element);
           }
         });
-        // 4) all overriding members of subclasses/subtypes (should be live)
+        // 4) all overriding members of subclasses/subtypes (should be resolved)
         if (compiler.world.hasAnySubtype(cls)) {
           for (ClassElement subcls in compiler.world.subtypesOf(cls)) {
             subcls.forEachClassMember((Member member) {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.
                 // assert(invariant(member.element,
-                //    resolution.isLive(member.element)));
-                if (resolution.isLive(member.element)) {
+                //    resolution.hasBeenResolved(member.element)));
+                if (resolution.hasBeenResolved(member.element)) {
                   reflectableMembers.add(member.element);
                 }
               }
@@ -1974,13 +1974,13 @@ class JavaScriptBackend extends Backend {
       } else {
         // check members themselves
         cls.constructors.forEach((ConstructorElement element) {
-          if (!compiler.enqueuer.resolution.isLive(element)) return;
+          if (!resolution.hasBeenResolved(element)) return;
           if (referencedFromMirrorSystem(element, false)) {
             reflectableMembers.add(element);
           }
         });
         cls.forEachClassMember((Member member) {
-          if (!compiler.enqueuer.resolution.isLive(member.element)) return;
+          if (!resolution.hasBeenResolved(member.element)) return;
           if (referencedFromMirrorSystem(member.element, false)) {
             reflectableMembers.add(member.element);
           }
@@ -2005,7 +2005,7 @@ class JavaScriptBackend extends Backend {
       if (lib.isInternalLibrary) continue;
       lib.forEachLocalMember((Element member) {
         if (!member.isClass &&
-            compiler.enqueuer.resolution.isLive(member) &&
+            resolution.hasBeenResolved(member) &&
             referencedFromMirrorSystem(member)) {
           reflectableMembers.add(member);
         }

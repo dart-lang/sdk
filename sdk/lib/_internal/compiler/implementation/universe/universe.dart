@@ -99,7 +99,7 @@ class Universe {
   /// constructor that has been called directly and not only through a
   /// super-call.
   // TODO(johnniwinther): Improve semantic precision.
-  Iterable<ClassElement> get instantiatedClasses {
+  Iterable<ClassElement> get directlyInstantiatedClasses {
     return _directlyInstantiatedClasses;
   }
 
@@ -113,7 +113,7 @@ class Universe {
   /// All directly instantiated types, that is, the types of the directly
   /// instantiated classes.
   ///
-  /// See [instantiatedClasses].
+  /// See [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<DartType> get instantiatedTypes => _instantiatedTypes;
 

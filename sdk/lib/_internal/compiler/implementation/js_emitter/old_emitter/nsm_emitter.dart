@@ -20,7 +20,7 @@ class NsmEmitter extends CodeEmitterHelper {
 
   void emitNoSuchMethodHandlers(AddPropertyFunction addProperty) {
     // Do not generate no such method handlers if there is no class.
-    if (compiler.codegenWorld.instantiatedClasses.isEmpty) return;
+    if (compiler.codegenWorld.directlyInstantiatedClasses.isEmpty) return;
 
     String noSuchMethodName = namer.publicInstanceMethodNameByArity(
         Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);

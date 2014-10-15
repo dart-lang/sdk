@@ -221,7 +221,7 @@ class DartBackend extends Backend {
 
     String assembledCode = outputter.assembleProgram(
         libraries: compiler.libraryLoader.libraries,
-        instantiatedClasses: compiler.resolverWorld.instantiatedClasses,
+        instantiatedClasses: compiler.resolverWorld.directlyInstantiatedClasses,
         resolvedElements: compiler.enqueuer.resolution.resolvedElements,
         usedTypeLiterals: usedTypeLiterals,
         postProcessElementAst: postProcessElementAst,

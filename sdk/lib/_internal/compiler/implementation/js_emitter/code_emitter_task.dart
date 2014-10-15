@@ -171,8 +171,8 @@ class CodeEmitterTask extends CompilerTask {
         // TODO(sigurdm): We should track those constants.
         constantUnit = compiler.deferredLoadTask.mainOutputUnit;
       }
-      outputConstantLists.putIfAbsent(constantUnit, () => new List<ConstantValue>())
-          .add(constant);
+      outputConstantLists.putIfAbsent(
+          constantUnit, () => new List<ConstantValue>()).add(constant);
     }
   }
 
@@ -186,8 +186,8 @@ class CodeEmitterTask extends CompilerTask {
 
     // Compute needed classes.
     Set<ClassElement> instantiatedClasses =
-        compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
-            .toSet();
+        compiler.codegenWorld.directlyInstantiatedClasses
+            .where(computeClassFilter()).toSet();
 
     void addClassWithSuperclasses(ClassElement cls) {
       neededClasses.add(cls);
