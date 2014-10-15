@@ -404,6 +404,26 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  CompletionSuggestion assertSuggestImportedGetter(String name,
+      String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is ImportedComputer) {
+      return assertSuggestGetter(name, returnType, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
+  CompletionSuggestion assertSuggestImportedMethod(String name,
+      String declaringType, String returnType, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    if (computer is ImportedComputer) {
+      return assertSuggestMethod(name, declaringType, returnType, relevance);
+    } else {
+      return assertNotSuggested(name);
+    }
+  }
+
   CompletionSuggestion assertSuggestImportedTopLevelVar(String name,
       String returnType, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
@@ -659,6 +679,27 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_Block_inherited_local() {
+    // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
+    addTestSource('''
+      class F { var f1; f2() { } }
+      class E extends F { var e1; e2() { } }
+      class I { int i1; i2() { } }
+      class M { var m1; int m2() { } }
+      class A extends E implements I with M {a() {^}}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalGetter('e1', null);
+      assertSuggestLocalGetter('f1', null);
+      assertSuggestLocalGetter('i1', 'int');
+      assertSuggestLocalGetter('m1', null);
+      assertSuggestLocalMethod('e2', 'E', null);
+      assertSuggestLocalMethod('f2', 'F', null);
+      assertSuggestLocalMethod('i2', 'I', null);
+      assertSuggestLocalMethod('m2', 'M', 'int');
+    });
+  }
+
   test_CascadeExpression_selector1() {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
     addSource('/testB.dart', '''
@@ -752,11 +793,11 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // ClassDeclaration  CompilationUnit
     addSource('/testB.dart', '''
       class B { }''');
-    addTestSource( //
-    'import "testB.dart" as x;' //
-    ' @deprecated class A {^}' //
-    ' class _B {}' //
-    ' A T;');
+    addTestSource('''
+      import "testB.dart" as x;
+      @deprecated class A {^}
+      class _B {}
+      A T;''');
     computeFast();
     return computeFull(true).then((_) {
       CompletionSuggestion suggestionA = assertSuggestLocalClass('A');

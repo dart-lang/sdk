@@ -103,6 +103,66 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
+    _addClassDeclarationMembers(node);
+    _addInheritedTypeMembers(node);
+    visitNode(node);
+  }
+
+  void _addInheritedTypeMembers(ClassDeclaration node) {
+    ExtendsClause extendsClause = node.extendsClause;
+    if (extendsClause != null) {
+      _addLocalTypeMembers(extendsClause.superclass, node);
+    }
+    ImplementsClause implementsClause = node.implementsClause;
+    if (implementsClause != null) {
+      NodeList<TypeName> interfaces = implementsClause.interfaces;
+      if (interfaces != null) {
+        interfaces.forEach((TypeName type) {
+          _addLocalTypeMembers(type, node);
+        });
+      }
+    }
+    WithClause withClause = node.withClause;
+    if (withClause != null) {
+      NodeList<TypeName> mixinTypes = withClause.mixinTypes;
+      if (mixinTypes != null) {
+        mixinTypes.forEach((TypeName type) {
+          _addLocalTypeMembers(type, node);
+        });
+      }
+    }
+  }
+
+  void _addLocalTypeMembers(TypeName type, ClassDeclaration node) {
+    if (type == null) {
+      return;
+    }
+    Identifier typeId = type.name;
+    if (typeId == null) {
+      return;
+    }
+    String typeName = typeId.name;
+    if (typeName == null || typeName.length == 0) {
+      return;
+    }
+    CompilationUnit unit = node.getAncestor((p) => p is CompilationUnit);
+    if (unit == null) {
+      return;
+    }
+    unit.declarations.forEach((CompilationUnitMember m) {
+      if (m is ClassDeclaration) {
+        SimpleIdentifier id = m.name;
+        if (id != null) {
+          if (id.name == typeName) {
+            _addClassDeclarationMembers(m);
+            _addInheritedTypeMembers(m);
+          }
+        }
+      }
+    });
+  }
+
+  void _addClassDeclarationMembers(ClassDeclaration node) {
     node.members.forEach((ClassMember classMbr) {
       if (classMbr is FieldDeclaration) {
         _addFieldSuggestions(node, classMbr);
@@ -110,7 +170,6 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
         _addMethodSuggestion(node, classMbr);
       }
     });
-    visitNode(node);
   }
 
   @override
