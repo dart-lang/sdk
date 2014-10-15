@@ -90,6 +90,7 @@ import '../hash/sha1.dart';
 part 'class_stub_generator.dart';
 part 'code_emitter_task.dart';
 part 'helpers.dart';
+part 'interceptor_stub_generator.dart';
 
 part 'old_emitter/class_builder.dart';
 part 'old_emitter/class_emitter.dart';
