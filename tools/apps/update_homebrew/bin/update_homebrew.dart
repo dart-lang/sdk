@@ -15,6 +15,14 @@ import 'package:googleapis/common/common.dart' show DownloadOptions, Media;
 String repository;  // The path to the temporary git checkout of dart-homebrew.
 Map gitEnvironment;  // Pass a wrapper script for SSH to git in the environment.
 
+final CHANNELS = ['dev', 'stable'];
+
+final SDK_FILES = ['sdk/dartsdk-macos-x64-release.zip',
+                   'sdk/dartsdk-macos-ia32-release.zip' ];
+final DARTIUM_FILES = ['dartium/dartium-macos-ia32-release.zip' ];
+final FILES = []..addAll(SDK_FILES)..addAll(DARTIUM_FILES);
+
+
 Future<String> getHash256(String channel, int revision, String download) {
   var client = new http.Client();
   var api = new storage.StorageApi(client);
@@ -38,28 +46,165 @@ Future<String> getVersion(String channel, int revision) {
       .whenComplete(client.close);
 }
 
+Future<Map> setCurrentRevisions(Map revisions) {
+  return new File('$repository/dart.rb')
+    .readAsLines()
+    .then((lines) {
+      for (var channel in CHANNELS) {
+        final regExp = new RegExp('channels/$channel/release/(\\d*)/sdk');
+        revisions[channel] =
+	    regExp.firstMatch(lines.firstWhere(regExp.hasMatch)).group(1);
+      }
+    });
+}
+
+Future<Map> setHashes(Map revisions, Map hashes) {
+  List waitOn = [];
+  for (var channel in CHANNELS) {
+    hashes[channel] = {};
+    for (var file in FILES) {
+      waitOn.add(getHash256(channel, revisions[channel], file).then((hash) {
+        hashes[channel][file] = hash;
+      }));
+    }
+  }
+  return Future.wait(waitOn);
+}
+
 Future writeHomebrewInfo(String channel, int revision) {
-  final buffer = new StringBuffer();
-  final moduleName = (channel == 'dev') ? 'DartDev' : 'DartStable';
-  buffer.writeln('module $moduleName');
-  final files = {'SDK64': 'sdk/dartsdk-macos-x64-release.zip',
-                 'SDK32': 'sdk/dartsdk-macos-ia32-release.zip',
-                 'DARTIUM': 'dartium/dartium-macos-ia32-release.zip'};
-  return Future.forEach(files.keys, (key) {
-    return getHash256(channel, revision, files[key]).then((hash) {
-      final file = "channels/$channel/release/$revision/${files[key]}";
-      buffer.writeln('  ${key}_FILE = "$file"');
-      buffer.writeln('  ${key}_HASH = "$hash"');
-    });
-  })
-    .then((_) => getVersion(channel, revision))
-    .then((version) {
-      buffer.writeln('  VERSION = "$version"');
-      buffer.writeln('end');
-      return (new File('$repository/data/${channel}_info.rb').openWrite()
-        ..write(buffer))
-        .close();
-    });
+  var revisions = {};
+  var hashes = {};
+  var devVersion;
+  var stableVersion;
+  return setCurrentRevisions(revisions).then((_) {
+    if (revisions[channel] == revision) {
+      print("Channel $channel is already at revision $revision in homebrew.");
+      exit(0);
+    }
+    revisions[channel] = revision;
+    return setHashes(revisions, hashes);
+  }).then((_) {
+    return getVersion('dev', revisions['dev']);
+  }).then((version) {
+    devVersion = version;
+    return getVersion('stable', revisions['stable']);
+  }).then((version) {
+    stableVersion = version;
+    return (new File('$repository/dartium.rb').openWrite()
+      ..write(DartiumFile(revisions, hashes, devVersion, stableVersion)))
+      .close();
+  }).then((_) {
+    return (new File('$repository/dart.rb').openWrite()
+      ..write(DartFile(revisions, hashes, devVersion, stableVersion)))
+      .close();
+  });
+}
+
+String DartiumFile(Map revisions,
+                   Map hashes,
+                   String devVersion,
+                   String stableVersion) {
+  final urlBase = 'https://storage.googleapis.com/dart-archive/channels';
+  final dartiumFile = 'dartium/dartium-macos-ia32-release.zip';
+
+  return '''
+require 'formula'
+
+class Dartium < Formula
+  homepage "https://www.dartlang.org"
+
+  version '$stableVersion'
+  url '$urlBase/stable/release/${revisions['stable']}/$dartiumFile'
+  sha256 '${hashes['stable'][dartiumFile]}'
+
+  devel do
+    version '$devVersion'
+    url '$urlBase/dev/release/${revisions['dev']}/$dartiumFile'
+    sha256 '${hashes['dev'][dartiumFile]}'
+  end
+
+  def shim_script target
+    <<-EOS.undent
+      #!/bin/bash
+      open "#{prefix}/#{target}" "\$@"
+    EOS
+  end
+
+  def install
+    prefix.install Dir['*']
+    (bin+"dartium").write shim_script "Chromium.app"
+  end
+
+  def caveats; <<-EOS.undent
+     To use with IntelliJ, set the Dartium execute home to:
+        #{prefix}/Chromium.app
+    EOS
+  end
+
+  test do
+    system "#{bin}/dartium"
+  end
+end
+''';
+}
+
+String DartFile(Map revisions,
+                Map hashes,
+                String devVersion,
+                String stableVersion) {
+  final urlBase = 'https://storage.googleapis.com/dart-archive/channels';
+  final x64File = 'sdk/dartsdk-macos-x64-release.zip';
+  final ia32File = 'sdk/dartsdk-macos-ia32-release.zip';
+
+  return '''
+require 'formula'
+
+class Dart < Formula
+  homepage 'https://www.dartlang.org/'
+
+  version '$stableVersion'
+  if MacOS.prefer_64_bit?
+    url '$urlBase/stable/release/${revisions['stable']}/$x64File'
+    sha256 '${hashes['stable'][x64File]}'
+  else
+    url '$urlBase/stable/release/${revisions['stable']}/$ia32File'
+    sha256 '${hashes['stable'][ia32File]}'
+  end
+
+  devel do
+    version '$devVersion'
+    if MacOS.prefer_64_bit?
+      url '$urlBase/dev/release/${revisions['dev']}/$x64File'
+      sha256 '${hashes['dev'][x64File]}'
+    else
+      url '$urlBase/dev/release/${revisions['dev']}/$ia32File'
+      sha256 '${hashes['dev'][ia32File]}'
+    end
+  end
+
+  def install
+    libexec.install Dir['*']
+    bin.install_symlink "#{libexec}/bin/dart"
+    bin.write_exec_script Dir["#{libexec}/bin/{pub,docgen,dart?*}"]
+  end
+
+  def caveats; <<-EOS.undent
+    Please note the path to the Dart SDK:
+      #{opt_libexec}
+    EOS
+  end
+
+  test do
+    (testpath/'sample.dart').write <<-EOS.undent
+      void main() {
+        print(r"test message");
+      }
+    EOS
+
+    assert_equal "test message\\n", shell_output("#{bin}/dart sample.dart")
+  end
+end
+''';
 }
 
 Future runGit(List<String> args) {
