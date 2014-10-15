@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/implementation/dart2jslib.dart';
 import 'package:compiler/implementation/dart_backend/dart_backend.dart';
+import 'package:compiler/implementation/dart_backend/backend_ast_to_frontend_ast.dart'
+    show INSERT_NEW_BACKEND_COMMENT;
 
 const String TestStaticField = """
 class Foo {
@@ -51,6 +53,8 @@ Future test(String code, String feature) {
 }
 
 main() {
+  INSERT_NEW_BACKEND_COMMENT = true;
+
   asyncTest(() => Future.forEach([
     () => test(TestStaticField, 'static fields'),
   ], (f) => f()));

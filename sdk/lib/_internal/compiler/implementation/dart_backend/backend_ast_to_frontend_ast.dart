@@ -23,11 +23,7 @@ tree.FunctionExpression emit(dart2js.TreeElementMapping treeElements,
 /// If true, the unparser will insert a coment in front of every function
 /// it emits. This helps indicate which functions were translated by the new
 /// backend.
-const bool INSERT_NEW_BACKEND_COMMENT = true;
-
-/// The comment inserted in front of every function body.
-const String NEW_BACKEND_COMMENT =
-    INSERT_NEW_BACKEND_COMMENT ? '/* new backend */ ' : '';
+bool INSERT_NEW_BACKEND_COMMENT = false;
 
 /// Converts backend ASTs to frontend ASTs.
 class TreePrinter {
@@ -600,7 +596,7 @@ class TreePrinter {
 
   /// A comment token to be inserted when [INSERT_NEW_BACKEND_COMMENT] is true.
   final SymbolToken newBackendComment = new SymbolToken(
-      const PrecedenceInfo(NEW_BACKEND_COMMENT, 0, OPEN_CURLY_BRACKET_TOKEN),
+      const PrecedenceInfo('/* new backend */ ', 0, OPEN_CURLY_BRACKET_TOKEN),
       -1);
 
   tree.Node makeFunctionBody(Statement stmt) {

@@ -22,9 +22,7 @@ import '../lib/src/dart_backend.dart';
 main() {
   test('Empty main', () {
     String expectedResult =  '''
-main() $NEW_BACKEND_COMMENT
-  {}
-
+main() {}
 ''';
     checkResult('''
 main() {}''',
@@ -42,15 +40,6 @@ foo() {}
 main() {
   foo();
 }
-''', '''
-foo() $NEW_BACKEND_COMMENT
-  {}
-
-main() $NEW_BACKEND_COMMENT
-  {
-    foo();
-  }
-
 ''');
 
     checkResult('''
@@ -61,20 +50,6 @@ foo() {
 main() {
   foo();
 }
-''', '''
-bar() $NEW_BACKEND_COMMENT
-  {}
-
-foo() $NEW_BACKEND_COMMENT
-  {
-    bar();
-  }
-
-main() $NEW_BACKEND_COMMENT
-  {
-    foo();
-  }
-
 ''');
 
     checkResult('''
@@ -87,22 +62,6 @@ foo() {
 main() {
   foo();
 }
-''', '''
-bar() $NEW_BACKEND_COMMENT
-  {
-    main();
-  }
-
-foo() $NEW_BACKEND_COMMENT
-  {
-    bar();
-  }
-
-main() $NEW_BACKEND_COMMENT
-  {
-    foo();
-  }
-
 ''');
   });
 
@@ -111,60 +70,30 @@ main() $NEW_BACKEND_COMMENT
 main() {
   return 0;
 }
-''', '''
-main() $NEW_BACKEND_COMMENT
-  {
-    return 0;
-  }
-
 ''');
 
     checkResult('''
 main() {
   return 1.5;
 }
-''', '''
-main() $NEW_BACKEND_COMMENT
-  {
-    return 1.5;
-  }
-
 ''');
 
     checkResult('''
 main() {
   return true;
 }
-''', '''
-main() $NEW_BACKEND_COMMENT
-  {
-    return true;
-  }
-
 ''');
 
     checkResult('''
 main() {
   return false;
 }
-''', '''
-main() $NEW_BACKEND_COMMENT
-  {
-    return false;
-  }
-
 ''');
 
     checkResult('''
 main() {
   return "a";
 }
-''', '''
-main() $NEW_BACKEND_COMMENT
-  {
-    return "a";
-  }
-
 ''');
 
     checkResult('''
@@ -172,78 +101,43 @@ main() {
   return "a" "b";
 }
 ''', '''
-main() $NEW_BACKEND_COMMENT
-  {
-    return "ab";
-  }
-
+main() {
+  return "ab";
+}
 ''');
   });
 
   test('Parameters', () {
     checkResult('''
-main(args) {
-}
-''', '''
-main(args) $NEW_BACKEND_COMMENT
-  {}
-
+main(args) {}
 ''');
 
     checkResult('''
-main(a, b) {
-}
-''', '''
-main(a, b) $NEW_BACKEND_COMMENT
-  {}
-
+main(a, b) {}
 ''');
   });
 
   test('Typed parameters', () {
     checkResult('''
-void main(args) {
-}
-''', '''
-void main(args) $NEW_BACKEND_COMMENT
-  {}
-
+void main(args) {}
 ''');
 
     checkResult('''
-main(int a, String b) {
-}
-''', '''
-main(int a, String b) $NEW_BACKEND_COMMENT
-  {}
-
+main(int a, String b) {}
 ''');
 
     checkResult('''
-main(Comparator a, List b) {
-}
-''', '''
-main(Comparator a, List b) $NEW_BACKEND_COMMENT
-  {}
-
+main(Comparator a, List b) {}
 ''');
 
     checkResult('''
-main(Comparator<dynamic> a, List<dynamic> b) {
-}
+main(Comparator<dynamic> a, List<dynamic> b) {}
 ''', '''
-main(Comparator a, List b) $NEW_BACKEND_COMMENT
-  {}
-
+main(Comparator a, List b) {}
 ''');
 
     checkResult('''
-main(Map a, Map<dynamic, List<int>> b) {
-}
-''', '''
-main(Map a, Map<dynamic, List<int>> b) $NEW_BACKEND_COMMENT
-  {}
-
+main(Map a, Map<dynamic, List<int>> b) {}
 ''');
   });
 
@@ -253,15 +147,6 @@ foo(a) {}
 main() {
   foo(null);
 }
-''', '''
-foo(a) $NEW_BACKEND_COMMENT
-  {}
-
-main() $NEW_BACKEND_COMMENT
-  {
-    foo(null);
-  }
-
 ''');
 
     checkResult('''
@@ -271,19 +156,6 @@ main() {
   foo(null);
   bar(0, "");
 }
-''', '''
-bar(b, c) $NEW_BACKEND_COMMENT
-  {}
-
-foo(a) $NEW_BACKEND_COMMENT
-  {}
-
-main() $NEW_BACKEND_COMMENT
-  {
-    foo(null);
-    bar(0, "");
-  }
-
 ''');
 
     checkResult('''
@@ -294,20 +166,6 @@ foo(a) {
 main() {
   foo(null);
 }
-''', '''
-bar(b) $NEW_BACKEND_COMMENT
-  {}
-
-foo(a) $NEW_BACKEND_COMMENT
-  {
-    bar(a);
-  }
-
-main() $NEW_BACKEND_COMMENT
-  {
-    foo(null);
-  }
-
 ''');
   });
 
@@ -316,17 +174,15 @@ main() $NEW_BACKEND_COMMENT
 main(args) {
   return deprecated;
 }
-''', '''
-main(args) $NEW_BACKEND_COMMENT
-  {
-    return deprecated;
-  }
-
 ''');
   });
 }
 
-checkResult(String input, String expectedOutput) {
+checkResult(String input, [String expectedOutput]) {
+  if (expectedOutput == null) {
+    expectedOutput = input;
+  }
+
   CollectingOutputProvider outputProvider = new CollectingOutputProvider();
   MemoryResourceProvider provider = new MemoryResourceProvider();
   DartSdk sdk = new MockSdk();
