@@ -506,7 +506,7 @@ Language/12_Expressions/03_Numbers_A05_t02: fail # co19 issue 716
 Language/12_Expressions/19_Conditional_A04_t03: fail # co19 issue 716
 Language/12_Expressions/20_Logical_Boolean_Expressions_A03_t01: fail # Issue 21195 and co19 issue 725
 Language/12_Expressions/27_Unary_Expressions_A02_t03: fail # Issue 21196 and co19 issue 726
-Language/13_Statements/06_For/1_For_Loop_A01_t08: fail # Issue 21197 and co19 issue 727
+Language/13_Statements/06_For/1_For_Loop_A01_t08: fail # co19 issue 727
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/typed_data/Float32List/Float32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
@@ -620,8 +620,8 @@ LibTest/isolate/Isolate/spawnUri_A01_t05: Fail # co19-roll r672: Please triage t
 [ $compiler == dart2js ]
 LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 Language/03_Overview/2_Privacy_A01_t02: RuntimeError # co19 issue 730
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t16: RuntimeError # co19 issue 731
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t17: RuntimeError # co19 issue 731
+Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t16: RuntimeError # Issue 21271
+Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t17: RuntimeError # Issue 21271
 LibTest/convert/JsonDecoder/fuse_A01_t01: RuntimeError # co19-roll r667: Please triage this failure
 LibTest/convert/JsonEncoder/convert_A01_t01: RuntimeError # co19-roll r667: Please triage this failure
 
