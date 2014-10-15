@@ -300,9 +300,8 @@ class Entrypoint {
                   });
                   return completer0.future;
                 })).catchError(((error) {
-                  for (package in dependenciesToPrecompile) {
-                    deleteEntry(path.join(depsDir, package));
-                  }
+                  dependenciesToPrecompile.forEach(
+                      (package) => deleteEntry(path.join(depsDir, package)));
                   throw error;
                 })).then((x1) {
                   try {

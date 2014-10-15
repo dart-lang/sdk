@@ -222,9 +222,8 @@ class Entrypoint {
       // TODO(nweiz): When barback does a better job of associating errors with
       // assets (issue 19491), catch and handle compilation errors on a
       // per-package basis.
-      for (var package in dependenciesToPrecompile) {
-        deleteEntry(path.join(depsDir, package));
-      }
+      dependenciesToPrecompile.forEach((package) =>
+          deleteEntry(path.join(depsDir, package)));
       throw error;
     });
   }
