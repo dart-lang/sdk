@@ -15,7 +15,11 @@ web/end_to_end_test: Fail, OK # http://dartbug.com/17935
 web/cursor_position_test: Fail # http://dartbug.com/19836
 
 [ $runtime == safari && $checked ]
-web/source_update_test: Fail, Pass # Safari is flaky, suspect bad optimization.
+# The following tests flake with this error:
+#   type '*Theme' is not a subtype of type 'Theme'
+# Suspect this is a bad optimization.
+web/source_update_test: Fail, Pass
+web/paste_content_rewriting_test: Fail, Pass
 
 [ $browser ]
 poi/poi_test: SkipByDesign # Uses dart:io.
