@@ -267,11 +267,8 @@ class CodeEmitterTask extends CompilerTask {
     List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
 
     for (ClassElement element in sortedClasses) {
-      if (typeTestEmitter.rtiNeededClasses.contains(element)) {
-        // TODO(sigurdm): We might be able to defer some of these.
-        outputClassLists.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
-            () => new List<ClassElement>()).add(element);
-      } else if (Elements.isNativeOrExtendsNative(element)) {
+      if (Elements.isNativeOrExtendsNative(element) &&
+          !typeTestEmitter.rtiNeededClasses.contains(element)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClasses.add(element);
         if (!element.isNative) {
