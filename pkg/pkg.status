@@ -106,6 +106,7 @@ docgen/test/*: Skip # Far too slow
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 analyzer/test/generated/engine_test: Skip # Slow
+analyzer/test/generated/static_type_warning_code_test: Pass, Slow
 
 analyzer/test/enum_test: Fail # Issue 21323
 
