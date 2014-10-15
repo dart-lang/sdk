@@ -5042,6 +5042,10 @@ void LICM::Hoist(ForwardInstructionIterator* it,
                  Instruction* current) {
   if (current->IsCheckClass()) {
     current->AsCheckClass()->set_licm_hoisted(true);
+  } else if (current->IsCheckSmi()) {
+    current->AsCheckSmi()->set_licm_hoisted(true);
+  } else if (current->IsCheckEitherNonSmi()) {
+    current->AsCheckEitherNonSmi()->set_licm_hoisted(true);
   }
   // TODO(fschneider): Avoid repeated deoptimization when
   // speculatively hoisting checks.

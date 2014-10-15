@@ -4588,9 +4588,8 @@ class CloneContextInstr : public TemplateDefinition<1> {
 
 class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
  public:
-  CheckEitherNonSmiInstr(Value* left,
-                         Value* right,
-                         intptr_t deopt_id) {
+  CheckEitherNonSmiInstr(Value* left, Value* right, intptr_t deopt_id)
+      : licm_hoisted_(false) {
     SetInputAt(0, left);
     SetInputAt(1, right);
     // Override generated deopt-id.
@@ -4615,7 +4614,11 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
 
   virtual bool MayThrow() const { return false; }
 
+  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+
  private:
+  bool licm_hoisted_;
+
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
 };
 
@@ -7862,7 +7865,7 @@ class CheckClassInstr : public TemplateInstruction<1> {
 class CheckSmiInstr : public TemplateInstruction<1> {
  public:
   CheckSmiInstr(Value* value, intptr_t original_deopt_id, intptr_t token_pos)
-      : token_pos_(token_pos) {
+      : token_pos_(token_pos), licm_hoisted_(false) {
     SetInputAt(0, value);
     deopt_id_ = original_deopt_id;
   }
@@ -7885,8 +7888,11 @@ class CheckSmiInstr : public TemplateInstruction<1> {
 
   virtual bool MayThrow() const { return false; }
 
+  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+
  private:
   const intptr_t token_pos_;
+  bool licm_hoisted_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckSmiInstr);
 };

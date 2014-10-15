@@ -3311,7 +3311,8 @@ LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary(Isolate* isolate,
 
 void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        ICData::kDeoptBinaryDoubleOp);
+                                        ICData::kDeoptBinaryDoubleOp,
+                                        licm_hoisted_ ? ICData::kHoisted : 0);
   intptr_t left_cid = left()->Type()->ToCid();
   intptr_t right_cid = right()->Type()->ToCid();
   Register left = locs()->in(0).reg();
@@ -5543,7 +5544,9 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary(Isolate* isolate,
 
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckSmi);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        ICData::kDeoptCheckSmi,
+                                        licm_hoisted_ ? ICData::kHoisted : 0);
   __ testl(value, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, deopt);
 }
