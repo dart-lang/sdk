@@ -229,7 +229,7 @@ class ForgetElementTestCase extends CompilerTestCase {
   }
 
   Iterable codegenClassesIn(LibraryElement library) {
-    return codegenUniverse.instantiatedClasses.where(
+    return codegenUniverse.directlyInstantiatedClasses.where(
         (ClassElement cls) => cls.library == library);
   }
 
@@ -247,7 +247,7 @@ class ForgetElementTestCase extends CompilerTestCase {
   }
 
   Iterable resolutionClassesIn(LibraryElement library) {
-    return resolutionUniverse.instantiatedClasses.where(
+    return resolutionUniverse.directlyInstantiatedClasses.where(
         (ClassElement cls) => cls.library == library);
   }
 
