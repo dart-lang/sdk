@@ -471,11 +471,14 @@ const _JS_OBJECT_PROPERTY_NAME = r'_$dart_jsObject';
 const _JS_FUNCTION_PROPERTY_NAME = r'$dart_jsFunction';
 
 bool _defineProperty(o, String name, value) {
-  if (JS('bool', 'Object.isExtensible(#)', o)) {
+  if (_isExtensible(o) &&
+      // TODO(ahe): Calling _hasOwnProperty to work around
+      // https://code.google.com/p/dart/issues/detail?id=21331.
+      !_hasOwnProperty(o, name)) {
     try {
       JS('void', 'Object.defineProperty(#, #, { value: #})', o, name, value);
       return true;
-    } catch(e) {
+    } catch (e) {
       // object is native and lies about being extensible
       // see https://bugzilla.mozilla.org/show_bug.cgi?id=775185
     }
@@ -483,8 +486,14 @@ bool _defineProperty(o, String name, value) {
   return false;
 }
 
+bool _hasOwnProperty(o, String name) {
+  return JS('bool', 'Object.prototype.hasOwnProperty.call(#, #)', o, name);
+}
+
+bool _isExtensible(o) => JS('bool', 'Object.isExtensible(#)', o);
+
 Object _getOwnProperty(o, String name) {
-  if (JS('bool', 'Object.prototype.hasOwnProperty.call(#, #)', o, name)) {
+  if (_hasOwnProperty(o, name)) {
     return JS('', '#[#]', o, name);
   }
   return null;
