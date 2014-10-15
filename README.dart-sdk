@@ -21,5 +21,3 @@ packages/        Additional packages that are shipped outside of the Dart
 version          The version number of the SDK (ex. 1.5.1).
 
 revision         The Subversion revision of the SDK build (ex. 37107).
-
-util/            Support files for dart_analyzer and pub.
