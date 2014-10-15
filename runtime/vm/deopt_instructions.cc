@@ -267,7 +267,7 @@ void DeoptContext::FillDestFrame() {
   if (FLAG_trace_deoptimization_verbose) {
     intptr_t* start = dest_frame_;
     for (intptr_t i = 0; i < frame_size; i++) {
-      OS::PrintErr("*%" Pd ". [%" Px "] %#014" Px " [%s]\n",
+      OS::PrintErr("*%" Pd ". [0x%" Px "] 0x%" Px " [%s]\n",
                    i,
                    reinterpret_cast<uword>(&start[i]),
                    start[i],
@@ -323,7 +323,10 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
     script.GetTokenLocation(token_pos, &line, &column);
     String& line_string = String::Handle(script.GetLine(line));
     OS::PrintErr("  Function: %s\n", top_function.ToFullyQualifiedCString());
-    OS::PrintErr("  Line %" Pd ": '%s'\n", line, line_string.ToCString());
+    char line_buffer[80];
+    OS::SNPrint(line_buffer, sizeof(line_buffer), "  Line %" Pd ": '%s'",
+                line, line_string.ToCString());
+    OS::PrintErr("%s\n", line_buffer);
     OS::PrintErr("  Deopt args: %" Pd "\n", deopt_arg_count);
   }
 
