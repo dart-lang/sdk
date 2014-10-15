@@ -1294,7 +1294,6 @@ class BoundsCheckGeneralizer {
             c = 0;
           }
         }
-
       } else if (binary_op->op_kind() == Token::kSUB) {
         intptr_t left_const = 0;
         intptr_t right_const = 0;
@@ -1334,11 +1333,13 @@ class BoundsCheckGeneralizer {
             c = 0;
           }
         }
-
-      } else {
+      } else if (binary_op->op_kind() == Token::kMUL) {
         if (!Simplify(&left, NULL) || !Simplify(&right, NULL)) {
           return false;
         }
+      } else {
+        // Don't attempt to simplify any other binary operation.
+        return true;
       }
 
       ASSERT(left != NULL);
