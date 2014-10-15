@@ -11,7 +11,7 @@ web/end_to_end_test: Fail, Pass # https://code.google.com/p/v8/issues/detail?id=
 [ $csp ]
 web/end_to_end_test: Fail, OK # http://dartbug.com/17935
 
-[ $runtime == safari ]
+[ $runtime == safari || $runtime == safarimobilesim ]
 web/cursor_position_test: Fail # http://dartbug.com/19836
 
 [ $runtime == safari && $checked ]
