@@ -463,7 +463,9 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void BuildLetTempExpressions(LetNode* node);
 
-  void BuildAwaitJump(LocalScope* lookup_scope,
+  void BuildAwaitJump(LocalVariable* old_context,
+                      LocalVariable* continuation_result,
+                      LocalVariable* continuation_error,
                       const intptr_t old_ctx_level,
                       JoinEntryInstr* target);
 

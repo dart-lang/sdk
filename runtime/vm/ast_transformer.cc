@@ -176,8 +176,6 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
 
   AwaitMarkerNode* await_marker = new (I) AwaitMarkerNode();
   await_marker->set_scope(preamble_->scope());
-  GetVariableInScope(preamble_->scope(), Symbols::AwaitJumpVar());
-  GetVariableInScope(preamble_->scope(), Symbols::AwaitContextVar());
   preamble_->Add(await_marker);
   ArgumentListNode* args = new(I) ArgumentListNode(Scanner::kNoSourcePos);
 
@@ -297,8 +295,7 @@ LocalScope* AwaitTransformer::ChainNewScope(LocalScope* parent) {
 
 
 void AwaitTransformer::VisitBinaryOpNode(BinaryOpNode* node) {
-  node->left()->Visit(this);
-  AstNode* new_left = result_;
+  AstNode* new_left = Transform(node->left());
   AstNode* new_right = NULL;
   // Preserve lazy evaluaton.
   if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
@@ -317,15 +314,9 @@ void AwaitTransformer::VisitBinaryOpNode(BinaryOpNode* node) {
 
 void AwaitTransformer::VisitBinaryOpWithMask32Node(
     BinaryOpWithMask32Node* node) {
-  node->left()->Visit(this);
-  AstNode* new_left = result_;
-  AstNode* new_right = NULL;
-  // Preserve lazy evaluaton.
-  if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
-    new_right = LazyTransform(node->kind(), new_left, node->right());
-  } else {
-    new_right = Transform(node->right());
-  }
+  ASSERT((node->kind() != Token::kAND) && (node->kind() != Token::kOR));
+  AstNode* new_left = Transform(node->left());
+  AstNode* new_right = Transform(node->right());
   LocalVariable* result = AddToPreambleNewTempVar(
       new(I) BinaryOpWithMask32Node(node->token_pos(),
                                     node->kind(),

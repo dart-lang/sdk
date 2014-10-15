@@ -5861,6 +5861,7 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   CloseBlock();
 
   closure_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
+  closure_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
   closure_body->scope()->CaptureVariable(Symbols::AsyncCompleter());
 
   // Create and return a new future that executes a closure with the current
@@ -5899,6 +5900,14 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
       async_completer,
       completer_constructor_node);
   current_block_->statements->Add(store_completer);
+
+  // :await_jump_var = -1;
+  LocalVariable* jump_var = current_block_->scope->LookupVariable(
+        Symbols::AwaitJumpVar(), false);
+  LiteralNode* init_value =
+    new(I) LiteralNode(Scanner::kNoSourcePos, Smi::ZoneHandle(Smi::New(-1)));
+  current_block_->statements->Add(
+      new (I) StoreLocalNode(Scanner::kNoSourcePos, jump_var, init_value));
 
   // Add to AST:
   //   :async_op = <closure>;  (containing the original body)
