@@ -168,6 +168,8 @@ abstract class StreamController<T> implements StreamSink<T> {
   /**
    * Send or enqueue an error event.
    *
+   * If [error] is `null`, it is replaced by a [NullThrownError].
+   *
    * Also allows an objection stack trace object, on top of what [EventSink]
    * allows.
    */
@@ -414,10 +416,11 @@ abstract class _StreamController<T> implements StreamController<T>,
    * Send or enqueue an error event.
    */
   void addError(Object error, [StackTrace stackTrace]) {
+    error = _nonNullError(error);
     if (!_mayAddEvent) throw _badEventState();
     AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
-      error = replacement.error;
+      error = _nonNullError(replacement.error);
       stackTrace = replacement.stackTrace;
     }
     _addError(error, stackTrace);

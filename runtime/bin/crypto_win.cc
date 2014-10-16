@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#ifndef _CRT_RAND_S
 #define _CRT_RAND_S
+#endif
 
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)

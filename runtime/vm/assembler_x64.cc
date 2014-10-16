@@ -1289,12 +1289,24 @@ void Assembler::andpd(XmmRegister dst, const Address& src) {
 }
 
 
-void Assembler::cvtsi2sd(XmmRegister dst, Register src) {
+void Assembler::cvtsi2sdq(XmmRegister dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(dst <= XMM15);
   Operand operand(src);
   EmitUint8(0xF2);
   EmitOperandREX(dst, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0x2A);
+  EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::cvtsi2sdl(XmmRegister dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(dst <= XMM15);
+  Operand operand(src);
+  EmitUint8(0xF2);
+  EmitOperandREX(dst, operand, REX_NONE);
   EmitUint8(0x0F);
   EmitUint8(0x2A);
   EmitOperand(dst & 7, operand);
@@ -1815,6 +1827,47 @@ void Assembler::addl(Register dst, Register src) {
 }
 
 
+void Assembler::addl(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, address, REX_NONE);
+  EmitUint8(0x03);
+  EmitOperand(dst & 7, address);
+}
+
+
+void Assembler::addl(const Address& address, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(src, address, REX_NONE);
+  EmitUint8(0x01);
+  EmitOperand(src & 7, address);
+}
+
+
+void Assembler::adcl(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_NONE);
+  EmitUint8(0x13);
+  EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::adcl(Register dst, const Immediate& imm) {
+  ASSERT(imm.is_int32());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(dst, REX_NONE);
+  EmitComplex(2, Operand(dst), imm);
+}
+
+
+void Assembler::adcl(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, address, REX_NONE);
+  EmitUint8(0x13);
+  EmitOperand(dst & 7, address);
+}
+
+
 void Assembler::addq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -1832,19 +1885,14 @@ void Assembler::addq(Register dst, const Address& address) {
 }
 
 
-void Assembler::addl(const Address& address, const Immediate& imm) {
-  UNIMPLEMENTED();
-}
-
-
-void Assembler::addq(Register reg, const Immediate& imm) {
+void Assembler::addq(Register dst, const Immediate& imm) {
   if (imm.is_int32()) {
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-    EmitRegisterREX(reg, REX_W);
-    EmitComplex(0, Operand(reg), imm);
+    EmitRegisterREX(dst, REX_W);
+    EmitComplex(0, Operand(dst), imm);
   } else {
     movq(TMP, imm);
-    addq(reg, TMP);
+    addq(dst, TMP);
   }
 }
 
@@ -1861,20 +1909,11 @@ void Assembler::addq(const Address& address, const Immediate& imm) {
 }
 
 
-void Assembler::addq(const Address& address, Register reg) {
+void Assembler::addq(const Address& address, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitOperandREX(reg, address, REX_W);
+  EmitOperandREX(src, address, REX_W);
   EmitUint8(0x01);
-  EmitOperand(reg & 7, address);
-}
-
-
-void Assembler::adcl(Register dst, Register src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  Operand operand(src);
-  EmitOperandREX(dst, operand, REX_NONE);
-  EmitUint8(0x13);
-  EmitOperand(dst & 7, operand);
+  EmitOperand(src & 7, address);
 }
 
 
@@ -1884,6 +1923,39 @@ void Assembler::subl(Register dst, Register src) {
   EmitOperandREX(dst, operand, REX_NONE);
   EmitUint8(0x2B);
   EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::subl(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, address, REX_NONE);
+  EmitUint8(0x2B);
+  EmitOperand(dst & 7, address);
+}
+
+
+void Assembler::sbbl(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_NONE);
+  EmitUint8(0x1B);
+  EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::sbbl(Register dst, const Immediate& imm) {
+  ASSERT(imm.is_int32());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(dst, REX_NONE);
+  EmitComplex(3, Operand(dst), imm);
+}
+
+
+void Assembler::sbbl(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, address, REX_NONE);
+  EmitUint8(0x1B);
+  EmitOperand(dst & 7, address);
 }
 
 
@@ -1904,7 +1976,15 @@ void Assembler::idivl(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_NONE);
   EmitUint8(0xF7);
-  EmitUint8(0xF8 | (reg & 7));
+  EmitOperand(7, Operand(reg));
+}
+
+
+void Assembler::divl(Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(reg, REX_NONE);
+  EmitUint8(0xF7);
+  EmitOperand(6, Operand(reg));
 }
 
 
@@ -1912,7 +1992,7 @@ void Assembler::idivq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_W);
   EmitUint8(0xF7);
-  EmitUint8(0xF8 | (reg & 7));
+  EmitOperand(7, Operand(reg));
 }
 
 
@@ -1933,6 +2013,14 @@ void Assembler::imull(Register reg, const Immediate& imm) {
   EmitUint8(0x69);
   EmitOperand(reg & 7, Operand(reg));
   EmitImmediate(imm);
+}
+
+
+void Assembler::mull(Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(reg, REX_NONE);
+  EmitUint8(0xF7);
+  EmitOperand(4, Operand(reg));
 }
 
 
@@ -2057,6 +2145,18 @@ void Assembler::sarl(Register reg, const Immediate& imm) {
 
 void Assembler::sarl(Register operand, Register shifter) {
   EmitGenericShift(false, 7, operand, shifter);
+}
+
+
+void Assembler::shldl(Register dst, Register src, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(imm.is_int8());
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_NONE);
+  EmitUint8(0x0F);
+  EmitUint8(0xA4);
+  EmitOperand(src & 7, Operand(dst));
+  EmitUint8(imm.value() & 0xFF);
 }
 
 
@@ -2626,6 +2726,11 @@ void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
   // This sequence must be of fixed size. AddressBaseImm32
   // forces the address operand to use a fixed-size imm32 encoding.
   movq(dst, Address::AddressBaseImm32(pp, offset));
+}
+
+
+void Assembler::LoadIsolate(Register dst) {
+  movq(dst, Immediate(reinterpret_cast<uword>(Isolate::Current())));
 }
 
 
@@ -3427,19 +3532,18 @@ void Assembler::LoadClassId(Register result, Register object) {
 }
 
 
-void Assembler::LoadClassById(Register result, Register class_id) {
+void Assembler::LoadClassById(Register result, Register class_id, Register pp) {
   ASSERT(result != class_id);
-  movq(result, FieldAddress(CTX, Context::isolate_offset()));
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  movq(result, Address(result, table_offset_in_isolate));
+  Isolate* isolate = Isolate::Current();
+  LoadImmediate(result, Immediate(isolate->class_table()->TableAddress()), pp);
+  movq(result, Address(result, 0));
   movq(result, Address(result, class_id, TIMES_8, 0));
 }
 
 
-void Assembler::LoadClass(Register result, Register object) {
+void Assembler::LoadClass(Register result, Register object, Register pp) {
   LoadClassId(TMP, object);
-  LoadClassById(result, TMP);
+  LoadClassById(result, TMP, pp);
 }
 
 

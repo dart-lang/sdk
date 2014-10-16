@@ -42,39 +42,10 @@ Map expandMethodMap(Map<String, Method> mapToExpand) => {
 
 String getDefaultValue(ParameterMirror mirror) {
   if (!mirror.hasDefaultValue) return null;
-  return getDefaultValueFromConstMirror(mirror.defaultValue);
+  return '${mirror.defaultValue}';
 }
 
-String getDefaultValueFromConstMirror(
-    dart2js_mirrors.Dart2JsConstantMirror valueMirror) {
-
-  if (valueMirror is dart2js_mirrors.Dart2JsStringConstantMirror) {
-    return '"${valueMirror.reflectee}"';
-  }
-
-  if (valueMirror is dart2js_mirrors.Dart2JsListConstantMirror) {
-    var buffer = new StringBuffer('[');
-
-    var values = new Iterable.generate(valueMirror.length,
-        (i) => valueMirror.getElement(i))
-        .map((e) => getDefaultValueFromConstMirror(e));
-
-    buffer.writeAll(values, ', ');
-
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  if (valueMirror is dart2js_mirrors.Dart2JsMapConstantMirror) {
-    // TODO(kevmoo) Handle non-empty case
-    if (valueMirror.length == 0) return '{}';
-  }
-
-  // TODO(kevmoo) Handle consts of non-core types
-
-  return '${valueMirror}';
-}
-
+// TODO(johnniwinther): Use the `ConstExp` classes instead of `ResolvedNode`.
 /// Returns a list of meta annotations assocated with a mirror.
 List<Annotation> createAnnotations(DeclarationMirror mirror,
     Library owningLibrary) {

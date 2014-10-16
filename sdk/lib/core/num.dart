@@ -291,9 +291,11 @@ abstract class num implements Comparable<num> {
   double truncateToDouble();
 
   /**
-   * Clamps [this] to be in the range [lowerLimit]-[upperLimit]. The comparison
-   * is done using [compareTo] and therefore takes `-0.0` into account.
-   * It also implies that [double.NAN] is treated as the maximal double value.
+   * Returns this [num] clamped to be in the range [lowerLimit]-[upperLimit].
+   *
+   * The comparison is done using [compareTo] and therefore takes `-0.0` into
+   * account. This also implies that [double.NAN] is treated as the maximal
+   * double value.
    */
   num clamp(num lowerLimit, num upperLimit);
 

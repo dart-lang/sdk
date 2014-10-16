@@ -29,8 +29,8 @@ class InvalidParameterResponseMatcher extends Matcher {
   static const String ERROR_CODE = 'INVALID_PARAMETER';
 
   @override
-  Description describe(Description description) => description.add(
-      "an 'invalid parameter' response (code $ERROR_CODE)");
+  Description describe(Description description) =>
+      description.add("an 'invalid parameter' response (code $ERROR_CODE)");
 
   @override
   bool matches(item, Map matchState) {
@@ -63,16 +63,24 @@ class NotificationTest {
   }
 
   void test_fromJson_withParams() {
-    Notification original = new Notification('foo', {'x': 'y'});
+    Notification original = new Notification('foo', {
+      'x': 'y'
+    });
     Notification notification = new Notification.fromJson(original.toJson());
     expect(notification.event, equals('foo'));
-    expect(notification.toJson()['params'], equals({'x': 'y'}));
+    expect(notification.toJson()['params'], equals({
+      'x': 'y'
+    }));
   }
 
   void test_toJson_withParams() {
-    Notification notification = new Notification('foo', {'x': 'y'});
+    Notification notification = new Notification('foo', {
+      'x': 'y'
+    });
     expect(notification.event, equals('foo'));
-    expect(notification.toJson()['params'], equals({'x': 'y'}));
+    expect(notification.toJson()['params'], equals({
+      'x': 'y'
+    }));
     expect(notification.toJson(), equals({
       'event': 'foo',
       'params': {
@@ -95,7 +103,8 @@ class NotificationTest {
 @ReflectiveTestCase()
 class RequestErrorTest {
   void test_create() {
-    RequestError error = new RequestError(RequestErrorCode.INVALID_REQUEST, 'msg');
+    RequestError error =
+        new RequestError(RequestErrorCode.INVALID_REQUEST, 'msg');
     expect(error.code, RequestErrorCode.INVALID_REQUEST);
     expect(error.message, "msg");
     expect(error.toJson(), equals({
@@ -111,8 +120,8 @@ class RequestErrorTest {
       MESSAGE: 'foo',
       STACK_TRACE: trace
     };
-    RequestError error = new RequestError.fromJson(new ResponseDecoder(null), '',
-        json);
+    RequestError error =
+        new RequestError.fromJson(new ResponseDecoder(null), '', json);
     expect(error.code, RequestErrorCode.INVALID_PARAMETER);
     expect(error.message, "foo");
     expect(error.stackTrace, trace);
@@ -120,8 +129,8 @@ class RequestErrorTest {
 
   void test_toJson() {
     var trace = 'a stack trace\r\nbar';
-    RequestError error = new RequestError(
-        RequestErrorCode.UNKNOWN_REQUEST, 'msg', stackTrace: trace);
+    RequestError error =
+        new RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'msg', stackTrace: trace);
     expect(error.toJson(), {
       CODE: 'UNKNOWN_REQUEST',
       MESSAGE: 'msg',
@@ -162,12 +171,16 @@ class RequestTest {
   }
 
   void test_fromJson_withParams() {
-    Request original = new Request('one', 'aMethod', {'foo': 'bar'});
+    Request original = new Request('one', 'aMethod', {
+      'foo': 'bar'
+    });
     String json = JSON.encode(original.toJson());
     Request request = new Request.fromString(json);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
-    expect(request.toJson()['params'], equals({'foo': 'bar'}));
+    expect(request.toJson()['params'], equals({
+      'foo': 'bar'
+    }));
   }
 
   void test_toJson() {
@@ -179,7 +192,9 @@ class RequestTest {
   }
 
   void test_toJson_withParams() {
-    Request request = new Request('one', 'aMethod', {'foo': 'bar'});
+    Request request = new Request('one', 'aMethod', {
+      'foo': 'bar'
+    });
     expect(request.toJson(), equals({
       Request.ID: 'one',
       Request.METHOD: 'aMethod',
@@ -207,8 +222,8 @@ class ResponseTest {
   }
 
   void test_create_unanalyzedPriorityFiles() {
-    Response response = new Response.unanalyzedPriorityFiles(new Request('0',
-        ''), 'file list');
+    Response response =
+        new Response.unanalyzedPriorityFiles(new Request('0', ''), 'file list');
     expect(response.id, equals('0'));
     expect(response.error, isNotNull);
     expect(response.toJson(), equals({
@@ -250,7 +265,9 @@ class ResponseTest {
   }
 
   void test_fromJson_withResult() {
-    Response original = new Response('myId', result: {'foo': 'bar'});
+    Response original = new Response('myId', result: {
+      'foo': 'bar'
+    });
     Response response = new Response.fromJson(original.toJson());
     expect(response.id, equals('myId'));
     Map<String, Object> result = response.toJson()['result'];

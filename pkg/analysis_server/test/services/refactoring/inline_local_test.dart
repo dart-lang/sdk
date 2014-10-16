@@ -72,7 +72,7 @@ main() {
 ''');
   }
 
-  test_OK_intoStringInterpolation() {
+  test_OK_intoStringInterpolation_binaryExpression() {
     indexTestUnit(r'''
 main() {
   int test = 1 + 2;
@@ -91,6 +91,210 @@ main() {
   print('test = ${process(1 + 2)}');
 }
 process(x) {}
+''');
+  }
+
+  test_OK_intoStringInterpolation_simpleIdentifier() {
+    indexTestUnit(r'''
+main() {
+  int foo = 1 + 2;
+  int test = foo;
+  print('test = $test');
+  print('test = ${test}');
+  print('test = ${process(test)}');
+}
+process(x) {}
+''');
+    _createRefactoring('test =');
+    // validate change
+    return assertSuccessfulRefactoring(r'''
+main() {
+  int foo = 1 + 2;
+  print('test = $foo');
+  print('test = ${foo}');
+  print('test = ${process(foo)}');
+}
+process(x) {}
+''');
+  }
+
+  test_OK_intoStringInterpolation_stringInterpolation() {
+    indexTestUnit(r'''
+main() {
+  String a = 'aaa';
+  String b = '$a bbb';
+  String c = '$b ccc';
+}
+''');
+    _createRefactoring('b =');
+    // validate change
+    return assertSuccessfulRefactoring(r'''
+main() {
+  String a = 'aaa';
+  String c = '$a bbb ccc';
+}
+''');
+  }
+
+  test_OK_intoStringInterpolation_string_differentQuotes() {
+    indexTestUnit(r'''
+main() {
+  String a = "aaa";
+  String b = '$a bbb';
+}
+''');
+    _createRefactoring('a =');
+    // validate change
+    return assertSuccessfulRefactoring(r'''
+main() {
+  String b = '${"aaa"} bbb';
+}
+''');
+  }
+
+  test_OK_intoStringInterpolation_string_doubleQuotes() {
+    indexTestUnit(r'''
+main() {
+  String a = "aaa";
+  String b = "$a bbb";
+}
+''');
+    _createRefactoring('a =');
+    // validate change
+    return assertSuccessfulRefactoring(r'''
+main() {
+  String b = "aaa bbb";
+}
+''');
+  }
+
+  test_OK_intoStringInterpolation_string_multiLineIntoMulti_unixEOL() {
+    indexTestUnit(r"""
+main() {
+  String a = '''
+a
+a
+a''';
+  String b = '''
+$a
+bbb''';
+}
+""");
+    _createRefactoring('a =');
+    // validate change
+    return assertSuccessfulRefactoring(r"""
+main() {
+  String b = '''
+a
+a
+a
+bbb''';
+}
+""");
+  }
+
+  test_OK_intoStringInterpolation_string_multiLineIntoMulti_windowsEOL() {
+    indexTestUnit(r"""
+main() {
+  String a = '''
+a
+a
+a''';
+  String b = '''
+$a
+bbb''';
+}
+""".replaceAll('\n', '\r\n'));
+    _createRefactoring('a =');
+    // validate change
+    return assertSuccessfulRefactoring(r"""
+main() {
+  String b = '''
+a
+a
+a
+bbb''';
+}
+""".replaceAll('\n', '\r\n'));
+  }
+
+  test_OK_intoStringInterpolation_string_multiLineIntoSingle() {
+    indexTestUnit(r'''
+main() {
+  String a = """aaa""";
+  String b = "$a bbb";
+}
+''');
+    _createRefactoring('a =');
+    // validate change
+    return assertSuccessfulRefactoring(r'''
+main() {
+  String b = "${"""aaa"""} bbb";
+}
+''');
+  }
+
+  test_OK_intoStringInterpolation_string_raw() {
+    indexTestUnit(r'''
+main() {
+  String a = r'an $ignored interpolation';
+  String b = '$a bbb';
+}
+''');
+    _createRefactoring('a =');
+    // we don't unwrap raw strings
+    return assertSuccessfulRefactoring(r'''
+main() {
+  String b = '${r'an $ignored interpolation'} bbb';
+}
+''');
+  }
+
+  test_OK_intoStringInterpolation_string_singleLineIntoMulti_doubleQuotes() {
+    indexTestUnit(r'''
+main() {
+  String a = "aaa";
+  String b = """$a bbb""";
+}
+''');
+    _createRefactoring('a =');
+    // validate change
+    return assertSuccessfulRefactoring(r'''
+main() {
+  String b = """aaa bbb""";
+}
+''');
+  }
+
+  test_OK_intoStringInterpolation_string_singleLineIntoMulti_singleQuotes() {
+    indexTestUnit(r"""
+main() {
+  String a = 'aaa';
+  String b = '''$a bbb''';
+}
+""");
+    _createRefactoring('a =');
+    // validate change
+    return assertSuccessfulRefactoring(r"""
+main() {
+  String b = '''aaa bbb''';
+}
+""");
+  }
+
+  test_OK_intoStringInterpolation_string_singleQuotes() {
+    indexTestUnit(r'''
+main() {
+  String a = 'aaa';
+  String b = '$a bbb';
+}
+''');
+    _createRefactoring('a =');
+    // validate change
+    return assertSuccessfulRefactoring(r'''
+main() {
+  String b = 'aaa bbb';
+}
 ''');
   }
 

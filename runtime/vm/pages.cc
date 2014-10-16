@@ -33,8 +33,13 @@ DEFINE_FLAG(bool, log_code_drop, false,
             "Emit a log message when pointers to unused code are dropped.");
 DEFINE_FLAG(bool, always_drop_code, false,
             "Always try to drop code if the function's usage counter is >= 0");
+#if defined(TARGET_ARCH_IA32)
+DEFINE_FLAG(bool, concurrent_sweep, true,
+            "Concurrent sweep for old generation.");
+#else  // TARGET_ARCH_IA32
 DEFINE_FLAG(bool, concurrent_sweep, false,
             "Concurrent sweep for old generation.");
+#endif  // TARGET_ARCH_IA32
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
@@ -222,7 +227,7 @@ void PageSpace::TruncateLargePage(HeapPage* page,
   VirtualMemory* memory = page->memory_;
   const intptr_t old_page_size_in_words = (memory->size() >> kWordSizeLog2);
   if (new_page_size_in_words < old_page_size_in_words) {
-    memory->Truncate(memory->start(), new_page_size_in_words << kWordSizeLog2);
+    memory->Truncate(new_page_size_in_words << kWordSizeLog2);
     usage_.capacity_in_words -= old_page_size_in_words;
     usage_.capacity_in_words += new_page_size_in_words;
     page->set_object_end(page->object_start() + new_object_size_in_bytes);
@@ -651,7 +656,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   }
 
   if (FLAG_verify_before_gc) {
-    OS::PrintErr("Verifying before MarkSweep...");
+    OS::PrintErr("Verifying before marking...");
     heap_->Verify();
     OS::PrintErr(" done.\n");
   }
@@ -684,6 +689,11 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   int64_t mid3 = 0;
 
   {
+    if (FLAG_verify_before_gc) {
+      OS::PrintErr("Verifying before sweeping...");
+      heap_->Verify(kAllowMarked);
+      OS::PrintErr(" done.\n");
+    }
     GCSweeper sweeper;
 
     // During stop-the-world phases we should use bulk lock when adding elements
@@ -712,7 +722,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     FreeList* freelist = &freelist_[HeapPage::kExecutable];
     while (page != NULL) {
       HeapPage* next_page = page->next();
-      bool page_in_use = sweeper.SweepPage(page, freelist);
+      bool page_in_use = sweeper.SweepPage(page, freelist, true);
       if (page_in_use) {
         prev_page = page;
       } else {
@@ -730,7 +740,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
       page = pages_;
       while (page != NULL) {
         HeapPage* next_page = page->next();
-        bool page_in_use = sweeper.SweepPage(page, &freelist_[page->type()]);
+        bool page_in_use = sweeper.SweepPage(
+            page, &freelist_[page->type()], true);
         if (page_in_use) {
           prev_page = page;
         } else {
@@ -738,6 +749,11 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
         }
         // Advance to the next page.
         page = next_page;
+      }
+      if (FLAG_verify_after_gc) {
+        OS::PrintErr("Verifying after sweeping...");
+        heap_->Verify(kForbidMarked);
+        OS::PrintErr(" done.\n");
       }
     } else {
       // Start the concurrent sweeper task now.
@@ -765,12 +781,6 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     freelist_[HeapPage::kData].Print();
     OS::Print("Executable Freelist (after GC):\n");
     freelist_[HeapPage::kExecutable].Print();
-  }
-
-  if (FLAG_verify_after_gc) {
-    OS::PrintErr("Verifying after MarkSweep...");
-    heap_->Verify();
-    OS::PrintErr(" done.\n");
   }
 
   // Done, reset the task count.

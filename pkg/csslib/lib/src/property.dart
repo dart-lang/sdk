@@ -291,34 +291,7 @@ class Color implements _StyleProperty, ColorBase {
     }
   }
 
-  /**
-   * [hex] hexadecimal string to convert to scalar.
-   * returns hexadecimal number as an integer.
-   * throws BadNumberFormatException if [hex] isn't a valid hexadecimal number.
-   */
-  // TODO(terry): Should be part of Dart standard library see bug
-  // <http://code.google.com/p/dart/issues/detail?id=2624>
-  static int hexToInt(String hex) {
-    int val = 0;
-
-    int len = hex.length;
-    for (int i = 0; i < len; i++) {
-      int hexDigit = hex.codeUnitAt(i);
-      if (hexDigit >= 48 && hexDigit <= 57) {
-        val += (hexDigit - 48) * (1 << (4 * (len - 1 - i)));
-      } else if (hexDigit >= 65 && hexDigit <= 70) {
-        // A..F
-        val += (hexDigit - 55) * (1 << (4 * (len - 1 - i)));
-      } else if (hexDigit >= 97 && hexDigit <= 102) {
-        // a..f
-        val += (hexDigit - 87) * (1 << (4 * (len - 1 - i)));
-      } else {
-        throw throw new FormatException("Bad hexadecimal value");
-      }
-    }
-
-    return val;
-  }
+  static int hexToInt(String hex) => int.parse(hex, radix: 16);
 
   static String convertToHexString(int r, int g, int b, [num a]) {
     String rHex = Color._numAs2DigitHex(Color._clamp(r, 0, 255));

@@ -162,6 +162,11 @@ class ClassTable {
   void UpdatePromoted();
 
   // Used by the generated code.
+  uword TableAddress() {
+    return reinterpret_cast<uword>(&table_);
+  }
+
+  // Used by the generated code.
   uword PredefinedClassHeapStatsTableAddress() {
     return reinterpret_cast<uword>(predefined_class_heap_stats_table_);
   }

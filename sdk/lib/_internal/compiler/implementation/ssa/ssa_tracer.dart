@@ -24,6 +24,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
   HTracer(this.output, this.compiler, this.context);
 
   void traceGraph(String name, HGraph graph) {
+    DEBUG_MODE = true;
     tag("cfg", () {
       printProperty("name", name);
       visitDominatorTree(graph);

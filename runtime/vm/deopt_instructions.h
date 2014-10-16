@@ -92,6 +92,9 @@ class DeoptContext {
   RawCode* code() const { return code_; }
 
   ICData::DeoptReasonId deopt_reason() const { return deopt_reason_; }
+  bool HasDeoptFlag(ICData::DeoptFlags flag) {
+    return (deopt_flags_ & flag) != 0;
+  }
 
   RawDeoptInfo* deopt_info() const { return deopt_info_; }
 
@@ -191,6 +194,7 @@ class DeoptContext {
   fpu_register_t* fpu_registers_;
   intptr_t num_args_;
   ICData::DeoptReasonId deopt_reason_;
+  uint32_t deopt_flags_;
   intptr_t caller_fp_;
   Isolate* isolate_;
 
@@ -486,7 +490,7 @@ class DeoptTable : public AllStatic {
                        intptr_t index,
                        const Smi& offset,
                        const DeoptInfo& info,
-                       const Smi& reason);
+                       const Smi& reason_and_flags);
 
   // Return the length of the table in entries.
   static intptr_t GetLength(const Array& table);
@@ -497,7 +501,16 @@ class DeoptTable : public AllStatic {
                        intptr_t index,
                        Smi* offset,
                        DeoptInfo* info,
-                       Smi* reason);
+                       Smi* reason_and_flags);
+
+  static RawSmi* EncodeReasonAndFlags(ICData::DeoptReasonId reason,
+                                      uint32_t flags) {
+    return Smi::New(ReasonField::encode(reason) |
+                    FlagsField::encode(flags));
+  }
+
+  class ReasonField : public BitField<ICData::DeoptReasonId, 0, 8> { };
+  class FlagsField : public BitField<uint32_t, 8, 8> { };
 
  private:
   static const intptr_t kEntrySize = 3;

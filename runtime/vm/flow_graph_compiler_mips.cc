@@ -195,8 +195,7 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
                                            Label* is_false) {
   __ TraceSimMsg("BoolToJump");
   Label fall_through;
-  __ BranchEqual(bool_register, reinterpret_cast<int32_t>(Object::null()),
-                 &fall_through);
+  __ BranchEqual(bool_register, Object::null_object(), &fall_through);
   __ BranchEqual(bool_register, Bool::True(), is_true);
   __ b(is_false);
   __ Bind(&fall_through);
@@ -279,7 +278,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       const Register kClassIdReg = T0;
       // dynamic type argument, check only classes.
       __ LoadClassId(kClassIdReg, kInstanceReg);
-      __ BranchEqual(kClassIdReg, type_class.id(), is_instance_lbl);
+      __ BranchEqual(kClassIdReg, Immediate(type_class.id()), is_instance_lbl);
       // List is a very common case.
       if (IsListClass(type_class)) {
         GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
@@ -323,7 +322,7 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
                                       Label* is_not_equal_lbl) {
   __ TraceSimMsg("CheckClassIds");
   for (intptr_t i = 0; i < class_ids.length(); i++) {
-    __ BranchEqual(class_id_reg, class_ids[i], is_equal_lbl);
+    __ BranchEqual(class_id_reg, Immediate(class_ids[i]), is_equal_lbl);
   }
   __ b(is_not_equal_lbl);
 }
@@ -360,13 +359,13 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   // Compare if the classes are equal.
   const Register kClassIdReg = T0;
   __ LoadClassId(kClassIdReg, kInstanceReg);
-  __ BranchEqual(kClassIdReg, type_class.id(), is_instance_lbl);
+  __ BranchEqual(kClassIdReg, Immediate(type_class.id()), is_instance_lbl);
 
   // See ClassFinalizer::ResolveSuperTypeAndInterfaces for list of restricted
   // interfaces.
   // Bool interface can be implemented only by core class Bool.
   if (type.IsBoolType()) {
-    __ BranchEqual(kClassIdReg, kBoolCid, is_instance_lbl);
+    __ BranchEqual(kClassIdReg, Immediate(kBoolCid), is_instance_lbl);
     __ b(is_not_instance_lbl);
     return false;
   }
@@ -374,8 +373,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     // Check if instance is a closure.
     __ LoadClassById(T1, kClassIdReg);
     __ lw(T1, FieldAddress(T1, Class::signature_function_offset()));
-    __ BranchNotEqual(T1, reinterpret_cast<int32_t>(Object::null()),
-                      is_instance_lbl);
+    __ BranchNotEqual(T1, Object::null_object(), is_instance_lbl);
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
@@ -587,8 +585,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     // We can only inline this null check if the type is instantiated at compile
     // time, since an uninstantiated type at compile time could be Object or
     // dynamic at run time.
-    __ BranchEqual(A0, reinterpret_cast<int32_t>(Object::null()),
-                   &is_not_instance);
+    __ BranchEqual(A0, Object::null_object(), &is_not_instance);
   }
 
   // Generate inline instanceof test.
@@ -672,7 +669,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
 
-  __ BranchEqual(A0, reinterpret_cast<int32_t>(Object::null()), &is_assignable);
+  __ BranchEqual(A0, Object::null_object(), &is_assignable);
   __ delay_slot()->sw(A1, Address(SP, 0 * kWordSize));
 
   // Generate throw new TypeError() if the type is malformed or malbounded.
@@ -771,11 +768,11 @@ void FlowGraphCompiler::CopyParameters() {
   __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::positional_count_offset()));
   // Check that min_num_pos_args <= num_pos_args.
   Label wrong_num_arguments;
-  __ BranchSignedLess(T2, Smi::RawValue(min_num_pos_args),
+  __ BranchSignedLess(T2, Immediate(Smi::RawValue(min_num_pos_args)),
                       &wrong_num_arguments);
 
   // Check that num_pos_args <= max_num_pos_args.
-  __ BranchSignedGreater(T2, Smi::RawValue(max_num_pos_args),
+  __ BranchSignedGreater(T2, Immediate(Smi::RawValue(max_num_pos_args)),
                          &wrong_num_arguments);
 
   // Copy positional arguments.
@@ -889,8 +886,7 @@ void FlowGraphCompiler::CopyParameters() {
       // Check that T0 now points to the null terminator in the arguments
       // descriptor.
       __ lw(T3, Address(T0));
-      __ BranchEqual(T3, reinterpret_cast<int32_t>(Object::null()),
-                     &all_arguments_processed);
+      __ BranchEqual(T3, Object::null_object(), &all_arguments_processed);
     }
   } else {
     ASSERT(num_opt_pos_params > 0);
@@ -904,7 +900,7 @@ void FlowGraphCompiler::CopyParameters() {
       // arguments have been passed, where k is param_pos, the position of this
       // optional parameter in the formal parameter list.
       const int param_pos = num_fixed_params + i;
-      __ BranchSignedGreater(T2, param_pos, &next_parameter);
+      __ BranchSignedGreater(T2, Immediate(param_pos), &next_parameter);
       // Load T3 with default argument.
       const Object& value = Object::ZoneHandle(
           parsed_function().default_parameter_values().At(i));
@@ -1022,7 +1018,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
 
     // Skip Branch if T1 is less than the threshold.
     Label dont_branch;
-    __ BranchSignedLess(T1, GetOptimizationThreshold(), &dont_branch);
+    __ BranchSignedLess(
+        T1, Immediate(GetOptimizationThreshold()), &dont_branch);
 
     ASSERT(function_reg == T0);
     __ Branch(&stub_code->OptimizeFunctionLabel());
@@ -1085,7 +1082,7 @@ void FlowGraphCompiler::CompileGraph() {
       // Check that exactly num_fixed arguments are passed in.
       Label correct_num_arguments, wrong_num_arguments;
       __ lw(T0, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
-      __ BranchNotEqual(T0, Smi::RawValue(num_fixed_params),
+      __ BranchNotEqual(T0, Immediate(Smi::RawValue(num_fixed_params)),
                         &wrong_num_arguments);
 
       __ lw(T1, FieldAddress(S4,
@@ -1548,9 +1545,9 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     const bool is_last_check = (i == (len - 1));
     Label next_test;
     if (is_last_check) {
-      __ BranchNotEqual(class_id_reg, sorted[i].cid, deopt);
+      __ BranchNotEqual(class_id_reg, Immediate(sorted[i].cid), deopt);
     } else {
-      __ BranchNotEqual(class_id_reg, sorted[i].cid, &next_test);
+      __ BranchNotEqual(class_id_reg, Immediate(sorted[i].cid), &next_test);
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.

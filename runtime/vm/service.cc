@@ -2601,8 +2601,11 @@ void Service::SendEvent(intptr_t eventId,
   }
   // TODO(koda): It would be nice to avoid this copy (requires changes to
   // MessageWriter code).
-  memmove(message.DataAddr(offset), data, size);
-  offset += size;
+  {
+    NoGCScope no_gc;
+    memmove(message.DataAddr(offset), data, size);
+    offset += size;
+  }
   ASSERT(offset == total_bytes);
   SendEvent(eventId, message);
 }

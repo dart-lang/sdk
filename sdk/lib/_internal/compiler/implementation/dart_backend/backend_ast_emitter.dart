@@ -6,13 +6,13 @@ library backend_ast_emitter;
 
 import 'tree_ir_nodes.dart' as tree;
 import 'backend_ast_nodes.dart';
-import '../dart2jslib.dart' as dart2js;
-import '../elements/elements.dart';
+import '../constants/expressions.dart';
+import '../constants/values.dart';
 import '../dart_types.dart';
+import '../elements/elements.dart';
 import '../elements/modelx.dart' as modelx;
 import '../universe/universe.dart';
 import '../tree/tree.dart' as tree show Modifiers;
-import '../cps_ir/const_expression.dart';
 
 /// Translates the dart_tree IR to Dart backend AST.
 Expression emit(tree.FunctionDefinition definition) {
@@ -149,53 +149,91 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     if (statementBuffer.last is! Return) return;
     Return ret = statementBuffer.last;
     Expression expr = ret.expression;
-    if (expr is Literal && expr.value is dart2js.NullConstant) {
+    if (expr is Literal && expr.value.isNull) {
       statementBuffer.removeLast();
     }
   }
 
-  Parameter emitParameterFromElement(FormalElement element, [String name]) {
-    if (name == null) {
+  /// TODO(johnniwinther): Remove this when issue 21283 has been resolved.
+  int pseudoNameCounter = 0;
+
+  Parameter emitParameter(DartType type,
+                          {String name,
+                           Element element,
+                           ConstantExpression defaultValue}) {
+    if (name == null && element != null) {
       name = element.name;
     }
-    if (element.functionSignature != null) {
-      FunctionSignature signature = element.functionSignature;
-      TypeAnnotation returnType = emitOptionalType(signature.type.returnType);
-      Parameters innerParameters = emitParameters(signature);
-      return new Parameter.function(name, returnType, innerParameters)
-                 ..element = element;
+    if (name == null) {
+      name = '_${pseudoNameCounter++}';
+    }
+    Parameter parameter;
+    if (type.isFunctionType) {
+      FunctionType functionType = type;
+      TypeAnnotation returnType = emitOptionalType(functionType.returnType);
+      Parameters innerParameters = emitParametersFromType(functionType);
+      parameter = new Parameter.function(name, returnType, innerParameters);
     } else {
-      TypeAnnotation type = emitOptionalType(element.type);
-      return new Parameter(name, type:type)
-                 ..element = element;
+      TypeAnnotation typeAnnotation = emitOptionalType(type);
+      parameter = new Parameter(name, type: typeAnnotation);
+    }
+    parameter.element = element;
+    if (defaultValue != null && !defaultValue.value.isNull) {
+      parameter.defaultValue = emitConstant(defaultValue);
+    }
+    return parameter;
+  }
+
+  Parameters emitParametersFromType(FunctionType functionType) {
+    if (functionType.namedParameters.isEmpty) {
+      return new Parameters(
+          emitParameters(functionType.parameterTypes),
+          emitParameters(functionType.optionalParameterTypes),
+          false);
+    } else {
+      return new Parameters(
+          emitParameters(functionType.parameterTypes),
+          emitParameters(functionType.namedParameterTypes,
+                         names: functionType.namedParameters),
+          true);
     }
   }
 
-  Parameters emitParameters(FunctionSignature signature) {
-    return new Parameters(
-        signature.requiredParameters.mapToList(emitParameterFromElement),
-        signature.optionalParameters.mapToList(emitParameterFromElement),
-        signature.optionalParametersAreNamed);
+  List<Parameter> emitParameters(
+      Iterable<DartType> parameterTypes,
+      {Iterable<String> names: const <String>[],
+       Iterable<ConstantExpression> defaultValues: const <ConstantExpression>[],
+       Iterable<Element> elements: const <Element>[]}) {
+    Iterator<String> name = names.iterator;
+    Iterator<ConstantExpression> defaultValue = defaultValues.iterator;
+    Iterator<Element> element = elements.iterator;
+    return parameterTypes.map((DartType type) {
+      name.moveNext();
+      defaultValue.moveNext();
+      element.moveNext();
+      return emitParameter(type,
+                           name: name.current,
+                           defaultValue: defaultValue.current,
+                           element: element.current);
+    }).toList();
   }
 
   /// Emits parameters that are not nested inside other parameters.
   /// Root parameters can have default values, while inner parameters cannot.
   Parameters emitRootParameters(tree.FunctionDefinition function) {
-    FunctionSignature signature = function.element.functionSignature;
-    List<ConstExp> defaults = function.defaultParameterValues;
-    List<Parameter> required =
-        signature.requiredParameters.mapToList(emitParameterFromElement);
-    List<Parameter> optional = new List<Parameter>(defaults.length);
-    for (int i = 0; i < defaults.length; i++) {
-      ParameterElement element = signature.orderedOptionalParameters[i];
-      optional[i] = emitParameterFromElement(element);
-      Expression constant = emitConstant(defaults[i]);
-      if (!isNullLiteral(constant)) {
-        optional[i].defaultValue = constant;
-      }
-    }
-    return new Parameters(required, optional,
-        signature.optionalParametersAreNamed);
+    FunctionType functionType = function.element.type;
+    List<Parameter> required = emitParameters(
+        functionType.parameterTypes,
+        elements: function.parameters.map((p) => p.element));
+    bool optionalParametersAreNamed = !functionType.namedParameters.isEmpty;
+    List<Parameter> optional = emitParameters(
+        optionalParametersAreNamed
+            ? functionType.namedParameterTypes
+            : functionType.optionalParameterTypes,
+        defaultValues: function.defaultParameterValues,
+        elements: function.parameters.skip(required.length)
+            .map((p) => p.element));
+    return new Parameters(required, optional, optionalParametersAreNamed);
   }
 
   /// True if the two expressions are a reference to the same variable.
@@ -421,7 +459,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
     visitStatement(stmt.body);
     Statement body = new Block(statementBuffer);
-    Statement statement = new While(new Literal(new dart2js.TrueConstant()),
+    Statement statement = new While(new Literal(new TrueConstantValue()),
                                     body);
     if (usedLabels.remove(stmt.label)) {
       statement = new LabeledStatement(stmt.label.name, statement);
@@ -481,14 +519,14 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
                                    visitExpression(exp.values[i])));
     List<TypeAnnotation> typeArguments = exp.type.treatAsRaw
         ? null
-        : exp.type.typeArguments.map(emitType).toList(growable: false);
+        : exp.type.typeArguments.map(createTypeAnnotation).toList(growable: false);
     return new LiteralMap(entries, typeArguments: typeArguments);
   }
 
   Expression visitTypeOperator(tree.TypeOperator exp) {
     return new TypeOperator(visitExpression(exp.receiver),
                             exp.operator,
-                            emitType(exp.type));
+                            createTypeAnnotation(exp.type));
   }
 
   List<Argument> emitArguments(tree.Invoke exp) {
@@ -575,7 +613,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     List args = emitArguments(exp);
     FunctionElement constructor = exp.target;
     String name = constructor.name.isEmpty ? null : constructor.name;
-    return new CallNew(emitType(exp.type),
+    return new CallNew(createTypeAnnotation(exp.type),
                        args,
                        constructorName: name,
                        isConst: exp.constant != null)
@@ -629,50 +667,51 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     visitStatement(node.next);
   }
 
-  TypeAnnotation emitType(DartType type) {
-    if (type is GenericType) {
-      if (type.treatAsRaw) {
-        return new TypeAnnotation(type.element.name)..dartType = type;
-      }
-      return new TypeAnnotation(
-          type.element.name,
-          type.typeArguments.map(emitType).toList(growable:false))
-          ..dartType = type;
-    } else if (type is VoidType) {
-      return new TypeAnnotation('void')
-          ..dartType = type;
-    } else if (type is TypeVariableType) {
-      return new TypeAnnotation(type.name)
-          ..dartType = type;
-    } else if (type is DynamicType) {
-      return new TypeAnnotation("dynamic")
-          ..dartType = type;
-    } else if (type is MalformedType) {
-      return new TypeAnnotation(type.name)
-          ..dartType = type;
-    } else {
-      throw "Unsupported type annotation: $type";
-    }
-  }
-
-  /// Like [emitType] except the dynamic type is converted to null.
+  /// Like [createTypeAnnotation] except the dynamic type is converted to null.
   TypeAnnotation emitOptionalType(DartType type) {
     if (type.treatAsDynamic) {
       return null;
     } else {
-      return emitType(type);
+      return createTypeAnnotation(type);
     }
   }
 
-  Expression emitConstant(ConstExp exp) => new ConstantEmitter(this).visit(exp);
-
+  Expression emitConstant(ConstantExpression exp) {
+    return new ConstantEmitter(this).visit(exp);
+  }
 }
 
-class ConstantEmitter extends ConstExpVisitor<Expression> {
+TypeAnnotation createTypeAnnotation(DartType type) {
+  if (type is GenericType) {
+    if (type.treatAsRaw) {
+      return new TypeAnnotation(type.element.name)..dartType = type;
+    }
+    return new TypeAnnotation(
+        type.element.name,
+        type.typeArguments.map(createTypeAnnotation).toList(growable:false))
+        ..dartType = type;
+  } else if (type is VoidType) {
+    return new TypeAnnotation('void')
+        ..dartType = type;
+  } else if (type is TypeVariableType) {
+    return new TypeAnnotation(type.name)
+        ..dartType = type;
+  } else if (type is DynamicType) {
+    return new TypeAnnotation("dynamic")
+        ..dartType = type;
+  } else if (type is MalformedType) {
+    return new TypeAnnotation(type.name)
+        ..dartType = type;
+  } else {
+    throw "Unsupported type annotation: $type";
+  }
+}
+
+class ConstantEmitter extends ConstantExpressionVisitor<Expression> {
   ASTEmitter parent;
   ConstantEmitter(this.parent);
 
-  Expression visitPrimitive(PrimitiveConstExp exp) {
+  Expression handlePrimitiveConstant(PrimitiveConstantValue value) {
     // Num constants may be negative, while literals must be non-negative:
     // Literals are non-negative in the specification, and a negated literal
     // parses as a call to unary `-`. The AST unparser assumes literals are
@@ -680,49 +719,57 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
     // the predecrement operator.
     // Translate such constants into their positive value wrapped by
     // the unary minus operator.
-    if (exp.constant is dart2js.NumConstant) {
-      dart2js.NumConstant numConstant = exp.constant;
-      if (numConstant.value.isNegative) {
+    if (value.isNum) {
+      NumConstantValue numConstant = value;
+      if (numConstant.primitiveValue.isNegative) {
         return negatedLiteral(numConstant);
       }
     }
-    return new Literal(exp.constant);
+    return new Literal(value);
+  }
+
+  @override
+  Expression visitPrimitive(PrimitiveConstantExpression exp) {
+    return handlePrimitiveConstant(exp.value);
   }
 
   /// Given a negative num constant, returns the corresponding positive
   /// literal wrapped by a unary minus operator.
-  Expression negatedLiteral(dart2js.NumConstant constant) {
-    assert(constant.value.isNegative);
-    dart2js.NumConstant positiveConstant;
+  Expression negatedLiteral(NumConstantValue constant) {
+    assert(constant.primitiveValue.isNegative);
+    NumConstantValue positiveConstant;
     if (constant.isInt) {
-      positiveConstant = new dart2js.IntConstant(-constant.value);
+      positiveConstant = new IntConstantValue(-constant.primitiveValue);
     } else if (constant.isDouble) {
-      positiveConstant = new dart2js.DoubleConstant(-constant.value);
+      positiveConstant = new DoubleConstantValue(-constant.primitiveValue);
     } else {
       throw "Unexpected type of NumConstant: $constant";
     }
     return new UnaryOperator('-', new Literal(positiveConstant));
   }
 
-  Expression visitList(ListConstExp exp) {
+  @override
+  Expression visitList(ListConstantExpression exp) {
     return new LiteralList(
         exp.values.map(visit).toList(growable: false),
         isConst: true,
         typeArgument: parent.emitOptionalType(exp.type.typeArguments.single));
   }
 
-  Expression visitMap(MapConstExp exp) {
+  @override
+  Expression visitMap(MapConstantExpression exp) {
     List<LiteralMapEntry> entries = new List<LiteralMapEntry>.generate(
         exp.values.length,
         (i) => new LiteralMapEntry(visit(exp.keys[i]),
                                    visit(exp.values[i])));
     List<TypeAnnotation> typeArguments = exp.type.treatAsRaw
         ? null
-        : exp.type.typeArguments.map(parent.emitType).toList();
+        : exp.type.typeArguments.map(createTypeAnnotation).toList();
     return new LiteralMap(entries, isConst: true, typeArguments: typeArguments);
   }
 
-  Expression visitConstructor(ConstructorConstExp exp) {
+  @override
+  Expression visitConstructor(ConstructedConstantExpresssion exp) {
     int positionalArgumentCount = exp.selector.positionalArgumentCount;
     List<Argument> args = new List<Argument>.generate(
         positionalArgumentCount,
@@ -734,7 +781,7 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
 
     FunctionElement constructor = exp.target;
     String name = constructor.name.isEmpty ? null : constructor.name;
-    return new CallNew(parent.emitType(exp.type),
+    return new CallNew(createTypeAnnotation(exp.type),
                        args,
                        constructorName: name,
                        isConst: true)
@@ -742,21 +789,25 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
                ..dartType = exp.type;
   }
 
-  Expression visitConcatenate(ConcatenateConstExp exp) {
+  @override
+  Expression visitConcatenate(ConcatenateConstantExpression exp) {
     return new StringConcat(exp.arguments.map(visit).toList(growable: false));
   }
 
-  Expression visitSymbol(SymbolConstExp exp) {
+  @override
+  Expression visitSymbol(SymbolConstantExpression exp) {
     return new LiteralSymbol(exp.name);
   }
 
-  Expression visitType(TypeConstExp exp) {
+  @override
+  Expression visitType(TypeConstantExpression exp) {
     DartType type = exp.type;
     return new LiteralType(type.name)
                ..type = type;
   }
 
-  Expression visitVariable(VariableConstExp exp) {
+  @override
+  Expression visitVariable(VariableConstantExpression exp) {
     Element element = exp.element;
     if (element.kind != ElementKind.VARIABLE) {
       return new Identifier(element.name)..element = element;
@@ -766,11 +817,30 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
                ..element = element;
   }
 
-  Expression visitFunction(FunctionConstExp exp) {
+  @override
+  Expression visitFunction(FunctionConstantExpression exp) {
     return new Identifier(exp.element.name)
                ..element = exp.element;
   }
 
+  @override
+  Expression visitBinary(BinaryConstantExpression exp) {
+    return handlePrimitiveConstant(exp.value);
+  }
+
+  @override
+  Expression visitConditional(ConditionalConstantExpression exp) {
+    if (exp.condition.value.isTrue) {
+      return exp.trueExp.accept(this);
+    } else {
+      return exp.falseExp.accept(this);
+    }
+  }
+
+  @override
+  Expression visitUnary(UnaryConstantExpression exp) {
+    return handlePrimitiveConstant(exp.value);
+  }
 }
 
 /// Moves function parameters into a separate variable if one of its uses is

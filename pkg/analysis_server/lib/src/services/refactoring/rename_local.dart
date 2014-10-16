@@ -6,7 +6,7 @@ library services.src.refactoring.rename_local;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
@@ -113,7 +113,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
         conflictingLocals.add(nodeElement);
         String nodeKind = nodeElement.kind.displayName;
         String message = "Duplicate ${nodeKind} '$newName'.";
-        result.addError(message, new Location.fromElement(nodeElement));
+        result.addError(message, newLocation_fromElement(nodeElement));
         return;
       }
       if (conflictingLocals.contains(nodeElement)) {
@@ -131,7 +131,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
         String message =
             'Usage of $nodeKind "$nodeName" declared in '
                 '"$nameElementSourceName" will be shadowed by renamed $refKind.';
-        result.addError(message, new Location.fromNode(node));
+        result.addError(message, newLocation_fromNode(node));
       }
     }
   }

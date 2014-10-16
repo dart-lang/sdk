@@ -15,7 +15,8 @@ void addStateInfo(Map matchState, Map values) {
   matchState.addAll(values);
 }
 
-/// Takes an argument and returns an equivalent matcher.
+/// Takes an argument and returns an equivalent [Matcher].
+///
 /// If the argument is already a matcher this does nothing,
 /// else if the argument is a function, it generates a predicate
 /// function matcher, else it generates an equals matcher.

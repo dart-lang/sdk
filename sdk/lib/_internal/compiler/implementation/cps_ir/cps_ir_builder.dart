@@ -4,16 +4,17 @@
 
 library dart2js.ir_builder;
 
-import 'cps_ir_nodes.dart' as ir;
-import '../elements/elements.dart';
-import '../dart2jslib.dart';
+import '../constants/expressions.dart';
+import '../constants/values.dart' show PrimitiveConstantValue;
+import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
+import '../dart2jslib.dart';
+import '../elements/elements.dart';
 import '../source_file.dart';
 import '../tree/tree.dart' as ast;
 import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
-import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../universe/universe.dart' show SelectorKind;
-import 'const_expression.dart';
+import 'cps_ir_nodes.dart' as ir;
 
 /**
  * This task iterates through all resolved elements and builds [ir.Node]s. The
@@ -301,17 +302,17 @@ class IrBuilder {
     return v;
   }
 
-  ir.Constant makeConst(ConstExp exp, Constant value) {
-    return new ir.Constant(exp, value);
+  ir.Constant makeConst(ConstantExpression exp) {
+    return new ir.Constant(exp);
   }
 
-  ir.Constant makePrimConst(PrimitiveConstant value) {
-    return makeConst(new PrimitiveConstExp(value), value);
+  ir.Constant makePrimConst(PrimitiveConstantValue value) {
+    return makeConst(new PrimitiveConstantExpression(value));
   }
 
   // TODO(johnniwinther): Build constants directly through [ConstExp] when these
   // are created from analyzer2dart.
-  ir.Node buildPrimConst(PrimitiveConstant constant) {
+  ir.Node buildPrimConst(PrimitiveConstantValue constant) {
     assert(isOpen);
     ir.Node prim = makePrimConst(constant);
     add(new ir.LetPrim(prim));
@@ -350,6 +351,14 @@ class IrBuilder {
     return environment.lookup(local);
   }
 
+  /// Create a get access of the static [element].
+  ir.Primitive buildGetStatic(Element element, Selector selector) {
+    assert(isOpen);
+    assert(selector.isGetter);
+    return continueWithExpression(
+        (k) => new ir.InvokeStatic(element, selector, k, []));
+  }
+
   /**
    * Add an explicit `return null` for functions that don't have a return
    * statement on each branch. This includes functions with an empty body,
@@ -370,7 +379,7 @@ class IrBuilder {
   ir.FunctionDefinition buildFunctionDefinition(
       FunctionElement element,
       List<ConstDeclaration> constants,
-      List<ConstExp> defaults) {
+      List<ConstantExpression> defaults) {
     if (!element.isAbstract) {
       ensureReturn();
       return new ir.FunctionDefinition(
@@ -444,8 +453,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
   /// A stack of collectors for continues.
   final List<JumpCollector> continueCollectors;
 
-  ConstExpBuilder constantBuilder;
-
   final List<ConstDeclaration> localConstants;
 
   FunctionElement currentFunction;
@@ -459,7 +466,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
         closureLocals = new DetectClosureVariables(elements),
         super(elements) {
     constantSystem = compiler.backend.constantSystem;
-    constantBuilder = new ConstExpBuilder(this);
   }
 
   /// Construct a delimited visitor for visiting a subtree.
@@ -473,7 +479,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
         sourceFile = parent.sourceFile,
         breakCollectors = parent.breakCollectors,
         continueCollectors = parent.continueCollectors,
-        constantBuilder = parent.constantBuilder,
         localConstants = parent.localConstants,
         currentFunction = parent.currentFunction,
         closureLocals = parent.closureLocals,
@@ -496,7 +501,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
         sourceFile = parent.sourceFile,
         breakCollectors = parent.breakCollectors,
         continueCollectors = parent.continueCollectors,
-        constantBuilder = parent.constantBuilder,
         localConstants = parent.localConstants,
         currentFunction = parent.currentFunction,
         closureLocals = parent.closureLocals,
@@ -533,13 +537,9 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
                       isClosureVariable: isClosureVariable(parameterElement));
     });
 
-    List<ConstExp> defaults = new List<ConstExp>();
+    List<ConstantExpression> defaults = new List<ConstantExpression>();
     signature.orderedOptionalParameters.forEach((ParameterElement element) {
-      if (element.initializer != null) {
-        defaults.add(constantBuilder.visit(element.initializer));
-      } else {
-        defaults.add(new PrimitiveConstExp(constantSystem.createNull()));
-      }
+      defaults.add(getConstantForVariable(element));
     });
 
     visit(function.body);
@@ -1140,7 +1140,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
         assert(!definition.arguments.isEmpty);
         assert(definition.arguments.tail.isEmpty);
         VariableElement element = elements[definition];
-        ConstExp value = constantBuilder.visit(definition.arguments.head);
+        ConstantExpression value = getConstantForVariable(element);
         localConstants.add(new ConstDeclaration(element, value));
       }
     } else {
@@ -1261,11 +1261,19 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
     return translateConstant(node);
   }
 
-  Constant getConstantForNode(ast.Node node) {
-    Constant constant =
+  ConstantExpression getConstantForNode(ast.Node node) {
+    ConstantExpression constant =
         compiler.backend.constantCompilerTask.compileNode(node, elements);
     assert(invariant(node, constant != null,
         message: 'No constant computed for $node'));
+    return constant;
+  }
+
+  ConstantExpression getConstantForVariable(VariableElement element) {
+    ConstantExpression constant =
+        compiler.backend.constants.getConstantForVariable(element);
+    assert(invariant(element, constant != null,
+            message: 'No constant computed for $element'));
     return constant;
   }
 
@@ -1438,7 +1446,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
                Elements.isInstanceField(element) ||
                Elements.isInstanceMethod(element) ||
                selector.isIndex ||
-               // TODO(johnniwinther): clean up semantics of resultion.
+               // TODO(johnniwinther): clean up semantics of resolution.
                node.isSuperCall) {
       // Dynamic dispatch to a getter. Sometimes resolution will suggest a
       // target element, but in these cases we must still emit a dynamic
@@ -1458,13 +1466,13 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
           (k) => createDynamicInvoke(node, selector, receiver, k, arguments));
     } else if (element.isField || element.isGetter || element.isErroneous ||
                element.isSetter) {
+      // TODO(johnniwinther): Change handling of setter selectors.
       // Access to a static field or getter (non-static case handled above).
       // Even if there is only a setter, we compile as if it was a getter,
       // so the vm can fail at runtime.
       assert(selector.kind == SelectorKind.GETTER ||
              selector.kind == SelectorKind.SETTER);
-      result = continueWithExpression(
-          (k) => new ir.InvokeStatic(element, selector, k, []));
+      result = buildGetStatic(element, selector);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
       // Convert a top-level or static function to a function object.
       result = translateConstant(node);
@@ -1851,12 +1859,12 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
         (k) => new ir.ConcatenateStrings(k, arguments));
   }
 
-  ir.Primitive translateConstant(ast.Node node, [Constant value]) {
+  ir.Primitive translateConstant(ast.Node node, [ConstantExpression constant]) {
     assert(isOpen);
-    if (value == null) {
-      value = getConstantForNode(node);
+    if (constant == null) {
+      constant = getConstantForNode(node);
     }
-    ir.Primitive primitive = makeConst(constantBuilder.visit(node), value);
+    ir.Primitive primitive = makeConst(constant);
     add(new ir.LetPrim(primitive));
     return primitive;
   }
@@ -1908,164 +1916,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
   void internalError(String reason, {ast.Node node}) {
     giveup(node);
   }
-}
-
-/// Translates constant expressions from the AST to the [ConstExp] language.
-class ConstExpBuilder extends ast.Visitor<ConstExp> {
-  final IrBuilderVisitor parent;
-  final TreeElements elements;
-  final ConstantSystem constantSystem;
-  final ConstantCompiler constantCompiler;
-
-  ConstExpBuilder(IrBuilderVisitor parent)
-      : this.parent = parent,
-        this.elements = parent.elements,
-        this.constantSystem = parent.constantSystem,
-        this.constantCompiler = parent.compiler.backend.constantCompilerTask;
-
-  Constant computeConstant(ast.Node node) {
-    return constantCompiler.compileNode(node, elements);
-  }
-
-  /// True if the given constant is small enough that inlining it is likely
-  /// to be profitable. Always false for non-primitive constants.
-  bool isSmallConstant(Constant constant) {
-    if (constant is BoolConstant || constant is NullConstant) {
-      return true;
-    }
-    if (constant is IntConstant) {
-      return -10 < constant.value && constant.value < 100;
-    }
-    if (constant is DoubleConstant) {
-      return constant.isZero || constant.isOne;
-    }
-    if (constant is StringConstant) {
-      ast.DartString string = constant.value;
-      if (string is ast.LiteralDartString) {
-        return string.length < 4;
-      }
-      if (string is ast.SourceBasedDartString) {
-        return string.length < 4;
-      }
-    }
-    return false;
-  }
-
-  ConstExp visit(ast.Node node) => node.accept(this);
-
-  ConstExp visitStringJuxtaposition(ast.StringJuxtaposition node) {
-    ConstExp first = visit(node.first);
-    ConstExp second = visit(node.second);
-    return new ConcatenateConstExp([first, second]);
-  }
-
-  ConstExp visitStringInterpolation(ast.StringInterpolation node) {
-    List<ConstExp> arguments = <ConstExp>[];
-    arguments.add(visitLiteralString(node.string));
-    var it = node.parts.iterator;
-    while (it.moveNext()) {
-      ast.StringInterpolationPart part = it.current;
-      arguments.add(visit(part.expression));
-      arguments.add(visitLiteralString(part.string));
-    }
-    return new ConcatenateConstExp(arguments);
-  }
-
-  ConstExp visitNewExpression(ast.NewExpression node) {
-    FunctionElement element = elements[node.send];
-    // The resolver will already have thrown an error if the constructor was
-    // unresolved.
-    assert(invariant(node, !Elements.isUnresolved(element)));
-
-    Selector selector = elements.getSelector(node.send);
-    ast.Node selectorNode = node.send.selector;
-    GenericType type = elements.getType(node);
-    List<ConstExp> args = node.send.arguments.mapToList(visit, growable:false);
-    return new ConstructorConstExp(type, element, selector, args);
-  }
-
-  ConstExp visitNamedArgument(ast.NamedArgument node) {
-    return visit(node.expression);
-  }
-
-  ConstExp visitSend(ast.Send node) {
-    Element element = elements[node];
-    if (node.isOperator) {
-      return new PrimitiveConstExp(computeConstant(node));
-    }
-    if (Elements.isStaticOrTopLevelFunction(element)) {
-      return new FunctionConstExp(element);
-    }
-    if (Elements.isLocal(element) ||
-        Elements.isStaticOrTopLevelField(element)) {
-      // If the constant is small, inline it instead of using the declared const
-      Constant value = constantCompiler.getConstantForVariable(element);
-      if (isSmallConstant(value))
-        return new PrimitiveConstExp(value);
-      else
-        return new VariableConstExp(element);
-    }
-    DartType type = elements.getTypeLiteralType(node);
-    if (type != null) {
-      return new TypeConstExp(type);
-    }
-    throw "Unexpected constant Send: $node";
-  }
-
-  ConstExp visitParenthesizedExpression(ast.ParenthesizedExpression node) {
-    return visit(node.expression);
-  }
-
-  ConstExp visitLiteralList(ast.LiteralList node) {
-    List<ConstExp> values = node.elements.nodes.mapToList(visit);
-    GenericType type = elements.getType(node);
-    return new ListConstExp(type, values);
-  }
-
-  ConstExp visitLiteralMap(ast.LiteralMap node) {
-    List<ConstExp> keys = new List<ConstExp>();
-    List<ConstExp> values = new List<ConstExp>();
-    node.entries.nodes.forEach((ast.LiteralMapEntry node) {
-      keys.add(visit(node.key));
-      values.add(visit(node.value));
-    });
-    GenericType type = elements.getType(node);
-    return new MapConstExp(type, keys, values);
-  }
-
-  ConstExp visitLiteralSymbol(ast.LiteralSymbol node) {
-    return new SymbolConstExp(node.slowNameString);
-  }
-
-  ConstExp visitLiteralInt(ast.LiteralInt node) {
-    return new PrimitiveConstExp(constantSystem.createInt(node.value));
-  }
-
-  ConstExp visitLiteralDouble(ast.LiteralDouble node) {
-    return new PrimitiveConstExp(constantSystem.createDouble(node.value));
-  }
-
-  ConstExp visitLiteralString(ast.LiteralString node) {
-    return new PrimitiveConstExp(constantSystem.createString(node.dartString));
-  }
-
-  ConstExp visitLiteralBool(ast.LiteralBool node) {
-    return new PrimitiveConstExp(constantSystem.createBool(node.value));
-  }
-
-  ConstExp visitLiteralNull(ast.LiteralNull node) {
-    return new PrimitiveConstExp(constantSystem.createNull());
-  }
-
-  ConstExp visitConditional(ast.Conditional node) {
-    BoolConstant condition = computeConstant(node.condition);
-    return visit(condition.isTrue ? node.thenExpression : node.elseExpression);
-  }
-
-  ConstExp visitNode(ast.Node node) {
-    throw "Unexpected constant: $node";
-  }
-
 }
 
 /// Classifies local variables and local functions as 'closure variables'.

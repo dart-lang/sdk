@@ -1,6 +1,13 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub.barback.transformer_loader;
+
 import 'dart:async';
+
 import 'package:barback/barback.dart';
+
 import '../log.dart' as log;
 import '../utils.dart';
 import 'asset_environment.dart';
@@ -10,12 +17,22 @@ import 'excluding_transformer.dart';
 import 'transformer_config.dart';
 import 'transformer_id.dart';
 import 'transformer_isolate.dart';
+
+/// A class that loads transformers defined in specific files.
 class TransformerLoader {
   final AssetEnvironment _environment;
+
   final BarbackServer _transformerServer;
+
   final _isolates = new Map<TransformerId, TransformerIsolate>();
+
   final _transformers = new Map<TransformerConfig, Set<Transformer>>();
+
+  /// The packages that use each transformer id.
+  ///
+  /// Used for error reporting.
   final _transformerUsers = new Map<TransformerId, Set<String>>();
+
   TransformerLoader(this._environment, this._transformerServer) {
     for (var package in _environment.graph.packages.values) {
       for (var config in unionAll(package.pubspec.transformers)) {
@@ -25,56 +42,70 @@ class TransformerLoader {
       }
     }
   }
+
+  /// Loads a transformer plugin isolate that imports the transformer libraries
+  /// indicated by [ids].
+  ///
+  /// Once the returned future completes, transformer instances from this
+  /// isolate can be created using [transformersFor] or [transformersForPhase].
+  ///
+  /// This skips any ids that have already been loaded.
   Future load(Iterable<TransformerId> ids, {String snapshot}) {
     final completer0 = new Completer();
     scheduleMicrotask(() {
       try {
-        ids = ids.where(((id) => !_isolates.containsKey(id))).toList();
+        ids = ids.where(((id) {
+          return !_isolates.containsKey(id);
+        })).toList();
         join0() {
-          log.progress(
-              "Loading ${toSentence(ids)} transformers",
-              (() =>
-                  TransformerIsolate.spawn(
-                      _environment,
-                      _transformerServer,
-                      ids,
-                      snapshot: snapshot))).then((x0) {
+          log.progress("Loading ${toSentence(ids)} transformers", (() {
+            return TransformerIsolate.spawn(
+                _environment,
+                _transformerServer,
+                ids,
+                snapshot: snapshot);
+          })).then((x0) {
             try {
               var isolate = x0;
               var it0 = ids.iterator;
-              break0(x2) {
-                completer0.complete(null);
+              break0() {
+                completer0.complete();
               }
-              continue0(x3) {
+              var trampoline0;
+              continue0() {
+                trampoline0 = null;
                 if (it0.moveNext()) {
-                  Future.wait([]).then((x1) {
-                    var id = it0.current;
-                    _isolates[id] = isolate;
-                    continue0(null);
-                  });
+                  var id = it0.current;
+                  _isolates[id] = isolate;
+                  trampoline0 = continue0;
                 } else {
-                  break0(null);
+                  break0();
                 }
               }
-              continue0(null);
-            } catch (e0) {
-              completer0.completeError(e0);
+              trampoline0 = continue0;
+              do trampoline0(); while (trampoline0 != null);
+            } catch (e0, s0) {
+              completer0.completeError(e0, s0);
             }
-          }, onError: (e1) {
-            completer0.completeError(e1);
-          });
+          }, onError: completer0.completeError);
         }
         if (ids.isEmpty) {
           completer0.complete(null);
         } else {
           join0();
         }
-      } catch (e2) {
-        completer0.completeError(e2);
+      } catch (e, s) {
+        completer0.completeError(e, s);
       }
     });
     return completer0.future;
   }
+
+  /// Instantiates and returns all transformers in the library indicated by
+  /// [config] with the given configuration.
+  ///
+  /// If this is called before the library has been loaded into an isolate via
+  /// [load], it will return an empty set.
   Future<Set<Transformer>> transformersFor(TransformerConfig config) {
     final completer0 = new Completer();
     scheduleMicrotask(() {
@@ -132,12 +163,10 @@ class TransformerLoader {
                 } else {
                   join2();
                 }
-              } catch (e0) {
-                completer0.completeError(e0);
+              } catch (e0, s0) {
+                completer0.completeError(e0, s0);
               }
-            }, onError: (e1) {
-              completer0.completeError(e1);
-            });
+            }, onError: completer0.completeError);
           } else {
             join5() {
               join1();
@@ -154,12 +183,16 @@ class TransformerLoader {
         } else {
           join0();
         }
-      } catch (e2) {
-        completer0.completeError(e2);
+      } catch (e, s) {
+        completer0.completeError(e, s);
       }
     });
     return completer0.future;
   }
+
+  /// Loads all transformers defined in each phase of [phases].
+  ///
+  /// If any library hasn't yet been loaded via [load], it will be ignored.
   Future<List<Set<Transformer>>>
       transformersForPhases(Iterable<Set<TransformerConfig>> phases) {
     final completer0 = new Completer();
@@ -173,14 +206,12 @@ class TransformerLoader {
                 try {
                   var transformers = x0;
                   completer0.complete(unionAll(transformers));
-                } catch (e0) {
-                  completer0.completeError(e0);
+                } catch (e0, s0) {
+                  completer0.completeError(e0, s0);
                 }
-              }, onError: (e1) {
-                completer0.completeError(e1);
-              });
-            } catch (e2) {
-              completer0.completeError(e2);
+              }, onError: completer0.completeError);
+            } catch (e, s) {
+              completer0.completeError(e, s);
             }
           });
           return completer0.future;
@@ -188,14 +219,12 @@ class TransformerLoader {
           try {
             var result = x0;
             completer0.complete(result.toList());
-          } catch (e0) {
-            completer0.completeError(e0);
+          } catch (e0, s0) {
+            completer0.completeError(e0, s0);
           }
-        }, onError: (e1) {
-          completer0.completeError(e1);
-        });
-      } catch (e2) {
-        completer0.completeError(e2);
+        }, onError: completer0.completeError);
+      } catch (e, s) {
+        completer0.completeError(e, s);
       }
     });
     return completer0.future;

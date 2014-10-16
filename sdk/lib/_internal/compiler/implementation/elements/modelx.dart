@@ -5,6 +5,7 @@
 library elements.modelx;
 
 import 'elements.dart';
+import '../constants/expressions.dart';
 import '../helpers/helpers.dart';  // Included for debug helpers.
 import '../tree/tree.dart';
 import '../util/util.dart';
@@ -304,6 +305,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   bool get isRedirectingFactory => unsupported();
 
   computeSignature(compiler) => unsupported();
+
+  bool get hasFunctionSignature => false;
 
   get effectiveTarget => this;
 
@@ -1560,6 +1563,8 @@ abstract class BaseFunctionElementX
            && !isStatic;
   }
 
+  bool get hasFunctionSignature => functionSignatureCache != null;
+
   FunctionSignature computeSignature(Compiler compiler) {
     if (functionSignatureCache != null) return functionSignatureCache;
     compiler.withCurrentElement(this, () {
@@ -1624,6 +1629,8 @@ abstract class FunctionElementX extends BaseFunctionElementX
   void reuseElement() {
     super.reuseElement();
     nestedClosures.clear();
+    functionSignatureCache = null;
+    typeCache = null;
   }
 }
 
@@ -1999,11 +2006,11 @@ abstract class BaseClassElementX extends ElementX
     return allSupertypesAndSelf.asInstanceOf(cls);
   }
 
-  /**
-   * Return [:true:] if this element is the [:Object:] class for the [compiler].
-   */
-  bool isObject(Compiler compiler) =>
-      identical(declaration, compiler.objectClass);
+  bool get isObject {
+    assert(invariant(this, isResolved,
+        message: "isObject has not been computed for $this."));
+    return supertype == null;
+  }
 
   void ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
@@ -2610,7 +2617,7 @@ class TypeVariableElementX extends ElementX with AstElementMixin
  *
  * In this example, there are three instances of [MetadataAnnotation]
  * and they correspond each to a location in the source code where
- * there is an at-sign, '@'. The [value] of each of these instances
+ * there is an at-sign, '@'. The [constant] of each of these instances
  * are the same compile-time constant, [: const Data() :].
  *
  * The mirror system does not have a concept matching this class.
@@ -2620,7 +2627,7 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
    * The compile-time constant which this annotation resolves to.
    * In the mirror system, this would be an object mirror.
    */
-  Constant value;
+  ConstantExpression constant;
   Element annotatedElement;
   int resolutionState;
 
@@ -2632,6 +2639,10 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
   MetadataAnnotationX([this.resolutionState = STATE_NOT_STARTED]);
 
   MetadataAnnotation ensureResolved(Compiler compiler) {
+    if (annotatedElement.isClass || annotatedElement.isTypedef) {
+      TypeDeclarationElement typeDeclaration = annotatedElement;
+      typeDeclaration.ensureResolved(compiler);
+    }
     if (resolutionState == STATE_NOT_STARTED) {
       compiler.resolver.resolveMetadataAnnotation(this);
     }
@@ -2640,7 +2651,7 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
 
   Node parseNode(DiagnosticListener listener);
 
-  String toString() => 'MetadataAnnotation($value, $resolutionState)';
+  String toString() => 'MetadataAnnotation($constant, $resolutionState)';
 }
 
 /// Metadata annotation on a parameter.
@@ -2654,6 +2665,10 @@ class ParameterMetadataAnnotation extends MetadataAnnotationX {
   Token get beginToken => metadata.getBeginToken();
 
   Token get endToken => metadata.getEndToken();
+
+  bool get hasNode => true;
+
+  Metadata get node => metadata;
 }
 
 /// Mixin for the implementation of patched elements.

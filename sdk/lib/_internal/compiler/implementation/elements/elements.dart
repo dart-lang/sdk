@@ -5,6 +5,7 @@
 library elements;
 
 
+import '../constants/expressions.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';
@@ -1131,6 +1132,11 @@ abstract class FunctionElement extends Element
   /// This method will go away!
   // TODO(johnniwinther): Rename to `ensureFunctionSignature`.
   @deprecated FunctionSignature computeSignature(Compiler compiler);
+
+  bool get hasFunctionSignature;
+
+  /// The type of this function.
+  FunctionType get type;
 }
 
 /// A top level, static or instance function.
@@ -1293,7 +1299,9 @@ abstract class ClassElement extends TypeDeclarationElement
   bool get hasBackendMembers;
   bool get hasLocalScopeMembers;
 
-  bool isObject(Compiler compiler);
+  /// Returns `true` if this class is `Object` from dart:core.
+  bool get isObject;
+
   bool isSubclassOf(ClassElement cls);
   /// Returns true if `this` explicitly/nominally implements [intrface].
   ///
@@ -1427,11 +1435,14 @@ abstract class TypeVariableElement extends Element
 
 abstract class MetadataAnnotation implements Spannable {
   /// The front-end constant of this metadata annotation.
-  Constant get value;
+  ConstantExpression get constant;
   Element get annotatedElement;
   int get resolutionState;
   Token get beginToken;
   Token get endToken;
+
+  bool get hasNode;
+  Node get node;
 
   MetadataAnnotation ensureResolved(Compiler compiler);
 }

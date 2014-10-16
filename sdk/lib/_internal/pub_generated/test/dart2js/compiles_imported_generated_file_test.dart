@@ -1,7 +1,13 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS d.file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:scheduled_test/scheduled_test.dart';
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import '../serve/utils.dart';
+
 main() {
   initConfig();
   withBarbackVersions("any", () {
@@ -19,7 +25,9 @@ void main() => print(TOKEN);
 library other;
 const TOKEN = "before";
 """)])]).create();
+
       createLockFile('myapp', pkg: ['barback']);
+
       pubServe();
       requestShouldSucceed("main.dart.js", contains("(before, munge)"));
       endPubServe();

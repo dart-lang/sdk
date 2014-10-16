@@ -4,7 +4,7 @@
 library browser;
 
 import "dart:async";
-import "dart:convert" show LineSplitter, UTF8;
+import "dart:convert" show LineSplitter, UTF8, JSON;
 import "dart:core";
 import "dart:io";
 
@@ -783,7 +783,28 @@ class BrowserTest {
   BrowserTest(this.url, this.doneCallback, this.timeout) {
     id = _idCounter++;
   }
+
+  String toJSON() => JSON.encode({'url': url,
+                                  'id': id,
+                                  'isSimpleHtmlTest': false});
 }
+
+
+/**
+ * Describes a test with a custom HTML page to be run in the browser.
+ */
+class HtmlTest extends BrowserTest {
+  List<String> expectedMessages;
+
+  HtmlTest(url, doneCallback, timeout, this.expectedMessages)
+      : super(url, doneCallback, timeout) { }
+
+  String toJSON() => JSON.encode({'url': url,
+                                  'id': id,
+                                  'isSimpleHtmlTest': true,
+                                  'expectedMessages': expectedMessages});
+}
+
 
 /* Describes the output of running the test in a browser */
 class BrowserTestOutput {
@@ -1302,7 +1323,7 @@ class BrowserTestingServer {
                                      "no-cache, no-store, must-revalidate");
     }
     int testId(request) =>
-        int.parse(request.uri.queryParameters["id"].split("=")[1]);
+        int.parse(request.uri.queryParameters["id"]);
     String browserId(request, prefix) =>
         request.uri.path.substring(prefix.length + 1);
 
@@ -1385,11 +1406,8 @@ class BrowserTestingServer {
       // Browsers will be killed shortly, send them a terminate signal so
       // that they stop pulling.
       return terminateSignal;
-    } else if (nextTest == null) {
-      // We don't currently have any tests ready for consumption, wait.
-      return waitSignal;
     } else {
-      return "${nextTest.url}#id=${nextTest.id}";
+      return nextTest == null ? waitSignal : nextTest.toJSON();
     }
   }
 
@@ -1413,6 +1431,8 @@ class BrowserTestingServer {
 <head>
   <title>Driving page</title>
   <script type='text/javascript'>
+    var STATUS_UPDATE_INTERVAL = 10000;
+
     function startTesting() {
       var number_of_tests = 0;
       var current_id;
@@ -1429,6 +1449,9 @@ class BrowserTestingServer {
       var use_iframe = ${useIframe};
       var start = new Date();
 
+      // Object that holds the state of an HTML test
+      var html_test;
+  
       function newTaskHandler() {
         if (this.readyState == this.DONE) {
           if (this.status == 200) {
@@ -1438,12 +1461,24 @@ class BrowserTestingServer {
               // Don't do anything, we will be killed shortly.
             } else {
               var elapsed = new Date() - start;
-              // The task is send to us as:
-              // URL#ID
-              var split = this.responseText.split('#');
-              var nextTask = split[0];
-              next_id = split[1];
-              run(nextTask);
+              var nextTask = JSON.parse(this.responseText);
+              var url = nextTask.url;
+              next_id = nextTask.id;
+              if (nextTask.isHtmlTest) {
+                html_test = {
+                  expected_messages: nextTask.expectedMessages,
+                  found_message_count: 0,
+                  double_received_messages: [],
+                  unexpected_messages: [],
+                  found_messages: {}
+                };
+                for (var i = 0; i < html_test.expected_messages.length; ++i) {
+                  html_test.found_messages[html_test.expected_messages[i]] = 0;
+                }
+              } else {
+                html_test = null;
+              }               
+              run(url);
             }
           } else {
             reportError('Could not contact the server and get a new task');
@@ -1473,11 +1508,51 @@ class BrowserTestingServer {
             'GET', '$nextTestPath/$browserId', newTaskHandler, "", false);
       }
 
+      function childError(message, filename, lineno, colno, error) {
+        sendStatusUpdate();
+        if (error) {
+          reportMessage('FAIL:' + filename + ':' + lineno + 
+               ':' + colno + ':' + message + '\\n' + error.stack, false, false);
+        } else if (filename) {
+          reportMessage('FAIL:' + filename + ':' + lineno + 
+               ':' + colno + ':' + message, false, false);
+        } else {
+          reportMessage('FAIL: ' + message, false, false);
+        }
+        return true;
+      }
+
+      function setChildHandlers(e) {
+        embedded_iframe.contentWindow.addEventListener('message',
+                                                       childMessageHandler,
+                                                       false);
+        embedded_iframe.contentWindow.onerror = childError;
+        reportMessage("First message from html test", true, false);
+        html_test.handlers_installed = true;
+        sendRepeatingStatusUpdate();
+      }
+
+      function checkChildHandlersInstalled() {
+        if (!html_test.handlers_installed) {
+          reportMessage("First message from html test", true, false);
+          reportMessage(
+              'FAIL: Html test did not call ' +
+              'window.parent.dispatchEvent(new Event("detect_errors")) ' +
+              'as its first action', false, false);
+        }
+      }
+
       function run(url) {
         number_of_tests++;
         number_div.innerHTML = number_of_tests;
         executing_div.innerHTML = url;
         if (use_iframe) {
+          if (html_test) {
+            window.addEventListener('detect_errors', setChildHandlers, false);
+            embedded_iframe.onload = checkChildHandlersInstalled;
+          } else {
+            embedded_iframe.onload = null;
+          }
           embedded_iframe.src = url;
         } else {
           if (typeof testing_window != 'undefined') {
@@ -1558,6 +1633,7 @@ class BrowserTestingServer {
         return parsedData;
       }
 
+      // Browser tests send JSON messages to the driver window, handled here.
       function messageHandler(e) {
         var msg = e.data;
         if (typeof msg != 'string') return;
@@ -1585,12 +1661,52 @@ class BrowserTestingServer {
         }
       }
 
-      window.addEventListener('message', messageHandler, false);
-      waitForDone = false;
+      function sendStatusUpdate () {
+        var dom =
+            embedded_iframe.contentWindow.document.documentElement.innerHTML;
+        reportMessage('Status:\\n  Messages received multiple times:\\n    ' +
+                      html_test.double_received_messages +
+                      '\\n  Unexpected messages:\\n    ' +
+                      html_test.unexpected_messages +
+                      '\\n  DOM:\\n    ' + dom, false, true);
+      }
 
+      function sendRepeatingStatusUpdate() {
+        sendStatusUpdate();
+        setTimeout(sendRepeatingStatusUpdate, STATUS_UPDATE_INTERVAL);
+      }
+
+      // HTML tests post messages to their own window, handled by this handler.
+      // This handler is installed on the child window when it sends the
+      // 'detect_errors' event.  Every HTML test must send 'detect_errors' to
+      // its parent window as its first action, so all errors will be caught.
+      function childMessageHandler(e) {
+        var msg = e.data;
+        if (typeof msg != 'string') return;
+        if (msg in html_test.found_messages) {
+          html_test.found_messages[msg]++;
+          if (html_test.found_messages[msg] == 1) {
+            html_test.found_message_count++;
+          } else {  
+            html_test.double_received_messages.push(msg);
+            sendStatusUpdate();
+          }
+        } else {
+          html_test.unexpected_messages.push(msg);
+          sendStatusUpdate();
+        }
+        if (html_test.found_message_count ==
+            html_test.expected_messages.length) {
+          reportMessage('Test done: PASS', false, false);
+        }
+      }
+
+      if (!html_test) {
+        window.addEventListener('message', messageHandler, false);
+        waitForDone = false;
+      }
       getNextTask();
     }
-
   </script>
 </head>
   <body onload="startTesting()">

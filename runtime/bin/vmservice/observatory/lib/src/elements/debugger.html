@@ -1,0 +1,226 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="script_inset.html">
+<link rel="import" href="script_ref.html">
+
+<!-- TODO(turnidge): Use core-icon once core_elements work properly in
+     devtools -->
+<polymer-element name="icon-expand-less" noscript>
+  <template>
+    <svg width="24" height="24">
+      <polygon points="12,8 6,14 7.4,15.4 12,10.8 16.6,15.4 18,14 "/>
+    </svg>
+  </template>
+</polymer-element>
+
+<polymer-element name="icon-expand-more" noscript>
+  <template>
+    <svg width="24" height="24">
+      <polygon points="16.6,8.6 12,13.2 7.4,8.6 6,10 12,16 18,10 "/>
+    </svg>
+  </template>
+</polymer-element>
+
+<polymer-element name="debugger-page" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+      .container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      nav-bar {
+        flex: 0 0 auto;
+      }
+      .stack {
+        flex: 0 0 auto;
+        overflow-y: auto;
+      }
+      core-splitter {
+        flex: 0 0 auto;
+      }
+      .console {
+        flex: 1 1 auto;
+        overflow-y: auto;
+      }
+      .commandline {
+        flex: 0 0 auto;
+      }
+    </style>
+
+    <div class="container">
+      <nav-bar>
+	<top-nav-menu last="{{ true }}"></top-nav-menu>
+	<isolate-nav-menu isolate="{{ isolate }}" last="{{ true }}">
+	</isolate-nav-menu>
+	<nav-control></nav-control>
+      </nav-bar>
+
+      <div id="stack" class="stack">
+	<debugger-stack isolate="{{ isolate }}"></debugger-stack>
+      </div>
+      <!--
+      <core-splitter direction="up" allowOverflow=true></core-splitter>
+      <div class="console">
+	<debugger-console isolate="{{ isolate }}"></debugger-console>
+      </div>
+      <div class="commandline">
+	<debugger-input isolate="{{ isolate }}"></debugger-input>
+      </div>
+      -->
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="debugger-stack" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <template if="{{ stack == null }}">
+      Loading stack frames
+    </template>
+    <template if="{{ stack != null }}">
+      <ul class="list-group">
+        <template repeat="{{ frame in stack['members'] }}">
+          <li class="list-group-item">
+            <debugger-frame frame="{{ frame }}"
+                            expand="{{ frame['depth'] == activeFrame }}">
+            </debugger-frame>
+          </li>
+        </template>
+      </ul>
+    </template>
+  </template>
+</polymer-element>
+
+
+<polymer-element name="debugger-frame" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+      .frameOuter {
+        position: relative;
+        padding: 5px;
+        border: 1px solid white;
+      }
+      .frameOuter:hover {
+        border: 1px solid #e0e0e0;
+      }
+      .shadow {
+        box-shadow:  0 2px 10px 0 rgba(0, 0, 0, 0.16),
+                     0 2px 5px 0 rgba(0, 0, 0, 0.26);
+      }
+      .frameSummaryText {
+        display: inline-block;
+        padding: 5px;
+      }
+      .frameId {
+        display: inline-block;
+        width: 60px;
+      }
+      .frameOuter .frameExpander {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        display: none;
+      }
+      .frameOuter:hover .frameExpander{
+        display: inline-block;
+      }
+      .frameContractor {
+        position: absolute;
+        right: 5px;
+        bottom: 5px;
+        display: inline-block;
+      }
+    </style>
+    <div id="frameOuter" class="frameOuter">
+      <a on-click="{{ toggleExpand }}">
+        <div class="frameSummary">
+          <div class="frameSummaryText">
+            <div class="frameId"><b>frame {{ frame['depth'] }}</b></div>
+            <function-ref ref="{{ frame['function'] }}"></function-ref>
+            ( <script-ref ref="{{ frame['script'] }}"
+                          pos="{{ frame['tokenPos'] }}">
+            </script-ref> )
+          </div>
+          <template if="{{ !expanded }}">
+            <div class="frameExpander">
+              <icon-expand-more></icon-expand-more>
+            </div>
+          </template>
+        </div>
+      </a>
+
+      <template if="{{expanded}}">
+        <div class="frameDetails">
+          <div class="flex-row">
+            <div class="flex-item-60-percent">
+              <script-inset height="{{ scriptHeight }}"
+			    script="{{ frame['function'].script }}"
+                            startPos="{{ frame['function'].tokenPos }}"
+                            endPos="{{ frame['function'].endTokenPos }}"
+                            currentPos="{{ frame['tokenPos'] }}">
+              </script-inset>
+            </div>
+            <div class="flex-item-40-percent">
+              <div style="padding:10px;" class="memberList">
+                <template repeat="{{ v in frame['vars'] }}">
+                  <div class="memberItem">
+                    <div class="memberName">{{ v['name']}}</div>
+                    <div class="memberValue">
+                      <any-service-ref ref="{{ v['value'] }}">
+                      </any-service-ref>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+          <!-- TODO(turnidge): Add eval box here? -->
+          <div class="frameContractor">
+            <template if="{{expanded}}">
+              <a on-click="{{ toggleExpand }}">
+                <icon-expand-less></icon-expand-less>
+              </a>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="debugger-console" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+      .textBox {
+        position: absolute;
+        bottom: 0px;
+        width: 100%;
+      }
+    </style>
+    <div>
+      Debugging console is not yet implemented.<br>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="debugger-input" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+      .textBox {
+        font: 400 16px 'Montserrat', sans-serif;
+        width: 100%;
+      }
+    </style>
+    <input id="textBox" class="textBox" type="text" value="{{ text }}">
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="debugger.dart"></script>

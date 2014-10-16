@@ -4,9 +4,10 @@
 
 library test.integration.analysis.overrides;
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 @ReflectiveTestCase()
@@ -50,19 +51,19 @@ class Target extends Base implements Interface1, Interface2 {
     writeFile(pathname, text);
     standardAnalysisSetup();
     sendAnalysisSetSubscriptions({
-      'OVERRIDES': [pathname]
+      AnalysisService.OVERRIDES: [pathname]
     });
-    List overrides;
-    onAnalysisOverrides.listen((params) {
-      expect(params['file'], equals(pathname));
-      overrides = params['overrides'];
+    List<Override> overrides;
+    onAnalysisOverrides.listen((AnalysisOverridesParams params) {
+      expect(params.file, equals(pathname));
+      overrides = params.overrides;
     });
     return analysisFinished.then((_) {
       int targetOffset = text.indexOf('Target');
-      Map findOverride(String methodName) {
+      Override findOverride(String methodName) {
         int methodOffset = text.indexOf(methodName, targetOffset);
-        for (Map override in overrides) {
-          if (override['offset'] == methodOffset) {
+        for (Override override in overrides) {
+          if (override.offset == methodOffset) {
             return override;
           }
         }
@@ -70,7 +71,7 @@ class Target extends Base implements Interface1, Interface2 {
       }
       void checkOverrides(String methodName, bool
           expectedOverridesBase, List<String> expectedOverridesInterfaces) {
-        Map override = findOverride(methodName);
+        Override override = findOverride(methodName);
         if (!expectedOverridesBase && expectedOverridesInterfaces.isEmpty) {
           // This method overrides nothing, so it should not appear in the
           // overrides list.
@@ -79,21 +80,21 @@ class Target extends Base implements Interface1, Interface2 {
         } else {
           expect(override, isNotNull);
         }
-        expect(override['length'], equals(methodName.length));
-        Map superclassMember = override['superclassMember'];
+        expect(override.length, equals(methodName.length));
+        OverriddenMember superclassMember = override.superclassMember;
         if (expectedOverridesBase) {
-          expect(superclassMember['element']['name'], equals(methodName));
-          expect(superclassMember['className'], equals('Base'));
+          expect(superclassMember.element.name, equals(methodName));
+          expect(superclassMember.className, equals('Base'));
         } else {
           expect(superclassMember, isNull);
         }
-        List interfaceMembers = override['interfaceMembers'];
+        List<OverriddenMember> interfaceMembers = override.interfaceMembers;
         if (expectedOverridesInterfaces.isNotEmpty) {
           expect(interfaceMembers, isNotNull);
           Set<String> actualOverridesInterfaces = new Set<String>();
-          for (Map overriddenMember in interfaceMembers) {
-            expect(overriddenMember['element']['name'], equals(methodName));
-            String className = overriddenMember['className'];
+          for (OverriddenMember overriddenMember in interfaceMembers) {
+            expect(overriddenMember.element.name, equals(methodName));
+            String className = overriddenMember.className;
             bool wasAdded = actualOverridesInterfaces.add(className);
             expect(wasAdded, isTrue);
           }

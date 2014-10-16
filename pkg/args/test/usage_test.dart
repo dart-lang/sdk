@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 import 'package:args/args.dart';
 
 void main() {
-  group('ArgParser.getUsage()', () {
+  group('ArgParser.usage', () {
     test('negatable flags show "no-" in title', () {
       var parser = new ArgParser();
       parser.addFlag('mode', help: 'The mode');
@@ -225,7 +225,7 @@ void main() {
 
 void validateUsage(ArgParser parser, String expected) {
   expected = unindentString(expected);
-  expect(parser.getUsage(), equals(expected));
+  expect(parser.usage, equals(expected));
 }
 
 // TODO(rnystrom): Replace one in test_utils.

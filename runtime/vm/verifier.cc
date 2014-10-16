@@ -21,6 +21,24 @@ DEFINE_FLAG(bool, verify_on_transition, false, "Verify on dart <==> VM.");
 
 
 void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
+  if (raw_obj->IsHeapObject()) {
+    switch (mark_expectation_) {
+     case kForbidMarked:
+      if (raw_obj->IsMarked()) {
+        uword raw_addr = RawObject::ToAddr(raw_obj);
+        FATAL1("Marked object encountered %#" Px "\n", raw_addr);
+      }
+      break;
+     case kAllowMarked:
+      break;
+     case kRequireMarked:
+      if (!raw_obj->IsMarked()) {
+        uword raw_addr = RawObject::ToAddr(raw_obj);
+        FATAL1("Unmarked object encountered %#" Px "\n", raw_addr);
+      }
+      break;
+    }
+  }
   allocated_set_->Add(raw_obj);
   raw_obj->Validate(isolate());
 }
@@ -47,10 +65,11 @@ void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
 }
 
 
-void VerifyPointersVisitor::VerifyPointers() {
+void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
   NoGCScope no_gc;
   Isolate* isolate = Isolate::Current();
-  ObjectSet* allocated_set = isolate->heap()->CreateAllocatedObjectSet();
+  ObjectSet* allocated_set =
+      isolate->heap()->CreateAllocatedObjectSet(mark_expectation);
   VerifyPointersVisitor visitor(isolate, allocated_set);
   // Visit all strongly reachable objects.
   isolate->VisitObjectPointers(&visitor,

@@ -417,10 +417,10 @@ class RawSocketEvent {
 
   const RawSocketEvent._(this._value);
   String toString() {
-    return ['RawSocketEvent:READ',
-            'RawSocketEvent:WRITE',
-            'RawSocketEvent:READ_CLOSED',
-            'RawSocketEvent:CLOSED'][_value];
+    return const ['RawSocketEvent:READ',
+                  'RawSocketEvent:WRITE',
+                  'RawSocketEvent:READ_CLOSED',
+                  'RawSocketEvent:CLOSED'][_value];
   }
 }
 

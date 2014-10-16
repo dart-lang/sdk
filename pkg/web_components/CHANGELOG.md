@@ -1,4 +1,32 @@
-#### Pub version 0.7.1-dev
+#### Pub version 0.9.0-dev
+  * Updated to platform version 0.4.2, internally a deprecated API was removed,
+    hence the bump in the version number.
+
+  * split dart_support.js in two. dart_support.js only contains what is
+    necessary in order to use platform.js,
+    interop_support.js/interop_support.html can be imported separately when
+    providing Dart APIs for js custom elements.
+
+#### Pub version 0.8.0
+  * Re-apply changes from 0.7.1+1 and also cherry pick 
+    [efdbbc](https://github.com/polymer/CustomElements/commit/efdbbc) to fix
+    the customElementsTakeRecords function.
+  * **Breaking Change** The customElementsTakeRecords function now has an
+    an optional argument `node`. There is no longer a single global observer,
+    but one for each ShadowRoot and one for the main document. The observer that
+    is actually used defaults to the main document, but if `node` is supplied
+    then it will walk up the document tree and use the first observer that it
+    finds.
+
+#### Pub version 0.7.1+2
+  * Revert the change from 0.7.1+1 due to redness in FF/Safari/IE.
+
+#### Pub version 0.7.1+1
+  * Cherry pick [f280d](https://github.com/Polymer/ShadowDOM/commit/f280d) and
+    [165c3](https://github.com/Polymer/CustomElements/commit/165c3) to fix
+    memory leaks.
+
+#### Pub version 0.7.1
   * Update to platform version 0.4.1-d214582.
 
 #### Pub version 0.7.0+1

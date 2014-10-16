@@ -37,11 +37,43 @@ UNIT_TEST_CASE(AllocateVirtualMemory) {
   EXPECT_STREQ("ac/dc", buf);
 
   delete vm;
+}
 
-  const intptr_t kAlignment = 1 * MB;
-  vm = VirtualMemory::ReserveAligned(kVirtualMemoryBlockSize, kAlignment);
-  ASSERT((vm->start() & (kAlignment - 1)) == 0);
-  delete vm;
+
+UNIT_TEST_CASE(FreeVirtualMemory) {
+  // Reservations should always be handed back to OS upon destruction.
+  const intptr_t kVirtualMemoryBlockSize = 10 * MB;
+  const intptr_t kIterations = 900;  // Enough to exhaust 32-bit address space.
+  for (intptr_t i = 0; i < kIterations; ++i) {
+    VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
+    vm->Commit(false);
+    delete vm;
+  }
+  // Check that truncation does not introduce leaks.
+  for (intptr_t i = 0; i < kIterations; ++i) {
+    VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
+    vm->Commit(false);
+    vm->Truncate(kVirtualMemoryBlockSize / 2, true);
+    delete vm;
+  }
+  for (intptr_t i = 0; i < kIterations; ++i) {
+    VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
+    vm->Commit(true);
+    vm->Truncate(kVirtualMemoryBlockSize / 2, false);
+    delete vm;
+  }
+  for (intptr_t i = 0; i < kIterations; ++i) {
+    VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
+    vm->Commit(true);
+    vm->Truncate(0, true);
+    delete vm;
+  }
+  for (intptr_t i = 0; i < kIterations; ++i) {
+    VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
+    vm->Commit(false);
+    vm->Truncate(0, false);
+    delete vm;
+  }
 }
 
 }  // namespace dart

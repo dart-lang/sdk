@@ -8,14 +8,6 @@ import 'dart:async' show
     Completer,
     Future;
 
-import 'dart:io' show
-    File,
-    HttpClient,
-    HttpClientRequest,
-    HttpClientResponse,
-    Platform,
-    stdout;
-
 import 'dart:io' as io;
 
 import 'dart:convert' show
@@ -24,6 +16,9 @@ import 'dart:convert' show
 import 'package:dart2js_incremental/dart2js_incremental.dart' show
     reuseCompiler;
 
+import 'package:dart2js_incremental/library_updater.dart' show
+    LibraryUpdater;
+
 import 'package:compiler/implementation/source_file_provider.dart' show
     FormattingDiagnosticHandler;
 
@@ -31,6 +26,7 @@ import 'package:compiler/compiler.dart' as api;
 
 import 'package:compiler/implementation/dart2jslib.dart' show
     Compiler,
+    CompilerTask,
     Enqueuer,
     QueueFilter,
     WorkItem;
@@ -64,6 +60,9 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
     PartialElement,
     Token;
 
+import 'package:compiler/implementation/js/js.dart' show
+    js;
+
 /// Enabled by the option --enable-dart-mind.  Controls if this program should
 /// be querying Dart Mind.
 bool isDartMindEnabled = false;
@@ -93,12 +92,22 @@ int globalCounter = 0;
 /// really need.
 bool isVerbose = false;
 
+/// Enabled by the option --compile. Also compiles the program after analyzing
+/// the POI.
+bool isCompiler = false;
+
+/// Enabled by the option --minify. Passes the same option to the compiler to
+/// generate minified output.
+bool enableMinification = false;
+
 /// When true (the default value) print serialized scope information at the
 /// provided position.
 const bool PRINT_SCOPE_INFO =
     const bool.fromEnvironment('PRINT_SCOPE_INFO', defaultValue: true);
 
 Stopwatch wallClock = new Stopwatch();
+
+PoiTask poiTask;
 
 Compiler cachedCompiler;
 
@@ -152,6 +161,12 @@ main(List<String> arguments) {
         case '--verbose':
           isVerbose = true;
           break;
+        case '--compile':
+          isCompiler = true;
+          break;
+        case '--minify':
+          enableMinification = true;
+          break;
         default:
           throw 'Unknown option: $argument.';
       }
@@ -201,8 +216,10 @@ api.CompilerInputProvider simulateMutation(
           cachedFileName = '$cachedFileName.$count.dart';
         }
         printVerbose('Not using cached version of $cachedFileName');
-        cache = new File(cachedFileName).readAsBytes().then((data) {
-          printVerbose('Read file $cachedFileName: ${UTF8.decode(data)}');
+        cache = new io.File(cachedFileName).readAsBytes().then((data) {
+          printVerbose(
+              'Read file $cachedFileName: '
+              '${UTF8.decode(data.take(100).toList(), allowMalformed: true)}...');
           return data;
         });
         count++;
@@ -219,9 +236,9 @@ api.CompilerInputProvider simulateMutation(
 
 Future<String> prompt(message) {
   if (stdin is StdinIterator) {
-    stdout.write(message);
+    io.stdout.write(message);
   }
-  return stdout.flush().then((_) {
+  return io.stdout.flush().then((_) {
     stdin.moveNext();
     return stdin.current;
   });
@@ -236,10 +253,10 @@ Future queryDartMind(String prefix, String info) {
       '&arg0=$encodedArg0';
   Uri uri = Uri.parse(mindQuery);
 
-  HttpClient client = new HttpClient();
-  return client.getUrl(uri).then((HttpClientRequest request) {
+  io.HttpClient client = new io.HttpClient();
+  return client.getUrl(uri).then((io.HttpClientRequest request) {
     return request.close();
-  }).then((HttpClientResponse response) {
+  }).then((io.HttpClientResponse response) {
     Completer<String> completer = new Completer<String>();
     response.transform(UTF8.decoder).listen((contents) {
       completer.complete(contents);
@@ -358,19 +375,34 @@ Future<Element> runPoi(
     int position,
     api.CompilerInputProvider inputProvider,
     api.DiagnosticHandler handler) {
+  Stopwatch sw = new Stopwatch()..start();
   Uri libraryRoot = Uri.base.resolve('sdk/');
   Uri packageRoot = Uri.base.resolveUri(
-      new Uri.file('${Platform.packageRoot}/'));
+      new Uri.file('${io.Platform.packageRoot}/'));
 
   var options = [
       '--analyze-main',
-      '--analyze-only',
       '--no-source-maps',
       '--verbose',
       '--categories=Client,Server',
       '--incremental-support',
       '--disable-type-inference',
   ];
+
+  if (!isCompiler) {
+    options.add('--analyze-only');
+  }
+
+  if (enableMinification) {
+    options.add('--minify');
+  }
+
+  LibraryUpdater updater =
+      new LibraryUpdater(
+          cachedCompiler, inputProvider, script, printWallClock, printVerbose);
+  Future<bool> reuseLibrary(LibraryElement library) {
+    return poiTask.measure(() => updater.reuseLibrary(library));
+  }
 
   return reuseCompiler(
       diagnosticHandler: handler,
@@ -379,20 +411,59 @@ Future<Element> runPoi(
       cachedCompiler: cachedCompiler,
       libraryRoot: libraryRoot,
       packageRoot: packageRoot,
-      packagesAreImmutable: true).then((Compiler newCompiler) {
-    var filter = new ScriptOnlyFilter(script);
-    newCompiler.enqueuerFilter = filter;
-    return runPoiInternal(newCompiler, script, position);
+      packagesAreImmutable: true,
+      reuseLibrary: reuseLibrary).then((Compiler newCompiler) {
+    if (!isCompiler) {
+      newCompiler.enqueuerFilter = new ScriptOnlyFilter(script);
+    }
+    return runPoiInternal(newCompiler, sw, updater, position);
   });
 }
 
 Future<Element> runPoiInternal(
     Compiler newCompiler,
-    Uri uri,
+    Stopwatch sw,
+    LibraryUpdater updater,
     int position) {
+  bool isFullCompile = cachedCompiler != newCompiler;
   cachedCompiler = newCompiler;
+  if (poiTask == null || poiTask.compiler != cachedCompiler) {
+    poiTask = new PoiTask(cachedCompiler);
+    cachedCompiler.tasks.add(poiTask);
+  }
 
-  return cachedCompiler.run(uri).then((success) {
+  if (!isFullCompile) {
+    printFormattedTime(
+        'Analyzing changes and updating elements took', sw.elapsedMicroseconds);
+  }
+  sw.reset();
+
+  Future<bool> compilation;
+
+  if (updater.hasPendingUpdates) {
+    compilation = new Future(() {
+      var node = js.statement(
+          r'var $dart_patch = #', js.escapedString(updater.computeUpdateJs()));
+      print(updater.prettyPrintJs(node));
+
+      return !cachedCompiler.compilationFailed;
+    });
+  } else {
+    compilation = cachedCompiler.run(updater.uri);
+  }
+
+  return compilation.then((success) {
+    printVerbose('Compiler queue processed in ${sw.elapsedMicroseconds}us');
+    if (isVerbose) {
+      for (final task in cachedCompiler.tasks) {
+        int time = task.timingMicroseconds;
+        if (time != 0) {
+          printFormattedTime('${task.name} took', time);
+        }
+      }
+    }
+
+    if (poiCount != null) poiCount++;
     if (success != true) {
       throw 'Compilation failed';
     }
@@ -712,4 +783,10 @@ modelx.ScopeX localScope(modelx.LibraryElementX element) => element.localScope;
 
 modelx.ImportScope importScope(modelx.LibraryElementX element) {
   return element.importScope;
+}
+
+class PoiTask extends CompilerTask {
+  PoiTask(Compiler compiler) : super(compiler);
+
+  String get name => 'POI';
 }

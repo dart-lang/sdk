@@ -6,9 +6,11 @@ library services.completion.computer.dart.local;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' as protocol show Element, ElementKind;
+import 'package:analysis_server/src/protocol.dart' as protocol show Element,
+    ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -56,6 +58,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       null);
 
   final DartCompletionRequest request;
+  bool typesOnly = false;
 
   _LocalVisitor(this.request);
 
@@ -83,32 +86,40 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
+  visitCascadeExpression(CascadeExpression node) {
+    Expression target = node.target;
+    // This computer handles the expression
+    // while InvocationComputer handles the cascade selector
+    if (target != null && request.offset <= target.end) {
+      visitNode(node);
+    }
+  }
+
+  @override
   visitCatchClause(CatchClause node) {
     _addParamSuggestion(node.exceptionParameter, node.exceptionType);
-    CompletionSuggestion suggestion =
-        _addParamSuggestion(node.stackTraceParameter, STACKTRACE_TYPE);
+    _addParamSuggestion(node.stackTraceParameter, STACKTRACE_TYPE);
     visitNode(node);
   }
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    node.members.forEach((ClassMember classMbr) {
-      if (classMbr is FieldDeclaration) {
-        _addFieldSuggestions(node, classMbr);
-      } else if (classMbr is MethodDeclaration) {
-        _addMethodSuggestion(node, classMbr);
-      }
+    _addClassDeclarationMembers(node);
+    visitInheritedTypes(node, (ClassDeclaration classNode) {
+      _addClassDeclarationMembers(classNode);
+    }, (String typeName) {
+      // ignored
     });
     visitNode(node);
   }
 
   @override
+  visitCombinator(Combinator node) {
+    // Handled by ImportedComputer
+  }
+
+  @override
   visitCompilationUnit(CompilationUnit node) {
-    node.directives.forEach((Directive directive) {
-      if (directive is ImportDirective) {
-        _addLibraryPrefixSuggestion(directive);
-      }
-    });
     node.declarations.forEach((Declaration declaration) {
       if (declaration is ClassDeclaration) {
         _addClassSuggestion(declaration);
@@ -188,14 +199,57 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
+  visitInterpolationExpression(InterpolationExpression node) {
+    visitNode(node);
+  }
+
+  @override
   visitMethodDeclaration(MethodDeclaration node) {
     _addParamListSuggestions(node.parameters);
     visitNode(node);
   }
 
   @override
+  visitNamespaceDirective(NamespaceDirective node) {
+    // No suggestions
+  }
+
+  @override
   visitNode(AstNode node) {
     node.parent.accept(this);
+  }
+
+  @override
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // InvocationComputer adds suggestions for prefixed elements
+    // but this computer adds suggestions for the prefix itself
+    SimpleIdentifier prefix = node.prefix;
+    if (prefix == null || request.offset <= prefix.end) {
+      visitNode(node);
+    }
+  }
+
+  @override
+  visitPropertyAccess(PropertyAccess node) {
+    // InvocationComputer adds suggestions for property access selector
+  }
+
+  @override
+  visitStringInterpolation(StringInterpolation node) {
+    visitNode(node);
+  }
+
+  @override
+  visitStringLiteral(StringLiteral node) {
+    // ignore
+  }
+
+  @override
+  visitTypeName(TypeName node) {
+    // If suggesting completions within a TypeName node
+    // then limit suggestions to only types
+    typesOnly = true;
+    return visitNode(node);
   }
 
   @override
@@ -207,6 +261,16 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
         request.offset > name.end) {
       visitNode(node);
     }
+  }
+
+  void _addClassDeclarationMembers(ClassDeclaration node) {
+    node.members.forEach((ClassMember classMbr) {
+      if (classMbr is FieldDeclaration) {
+        _addFieldSuggestions(node, classMbr);
+      } else if (classMbr is MethodDeclaration) {
+        _addMethodSuggestion(node, classMbr);
+      }
+    });
   }
 
   void _addClassSuggestion(ClassDeclaration declaration) {
@@ -223,6 +287,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   void _addFieldSuggestions(ClassDeclaration node, FieldDeclaration fieldDecl) {
+    if (typesOnly) {
+      return;
+    }
     bool isDeprecated = _isDeprecated(fieldDecl.metadata);
     fieldDecl.fields.variables.forEach((VariableDeclaration varDecl) {
       CompletionSuggestion suggestion = _addSuggestion(
@@ -242,6 +309,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   void _addFunctionSuggestion(FunctionDeclaration declaration) {
+    if (typesOnly) {
+      return;
+    }
     CompletionSuggestion suggestion = _addSuggestion(
         declaration.name,
         CompletionSuggestionKind.FUNCTION,
@@ -257,23 +327,10 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
   }
 
-  void _addLibraryPrefixSuggestion(ImportDirective directive) {
-    CompletionSuggestion suggestion = _addSuggestion(
-        directive.prefix,
-        CompletionSuggestionKind.LIBRARY_PREFIX,
-        null,
-        null);
-    if (suggestion != null) {
-      suggestion.element = _createElement(
-          protocol.ElementKind.LIBRARY,
-          directive.prefix,
-          NO_RETURN_TYPE,
-          false,
-          false);
-    }
-  }
-
   void _addLocalVarSuggestion(SimpleIdentifier id, TypeName returnType) {
+    if (typesOnly) {
+      return;
+    }
     CompletionSuggestion suggestion =
         _addSuggestion(id, CompletionSuggestionKind.LOCAL_VARIABLE, returnType, null);
     if (suggestion != null) {
@@ -287,6 +344,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   void _addMethodSuggestion(ClassDeclaration node, MethodDeclaration classMbr) {
+    if (typesOnly) {
+      return;
+    }
     protocol.ElementKind kind;
     CompletionSuggestionKind csKind;
     if (classMbr.isGetter) {
@@ -310,6 +370,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   void _addParamListSuggestions(FormalParameterList paramList) {
+    if (typesOnly) {
+      return;
+    }
     if (paramList != null) {
       paramList.parameters.forEach((FormalParameter param) {
         NormalFormalParameter normalParam;
@@ -331,15 +394,16 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
   }
 
-  CompletionSuggestion _addParamSuggestion(SimpleIdentifier identifier,
-      TypeName type) {
+  void _addParamSuggestion(SimpleIdentifier identifier, TypeName type) {
+    if (typesOnly) {
+      return;
+    }
     CompletionSuggestion suggestion =
         _addSuggestion(identifier, CompletionSuggestionKind.PARAMETER, type, null);
     if (suggestion != null) {
       suggestion.element =
           _createElement(protocol.ElementKind.PARAMETER, identifier, type, false, false);
     }
-    return suggestion;
   }
 
   CompletionSuggestion _addSuggestion(SimpleIdentifier id,
@@ -381,6 +445,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   void _addTopLevelVarSuggestions(VariableDeclarationList varList) {
+    if (typesOnly) {
+      return;
+    }
     if (varList != null) {
       bool isDeprecated = _isDeprecated(varList.metadata);
       varList.variables.forEach((VariableDeclaration varDecl) {

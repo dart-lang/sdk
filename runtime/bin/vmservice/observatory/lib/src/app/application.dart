@@ -100,8 +100,8 @@ class ObservatoryApplication extends Observable {
   }
 
   void _registerPages() {
-    // Register ClassTreePage.
     _pageRegistry.add(new ClassTreePage(this));
+    _pageRegistry.add(new DebuggerPage(this));
     _pageRegistry.add(new VMConnectPage(this));
     _pageRegistry.add(new ErrorViewPage(this));
     _pageRegistry.add(new MetricsPage(this));
@@ -119,6 +119,7 @@ class ObservatoryApplication extends Observable {
     lastErrorOrException = exception;
     if (exception.kind == 'NetworkException') {
       // Got a network exception, visit the vm-connect page.
+      this.vm = null;
       locationManager.go(locationManager.makeLink('/vm-connect/'));
     } else {
       _visit('error/', null);

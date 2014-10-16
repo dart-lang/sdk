@@ -148,10 +148,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
         ScriptViewElement element = new Element.tag('script-view');
         element.script = object;
         return element;
-      case 'StackTrace':
-        StackTraceElement element = new Element.tag('stack-trace');
-        element.trace = object;
-        return element;
       case 'VM':
         VMViewElement element = new Element.tag('vm-view');
         element.vm = object;

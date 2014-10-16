@@ -2,11 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Try Dart is tested on the following configurations:
-# dart2js-drt (Content Shell --dump-render-tree)
-# dart2js-chrome
-# dart2js-ff (Firefox)
-[ $compiler != dart2js || ($runtime != drt && $runtime != chrome && $runtime != ff && $runtime != safari && $runtime != ie11) ]
+[ $runtime == ie10 || $runtime == ie9 || $runtime == vm || $jscl ]
 web/*: Skip
 
 [ $compiler == dart2js && $runtime == drt ]
@@ -14,9 +10,18 @@ web/end_to_end_test: Fail, Pass # https://code.google.com/p/v8/issues/detail?id=
 
 [ $csp ]
 web/end_to_end_test: Fail, OK # http://dartbug.com/17935
+web/incremental_compilation_update_test: Skip # Test uses eval, not supported in CSP mode.
 
-[ $runtime == safari ]
+[ $runtime == safari || $runtime == safarimobilesim ]
 web/cursor_position_test: Fail # http://dartbug.com/19836
+web/incremental_compilation_update_test: Skip # Safari may crash on this test.
+
+[ $runtime == safari && $checked ]
+# The following tests flake with this error:
+#   type '*Theme' is not a subtype of type 'Theme'
+# Suspect this is a bad optimization.
+web/source_update_test: Fail, Pass
+web/paste_content_rewriting_test: Fail, Pass
 
 [ $browser ]
 poi/poi_test: SkipByDesign # Uses dart:io.
@@ -25,3 +30,6 @@ poi/serialize_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js ]
 poi/*: Skip # http://dartbug.com/20031
+
+[ $runtime == ff || $checked ]
+web/incremental_compilation_update_test: Slow, Pass

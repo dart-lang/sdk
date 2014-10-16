@@ -5,7 +5,7 @@
 // Unit test of the [NativeBehavior.processSpecString] method.
 
 import 'package:expect/expect.dart';
-import 'package:compiler/implementation/native_handler.dart';
+import 'package:compiler/implementation/native/native.dart';
 import 'package:compiler/implementation/dart2jslib.dart'
     show DiagnosticListener;
 

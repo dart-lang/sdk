@@ -98,7 +98,8 @@ testDart2Dart(String mainSrc, {String librarySrc,
         provider,
         handler,
         options).then((s) {
-      Expect.equals(expectedResult, s);
+      Expect.equals(expectedResult, s,
+          'expected:\n$expectedResult\nactual:\n$s');
     });
   });
 }
@@ -529,6 +530,12 @@ main() {
 }
 class A<T extends Object> {}
 class B<T extends Object> extends A<T> {}
+''', expectedResult: '''
+main() {
+  new B<Object>();
+}
+class A<T> {}
+class B<T> extends A<T> {}
 ''');
 }
 
@@ -947,6 +954,125 @@ main() {
   testDart2Dart(src, expectedResult: expectedResult);
 }
 
+testClassAndNamedMixinDeclarations() {
+  test(String declarations, {String expectedDeclarations}) {
+    const String mainSource = 'main() => new A();';
+    if (expectedDeclarations == null) {
+      expectedDeclarations = declarations;
+    }
+    testDart2Dart('$declarations\n$mainSource\n',
+                  expectedResult: '$expectedDeclarations\n$mainSource\n');
+  }
+
+  test('class A {}');
+  test('class A<T> {}');
+  test('class A<T extends num> {}');
+  test('class A<T extends Object> {}', expectedDeclarations: 'class A<T> {}');
+  test('class A extends Object {}', expectedDeclarations: 'class A {}');
+
+  test('''
+class S1 {}
+class A extends S1 {}''');
+
+  test('''
+class S1 {}
+class A implements S1 {}''');
+
+  test('''
+class S1 {}
+class S2 {}
+class A extends S1 implements S2 {}''');
+
+  test('''
+class S1 {}
+class S2 {}
+class S3 {}
+class A extends S1 implements S2, S3 {}''');
+
+  test('''
+class S1 {}
+class S2 {}
+class A implements S1, S2 {}''');
+
+  test('''
+class S1 {}
+class S2 {}
+class A extends Object implements S1, S2 {}''',
+       expectedDeclarations: '''
+class S1 {}
+class S2 {}
+class A implements S1, S2 {}''');
+
+  test('''
+class S1 {}
+class A extends Object with S1 {}''');
+
+  test('''
+class S1 {}
+class A = Object with S1;''');
+
+  test('''
+class S1 {}
+class S2 {}
+class A extends S1 with S2 {}''');
+
+  test('''
+class S1 {}
+class S2 {}
+class A = S1 with S2;''');
+
+  test('''
+class S1 {}
+class S2 {}
+class S3 {}
+class A extends S1 with S2, S3 {}''');
+
+  test('''
+class S1 {}
+class S2 {}
+class S3 {}
+class A = S1 with S2, S3;''');
+
+  test('''
+class S1 {}
+class S2 {}
+class S3 {}
+class S4 {}
+class S5 {}
+class A extends S1 with S2, S3 implements S4, S5 {}''');
+
+  test('''
+class S1 {}
+class S2 {}
+class S3 {}
+class S4 {}
+class S5 {}
+class A = S1 with S2, S3 implements S4, S5;''');
+
+  test('''
+class S1 {}
+class A extends Object with S1 implements S1 {}''',
+       expectedDeclarations: '''
+class S1 {}
+class A extends Object with S1 {}''');
+
+  test('''
+class S1 {}
+class A = Object with S1 implements S1;''',
+       expectedDeclarations: '''
+class S1 {}
+class A = Object with S1;''');
+
+  test('''
+class S1<T1> {}
+class S2<T2> {}
+class S3<T3> {}
+class S4<T4> {}
+class S5<T5, T6> {}
+class A<U1, U2, U3, U4, U5> extends S1<U1> with S2<U2>, S3<U3> '''
+ '''implements S4<U4>, S5<U5, S5<U5, int>> {}''');
+}
+
 main() {
   testSimpleFileUnparse();
   testTopLevelField();
@@ -978,4 +1104,6 @@ main() {
   testUnresolvedNamedConstructor1();
   testUnresolvedNamedConstructor2();
   testUnresolvedNamedConstructor3();
+  testClassAndNamedMixinDeclarations();
 }
+

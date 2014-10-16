@@ -13,6 +13,8 @@ import 'elements/elements.dart' as elements;
 import '../../libraries.dart';
 import 'source_file.dart';
 
+const bool forceIncrementalSupport =
+    const bool.fromEnvironment('DART2JS_EXPERIMENTAL_INCREMENTAL_SUPPORT');
 
 class Compiler extends leg.Compiler {
   api.CompilerInputProvider provider;
@@ -71,7 +73,9 @@ class Compiler extends leg.Compiler {
             showPackageWarnings:
                 hasOption(options, '--show-package-warnings'),
             useContentSecurityPolicy: hasOption(options, '--csp'),
-            hasIncrementalSupport: hasOption(options, '--incremental-support'),
+            hasIncrementalSupport:
+                forceIncrementalSupport ||
+                hasOption(options, '--incremental-support'),
             suppressWarnings: hasOption(options, '--suppress-warnings')) {
     tasks.addAll([
         userHandlerTask = new leg.GenericTask('Diagnostic handler', this),

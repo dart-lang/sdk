@@ -6,13 +6,13 @@ library pubspec_test;
 
 import 'dart:async';
 
+import 'package:pub_semver/pub_semver.dart';
 import 'package:unittest/unittest.dart';
 
 import '../lib/src/package.dart';
 import '../lib/src/pubspec.dart';
 import '../lib/src/source.dart';
 import '../lib/src/source_registry.dart';
-import '../lib/src/version.dart';
 import 'test_pub.dart';
 
 class MockSource extends Source {
@@ -231,7 +231,23 @@ dependencies:
     });
 
     test("throws if version is not a string", () {
-      expectPubspecException('version: 1.0', (pubspec) => pubspec.version);
+      expectPubspecException('version: [2, 0, 0]',
+          (pubspec) => pubspec.version,
+          '"version" field must be a string');
+    });
+
+    test("throws if version is malformed (looking like a double)", () {
+      expectPubspecException('version: 2.1',
+          (pubspec) => pubspec.version,
+          '"version" field must have three numeric components: major, minor, '
+          'and patch. Instead of "2.1", consider "2.1.0"');
+    });
+
+    test("throws if version is malformed (looking like an int)", () {
+      expectPubspecException('version: 2',
+          (pubspec) => pubspec.version,
+          '"version" field must have three numeric components: major, minor, '
+          'and patch. Instead of "2", consider "2.0.0"');
     });
 
     test("throws if version is not a version", () {

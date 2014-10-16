@@ -5,8 +5,8 @@
 library services.correction.assist;
 
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -50,18 +50,16 @@ class AssistKind {
       const AssistKind('ADD_PART_DIRECTIVE', 30, "Add 'part' directive");
   static const ADD_TYPE_ANNOTATION =
       const AssistKind('ADD_TYPE_ANNOTATION', 30, "Add type annotation");
-  static const ASSIGN_TO_LOCAL_VARIABLE =
-      const AssistKind(
-          'ASSIGN_TO_LOCAL_VARIABLE',
-          30,
-          "Assign value to new local variable");
+  static const ASSIGN_TO_LOCAL_VARIABLE = const AssistKind(
+      'ASSIGN_TO_LOCAL_VARIABLE',
+      30,
+      "Assign value to new local variable");
   static const CONVERT_INTO_BLOCK_BODY =
       const AssistKind('CONVERT_INTO_BLOCK_BODY', 30, "Convert into block body");
-  static const CONVERT_INTO_EXPRESSION_BODY =
-      const AssistKind(
-          'CONVERT_INTO_EXPRESSION_BODY',
-          30,
-          "Convert into expression body");
+  static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
+      'CONVERT_INTO_EXPRESSION_BODY',
+      30,
+      "Convert into expression body");
   static const CONVERT_INTO_IS_NOT =
       const AssistKind('CONVERT_INTO_IS_NOT', 30, "Convert into is!");
   static const CONVERT_INTO_IS_NOT_EMPTY =
@@ -72,39 +70,38 @@ class AssistKind {
       const AssistKind('EXTRACT_CLASS', 30, "Extract class into file '{0}'");
   static const IMPORT_ADD_SHOW =
       const AssistKind('IMPORT_ADD_SHOW', 30, "Add explicit 'show' combinator");
+  static const INTRODUCE_LOCAL_CAST_TYPE = const AssistKind(
+      'INTRODUCE_LOCAL_CAST_TYPE',
+      30,
+      "Introduce new local with tested type");
   static const INVERT_IF_STATEMENT =
       const AssistKind('INVERT_IF_STATEMENT', 30, "Invert 'if' statement");
-  static const JOIN_IF_WITH_INNER =
-      const AssistKind(
-          'JOIN_IF_WITH_INNER',
-          30,
-          "Join 'if' statement with inner 'if' statement");
-  static const JOIN_IF_WITH_OUTER =
-      const AssistKind(
-          'JOIN_IF_WITH_OUTER',
-          30,
-          "Join 'if' statement with outer 'if' statement");
+  static const JOIN_IF_WITH_INNER = const AssistKind(
+      'JOIN_IF_WITH_INNER',
+      30,
+      "Join 'if' statement with inner 'if' statement");
+  static const JOIN_IF_WITH_OUTER = const AssistKind(
+      'JOIN_IF_WITH_OUTER',
+      30,
+      "Join 'if' statement with outer 'if' statement");
   static const JOIN_VARIABLE_DECLARATION =
       const AssistKind('JOIN_VARIABLE_DECLARATION', 30, "Join variable declaration");
   static const REMOVE_TYPE_ANNOTATION =
       const AssistKind('REMOVE_TYPE_ANNOTATION', 29, "Remove type annotation");
-  static const REPLACE_CONDITIONAL_WITH_IF_ELSE =
-      const AssistKind(
-          'REPLACE_CONDITIONAL_WITH_IF_ELSE',
-          30,
-          "Replace conditional with 'if-else'");
-  static const REPLACE_IF_ELSE_WITH_CONDITIONAL =
-      const AssistKind(
-          'REPLACE_IF_ELSE_WITH_CONDITIONAL',
-          30,
-          "Replace 'if-else' with conditional ('c ? x : y')");
+  static const REPLACE_CONDITIONAL_WITH_IF_ELSE = const AssistKind(
+      'REPLACE_CONDITIONAL_WITH_IF_ELSE',
+      30,
+      "Replace conditional with 'if-else'");
+  static const REPLACE_IF_ELSE_WITH_CONDITIONAL = const AssistKind(
+      'REPLACE_IF_ELSE_WITH_CONDITIONAL',
+      30,
+      "Replace 'if-else' with conditional ('c ? x : y')");
   static const SPLIT_AND_CONDITION =
       const AssistKind('SPLIT_AND_CONDITION', 30, "Split && condition");
-  static const SPLIT_VARIABLE_DECLARATION =
-      const AssistKind(
-          'SPLIT_VARIABLE_DECLARATION',
-          30,
-          "Split variable declaration");
+  static const SPLIT_VARIABLE_DECLARATION = const AssistKind(
+      'SPLIT_VARIABLE_DECLARATION',
+      30,
+      "Split variable declaration");
   static const SURROUND_WITH_BLOCK =
       const AssistKind('SURROUND_WITH_BLOCK', 30, "Surround with block");
   static const SURROUND_WITH_DO_WHILE =
@@ -117,11 +114,10 @@ class AssistKind {
       const AssistKind('SURROUND_WITH_IF', 30, "Surround with 'if'");
   static const SURROUND_WITH_TRY_CATCH =
       const AssistKind('SURROUND_WITH_TRY_CATCH', 30, "Surround with 'try-catch'");
-  static const SURROUND_WITH_TRY_FINALLY =
-      const AssistKind(
-          'SURROUND_WITH_TRY_FINALLY',
-          30,
-          "Surround with 'try-finally'");
+  static const SURROUND_WITH_TRY_FINALLY = const AssistKind(
+      'SURROUND_WITH_TRY_FINALLY',
+      30,
+      "Surround with 'try-finally'");
   static const SURROUND_WITH_WHILE =
       const AssistKind('SURROUND_WITH_WHILE', 30, "Surround with 'while'");
 

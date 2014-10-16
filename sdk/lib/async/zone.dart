@@ -36,12 +36,13 @@ typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
                          ZoneSpecification specification,
                          Map zoneValues);
 
-/// Pair of error and stack trace. Returned by [Zone.errorCallback].
+/** Pair of error and stack trace. Returned by [Zone.errorCallback]. */
 class AsyncError implements Error {
   final error;
   final StackTrace stackTrace;
 
   AsyncError(this.error, this.stackTrace);
+
   String toString() => error.toString();
 }
 
@@ -254,10 +255,10 @@ abstract class Zone {
   // Private constructor so that it is not possible instantiate a Zone class.
   Zone._();
 
-  /// The root zone that is implicitly created.
+  /** The root zone that is implicitly created. */
   static const Zone ROOT = _ROOT_ZONE;
 
-  /// The currently running zone.
+  /** The currently running zone. */
   static Zone _current = _ROOT_ZONE;
 
   static Zone get current => _current;
@@ -416,6 +417,7 @@ abstract class Zone {
    * The original error is used unchanged in that case.
    * Otherwise return an instance of [AsyncError] holding
    * the new pair of error and stack trace.
+   * If the [AsyncError.error] is `null`, it is replaced by a [NullThrownError].
    */
   AsyncError errorCallback(Object error, StackTrace stackTrace);
 
@@ -605,7 +607,8 @@ abstract class _Zone implements Zone {
   Map get _map;
 
   bool inSameErrorZone(Zone otherZone) {
-    return identical(errorZone, otherZone.errorZone);
+    return identical(this, otherZone) ||
+           identical(errorZone, otherZone.errorZone);
   }
 }
 
@@ -938,7 +941,8 @@ AsyncError _rootErrorCallback(Zone self, ZoneDelegate parent, Zone zone,
 
 void _rootScheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) {
   if (!identical(_ROOT_ZONE, zone)) {
-    f = zone.bindCallback(f);
+    bool hasErrorHandler = !_ROOT_ZONE.inSameErrorZone(zone);
+    f = zone.bindCallback(f, runGuarded: hasErrorHandler);
   }
   _scheduleAsyncCallback(f);
 }

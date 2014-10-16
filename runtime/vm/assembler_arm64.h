@@ -22,6 +22,25 @@ namespace dart {
 // Forward declarations.
 class RuntimeEntry;
 
+class Immediate : public ValueObject {
+ public:
+  explicit Immediate(int64_t value) : value_(value) { }
+
+  Immediate(const Immediate& other) : ValueObject(), value_(other.value_) { }
+  Immediate& operator=(const Immediate& other) {
+    value_ = other.value_;
+    return *this;
+  }
+
+ private:
+  int64_t value_;
+
+  int64_t value() const { return value_; }
+
+  friend class Assembler;
+};
+
+
 class Label : public ValueObject {
  public:
   Label() : position_(0) { }
@@ -86,6 +105,9 @@ class Address : public ValueObject {
     Offset,
     PreIndex,
     PostIndex,
+    PairOffset,
+    PairPreIndex,
+    PairPostIndex,
     Reg,
     PCOffset,
     Unknown,
@@ -113,18 +135,37 @@ class Address : public ValueObject {
       encoding_ =
           ((offset & 0x1ff) << kImm9Shift) |
           (static_cast<int32_t>(crn) << kRnShift);
-    } else {
+    } else if ((at == PreIndex) || (at == PostIndex)) {
       ASSERT(Utils::IsInt(9, offset));
-      ASSERT((at == PreIndex) || (at == PostIndex));
       int32_t idx = (at == PostIndex) ? B10 : (B11 | B10);
       encoding_ =
           idx |
           ((offset & 0x1ff) << kImm9Shift) |
           (static_cast<int32_t>(crn) << kRnShift);
+    } else {
+      ASSERT((at == PairOffset) || (at == PairPreIndex) ||
+             (at == PairPostIndex));
+      ASSERT(Utils::IsInt(7 + scale, offset) &&
+             (offset == ((offset >> scale) << scale)));
+      int32_t idx = 0;
+      switch (at) {
+        case PairPostIndex: idx = B23; break;
+        case PairPreIndex: idx = B24 | B23; break;
+        case PairOffset: idx = B24; break;
+        default: UNREACHABLE(); break;
+      }
+      encoding_ =
+        idx |
+        (((offset >> scale) << kImm7Shift) & kImm7Mask) |
+        (static_cast<int32_t>(crn) << kRnShift);
     }
     type_ = at;
     base_ = crn;
   }
+
+  // This addressing mode does not exist.
+  Address(Register rn, Register offset, AddressType at,
+          OperandSize sz = kDoubleWord);
 
   static bool CanHoldOffset(int32_t offset, AddressType at = Offset,
                             OperandSize sz = kDoubleWord) {
@@ -138,9 +179,14 @@ class Address : public ValueObject {
     } else if (at == PCOffset) {
       return Utils::IsInt(21, offset) &&
              (offset == ((offset >> 2) << 2));
-    } else {
-      ASSERT((at == PreIndex) || (at == PostIndex));
+    } else if ((at == PreIndex) || (at == PostIndex)) {
       return Utils::IsInt(9, offset);
+    } else {
+      ASSERT((at == PairOffset) || (at == PairPreIndex) ||
+             (at == PairPostIndex));
+      const int32_t scale = Log2OperandSizeBytes(sz);
+      return (Utils::IsInt(7 + scale, offset) &&
+              (offset == ((offset >> scale) << scale)));
     }
   }
 
@@ -153,6 +199,16 @@ class Address : public ValueObject {
     addr.type_ = PCOffset;
     return addr;
   }
+
+  static Address Pair(Register rn,
+                      int32_t offset = 0,
+                      AddressType at = PairOffset,
+                      OperandSize sz = kDoubleWord) {
+    return Address(rn, offset, at, sz);
+  }
+
+  // This addressing mode does not exist.
+  static Address PC(Register r);
 
   enum Scaling {
     Unscaled,
@@ -246,6 +302,9 @@ class FieldAddress : public Address {
   FieldAddress(Register base, int32_t disp, OperandSize sz = kDoubleWord)
       : Address(base, disp - kHeapObjectTag, Offset, sz) { }
 
+  // This addressing mode does not exist.
+  FieldAddress(Register base, Register disp, OperandSize sz = kDoubleWord);
+
   FieldAddress(const FieldAddress& other) : Address(other) { }
 
   FieldAddress& operator=(const FieldAddress& other) {
@@ -296,6 +355,9 @@ class Operand : public ValueObject {
     type_ = Shifted;
   }
 
+  // This operand type does not exist.
+  Operand(Register rm, Shift shift, Register r);
+
   Operand(Register rm, Extend extend, int32_t imm) {
     ASSERT(Utils::IsUint(3, imm));
     ASSERT((rm != R31) && (rm != CSP));
@@ -307,6 +369,9 @@ class Operand : public ValueObject {
         ((imm & 0x7) << kImm3Shift);
     type_ = Extended;
   }
+
+  // This operand type does not exist.
+  Operand(Register rm, Extend extend, Register r);
 
   explicit Operand(int32_t imm) {
     if (Utils::IsUint(12, imm)) {
@@ -448,7 +513,6 @@ class Assembler : public ValueObject {
 
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
-  // TODO(zra): Make sure this is right.
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
@@ -477,40 +541,79 @@ class Assembler : public ValueObject {
   void addw(Register rd, Register rn, Operand o) {
     AddSubHelper(kWord, false, false, rd, rn, o);
   }
+  void addsw(Register rd, Register rn, Operand o) {
+    AddSubHelper(kWord, true, false, rd, rn, o);
+  }
   void sub(Register rd, Register rn, Operand o) {
     AddSubHelper(kDoubleWord, false, true, rd, rn, o);
   }
   void subs(Register rd, Register rn, Operand o) {
     AddSubHelper(kDoubleWord, true, true, rd, rn, o);
   }
+  void subw(Register rd, Register rn, Operand o) {
+    AddSubHelper(kWord, false, true, rd, rn, o);
+  }
+  void subsw(Register rd, Register rn, Operand o) {
+    AddSubHelper(kWord, true, true, rd, rn, o);
+  }
+
+  // Addition and subtraction with carry.
+  void adc(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kDoubleWord, false, false, rd, rn, rm);
+  }
+  void adcs(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kDoubleWord, true, false, rd, rn, rm);
+  }
+  void adcw(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kWord, false, false, rd, rn, rm);
+  }
+  void adcsw(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kWord, true, false, rd, rn, rm);
+  }
+  void sbc(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kDoubleWord, false, true, rd, rn, rm);
+  }
+  void sbcs(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kDoubleWord, true, true, rd, rn, rm);
+  }
+  void sbcw(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kWord, false, true, rd, rn, rm);
+  }
+  void sbcsw(Register rd, Register rn, Register rm) {
+    AddSubWithCarryHelper(kWord, true, true, rd, rn, rm);
+  }
 
   // PC relative immediate add. imm is in bytes.
-  void adr(Register rd, int64_t imm) {
+  void adr(Register rd, const Immediate& imm) {
     EmitPCRelOp(ADR, rd, imm);
   }
 
   // Logical immediate operations.
-  void andi(Register rd, Register rn, uint64_t imm) {
+  void andi(Register rd, Register rn, const Immediate& imm) {
     Operand imm_op;
-    const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    const bool immok =
+        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
     ASSERT(immok);
     EmitLogicalImmOp(ANDI, rd, rn, imm_op, kDoubleWord);
   }
-  void orri(Register rd, Register rn, uint64_t imm) {
+  void orri(Register rd, Register rn, const Immediate& imm) {
     Operand imm_op;
-    const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    const bool immok =
+        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
     ASSERT(immok);
     EmitLogicalImmOp(ORRI, rd, rn, imm_op, kDoubleWord);
   }
-  void eori(Register rd, Register rn, uint64_t imm) {
+  void eori(Register rd, Register rn, const Immediate& imm) {
     Operand imm_op;
-    const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    const bool immok =
+        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
     ASSERT(immok);
     EmitLogicalImmOp(EORI, rd, rn, imm_op, kDoubleWord);
   }
-  void andis(Register rd, Register rn, uint64_t imm) {
+  void andis(Register rd, Register rn, const Immediate& imm) {
     Operand imm_op;
-    const bool immok = Operand::IsImmLogical(imm, kXRegSizeInBits, &imm_op);
+    const bool immok =
+        Operand::IsImmLogical(imm.value(), kXRegSizeInBits, &imm_op);
     ASSERT(immok);
     EmitLogicalImmOp(ANDIS, rd, rn, imm_op, kDoubleWord);
   }
@@ -574,17 +677,17 @@ class Assembler : public ValueObject {
   }
 
   // Move wide immediate.
-  void movk(Register rd, uint16_t imm, int hw_idx) {
+  void movk(Register rd, const Immediate& imm, int hw_idx) {
     ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitMoveWideOp(MOVK, crd, imm, hw_idx, kDoubleWord);
   }
-  void movn(Register rd, uint16_t imm, int hw_idx) {
+  void movn(Register rd, const Immediate& imm, int hw_idx) {
     ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitMoveWideOp(MOVN, crd, imm, hw_idx, kDoubleWord);
   }
-  void movz(Register rd, uint16_t imm, int hw_idx) {
+  void movz(Register rd, const Immediate& imm, int hw_idx) {
     ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitMoveWideOp(MOVZ, crd, imm, hw_idx, kDoubleWord);
@@ -592,6 +695,9 @@ class Assembler : public ValueObject {
 
   // Loads and Stores.
   void ldr(Register rt, Address a, OperandSize sz = kDoubleWord) {
+    ASSERT((a.type() != Address::PairOffset) &&
+           (a.type() != Address::PairPostIndex) &&
+           (a.type() != Address::PairPreIndex));
     if (a.type() == Address::PCOffset) {
       ASSERT(sz == kDoubleWord);
       EmitLoadRegLiteral(LDRpc, rt, a, sz);
@@ -610,7 +716,23 @@ class Assembler : public ValueObject {
     }
   }
   void str(Register rt, Address a, OperandSize sz = kDoubleWord) {
+    ASSERT((a.type() != Address::PairOffset) &&
+           (a.type() != Address::PairPostIndex) &&
+           (a.type() != Address::PairPreIndex));
     EmitLoadStoreReg(STR, rt, a, sz);
+  }
+
+  void ldp(Register rt, Register rt2, Address a, OperandSize sz = kDoubleWord) {
+    ASSERT((a.type() == Address::PairOffset) ||
+           (a.type() == Address::PairPostIndex) ||
+           (a.type() == Address::PairPreIndex));
+    EmitLoadStoreRegPair(LDP, rt, rt2, a, sz);
+  }
+  void stp(Register rt, Register rt2, Address a, OperandSize sz = kDoubleWord) {
+    ASSERT((a.type() == Address::PairOffset) ||
+           (a.type() == Address::PairPostIndex) ||
+           (a.type() == Address::PairPreIndex));
+    EmitLoadStoreRegPair(STP, rt, rt2, a, sz);
   }
 
   // Conditional select.
@@ -718,11 +840,17 @@ class Assembler : public ValueObject {
     const Register crd = ConcreteRegister(rd);
     EmitFPIntCvtOp(FMOVRD, crd, static_cast<Register>(vn));
   }
-  void scvtfd(VRegister vd, Register rn) {
+  void scvtfdx(VRegister vd, Register rn) {
     ASSERT(rn != R31);
     ASSERT(rn != CSP);
     const Register crn = ConcreteRegister(rn);
     EmitFPIntCvtOp(SCVTFD, static_cast<Register>(vd), crn);
+  }
+  void scvtfdw(VRegister vd, Register rn) {
+    ASSERT(rn != R31);
+    ASSERT(rn != CSP);
+    const Register crn = ConcreteRegister(rn);
+    EmitFPIntCvtOp(SCVTFD, static_cast<Register>(vd), crn, kWord);
   }
   void fcvtzds(Register rd, VRegister vn) {
     ASSERT(rd != R31);
@@ -968,6 +1096,14 @@ class Assembler : public ValueObject {
     ASSERT(reg != PP);  // Only pop PP with PopAndUntagPP().
     ldr(reg, Address(SP, 1 * kWordSize, Address::PostIndex));
   }
+  void PushPair(Register first, Register second) {
+    ASSERT((first != PP) && (second != PP));
+    stp(second, first, Address(SP, -2 * kWordSize, Address::PairPreIndex));
+  }
+  void PopPair(Register first, Register second) {
+    ASSERT((first != PP) && (second != PP));
+    ldp(second, first, Address(SP, 2 * kWordSize, Address::PairPostIndex));
+  }
   void PushFloat(VRegister reg) {
     fstrs(reg, Address(SP, -1 * kFloatSize, Address::PreIndex));
   }
@@ -991,6 +1127,13 @@ class Assembler : public ValueObject {
     add(TMP, PP, Operand(kHeapObjectTag));
     str(TMP, Address(SP, -1 * kWordSize, Address::PreIndex));
   }
+  void TagAndPushPPAndPcMarker(Register pc_marker_reg) {
+    ASSERT(pc_marker_reg != TMP2);
+    // Add the heap object tag back to PP before putting it on the stack.
+    add(TMP2, PP, Operand(kHeapObjectTag));
+    stp(TMP2, pc_marker_reg,
+        Address(SP, -2 * kWordSize, Address::PairPreIndex));
+  }
   void PopAndUntagPP() {
     ldr(PP, Address(SP, 1 * kWordSize, Address::PostIndex));
     sub(PP, PP, Operand(kHeapObjectTag));
@@ -998,7 +1141,7 @@ class Assembler : public ValueObject {
   void tst(Register rn, Operand o) {
     ands(ZR, rn, o);
   }
-  void tsti(Register rn, uint64_t imm) {
+  void tsti(Register rn, const Immediate& imm) {
     andis(ZR, rn, imm);
   }
 
@@ -1165,6 +1308,7 @@ class Assembler : public ValueObject {
                               const ExternalLabel* label,
                               Patchability patchable,
                               Register pp);
+  void LoadIsolate(Register dst, Register pp);
   void LoadObject(Register dst, const Object& obj, Register pp);
   void LoadDecodableImmediate(Register reg, int64_t imm, Register pp);
   void LoadImmediateFixed(Register reg, int64_t imm);
@@ -1339,6 +1483,24 @@ class Assembler : public ValueObject {
     }
   }
 
+  void AddSubWithCarryHelper(OperandSize sz, bool set_flags, bool subtract,
+                             Register rd, Register rn, Register rm) {
+    ASSERT((rd != R31) && (rn != R31) && (rm != R31));
+    ASSERT((rd != CSP) && (rn != CSP) && (rm != CSP));
+    const Register crd = ConcreteRegister(rd);
+    const Register crn = ConcreteRegister(rn);
+    const Register crm = ConcreteRegister(rm);
+    const int32_t size = (sz == kDoubleWord) ? B31 : 0;
+    const int32_t s = set_flags ? B29 : 0;
+    const int32_t op = subtract ? SBC : ADC;
+    const int32_t encoding =
+        op | size | s |
+        (static_cast<int32_t>(crd) << kRdShift) |
+        (static_cast<int32_t>(crn) << kRnShift) |
+        (static_cast<int32_t>(crm) << kRmShift);
+    Emit(encoding);
+  }
+
   void EmitAddSubImmOp(AddSubImmOp op, Register rd, Register rn,
                        Operand o, OperandSize sz, bool set_flags) {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
@@ -1455,19 +1617,12 @@ class Assembler : public ValueObject {
 
   void EmitConditionalBranch(ConditionalBranchOp op, Condition cond,
                              int64_t imm) {
-    ASSERT(Utils::IsInt(21, imm) && ((imm & 0x3) == 0));
+    const int32_t off = EncodeImm19BranchOffset(imm, 0);
     const int32_t encoding =
         op |
         (static_cast<int32_t>(cond) << kCondShift) |
-        (((imm >> 2) << kImm19Shift) & kImm19Mask);
+        off;
     Emit(encoding);
-  }
-
-  void EmitFarConditionalBranch(ConditionalBranchOp op,
-                                Condition cond,
-                                int64_t offset) {
-    EmitConditionalBranch(op, InvertCondition(cond), 2 * Instr::kInstrSize);
-    b(offset);
   }
 
   bool CanEncodeImm19BranchOffset(int64_t offset) {
@@ -1479,14 +1634,26 @@ class Assembler : public ValueObject {
     if (label->IsBound()) {
       const int64_t dest = label->Position() - buffer_.Size();
       if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
-        EmitFarConditionalBranch(op, cond, dest);
+        if (cond == AL) {
+          // If the condition is AL, we must always branch to dest. There is
+          // no need for a guard branch.
+          b(dest);
+        } else {
+          EmitConditionalBranch(
+              op, InvertCondition(cond), 2 * Instr::kInstrSize);
+          b(dest);
+        }
       } else {
         EmitConditionalBranch(op, cond, dest);
       }
     } else {
       const int64_t position = buffer_.Size();
       if (use_far_branches()) {
-        EmitFarConditionalBranch(op, cond, label->position_);
+        // When cond is AL, this guard branch will be rewritten as a nop when
+        // the label is bound. We don't write it as a nop initially because it
+        // makes the decoding code in Bind simpler.
+        EmitConditionalBranch(op, InvertCondition(cond), 2 * Instr::kInstrSize);
+        b(label->position_);
       } else {
         EmitConditionalBranch(op, cond, label->position_);
       }
@@ -1501,7 +1668,7 @@ class Assembler : public ValueObject {
 
   void EmitUnconditionalBranchOp(UnconditionalBranchOp op, int64_t offset) {
     ASSERT(CanEncodeImm26BranchOffset(offset));
-    const int32_t off = (offset >> 2) << kImm26Shift;
+    const int32_t off = ((offset >> 2) << kImm26Shift) & kImm26Mask;
     const int32_t encoding = op | off;
     Emit(encoding);
   }
@@ -1520,8 +1687,8 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void EmitMoveWideOp(MoveWideOp op, Register rd, uint16_t imm, int hw_idx,
-                      OperandSize sz) {
+  void EmitMoveWideOp(MoveWideOp op, Register rd, const Immediate& imm,
+                      int hw_idx, OperandSize sz) {
     ASSERT((hw_idx >= 0) && (hw_idx <= 3));
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
@@ -1529,7 +1696,7 @@ class Assembler : public ValueObject {
         op | size |
         (static_cast<int32_t>(rd) << kRdShift) |
         (static_cast<int32_t>(hw_idx) << kHWShift) |
-        (static_cast<int32_t>(imm) << kImm16Shift);
+        (static_cast<int32_t>(imm.value() & 0xffff) << kImm16Shift);
     Emit(encoding);
   }
 
@@ -1557,12 +1724,35 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void EmitPCRelOp(PCRelOp op, Register rd, int64_t imm) {
-    ASSERT(Utils::IsInt(21, imm));
+  void EmitLoadStoreRegPair(LoadStoreRegPairOp op,
+                            Register rt, Register rt2, Address a,
+                            OperandSize sz) {
+    ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
+    ASSERT((rt != CSP) && (rt != R31));
+    ASSERT((rt2 != CSP) && (rt2 != R31));
+    const Register crt = ConcreteRegister(rt);
+    const Register crt2 = ConcreteRegister(rt2);
+    int32_t opc = 0;
+    switch (sz) {
+      case kDoubleWord: opc = B31; break;
+      case kWord: opc = B30; break;
+      case kUnsignedWord: opc = 0; break;
+      default: UNREACHABLE(); break;
+    }
+    const int32_t encoding =
+      opc | op |
+      (static_cast<int32_t>(crt) << kRtShift) |
+      (static_cast<int32_t>(crt2) << kRt2Shift) |
+      a.encoding();
+    Emit(encoding);
+  }
+
+  void EmitPCRelOp(PCRelOp op, Register rd, const Immediate& imm) {
+    ASSERT(Utils::IsInt(21, imm.value()));
     ASSERT((rd != R31) && (rd != CSP));
     const Register crd = ConcreteRegister(rd);
-    const int32_t loimm = (imm & 0x3) << 29;
-    const int32_t hiimm = ((imm >> 2) << kImm19Shift) & kImm19Mask;
+    const int32_t loimm = (imm.value() & 0x3) << 29;
+    const int32_t hiimm = ((imm.value() >> 2) << kImm19Shift) & kImm19Mask;
     const int32_t encoding =
         op | loimm | hiimm |
         (static_cast<int32_t>(crd) << kRdShift);
@@ -1631,11 +1821,15 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void EmitFPIntCvtOp(FPIntCvtOp op, Register rd, Register rn) {
+  void EmitFPIntCvtOp(FPIntCvtOp op, Register rd, Register rn,
+                      OperandSize sz = kDoubleWord) {
+    ASSERT((sz == kDoubleWord) || (sz == kWord));
+    const int32_t sfield = (sz == kDoubleWord) ? B31 : 0;
     const int32_t encoding =
         op |
         (static_cast<int32_t>(rd) << kRdShift) |
-        (static_cast<int32_t>(rn) << kRnShift);
+        (static_cast<int32_t>(rn) << kRnShift) |
+        sfield;
     Emit(encoding);
   }
 

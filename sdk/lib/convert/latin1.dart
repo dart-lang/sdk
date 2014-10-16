@@ -127,11 +127,7 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
     // _sink.addSlice(source, start, end, isLast).
     // The code below is an moderately stupid workaround until a real
     // solution can be made.
-    if (start == 0 && end == source.length) {
-      _sink.add(new String.fromCharCodes(source));
-    } else {
-      _sink.add(new String.fromCharCodes(source.sublist(start, end)));
-    }
+    _sink.add(new String.fromCharCodes(source, start, end));
     if (isLast) close();
   }
 

@@ -22,9 +22,10 @@ class _IsNot extends Matcher {
 }
 
 /// This returns a matcher that matches if all of the matchers passed as
-/// arguments (up to 7) match. Instead of passing the matchers separately
-/// they can be passed as a single List argument.
-/// Any argument that is not a matcher is implicitly wrapped in a
+/// arguments (up to 7) match.
+///
+/// Instead of passing the matchers separately they can be passed as a single
+/// List argument. Any argument that is not a matcher is implicitly wrapped in a
 /// Matcher to check for equality.
 Matcher allOf(arg0,
              [arg1 = null,
@@ -63,8 +64,9 @@ class _AllOf extends Matcher {
       description.addAll('(', ' and ', ')', _matchers);
 }
 
-/// Matches if any of the given matchers evaluate to true. The
-/// arguments can be a set of matchers as separate parameters
+/// Matches if any of the given matchers evaluate to true.
+///
+/// The arguments can be a set of matchers as separate parameters
 /// (up to 7), or a List of matchers.
 ///
 /// The matchers are evaluated from left to right using short-circuit
@@ -72,7 +74,6 @@ class _AllOf extends Matcher {
 ///
 /// Any argument that is not a matcher is implicitly wrapped in a
 /// Matcher to check for equality.
-
 Matcher anyOf(arg0,
                [arg1 = null,
                 arg2 = null,

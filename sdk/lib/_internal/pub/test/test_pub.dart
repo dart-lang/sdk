@@ -16,6 +16,7 @@ import 'dart:math';
 
 import 'package:http/testing.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_stream.dart';
@@ -43,7 +44,6 @@ import '../lib/src/source_registry.dart';
 import '../lib/src/system_cache.dart';
 import '../lib/src/utils.dart';
 import '../lib/src/validator.dart';
-import '../lib/src/version.dart';
 import 'descriptor.dart' as d;
 import 'serve_packages.dart';
 

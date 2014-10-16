@@ -6,9 +6,10 @@ library test.integration.server.set.subscriptions;
 
 import 'dart:async';
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 @ReflectiveTestCase()
@@ -35,7 +36,7 @@ main() {
       // received.
       return analysisBegun.future.then((_) {
         expect(statusReceived, isFalse);
-        return sendServerSetSubscriptions(['STATUS']).then((_) {
+        return sendServerSetSubscriptions([ServerService.STATUS]).then((_) {
           // Tickle test.dart just in case analysis has already completed.
           writeFile(pathname, '''
 main() {

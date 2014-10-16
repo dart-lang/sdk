@@ -395,6 +395,217 @@ main() {
 ''');
   }
 
+  void test_createField_getter_multiLevel() {
+    _indexTestUnit('''
+class A {
+}
+class B {
+  A a;
+}
+class C {
+  B b;
+}
+main(C c) {
+  int v = c.b.a.test;
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int test;
+}
+class B {
+  A a;
+}
+class C {
+  B b;
+}
+main(C c) {
+  int v = c.b.a.test;
+}
+''');
+  }
+
+  void test_createField_getter_qualified_instance() {
+    _indexTestUnit('''
+class A {
+}
+main(A a) {
+  int v = a.test;
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int test;
+}
+main(A a) {
+  int v = a.test;
+}
+''');
+  }
+
+  void test_createField_getter_unqualified_instance_asInvocationArgument() {
+    _indexTestUnit('''
+class A {
+  main() {
+    f(test);
+  }
+}
+f(String s) {}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  String test;
+
+  main() {
+    f(test);
+  }
+}
+f(String s) {}
+''');
+  }
+
+  void test_createField_getter_unqualified_instance_asStatement() {
+    _indexTestUnit('''
+class A {
+  main() {
+    test;
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  var test;
+
+  main() {
+    test;
+  }
+}
+''');
+  }
+
+  void test_createField_getter_unqualified_instance_assignmentLhs() {
+    _indexTestUnit('''
+class A {
+  main() {
+    int v = test;
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int test;
+
+  main() {
+    int v = test;
+  }
+}
+''');
+  }
+
+  void test_createField_setter_qualified_instance_hasField() {
+    _indexTestUnit('''
+class A {
+  int aaa;
+  int zzz;
+
+  existingMethod() {}
+}
+main(A a) {
+  a.test = 5;
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int aaa;
+  int zzz;
+
+  int test;
+
+  existingMethod() {}
+}
+main(A a) {
+  a.test = 5;
+}
+''');
+  }
+
+  void test_createField_setter_qualified_instance_hasMethod() {
+    _indexTestUnit('''
+class A {
+  existingMethod() {}
+}
+main(A a) {
+  a.test = 5;
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int test;
+
+  existingMethod() {}
+}
+main(A a) {
+  a.test = 5;
+}
+''');
+  }
+
+  void test_createField_setter_qualified_static() {
+    _indexTestUnit('''
+class A {
+}
+main() {
+  A.test = 5;
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  static int test;
+}
+main() {
+  A.test = 5;
+}
+''');
+  }
+
+  void test_createField_setter_unqualified_instance() {
+    _indexTestUnit('''
+class A {
+  main() {
+    test = 5;
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  int test;
+
+  main() {
+    test = 5;
+  }
+}
+''');
+  }
+
+  void test_createField_setter_unqualified_static() {
+    _indexTestUnit('''
+class A {
+  static main() {
+    test = 5;
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  static int test;
+
+  static main() {
+    test = 5;
+  }
+}
+''');
+  }
+
   void test_createFile_forImport() {
     testFile = '/my/project/bin/test.dart';
     _indexTestUnit('''
@@ -1012,6 +1223,30 @@ import 'lib.dart';
 
 main() {
   myFunction();
+}
+''');
+  }
+
+  void test_importLibraryProject_withFunction_unresolvedMethod() {
+    addSource('/lib.dart', '''
+library lib;
+myFunction() {}
+''');
+    _indexTestUnit('''
+class A {
+  main() {
+    myFunction();
+  }
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import 'lib.dart';
+
+class A {
+  main() {
+    myFunction();
+  }
 }
 ''');
   }

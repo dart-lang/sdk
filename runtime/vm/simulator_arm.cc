@@ -17,6 +17,7 @@
 #include "vm/constants_arm.h"
 #include "vm/cpu.h"
 #include "vm/disassembler.h"
+#include "vm/lockers.h"
 #include "vm/native_arguments.h"
 #include "vm/stack_frame.h"
 #include "vm/thread.h"
@@ -675,7 +676,58 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
 }
 
 
-void Simulator::InitOnce() {}
+// Synchronization primitives support.
+Mutex* Simulator::exclusive_access_lock_ = NULL;
+Simulator::AddressTag Simulator::exclusive_access_state_[kNumAddressTags];
+int Simulator::next_address_tag_;
+
+
+void Simulator::SetExclusiveAccess(uword addr) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  int i = 0;
+  while ((i < kNumAddressTags) &&
+         (exclusive_access_state_[i].isolate != isolate)) {
+    i++;
+  }
+  if (i == kNumAddressTags) {
+    i = next_address_tag_;
+    if (++next_address_tag_ == kNumAddressTags) next_address_tag_ = 0;
+    exclusive_access_state_[i].isolate = isolate;
+  }
+  exclusive_access_state_[i].addr = addr;
+}
+
+
+bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  bool result = false;
+  for (int i = 0; i < kNumAddressTags; i++) {
+    if (exclusive_access_state_[i].isolate == isolate) {
+      if (exclusive_access_state_[i].addr == addr) {
+        result = true;
+      }
+      exclusive_access_state_[i].addr = NULL;
+      continue;
+    }
+    if (exclusive_access_state_[i].addr == addr) {
+      exclusive_access_state_[i].addr = NULL;
+    }
+  }
+  return result;
+}
+
+
+void Simulator::InitOnce() {
+  // Setup exclusive access state.
+  exclusive_access_lock_ = new Mutex();
+  for (int i = 0; i < kNumAddressTags; i++) {
+    exclusive_access_state_[i].isolate = NULL;
+    exclusive_access_state_[i].addr = NULL;
+  }
+  next_address_tag_ = 0;
+}
 
 
 Simulator::Simulator() {
@@ -1059,6 +1111,53 @@ void Simulator::WriteB(uword addr, uint8_t value) {
 }
 
 
+// Synchronization primitives support.
+void Simulator::ClearExclusive() {
+  // This lock is initialized in Simulator::InitOnce().
+  MutexLocker ml(exclusive_access_lock_);
+  // Set exclusive access to open state for this isolate.
+  HasExclusiveAccessAndOpen(NULL);
+}
+
+
+intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
+  // This lock is initialized in Simulator::InitOnce().
+  MutexLocker ml(exclusive_access_lock_);
+  SetExclusiveAccess(addr);
+  return ReadW(addr, instr);
+}
+
+
+intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
+  // This lock is initialized in Simulator::InitOnce().
+  MutexLocker ml(exclusive_access_lock_);
+  bool write_allowed = HasExclusiveAccessAndOpen(addr);
+  if (write_allowed) {
+    WriteW(addr, value, instr);
+    return 0;  // Success.
+  }
+  return 1;  // Failure.
+}
+
+
+uword Simulator::CompareExchange(uword* address,
+                                 uword compare_value,
+                                 uword new_value) {
+  // This lock is initialized in Simulator::InitOnce().
+  MutexLocker ml(exclusive_access_lock_);
+  uword value = *address;
+  if (value == compare_value) {
+    *address = new_value;
+    // Same effect on exclusive access state as a successful STREX.
+    HasExclusiveAccessAndOpen(reinterpret_cast<uword>(address));
+  } else {
+    // Same effect on exclusive access state as an LDREX.
+    SetExclusiveAccess(reinterpret_cast<uword>(address));
+  }
+  return value;
+}
+
+
 // Returns the top of the stack area to enable checking for stack pointer
 // validity.
 uword Simulator::StackTop() const {
@@ -1122,41 +1221,19 @@ void Simulator::SetVFlag(bool val) {
 }
 
 
-// Calculate C flag value for additions.
-bool Simulator::CarryFrom(int32_t left, int32_t right) {
-  uint32_t uleft = static_cast<uint32_t>(left);
-  uint32_t uright = static_cast<uint32_t>(right);
-  uint32_t urest  = 0xffffffffU - uleft;
-
-  return (uright > urest);
+// Calculate C flag value for additions (and subtractions with adjusted args).
+bool Simulator::CarryFrom(int32_t left, int32_t right, int32_t carry) {
+  uint64_t uleft = static_cast<uint32_t>(left);
+  uint64_t uright = static_cast<uint32_t>(right);
+  uint64_t ucarry = static_cast<uint32_t>(carry);
+  return ((uleft + uright + ucarry) >> 32) != 0;
 }
 
 
-// Calculate C flag value for subtractions.
-bool Simulator::BorrowFrom(int32_t left, int32_t right) {
-  uint32_t uleft = static_cast<uint32_t>(left);
-  uint32_t uright = static_cast<uint32_t>(right);
-
-  return (uright > uleft);
-}
-
-
-// Calculate V flag value for additions and subtractions.
-bool Simulator::OverflowFrom(int32_t alu_out,
-                             int32_t left, int32_t right, bool addition) {
-  bool overflow;
-  if (addition) {
-               // operands have the same sign
-    overflow = ((left >= 0 && right >= 0) || (left < 0 && right < 0))
-               // and operands and result have different sign
-               && ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
-  } else {
-               // operands have different signs
-    overflow = ((left < 0 && right >= 0) || (left >= 0 && right < 0))
-               // and first operand and result have different signs
-               && ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
-  }
-  return overflow;
+// Calculate V flag value for additions (and subtractions with adjusted args).
+bool Simulator::OverflowFrom(int32_t left, int32_t right, int32_t carry) {
+  int64_t result = static_cast<int64_t>(left) + right + carry;
+  return (result >> 31) != (result >> 32);
 }
 
 
@@ -1676,11 +1753,11 @@ void Simulator::DecodeType01(Instr* instr) {
             if (instr->Bits(21, 3) == 4) {  // umull
               uint64_t left_op  = static_cast<uint32_t>(rm_val);
               uint64_t right_op = static_cast<uint32_t>(rs_val);
-              result = left_op * right_op;  // Unsigned nultiplication.
+              result = left_op * right_op;  // Unsigned multiplication.
             } else {  // smull
               int64_t left_op  = static_cast<int32_t>(rm_val);
               int64_t right_op = static_cast<int32_t>(rs_val);
-              result = left_op * right_op;  // Signed nultiplication.
+              result = left_op * right_op;  // Signed multiplication.
             }
             int32_t hi_res = Utils::High32Bits(result);
             int32_t lo_res = Utils::Low32Bits(result);
@@ -1697,6 +1774,9 @@ void Simulator::DecodeType01(Instr* instr) {
             }
             break;
           }
+          case 2:
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "umaal'cond's 'rd, 'rn, 'rm, 'rs");
           case 5:
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");
@@ -1712,11 +1792,19 @@ void Simulator::DecodeType01(Instr* instr) {
             if (instr->Bits(21, 3) == 5) {  // umlal
               uint64_t left_op  = static_cast<uint32_t>(rm_val);
               uint64_t right_op = static_cast<uint32_t>(rs_val);
-              result = accum + left_op * right_op;  // Unsigned nultiplication.
-            } else {  // smlal
+              result = accum + left_op * right_op;  // Unsigned multiplication.
+            } else if (instr->Bits(21, 3) == 7) {  // smlal
               int64_t left_op  = static_cast<int32_t>(rm_val);
               int64_t right_op = static_cast<int32_t>(rs_val);
-              result = accum + left_op * right_op;  // Signed nultiplication.
+              result = accum + left_op * right_op;  // Signed multiplication.
+            } else {
+              ASSERT(instr->Bits(21, 3) == 2);  // umaal
+              ASSERT(!instr->HasS());
+              uint64_t left_op  = static_cast<uint32_t>(rm_val);
+              uint64_t right_op = static_cast<uint32_t>(rs_val);
+              result = left_op * right_op +  // Unsigned multiplication.
+                  static_cast<uint32_t>(rd_lo_val) +
+                  static_cast<uint32_t>(rd_hi_val);
             }
             int32_t hi_res = Utils::High32Bits(result);
             int32_t lo_res = Utils::Low32Bits(result);
@@ -1739,7 +1827,39 @@ void Simulator::DecodeType01(Instr* instr) {
           }
         }
       } else {
-        UnimplementedInstruction(instr);
+        if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+          UnimplementedInstruction(instr);
+          return;
+        }
+        // synchronization primitives
+        Register rd = instr->RdField();
+        Register rn = instr->RnField();
+        uword addr = get_register(rn);
+        switch (instr->Bits(20, 4)) {
+          case 8: {
+            // Format(instr, "strex'cond 'rd, 'rm, ['rn]");
+            if (IsIllegalAddress(addr)) {
+              HandleIllegalAccess(addr, instr);
+            } else {
+              Register rm = instr->RmField();
+              set_register(rd, WriteExclusiveW(addr, get_register(rm), instr));
+            }
+            break;
+          }
+          case 9: {
+            // Format(instr, "ldrex'cond 'rd, ['rn]");
+            if (IsIllegalAddress(addr)) {
+              HandleIllegalAccess(addr, instr);
+            } else {
+              set_register(rd, ReadExclusiveW(addr, instr));
+            }
+            break;
+          }
+          default: {
+            UnimplementedInstruction(instr);
+            break;
+          }
+        }
       }
     } else if (instr->Bit(25) == 1) {
       // 16-bit immediate loads, msr (immediate), and hints
@@ -1914,6 +2034,7 @@ void Simulator::DecodeType01(Instr* instr) {
       ASSERT(instr->TypeField() == 1);
       shifter_operand = GetImm(instr, &shifter_carry_out);
     }
+    int32_t carry_in;
     int32_t alu_out;
 
     switch (instr->OpcodeField()) {
@@ -1948,8 +2069,8 @@ void Simulator::DecodeType01(Instr* instr) {
         set_register(rd, alu_out);
         if (instr->HasS()) {
           SetNZFlags(alu_out);
-          SetCFlag(!BorrowFrom(rn_val, shifter_operand));
-          SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, false));
+          SetCFlag(CarryFrom(rn_val, ~shifter_operand, 1));
+          SetVFlag(OverflowFrom(rn_val, ~shifter_operand, 1));
         }
         break;
       }
@@ -1961,8 +2082,8 @@ void Simulator::DecodeType01(Instr* instr) {
         set_register(rd, alu_out);
         if (instr->HasS()) {
           SetNZFlags(alu_out);
-          SetCFlag(!BorrowFrom(shifter_operand, rn_val));
-          SetVFlag(OverflowFrom(alu_out, shifter_operand, rn_val, false));
+          SetCFlag(CarryFrom(shifter_operand, ~rn_val, 1));
+          SetVFlag(OverflowFrom(shifter_operand, ~rn_val, 1));
         }
         break;
       }
@@ -1974,8 +2095,8 @@ void Simulator::DecodeType01(Instr* instr) {
         set_register(rd, alu_out);
         if (instr->HasS()) {
           SetNZFlags(alu_out);
-          SetCFlag(CarryFrom(rn_val, shifter_operand));
-          SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, true));
+          SetCFlag(CarryFrom(rn_val, shifter_operand, 0));
+          SetVFlag(OverflowFrom(rn_val, shifter_operand, 0));
         }
         break;
       }
@@ -1983,12 +2104,13 @@ void Simulator::DecodeType01(Instr* instr) {
       case ADC: {
         // Format(instr, "adc'cond's 'rd, 'rn, 'shift_rm");
         // Format(instr, "adc'cond's 'rd, 'rn, 'imm");
-        alu_out = rn_val + shifter_operand + (c_flag_ ? 1 : 0);
+        carry_in = c_flag_ ? 1 : 0;
+        alu_out = rn_val + shifter_operand + carry_in;
         set_register(rd, alu_out);
         if (instr->HasS()) {
           SetNZFlags(alu_out);
-          SetCFlag(CarryFrom(rn_val, shifter_operand));
-          SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, true));
+          SetCFlag(CarryFrom(rn_val, shifter_operand, carry_in));
+          SetVFlag(OverflowFrom(rn_val, shifter_operand, carry_in));
         }
         break;
       }
@@ -1996,12 +2118,13 @@ void Simulator::DecodeType01(Instr* instr) {
       case SBC: {
         // Format(instr, "sbc'cond's 'rd, 'rn, 'shift_rm");
         // Format(instr, "sbc'cond's 'rd, 'rn, 'imm");
-        alu_out = rn_val - shifter_operand - (!c_flag_ ? 1 : 0);
+        carry_in = c_flag_ ? 1 : 0;
+        alu_out = rn_val + ~shifter_operand + carry_in;
         set_register(rd, alu_out);
         if (instr->HasS()) {
           SetNZFlags(alu_out);
-          SetCFlag(!BorrowFrom(rn_val, shifter_operand));
-          SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, false));
+          SetCFlag(CarryFrom(rn_val, ~shifter_operand, carry_in));
+          SetVFlag(OverflowFrom(rn_val, ~shifter_operand, carry_in));
         }
         break;
       }
@@ -2009,12 +2132,13 @@ void Simulator::DecodeType01(Instr* instr) {
       case RSC: {
         // Format(instr, "rsc'cond's 'rd, 'rn, 'shift_rm");
         // Format(instr, "rsc'cond's 'rd, 'rn, 'imm");
-        alu_out = shifter_operand - rn_val - (!c_flag_ ? 1 : 0);
+        carry_in = c_flag_ ? 1 : 0;
+        alu_out = shifter_operand + ~rn_val + carry_in;
         set_register(rd, alu_out);
         if (instr->HasS()) {
           SetNZFlags(alu_out);
-          SetCFlag(!BorrowFrom(shifter_operand, rn_val));
-          SetVFlag(OverflowFrom(alu_out, shifter_operand, rn_val, false));
+          SetCFlag(CarryFrom(shifter_operand, ~rn_val, carry_in));
+          SetVFlag(OverflowFrom(shifter_operand, ~rn_val, carry_in));
         }
         break;
       }
@@ -2051,8 +2175,8 @@ void Simulator::DecodeType01(Instr* instr) {
           // Format(instr, "cmp'cond 'rn, 'imm");
           alu_out = rn_val - shifter_operand;
           SetNZFlags(alu_out);
-          SetCFlag(!BorrowFrom(rn_val, shifter_operand));
-          SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, false));
+          SetCFlag(CarryFrom(rn_val, ~shifter_operand, 1));
+          SetVFlag(OverflowFrom(rn_val, ~shifter_operand, 1));
         } else {
           UnimplementedInstruction(instr);
         }
@@ -2065,8 +2189,8 @@ void Simulator::DecodeType01(Instr* instr) {
           // Format(instr, "cmn'cond 'rn, 'imm");
           alu_out = rn_val + shifter_operand;
           SetNZFlags(alu_out);
-          SetCFlag(CarryFrom(rn_val, shifter_operand));
-          SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, true));
+          SetCFlag(CarryFrom(rn_val, shifter_operand, 0));
+          SetVFlag(OverflowFrom(rn_val, shifter_operand, 0));
         } else {
           UnimplementedInstruction(instr);
         }
@@ -2824,13 +2948,34 @@ void Simulator::DecodeType7(Instr* instr) {
           // Format(instr, "vmovr'cond 'rd, 'sn");
           set_register(rd, get_sregister_bits(sn));
         }
-      } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0) &&
-                 (instr->Bits(12, 4) == 0xf)) {
-        // Format(instr, "vmstat'cond");
-        n_flag_ = fp_n_flag_;
-        z_flag_ = fp_z_flag_;
-        c_flag_ = fp_c_flag_;
-        v_flag_ = fp_v_flag_;
+      } else if ((instr->Bits(22, 3) == 0) && (instr->Bit(20) == 0) &&
+                 (instr->Bit(8) == 1) && (instr->Bits(5, 2) == 0)) {
+        DRegister dn = instr->DnField();
+        Register rd = instr->RdField();
+        if (instr->Bit(21) == 0) {
+          // Format(instr, "vmovd'cond 'dd[0], 'rd");
+          SRegister sd = EvenSRegisterOf(dn);
+          set_sregister_bits(sd, get_register(rd));
+        } else {
+          // Format(instr, "vmovd'cond 'dd[1], 'rd");
+          SRegister sd = OddSRegisterOf(dn);
+          set_sregister_bits(sd, get_register(rd));
+        }
+      } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0)) {
+        if (instr->Bits(12, 4) == 0xf) {
+          // Format(instr, "vmrs'cond APSR, FPSCR");
+          n_flag_ = fp_n_flag_;
+          z_flag_ = fp_z_flag_;
+          c_flag_ = fp_c_flag_;
+          v_flag_ = fp_v_flag_;
+        } else {
+          // Format(instr, "vmrs'cond 'rd, FPSCR");
+          const int32_t n_flag = fp_n_flag_ ? (1 << 31) : 0;
+          const int32_t z_flag = fp_z_flag_ ? (1 << 30) : 0;
+          const int32_t c_flag = fp_c_flag_ ? (1 << 29) : 0;
+          const int32_t v_flag = fp_v_flag_ ? (1 << 28) : 0;
+          set_register(instr->RdField(), n_flag | z_flag | c_flag | v_flag);
+        }
       } else {
         UnimplementedInstruction(instr);
       }
@@ -2844,7 +2989,7 @@ void Simulator::DecodeType7(Instr* instr) {
 static float arm_reciprocal_sqrt_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-87.
   if (isinf(a) || (fabs(a) >= exp2f(126))) return 0.0;
-  else if (a == 0.0) return INFINITY;
+  else if (a == 0.0) return kPosInfinity;
   else if (isnan(a)) return a;
 
   uint32_t a_bits = bit_cast<uint32_t, float>(a);
@@ -2895,7 +3040,7 @@ static float arm_reciprocal_sqrt_estimate(float a) {
 static float arm_recip_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-85.
   if (isinf(a) || (fabs(a) >= exp2f(126))) return 0.0;
-  else if (a == 0.0) return INFINITY;
+  else if (a == 0.0) return kPosInfinity;
   else if (isnan(a)) return a;
 
   uint32_t a_bits = bit_cast<uint32_t, float>(a);
@@ -3438,7 +3583,7 @@ void Simulator::InstructionDecode(Instr* instr) {
   if (instr->ConditionField() == kSpecialCondition) {
     if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {
       // Format(instr, "clrex");
-      UnimplementedInstruction(instr);
+      ClearExclusive();
     } else {
       if (instr->IsSIMDDataProcessing()) {
         DecodeSIMDDataProcessing(instr);

@@ -165,7 +165,12 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 #define INVISIBLE_CLASS_FUNCTIONS(V)                                           \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
+  V(CoreLibrary, _Bigint, _absAdd)                                             \
+  V(CoreLibrary, _Bigint, _absSub)                                             \
   V(CoreLibrary, _Bigint, _mulAdd)                                             \
+  V(CoreLibrary, _Bigint, _sqrAdd)                                             \
+  V(CoreLibrary, _Bigint, _estQuotientDigit)                                   \
+  V(CoreLibrary, _Montgomery, _mulMod)                                         \
 
 #define INVISIBLE_LIBRARY_FUNCTIONS(V)                                         \
   V(TypedDataLibrary, _toInt8)                                                 \
@@ -672,9 +677,10 @@ void Object::InitOnce() {
     Array::initializeHandle(
         empty_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
-    empty_array_->raw_ptr()->length_ = Smi::New(0);
+    empty_array_->StoreSmi(&empty_array_->raw_ptr()->length_, Smi::New(0));
   }
 
+  Smi& smi = Smi::Handle();
   // Allocate and initialize the zero_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(1), Heap::kOld);
@@ -682,8 +688,9 @@ void Object::InitOnce() {
     Array::initializeHandle(
         zero_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
-    zero_array_->raw_ptr()->length_ = Smi::New(1);
-    zero_array_->raw_ptr()->data()[0] = Smi::New(0);
+    zero_array_->StoreSmi(&zero_array_->raw_ptr()->length_, Smi::New(1));
+    smi = Smi::New(0);
+    zero_array_->SetAt(0, smi);
   }
 
   // Allocate and initialize the empty_descriptors instance.
@@ -696,7 +703,8 @@ void Object::InitOnce() {
     PcDescriptors::initializeHandle(
         empty_descriptors_,
         reinterpret_cast<RawPcDescriptors*>(address + kHeapObjectTag));
-    empty_descriptors_->raw_ptr()->length_ = 0;
+    empty_descriptors_->StoreNonPointer(&empty_descriptors_->raw_ptr()->length_,
+                                        0);
   }
 
   // Allocate and initialize the canonical empty variable descriptor object.
@@ -709,7 +717,8 @@ void Object::InitOnce() {
     LocalVarDescriptors::initializeHandle(
         empty_var_descriptors_,
         reinterpret_cast<RawLocalVarDescriptors*>(address + kHeapObjectTag));
-    empty_var_descriptors_->raw_ptr()->num_entries_ = 0;
+    empty_var_descriptors_->StoreNonPointer(
+        &empty_var_descriptors_->raw_ptr()->num_entries_, 0);
   }
 
   // Allocate and initialize the canonical empty exception handler info object.
@@ -724,7 +733,8 @@ void Object::InitOnce() {
     ExceptionHandlers::initializeHandle(
         empty_exception_handlers_,
         reinterpret_cast<RawExceptionHandlers*>(address + kHeapObjectTag));
-    empty_exception_handlers_->raw_ptr()->num_entries_ = 0;
+    empty_exception_handlers_->StoreNonPointer(
+        &empty_exception_handlers_->raw_ptr()->num_entries_, 0);
   }
 
   cls = Class::New<Instance>(kDynamicCid);
@@ -1447,6 +1457,8 @@ RawError* Object::Init(Isolate* isolate) {
   CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
 
+  object_store->InitAsyncObjects();
+
   return Error::null();
 }
 
@@ -1733,17 +1745,32 @@ bool Object::IsNotTemporaryScopedHandle() const {
 
 
 
-RawObject* Object::Clone(const Object& src, Heap::Space space) {
-  const Class& cls = Class::Handle(src.clazz());
-  intptr_t size = src.raw()->Size();
-  RawObject* raw_obj = Object::Allocate(cls.id(), size, space);
+RawObject* Object::Clone(const Object& orig, Heap::Space space) {
+  const Class& cls = Class::Handle(orig.clazz());
+  intptr_t size = orig.raw()->Size();
+  RawObject* raw_clone = Object::Allocate(cls.id(), size, space);
   NoGCScope no_gc;
-  memmove(raw_obj->ptr(), src.raw()->ptr(), size);
-  if ((space == Heap::kOld) && !raw_obj->IsRemembered()) {
-    StoreBufferUpdateVisitor visitor(Isolate::Current(), raw_obj);
-    raw_obj->VisitPointers(&visitor);
+  // TODO(koda): This will trip when we start allocating black.
+  // Revisit code below at that point, to account for the new write barrier.
+  ASSERT(!raw_clone->IsMarked());
+  // Copy the body of the original into the clone.
+  uword orig_addr = RawObject::ToAddr(orig.raw());
+  uword clone_addr = RawObject::ToAddr(raw_clone);
+  static const intptr_t kHeaderSizeInBytes = sizeof(RawObject);
+  memmove(reinterpret_cast<uint8_t*>(clone_addr + kHeaderSizeInBytes),
+          reinterpret_cast<uint8_t*>(orig_addr + kHeaderSizeInBytes),
+          size - kHeaderSizeInBytes);
+  // Add clone to store buffer, if needed.
+  if (!raw_clone->IsOldObject()) {
+    // No need to remember an object in new space.
+    return raw_clone;
+  } else if (orig.raw()->IsOldObject() && !orig.raw()->IsRemembered()) {
+    // Old original doesn't need to be remembered, so neither does the clone.
+    return raw_clone;
   }
-  return raw_obj;
+  StoreBufferUpdateVisitor visitor(Isolate::Current(), raw_clone);
+  raw_clone->VisitPointers(&visitor);
+  return raw_clone;
 }
 
 
@@ -1889,7 +1916,7 @@ void Class::set_num_type_arguments(intptr_t value) const {
   if (!Utils::IsInt(16, value)) {
     ReportTooManyTypeArguments(*this);
   }
-  raw_ptr()->num_type_arguments_ = value;
+  StoreNonPointer(&raw_ptr()->num_type_arguments_, value);
 }
 
 
@@ -1897,7 +1924,7 @@ void Class::set_num_own_type_arguments(intptr_t value) const {
   if (!Utils::IsInt(16, value)) {
     ReportTooManyTypeArguments(*this);
   }
-  raw_ptr()->num_own_type_arguments_ = value;
+  StoreNonPointer(&raw_ptr()->num_own_type_arguments_, value);
 }
 
 
@@ -2240,7 +2267,7 @@ void Class::set_signature_function(const Function& value) const {
 
 
 void Class::set_state_bits(intptr_t bits) const {
-  raw_ptr()->state_bits_ = static_cast<uint16_t>(bits);
+  StoreNonPointer(&raw_ptr()->state_bits_, static_cast<uint16_t>(bits));
 }
 
 
@@ -3273,7 +3300,7 @@ void Class::set_script(const Script& value) const {
 
 void Class::set_token_pos(intptr_t token_pos) const {
   ASSERT(token_pos >= 0);
-  raw_ptr()->token_pos_ = token_pos;
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
@@ -3517,20 +3544,8 @@ void Class::set_allocation_stub(const Code& value) const {
 }
 
 
-void Class::SwitchAllocationStub() const {
-  const Code& alloc_stub = Code::Handle(allocation_stub());
-  if (!alloc_stub.IsNull()) {
-    CodePatcher::PatchEntry(alloc_stub);
-    const Code& spare_alloc_stub = Code::Handle(spare_allocation_stub());
-    if (spare_alloc_stub.IsNull()) {
-      StorePointer(&raw_ptr()->allocation_stub_, Code::null());
-    } else {
-      ASSERT(CodePatcher::IsEntryPatched(spare_alloc_stub));
-      CodePatcher::RestoreEntry(spare_alloc_stub);
-      StorePointer(&raw_ptr()->allocation_stub_, spare_alloc_stub.raw());
-    }
-    StorePointer(&raw_ptr()->spare_allocation_stub_, alloc_stub.raw());
-  }
+void Class::DisableAllocationStub() const {
+  StorePointer(&raw_ptr()->allocation_stub_, Code::null());
 }
 
 
@@ -4197,7 +4212,7 @@ RawUnresolvedClass* UnresolvedClass::New() {
 
 void UnresolvedClass::set_token_pos(intptr_t token_pos) const {
   ASSERT(token_pos >= 0);
-  raw_ptr()->token_pos_ = token_pos;
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
@@ -4769,7 +4784,7 @@ RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
 
 
 
-RawAbstractType** TypeArguments::TypeAddr(intptr_t index) const {
+RawAbstractType* const* TypeArguments::TypeAddr(intptr_t index) const {
   // TODO(iposva): Determine if we should throw an exception here.
   ASSERT((index >= 0) && (index < Length()));
   return &raw_ptr()->types()[index];
@@ -4780,7 +4795,7 @@ void TypeArguments::SetLength(intptr_t value) const {
   ASSERT(!IsCanonical());
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
-  raw_ptr()->length_ = Smi::New(value);
+  StoreSmi(&raw_ptr()->length_, Smi::New(value));
 }
 
 
@@ -5433,11 +5448,6 @@ void Function::set_modifier(RawFunction::AsyncModifier value) const {
 }
 
 
-void Function::set_is_intrinsic(bool value) const {
-  set_kind_tag(IntrinsicBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
 void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
   // Prevent multiple settings of kind.
   ASSERT((value == MethodRecognizer::kUnknown) || !IsRecognized());
@@ -5445,55 +5455,30 @@ void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
 }
 
 
-void Function::set_is_redirecting(bool value) const {
-  set_kind_tag(RedirectingBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_static(bool value) const {
-  set_kind_tag(StaticBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_const(bool value) const {
-  set_kind_tag(ConstBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_external(bool value) const {
-  set_kind_tag(ExternalBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_async_closure(bool value) const {
-  set_kind_tag(AsyncClosureBit::update(value, raw_ptr()->kind_tag_));
-  // Prohibit inlining as the closure is used for implementing a continuation.
-  set_is_inlinable(false);
-}
-
-
 void Function::set_token_pos(intptr_t value) const {
   ASSERT(value >= 0);
-  raw_ptr()->token_pos_ = value;
+  StoreNonPointer(&raw_ptr()->token_pos_, value);
 }
 
 
 void Function::set_kind_tag(intptr_t value) const {
-  raw_ptr()->kind_tag_ = static_cast<uint32_t>(value);
+  StoreNonPointer(&raw_ptr()->kind_tag_, static_cast<uint32_t>(value));
 }
 
 
 void Function::set_num_fixed_parameters(intptr_t value) const {
   ASSERT(value >= 0);
   ASSERT(Utils::IsInt(16, value));
-  raw_ptr()->num_fixed_parameters_ = static_cast<int16_t>(value);
+  StoreNonPointer(&raw_ptr()->num_fixed_parameters_,
+                  static_cast<int16_t>(value));
 }
 
 
 void Function::set_num_optional_parameters(intptr_t value) const {
   // A positive value indicates positional params, a negative one named params.
   ASSERT(Utils::IsInt(16, value));
-  raw_ptr()->num_optional_parameters_ = static_cast<int16_t>(value);
+  StoreNonPointer(&raw_ptr()->num_optional_parameters_,
+                  static_cast<int16_t>(value));
 }
 
 
@@ -5550,41 +5535,11 @@ void Function::SetIsNativeAutoSetupScope(bool value) const {
 }
 
 
-void Function::set_is_optimizable(bool value) const {
-  set_kind_tag(OptimizableBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_allows_hoisting_check_class(bool value) const {
-  set_kind_tag(
-      AllowsHoistingCheckClassBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_native(bool value) const {
-  set_kind_tag(NativeBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_abstract(bool value) const {
-  set_kind_tag(AbstractBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-void Function::set_is_inlinable(bool value) const {
-  set_kind_tag(InlinableBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
-bool Function::IsInlineable() const {
-  return (InlinableBit::decode(raw_ptr()->kind_tag_) &&
-          HasCode() &&
-          !Isolate::Current()->debugger()->HasBreakpoint(*this));
-}
-
-
-void Function::set_is_visible(bool value) const {
-  set_kind_tag(VisibleBit::update(value, raw_ptr()->kind_tag_));
+bool Function::CanBeInlined() const {
+  return is_inlinable() &&
+         !is_async_closure() &&
+         HasCode() &&
+         !Isolate::Current()->debugger()->HasBreakpoint(*this);
 }
 
 
@@ -6123,6 +6078,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
+  result.set_allows_bounds_check_generalization(true);
   result.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
@@ -6776,7 +6732,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("const", is_const());
   jsobj.AddProperty("optimizable", is_optimizable());
-  jsobj.AddProperty("inlinable", IsInlineable());
+  jsobj.AddProperty("inlinable", CanBeInlined());
   jsobj.AddProperty("unoptimizedCode", Object::Handle(unoptimized_code()));
   jsobj.AddProperty("usageCounter", usage_counter());
   jsobj.AddProperty("optimizedCallSiteCount", optimized_call_site_count());
@@ -7040,7 +6996,7 @@ intptr_t Field::guarded_list_length() const {
 
 
 void Field::set_guarded_list_length(intptr_t list_length) const {
-  raw_ptr()->guarded_list_length_ = Smi::New(list_length);
+  StoreSmi(&raw_ptr()->guarded_list_length_, Smi::New(list_length));
 }
 
 
@@ -7051,8 +7007,8 @@ intptr_t Field::guarded_list_length_in_object_offset() const {
 
 void Field::set_guarded_list_length_in_object_offset(
     intptr_t list_length_offset) const {
-  raw_ptr()->guarded_list_length_in_object_offset_ =
-      static_cast<int8_t>(list_length_offset - kHeapObjectTag);
+  StoreNonPointer(&raw_ptr()->guarded_list_length_in_object_offset_,
+                  static_cast<int8_t>(list_length_offset - kHeapObjectTag));
   ASSERT(guarded_list_length_in_object_offset() == list_length_offset);
 }
 
@@ -8176,7 +8132,7 @@ void Script::set_source(const String& value) const {
 
 
 void Script::set_kind(RawScript::Kind value) const {
-  raw_ptr()->kind_ = value;
+  StoreNonPointer(&raw_ptr()->kind_, value);
 }
 
 
@@ -8210,8 +8166,8 @@ void Script::SetLocationOffset(intptr_t line_offset,
                                intptr_t col_offset) const {
   ASSERT(line_offset >= 0);
   ASSERT(col_offset >= 0);
-  raw_ptr()->line_offset_ = line_offset;
-  raw_ptr()->col_offset_ = col_offset;
+  StoreNonPointer(&raw_ptr()->line_offset_, line_offset);
+  StoreNonPointer(&raw_ptr()->col_offset_, col_offset);
 }
 
 
@@ -8586,28 +8542,28 @@ void Library::SetName(const String& name) const {
 void Library::SetLoadInProgress() const {
   // Must not already be in the process of being loaded.
   ASSERT(raw_ptr()->load_state_ <= RawLibrary::kLoadRequested);
-  raw_ptr()->load_state_ = RawLibrary::kLoadInProgress;
+  StoreNonPointer(&raw_ptr()->load_state_, RawLibrary::kLoadInProgress);
 }
 
 
 void Library::SetLoadRequested() const {
   // Must not be already loaded.
   ASSERT(raw_ptr()->load_state_ == RawLibrary::kAllocated);
-  raw_ptr()->load_state_ = RawLibrary::kLoadRequested;
+  StoreNonPointer(&raw_ptr()->load_state_, RawLibrary::kLoadRequested);
 }
 
 
 void Library::SetLoaded() const {
   // Should not be already loaded or just allocated.
   ASSERT(LoadInProgress() || LoadRequested());
-  raw_ptr()->load_state_ = RawLibrary::kLoaded;
+  StoreNonPointer(&raw_ptr()->load_state_, RawLibrary::kLoaded);
 }
 
 
 void Library::SetLoadError(const Instance& error) const {
   // Should not be already successfully loaded or just allocated.
   ASSERT(LoadInProgress() || LoadRequested() || LoadFailed());
-  raw_ptr()->load_state_ = RawLibrary::kLoadError;
+  StoreNonPointer(&raw_ptr()->load_state_, RawLibrary::kLoadError);
   StorePointer(&raw_ptr()->load_error_, error.raw());
 }
 
@@ -9112,15 +9068,28 @@ RawArray* Library::LoadedScripts() const {
 // TODO(hausner): we might want to add a script dictionary to the
 // library class to make this lookup faster.
 RawScript* Library::LookupScript(const String& url) const {
+  const intptr_t url_length = url.Length();
+  if (url_length == 0) {
+    return Script::null();
+  }
   const Array& scripts = Array::Handle(LoadedScripts());
   Script& script = Script::Handle();
   String& script_url = String::Handle();
-  intptr_t num_scripts = scripts.Length();
+  const intptr_t num_scripts = scripts.Length();
   for (int i = 0; i < num_scripts; i++) {
     script ^= scripts.At(i);
     script_url = script.url();
-    if (script_url.Equals(url)) {
+    const intptr_t start_idx = script_url.Length() - url_length;
+    if ((start_idx == 0) && url.Equals(script_url)) {
       return script.raw();
+    } else if (start_idx > 0) {
+      // If we do a suffix match, only match if the partial path
+      // starts at or immediately after the path separator.
+      if (((url.CharAt(0) == '/') ||
+          (script_url.CharAt(start_idx - 1) == '/')) &&
+          url.Equals(script_url, start_idx, url_length)) {
+        return script.raw();
+      }
     }
   }
   return Script::null();
@@ -9325,7 +9294,7 @@ void Library::AddAnonymousClass(const Class& cls) const {
   }
   anon_array.SetAt(num_anonymous, cls);
   num_anonymous++;
-  raw_ptr()->num_anonymous_ = num_anonymous;
+  StoreNonPointer(&raw_ptr()->num_anonymous_, num_anonymous);
 }
 
 
@@ -9431,7 +9400,7 @@ void Library::InitImportList() const {
   const Array& imports =
       Array::Handle(Array::New(kInitialImportsCapacity, Heap::kOld));
   StorePointer(&raw_ptr()->imports_, imports.raw());
-  raw_ptr()->num_imports_ = 0;
+  StoreNonPointer(&raw_ptr()->num_imports_, 0);
 }
 
 
@@ -9449,23 +9418,27 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   const Library& result = Library::Handle(Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
-  result.raw_ptr()->resolved_names_ = Object::empty_array().raw();
-  result.raw_ptr()->dictionary_ = Object::empty_array().raw();
+  result.StorePointer(&result.raw_ptr()->resolved_names_,
+                      Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->dictionary_,
+                      Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->metadata_,
                       GrowableObjectArray::New(4, Heap::kOld));
-  result.raw_ptr()->anonymous_classes_ = Object::empty_array().raw();
-  result.raw_ptr()->num_anonymous_ = 0;
-  result.raw_ptr()->imports_ = Object::empty_array().raw();
-  result.raw_ptr()->exports_ = Object::empty_array().raw();
-  result.raw_ptr()->loaded_scripts_ = Array::null();
-  result.raw_ptr()->load_error_ = Instance::null();
+  result.StorePointer(&result.raw_ptr()->anonymous_classes_,
+                      Object::empty_array().raw());
+  result.StoreNonPointer(&result.raw_ptr()->num_anonymous_, 0);
+  result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
+  result.StorePointer(&result.raw_ptr()->load_error_, Instance::null());
   result.set_native_entry_resolver(NULL);
   result.set_native_entry_symbol_resolver(NULL);
-  result.raw_ptr()->corelib_imported_ = true;
+  result.StoreNonPointer(&result.raw_ptr()->corelib_imported_, true);
   result.set_debuggable(false);
   result.set_is_dart_scheme(url.StartsWith(Symbols::DartScheme()));
-  result.raw_ptr()->load_state_ = RawLibrary::kAllocated;
-  result.raw_ptr()->index_ = -1;
+  result.StoreNonPointer(&result.raw_ptr()->load_state_,
+                         RawLibrary::kAllocated);
+  result.StoreNonPointer(&result.raw_ptr()->index_, -1);
   const intptr_t kInitialNameCacheSize = 64;
   result.InitResolvedNamesCache(kInitialNameCacheSize);
   result.InitClassDictionary();
@@ -9948,7 +9921,7 @@ RawClass* LibraryPrefix::LookupClass(const String& class_name) const {
 
 
 void LibraryPrefix::set_is_loaded() const {
-  raw_ptr()->is_loaded_ = true;
+  StoreNonPointer(&raw_ptr()->is_loaded_, true);
 }
 
 
@@ -10067,8 +10040,8 @@ RawLibraryPrefix* LibraryPrefix::New(const String& name,
   result.set_name(name);
   result.set_num_imports(0);
   result.set_importer(importer);
-  result.raw_ptr()->is_deferred_load_ = deferred_load;
-  result.raw_ptr()->is_loaded_ = !deferred_load;
+  result.StoreNonPointer(&result.raw_ptr()->is_deferred_load_, deferred_load);
+  result.StoreNonPointer(&result.raw_ptr()->is_loaded_, !deferred_load);
   result.set_imports(Array::Handle(Array::New(kInitialSize)));
   result.AddImport(import);
   result.set_dependent_code(Object::null_array());
@@ -10088,7 +10061,7 @@ void LibraryPrefix::set_imports(const Array& value) const {
 
 
 void LibraryPrefix::set_num_imports(intptr_t value) const {
-  raw_ptr()->num_imports_ = value;
+  StoreNonPointer(&raw_ptr()->num_imports_, value);
 }
 
 
@@ -10444,7 +10417,7 @@ intptr_t PcDescriptors::Length() const {
 
 
 void PcDescriptors::SetLength(intptr_t value) const {
-  raw_ptr()->length_ = value;
+  StoreNonPointer(&raw_ptr()->length_, value);
 }
 
 
@@ -10454,7 +10427,7 @@ intptr_t PcDescriptors::RecordSizeInBytes() const {
 
 
 void PcDescriptors::SetRecordSizeInBytes(intptr_t value) const {
-  raw_ptr()->record_size_in_bytes_ = value;
+  StoreNonPointer(&raw_ptr()->record_size_in_bytes_, value);
 }
 
 
@@ -10645,7 +10618,8 @@ void Stackmap::SetBit(intptr_t bit_index, bool value) const {
   int byte_index = bit_index >> kBitsPerByteLog2;
   int bit_remainder = bit_index & (kBitsPerByte - 1);
   uint8_t byte_mask = 1U << bit_remainder;
-  uint8_t* byte_addr = &(raw_ptr()->data()[byte_index]);
+  NoGCScope no_gc;
+  uint8_t* byte_addr = UnsafeMutableNonPointer(&raw_ptr()->data()[byte_index]);
   if (value) {
     *byte_addr |= byte_mask;
   } else {
@@ -10907,7 +10881,7 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->num_entries_ = num_variables;
+    result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_variables);
   }
   return result.raw();
 }
@@ -10929,7 +10903,9 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        bool needs_stacktrace,
                                        bool has_catch_all) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
-  RawExceptionHandlers::HandlerInfo* info = &raw_ptr()->data()[try_index];
+  NoGCScope no_gc;
+  RawExceptionHandlers::HandlerInfo* info =
+      UnsafeMutableNonPointer(&raw_ptr()->data()[try_index]);
   info->outer_try_index = outer_try_index;
   info->handler_pc = handler_pc;
   info->needs_stacktrace = needs_stacktrace;
@@ -11006,7 +10982,7 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->num_entries_ = num_handlers;
+    result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_handlers);
   }
   const Array& handled_types_data = (num_handlers == 0) ?
       Object::empty_array() :
@@ -11082,11 +11058,13 @@ intptr_t DeoptInfo::Length() const {
 
 
 intptr_t DeoptInfo::FromIndex(intptr_t index) const {
+  NoGCScope no_gc;
   return *(EntryAddr(index, kFromIndex));
 }
 
 
 intptr_t DeoptInfo::Instruction(intptr_t index) const {
+  NoGCScope no_gc;
   return *(EntryAddr(index, kInstruction));
 }
 
@@ -11123,7 +11101,7 @@ void DeoptInfo::ToInstructions(const Array& table,
   ASSERT(instructions->is_empty());
   Smi& offset = Smi::Handle();
   DeoptInfo& info = DeoptInfo::Handle(raw());
-  Smi& reason = Smi::Handle();
+  Smi& reason_and_flags = Smi::Handle();
   intptr_t index = 0;
   intptr_t length = TranslationLength();
   while (index < length) {
@@ -11135,7 +11113,8 @@ void DeoptInfo::ToInstructions(const Array& table,
       intptr_t info_number = 0;
       intptr_t suffix_length =
           DeoptInstr::DecodeSuffix(from_index, &info_number);
-      DeoptTable::GetEntry(table, info_number, &offset, &info, &reason);
+      DeoptTable::GetEntry(
+          table, info_number, &offset, &info, &reason_and_flags);
       length = info.TranslationLength();
       index = length - suffix_length;
     } else {
@@ -11216,13 +11195,14 @@ RawDeoptInfo* DeoptInfo::New(intptr_t num_commands) {
 void DeoptInfo::SetLength(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
-  raw_ptr()->length_ = Smi::New(value);
+  StoreSmi(&raw_ptr()->length_, Smi::New(value));
 }
 
 
 void DeoptInfo::SetAt(intptr_t index,
                       intptr_t instr_kind,
                       intptr_t from_index) const {
+  NoGCScope no_gc;
   *(EntryAddr(index, kInstruction)) = instr_kind;
   *(EntryAddr(index, kFromIndex)) = from_index;
 }
@@ -11261,7 +11241,7 @@ void ICData::set_arguments_descriptor(const Array& value) const {
 
 void ICData::set_deopt_id(intptr_t value) const {
   ASSERT(value <= kMaxInt32);
-  raw_ptr()->deopt_id_ = value;
+  StoreNonPointer(&raw_ptr()->deopt_id_, value);
 }
 
 
@@ -11278,8 +11258,8 @@ intptr_t ICData::NumArgsTested() const {
 
 void ICData::SetNumArgsTested(intptr_t value) const {
   ASSERT(Utils::IsUint(2, value));
-  raw_ptr()->state_bits_ =
-      NumArgsTestedBits::update(value, raw_ptr()->state_bits_);
+  StoreNonPointer(&raw_ptr()->state_bits_,
+                  NumArgsTestedBits::update(value, raw_ptr()->state_bits_));
 }
 
 
@@ -11289,8 +11269,8 @@ uint32_t ICData::DeoptReasons() const {
 
 
 void ICData::SetDeoptReasons(uint32_t reasons) const {
-  raw_ptr()->state_bits_ =
-      DeoptReasonBits::update(reasons, raw_ptr()->state_bits_);
+  StoreNonPointer(&raw_ptr()->state_bits_,
+                  DeoptReasonBits::update(reasons, raw_ptr()->state_bits_));
 }
 
 
@@ -11310,8 +11290,8 @@ bool ICData::IssuedJSWarning() const {
 
 
 void ICData::SetIssuedJSWarning() const {
-  raw_ptr()->state_bits_ =
-      IssuedJSWarningBit::update(true, raw_ptr()->state_bits_);
+  StoreNonPointer(&raw_ptr()->state_bits_,
+                  IssuedJSWarningBit::update(true, raw_ptr()->state_bits_));
 }
 
 
@@ -11334,7 +11314,7 @@ bool ICData::MayCheckForJSWarning() const {
 
 
 void ICData::set_state_bits(uint32_t bits) const {
-  raw_ptr()->state_bits_ = bits;
+  StoreNonPointer(&raw_ptr()->state_bits_, bits);
 }
 
 
@@ -11858,7 +11838,7 @@ Code::Comments::Comments(const Array& comments)
 
 
 void Code::set_state_bits(intptr_t bits) const {
-  raw_ptr()->state_bits_ = bits;
+  StoreNonPointer(&raw_ptr()->state_bits_, bits);
 }
 
 
@@ -11911,8 +11891,9 @@ bool Code::HasBreakpoint() const {
 }
 
 
-RawDeoptInfo* Code::GetDeoptInfoAtPc(
-    uword pc, ICData::DeoptReasonId* deopt_reason) const {
+RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc,
+                                     ICData::DeoptReasonId* deopt_reason,
+                                     uint32_t* deopt_flags) const {
   ASSERT(is_optimized());
   const Instructions& instrs = Instructions::Handle(instructions());
   uword code_entry = instrs.EntryPoint();
@@ -11921,15 +11902,14 @@ RawDeoptInfo* Code::GetDeoptInfoAtPc(
   // Linear search for the PC offset matching the target PC.
   intptr_t length = DeoptTable::GetLength(table);
   Smi& offset = Smi::Handle();
-  Smi& reason = Smi::Handle();
+  Smi& reason_and_flags = Smi::Handle();
   DeoptInfo& info = DeoptInfo::Handle();
   for (intptr_t i = 0; i < length; ++i) {
-    DeoptTable::GetEntry(table, i, &offset, &info, &reason);
+    DeoptTable::GetEntry(table, i, &offset, &info, &reason_and_flags);
     if (pc == (code_entry + offset.Value())) {
       ASSERT(!info.IsNull());
-      ASSERT((0 <= reason.Value()) &&
-             (reason.Value() < ICData::kDeoptNumReasons));
-      *deopt_reason = static_cast<ICData::DeoptReasonId>(reason.Value());
+      *deopt_reason = DeoptTable::ReasonField::decode(reason_and_flags.Value());
+      *deopt_flags = DeoptTable::FlagsField::decode(reason_and_flags.Value());
       return info.raw();
     }
   }
@@ -11993,6 +11973,23 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
       Array::Handle(raw_ptr()->static_calls_target_table_);
   ASSERT(code.IsNull() ||
          (code.function() == array.At(i + kSCallTableFunctionEntry)));
+  array.SetAt(i + kSCallTableCodeEntry, code);
+}
+
+
+void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
+  const intptr_t i = BinarySearchInSCallTable(pc);
+  ASSERT(i >= 0);
+  const Array& array =
+      Array::Handle(raw_ptr()->static_calls_target_table_);
+#if defined(DEBUG)
+  if (array.At(i + kSCallTableFunctionEntry) == Function::null()) {
+    ASSERT(!code.IsNull() && Object::Handle(code.owner()).IsClass());
+  } else {
+    ASSERT(code.IsNull() ||
+           (code.function() == array.At(i + kSCallTableFunctionEntry)));
+  }
+#endif
   array.SetAt(i + kSCallTableCodeEntry, code);
 }
 
@@ -12118,8 +12115,10 @@ RawCode* Code::FinalizeCode(const char* name,
       instrs.set_object_pool(Array::MakeArray(object_pool));
     }
     if (FLAG_write_protect_code) {
+      uword address = RawObject::ToAddr(instrs.raw());
       bool status = VirtualMemory::Protect(
-          reinterpret_cast<void*>(instrs.raw_ptr()), instrs.raw()->Size(),
+          reinterpret_cast<void*>(address),
+          instrs.raw()->Size(),
           VirtualMemory::kReadExecute);
       ASSERT(status);
     }
@@ -12621,7 +12620,7 @@ intptr_t MegamorphicCache::mask() const {
 
 
 void MegamorphicCache::set_mask(intptr_t mask) const {
-  raw_ptr()->mask_ = Smi::New(mask);
+  StoreSmi(&raw_ptr()->mask_, Smi::New(mask));
 }
 
 
@@ -12631,7 +12630,7 @@ intptr_t MegamorphicCache::filled_entry_count() const {
 
 
 void MegamorphicCache::set_filled_entry_count(intptr_t count) const {
-  raw_ptr()->filled_entry_count_ = count;
+  StoreNonPointer(&raw_ptr()->filled_entry_count_, count);
 }
 
 
@@ -12940,12 +12939,12 @@ void LanguageError::set_script(const Script& value) const {
 
 void LanguageError::set_token_pos(intptr_t value) const {
   ASSERT(value >= 0);
-  raw_ptr()->token_pos_ = value;
+  StoreNonPointer(&raw_ptr()->token_pos_, value);
 }
 
 
 void LanguageError::set_kind(uint8_t value) const {
-  raw_ptr()->kind_ = value;
+  StoreNonPointer(&raw_ptr()->kind_, value);
 }
 
 
@@ -13398,7 +13397,7 @@ bool Instance::IsIdenticalTo(const Instance& other) const {
 
 
 intptr_t* Instance::NativeFieldsDataAddr() const {
-  NoGCScope no_gc;
+  ASSERT(Isolate::Current()->no_gc_scope_depth() > 0);
   RawTypedData* native_fields =
       reinterpret_cast<RawTypedData*>(*NativeFieldsAddr());
   if (native_fields == TypedData::null()) {
@@ -14645,21 +14644,21 @@ RawType* Type::New(const Object& clazz,
   result.set_type_class(clazz);
   result.set_arguments(arguments);
   result.set_token_pos(token_pos);
-  result.raw_ptr()->type_state_ = RawType::kAllocated;
+  result.StoreNonPointer(&result.raw_ptr()->type_state_, RawType::kAllocated);
   return result.raw();
 }
 
 
 void Type::set_token_pos(intptr_t token_pos) const {
   ASSERT(token_pos >= 0);
-  raw_ptr()->token_pos_ = token_pos;
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
 void Type::set_type_state(int8_t state) const {
   ASSERT((state >= RawType::kAllocated) &&
          (state <= RawType::kFinalizedUninstantiated));
-  raw_ptr()->type_state_ = state;
+  StoreNonPointer(&raw_ptr()->type_state_, state);
 }
 
 
@@ -14932,7 +14931,7 @@ void TypeParameter::set_parameterized_class(const Class& value) const {
 
 void TypeParameter::set_index(intptr_t value) const {
   ASSERT(value >= 0);
-  raw_ptr()->index_ = value;
+  StoreNonPointer(&raw_ptr()->index_, value);
 }
 
 
@@ -15054,14 +15053,15 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
   result.set_name(name);
   result.set_bound(bound);
   result.set_token_pos(token_pos);
-  result.raw_ptr()->type_state_ = RawTypeParameter::kAllocated;
+  result.StoreNonPointer(&result.raw_ptr()->type_state_,
+                         RawTypeParameter::kAllocated);
   return result.raw();
 }
 
 
 void TypeParameter::set_token_pos(intptr_t token_pos) const {
   ASSERT(token_pos >= 0);
-  raw_ptr()->token_pos_ = token_pos;
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
@@ -15069,7 +15069,7 @@ void TypeParameter::set_type_state(int8_t state) const {
   ASSERT((state == RawTypeParameter::kAllocated) ||
          (state == RawTypeParameter::kBeingFinalized) ||
          (state == RawTypeParameter::kFinalizedUninstantiated));
-  raw_ptr()->type_state_ = state;
+  StoreNonPointer(&raw_ptr()->type_state_, state);
 }
 
 
@@ -15850,7 +15850,7 @@ RawClass* Smi::Class() {
 
 
 void Mint::set_value(int64_t value) const {
-  raw_ptr()->value_ = value;
+  StoreNonPointer(&raw_ptr()->value_, value);
 }
 
 
@@ -15971,7 +15971,7 @@ void Mint::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 void Double::set_value(double value) const {
-  raw_ptr()->value_ = value;
+  StoreNonPointer(&raw_ptr()->value_, value);
 }
 
 
@@ -16116,7 +16116,7 @@ void Bigint::set_neg(const Bool& value) const {
 
 
 void Bigint::set_used(const Smi& value) const {
-  raw_ptr()->used_ = value.raw();
+  StoreSmi(&raw_ptr()->used_, value.raw());
 }
 
 
@@ -16715,7 +16715,7 @@ uint32_t Bigint::AsTruncatedUint32Value() const {
   const intptr_t used = Used();
   if (used == 0) return 0;
   const uint32_t digit0 = DigitAt(0);
-  return Neg() ? -digit0 : digit0;
+  return Neg() ? static_cast<uint32_t>(-static_cast<int32_t>(digit0)) : digit0;
 }
 
 
@@ -16920,6 +16920,7 @@ void StringHasher::Add(const String& str, intptr_t begin_index, intptr_t len) {
   ASSERT((begin_index + len) <= str.Length());
   if (str.IsOneByteString()) {
     for (intptr_t i = 0; i < len; i++) {
+      NoGCScope no_gc;
       Add(*OneByteString::CharAddr(str, i + begin_index));
     }
   } else {
@@ -17794,8 +17795,7 @@ RawString* String::MakeExternal(void* array,
         old_tags = tags;
         uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
         new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
-        tags = AtomicOperations::CompareAndSwapWord(
-            &raw_ptr()->tags_, old_tags, new_tags);
+        tags = CompareAndSwapTags(old_tags, new_tags);
       } while (tags != old_tags);
       result = this->raw();
       const uint8_t* ext_array = reinterpret_cast<const uint8_t*>(array);
@@ -17833,8 +17833,7 @@ RawString* String::MakeExternal(void* array,
         old_tags = tags;
         uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
         new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
-        tags = AtomicOperations::CompareAndSwapWord(
-            &raw_ptr()->tags_, old_tags, new_tags);
+        tags = CompareAndSwapTags(old_tags, new_tags);
       } while (tags != old_tags);
       result = this->raw();
       const uint16_t* ext_array = reinterpret_cast<const uint16_t*>(array);
@@ -18043,7 +18042,7 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
   if (len > 0) {
     intptr_t num_escapes = 0;
     for (intptr_t i = 0; i < len; i++) {
-      num_escapes += EscapeOverhead(*CharAddr(str, i));
+      num_escapes += EscapeOverhead(CharAt(str, i));
     }
     const String& dststr = String::Handle(
         OneByteString::New(len + num_escapes, Heap::kNew));
@@ -18077,7 +18076,7 @@ RawOneByteString* ExternalOneByteString::EscapeSpecialCharacters(
   if (len > 0) {
     intptr_t num_escapes = 0;
     for (intptr_t i = 0; i < len; i++) {
-      num_escapes += EscapeOverhead(*CharAddr(str, i));
+      num_escapes += EscapeOverhead(CharAt(str, i));
     }
     const String& dststr = String::Handle(
         OneByteString::New(len + num_escapes, Heap::kNew));
@@ -18095,7 +18094,7 @@ RawOneByteString* ExternalOneByteString::EscapeSpecialCharacters(
         OneByteString::SetCharAt(dststr, index + 3, GetHexCharacter(ch & 0xF));
         index += 4;
       } else {
-        *(OneByteString::CharAddr(dststr, index)) = ch;
+        OneByteString::SetCharAt(dststr, index, ch);
         index += 1;
       }
     }
@@ -18143,6 +18142,7 @@ RawOneByteString* OneByteString::New(const uint16_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
   const String& result =String::Handle(OneByteString::New(len, space));
+  NoGCScope no_gc;
   for (intptr_t i = 0; i < len; ++i) {
     ASSERT(Utf::IsLatin1(characters[i]));
     *CharAddr(result, i) = characters[i];
@@ -18155,6 +18155,7 @@ RawOneByteString* OneByteString::New(const int32_t* characters,
                                      intptr_t len,
                                      Heap::Space space) {
   const String& result = String::Handle(OneByteString::New(len, space));
+  NoGCScope no_gc;
   for (intptr_t i = 0; i < len; ++i) {
     ASSERT(Utf::IsLatin1(characters[i]));
     *CharAddr(result, i) = characters[i];
@@ -18261,6 +18262,7 @@ RawOneByteString* OneByteString::Transform(int32_t (*mapping)(int32_t ch),
   ASSERT(!str.IsNull());
   intptr_t len = str.Length();
   const String& result = String::Handle(OneByteString::New(len, space));
+  NoGCScope no_gc;
   for (intptr_t i = 0; i < len; ++i) {
     int32_t ch = mapping(str.CharAt(i));
     ASSERT(Utf::IsLatin1(ch));
@@ -18285,7 +18287,7 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
   NoGCScope no_gc;
   if (length > 0) {
     uint8_t* dest = &result->ptr()->data()[0];
-    uint8_t* src =  &raw_ptr(str)->data()[begin_index];
+    const uint8_t* src =  &raw_ptr(str)->data()[begin_index];
     memmove(dest, src, length);
   }
   return result;
@@ -18316,7 +18318,7 @@ RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
   if (len > 0) {
     intptr_t num_escapes = 0;
     for (intptr_t i = 0; i < len; i++) {
-      num_escapes += EscapeOverhead(*CharAddr(str, i));
+      num_escapes += EscapeOverhead(CharAt(str, i));
     }
     const String& dststr = String::Handle(
         TwoByteString::New(len + num_escapes, Heap::kNew));
@@ -18455,6 +18457,7 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
   const String& result = String::Handle(TwoByteString::New(len, space));
   String::CodePointIterator it(str);
   intptr_t i = 0;
+  NoGCScope no_gc;
   while (it.Next()) {
     int32_t src = it.Current();
     int32_t dst = mapping(src);
@@ -18667,16 +18670,7 @@ RawArray* Array::Slice(intptr_t start,
   // allocated array with values from the given source array instead of
   // null-initializing all elements.
   Array& dest = Array::Handle(Array::New(count));
-  if (dest.raw()->IsNewObject()) {
-    NoGCScope no_gc_scope;
-    memmove(dest.ObjectAddr(0), ObjectAddr(start), count * kWordSize);
-  } else {
-    PassiveObject& obj = PassiveObject::Handle();
-    for (intptr_t i = 0; i < count; i++) {
-      obj = At(start + i);
-      dest.SetAt(i, obj);
-    }
-  }
+  dest.StorePointers(dest.ObjectAddr(0), ObjectAddr(start), count);
 
   if (with_type_argument) {
     dest.SetTypeArguments(TypeArguments::Handle(GetTypeArguments()));
@@ -18694,8 +18688,7 @@ void Array::MakeImmutable() const {
     old_tags = tags;
     uword new_tags = RawObject::ClassIdTag::update(kImmutableArrayCid,
                                                    old_tags);
-    tags = AtomicOperations::CompareAndSwapWord(
-        &raw_ptr()->tags_, old_tags, new_tags);
+    tags = CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
 }
 
@@ -18790,8 +18783,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   do {
     old_tags = tags;
     uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
-    tags = AtomicOperations::CompareAndSwapWord(
-        &array.raw_ptr()->tags_, old_tags, new_tags);
+    tags = array.CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
   array.SetLength(used_len);
 
@@ -19182,27 +19174,27 @@ simd128_value_t Float32x4::value() const {
 
 
 void Float32x4::set_value(simd128_value_t value) const {
-  value.writeTo(&raw_ptr()->value_[0]);
+  StoreSimd128(&raw_ptr()->value_[0], value);
 }
 
 
 void Float32x4::set_x(float value) const {
-  raw_ptr()->value_[0] = value;
+  StoreNonPointer(&raw_ptr()->value_[0], value);
 }
 
 
 void Float32x4::set_y(float value) const {
-  raw_ptr()->value_[1] = value;
+  StoreNonPointer(&raw_ptr()->value_[1], value);
 }
 
 
 void Float32x4::set_z(float value) const {
-  raw_ptr()->value_[2] = value;
+  StoreNonPointer(&raw_ptr()->value_[2], value);
 }
 
 
 void Float32x4::set_w(float value) const {
-  raw_ptr()->value_[3] = value;
+  StoreNonPointer(&raw_ptr()->value_[3], value);
 }
 
 
@@ -19282,22 +19274,22 @@ RawInt32x4* Int32x4::New(simd128_value_t value, Heap::Space space) {
 
 
 void Int32x4::set_x(int32_t value) const {
-  raw_ptr()->value_[0] = value;
+  StoreNonPointer(&raw_ptr()->value_[0], value);
 }
 
 
 void Int32x4::set_y(int32_t value) const {
-  raw_ptr()->value_[1] = value;
+  StoreNonPointer(&raw_ptr()->value_[1], value);
 }
 
 
 void Int32x4::set_z(int32_t value) const {
-  raw_ptr()->value_[2] = value;
+  StoreNonPointer(&raw_ptr()->value_[2], value);
 }
 
 
 void Int32x4::set_w(int32_t value) const {
-  raw_ptr()->value_[3] = value;
+  StoreNonPointer(&raw_ptr()->value_[3], value);
 }
 
 
@@ -19327,7 +19319,7 @@ simd128_value_t Int32x4::value() const {
 
 
 void Int32x4::set_value(simd128_value_t value) const {
-  value.writeTo(&raw_ptr()->value_[0]);
+  StoreSimd128(&raw_ptr()->value_[0], value);
 }
 
 
@@ -19394,12 +19386,12 @@ double Float64x2::y() const {
 
 
 void Float64x2::set_x(double x) const {
-  raw_ptr()->value_[0] = x;
+  StoreNonPointer(&raw_ptr()->value_[0], x);
 }
 
 
 void Float64x2::set_y(double y) const {
-  raw_ptr()->value_[1] = y;
+  StoreNonPointer(&raw_ptr()->value_[1], y);
 }
 
 
@@ -19409,7 +19401,7 @@ simd128_value_t Float64x2::value() const {
 
 
 void Float64x2::set_value(simd128_value_t value) const {
-  value.writeTo(&raw_ptr()->value_[0]);
+  StoreSimd128(&raw_ptr()->value_[0], value);
 }
 
 
@@ -19468,7 +19460,7 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
   if (len != other_typed_data.LengthInBytes()) {
     return false;
   }
-
+  NoGCScope no_gc;
   return (len == 0) ||
       (memcmp(DataAddr(0), other_typed_data.DataAddr(0), len) == 0);
 }
@@ -19564,7 +19556,7 @@ RawCapability* Capability::New(uint64_t id, Heap::Space space) {
                                       space);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->id_ = id;
+    result.StoreNonPointer(&result.raw_ptr()->id_, id);
   }
   return result.raw();
 }
@@ -19593,7 +19585,7 @@ RawReceivePort* ReceivePort::New(Dart_Port id,
                                       space);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->send_port_ = send_port.raw();
+    result.StorePointer(&result.raw_ptr()->send_port_, send_port.raw());
   }
   if (is_control_port) {
     PortMap::SetPortState(id, PortMap::kControlPort);
@@ -19622,7 +19614,7 @@ RawSendPort* SendPort::New(Dart_Port id, Heap::Space space) {
                                       space);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->id_ = id;
+    result.StoreNonPointer(&result.raw_ptr()->id_, id);
   }
   return result.raw();
 }
@@ -19731,7 +19723,7 @@ void Stacktrace::set_catch_pc_offset_array(const Array& pc_offset_array) const {
 
 
 void Stacktrace::set_expand_inlined(bool value) const {
-  raw_ptr()->expand_inlined_ = value;
+  StoreNonPointer(&raw_ptr()->expand_inlined_, value);
 }
 
 
@@ -19947,7 +19939,7 @@ void JSRegExp::set_pattern(const String& pattern) const {
 
 
 void JSRegExp::set_num_bracket_expressions(intptr_t value) const {
-  raw_ptr()->num_bracket_expressions_ = Smi::New(value);
+  StoreSmi(&raw_ptr()->num_bracket_expressions_, Smi::New(value));
 }
 
 

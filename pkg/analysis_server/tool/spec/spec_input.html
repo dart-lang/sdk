@@ -1285,6 +1285,38 @@
           </field>
         </result>
       </request>
+      <request method="sortMembers">
+        <p>
+          Sort all of the directives, unit and class members
+          of the given Dart file.
+        </p>
+        <p>
+          If a request is made for a file that does not exist, does not belong
+          to an analysis root or is not a Dart file,
+          <tt>SORT_MEMBERS_INVALID_FILE</tt> will be generated.
+        </p>
+        <p>
+          If the Dart file has scan or parse errors,
+          <tt>SORT_MEMBERS_PARSE_ERRORS</tt> will be generated.
+        </p>
+        <params>
+          <field name="file">
+            <ref>FilePath</ref>
+            <p>
+              The Dart file to sort.
+            </p>
+          </field>
+        </params>
+        <result>
+          <field name="edit">
+            <ref>SourceFileEdit</ref>
+            <p>
+              The file edit that is to be applied to the given file to effect
+              the sorting.
+            </p>
+          </field>
+        </result>
+      </request>
     </domain>
     <domain name="execution">
       <p>
@@ -1537,6 +1569,7 @@
         </p>
         <enum>
           <value><code>ANGULAR</code></value>
+          <value><code>CHECKED_MODE_COMPILE_TIME_ERROR</code></value>
           <value><code>COMPILE_TIME_ERROR</code></value>
           <value><code>HINT</code></value>
           <value><code>POLYMER</code></value>
@@ -2673,6 +2706,20 @@
             </p>
           </value>
           <value>
+            <code>SORT_MEMBERS_INVALID_FILE</code>
+            <p>
+              An "edit.sortMembers" request specified a FilePath
+              which does not match a Dart file in an analysis root.
+            </p>
+          </value>
+          <value>
+            <code>SORT_MEMBERS_PARSE_ERRORS</code>
+            <p>
+              An "edit.sortMembers" request specified a Dart file that has
+              scan or parse errors.
+            </p>
+          </value>
+          <value>
             <code>UNANALYZED_PRIORITY_FILES</code>
             <p>
               An "analysis.setPriorityFiles" request includes one or
@@ -3334,16 +3381,6 @@
             </p>
           </field>
         </options>
-      </refactoring>
-      <refactoring kind=SORT_MEMBERS>
-        <p>
-          Sort all of the directives, unit and class members
-          of the given Dart file.
-        </p>
-        <p>
-          The "offset" and "length" fields from the request are ignored, but the
-          file specified in the request specifies the file to be sorted.
-        </p>
       </refactoring>
     </refactorings>
     <h2>Errors</h2>

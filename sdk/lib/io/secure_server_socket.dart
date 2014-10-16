@@ -47,7 +47,7 @@ class SecureServerSocket extends Stream<SecureSocket> {
    *
    * [certificateName] is the nickname or the distinguished name (DN) of
    * the certificate in the certificate database. It is looked up in the
-   * NSS certificate database set by SecureSocket.setCertificateDatabase.
+   * NSS certificate database set by SecureSocket.initialize.
    * If [certificateName] contains "CN=", it is assumed to be a distinguished
    * name.  Otherwise, it is looked up as a nickname.
    *

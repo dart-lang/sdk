@@ -1,7 +1,13 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS d.file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub_tests;
+
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 import '../../serve/utils.dart';
+
 const AGGREGATE_TRANSFORMER = """
 import 'dart:async';
 
@@ -28,6 +34,7 @@ class ManyToOneTransformer extends AggregateTransformer {
   }
 }
 """;
+
 main() {
   initConfig();
   withBarbackVersions(">=0.14.1", () {
@@ -41,7 +48,7 @@ main() {
               }
             }]
         }),
-            d.dir("lib", [d.file("transformer.dart", AGGREGATE_TRANSFORMER)]),
+            d.dir("lib", [d.file("transformer.dart", AGGREGATE_TRANSFORMER),]),
             d.dir(
                 "web",
                 [
@@ -49,7 +56,9 @@ main() {
                     d.file("b.txt", "b"),
                     d.file("c.txt", "c"),
                     d.file("d.txt", "d")])]).create();
+
       createLockFile('myapp', pkg: ['barback']);
+
       pubServe();
       requestShouldSucceed("out.txt", "b\nc");
       endPubServe();

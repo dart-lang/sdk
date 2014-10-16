@@ -9,6 +9,7 @@
 #include "vm/assembler.h"
 #include "vm/disassembler.h"
 #include "vm/flags.h"
+#include "vm/object_store.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
 
@@ -67,7 +68,7 @@ void StubCode::GenerateFor(Isolate* init) {
 
 
 void StubCode::Init(Isolate* isolate) {
-  StubCode* stubs = new StubCode();
+  StubCode* stubs = new StubCode(isolate);
   isolate->set_stub_code(stubs);
   stubs->GenerateFor(isolate);
 }
@@ -110,6 +111,13 @@ bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
 }
 
 
+RawCode* StubCode::GetAllocateArrayStub() {
+  const Class& array_cls = Class::Handle(isolate_,
+      isolate_->object_store()->array_class());
+  return GetAllocationStubForClass(array_cls);
+}
+
+
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   Isolate* isolate = Isolate::Current();
   const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
@@ -120,8 +128,13 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     const char* name = cls.ToCString();
     uword patch_code_offset = 0;
     uword entry_patch_offset = 0;
-    StubCode::GenerateAllocationStubForClass(
-        &assembler, cls, &entry_patch_offset, &patch_code_offset);
+    if (cls.id() == kArrayCid) {
+      StubCode::GeneratePatchableAllocateArrayStub(
+          &assembler, &entry_patch_offset, &patch_code_offset);
+    } else {
+      StubCode::GenerateAllocationStubForClass(
+          &assembler, cls, &entry_patch_offset, &patch_code_offset);
+    }
     stub ^= Code::FinalizeCode(name, &assembler);
     stub.set_owner(cls);
     cls.set_allocation_stub(stub);

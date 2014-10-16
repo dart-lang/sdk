@@ -23,8 +23,8 @@ void registerDartType(String tagName, Type dartType, {String extendsTag}) {
   if (!isSupported) {
     throw new UnsupportedError("Couldn't find "
         "`document._registerDartTypeUpgrader`. Please make sure that "
-        "`packages/web_components/dart_support.js` is loaded and available "
-        "before calling this function.");
+        "`packages/web_components/interop_support.html` is loaded and "
+        "available before calling this function.");
   }
 
   var upgrader = document.createElementUpgrader(

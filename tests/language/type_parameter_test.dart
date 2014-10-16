@@ -33,7 +33,7 @@ class A<T> {
   staticFinalField = "not_null";
 
   static const
-  T /// 05: static type warning, dynamic type error
+  T /// 05: static type warning, checked mode compile-time error
   staticConstField = "not_null";
 
   static not_null() => "not_null";

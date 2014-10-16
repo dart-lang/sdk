@@ -187,7 +187,7 @@ class Symbols;
 
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
   OBJECT_IMPLEMENTATION(object, super);                                        \
-  Raw##object* raw_ptr() const {                                               \
+  const Raw##object* raw_ptr() const {                                         \
     ASSERT(raw() != null());                                                   \
     return raw()->ptr();                                                       \
   }                                                                            \
@@ -209,7 +209,7 @@ class Symbols;
  private:  /* NOLINT */                                                        \
   object() : super() {}                                                        \
   BASE_OBJECT_IMPLEMENTATION(object, super)                                    \
-  Raw##object* raw_ptr() const {                                               \
+  const Raw##object* raw_ptr() const {                                         \
     ASSERT(raw() != null());                                                   \
     return raw()->ptr();                                                       \
   }                                                                            \
@@ -229,6 +229,10 @@ class Object {
     initializeHandle(this, value);
   }
 
+  uword CompareAndSwapTags(uword old_tags, uword new_tags) const {
+    return AtomicOperations::CompareAndSwapWord(
+        &raw()->ptr()->tags_, old_tags, new_tags);
+  }
   void set_tags(intptr_t value) const {
     ASSERT(!IsNull());
     // TODO(asiva): Remove the capability of setting tags in general. The mask
@@ -239,8 +243,7 @@ class Object {
     do {
       old_tags = tags;
       uword new_tags = (old_tags & ~0x0000000c) | value;
-      tags = AtomicOperations::CompareAndSwapWord(
-          &raw()->ptr()->tags_, old_tags, new_tags);
+      tags = CompareAndSwapTags(old_tags, new_tags);
     } while (tags != old_tags);
   }
   void SetCreatedFromSnapshot() const {
@@ -314,8 +317,6 @@ class Object {
   bool IsReadOnlyHandle() const;
 
   bool IsNotTemporaryScopedHandle() const;
-
-  static RawObject* Clone(const Object& src, Heap::Space space = Heap::kNew);
 
   static Object& Handle(Isolate* isolate, RawObject* raw_ptr) {
     Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(isolate));
@@ -580,10 +581,16 @@ class Object {
     return (addr >= this_addr) && (addr < (this_addr + this_size));
   }
 
-  template<typename type> void StorePointer(type* addr, type value) const {
+  // Start of field mutator guards.
+  //
+  // All writes to heap objects should ultimately pass through one of the
+  // methods below, to ensure that the write barrier is correctly applied.
+
+  template<typename type>
+  void StorePointer(type const* addr, type value) const {
     // Ensure that this object contains the addr.
     ASSERT(Contains(reinterpret_cast<uword>(addr)));
-    *addr = value;
+    *const_cast<type*>(addr) = value;
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;
     if (value->IsNewObject() && raw()->IsOldObject() &&
@@ -592,6 +599,78 @@ class Object {
       Isolate::Current()->store_buffer()->AddObject(raw());
     }
   }
+
+  // Store a range of pointers [from, from + count) into [to, to + count).
+  // TODO(koda): Use this to fix Object::Clone's broken store buffer logic.
+  void StorePointers(RawObject* const* to,
+                     RawObject* const* from,
+                     intptr_t count) {
+    ASSERT(Contains(reinterpret_cast<uword>(to)));
+    if (raw()->IsNewObject()) {
+      memmove(const_cast<RawObject**>(to), from, count * kWordSize);
+    } else {
+      for (intptr_t i = 0; i < count; ++i) {
+        StorePointer(&to[i], from[i]);
+      }
+    }
+  }
+
+  // Use for storing into an explicitly Smi-typed field of an object
+  // (i.e., both the previous and new value are Smis).
+  void StoreSmi(RawSmi* const* addr, RawSmi* value) const {
+    // Can't use Contains, as array length is initialized through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(raw()));
+    *const_cast<RawSmi**>(addr) = value;
+  }
+
+  template<typename FieldType>
+  void StoreSimd128(const FieldType* addr, simd128_value_t value) const {
+    ASSERT(Contains(reinterpret_cast<uword>(addr)));
+    value.writeTo(const_cast<FieldType*>(addr));
+  }
+
+  // Needs two template arguments to allow assigning enums to fixed-size ints.
+  template<typename FieldType, typename ValueType>
+  void StoreNonPointer(const FieldType* addr, ValueType value) const {
+    // Can't use Contains, as it uses tags_, which is set through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(raw()));
+    *const_cast<FieldType*>(addr) = value;
+  }
+
+  // Provides non-const access to non-pointer fields within the object. Such
+  // access does not need a write barrier, but it is *not* GC-safe (since the
+  // object might move), hence must be fully contained within a NoGCScope.
+  template<typename FieldType>
+  FieldType* UnsafeMutableNonPointer(const FieldType* addr) const {
+    // Allow pointers at the end of variable-length data, and disallow pointers
+    // within the header word.
+    ASSERT(Contains(reinterpret_cast<uword>(addr) - 1) &&
+           Contains(reinterpret_cast<uword>(addr) - kWordSize));
+    // At least check that there is a NoGCScope, and hope it's big enough.
+    ASSERT(Isolate::Current()->no_gc_scope_depth() > 0);
+    return const_cast<FieldType*>(addr);
+  }
+
+  // Fail at link time if StoreNonPointer or UnsafeMutableNonPointer is
+  // instantiated with an object pointer type.
+#define STORE_NON_POINTER_ILLEGAL_TYPE(type)                                   \
+  template<typename ValueType>                                                 \
+  void StoreNonPointer(Raw##type* const* addr, ValueType value) const {        \
+    UnimplementedMethod();                                                     \
+  }                                                                            \
+  Raw##type** UnsafeMutableNonPointer(Raw##type* const* addr) const {          \
+    UnimplementedMethod();                                                     \
+    return NULL;                                                               \
+  }
+
+  CLASS_LIST(STORE_NON_POINTER_ILLEGAL_TYPE);
+  void UnimplementedMethod() const;
+#undef STORE_NON_POINTER_ILLEGAL_TYPE
+
+  // Allocate an object and copy the body of 'orig'.
+  static RawObject* Clone(const Object& orig, Heap::Space space);
+
+  // End of field mutator guards.
 
   RawObject* raw_;  // The raw object reference.
 
@@ -771,7 +850,7 @@ class Class : public Object {
   }
   void set_instance_size_in_words(intptr_t value) const {
     ASSERT(Utils::IsAligned((value * kWordSize), kObjectAlignment));
-    raw_ptr()->instance_size_in_words_ = value;
+    StoreNonPointer(&raw_ptr()->instance_size_in_words_, value);
   }
 
   intptr_t next_field_offset() const {
@@ -787,12 +866,12 @@ class Class : public Object {
             (value == raw_ptr()->instance_size_in_words_)) ||
            (!Utils::IsAligned((value * kWordSize), kObjectAlignment) &&
             ((value + 1) == raw_ptr()->instance_size_in_words_)));
-    raw_ptr()->next_field_offset_in_words_ = value;
+    StoreNonPointer(&raw_ptr()->next_field_offset_in_words_, value);
   }
 
   cpp_vtable handle_vtable() const { return raw_ptr()->handle_vtable_; }
   void set_handle_vtable(cpp_vtable value) const {
-    raw_ptr()->handle_vtable_ = value;
+    StoreNonPointer(&raw_ptr()->handle_vtable_, value);
   }
 
   static bool is_valid_id(intptr_t value) {
@@ -801,7 +880,7 @@ class Class : public Object {
   intptr_t id() const { return raw_ptr()->id_; }
   void set_id(intptr_t value) const {
     ASSERT(is_valid_id(value));
-    raw_ptr()->id_ = value;
+    StoreNonPointer(&raw_ptr()->id_, value);
   }
 
   RawString* Name() const;
@@ -901,7 +980,7 @@ class Class : public Object {
     set_type_arguments_field_offset_in_words(value);
   }
   void set_type_arguments_field_offset_in_words(intptr_t value) const {
-    raw_ptr()->type_arguments_field_offset_in_words_ = value;
+    StoreNonPointer(&raw_ptr()->type_arguments_field_offset_in_words_, value);
   }
   static intptr_t type_arguments_field_offset_in_words_offset() {
     return OFFSET_OF(RawClass, type_arguments_field_offset_in_words_);
@@ -1135,7 +1214,7 @@ class Class : public Object {
     return raw_ptr()->num_native_fields_;
   }
   void set_num_native_fields(uint16_t value) const {
-    raw_ptr()->num_native_fields_ = value;
+    StoreNonPointer(&raw_ptr()->num_native_fields_, value);
   }
 
   RawCode* allocation_stub() const {
@@ -1143,7 +1222,7 @@ class Class : public Object {
   }
   void set_allocation_stub(const Code& value) const;
 
-  void SwitchAllocationStub() const;
+  void DisableAllocationStub() const;
 
   RawArray* constants() const;
 
@@ -1275,10 +1354,6 @@ class Class : public Object {
 
   void set_canonical_types(const Object& value) const;
   RawObject* canonical_types() const;
-
-  RawCode* spare_allocation_stub() const {
-    return raw_ptr()->spare_allocation_stub_;
-  }
 
   RawArray* invocation_dispatcher_cache() const;
   void set_invocation_dispatcher_cache(const Array& cache) const;
@@ -1552,7 +1627,7 @@ class TypeArguments : public Object {
 
   RawArray* instantiations() const;
   void set_instantiations(const Array& value) const;
-  RawAbstractType** TypeAddr(intptr_t index) const;
+  RawAbstractType* const* TypeAddr(intptr_t index) const;
   void SetLength(intptr_t value) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Object);
@@ -1748,9 +1823,6 @@ class Function : public Object {
 
   static const char* KindToCString(RawFunction::Kind kind);
 
-  bool is_static() const { return StaticBit::decode(raw_ptr()->kind_tag_); }
-  bool is_const() const { return ConstBit::decode(raw_ptr()->kind_tag_); }
-  bool is_external() const { return ExternalBit::decode(raw_ptr()->kind_tag_); }
   bool IsConstructor() const {
     return (kind() == RawFunction::kConstructor) && !is_static();
   }
@@ -1808,7 +1880,7 @@ class Function : public Object {
 
   intptr_t end_token_pos() const { return raw_ptr()->end_token_pos_; }
   void set_end_token_pos(intptr_t value) const {
-    raw_ptr()->end_token_pos_ = value;
+    StoreNonPointer(&raw_ptr()->end_token_pos_, value);
   }
 
   intptr_t num_fixed_parameters() const {
@@ -1852,14 +1924,14 @@ class Function : public Object {
     return raw_ptr()->usage_counter_;
   }
   void set_usage_counter(intptr_t value) const {
-    raw_ptr()->usage_counter_ = value;
+    StoreNonPointer(&raw_ptr()->usage_counter_, value);
   }
 
   int16_t deoptimization_counter() const {
     return raw_ptr()->deoptimization_counter_;
   }
   void set_deoptimization_counter(int16_t value) const {
-    raw_ptr()->deoptimization_counter_ = value;
+    StoreNonPointer(&raw_ptr()->deoptimization_counter_, value);
   }
 
   static const intptr_t kMaxInstructionCount = (1 << 16) - 1;
@@ -1871,7 +1943,8 @@ class Function : public Object {
     if (value > kMaxInstructionCount) {
       value = kMaxInstructionCount;
     }
-    raw_ptr()->optimized_instruction_count_ = static_cast<uint16_t>(value);
+    StoreNonPointer(&raw_ptr()->optimized_instruction_count_,
+                    static_cast<uint16_t>(value));
   }
 
   intptr_t optimized_call_site_count() const {
@@ -1882,7 +1955,8 @@ class Function : public Object {
     if (value > kMaxInstructionCount) {
       value = kMaxInstructionCount;
     }
-    raw_ptr()->optimized_call_site_count_ = static_cast<uint16_t>(value);
+    StoreNonPointer(&raw_ptr()->optimized_call_site_count_,
+                    static_cast<uint16_t>(value));
   }
 
   bool IsOptimizable() const;
@@ -1890,29 +1964,7 @@ class Function : public Object {
   void SetIsOptimizable(bool value) const;
   void SetIsNativeAutoSetupScope(bool value) const;
 
-  bool is_async_closure() const {
-    return AsyncClosureBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_async_closure(bool value) const;
-
-  bool is_native() const { return NativeBit::decode(raw_ptr()->kind_tag_); }
-  void set_is_native(bool value) const;
-
-  bool is_abstract() const { return AbstractBit::decode(raw_ptr()->kind_tag_); }
-  void set_is_abstract(bool value) const;
-
-  bool IsInlineable() const;
-  void set_is_inlinable(bool value) const;
-
-  bool is_visible() const {
-    return VisibleBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_visible(bool value) const;
-
-  bool is_intrinsic() const {
-    return IntrinsicBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_intrinsic(bool value) const;
+  bool CanBeInlined() const;
 
   MethodRecognizer::Kind recognized_kind() const {
     return RecognizedBits::decode(raw_ptr()->kind_tag_);
@@ -1922,31 +1974,6 @@ class Function : public Object {
   bool IsRecognized() const {
     return recognized_kind() != MethodRecognizer::kUnknown;
   }
-
-  bool is_redirecting() const {
-    return RedirectingBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_redirecting(bool value) const;
-
-  bool allows_hoisting_check_class() const {
-    return AllowsHoistingCheckClassBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_allows_hoisting_check_class(bool value) const;
-
-  bool always_inline() const {
-    return AlwaysInlineBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_always_inline(bool value) const {
-    set_kind_tag(AlwaysInlineBit::update(value, raw_ptr()->kind_tag_));
-  }
-
-  bool is_polymorphic_target() const {
-    return PolymorphicTargetBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_polymorphic_target(bool value) const {
-    set_kind_tag(PolymorphicTargetBit::update(value, raw_ptr()->kind_tag_));
-  }
-
 
   bool HasOptimizedCode() const;
 
@@ -2117,6 +2144,33 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
+#define FOR_EACH_FUNCTION_KIND_BIT(V)                                          \
+  V(Static, is_static)                                                         \
+  V(Const, is_const)                                                           \
+  V(Abstract, is_abstract)                                                     \
+  V(Visible, is_visible)                                                       \
+  V(Optimizable, is_optimizable)                                               \
+  V(Inlinable, is_inlinable)                                                   \
+  V(Intrinsic, is_intrinsic)                                                   \
+  V(Native, is_native)                                                         \
+  V(Redirecting, is_redirecting)                                               \
+  V(External, is_external)                                                     \
+  V(AllowsHoistingCheckClass, allows_hoisting_check_class)                     \
+  V(AllowsBoundsCheckGeneralization, allows_bounds_check_generalization)       \
+  V(AsyncClosure, is_async_closure)                                            \
+  V(AlwaysInline, always_inline)                                               \
+  V(PolymorphicTarget, is_polymorphic_target)                                  \
+
+#define DEFINE_ACCESSORS(name, accessor_name)                                  \
+  void set_##accessor_name(bool value) const {                                 \
+    set_kind_tag(name##Bit::update(value, raw_ptr()->kind_tag_));              \
+  }                                                                            \
+  bool accessor_name() const {                                                 \
+    return name##Bit::decode(raw_ptr()->kind_tag_);                            \
+  }
+FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
+#undef DEFINE_ACCESSORS
+
  private:
   void set_ic_data_array(const Array& value) const;
 
@@ -2125,22 +2179,11 @@ class Function : public Object {
     kKindTagSize = 4,
     kRecognizedTagPos = kKindTagPos + kKindTagSize,
     kRecognizedTagSize = 8,
+    kModifierPos = kRecognizedTagPos + kRecognizedTagSize,
     // Single bit sized fields start here.
-    kStaticBit = kRecognizedTagPos + kRecognizedTagSize,
-    kConstBit,
-    kAbstractBit,
-    kVisibleBit,
-    kOptimizableBit,
-    kInlinableBit,
-    kIntrinsicBit,
-    kNativeBit,
-    kRedirectingBit,
-    kExternalBit,
-    kAllowsHoistingCheckClassBit,
-    kModifierPos,
-    kAsyncClosureBit,
-    kAlwaysInlineBit,
-    kPolymorphicTargetBit,
+#define DECLARE_BIT(name, _) k##name##Bit,
+FOR_EACH_FUNCTION_KIND_BIT(DECLARE_BIT)
+#undef DECLARE_BIT
     kNumTagBits
   };
 
@@ -2155,30 +2198,16 @@ class Function : public Object {
   class RecognizedBits : public BitField<MethodRecognizer::Kind,
                                          kRecognizedTagPos,
                                          kRecognizedTagSize> {};
-  class StaticBit : public BitField<bool, kStaticBit, 1> {};
-  class ConstBit : public BitField<bool, kConstBit, 1> {};
-  class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
-  class VisibleBit : public BitField<bool, kVisibleBit, 1> {};
-  class OptimizableBit : public BitField<bool, kOptimizableBit, 1> {};
-  class InlinableBit : public BitField<bool, kInlinableBit, 1> {};
-  class IntrinsicBit : public BitField<bool, kIntrinsicBit, 1> {};
-  class NativeBit : public BitField<bool, kNativeBit, 1> {};
-  class ExternalBit : public BitField<bool, kExternalBit, 1> {};
-  class RedirectingBit : public BitField<bool, kRedirectingBit, 1> {};
-  class AllowsHoistingCheckClassBit :
-      public BitField<bool, kAllowsHoistingCheckClassBit, 1> {};  // NOLINT
   class ModifierBits :
       public BitField<RawFunction::AsyncModifier, kModifierPos, 1> {};  // NOLINT
-  class AsyncClosureBit : public BitField<bool, kAsyncClosureBit, 1> {};
-  class AlwaysInlineBit : public BitField<bool, kAlwaysInlineBit, 1> {};
-  class PolymorphicTargetBit :
-      public BitField<bool, kPolymorphicTargetBit, 1> {};  // NOLINT
+
+#define DEFINE_BIT(name, _) \
+  class name##Bit : public BitField<bool, k##name##Bit, 1> {};
+FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
+#undef DEFINE_BIT
 
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
-  void set_is_static(bool value) const;
-  void set_is_const(bool value) const;
-  void set_is_external(bool value) const;
   void set_parent_function(const Function& value) const;
   void set_owner(const Object& value) const;
   RawFunction* implicit_closure_function() const;
@@ -2190,10 +2219,6 @@ class Function : public Object {
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(intptr_t value) const;
   void set_data(const Object& value) const;
-  bool is_optimizable() const {
-    return OptimizableBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_optimizable(bool value) const;
 
   static RawFunction* New();
 
@@ -2353,7 +2378,7 @@ class Field : public Object {
   intptr_t guarded_cid() const { return raw_ptr()->guarded_cid_; }
 
   void set_guarded_cid(intptr_t cid) const {
-    raw_ptr()->guarded_cid_ = cid;
+    StoreNonPointer(&raw_ptr()->guarded_cid_, cid);
   }
   static intptr_t guarded_cid_offset() {
     return OFFSET_OF(RawField, guarded_cid_);
@@ -2415,7 +2440,7 @@ class Field : public Object {
     return raw_ptr()->is_nullable_ == kNullCid;
   }
   void set_is_nullable(bool val) const {
-    raw_ptr()->is_nullable_ = val ? kNullCid : kIllegalCid;
+    StoreNonPointer(&raw_ptr()->is_nullable_, val ? kNullCid : kIllegalCid);
   }
   static intptr_t is_nullable_offset() {
     return OFFSET_OF(RawField, is_nullable_);
@@ -2495,10 +2520,10 @@ class Field : public Object {
     StorePointer(&raw_ptr()->owner_, value.raw());
   }
   void set_token_pos(intptr_t token_pos) const {
-    raw_ptr()->token_pos_ = token_pos;
+    StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
   }
   void set_kind_bits(intptr_t value) const {
-    raw_ptr()->kind_bits_ = static_cast<uint8_t>(value);
+    StoreNonPointer(&raw_ptr()->kind_bits_, static_cast<uint8_t>(value));
   }
 
   static RawField* New();
@@ -2523,7 +2548,9 @@ class LiteralToken : public Object {
   static RawLiteralToken* New(Token::Kind kind, const String& literal);
 
  private:
-  void set_kind(Token::Kind kind) const { raw_ptr()->kind_ = kind; }
+  void set_kind(Token::Kind kind) const {
+    StoreNonPointer(&raw_ptr()->kind_, kind);
+  }
   void set_literal(const String& literal) const;
   void set_value(const Object& value) const;
 
@@ -2849,14 +2876,15 @@ class Library : public Object {
     return raw_ptr()->native_entry_resolver_;
   }
   void set_native_entry_resolver(Dart_NativeEntryResolver value) const {
-    raw_ptr()->native_entry_resolver_ = value;
+    StoreNonPointer(&raw_ptr()->native_entry_resolver_, value);
   }
   Dart_NativeEntrySymbol native_entry_symbol_resolver() const {
     return raw_ptr()->native_entry_symbol_resolver_;
   }
   void set_native_entry_symbol_resolver(
       Dart_NativeEntrySymbol native_symbol_resolver) const {
-    raw_ptr()->native_entry_symbol_resolver_ = native_symbol_resolver;
+    StoreNonPointer(&raw_ptr()->native_entry_symbol_resolver_,
+                    native_symbol_resolver);
   }
 
   RawError* Patch(const Script& script) const;
@@ -2865,7 +2893,7 @@ class Library : public Object {
 
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const {
-    raw_ptr()->index_ = value;
+    StoreNonPointer(&raw_ptr()->index_, value);
   }
 
   void Register() const;
@@ -2874,14 +2902,14 @@ class Library : public Object {
     return raw_ptr()->debuggable_;
   }
   void set_debuggable(bool value) const {
-    raw_ptr()->debuggable_ = value;
+    StoreNonPointer(&raw_ptr()->debuggable_, value);
   }
 
   bool is_dart_scheme() const {
     return raw_ptr()->is_dart_scheme_;
   }
   void set_is_dart_scheme(bool value) const {
-    raw_ptr()->is_dart_scheme_ = value;
+    StoreNonPointer(&raw_ptr()->is_dart_scheme_, value);
   }
 
   bool IsCoreLibrary() const {
@@ -2942,7 +2970,7 @@ class Library : public Object {
   static RawLibrary* New();
 
   void set_num_imports(intptr_t value) const {
-    raw_ptr()->num_imports_ = value;
+    StoreNonPointer(&raw_ptr()->num_imports_, value);
   }
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
@@ -3064,10 +3092,10 @@ class Instructions : public Object {
 
  private:
   void set_size(intptr_t size) const {
-    raw_ptr()->size_ = size;
+    StoreNonPointer(&raw_ptr()->size_, size);
   }
   void set_code(RawCode* code) const {
-    raw_ptr()->code_ = code;
+    StorePointer(&raw_ptr()->code_, code);
   }
   void set_object_pool(RawArray* object_pool) const {
     StorePointer(&raw_ptr()->object_pool_, object_pool);
@@ -3132,6 +3160,7 @@ class PcDescriptors : public Object {
                      int64_t deopt_id,
                      int64_t token_pos,  // Or deopt reason.
                      intptr_t try_index) const {  // Or deopt index.
+    NoGCScope no_gc;
     RawPcDescriptors::PcDescriptorRec* rec = recAt(index);
     rec->set_pc(pc);
     rec->set_kind(kind);
@@ -3197,17 +3226,24 @@ class PcDescriptors : public Object {
       }
     }
 
-    uword Pc() const { return descriptors_.recAt(current_ix_)->pc(); }
+    uword Pc() const {
+      NoGCScope no_gc;
+      return descriptors_.recAt(current_ix_)->pc();
+    }
     intptr_t DeoptId() const {
+      NoGCScope no_gc;
       return descriptors_.recAt(current_ix_)->deopt_id();
     }
     intptr_t TokenPos() const {
+      NoGCScope no_gc;
       return descriptors_.recAt(current_ix_)->token_pos();
     }
     intptr_t TryIndex() const {
+      NoGCScope no_gc;
       return descriptors_.recAt(current_ix_)->try_index();
     }
     RawPcDescriptors::Kind Kind() const {
+      NoGCScope no_gc;
       return descriptors_.recAt(current_ix_)->kind();
     }
 
@@ -3226,6 +3262,7 @@ class PcDescriptors : public Object {
 
     // Moves to record that matches kind_mask_.
     void MoveToMatching() {
+      NoGCScope no_gc;
       while (next_ix_ < descriptors_.Length()) {
         const RawPcDescriptors::PcDescriptorRec& rec =
             *descriptors_.recAt(next_ix_);
@@ -3254,7 +3291,8 @@ class PcDescriptors : public Object {
 
   RawPcDescriptors::PcDescriptorRec* recAt(intptr_t ix) const {
     ASSERT((0 <= ix) && (ix < Length()));
-    uint8_t* d = raw_ptr()->data() + (ix * RecordSizeInBytes());
+    uint8_t* d = UnsafeMutableNonPointer(raw_ptr()->data()) +
+        (ix * RecordSizeInBytes());
     return reinterpret_cast<RawPcDescriptors::PcDescriptorRec*>(d);
   }
 
@@ -3279,13 +3317,13 @@ class Stackmap : public Object {
   uint32_t PcOffset() const { return raw_ptr()->pc_offset_; }
   void SetPcOffset(uint32_t value) const {
     ASSERT(value <= kMaxUint32);
-    raw_ptr()->pc_offset_ = value;
+    StoreNonPointer(&raw_ptr()->pc_offset_, value);
   }
 
   intptr_t RegisterBitCount() const { return raw_ptr()->register_bit_count_; }
   void SetRegisterBitCount(intptr_t register_bit_count) const {
     ASSERT(register_bit_count < kMaxInt32);
-    raw_ptr()->register_bit_count_ = register_bit_count;
+    StoreNonPointer(&raw_ptr()->register_bit_count_, register_bit_count);
   }
 
   static const intptr_t kMaxLengthInBytes = kSmiMax;
@@ -3306,7 +3344,9 @@ class Stackmap : public Object {
                           intptr_t register_bit_count);
 
  private:
-  void SetLength(intptr_t length) const { raw_ptr()->length_ = length; }
+  void SetLength(intptr_t length) const {
+      StoreNonPointer(&raw_ptr()->length_, length);
+  }
 
   bool InRange(intptr_t index) const { return index < Length(); }
 
@@ -3449,7 +3489,7 @@ class DeoptInfo : public Object {
   intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
     ASSERT((index >=0) && (index < Length()));
     intptr_t data_index = (index * kNumberOfEntries) + entry_offset;
-    return &raw_ptr()->data()[data_index];
+    return &UnsafeMutableNonPointer(raw_ptr()->data())[data_index];
   }
 
   void SetLength(intptr_t value) const;
@@ -3500,7 +3540,6 @@ class ICData : public Object {
     V(UnaryOp)                                                                 \
     V(UnboxInteger)                                                            \
     V(CheckClass)                                                              \
-    V(HoistedCheckClass)                                                       \
     V(CheckSmi)                                                                \
     V(CheckArrayBound)                                                         \
     V(AtCall)                                                                  \
@@ -3515,6 +3554,14 @@ class ICData : public Object {
   #define DEFINE_ENUM_LIST(name) kDeopt##name,
   DEOPT_REASONS(DEFINE_ENUM_LIST)
   #undef DEFINE_ENUM_LIST
+  };
+
+  enum DeoptFlags {
+    // Deoptimization is caused by an optimistically hoisted instruction.
+    kHoisted = 1 << 0,
+
+    // Deoptimization is caused by an optimistically generalized bounds check.
+    kGeneralized = 1 << 1
   };
 
   bool HasDeoptReasons() const { return DeoptReasons() != 0; }
@@ -3760,8 +3807,9 @@ class Code : public Object {
     return raw_ptr()->static_calls_target_table_;
   }
 
-  RawDeoptInfo* GetDeoptInfoAtPc(
-      uword pc, ICData::DeoptReasonId* deopt_reason) const;
+  RawDeoptInfo* GetDeoptInfoAtPc(uword pc,
+                                 ICData::DeoptReasonId* deopt_reason,
+                                 uint32_t* deopt_flags) const;
 
   // Returns null if there is no static call at 'pc'.
   RawFunction* GetStaticCallTargetFunctionAt(uword pc) const;
@@ -3769,6 +3817,7 @@ class Code : public Object {
   RawCode* GetStaticCallTargetCodeAt(uword pc) const;
   // Aborts if there is no static call at 'pc'.
   void SetStaticCallTargetCodeAt(uword pc, const Code& code) const;
+  void SetStubCallTargetCodeAt(uword pc, const Code& code) const;
 
   void Disassemble(DisassemblyFormatter* formatter = NULL) const;
 
@@ -3869,6 +3918,7 @@ class Code : public Object {
   static RawCode* FindCode(uword pc, int64_t timestamp);
 
   int32_t GetPointerOffsetAt(int index) const {
+    NoGCScope no_gc;
     return *PointerOffsetAddrAt(index);
   }
   intptr_t GetTokenIndexOfPC(uword pc) const;
@@ -3898,7 +3948,7 @@ class Code : public Object {
     return raw_ptr()->entry_patch_pc_offset_;
   }
   void set_entry_patch_pc_offset(intptr_t pc) const {
-    raw_ptr()->entry_patch_pc_offset_ = pc;
+    StoreNonPointer(&raw_ptr()->entry_patch_pc_offset_, pc);
   }
 
 
@@ -3906,7 +3956,7 @@ class Code : public Object {
     return raw_ptr()->patch_code_pc_offset_;
   }
   void set_patch_code_pc_offset(intptr_t pc) const {
-    raw_ptr()->patch_code_pc_offset_ = pc;
+    StoreNonPointer(&raw_ptr()->patch_code_pc_offset_, pc);
   }
 
 
@@ -3914,7 +3964,7 @@ class Code : public Object {
     return raw_ptr()->lazy_deopt_pc_offset_;
   }
   void set_lazy_deopt_pc_offset(intptr_t pc) const {
-    raw_ptr()->lazy_deopt_pc_offset_ = pc;
+    StoreNonPointer(&raw_ptr()->lazy_deopt_pc_offset_, pc);
   }
 
  private:
@@ -3954,13 +4004,13 @@ class Code : public Object {
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
   void set_compile_timestamp(int64_t timestamp) const {
-    raw_ptr()->compile_timestamp_ = timestamp;
+    StoreNonPointer(&raw_ptr()->compile_timestamp_, timestamp);
   }
 
   void set_instructions(RawInstructions* instructions) {
     // RawInstructions are never allocated in New space and hence a
     // store buffer update is not needed here.
-    raw_ptr()->instructions_ = instructions;
+    StorePointer(&raw_ptr()->instructions_, instructions);
   }
 
   void set_pointer_offsets_length(intptr_t value) {
@@ -3972,9 +4022,10 @@ class Code : public Object {
     ASSERT(index >= 0);
     ASSERT(index < pointer_offsets_length());
     // TODO(iposva): Unit test is missing for this functionality.
-    return &raw_ptr()->data()[index];
+    return &UnsafeMutableNonPointer(raw_ptr()->data())[index];
   }
   void SetPointerOffsetAt(int index, int32_t offset_in_instructions) {
+    NoGCScope no_gc;
     *PointerOffsetAddrAt(index) = offset_in_instructions;
   }
 
@@ -4042,17 +4093,17 @@ class Context : public Object {
                          Heap::Space space = Heap::kNew);
 
  private:
-  RawInstance** InstanceAddr(intptr_t context_index) const {
+  RawInstance* const* InstanceAddr(intptr_t context_index) const {
     ASSERT((context_index >= 0) && (context_index < num_variables()));
     return &raw_ptr()->data()[context_index];
   }
 
   void set_isolate(Isolate* isolate) const {
-    raw_ptr()->isolate_ = isolate;
+    StoreNonPointer(&raw_ptr()->isolate_, isolate);
   }
 
   void set_num_variables(intptr_t num_variables) const {
-    raw_ptr()->num_variables_ = num_variables;
+    StoreNonPointer(&raw_ptr()->num_variables_, num_variables);
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Context, Object);
@@ -4117,7 +4168,7 @@ class ContextScope : public Object {
 
  private:
   void set_num_variables(intptr_t num_variables) const {
-    raw_ptr()->num_variables_ = num_variables;
+    StoreNonPointer(&raw_ptr()->num_variables_, num_variables);
   }
 
   RawContextScope::VariableDesc* VariableDescAddr(intptr_t index) const {
@@ -5376,6 +5427,7 @@ class Bigint : public Integer {
 
   static const intptr_t kExtraDigits = 4;  // Same as _Bigint.EXTRA_DIGITS
   static const intptr_t kBitsPerDigit = 32;  // Same as _Bigint.DIGIT_BITS
+  static const intptr_t kBytesPerDigit = 4;
   static const int64_t kDigitBase = 1LL << kBitsPerDigit;
   static const int64_t kDigitMask = kDigitBase - 1;
 
@@ -5737,13 +5789,13 @@ class String : public Instance {
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
-    raw_ptr()->length_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
   void SetHash(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
-    raw_ptr()->hash_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->hash_, Smi::New(value));
   }
 
   template<typename HandleType, typename ElementType, typename CallbackType>
@@ -5773,10 +5825,12 @@ class String : public Instance {
 class OneByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
+    NoGCScope no_gc;
     return *CharAddr(str, index);
   }
 
   static void SetCharAt(const String& str, intptr_t index, uint8_t code_unit) {
+    NoGCScope no_gc;
     *CharAddr(str, index) = code_unit;
   }
   static RawOneByteString* EscapeSpecialCharacters(const String& str);
@@ -5875,15 +5929,14 @@ class OneByteString : public AllStatic {
     return reinterpret_cast<RawOneByteString*>(str.raw());
   }
 
-  static RawOneByteString* raw_ptr(const String& str) {
-    return reinterpret_cast<RawOneByteString*>(str.raw_ptr());
+  static const RawOneByteString* raw_ptr(const String& str) {
+    return reinterpret_cast<const RawOneByteString*>(str.raw_ptr());
   }
 
   static uint8_t* CharAddr(const String& str, intptr_t index) {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsOneByteString());
-    NoGCScope no_gc;
-    return &raw_ptr(str)->data()[index];
+    return &str.UnsafeMutableNonPointer(raw_ptr(str)->data())[index];
   }
 
   static RawOneByteString* ReadFrom(SnapshotReader* reader,
@@ -5902,10 +5955,12 @@ class OneByteString : public AllStatic {
 class TwoByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
+    NoGCScope no_gc;
     return *CharAddr(str, index);
   }
 
   static void SetCharAt(const String& str, intptr_t index, uint16_t ch) {
+    NoGCScope no_gc;
     *CharAddr(str, index) = ch;
   }
 
@@ -5977,15 +6032,14 @@ class TwoByteString : public AllStatic {
     return reinterpret_cast<RawTwoByteString*>(str.raw());
   }
 
-  static RawTwoByteString* raw_ptr(const String& str) {
-    return reinterpret_cast<RawTwoByteString*>(str.raw_ptr());
+  static const RawTwoByteString* raw_ptr(const String& str) {
+    return reinterpret_cast<const RawTwoByteString*>(str.raw_ptr());
   }
 
   static uint16_t* CharAddr(const String& str, intptr_t index) {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsTwoByteString());
-    NoGCScope no_gc;
-    return &raw_ptr(str)->data()[index];
+    return &str.UnsafeMutableNonPointer(raw_ptr(str)->data())[index];
   }
 
   static RawTwoByteString* ReadFrom(SnapshotReader* reader,
@@ -6002,6 +6056,7 @@ class TwoByteString : public AllStatic {
 class ExternalOneByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
+    NoGCScope no_gc;
     return *CharAddr(str, index);
   }
 
@@ -6038,22 +6093,20 @@ class ExternalOneByteString : public AllStatic {
     return reinterpret_cast<RawExternalOneByteString*>(str.raw());
   }
 
-  static RawExternalOneByteString* raw_ptr(const String& str) {
-    return reinterpret_cast<RawExternalOneByteString*>(str.raw_ptr());
+  static const RawExternalOneByteString* raw_ptr(const String& str) {
+    return reinterpret_cast<const RawExternalOneByteString*>(str.raw_ptr());
   }
 
   static const uint8_t* CharAddr(const String& str, intptr_t index) {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsExternalOneByteString());
-    NoGCScope no_gc;
     return &(raw_ptr(str)->external_data_->data()[index]);
   }
 
   static void SetExternalData(const String& str,
                               ExternalStringData<uint8_t>* data) {
     ASSERT(str.IsExternalOneByteString());
-    NoGCScope no_gc;
-    raw_ptr(str)->external_data_ = data;
+    str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
   }
 
   static void Finalize(void* isolate_callback_data,
@@ -6079,6 +6132,7 @@ class ExternalOneByteString : public AllStatic {
 class ExternalTwoByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
+    NoGCScope no_gc;
     return *CharAddr(str, index);
   }
 
@@ -6111,22 +6165,20 @@ class ExternalTwoByteString : public AllStatic {
     return reinterpret_cast<RawExternalTwoByteString*>(str.raw());
   }
 
-  static RawExternalTwoByteString* raw_ptr(const String& str) {
-    return reinterpret_cast<RawExternalTwoByteString*>(str.raw_ptr());
+  static const RawExternalTwoByteString* raw_ptr(const String& str) {
+    return reinterpret_cast<const RawExternalTwoByteString*>(str.raw_ptr());
   }
 
   static const uint16_t* CharAddr(const String& str, intptr_t index) {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsExternalTwoByteString());
-    NoGCScope no_gc;
     return &(raw_ptr(str)->external_data_->data()[index]);
   }
 
   static void SetExternalData(const String& str,
                               ExternalStringData<uint16_t>* data) {
     ASSERT(str.IsExternalTwoByteString());
-    NoGCScope no_gc;
-    raw_ptr(str)->external_data_ = data;
+    str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
   }
 
   static void Finalize(void* isolate_callback_data,
@@ -6173,7 +6225,9 @@ class Bool : public Instance {
   }
 
  private:
-  void set_value(bool value) const { raw_ptr()->value_ = value; }
+  void set_value(bool value) const {
+    StoreNonPointer(&raw_ptr()->value_, value);
+  }
 
   // New should only be called to initialize the two legal bool values.
   static RawBool* New(bool value);
@@ -6278,7 +6332,7 @@ class Array : public Instance {
                        Heap::Space space = Heap::kNew);
 
  private:
-  RawObject** ObjectAddr(intptr_t index) const {
+  RawObject* const* ObjectAddr(intptr_t index) const {
     // TODO(iposva): Determine if we should throw an exception here.
     ASSERT((index >= 0) && (index < Length()));
     return &raw_ptr()->data()[index];
@@ -6287,7 +6341,7 @@ class Array : public Instance {
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
-    raw_ptr()->length_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
@@ -6345,7 +6399,7 @@ class GrowableObjectArray : public Instance {
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
-    raw_ptr()->length_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
   RawArray* data() const { return raw_ptr()->data_; }
@@ -6618,16 +6672,19 @@ class TypedData : public Instance {
   void* DataAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset == 0) ||
            ((byte_offset > 0) && (byte_offset < LengthInBytes())));
-    return reinterpret_cast<void*>(raw_ptr()->data() + byte_offset);
+    return reinterpret_cast<void*>(
+        UnsafeMutableNonPointer(raw_ptr()->data()) + byte_offset);
   }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
+    NoGCScope no_gc;                                                           \
     return *reinterpret_cast<type*>(DataAddr(byte_offset));                    \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
+    NoGCScope no_gc;                                                           \
     *reinterpret_cast<type*>(DataAddr(byte_offset)) = value;                   \
   }
   TYPED_GETTER_SETTER(Int8, int8_t)
@@ -6744,7 +6801,7 @@ class TypedData : public Instance {
 
  protected:
   void SetLength(intptr_t value) const {
-    raw_ptr()->length_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
  private:
@@ -6852,11 +6909,11 @@ class ExternalTypedData : public Instance {
 
  protected:
   void SetLength(intptr_t value) const {
-    raw_ptr()->length_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
   void SetData(uint8_t* data) const {
-    raw_ptr()->data_ = data;
+    StoreNonPointer(&raw_ptr()->data_, data);
   }
 
  private:
@@ -6875,18 +6932,20 @@ class TypedDataView : public AllStatic {
 
   static RawInstance* Data(const Instance& view_obj) {
     ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<RawInstance**>(view_obj.raw_ptr() + kDataOffset);
+    return *reinterpret_cast<RawInstance* const*>(
+        view_obj.raw_ptr() + kDataOffset);
   }
 
   static RawSmi* OffsetInBytes(const Instance& view_obj) {
     ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<RawSmi**>(
+    return *reinterpret_cast<RawSmi* const*>(
         view_obj.raw_ptr() + kOffsetInBytesOffset);
   }
 
   static RawSmi* Length(const Instance& view_obj) {
     ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<RawSmi**>(view_obj.raw_ptr() + kLengthOffset);
+    return *reinterpret_cast<RawSmi* const*>(
+        view_obj.raw_ptr() + kLengthOffset);
   }
 
   static bool IsExternalTypedDataView(const Instance& view_obj) {
@@ -6933,7 +6992,8 @@ class ByteBuffer : public AllStatic {
  public:
   static RawInstance* Data(const Instance& view_obj) {
     ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<RawInstance**>(view_obj.raw_ptr() + kDataOffset);
+    return *reinterpret_cast<RawInstance* const*>(
+        view_obj.raw_ptr() + kDataOffset);
   }
 
   static intptr_t NumberOfFields() {
@@ -7204,10 +7264,12 @@ class JSRegExp : public Instance {
 
  private:
   void set_type(RegExType type) const {
-    raw_ptr()->type_flags_ = TypeBits::update(type, raw_ptr()->type_flags_);
+    StoreNonPointer(&raw_ptr()->type_flags_,
+                    TypeBits::update(type, raw_ptr()->type_flags_));
   }
   void set_flags(intptr_t value) const {
-    raw_ptr()->type_flags_ = FlagsBits::update(value, raw_ptr()->type_flags_);
+    StoreNonPointer(&raw_ptr()->type_flags_,
+                    FlagsBits::update(value, raw_ptr()->type_flags_));
   }
 
   RegExType type() const {
@@ -7220,7 +7282,7 @@ class JSRegExp : public Instance {
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
     // heap allocation.
-    raw_ptr()->data_length_ = Smi::New(value);
+    StoreSmi(&raw_ptr()->data_length_, Smi::New(value));
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(JSRegExp, Instance);
@@ -7304,7 +7366,7 @@ class UserTag : public Instance {
   void set_tag(uword t) const {
     ASSERT(t >= UserTags::kUserTagIdOffset);
     ASSERT(t < UserTags::kUserTagIdOffset + UserTags::kMaxUserTags);
-    raw_ptr()->tag_ = t;
+    StoreNonPointer(&raw_ptr()->tag_, t);
   }
   static intptr_t tag_offset() { return OFFSET_OF(RawUserTag, tag_); }
 
@@ -7386,7 +7448,8 @@ intptr_t Field::Offset() const {
 void Field::SetOffset(intptr_t value_in_bytes) const {
   ASSERT(!is_static());  // SetOffset is valid only for instance fields.
   ASSERT(kWordSize != 0);
-  raw_ptr()->value_ = Smi::New(value_in_bytes / kWordSize);
+  StorePointer(&raw_ptr()->value_,
+               static_cast<RawInstance*>(Smi::New(value_in_bytes / kWordSize)));
 }
 
 

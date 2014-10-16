@@ -22,6 +22,12 @@ class PhysicalResourceProvider implements ResourceProvider {
   static final PhysicalResourceProvider INSTANCE =
       new PhysicalResourceProvider._();
 
+  /**
+   * The name of the directory containing plugin specific subfolders used to
+   * store data across sessions.
+   */
+  static final String SERVER_DIR = ".dartServer";
+
   PhysicalResourceProvider._();
 
   @override
@@ -36,6 +42,22 @@ class PhysicalResourceProvider implements ResourceProvider {
       io.File file = new io.File(path);
       return new _PhysicalFile(file);
     }
+  }
+
+  @override
+  Folder getStateLocation(String pluginId) {
+    String home;
+    if (io.Platform.isWindows) {
+      home = io.Platform.environment['LOCALAPPDATA'];
+    } else {
+      home = io.Platform.environment['HOME'];
+    }
+    if (home != null && io.FileSystemEntity.isDirectorySync(home)) {
+      io.Directory directory = new io.Directory(join(home, SERVER_DIR, pluginId));
+      directory.createSync(recursive: true);
+      return new _PhysicalFolder(directory);
+    }
+    return null;
   }
 }
 

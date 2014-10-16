@@ -1903,20 +1903,29 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   Script& script = Script::Handle(isolate_);
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate_->object_store()->libraries());
+  const GrowableObjectArray& scripts =
+    GrowableObjectArray::Handle(isolate_, GrowableObjectArray::New());
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     script = lib.LookupScript(script_url);
     if (!script.IsNull()) {
-      break;
+      scripts.Add(script);
     }
   }
-  if (script.IsNull()) {
+  if (scripts.Length() == 0) {
     if (FLAG_verbose_debug) {
       OS::Print("Failed to find script with url '%s'\n",
                 script_url.ToCString());
     }
     return NULL;
   }
+  if (scripts.Length() > 1) {
+    if (FLAG_verbose_debug) {
+      OS::Print("Multiple scripts match url '%s'\n", script_url.ToCString());
+    }
+    return NULL;
+  }
+  script ^= scripts.At(0);
   intptr_t first_token_idx, last_token_idx;
   script.TokenRangeAtLine(line_number, &first_token_idx, &last_token_idx);
   if (first_token_idx < 0) {

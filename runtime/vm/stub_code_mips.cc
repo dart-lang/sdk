@@ -65,7 +65,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   { Label ok;
     // Check that we are always entering from Dart code.
     __ lw(T0, Address(A0, Isolate::vm_tag_offset()));
-    __ BranchEqual(T0, VMTag::kDartTagId, &ok);
+    __ BranchEqual(T0, Immediate(VMTag::kDartTagId), &ok);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
   }
@@ -191,7 +191,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   { Label ok;
     // Check that we are always entering from Dart code.
     __ lw(T0, Address(A0, Isolate::vm_tag_offset()));
-    __ BranchEqual(T0, VMTag::kDartTagId, &ok);
+    __ BranchEqual(T0, Immediate(VMTag::kDartTagId), &ok);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
   }
@@ -306,7 +306,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   { Label ok;
     // Check that we are always entering from Dart code.
     __ lw(T0, Address(A0, Isolate::vm_tag_offset()));
-    __ BranchEqual(T0, VMTag::kDartTagId, &ok);
+    __ BranchEqual(T0, Immediate(VMTag::kDartTagId), &ok);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
   }
@@ -458,6 +458,35 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 }
 
 
+// Called from array allocate instruction when the allocation stub has been
+// disabled.
+// A0: element type (preserved).
+// A1: length (preserved).
+void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
+  __ TraceSimMsg("FixAllocationStubTarget");
+  __ EnterStubFrame();
+  // Setup space on stack for return value.
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ sw(A0, Address(SP, 2 * kWordSize));
+  __ sw(A1, Address(SP, 1 * kWordSize));
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  // Get Code object result.
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(A1, Address(SP, 1 * kWordSize));
+  __ lw(A0, Address(SP, 2 * kWordSize));
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
+
+  // Jump to the dart function.
+  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
+  __ AddImmediate(T0, T0, Instructions::HeaderSize() - kHeapObjectTag);
+
+  // Remove the stub frame.
+  __ LeaveStubFrameAndReturn(T0);
+}
+
+
 // Input parameters:
 //   A1: Smi-tagged argument count, may be zero.
 //   FP[kParamEndSlotFromFp + 1]: Last argument.
@@ -468,7 +497,9 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ LoadImmediate(A0, reinterpret_cast<intptr_t>(Object::null()));
   // A0: Null element type for raw Array.
   // A1: Smi-tagged argument count, may be zero.
-  __ BranchLink(&stub_code->AllocateArrayLabel());
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  const ExternalLabel array_label(array_stub.EntryPoint());
+  __ BranchLink(&array_label);
   __ TraceSimMsg("PushArgumentsArray return");
   // V0: newly allocated array.
   // A1: Smi-tagged argument count, may be zero (was preserved by the stub).
@@ -687,8 +718,10 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   A0: array element type (either NULL or an instantiated type).
 // NOTE: A1 cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in V0.
-void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
+void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
   __ TraceSimMsg("AllocateArrayStub");
+  *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
 
   // Compute the size to be allocated, it is based on the array length
@@ -704,7 +737,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Check for maximum allowed length.
   const intptr_t max_len =
       reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements));
-  __ BranchUnsignedGreater(T3, max_len, &slow_case);
+  __ BranchUnsignedGreater(T3, Immediate(max_len), &slow_case);
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(T2, fixed_size);
@@ -748,7 +781,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     Label overflow, done;
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
 
-    __ BranchUnsignedGreater(T2, RawObject::SizeTag::kMaxSizeTag, &overflow);
+    __ BranchUnsignedGreater(
+        T2, Immediate(RawObject::SizeTag::kMaxSizeTag), &overflow);
     __ b(&done);
     __ delay_slot()->sll(T2, T2, shift);
     __ Bind(&overflow);
@@ -817,6 +851,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(3 * kWordSize));
 
   __ LeaveStubFrameAndReturn();
+  *patch_code_pc_offset = assembler->CodeSize();
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  __ BranchPatchable(&stub_code->FixAllocateArrayStubTargetLabel());
 }
 
 
@@ -874,7 +911,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Cache the new Context pointer into CTX while executing Dart code.
   __ lw(CTX, Address(A3, VMHandles::kOffsetOfRawPtrInHandle));
 
-  __ LoadImmediate(T2, Isolate::CurrentAddress());
+  __ LoadIsolate(T2);
 
   // Save the current VMTag on the stack.
   ASSERT(kSavedVMTagSlotFromEntryFp == -22);
@@ -947,7 +984,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize);
 
   // Load Isolate pointer into CTX. Drop Context.
-  __ LoadImmediate(CTX, Isolate::CurrentAddress());
+  __ LoadIsolate(CTX);
 
   // Restore the current VMTag from the stack.
   __ lw(T1, Address(SP, 2 * kWordSize));
@@ -1064,7 +1101,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // V0: new object.
     // T1: number of context variables.
     // T2: isolate, not an object.
-    __ LoadImmediate(T2, Isolate::CurrentAddress());
+    __ LoadIsolate(T2);
     __ sw(T2, FieldAddress(V0, Context::isolate_offset()));
 
     __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
@@ -1145,7 +1182,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Load the isolate.
   // Spilled: T1, T2, T3.
   // T0: Address being stored.
-  __ LoadImmediate(T1, Isolate::CurrentAddress());
+  __ LoadIsolate(T1);
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1176,7 +1213,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(1 * kWordSize);
-  __ LoadImmediate(A0, Isolate::CurrentAddress());
+  __ LoadIsolate(A0);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ TraceSimMsg("UpdateStoreBufferStub return");
   // Restore callee-saved registers, tear down frame.
@@ -1446,9 +1483,9 @@ static void EmitFastSmiOp(Assembler* assembler,
   Label error, ok;
   const int32_t imm_smi_cid = reinterpret_cast<int32_t>(Smi::New(kSmiCid));
   __ lw(T4, Address(T0));
-  __ BranchNotEqual(T4, imm_smi_cid, &error);
+  __ BranchNotEqual(T4, Immediate(imm_smi_cid), &error);
   __ lw(T4, Address(T0, kWordSize));
-  __ BranchEqual(T4, imm_smi_cid, &ok);
+  __ BranchEqual(T4, Immediate(imm_smi_cid), &ok);
   __ Bind(&error);
   __ Stop("Incorrect IC data");
   __ Bind(&ok);
@@ -1490,7 +1527,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ lw(T0, FieldAddress(S5, ICData::state_bits_offset()));
     ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
     __ andi(T0, T0, Immediate(ICData::NumArgsTestedMask()));
-    __ BranchEqual(T0, num_args, &ok);
+    __ BranchEqual(T0, Immediate(num_args), &ok);
     __ Stop("Incorrect stub for IC data");
     __ Bind(&ok);
   }
@@ -1499,9 +1536,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadImmediate(T0, Isolate::CurrentAddress());
+  __ LoadIsolate(T0);
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, 0, &stepping);
+  __ BranchNotEqual(T0, Immediate(0), &stepping);
   __ Bind(&done_stepping);
 
   if (kind != Token::kILLEGAL) {
@@ -1576,7 +1613,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ lw(T4, Address(T0));  // Next class ID.
 
   __ Bind(&test);
-  __ BranchNotEqual(T4, Smi::RawValue(kIllegalCid), &loop);  // Done?
+  __ BranchNotEqual(T4, Immediate(Smi::RawValue(kIllegalCid)), &loop);  // Done?
 
   // IC miss.
   // Restore return address.
@@ -1755,9 +1792,9 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadImmediate(T0, Isolate::CurrentAddress());
+  __ LoadIsolate(T0);
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, 0, &stepping);
+  __ BranchNotEqual(T0, Immediate(0), &stepping);
   __ Bind(&done_stepping);
 
   // S5: IC data object (preserved).
@@ -1904,7 +1941,7 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   Label stepping, done_stepping;
   __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, 0, &stepping);
+  __ BranchNotEqual(T0, Immediate(0), &stepping);
   __ Bind(&done_stepping);
 
   __ Ret();
@@ -1939,7 +1976,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ LoadImmediate(T1, reinterpret_cast<intptr_t>(Object::null()));
     __ lw(T2, FieldAddress(T0,
         Class::type_arguments_field_offset_in_words_offset()));
-    __ BranchEqual(T2, Class::kNoTypeArguments, &has_no_type_arguments);
+    __ BranchEqual(
+        T2, Immediate(Class::kNoTypeArguments), &has_no_type_arguments);
     __ sll(T2, T2, 2);
     __ addu(T2, A0, T2);  // T2 <- A0 + T2 * 4
     __ lw(T1, FieldAddress(T2, 0));
@@ -2192,7 +2230,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   Label stepping, done_stepping;
   __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchNotEqual(T0, 0, &stepping);
+  __ BranchNotEqual(T0, Immediate(0), &stepping);
   __ Bind(&done_stepping);
 
   const Register temp1 = T2;

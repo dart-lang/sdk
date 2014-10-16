@@ -1184,6 +1184,7 @@ class VariableDefinitions extends Statement {
   accept(Visitor visitor) => visitor.visitVariableDefinitions(this);
 
   visitChildren(Visitor visitor) {
+    if (metadata != null) metadata.accept(visitor);
     if (type != null) type.accept(visitor);
     if (definitions != null) definitions.accept(visitor);
   }

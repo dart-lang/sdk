@@ -6,12 +6,12 @@
 // dependencies on other parts of the system.
 library dart2js.ir_nodes;
 
-import '../dart2jslib.dart' as dart2js show Constant, ConstructedConstant,
-  StringConstant, ListConstant, MapConstant, invariant;
+import '../constants/expressions.dart';
+import '../constants/values.dart' as values show ConstantValue;
+import '../dart2jslib.dart' as dart2js show invariant;
 import '../elements/elements.dart';
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
-import 'const_expression.dart';
 
 abstract class Node {
   static int hashCount = 0;
@@ -449,10 +449,11 @@ class Branch extends Expression {
 }
 
 class Constant extends Primitive {
-  final ConstExp expression;
-  final dart2js.Constant value;
+  final ConstantExpression expression;
 
-  Constant(this.expression, this.value);
+  Constant(this.expression);
+
+  values.ConstantValue get value => expression.value;
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
@@ -470,7 +471,7 @@ class ReifyTypeVar extends Primitive {
 
   ReifyTypeVar(this.typeVariable);
 
-  dart2js.Constant get constant => null;
+  values.ConstantValue get constant => null;
 
   accept(Visitor visitor) => visitor.visitReifyTypeVar(this);
 }
@@ -544,7 +545,7 @@ class FunctionDefinition extends Node implements InteriorNode {
   final List<ConstDeclaration> localConstants;
 
   /// Values for optional parameters.
-  final List<ConstExp> defaultParameterValues;
+  final List<ConstantExpression> defaultParameterValues;
 
   FunctionDefinition(this.element, this.returnContinuation,
       this.parameters, this.body, this.localConstants,

@@ -35,7 +35,7 @@ part of intl;
  * There are four such constructors: decimalFormat, percentFormat,
  * scientificFormat and currencyFormat. However, at the moment,
  * scientificFormat prints only as equivalent to "#E0" and does not take
- * into account significant digits. The currencyFormat will default to the 
+ * into account significant digits. The currencyFormat will default to the
  * three-letter name of the currency if no explicit name/symbol is provided.
  */
 class NumberFormat {
@@ -116,7 +116,7 @@ class NumberFormat {
   NumberFormat.scientificPattern([String locale]) : this._forPattern(locale,
       (x) => x.SCIENTIFIC_PATTERN);
 
-  /** 
+  /**
    * Create a number format that prints as CURRENCY_PATTERN. If provided,
    * use [nameOrSymbol] in place of the default currency name. e.g.
    *        var eurosInCurrentLocale = new NumberFormat
@@ -356,7 +356,7 @@ class NumberFormat {
    * to print a thousands separator or other grouping character as appropriate
    * to the locale. So we find how many places we are from the end of the number
    * by subtracting our current [position] from the [totalLength] and printing
-   * the separator character every [_groupingSize] digits, with the final 
+   * the separator character every [_groupingSize] digits, with the final
    * grouping possibly being of a different size, [_finalGroupingSize].
    */
   void _group(int totalLength, int position) {
@@ -364,7 +364,7 @@ class NumberFormat {
     if (distanceFromEnd <= 1 || _groupingSize <= 0) return;
     if (distanceFromEnd == _finalGroupingSize + 1) {
       _add(symbols.GROUP_SEP);
-    } else if ((distanceFromEnd > _finalGroupingSize) && 
+    } else if ((distanceFromEnd > _finalGroupingSize) &&
         (distanceFromEnd - _finalGroupingSize) % _groupingSize == 1) {
       _add(symbols.GROUP_SEP);
     }
@@ -495,11 +495,11 @@ class _NumberParser {
       symbols.EXP_SYMBOL: () => 'E',
       symbols.GROUP_SEP: handleSpace,
       symbols.PERCENT: () {
-        scale = 100;
+        scale = _NumberFormatParser._PERCENT_SCALE;
         return '';
       },
       symbols.PERMILL: () {
-        scale = 100;
+        scale = _NumberFormatParser._PER_MILLE_SCALE;
         return '';
       },
       ' ' : handleSpace,
@@ -676,7 +676,9 @@ class _NumberFormatParser {
   static const _PATTERN_DECIMAL_SEPARATOR = '.';
   static const _PATTERN_CURRENCY_SIGN = '\u00A4';
   static const _PATTERN_PER_MILLE = '\u2030';
+  static const _PER_MILLE_SCALE = 1000;
   static const _PATTERN_PERCENT = '%';
+  static const _PERCENT_SCALE = 100;
   static const _PATTERN_EXPONENT = 'E';
   static const _PATTERN_PLUS = '+';
 
@@ -778,17 +780,18 @@ class _NumberFormatParser {
           affix.write(currencyName);
           break;
         case _PATTERN_PERCENT:
-          if (format._multiplier != 1) {
+          if (format._multiplier != 1 && format._multiplier != _PERCENT_SCALE) {
             throw new FormatException('Too many percent/permill');
           }
-          format._multiplier = 100;
+          format._multiplier = _PERCENT_SCALE;
           affix.write(symbols.PERCENT);
           break;
         case _PATTERN_PER_MILLE:
-          if (format._multiplier != 1) {
+          if (format._multiplier != 1 &&
+              format._multiplier != _PER_MILLE_SCALE) {
             throw new FormatException('Too many percent/permill');
           }
-          format._multiplier = 1000;
+          format._multiplier = _PER_MILLE_SCALE;
           affix.write(symbols.PERMILL);
           break;
         default:

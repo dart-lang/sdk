@@ -6,8 +6,9 @@ library pub.package;
 
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
 import 'package:barback/barback.dart';
+import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 
 import 'barback/transformer_id.dart';
 import 'io.dart';
@@ -15,7 +16,6 @@ import 'git.dart' as git;
 import 'pubspec.dart';
 import 'source_registry.dart';
 import 'utils.dart';
-import 'version.dart';
 
 final _README_REGEXP = new RegExp(r"^README($|\.)", caseSensitive: false);
 

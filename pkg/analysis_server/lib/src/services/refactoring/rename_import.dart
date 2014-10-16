@@ -6,7 +6,7 @@ library services.src.refactoring.rename_import;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
@@ -56,20 +56,20 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         int uriEnd = element.uriEnd;
         int prefixEnd = element.prefixOffset + prefix.displayName.length;
         SourceRange range = rangeStartEnd(uriEnd, prefixEnd);
-        edit = new SourceEdit.range(range, "");
+        edit = newSourceEdit_range(range, "");
       } else {
         if (prefix == null) {
           SourceRange range = rangeStartLength(element.uriEnd, 0);
-          edit = new SourceEdit.range(range, " as ${newName}");
+          edit = newSourceEdit_range(range, " as ${newName}");
         } else {
           int offset = element.prefixOffset;
           int length = prefix.displayName.length;
           SourceRange range = rangeStartLength(offset, length);
-          edit = new SourceEdit.range(range, newName);
+          edit = newSourceEdit_range(range, newName);
         }
       }
       if (edit != null) {
-        change.addElementEdit(element, edit);
+        doSourceChange_addElementEdit(change, element, edit);
       }
     }
     // update references

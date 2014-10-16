@@ -8,9 +8,9 @@ library pub.sdk;
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
 import 'io.dart';
-import 'version.dart';
 
 /// Gets the path to the root directory of the SDK.
 ///

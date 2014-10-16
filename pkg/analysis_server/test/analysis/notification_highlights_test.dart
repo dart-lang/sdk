@@ -136,11 +136,13 @@ const AAA = 42;
   test_BUILT_IN_abstract() {
     addTestFile('''
 abstract class A {};
+abstract class B = Object with A;
 main() {
   var abstract = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.BUILT_IN, 'abstract class');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'abstract class A');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'abstract class B');
       assertNoRegion(HighlightRegionType.BUILT_IN, 'abstract = 42');
     });
   }

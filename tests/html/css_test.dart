@@ -30,12 +30,10 @@ main() {
           ''';
         document.body.append(element);
 
-        Point point = new Point(5, 2);
-        checkPoint(5, 2, point);
-        checkPoint(255, 102, window.convertPointFromNodeToPage(element, point));
-        point = new Point(5, 100);
-        checkPoint(5, 100, point);
-        checkPoint(255, 200, window.convertPointFromNodeToPage(element, point));
+        var elemRect = element.getBoundingClientRect();
+
+        checkPoint(250, 100, new Point(elemRect.left, elemRect.top));
+        checkPoint(310, 200, new Point(elemRect.right, elemRect.bottom));
       }, expectation);
     });
   });

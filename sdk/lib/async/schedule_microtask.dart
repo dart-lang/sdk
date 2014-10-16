@@ -83,10 +83,8 @@ void _scheduleAsyncCallback(callback) {
 void _schedulePriorityAsyncCallback(callback) {
   _AsyncCallbackEntry entry = new _AsyncCallbackEntry(callback);
   if (_nextCallback == null) {
-    _nextCallback = _lastCallback = _lastPriorityCallback = entry;
-    if (!_isInCallbackLoop) {
-      _AsyncRun._scheduleImmediate(_asyncRunCallback);
-    }
+    _scheduleAsyncCallback(callback);
+    _lastPriorityCallback = _lastCallback;
   } else if (_lastPriorityCallback == null) {
     entry.next = _nextCallback;
     _nextCallback = _lastPriorityCallback = entry;

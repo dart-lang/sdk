@@ -6,8 +6,7 @@ library pub.barback;
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as p;
-
-import 'version.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// The currently supported versions of packages that this version of pub works
 /// with.

@@ -6,10 +6,11 @@ library pub.source;
 
 import 'dart:async';
 
+import 'package:pub_semver/pub_semver.dart';
+
 import 'package.dart';
 import 'pubspec.dart';
 import 'system_cache.dart';
-import 'version.dart';
 
 /// A source from which to get packages.
 ///

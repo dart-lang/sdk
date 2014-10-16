@@ -41,7 +41,9 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     loop_headers_(NULL),
     loop_invariant_loads_(NULL),
     guarded_fields_(builder.guarded_fields()),
-    deferred_prefixes_(builder.deferred_prefixes()) {
+    deferred_prefixes_(builder.deferred_prefixes()),
+    captured_parameters_(
+        new(isolate_) BitVector(isolate_, variable_count())) {
   DiscoverBlocks();
 }
 
@@ -98,6 +100,7 @@ ConstantInstr* FlowGraph::GetConstant(const Object& object) {
     constant = new(isolate()) ConstantInstr(
         Object::ZoneHandle(isolate(), object.raw()));
     constant->set_ssa_temp_index(alloc_ssa_temp_index());
+
     AddToInitialDefinitions(constant);
     constant_instr_pool_.Insert(constant);
   }
@@ -149,20 +152,62 @@ Instruction* FlowGraph::AppendTo(Instruction* prev,
 }
 
 
+// A wrapper around block entries including an index of the next successor to
+// be read.
+class BlockTraversalState {
+ public:
+  explicit BlockTraversalState(BlockEntryInstr* block)
+    : block_(block),
+      next_successor_ix_(block->last_instruction()->SuccessorCount() - 1) { }
+
+  bool HasNextSuccessor() const { return next_successor_ix_ >= 0; }
+  BlockEntryInstr* NextSuccessor() {
+    ASSERT(HasNextSuccessor());
+    return block_->last_instruction()->SuccessorAt(next_successor_ix_--);
+  }
+
+  BlockEntryInstr* block() const { return block_; }
+
+ private:
+  BlockEntryInstr* block_;
+  intptr_t next_successor_ix_;
+
+  DISALLOW_ALLOCATION();
+};
+
+
 void FlowGraph::DiscoverBlocks() {
+  StackZone zone(isolate());
+
   // Initialize state.
   preorder_.Clear();
   postorder_.Clear();
   reverse_postorder_.Clear();
   parent_.Clear();
-  // Perform a depth-first traversal of the graph to build preorder and
-  // postorder block orders.
-  graph_entry_->DiscoverBlocks(NULL,  // Entry block predecessor.
-                               &preorder_,
-                               &postorder_,
-                               &parent_,
-                               variable_count(),
-                               num_non_copied_params());
+
+  GrowableArray<BlockTraversalState> block_stack;
+  graph_entry_->DiscoverBlock(NULL, &preorder_, &parent_);
+  block_stack.Add(BlockTraversalState(graph_entry_));
+  while (!block_stack.is_empty()) {
+    BlockTraversalState &state = block_stack.Last();
+    BlockEntryInstr* block = state.block();
+    if (state.HasNextSuccessor()) {
+      // Process successors one-by-one.
+      BlockEntryInstr* succ = state.NextSuccessor();
+      if (succ->DiscoverBlock(block, &preorder_, &parent_)) {
+        block_stack.Add(BlockTraversalState(succ));
+      }
+    } else {
+      // All successors have been processed, pop the current block entry node
+      // and add it to the postorder list.
+      block_stack.RemoveLast();
+      block->set_postorder_number(postorder_.length());
+      postorder_.Add(block);
+    }
+  }
+
+  ASSERT(postorder_.length() == preorder_.length());
+
   // Create an array of blocks in reverse postorder.
   intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; ++i) {
@@ -916,6 +961,14 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           if (variable_liveness->IsLastLoad(block_entry, load)) {
             (*env)[index] = constant_dead();
           }
+
+          // Record captured parameters so that they can be skipped when
+          // emitting sync code inside optimized try-blocks.
+          if (load->local().is_captured_parameter()) {
+            intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
+            captured_parameters_->Add(index);
+          }
+
         } else if (push != NULL) {
           result = push->value()->definition();
           env->Add(result);

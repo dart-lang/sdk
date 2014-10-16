@@ -4,11 +4,11 @@
 
 library test.integration.analysis.error;
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
-import '../protocol_matchers.dart';
 
 @ReflectiveTestCase()
 class AnalysisErrorIntegrationTest extends AbstractAnalysisServerIntegrationTest
@@ -23,10 +23,9 @@ main() {
     standardAnalysisSetup();
     return analysisFinished.then((_) {
       expect(currentAnalysisErrors[pathname], isList);
-      List errors = currentAnalysisErrors[pathname];
+      List<AnalysisError> errors = currentAnalysisErrors[pathname];
       expect(errors, hasLength(1));
-      expect(errors[0], isAnalysisError);
-      expect(errors[0]['location']['file'], equals(pathname));
+      expect(errors[0].location.file, equals(pathname));
     });
   }
 }

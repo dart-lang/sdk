@@ -175,14 +175,11 @@ class Simulator {
 
   // Helper functions to set the conditional flags in the architecture state.
   void SetNZFlagsW(int32_t val);
-  bool CarryFromW(int32_t left, int32_t right);
-  bool BorrowFromW(int32_t left, int32_t right);
-  bool OverflowFromW(
-      int32_t alu_out, int32_t left, int32_t right, bool addition);
+  bool CarryFromW(int32_t left, int32_t right, int32_t carry);
+  bool OverflowFromW(int32_t left, int32_t right, int32_t carry);
 
   void SetNZFlagsX(int64_t val);
-  bool CarryFromX(int64_t left, int64_t right);
-  bool BorrowFromX(int64_t left, int64_t right);
+  bool CarryFromX(int64_t alu_out, int64_t left, int64_t right, bool addition);
   bool OverflowFromX(
       int64_t alu_out, int64_t left, int64_t right, bool addition);
 

@@ -25,12 +25,18 @@ ObjectStore::ObjectStore()
     int_type_(Type::null()),
     integer_implementation_class_(Class::null()),
     smi_class_(Class::null()),
+    smi_type_(Type::null()),
     mint_class_(Class::null()),
+    mint_type_(Type::null()),
+    bigint_class_(Class::null()),
     double_class_(Class::null()),
+    double_type_(Type::null()),
     float32x4_type_(Type::null()),
     int32x4_type_(Type::null()),
     float64x2_type_(Type::null()),
     string_type_(Type::null()),
+    future_class_(Class::null()),
+    completer_class_(Class::null()),
     one_byte_string_class_(Class::null()),
     two_byte_string_class_(Class::null()),
     external_one_byte_string_class_(Class::null()),
@@ -52,26 +58,35 @@ ObjectStore::ObjectStore()
     async_library_(Library::null()),
     builtin_library_(Library::null()),
     core_library_(Library::null()),
+    collection_library_(Library::null()),
+    convert_library_(Library::null()),
+    internal_library_(Library::null()),
     isolate_library_(Library::null()),
     math_library_(Library::null()),
     mirrors_library_(Library::null()),
     native_wrappers_library_(Library::null()),
     root_library_(Library::null()),
     typed_data_library_(Library::null()),
+    profiler_library_(Library::null()),
     libraries_(GrowableObjectArray::null()),
     pending_classes_(GrowableObjectArray::null()),
     pending_functions_(GrowableObjectArray::null()),
+    pending_deferred_loads_(GrowableObjectArray::null()),
     resume_capabilities_(GrowableObjectArray::null()),
     sticky_error_(Error::null()),
     unhandled_exception_handler_(String::null()),
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
     out_of_memory_(Instance::null()),
+    preallocated_unhandled_exception_(UnhandledException::null()),
     preallocated_stack_trace_(Stacktrace::null()),
     lookup_port_handler_(Function::null()),
     empty_uint32_array_(TypedData::null()),
     handle_message_function_(Function::null()),
     library_load_error_table_(Array::null()) {
+  for (RawObject** current = from(); current <= to(); current++) {
+    ASSERT(*current == Object::null());
+  }
 }
 
 
@@ -151,6 +166,22 @@ bool ObjectStore::PreallocateObjects() {
   set_preallocated_stack_trace(stack_trace);
 
   return true;
+}
+
+
+void ObjectStore::InitAsyncObjects() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL && isolate->object_store() == this);
+
+  const Library& async_lib = Library::Handle(async_library());
+  ASSERT(!async_lib.IsNull());
+  Class& cls = Class::Handle(isolate);
+  cls = async_lib.LookupClass(Symbols::Future());
+  ASSERT(!cls.IsNull());
+  set_future_class(cls);
+  cls = async_lib.LookupClass(Symbols::Completer());
+  ASSERT(!cls.IsNull());
+  set_completer_class(cls);
 }
 
 }  // namespace dart

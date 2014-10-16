@@ -11,6 +11,9 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
                                    intptr_t deopt_id,
                                    intptr_t token_index,
                                    intptr_t try_index) {
+  ASSERT((kind == RawPcDescriptors::kRuntimeCall) ||
+         (kind == RawPcDescriptors::kOther) ||
+         (deopt_id != Isolate::kNoDeoptId));
   struct PcDesc data;
   data.pc_offset = pc_offset;
   data.kind = kind;

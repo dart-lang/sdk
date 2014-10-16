@@ -187,13 +187,16 @@ abstract class Future<T> {
   /**
    * A future that completes with an error in the next event-loop iteration.
    *
-   * Use [Completer] to create a Future and complete it later.
+   * If [error] is `null`, it is replaced by a [NullThrownError].
+   *
+   * Use [Completer] to create a future and complete it later.
    */
   factory Future.error(Object error, [StackTrace stackTrace]) {
+    error = _nonNullError(error);
     if (!identical(Zone.current, _ROOT_ZONE)) {
       AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
       if (replacement != null) {
-        error = replacement.error;
+        error = _nonNullError(replacement.error);
         stackTrace = replacement.stackTrace;
       }
     }
@@ -462,16 +465,15 @@ abstract class Future<T> {
    * This method is equivalent to:
    *
    *     Future<T> whenComplete(action()) {
-   *       this.then((v) {
-   *                   var f2 = action();
-   *                   if (f2 is Future) return f2.then((_) => v);
-   *                   return v
-   *                 },
-   *                 onError: (e) {
-   *                   var f2 = action();
-   *                   if (f2 is Future) return f2.then((_) { throw e; });
-   *                   throw e;
-   *                 });
+   *       return this.then((v) {
+   *         var f2 = action();
+   *         if (f2 is Future) return f2.then((_) => v);
+   *         return v
+   *       }, onError: (e) {
+   *         var f2 = action();
+   *         if (f2 is Future) return f2.then((_) { throw e; });
+   *         throw e;
+   *       });
    *     }
    */
   Future<T> whenComplete(action());
@@ -639,7 +641,7 @@ abstract class Completer<T> {
    * Completing a future with an error indicates that an exception was thrown
    * while trying to produce a value.
    *
-   * The argument [error] must not be `null`.
+   * If [error] is `null`, it is replaced by a [NullThrownError].
    *
    * If `error` is a `Future`, the future itself is used as the error value.
    * If you want to complete with the result of the future, you can use:
@@ -663,10 +665,13 @@ abstract class Completer<T> {
 // for error replacement first.
 void _completeWithErrorCallback(_Future result, error, stackTrace) {
   AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
-  if (replacement == null) {
-    result._completeError(error, stackTrace);
-  } else {
-    result._completeError(replacement.error, replacement.stackTrace);
+  if (replacement != null) {
+    error = _nonNullError(replacement.error);
+    stackTrace = replacement.stackTrace;
   }
+  result._completeError(error, stackTrace);
 }
 
+/** Helper function that converts `null` to a [NullThrownError]. */
+Object _nonNullError(Object error) =>
+  (error != null) ? error : new NullThrownError();

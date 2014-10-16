@@ -1,7 +1,14 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub_tests;
+
 import 'package:scheduled_test/scheduled_test.dart';
+
 import '../lib/src/exit_codes.dart' as exit_codes;
 import 'test_pub.dart';
+
 final USAGE_STRING = """
     Pub is a package manager for Dart.
 
@@ -38,23 +45,30 @@ final USAGE_STRING = """
     Run "pub help [command]" for more information about a command.
     See http://dartlang.org/tools/pub for detailed documentation.
     """;
+
 final VERSION_STRING = '''
     Pub 0.1.2+3
     ''';
+
 main() {
   initConfig();
+
   integration('running pub with no command displays usage', () {
     schedulePub(args: [], output: USAGE_STRING);
   });
+
   integration('running pub with just --help displays usage', () {
     schedulePub(args: ['--help'], output: USAGE_STRING);
   });
+
   integration('running pub with just -h displays usage', () {
     schedulePub(args: ['-h'], output: USAGE_STRING);
   });
+
   integration('running pub with --with-prejudice upcases everything', () {
     schedulePub(args: ['--with-prejudice'], output: USAGE_STRING.toUpperCase());
   });
+
   integration('running pub with --help after command shows command usage', () {
     schedulePub(args: ['get', '--help'], output: '''
           Get the current package's dependencies.
@@ -68,6 +82,7 @@ main() {
           See http://dartlang.org/tools/pub/cmd/pub-get.html for detailed documentation.
     ''');
   });
+
   integration('running pub with -h after command shows command usage', () {
     schedulePub(args: ['get', '-h'], output: '''
           Get the current package's dependencies.
@@ -81,6 +96,7 @@ main() {
           See http://dartlang.org/tools/pub/cmd/pub-get.html for detailed documentation.
     ''');
   });
+
   integration(
       'running pub with --help after a command with subcommands shows '
           'command usage',
@@ -99,9 +115,12 @@ main() {
           See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
      ''');
   });
+
+
   integration('running pub with just --version displays version', () {
     schedulePub(args: ['--version'], output: VERSION_STRING);
   });
+
   integration('an unknown command displays an error message', () {
     schedulePub(args: ['quylthulg'], error: '''
         Could not find a command named "quylthulg".
@@ -122,6 +141,7 @@ main() {
           version     Print pub version.
         ''', exitCode: exit_codes.USAGE);
   });
+
   integration('an unknown subcommand displays an error message', () {
     schedulePub(args: ['cache', 'quylthulg'], error: '''
         Could not find a subcommand named "quylthulg" for "pub cache".
@@ -137,18 +157,23 @@ main() {
         See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
         ''', exitCode: exit_codes.USAGE);
   });
+
   integration('an unknown option displays an error message', () {
     schedulePub(args: ['--blorf'], error: '''
         Could not find an option named "blorf".
         Run "pub help" to see available options.
         ''', exitCode: exit_codes.USAGE);
   });
+
   integration('an unknown command option displays an error message', () {
+    // TODO(rnystrom): When pub has command-specific options, a more precise
+    // error message would be good here.
     schedulePub(args: ['version', '--blorf'], error: '''
         Could not find an option named "blorf".
         Run "pub help" to see available options.
         ''', exitCode: exit_codes.USAGE);
   });
+
   integration('an unexpected argument displays an error message', () {
     schedulePub(args: ['version', 'unexpected'], error: '''
         Command "version" does not take any arguments.
@@ -159,6 +184,7 @@ main() {
         Run "pub help" to see global options.
         ''', exitCode: exit_codes.USAGE);
   });
+
   integration('a missing subcommand displays an error message', () {
     schedulePub(args: ['cache'], error: '''
         Missing subcommand for "pub cache".
@@ -174,10 +200,12 @@ main() {
         See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
         ''', exitCode: exit_codes.USAGE);
   });
+
   group('help', () {
     integration('shows global help if no command is given', () {
       schedulePub(args: ['help'], output: USAGE_STRING);
     });
+
     integration('shows help for a command', () {
       schedulePub(args: ['help', 'get'], output: '''
             Get the current package's dependencies.
@@ -191,6 +219,7 @@ main() {
             See http://dartlang.org/tools/pub/cmd/pub-get.html for detailed documentation.
             ''');
     });
+
     integration('shows help for a command', () {
       schedulePub(args: ['help', 'publish'], output: '''
             Publish the current package to pub.dartlang.org.
@@ -206,6 +235,7 @@ main() {
             See http://dartlang.org/tools/pub/cmd/pub-lish.html for detailed documentation.
             ''');
     });
+
     integration('shows non-truncated help', () {
       schedulePub(args: ['help', 'serve'], output: '''
             Run a local web development server.
@@ -234,6 +264,7 @@ main() {
             See http://dartlang.org/tools/pub/cmd/pub-serve.html for detailed documentation.
             ''');
     });
+
     integration('shows help for a subcommand', () {
       schedulePub(args: ['help', 'cache', 'list'], output: '''
             List packages in the system cache.
@@ -244,6 +275,7 @@ main() {
             Run "pub help" to see global options.
             ''');
     });
+
     integration('an unknown help command displays an error message', () {
       schedulePub(args: ['help', 'quylthulg'], error: '''
             Could not find a command named "quylthulg".
@@ -264,6 +296,7 @@ main() {
               version     Print pub version.
             ''', exitCode: exit_codes.USAGE);
     });
+
     integration('an unknown help subcommand displays an error message', () {
       schedulePub(args: ['help', 'cache', 'quylthulg'], error: '''
             Could not find a subcommand named "quylthulg" for "pub cache".
@@ -279,6 +312,7 @@ main() {
             See http://dartlang.org/tools/pub/cmd/pub-cache.html for detailed documentation.
             ''', exitCode: exit_codes.USAGE);
     });
+
     integration('an unexpected help subcommand displays an error message', () {
       schedulePub(args: ['help', 'version', 'badsubcommand'], error: '''
             Command "pub version" does not expect a subcommand.
@@ -290,6 +324,7 @@ main() {
             ''', exitCode: exit_codes.USAGE);
     });
   });
+
   group('version', () {
     integration('displays the current version', () {
       schedulePub(args: ['version'], output: VERSION_STRING);

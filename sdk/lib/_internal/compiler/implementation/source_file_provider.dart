@@ -200,7 +200,8 @@ class FormattingDiagnosticHandler {
     } else {
       SourceFile file = provider.sourceFiles[uri.toString()];
       if (file != null) {
-        print(file.getLocationMessage(color(message), begin, end, true, color));
+        print(file.getLocationMessage(
+          color(message), begin, end, colorize: color));
       } else {
         print('${provider.relativizeUri(uri)}@$begin+${end - begin}:'
               ' [$kind] ${color(message)}');

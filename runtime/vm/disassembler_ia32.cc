@@ -971,6 +971,7 @@ int X86Decoder::F7Instruction(uint8_t* data) {
       case 3: mnem = "neg"; break;
       case 4: mnem = "mul"; break;
       case 5: mnem = "imul"; break;
+      case 6: mnem = "div"; break;
       case 7: mnem = "idiv"; break;
       default: UNIMPLEMENTED();
     }

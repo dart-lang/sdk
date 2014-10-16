@@ -39,7 +39,9 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
   prologue_code_size = assembler->CodeSize();
   StubCode* stub_code = Isolate::Current()->stub_code();
   __ JmpPatchable(&stub_code->InvokeDartCodeLabel(), PP);
-  __ JmpPatchable(&stub_code->AllocateArrayLabel(), PP);
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  const ExternalLabel array_label(array_stub.EntryPoint());
+  __ JmpPatchable(&array_label, PP);
   __ popq(PP);
   __ ret();
 }
@@ -62,14 +64,13 @@ ASSEMBLER_TEST_RUN(Jump, test) {
   JumpPattern jump2((test->entry() +
                      jump1.pattern_length_in_bytes() + prologue_code_size),
                     test->code());
-  EXPECT_EQ(stub_code->AllocateArrayLabel().address(),
-            jump2.TargetAddress());
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  EXPECT_EQ(array_stub.EntryPoint(), jump2.TargetAddress());
   uword target1 = jump1.TargetAddress();
   uword target2 = jump2.TargetAddress();
   jump1.SetTargetAddress(target2);
   jump2.SetTargetAddress(target1);
-  EXPECT_EQ(stub_code->AllocateArrayLabel().address(),
-            jump1.TargetAddress());
+  EXPECT_EQ(array_stub.EntryPoint(), jump1.TargetAddress());
   EXPECT_EQ(stub_code->InvokeDartCodeLabel().address(),
             jump2.TargetAddress());
 }

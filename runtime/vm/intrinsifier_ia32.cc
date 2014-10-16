@@ -654,7 +654,7 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   __ movl(EAX, EBX);
   __ shll(EBX, ECX);
   __ xorl(EDI, EDI);
-  __ shld(EDI, EAX);
+  __ shldl(EDI, EAX);
   // Result in EDI (high) and EBX (low).
   const Class& mint_class = Class::Handle(
       Isolate::Current()->object_store()->mint_class());
@@ -912,45 +912,161 @@ void Intrinsifier::Bigint_setDigits(Assembler* assembler) {
 }
 
 
-// TODO(regis): Once this intrinsic is implemented on all architectures, the
-// corresponding Dart method will be untested. Add a test with --no-intrinsify.
+void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
+  // static void _absAdd(Uint32List digits, int used,
+  //                     Uint32List a_digits, int a_used,
+  //                     Uint32List r_digits)
+
+  // Preserve CTX to free ESI.
+  __ pushl(CTX);
+  ASSERT(CTX == ESI);
+
+  __ movl(EDI, Address(ESP, 6 * kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 5 * kWordSize));  // used is Smi
+  __ SmiUntag(EAX);  // used > 0.
+  __ movl(ESI, Address(ESP, 4 * kWordSize));  // a_digits
+  __ movl(ECX, Address(ESP, 3 * kWordSize));  // a_used is Smi
+  __ SmiUntag(ECX);  // a_used > 0.
+  __ movl(EBX, Address(ESP, 2 * kWordSize));  // r_digits
+
+  // Precompute 'used - a_used' now so that carry flag is not lost later.
+  __ subl(EAX, ECX);
+  __ incl(EAX);  // To account for the extra test between loops.
+  __ pushl(EAX);
+
+  __ xorl(EDX, EDX);  // EDX = 0, carry flag = 0.
+  Label add_loop;
+  __ Bind(&add_loop);
+  // Loop a_used times, ECX = a_used, ECX > 0.
+  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
+  __ adcl(EAX, FieldAddress(ESI, EDX, TIMES_4, TypedData::data_offset()));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ incl(EDX);  // Does not affect carry flag.
+  __ decl(ECX);  // Does not affect carry flag.
+  __ j(NOT_ZERO, &add_loop, Assembler::kNearJump);
+
+  Label last_carry;
+  __ popl(ECX);
+  __ decl(ECX);  // Does not affect carry flag.
+  __ j(ZERO, &last_carry, Assembler::kNearJump);  // If used - a_used == 0.
+
+  Label carry_loop;
+  __ Bind(&carry_loop);
+  // Loop used - a_used times, ECX = used - a_used, ECX > 0.
+  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
+  __ adcl(EAX, Immediate(0));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ incl(EDX);  // Does not affect carry flag.
+  __ decl(ECX);  // Does not affect carry flag.
+  __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
+
+  __ Bind(&last_carry);
+  __ movl(EAX, Immediate(0));
+  __ adcl(EAX, Immediate(0));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+
+  // Restore CTX and return.
+  __ popl(CTX);
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
+}
+
+
+void Intrinsifier::Bigint_absSub(Assembler* assembler) {
+  // static void _absSub(Uint32List digits, int used,
+  //                     Uint32List a_digits, int a_used,
+  //                     Uint32List r_digits)
+
+  // Preserve CTX to free ESI.
+  __ pushl(CTX);
+  ASSERT(CTX == ESI);
+
+  __ movl(EDI, Address(ESP, 6 * kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 5 * kWordSize));  // used is Smi
+  __ SmiUntag(EAX);  // used > 0.
+  __ movl(ESI, Address(ESP, 4 * kWordSize));  // a_digits
+  __ movl(ECX, Address(ESP, 3 * kWordSize));  // a_used is Smi
+  __ SmiUntag(ECX);  // a_used > 0.
+  __ movl(EBX, Address(ESP, 2 * kWordSize));  // r_digits
+
+  // Precompute 'used - a_used' now so that carry flag is not lost later.
+  __ subl(EAX, ECX);
+  __ incl(EAX);  // To account for the extra test between loops.
+  __ pushl(EAX);
+
+  __ xorl(EDX, EDX);  // EDX = 0, carry flag = 0.
+  Label sub_loop;
+  __ Bind(&sub_loop);
+  // Loop a_used times, ECX = a_used, ECX > 0.
+  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
+  __ sbbl(EAX, FieldAddress(ESI, EDX, TIMES_4, TypedData::data_offset()));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ incl(EDX);  // Does not affect carry flag.
+  __ decl(ECX);  // Does not affect carry flag.
+  __ j(NOT_ZERO, &sub_loop, Assembler::kNearJump);
+
+  Label done;
+  __ popl(ECX);
+  __ decl(ECX);  // Does not affect carry flag.
+  __ j(ZERO, &done, Assembler::kNearJump);  // If used - a_used == 0.
+
+  Label carry_loop;
+  __ Bind(&carry_loop);
+  // Loop used - a_used times, ECX = used - a_used, ECX > 0.
+  __ movl(EAX, FieldAddress(EDI, EDX, TIMES_4, TypedData::data_offset()));
+  __ sbbl(EAX, Immediate(0));
+  __ movl(FieldAddress(EBX, EDX, TIMES_4, TypedData::data_offset()), EAX);
+  __ incl(EDX);  // Does not affect carry flag.
+  __ decl(ECX);  // Does not affect carry flag.
+  __ j(NOT_ZERO, &carry_loop, Assembler::kNearJump);
+
+  __ Bind(&done);
+  // Restore CTX and return.
+  __ popl(CTX);
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
+}
+
+
 void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   // Pseudo code:
-  // static void _mulAdd(Uint32List args,
+  // static void _mulAdd(Uint32List x_digits, int xi,
   //                     Uint32List m_digits, int i,
   //                     Uint32List a_digits, int j, int n) {
-  //   uint32_t x = args[MA_MULTIPLIER];
-  //   if (x == 0) {
-  //     args[MA_CARRY_OUT] = 0;
+  //   uint32_t x = x_digits[xi >> 1];  // xi is Smi.
+  //   if (x == 0 || n == 0) {
   //     return;
   //   }
   //   uint32_t* mip = &m_digits[i >> 1];  // i is Smi.
   //   uint32_t* ajp = &a_digits[j >> 1];  // j is Smi.
   //   uint32_t c = 0;
-  //   while ((n -= 2) >= 0) {  // n is Smi.
+  //   SmiUntag(n);
+  //   do {
   //     uint32_t mi = *mip++;
   //     uint32_t aj = *ajp;
   //     uint64_t t = x*mi + aj + c;  // 32-bit * 32-bit -> 64-bit.
   //     *ajp++ = low32(t);
   //     c = high32(t);
+  //   } while (--n > 0);
+  //   while (c != 0) {
+  //     uint64_t t = *ajp + c;
+  //     *ajp++ = low32(t);
+  //     c = high32(t);  // c == 0 or 1.
   //   }
-  //   args[MA_CARRY_OUT] = c;
   // }
 
-  // TODO(regis): Confirm that it is not required to check arguments (and also
-  // convince invocation_fuzz_test).
+  Label no_op;
+  // EBX = x, no_op if x == 0
+  __ movl(ECX, Address(ESP, 7 * kWordSize));  // x_digits
+  __ movl(EAX, Address(ESP, 6 * kWordSize));  // xi is Smi
+  __ movl(EBX, FieldAddress(ECX, EAX, TIMES_2, TypedData::data_offset()));
+  __ testl(EBX, EBX);
+  __ j(ZERO, &no_op, Assembler::kNearJump);
 
-  // EBX = x
-  Label x_not_zero;
-  __ movl(ECX, Address(ESP, 6 * kWordSize));  // args
-  __ movl(EBX, FieldAddress(ECX, TypedData::data_offset()));  // x
-  __ cmpl(EBX, Immediate(0));
-  __ j(NOT_EQUAL, &x_not_zero, Assembler::kNearJump);
-  // Set args[MA_CARRY_OUT] to 0 and return.
-  __ movl(FieldAddress(ECX, TypedData::data_offset() + kWordSize), EBX);
-  // TODO(regis): Confirm that returning Object::null() is not required.
-  __ ret();
-  __ Bind(&x_not_zero);
+  // EDX = SmiUntag(n), no_op if n == 0
+  __ movl(EDX, Address(ESP, 1 * kWordSize));
+  __ SmiUntag(EDX);
+  __ j(ZERO, &no_op, Assembler::kNearJump);
 
   // Preserve CTX to free ESI.
   __ pushl(CTX);
@@ -966,25 +1082,25 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ movl(EAX, Address(ESP, 3 * kWordSize));  // j is Smi
   __ leal(ESI, FieldAddress(ESI, EAX, TIMES_2, TypedData::data_offset()));
 
+  // Save n
+  __ pushl(EDX);
+  Address n_addr = Address(ESP, 0 * kWordSize);
+
   // ECX = c = 0
   __ xorl(ECX, ECX);
 
-  Label loop, done;
-  __ Bind(&loop);
+  Label muladd_loop;
+  __ Bind(&muladd_loop);
   // x:   EBX
   // mip: EDI
   // ajp: ESI
   // c:   ECX
   // t:   EDX:EAX (not live at loop entry)
-
-  // while ((n -= 2) >= 0), n is on stack, above ret addr and saved CTX.
-  __ movl(EAX, Immediate(2));  // 'sub mem32, imm32' not implemented.
-  __ subl(Address(ESP, 2 * kWordSize), EAX);  // --n, n is Smi.
-  __ j(NEGATIVE, &done);
+  // n:   ESP[0]
 
   // uint32_t mi = *mip++
   __ movl(EAX, Address(EDI, 0));
-  __ addl(EDI, Immediate(kWordSize));
+  __ addl(EDI, Immediate(Bigint::kBytesPerDigit));
 
   // uint64_t t = x*mi
   __ mull(EBX);  // t = EDX:EAX = EAX * EBX
@@ -997,18 +1113,254 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
 
   // *ajp++ = low32(t)
   __ movl(Address(ESI, 0), EAX);
-  __ addl(ESI, Immediate(kWordSize));
+  __ addl(ESI, Immediate(Bigint::kBytesPerDigit));
 
   // c = high32(t)
   __ movl(ECX, EDX);
+
+  // while (--n > 0)
+  __ decl(n_addr);  // --n
+  __ j(NOT_ZERO, &muladd_loop, Assembler::kNearJump);
+
+  Label done;
+  __ testl(ECX, ECX);
+  __ j(ZERO, &done, Assembler::kNearJump);
+
+  // *ajp += c
+  __ addl(Address(ESI, 0), ECX);
+  __ j(NOT_CARRY, &done, Assembler::kNearJump);
+
+  Label propagate_carry_loop;
+  __ Bind(&propagate_carry_loop);
+  __ addl(ESI, Immediate(Bigint::kBytesPerDigit));
+  __ incl(Address(ESI, 0));  // c == 0 or 1
+  __ j(CARRY, &propagate_carry_loop, Assembler::kNearJump);
+
+  __ Bind(&done);
+  __ Drop(1);  // n
+  // Restore CTX and return.
+  __ popl(CTX);
+
+  __ Bind(&no_op);
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
+}
+
+
+void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
+  // Pseudo code:
+  // static void _sqrAdd(Uint32List x_digits, int i,
+  //                     Uint32List a_digits, int used) {
+  //   uint32_t* xip = &x_digits[i >> 1];  // i is Smi.
+  //   uint32_t x = *xip++;
+  //   if (x == 0) return;
+  //   uint32_t* ajp = &a_digits[i];  // j == 2*i, i is Smi.
+  //   uint32_t aj = *ajp;
+  //   uint64_t t = x*x + aj;
+  //   *ajp++ = low32(t);
+  //   uint64_t c = high32(t);
+  //   int n = ((used - i) >> 1) - 1;  // used and i are Smi.
+  //   while (--n >= 0) {
+  //     uint32_t xi = *xip++;
+  //     uint32_t aj = *ajp;
+  //     uint96_t t = 2*x*xi + aj + c;  // 2-bit * 32-bit * 32-bit -> 65-bit.
+  //     *ajp++ = low32(t);
+  //     c = high64(t);  // 33-bit.
+  //   }
+  //   uint32_t aj = *ajp;
+  //   uint64_t t = aj + c;  // 32-bit + 33-bit -> 34-bit.
+  //   *ajp++ = low32(t);
+  //   *ajp = high32(t);
+  // }
+
+  // EDI = xip = &x_digits[i >> 1]
+  __ movl(EDI, Address(ESP, 4 * kWordSize));  // x_digits
+  __ movl(EAX, Address(ESP, 3 * kWordSize));  // i is Smi
+  __ leal(EDI, FieldAddress(EDI, EAX, TIMES_2, TypedData::data_offset()));
+
+  // EBX = x = *xip++, return if x == 0
+  Label x_zero;
+  __ movl(EBX, Address(EDI, 0));
+  __ cmpl(EBX, Immediate(0));
+  __ j(EQUAL, &x_zero, Assembler::kNearJump);
+  __ addl(EDI, Immediate(Bigint::kBytesPerDigit));
+
+  // Preserve CTX to free ESI.
+  __ pushl(CTX);
+  ASSERT(CTX == ESI);
+
+  // ESI = ajp = &a_digits[i]
+  __ movl(ESI, Address(ESP, 3 * kWordSize));  // a_digits
+  __ leal(ESI, FieldAddress(ESI, EAX, TIMES_4, TypedData::data_offset()));
+
+  // EDX:EAX = t = x*x + *ajp
+  __ movl(EAX, EBX);
+  __ mull(EBX);
+  __ addl(EAX, Address(ESI, 0));
+  __ adcl(EDX, Immediate(0));
+
+  // *ajp++ = low32(t)
+  __ movl(Address(ESI, 0), EAX);
+  __ addl(ESI, Immediate(Bigint::kBytesPerDigit));
+
+  // int n = used - i - 1
+  __ movl(EAX, Address(ESP, 2 * kWordSize));  // used is Smi
+  __ subl(EAX, Address(ESP, 4 * kWordSize));  // i is Smi
+  __ SmiUntag(EAX);
+  __ decl(EAX);
+  __ pushl(EAX);  // Save n on stack.
+
+  // uint64_t c = high32(t)
+  __ pushl(Immediate(0));  // push high32(c) == 0
+  __ pushl(EDX);  // push low32(c) == high32(t)
+
+  Address n_addr = Address(ESP, 2 * kWordSize);
+  Address ch_addr = Address(ESP, 1 * kWordSize);
+  Address cl_addr = Address(ESP, 0 * kWordSize);
+
+  Label loop, done;
+  __ Bind(&loop);
+  // x:   EBX
+  // xip: EDI
+  // ajp: ESI
+  // c:   ESP[1]:ESP[0]
+  // t:   ECX:EDX:EAX (not live at loop entry)
+  // n:   ESP[2]
+
+  // while (--n >= 0)
+  __ decl(Address(ESP, 2 * kWordSize));  // --n
+  __ j(NEGATIVE, &done, Assembler::kNearJump);
+
+  // uint32_t xi = *xip++
+  __ movl(EAX, Address(EDI, 0));
+  __ addl(EDI, Immediate(Bigint::kBytesPerDigit));
+
+  // uint96_t t = ECX:EDX:EAX = 2*x*xi + aj + c
+  __ mull(EBX);  // EDX:EAX = EAX * EBX
+  __ xorl(ECX, ECX);  // ECX = 0
+  __ shldl(ECX, EDX, Immediate(1));
+  __ shldl(EDX, EAX, Immediate(1));
+  __ shll(EAX, Immediate(1));  // ECX:EDX:EAX <<= 1
+  __ addl(EAX, Address(ESI, 0));  // t += aj
+  __ adcl(EDX, Immediate(0));
+  __ adcl(ECX, Immediate(0));
+  __ addl(EAX, cl_addr);  // t += low32(c)
+  __ adcl(EDX, ch_addr);  // t += high32(c) << 32
+  __ adcl(ECX, Immediate(0));
+
+  // *ajp++ = low32(t)
+  __ movl(Address(ESI, 0), EAX);
+  __ addl(ESI, Immediate(Bigint::kBytesPerDigit));
+
+  // c = high64(t)
+  __ movl(cl_addr, EDX);
+  __ movl(ch_addr, ECX);
+
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&done);
-  // Restore CTX, set args[MA_CARRY_OUT] to c and return.
+  // uint64_t t = aj + c
+  __ movl(EAX, cl_addr);  // t = c
+  __ movl(EDX, ch_addr);
+  __ addl(EAX, Address(ESI, 0));  // t += *ajp
+  __ adcl(EDX, Immediate(0));
+
+  // *ajp++ = low32(t)
+  // *ajp = high32(t)
+  __ movl(Address(ESI, 0), EAX);
+  __ movl(Address(ESI, Bigint::kBytesPerDigit), EDX);
+
+  // Restore CTX and return.
+  __ Drop(3);
   __ popl(CTX);
-  __ movl(EAX, Address(ESP, 6 * kWordSize));  // args
-  __ movl(FieldAddress(EAX, TypedData::data_offset() + kWordSize), ECX);
-  // TODO(regis): Confirm that returning Object::null() is not required.
+  __ Bind(&x_zero);
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
+}
+
+
+void Intrinsifier::Bigint_estQuotientDigit(Assembler* assembler) {
+  // Pseudo code:
+  // static void _estQuotientDigit(Uint32List args, Uint32List digits, int i) {
+  //   uint32_t yt = args[_YT];  // _YT == 0.
+  //   uint32_t* dp = &digits[i >> 1];  // i is Smi.
+  //   uint32_t dh = dp[0];  // dh == digits[i >> 1].
+  //   uint32_t qd;
+  //   if (dh == yt) {
+  //     qd = DIGIT_MASK;
+  //   } else {
+  //     dl = dp[-1];  // dl == digits[(i - 1) >> 1].
+  //     qd = dh:dl / yt;  // No overflow possible, because dh < yt.
+  //   }
+  //   args[_QD] = qd;  // _QD == 1;
+  // }
+
+  // EDI = args
+  __ movl(EDI, Address(ESP, 3 * kWordSize));  // args
+
+  // ECX = yt = args[0]
+  __ movl(ECX, FieldAddress(EDI, TypedData::data_offset()));
+
+  // EBX = dp = &digits[i >> 1]
+  __ movl(EBX, Address(ESP, 2 * kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 1 * kWordSize));  // i is Smi
+  __ leal(EBX, FieldAddress(EBX, EAX, TIMES_2, TypedData::data_offset()));
+
+  // EDX = dh = dp[0]
+  __ movl(EDX, Address(EBX, 0));
+
+  // EAX = qd = DIGIT_MASK = -1
+  __ movl(EAX, Immediate(-1));
+
+  // Return qd if dh == yt
+  Label return_qd;
+  __ cmpl(EDX, ECX);
+  __ j(EQUAL, &return_qd, Assembler::kNearJump);
+
+  // EAX = dl = dp[-1]
+  __ movl(EAX, Address(EBX, -Bigint::kBytesPerDigit));
+
+  // EAX = qd = dh:dl / yt = EDX:EAX / ECX
+  __ divl(ECX);
+
+  __ Bind(&return_qd);
+  // args[1] = qd
+  __ movl(FieldAddress(EDI, TypedData::data_offset() + Bigint::kBytesPerDigit),
+          EAX);
+
+  // Returning Object::null() is not required, since this method is private.
+  __ ret();
+}
+
+
+void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
+  // Pseudo code:
+  // static void _mulMod(Uint32List args, Uint32List digits, int i) {
+  //   uint32_t rho = args[_RHO];  // _RHO == 0.
+  //   uint32_t d = digits[i >> 1];  // i is Smi.
+  //   uint64_t t = rho*d;
+  //   args[_MU] = t mod DIGIT_BASE;  // _MU == 1.
+  // }
+
+  // EDI = args
+  __ movl(EDI, Address(ESP, 3 * kWordSize));  // args
+
+  // ECX = rho = args[0]
+  __ movl(ECX, FieldAddress(EDI, TypedData::data_offset()));
+
+  // EAX = digits[i >> 1]
+  __ movl(EBX, Address(ESP, 2 * kWordSize));  // digits
+  __ movl(EAX, Address(ESP, 1 * kWordSize));  // i is Smi
+  __ movl(EAX, FieldAddress(EBX, EAX, TIMES_2, TypedData::data_offset()));
+
+  // EDX:EAX = t = rho*d
+  __ mull(ECX);
+
+  // args[1] = t mod DIGIT_BASE = low32(t)
+  __ movl(FieldAddress(EDI, TypedData::data_offset() + Bigint::kBytesPerDigit),
+          EAX);
+
+  // Returning Object::null() is not required, since this method is private.
   __ ret();
 }
 

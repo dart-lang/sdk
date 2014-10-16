@@ -218,7 +218,7 @@ class Locations {
         },
         'ie10': const {
           'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
-        }, 
+        },
         'ie11': const {
           'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
         }};
@@ -251,12 +251,16 @@ class HashCodeBuilder {
   }
 
   void addJson(Object object) {
-    if (object == null || object is num || object is String) {
+    if (object == null || object is num || object is String ||
+                  object is Uri || object is bool) {
       add(object);
     } else if (object is List) {
       object.forEach(addJson);
     } else if (object is Map) {
-      object.forEach((k, v) { addJson(k); addJson(value); });
+      for (var key in object.keys.toList()..sort()) {
+        addJson(key);
+        addJson(object[key]);
+      }
     } else {
       throw new Exception("Can't build hashcode for non json-like object "
           "(${object.runtimeType})");

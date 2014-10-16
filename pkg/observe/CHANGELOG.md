@@ -26,7 +26,8 @@
     class.
 
 #### 0.11.0
-  * Updated to match [observe-js#e212e74][e212e74] (release 0.3.4)
+  * Updated to match [observe-js#e212e74][e212e74] (release 0.3.4), which also
+    matches [observe-js#fa70c37][fa70c37] (release 0.4.2).
   * ListPathObserver has been deprecated  (it was deleted a while ago in
     observe-js). We plan to delete it in a future release. You may copy the code
     if you still need it.
@@ -53,5 +54,6 @@
     and properties labeled with @observable.
   * Updated to match [observe-js#0152d54][0152d54]
 
+[fa70c37]: https://github.com/Polymer/observe-js/blob/fa70c37099026225876f7c7a26bdee7c48129f1c/src/observe.js
 [0152d54]: https://github.com/Polymer/observe-js/blob/0152d542350239563d0f2cad39d22d3254bd6c2a/src/observe.js
 [e212e74]: https://github.com/Polymer/observe-js/blob/e212e7473962067c099a3d1859595c2f8baa36d7/src/observe.js

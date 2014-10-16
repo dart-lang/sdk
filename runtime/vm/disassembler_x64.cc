@@ -634,6 +634,9 @@ int DisassemblerX64::F6F7Instruction(uint8_t* data) {
       case 4:
         mnem = "mul";
         break;
+      case 6:
+        mnem = "div";
+        break;
       case 7:
         mnem = "idiv";
         break;
@@ -1519,16 +1522,21 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     // SETcc: Set byte on condition. Needs pointer to beginning of instruction.
     current = data + SetCC(data);
 
-  } else if (opcode == 0xAB || opcode == 0xA5 || opcode == 0xAD) {
-    // SHLD, SHRD (double-precision shift), BTS (bit set).
-    AppendToBuffer("%s ", mnemonic);
+  } else if ((opcode & 0xFE) == 0xA4 || (opcode & 0xFE) == 0xAC ||
+             opcode == 0xAB || opcode == 0xA3) {
+    // SHLD, SHRD (double-prec. shift), BTS (bit test and set), BT (bit test).
+    AppendToBuffer("%s%c ", mnemonic, operand_size_code());
     int mod, regop, rm;
     get_modrm(*current, &mod, &regop, &rm);
     current += PrintRightOperand(current);
-    if (opcode == 0xAB) {
-      AppendToBuffer(",%s", NameOfCPURegister(regop));
+    AppendToBuffer(",%s", NameOfCPURegister(regop));
+    if (opcode == 0xAB || opcode == 0xA3) {
+      // Done.
+    } else if (opcode == 0xA5 || opcode == 0xAD) {
+      AppendToBuffer(",cl");
     } else {
-      AppendToBuffer(",%s,cl", NameOfCPURegister(regop));
+      AppendToBuffer(",");
+      current += PrintImmediate(current, BYTE_SIZE);
     }
   } else {
     UnimplementedInstruction();
@@ -1560,10 +1568,14 @@ const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
       return "divsd";
     case 0xA2:
       return "cpuid";
+    case 0xA3:
+      return "bt";
+    case 0xA4:
     case 0xA5:
       return "shld";
     case 0xAB:
       return "bts";
+    case 0xAC:
     case 0xAD:
       return "shrd";
     case 0xAF:

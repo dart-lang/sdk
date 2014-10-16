@@ -122,15 +122,15 @@ abstract class TestSuite {
   final String suiteName;
   // This function is set by subclasses before enqueueing starts.
   Function doTest;
+  Map<String, String> _environmentOverrides;
 
-
-  TestSuite(this.configuration, this.suiteName);
-
-  Map<String, String> get environmentOverrides {
-    return {
-      'DART_CONFIGURATION' : TestUtils.configurationDir(configuration),
+  TestSuite(this.configuration, this.suiteName) {
+    _environmentOverrides = {
+        'DART_CONFIGURATION' : TestUtils.configurationDir(configuration)
     };
   }
+
+  Map<String, String> get environmentOverrides => _environmentOverrides;
 
   /**
    * Whether or not binaries should be found in the root build directory or
@@ -596,6 +596,7 @@ class StandardTestSuite extends TestSuite {
   Predicate<String> isTestFilePredicate;
   final bool listRecursively;
   final extraVmOptions;
+  List<Uri> _dart2JsBootstrapDependencies;
 
   StandardTestSuite(Map configuration,
                     String suiteName,
@@ -603,11 +604,21 @@ class StandardTestSuite extends TestSuite {
                     this.statusFilePaths,
                     {this.isTestFilePredicate,
                     bool recursive: false})
-  : super(configuration, suiteName),
-    dartDir = TestUtils.dartDir,
-    listRecursively = recursive,
-    suiteDir = TestUtils.dartDir.join(suiteDirectory),
-    extraVmOptions = TestUtils.getExtraVmOptions(configuration);
+      : super(configuration, suiteName),
+        dartDir = TestUtils.dartDir,
+        listRecursively = recursive,
+        suiteDir = TestUtils.dartDir.join(suiteDirectory),
+        extraVmOptions = TestUtils.getExtraVmOptions(configuration) {
+    if (!useSdk) {
+      _dart2JsBootstrapDependencies = [];
+    } else {
+      var snapshotPath = TestUtils.absolutePath(new Path(buildDir).join(
+          new Path('dart-sdk/bin/snapshots/'
+                   'utils_wrapper.dart.snapshot'))).toString();
+      _dart2JsBootstrapDependencies =
+          [new Uri(scheme: 'file', path: snapshotPath)];
+    }
+  }
 
   /**
    * Creates a test suite whose file organization matches an expected structure.
@@ -651,14 +662,7 @@ class StandardTestSuite extends TestSuite {
         recursive: true);
   }
 
-  List<Uri> get dart2JsBootstrapDependencies {
-    if (!useSdk) return [];
-
-    var snapshotPath = TestUtils.absolutePath(new Path(buildDir).join(
-        new Path('dart-sdk/bin/snapshots/'
-                 'utils_wrapper.dart.snapshot'))).toString();
-    return [new Uri(scheme: 'file', path: snapshotPath)];
-  }
+  List<Uri> get dart2JsBootstrapDependencies => _dart2JsBootstrapDependencies;
 
   /**
    * The default implementation assumes a file is a test if

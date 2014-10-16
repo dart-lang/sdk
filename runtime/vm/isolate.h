@@ -114,10 +114,6 @@ class Isolate : public BaseIsolate {
     return reinterpret_cast<Isolate*>(Thread::GetThreadLocal(isolate_key));
   }
 
-  static inline uword CurrentAddress() {
-    return reinterpret_cast<uword>(Current());
-  }
-
   static void SetCurrent(Isolate* isolate);
 
   static void InitOnce();

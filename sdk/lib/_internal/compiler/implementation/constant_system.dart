@@ -10,12 +10,12 @@ abstract class Operation {
 
 abstract class UnaryOperation extends Operation {
   /** Returns [:null:] if it was unable to fold the operation. */
-  Constant fold(Constant constant);
+  ConstantValue fold(ConstantValue constant);
 }
 
 abstract class BinaryOperation extends Operation {
   /** Returns [:null:] if it was unable to fold the operation. */
-  Constant fold(Constant left, Constant right);
+  ConstantValue fold(ConstantValue left, ConstantValue right);
   apply(left, right);
 }
 
@@ -48,28 +48,30 @@ abstract class ConstantSystem {
 
   const ConstantSystem();
 
-  Constant createInt(int i);
-  Constant createDouble(double d);
-  Constant createString(DartString string);
-  Constant createBool(bool value);
-  Constant createNull();
-  Constant createMap(Compiler compiler, InterfaceType type,
-                     List<Constant> keys, List<Constant> values);
+  ConstantValue createInt(int i);
+  ConstantValue createDouble(double d);
+  ConstantValue createString(DartString string);
+  ConstantValue createBool(bool value);
+  ConstantValue createNull();
+  ConstantValue createMap(Compiler compiler,
+                          InterfaceType type,
+                          List<ConstantValue> keys,
+                          List<ConstantValue> values);
 
   // We need to special case the subtype check for JavaScript constant
   // system because an int is a double at runtime.
   bool isSubtype(Compiler compiler, DartType s, DartType t);
 
   /** Returns true if the [constant] is an integer at runtime. */
-  bool isInt(Constant constant);
+  bool isInt(ConstantValue constant);
   /** Returns true if the [constant] is a double at runtime. */
-  bool isDouble(Constant constant);
+  bool isDouble(ConstantValue constant);
   /** Returns true if the [constant] is a string at runtime. */
-  bool isString(Constant constant);
+  bool isString(ConstantValue constant);
   /** Returns true if the [constant] is a boolean at runtime. */
-  bool isBool(Constant constant);
+  bool isBool(ConstantValue constant);
   /** Returns true if the [constant] is null at runtime. */
-  bool isNull(Constant constant);
+  bool isNull(ConstantValue constant);
 
   UnaryOperation lookupUnary(String operator) {
     switch (operator) {

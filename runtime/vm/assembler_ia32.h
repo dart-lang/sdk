@@ -165,6 +165,9 @@ class Address : public Operand {
     SetDisp32(disp);
   }
 
+  // This addressing mode does not exist.
+  Address(Register index, ScaleFactor scale, Register r);
+
   Address(Register base, Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != ESP);  // Illegal addressing mode.
     if (disp == 0 && base != EBP) {
@@ -180,6 +183,9 @@ class Address : public Operand {
       SetDisp32(disp);
     }
   }
+
+  // This addressing mode does not exist.
+  Address(Register base, Register index, ScaleFactor scale, Register r);
 
   Address(const Address& other) : Operand(other) { }
 
@@ -205,8 +211,14 @@ class FieldAddress : public Address {
   FieldAddress(Register base, int32_t disp)
       : Address(base, disp - kHeapObjectTag) { }
 
+  // This addressing mode does not exist.
+  FieldAddress(Register base, Register r);
+
   FieldAddress(Register base, Register index, ScaleFactor scale, int32_t disp)
       : Address(base, index, scale, disp - kHeapObjectTag) { }
+
+  // This addressing mode does not exist.
+  FieldAddress(Register base, Register index, ScaleFactor scale, Register r);
 
   FieldAddress(const FieldAddress& other) : Address(other) { }
 
@@ -558,6 +570,8 @@ class Assembler : public ValueObject {
 
   void idivl(Register reg);
 
+  void divl(Register reg);
+
   void imull(Register dst, Register src);
   void imull(Register reg, const Immediate& imm);
   void imull(Register reg, const Address& address);
@@ -587,12 +601,12 @@ class Assembler : public ValueObject {
   void sarl(Register reg, const Immediate& imm);
   void sarl(Register operand, Register shifter);
   void sarl(const Address& address, Register shifter);
-  void shld(Register dst, Register src);
-  void shld(Register dst, Register src, const Immediate& imm);
-  void shld(const Address& operand, Register src);
-  void shrd(Register dst, Register src);
-  void shrd(Register dst, Register src, const Immediate& imm);
-  void shrd(const Address& dst, Register src);
+  void shldl(Register dst, Register src);
+  void shldl(Register dst, Register src, const Immediate& imm);
+  void shldl(const Address& operand, Register src);
+  void shrdl(Register dst, Register src);
+  void shrdl(Register dst, Register src, const Immediate& imm);
+  void shrdl(const Address& dst, Register src);
 
   void negl(Register reg);
   void notl(Register reg);
@@ -638,6 +652,8 @@ class Assembler : public ValueObject {
   void SubImmediate(Register reg, const Immediate& imm);
 
   void Drop(intptr_t stack_elements);
+
+  void LoadIsolate(Register dst);
 
   void LoadObject(Register dst, const Object& object);
 

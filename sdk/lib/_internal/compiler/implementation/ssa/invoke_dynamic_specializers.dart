@@ -369,8 +369,8 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
   bool isNotZero(HInstruction instruction, Compiler compiler) {
     if (!instruction.isConstantInteger()) return false;
     HConstant rightConstant = instruction;
-    IntConstant intConstant = rightConstant.constant;
-    int count = intConstant.value;
+    IntConstantValue intConstant = rightConstant.constant;
+    int count = intConstant.primitiveValue;
     return count != 0;
   }
 
@@ -419,8 +419,8 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
   bool argumentLessThan32(HInstruction instruction) {
     if (!instruction.isConstantInteger()) return false;
     HConstant rightConstant = instruction;
-    IntConstant intConstant = rightConstant.constant;
-    int count = intConstant.value;
+    IntConstantValue intConstant = rightConstant.constant;
+    int count = intConstant.primitiveValue;
     return count >= 0 && count <= 31;
   }
 

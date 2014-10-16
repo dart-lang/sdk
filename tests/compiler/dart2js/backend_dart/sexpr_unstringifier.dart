@@ -7,19 +7,21 @@
 
 library sexpr_unstringifier;
 
+import 'package:compiler/implementation/constants/expressions.dart'
+    show PrimitiveConstantExpression;
+import 'package:compiler/implementation/constants/values.dart';
 import 'package:compiler/implementation/dart2jslib.dart' as dart2js
-  show Constant, IntConstant, NullConstant, StringConstant,
-       DoubleConstant, TrueConstant, FalseConstant, MessageKind;
+    show MessageKind;
 import 'package:compiler/implementation/dart_types.dart' as dart_types
-  show DartType;
+    show DartType;
 import 'package:compiler/implementation/elements/elements.dart'
-  show Entity, Element, Elements, Local, TypeVariableElement, ErroneousElement,
-       TypeDeclarationElement, ExecutableElement;
+   show Entity, Element, Elements, Local, TypeVariableElement, ErroneousElement,
+         TypeDeclarationElement, ExecutableElement;
 import 'package:compiler/implementation/elements/modelx.dart'
-  show ErroneousElementX, TypeVariableElementX;
-import 'package:compiler/implementation/tree/tree.dart'show LiteralDartString;
+    show ErroneousElementX, TypeVariableElementX;
+import 'package:compiler/implementation/tree/tree.dart' show LiteralDartString;
 import 'package:compiler/implementation/universe/universe.dart'
-  show Selector, SelectorKind;
+    show Selector, SelectorKind;
 import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart';
 
 /// Used whenever a node constructed by [SExpressionUnstringifier] needs a
@@ -552,18 +554,26 @@ class SExpressionUnstringifier {
     String tag = tokens.read();
 
     // NullConstant.
-    if (tag == "null") {
+    if (tag == "NullConstant") {
       tokens.consumeEnd();
-      return new Constant(null, new dart2js.NullConstant());
+      return new Constant(
+          new PrimitiveConstantExpression(new NullConstantValue()));
     }
 
     // BoolConstant.
-    if (tag == "true") {
+    if (tag == "BoolConstant") {
+      tokens.consumeStart();
+      tag = tokens.read();
       tokens.consumeEnd();
-      return new Constant(null, new dart2js.TrueConstant());
-    } else if (tag == "false") {
       tokens.consumeEnd();
-      return new Constant(null, new dart2js.FalseConstant());
+      if (tag == "true") {
+        return new Constant(new PrimitiveConstantExpression(
+            new TrueConstantValue()));
+      } else if (tag == "false") {
+        return new Constant(new PrimitiveConstantExpression(
+            new FalseConstantValue()));
+      }
+      throw "Invalid bool value '$tag'.";
     }
 
     // StringConstant.
@@ -578,29 +588,42 @@ class SExpressionUnstringifier {
       String string = strings.join(" ");
       assert(string.startsWith('"') && string.endsWith('"'));
 
-      dart2js.StringConstant value = new dart2js.StringConstant(
+      StringConstantValue value = new StringConstantValue(
           new LiteralDartString(string.substring(1, string.length - 1)));
 
       tokens.consumeEnd();
-      return new Constant(null, value);
+      return new Constant(new PrimitiveConstantExpression(value));
     }
 
     // IntConstant.
-    int intValue = int.parse(tag, onError: (_) => null);
-    if (intValue != null) {
+    if (tag == "IntConstant") {
+      tokens.consumeStart();
+      tag = tokens.read();
+      int intValue = int.parse(tag, onError: (_) => null);
+      if (intValue == null) {
+        throw "Invalid int value '$tag'.";
+      }
       tokens.consumeEnd();
-      return new Constant(null, new dart2js.IntConstant(intValue));
+      tokens.consumeEnd();
+      return new Constant(new PrimitiveConstantExpression(
+          new IntConstantValue(intValue)));
     }
 
     // DoubleConstant.
-    double doubleValue = double.parse(tag, (_) => null);
-    if (doubleValue != null) {
+    if (tag == "DoubleConstant") {
+      tokens.consumeStart();
+      tag = tokens.read();
+      double doubleValue = double.parse(tag, (_) => null);
+      if (doubleValue == null) {
+        throw "Invalid double value '$tag'.";
+      }
       tokens.consumeEnd();
-      return new Constant(null, new dart2js.DoubleConstant(doubleValue));
+      tokens.consumeEnd();
+      return new Constant(new PrimitiveConstantExpression(
+          new DoubleConstantValue(doubleValue)));
     }
 
-    assert(false);
-    return null;
+    throw "Unhandled tag '$tag'.";
   }
 
   /// (CreateFunction (definition))

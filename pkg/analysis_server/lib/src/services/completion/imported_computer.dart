@@ -6,13 +6,16 @@ library services.completion.computer.dart.toplevel;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' as protocol show Element, ElementKind;
-import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/src/protocol_server.dart' hide Element,
+    ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A computer for calculating imported class and top level variable
@@ -45,32 +48,116 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   _ImportedVisitor(this.request);
 
   @override
-  Future<bool> visitCombinator(Combinator node) {
-    NamespaceDirective directive =
-        node.getAncestor((parent) => parent is NamespaceDirective);
-    if (directive != null) {
-      LibraryElement library = directive.uriElement;
-      LibraryElementSuggestionBuilder.suggestionsFor(request, library);
-      return new Future.value(true);
+  Future<bool> visitBlock(Block node) {
+    return _addImportedElementSuggestions(node);
+  }
+
+  @override
+  Future<bool> visitCascadeExpression(CascadeExpression node) {
+    // Make suggestions for the target, but not for the selector
+    // InvocationComputer makes selector suggestions
+    Expression target = node.target;
+    if (target != null && request.offset <= target.end) {
+      return _addImportedElementSuggestions(node);
     }
     return new Future.value(false);
   }
 
   @override
+  Future<bool> visitClassDeclaration(ClassDeclaration node) {
+    // Make suggestions in the body of the class declaration
+    Token leftBracket = node.leftBracket;
+    if (leftBracket != null && request.offset >= leftBracket.end) {
+      return _addImportedElementSuggestions(node);
+    }
+    return new Future.value(false);
+  }
+
+  @override
+  Future<bool> visitCombinator(Combinator node) {
+    return _addCombinatorSuggestions(node);
+  }
+
+  @override
+  Future<bool> visitExpression(Expression node) {
+    return _addImportedElementSuggestions(node);
+  }
+
+  @override
   Future<bool> visitExpressionStatement(ExpressionStatement node) {
     Expression expression = node.expression;
-    if (expression is SimpleIdentifier) {
-      if (expression.end < request.offset) {
-        // Don't suggest imported elements for local var name
-        return new Future.value(false);
+    // A pre-variable declaration (e.g. C ^) is parsed as an expression
+    // statement. Do not make suggestions for the variable name.
+    if (expression is SimpleIdentifier && request.offset <= expression.end) {
+      return _addImportedElementSuggestions(node);
+    }
+    return new Future.value(false);
+  }
+
+  @override
+  Future<bool> visitForStatement(ForStatement node) {
+    Token leftParenthesis = node.leftParenthesis;
+    if (leftParenthesis != null && request.offset >= leftParenthesis.end) {
+      return _addImportedElementSuggestions(node);
+    }
+    return new Future.value(false);
+  }
+
+  @override
+  Future<bool> visitIfStatement(IfStatement node) {
+    Token leftParen = node.leftParenthesis;
+    if (leftParen != null && request.offset >= leftParen.end) {
+      Token rightParen = node.rightParenthesis;
+      if (rightParen == null || request.offset <= rightParen.offset) {
+        return _addImportedElementSuggestions(node);
       }
     }
-    return visitNode(node);
+    return new Future.value(false);
+  }
+
+  @override
+  Future<bool> visitInterpolationExpression(InterpolationExpression node) {
+    Expression expression = node.expression;
+    if (expression is SimpleIdentifier) {
+      return _addImportedElementSuggestions(node);
+    }
+    return new Future.value(false);
+  }
+
+  @override
+  Future<bool> visitMethodInvocation(MethodInvocation node) {
+    Token period = node.period;
+    if (period == null || request.offset <= period.offset) {
+      return _addImportedElementSuggestions(node);
+    }
+    return new Future.value(false);
   }
 
   @override
   Future<bool> visitNode(AstNode node) {
-    return _addImportedElements();
+    return new Future.value(false);
+  }
+
+  @override
+  Future<bool> visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // Make suggestions for the prefix, but not for the selector
+    // InvocationComputer makes selector suggestions
+    Token period = node.period;
+    if (period != null && request.offset <= period.offset) {
+      return _addImportedElementSuggestions(node);
+    }
+    return new Future.value(false);
+  }
+
+  @override
+  Future<bool> visitPropertyAccess(PropertyAccess node) {
+    // Make suggestions for the target, but not for the property name
+    // InvocationComputer makes property name suggestions
+    var operator = node.operator;
+    if (operator != null && request.offset < operator.offset) {
+      return _addImportedElementSuggestions(node);
+    }
+    return new Future.value(false);
   }
 
   @override
@@ -79,110 +166,199 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   @override
-  Future<bool> visitVariableDeclaration(VariableDeclaration node) {
-    // Do not add suggestions if editing the name in a var declaration
-    SimpleIdentifier name = node.name;
-    if (name == null ||
-        name.offset < request.offset ||
-        request.offset > name.end) {
-      return visitNode(node);
+  Future<bool> visitStringLiteral(StringLiteral node) {
+    return new Future.value(false);
+  }
+
+  @override
+  Future<bool> visitTypeName(TypeName node) {
+    return _addImportedElementSuggestions(node, typesOnly: true);
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    Token equals = node.equals;
+    // Make suggestions for the RHS of a variable declaration
+    if (equals != null && request.offset >= equals.end) {
+      return _addImportedElementSuggestions(node);
     }
     return new Future.value(false);
   }
 
-  Future<bool> _addImportedElements() {
-    var future = request.searchEngine.searchTopLevelDeclarations('');
-    return future.then((List<SearchMatch> matches) {
+  Future _addCombinatorSuggestions(Combinator node) {
+    var directive = node.getAncestor((parent) => parent is NamespaceDirective);
+    if (directive is NamespaceDirective) {
+      LibraryElement library = directive.uriElement;
+      LibraryElementSuggestionBuilder.suggestionsFor(request, library);
+      return new Future.value(true);
+    }
 
-      Set<LibraryElement> visibleLibs = new Set<LibraryElement>();
-      Set<LibraryElement> excludedLibs = new Set<LibraryElement>();
+    return new Future.value(false);
+  }
 
-      Map<LibraryElement, Set<String>> showNames =
-          new Map<LibraryElement, Set<String>>();
-      Map<LibraryElement, Set<String>> hideNames =
-          new Map<LibraryElement, Set<String>>();
+  void _addElementSuggestion(Element element, CompletionRelevance relevance) {
 
-      // Exclude elements from the local library
-      // as they will be included by the LocalComputer
-      excludedLibs.add(request.unit.element.library);
+    if (element is ExecutableElement) {
+      if (element.isOperator) {
+        return;
+      }
+    }
 
-      // Build the set of visible and excluded libraries
-      // and the list of names that should be shown or hidden
-      request.unit.directives.forEach((Directive directive) {
-        if (directive is ImportDirective) {
-          ImportElement element = directive.element;
-          if (element != null) {
-            LibraryElement lib = element.importedLibrary;
-            if (directive.prefix == null) {
-              visibleLibs.add(lib);
-              directive.combinators.forEach((Combinator combinator) {
-                if (combinator is ShowCombinator) {
-                  showNames[lib] =
-                      combinator.shownNames.map((SimpleIdentifier id) => id.name).toSet();
-                } else if (combinator is HideCombinator) {
-                  hideNames[lib] =
-                      combinator.hiddenNames.map((SimpleIdentifier id) => id.name).toSet();
-                }
-              });
-            } else {
-              excludedLibs.add(lib);
-            }
+    CompletionSuggestionKind kind =
+        newCompletionSuggestionKind_fromElementKind(element.kind);
+
+    String completion = element.displayName;
+    CompletionSuggestion suggestion = new CompletionSuggestion(
+        kind,
+        relevance,
+        completion,
+        completion.length,
+        0,
+        element.isDeprecated,
+        false);
+
+    suggestion.element = newElement_fromEngine(element);
+
+    DartType type;
+    if (element is FunctionElement) {
+      type = element.returnType;
+    } else if (element is PropertyAccessorElement && element.isGetter) {
+      type = element.returnType;
+    } else if (element is TopLevelVariableElement) {
+      type = element.type;
+    }
+    if (type != null) {
+      String name = type.displayName;
+      if (name != null && name.length > 0 && name != 'dynamic') {
+        suggestion.returnType = name;
+      }
+    }
+
+    request.suggestions.add(suggestion);
+  }
+
+  void _addElementSuggestions(List<Element> elements) {
+    elements.forEach((Element elem) {
+      _addElementSuggestion(elem, CompletionRelevance.DEFAULT);
+    });
+  }
+
+  Future<bool> _addImportedElementSuggestions(AstNode node, {bool typesOnly:
+      false}) {
+
+    // Exclude elements from local library
+    // because they are provided by LocalComputer
+    Set<LibraryElement> excludedLibs = new Set<LibraryElement>();
+    excludedLibs.add(request.unit.element.enclosingElement);
+
+    // Include explicitly imported elements
+    Map<String, ClassElement> classMap = new Map<String, ClassElement>();
+    request.unit.directives.forEach((Directive directive) {
+      if (directive is ImportDirective) {
+        ImportElement importElem = directive.element;
+        if (importElem != null && importElem.importedLibrary != null) {
+          if (directive.prefix == null) {
+            Namespace importNamespace =
+                new NamespaceBuilder().createImportNamespaceForDirective(importElem);
+            // Include top level elements
+            importNamespace.definedNames.forEach((String name, Element elem) {
+              if (elem is ClassElement) {
+                classMap[name] = elem;
+                _addElementSuggestion(elem, CompletionRelevance.DEFAULT);
+              } else if (!typesOnly) {
+                _addElementSuggestion(elem, CompletionRelevance.DEFAULT);
+              }
+            });
+          } else {
+            // Exclude elements from prefixed imports
+            // because they are provided by InvocationComputer
+            excludedLibs.add(importElem.importedLibrary);
+            _addLibraryPrefixSuggestion(importElem);
           }
         }
-      });
+      }
+    });
 
-      // Compute the set of possible classes, functions, and top level variables
+    // Include implicitly imported dart:core elements
+    Source coreUri = request.context.sourceFactory.forUri('dart:core');
+    LibraryElement coreLib = request.context.getLibraryElement(coreUri);
+    Namespace coreNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(coreLib);
+    coreNamespace.definedNames.forEach((String name, Element elem) {
+      if (elem is ClassElement) {
+        classMap[name] = elem;
+        _addElementSuggestion(elem, CompletionRelevance.DEFAULT);
+      } else if (!typesOnly) {
+        _addElementSuggestion(elem, CompletionRelevance.DEFAULT);
+      }
+    });
+
+    // Build a list of inherited types that are imported
+    // and include any inherited imported members
+    var classDecl = node.getAncestor((p) => p is ClassDeclaration);
+    if (classDecl is ClassDeclaration) {
+      List<String> inheritedTypes = new List<String>();
+      visitInheritedTypes(classDecl, (ClassDeclaration classDecl) {
+        // ignored
+      }, (String typeName) {
+        inheritedTypes.add(typeName);
+      });
+      Set<String> visited = new Set<String>();
+      while (inheritedTypes.length > 0) {
+        String name = inheritedTypes.removeLast();
+        ClassElement elem = classMap[name];
+        if (visited.add(name) && elem != null) {
+          _addElementSuggestions(elem.accessors);
+          _addElementSuggestions(elem.methods);
+          elem.allSupertypes.forEach((InterfaceType type) {
+            if (visited.add(type.name)) {
+              _addElementSuggestions(type.accessors);
+              _addElementSuggestions(type.methods);
+            }
+          });
+        }
+      }
+    }
+
+    // Add non-imported elements as low relevance
+    var future = request.searchEngine.searchTopLevelDeclarations('');
+    return future.then((List<SearchMatch> matches) {
+      Set<String> completionSet = new Set<String>();
+      request.suggestions.forEach((CompletionSuggestion suggestion) {
+        completionSet.add(suggestion.completion);
+      });
       matches.forEach((SearchMatch match) {
         if (match.kind == MatchKind.DECLARATION) {
           Element element = match.element;
-          LibraryElement lib = element.library;
-          if (element.isPublic && !excludedLibs.contains(lib)) {
-            String completion = element.displayName;
-            Set<String> show = showNames[lib];
-            Set<String> hide = hideNames[lib];
-            if ((show == null || show.contains(completion)) &&
-                (hide == null || !hide.contains(completion))) {
-
-              CompletionSuggestionKind kind =
-                  new CompletionSuggestionKind.fromElementKind(element.kind);
-
-              CompletionRelevance relevance;
-              if (visibleLibs.contains(lib) || lib.isDartCore) {
-                relevance = CompletionRelevance.DEFAULT;
-              } else {
-                relevance = CompletionRelevance.LOW;
-              }
-
-              CompletionSuggestion suggestion = new CompletionSuggestion(
-                  kind,
-                  relevance,
-                  completion,
-                  completion.length,
-                  0,
-                  element.isDeprecated,
-                  false);
-
-              suggestion.element = new protocol.Element.fromEngine(element);
-
-              DartType type;
-              if (element is TopLevelVariableElement) {
-                type = element.type;
-              } else if (element is FunctionElement) {
-                type = element.returnType;
-              }
-              if (type != null) {
-                String name = type.displayName;
-                if (name != null && name.length > 0 && name != 'dynamic') {
-                  suggestion.returnType = name;
-                }
-              }
-
-              request.suggestions.add(suggestion);
+          if (element.isPublic &&
+              !excludedLibs.contains(element.library) &&
+              !completionSet.contains(element.displayName)) {
+            if (!typesOnly || element is ClassElement) {
+              _addElementSuggestion(element, CompletionRelevance.LOW);
             }
           }
         }
       });
       return true;
     });
+  }
+
+  void _addLibraryPrefixSuggestion(ImportElement importElem) {
+    String completion = importElem.prefix.displayName;
+    if (completion != null && completion.length > 0) {
+      CompletionSuggestion suggestion = new CompletionSuggestion(
+          CompletionSuggestionKind.LIBRARY_PREFIX,
+          CompletionRelevance.DEFAULT,
+          completion,
+          completion.length,
+          0,
+          importElem.isDeprecated,
+          false);
+      LibraryElement lib = importElem.importedLibrary;
+      if (lib != null) {
+        suggestion.element = newElement_fromEngine(lib);
+      }
+      request.suggestions.add(suggestion);
+    }
   }
 }

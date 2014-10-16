@@ -111,7 +111,7 @@
 
   // TODO(jmesserly): we're using this function because DOMContentLoaded can
   // be fired too soon: https://www.w3.org/Bugs/Public/show_bug.cgi?id=23526
-  HTMLImports.whenImportsReady(function() {
+  HTMLImports.whenReady(function() {
     // Append a new script tag that initializes everything.
     var newScript = document.createElement('script');
     newScript.type = "application/dart";

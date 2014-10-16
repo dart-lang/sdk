@@ -56,37 +56,34 @@ main() {
 
       group('excluded', () {
         test('excluded folder', () {
-          String project = '/project';
           String fileA = '/project/aaa/a.dart';
           String fileB = '/project/bbb/b.dart';
-          resourceProvider.newFolder(project);
           resourceProvider.newFile(fileA, '// a');
           resourceProvider.newFile(fileB, '// b');
-          var response = testSetAnalysisRoots([project], ['/project/bbb']);
+          var response = testSetAnalysisRoots(['/project'], ['/project/bbb']);
           var serverRef = server;
           expect(response, isResponseSuccess('0'));
           // unit "a" is resolved eventually
           // unit "b" is not resolved
           return waitForServerOperationsPerformed(server).then((_) {
-            expect(serverRef.test_getResolvedCompilationUnit(fileA), isNotNull);
-            expect(serverRef.test_getResolvedCompilationUnit(fileB), isNull);
+            expect(serverRef.getResolvedCompilationUnits(fileA), hasLength(1));
+            expect(serverRef.getResolvedCompilationUnits(fileB), isEmpty);
           });
         });
       });
 
       group('included', () {
         test('new folder', () {
-          resourceProvider.newFolder('/project');
+          String file = '/project/bin/test.dart';
           resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
-          resourceProvider.newFile('/project/bin/test.dart', 'main() {}');
+          resourceProvider.newFile(file, 'main() {}');
           var response = testSetAnalysisRoots(['/project'], []);
           var serverRef = server;
           expect(response, isResponseSuccess('0'));
           // verify that unit is resolved eventually
           return waitForServerOperationsPerformed(server).then((_) {
-            var unit =
-                serverRef.test_getResolvedCompilationUnit('/project/bin/test.dart');
-            expect(unit, isNotNull);
+            var units = serverRef.getResolvedCompilationUnits(file);
+            expect(units, hasLength(1));
           });
         });
       });

@@ -6,7 +6,7 @@ library services.src.refactoring.convert_method_to_getter;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -105,12 +105,12 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implements
     // insert "get "
     {
       SourceEdit edit = new SourceEdit(element.nameOffset, 0, 'get ');
-      change.addElementEdit(element, edit);
+      doSourceChange_addElementEdit(change, element, edit);
     }
     // remove parameters
     {
-      SourceEdit edit = new SourceEdit.range(rangeNode(parameters), '');
-      change.addElementEdit(element, edit);
+      SourceEdit edit = newSourceEdit_range(rangeNode(parameters), '');
+      doSourceChange_addElementEdit(change, element, edit);
     }
   }
 
@@ -131,8 +131,8 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implements
         // we need invocation
         if (invocation != null) {
           SourceRange range = rangeEndEnd(refRange, invocation);
-          SourceEdit edit = new SourceEdit.range(range, '');
-          change.addElementEdit(refElement, edit);
+          SourceEdit edit = newSourceEdit_range(range, '');
+          doSourceChange_addElementEdit(change, element, edit);
         }
       }
     });

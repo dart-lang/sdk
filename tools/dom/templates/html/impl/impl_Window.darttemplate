@@ -217,46 +217,8 @@ $endif
   }
 
   /**
-   * Converts a point from node coordinates to this window's coordinates.
-   *
-   * ## Other resources
-   *
-   * * [webkitConvertPointFromPageToNode]
-   * (https://developer.apple.com/library/safari/documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html#//apple_ref/javascript/instm/DOMWindow/webkitConvertPointFromNodeToPage)
-   * from Safari Development Library.
-   */
-  @DomName('Window.convertPointFromNodeToPage')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  Point convertPointFromNodeToPage(Node node, Point point) {
-    var result = _convertPointFromNodeToPage(node,
-        new _DomPoint(point.x, point.y));
-    return new Point(result.x, result.y);
-  }
-
-  /**
-   * Converts a point from this window's coordinates to node coordinates.
-   *
-   * ## Other resources
-   *
-   * * [webkitConvertPointFromPageToNode]
-   * (https://developer.apple.com/library/safari/documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html#//apple_ref/javascript/instm/DOMWindow/webkitConvertPointFromPageToNode)
-   * from Safari Development Library.
-   */
-  @DomName('Window.convertPointFromPageToNode')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  Point convertPointFromPageToNode(Node node, Point point) {
-    var result = _convertPointFromPageToNode(node,
-        new _DomPoint(point.x, point.y));
-    return new Point(result.x, result.y);
-  }
-
-  /**
-   * Checks whether [convertPointFromNodeToPage] and
-   * [convertPointFromPageToNode] are supported on the current platform.
+   * convertPointFromNodeToPage and convertPointFromPageToNode are removed.
+   * see http://dev.w3.org/csswg/cssom-view/#geometry
    */
   static bool get supportsPointConversions => _DomPoint.supported;
 $!MEMBERS

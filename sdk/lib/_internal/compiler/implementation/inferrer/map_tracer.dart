@@ -47,7 +47,7 @@ class MapTracerVisitor extends TracerVisitor<MapTypeInformation> {
     analyze();
     MapTypeInformation map = tracedType;
     if (continueAnalyzing) {
-      map.flowsInto.addAll(flowsInto);
+      map.addFlowsIntoTargets(flowsInto);
       return true;
     }
     keyAssignments = valueAssignments = mapAssignments = null;

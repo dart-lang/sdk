@@ -1,11 +1,20 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub.command.run;
+
 import 'dart:async';
+
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as p;
+
 import '../command.dart';
 import '../executable.dart';
 import '../io.dart';
 import '../utils.dart';
+
+/// Handles the `run` pub command.
 class RunCommand extends PubCommand {
   bool get takesArguments => true;
   bool get allowTrailingOptions => false;
@@ -13,12 +22,14 @@ class RunCommand extends PubCommand {
       "Run an executable from a package.\n"
           "NOTE: We are currently optimizing this command's startup time.";
   String get usage => "pub run <executable> [args...]";
+
   RunCommand() {
     commandParser.addOption(
         "mode",
         help: 'Mode to run transformers in.\n'
             '(defaults to "release" for dependencies, "debug" for ' 'entrypoint)');
   }
+
   Future onRun() {
     final completer0 = new Completer();
     scheduleMicrotask(() {
@@ -41,19 +52,15 @@ class RunCommand extends PubCommand {
                   flushThenExit(exitCode).then((x1) {
                     try {
                       x1;
-                      completer0.complete(null);
-                    } catch (e1) {
-                      completer0.completeError(e1);
+                      completer0.complete();
+                    } catch (e0, s0) {
+                      completer0.completeError(e0, s0);
                     }
-                  }, onError: (e2) {
-                    completer0.completeError(e2);
-                  });
-                } catch (e0) {
-                  completer0.completeError(e0);
+                  }, onError: completer0.completeError);
+                } catch (e1, s1) {
+                  completer0.completeError(e1, s1);
                 }
-              }, onError: (e3) {
-                completer0.completeError(e3);
-              });
+              }, onError: completer0.completeError);
             }
             if (commandOptions['mode'] != null) {
               mode = new BarbackMode(commandOptions['mode']);
@@ -95,8 +102,8 @@ class RunCommand extends PubCommand {
         } else {
           join0();
         }
-      } catch (e4) {
-        completer0.completeError(e4);
+      } catch (e, s) {
+        completer0.completeError(e, s);
       }
     });
     return completer0.future;

@@ -1829,10 +1829,6 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
   @DocsEditable()
   final AnimatedNumber radiusY;
 
-  @DomName('SVGFEMorphologyElement.setRadius')
-  @DocsEditable()
-  void setRadius(num radiusX, num radiusY) native;
-
   // From SVGFilterPrimitiveStandardAttributes
 
   @DomName('SVGFEMorphologyElement.height')
@@ -4726,6 +4722,11 @@ class StyleElement extends SvgElement {
   @DomName('SVGStyleElement.media')
   @DocsEditable()
   String media;
+
+  @DomName('SVGStyleElement.sheet')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final StyleSheet sheet;
 
   // Shadowing definition.
   String get title => JS("String", "#.title", this);

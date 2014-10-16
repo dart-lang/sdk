@@ -318,43 +318,15 @@ class LibraryElementY extends ElementY with AnalyzableElementY
   get tags => unsupported('tags');
 }
 
-class TopLevelFunctionElementY extends ElementY
-    with AnalyzableElementY, AstElementY
-    implements dart2js.FunctionElement {
-  analyzer.FunctionElement get element => super.element;
+abstract class TopLevelElementMixin implements ElementY {
+  @override
+  bool get isClassMember => false;
 
-  dart2js.FunctionSignature _functionSignature;
+  @override
+  bool get isInstanceMember => false;
 
-  // TODO(johnniwinther): Avoid the need for this.
-  dart2js.FunctionSignature get functionSignature {
-    if (_functionSignature == null) {
-      util.LinkBuilder<dart2js.Element> parameterBuilder =
-          new util.LinkBuilder<dart2js.Element>();
-      List<dart2js.DartType> parameterTypes = <dart2js.DartType>[];
-      element.parameters.forEach((analyzer.ParameterElement parameter) {
-        if (parameter.parameterKind.isOptional) {
-          unsupported('Optional parameter.');
-        } else {
-          dart2js.ParameterElement convertedParameter =
-              converter.convertElement(parameter);
-          parameterBuilder.addLast(convertedParameter);
-          parameterTypes.add(convertedParameter.type);
-        }
-      });
-      // TODO(johnniwinther): Convert parameter and return types.
-      util.Link<dart2js.Element> parameters = parameterBuilder.toLink();
-      _functionSignature = new modelx.FunctionSignatureX(
-            parameters,
-            const util.Link<dart2js.Element>(),
-            parameterBuilder.length, 0, false,
-            parameters.toList(),
-            new dart2js.FunctionType.synthesized(
-                converter.convertType(element.returnType),
-                parameterTypes));
-    }
-    return _functionSignature;
-  }
-
+  @override
+  bool get isTopLevel => true;
 
   // TODO(johnniwinther): Ensure the correct semantics of this.
   @override
@@ -371,18 +343,18 @@ class TopLevelFunctionElementY extends ElementY
   // TODO(johnniwinther): Ensure the correct semantics of this.
   @override
   bool get isAbstract => false;
+}
+
+class TopLevelFunctionElementY extends ElementY
+    with AnalyzableElementY, AstElementY, TopLevelElementMixin
+    implements dart2js.FunctionElement {
+  analyzer.FunctionElement get element => super.element;
 
   @override
   dart2js.ElementKind get kind => dart2js.ElementKind.FUNCTION;
 
   @override
-  bool get isClassMember => false;
-
-  @override
-  bool get isInstanceMember => false;
-
-  @override
-  bool get isTopLevel => true;
+  dart2js.FunctionType get type => converter.convertType(element.type);
 
   TopLevelFunctionElementY(ElementConverter converter,
                            analyzer.FunctionElement element)
@@ -398,7 +370,10 @@ class TopLevelFunctionElementY extends ElementY
   get memberContext => unsupported('memberContext');
 
   @override
-  dart2js.FunctionType get type => functionSignature.type;
+  get functionSignature => unsupported('functionSignature');
+
+  @override
+  bool get hasFunctionSignature => unsupported('hasFunctionSignature');
 }
 
 class ParameterElementY extends ElementY
@@ -412,10 +387,6 @@ class ParameterElementY extends ElementY
 
   @override
   dart2js.DartType get type => converter.convertType(element.type);
-
-  // TODO(johnniwinther): Avoid the need for this.
-  @override
-  dart2js.FunctionSignature get functionSignature => null;
 
   @override
   bool get isLocal => true;
@@ -443,6 +414,9 @@ class ParameterElementY extends ElementY
 
   @override
   get memberContext => unsupported('memberContext');
+
+  @override
+  get functionSignature => unsupported('functionSignature');
 }
 
 class TypeDeclarationElementY extends ElementY
@@ -479,6 +453,9 @@ class ClassElementY extends TypeDeclarationElementY
   analyzer.ClassElement get element => super.element;
 
   dart2js.ElementKind get kind => dart2js.ElementKind.CLASS;
+
+  @override
+  bool get isObject => element.type.isObject;
 
   ClassElementY(ElementConverter converter, analyzer.ClassElement element)
       : super(converter, element);
@@ -564,9 +541,6 @@ class ClassElementY extends TypeDeclarationElementY
   get interfaces => unsupported('interfaces');
 
   @override
-  bool isObject(compiler) => unsupported('isObject');
-
-  @override
   bool get isProxy => unsupported('isProxy');
 
   @override
@@ -624,6 +598,9 @@ class ClassElementY extends TypeDeclarationElementY
   @override
   dart2js.ClassElement get superclass => unsupported('superclass');
 
+  // TODO(johnniwinther): Semantic difference: Dart2js points to unnamed
+  // mixin applications, analyzer points to the type in the extends clause or
+  // Object if omitted.
   @override
   dart2js.DartType get supertype => unsupported('supertype');
 
@@ -655,4 +632,29 @@ class TypedefElementY extends TypeDeclarationElementY
 
   @override
   get functionSignature => unsupported('functionSignature');
+}
+
+class TopLevelVariableElementY extends ElementY
+    with AnalyzableElementY, AstElementY, TopLevelElementMixin
+    implements dart2js.FieldElement {
+
+  analyzer.TopLevelVariableElement get element => super.element;
+
+  dart2js.ElementKind get kind => dart2js.ElementKind.FIELD;
+
+  @override
+  dart2js.DartType get type => converter.convertType(element.type);
+
+  TopLevelVariableElementY(ElementConverter converter,
+                           analyzer.TopLevelVariableElement element)
+      : super(converter, element);
+
+  @override
+  get initializer => unsupported('initializer');
+
+  @override
+  get memberContext => unsupported('memberContext');
+
+  @override
+  get nestedClosures => unsupported('nestedClosures');
 }

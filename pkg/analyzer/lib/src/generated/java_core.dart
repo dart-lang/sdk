@@ -4,6 +4,8 @@ import "dart:math" as math;
 
 final Stopwatch nanoTimeStopwatch = new Stopwatch();
 
+const int LONG_MAX_VALUE = 0x7fffffffffffffff;
+
 class JavaSystem {
   static int currentTimeMillis() {
     return (new DateTime.now()).millisecondsSinceEpoch;
@@ -271,7 +273,7 @@ class StringUtils {
     return sb.toString();
   }
 
-  static List<String> split(String s, [String pattern = '']) {
+  static List<String> split(String s, [String pattern = ' ']) {
     return s.split(pattern);
   }
 
@@ -333,15 +335,22 @@ class NumberFormatException extends JavaException {
 
 /// Parses given string to [Uri], throws [URISyntaxException] if invalid.
 Uri parseUriWithException(String str) {
-  Uri uri = Uri.parse(str);
+  Uri uri;
+  try {
+    uri = Uri.parse(str);
+  } on FormatException catch (e) {
+    throw new URISyntaxException(e.toString());
+  }
   if (uri.path.isEmpty) {
-    throw new URISyntaxException();
+    throw new URISyntaxException('empty path');
   }
   return uri;
 }
 
 class URISyntaxException implements Exception {
-  String toString() => "URISyntaxException";
+  final String message;
+  URISyntaxException(this.message);
+  String toString() => "URISyntaxException: $message";
 }
 
 class MissingFormatArgumentException implements Exception {

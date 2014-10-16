@@ -32,6 +32,7 @@ class LocalVariable : public ZoneAllocated {
       is_final_(false),
       is_captured_(false),
       is_invisible_(false),
+      is_captured_parameter_(false),
       index_(LocalVariable::kUninitializedIndex) {
     ASSERT(type.IsZoneHandle());
     ASSERT(type.IsFinalized());
@@ -73,6 +74,11 @@ class LocalVariable : public ZoneAllocated {
   }
   bool is_invisible() const { return is_invisible_; }
 
+  bool is_captured_parameter() const { return is_captured_parameter_; }
+  void set_is_captured_parameter(bool value) {
+    is_captured_parameter_ = value;
+  }
+
   bool IsConst() const {
     return const_value_ != NULL;
   }
@@ -110,6 +116,7 @@ class LocalVariable : public ZoneAllocated {
   bool is_captured_;  // If true, this variable lives in the context, otherwise
                       // in the stack frame.
   bool is_invisible_;
+  bool is_captured_parameter_;
   int index_;  // Allocation index in words relative to frame pointer (if not
                // captured), or relative to the context pointer (if captured).
 

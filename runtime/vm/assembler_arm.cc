@@ -465,6 +465,14 @@ void Assembler::umlal(Register rd_lo, Register rd_hi,
 }
 
 
+void Assembler::umaal(Register rd_lo, Register rd_hi,
+                      Register rn, Register rm, Condition cond) {
+  ASSERT(TargetCPUFeatures::arm_version() == ARMv7);
+  // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+  EmitMulOp(cond, B22, rd_lo, rd_hi, rn, rm);
+}
+
+
 void Assembler::EmitDivOp(Condition cond, int32_t opcode,
                           Register rd, Register rn, Register rm) {
   ASSERT(TargetCPUFeatures::integer_division_supported());
@@ -569,6 +577,7 @@ void Assembler::stm(BlockAddressMode am, Register base, RegList regs,
 
 
 void Assembler::ldrex(Register rt, Register rn, Condition cond) {
+  ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   ASSERT(rn != kNoRegister);
   ASSERT(rt != kNoRegister);
   ASSERT(cond != kNoCondition);
@@ -584,6 +593,7 @@ void Assembler::ldrex(Register rt, Register rn, Condition cond) {
 
 
 void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
+  ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   ASSERT(rn != kNoRegister);
   ASSERT(rd != kNoRegister);
   ASSERT(rt != kNoRegister);
@@ -600,6 +610,7 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
 
 
 void Assembler::clrex() {
+  ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   int32_t encoding = (kSpecialCondition << kConditionShift) |
                      B26 | B24 | B22 | B21 | B20 | (0xff << 12) | B4 | 0xf;
   Emit(encoding);
@@ -687,6 +698,24 @@ void Assembler::vmovrrs(Register rt, Register rt2, SRegister sm,
                      (static_cast<int32_t>(rt)*B12) | B11 | B9 |
                      ((static_cast<int32_t>(sm) & 1)*B5) | B4 |
                      (static_cast<int32_t>(sm) >> 1);
+  Emit(encoding);
+}
+
+
+void Assembler::vmovdr(DRegister dn, int i, Register rt, Condition cond) {
+  ASSERT(TargetCPUFeatures::vfp_supported());
+  ASSERT((i == 0) || (i == 1));
+  ASSERT(rt != kNoRegister);
+  ASSERT(rt != SP);
+  ASSERT(rt != PC);
+  ASSERT(dn != kNoDRegister);
+  ASSERT(cond != kNoCondition);
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
+                     B27 | B26 | B25 |
+                     (i*B21) |
+                     (static_cast<int32_t>(rt)*B12) | B11 | B9 | B8 |
+                     ((static_cast<int32_t>(dn) >> 4)*B7) |
+                     ((static_cast<int32_t>(dn) & 0xf)*B16) | B4;
   Emit(encoding);
 }
 
@@ -1157,14 +1186,19 @@ void Assembler::vcmpdz(DRegister dd, Condition cond) {
 }
 
 
-void Assembler::vmstat(Condition cond) {  // VMRS APSR_nzcv, FPSCR
+void Assembler::vmrs(Register rd, Condition cond) {
   ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
                      B27 | B26 | B25 | B23 | B22 | B21 | B20 | B16 |
-                     (static_cast<int32_t>(PC)*B12) |
+                     (static_cast<int32_t>(rd)*B12) |
                      B11 | B9 | B4;
   Emit(encoding);
+}
+
+
+void Assembler::vmstat(Condition cond) {
+  vmrs(APSR, cond);
 }
 
 
@@ -1536,6 +1570,11 @@ void Assembler::LoadPoolPointer() {
 }
 
 
+void Assembler::LoadIsolate(Register rd) {
+  LoadImmediate(rd, reinterpret_cast<uword>(Isolate::Current()));
+}
+
+
 void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
@@ -1707,10 +1746,8 @@ void Assembler::LoadClassId(Register result, Register object, Condition cond) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
-  ldr(result, FieldAddress(CTX, Context::isolate_offset()));
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  LoadFromOffset(kWord, result, result, table_offset_in_isolate);
+  LoadImmediate(result, Isolate::Current()->class_table()->TableAddress());
+  LoadFromOffset(kWord, result, result, 0);
   ldr(result, Address(result, class_id, LSL, 2));
 }
 
@@ -1718,12 +1755,7 @@ void Assembler::LoadClassById(Register result, Register class_id) {
 void Assembler::LoadClass(Register result, Register object, Register scratch) {
   ASSERT(scratch != result);
   LoadClassId(scratch, object);
-
-  ldr(result, FieldAddress(CTX, Context::isolate_offset()));
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  LoadFromOffset(kWord, result, result, table_offset_in_isolate);
-  ldr(result, Address(result, scratch, LSL, 2));
+  LoadClassById(result, scratch);
 }
 
 
@@ -2229,10 +2261,11 @@ void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
 }
 
 
-void Assembler::Lsl(Register rd, Register rm, uint32_t shift_imm,
+void Assembler::Lsl(Register rd, Register rm, const Operand& shift_imm,
                     Condition cond) {
-  ASSERT(shift_imm != 0);  // Do not use Lsl if no shift is wanted.
-  mov(rd, Operand(rm, LSL, shift_imm), cond);
+  ASSERT(shift_imm.type() == 1);
+  ASSERT(shift_imm.encoding() != 0);  // Do not use Lsl if no shift is wanted.
+  mov(rd, Operand(rm, LSL, shift_imm.encoding()), cond);
 }
 
 
@@ -2241,11 +2274,15 @@ void Assembler::Lsl(Register rd, Register rm, Register rs, Condition cond) {
 }
 
 
-void Assembler::Lsr(Register rd, Register rm, uint32_t shift_imm,
+void Assembler::Lsr(Register rd, Register rm, const Operand& shift_imm,
                     Condition cond) {
-  ASSERT(shift_imm != 0);  // Do not use Lsr if no shift is wanted.
-  if (shift_imm == 32) shift_imm = 0;  // Comply to UAL syntax.
-  mov(rd, Operand(rm, LSR, shift_imm), cond);
+  ASSERT(shift_imm.type() == 1);
+  uint32_t shift = shift_imm.encoding();
+  ASSERT(shift != 0);  // Do not use Lsr if no shift is wanted.
+  if (shift == 32) {
+    shift = 0;  // Comply to UAL syntax.
+  }
+  mov(rd, Operand(rm, LSR, shift), cond);
 }
 
 
@@ -2254,23 +2291,27 @@ void Assembler::Lsr(Register rd, Register rm, Register rs, Condition cond) {
 }
 
 
-void Assembler::Asr(Register rd, Register rm, uint32_t shift_imm,
+void Assembler::Asr(Register rd, Register rm, const Operand& shift_imm,
                     Condition cond) {
-  ASSERT(shift_imm != 0);  // Do not use Asr if no shift is wanted.
-  if (shift_imm == 32) {
-    shift_imm = 0;  // Comply to UAL syntax.
+  ASSERT(shift_imm.type() == 1);
+  uint32_t shift = shift_imm.encoding();
+  ASSERT(shift != 0);  // Do not use Asr if no shift is wanted.
+  if (shift == 32) {
+    shift = 0;  // Comply to UAL syntax.
   }
-  mov(rd, Operand(rm, ASR, shift_imm), cond);
+  mov(rd, Operand(rm, ASR, shift), cond);
 }
 
 
-void Assembler::Asrs(Register rd, Register rm, uint32_t shift_imm,
+void Assembler::Asrs(Register rd, Register rm, const Operand& shift_imm,
                      Condition cond) {
-  ASSERT(shift_imm != 0);  // Do not use Asr if no shift is wanted.
-  if (shift_imm == 32) {
-    shift_imm = 0;  // Comply to UAL syntax.
+  ASSERT(shift_imm.type() == 1);
+  uint32_t shift = shift_imm.encoding();
+  ASSERT(shift != 0);  // Do not use Asr if no shift is wanted.
+  if (shift == 32) {
+    shift = 0;  // Comply to UAL syntax.
   }
-  movs(rd, Operand(rm, ASR, shift_imm), cond);
+  movs(rd, Operand(rm, ASR, shift), cond);
 }
 
 
@@ -2279,10 +2320,11 @@ void Assembler::Asr(Register rd, Register rm, Register rs, Condition cond) {
 }
 
 
-void Assembler::Ror(Register rd, Register rm, uint32_t shift_imm,
+void Assembler::Ror(Register rd, Register rm, const Operand& shift_imm,
                     Condition cond) {
-  ASSERT(shift_imm != 0);  // Use Rrx instruction.
-  mov(rd, Operand(rm, ROR, shift_imm), cond);
+  ASSERT(shift_imm.type() == 1);
+  ASSERT(shift_imm.encoding() != 0);  // Use Rrx instruction.
+  mov(rd, Operand(rm, ROR, shift_imm.encoding()), cond);
 }
 
 
@@ -2297,7 +2339,7 @@ void Assembler::Rrx(Register rd, Register rm, Condition cond) {
 
 
 void Assembler::SignFill(Register rd, Register rm, Condition cond) {
-  Asr(rd, rm, 31, cond);
+  Asr(rd, rm, Operand(31), cond);
 }
 
 
@@ -2376,8 +2418,8 @@ void Assembler::BranchPatchable(const ExternalLabel* label) {
 
 
 void Assembler::BranchLink(const ExternalLabel* label) {
-  LoadImmediate(IP, label->address());  // Target address is never patched.
-  blx(IP);  // Use blx instruction so that the return branch prediction works.
+  LoadImmediate(LR, label->address());  // Target address is never patched.
+  blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
 
@@ -2454,8 +2496,10 @@ void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
 
 void Assembler::LoadSImmediate(SRegister sd, float value, Condition cond) {
   if (!vmovs(sd, value, cond)) {
+    const DRegister dd = static_cast<DRegister>(sd >> 1);
+    const int index = sd & 1;
     LoadImmediate(IP, bit_cast<int32_t, float>(value), cond);
-    vmovsr(sd, IP, cond);
+    vmovdr(dd, index, IP, cond);
   }
 }
 
@@ -2949,7 +2993,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   // Preserve volatile CPU registers.
-  EnterFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR), 0);
+  EnterFrame(kDartVolatileCpuRegs | (1 << FP), 0);
 
   // Preserve all volatile FPU registers.
   if (TargetCPUFeatures::vfp_supported()) {
@@ -2976,8 +3020,10 @@ void Assembler::LeaveCallRuntimeFrame() {
       TargetCPUFeatures::vfp_supported() ?
       kDartVolatileFpuRegCount * kFpuRegisterSize : 0;
 
+  // We subtract one from the volatile cpu register count because, even though
+  // LR is volatile, it is pushed ahead of FP.
   const intptr_t kPushedRegistersSize =
-      kDartVolatileCpuRegCount * kWordSize + kPushedFpuRegisterSize;
+      (kDartVolatileCpuRegCount - 1) * kWordSize + kPushedFpuRegisterSize;
   AddImmediate(SP, FP, -kPushedRegistersSize);
 
   // Restore all volatile FPU registers.
@@ -2994,7 +3040,7 @@ void Assembler::LeaveCallRuntimeFrame() {
   }
 
   // Restore volatile CPU registers.
-  LeaveFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR));
+  LeaveFrame(kDartVolatileCpuRegs | (1 << FP));
 }
 
 
@@ -3075,11 +3121,11 @@ void Assembler::LeaveStubFrame() {
 }
 
 
-void Assembler::UpdateAllocationStats(intptr_t cid,
-                                      Register temp_reg,
-                                      Heap::Space space) {
-  ASSERT(temp_reg != kNoRegister);
-  ASSERT(temp_reg != TMP);
+void Assembler::LoadAllocationStatsAddress(Register dest,
+                                           intptr_t cid,
+                                           Heap::Space space) {
+  ASSERT(dest != kNoRegister);
+  ASSERT(dest != TMP);
   ASSERT(cid > 0);
   Isolate* isolate = Isolate::Current();
   ClassTable* class_table = isolate->class_table();
@@ -3087,77 +3133,53 @@ void Assembler::UpdateAllocationStats(intptr_t cid,
     const uword class_heap_stats_table_address =
         class_table->PredefinedClassHeapStatsTableAddress();
     const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    LoadImmediate(temp_reg, class_heap_stats_table_address + class_offset);
-    const Address& count_address = Address(temp_reg, count_field_offset);
-    ldr(TMP, count_address);
-    AddImmediate(TMP, 1);
-    str(TMP, count_address);
+    LoadImmediate(dest, class_heap_stats_table_address + class_offset);
   } else {
-    ASSERT(temp_reg != kNoRegister);
     const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    LoadImmediate(temp_reg, class_table->ClassStatsTableAddress());
-    ldr(temp_reg, Address(temp_reg, 0));
-    AddImmediate(temp_reg, class_offset);
-    ldr(TMP, Address(temp_reg, count_field_offset));
-    AddImmediate(TMP, 1);
-    str(TMP, Address(temp_reg, count_field_offset));
+    LoadImmediate(dest, class_table->ClassStatsTableAddress());
+    ldr(dest, Address(dest, 0));
+    AddImmediate(dest, class_offset);
   }
 }
 
 
-void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
-                                              Register size_reg,
-                                              Register temp_reg,
-                                              Heap::Space space) {
-  ASSERT(temp_reg != kNoRegister);
-  ASSERT(temp_reg != TMP);
+void Assembler::IncrementAllocationStats(Register stats_addr_reg,
+                                         intptr_t cid,
+                                         Heap::Space space) {
+  ASSERT(stats_addr_reg != kNoRegister);
+  ASSERT(stats_addr_reg != TMP);
   ASSERT(cid > 0);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
-  if (cid < kNumPredefinedCids) {
-    const uword class_heap_stats_table_address =
-        class_table->PredefinedClassHeapStatsTableAddress();
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    const uword size_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_size_since_gc_old_space_offset();
-    LoadImmediate(temp_reg, class_heap_stats_table_address + class_offset);
-    const Address& count_address = Address(temp_reg, count_field_offset);
-    const Address& size_address = Address(temp_reg, size_field_offset);
-    ldr(TMP, count_address);
-    AddImmediate(TMP, 1);
-    str(TMP, count_address);
-    ldr(TMP, size_address);
-    add(TMP, TMP, Operand(size_reg));
-    str(TMP, size_address);
-  } else {
-    ASSERT(temp_reg != kNoRegister);
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    const uword size_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_size_since_gc_old_space_offset();
-    LoadImmediate(temp_reg, class_table->ClassStatsTableAddress());
-    ldr(temp_reg, Address(temp_reg, 0));
-    AddImmediate(temp_reg, class_offset);
-    ldr(TMP, Address(temp_reg, count_field_offset));
-    AddImmediate(TMP, 1);
-    str(TMP, Address(temp_reg, count_field_offset));
-    ldr(TMP, Address(temp_reg, size_field_offset));
-    add(TMP, TMP, Operand(size_reg));
-    str(TMP, Address(temp_reg, size_field_offset));
-  }
+  const uword count_field_offset = (space == Heap::kNew) ?
+    ClassHeapStats::allocated_since_gc_new_space_offset() :
+    ClassHeapStats::allocated_since_gc_old_space_offset();
+  const Address& count_address = Address(stats_addr_reg, count_field_offset);
+  ldr(TMP, count_address);
+  AddImmediate(TMP, 1);
+  str(TMP, count_address);
+}
+
+
+void Assembler::IncrementAllocationStatsWithSize(Register stats_addr_reg,
+                                                 Register size_reg,
+                                                 intptr_t cid,
+                                                 Heap::Space space) {
+  ASSERT(stats_addr_reg != kNoRegister);
+  ASSERT(stats_addr_reg != TMP);
+  ASSERT(cid > 0);
+  const uword count_field_offset = (space == Heap::kNew) ?
+    ClassHeapStats::allocated_since_gc_new_space_offset() :
+    ClassHeapStats::allocated_since_gc_old_space_offset();
+  const uword size_field_offset = (space == Heap::kNew) ?
+    ClassHeapStats::allocated_size_since_gc_new_space_offset() :
+    ClassHeapStats::allocated_size_since_gc_old_space_offset();
+  const Address& count_address = Address(stats_addr_reg, count_field_offset);
+  const Address& size_address = Address(stats_addr_reg, size_field_offset);
+  ldr(TMP, count_address);
+  AddImmediate(TMP, 1);
+  str(TMP, count_address);
+  ldr(TMP, size_address);
+  add(TMP, TMP, Operand(size_reg));
+  str(TMP, size_address);
 }
 
 
@@ -3191,9 +3213,10 @@ void Assembler::TryAllocate(const Class& cls,
     // next object start and store the class in the class field of object.
     str(instance_reg, Address(temp_reg));
 
+    LoadAllocationStatsAddress(temp_reg, cls.id(), space);
+
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
-    UpdateAllocationStats(cls.id(), temp_reg, space);
 
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
@@ -3201,6 +3224,8 @@ void Assembler::TryAllocate(const Class& cls,
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     LoadImmediate(IP, tags);
     str(IP, FieldAddress(instance_reg, Object::tags_offset()));
+
+    IncrementAllocationStats(temp_reg, cls.id(), space);
   } else {
     b(failure);
   }
@@ -3231,20 +3256,23 @@ void Assembler::TryAllocateArray(intptr_t cid,
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
+    LoadAllocationStatsAddress(temp2, cid, space);
+
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
     str(end_address, Address(temp1, 0));
     add(instance, instance, Operand(kHeapObjectTag));
-    LoadImmediate(temp2, instance_size);
-    UpdateAllocationStatsWithSize(cid, temp2, temp1, space);
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.
     uword tags = 0;
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
-    LoadImmediate(temp2, tags);
-    str(temp2, FieldAddress(instance, Array::tags_offset()));  // Store tags.
+    LoadImmediate(temp1, tags);
+    str(temp1, FieldAddress(instance, Array::tags_offset()));  // Store tags.
+
+    LoadImmediate(temp1, instance_size);
+    IncrementAllocationStatsWithSize(temp2, temp1, cid, space);
   } else {
     b(failure);
   }

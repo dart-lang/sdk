@@ -436,12 +436,7 @@ class _Utf8Decoder {
     void addSingleBytes(int from, int to) {
       assert(from >= startIndex && from <= endIndex);
       assert(to >= startIndex && to <= endIndex);
-      if (from == 0 && to == codeUnits.length) {
-        _stringSink.write(new String.fromCharCodes(codeUnits));
-      } else {
-        _stringSink.write(
-            new String.fromCharCodes(codeUnits.sublist(from, to)));
-      }
+      _stringSink.write(new String.fromCharCodes(codeUnits, from, to));
     }
 
     int i = startIndex;

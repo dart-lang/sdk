@@ -45,7 +45,7 @@ main() {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('main() {').then((items) {
-        expect(items, isEmpty);
+        expect(items, isNull);
       });
     });
   }

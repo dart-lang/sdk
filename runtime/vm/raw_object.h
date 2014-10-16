@@ -216,6 +216,7 @@ CLASS_LIST_TYPED_DATA(V)
   DISALLOW_ALLOCATION();                                                       \
   DISALLOW_IMPLICIT_CONSTRUCTORS(Raw##object)
 
+// TODO(koda): Make ptr() return const*, like Object::raw_ptr().
 #define RAW_HEAP_OBJECT_IMPLEMENTATION(object)                                 \
   private:                                                                     \
     RAW_OBJECT_IMPLEMENTATION(object);                                         \
@@ -458,6 +459,7 @@ class RawObject {
   class ReservedBits : public
       BitField<intptr_t, kReservedTagPos, kReservedTagSize> {};  // NOLINT
 
+  // TODO(koda): Return const*, like Object::raw_ptr().
   RawObject* ptr() const {
     ASSERT(IsHeapObject());
     return reinterpret_cast<RawObject*>(
@@ -535,7 +537,6 @@ class RawClass : public RawObject {
                                 // or the canonical type.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
   RawArray* cha_codes_;  // CHA optimized codes.
-  RawCode* spare_allocation_stub_;  // Spare stub code for allocation.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->allocation_stub_);
@@ -590,6 +591,9 @@ class RawTypeArguments : public RawObject {
   RawSmi* length_;
 
   // Variable length data follows here.
+  RawAbstractType* const* types() const {
+    OPEN_ARRAY_START(RawAbstractType*, RawAbstractType*);
+  }
   RawAbstractType** types() {
     OPEN_ARRAY_START(RawAbstractType*, RawAbstractType*);
   }
@@ -789,9 +793,12 @@ class RawScript : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->url_); }
   RawString* url_;
-  RawString* source_;
   RawTokenStream* tokens_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->tokens_); }
+  RawObject** to_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->tokens_);
+  }
+  RawString* source_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }
 
   int32_t line_offset_;
   int32_t col_offset_;
@@ -897,6 +904,7 @@ class RawCode : public RawObject {
 
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
+  const int32_t* data() const { OPEN_ARRAY_START(int32_t, int32_t); }
 
   friend class StackFrame;
   friend class MarkingVisitor;
@@ -1012,6 +1020,7 @@ class RawPcDescriptors : public RawObject {
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }
+  const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
 
   friend class Object;
 };
@@ -1040,6 +1049,7 @@ class RawStackmap : public RawObject {
 
   // Variable length data follows here (bitmap of the stack layout).
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
+  const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 };
 
 
@@ -1139,6 +1149,7 @@ class RawExceptionHandlers : public RawObject {
   RawArray* handled_types_data_;
 
   // Exception handler info of length [num_entries_].
+  const HandlerInfo* data() const { OPEN_ARRAY_START(HandlerInfo, intptr_t); }
   HandlerInfo* data() { OPEN_ARRAY_START(HandlerInfo, intptr_t); }
 
   friend class Object;
@@ -1154,6 +1165,7 @@ class RawDeoptInfo : public RawObject {
 
   // Variable length data follows here.
   intptr_t* data() { OPEN_ARRAY_START(intptr_t, intptr_t); }
+  const intptr_t* data() const { OPEN_ARRAY_START(intptr_t, intptr_t); }
 };
 
 
@@ -1168,6 +1180,9 @@ class RawContext : public RawObject {
 
   // Variable length data follows here.
   RawInstance** data() { OPEN_ARRAY_START(RawInstance*, RawInstance*); }
+  RawInstance* const* data() const {
+      OPEN_ARRAY_START(RawInstance*, RawInstance*);
+  }
   RawObject** to(intptr_t num_vars) {
     return reinterpret_cast<RawObject**>(&ptr()->data()[num_vars - 1]);
   }
@@ -1496,6 +1511,7 @@ class RawOneByteString : public RawString {
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
+  const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
   friend class ApiMessageReader;
   friend class SnapshotReader;
@@ -1507,6 +1523,7 @@ class RawTwoByteString : public RawString {
 
   // Variable length data follows here.
   uint16_t* data() { OPEN_ARRAY_START(uint16_t, uint16_t); }
+  const uint16_t* data() const { OPEN_ARRAY_START(uint16_t, uint16_t); }
 
   friend class SnapshotReader;
 };
@@ -1569,6 +1586,7 @@ class RawArray : public RawInstance {
   RawSmi* length_;
   // Variable length data follows here.
   RawObject** data() { OPEN_ARRAY_START(RawObject*, RawObject*); }
+  RawObject* const* data() const { OPEN_ARRAY_START(RawObject*, RawObject*); }
   RawObject** to(intptr_t length) {
     return reinterpret_cast<RawObject**>(&ptr()->data()[length - 1]);
   }
@@ -1685,6 +1703,7 @@ class RawTypedData : public RawInstance {
   RawSmi* length_;
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
+  const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
 
   friend class Api;

@@ -601,7 +601,7 @@ class Instruction : public ZoneAllocated {
 #undef DECLARE_TAG
 
   Instruction()
-      : deopt_id_(Isolate::Current()->GetNextDeoptId()),
+      : deopt_id_(Isolate::kNoDeoptId),
         lifetime_position_(-1),
         previous_(NULL),
         next_(NULL),
@@ -781,6 +781,10 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // instruction.
   Instruction* AppendInstruction(Instruction* tail);
 
+  virtual bool AllowsDCE() const {
+    return false;
+  }
+
   // Returns true if CSE and LICM are allowed for this instruction.
   virtual bool AllowsCSE() const {
     return false;
@@ -833,6 +837,8 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   void InheritDeoptTargetAfter(Isolate* isolate, Instruction* other);
 
   virtual bool MayThrow() const = 0;
+
+  bool IsDominatedBy(Instruction* dom);
 
  protected:
   // Fetch deopt id without checking if this computation can deoptimize.
@@ -893,6 +899,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class CheckArrayBoundInstr;
   friend class CheckEitherNonSmiInstr;
   friend class LICM;
+  friend class Scheduler;
   friend class DoubleToSmiInstr;
   friend class DoubleToDoubleInstr;
   friend class DoubleToFloatInstr;
@@ -923,6 +930,29 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnaryIntegerOpInstr;
   friend class BinaryIntegerOpInstr;
   friend class DeoptimizeInstr;
+
+  // deopt_id_ access.
+  friend class InstanceCallInstr;
+  friend class StaticCallInstr;
+  friend class GotoInstr;
+  friend class ReturnInstr;
+  friend class BranchInstr;
+  friend class AssertAssignableInstr;
+  friend class TestSmiInstr;
+  friend class IfThenElseInstr;
+  friend class StrictCompareInstr;
+  friend class ThrowInstr;
+  friend class ReThrowInstr;
+  friend class AssertBooleanInstr;
+  friend class CurrentContextInstr;
+  friend class ClosureCallInstr;
+  friend class StringInterpolateInstr;
+  friend class CreateArrayInstr;
+  friend class InstantiateTypeInstr;
+  friend class InstantiateTypeArgumentsInstr;
+  friend class InitStaticFieldInstr;
+  friend class CloneContextInstr;
+  friend class CheckStackOverflowInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -1083,6 +1113,7 @@ class BlockEntryInstr : public Instruction {
   intptr_t end_pos() const { return end_pos_; }
 
   BlockEntryInstr* dominator() const { return dominator_; }
+  BlockEntryInstr* ImmediateDominator() const;
 
   const GrowableArray<BlockEntryInstr*>& dominated_blocks() {
     return dominated_blocks_;
@@ -1114,26 +1145,22 @@ class BlockEntryInstr : public Instruction {
     return parallel_move_;
   }
 
-  // Discover basic-block structure by performing a recursive depth first
-  // traversal of the instruction graph reachable from this instruction.  As
-  // a side effect, the block entry instructions in the graph are assigned
-  // numbers in both preorder and postorder.  The array 'preorder' maps
-  // preorder block numbers to the block entry instruction with that number
-  // and analogously for the array 'postorder'.  The depth first spanning
-  // tree is recorded in the array 'parent', which maps preorder block
-  // numbers to the preorder number of the block's spanning-tree parent.
-  // The array 'assigned_vars' maps preorder block numbers to the set of
-  // assigned frame-allocated local variables in the block.  As a side
-  // effect of this function, the set of basic block predecessors (e.g.,
-  // block entry instructions of predecessor blocks) and also the last
-  // instruction in the block is recorded in each entry instruction.
-  void DiscoverBlocks(
+  // Discover basic-block structure of the current block.  Must be called
+  // on all graph blocks in preorder to yield valid results.  As a side effect,
+  // the block entry instructions in the graph are assigned preorder numbers.
+  // The array 'preorder' maps preorder block numbers to the block entry
+  // instruction with that number.  The depth first spanning tree is recorded
+  // in the array 'parent', which maps preorder block numbers to the preorder
+  // number of the block's spanning-tree parent.  As a side effect of this
+  // function, the set of basic block predecessors (e.g., block entry
+  // instructions of predecessor blocks) and also the last instruction in the
+  // block is recorded in each entry instruction.  Returns true when called the
+  // first time on this particular block within one graph traversal, and false
+  // on all successive calls.
+  bool DiscoverBlock(
       BlockEntryInstr* predecessor,
       GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<intptr_t>* parent,
-      intptr_t variable_count,
-      intptr_t fixed_parameter_count);
+      GrowableArray<intptr_t>* parent);
 
   // Perform a depth first search to prune code not reachable from an OSR
   // entry point.
@@ -1203,7 +1230,9 @@ class BlockEntryInstr : public Instruction {
         dominated_blocks_(1),
         last_instruction_(NULL),
         parallel_move_(NULL),
-        loop_info_(NULL) { }
+        loop_info_(NULL) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+  }
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
@@ -1438,8 +1467,7 @@ class TargetEntryInstr : public BlockEntryInstr {
   TargetEntryInstr(intptr_t block_id, intptr_t try_index)
       : BlockEntryInstr(block_id, try_index),
         predecessor_(NULL),
-        edge_weight_(0.0) {
-  }
+        edge_weight_(0.0) { }
 
   DECLARE_INSTRUCTION(TargetEntry)
 
@@ -1826,6 +1854,9 @@ struct BranchLabels {
 };
 
 
+class InductionVariableInfo;
+
+
 class PhiInstr : public Definition {
  public:
   PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
@@ -1833,7 +1864,8 @@ class PhiInstr : public Definition {
       inputs_(num_inputs),
       is_alive_(false),
       representation_(kTagged),
-      reaching_defs_(NULL) {
+      reaching_defs_(NULL),
+      loop_variable_info_(NULL) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
       inputs_.Add(NULL);
     }
@@ -1897,6 +1929,14 @@ class PhiInstr : public Definition {
   // A phi is redundant if all input operands are the same.
   bool IsRedundant() const;
 
+  void set_induction_variable_info(InductionVariableInfo* info) {
+    loop_variable_info_ = info;
+  }
+
+  InductionVariableInfo* induction_variable_info() {
+    return loop_variable_info_;
+  }
+
  private:
   // Direct access to inputs_ in order to resize it due to unreachable
   // predecessors.
@@ -1910,6 +1950,7 @@ class PhiInstr : public Definition {
   Representation representation_;
 
   BitVector* reaching_defs_;
+  InductionVariableInfo* loop_variable_info_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
@@ -2001,6 +2042,7 @@ class ReturnInstr : public TemplateInstruction<1> {
  public:
   ReturnInstr(intptr_t token_pos, Value* value)
       : token_pos_(token_pos) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     SetInputAt(0, value);
   }
 
@@ -2032,7 +2074,9 @@ class ReturnInstr : public TemplateInstruction<1> {
 
 class ThrowInstr : public TemplateInstruction<0> {
  public:
-  explicit ThrowInstr(intptr_t token_pos) : token_pos_(token_pos) { }
+  explicit ThrowInstr(intptr_t token_pos) : token_pos_(token_pos) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+  }
 
   DECLARE_INSTRUCTION(Throw)
 
@@ -2058,7 +2102,9 @@ class ReThrowInstr : public TemplateInstruction<0> {
   // 'catch_try_index' can be CatchClauseNode::kInvalidTryIndex if the
   // rethrow has been artifically generated by the parser.
   ReThrowInstr(intptr_t token_pos, intptr_t catch_try_index)
-      : token_pos_(token_pos), catch_try_index_(catch_try_index) {}
+      : token_pos_(token_pos), catch_try_index_(catch_try_index) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+  }
 
   DECLARE_INSTRUCTION(ReThrow)
 
@@ -2087,6 +2133,7 @@ class GotoInstr : public TemplateInstruction<0> {
     : successor_(entry),
       edge_weight_(0.0),
       parallel_move_(NULL) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
   }
 
   DECLARE_INSTRUCTION(Goto)
@@ -2199,6 +2246,7 @@ class BranchInstr : public Instruction {
         is_checked_(false),
         constrained_type_(NULL),
         constant_target_(NULL) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     ASSERT(comparison->env() == NULL);
     for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
       comparison->InputAt(i)->set_instruction(this);
@@ -2380,7 +2428,7 @@ class RedefinitionInstr : public TemplateDefinition<1> {
 };
 
 
-class ConstraintInstr : public TemplateDefinition<2> {
+class ConstraintInstr : public TemplateDefinition<1> {
  public:
   ConstraintInstr(Value* value, Range* constraint)
       : constraint_(constraint),
@@ -2389,10 +2437,6 @@ class ConstraintInstr : public TemplateDefinition<2> {
   }
 
   DECLARE_INSTRUCTION(Constraint)
-
-  virtual intptr_t InputCount() const {
-    return (inputs_[1] == NULL) ? 1 : 2;
-  }
 
   virtual CompileType ComputeType() const;
 
@@ -2414,12 +2458,6 @@ class ConstraintInstr : public TemplateDefinition<2> {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  void AddDependency(Definition* defn) {
-    Value* val = new Value(defn);
-    defn->AddInputUse(val);
-    SetInputAt(1, val);
-  }
-
   // Constraints for branches have their target block stored in order
   // to find the the comparsion that generated the constraint:
   // target->predecessor->last_instruction->comparison.
@@ -2431,10 +2469,6 @@ class ConstraintInstr : public TemplateDefinition<2> {
   }
 
  private:
-  Value* dependency() {
-    return inputs_[1];
-  }
-
   Range* constraint_;
   TargetEntryInstr* target_;
 
@@ -2509,6 +2543,7 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
       : token_pos_(token_pos),
         dst_type_(AbstractType::ZoneHandle(dst_type.raw())),
         dst_name_(dst_name) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_name.IsNull());
     SetInputAt(0, value);
@@ -2563,6 +2598,7 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
  public:
   AssertBooleanInstr(intptr_t token_pos, Value* value)
       : token_pos_(token_pos) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     SetInputAt(0, value);
   }
 
@@ -2596,7 +2632,9 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
 // a computation, not a value, because it's mutable.
 class CurrentContextInstr : public TemplateDefinition<0> {
  public:
-  CurrentContextInstr() { }
+  CurrentContextInstr() {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+  }
 
   DECLARE_INSTRUCTION(CurrentContext)
   virtual CompileType ComputeType() const;
@@ -2621,6 +2659,7 @@ class ClosureCallInstr : public TemplateDefinition<1> {
                    ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : ast_node_(*node),
         arguments_(arguments) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     SetInputAt(0, function);
   }
 
@@ -2662,13 +2701,15 @@ class InstanceCallInstr : public TemplateDefinition<0> {
                     const Array& argument_names,
                     intptr_t checked_argument_count,
                     const ZoneGrowableArray<const ICData*>& ic_data_array)
-      : ic_data_(GetICData(ic_data_array)),
+      : ic_data_(NULL),
         token_pos_(token_pos),
         function_name_(function_name),
         token_kind_(token_kind),
         arguments_(arguments),
         argument_names_(argument_names),
         checked_argument_count_(checked_argument_count) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+    ic_data_ = GetICData(ic_data_array);
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
@@ -2842,6 +2883,7 @@ class TestSmiInstr : public ComparisonInstr {
  public:
   TestSmiInstr(intptr_t token_pos, Token::Kind kind, Value* left, Value* right)
       : ComparisonInstr(token_pos, kind, left, right) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     ASSERT(kind == Token::kEQ || kind == Token::kNE);
   }
 
@@ -3072,6 +3114,7 @@ class IfThenElseInstr : public Definition {
       : comparison_(comparison),
         if_true_(Smi::Cast(if_true->BoundConstant()).Value()),
         if_false_(Smi::Cast(if_false->BoundConstant()).Value()) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     // Adjust uses at the comparison.
     ASSERT(comparison->env() == NULL);
     for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
@@ -3149,7 +3192,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
                   const Array& argument_names,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
                   const ZoneGrowableArray<const ICData*>& ic_data_array)
-      : ic_data_(GetICData(ic_data_array)),
+      : ic_data_(NULL),
         token_pos_(token_pos),
         function_(function),
         argument_names_(argument_names),
@@ -3158,6 +3201,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
         is_known_list_constructor_(false),
         is_native_list_factory_(false),
         identity_(AliasIdentity::Unknown()) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+    ic_data_ = GetICData(ic_data_array);
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
@@ -3834,6 +3879,7 @@ class StringInterpolateInstr : public TemplateDefinition<1> {
  public:
   StringInterpolateInstr(Value* value, intptr_t token_pos)
       : token_pos_(token_pos), function_(Function::Handle()) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     SetInputAt(0, value);
   }
 
@@ -4150,6 +4196,7 @@ class CreateArrayInstr : public TemplateDefinition<2> {
                    Value* element_type,
                    Value* num_elements)
       : token_pos_(token_pos), identity_(AliasIdentity::Unknown())  {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     SetInputAt(kElementTypePos, element_type);
     SetInputAt(kLengthPos, num_elements);
   }
@@ -4356,6 +4403,7 @@ class InstantiateTypeInstr : public TemplateDefinition<1> {
       : token_pos_(token_pos),
         type_(type),
         instantiator_class_(instantiator_class) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     ASSERT(type.IsZoneHandle());
     SetInputAt(0, instantiator);
   }
@@ -4394,6 +4442,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
       : token_pos_(token_pos),
         type_arguments_(type_arguments),
         instantiator_class_(instantiator_class) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     ASSERT(type_arguments.IsZoneHandle());
     SetInputAt(0, instantiator);
   }
@@ -4459,6 +4508,7 @@ class InitStaticFieldInstr : public TemplateInstruction<1> {
  public:
   InitStaticFieldInstr(Value* input, const Field& field)
       : field_(field) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     SetInputAt(0, input);
   }
 
@@ -4513,6 +4563,7 @@ class CloneContextInstr : public TemplateDefinition<1> {
  public:
   CloneContextInstr(intptr_t token_pos, Value* context_value)
       : token_pos_(token_pos) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     SetInputAt(0, context_value);
   }
 
@@ -4537,9 +4588,8 @@ class CloneContextInstr : public TemplateDefinition<1> {
 
 class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
  public:
-  CheckEitherNonSmiInstr(Value* left,
-                         Value* right,
-                         intptr_t deopt_id) {
+  CheckEitherNonSmiInstr(Value* left, Value* right, intptr_t deopt_id)
+      : licm_hoisted_(false) {
     SetInputAt(0, left);
     SetInputAt(1, right);
     // Override generated deopt-id.
@@ -4564,7 +4614,11 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
 
   virtual bool MayThrow() const { return false; }
 
+  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+
  private:
+  bool licm_hoisted_;
+
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
 };
 
@@ -6770,8 +6824,7 @@ class UnarySmiOpInstr : public UnaryIntegerOpInstr {
   UnarySmiOpInstr(Token::Kind op_kind,
                   Value* value,
                   intptr_t deopt_id)
-      : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
-  }
+      : UnaryIntegerOpInstr(op_kind, value, deopt_id) {}
 
   virtual bool CanDeoptimize() const { return op_kind() == Token::kNEGATE; }
 
@@ -6890,6 +6943,25 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
+  virtual bool AllowsDCE() const {
+    switch (op_kind()) {
+      case Token::kADD:
+      case Token::kSUB:
+      case Token::kMUL:
+      case Token::kBIT_AND:
+      case Token::kBIT_OR:
+      case Token::kBIT_XOR:
+        return true;
+
+      case Token::kSHR:
+      case Token::kSHL:
+        // These instructions throw on negative shifts.
+        return !CanDeoptimize();
+
+      default:
+        return false;
+    }
+  }
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
@@ -7181,7 +7253,9 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1> {
 class CheckStackOverflowInstr : public TemplateInstruction<0> {
  public:
   CheckStackOverflowInstr(intptr_t token_pos, intptr_t loop_depth)
-      : token_pos_(token_pos), loop_depth_(loop_depth) {}
+      : token_pos_(token_pos), loop_depth_(loop_depth) {
+    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+  }
 
   virtual intptr_t token_pos() const { return token_pos_; }
   bool in_loop() const { return loop_depth_ > 0; }
@@ -7791,7 +7865,7 @@ class CheckClassInstr : public TemplateInstruction<1> {
 class CheckSmiInstr : public TemplateInstruction<1> {
  public:
   CheckSmiInstr(Value* value, intptr_t original_deopt_id, intptr_t token_pos)
-      : token_pos_(token_pos) {
+      : token_pos_(token_pos), licm_hoisted_(false) {
     SetInputAt(0, value);
     deopt_id_ = original_deopt_id;
   }
@@ -7814,8 +7888,11 @@ class CheckSmiInstr : public TemplateInstruction<1> {
 
   virtual bool MayThrow() const { return false; }
 
+  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+
  private:
   const intptr_t token_pos_;
+  bool licm_hoisted_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckSmiInstr);
 };
@@ -7858,7 +7935,8 @@ class CheckClassIdInstr : public TemplateInstruction<1> {
 
 class CheckArrayBoundInstr : public TemplateInstruction<2> {
  public:
-  CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id) {
+  CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
+      : generalized_(false) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
     // Override generated deopt-id.
@@ -7875,6 +7953,10 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
   virtual bool CanDeoptimize() const { return true; }
 
   bool IsRedundant(const RangeBoundary& length);
+
+  void mark_generalized() {
+    generalized_ = true;
+  }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -7897,6 +7979,8 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
   };
 
  private:
+  bool generalized_;
+
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };
 

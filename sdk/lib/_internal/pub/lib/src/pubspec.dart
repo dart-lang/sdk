@@ -5,6 +5,7 @@
 library pub.pubspec;
 
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -14,7 +15,6 @@ import 'io.dart';
 import 'package.dart';
 import 'source_registry.dart';
 import 'utils.dart';
-import 'version.dart';
 
 /// The parsed contents of a pubspec file.
 ///
@@ -74,6 +74,14 @@ class Pubspec {
     }
 
     var span = fields.nodes['version'].span;
+    if (version is num) {
+      var fixed = '$version.0';
+      if (version is int) {
+        fixed = '$fixed.0';
+      }
+      _error('"version" field must have three numeric components: major, '
+          'minor, and patch. Instead of "$version", consider "$fixed".', span);
+    }
     if (version is! String) {
       _error('"version" field must be a string.', span);
     }

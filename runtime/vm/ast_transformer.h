@@ -40,7 +40,6 @@ class ParsedFunction;
 class AwaitTransformer : public AstNodeVisitor {
  public:
   AwaitTransformer(SequenceNode* preamble,
-                   const Library& library,
                    ParsedFunction* const parsed_function,
                    LocalScope* function_top);
 
@@ -69,7 +68,6 @@ class AwaitTransformer : public AstNodeVisitor {
   SequenceNode* preamble_;
   int32_t temp_cnt_;
   AstNode* result_;
-  const Library& library_;
   ParsedFunction* const parsed_function_;
   LocalScope* function_top_;
 

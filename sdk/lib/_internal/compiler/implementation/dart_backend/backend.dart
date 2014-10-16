@@ -221,7 +221,7 @@ class DartBackend extends Backend {
 
     String assembledCode = outputter.assembleProgram(
         libraries: compiler.libraryLoader.libraries,
-        instantiatedClasses: compiler.resolverWorld.instantiatedClasses,
+        instantiatedClasses: compiler.resolverWorld.directlyInstantiatedClasses,
         resolvedElements: compiler.enqueuer.resolution.resolvedElements,
         usedTypeLiterals: usedTypeLiterals,
         postProcessElementAst: postProcessElementAst,
@@ -410,19 +410,19 @@ class DartConstantTask extends ConstantCompilerTask
 
   String get name => 'ConstantHandler';
 
-  Constant getConstantForVariable(VariableElement element) {
+  ConstantExpression getConstantForVariable(VariableElement element) {
     return constantCompiler.getConstantForVariable(element);
   }
 
-  Constant getConstantForNode(Node node, TreeElements elements) {
+  ConstantExpression getConstantForNode(Node node, TreeElements elements) {
     return constantCompiler.getConstantForNode(node, elements);
   }
 
-  Constant getConstantForMetadata(MetadataAnnotation metadata) {
-    return metadata.value;
+  ConstantExpression getConstantForMetadata(MetadataAnnotation metadata) {
+    return metadata.constant;
   }
 
-  Constant compileConstant(VariableElement element) {
+  ConstantExpression compileConstant(VariableElement element) {
     return measure(() {
       return constantCompiler.compileConstant(element);
     });
@@ -434,13 +434,13 @@ class DartConstantTask extends ConstantCompilerTask
     });
   }
 
-  Constant compileNode(Node node, TreeElements elements) {
+  ConstantExpression compileNode(Node node, TreeElements elements) {
     return measure(() {
       return constantCompiler.compileNodeWithDefinitions(node, elements);
     });
   }
 
-  Constant compileMetadata(MetadataAnnotation metadata,
+  ConstantExpression compileMetadata(MetadataAnnotation metadata,
                            Node node,
                            TreeElements elements) {
     return measure(() {

@@ -20,7 +20,8 @@ if HOST_OS == 'mac':
 elif HOST_OS == 'linux':
   CONTENTSHELL_FILES = ['content_shell', 'content_shell.pak', 'fonts.conf',
                         'libffmpegsumo.so', 'libosmesa.so', 'lib',
-                        'icudtl.dat']
+                        'icudtl.dat', 'AHEM____.TTF', 'GardinerModBug.ttf',
+                        'GardinerModCat.ttf']
   CHROMEDRIVER_FILES = ['chromedriver']
 elif HOST_OS == 'win':
   # TODO: provide proper list.

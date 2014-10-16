@@ -5,11 +5,8 @@
   <template>
     <style>
       .sourceInset {
-        padding-left: 15%;
-        padding-right: 15%;
       }
       .sourceBox {
-        width: 100%;
         background-color: #f5f5f5;
         border: 1px solid #ccc;
         padding: 10px;
@@ -44,7 +41,7 @@
     </style>
     <div class="sourceInset">
       <content></content>
-      <div class="sourceBox" style="height:{{height}}">
+      <div class="sourceBox" style="max-height:{{height}}">
         <div class="sourceTable">
           <template if="{{ linesReady }}">
             <template repeat="{{ line in lines }}">

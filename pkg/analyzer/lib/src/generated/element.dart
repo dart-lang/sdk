@@ -2721,6 +2721,12 @@ abstract class DartType {
   bool isSupertypeOf(DartType type);
 
   /**
+   * Return `true` if this type represents a typename that couldn't be
+   * resolved.
+   */
+  bool get isUndefined;
+
+  /**
    * Return `true` if this type represents the type 'void'.
    *
    * @return `true` if this type represents the type 'void'
@@ -2835,7 +2841,7 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  static DynamicTypeImpl _INSTANCE = new DynamicTypeImpl();
+  static DynamicTypeImpl _INSTANCE = new DynamicTypeImpl._();
 
   /**
    * Return the unique instance of this class.
@@ -2847,7 +2853,7 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * Prevent the creation of instances of this class.
    */
-  DynamicTypeImpl() : super(new DynamicElementImpl(), Keyword.DYNAMIC.syntax) {
+  DynamicTypeImpl._() : super(new DynamicElementImpl(), Keyword.DYNAMIC.syntax) {
     (element as DynamicElementImpl).type = this;
   }
 
@@ -3483,6 +3489,7 @@ abstract class ElementImpl implements Element {
 
   @override
   void visitChildren(ElementVisitor visitor) {
+    // There are no children to visit
   }
 
   /**
@@ -4401,6 +4408,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     // Elements within this element should have type parameters substituted, just like this element.
     //
     throw new UnsupportedOperationException();
+    //    return getBaseElement().getFunctions();
   }
 
   @override
@@ -4412,6 +4420,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     // Elements within this element should have type parameters substituted, just like this element.
     //
     throw new UnsupportedOperationException();
+    //    return getBaseElement().getLocalVariables();
   }
 
   @override
@@ -4672,7 +4681,13 @@ class FieldFormalParameterMember extends ParameterMember implements FieldFormalP
   accept(ElementVisitor visitor) => visitor.visitFieldFormalParameterElement(this);
 
   @override
-  FieldElement get field => (baseElement as FieldFormalParameterElement).field;
+  FieldElement get field {
+    FieldElement field = (baseElement as FieldFormalParameterElement).field;
+    if (field is FieldElement) {
+      return FieldMember.from(field, definingType);
+    }
+    return field;
+  }
 }
 
 /**
@@ -5505,7 +5520,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (identical(this, type) || type.isDynamic || type.isDartCoreFunction || type.isObject) {
       return true;
     } else if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsMoreSpecificThan(this, withDynamic, visitedTypePairs);
+      return (type as UnionTypeImpl).internalUnionTypeIsLessSpecificThan(this, withDynamic, visitedTypePairs);
     } else if (type is! FunctionType) {
       return false;
     } else if (this == type) {
@@ -7275,10 +7290,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     // The test to determine whether S is dynamic is done here because dynamic is not an instance of
     // InterfaceType.
     //
-    if (identical(type, DynamicTypeImpl.instance)) {
+    if (type.isDynamic) {
       return true;
     } else if (type is UnionType) {
-      return (type as UnionTypeImpl).internalUnionTypeIsMoreSpecificThan(this, withDynamic, visitedTypePairs);
+      return (type as UnionTypeImpl).internalUnionTypeIsLessSpecificThan(this, withDynamic, visitedTypePairs);
     } else if (type is! InterfaceType) {
       return false;
     }
@@ -8420,6 +8435,7 @@ abstract class Member implements Element {
 
   @override
   void visitChildren(ElementVisitor visitor) {
+    // There are no children to visit
   }
 
   /**
@@ -9022,6 +9038,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   void visitChildren(ElementVisitor visitor) {
+    // There are no children to visit
   }
 }
 
@@ -10742,7 +10759,43 @@ abstract class TypeImpl implements DartType {
    * @param visitedTypePairs the set of pairs of types used to prevent infinite loops
    * @return `true` if this type is assignable to the given type
    */
-  bool isAssignableTo2(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf2(type, visitedTypePairs) || (type as TypeImpl).isSubtypeOf2(this, visitedTypePairs);
+  bool isAssignableTo2(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // Strictness matters for union types on the LHS, but not for union types
+    // on the RHS.
+    if (this is UnionType) {
+      if (AnalysisEngine.instance.strictUnionTypes) {
+        // *Every* element on the LHS must be assignable to the RHS. We recursively fall into
+        // the next case when the RHS is also a union: the order here is important!
+        for (DartType left in (this as UnionType).elements) {
+          // Would have to cast to [TypeImpl] to call the [visitedTypePairs] version here.
+          if (!left.isAssignableTo(type)) {
+            return false;
+          }
+        }
+        return true;
+      } else {
+        // *Some* element on the LHS must be assignable to the RHS.
+        for (DartType left in (this as UnionType).elements) {
+          // Would have to cast to [TypeImpl] to call the [visitedTypePairs] version here.
+          if (left.isAssignableTo(type)) {
+            return true;
+          }
+        }
+        return false;
+      }
+    } else if (type is UnionType) {
+      // The LHS, which is not a union, must be assignable to *some* element on the RHS.
+      for (DartType right in type.elements) {
+        if (this.isAssignableTo2(right, visitedTypePairs)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      // For non union types we use the language spec definition of [<=>].
+      return isSubtypeOf2(type, visitedTypePairs) || (type as TypeImpl).isSubtypeOf2(this, visitedTypePairs);
+    }
+  }
 
   @override
   bool get isBottom => false;
@@ -10809,6 +10862,9 @@ abstract class TypeImpl implements DartType {
 
   @override
   bool isSupertypeOf(DartType type) => type.isSubtypeOf(this);
+
+  @override
+  bool get isUndefined => false;
 
   @override
   bool get isVoid => false;
@@ -11091,6 +11147,75 @@ abstract class UndefinedElement implements Element {
 }
 
 /**
+ * The unique instance of the class `UndefinedTypeImpl` implements the type of
+ * typenames that couldn't be resolved.
+ *
+ * This class behaves like DynamicTypeImpl in almost every respect, to reduce
+ * cascading errors.
+ */
+class UndefinedTypeImpl extends TypeImpl {
+  /**
+   * The unique instance of this class.
+   */
+  static UndefinedTypeImpl _INSTANCE = new UndefinedTypeImpl._();
+
+  /**
+   * Return the unique instance of this class.
+   *
+   * @return the unique instance of this class
+   */
+  static UndefinedTypeImpl get instance => _INSTANCE;
+
+  /**
+   * Prevent the creation of instances of this class.
+   */
+  UndefinedTypeImpl._()
+      : super(DynamicElementImpl.instance, Keyword.DYNAMIC.syntax);
+
+  @override
+  bool operator ==(Object object) => identical(object, this);
+
+  @override
+  int get hashCode => 1;
+
+  @override
+  bool get isDynamic => true;
+
+  @override
+  bool isSupertypeOf(DartType type) => true;
+
+  @override
+  bool get isUndefined => true;
+
+  @override
+  DartType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) {
+    int length = parameterTypes.length;
+    for (int i = 0; i < length; i++) {
+      if (parameterTypes[i] == this) {
+        return argumentTypes[i];
+      }
+    }
+    return this;
+  }
+
+  @override
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
+
+  @override
+  bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // T is S
+    if (identical(this, type)) {
+      return true;
+    }
+    // else
+    return withDynamic;
+  }
+
+  @override
+  bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
+}
+
+/**
  * A flat immutable union of `Type`s. Here "flat" means a union type never contains another
  * union type.
  */
@@ -11208,25 +11333,47 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
   @override
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     // What version of subtyping do we want? See discussion below in [internalIsSubtypeOf].
-    //
-    // The more unsound version: any.
-    for (DartType t in _types) {
-      if ((t as TypeImpl).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
-        return true;
+    if (AnalysisEngine.instance.strictUnionTypes) {
+      // The less unsound version: all.
+      for (DartType t in _types) {
+        if (!(t as TypeImpl).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
+          return false;
+        }
       }
+      return true;
+    } else {
+      // The more unsound version: any.
+      for (DartType t in _types) {
+        if ((t as TypeImpl).internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs)) {
+          return true;
+        }
+      }
+      return false;
     }
-    return false;
   }
 
   @override
   bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
-    // The more unsound version: any.
-    for (DartType t in _types) {
-      if ((t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
-        return true;
+    if (AnalysisEngine.instance.strictUnionTypes) {
+      // The less unsound version: all.
+      //
+      // For this version to make sense we also need to redefine assignment compatibility [<=>].
+      // See discussion above.
+      for (DartType t in _types) {
+        if (!(t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
+          return false;
+        }
       }
+      return true;
+    } else {
+      // The more unsound version: any.
+      for (DartType t in _types) {
+        if ((t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
+          return true;
+        }
+      }
+      return false;
     }
-    return false;
   }
 
   /**
@@ -11238,7 +11385,7 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
    * @param visitedTypePairs
    * @return true if `type` is more specific than this union type
    */
-  bool internalUnionTypeIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+  bool internalUnionTypeIsLessSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     // This implementation does not make sense when [type] is a union type, at least
     // for the "less unsound" version of [internalIsMoreSpecificThan] above.
     if (type is UnionType) {
@@ -11538,6 +11685,7 @@ abstract class VariableMember extends Member implements VariableElement {
     // Elements within this element should have type parameters substituted, just like this element.
     //
     throw new UnsupportedOperationException();
+    //    return getBaseElement().getInitializer();
   }
 
   @override
@@ -11618,6 +11766,6 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
     // void <: void (by reflexivity)
     // bottom <: void (as bottom is a subtype of all types).
     // void <: dynamic (as dynamic is a supertype of all types)
-    return identical(type, this) || identical(type, DynamicTypeImpl.instance);
+    return identical(type, this) || type.isDynamic;
   }
 }

@@ -6,7 +6,7 @@ library services.src.refactoring.inline_method;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
@@ -76,21 +76,21 @@ String _getMethodSourceForInvocation(_SourcePart part, CorrectionUtils utils,
         occurrenceArgumentSource = argumentSource;
       }
       // do replace
-      edits.add(new SourceEdit.range(range, occurrenceArgumentSource));
+      edits.add(newSourceEdit_range(range, occurrenceArgumentSource));
     }
   });
   // replace static field "qualifier" with invocation target
   part._staticFieldQualifiers.forEach(
       (String className, List<SourceRange> ranges) {
     for (SourceRange range in ranges) {
-      edits.add(new SourceEdit.range(range, className + '.'));
+      edits.add(newSourceEdit_range(range, className + '.'));
     }
   });
   // replace instance field "qualifier" with invocation target
   if (targetExpression != null) {
     String targetSource = utils.getNodeText(targetExpression) + '.';
     for (SourceRange qualifierRange in part._instanceFieldQualifiers) {
-      edits.add(new SourceEdit.range(qualifierRange, targetSource));
+      edits.add(newSourceEdit_range(qualifierRange, targetSource));
     }
   }
   // prepare edits to replace conflicting variables
@@ -110,7 +110,7 @@ String _getMethodSourceForInvocation(_SourcePart part, CorrectionUtils utils,
     // update references, if name was change
     if (uniqueName != originalName) {
       for (SourceRange range in ranges) {
-        edits.add(new SourceEdit.range(range, uniqueName));
+        edits.add(newSourceEdit_range(range, uniqueName));
       }
     }
   });
@@ -239,9 +239,10 @@ class InlineMethodRefactoringImpl extends RefactoringImpl implements
     if (deleteSource && inlineAll) {
       SourceRange methodRange = rangeNode(_methodNode);
       SourceRange linesRange = _methodUtils.getLinesRange(methodRange);
-      change.addElementEdit(
+      doSourceChange_addElementEdit(
+          change,
           _methodElement,
-          new SourceEdit.range(linesRange, ''));
+          newSourceEdit_range(linesRange, ''));
     }
     // done
     return new Future.value(result);
@@ -428,6 +429,10 @@ class _ReferenceProcessor {
     }
   }
 
+  void _addRefEdit(SourceEdit edit) {
+    doSourceChange_addElementEdit(ref.change, refElement, edit);
+  }
+
   bool _canInlineBody(AstNode usage) {
     // no statements, usually just expression
     if (ref._methodStatementsPart == null) {
@@ -475,7 +480,7 @@ class _ReferenceProcessor {
     if (cascaded) {
       status.addError(
           'Cannot inline cascade invocation.',
-          new Location.fromNode(usage));
+          newLocation_fromNode(usage));
     }
     // can we inline method body into "methodUsage" block?
     if (_canInlineBody(usage)) {
@@ -494,7 +499,7 @@ class _ReferenceProcessor {
             _refPrefix);
         // do insert
         SourceRange range = rangeStartLength(_refLineRange, 0);
-        SourceEdit edit = new SourceEdit.range(range, source);
+        SourceEdit edit = newSourceEdit_range(range, source);
         _addRefEdit(edit);
       }
       // replace invocation with return expression
@@ -512,10 +517,10 @@ class _ReferenceProcessor {
         }
         // do replace
         SourceRange methodUsageRange = rangeNode(usage);
-        SourceEdit edit = new SourceEdit.range(methodUsageRange, source);
+        SourceEdit edit = newSourceEdit_range(methodUsageRange, source);
         _addRefEdit(edit);
       } else {
-        SourceEdit edit = new SourceEdit.range(_refLineRange, "");
+        SourceEdit edit = newSourceEdit_range(_refLineRange, "");
         _addRefEdit(edit);
       }
       return;
@@ -532,7 +537,7 @@ class _ReferenceProcessor {
     }
     // do insert
     SourceRange range = rangeNode(_node);
-    SourceEdit edit = new SourceEdit.range(range, source);
+    SourceEdit edit = newSourceEdit_range(range, source);
     _addRefEdit(edit);
   }
 
@@ -558,7 +563,7 @@ class _ReferenceProcessor {
       if (ref._methodElement is MethodElement) {
         status.addFatalError(
             'Cannot inline class method reference.',
-            new Location.fromNode(_node));
+            newLocation_fromNode(_node));
         return;
       }
       // PropertyAccessorElement
@@ -603,13 +608,9 @@ class _ReferenceProcessor {
       }
       // do insert
       SourceRange range = rangeNode(_node);
-      SourceEdit edit = new SourceEdit.range(range, source);
+      SourceEdit edit = newSourceEdit_range(range, source);
       _addRefEdit(edit);
     }
-  }
-
-  void _addRefEdit(SourceEdit edit) {
-    ref.change.addElementEdit(refElement, edit);
   }
 
   bool _shouldProcess() {
@@ -631,7 +632,7 @@ class _ReturnsValidatorVisitor extends RecursiveAstVisitor {
   visitReturnStatement(ReturnStatement node) {
     _numReturns++;
     if (_numReturns == 2) {
-      result.addError('Ambiguous return value.', new Location.fromNode(node));
+      result.addError('Ambiguous return value.', newLocation_fromNode(node));
     }
   }
 }

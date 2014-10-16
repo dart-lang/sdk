@@ -9,7 +9,7 @@ import '../dart_types.dart'
     show DartType, InterfaceType, FunctionType, TypeKind;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' as js;
-import '../native_handler.dart' as native;
+import '../native/native.dart' as native;
 import '../tree/tree.dart' as ast;
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
 import '../util/util.dart' show Link, Spannable, Setlet;
@@ -549,7 +549,7 @@ class SimpleTypeInferrerVisitor<T>
         // exists.
         if (!isConstructorRedirect
             && !seenSuperConstructorCall
-            && !cls.isObject(compiler)) {
+            && !cls.isObject) {
           Selector selector =
               new Selector.callDefaultConstructor(analyzedElement.library);
           FunctionElement target = cls.superclass.lookupConstructor(selector);
@@ -984,8 +984,8 @@ class SimpleTypeInferrerVisitor<T>
                && compiler.world.fieldNeverChanges(element)) {
       var constant =
           compiler.backend.constants.getConstantForVariable(element);
-      if (constant != null && constant.isInt) {
-        return constant.value;
+      if (constant != null && constant.value.isInt) {
+        return constant.value.primitiveValue;
       }
     }
     return null;

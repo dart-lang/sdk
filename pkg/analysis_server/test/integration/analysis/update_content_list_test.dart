@@ -4,9 +4,10 @@
 
 library test.integration.analysis.update.content.list;
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 @ReflectiveTestCase()
@@ -24,10 +25,7 @@ main() {
     standardAnalysisSetup();
     // Override file contents with badText.
     sendAnalysisUpdateContent({
-      pathname: {
-        'type': 'add',
-        'content': badText
-      }
+      pathname: new AddContentOverlay(badText)
     });
     return analysisFinished.then((_) {
       // The overridden contents (badText) are missing quotation marks.
@@ -37,16 +35,10 @@ main() {
       // order in which they appear in the file.  If these edits are applied in
       // the wrong order, some of the quotation marks will be in the wrong
       // places, and there will still be errors.
-      List edits = '"'.allMatches(goodText).map((Match match) => {
-        'offset': match.start,
-        'length': 0,
-        'replacement': '"'
-      }).toList();
+      List<SourceEdit> edits = '"'.allMatches(
+          goodText).map((Match match) => new SourceEdit(match.start, 0, '"')).toList();
       sendAnalysisUpdateContent({
-        pathname: {
-          'type': 'change',
-          'edits': edits
-        }
+        pathname: new ChangeContentOverlay(edits)
       });
       return analysisFinished;
     }).then((_) {

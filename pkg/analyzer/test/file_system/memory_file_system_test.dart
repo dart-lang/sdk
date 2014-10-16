@@ -117,6 +117,19 @@ main() {
       });
     });
 
+    group('getStateLocation', () {
+      test('uniqueness', () {
+        String idOne = 'one';
+        Folder folderOne = provider.getStateLocation(idOne);
+        expect(folderOne, isNotNull);
+        String idTwo = 'two';
+        Folder folderTwo = provider.getStateLocation(idTwo);
+        expect(folderTwo, isNotNull);
+        expect(folderTwo, isNot(equals(folderOne)));
+        expect(provider.getStateLocation(idOne), equals(folderOne));
+      });
+    });
+
     group('newFolder', () {
       test('empty path', () {
         expect(() {

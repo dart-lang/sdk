@@ -7,24 +7,26 @@ library analyzer2dart.cps_generator;
 import 'package:analyzer/analyzer.dart';
 
 import 'package:compiler/implementation/elements/elements.dart' as dart2js;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/element.dart' as analyzer;
 
 import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart' as ir;
 import 'package:compiler/implementation/cps_ir/cps_ir_builder.dart';
+import 'package:compiler/implementation/universe/universe.dart';
 
+import 'semantic_visitor.dart';
 import 'element_converter.dart';
-import 'tree_shaker.dart';
+import 'util.dart';
+import 'package:analyzer2dart/src/identifier_semantics.dart';
 
-
-class CpsGeneratingVisitor extends RecursiveAstVisitor<ir.Node> {
+class CpsGeneratingVisitor extends SemanticVisitor<ir.Node> {
+  final analyzer.Element element;
   final ElementConverter converter;
   final IrBuilder irBuilder = new IrBuilder();
 
-  CpsGeneratingVisitor(this.converter);
+  CpsGeneratingVisitor(this.converter, this.element);
 
-  giveUp(String reason) {
-    throw new UnsupportedError(reason);
-  }
+  Source get currentSource => element.source;
 
   @override
   ir.FunctionDefinition visitFunctionDeclaration(FunctionDeclaration node) {
@@ -42,21 +44,23 @@ class CpsGeneratingVisitor extends RecursiveAstVisitor<ir.Node> {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
-    analyzer.Element staticElement = node.methodName.staticElement;
-    if (staticElement != null) {
-      dart2js.Element element = converter.convertElement(staticElement);
-      List<ir.Definition> arguments = <ir.Definition>[];
-      for (Expression argument in node.argumentList.arguments) {
-        ir.Definition value = argument.accept(this);
-        if (value == null) {
-          giveUp('Unsupported argument: $argument (${argument.runtimeType}).');
-        }
-        arguments.add(value);
+  visitStaticMethodInvocation(MethodInvocation node,
+                              AccessSemantics semantics) {
+    analyzer.Element staticElement = semantics.element;
+    dart2js.Element element = converter.convertElement(staticElement);
+    List<ir.Definition> arguments = <ir.Definition>[];
+    for (Expression argument in node.argumentList.arguments) {
+      ir.Definition value = argument.accept(this);
+      if (value == null) {
+        giveUp(argument,
+            'Unsupported argument: $argument (${argument.runtimeType}).');
       }
-      return irBuilder.buildStaticInvocation(
-          element, createSelectorFromMethodInvocation(node), arguments);
+      arguments.add(value);
     }
+    return irBuilder.buildStaticInvocation(
+        element,
+        createSelectorFromMethodInvocation(node, node.methodName.name),
+        arguments);
   }
 
   @override
@@ -85,7 +89,7 @@ class CpsGeneratingVisitor extends RecursiveAstVisitor<ir.Node> {
     if (value != null) {
       return irBuilder.buildStringLiteral(value);
     }
-    giveUp("Non constant adjacent strings.");
+    giveUp(node, "Non constant adjacent strings.");
   }
 
   @override
@@ -95,7 +99,7 @@ class CpsGeneratingVisitor extends RecursiveAstVisitor<ir.Node> {
 
   @override
   visitStringInterpolation(StringInterpolation node) {
-    giveUp("String interpolation.");
+    giveUp(node, "String interpolation.");
   }
 
   @override
@@ -108,16 +112,31 @@ class CpsGeneratingVisitor extends RecursiveAstVisitor<ir.Node> {
   }
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    analyzer.Element element = node.staticElement;
-    if (element != null) {
-      dart2js.Element target = converter.convertElement(element);
-      if (dart2js.Elements.isLocal(target)) {
-        return irBuilder.buildGetLocal(target);
-      }
-      giveUp('Unhandled static reference: '
-             '$node -> $target (${target.runtimeType})');
-    }
-    giveUp('Unresolved identifier: $node.');
+  ir.Node visitLocalVariableAccess(AstNode node, AccessSemantics semantics) {
+    return handleLocalAccess(node, semantics);
+  }
+
+  @override
+  ir.Node visitParameterAccess(AstNode node, AccessSemantics semantics) {
+    return handleLocalAccess(node, semantics);
+  }
+
+  ir.Primitive handleLocalAccess(AstNode node, AccessSemantics semantics) {
+    analyzer.Element element = semantics.element;
+    dart2js.Element target = converter.convertElement(element);
+    assert(invariant(node, target.isLocal, '$target expected to be local.'));
+    return irBuilder.buildGetLocal(target);
+  }
+
+  @override
+  ir.Node visitStaticFieldAccess(AstNode node, AccessSemantics semantics) {
+    analyzer.Element element = semantics.element;
+    dart2js.Element target = converter.convertElement(element);
+    // TODO(johnniwinther): Selector information should be computed in the
+    // [TreeShaker] and shared with the [CpsGeneratingVisitor].
+    assert(invariant(node, target.isTopLevel || target.isStatic,
+        '$target expected to be top-level or static.'));
+    return irBuilder.buildGetStatic(target,
+        new Selector.getter(target.name, target.library));
   }
 }

@@ -230,7 +230,7 @@ abstract class ServiceObject extends Observable {
             // updating the existing one.
             //
             // TODO(turnidge): Check for vmType changing as well?
-            assert(mapType == 'Error' || mapType == 'null');
+            assert(mapType == 'Error' || mapType == 'Sentinel');
             return new ServiceObject._fromMap(owner, map);
           }
           update(map);

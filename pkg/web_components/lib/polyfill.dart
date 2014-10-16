@@ -54,9 +54,8 @@ bool get _isReady {
  * This method can be used to resolve differences in timing between native and
  * polyfilled custom elements.
  */
-void customElementsTakeRecords() {
+void customElementsTakeRecords([Node node]) {
   var customElements = js.context['CustomElements'];
-  if (customElements != null) {
-    customElements.callMethod('takeRecords');
-  }
+  if (customElements == null) return;
+  customElements.callMethod('takeRecords', [node]);
 }

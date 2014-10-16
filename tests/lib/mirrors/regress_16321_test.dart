@@ -12,7 +12,7 @@ class TypedBox {
   const TypedBox(this.contents);
 }
 
-@TypedBox('foo')  /// 01: static type warning
+@TypedBox('foo')  /// 01: static type warning, checked mode compile-time error
 @TypedBox(const ['foo'])
 class C {}
 

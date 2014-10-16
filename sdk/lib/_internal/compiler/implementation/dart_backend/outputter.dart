@@ -384,7 +384,11 @@ class ElementInfoProcessor implements ElementInfo {
   }
 
   void addClass(ClassElement classElement) {
-    addTopLevel(classElement, new ElementAst(classElement));
+    TreeElements treeElements = new TreeElementMapping(classElement);
+    backend2frontend.TreePrinter treePrinter =
+        new backend2frontend.TreePrinter(treeElements);
+    Node node = treePrinter.makeNodeForClassElement(classElement);
+    addTopLevel(classElement, new ElementAst.internal(node, treeElements));
     classMembers.putIfAbsent(classElement, () => new Set());
   }
 

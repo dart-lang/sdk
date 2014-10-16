@@ -111,7 +111,9 @@ class _OrderingComparison extends Matcher {
 }
 
 /// Returns a matcher which matches if the match argument is within [delta]
-/// of some [value]; i.e. if the match argument is greater than
+/// of some [value].
+///
+/// In other words, this matches if the match argument is greater than
 /// than or equal [value]-[delta] and less than or equal to [value]+[delta].
 Matcher closeTo(num value, num delta) => new _IsCloseTo(value, delta);
 

@@ -11,7 +11,7 @@ import '../test_pub.dart';
 main() {
   initConfig();
 
-  solo_integration('lists an activated hosted package', () {
+  integration('lists an activated hosted package', () {
     servePackages((builder) {
       builder.serve('foo', '1.0.0');
     });

@@ -255,7 +255,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const bool smi_is_ok = int_type.IsSubtypeOf(type, &malformed_error);
   // Malformed type should have been handled at graph construction time.
   ASSERT(smi_is_ok || malformed_error.IsNull());
-  __ tsti(kInstanceReg, kSmiTagMask);
+  __ tsti(kInstanceReg, Immediate(kSmiTagMask));
   if (smi_is_ok) {
     __ b(is_instance_lbl, EQ);
   } else {
@@ -341,7 +341,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   ASSERT(type_class.NumTypeArguments() == 0);
 
   const Register kInstanceReg = R0;
-  __ tsti(kInstanceReg, kSmiTagMask);
+  __ tsti(kInstanceReg, Immediate(kSmiTagMask));
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(Smi::Class());
   if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
@@ -451,7 +451,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 
     // For Smi check quickly against int and num interfaces.
     Label not_smi;
-    __ tsti(R0, kSmiTagMask);  // Value is Smi?
+    __ tsti(R0, Immediate(kSmiTagMask));  // Value is Smi?
     __ b(&not_smi, NE);
     __ CompareObject(R2, Type::ZoneHandle(Type::IntType()), PP);
     __ b(is_instance_lbl, EQ);
@@ -481,7 +481,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   if (type.IsType()) {
     const Register kInstanceReg = R0;
     const Register kTypeArgumentsReg = R1;
-    __ tsti(kInstanceReg, kSmiTagMask);  // Is instance Smi?
+    __ tsti(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
     __ b(is_not_instance_lbl, EQ);
     __ ldr(kTypeArgumentsReg, Address(SP));  // Instantiator type args.
     // Uninstantiated type class is known at compile time, but the type

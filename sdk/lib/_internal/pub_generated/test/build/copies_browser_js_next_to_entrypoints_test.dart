@@ -1,12 +1,23 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:scheduled_test/scheduled_test.dart';
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import 'utils.dart';
+
 main() {
   initConfig();
+
   integration("compiles dart.js and interop.js next to entrypoints", () {
+    // Dart2js can take a long time to compile dart code, so we increase the
+    // timeout to cope with that.
     currentSchedule.timeout *= 3;
+
     serveBrowserPackage();
+
     d.dir(appPath, [d.appPubspec({
         "browser": "1.0.0"
       }),
@@ -24,10 +35,13 @@ main() {
                   d.dir(
                       'subweb',
                       [d.file('subfile.dart', 'void main() => print("subhello");')])])]).create();
+
     pubGet();
+
     schedulePub(
         args: ["build", "foo", "web"],
         output: new RegExp(r'Built 16 files to "build".'));
+
     d.dir(
         appPath,
         [
@@ -59,7 +73,7 @@ main() {
                                                     d.file('dart.js', 'contents of dart.js'),
                                                     d.file('interop.js', 'contents of interop.js')])]),
                                     d.matcherFile('subfile.dart.js', isNot(isEmpty)),
-                                    d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty))])]),
+                                    d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),])]),
                     d.dir(
                         'web',
                         [

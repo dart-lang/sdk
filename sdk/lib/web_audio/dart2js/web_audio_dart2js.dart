@@ -487,22 +487,6 @@ class AudioParam extends Interceptor {
   @DocsEditable()
   final double defaultValue;
 
-  @DomName('AudioParam.maxValue')
-  @DocsEditable()
-  final double maxValue;
-
-  @DomName('AudioParam.minValue')
-  @DocsEditable()
-  final double minValue;
-
-  @DomName('AudioParam.name')
-  @DocsEditable()
-  final String name;
-
-  @DomName('AudioParam.units')
-  @DocsEditable()
-  final int units;
-
   @DomName('AudioParam.value')
   @DocsEditable()
   num value;

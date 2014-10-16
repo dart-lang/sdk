@@ -12,7 +12,6 @@ import os
 import os.path
 import shutil
 import idlnode
-import idlparser
 import idlrenderer
 from generator import IsDartCollectionType, IsPureInterface
 
@@ -44,7 +43,6 @@ class Database(object):
     self._all_interfaces = {}
     self._interfaces_to_delete = []
     self._enums = {}
-    self._idlparser = idlparser.IDLParser(idlparser.FREMONTCUT_SYNTAX)
 
   def Clone(self):
     new_database = Database(self._root_dir)

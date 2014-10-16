@@ -257,19 +257,69 @@ class _GrowableList<T> implements List<T> {
   }
 
   String join([String separator = ""]) {
-    if (isEmpty) return "";
-    if (this.length == 1) return "${this[0]}";
+    final int length = this.length;
+    if (length == 0) return "";
+    if (length == 1) return "${this[0]}";
+    if (separator.isNotEmpty) return _joinWithSeparator(separator);
+    var i = 0;
+    var codeUnitCount = 0;
+    while (i < length) {
+      final element = this[i];
+      final int cid = ClassID.getID(element);
+      // While list contains one-byte strings.
+      if (ClassID.cidOneByteString == cid) {
+        codeUnitCount += element.length;
+        i++;
+        // Loop back while strings are one-byte strings.
+        continue;
+      }
+      // Otherwise, never loop back to the outer loop, and
+      // handle the remaining strings below.
+
+      // Loop while elements are strings,
+      final int firstNonOneByteStringLimit = i;
+      var nextElement = element;
+      while (nextElement is String) {
+        i++;
+        if (i == length) {
+          return _StringBase._concatRangeNative(this, 0, length);
+        }
+        nextElement = this[i];
+      }
+
+      // Not all elements are strings, so allocate a new backing array.
+      final list = new _List(length);
+      for (int copyIndex = 0; copyIndex < i; copyIndex++) {
+        list[copyIndex] = this[copyIndex];
+      }
+      // Is non-zero if list contains a non-onebyte string.
+      var onebyteCanary = i - firstNonOneByteStringLimit;
+      while (true) {
+        final String elementString = "$nextElement";
+        onebyteCanary |=
+            (ClassID.getID(elementString) ^ ClassID.cidOneByteString);
+        list[i] = elementString;
+        codeUnitCount += elementString.length;
+        i++;
+        if (i == length) break;
+        nextElement = this[i];
+      }
+      if (onebyteCanary == 0) {
+        // All elements returned a one-byte string from toString.
+        return _OneByteString._concatAll(list, codeUnitCount);
+      }
+      return _StringBase._concatRangeNative(list, 0, length);
+    }
+    // All elements were one-byte strings.
+    return _OneByteString._concatAll(this, codeUnitCount);
+  }
+
+  String _joinWithSeparator(String separator) {
     StringBuffer buffer = new StringBuffer();
-    if (separator.isEmpty) {
-      for (int i = 0; i < this.length; i++) {
-        buffer.write(this[i]);
-      }
-    } else {
-      buffer.write(this[0]);
-      for (int i = 1; i < this.length; i++) {
-        buffer.write(separator);
-        buffer.write(this[i]);
-      }
+    buffer.write(this[0]);
+    for (int i = 1; i < this.length; i++) {
+      buffer.write(separator);
+      buffer.write(this[i]);
     }
     return buffer.toString();
   }

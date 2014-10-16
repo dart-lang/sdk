@@ -5,10 +5,10 @@
 library test.services.refactoring.rename_import;
 
 import 'package:analysis_server/src/protocol.dart';
-import '../../reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import 'abstract_rename.dart';
 
 
@@ -166,6 +166,20 @@ main() {
   Future f;
 }
 ''');
+  }
+
+  test_oldName_empty() {
+    indexTestUnit('''
+import 'dart:math';
+import 'dart:async';
+main() {
+  Future f;
+}
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    expect(refactoring.oldName, '');
   }
 
   void _createRefactoring(String search) {

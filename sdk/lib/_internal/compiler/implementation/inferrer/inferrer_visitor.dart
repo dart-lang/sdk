@@ -11,6 +11,7 @@ import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart';
 import '../types/types.dart' show TypeMask;
+import 'dart:collection' show IterableMixin;
 
 /**
  * The interface [InferrerVisitor] will use when working on types.
@@ -241,7 +242,7 @@ class FieldInitializationScope<T> {
 /**
  * Placeholder for inferred arguments types on sends.
  */
-class ArgumentsTypes<T> {
+class ArgumentsTypes<T> extends IterableMixin<T> {
   final List<T> positional;
   final Map<String, T> named;
   ArgumentsTypes(this.positional, named)
@@ -251,6 +252,8 @@ class ArgumentsTypes<T> {
   }
 
   int get length => positional.length + named.length;
+
+  Iterator<T> get iterator => new ArgumentsTypesIterator(this);
 
   String toString() => "{ positional = $positional, named = $named }";
 
@@ -287,6 +290,29 @@ class ArgumentsTypes<T> {
     return positional.contains(type) || named.containsValue(type);
   }
 }
+
+class ArgumentsTypesIterator<T> implements Iterator<T> {
+  final Iterator<T> positional;
+  final Iterator<T> named;
+  bool _iteratePositional = true;
+
+  ArgumentsTypesIterator(ArgumentsTypes<T> iteratee)
+      : positional = iteratee.positional.iterator,
+        named = iteratee.named.values.iterator;
+
+  Iterator<T> get _currentIterator => _iteratePositional ? positional : named;
+
+  T get current => _currentIterator.current;
+
+  bool moveNext() {
+    if (_iteratePositional && positional.moveNext()) {
+      return true;
+    }
+    _iteratePositional = false;
+    return named.moveNext();
+  }
+}
+
 
 abstract class MinimalInferrerEngine<T> {
   /**

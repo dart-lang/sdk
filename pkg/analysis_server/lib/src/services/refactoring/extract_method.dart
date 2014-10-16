@@ -6,7 +6,7 @@ library services.src.refactoring.extract_method;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
@@ -275,8 +275,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         }
       }
       // add replace edit
-      SourceEdit edit = new SourceEdit.range(range, invocationSource);
-      change.addElementEdit(unitElement, edit);
+      SourceEdit edit = newSourceEdit_range(range, invocationSource);
+      doSourceChange_addElementEdit(change, unitElement, edit);
     }
     // add method declaration
     {
@@ -333,7 +333,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         int offset = _parentMember.end;
         SourceEdit edit =
             new SourceEdit(offset, 0, '${eol}${eol}${prefix}${declarationSource}');
-        change.addElementEdit(unitElement, edit);
+        doSourceChange_addElementEdit(change, unitElement, edit);
       }
     }
     // done
@@ -730,7 +730,7 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
     if (_isFirstSelectedNode(lhs)) {
       invalidSelection(
           'Cannot extract the left-hand side of an assignment.',
-          new Location.fromNode(lhs));
+          newLocation_fromNode(lhs));
     }
     return null;
   }
@@ -742,7 +742,7 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
       invalidSelection(
           'Cannot extract a constructor initializer. '
               'Select expression part of initializer.',
-          new Location.fromNode(node));
+          newLocation_fromNode(node));
     }
     return null;
   }
@@ -797,7 +797,7 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
       invalidSelection(
           'Cannot extract a variable declaration fragment. '
               'Select whole declaration statement.',
-          new Location.fromNode(node));
+          newLocation_fromNode(node));
     }
     return null;
   }

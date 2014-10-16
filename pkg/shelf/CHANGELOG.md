@@ -1,7 +1,16 @@
+## 0.5.6-dev
+
+* Fixed `createMiddleware` to only catch errors in `errorHandler` is provided.
+
+## 0.5.5+1
+
+* Updated `Request.change` to include the original `onHijack` callback if one
+  exists.
+
 ## 0.5.5
 
 * Added default body text for `Response.forbidden` and `Response.notFound` if
-null is provided.
+  null is provided.
 
 * Clarified documentation on a number of `Response` constructors.
 

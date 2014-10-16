@@ -14,18 +14,20 @@ class _SpreadArgsHelper {
   final int maxExpectedCalls;
   final Function isDone;
   final String id;
+  final String reason;
   int actualCalls = 0;
   final TestCase testCase;
   bool complete;
 
   _SpreadArgsHelper(Function callback, int minExpected, int maxExpected,
-      String id, {bool isDone()})
+      String id, String reason, {bool isDone()})
       : this.callback = callback,
         minExpectedCalls = minExpected,
         maxExpectedCalls = (maxExpected == 0 && minExpected > 0)
             ? minExpected
             : maxExpected,
         this.isDone = isDone,
+        this.reason = reason == null ? '' : '\n$reason',
         this.testCase = currentTestCase,
         this.id = _makeCallbackId(id, callback) {
     ensureInitialized();
@@ -73,12 +75,12 @@ class _SpreadArgsHelper {
         testCase._error(
             'Callback ${id}called ($actualCalls) after test case '
             '${testCase.description} has already been marked as '
-            '${testCase.result}.');
+            '${testCase.result}.$reason');
       }
       return false;
     } else if (maxExpectedCalls >= 0 && actualCalls > maxExpectedCalls) {
       throw new TestFailure('Callback ${id}called more times than expected '
-                            '($maxExpectedCalls).');
+                            '($maxExpectedCalls).$reason');
     }
     return true;
   }

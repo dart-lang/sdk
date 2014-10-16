@@ -13,12 +13,13 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue 12508
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError # Issue 12508
 
 LibTest/core/Match/operator_subscript_A01_t01: Fail # Issue 12508
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # Issue 12508
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
-Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675
+Language/03_Overview/1_Scoping_A02_t28: RuntimeError # Issue 21163
 Language/13_Statements/09_Switch_A01_t02: fail # Dart issue 12908
 Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
 Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # Dart issue 12916

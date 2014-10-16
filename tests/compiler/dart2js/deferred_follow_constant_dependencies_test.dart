@@ -4,12 +4,11 @@
 
 // Test that constants depended on by other constants are correctly deferred.
 
+import 'dart:async';
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/implementation/constants/values.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
-import "dart:async";
-import 'package:compiler/implementation/dart2jslib.dart'
-  hide Compiler;
 
 
 class FakeOutputStream<T> extends EventSink<T> {
@@ -40,18 +39,18 @@ void main() {
     var lib =
         compiler.libraryLoader.lookupLibrary(Uri.parse("memory:lib.dart"));
     var backend = compiler.backend;
-    List<Constant> allConstants = [];
+    List<ConstantValue> allConstants = [];
 
-    addConstantWithDependendencies(Constant c) {
+    addConstantWithDependendencies(ConstantValue c) {
       allConstants.add(c);
       c.getDependencies().forEach(addConstantWithDependendencies);
     }
 
     backend.constants.compiledConstants.forEach(addConstantWithDependendencies);
     for (String stringValue in ["cA", "cB", "cC"]) {
-      Constant constant = allConstants.firstWhere((constant) {
-        return constant is StringConstant
-            && constant.value.slowToString() == stringValue;
+      ConstantValue constant = allConstants.firstWhere((constant) {
+        return constant.isString
+            && constant.primitiveValue.slowToString() == stringValue;
       });
       Expect.notEquals(null, outputUnitForConstant(constant));
       Expect.notEquals(mainOutputUnit, outputUnitForConstant(constant));

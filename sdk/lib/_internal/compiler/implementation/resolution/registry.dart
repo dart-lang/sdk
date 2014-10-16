@@ -114,7 +114,7 @@ class ResolutionRegistry extends Registry {
   //  Node-to-Constant mapping functionality.
   //////////////////////////////////////////////////////////////////////////////
 
-  Constant getConstant(Node node) => mapping.getConstant(node);
+  ConstantExpression getConstant(Node node) => mapping.getConstant(node);
 
   //////////////////////////////////////////////////////////////////////////////
   //  Target/Label functionality.

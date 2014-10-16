@@ -33,6 +33,8 @@ patch class HashMap<K, V> {
   }
 
   /* patch */ factory HashMap.identity() = _IdentityHashMap<K, V>;
+
+  Set<K> _newKeySet();
 }
 
 
@@ -224,6 +226,8 @@ class _HashMap<K, V> implements HashMap<K, V> {
   }
 
   String toString() => Maps.mapToString(this);
+
+  Set<K> _newKeySet() => new _HashSet<K>();
 }
 
 class _CustomHashMap<K, V> extends _HashMap<K, V> {
@@ -323,6 +327,8 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   }
 
   String toString() => Maps.mapToString(this);
+
+  Set<K> _newKeySet() => new _CustomHashSet<K>(_equals, _hashCode, _validKey);
 }
 
 class _IdentityHashMap<K, V> extends _HashMap<K, V> {
@@ -413,6 +419,8 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   }
 
   String toString() => Maps.mapToString(this);
+
+  Set<K> _newKeySet() => new _IdentityHashSet<K>();
 }
 
 
@@ -442,6 +450,7 @@ class _HashMapKeyIterable<K> extends _HashMapIterable<K> {
       action(key);
     });
   }
+  Set<K> toSet() => _map._newKeySet()..addAll(this);
 }
 
 class _HashMapValueIterable<V> extends _HashMapIterable<V> {
@@ -835,6 +844,7 @@ class _LinkedHashMapKeyIterable<K> extends IterableBase<K>
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
   int get length => _map.length;
+  Set<K> toSet() => _map._newKeySet()..addAll(this);
 }
 
 class _LinkedHashMapValueIterable<V> extends IterableBase<V>
@@ -1020,6 +1030,8 @@ class _LinkedHashMap<K, V> extends _HashMap<K, V>
   _LinkedHashMap() {
     _nextEntry = _previousEntry = this;
   }
+
+  Set<K> _newKeySet() => new _LinkedHashSet<K>();
 }
 
 class _LinkedIdentityHashMap<K, V> extends _IdentityHashMap<K, V>
@@ -1027,6 +1039,8 @@ class _LinkedIdentityHashMap<K, V> extends _IdentityHashMap<K, V>
   _LinkedIdentityHashMap() {
     _nextEntry = _previousEntry = this;
   }
+
+  Set<K> _newKeySet() => new _LinkedIdentityHashSet<K>();
 }
 
 class _LinkedCustomHashMap<K, V> extends _CustomHashMap<K, V>
@@ -1037,6 +1051,8 @@ class _LinkedCustomHashMap<K, V> extends _CustomHashMap<K, V>
       : super(equals, hashCode, isValidKey) {
     _nextEntry = _previousEntry = this;
   }
+  Set<K> _newKeySet() =>
+      new _LinkedCustomHashSet<K>(_equals, _hashCode, _validKey);
 }
 
 

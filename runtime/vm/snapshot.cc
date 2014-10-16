@@ -829,8 +829,8 @@ RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 
-  uword address = old_space()->TryAllocateDataLocked(size,
-                                                     PageSpace::kForceGrowth);
+  uword address =
+      old_space()->TryAllocateDataBumpLocked(size, PageSpace::kForceGrowth);
   if (address == 0) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.

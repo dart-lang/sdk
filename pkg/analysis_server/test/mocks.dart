@@ -61,7 +61,7 @@ Future pumpEventQueue([int times = 20]) {
  * all its scheduled tasks.
  */
 Future waitForServerOperationsPerformed(AnalysisServer server) {
-  if (server.test_areOperationsFinished()) {
+  if (server.isAnalysisComplete()) {
     return new Future.value();
   }
   // We use a delayed future to allow microtask events to finish. The

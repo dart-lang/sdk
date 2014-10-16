@@ -5,7 +5,6 @@
 
 import database
 import databasebuilder
-import idlparser
 import logging.config
 import os.path
 import sys
@@ -35,8 +34,8 @@ FEATURE_DEFINES = [
     'ENABLE_WEB_AUDIO', # Not on Android
 ]
 
-def build_database(idl_files, database_dir, feature_defines=None, parallel=False,
-                   blink_parser=False, logging_level=logging.WARNING):
+def build_database(idl_files, database_dir, feature_defines=None,
+                   logging_level=logging.WARNING):
   """This code reconstructs the FremontCut IDL database from W3C,
   WebKit and Dart IDL files."""
   current_dir = os.path.dirname(__file__)
@@ -63,7 +62,6 @@ def build_database(idl_files, database_dir, feature_defines=None, parallel=False
     feature_defines = FEATURE_DEFINES
 
   webkit_options = databasebuilder.DatabaseBuilderOptions(
-      idl_syntax=idlparser.WEBKIT_SYNTAX,
       # TODO(vsm): What else should we define as on when processing IDL?
       idl_defines=webkit_defines + feature_defines,
       source='WebKit',
@@ -71,23 +69,22 @@ def build_database(idl_files, database_dir, feature_defines=None, parallel=False
       logging_level=logging_level)
 
   # Import WebKit IDLs.
-  builder.import_idl_files(idl_files, webkit_options, parallel, blink_parser, False)
+  builder.import_idl_files(idl_files, webkit_options, False)
 
   # Import Dart idl:
   dart_options = databasebuilder.DatabaseBuilderOptions(
-    idl_syntax=idlparser.FREMONTCUT_SYNTAX,
     source='Dart',
     rename_operation_arguments_on_merge=True,
     logging_level=logging_level)
 
   builder.import_idl_files(
       [ os.path.join(current_dir, '..', 'idl', 'dart', 'dart.idl') ],
-      dart_options, parallel, blink_parser, True)
+      dart_options, True)
 
   start_time = time.time()
 
   # Merging:
-  builder.merge_imported_interfaces(blink_parser)
+  builder.merge_imported_interfaces()
 
   builder.fetch_constructor_data(webkit_options)
   builder.fix_displacements('WebKit')
@@ -118,7 +115,7 @@ def build_database(idl_files, database_dir, feature_defines=None, parallel=False
 
   return db
 
-def main(parallel=False, blink_parser=False, logging_level=logging.WARNING):
+def main(parallel=False, logging_level=logging.WARNING):
   current_dir = os.path.dirname(__file__)
 
   idl_files = []
@@ -164,8 +161,7 @@ def main(parallel=False, blink_parser=False, logging_level=logging.WARNING):
 
   database_dir = os.path.join(current_dir, '..', 'database')
 
-  return build_database(idl_files, database_dir, parallel=parallel,
-                        blink_parser=blink_parser, logging_level=logging_level)
+  return build_database(idl_files, database_dir, logging_level=logging_level)
 
 if __name__ == '__main__':
   sys.exit(main())

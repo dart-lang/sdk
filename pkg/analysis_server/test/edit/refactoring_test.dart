@@ -18,6 +18,7 @@ import '../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
+  runReflectiveTests(ConvertGetterMethodToMethodTest);
   runReflectiveTests(ConvertMethodToGetterTest);
   runReflectiveTests(ExtractLocalVariableTest);
   runReflectiveTests(ExtractMethodTest);
@@ -26,6 +27,102 @@ main() {
   runReflectiveTests(InlineMethodTest);
   runReflectiveTests(MoveFileTest);
   runReflectiveTests(RenameTest);
+}
+
+
+@ReflectiveTestCase()
+class ConvertGetterMethodToMethodTest extends _AbstractGetRefactoring_Test {
+  test_function() {
+    addTestFile('''
+int get test => 42;
+main() {
+  var a = 1 + test;
+  var b = 2 + test;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendConvertRequest('test =>');
+    }, '''
+int test() => 42;
+main() {
+  var a = 1 + test();
+  var b = 2 + test();
+}
+''');
+  }
+
+  test_init_fatalError_notExplicit() {
+    addTestFile('''
+int test = 42;
+main() {
+  var v = test;
+}
+''');
+    return getRefactoringResult(() {
+      return _sendConvertRequest('test;');
+    }).then((result) {
+      assertResultProblemsFatal(
+          result.initialProblems,
+          'Only explicit getters can be converted to methods.');
+      // ...there is no any change
+      expect(result.change, isNull);
+    });
+  }
+
+  test_method() {
+    addTestFile('''
+class A {
+  int get test => 1;
+}
+class B extends A {
+  int get test => 2;
+}
+class C extends B {
+  int get test => 3;
+}
+class D extends A {
+  int get test => 4;
+}
+main(A a, B b, C c, D d) {
+  var va = a.test;
+  var vb = b.test;
+  var vc = c.test;
+  var vd = d.test;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendConvertRequest('test => 2');
+    }, '''
+class A {
+  int test() => 1;
+}
+class B extends A {
+  int test() => 2;
+}
+class C extends B {
+  int test() => 3;
+}
+class D extends A {
+  int test() => 4;
+}
+main(A a, B b, C c, D d) {
+  var va = a.test();
+  var vb = b.test();
+  var vc = c.test();
+  var vd = d.test();
+}
+''');
+  }
+
+  Future<Response> _sendConvertRequest(String search) {
+    Request request = new EditGetRefactoringParams(
+        RefactoringKind.CONVERT_GETTER_TO_METHOD,
+        testFile,
+        findOffset(search),
+        0,
+        false).toRequest('0');
+    return serverChannel.sendRequest(request);
+  }
 }
 
 
@@ -929,6 +1026,60 @@ class A {
 ''');
   }
 
+  test_classMember_method() {
+    addTestFile('''
+class A {
+  test() {}
+  main() {
+    test();
+  }
+}
+main(A a) {
+  a.test();
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test() {}', 'newName');
+    }, '''
+class A {
+  newName() {}
+  main() {
+    newName();
+  }
+}
+main(A a) {
+  a.newName();
+}
+''');
+  }
+
+  test_classMember_method_potential() {
+    addTestFile('''
+class A {
+  test() {}
+}
+main(A a, a2) {
+  a.test();
+  a2.test(); // a2
+}
+''');
+    return getRefactoringResult(() {
+      return sendRenameRequest('test() {}', 'newName');
+    }).then((result) {
+      assertResultProblemsOK(result);
+      // prepare potential edit ID
+      List<String> potentialIds = result.potentialEdits;
+      expect(potentialIds, hasLength(1));
+      String potentialId = potentialIds[0];
+      // find potential edit
+      SourceChange change = result.change;
+      SourceEdit potentialEdit = _findEditWithId(change, potentialId);
+      expect(potentialEdit, isNotNull);
+      expect(potentialEdit.offset, findOffset('test(); // a2'));
+      expect(potentialEdit.length, 4);
+    });
+  }
+
   test_classMember_setter() {
     addTestFile('''
 class A {
@@ -1107,6 +1258,48 @@ main() {
 ''');
   }
 
+  test_importPrefix_add() {
+    addTestFile('''
+import 'dart:math';
+import 'dart:async';
+main() {
+  Random r;
+  Future f;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest("import 'dart:async';", 'new_name');
+    }, '''
+import 'dart:math';
+import 'dart:async' as new_name;
+main() {
+  Random r;
+  new_name.Future f;
+}
+''');
+  }
+
+  test_importPrefix_remove() {
+    addTestFile('''
+import 'dart:math' as test;
+import 'dart:async' as test;
+main() {
+  test.Random r;
+  test.Future f;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest("import 'dart:async' as test;", '');
+    }, '''
+import 'dart:math' as test;
+import 'dart:async';
+main() {
+  test.Random r;
+  Future f;
+}
+''');
+  }
+
   test_init_fatalError_noElement() {
     addTestFile('// nothing to rename');
     return getRefactoringResult(() {
@@ -1118,6 +1311,39 @@ main() {
       // ...there is no any change
       expect(result.change, isNull);
     });
+  }
+
+  test_library_libraryDirective() {
+    addTestFile('''
+library aaa.bbb.ccc;
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('library aaa', 'my.new_name');
+    }, '''
+library my.new_name;
+''');
+  }
+
+  test_library_libraryDirective_name() {
+    addTestFile('''
+library aaa.bbb.ccc;
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('aaa', 'my.new_name');
+    }, '''
+library my.new_name;
+''');
+  }
+
+  test_library_libraryDirective_nameDot() {
+    addTestFile('''
+library aaa.bbb.ccc;
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('.bbb', 'my.new_name');
+    }, '''
+library my.new_name;
+''');
   }
 
   test_localVariable() {
@@ -1191,6 +1417,18 @@ main() {
         });
       });
     });
+  }
+
+  SourceEdit _findEditWithId(SourceChange change, String id) {
+    SourceEdit potentialEdit;
+    change.edits.forEach((fileEdit) {
+      fileEdit.edits.forEach((edit) {
+        if (edit.id == id) {
+          potentialEdit = edit;
+        }
+      });
+    });
+    return potentialEdit;
   }
 }
 

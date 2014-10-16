@@ -5,8 +5,6 @@
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 
-// This library contains a member loadLibrary.
-// Check that we shadow this member.
 import "deferred_closurize_load_library_lib.dart" deferred as lib;
 
 void main() {

@@ -4,21 +4,98 @@
 
 library services.completion.suggestion.builder;
 
-import 'package:analysis_server/src/protocol.dart' as protocol show Element, ElementKind;
-import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/protocol_server.dart' hide Element,
+    ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+
+/**
+ * Call the given function with each non-null non-empty inherited type name
+ * that is defined in the given class.
+ */
+visitInheritedTypeNames(ClassDeclaration node, void inherited(String name)) {
+
+  void visit(TypeName type) {
+    if (type != null) {
+      Identifier id = type.name;
+      if (id != null) {
+        String name = id.name;
+        if (name != null && name.length > 0) {
+          inherited(name);
+        }
+      }
+    }
+  }
+
+  ExtendsClause extendsClause = node.extendsClause;
+  if (extendsClause != null) {
+    visit(extendsClause.superclass);
+  }
+  ImplementsClause implementsClause = node.implementsClause;
+  if (implementsClause != null) {
+    NodeList<TypeName> interfaces = implementsClause.interfaces;
+    if (interfaces != null) {
+      interfaces.forEach((TypeName type) {
+        visit(type);
+      });
+    }
+  }
+  WithClause withClause = node.withClause;
+  if (withClause != null) {
+    NodeList<TypeName> mixinTypes = withClause.mixinTypes;
+    if (mixinTypes != null) {
+      mixinTypes.forEach((TypeName type) {
+        visit(type);
+      });
+    }
+  }
+}
+
+/**
+ * Call the given functions with each non-null non-empty inherited class
+ * declaration, if the class is defined locally, or type name if it is not
+ * defined locally.
+ */
+void visitInheritedTypes(ClassDeclaration node, void
+    local(ClassDeclaration classNode), void imported(String typeName)) {
+  CompilationUnit unit = node.getAncestor((p) => p is CompilationUnit);
+  List<ClassDeclaration> todo = new List<ClassDeclaration>();
+  todo.add(node);
+  Set<String> visited = new Set<String>();
+  while (todo.length > 0) {
+    node = todo.removeLast();
+    visitInheritedTypeNames(node, (String name) {
+      if (visited.add(name)) {
+        var classNode = unit.declarations.firstWhere((member) {
+          if (member is ClassDeclaration) {
+            SimpleIdentifier id = member.name;
+            if (id != null && id.name == name) {
+              return true;
+            }
+          }
+          return false;
+        }, orElse: () => null);
+        if (classNode is ClassDeclaration) {
+          local(classNode);
+          todo.add(classNode);
+        } else {
+          imported(name);
+        }
+      }
+    });
+  }
+}
 
 /**
  * This class visits elements in a class and provides suggestions based upon
  * the visible members in that class. Clients should call
  * [ClassElementSuggestionBuilder.suggestionsFor].
  */
-class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
-  final DartCompletionRequest request;
-  final Set<String> _completions = new Set<String>();
+class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 
-  ClassElementSuggestionBuilder(this.request);
+  ClassElementSuggestionBuilder(DartCompletionRequest request) : super(request);
 
   @override
   visitClassElement(ClassElement element) {
@@ -35,7 +112,7 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   @override
   visitFieldElement(FieldElement element) {
-    _addSuggestion(
+    _addElementSuggestion(
         element,
         CompletionSuggestionKind.GETTER,
         element.type,
@@ -44,7 +121,10 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   @override
   visitMethodElement(MethodElement element) {
-    _addSuggestion(
+    if (element.isOperator) {
+      return;
+    }
+    _addElementSuggestion(
         element,
         CompletionSuggestionKind.METHOD,
         element.returnType,
@@ -54,13 +134,13 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
   @override
   visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (element.isGetter) {
-      _addSuggestion(
+      _addElementSuggestion(
           element,
           CompletionSuggestionKind.GETTER,
           element.returnType,
           element.enclosingElement);
     } else if (element.isSetter) {
-      _addSuggestion(
+      _addElementSuggestion(
           element,
           CompletionSuggestionKind.SETTER,
           element.returnType,
@@ -68,16 +148,135 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
     }
   }
 
-  void _addSuggestion(Element element, CompletionSuggestionKind kind,
+  /**
+   * Add suggestions for the visible members in the given class
+   */
+  static void suggestionsFor(DartCompletionRequest request, Element element) {
+    if (element is ClassElement) {
+      return element.accept(new ClassElementSuggestionBuilder(request));
+    }
+  }
+}
+
+/**
+ * This class visits elements in a library and provides suggestions based upon
+ * the visible members in that library. Clients should call
+ * [LibraryElementSuggestionBuilder.suggestionsFor].
+ */
+class LibraryElementSuggestionBuilder extends _AbstractSuggestionBuilder {
+
+  LibraryElementSuggestionBuilder(DartCompletionRequest request)
+      : super(request);
+
+  @override
+  visitClassElement(ClassElement element) {
+    _addElementSuggestion(element, CompletionSuggestionKind.CLASS, null, null);
+  }
+
+  @override
+  visitCompilationUnitElement(CompilationUnitElement element) {
+    element.visitChildren(this);
+  }
+
+  @override
+  visitElement(Element element) {
+    // ignored
+  }
+
+  @override
+  visitFunctionElement(FunctionElement element) {
+    _addElementSuggestion(
+        element,
+        CompletionSuggestionKind.FUNCTION,
+        element.returnType,
+        null);
+  }
+
+  @override
+  visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+    _addElementSuggestion(
+        element,
+        CompletionSuggestionKind.FUNCTION_TYPE_ALIAS,
+        element.returnType,
+        null);
+  }
+
+  @override
+  visitTopLevelVariableElement(TopLevelVariableElement element) {
+    _addElementSuggestion(
+        element,
+        CompletionSuggestionKind.TOP_LEVEL_VARIABLE,
+        element.type,
+        null);
+  }
+
+  /**
+   * Add suggestions for the visible members in the given library
+   */
+  static void suggestionsFor(DartCompletionRequest request,
+      LibraryElement library) {
+    if (library != null) {
+      library.visitChildren(new LibraryElementSuggestionBuilder(request));
+    }
+  }
+}
+
+/**
+ * This class visits elements in a class and provides suggestions based upon
+ * the visible named constructors in that class. Clients should call
+ * [NamedConstructorSuggestionBuilder.suggestionsFor].
+ */
+class NamedConstructorSuggestionBuilder extends _AbstractSuggestionBuilder {
+
+  NamedConstructorSuggestionBuilder(DartCompletionRequest request)
+      : super(request);
+
+  @override
+  visitClassElement(ClassElement element) {
+    element.visitChildren(this);
+  }
+
+  @override
+  visitConstructorElement(ConstructorElement element) {
+    _addElementSuggestion(
+        element,
+        CompletionSuggestionKind.CONSTRUCTOR,
+        element.returnType,
+        element.enclosingElement);
+  }
+
+  @override
+  visitElement(Element element) {
+    // ignored
+  }
+
+  /**
+   * Add suggestions for the visible members in the given class
+   */
+  static void suggestionsFor(DartCompletionRequest request, Element element) {
+    if (element is ClassElement) {
+      element.accept(new NamedConstructorSuggestionBuilder(request));
+    }
+  }
+}
+
+/**
+ * Common superclass for sharing behavior
+ */
+class _AbstractSuggestionBuilder extends GeneralizingElementVisitor {
+  final DartCompletionRequest request;
+  final Set<String> _completions = new Set<String>();
+
+  _AbstractSuggestionBuilder(this.request);
+
+  void _addElementSuggestion(Element element, CompletionSuggestionKind kind,
       DartType type, ClassElement enclosingElement) {
     if (element.isSynthetic) {
       return;
     }
     if (element.isPrivate) {
-      LibraryElement elementLibrary =
-          element.getAncestor((parent) => parent is LibraryElement);
-      LibraryElement unitLibrary =
-          request.unit.element.getAncestor((parent) => parent is LibraryElement);
+      LibraryElement elementLibrary = element.library;
+      LibraryElement unitLibrary = request.unit.element.library;
       if (elementLibrary != unitLibrary) {
         return;
       }
@@ -96,7 +295,7 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
         0,
         element.isDeprecated,
         false);
-    suggestion.element = new protocol.Element.fromEngine(element);
+    suggestion.element = protocol.newElement_fromEngine(element);
     if (suggestion.element != null) {
       if (element is FieldElement) {
         suggestion.element.kind = protocol.ElementKind.GETTER;
@@ -114,81 +313,5 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
       }
     }
     request.suggestions.add(suggestion);
-  }
-
-  /**
-   * Add suggestions for the visible members in the given class
-   */
-  static void suggestionsFor(DartCompletionRequest request, Element element) {
-    if (element is ClassElement) {
-      element.accept(new ClassElementSuggestionBuilder(request));
-    }
-  }
-}
-
-/**
- * This class visits elements in a library and provides suggestions based upon
- * the visible members in that library. Clients should call
- * [LibraryElementSuggestionBuilder.suggestionsFor].
- */
-class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
-
-  final DartCompletionRequest request;
-
-  LibraryElementSuggestionBuilder(this.request);
-
-  @override
-  visitClassElement(ClassElement element) {
-    _addSuggestion(element);
-  }
-
-  @override
-  visitCompilationUnitElement(CompilationUnitElement element) {
-    element.visitChildren(this);
-  }
-
-  @override
-  visitElement(Element element) {
-    // ignored
-  }
-
-  @override
-  visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    _addSuggestion(element);
-  }
-
-  @override
-  visitTopLevelVariableElement(TopLevelVariableElement element) {
-    _addSuggestion(element);
-  }
-
-  void _addSuggestion(Element element) {
-    if (element != null) {
-      String completion = element.name;
-      if (completion != null && completion.length > 0) {
-        CompletionSuggestion suggestion = new CompletionSuggestion(
-            new CompletionSuggestionKind.fromElementKind(element.kind),
-            CompletionRelevance.DEFAULT,
-            completion,
-            completion.length,
-            0,
-            element.isDeprecated,
-            false);
-
-        suggestion.element = new protocol.Element.fromEngine(element);
-
-        request.suggestions.add(suggestion);
-      }
-    }
-  }
-
-  /**
-   * Add suggestions for the visible members in the given library
-   */
-  static void suggestionsFor(DartCompletionRequest request,
-      LibraryElement library) {
-    if (library != null) {
-      library.visitChildren(new LibraryElementSuggestionBuilder(request));
-    }
   }
 }

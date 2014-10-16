@@ -6,9 +6,10 @@ library pub.command.global_activate;
 
 import 'dart:async';
 
+import 'package:pub_semver/pub_semver.dart';
+
 import '../command.dart';
 import '../utils.dart';
-import '../version.dart';
 
 /// Handles the `global activate` pub command.
 class GlobalActivateCommand extends PubCommand {

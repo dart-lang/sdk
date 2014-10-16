@@ -244,9 +244,13 @@ class _TypeTest<T> {
  * in amortized logarithmic time.
  *
  * Keys of the map are compared using the `compare` function passed in
- * the constructor. If that is omitted, the objects are assumed to be
- * [Comparable], and are compared using their [Comparable.compareTo]
- * method. Non-comparable objects (including `null`) will not work as keys
+ * the constructor, both for ordering and for equality.
+ * If the map contains only the key `a`, then `map.containsKey(b)`
+ * will return `true` if and only if `compare(a, b) == 0`,
+ * and the value of `a == b` is not even checked.
+ * If the compare function is omitted, the objects are assumed to be
+ * [Comparable], and are compared using their [Comparable.compareTo] method.
+ * Non-comparable objects (including `null`) will not work as keys
  * in that case.
  *
  * To allow calling [operator[]], [remove] or [containsKey] with objects
@@ -597,6 +601,15 @@ class _SplayTreeKeyIterable<K> extends IterableBase<K>
   int get length => _tree._count;
   bool get isEmpty => _tree._count == 0;
   Iterator<K> get iterator => new _SplayTreeKeyIterator<K>(_tree);
+
+  Set<K> toSet() {
+    var setOrMap = _tree;  // Both have _comparator and _validKey.
+    SplayTreeSet<K> set =
+        new SplayTreeSet<K>(setOrMap._comparator, setOrMap._validKey);
+    set._count = _tree._count;
+    set._root = set._copyNode(_tree._root);
+    return set;
+  }
 }
 
 class _SplayTreeValueIterable<K, V> extends IterableBase<V>
@@ -634,9 +647,13 @@ class _SplayTreeNodeIterator<K>
  * in amortized logarithmic time.
  *
  * Elements of the set are compared using the `compare` function passed in
- * the constructor. If that is omitted, the objects are assumed to be
- * [Comparable], and are compared using their [Comparable.compareTo]
- * method. Non-comparable objects (including `null`) will not work as an element
+ * the constructor, both for ordering and for equality.
+ * If the set contains only an object `a`, then `set.contains(b)`
+ * will return `true` if and only if `compare(a, b) == 0`,
+ * and the value of `a == b` is not even checked.
+ * If the compare function is omitted, the objects are assumed to be
+ * [Comparable], and are compared using their [Comparable.compareTo] method.
+ * Non-comparable objects (including `null`) will not work as an element
  * in that case.
  */
 class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {
@@ -779,14 +796,16 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>, SetMixin<E> {
   SplayTreeSet<E> _clone() {
     var set = new SplayTreeSet<E>(_comparator, _validKey);
     set._count = _count;
-    set._root = _cloneNode(_root);
+    set._root = _copyNode(_root);
     return set;
   }
 
-  _SplayTreeNode<E> _cloneNode(_SplayTreeNode<E> node) {
+  // Copies the structure of a SplayTree into a new similar structure.
+  // Works on _SplayTreeMapNode as well, but only copies the keys,
+  _SplayTreeNode<E> _copyNode(_SplayTreeNode<E> node) {
     if (node == null) return null;
-    return new _SplayTreeNode<E>(node.key)..left = _cloneNode(node.left)
-                                          ..right = _cloneNode(node.right);
+    return new _SplayTreeNode<E>(node.key)..left = _copyNode(node.left)
+                                          ..right = _copyNode(node.right);
   }
 
   void clear() { _clear(); }

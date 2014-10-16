@@ -52,6 +52,7 @@ class TypeEnvironment {
           uri,
           analyzeAll: !stopAfterTypeInference,
           analyzeOnly: !stopAfterTypeInference);
+      mockCompiler.diagnosticHandler = mock.createHandler(mockCompiler, source);
       getErrors = () => mockCompiler.errors;
       getWarnings = () => mockCompiler.warnings;
       compiler = mockCompiler;
@@ -61,7 +62,7 @@ class TypeEnvironment {
       compiler = memory.compilerFor(
           {'main.dart': source},
           diagnosticHandler: collector,
-          options: stopAfterTypeInference 
+          options: stopAfterTypeInference
               ? [] : ['--analyze-all', '--analyze-only']);
       getErrors = () => collector.errors;
       getWarnings = () => collector.warnings;

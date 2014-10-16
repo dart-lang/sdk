@@ -32,6 +32,12 @@ class CommandLineOptions {
   /** Whether to enable support for the proposed enum feature. */
   final bool enableEnum;
 
+  /**
+   * Whether to treat type mismatches found during constant evaluation as
+   * errors.
+   */
+  final bool enableTypeChecks;
+
   /** Whether to ignore unrecognized flags */
   final bool ignoreUnrecognizedFlags;
 
@@ -75,6 +81,7 @@ class CommandLineOptions {
       displayVersion = args['version'],
       enableAsync = args['enable-async'],
       enableEnum = args['enable-enum'],
+      enableTypeChecks = args['enable_type_checks'],
       ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
       log = args['log'],
       machineFormat = args['machine'] || args['format'] == 'machine',
@@ -161,6 +168,9 @@ class CommandLineOptions {
           defaultsTo: false, negatable: false, hide: true)
       ..addFlag('warm-perf',
           help: 'Show both cold and warm performance statistics',
+          defaultsTo: false, negatable: false, hide: true)
+      ..addFlag('enable_type_checks',
+          help: 'Check types in constant evaluation',
           defaultsTo: false, negatable: false, hide: true);
 
     try {

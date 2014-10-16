@@ -90,14 +90,47 @@ class ClassTreePage extends Page {
     // isolate url.
     url = url.substring(_urlPrefix.length);
     /// Request the isolate url.
-    app.vm.get(url).then((i) {
+    app.vm.get(url).then((isolate) {
       if (element != null) {
         /// Update the page.
         ClassTreeElement page = element;
-        page.isolate = i;
+        page.isolate = isolate;
       }
     }).catchError((e) {
       Logger.root.severe('ClassTreePage visit error: $e');
+    });
+  }
+
+  /// Catch all.
+  bool canVisit(String url) => url.startsWith(_urlPrefix);
+}
+
+class DebuggerPage extends Page {
+  static const _urlPrefix = 'debugger/';
+
+  DebuggerPage(app) : super(app);
+
+  void onInstall() {
+    if (element == null) {
+      element = new Element.tag('debugger-page');
+    }
+  }
+
+  void _visit(String url) {
+    assert(element != null);
+    assert(canVisit(url));
+    // Debugger urls are 'debugger/isolate-id', chop off prefix, leaving
+    // isolate url.
+    url = url.substring(_urlPrefix.length);
+    /// Request the isolate url.
+    app.vm.get(url).then((isolate) {
+      if (element != null) {
+        /// Update the page.
+        DebuggerPageElement page = element;
+        page.isolate = isolate;
+      }
+    }).catchError((e) {
+        Logger.root.severe('Unexpected debugger error: $e');
     });
   }
 

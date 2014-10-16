@@ -4,7 +4,7 @@
 
 library test.search.search_result;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import '../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
@@ -20,24 +20,24 @@ main() {
 class SearchResultKindTest {
   void test_fromEngine() {
     expect(
-        new SearchResultKind.fromEngine(MatchKind.DECLARATION),
+        newSearchResultKind_fromEngine(MatchKind.DECLARATION),
         SearchResultKind.DECLARATION);
     expect(
-        new SearchResultKind.fromEngine(MatchKind.READ),
+        newSearchResultKind_fromEngine(MatchKind.READ),
         SearchResultKind.READ);
     expect(
-        new SearchResultKind.fromEngine(MatchKind.READ_WRITE),
+        newSearchResultKind_fromEngine(MatchKind.READ_WRITE),
         SearchResultKind.READ_WRITE);
     expect(
-        new SearchResultKind.fromEngine(MatchKind.WRITE),
+        newSearchResultKind_fromEngine(MatchKind.WRITE),
         SearchResultKind.WRITE);
     expect(
-        new SearchResultKind.fromEngine(MatchKind.REFERENCE),
+        newSearchResultKind_fromEngine(MatchKind.REFERENCE),
         SearchResultKind.REFERENCE);
     expect(
-        new SearchResultKind.fromEngine(MatchKind.INVOCATION),
+        newSearchResultKind_fromEngine(MatchKind.INVOCATION),
         SearchResultKind.INVOCATION);
-    expect(new SearchResultKind.fromEngine(null), SearchResultKind.UNKNOWN);
+    expect(newSearchResultKind_fromEngine(null), SearchResultKind.UNKNOWN);
   }
 
   void test_fromName() {
@@ -65,7 +65,8 @@ class SearchResultKindTest {
   }
 
   void test_toString() {
-    expect(SearchResultKind.DECLARATION.toString(),
+    expect(
+        SearchResultKind.DECLARATION.toString(),
         'SearchResultKind.DECLARATION');
   }
 }

@@ -4,15 +4,15 @@
 
 library services.src.correction.statement_analyzer;
 
-import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
+import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analysis_server/src/protocol.dart';
 
 
 /**
@@ -183,7 +183,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
         invalidSelection(
             "The beginning of the selection contains characters that "
                 "do not belong to a statement.",
-            new Location.fromUnit(unit, rangeBeforeFirstNode));
+            newLocation_fromUnit(unit, rangeBeforeFirstNode));
       }
     }
     // some tokens after last selected node
@@ -194,7 +194,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
         invalidSelection(
             "The end of the selection contains characters that "
                 "do not belong to a statement.",
-            new Location.fromUnit(unit, rangeAfterLastNode));
+            newLocation_fromUnit(unit, rangeAfterLastNode));
       }
     }
   }

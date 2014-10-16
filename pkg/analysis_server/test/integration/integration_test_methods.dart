@@ -13,6 +13,7 @@ library test.integration.methods;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
 import 'integration_tests.dart';
@@ -34,13 +35,11 @@ abstract class IntegrationTestMixin {
    *
    *   The version number of the analysis server.
    */
-  Future sendServerGetVersion({bool checkTypes: true}) {
+  Future<ServerGetVersionResult> sendServerGetVersion() {
     return server.send("server.getVersion", null)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isServerGetVersionResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new ServerGetVersionResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -51,13 +50,11 @@ abstract class IntegrationTestMixin {
    * responded to. No further responses or notifications will be sent after the
    * response to this request has been sent.
    */
-  Future sendServerShutdown({bool checkTypes: true}) {
+  Future sendServerShutdown() {
     return server.send("server.shutdown", null)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isServerShutdownResult);
-      }
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -75,18 +72,12 @@ abstract class IntegrationTestMixin {
    *
    *   A list of the services being subscribed to.
    */
-  Future sendServerSetSubscriptions(List<String> subscriptions, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["subscriptions"] = subscriptions;
-    if (checkTypes) {
-      expect(params, isServerSetSubscriptionsParams);
-    }
+  Future sendServerSetSubscriptions(List<ServerService> subscriptions) {
+    var params = new ServerSetSubscriptionsParams(subscriptions).toJson();
     return server.send("server.setSubscriptions", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isServerSetSubscriptionsResult);
-      }
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -97,12 +88,12 @@ abstract class IntegrationTestMixin {
    *
    * It is not possible to subscribe to or unsubscribe from this notification.
    */
-  Stream onServerConnected;
+  Stream<ServerConnectedParams> onServerConnected;
 
   /**
    * Stream controller for [onServerConnected].
    */
-  StreamController _onServerConnected;
+  StreamController<ServerConnectedParams> _onServerConnected;
 
   /**
    * Reports that an unexpected error has occurred while executing the server.
@@ -129,12 +120,12 @@ abstract class IntegrationTestMixin {
    *   The stack trace associated with the generation of the error, used for
    *   debugging the server.
    */
-  Stream onServerError;
+  Stream<ServerErrorParams> onServerError;
 
   /**
    * Stream controller for [onServerError].
    */
-  StreamController _onServerError;
+  StreamController<ServerErrorParams> _onServerError;
 
   /**
    * Reports the current status of the server. Parameters are omitted if there
@@ -151,12 +142,12 @@ abstract class IntegrationTestMixin {
    *   The current status of analysis, including whether analysis is being
    *   performed and if so what is being analyzed.
    */
-  Stream onServerStatus;
+  Stream<ServerStatusParams> onServerStatus;
 
   /**
    * Stream controller for [onServerStatus].
    */
-  StreamController _onServerStatus;
+  StreamController<ServerStatusParams> _onServerStatus;
 
   /**
    * Return the errors associated with the given file. If the errors for the
@@ -189,18 +180,12 @@ abstract class IntegrationTestMixin {
    *
    *   The errors associated with the file.
    */
-  Future sendAnalysisGetErrors(String file, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["file"] = file;
-    if (checkTypes) {
-      expect(params, isAnalysisGetErrorsParams);
-    }
+  Future<AnalysisGetErrorsResult> sendAnalysisGetErrors(String file) {
+    var params = new AnalysisGetErrorsParams(file).toJson();
     return server.send("analysis.getErrors", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isAnalysisGetErrorsResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new AnalysisGetErrorsResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -229,19 +214,12 @@ abstract class IntegrationTestMixin {
    *   contexts in conflicting ways (such as a part that is included in
    *   multiple libraries).
    */
-  Future sendAnalysisGetHover(String file, int offset, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["file"] = file;
-    params["offset"] = offset;
-    if (checkTypes) {
-      expect(params, isAnalysisGetHoverParams);
-    }
+  Future<AnalysisGetHoverResult> sendAnalysisGetHover(String file, int offset) {
+    var params = new AnalysisGetHoverParams(file, offset).toJson();
     return server.send("analysis.getHover", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isAnalysisGetHoverResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new AnalysisGetHoverResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -251,13 +229,11 @@ abstract class IntegrationTestMixin {
    * discarded and recomputed, and will cause all subscribed notifications to
    * be re-sent.
    */
-  Future sendAnalysisReanalyze({bool checkTypes: true}) {
+  Future sendAnalysisReanalyze() {
     return server.send("analysis.reanalyze", null)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isAnalysisReanalyzeResult);
-      }
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -294,19 +270,12 @@ abstract class IntegrationTestMixin {
    *   A list of the files and directories within the included directories that
    *   should not be analyzed.
    */
-  Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["included"] = included;
-    params["excluded"] = excluded;
-    if (checkTypes) {
-      expect(params, isAnalysisSetAnalysisRootsParams);
-    }
+  Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded) {
+    var params = new AnalysisSetAnalysisRootsParams(included, excluded).toJson();
     return server.send("analysis.setAnalysisRoots", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isAnalysisSetAnalysisRootsResult);
-      }
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -335,18 +304,12 @@ abstract class IntegrationTestMixin {
    *
    *   The files that are to be a priority for analysis.
    */
-  Future sendAnalysisSetPriorityFiles(List<String> files, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["files"] = files;
-    if (checkTypes) {
-      expect(params, isAnalysisSetPriorityFilesParams);
-    }
+  Future sendAnalysisSetPriorityFiles(List<String> files) {
+    var params = new AnalysisSetPriorityFilesParams(files).toJson();
     return server.send("analysis.setPriorityFiles", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isAnalysisSetPriorityFilesResult);
-      }
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -382,18 +345,12 @@ abstract class IntegrationTestMixin {
    *   A table mapping services to a list of the files being subscribed to the
    *   service.
    */
-  Future sendAnalysisSetSubscriptions(Map<String, List<String>> subscriptions, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["subscriptions"] = subscriptions;
-    if (checkTypes) {
-      expect(params, isAnalysisSetSubscriptionsParams);
-    }
+  Future sendAnalysisSetSubscriptions(Map<AnalysisService, List<String>> subscriptions) {
+    var params = new AnalysisSetSubscriptionsParams(subscriptions).toJson();
     return server.send("analysis.setSubscriptions", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isAnalysisSetSubscriptionsResult);
-      }
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -413,18 +370,12 @@ abstract class IntegrationTestMixin {
    *   A table mapping the files whose content has changed to a description of
    *   the content change.
    */
-  Future sendAnalysisUpdateContent(Map<String, Object> files, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["files"] = files;
-    if (checkTypes) {
-      expect(params, isAnalysisUpdateContentParams);
-    }
+  Future sendAnalysisUpdateContent(Map<String, dynamic> files) {
+    var params = new AnalysisUpdateContentParams(files).toJson();
     return server.send("analysis.updateContent", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isAnalysisUpdateContentResult);
-      }
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -440,18 +391,12 @@ abstract class IntegrationTestMixin {
    *
    *   The options that are to be used to control analysis.
    */
-  Future sendAnalysisUpdateOptions(Map<String, dynamic> options, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["options"] = options;
-    if (checkTypes) {
-      expect(params, isAnalysisUpdateOptionsParams);
-    }
+  Future sendAnalysisUpdateOptions(AnalysisOptions options) {
+    var params = new AnalysisUpdateOptionsParams(options).toJson();
     return server.send("analysis.updateOptions", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isAnalysisUpdateOptionsResult);
-      }
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -473,12 +418,12 @@ abstract class IntegrationTestMixin {
    *
    *   The errors contained in the file.
    */
-  Stream onAnalysisErrors;
+  Stream<AnalysisErrorsParams> onAnalysisErrors;
 
   /**
    * Stream controller for [onAnalysisErrors].
    */
-  StreamController _onAnalysisErrors;
+  StreamController<AnalysisErrorsParams> _onAnalysisErrors;
 
   /**
    * Reports that any analysis results that were previously associated with the
@@ -499,12 +444,12 @@ abstract class IntegrationTestMixin {
    *
    *   The files that are no longer being analyzed.
    */
-  Stream onAnalysisFlushResults;
+  Stream<AnalysisFlushResultsParams> onAnalysisFlushResults;
 
   /**
    * Stream controller for [onAnalysisFlushResults].
    */
-  StreamController _onAnalysisFlushResults;
+  StreamController<AnalysisFlushResultsParams> _onAnalysisFlushResults;
 
   /**
    * Reports the folding regions associated with a given file. Folding regions
@@ -526,12 +471,12 @@ abstract class IntegrationTestMixin {
    *
    *   The folding regions contained in the file.
    */
-  Stream onAnalysisFolding;
+  Stream<AnalysisFoldingParams> onAnalysisFolding;
 
   /**
    * Stream controller for [onAnalysisFolding].
    */
-  StreamController _onAnalysisFolding;
+  StreamController<AnalysisFoldingParams> _onAnalysisFolding;
 
   /**
    * Reports the highlight regions associated with a given file.
@@ -554,12 +499,12 @@ abstract class IntegrationTestMixin {
    *   overlap other highlight regions if there is more than one meaning
    *   associated with a particular region.
    */
-  Stream onAnalysisHighlights;
+  Stream<AnalysisHighlightsParams> onAnalysisHighlights;
 
   /**
    * Stream controller for [onAnalysisHighlights].
    */
-  StreamController _onAnalysisHighlights;
+  StreamController<AnalysisHighlightsParams> _onAnalysisHighlights;
 
   /**
    * Reports the navigation targets associated with a given file.
@@ -584,12 +529,12 @@ abstract class IntegrationTestMixin {
    *   navigation regions that are returned do not overlap other navigation
    *   regions.
    */
-  Stream onAnalysisNavigation;
+  Stream<AnalysisNavigationParams> onAnalysisNavigation;
 
   /**
    * Stream controller for [onAnalysisNavigation].
    */
-  StreamController _onAnalysisNavigation;
+  StreamController<AnalysisNavigationParams> _onAnalysisNavigation;
 
   /**
    * Reports the occurrences of references to elements within a single file.
@@ -608,12 +553,12 @@ abstract class IntegrationTestMixin {
    *
    *   The occurrences of references to elements within the file.
    */
-  Stream onAnalysisOccurrences;
+  Stream<AnalysisOccurrencesParams> onAnalysisOccurrences;
 
   /**
    * Stream controller for [onAnalysisOccurrences].
    */
-  StreamController _onAnalysisOccurrences;
+  StreamController<AnalysisOccurrencesParams> _onAnalysisOccurrences;
 
   /**
    * Reports the outline associated with a single file.
@@ -632,12 +577,12 @@ abstract class IntegrationTestMixin {
    *
    *   The outline associated with the file.
    */
-  Stream onAnalysisOutline;
+  Stream<AnalysisOutlineParams> onAnalysisOutline;
 
   /**
    * Stream controller for [onAnalysisOutline].
    */
-  StreamController _onAnalysisOutline;
+  StreamController<AnalysisOutlineParams> _onAnalysisOutline;
 
   /**
    * Reports the overridding members in a file.
@@ -656,12 +601,12 @@ abstract class IntegrationTestMixin {
    *
    *   The overrides associated with the file.
    */
-  Stream onAnalysisOverrides;
+  Stream<AnalysisOverridesParams> onAnalysisOverrides;
 
   /**
    * Stream controller for [onAnalysisOverrides].
    */
-  StreamController _onAnalysisOverrides;
+  StreamController<AnalysisOverridesParams> _onAnalysisOverrides;
 
   /**
    * Request that completion suggestions for the given offset in the given file
@@ -683,19 +628,12 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this completion request.
    */
-  Future sendCompletionGetSuggestions(String file, int offset, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["file"] = file;
-    params["offset"] = offset;
-    if (checkTypes) {
-      expect(params, isCompletionGetSuggestionsParams);
-    }
+  Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(String file, int offset) {
+    var params = new CompletionGetSuggestionsParams(file, offset).toJson();
     return server.send("completion.getSuggestions", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isCompletionGetSuggestionsResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -737,12 +675,12 @@ abstract class IntegrationTestMixin {
    *   True if this is that last set of results that will be returned for the
    *   indicated completion.
    */
-  Stream onCompletionResults;
+  Stream<CompletionResultsParams> onCompletionResults;
 
   /**
    * Stream controller for [onCompletionResults].
    */
-  StreamController _onCompletionResults;
+  StreamController<CompletionResultsParams> _onCompletionResults;
 
   /**
    * Perform a search for references to the element defined or referenced at
@@ -785,20 +723,12 @@ abstract class IntegrationTestMixin {
    *   If no element was found at the given location, this field will be
    *   absent.
    */
-  Future sendSearchFindElementReferences(String file, int offset, bool includePotential, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["file"] = file;
-    params["offset"] = offset;
-    params["includePotential"] = includePotential;
-    if (checkTypes) {
-      expect(params, isSearchFindElementReferencesParams);
-    }
+  Future<SearchFindElementReferencesResult> sendSearchFindElementReferences(String file, int offset, bool includePotential) {
+    var params = new SearchFindElementReferencesParams(file, offset, includePotential).toJson();
     return server.send("search.findElementReferences", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isSearchFindElementReferencesResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new SearchFindElementReferencesResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -821,18 +751,12 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this search request.
    */
-  Future sendSearchFindMemberDeclarations(String name, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["name"] = name;
-    if (checkTypes) {
-      expect(params, isSearchFindMemberDeclarationsParams);
-    }
+  Future<SearchFindMemberDeclarationsResult> sendSearchFindMemberDeclarations(String name) {
+    var params = new SearchFindMemberDeclarationsParams(name).toJson();
     return server.send("search.findMemberDeclarations", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isSearchFindMemberDeclarationsResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new SearchFindMemberDeclarationsResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -857,18 +781,12 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this search request.
    */
-  Future sendSearchFindMemberReferences(String name, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["name"] = name;
-    if (checkTypes) {
-      expect(params, isSearchFindMemberReferencesParams);
-    }
+  Future<SearchFindMemberReferencesResult> sendSearchFindMemberReferences(String name) {
+    var params = new SearchFindMemberReferencesParams(name).toJson();
     return server.send("search.findMemberReferences", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isSearchFindMemberReferencesResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new SearchFindMemberReferencesResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -893,18 +811,12 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this search request.
    */
-  Future sendSearchFindTopLevelDeclarations(String pattern, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["pattern"] = pattern;
-    if (checkTypes) {
-      expect(params, isSearchFindTopLevelDeclarationsParams);
-    }
+  Future<SearchFindTopLevelDeclarationsResult> sendSearchFindTopLevelDeclarations(String pattern) {
+    var params = new SearchFindTopLevelDeclarationsParams(pattern).toJson();
     return server.send("search.findTopLevelDeclarations", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isSearchFindTopLevelDeclarationsResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new SearchFindTopLevelDeclarationsResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -937,19 +849,12 @@ abstract class IntegrationTestMixin {
    *   not represent a type, or if the file has not been sufficiently analyzed
    *   to allow a type hierarchy to be produced.
    */
-  Future sendSearchGetTypeHierarchy(String file, int offset, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["file"] = file;
-    params["offset"] = offset;
-    if (checkTypes) {
-      expect(params, isSearchGetTypeHierarchyParams);
-    }
+  Future<SearchGetTypeHierarchyResult> sendSearchGetTypeHierarchy(String file, int offset) {
+    var params = new SearchGetTypeHierarchyParams(file, offset).toJson();
     return server.send("search.getTypeHierarchy", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isSearchGetTypeHierarchyResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new SearchGetTypeHierarchyResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -974,12 +879,12 @@ abstract class IntegrationTestMixin {
    *   True if this is that last set of results that will be returned for the
    *   indicated search.
    */
-  Stream onSearchResults;
+  Stream<SearchResultsParams> onSearchResults;
 
   /**
    * Stream controller for [onSearchResults].
    */
-  StreamController _onSearchResults;
+  StreamController<SearchResultsParams> _onSearchResults;
 
   /**
    * Return the set of assists that are available at the given location. An
@@ -1007,20 +912,12 @@ abstract class IntegrationTestMixin {
    *
    *   The assists that are available at the given location.
    */
-  Future sendEditGetAssists(String file, int offset, int length, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["file"] = file;
-    params["offset"] = offset;
-    params["length"] = length;
-    if (checkTypes) {
-      expect(params, isEditGetAssistsParams);
-    }
+  Future<EditGetAssistsResult> sendEditGetAssists(String file, int offset, int length) {
+    var params = new EditGetAssistsParams(file, offset, length).toJson();
     return server.send("edit.getAssists", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isEditGetAssistsResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditGetAssistsResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -1048,20 +945,12 @@ abstract class IntegrationTestMixin {
    *
    *   The kinds of refactorings that are valid for the given selection.
    */
-  Future sendEditGetAvailableRefactorings(String file, int offset, int length, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["file"] = file;
-    params["offset"] = offset;
-    params["length"] = length;
-    if (checkTypes) {
-      expect(params, isEditGetAvailableRefactoringsParams);
-    }
+  Future<EditGetAvailableRefactoringsResult> sendEditGetAvailableRefactorings(String file, int offset, int length) {
+    var params = new EditGetAvailableRefactoringsParams(file, offset, length).toJson();
     return server.send("edit.getAvailableRefactorings", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isEditGetAvailableRefactoringsResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditGetAvailableRefactoringsResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -1085,19 +974,12 @@ abstract class IntegrationTestMixin {
    *
    *   The fixes that are available for the errors at the given offset.
    */
-  Future sendEditGetFixes(String file, int offset, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["file"] = file;
-    params["offset"] = offset;
-    if (checkTypes) {
-      expect(params, isEditGetFixesParams);
-    }
+  Future<EditGetFixesResult> sendEditGetFixes(String file, int offset) {
+    var params = new EditGetFixesParams(file, offset).toJson();
     return server.send("edit.getFixes", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isEditGetFixesResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditGetFixesResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -1179,25 +1061,44 @@ abstract class IntegrationTestMixin {
    *   if the change field is omitted or if there are no potential edits for
    *   the refactoring.
    */
-  Future sendEditGetRefactoring(String kind, String file, int offset, int length, bool validateOnly, {Map<String, dynamic> options, bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["kind"] = kind;
-    params["file"] = file;
-    params["offset"] = offset;
-    params["length"] = length;
-    params["validateOnly"] = validateOnly;
-    if (options != null) {
-      params["options"] = options;
-    }
-    if (checkTypes) {
-      expect(params, isEditGetRefactoringParams);
-    }
+  Future<EditGetRefactoringResult> sendEditGetRefactoring(RefactoringKind kind, String file, int offset, int length, bool validateOnly, {RefactoringOptions options}) {
+    var params = new EditGetRefactoringParams(kind, file, offset, length, validateOnly, options: options).toJson();
     return server.send("edit.getRefactoring", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isEditGetRefactoringResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(kind);
+      return new EditGetRefactoringResult.fromJson(decoder, 'result', result);
+    });
+  }
+
+  /**
+   * Sort all of the directives, unit and class members of the given Dart file.
+   *
+   * If a request is made for a file that does not exist, does not belong to an
+   * analysis root or is not a Dart file, SORT_MEMBERS_INVALID_FILE will be
+   * generated.
+   *
+   * If the Dart file has scan or parse errors, SORT_MEMBERS_PARSE_ERRORS will
+   * be generated.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The Dart file to sort.
+   *
+   * Returns
+   *
+   * edit ( SourceFileEdit )
+   *
+   *   The file edit that is to be applied to the given file to effect the
+   *   sorting.
+   */
+  Future<EditSortMembersResult> sendEditSortMembers(String file) {
+    var params = new EditSortMembersParams(file).toJson();
+    return server.send("edit.sortMembers", params)
+        .then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditSortMembersResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -1219,18 +1120,12 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to refer to the execution context that was created.
    */
-  Future sendExecutionCreateContext(String contextRoot, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["contextRoot"] = contextRoot;
-    if (checkTypes) {
-      expect(params, isExecutionCreateContextParams);
-    }
+  Future<ExecutionCreateContextResult> sendExecutionCreateContext(String contextRoot) {
+    var params = new ExecutionCreateContextParams(contextRoot).toJson();
     return server.send("execution.createContext", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isExecutionCreateContextResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new ExecutionCreateContextResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -1245,18 +1140,12 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier of the execution context that is to be deleted.
    */
-  Future sendExecutionDeleteContext(String id, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["id"] = id;
-    if (checkTypes) {
-      expect(params, isExecutionDeleteContextParams);
-    }
+  Future sendExecutionDeleteContext(String id) {
+    var params = new ExecutionDeleteContextParams(id).toJson();
     return server.send("execution.deleteContext", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isExecutionDeleteContextResult);
-      }
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -1293,24 +1182,12 @@ abstract class IntegrationTestMixin {
    *   The URI to which the file path was mapped. This field is omitted if the
    *   file field was not given in the request.
    */
-  Future sendExecutionMapUri(String id, {String file, String uri, bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["id"] = id;
-    if (file != null) {
-      params["file"] = file;
-    }
-    if (uri != null) {
-      params["uri"] = uri;
-    }
-    if (checkTypes) {
-      expect(params, isExecutionMapUriParams);
-    }
+  Future<ExecutionMapUriResult> sendExecutionMapUri(String id, {String file, String uri}) {
+    var params = new ExecutionMapUriParams(id, file: file, uri: uri).toJson();
     return server.send("execution.mapUri", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isExecutionMapUriResult);
-      }
-      return result;
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new ExecutionMapUriResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -1328,18 +1205,12 @@ abstract class IntegrationTestMixin {
    *
    *   A list of the services being subscribed to.
    */
-  Future sendExecutionSetSubscriptions(List<String> subscriptions, {bool checkTypes: true}) {
-    Map<String, dynamic> params = {};
-    params["subscriptions"] = subscriptions;
-    if (checkTypes) {
-      expect(params, isExecutionSetSubscriptionsParams);
-    }
+  Future sendExecutionSetSubscriptions(List<ExecutionService> subscriptions) {
+    var params = new ExecutionSetSubscriptionsParams(subscriptions).toJson();
     return server.send("execution.setSubscriptions", params)
         .then((result) {
-      if (checkTypes) {
-        expect(result, isExecutionSetSubscriptionsResult);
-      }
-      return result;
+      expect(result, isNull);
+      return null;
     });
   }
 
@@ -1367,45 +1238,45 @@ abstract class IntegrationTestMixin {
    *   A list of the Dart files that are referenced by the file. This field is
    *   omitted if the file is not an HTML file.
    */
-  Stream onExecutionLaunchData;
+  Stream<ExecutionLaunchDataParams> onExecutionLaunchData;
 
   /**
    * Stream controller for [onExecutionLaunchData].
    */
-  StreamController _onExecutionLaunchData;
+  StreamController<ExecutionLaunchDataParams> _onExecutionLaunchData;
 
   /**
    * Initialize the fields in InttestMixin, and ensure that notifications will
    * be handled.
    */
   void initializeInttestMixin() {
-    _onServerConnected = new StreamController(sync: true);
+    _onServerConnected = new StreamController<ServerConnectedParams>(sync: true);
     onServerConnected = _onServerConnected.stream.asBroadcastStream();
-    _onServerError = new StreamController(sync: true);
+    _onServerError = new StreamController<ServerErrorParams>(sync: true);
     onServerError = _onServerError.stream.asBroadcastStream();
-    _onServerStatus = new StreamController(sync: true);
+    _onServerStatus = new StreamController<ServerStatusParams>(sync: true);
     onServerStatus = _onServerStatus.stream.asBroadcastStream();
-    _onAnalysisErrors = new StreamController(sync: true);
+    _onAnalysisErrors = new StreamController<AnalysisErrorsParams>(sync: true);
     onAnalysisErrors = _onAnalysisErrors.stream.asBroadcastStream();
-    _onAnalysisFlushResults = new StreamController(sync: true);
+    _onAnalysisFlushResults = new StreamController<AnalysisFlushResultsParams>(sync: true);
     onAnalysisFlushResults = _onAnalysisFlushResults.stream.asBroadcastStream();
-    _onAnalysisFolding = new StreamController(sync: true);
+    _onAnalysisFolding = new StreamController<AnalysisFoldingParams>(sync: true);
     onAnalysisFolding = _onAnalysisFolding.stream.asBroadcastStream();
-    _onAnalysisHighlights = new StreamController(sync: true);
+    _onAnalysisHighlights = new StreamController<AnalysisHighlightsParams>(sync: true);
     onAnalysisHighlights = _onAnalysisHighlights.stream.asBroadcastStream();
-    _onAnalysisNavigation = new StreamController(sync: true);
+    _onAnalysisNavigation = new StreamController<AnalysisNavigationParams>(sync: true);
     onAnalysisNavigation = _onAnalysisNavigation.stream.asBroadcastStream();
-    _onAnalysisOccurrences = new StreamController(sync: true);
+    _onAnalysisOccurrences = new StreamController<AnalysisOccurrencesParams>(sync: true);
     onAnalysisOccurrences = _onAnalysisOccurrences.stream.asBroadcastStream();
-    _onAnalysisOutline = new StreamController(sync: true);
+    _onAnalysisOutline = new StreamController<AnalysisOutlineParams>(sync: true);
     onAnalysisOutline = _onAnalysisOutline.stream.asBroadcastStream();
-    _onAnalysisOverrides = new StreamController(sync: true);
+    _onAnalysisOverrides = new StreamController<AnalysisOverridesParams>(sync: true);
     onAnalysisOverrides = _onAnalysisOverrides.stream.asBroadcastStream();
-    _onCompletionResults = new StreamController(sync: true);
+    _onCompletionResults = new StreamController<CompletionResultsParams>(sync: true);
     onCompletionResults = _onCompletionResults.stream.asBroadcastStream();
-    _onSearchResults = new StreamController(sync: true);
+    _onSearchResults = new StreamController<SearchResultsParams>(sync: true);
     onSearchResults = _onSearchResults.stream.asBroadcastStream();
-    _onExecutionLaunchData = new StreamController(sync: true);
+    _onExecutionLaunchData = new StreamController<ExecutionLaunchDataParams>(sync: true);
     onExecutionLaunchData = _onExecutionLaunchData.stream.asBroadcastStream();
   }
 
@@ -1414,62 +1285,63 @@ abstract class IntegrationTestMixin {
    * [params], to the appropriate stream.
    */
   void dispatchNotification(String event, params) {
+    ResponseDecoder decoder = new ResponseDecoder(null);
     switch (event) {
       case "server.connected":
         expect(params, isServerConnectedParams);
-        _onServerConnected.add(params);
+        _onServerConnected.add(new ServerConnectedParams());
         break;
       case "server.error":
         expect(params, isServerErrorParams);
-        _onServerError.add(params);
+        _onServerError.add(new ServerErrorParams.fromJson(decoder, 'params', params));
         break;
       case "server.status":
         expect(params, isServerStatusParams);
-        _onServerStatus.add(params);
+        _onServerStatus.add(new ServerStatusParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.errors":
         expect(params, isAnalysisErrorsParams);
-        _onAnalysisErrors.add(params);
+        _onAnalysisErrors.add(new AnalysisErrorsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.flushResults":
         expect(params, isAnalysisFlushResultsParams);
-        _onAnalysisFlushResults.add(params);
+        _onAnalysisFlushResults.add(new AnalysisFlushResultsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.folding":
         expect(params, isAnalysisFoldingParams);
-        _onAnalysisFolding.add(params);
+        _onAnalysisFolding.add(new AnalysisFoldingParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.highlights":
         expect(params, isAnalysisHighlightsParams);
-        _onAnalysisHighlights.add(params);
+        _onAnalysisHighlights.add(new AnalysisHighlightsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.navigation":
         expect(params, isAnalysisNavigationParams);
-        _onAnalysisNavigation.add(params);
+        _onAnalysisNavigation.add(new AnalysisNavigationParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.occurrences":
         expect(params, isAnalysisOccurrencesParams);
-        _onAnalysisOccurrences.add(params);
+        _onAnalysisOccurrences.add(new AnalysisOccurrencesParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.outline":
         expect(params, isAnalysisOutlineParams);
-        _onAnalysisOutline.add(params);
+        _onAnalysisOutline.add(new AnalysisOutlineParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.overrides":
         expect(params, isAnalysisOverridesParams);
-        _onAnalysisOverrides.add(params);
+        _onAnalysisOverrides.add(new AnalysisOverridesParams.fromJson(decoder, 'params', params));
         break;
       case "completion.results":
         expect(params, isCompletionResultsParams);
-        _onCompletionResults.add(params);
+        _onCompletionResults.add(new CompletionResultsParams.fromJson(decoder, 'params', params));
         break;
       case "search.results":
         expect(params, isSearchResultsParams);
-        _onSearchResults.add(params);
+        _onSearchResults.add(new SearchResultsParams.fromJson(decoder, 'params', params));
         break;
       case "execution.launchData":
         expect(params, isExecutionLaunchDataParams);
-        _onExecutionLaunchData.add(params);
+        _onExecutionLaunchData.add(new ExecutionLaunchDataParams.fromJson(decoder, 'params', params));
         break;
       default:
         fail('Unexpected notification: $event');

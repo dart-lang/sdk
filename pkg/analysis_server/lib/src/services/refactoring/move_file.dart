@@ -6,7 +6,7 @@ library services.src.refactoring.move_file;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
@@ -147,7 +147,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl implements
         String newUri = _getRelativeUri(elementPath, newLibraryDir);
         int uriOffset = element.uriOffset;
         int uriLength = element.uriEnd - uriOffset;
-        change.addElementEdit(
+        doSourceChange_addElementEdit(
+            change,
             library,
             new SourceEdit(uriOffset, uriLength, "'$newUri'"));
       }

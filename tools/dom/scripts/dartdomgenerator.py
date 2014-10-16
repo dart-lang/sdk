@@ -219,9 +219,6 @@ def main():
   parser.add_option('--parallel', dest='parallel',
                     action='store_true', default=False,
                     help='Use fremontcut in parallel mode.')
-  parser.add_option('--rebuild', dest='rebuild',
-                    action='store_true', default=False,
-                    help='Rebuild the database from IDL using fremontcut.')
   parser.add_option('--systems', dest='systems',
                     action='store', type='string',
                     default='htmldart2js,htmldartium',
@@ -239,9 +236,6 @@ def main():
                     action='store_true',
                     default=False,
                     help='''Update the metadata list of DOM APIs''')
-  parser.add_option('--blink-parser', dest='blink_parser',
-                    action='store_true', default=False,
-                    help='Use New Blink IDL parser.')
   parser.add_option('--verbose', dest='logging_level',
                     action='store_false', default=logging.WARNING,
                     help='Output all informational messages')
@@ -274,15 +268,8 @@ def main():
 
   UpdateCssProperties()
 
-  if options.rebuild:
-    # Parse the IDL and create the database.
-    database = fremontcutbuilder.main(options.parallel, options.blink_parser,
-                                      logging_level=logging_level)
-  else:
-    # TODO(terry): Should be able to remove this...
-    # Load the previously generated database.
-    if not options.blink_parser:
-      database = LoadDatabase(database_dir, options.use_database_cache)
+  # Parse the IDL and create the database.
+  database = fremontcutbuilder.main(options.parallel, logging_level=logging_level)
 
   GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir,
       options.update_dom_metadata, logging_level)

@@ -238,12 +238,21 @@ class Database extends EventTarget {
   @DocsEditable()
   void deleteObjectStore(String name) => _blink.BlinkIDBDatabase.deleteObjectStore_Callback_DOMString(this, name);
 
-  Transaction transaction(storeName_OR_storeNames, String mode) {
+  Transaction transaction(storeName_OR_storeNames, [String mode]) {
+    if ((storeName_OR_storeNames is String || storeName_OR_storeNames == null) && mode == null) {
+      return _blink.BlinkIDBDatabase.transaction_Callback_DOMString(this, storeName_OR_storeNames);
+    }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
       return _blink.BlinkIDBDatabase.transaction_Callback_DOMString_DOMString(this, storeName_OR_storeNames, mode);
     }
+    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && mode == null) {
+      return _blink.BlinkIDBDatabase.transaction_Callback_SEQ_DOMString_SEQ(this, storeName_OR_storeNames);
+    }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
       return _blink.BlinkIDBDatabase.transaction_Callback_SEQ_DOMString_SEQ_DOMString(this, storeName_OR_storeNames, mode);
+    }
+    if ((storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null) && mode == null) {
+      return _blink.BlinkIDBDatabase.transaction_Callback_DOMStringList(this, storeName_OR_storeNames);
     }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null)) {
       return _blink.BlinkIDBDatabase.transaction_Callback_DOMStringList_DOMString(this, storeName_OR_storeNames, mode);
@@ -251,17 +260,26 @@ class Database extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('IDBDatabase.transactionList')
-  @DocsEditable()
-  Transaction transactionList(List<String> storeNames, String mode) => _blink.BlinkIDBDatabase.transaction_Callback_SEQ_DOMString_SEQ_DOMString(this, storeNames, mode);
+  Transaction transactionList(List<String> storeNames, [String mode]) {
+    if (mode != null) {
+      return _blink.BlinkIDBDatabase.transaction_Callback_SEQ_DOMString_SEQ_DOMString(this, storeNames, mode);
+    }
+    return _blink.BlinkIDBDatabase.transaction_Callback_SEQ_DOMString_SEQ(this, storeNames);
+  }
 
-  @DomName('IDBDatabase.transactionStore')
-  @DocsEditable()
-  Transaction transactionStore(String storeName, String mode) => _blink.BlinkIDBDatabase.transaction_Callback_DOMString_DOMString(this, storeName, mode);
+  Transaction transactionStore(String storeName, [String mode]) {
+    if (mode != null) {
+      return _blink.BlinkIDBDatabase.transaction_Callback_DOMString_DOMString(this, storeName, mode);
+    }
+    return _blink.BlinkIDBDatabase.transaction_Callback_DOMString(this, storeName);
+  }
 
-  @DomName('IDBDatabase.transactionStores')
-  @DocsEditable()
-  Transaction transactionStores(List<String> storeNames, String mode) => _blink.BlinkIDBDatabase.transaction_Callback_DOMStringList_DOMString(this, storeNames, mode);
+  Transaction transactionStores(List<String> storeNames, [String mode]) {
+    if (mode != null) {
+      return _blink.BlinkIDBDatabase.transaction_Callback_DOMStringList_DOMString(this, storeNames, mode);
+    }
+    return _blink.BlinkIDBDatabase.transaction_Callback_DOMStringList(this, storeNames);
+  }
 
   /// Stream of `abort` events handled by this [Database].
   @DomName('IDBDatabase.onabort')
@@ -474,7 +492,8 @@ class Index extends NativeFieldWrapperClass2 {
     }
     var request;
     if (direction == null) {
-      request = _openCursor(key_OR_range);
+      // FIXME: Passing in "next" should be unnecessary.
+      request = _openCursor(key_OR_range, "next");
     } else {
       request = _openCursor(key_OR_range, direction);
     }
@@ -501,7 +520,8 @@ class Index extends NativeFieldWrapperClass2 {
     }
     var request;
     if (direction == null) {
-      request = _openKeyCursor(key_OR_range);
+      // FIXME: Passing in "next" should be unnecessary.
+      request = _openKeyCursor(key_OR_range, "next");
     } else {
       request = _openKeyCursor(key_OR_range, direction);
     }
@@ -543,13 +563,19 @@ class Index extends NativeFieldWrapperClass2 {
   @DocsEditable()
   Request _getKey(Object key) => _blink.BlinkIDBIndex.getKey_Callback_ScriptValue(this, key);
 
-  @DomName('IDBIndex.openCursor')
-  @DocsEditable()
-  Request _openCursor(Object key, [String direction]) => _blink.BlinkIDBIndex.openCursor_Callback_ScriptValue_DOMString(this, key, direction);
+  Request _openCursor(Object range, [String direction]) {
+    if (direction != null) {
+      return _blink.BlinkIDBIndex.openCursor_Callback_ScriptValue_DOMString(this, range, direction);
+    }
+    return _blink.BlinkIDBIndex.openCursor_Callback_ScriptValue(this, range);
+  }
 
-  @DomName('IDBIndex.openKeyCursor')
-  @DocsEditable()
-  Request _openKeyCursor(Object key, [String direction]) => _blink.BlinkIDBIndex.openKeyCursor_Callback_ScriptValue_DOMString(this, key, direction);
+  Request _openKeyCursor(Object range, [String direction]) {
+    if (direction != null) {
+      return _blink.BlinkIDBIndex.openKeyCursor_Callback_ScriptValue_DOMString(this, range, direction);
+    }
+    return _blink.BlinkIDBIndex.openKeyCursor_Callback_ScriptValue(this, range);
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -818,10 +844,12 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   @DocsEditable()
   Request _openCursor(Object range, [String direction]) => _blink.BlinkIDBObjectStore.openCursor_Callback_ScriptValue_DOMString(this, range, direction);
 
-  @DomName('IDBObjectStore.openKeyCursor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Request openKeyCursor(Object range, String direction) => _blink.BlinkIDBObjectStore.openKeyCursor_Callback_ScriptValue_DOMString(this, range, direction);
+  Request openKeyCursor(Object range, [String direction]) {
+    if (direction != null) {
+      return _blink.BlinkIDBObjectStore.openKeyCursor_Callback_ScriptValue_DOMString(this, range, direction);
+    }
+    return _blink.BlinkIDBObjectStore.openKeyCursor_Callback_ScriptValue(this, range);
+  }
 
   @DomName('IDBObjectStore.put')
   @DocsEditable()

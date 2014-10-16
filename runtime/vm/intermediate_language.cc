@@ -66,6 +66,7 @@ const ICData* Instruction::GetICData(
     const ZoneGrowableArray<const ICData*>& ic_data_array) const {
   // The deopt_id can be outside the range of the IC data array for
   // computations added in the optimizing compiler.
+  ASSERT(deopt_id_ != Isolate::kNoDeoptId);
   if (deopt_id_ < ic_data_array.length()) {
     return ic_data_array[deopt_id_];
   }
@@ -770,6 +771,34 @@ void BranchInstr::InheritDeoptTarget(Isolate* isolate, Instruction* other) {
 }
 
 
+bool Instruction::IsDominatedBy(Instruction* dom) {
+  BlockEntryInstr* block = GetBlock();
+  BlockEntryInstr* dom_block = dom->GetBlock();
+
+  if (dom->IsPhi()) {
+    dom = dom_block;
+  }
+
+  if (block == dom_block) {
+    if ((block == dom) || (this == block->last_instruction())) {
+      return true;
+    }
+
+    if (IsPhi()) {
+      return false;
+    }
+
+    for (Instruction* curr = dom->next(); curr != NULL; curr = curr->next()) {
+      if (curr == this) return true;
+    }
+
+    return false;
+  }
+
+  return dom_block->Dominates(block);
+}
+
+
 void Definition::ReplaceWith(Definition* other,
                              ForwardInstructionIterator* iterator) {
   // Record other's input uses.
@@ -834,13 +863,10 @@ static bool IsMarked(BlockEntryInstr* block,
 
 
 // Base class implementation used for JoinEntry and TargetEntry.
-void BlockEntryInstr::DiscoverBlocks(
+bool BlockEntryInstr::DiscoverBlock(
     BlockEntryInstr* predecessor,
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<intptr_t>* parent,
-    intptr_t variable_count,
-    intptr_t fixed_parameter_count) {
+    GrowableArray<intptr_t>* parent) {
   // If this block has a predecessor (i.e., is not the graph entry) we can
   // assume the preorder array is non-empty.
   ASSERT((predecessor == NULL) || !preorder->is_empty());
@@ -852,7 +878,7 @@ void BlockEntryInstr::DiscoverBlocks(
   if (IsMarked(this, preorder)) {
     ASSERT(predecessor != NULL);
     AddPredecessor(predecessor);
-    return;
+    return false;
   }
 
   // 2. Otherwise, clear the predecessors which might have been computed on
@@ -884,20 +910,7 @@ void BlockEntryInstr::DiscoverBlocks(
   }
   set_last_instruction(last);
 
-  // Visit the block's successors in reverse so that they appear forwards
-  // the reverse postorder block ordering.
-  for (intptr_t i = last->SuccessorCount() - 1; i >= 0; --i) {
-    last->SuccessorAt(i)->DiscoverBlocks(this,
-                                         preorder,
-                                         postorder,
-                                         parent,
-                                         variable_count,
-                                         fixed_parameter_count);
-  }
-
-  // 6. Assign postorder number and add the block entry to the list.
-  set_postorder_number(postorder->length());
-  postorder->Add(this);
+  return true;
 }
 
 
@@ -959,6 +972,15 @@ bool BlockEntryInstr::Dominates(BlockEntryInstr* other) const {
     current = current->dominator();
   }
   return current == this;
+}
+
+
+BlockEntryInstr* BlockEntryInstr::ImmediateDominator() const {
+  Instruction* last = dominator()->last_instruction();
+  if ((last->SuccessorCount() == 1) && (last->SuccessorAt(0) == this)) {
+    return dominator();
+  }
+  return NULL;
 }
 
 
@@ -2621,6 +2643,21 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
 }
 
 
+LocationSummary* CurrentContextInstr::MakeLocationSummary(Isolate* isolate,
+                                                          bool opt) const {
+  return LocationSummary::Make(isolate,
+                               0,
+                               Location::RegisterLocation(CTX),
+                               LocationSummary::kNoCall);
+}
+
+
+void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // No code to emit. Just assert the correct result register.
+  ASSERT(locs()->out(0).reg() == CTX);
+}
+
+
 LocationSummary* StoreContextInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool optimizing) const {
   const intptr_t kNumInputs = 1;
@@ -2629,6 +2666,12 @@ LocationSummary* StoreContextInstr::MakeLocationSummary(Isolate* isolate,
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RegisterLocation(CTX));
   return summary;
+}
+
+
+void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Nothing to do.  Context register was loaded by the register allocator.
+  ASSERT(locs()->in(0).reg() == CTX);
 }
 
 
@@ -2669,12 +2712,6 @@ void DropTempsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Nothing to do.  Context register was loaded by the register allocator.
-  ASSERT(locs()->in(0).reg() == CTX);
-}
-
-
 StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
                                        Token::Kind kind,
                                        Value* left,
@@ -2682,6 +2719,7 @@ StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
                                        bool needs_number_check)
     : ComparisonInstr(token_pos, kind, left, right),
       needs_number_check_(needs_number_check) {
+  deopt_id_ = Isolate::Current()->GetNextDeoptId();
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
 }
 

@@ -37,7 +37,9 @@ ASSEMBLER_TEST_RUN(Call, test) {
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
   StubCode* stub_code = Isolate::Current()->stub_code();
   __ BranchPatchable(&stub_code->InvokeDartCodeLabel());
-  __ BranchPatchable(&stub_code->AllocateArrayLabel());
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  const ExternalLabel array_label(array_stub.EntryPoint());
+  __ BranchPatchable(&array_label);
 }
 
 
@@ -55,14 +57,13 @@ ASSEMBLER_TEST_RUN(Jump, test) {
             jump1.TargetAddress());
   JumpPattern jump2(test->entry() + jump1.pattern_length_in_bytes(),
                     test->code());
-  EXPECT_EQ(stub_code->AllocateArrayLabel().address(),
-            jump2.TargetAddress());
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  EXPECT_EQ(array_stub.EntryPoint(), jump2.TargetAddress());
   uword target1 = jump1.TargetAddress();
   uword target2 = jump2.TargetAddress();
   jump1.SetTargetAddress(target2);
   jump2.SetTargetAddress(target1);
-  EXPECT_EQ(stub_code->AllocateArrayLabel().address(),
-            jump1.TargetAddress());
+  EXPECT_EQ(array_stub.EntryPoint(), jump1.TargetAddress());
   EXPECT_EQ(stub_code->InvokeDartCodeLabel().address(),
             jump2.TargetAddress());
 }
@@ -74,7 +75,9 @@ ASSEMBLER_TEST_GENERATE(JumpARMv6, assembler) {
   StubCode* stub_code = Isolate::Current()->stub_code();
   HostCPUFeatures::set_arm_version(ARMv6);
   __ BranchPatchable(&stub_code->InvokeDartCodeLabel());
-  __ BranchPatchable(&stub_code->AllocateArrayLabel());
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  const ExternalLabel array_label(array_stub.EntryPoint());
+  __ BranchPatchable(&array_label);
   HostCPUFeatures::set_arm_version(ARMv7);
 }
 
@@ -94,14 +97,13 @@ ASSEMBLER_TEST_RUN(JumpARMv6, test) {
             jump1.TargetAddress());
   JumpPattern jump2(test->entry() + jump1.pattern_length_in_bytes(),
                     test->code());
-  EXPECT_EQ(stub_code->AllocateArrayLabel().address(),
-            jump2.TargetAddress());
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  EXPECT_EQ(array_stub.EntryPoint(), jump2.TargetAddress());
   uword target1 = jump1.TargetAddress();
   uword target2 = jump2.TargetAddress();
   jump1.SetTargetAddress(target2);
   jump2.SetTargetAddress(target1);
-  EXPECT_EQ(stub_code->AllocateArrayLabel().address(),
-            jump1.TargetAddress());
+  EXPECT_EQ(array_stub.EntryPoint(), jump1.TargetAddress());
   EXPECT_EQ(stub_code->InvokeDartCodeLabel().address(),
             jump2.TargetAddress());
   HostCPUFeatures::set_arm_version(ARMv7);

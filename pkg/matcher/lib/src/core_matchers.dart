@@ -389,6 +389,7 @@ class isInstanceOf<T> extends Matcher {
 }
 
 /// A matcher that matches a function call against no exception.
+///
 /// The function will be called once. Any exceptions will be silently swallowed.
 /// The value passed to expect() should be a reference to the function.
 /// Note that the function cannot take arguments; to handle this
@@ -502,12 +503,13 @@ class _HasLength extends Matcher {
   }
 }
 
-/// Returns a matcher that matches if the match argument contains
-/// the expected value. For [String]s this means substring matching;
+/// Returns a matcher that matches if the match argument contains the expected
+/// value.
+///
+/// For [String]s this means substring matching;
 /// for [Map]s it means the map has the key, and for [Iterable]s
-/// (including [Iterable]s) it means the iterable has a matching
-/// element. In the case of iterables, [expected] can itself be a
-/// matcher.
+/// it means the iterable has a matching element. In the case of iterables,
+/// [expected] can itself be a matcher.
 Matcher contains(expected) => new _Contains(expected);
 
 class _Contains extends Matcher {
@@ -569,7 +571,9 @@ class _In extends Matcher {
 }
 
 /// Returns a matcher that uses an arbitrary function that returns
-/// true or false for the actual value. For example:
+/// true or false for the actual value.
+///
+/// For example:
 ///
 ///     expect(v, predicate((x) => ((x % 2) == 0), "is even"))
 Matcher predicate(bool f(value), [String description = 'satisfies function']) =>

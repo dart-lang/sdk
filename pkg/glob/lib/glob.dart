@@ -155,26 +155,19 @@ class Glob implements Pattern {
     if (_patternCanMatchAbsolute &&
         (_contextIsAbsolute || context.isAbsolute(path))) {
       var absolutePath = context.normalize(context.absolute(path));
-      if (_ast.matches(_toPosixPath(absolutePath))) {
+      if (_ast.matches(toPosixPath(context, absolutePath))) {
         return new GlobMatch(path, this);
       }
     }
 
     if (_patternCanMatchRelative) {
       var relativePath = context.relative(path);
-      if (_ast.matches(_toPosixPath(relativePath))) {
+      if (_ast.matches(toPosixPath(context, relativePath))) {
         return new GlobMatch(path, this);
       }
     }
 
     return null;
-  }
-
-  /// Returns [path] converted to the POSIX format that globs match against.
-  String _toPosixPath(String path) {
-    if (context.style == p.Style.windows) return path.replaceAll('\\', '/');
-    if (context.style == p.Style.url) return Uri.decodeFull(path);
-    return path;
   }
 
   Iterable<Match> allMatches(String path, [int start = 0]) {

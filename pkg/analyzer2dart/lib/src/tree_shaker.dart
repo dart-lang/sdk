@@ -8,9 +8,12 @@ import 'dart:collection';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:compiler/implementation/universe/universe.dart';
 
 import 'closed_world.dart';
+import 'util.dart';
+import 'semantic_visitor.dart';
 import 'package:analyzer2dart/src/identifier_semantics.dart';
 
 /**
@@ -26,6 +29,12 @@ class MethodAnalysis {
    * The functions statically called by the method.
    */
   final List<ExecutableElement> calls = <ExecutableElement>[];
+
+  /**
+   * The fields and top-level variables statically accessed by the method.
+   */
+  // TODO(johnniwinther): Should we split this into reads and writes?
+  final List<PropertyInducingElement> accesses = <PropertyInducingElement>[];
 
   /**
    * The selectors used by the method to perform dynamic invocation.
@@ -66,8 +75,24 @@ class LocalReachabilityComputer {
    * Perform local reachability analysis of [method].
    */
   MethodAnalysis analyzeMethod(ExecutableElement method) {
-    MethodAnalysis analysis = new MethodAnalysis(method.node);
-    analysis.declaration.accept(new TreeShakingVisitor(analysis));
+    Declaration declaration = method.node;
+    MethodAnalysis analysis = new MethodAnalysis(declaration);
+    if (declaration != null) {
+      declaration.accept(new TreeShakingVisitor(analysis));
+    } else if (method is ConstructorElement) {
+      // This constructor has no associated declaration in the AST.  Either it
+      // is a default constructor for an ordinary class, or it's a synthetic
+      // constructor associated with a mixin.  For now we assume it's a default
+      // constructor, in which case all we need to do is record the class as
+      // being instantiated by this method.  TODO(paulberry): handle the
+      // mixin case.
+      analysis.instantiates.add(method.enclosingElement);
+    } else {
+      // This is an executable element with no associated declaration in the
+      // AST, and it's not a constructor.  TODO(paulberry): can this ever
+      // happen?
+      throw new UnimplementedError();
+    }
     return analysis;
   }
 
@@ -128,7 +153,8 @@ class TreeShaker {
   Set<Element> _alreadyEnqueued = new HashSet<Element>();
   ClosedWorld _world;
   Set<Selector> _selectors = new HashSet<Selector>();
-  final LocalReachabilityComputer _localComputer = new LocalReachabilityComputer();
+  final LocalReachabilityComputer _localComputer =
+      new LocalReachabilityComputer();
 
   TreeShaker(FunctionElement mainFunction)
       : _world = new ClosedWorld(mainFunction);
@@ -174,6 +200,7 @@ class TreeShaker {
         analysis.calls.forEach(_addElement);
         analysis.invokes.forEach(_addSelector);
         analysis.instantiates.forEach(_addElement);
+        analysis.accesses.forEach(_addElement);
       } else if (element is ClassElement) {
         ClassAnalysis analysis = _localComputer.analyzeClass(element);
         _world.instantiatedClasses[element] = analysis.declaration;
@@ -183,8 +210,13 @@ class TreeShaker {
       } else if (element is FieldElement) {
         VariableDeclaration declaration = element.node;
         _world.fields[element] = declaration;
+      } else if (element is TopLevelVariableElement) {
+        VariableDeclaration declaration = element.node;
+        _world.variables[element] = declaration;
       } else {
-        throw new Exception('Unexpected element type while tree shaking');
+        throw new Exception(
+            'Unexpected element type while tree shaking: '
+                '$element (${element.runtimeType})');
       }
     }
     print('Tree shaking done');
@@ -192,32 +224,18 @@ class TreeShaker {
   }
 }
 
-Selector createSelectorFromMethodInvocation(MethodInvocation node) {
-  int arity = 0;
-  List<String> namedArguments = <String>[];
-  for (var x in node.argumentList.arguments) {
-    if (x is NamedExpression) {
-      namedArguments.add(x.name.label.name);
-    } else {
-      arity++;
-    }
-  }
-  return new Selector.call(node.methodName.name, null, arity, namedArguments);
-}
-
-class TreeShakingVisitor extends RecursiveAstVisitor {
+class TreeShakingVisitor extends SemanticVisitor {
   final MethodAnalysis analysis;
 
   TreeShakingVisitor(this.analysis);
+
+  Source get currentSource => analysis.declaration.element.source;
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorElement staticElement = node.staticElement;
     if (staticElement != null) {
-      // TODO(paulberry): Really we should enqueue the constructor, and then
-      // when we visit it add the class to the class bucket.
-      ClassElement classElement = staticElement.enclosingElement;
-      analysis.instantiates.add(classElement);
+      analysis.calls.add(staticElement);
     } else {
       // TODO(paulberry): deal with this situation.  This can happen, for
       // example, in the case "main() => new Unresolved();" (which is a
@@ -227,87 +245,117 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.target != null) {
-      node.target.accept(this);
+  void visitDynamicInvocation(MethodInvocation node,
+      AccessSemantics semantics) {
+    analysis.invokes.add(
+        createSelectorFromMethodInvocation(node, node.methodName.name));
+  }
+
+  @override
+  void visitLocalFunctionInvocation(MethodInvocation node,
+      AccessSemantics semantics) {
+    // Locals don't need to be tree shaken.
+  }
+
+  @override
+  void visitLocalVariableInvocation(MethodInvocation node,
+      AccessSemantics semantics) {
+    // Locals don't need to be tree shaken.
+  }
+
+  @override
+  void visitParameterInvocation(MethodInvocation node,
+      AccessSemantics semantics) {
+    // Locals don't need to be tree shaken.
+  }
+
+  @override
+  void visitStaticFieldInvocation(MethodInvocation node,
+      AccessSemantics semantics) {
+    // Invocation of a static field.
+    analysis.accesses.add(semantics.element);
+    analysis.invokes.add(createSelectorFromMethodInvocation(node, 'call'));
+  }
+
+  void visitStaticMethodInvocation(MethodInvocation node,
+      AccessSemantics semantics) {
+    analysis.calls.add(semantics.element);
+  }
+
+  void visitStaticPropertyInvocation(MethodInvocation node,
+      AccessSemantics semantics) {
+    // Invocation of a property.  TODO(paulberry): handle this.
+    super.visitStaticPropertyInvocation(node, semantics);
+  }
+
+  void visitDynamicAccess(AstNode node, AccessSemantics semantics) {
+    if (semantics.isRead) {
+      analysis.invokes.add(
+          new Selector.getter(semantics.identifier.name, null));
     }
-    node.argumentList.accept(this);
-    AccessSemantics semantics = classifyMethodInvocation(node);
-    switch (semantics.kind) {
-      case AccessKind.DYNAMIC:
-        analysis.invokes.add(createSelectorFromMethodInvocation(node));
-        break;
-      case AccessKind.LOCAL_FUNCTION:
-      case AccessKind.LOCAL_VARIABLE:
-      case AccessKind.PARAMETER:
-        // Locals don't need to be tree shaken.
-        break;
-      case AccessKind.STATIC_FIELD:
-        // Invocation of a field.  TODO(paulberry): handle this.
+    if (semantics.isWrite) {
+      // TODO(paulberry): implement.
+      return giveUp(node, '_handlePropertyAccess of ${semantics}.');
+    }
+  }
+
+  void visitLocalFunctionAccess(AstNode node, AccessSemantics semantics) {
+    // Locals don't need to be tree shaken.
+  }
+
+  void visitLocalVariableAccess(AstNode node, AccessSemantics semantics) {
+    // Locals don't need to be tree shaken.
+  }
+
+  void visitParameterAccess(AstNode node, AccessSemantics semantics) {
+    // Locals don't need to be tree shaken.
+  }
+
+  void visitStaticFieldAccess(AstNode node, AccessSemantics semantics) {
+    analysis.accesses.add(semantics.element);
+  }
+
+  void visitStaticMethodAccess(AstNode node, AccessSemantics semantics) {
+    // Method tear-off.  TODO(paulberry): implement.
+    super.visitStaticMethodAccess(node, semantics);
+  }
+
+  void visitStaticPropertyAccess(AstNode node, AccessSemantics semantics) {
+    // TODO(paulberry): implement.
+    super.visitStaticPropertyAccess(node, semantics);
+  }
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    // TODO(paulberry): handle parameter list.
+    node.initializers.accept(this);
+    node.body.accept(this);
+    if (node.factoryKeyword == null) {
+      // This is a generative constructor.  Figure out if it is redirecting.
+      // If it isn't, then the constructor instantiates the class so we need to
+      // add the class to analysis.instantiates.  (If it is redirecting, then
+      // we don't need to, because the redirected-to constructor will take care
+      // of that).
+      if (node.initializers.length != 1 || node.initializers[0] is! RedirectingConstructorInvocation) {
+        analysis.instantiates.add(node.element.enclosingElement);
+      }
+    } else if (node.redirectedConstructor != null) {
+      if (node.redirectedConstructor.staticElement == null) {
+        // Factory constructor redirects to a non-existent constructor.
+        // TODO(paulberry): handle this.
         throw new UnimplementedError();
-      case AccessKind.STATIC_METHOD:
-        analysis.calls.add(semantics.element);
-        break;
-      case AccessKind.STATIC_PROPERTY:
-        // Invocation of a property.  TODO(paulberry): handle this.
-        throw new UnimplementedError();
-      default:
-        // Unexpected access kind.
-        throw new UnimplementedError();
+      } else {
+        analysis.calls.add(node.redirectedConstructor.staticElement);
+      }
     }
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
-    if (node.target != null) {
-      node.target.accept(this);
-    }
-    _handlePropertyAccess(classifyPropertyAccess(node));
-  }
-
-  @override
-  visitPrefixedIdentifier(PrefixedIdentifier node) {
-    node.prefix.accept(this);
-    _handlePropertyAccess(classifyPrefixedIdentifier(node));
-  }
-
-  @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    AccessSemantics semantics = classifySimpleIdentifier(node);
-    if (semantics != null) {
-      _handlePropertyAccess(semantics);
-    }
-  }
-
-  void _handlePropertyAccess(AccessSemantics semantics) {
-    switch (semantics.kind) {
-      case AccessKind.DYNAMIC:
-        if (semantics.isRead) {
-          analysis.invokes.add(
-              new Selector.getter(semantics.identifier.name, null));
-        }
-        if (semantics.isWrite) {
-          // TODO(paulberry): implement.
-          throw new UnimplementedError();
-        }
-        break;
-      case AccessKind.LOCAL_FUNCTION:
-      case AccessKind.LOCAL_VARIABLE:
-      case AccessKind.PARAMETER:
-        // Locals don't need to be tree shaken.
-        break;
-      case AccessKind.STATIC_FIELD:
-        // TODO(paulberry): implement.
-        throw new UnimplementedError();
-      case AccessKind.STATIC_METHOD:
-        // Method tear-off.  TODO(paulberry): implement.
-        break;
-      case AccessKind.STATIC_PROPERTY:
-        // TODO(paulberry): implement.
-        throw new UnimplementedError();
-      default:
-        // Unexpected access kind.
-        throw new UnimplementedError();
-    }
+  void
+      visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    // Note: we don't have to worry about node.staticElement being
+    // null, because that would have been detected by the analyzer and
+    // reported as a compile time error.
+    analysis.calls.add(node.staticElement);
   }
 }

@@ -714,6 +714,11 @@ void ARMDecoder::DecodeType01(Instr* instr) {
             Format(instr, "mla'cond's 'rn, 'rm, 'rs, 'rd");
             break;
           }
+          case 2: {
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            Format(instr, "umaal'cond's 'rd, 'rn, 'rm, 'rs");
+            break;
+          }
           case 3: {
             // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
             Format(instr, "mls'cond's 'rn, 'rm, 'rs, 'rd");
@@ -1308,9 +1313,19 @@ void ARMDecoder::DecodeType7(Instr* instr) {
         } else {
           Format(instr, "vmovr'cond 'rd, 'sn");
         }
-      } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0) &&
-                 (instr->Bits(12, 4) == 0xf)) {
-        Format(instr, "vmstat'cond");
+      } else if ((instr->Bits(22, 3) == 0) && (instr->Bit(20) == 0) &&
+                 (instr->Bit(8) == 1) && (instr->Bits(5, 2) == 0)) {
+        if (instr->Bit(21) == 0) {
+          Format(instr, "vmovd'cond 'dn[0], 'rd");
+        } else {
+          Format(instr, "vmovd'cond 'dn[1], 'rd");
+        }
+      } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0)) {
+        if (instr->Bits(12, 4) == 0xf) {
+          Format(instr, "vmrs'cond APSR, FPSCR");
+        } else {
+          Format(instr, "vmrs'cond 'rd, FPSCR");
+        }
       } else {
         Unknown(instr);
       }

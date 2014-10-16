@@ -184,7 +184,7 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (is_power_of_two_kind) {
     const intptr_t shift =
         Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
-    __ Lsl(result, result, shift + kSmiTagSize);
+    __ Lsl(result, result, Operand(shift + kSmiTagSize));
   } else {
     __ sub(result, result, Operand(1));
     const int32_t val =
@@ -275,7 +275,7 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
-  __ str(value, Address(FP, local().index() * kWordSize));
+  __ StoreToOffset(kWord, value, FP, local().index() * kWordSize);
 }
 
 
@@ -1117,8 +1117,7 @@ CompileType LoadIndexedInstr::ComputeType() const {
 
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      return Typed32BitIsSmi() ? CompileType::FromCid(kSmiCid)
-                                : CompileType::FromCid(kMintCid);
+      return CompileType::Int();
 
     default:
       UNREACHABLE();
@@ -1142,8 +1141,9 @@ Representation LoadIndexedInstr::representation() const {
     case kTwoByteStringCid:
       return kTagged;
     case kTypedDataInt32ArrayCid:
+      return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
-      return Typed32BitIsSmi() ? kTagged : kUnboxedMint;
+      return kUnboxedUint32;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1226,9 +1226,12 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
     } else {
       locs->set_out(0, Location::RequiresFpuRegister());
     }
-  } else if (representation() == kUnboxedMint) {
-    locs->set_out(0, Location::Pair(Location::RequiresRegister(),
-                                    Location::RequiresRegister()));
+  } else if (representation() == kUnboxedUint32) {
+    ASSERT(class_id() == kTypedDataUint32ArrayCid);
+    locs->set_out(0, Location::RequiresRegister());
+  } else if (representation() == kUnboxedInt32) {
+    ASSERT(class_id() == kTypedDataInt32ArrayCid);
+    locs->set_out(0, Location::RequiresRegister());
   } else {
     ASSERT(representation() == kTagged);
     locs->set_out(0, Location::RequiresRegister());
@@ -1281,27 +1284,23 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  if (representation() == kUnboxedMint) {
-    ASSERT(locs()->out(0).IsPairLocation());
-    PairLocation* result_pair = locs()->out(0).AsPairLocation();
-    const Register result1 = result_pair->At(0).reg();
-    const Register result2 = result_pair->At(1).reg();
+  if ((representation() == kUnboxedUint32) ||
+      (representation() == kUnboxedInt32)) {
+    Register result = locs()->out(0).reg();
+    if ((index_scale() == 1) && index.IsRegister()) {
+      __ SmiUntag(index.reg());
+    }
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
-        // Load low word.
-        __ ldr(result1, element_address);
-        // Sign extend into high word.
-        __ SignFill(result2, result1);
-        break;
+        ASSERT(representation() == kUnboxedInt32);
+        __ ldr(result, element_address);
+      break;
       case kTypedDataUint32ArrayCid:
-        // Load low word.
-        __ ldr(result1, element_address);
-        // Zero high word.
-        __ eor(result2, result2, Operand(result2));
-        break;
+        ASSERT(representation() == kUnboxedUint32);
+        __ ldr(result, element_address);
+      break;
       default:
         UNREACHABLE();
-        break;
     }
     return;
   }
@@ -1332,26 +1331,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTwoByteStringCid:
       __ ldrh(result, element_address);
       __ SmiTag(result);
-      break;
-    case kTypedDataInt32ArrayCid: {
-        Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                              ICData::kDeoptInt32Load);
-        __ ldr(result, element_address);
-        // Verify that the signed value in 'result' can fit inside a Smi.
-        __ CompareImmediate(result, 0xC0000000);
-        __ b(deopt, MI);
-        __ SmiTag(result);
-      }
-      break;
-    case kTypedDataUint32ArrayCid: {
-        Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                              ICData::kDeoptUint32Load);
-        __ ldr(result, element_address);
-        // Verify that the unsigned value in 'result' can fit inside a Smi.
-        __ TestImmediate(result, 0xC0000000);
-        __ b(deopt, NE);
-        __ SmiTag(result);
-      }
       break;
     default:
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
@@ -2218,17 +2197,18 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
                                    intptr_t num_elements,
                                    Label* slow_path,
                                    Label* done) {
+  const int kInlineArraySize = 12;  // Same as kInlineInstanceSize.
   const Register kLengthReg = R2;
   const Register kElemTypeReg = R1;
   const intptr_t instance_size = Array::InstanceSize(num_elements);
 
   __ TryAllocateArray(kArrayCid, instance_size, slow_path,
                       R0,  // instance
-                      R7,  // end address
+                      R3,  // end address
                       R6,
                       R8);
   // R0: new object start as a tagged pointer.
-  // R7: new object end address.
+  // R3: new object end address.
 
   // Store the type argument field.
   __ StoreIntoObjectNoBarrier(R0,
@@ -2242,20 +2222,34 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
 
   // Initialize all array elements to raw_null.
   // R0: new object start as a tagged pointer.
-  // R7: new object end address.
+  // R3: new object end address.
   // R8: iterator which initially points to the start of the variable
   // data area to be initialized.
-  // R3: null
+  // R6, R7: null
   if (num_elements > 0) {
-    __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
+    const intptr_t array_size = instance_size - sizeof(RawArray);
+    __ LoadImmediate(R6, reinterpret_cast<intptr_t>(Object::null()));
+    __ mov(R7, Operand(R6));
     __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
-
-    Label init_loop;
-    __ Bind(&init_loop);
-    __ cmp(R8, Operand(R7));
-    __ str(R3, Address(R8, 0), CC);
-    __ AddImmediate(R8, kWordSize, CC);
-    __ b(&init_loop, CC);
+    if (array_size < (kInlineArraySize * kWordSize)) {
+      intptr_t current_offset = 0;
+      while (current_offset + kWordSize < array_size) {
+        __ strd(R6, Address(R8, current_offset));
+        current_offset += 2*kWordSize;
+      }
+      while (current_offset < array_size) {
+        __ str(R6, Address(R8, current_offset));
+        current_offset += kWordSize;
+      }
+    } else {
+      Label init_loop;
+      __ Bind(&init_loop);
+      __ AddImmediate(R8, 2 * kWordSize);
+      __ cmp(R8, Operand(R3));
+      __ strd(R6, Address(R8, -2 * kWordSize), LS);
+      __ b(&init_loop, CC);
+      __ str(R6, Address(R8, -2 * kWordSize), HI);
+    }
   }
   __ b(done);
 }
@@ -2290,12 +2284,15 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       return;
     }
   }
-
-  StubCode* stub_code = compiler->isolate()->stub_code();
+  Isolate* isolate = compiler->isolate();
+  const Code& stub = Code::Handle(
+      isolate, isolate->stub_code()->GetAllocateArrayStub());
+  const ExternalLabel label(stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
-                         &stub_code->AllocateArrayLabel(),
+                         &label,
                          RawPcDescriptors::kOther,
                          locs());
+  compiler->AddStubCallTarget(stub);
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
@@ -2860,12 +2857,12 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     ASSERT((0 < value) && (value < kCountLimit));
     if (shift_left->can_overflow()) {
       // Check for overflow (preserve left).
-      __ Lsl(IP, left, value);
+      __ Lsl(IP, left, Operand(value));
       __ cmp(left, Operand(IP, ASR, value));
       __ b(deopt, NE);  // Overflow.
     }
     // Shift for result now we know there is no overflow.
-    __ Lsl(result, left, value);
+    __ Lsl(result, left, Operand(value));
     return;
   }
 
@@ -3122,7 +3119,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // sarl operation masks the count to 5 bits.
         const intptr_t kCountLimit = 0x1F;
         intptr_t value = Smi::Cast(constant).Value();
-        __ Asr(result, left, Utils::Minimum(value + kSmiTagSize, kCountLimit));
+        __ Asr(result, left,
+            Operand(Utils::Minimum(value + kSmiTagSize, kCountLimit)));
         __ SmiTag(result);
         break;
       }
@@ -3313,12 +3311,12 @@ static void EmitInt32ShiftLeft(FlowGraphCompiler* compiler,
   ASSERT((0 < value) && (value < kCountLimit));
   if (shift_left->can_overflow()) {
     // Check for overflow (preserve left).
-    __ Lsl(IP, left, value);
+    __ Lsl(IP, left, Operand(value));
     __ cmp(left, Operand(IP, ASR, value));
     __ b(deopt, NE);  // Overflow.
   }
   // Shift for result now we know there is no overflow.
-  __ Lsl(result, left, value);
+  __ Lsl(result, left, Operand(value));
 }
 
 
@@ -3456,7 +3454,7 @@ void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kSHR: {
         // sarl operation masks the count to 5 bits.
         const intptr_t kCountLimit = 0x1F;
-        __ Asr(result, left, Utils::Minimum(value, kCountLimit));
+        __ Asr(result, left, Operand(Utils::Minimum(value, kCountLimit)));
         break;
       }
 
@@ -3549,7 +3547,8 @@ LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary(Isolate* isolate,
 
 void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        ICData::kDeoptBinaryDoubleOp);
+                                        ICData::kDeoptBinaryDoubleOp,
+                                        licm_hoisted_ ? ICData::kHoisted : 0);
   intptr_t left_cid = left()->Type()->ToCid();
   intptr_t right_cid = right()->Type()->ToCid();
   const Register left = locs()->in(0).reg();
@@ -3622,7 +3621,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadDFromOffset(result, value, Double::value_offset() - kHeapObjectTag);
   } else if (value_cid == kSmiCid) {
     __ SmiUntag(IP, value);
-    __ vmovsr(STMP, IP);
+    __ vmovdr(DTMP, 0, IP);
     __ vcvtdi(result, STMP);
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_,
@@ -3646,7 +3645,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ b(&done);
       __ Bind(&is_smi);
       __ SmiUntag(IP, value);
-      __ vmovsr(STMP, IP);
+      __ vmovdr(DTMP, 0, IP);
       __ vcvtdi(result, STMP);
       __ Bind(&done);
     }
@@ -4123,18 +4122,18 @@ void Simd32x4GetSignMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // X lane.
   __ vmovrs(out, EvenSRegisterOf(dvalue0));
-  __ Lsr(out, out, 31);
+  __ Lsr(out, out, Operand(31));
   // Y lane.
   __ vmovrs(temp, OddSRegisterOf(dvalue0));
-  __ Lsr(temp, temp, 31);
+  __ Lsr(temp, temp, Operand(31));
   __ orr(out, out, Operand(temp, LSL, 1));
   // Z lane.
   __ vmovrs(temp, EvenSRegisterOf(dvalue1));
-  __ Lsr(temp, temp, 31);
+  __ Lsr(temp, temp, Operand(31));
   __ orr(out, out, Operand(temp, LSL, 2));
   // W lane.
   __ vmovrs(temp, OddSRegisterOf(dvalue1));
-  __ Lsr(temp, temp, 31);
+  __ Lsr(temp, temp, Operand(31));
   __ orr(out, out, Operand(temp, LSL, 3));
   // Tag.
   __ SmiTag(out);
@@ -4676,10 +4675,10 @@ void Float64x2ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // Upper 32-bits of X lane.
     __ vmovrs(out, OddSRegisterOf(dvalue0));
-    __ Lsr(out, out, 31);
+    __ Lsr(out, out, Operand(31));
     // Upper 32-bits of Y lane.
     __ vmovrs(TMP, OddSRegisterOf(dvalue1));
-    __ Lsr(TMP, TMP, 31);
+    __ Lsr(TMP, TMP, Operand(31));
     __ orr(out, out, Operand(TMP, LSL, 1));
     // Tag.
     __ SmiTag(out);
@@ -4794,8 +4793,7 @@ LocationSummary* Int32x4ConstructorInstr::MakeLocationSummary(
   summary->set_in(1, Location::RequiresRegister());
   summary->set_in(2, Location::RequiresRegister());
   summary->set_in(3, Location::RequiresRegister());
-  // Low (< 7) Q register needed for the vmovsr instruction.
-  summary->set_out(0, Location::FpuRegisterLocation(Q6));
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -4808,15 +4806,9 @@ void Int32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const QRegister result = locs()->out(0).fpu_reg();
   const DRegister dresult0 = EvenDRegisterOf(result);
   const DRegister dresult1 = OddDRegisterOf(result);
-  const SRegister sresult0 = EvenSRegisterOf(dresult0);
-  const SRegister sresult1 = OddSRegisterOf(dresult0);
-  const SRegister sresult2 = EvenSRegisterOf(dresult1);
-  const SRegister sresult3 = OddSRegisterOf(dresult1);
   __ veorq(result, result, result);
-  __ vmovsr(sresult0, v0);
-  __ vmovsr(sresult1, v1);
-  __ vmovsr(sresult2, v2);
-  __ vmovsr(sresult3, v3);
+  __ vmovdrr(dresult0, v0, v1);
+  __ vmovdrr(dresult1, v2, v3);
 }
 
 
@@ -4831,8 +4823,7 @@ LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
   summary->set_in(2, Location::RequiresRegister());
   summary->set_in(3, Location::RequiresRegister());
   summary->set_temp(0, Location::RequiresRegister());
-  // Low (< 7) Q register needed for the vmovsr instruction.
-  summary->set_out(0, Location::FpuRegisterLocation(Q6));
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -4846,25 +4837,22 @@ void Int32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const QRegister result = locs()->out(0).fpu_reg();
   const DRegister dresult0 = EvenDRegisterOf(result);
   const DRegister dresult1 = OddDRegisterOf(result);
-  const SRegister sresult0 = EvenSRegisterOf(dresult0);
-  const SRegister sresult1 = OddSRegisterOf(dresult0);
-  const SRegister sresult2 = EvenSRegisterOf(dresult1);
-  const SRegister sresult3 = OddSRegisterOf(dresult1);
 
   __ veorq(result, result, result);
   __ LoadImmediate(temp, 0xffffffff);
 
-  __ CompareObject(v0, Bool::True());
-  __ vmovsr(sresult0, temp, EQ);
+  __ LoadObject(IP, Bool::True());
+  __ cmp(v0, Operand(IP));
+  __ vmovdr(dresult0, 0, temp, EQ);
 
-  __ CompareObject(v1, Bool::True());
-  __ vmovsr(sresult1, temp, EQ);
+  __ cmp(v1, Operand(IP));
+  __ vmovdr(dresult0, 1, temp, EQ);
 
-  __ CompareObject(v2, Bool::True());
-  __ vmovsr(sresult2, temp, EQ);
+  __ cmp(v2, Operand(IP));
+  __ vmovdr(dresult1, 0, temp, EQ);
 
-  __ CompareObject(v3, Bool::True());
-  __ vmovsr(sresult3, temp, EQ);
+  __ cmp(v3, Operand(IP));
+  __ vmovdr(dresult1, 1, temp, EQ);
 }
 
 
@@ -4957,8 +4945,7 @@ LocationSummary* Int32x4SetFlagInstr::MakeLocationSummary(Isolate* isolate,
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_in(1, Location::RequiresRegister());
-  // Low (< 7) Q register needed for the vmovsr instruction.
-  summary->set_out(0, Location::FpuRegisterLocation(Q6));
+  summary->set_out(0, Location::RequiresFpuRegister());
   return summary;
 }
 
@@ -4970,10 +4957,6 @@ void Int32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   const DRegister dresult0 = EvenDRegisterOf(result);
   const DRegister dresult1 = OddDRegisterOf(result);
-  const SRegister sresult0 = EvenSRegisterOf(dresult0);
-  const SRegister sresult1 = OddSRegisterOf(dresult0);
-  const SRegister sresult2 = EvenSRegisterOf(dresult1);
-  const SRegister sresult3 = OddSRegisterOf(dresult1);
 
   if (result != mask) {
     __ vmovq(result, mask);
@@ -4984,16 +4967,16 @@ void Int32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(TMP, 0, NE);
   switch (op_kind()) {
     case MethodRecognizer::kInt32x4WithFlagX:
-      __ vmovsr(sresult0, TMP);
+      __ vmovdr(dresult0, 0, TMP);
       break;
     case MethodRecognizer::kInt32x4WithFlagY:
-      __ vmovsr(sresult1, TMP);
+      __ vmovdr(dresult0, 1, TMP);
       break;
     case MethodRecognizer::kInt32x4WithFlagZ:
-      __ vmovsr(sresult2, TMP);
+      __ vmovdr(dresult1, 0, TMP);
       break;
     case MethodRecognizer::kInt32x4WithFlagW:
-      __ vmovsr(sresult3, TMP);
+      __ vmovdr(dresult1, 1, TMP);
       break;
     default: UNREACHABLE();
   }
@@ -5093,7 +5076,7 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
            (kind() == MathUnaryInstr::kCos));
     if (TargetCPUFeatures::hardfp_supported()) {
       __ CallRuntime(TargetFunction(), InputCount());
-      } else {
+    } else {
       // If we aren't doing "hardfp", then we have to move the double arguments
       // to the integer registers, and take the results from the integer
       // registers.
@@ -5262,7 +5245,7 @@ LocationSummary* Int32ToDoubleInstr::MakeLocationSummary(Isolate* isolate,
 void Int32ToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
-  __ vmovsr(STMP, value);
+  __ vmovdr(DTMP, 0, value);
   __ vcvtdi(result, STMP);
 }
 
@@ -5283,7 +5266,7 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
   __ SmiUntag(IP, value);
-  __ vmovsr(STMP, IP);
+  __ vmovdr(DTMP, 0, IP);
   __ vcvtdi(result, STMP);
 }
 
@@ -5558,7 +5541,7 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ Bind(&try_sqrt);
 
   // Before calling pow, check if we could use sqrt instead of pow.
-  __ LoadDImmediate(result, -INFINITY, temp);
+  __ LoadDImmediate(result, kNegInfinity, temp);
 
   // base == -Infinity -> call pow;
   __ vcmpd(saved_base, result);
@@ -5837,10 +5820,10 @@ LocationSummary* CheckClassInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const ICData::DeoptReasonId deopt_reason = licm_hoisted_ ?
-      ICData::kDeoptHoistedCheckClass : ICData::kDeoptCheckClass;
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        ICData::kDeoptCheckClass,
+                                        licm_hoisted_ ? ICData::kHoisted : 0);
   if (IsNullCheck()) {
-    Label* deopt = compiler->AddDeoptStub(deopt_id(), deopt_reason);
     __ CompareImmediate(locs()->in(0).reg(),
                         reinterpret_cast<intptr_t>(Object::null()));
     __ b(deopt, EQ);
@@ -5851,7 +5834,6 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
          (unary_checks().NumberOfChecks() > 1));
   const Register value = locs()->in(0).reg();
   const Register temp = locs()->temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), deopt_reason);
   Label is_ok;
   intptr_t cix = 0;
   if (unary_checks().GetReceiverClassIdAt(cix) == kSmiCid) {
@@ -5909,7 +5891,9 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary(Isolate* isolate,
 
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckSmi);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        ICData::kDeoptCheckSmi,
+                                        licm_hoisted_ ? ICData::kHoisted : 0);
   __ tst(value, Operand(kSmiTagMask));
   __ b(deopt, NE);
 }
@@ -5947,8 +5931,10 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        ICData::kDeoptCheckArrayBound);
+  Label* deopt = compiler->AddDeoptStub(
+      deopt_id(),
+      ICData::kDeoptCheckArrayBound,
+      generalized_ ? ICData::kGeneralized : 0);
 
   Location length_loc = locs()->in(kLengthPos);
   Location index_loc = locs()->in(kIndexPos);
@@ -5971,8 +5957,13 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else if (length_loc.IsConstant()) {
     const Smi& length = Smi::Cast(length_loc.constant());
     const Register index = index_loc.reg();
-    __ CompareImmediate(index, reinterpret_cast<int32_t>(length.raw()));
-    __ b(deopt, CS);
+    if (length.Value() == Smi::kMaxValue) {
+      __ tst(index, Operand(index));
+      __ b(deopt, MI);
+    } else {
+      __ CompareImmediate(index, reinterpret_cast<int32_t>(length.raw()));
+      __ b(deopt, CS);
+    }
   } else {
     const Register length = length_loc.reg();
     const Register index = index_loc.reg();
@@ -6306,29 +6297,29 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     switch (op_kind()) {
       case Token::kSHR: {
         if (shift < 32) {
-          __ Lsl(out_lo, left_hi, 32 - shift);
+          __ Lsl(out_lo, left_hi, Operand(32 - shift));
           __ orr(out_lo, out_lo, Operand(left_lo, LSR, shift));
-          __ Asr(out_hi, left_hi, shift);
+          __ Asr(out_hi, left_hi, Operand(shift));
         } else {
           if (shift == 32) {
             __ mov(out_lo, Operand(left_hi));
           } else {
-            __ Asr(out_lo, left_hi, shift - 32);
+            __ Asr(out_lo, left_hi, Operand(shift - 32));
           }
-          __ Asr(out_hi, left_hi, 31);
+          __ Asr(out_hi, left_hi, Operand(31));
         }
         break;
       }
       case Token::kSHL: {
         if (shift < 32) {
-          __ Lsr(out_hi, left_lo, 32 - shift);
+          __ Lsr(out_hi, left_lo, Operand(32 - shift));
           __ orr(out_hi, out_hi, Operand(left_hi, LSL, shift));
-          __ Lsl(out_lo, left_lo, shift);
+          __ Lsl(out_lo, left_lo, Operand(shift));
         } else {
           if (shift == 32) {
             __ mov(out_hi, Operand(left_lo));
           } else {
-            __ Lsl(out_hi, left_lo, shift - 32);
+            __ Lsl(out_hi, left_lo, Operand(shift - 32));
           }
           __ mov(out_lo, Operand(0));
         }
@@ -6369,7 +6360,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ cmp(shift, Operand(32));
 
         __ mov(out_lo, Operand(out_hi), HI);
-        __ Asr(out_hi, out_hi, 31, HI);
+        __ Asr(out_hi, out_hi, Operand(31), HI);
         __ sub(shift, shift, Operand(32), HI);
 
         __ rsb(IP, shift, Operand(32));
@@ -6547,10 +6538,10 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // Do the shift: (shift_value > 0) && (shift_value <= kShifterLimit).
       switch (op_kind()) {
         case Token::kSHR:
-          __ Lsr(out, left, shift_value);
+          __ Lsr(out, left, Operand(shift_value));
           break;
         case Token::kSHL:
-          __ Lsl(out, left, shift_value);
+          __ Lsl(out, left, Operand(shift_value));
           break;
         default:
           UNREACHABLE();
@@ -6560,7 +6551,6 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   // Non constant shift value.
-
   Register shifter = locs()->in(1).reg();
 
   __ mov(temp, Operand(shifter));
@@ -6654,7 +6644,7 @@ void BoxIntNInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         out,
         temp);
     if (from_representation() == kUnboxedInt32) {
-      __ Asr(temp, value, kBitsPerWord - 1);
+      __ Asr(temp, value, Operand(kBitsPerWord - 1));
     } else {
       ASSERT(from_representation() == kUnboxedUint32);
       __ eor(temp, temp, Operand(temp));
@@ -6883,20 +6873,6 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* CurrentContextInstr::MakeLocationSummary(Isolate* isolate,
-                                                          bool opt) const {
-  return LocationSummary::Make(isolate,
-                               0,
-                               Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-
-void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ mov(locs()->out(0).reg(), Operand(CTX));
-}
-
-
 LocationSummary* StrictCompareInstr::MakeLocationSummary(Isolate* isolate,
                                                          bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -7020,6 +6996,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          &label,
                          RawPcDescriptors::kOther,
                          locs());
+  compiler->AddStubCallTarget(stub);
   __ Drop(ArgumentCount());  // Discard arguments.
 }
 

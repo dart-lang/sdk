@@ -24,7 +24,6 @@ static const unsigned __int64 kQuietNaNMask =
 #endif  /* va_copy */
 
 
-#define INFINITY HUGE_VAL
 #define NAN \
     *reinterpret_cast<const double*>(&kQuietNaNMask)
 

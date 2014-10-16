@@ -4,7 +4,7 @@
 
 library computer.navigation;
 
-import 'package:analysis_server/src/protocol.dart' as protocol;
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -30,13 +30,13 @@ class DartUnitNavigationComputer {
   }
 
   void _addRegion(int offset, int length, Element element) {
-    if (element == null || element == DynamicElementImpl.instance) {
-      return;
-    }
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
     }
-    protocol.Element target = new protocol.Element.fromEngine(element);
+    if (element == null || element == DynamicElementImpl.instance) {
+      return;
+    }
+    protocol.Element target = protocol.newElement_fromEngine(element);
     _regions.add(new protocol.NavigationRegion(offset, length, [target]));
   }
 

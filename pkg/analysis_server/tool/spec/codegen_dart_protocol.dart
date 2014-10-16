@@ -7,6 +7,7 @@ library codegen.protocol;
 import 'dart:convert';
 
 import 'api.dart';
+import 'codegen_dart.dart';
 import 'codegen_tools.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
@@ -185,15 +186,7 @@ typedef void CodegenCallback();
 /**
  * Visitor which produces Dart code representing the API.
  */
-class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
-  /**
-   * Type references in the spec that are named something else in Dart.
-   */
-  static const Map<String, String> _typeRenames = const {
-    'long': 'int',
-    'object': 'Map',
-  };
-
+class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   /**
    * Class members for which the constructor argument should be optional, even
    * if the member is not an optional part of the protocol.  For list types,
@@ -357,16 +350,6 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
    */
   bool emitSpecialStaticMembers(String className) {
     switch (className) {
-      case 'AnalysisError':
-        docComment(
-            [
-                new dom.Text(
-                    'Returns a list of AnalysisErrors ' +
-                        'correponding to the given list of Engine errors.')]);
-        writeln(
-            'static List<AnalysisError> listFromEngine(engine.LineInfo lineInfo, List<engine.AnalysisError> errors) =>');
-        writeln('    _analysisErrorListFromEngine(lineInfo, errors);');
-        return true;
       case 'Element':
         List<String> makeFlagsArgs = <String>[];
         List<String> makeFlagsStatements = <String>[];
@@ -410,67 +393,10 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
    */
   bool emitSpecialConstructors(String className) {
     switch (className) {
-      case 'AnalysisError':
-        docComment(
-            [
-                new dom.Text(
-                    'Construct based on error information from the analyzer engine.')]);
-        writeln(
-            'factory AnalysisError.fromEngine(engine.LineInfo lineInfo, engine.AnalysisError error) =>');
-        writeln('    _analysisErrorFromEngine(lineInfo, error);');
-        return true;
-      case 'CompletionSuggestionKind':
-        docComment(
-            [new dom.Text('Construct from an analyzer engine element kind.')]);
-        writeln(
-            'factory CompletionSuggestionKind.fromElementKind(engine.ElementKind kind) =>');
-        writeln('    _completionSuggestionKindFromElementKind(kind);');
-        return true;
-      case 'Element':
-        docComment(
-            [new dom.Text('Construct based on a value from the analyzer engine.')]);
-        writeln('factory Element.fromEngine(engine.Element element) =>');
-        writeln('    elementFromEngine(element);');
-        return true;
-      case 'ElementKind':
-        docComment(
-            [new dom.Text('Construct based on a value from the analyzer engine.')]);
-        writeln('factory ElementKind.fromEngine(engine.ElementKind kind) =>');
-        writeln('    _elementKindFromEngine(kind);');
-        return true;
       case 'LinkedEditGroup':
         docComment([new dom.Text('Construct an empty LinkedEditGroup.')]);
         writeln(
             'LinkedEditGroup.empty() : this(<Position>[], 0, <LinkedEditSuggestion>[]);');
-        return true;
-      case 'Location':
-        docComment(
-            [new dom.Text('Create a Location based on an [engine.Element].')]);
-        writeln('factory Location.fromElement(engine.Element element) =>');
-        writeln('    _locationFromElement(element);');
-        writeln();
-        docComment(
-            [new dom.Text('Create a Location based on an [engine.SearchMatch].')]);
-        writeln('factory Location.fromMatch(engine.SearchMatch match) =>');
-        writeln('    _locationFromMatch(match);');
-        writeln();
-        docComment(
-            [new dom.Text('Create a Location based on an [engine.AstNode].')]);
-        writeln('factory Location.fromNode(engine.AstNode node) =>');
-        writeln('    _locationFromNode(node);');
-        writeln();
-        docComment(
-            [new dom.Text('Create a Location based on an [engine.CompilationUnit].')]);
-        writeln(
-            'factory Location.fromUnit(engine.CompilationUnit unit, engine.SourceRange range) =>');
-        writeln('    _locationFromUnit(unit, range);');
-        return true;
-      case 'OverriddenMember':
-        docComment(
-            [new dom.Text('Construct based on an element from the analyzer engine.')]);
-        writeln(
-            'factory OverriddenMember.fromEngine(engine.Element member) =>');
-        writeln('    _overriddenMemberFromEngine(member);');
         return true;
       case 'RefactoringProblemSeverity':
         docComment(
@@ -480,25 +406,6 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         writeln(
             'static RefactoringProblemSeverity max(RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>');
         writeln('    _maxRefactoringProblemSeverity(a, b);');
-        return true;
-      case 'SearchResult':
-        docComment(
-            [new dom.Text('Construct based on a value from the search engine.')]);
-        writeln('factory SearchResult.fromMatch(engine.SearchMatch match) =>');
-        writeln('    searchResultFromMatch(match);');
-        return true;
-      case 'SearchResultKind':
-        docComment(
-            [new dom.Text('Construct based on a value from the search engine.')]);
-        writeln(
-            'factory SearchResultKind.fromEngine(engine.MatchKind kind) =>');
-        writeln('    _searchResultKindFromEngine(kind);');
-        return true;
-      case 'SourceEdit':
-        docComment([new dom.Text('Construct based on a SourceRange.')]);
-        writeln(
-            'SourceEdit.range(engine.SourceRange range, String replacement, {String id})');
-        writeln('    : this(range.offset, range.length, replacement, id: id);');
         return true;
       default:
         return false;
@@ -533,14 +440,6 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
    */
   bool emitSpecialMethods(String className) {
     switch (className) {
-      case 'AnalysisErrorFixes':
-        docComment([new dom.Text('Add a [Fix]')]);
-        writeln('void addFix(Fix fix) {');
-        indent(() {
-          writeln('fixes.add(fix.change);');
-        });
-        writeln('}');
-        return true;
       case 'LinkedEditGroup':
         docComment([new dom.Text('Add a new position and change the length.')]);
         writeln('void addPosition(Position position, int length) {');
@@ -562,17 +461,6 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
             [new dom.Text('Adds [edit] to the [FileEdit] for the given [file].')]);
         writeln('void addEdit(String file, int fileStamp, SourceEdit edit) =>');
         writeln('    _addEditToSourceChange(this, file, fileStamp, edit);');
-        writeln();
-        docComment(
-            [new dom.Text('Adds [edit] to the [FileEdit] for the given [source].')]);
-        writeln('void addSourceEdit(engine.AnalysisContext context,');
-        writeln('    engine.Source source, SourceEdit edit) =>');
-        writeln('    _addSourceEditToSourceChange(this, context, source, edit);');
-        writeln();
-        docComment(
-            [new dom.Text('Adds [edit] to the [FileEdit] for the given [element].')]);
-        writeln('void addElementEdit(engine.Element element, SourceEdit edit) =>');
-        writeln('    _addElementEditToSourceChange(this, element, edit);');
         writeln();
         docComment([new dom.Text('Adds the given [FileEdit].')]);
         writeln('void addFileEdit(SourceFileEdit edit) {');
@@ -625,15 +513,22 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       String arg = 'this.${field.name}';
       if (isOptionalConstructorArg(className, field)) {
         optionalArgs.add(arg);
-        TypeDecl fieldType = field.type;
-        if (fieldType is TypeList) {
-          extraInitCode.add(() {
-            writeln('if (${field.name} == null) {');
-            indent(() {
-              writeln('${field.name} = <${dartType(fieldType.itemType)}>[];');
+        if (!field.optional) {
+          // Optional constructor arg, but non-optional field.  If no arg is
+          // given, the constructor should populate with the empty list.
+          TypeDecl fieldType = field.type;
+          if (fieldType is TypeList) {
+            extraInitCode.add(() {
+              writeln('if (${field.name} == null) {');
+              indent(() {
+                writeln('${field.name} = <${dartType(fieldType.itemType)}>[];');
+              });
+              writeln('}');
             });
-            writeln('}');
-          });
+          } else {
+            throw new Exception(
+                "Don't know how to create default field value.");
+          }
         }
       } else {
         args.add(arg);
@@ -686,13 +581,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         String fieldToJson = toJsonCode(field.type).asSnippet(field.name);
         String populateField = 'result[$fieldNameString] = $fieldToJson;';
         if (field.optional) {
-          String condition;
-          if (field.type is TypeList) {
-            condition = '${field.name}.isNotEmpty';
-          } else {
-            condition = '${field.name} != null';
-          }
-          writeln('if ($condition) {');
+          writeln('if (${field.name} != null) {');
           indent(() {
             writeln(populateField);
           });
@@ -831,7 +720,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         toHtmlVisitor.showType(null, impliedType.type);
       }
     }));
-    writeln('class $className {');
+    writeln('class $className implements Enum {');
     indent(() {
       if (emitSpecialStaticMembers(className)) {
         writeln();
@@ -984,21 +873,24 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
     String humanReadableNameString =
         literalString(impliedType.humanReadableName);
     if (className == 'RefactoringFeedback') {
-      writeln('factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, '
-          'String jsonPath, Object json, Map responseJson) {');
+      writeln(
+          'factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, '
+              'String jsonPath, Object json, Map responseJson) {');
       indent(() {
-        writeln('return _refactoringFeedbackFromJson(jsonDecoder, jsonPath, '
-            'json, responseJson);');
+        writeln(
+            'return _refactoringFeedbackFromJson(jsonDecoder, jsonPath, '
+                'json, responseJson);');
       });
       writeln('}');
       return;
     }
     if (className == 'RefactoringOptions') {
-      writeln('factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, '
-          'String jsonPath, Object json, RefactoringKind kind) {');
+      writeln(
+          'factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, '
+              'String jsonPath, Object json, RefactoringKind kind) {');
       indent(() {
-        writeln('return _refactoringOptionsFromJson(jsonDecoder, jsonPath, '
-            'json, kind);');
+        writeln(
+            'return _refactoringOptionsFromJson(jsonDecoder, jsonPath, ' 'json, kind);');
       });
       writeln('}');
       return;
@@ -1049,12 +941,6 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
             indent(() {
               writeln(
                   "throw jsonDecoder.missingKey(jsonPath, $fieldNameString);");
-            });
-            writeln('}');
-          } else if (fieldType is TypeList) {
-            writeln(' else {');
-            indent(() {
-              writeln('${field.name} = <${dartType(fieldType.itemType)}>[];');
             });
             writeln('}');
           } else {
@@ -1112,17 +998,18 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       if (referencedDefinition != null) {
         TypeDecl referencedType = referencedDefinition.type;
         if (referencedType is TypeObject || referencedType is TypeEnum) {
-          return new FromJsonSnippet(
-              (String jsonPath, String json) {
-                String typeName = dartType(type);
-                if (typeName == 'RefactoringFeedback') {
-                  return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, json)';
-                } else if (typeName == 'RefactoringOptions') {
-                  return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, kind)';
-                } else {
-                  return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json)';
-                }
-              });
+          return new FromJsonSnippet((String jsonPath, String json) {
+            String typeName = dartType(type);
+            if (typeName == 'RefactoringFeedback') {
+              return
+                  'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, json)';
+            } else if (typeName == 'RefactoringOptions') {
+              return
+                  'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, kind)';
+            } else {
+              return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json)';
+            }
+          });
         } else {
           return fromJsonCode(referencedType);
         }
@@ -1231,7 +1118,8 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         inputType = 'Response';
         inputName = 'response';
         fieldName = '_result';
-        makeDecoder = 'new ResponseDecoder(response)';
+        makeDecoder =
+            'new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id))';
         constructorName = 'fromResponse';
         break;
       case 'notificationParams':
@@ -1277,35 +1165,6 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
    */
   String literalString(String s) {
     return JSON.encode(s);
-  }
-
-  /**
-   * Convert the given [TypeDecl] to a Dart type.
-   */
-  String dartType(TypeDecl type) {
-    if (type is TypeReference) {
-      String typeName = type.typeName;
-      TypeDefinition referencedDefinition = api.types[typeName];
-      if (_typeRenames.containsKey(typeName)) {
-        return _typeRenames[typeName];
-      }
-      if (referencedDefinition == null) {
-        return typeName;
-      }
-      TypeDecl referencedType = referencedDefinition.type;
-      if (referencedType is TypeObject || referencedType is TypeEnum) {
-        return typeName;
-      }
-      return dartType(referencedType);
-    } else if (type is TypeList) {
-      return 'List<${dartType(type.itemType)}>';
-    } else if (type is TypeMap) {
-      return 'Map<${dartType(type.keyType)}, ${dartType(type.valueType)}>';
-    } else if (type is TypeUnion) {
-      return 'dynamic';
-    } else {
-      throw new Exception("Can't convert to a dart type");
-    }
   }
 }
 

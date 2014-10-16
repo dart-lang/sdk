@@ -115,7 +115,13 @@ class ArgParser {
   /// Generates a string displaying usage information for the defined options.
   ///
   /// This is basically the help text shown on the command line.
+  @Deprecated("Replaced with get usage. getUsage() will be removed in args 1.0")
   String getUsage() => new Usage(this).generate();
+
+  /// Generates a string displaying usage information for the defined options.
+  ///
+  /// This is basically the help text shown on the command line.
+  String get usage => new Usage(this).generate();
 
   /// Get the default value for an option. Useful after parsing to test if the
   /// user specified something other than the default.

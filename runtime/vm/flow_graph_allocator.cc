@@ -264,16 +264,40 @@ void SSALivenessAnalysis::ComputeInitialSets() {
 }
 
 
-void LiveRange::AddUse(intptr_t pos, Location* location_slot) {
+UsePosition* LiveRange::AddUse(intptr_t pos, Location* location_slot) {
   ASSERT(location_slot != NULL);
   ASSERT((first_use_interval_->start_ <= pos) &&
          (pos <= first_use_interval_->end_));
-  if ((uses_ != NULL) &&
-      (uses_->pos() == pos) &&
-      (uses_->location_slot() == location_slot)) {
-    return;
+  if (uses_ != NULL) {
+    if ((uses_->pos() == pos) &&
+        (uses_->location_slot() == location_slot)) {
+      return uses_;
+    } else if (uses_->pos() < pos) {
+      // If an instruction at position P is using the same value both as
+      // a fixed register input and a non-fixed input (in this order) we will
+      // add uses both at position P-1 and *then* P which will make
+      // uses_ unsorted unless we account for it here.
+      UsePosition* insert_after = uses_;
+      while ((insert_after->next() != NULL) &&
+             (insert_after->next()->pos() < pos)) {
+        insert_after = insert_after->next();
+      }
+
+      UsePosition* insert_before = insert_after->next();
+      while (insert_before != NULL && (insert_before->pos() == pos)) {
+        if (insert_before->location_slot() == location_slot) {
+          return insert_before;
+        }
+        insert_before = insert_before->next();
+      }
+
+      insert_after->set_next(
+          new UsePosition(pos, insert_after->next(), location_slot));
+      return insert_after->next();
+    }
   }
   uses_ = new UsePosition(pos, uses_, location_slot);
+  return uses_;
 }
 
 
@@ -300,8 +324,7 @@ void LiveRange::AddHintedUse(intptr_t pos,
                              Location* location_slot,
                              Location* hint) {
   ASSERT(hint != NULL);
-  AddUse(pos, location_slot);
-  uses_->set_hint(hint);
+  AddUse(pos, location_slot)->set_hint(hint);
 }
 
 
@@ -1099,10 +1122,6 @@ void FlowGraphAllocator::ProcessOneOutput(BlockEntryInstr* block,
     //
     ASSERT(in_ref->Equals(Location::RequiresRegister()) ||
            in_ref->Equals(Location::RequiresFpuRegister()));
-
-    // TODO(johnmccutchan): Without this I get allocated a register instead
-    // of an FPU register. Figure out why.
-
     *out = *in_ref;
     // Create move that will copy value between input and output.
     MoveOperands* move = AddMoveAt(pos,
@@ -1571,10 +1590,7 @@ bool AllocationFinger::Advance(const intptr_t start) {
   UseInterval* a = first_pending_use_interval_;
   while (a != NULL && a->end() <= start) a = a->next();
   first_pending_use_interval_ = a;
-  if (first_pending_use_interval_ == NULL) {
-    return true;
-  }
-  return false;
+  return (first_pending_use_interval_ == NULL);
 }
 
 
@@ -1674,12 +1690,6 @@ static intptr_t FirstIntersection(UseInterval* a, UseInterval* u) {
   }
 
   return kMaxPosition;
-}
-
-
-LiveRange* LiveRange::MakeTemp(intptr_t pos, Location* location_slot) {
-  UNREACHABLE();
-  return NULL;
 }
 
 

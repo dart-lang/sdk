@@ -8,22 +8,98 @@
 library engine.test_support;
 
 import 'dart:collection';
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_junit.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/scanner.dart';
+
 import 'package:analyzer/src/generated/ast.dart' show AstNode, NodeLocator;
-import 'package:analyzer/src/generated/element.dart' show InterfaceType, MethodElement, PropertyAccessorElement;
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/java_junit.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart' as _ut;
+
 
 /**
  * The class `EngineTestCase` defines utility methods for making assertions.
  */
 class EngineTestCase extends JUnitTestCase {
   static int _PRINT_RANGE = 6;
+
+  /**
+   * Assert that the given collection has the same number of elements as the number of specified
+   * names, and that for each specified name, a corresponding element can be found in the given
+   * collection with that name.
+   *
+   * @param elements the elements
+   * @param names the names
+   */
+  void assertNamedElements(List<Element> elements, List<String> names) {
+    for (String elemName in names) {
+      bool found = false;
+      for (Element elem in elements) {
+        if (elem.name == elemName) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        JavaStringBuilder msg = new JavaStringBuilder();
+        msg.append("Expected element named: ");
+        msg.append(elemName);
+        msg.append("\n  but found: ");
+        for (Element elem in elements) {
+          msg.append(elem.name);
+          msg.append(", ");
+        }
+        JUnitTestCase.fail(msg.toString());
+      }
+    }
+    assertLength(names.length, elements);
+  }
+
+  AnalysisContextImpl createAnalysisContext() {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    context.sourceFactory = new SourceFactory([]);
+    return context;
+  }
+
+  /**
+   * Return the getter in the given type with the given name. Inherited getters are ignored.
+   *
+   * @param type the type in which the getter is declared
+   * @param getterName the name of the getter to be returned
+   * @return the property accessor element representing the getter with the given name
+   */
+  PropertyAccessorElement getGetter(InterfaceType type, String getterName) {
+    for (PropertyAccessorElement accessor in type.element.accessors) {
+      if (accessor.isGetter && accessor.name == getterName) {
+        return accessor;
+      }
+    }
+    JUnitTestCase.fail(
+        "Could not find getter named ${getterName} in ${type.displayName}");
+    return null;
+  }
+
+  /**
+   * Return the method in the given type with the given name. Inherited methods are ignored.
+   *
+   * @param type the type in which the method is declared
+   * @param methodName the name of the method to be returned
+   * @return the method element representing the method with the given name
+   */
+  MethodElement getMethod(InterfaceType type, String methodName) {
+    for (MethodElement method in type.element.methods) {
+      if (method.name == methodName) {
+        return method;
+      }
+    }
+    JUnitTestCase.fail(
+        "Could not find method named ${methodName} in ${type.displayName}");
+    return null;
+  }
 
   /**
    * Assert that the tokens in the actual stream of tokens have the same types and lexemes as the
@@ -54,9 +130,11 @@ class EngineTestCase extends JUnitTestCase {
    */
   static void assertCollectionSize(int expectedSize, Iterable c) {
     if (c == null) {
-      JUnitTestCase.fail("Expected collection of size ${expectedSize}; found null");
+      JUnitTestCase.fail(
+          "Expected collection of size ${expectedSize}; found null");
     } else if (c.length != expectedSize) {
-      JUnitTestCase.fail("Expected collection of size ${expectedSize}; contained ${c.length} elements");
+      JUnitTestCase.fail(
+          "Expected collection of size ${expectedSize}; contained ${c.length} elements");
     }
   }
 
@@ -69,17 +147,54 @@ class EngineTestCase extends JUnitTestCase {
    * @throws AssertionFailedError if the array is `null` or does not contain the expected
    *           elements
    */
-  static void assertContains(List<Object> array, List<Object> expectedElements) {
+  static void assertContains(List<Object> array,
+      List<Object> expectedElements) {
     int expectedSize = expectedElements.length;
     if (array == null) {
-      JUnitTestCase.fail("Expected array of length ${expectedSize}; found null");
+      JUnitTestCase.fail(
+          "Expected array of length ${expectedSize}; found null");
     }
     if (array.length != expectedSize) {
-      JUnitTestCase.fail("Expected array of length ${expectedSize}; contained ${array.length} elements");
+      JUnitTestCase.fail(
+          "Expected array of length ${expectedSize}; contained ${array.length} elements");
     }
     List<bool> found = new List<bool>.filled(expectedSize, false);
     for (int i = 0; i < expectedSize; i++) {
       _privateAssertContains(array, found, expectedElements[i]);
+    }
+  }
+
+  /**
+   * Assert that a given String is equal to an expected value.
+   *
+   * @param expected the expected String value
+   * @param actual the actual String value
+   */
+  static void assertEqualString(String expected, String actual) {
+    if (actual == null || expected == null) {
+      if (identical(actual, expected)) {
+        return;
+      }
+      if (actual == null) {
+        JUnitTestCase.assertTrueMsg(
+            "Content not as expected: is 'null' expected: ${expected}",
+            false);
+      } else {
+        JUnitTestCase.assertTrueMsg(
+            "Content not as expected: expected 'null' is: ${actual}",
+            false);
+      }
+    }
+    int diffPos = _getDiffPos(expected, actual);
+    if (diffPos != -1) {
+      int diffAhead = Math.max(0, diffPos - _PRINT_RANGE);
+      int diffAfter = Math.min(actual.length, diffPos + _PRINT_RANGE);
+      String diffStr =
+          "${actual.substring(diffAhead, diffPos)}^${actual.substring(diffPos, diffAfter)}";
+      // use detailed message
+      String message =
+          "Content not as expected: is\n${actual}\nDiffers at pos ${diffPos}: ${diffStr}\nexpected:\n${expected}";
+      JUnitTestCase.assertEqualsMsg(message, expected, actual);
     }
   }
 
@@ -91,7 +206,8 @@ class EngineTestCase extends JUnitTestCase {
    * @param expectedValues the values that are expected to be found
    * @param actualValues the actual values that are being compared against the expected values
    */
-  static void assertEqualsIgnoreOrder(List<Object> expectedValues, List<Object> actualValues) {
+  static void assertEqualsIgnoreOrder(List<Object> expectedValues,
+      List<Object> actualValues) {
     JUnitTestCase.assertNotNull(actualValues);
     int expectedLength = expectedValues.length;
     JUnitTestCase.assertEquals(expectedLength, actualValues.length);
@@ -115,34 +231,6 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
-   * Assert that a given String is equal to an expected value.
-   *
-   * @param expected the expected String value
-   * @param actual the actual String value
-   */
-  static void assertEqualString(String expected, String actual) {
-    if (actual == null || expected == null) {
-      if (identical(actual, expected)) {
-        return;
-      }
-      if (actual == null) {
-        JUnitTestCase.assertTrueMsg("Content not as expected: is 'null' expected: ${expected}", false);
-      } else {
-        JUnitTestCase.assertTrueMsg("Content not as expected: expected 'null' is: ${actual}", false);
-      }
-    }
-    int diffPos = _getDiffPos(expected, actual);
-    if (diffPos != -1) {
-      int diffAhead = Math.max(0, diffPos - _PRINT_RANGE);
-      int diffAfter = Math.min(actual.length, diffPos + _PRINT_RANGE);
-      String diffStr = "${actual.substring(diffAhead, diffPos)}^${actual.substring(diffPos, diffAfter)}";
-      // use detailed message
-      String message = "Content not as expected: is\n${actual}\nDiffers at pos ${diffPos}: ${diffStr}\nexpected:\n${expected}";
-      JUnitTestCase.assertEqualsMsg(message, expected, actual);
-    }
-  }
-
-  /**
    * Assert that the given array is non-`null` and has exactly expected elements.
    *
    * @param array the array being tested
@@ -150,19 +238,22 @@ class EngineTestCase extends JUnitTestCase {
    * @throws AssertionFailedError if the array is `null` or does not have the expected
    *           elements
    */
-  static void assertExactElementsInArray(List<Object> array, List<Object> expectedElements) {
+  static void assertExactElementsInArray(List<Object> array,
+      List<Object> expectedElements) {
     int expectedSize = expectedElements.length;
     if (array == null) {
       JUnitTestCase.fail("Expected array of size ${expectedSize}; found null");
     }
     if (array.length != expectedSize) {
-      JUnitTestCase.fail("Expected array of size ${expectedSize}; contained ${array.length} elements");
+      JUnitTestCase.fail(
+          "Expected array of size ${expectedSize}; contained ${array.length} elements");
     }
     for (int i = 0; i < expectedSize; i++) {
       Object element = array[i];
       Object expectedElement = expectedElements[i];
       if (element != expectedElement) {
-        JUnitTestCase.fail("Expected ${expectedElement} at [${i}]; found ${element}");
+        JUnitTestCase.fail(
+            "Expected ${expectedElement} at [${i}]; found ${element}");
       }
     }
   }
@@ -174,19 +265,22 @@ class EngineTestCase extends JUnitTestCase {
    * @param expectedElements the expected elements
    * @throws AssertionFailedError if the list is `null` or does not have the expected elements
    */
-  static void assertExactElementsInList(List list, List<Object> expectedElements) {
+  static void assertExactElementsInList(List list,
+      List<Object> expectedElements) {
     int expectedSize = expectedElements.length;
     if (list == null) {
       JUnitTestCase.fail("Expected list of size ${expectedSize}; found null");
     }
     if (list.length != expectedSize) {
-      JUnitTestCase.fail("Expected list of size ${expectedSize}; contained ${list.length} elements");
+      JUnitTestCase.fail(
+          "Expected list of size ${expectedSize}; contained ${list.length} elements");
     }
     for (int i = 0; i < expectedSize; i++) {
       Object element = list[i];
       Object expectedElement = expectedElements[i];
       if (element != expectedElement) {
-        JUnitTestCase.fail("Expected ${expectedElement} at [${i}]; found ${element}");
+        JUnitTestCase.fail(
+            "Expected ${expectedElement} at [${i}]; found ${element}");
       }
     }
   }
@@ -204,7 +298,8 @@ class EngineTestCase extends JUnitTestCase {
       JUnitTestCase.fail("Expected list of size ${expectedSize}; found null");
     }
     if (set.length != expectedSize) {
-      JUnitTestCase.fail("Expected list of size ${expectedSize}; contained ${set.length} elements");
+      JUnitTestCase.fail(
+          "Expected list of size ${expectedSize}; contained ${set.length} elements");
     }
     for (int i = 0; i < expectedSize; i++) {
       Object expectedElement = expectedElements[i];
@@ -222,9 +317,11 @@ class EngineTestCase extends JUnitTestCase {
    * @return the object that was being tested
    * @throws Exception if the object is not an instance of the expected class
    */
-  static Object assertInstanceOf(Predicate<Object> predicate, Type expectedClass, Object object) {
+  static Object assertInstanceOf(Predicate<Object> predicate,
+      Type expectedClass, Object object) {
     if (!predicate(object)) {
-      JUnitTestCase.fail("Expected instance of ${expectedClass.toString()}, found ${(object == null ? "null" : object.runtimeType.toString())}");
+      JUnitTestCase.fail(
+          "Expected instance of ${expectedClass.toString()}, found ${(object == null ? "null" : object.runtimeType.toString())}");
     }
     return object;
   }
@@ -239,9 +336,11 @@ class EngineTestCase extends JUnitTestCase {
    */
   static void assertLength(int expectedLength, List<Object> array) {
     if (array == null) {
-      JUnitTestCase.fail("Expected array of length ${expectedLength}; found null");
+      JUnitTestCase.fail(
+          "Expected array of length ${expectedLength}; found null");
     } else if (array.length != expectedLength) {
-      JUnitTestCase.fail("Expected array of length ${expectedLength}; contained ${array.length} elements");
+      JUnitTestCase.fail(
+          "Expected array of length ${expectedLength}; contained ${array.length} elements");
     }
   }
 
@@ -257,10 +356,14 @@ class EngineTestCase extends JUnitTestCase {
     JUnitTestCase.assertEquals(expectedToken.type, actualToken.type);
     if (expectedToken is KeywordToken) {
       assertInstanceOf((obj) => obj is KeywordToken, KeywordToken, actualToken);
-      JUnitTestCase.assertEquals(expectedToken.keyword, (actualToken as KeywordToken).keyword);
+      JUnitTestCase.assertEquals(
+          expectedToken.keyword,
+          (actualToken as KeywordToken).keyword);
     } else if (expectedToken is StringToken) {
       assertInstanceOf((obj) => obj is StringToken, StringToken, actualToken);
-      JUnitTestCase.assertEquals(expectedToken.lexeme, (actualToken as StringToken).lexeme);
+      JUnitTestCase.assertEquals(
+          expectedToken.lexeme,
+          (actualToken as StringToken).lexeme);
     }
   }
 
@@ -276,7 +379,8 @@ class EngineTestCase extends JUnitTestCase {
     if (list == null) {
       JUnitTestCase.fail("Expected list of size ${expectedSize}; found null");
     } else if (list.length != expectedSize) {
-      JUnitTestCase.fail("Expected list of size ${expectedSize}; contained ${list.length} elements");
+      JUnitTestCase.fail(
+          "Expected list of size ${expectedSize}; contained ${list.length} elements");
     }
   }
 
@@ -292,7 +396,8 @@ class EngineTestCase extends JUnitTestCase {
     if (map == null) {
       JUnitTestCase.fail("Expected map of size ${expectedSize}; found null");
     } else if (map.length != expectedSize) {
-      JUnitTestCase.fail("Expected map of size ${expectedSize}; contained ${map.length} elements");
+      JUnitTestCase.fail(
+          "Expected map of size ${expectedSize}; contained ${map.length} elements");
     }
   }
 
@@ -308,7 +413,8 @@ class EngineTestCase extends JUnitTestCase {
     if (set == null) {
       JUnitTestCase.fail("Expected set of size ${expectedSize}; found null");
     } else if (set.length != expectedSize) {
-      JUnitTestCase.fail("Expected set of size ${expectedSize}; contained ${set.length} elements");
+      JUnitTestCase.fail(
+          "Expected set of size ${expectedSize}; contained ${set.length} elements");
     }
   }
 
@@ -329,7 +435,8 @@ class EngineTestCase extends JUnitTestCase {
   /**
    * @return the [AstNode] with requested type at offset of the "prefix".
    */
-  static AstNode findNode(AstNode root, String code, String prefix, Predicate<AstNode> predicate) {
+  static AstNode findNode(AstNode root, String code, String prefix,
+      Predicate<AstNode> predicate) {
     int offset = code.indexOf(prefix);
     if (offset == -1) {
       throw new IllegalArgumentException("Not found '${prefix}'.");
@@ -360,7 +467,8 @@ class EngineTestCase extends JUnitTestCase {
     return diffPos;
   }
 
-  static void _privateAssertContains(List<Object> array, List<bool> found, Object element) {
+  static void _privateAssertContains(List<Object> array, List<bool> found,
+      Object element) {
     if (element == null) {
       for (int i = 0; i < array.length; i++) {
         if (!found[i]) {
@@ -383,51 +491,6 @@ class EngineTestCase extends JUnitTestCase {
       JUnitTestCase.fail("Does not contain ${element}");
     }
   }
-
-  AnalysisContextImpl createAnalysisContext() {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory([]);
-    return context;
-  }
-
-  /**
-   * Return the getter in the given type with the given name. Inherited getters are ignored.
-   *
-   * @param type the type in which the getter is declared
-   * @param getterName the name of the getter to be returned
-   * @return the property accessor element representing the getter with the given name
-   */
-  PropertyAccessorElement getGetter(InterfaceType type, String getterName) {
-    for (PropertyAccessorElement accessor in type.element.accessors) {
-      if (accessor.isGetter && accessor.name == getterName) {
-        return accessor;
-      }
-    }
-    JUnitTestCase.fail("Could not find getter named ${getterName} in ${type.displayName}");
-    return null;
-  }
-
-  /**
-   * Return the method in the given type with the given name. Inherited methods are ignored.
-   *
-   * @param type the type in which the method is declared
-   * @param methodName the name of the method to be returned
-   * @return the method element representing the method with the given name
-   */
-  MethodElement getMethod(InterfaceType type, String methodName) {
-    for (MethodElement method in type.element.methods) {
-      if (method.name == methodName) {
-        return method;
-      }
-    }
-    JUnitTestCase.fail("Could not find method named ${methodName} in ${type.displayName}");
-    return null;
-  }
-
-  static dartSuite() {
-    _ut.group('EngineTestCase', () {
-    });
-  }
 }
 
 /**
@@ -435,6 +498,11 @@ class EngineTestCase extends JUnitTestCase {
  * all of the errors passed to it for later examination.
  */
 class GatheringErrorListener implements AnalysisErrorListener {
+  /**
+   * An empty array of errors used when no errors are expected.
+   */
+  static List<AnalysisError> _NO_ERRORS = new List<AnalysisError>(0);
+
   /**
    * The source being parsed.
    */
@@ -457,11 +525,6 @@ class GatheringErrorListener implements AnalysisErrorListener {
   HashMap<Source, LineInfo> _lineInfoMap = new HashMap<Source, LineInfo>();
 
   /**
-   * An empty array of errors used when no errors are expected.
-   */
-  static List<AnalysisError> _NO_ERRORS = new List<AnalysisError>(0);
-
-  /**
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener() : this.con1(null);
@@ -472,6 +535,20 @@ class GatheringErrorListener implements AnalysisErrorListener {
   GatheringErrorListener.con1(this._rawSource) {
     this._markedSource = _rawSource;
   }
+
+  /**
+   * Return the errors that were collected.
+   *
+   * @return the errors that were collected
+   */
+  List<AnalysisError> get errors => _errors;
+
+  /**
+   * Return `true` if at least one error has been gathered.
+   *
+   * @return `true` if at least one error has been gathered
+   */
+  bool get hasErrors => _errors.length > 0;
 
   /**
    * Add all of the given errors to this listener.
@@ -532,7 +609,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
     // Verify that the expected error codes have a non-empty message.
     //
     for (ErrorCode errorCode in expectedErrorCodes) {
-      JUnitTestCase.assertFalseMsg("Empty error code message", errorCode.message.isEmpty);
+      JUnitTestCase.assertFalseMsg(
+          "Empty error code message",
+          errorCode.message.isEmpty);
     }
     //
     // Compute the expected number of each type of error.
@@ -550,7 +629,8 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compute the actual number of each type of error.
     //
-    HashMap<ErrorCode, List<AnalysisError>> errorsByCode = new HashMap<ErrorCode, List<AnalysisError>>();
+    HashMap<ErrorCode, List<AnalysisError>> errorsByCode =
+        new HashMap<ErrorCode, List<AnalysisError>>();
     for (AnalysisError error in _errors) {
       ErrorCode code = error.errorCode;
       List<AnalysisError> list = errorsByCode[code];
@@ -587,9 +667,11 @@ class GatheringErrorListener implements AnalysisErrorListener {
       }
     }
     //
-    // Check that there are no more errors in the actual-errors map, otherwise, record message.
+    // Check that there are no more errors in the actual-errors map,
+    // otherwise record message.
     //
-    for (MapEntry<ErrorCode, List<AnalysisError>> entry in getMapEntrySet(errorsByCode)) {
+    for (MapEntry<ErrorCode, List<AnalysisError>> entry in getMapEntrySet(
+        errorsByCode)) {
       ErrorCode code = entry.getKey();
       List<AnalysisError> actualErrors = entry.getValue();
       int actualCount = actualErrors.length;
@@ -645,8 +727,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
         actualWarningCount++;
       }
     }
-    if (expectedErrorCount != actualErrorCount || expectedWarningCount != actualWarningCount) {
-      JUnitTestCase.fail("Expected ${expectedErrorCount} errors and ${expectedWarningCount} warnings, found ${actualErrorCount} errors and ${actualWarningCount} warnings");
+    if (expectedErrorCount != actualErrorCount ||
+        expectedWarningCount != actualWarningCount) {
+      JUnitTestCase.fail(
+          "Expected ${expectedErrorCount} errors and ${expectedWarningCount} warnings, found ${actualErrorCount} errors and ${actualWarningCount} warnings");
     }
   }
 
@@ -658,13 +742,6 @@ class GatheringErrorListener implements AnalysisErrorListener {
   void assertNoErrors() {
     assertErrors(_NO_ERRORS);
   }
-
-  /**
-   * Return the errors that were collected.
-   *
-   * @return the errors that were collected
-   */
-  List<AnalysisError> get errors => _errors;
 
   /**
    * Return the line information associated with the given source, or `null` if no line
@@ -690,19 +767,13 @@ class GatheringErrorListener implements AnalysisErrorListener {
     return false;
   }
 
-  /**
-   * Return `true` if at least one error has been gathered.
-   *
-   * @return `true` if at least one error has been gathered
-   */
-  bool get hasErrors => _errors.length > 0;
-
   @override
   void onError(AnalysisError error) {
     if (_rawSource != null) {
       int left = error.offset;
       int right = left + error.length - 1;
-      _markedSource = "${_rawSource.substring(0, left)}^${_rawSource.substring(left, right)}^${_rawSource.substring(right)}";
+      _markedSource =
+          "${_rawSource.substring(0, left)}^${_rawSource.substring(left, right)}^${_rawSource.substring(right)}";
     }
     _errors.add(error);
   }
@@ -724,7 +795,11 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @param secondError the second error being compared
    * @return `true` if the two errors are equivalent
    */
-  bool _equalErrors(AnalysisError firstError, AnalysisError secondError) => identical(firstError.errorCode, secondError.errorCode) && firstError.offset == secondError.offset && firstError.length == secondError.length && _equalSources(firstError.source, secondError.source);
+  bool _equalErrors(AnalysisError firstError, AnalysisError secondError) =>
+      identical(firstError.errorCode, secondError.errorCode) &&
+          firstError.offset == secondError.offset &&
+          firstError.length == secondError.length &&
+          _equalSources(firstError.source, secondError.source);
 
   /**
    * Return `true` if the two sources are equivalent.
@@ -761,19 +836,23 @@ class GatheringErrorListener implements AnalysisErrorListener {
       writer.newLine();
       if (lineInfo == null) {
         int offset = error.offset;
-        writer.printf("  %s %s (%d..%d)", [
-            source == null ? "" : source.shortName,
-            error.errorCode,
-            offset,
-            offset + error.length]);
+        writer.printf(
+            "  %s %s (%d..%d)",
+            [
+                source == null ? "" : source.shortName,
+                error.errorCode,
+                offset,
+                offset + error.length]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d)", [
-            source == null ? "" : source.shortName,
-            error.errorCode,
-            location.lineNumber,
-            location.columnNumber,
-            error.length]);
+        writer.printf(
+            "  %s %s (%d, %d/%d)",
+            [
+                source == null ? "" : source.shortName,
+                error.errorCode,
+                location.lineNumber,
+                location.columnNumber,
+                error.length]);
       }
     }
     writer.newLine();
@@ -786,21 +865,25 @@ class GatheringErrorListener implements AnalysisErrorListener {
       writer.newLine();
       if (lineInfo == null) {
         int offset = error.offset;
-        writer.printf("  %s %s (%d..%d): %s", [
-            source == null ? "" : source.shortName,
-            error.errorCode,
-            offset,
-            offset + error.length,
-            error.message]);
+        writer.printf(
+            "  %s %s (%d..%d): %s",
+            [
+                source == null ? "" : source.shortName,
+                error.errorCode,
+                offset,
+                offset + error.length,
+                error.message]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d): %s", [
-            source == null ? "" : source.shortName,
-            error.errorCode,
-            location.lineNumber,
-            location.columnNumber,
-            error.length,
-            error.message]);
+        writer.printf(
+            "  %s %s (%d, %d/%d): %s",
+            [
+                source == null ? "" : source.shortName,
+                error.errorCode,
+                location.lineNumber,
+                location.columnNumber,
+                error.length,
+                error.message]);
       }
     }
     JUnitTestCase.fail(writer.toString());
@@ -826,51 +909,107 @@ class GatheringErrorListener implements AnalysisErrorListener {
   }
 }
 
-main() {
+/**
+ * Instances of the class [TestLogger] implement a logger that can be used by
+ * tests.
+ */
+class TestLogger implements Logger {
+  /**
+   * The number of error messages that were logged.
+   */
+  int errorCount = 0;
+
+  /**
+   * The number of informational messages that were logged.
+   */
+  int infoCount = 0;
+
+  @override
+  void logError(String message) {
+    errorCount++;
+  }
+
+  @override
+  void logError2(String message, Exception exception) {
+    errorCount++;
+  }
+
+  @override
+  void logInformation(String message) {
+    infoCount++;
+  }
+
+  @override
+  void logInformation2(String message, Exception exception) {
+    infoCount++;
+  }
 }
+
 
 class TestSource implements Source {
   String _name;
-  TestSource([this._name = '/test.dart']);
-  int get hashCode => 0;
-  bool operator ==(Object object) {
-    return object is TestSource;
+  String _contents;
+  int modificationStamp = 0;
+  bool exists2 = true;
+
+  /**
+   * A flag indicating whether an exception should be generated when an attempt
+   * is made to access the contents of this source.
+   */
+  bool generateExceptionOnRead = false;
+
+  /**
+   * The number of times that the contents of this source have been requested.
+   */
+  int readCount = 0;
+
+  TestSource([this._name = '/test.dart', this._contents]);
+
+  TimestampedData<String> get contents {
+    readCount++;
+    if (generateExceptionOnRead) {
+      String msg = "I/O Exception while getting the contents of " + _name;
+      throw new Exception(msg);
+    }
+    return new TimestampedData<String>(0, _contents);
   }
-  AnalysisContext get context {
-    throw new UnsupportedOperationException();
+  void setContents(String value) {
+    modificationStamp = new DateTime.now().millisecondsSinceEpoch;
+    _contents = value;
   }
-  void getContentsToReceiver(Source_ContentReceiver receiver) {
+  String get encoding {
     throw new UnsupportedOperationException();
   }
   String get fullName {
     return _name;
   }
+  int get hashCode => 0;
+  bool get isInSystemLibrary {
+    return false;
+  }
   String get shortName {
     return _name;
   }
-  String get encoding {
+  Uri get uri {
     throw new UnsupportedOperationException();
   }
-  int get modificationStamp {
+  UriKind get uriKind {
     throw new UnsupportedOperationException();
   }
-  bool exists() => true;
-  bool get isInSystemLibrary {
+  bool operator ==(Object other) {
+    if (other is TestSource) {
+      return other._name == _name;
+    }
+    return false;
+  }
+  bool exists() => exists2;
+  void getContentsToReceiver(Source_ContentReceiver receiver) {
     throw new UnsupportedOperationException();
   }
   Source resolve(String uri) {
     throw new UnsupportedOperationException();
   }
   Uri resolveRelativeUri(Uri uri) {
-    throw new UnsupportedOperationException();
-  }
-  UriKind get uriKind {
-    throw new UnsupportedOperationException();
-  }
-  Uri get uri {
-    throw new UnsupportedOperationException();
-  }
-  TimestampedData<String> get contents {
-    throw new UnsupportedOperationException();
+    return new Uri(scheme: 'file', path: _name).resolveUri(uri);
   }
 }

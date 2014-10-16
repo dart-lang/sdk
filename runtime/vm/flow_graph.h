@@ -5,6 +5,7 @@
 #ifndef VM_FLOW_GRAPH_H_
 #define VM_FLOW_GRAPH_H_
 
+#include "vm/bit_vector.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/intermediate_language.h"
@@ -262,6 +263,10 @@ class FlowGraph : public ZoneAllocated {
     return deferred_prefixes_;
   }
 
+  BitVector* captured_parameters() const {
+    return captured_parameters_;
+  }
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;
@@ -337,6 +342,7 @@ class FlowGraph : public ZoneAllocated {
   ZoneGrowableArray<const Field*>* guarded_fields_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
   DirectChainedHashMap<ConstantPoolTrait> constant_instr_pool_;
+  BitVector* captured_parameters_;
 };
 
 
@@ -440,6 +446,52 @@ class BlockEffects : public ZoneAllocated {
   // and only if A dominates B and all paths from A to B are free of side
   // effects.
   GrowableArray<BitVector*> available_at_;
+};
+
+
+class DefinitionWorklist : public ValueObject {
+ public:
+  DefinitionWorklist(FlowGraph* flow_graph,
+                     intptr_t initial_capacity)
+      : defs_(initial_capacity),
+        contains_vector_(
+            new BitVector(flow_graph->isolate(),
+                          flow_graph->current_ssa_temp_index())) {
+  }
+
+  void Add(Definition* defn) {
+    if (!Contains(defn)) {
+      defs_.Add(defn);
+      contains_vector_->Add(defn->ssa_temp_index());
+    }
+  }
+
+  bool Contains(Definition* defn) const {
+    return (defn->ssa_temp_index() >= 0) &&
+        contains_vector_->Contains(defn->ssa_temp_index());
+  }
+
+  bool IsEmpty() const {
+    return defs_.is_empty();
+  }
+
+  Definition* RemoveLast() {
+    Definition* defn = defs_.RemoveLast();
+    contains_vector_->Remove(defn->ssa_temp_index());
+    return defn;
+  }
+
+  const GrowableArray<Definition*>& definitions() const { return defs_; }
+  BitVector* contains_vector() const { return contains_vector_; }
+
+  void Clear() {
+    defs_.TruncateTo(0);
+    contains_vector_->Clear();
+  }
+
+ private:
+  GrowableArray<Definition*> defs_;
+  BitVector* contains_vector_;
 };
 
 

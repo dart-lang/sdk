@@ -12,102 +12,34 @@
 library trydart.end_to_end_test;
 
 import 'dart:html';
-import 'dart:async';
 
-// TODO(ahe): Remove this import if issue 17936 is fixed.
-import 'dart:js' as hack;
+import 'package:async_helper/async_helper.dart' show
+    asyncTest;
 
-import 'package:async_helper/async_helper.dart';
+import 'sandbox.dart' show
+    appendIFrame,
+    listener;
 
-void onError(String message, String filename, int lineno, [int colno, error]) {
-  if (filename != null && filename != "" && lineno != 0) {
-    if (colno != null && colno != 0) {
-      message = '$filename:$lineno:$colno $message';
-    } else {
-      message = '$filename:$lineno: $message';
-    }
-  }
-  if (error != null) {
-    // See:
-    // https://mikewest.org/2013/08/debugging-runtime-errors-with-window-onerror
-    var stack = error['stack'];
-    if (stack != null) {
-      message += '\n$stack';
-    }
-  }
-  message = "Error occurred in Try Dart iframe: $message";
+void main() => asyncTest(() {
+  listener.start();
 
-  // Synchronous, easier to read when running the browser manually.
-  window.console.log(message);
-
-  new Future(() {
-    // Browsers ignore errors throw in event listeners (or from
-    // window.onerror).
-    throw message;
-  });
-}
-
-void installErrorHandlerOn(IFrameElement iframe) {
-  // This method uses dart:js to install an error event handler on the content
-  // window of [iframe]. This is a workaround for http://dartbug.com/17936.
-  var iframeProxy = new hack.JsObject.fromBrowserObject(iframe);
-  var contentWindowProxy = iframeProxy['contentWindow'];
-  if (contentWindowProxy == null) {
-    print('No contentWindow in iframe');
-    throw 'No contentWindow in iframe';
-  }
-
-  // Note: we have two options, use "iframe.contentWindow.onerror = ..." or
-  // "iframe.contentWindow.addEventListener('error', ...)".  The former seems
-  // to provide more details on both Chrome and Firefox (which provides no
-  // information at all in error events).
-  contentWindowProxy['onerror'] = onError;
-}
-
-void onIframeLoaded(Event event) {
-  installErrorHandlerOn(event.target);
-}
-
-void main() {
+  // Disable analytics for testing.
   document.cookie = 'org-trydart-AutomatedTest=true;path=/';
-  asyncStart();
-  window.onMessage.listen((MessageEvent e) {
-    switch (e.data) {
-      case 'Hello, World!\n':
-        // Clear the DOM to work around a bug in test.dart.
-        document.body.nodes.clear();
-
-        // Clean up after ourselves.
-        window.localStorage.clear();
-
-        asyncEnd();
-        break;
-
-      case 'dart-calling-main':
-      case 'dart-main-done':
-      case 'unittest-suite-done':
-      case 'unittest-suite-fail':
-      case 'unittest-suite-success':
-      case 'unittest-suite-wait-for-done':
-        break;
-
-      default:
-        throw 'Unexpected message: ${e.data}';
-    }
-  });
 
   // Clearing localStorage makes Try Dart! think it is opening for the first
   // time.
   window.localStorage.clear();
 
-  IFrameElement iframe = new IFrameElement()
-      ..src = '/root_build/try_dartlang_org/index.html'
-      ..style.width = '90vw'
-      ..style.height = '90vh'
-      ..onLoad.listen(onIframeLoaded);
-  document.body.append(iframe);
-  // Install an error handler both on the new iframe element, and when it has
-  // fired the load event.  That seems to matter according to some sources on
-  // stackoverflow.
-  installErrorHandlerOn(iframe);
-}
+  IFrameElement iframe =
+      appendIFrame('/root_build/try_dartlang_org/index.html', document.body)
+          ..style.width = '90vw'
+          ..style.height = '90vh';
+
+  return listener.expect('Hello, World!\n').then((_) {
+    // Remove the iframe to work around a bug in test.dart.
+    iframe.remove();
+
+    // Clean up after ourselves.
+    window.localStorage.clear();
+  });
+});

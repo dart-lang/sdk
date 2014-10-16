@@ -48,11 +48,9 @@ class VirtualMemory {
 
   // Reserves a virtual memory segment with size. If a segment of the requested
   // size cannot be allocated NULL is returned.
-  static VirtualMemory* Reserve(intptr_t size);
-
-  // Reserves a virtual memory segment with the start address being aligned to
-  // the requested power of two.
-  static VirtualMemory* ReserveAligned(intptr_t size, intptr_t alignment);
+  static VirtualMemory* Reserve(intptr_t size) {
+    return ReserveInternal(size);
+  }
 
   static intptr_t PageSize() {
     ASSERT(page_size_ != 0);
@@ -63,31 +61,29 @@ class VirtualMemory {
   static bool InSamePage(uword address0, uword address1);
 
   // Truncate this virtual memory segment.
-  void Truncate(uword new_start, intptr_t size);
+  void Truncate(intptr_t new_size, bool try_unmap = true);
 
  private:
+  static VirtualMemory* ReserveInternal(intptr_t size);
+
   // Free a sub segment. On operating systems that support it this
-  // can give back the virtual memory to the system.
-  void FreeSubSegment(void* address, intptr_t size);
+  // can give back the virtual memory to the system. Returns true on success.
+  static bool FreeSubSegment(void* address, intptr_t size);
 
   // This constructor is only used internally when reserving new virtual spaces.
   // It does not reserve any virtual address space on its own.
-  VirtualMemory(const MemoryRegion& region, void* reserved_pointer) :
+  explicit VirtualMemory(const MemoryRegion& region) :
       region_(region.pointer(), region.size()),
-      reserved_pointer_(reserved_pointer) { }
+      reserved_size_(region.size()) { }
 
   // Commit a reserved memory area, so that the memory can be accessed.
   bool Commit(uword addr, intptr_t size, bool is_executable);
 
   MemoryRegion region_;
 
-  // The original pointer returned by the OS for this virtual memory
-  // allocation or NULL. reserved_pointer_ is non-NULL only for
-  // platforms where virtual memory subregions cannot be given back to
-  // the OS. When non-null it might not coincide with
-  // region_.pointer() if the virtual memory region has been
-  // truncated.
-  void* reserved_pointer_;
+  // The size of the underlying reservation not yet given back to the OS.
+  // Its start coincides with region_, but its size might not, due to Truncate.
+  intptr_t reserved_size_;
 
   static uword page_size_;
 

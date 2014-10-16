@@ -107,29 +107,73 @@ emitTagsForCompilationUnit(compilationUnit) {
   Uri uri = compilationUnit.uri;
   var buffer = new StringBuffer();
   SourceFile file = handler.provider.sourceFiles['$uri'];
+  String src_file = relativize(outputUri, uri, false);
 
   compilationUnit.declarations.forEach((_, DeclarationMirror mirror) {
-    var tagname = nameOf(mirror);
-    var location = mirror.location;
-    var byte_offset = location.offset;
-    var line_number = file.getLine(byte_offset) + 1;
+    Definition definition = new Definition.from(mirror, file);
+    String name = nameOf(mirror);
+    definition.writeOn(buffer, name);
 
-    var lineStart = file.lineStarts[line_number - 1];
-    // TODO(ahe): Most often an empty string.  Try to see if we can
-    // get the position of the name token instead.
-    var tag_definition_text = file.slowText().substring(lineStart, byte_offset);
-
-    // One definition.
-    buffer.write('${tag_definition_text}\x7f${tagname}'
-                 '\x01${line_number},${byte_offset}\n');
+    if (mirror is ClassMirror) {
+      emitTagsForClass(mirror, file, buffer);
+    }
   });
 
   var tag_definition_data = '$buffer';
-  var src_file = relativize(outputUri, uri, false);
   var size_of_tag_definition_data_in_bytes = tag_definition_data.length;
 
   // The header.
   output.writeStringSync(
       '\x0c\n${src_file},${size_of_tag_definition_data_in_bytes}\n');
   output.writeStringSync(tag_definition_data);
+}
+
+void emitTagsForClass(ClassMirror cls, SourceFile file, StringBuffer buffer) {
+  String className = nameOf(cls);
+
+  cls.declarations.forEach((_, DeclarationMirror mirror) {
+    Definition definition = new Definition.from(mirror, file);
+    String name = nameOf(mirror);
+    if (mirror is MethodMirror && mirror.isConstructor) {
+      if (name == '') {
+        name = className;
+        definition.writeOn(buffer, 'new $className');
+      } else {
+        definition.writeOn(buffer, 'new $className.$name');
+      }
+    } else {
+      definition.writeOn(buffer, '$className.$name');
+    }
+    definition.writeOn(buffer, name);
+  });
+}
+
+class Definition {
+  final int byte_offset;
+  final int line_number;
+  final String tag_definition_text;
+
+  Definition(this.byte_offset, this.line_number, this.tag_definition_text);
+
+  factory Definition.from(DeclarationMirror mirror, SourceFile file) {
+    var location = mirror.location;
+    int byte_offset = location.offset;
+    int line_number = file.getLine(byte_offset) + 1;
+
+    int lineStart = file.lineStarts[line_number - 1];
+
+    int lineEnd = file.lineStarts.length > line_number
+        // Subract 1 to remove trailing newline.
+        ? file.lineStarts[line_number] - 1
+        : null;
+    String tag_definition_text = file.slowText().substring(lineStart, lineEnd);
+
+    return new Definition(byte_offset, line_number, tag_definition_text);
+  }
+
+  void writeOn(StringBuffer buffer, String tagname) {
+    buffer.write(
+        '${tag_definition_text}\x7f${tagname}'
+        '\x01${line_number},${byte_offset}\n');
+  }
 }

@@ -136,7 +136,7 @@ class IntValue extends Value {
     var constant = constantSystem.add.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
     if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.value);
+    return info.newIntValue(constant.primitiveValue);
   }
 
   Value operator -(other) {
@@ -146,7 +146,7 @@ class IntValue extends Value {
     var constant = constantSystem.subtract.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
     if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.value);
+    return info.newIntValue(constant.primitiveValue);
   }
 
   Value operator -() {
@@ -155,7 +155,7 @@ class IntValue extends Value {
     var constant = constantSystem.negate.fold(
         constantSystem.createInt(value));
     if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.value);
+    return info.newIntValue(constant.primitiveValue);
   }
 
   Value operator &(other) {
@@ -163,7 +163,7 @@ class IntValue extends Value {
     ConstantSystem constantSystem = info.constantSystem;
     var constant = constantSystem.bitAnd.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
-    return info.newIntValue(constant.value);
+    return info.newIntValue(constant.primitiveValue);
   }
 
   Value min(other) {
@@ -672,15 +672,15 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   Range visitConstant(HConstant hConstant) {
     if (!hConstant.isInteger(compiler)) return info.newUnboundRange();
-    Constant constant = hConstant.constant;
-    NumConstant constantNum;
-    if (constant is DeferredConstant) {
+    ConstantValue constant = hConstant.constant;
+    NumConstantValue constantNum;
+    if (constant is DeferredConstantValue) {
       constantNum = constant.referenced;
     } else {
       constantNum = constant;
     }
-    if (constantNum.isMinusZero) constantNum = new IntConstant(0);
-    Value value = info.newIntValue(constantNum.value);
+    if (constantNum.isMinusZero) constantNum = new IntConstantValue(0);
+    Value value = info.newIntValue(constantNum.primitiveValue);
     return info.newNormalizedRange(value, value);
   }
 

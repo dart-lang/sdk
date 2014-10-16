@@ -10,6 +10,7 @@ import "dart:convert";
 
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
 import '../exceptions.dart';
 import '../http.dart';
@@ -18,7 +19,6 @@ import '../log.dart' as log;
 import '../package.dart';
 import '../pubspec.dart';
 import '../utils.dart';
-import '../version.dart';
 import 'cached.dart';
 
 /// A package source that gets packages from a package hosting site that uses

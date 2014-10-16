@@ -37,7 +37,7 @@ namespace dart {
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 972883980)               \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 950522310)           \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 1301138078)              \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 1758627989)              \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 1540062866)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 1084977108)             \
   V(_IntegerImplementation, _leftShiftWithMask32, IntegerLeftShiftWithMask32,  \
       597111055)                                                               \
@@ -154,7 +154,12 @@ namespace dart {
   V(_Bigint, set:_neg, Bigint_setNeg, 920204960)                               \
   V(_Bigint, set:_used, Bigint_setUsed, 1857576743)                            \
   V(_Bigint, _set_digits, Bigint_setDigits, 582835804)                         \
-  V(_Bigint, _mulAdd, Bigint_mulAdd, 258927651)                                \
+  V(_Bigint, _absAdd, Bigint_absAdd, 233965936)                                \
+  V(_Bigint, _absSub, Bigint_absSub, 1401148862)                               \
+  V(_Bigint, _mulAdd, Bigint_mulAdd, 1283124653)                               \
+  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 1665155090)                               \
+  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 643982609)            \
+  V(_Montgomery, _mulMod, Montgomery_mulMod, 149127024)                        \
   V(_Double, >, Double_greaterThan, 381325711)                                 \
   V(_Double, >=, Double_greaterEqualThan, 1409267140)                          \
   V(_Double, <, Double_lessThan, 2080387973)                                   \

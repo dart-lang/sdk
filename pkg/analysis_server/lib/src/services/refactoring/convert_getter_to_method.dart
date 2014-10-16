@@ -6,7 +6,7 @@ library services.src.refactoring.convert_getter_to_getter;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -15,8 +15,8 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 
 /**
@@ -96,13 +96,13 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implements
     // remove "get "
     if (getKeyword != null) {
       SourceRange getRange = rangeStartEnd(getKeyword, element.nameOffset);
-      SourceEdit edit = new SourceEdit.range(getRange, '');
-      change.addElementEdit(element, edit);
+      SourceEdit edit = newSourceEdit_range(getRange, '');
+      doSourceChange_addElementEdit(change, element, edit);
     }
     // add parameters "()"
     {
       SourceEdit edit = new SourceEdit(rangeElementName(element).end, 0, '()');
-      change.addElementEdit(element, edit);
+      doSourceChange_addElementEdit(change, element, edit);
     }
   }
 
@@ -113,9 +113,8 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implements
         Element refElement = reference.element;
         SourceRange refRange = reference.range;
         // insert "()"
-        change.addElementEdit(
-            refElement,
-            new SourceEdit(refRange.end, 0, "()"));
+        var edit = new SourceEdit(refRange.end, 0, "()");
+        doSourceChange_addElementEdit(change, refElement, edit);
       }
     });
   }

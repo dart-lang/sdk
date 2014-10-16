@@ -2925,18 +2925,6 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 }
 
 
-// TODO(mlippautz): Once we know where these classes should come from, adjust
-// how we get their definition.
-RawClass* Parser::GetClassForAsync(const String& class_name) {
-  const Class& cls = Class::Handle(library_.LookupClass(class_name));
-  if (cls.IsNull()) {
-    ReportError("async modifier requires dart:async to be imported without "
-                "prefix");
-  }
-  return cls.raw();
-}
-
-
 // Parser is at the opening parenthesis of the formal parameter
 // declaration of the function or constructor.
 // Parse the formal parameters and code.
@@ -3087,9 +3075,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   }
 
   bool saved_await_is_keyword = await_is_keyword_;
-  if (func.IsAsyncFunction() || func.is_async_closure()) {
-    await_is_keyword_ = true;
-  }
+  await_is_keyword_ = func.IsAsyncFunction() || func.is_async_closure();
 
   intptr_t end_token_pos = 0;
   if (CurrentToken() == Token::kLBRACE) {
@@ -3153,6 +3139,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   SequenceNode* body = CloseBlock();
   if (func.IsAsyncFunction() && !func.is_async_closure()) {
     body = CloseAsyncFunction(async_closure, body);
+    async_closure.set_end_token_pos(end_token_pos);
   } else if (func.is_async_closure()) {
     body = CloseAsyncClosure(body);
   }
@@ -4067,8 +4054,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   }
   Class& cls = Class::Handle(I);
   TypeArguments& orig_type_parameters = TypeArguments::Handle(I);
-  Object& obj = Object::Handle(I,
-                               library_.LookupLocalObject(class_name));
+  Object& obj = Object::Handle(I, library_.LookupLocalObject(class_name));
   if (obj.IsNull()) {
     if (is_patch) {
       ReportError(classname_pos, "missing class '%s' cannot be patched",
@@ -4275,8 +4261,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
 
   if (cls.is_patch()) {
     // Apply the changes to the patched class looked up above.
-    Object& obj = Object::Handle(I,
-                                 library_.LookupLocalObject(class_name));
+    Object& obj = Object::Handle(I, library_.LookupLocalObject(class_name));
     // The patched class must not be finalized yet.
     const Class& orig_class = Class::Cast(obj);
     ASSERT(!orig_class.is_finalized());
@@ -4371,8 +4356,7 @@ void Parser::ParseMixinAppAlias(
     OS::Print("toplevel parsing mixin application alias class '%s'\n",
               class_name.ToCString());
   }
-  const Object& obj = Object::Handle(I,
-                                     library_.LookupLocalObject(class_name));
+  const Object& obj = Object::Handle(I, library_.LookupLocalObject(class_name));
   if (!obj.IsNull()) {
     ReportError(classname_pos, "'%s' is already defined",
                 class_name.ToCString());
@@ -4493,8 +4477,8 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
 
   // Lookup alias name and report an error if it is already defined in
   // the library scope.
-  const Object& obj = Object::Handle(I,
-                                     library_.LookupLocalObject(*alias_name));
+  const Object& obj =
+      Object::Handle(I, library_.LookupLocalObject(*alias_name));
   if (!obj.IsNull()) {
     ReportError(alias_name_pos,
                 "'%s' is already defined", alias_name->ToCString());
@@ -4559,8 +4543,8 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   // Lookup the signature class, i.e. the class whose name is the signature.
   // We only lookup in the current library, but not in its imports, and only
   // create a new canonical signature class if it does not exist yet.
-  Class& signature_class = Class::ZoneHandle(I,
-      library_.LookupLocalClass(signature));
+  Class& signature_class =
+      Class::ZoneHandle(I, library_.LookupLocalClass(signature));
   if (signature_class.IsNull()) {
     signature_class = Class::NewSignatureClass(signature,
                                                signature_function,
@@ -4905,11 +4889,12 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
 
 
 RawFunction::AsyncModifier Parser::ParseFunctionModifier() {
-  if (FLAG_enable_async) {
-    if (CurrentLiteral()->raw() == Symbols::Async().raw()) {
-      ConsumeToken();
-      return RawFunction::kAsync;
+  if (CurrentLiteral()->raw() == Symbols::Async().raw()) {
+    if (!FLAG_enable_async) {
+      ReportError("use flag --enable-async to enable async/await features");
     }
+    ConsumeToken();
+    return RawFunction::kAsync;
   }
   return RawFunction::kNoModifier;
 }
@@ -5737,14 +5722,36 @@ void Parser::OpenAsyncTryBlock() {
 
 RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
   TRACE_PARSER("OpenAsyncFunction");
-
   AddAsyncClosureVariables();
+  Function& closure = Function::Handle(I);
+  bool is_new_closure = false;
 
-  // Create the closure containing the old body of this function.
-  Class& sig_cls = Class::ZoneHandle(I);
-  Type& sig_type = Type::ZoneHandle(I);
-  Function& closure = Function::ZoneHandle(I);
-  String& sig = String::ZoneHandle(I);
+  // Check whether a function for the asynchronous function body of
+  // this async function has already been created by a previous
+  // compilation of this function.
+  const Function& found_func = Function::Handle(
+      I, current_class().LookupClosureFunction(formal_param_pos));
+  if (!found_func.IsNull() &&
+      (found_func.token_pos() == formal_param_pos) &&
+      (found_func.script() == innermost_function().script()) &&
+      (found_func.parent_function() == innermost_function().raw())) {
+    ASSERT(found_func.is_async_closure());
+    closure = found_func.raw();
+  } else {
+    // Create the closure containing the body of this async function.
+    const String& async_func_name =
+        String::Handle(I, innermost_function().name());
+    String& closure_name = String::Handle(I,
+        String::NewFormatted("<%s_async_body>", async_func_name.ToCString()));
+    closure = Function::NewClosureFunction(
+        String::Handle(I, Symbols::New(closure_name)),
+        innermost_function(),
+        formal_param_pos);
+    closure.set_is_async_closure(true);
+    closure.set_result_type(AbstractType::Handle(Type::DynamicType()));
+    is_new_closure = true;
+  }
+  // Create the parameter list for the async body closure.
   ParamList closure_params;
   const Type& dynamic_type = Type::ZoneHandle(I, Type::DynamicType());
   closure_params.AddFinalParameter(
@@ -5753,41 +5760,40 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
   result_param.name = &Symbols::AsyncOperationParam();
   result_param.default_value = &Object::null_instance();
   result_param.type = &dynamic_type;
+  closure_params.parameters->Add(result_param);
   ParamDesc error_param;
   error_param.name = &Symbols::AsyncOperationErrorParam();
   error_param.default_value = &Object::null_instance();
   error_param.type = &dynamic_type;
-  closure_params.parameters->Add(result_param);
   closure_params.parameters->Add(error_param);
   closure_params.has_optional_positional_parameters = true;
   closure_params.num_optional_parameters += 2;
-  closure = Function::NewClosureFunction(
-      Symbols::AnonymousClosure(),
-      innermost_function(),
-      formal_param_pos);
-  AddFormalParamsToFunction(&closure_params, closure);
-  closure.set_is_async_closure(true);
-  closure.set_result_type(AbstractType::Handle(Type::DynamicType()));
-  sig = closure.Signature();
-  sig_cls = library_.LookupLocalClass(sig);
-  if (sig_cls.IsNull()) {
-    sig_cls = Class::NewSignatureClass(sig, closure, script_, formal_param_pos);
-    library_.AddClass(sig_cls);
+
+  if (is_new_closure) {
+    // Add the parameters to the newly created closure.
+    AddFormalParamsToFunction(&closure_params, closure);
+
+    // Create and set the signature class of the closure.
+    const String& sig = String::Handle(I, closure.Signature());
+    Class& sig_cls = Class::Handle(I, library_.LookupLocalClass(sig));
+    if (sig_cls.IsNull()) {
+      sig_cls =
+          Class::NewSignatureClass(sig, closure, script_, formal_param_pos);
+      library_.AddClass(sig_cls);
+    }
+    closure.set_signature_class(sig_cls);
+    const Type& sig_type = Type::Handle(I, sig_cls.SignatureType());
+    if (!sig_type.IsFinalized()) {
+      ClassFinalizer::FinalizeType(
+          sig_cls, sig_type, ClassFinalizer::kCanonicalize);
+    }
+    ASSERT(AbstractType::Handle(I, closure.result_type()).IsResolved());
+    ASSERT(closure.NumParameters() == closure_params.parameters->length());
   }
-  closure.set_signature_class(sig_cls);
-  sig_type = sig_cls.SignatureType();
-  if (!sig_type.IsFinalized()) {
-    ClassFinalizer::FinalizeType(
-        sig_cls, sig_type, ClassFinalizer::kCanonicalize);
-  }
-  ASSERT(AbstractType::Handle(I, closure.result_type()).IsResolved());
-  ASSERT(closure.NumParameters() == closure_params.parameters->length());
   OpenFunctionBlock(closure);
   AddFormalParamsToScope(&closure_params, current_block_->scope);
   OpenBlock();
-
   async_temp_scope_ = current_block_->scope;
-
   return closure.raw();
 }
 
@@ -5855,6 +5861,7 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   CloseBlock();
 
   closure_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
+  closure_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
   closure_body->scope()->CaptureVariable(Symbols::AsyncCompleter());
 
   // Create and return a new future that executes a closure with the current
@@ -5863,14 +5870,14 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   // No need to capture parameters or other variables, since they have already
   // been captured in the corresponding scope as the body has been parsed within
   // a nested block (contained in the async funtion's block).
-  const Class& future = Class::ZoneHandle(I,
-      GetClassForAsync(Symbols::Future()));
+  const Class& future =
+      Class::ZoneHandle(I, I->object_store()->future_class());
   ASSERT(!future.IsNull());
   const Function& constructor = Function::ZoneHandle(I,
       future.LookupFunction(Symbols::FutureConstructor()));
   ASSERT(!constructor.IsNull());
-  const Class& completer = Class::ZoneHandle(I,
-      GetClassForAsync(Symbols::Completer()));
+  const Class& completer =
+      Class::ZoneHandle(I, I->object_store()->completer_class());
   ASSERT(!completer.IsNull());
   const Function& completer_constructor = Function::ZoneHandle(I,
       completer.LookupFunction(Symbols::CompleterConstructor()));
@@ -5893,6 +5900,14 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
       async_completer,
       completer_constructor_node);
   current_block_->statements->Add(store_completer);
+
+  // :await_jump_var = -1;
+  LocalVariable* jump_var = current_block_->scope->LookupVariable(
+        Symbols::AwaitJumpVar(), false);
+  LiteralNode* init_value =
+    new(I) LiteralNode(Scanner::kNoSourcePos, Smi::ZoneHandle(Smi::New(-1)));
+  current_block_->statements->Add(
+      new (I) StoreLocalNode(Scanner::kNoSourcePos, jump_var, init_value));
 
   // Add to AST:
   //   :async_op = <closure>;  (containing the original body)
@@ -6592,7 +6607,7 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
 
 // Returns true if the current token is kIDENT or a pseudo-keyword.
 bool Parser::IsIdentifier() {
-  return Token::IsIdentifier(CurrentToken()) && !IsAwaitAsKeyword();
+  return Token::IsIdentifier(CurrentToken()) && !IsAwaitKeyword();
 }
 
 
@@ -6741,8 +6756,7 @@ bool Parser::IsFunctionDeclaration() {
         (CurrentToken() == Token::kARROW) ||
         (is_top_level_ && IsLiteral("native")) ||
         is_external ||
-        (FLAG_enable_async &&
-            CurrentLiteral()->raw() == Symbols::Async().raw())) {
+        (CurrentLiteral()->raw() == Symbols::Async().raw())) {
       SetPosition(saved_pos);
       return true;
     }
@@ -8287,7 +8301,7 @@ bool Parser::IsLiteral(const char* literal) {
 }
 
 
-bool Parser::IsAwaitAsKeyword() {
+bool Parser::IsAwaitKeyword() {
   return await_is_keyword_ &&
          (CurrentLiteral()->raw() == Symbols::Await().raw());
 }
@@ -8852,7 +8866,6 @@ AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
     // are created.
     OpenBlock();
     AwaitTransformer at(current_block_->statements,
-                        library_,
                         parsed_function(),
                         async_temp_scope_);
     AstNode* result = at.Transform(expr);
@@ -8877,6 +8890,9 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
   const intptr_t expr_pos = TokenPos();
 
   if (CurrentToken() == Token::kTHROW) {
+    if (require_compiletime_const) {
+      ReportError("'throw expr' is not a valid compile-time constant");
+    }
     ConsumeToken();
     if (CurrentToken() == Token::kSEMICOLON) {
       ReportError("expression expected after throw");
@@ -8960,7 +8976,7 @@ AstNode* Parser::ParseUnaryExpr() {
   TRACE_PARSER("ParseUnaryExpr");
   AstNode* expr = NULL;
   const intptr_t op_pos = TokenPos();
-  if (IsAwaitAsKeyword()) {
+  if (IsAwaitKeyword()) {
     TRACE_PARSER("ParseAwaitExpr");
     ConsumeToken();
     parsed_function()->record_await();

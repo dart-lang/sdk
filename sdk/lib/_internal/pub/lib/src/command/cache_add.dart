@@ -6,11 +6,12 @@ library pub.command.cache_add;
 
 import 'dart:async';
 
+import 'package:pub_semver/pub_semver.dart';
+
 import '../command.dart';
 import '../log.dart' as log;
 import '../package.dart';
 import '../utils.dart';
-import '../version.dart';
 
 /// Handles the `cache add` pub command.
 class CacheAddCommand extends PubCommand {

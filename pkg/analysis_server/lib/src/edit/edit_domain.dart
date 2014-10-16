@@ -7,20 +7,22 @@ library edit.domain;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/json.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
+import 'package:analyzer/src/generated/parser.dart' as engine;
+import 'package:analyzer/src/generated/scanner.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/engine.dart';
 
 
 /**
@@ -111,12 +113,12 @@ class EditDomainHandler implements RequestHandler {
             List<Fix> fixes = computeFixes(searchEngine, unit, error);
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
-                  new AnalysisError.fromEngine(lineInfo, error);
+                  newAnalysisError_fromEngine(lineInfo, error);
               AnalysisErrorFixes errorFixes =
                   new AnalysisErrorFixes(serverError);
               errorFixesList.add(errorFixes);
               fixes.forEach((fix) {
-                errorFixes.addFix(fix);
+                errorFixes.fixes.add(fix.change);
               });
             }
           }
@@ -140,11 +142,50 @@ class EditDomainHandler implements RequestHandler {
       } else if (requestName == EDIT_GET_REFACTORING) {
         refactoringManager.getRefactoring(request);
         return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_SORT_MEMBERS) {
+        return sortMembers(request);
       }
     } on RequestFailure catch (exception) {
       return exception.response;
     }
     return null;
+  }
+
+  Response sortMembers(Request request) {
+    var params = new EditSortMembersParams.fromRequest(request);
+    // prepare file
+    String file = params.file;
+    if (!engine.AnalysisEngine.isDartFileName(file)) {
+      return new Response.sortMembersInvalidFile(request);
+    }
+    // prepare resolved units
+    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+    if (units.isEmpty) {
+      return new Response.sortMembersInvalidFile(request);
+    }
+    // prepare context
+    CompilationUnit unit = units.first;
+    engine.AnalysisContext context = unit.element.context;
+    Source source = unit.element.source;
+    // check if there are no scan/parse errors in the file
+    engine.AnalysisErrorInfo errors = context.getErrors(source);
+    int numScanParseErrors = 0;
+    errors.errors.forEach((engine.AnalysisError error) {
+      if (error.errorCode is engine.ScannerErrorCode ||
+          error.errorCode is engine.ParserErrorCode) {
+        numScanParseErrors++;
+      }
+    });
+    if (numScanParseErrors != 0) {
+      return new Response.sortMembersParseErrors(request, numScanParseErrors);
+    }
+    // do sort
+    int fileStamp = context.getModificationStamp(source);
+    String code = context.getContents(source).data;
+    MemberSorter sorter = new MemberSorter(code, unit);
+    List<SourceEdit> edits = sorter.sort();
+    SourceFileEdit fileEdit = new SourceFileEdit(file, fileStamp, edits: edits);
+    return new EditSortMembersResult(fileEdit).toResponse(request.id);
   }
 }
 
@@ -172,7 +213,7 @@ class _RefactoringManager {
   int offset;
   int length;
   Refactoring refactoring;
-  HasToJson feedback;
+  RefactoringFeedback feedback;
   RefactoringStatus initStatus;
   RefactoringStatus optionsStatus;
   RefactoringStatus finalStatus;
@@ -195,11 +236,11 @@ class _RefactoringManager {
    * Checks if [refactoring] requires options.
    */
   bool get _requiresOptions {
-    if (refactoring is ConvertMethodToGetterRefactoring ||
-        refactoring is InlineLocalRefactoring) {
-      return false;
-    }
-    return true;
+    return refactoring is ExtractLocalRefactoring ||
+        refactoring is ExtractMethodRefactoring ||
+        refactoring is InlineMethodRefactoring ||
+        refactoring is MoveFileRefactoring ||
+        refactoring is RenameRefactoring;
   }
 
   void getRefactoring(Request request) {
@@ -239,7 +280,8 @@ class _RefactoringManager {
         }
         // create change
         return refactoring.createChange().then((change) {
-          result.change = new SourceChange(change.message, edits: change.edits);
+          result.change = change;
+          result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
           return _sendResultResponse();
         });
       });
@@ -266,6 +308,16 @@ class _RefactoringManager {
     this.offset = offset;
     this.length = length;
     // create a new Refactoring instance
+    if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
+      List<Element> elements = server.getElementsAtOffset(file, offset);
+      if (elements.isNotEmpty) {
+        Element element = elements[0];
+        if (element is ExecutableElement) {
+          refactoring =
+              new ConvertGetterToMethodRefactoring(searchEngine, element);
+        }
+      }
+    }
     if (kind == RefactoringKind.CONVERT_METHOD_TO_GETTER) {
       List<Element> elements = server.getElementsAtOffset(file, offset);
       if (elements.isNotEmpty) {
@@ -317,7 +369,7 @@ class _RefactoringManager {
     }
     if (kind == RefactoringKind.RENAME) {
       List<AstNode> nodes = server.getNodesAtOffset(file, offset);
-      List<Element> elements = server.getElementsAtOffset(file, offset);
+      List<Element> elements = server.getElementsOfNodes(nodes, offset);
       if (nodes.isNotEmpty && elements.isNotEmpty) {
         AstNode node = nodes[0];
         Element element = elements[0];
@@ -378,7 +430,7 @@ class _RefactoringManager {
     });
   }
 
-  void _reset([AnalysisContext context]) {
+  void _reset([engine.AnalysisContext context]) {
     kind = null;
     offset = null;
     length = null;

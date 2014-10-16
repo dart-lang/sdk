@@ -138,11 +138,11 @@ class HGraph {
 
   // We canonicalize all constants used within a graph so we do not
   // have to worry about them for global value numbering.
-  Map<Constant, HConstant> constants;
+  Map<ConstantValue, HConstant> constants;
 
   HGraph()
       : blocks = new List<HBasicBlock>(),
-        constants = new Map<Constant, HConstant>() {
+        constants = new Map<ConstantValue, HConstant>() {
     entry = addNewBlock();
     // The exit block will be added later, so it has an id that is
     // after all others in the system.
@@ -170,7 +170,7 @@ class HGraph {
     return result;
   }
 
-  HConstant addConstant(Constant constant, Compiler compiler) {
+  HConstant addConstant(ConstantValue constant, Compiler compiler) {
     HConstant result = constants[constant];
     if (result == null) {
       TypeMask type = constant.computeMask(compiler);
@@ -184,9 +184,9 @@ class HGraph {
     return result;
   }
 
-  HConstant addDeferredConstant(Constant constant, PrefixElement prefix,
+  HConstant addDeferredConstant(ConstantValue constant, PrefixElement prefix,
                                 Compiler compiler) {
-    Constant wrapper = new DeferredConstant(constant, prefix);
+    ConstantValue wrapper = new DeferredConstantValue(constant, prefix);
     compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
     return addConstant(wrapper, compiler);
   }
@@ -2027,7 +2027,7 @@ class HLoopBranch extends HConditionalBranch {
 }
 
 class HConstant extends HInstruction {
-  final Constant constant;
+  final ConstantValue constant;
   HConstant.internal(this.constant, TypeMask constantType)
       : super(<HInstruction>[], constantType);
 

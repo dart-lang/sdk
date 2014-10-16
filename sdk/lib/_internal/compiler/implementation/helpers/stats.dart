@@ -9,6 +9,7 @@ part of dart2js.helpers;
 /// Current stats collector. Use [enableStatsOutput] to enable recording of
 /// stats.
 Stats get stats {
+  enableDebugMode();
   if (_stats == null) {
     _stats = const Stats();
   }
@@ -34,6 +35,8 @@ void enableStatsOutput({CompilerOutputProvider outputProvider,
   if (_stats != null) {
     throw new StateError('Stats have already been initialized.');
   }
+  enableDebugMode();
+
   StatsOutput output;
   if (outputProvider != null) {
     if (extension == null) {

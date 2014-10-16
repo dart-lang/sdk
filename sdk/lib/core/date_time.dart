@@ -200,6 +200,29 @@ class DateTime implements Comparable {
    * The function parses a subset of ISO 8601
    * which includes the subset accepted by RFC 3339.
    *
+   * The accepted inputs are currently:
+   *
+   * * A date: A signed four-to-six digit year, two digit month and
+   *   two digit day, optionally separated by `-` characters.
+   *   Examples: "19700101", "-0004-12-24", "81030-04-01".
+   * * An optional time part, separated from the date by either `T` or a space.
+   *   The time part is a two digit hour,
+   *   then optionally a two digit minutes value,
+   *   then optionally a two digit seconds value, and
+   *   then optionally a '.' followed by a one-to-six digit second fraction.
+   *   The minuts and seconds may be separated from the previous parts by a ':'.
+   *   Examples: "12", "12:30:24.124", "123010.50".
+   * * An optional time-zone offset part,
+   *   possibly separated from the previous by a space.
+   *   The time zone is either 'z' or 'Z', or it is a signed two digit hour
+   *   part and an optional two digit minute part.
+   *   The minutes may be separted from the hours by a ':'.
+   *   Examples: "Z", "-10", "01:30", "1130".
+   *
+   * This includes the output of both [toString] and [toIso8601String], which
+   * will be parsed back into a `DateTime` object with the same time as the
+   * original.
+   *
    * The result is always in either local time or UTC.
    * If a time zone offset other than UTC is specified,
    * the time is converted to the equivalent UTC time.
@@ -217,21 +240,21 @@ class DateTime implements Comparable {
    * * `"-123450101 00:00:00 Z"`: in the year -12345.
    * * `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
    */
-  // TODO(floitsch): specify grammar.
   // TODO(lrn): restrict incorrect values like  2003-02-29T50:70:80.
+  // Or not, that may be a breaking change.
   static DateTime parse(String formattedString) {
     /*
      * date ::= yeardate time_opt timezone_opt
      * yeardate ::= year colon_opt month colon_opt day
-     * year ::= sign_opt digit{4,5}
+     * year ::= sign_opt digit{4,6}
      * colon_opt :: <empty> | ':'
      * sign ::= '+' | '-'
      * sign_opt ::=  <empty> | sign
      * month ::= digit{2}
      * day ::= digit{2}
      * time_opt ::= <empty> | (' ' | 'T') hour minutes_opt
-     * minutes_opt ::= <empty> | ':' digit{2} seconds_opt
-     * seconds_opt ::= <empty> | ':' digit{2} millis_opt
+     * minutes_opt ::= <empty> | colon_opt digit{2} seconds_opt
+     * seconds_opt ::= <empty> | colon_opt digit{2} millis_opt
      * millis_opt ::= <empty> | '.' digit{1,6}
      * timezone_opt ::= <empty> | space_opt timezone
      * space_opt :: ' ' | <empty>
@@ -432,6 +455,14 @@ class DateTime implements Comparable {
     return "${sign}000$absN";
   }
 
+  static String _sixDigits(int n) {
+    assert(n < -9999 || n > 9999);
+    int absN = n.abs();
+    String sign = n < 0 ? "-" : "+";
+    if (absN >= 100000) return "$sign$absN";
+    return "${sign}0$absN";
+  }
+
   static String _threeDigits(int n) {
     if (n >= 100) return "${n}";
     if (n >= 10) return "0${n}";
@@ -451,6 +482,8 @@ class DateTime implements Comparable {
    * It does not support internationalized strings.
    * Use the [intl](http://pub.dartlang.org/packages/intl) package
    * at the pub shared packages repo.
+   *
+   * The resulting string can be parsed back using [parse].
    */
   String toString() {
     String y = _fourDigits(year);
@@ -470,11 +503,25 @@ class DateTime implements Comparable {
   /**
    * Returns an ISO-8601 full-precision extended format representation.
    *
-   * The format is "YYYY-MM-DDTHH:mm:ss.sssZ" for UTC time, and
-   * "YYYY-MM-DDTHH:mm:ss.sss" (no trailing "Z") for local/non-UTC time.
+   * The format is `yyyy-MM-ddTHH:mm:ss.sssZ` for UTC time, and
+   * `yyyy-MM-ddTHH:mm:ss.sss` (no trailing "Z") for local/non-UTC time,
+   * where:
+   *
+   * * `yyyy` is a, possibly negative, four digit representation of the year,
+   *   if the year is in the range -9999 to 9999,
+   *   otherwise it is a signed six digit representation of the year.
+   * * `MM` is the month in the range 01 to 12,
+   * * `dd` is the day of the month in the range 01 to 31,
+   * * `HH` are hours in the range 00 to 23,
+   * * `mm` are minutes in the range 00 to 59,
+   * * `ss` are seconds in the range 00 to 59 (no leap seconds), and
+   * * `sss` are milliseconds in the range 000 to 999.
+   *
+   * The resulting string can be parsed back using [parse].
    */
   String toIso8601String() {
-    String y = _fourDigits(year);
+    String y = (year >= -9999 && year <= 9999) ? _fourDigits(year)
+                                               : _sixDigits(year);
     String m = _twoDigits(month);
     String d = _twoDigits(day);
     String h = _twoDigits(hour);

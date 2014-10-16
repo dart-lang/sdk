@@ -712,17 +712,18 @@ static void DisassembleCode(const Function& function, bool optimized) {
     OS::Print("DeoptInfo: {\n");
     Smi& offset = Smi::Handle();
     DeoptInfo& info = DeoptInfo::Handle();
-    Smi& reason = Smi::Handle();
+    Smi& reason_and_flags = Smi::Handle();
     for (intptr_t i = 0; i < deopt_table_length; ++i) {
-      DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason);
-      ASSERT((0 <= reason.Value()) &&
-             (reason.Value() < ICData::kDeoptNumReasons));
+      DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason_and_flags);
+      const intptr_t reason =
+          DeoptTable::ReasonField::decode(reason_and_flags.Value());
+      ASSERT((0 <= reason) && (reason < ICData::kDeoptNumReasons));
       OS::Print("%4" Pd ": 0x%" Px "  %s  (%s)\n",
                 i,
                 start + offset.Value(),
                 info.ToCString(),
                 DeoptReasonToCString(
-                    static_cast<ICData::DeoptReasonId>(reason.Value())));
+                    static_cast<ICData::DeoptReasonId>(reason)));
     }
     OS::Print("}\n");
   }
@@ -797,10 +798,19 @@ static void DisassembleCode(const Function& function, bool optimized) {
       offset ^= table.At(i + Code::kSCallTableOffsetEntry);
       function ^= table.At(i + Code::kSCallTableFunctionEntry);
       code ^= table.At(i + Code::kSCallTableCodeEntry);
-      OS::Print("  0x%" Px ": %s, %p\n",
-          start + offset.Value(),
-          function.ToFullyQualifiedCString(),
-          code.raw());
+      if (function.IsNull()) {
+        Class& cls = Class::Handle();
+        cls ^= code.owner();
+        OS::Print("  0x%" Px ": allocation stub for %s, %p\n",
+            start + offset.Value(),
+            cls.ToCString(),
+            code.raw());
+      } else {
+        OS::Print("  0x%" Px ": %s, %p\n",
+            start + offset.Value(),
+            function.ToFullyQualifiedCString(),
+            code.raw());
+      }
     }
     OS::Print("}\n");
   }

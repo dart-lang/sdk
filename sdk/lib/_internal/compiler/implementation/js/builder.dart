@@ -323,10 +323,19 @@ class JsBuilder {
 
   LiteralNumber number(num value) => new LiteralNumber('$value');
 
+  ArrayInitializer numArray(Iterable<int> list) =>
+      new ArrayInitializer.from(list.map(number));
+
+  ArrayInitializer stringArray(Iterable<String> list) =>
+      new ArrayInitializer.from(list.map(string));
+
   Comment comment(String text) => new Comment(text);
 }
 
 LiteralString string(String value) => js.string(value);
+LiteralNumber number(num value) => js.number(value);
+ArrayInitializer numArray(Iterable<int> list) => js.numArray(list);
+ArrayInitializer stringArray(Iterable<String> list) => js.stringArray(list);
 
 class MiniJsParserError {
   MiniJsParserError(this.parser, this.message) { }

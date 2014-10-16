@@ -4,6 +4,12 @@
 
 part of dart2js.helpers;
 
+/// Function signature for [trace].
+typedef void Trace(String message,
+                   {bool condition(String stackTrace),
+                    int limit,
+                    bool throwOnPrint});
+
 /**
  * Helper method for printing stack traces for debugging.
  *
@@ -21,8 +27,13 @@ part of dart2js.helpers;
  * unknown call-sites in tests by filtering known call-sites and throwning
  * otherwise.
  */
-void trace(String message, {bool condition(String stackTrace), int limit,
-                            bool throwOnPrint: false}) {
+Trace get trace {
+  enableDebugMode();
+  return _trace;
+}
+
+void _trace(String message, {bool condition(String stackTrace), int limit,
+                             bool throwOnPrint: false}) {
   try {
     throw '';
   } catch (e, s) {
@@ -42,9 +53,24 @@ void trace(String message, {bool condition(String stackTrace), int limit,
   }
 }
 
-void traceAndReport(Compiler compiler, Spannable node, String message,
-                    {bool condition(String stackTrace), int limit,
-                     bool throwOnPrint: false}) {
+/// Function signature of [traceAndReport].
+typedef void TraceAndReport(Compiler compiler, Spannable node, String message,
+                            {bool condition(String stackTrace), int limit,
+                             bool throwOnPrint});
+
+/// Calls [reportHere] and [trace] with the same message.
+TraceAndReport get traceAndReport {
+  enableDebugMode();
+  return _traceAndReport;
+}
+
+/// Calls [reportHere] and [trace] with the same message.
+TraceAndReport get reportAndTrace => traceAndReport;
+
+/// Implementation of [traceAndReport].
+void _traceAndReport(Compiler compiler, Spannable node, String message,
+                     {bool condition(String stackTrace), int limit,
+                      bool throwOnPrint: false}) {
 
   trace(message, limit: limit, throwOnPrint: throwOnPrint,
         condition: (String stackTrace) {

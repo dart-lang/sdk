@@ -238,10 +238,11 @@ abstract class _BroadcastStreamController<T>
   }
 
   void addError(Object error, [StackTrace stackTrace]) {
+    error = _nonNullError(error);
     if (!_mayAddEvent) throw _addEventError();
     AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
-      error = replacement.error;
+      error = _nonNullError(replacement.error);
       stackTrace = replacement.stackTrace;
     }
     _sendError(error, stackTrace);

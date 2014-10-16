@@ -203,9 +203,21 @@ void main() {
       expect(makeSimpleRequest(handler), throwsA('bad handler'));
     });
 
+    test('error thrown by inner handler without a middleware errorHandler is '
+        'rethrown', () {
+      var middleware = createMiddleware();
+
+      var handler = const Pipeline().addMiddleware(middleware)
+          .addHandler((request) {
+        throw 'bad handler';
+      });
+
+      expect(makeSimpleRequest(handler), throwsA('bad handler'));
+    });
+
     test("doesn't handle HijackException", () {
       var middleware = createMiddleware(errorHandler: (error, stack) {
-        expect(false, "error handler shouldn't be called");
+        fail("error handler shouldn't be called");
       });
 
       var handler = const Pipeline().addMiddleware(middleware)

@@ -263,7 +263,9 @@ int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
   }
   // Make sure to zero-terminate the string if the output was
   // truncated or if there was an error.
-  if (written >= size) {
+  // The static cast is safe here as we have already determined that 'written'
+  // is >= 0.
+  if (static_cast<size_t>(written) >= size) {
     str[size - 1] = '\0';
   }
   return written;

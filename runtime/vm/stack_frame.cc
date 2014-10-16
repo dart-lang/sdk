@@ -432,7 +432,8 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
   ASSERT(pc_ != 0);
   ASSERT(code.ContainsInstructionAt(pc));
   ICData::DeoptReasonId deopt_reason = ICData::kDeoptUnknown;
-  deopt_info_ = code_.GetDeoptInfoAtPc(pc, &deopt_reason);
+  uint32_t deopt_flags = 0;
+  deopt_info_ = code_.GetDeoptInfoAtPc(pc, &deopt_reason, &deopt_flags);
   if (deopt_info_.IsNull()) {
     // This is the case when a call without deopt info in optimized code
     // throws an exception. (e.g. in the parameter copying prologue).

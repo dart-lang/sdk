@@ -35,6 +35,27 @@ class StringsTest {
     expect(compareStrings('b', 'a'), 1);
   }
 
+  void test_findCommonOverlap() {
+    expect(findCommonOverlap('', 'abcd'), 0);
+    expect(findCommonOverlap('abc', 'abcd'), 3);
+    expect(findCommonOverlap('123456', 'abcd'), 0);
+    expect(findCommonOverlap('123456xxx', 'xxxabcd'), 3);
+    expect(findCommonOverlap('123456', '56'), 2);
+    expect(findCommonOverlap('56', '56789'), 2);
+  }
+
+  void test_findCommonPrefix() {
+    expect(findCommonPrefix('abc', 'xyz'), 0);
+    expect(findCommonPrefix('1234abcdef', '1234xyz'), 4);
+    expect(findCommonPrefix('123', '123xyz'), 3);
+  }
+
+  void test_findCommonSuffix() {
+    expect(findCommonSuffix('abc', 'xyz'), 0);
+    expect(findCommonSuffix('abcdef1234', 'xyz1234'), 4);
+    expect(findCommonSuffix('123', 'xyz123'), 3);
+  }
+
   void test_isBlank() {
     expect(isBlank(null), isTrue);
     expect(isBlank(''), isTrue);

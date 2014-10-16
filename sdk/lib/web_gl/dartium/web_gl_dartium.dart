@@ -2649,7 +2649,7 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
   @DomName('WebGLRenderingContext.getAttachedShaders')
   @DocsEditable()
-  void getAttachedShaders(Program program) => _blink.BlinkWebGLRenderingContext.getAttachedShaders_Callback_WebGLProgram(this, program);
+  List<Shader> getAttachedShaders(Program program) => _blink.BlinkWebGLRenderingContext.getAttachedShaders_Callback_WebGLProgram(this, program);
 
   @DomName('WebGLRenderingContext.getAttribLocation')
   @DocsEditable()

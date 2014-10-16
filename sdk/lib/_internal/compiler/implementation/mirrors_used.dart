@@ -4,17 +4,25 @@
 
 library dart2js.mirrors_used;
 
+import 'constants/expressions.dart';
+import 'constants/values.dart' show
+    ConstantValue,
+    ConstructedConstantValue,
+    ListConstantValue,
+    StringConstantValue,
+    TypeConstantValue;
+
+import 'dart_types.dart' show
+    DartType,
+    InterfaceType,
+    TypeKind;
+
 import 'dart2jslib.dart' show
     Compiler,
     CompilerTask,
-    Constant,
     ConstantCompiler,
-    ConstructedConstant,
-    ListConstant,
     MessageKind,
-    StringConstant,
     TreeElements,
-    TypeConstant,
     invariant;
 
 import 'elements/elements.dart' show
@@ -25,21 +33,16 @@ import 'elements/elements.dart' show
     ScopeContainerElement,
     VariableElement;
 
-import 'util/util.dart' show
-    Link,
-    Spannable;
-
-import 'dart_types.dart' show
-    DartType,
-    InterfaceType,
-    TypeKind;
-
 import 'tree/tree.dart' show
     Import,
     LibraryTag,
     NamedArgument,
     NewExpression,
     Node;
+
+import 'util/util.dart' show
+    Link,
+    Spannable;
 
 /**
  * Compiler task that analyzes MirrorsUsed annotations.
@@ -132,7 +135,8 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
       NamedArgument named = argument.asNamedArgument();
       if (named == null) continue;
       ConstantCompiler constantCompiler = compiler.resolver.constantCompiler;
-      Constant value = constantCompiler.compileNode(named.expression, mapping);
+      ConstantValue value =
+          constantCompiler.compileNode(named.expression, mapping).value;
 
       MirrorUsageBuilder builder =
           new MirrorUsageBuilder(
@@ -161,15 +165,15 @@ class MirrorUsageAnalyzer {
   final MirrorUsageAnalyzerTask task;
   List<LibraryElement> wildcard;
   final Set<LibraryElement> librariesWithUsage;
-  final Map<Constant, List<String>> cachedStrings;
-  final Map<Constant, List<Element>> cachedElements;
+  final Map<ConstantValue, List<String>> cachedStrings;
+  final Map<ConstantValue, List<Element>> cachedElements;
   MirrorUsage mergedMirrorUsage;
 
   MirrorUsageAnalyzer(Compiler compiler, this.task)
       : compiler = compiler,
         librariesWithUsage = new Set<LibraryElement>(),
-        cachedStrings = new Map<Constant, List<String>>(),
-        cachedElements = new Map<Constant, List<Element>>();
+        cachedStrings = new Map<ConstantValue, List<String>>(),
+        cachedElements = new Map<ConstantValue, List<Element>>();
 
   /// Collect and merge all @MirrorsUsed annotations. As a side-effect, also
   /// compute which libraries have the annotation (which is used by
@@ -261,9 +265,9 @@ class MirrorUsageAnalyzer {
     List<MirrorUsage> result = <MirrorUsage>[];
     for (MetadataAnnotation metadata in tag.metadata) {
       metadata.ensureResolved(compiler);
-      Element element = metadata.value.computeType(compiler).element;
+      Element element = metadata.constant.value.computeType(compiler).element;
       if (element == compiler.mirrorsUsedClass) {
-        result.add(buildUsage(metadata.value));
+        result.add(buildUsage(metadata.constant.value));
       }
     }
     return result;
@@ -322,8 +326,8 @@ class MirrorUsageAnalyzer {
 
   /// Convert a [constant] to an instance of [MirrorUsage] using information
   /// that was resolved during [MirrorUsageAnalyzerTask.validate].
-  MirrorUsage buildUsage(ConstructedConstant constant) {
-    Map<Element, Constant> fields = constant.fieldElements;
+  MirrorUsage buildUsage(ConstructedConstantValue constant) {
+    Map<Element, ConstantValue> fields = constant.fieldElements;
     VariableElement symbolsField = compiler.mirrorsUsedClass.lookupLocalMember(
         'symbols');
     VariableElement targetsField = compiler.mirrorsUsedClass.lookupLocalMember(
@@ -367,7 +371,7 @@ class MirrorUsageBuilder {
   final MirrorUsageAnalyzer analyzer;
   final LibraryElement enclosingLibrary;
   final Spannable spannable;
-  final Constant constant;
+  final ConstantValue constant;
   final TreeElements elements;
 
   MirrorUsageBuilder(
@@ -388,18 +392,18 @@ class MirrorUsageBuilder {
   /// [Type] values are treated as an error (meaning that the value is ignored
   /// and a hint is emitted).
   List convertConstantToUsageList(
-      Constant constant, { bool onlyStrings: false }) {
+      ConstantValue constant, { bool onlyStrings: false }) {
     if (constant.isNull) {
       return null;
     } else if (constant.isList) {
-      ListConstant list = constant;
+      ListConstantValue list = constant;
       List result = onlyStrings ? <String> [] : [];
-      for (Constant entry in list.entries) {
+      for (ConstantValue entry in list.entries) {
         if (entry.isString) {
-          StringConstant string = entry;
-          result.add(string.value.slowToString());
+          StringConstantValue string = entry;
+          result.add(string.primitiveValue.slowToString());
         } else if (!onlyStrings && entry.isType) {
-          TypeConstant type = entry;
+          TypeConstantValue type = entry;
           result.add(type.representedType);
         } else {
           Spannable node = positionOf(entry);
@@ -413,12 +417,12 @@ class MirrorUsageBuilder {
       }
       return result;
     } else if (!onlyStrings && constant.isType) {
-      TypeConstant type = constant;
+      TypeConstantValue type = constant;
       return [type.representedType];
     } else if (constant.isString) {
-      StringConstant string = constant;
+      StringConstantValue string = constant;
       var iterable =
-          string.value.slowToString().split(',').map((e) => e.trim());
+          string.primitiveValue.slowToString().split(',').map((e) => e.trim());
       return onlyStrings ? new List<String>.from(iterable) : iterable.toList();
     } else {
       Spannable node = positionOf(constant);
@@ -433,7 +437,7 @@ class MirrorUsageBuilder {
   }
 
   /// Find the first non-implementation interface of constant.
-  DartType apiTypeOf(Constant constant) {
+  DartType apiTypeOf(ConstantValue constant) {
     DartType type = constant.computeType(compiler);
     LibraryElement library = type.element.library;
     if (type.isInterfaceType && library.isInternalLibrary) {
@@ -559,10 +563,10 @@ class MirrorUsageBuilder {
   }
 
   /// Attempt to find a [Spannable] corresponding to constant.
-  Spannable positionOf(Constant constant) {
+  Spannable positionOf(ConstantValue constant) {
     Node node;
-    elements.forEachConstantNode((Node n, Constant c) {
-      if (node == null && c == constant) {
+    elements.forEachConstantNode((Node n, ConstantExpression c) {
+      if (node == null && c.value == constant) {
         node = n;
       }
     });

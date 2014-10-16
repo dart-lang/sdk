@@ -2098,7 +2098,7 @@ void generateOutput(MockCompiler compiler, String text) {
     int end = endToken.charOffset + endToken.charCount;
     SourceFile sourceFile = new StringSourceFile('analysis', text);
     print(sourceFile.getLocationMessage(message.message.toString(),
-                                        begin, end, true, (str) => str));
+                                        begin, end));
   }
 }
 

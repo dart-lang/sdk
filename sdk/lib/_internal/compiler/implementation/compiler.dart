@@ -123,7 +123,7 @@ class CodegenRegistry extends Registry {
     backend.registerIsCheckForCodegen(type, world, this);
   }
 
-  void registerCompileTimeConstant(Constant constant) {
+  void registerCompileTimeConstant(ConstantValue constant) {
     backend.registerCompileTimeConstant(constant, this);
     backend.constants.addCompileTimeConstantForEmission(constant);
   }
@@ -276,7 +276,7 @@ abstract class Backend {
   bool methodNeedsRti(FunctionElement function);
 
   /// Called during codegen when [constant] has been used.
-  void registerCompileTimeConstant(Constant constant, Registry registry) {}
+  void registerCompileTimeConstant(ConstantValue constant, Registry registry) {}
 
   /// Called during resolution when a constant value for [metadata] on
   /// [annotatedElement] has been evaluated.
@@ -493,6 +493,10 @@ abstract class Backend {
   FunctionElement helperForMissingMain() => null;
 
   FunctionElement helperForMainArity() => null;
+
+  void forgetElement(Element element) {}
+
+  void registerMainHasArguments(Enqueuer enqueuer) {}
 }
 
 /// Backend callbacks function specific to the resolution phase.
@@ -755,11 +759,11 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement typedDataClass;
 
   /// The constant for the [proxy] variable defined in dart:core.
-  Constant proxyConstant;
+  ConstantValue proxyConstant;
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   /// The constant for the [patch] variable defined in dart:_js_helper.
-  Constant patchConstant;
+  ConstantValue patchConstant;
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   ClassElement nativeAnnotationClass;
@@ -962,6 +966,11 @@ abstract class Compiler implements DiagnosticListener {
         this.outputProvider = (outputProvider == null)
             ? NullSink.outputProvider
             : outputProvider {
+    if (hasIncrementalSupport) {
+      // TODO(ahe): This is too much. Any method from platform and package
+      // libraries can be inlined.
+      disableInlining = true;
+    }
     world = new World(this);
     types = new Types(this);
     tracer = new Tracer(this, this.outputProvider);
@@ -1200,14 +1209,15 @@ abstract class Compiler implements DiagnosticListener {
       functionApplyMethod = functionClass.lookupLocalMember('apply');
 
       proxyConstant =
-          resolver.constantCompiler.compileConstant(coreLibrary.find('proxy'));
+          resolver.constantCompiler.compileConstant(
+              coreLibrary.find('proxy')).value;
 
       // TODO(johnniwinther): Move this to the JavaScript backend.
       LibraryElement jsHelperLibrary =
           loadedLibraries[js_backend.JavaScriptBackend.DART_JS_HELPER];
       if (jsHelperLibrary != null) {
         patchConstant = resolver.constantCompiler.compileConstant(
-            jsHelperLibrary.find('patch'));
+            jsHelperLibrary.find('patch')).value;
       }
 
       if (preserveComments) {
@@ -1271,16 +1281,12 @@ abstract class Compiler implements DiagnosticListener {
     mapClass = lookupCoreClass('Map');
     nullClass = lookupCoreClass('Null');
     stackTraceClass = lookupCoreClass('StackTrace');
+    symbolClass = lookupCoreClass('Symbol');
     if (!missingCoreClasses.isEmpty) {
       internalError(coreLibrary,
           'dart:core library does not contain required classes: '
           '$missingCoreClasses');
     }
-
-    // The Symbol class may not exist during unit testing.
-    // TODO(ahe): It is possible that we have to require the presence
-    // of Symbol as we change how we implement noSuchMethod.
-    symbolClass = lookupCoreClass('Symbol');
   }
 
   Element _unnamedListConstructor;
@@ -1479,7 +1485,6 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(johnniwinther): Move these to [CodegenEnqueuer].
     if (hasIsolateSupport) {
       backend.enableIsolateSupport(enqueuer.codegen);
-      enqueuer.codegen.registerGetOfStaticFunction(mainFunction);
     }
     if (enabledNoSuchMethod) {
       backend.enableNoSuchMethod(null, enqueuer.codegen);
@@ -1543,12 +1548,13 @@ abstract class Compiler implements DiagnosticListener {
     if (main != null && !main.isErroneous) {
       FunctionElement mainMethod = main;
       if (mainMethod.computeSignature(this).parameterCount != 0) {
-        // TODO(ngeoffray, floitsch): we should also ensure that the
-        // class IsolateMessage is instantiated. Currently, just enabling
-        // isolate support works.
-        world.enableIsolateSupport();
-        world.registerInstantiatedClass(listClass, globalDependencies);
-        world.registerInstantiatedClass(stringClass, globalDependencies);
+        // The first argument could be a list of strings.
+        world.registerInstantiatedClass(
+            backend.listImplementation, globalDependencies);
+        world.registerInstantiatedClass(
+            backend.stringImplementation, globalDependencies);
+
+        backend.registerMainHasArguments(world);
       }
       world.addToWorkList(main);
     }
@@ -1879,7 +1885,7 @@ abstract class Compiler implements DiagnosticListener {
   void reportUnusedCode() {
     void checkLive(member) {
       if (member.isFunction) {
-        if (!enqueuer.resolution.isLive(member)) {
+        if (!enqueuer.resolution.hasBeenResolved(member)) {
           reportHint(member, MessageKind.UNUSED_METHOD,
                      {'name': member.name});
         }
@@ -1991,6 +1997,17 @@ abstract class Compiler implements DiagnosticListener {
   void diagnoseCrashInUserCode(String message, exception, stackTrace) {
     // Overridden by Compiler in apiimpl.dart.
   }
+
+  void forgetElement(Element element) {
+    enqueuer.forgetElement(element);
+    if (element is MemberElement) {
+      for (Element closure in element.nestedClosures) {
+        // TODO(ahe): It would be nice to reuse names of nested closures.
+        closureToClassMapper.forgetElement(closure);
+      }
+    }
+    backend.forgetElement(element);
+  }
 }
 
 class CompilerTask {
@@ -2067,6 +2084,20 @@ class SourceSpan implements Spannable {
   String toString() => 'SourceSpan($uri, $begin, $end)';
 }
 
+/// Flag that can be used in assertions to assert that a code path is only
+/// executed as part of development.
+///
+/// This flag is automatically set to true if helper methods like, [debugPrint],
+/// [debugWrapPrint], [trace], and [reportHere] are called.
+bool DEBUG_MODE = false;
+
+/// Assert that [DEBUG_MODE] is `true` and provide [message] as part of the
+/// error message.
+assertDebugMode(String message) {
+  assert(invariant(NO_LOCATION_SPANNABLE, DEBUG_MODE,
+      message: 'Debug mode is not enabled: $message'));
+}
+
 /**
  * Throws a [SpannableAssertionFailure] if [condition] is
  * [:false:]. [condition] must be either a [:bool:] or a no-arg
@@ -2099,9 +2130,7 @@ bool invariant(Spannable spannable, var condition, {var message: null}) {
   return true;
 }
 
-/**
- * Global
- */
+/// Returns `true` when [s] is private if used as an identifier.
 bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
 
 /// A sink that drains into /dev/null.

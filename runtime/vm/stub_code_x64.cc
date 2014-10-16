@@ -367,6 +367,28 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 }
 
 
+// Called from array allocate instruction when the allocation stub has been
+// disabled.
+// R10: length (preserved).
+// RBX: element type (preserved).
+void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ pushq(R10);       // Preserve length.
+  __ pushq(RBX);       // Preserve element type.
+  // Setup space on stack for return value.
+  __ PushObject(Object::null_object(), PP);
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  __ popq(RAX);  // Get Code object.
+  __ popq(RBX);   // Restore element type.
+  __ popq(R10);   // Restore length.
+  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
+  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ LeaveStubFrame();
+  __ jmp(RAX);
+  __ int3();
+}
+
+
 // Input parameters:
 //   R10: smi-tagged argument count, may be zero.
 //   RBP[kParamEndSlotFromFp + 1]: last argument.
@@ -376,7 +398,9 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ LoadObject(R12, Object::null_object(), PP);
   // Allocate array to store arguments of caller.
   __ movq(RBX, R12);  // Null element type for raw Array.
-  __ call(&stub_code->AllocateArrayLabel());
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  const ExternalLabel array_label(array_stub.EntryPoint());
+  __ call(&array_label);
   __ SmiUntag(R10);
   // RAX: newly allocated array.
   // R10: length of the array (was preserved by the stub).
@@ -580,7 +604,12 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   RBX : array element type (either NULL or an instantiated type).
 // NOTE: R10 cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in RAX.
-void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
+void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+  // Must load pool pointer before being able to patch.
+  Register new_pp = R13;
+  __ LoadPoolPointer(new_pp);
+  *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
@@ -691,6 +720,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ popq(RAX);  // Pop return value from return slot.
   __ LeaveStubFrame();
   __ ret();
+  *patch_code_pc_offset = assembler->CodeSize();
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  __ JmpPatchable(&stub_code->FixAllocateArrayStubTargetLabel(), new_pp);
 }
 
 
@@ -746,7 +778,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   const Register kIsolateReg = RBX;
 
   // Load Isolate pointer into kIsolateReg.
-  __ movq(kIsolateReg, Immediate(Isolate::CurrentAddress()));
+  __ LoadIsolate(kIsolateReg);
 
   // Save the current VMTag on the stack.
   __ movq(RAX, Address(kIsolateReg, Isolate::vm_tag_offset()));
@@ -848,7 +880,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ leaq(RSP, Address(RSP, RDX, TIMES_4, 0));  // RDX is a Smi.
 
-  __ movq(kIsolateReg, Immediate(Isolate::CurrentAddress()));
+  __ LoadIsolate(kIsolateReg);
   // Restore the saved Context pointer into the Isolate structure.
   __ popq(Address(kIsolateReg, Isolate::top_context_offset()));
 
@@ -951,8 +983,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // RAX: new object.
     // R10: number of context variables.
     // R13: Isolate, not an object.
-    __ movq(FieldAddress(RAX, Context::isolate_offset()),
-            Immediate(Isolate::CurrentAddress()));
+    __ LoadIsolate(R13);
+    __ movq(FieldAddress(RAX, Context::isolate_offset()), R13);
 
     // Setup the parent field.
     // RAX: new object.
@@ -1024,7 +1056,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 
   // Load the isolate.
   // RAX: Address being stored
-  __ movq(RDX, Immediate(Isolate::CurrentAddress()));
+  __ LoadIsolate(RDX);
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1051,7 +1083,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Bind(&L);
   // Setup frame, push callee-saved registers.
   __ EnterCallRuntimeFrame(0);
-  __ movq(CallingConventions::kArg1Reg, Immediate(Isolate::CurrentAddress()));
+  __ LoadIsolate(CallingConventions::kArg1Reg);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ LeaveCallRuntimeFrame();
   __ ret();
@@ -1357,7 +1389,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ movq(RAX, Immediate(Isolate::CurrentAddress()));
+  __ LoadIsolate(RAX);
   __ cmpb(Address(RAX, Isolate::single_step_offset()), Immediate(0));
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
@@ -1588,7 +1620,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ movq(RAX, Immediate(Isolate::CurrentAddress()));
+  __ LoadIsolate(RAX);
   __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
   __ cmpq(RAX, Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
@@ -1751,7 +1783,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ movq(RAX, Address(RSP, kInstanceOffsetInBytes));
   __ LoadObject(R12, Object::null_object(), PP);
   if (n > 1) {
-    __ LoadClass(R10, RAX);
+    __ LoadClass(R10, RAX, kNoRegister);
     // Compute instance type arguments into R13.
     Label has_no_type_arguments;
     __ movq(R13, R12);

@@ -75,6 +75,7 @@ static bool CanConvertUnboxedMintToDouble() {
 #endif
 }
 
+
 // Optimize instance calls using ICData.
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -628,6 +629,8 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new(I) UnboxIntegerInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kUnboxedMint) && (to == kTagged)) {
     converted = new(I) BoxIntegerInstr(use->CopyWithType());
+  } else if ((from == kUnboxedUint32) && (to == kTagged)) {
+    converted = new(I) BoxUint32Instr(use->CopyWithType());
   } else if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
     const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
@@ -1355,7 +1358,12 @@ bool FlowGraphOptimizer::InlineSetIndexed(
        RawObject::IsTypedDataViewClassId(array_cid) ||
        RawObject::IsExternalTypedDataClassId(array_cid)) ? kNoStoreBarrier
                                                          : kEmitStoreBarrier;
-  if (!value_check.IsNull()) {
+
+  // No need to class check stores to Int32 and Uint32 arrays because
+  // we insert unboxing instructions below which include a class check.
+  if ((array_cid != kTypedDataUint32ArrayCid) &&
+      (array_cid != kTypedDataInt32ArrayCid) &&
+      !value_check.IsNull()) {
     // No store barrier needed because checked value is a smi, an unboxed mint,
     // an unboxed double, an unboxed Float32x4, or unboxed Int32x4.
     needs_store_barrier = kNoStoreBarrier;
@@ -1712,6 +1720,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineIndexedOp(Instruction* call,
   }
   return array_cid;
 }
+
 
 bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
                                           Instruction* call,
@@ -4725,42 +4734,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
 // Smi widening pass is only meaningful on platforms where Smi
 // is smaller than 32bit. For now only support it on ARM and ia32.
-
-class DefinitionWorklist : public ValueObject {
- public:
-  DefinitionWorklist(FlowGraph* flow_graph,
-                     intptr_t initial_capacity)
-      : defs_(initial_capacity),
-        contains_vector_(new(flow_graph->isolate()) BitVector(
-            flow_graph->isolate(), flow_graph->current_ssa_temp_index())) {
-  }
-
-  void Add(Definition* defn) {
-    if (!Contains(defn)) {
-      defs_.Add(defn);
-      contains_vector_->Add(defn->ssa_temp_index());
-    }
-  }
-
-  bool Contains(Definition* defn) const {
-    return (defn->ssa_temp_index() >= 0) &&
-        contains_vector_->Contains(defn->ssa_temp_index());
-  }
-
-  const GrowableArray<Definition*>& definitions() const { return defs_; }
-  BitVector* contains_vector() const { return contains_vector_; }
-
-  void Clear() {
-    defs_.TruncateTo(0);
-    contains_vector_->Clear();
-  }
-
- private:
-  GrowableArray<Definition*> defs_;
-  BitVector* contains_vector_;
-};
-
-
 static bool CanBeWidened(BinarySmiOpInstr* smi_op) {
   return BinaryInt32OpInstr::IsSupported(smi_op->op_kind(),
                                          smi_op->left(),
@@ -5059,17 +5032,6 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
 }
 
 
-static BlockEntryInstr* FindPreHeader(BlockEntryInstr* header) {
-  for (intptr_t j = 0; j < header->PredecessorCount(); ++j) {
-    BlockEntryInstr* candidate = header->PredecessorAt(j);
-    if (header->dominator() == candidate) {
-      return candidate;
-    }
-  }
-  return NULL;
-}
-
-
 LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
   ASSERT(flow_graph->is_licm_allowed());
 }
@@ -5080,6 +5042,10 @@ void LICM::Hoist(ForwardInstructionIterator* it,
                  Instruction* current) {
   if (current->IsCheckClass()) {
     current->AsCheckClass()->set_licm_hoisted(true);
+  } else if (current->IsCheckSmi()) {
+    current->AsCheckSmi()->set_licm_hoisted(true);
+  } else if (current->IsCheckEitherNonSmi()) {
+    current->AsCheckEitherNonSmi()->set_licm_hoisted(true);
   }
   // TODO(fschneider): Avoid repeated deoptimization when
   // speculatively hoisting checks.
@@ -5188,7 +5154,7 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     JoinEntryInstr* header = loop_headers[i]->AsJoinEntry();
     // Skip loop that don't have a pre-header block.
-    BlockEntryInstr* pre_header = FindPreHeader(header);
+    BlockEntryInstr* pre_header = header->ImmediateDominator();
     if (pre_header == NULL) continue;
 
     for (PhiIterator it(header); !it.Done(); it.Advance()) {
@@ -5216,7 +5182,7 @@ void LICM::Optimize() {
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     BlockEntryInstr* header = loop_headers[i];
     // Skip loop that don't have a pre-header block.
-    BlockEntryInstr* pre_header = FindPreHeader(header);
+    BlockEntryInstr* pre_header = header->ImmediateDominator();
     if (pre_header == NULL) continue;
 
     for (BitVector::Iterator loop_it(header->loop_info());
@@ -5726,6 +5692,26 @@ class AliasedSet : public ZoneAllocated {
       const intptr_t alias_id = LookupAliasId(place.ToAlias());
       if (alias_id != kNoAlias) {
         *killed = GetKilledSet(alias_id);
+      } else if (!place.IsFinalField()) {
+        // We encountered unknown alias: this means intrablock load forwarding
+        // refined parameter of this store, for example
+        //
+        //     o   <- alloc()
+        //     a.f <- o
+        //     u   <- a.f
+        //     u.x <- null ;; this store alias is *.x
+        //
+        // after intrablock load forwarding
+        //
+        //     o   <- alloc()
+        //     a.f <- o
+        //     o.x <- null ;; this store alias is o.x
+        //
+        // In this case we fallback to using place id recorded in the
+        // instruction that still points to the old place with a more generic
+        // alias.
+        *killed = GetKilledSet(
+            LookupAliasId(places_[instr->place_id()]->ToAlias()));
       }
     }
     return is_store;
@@ -6244,6 +6230,7 @@ static AliasedSet* NumberPlaces(
        !it.Done();
        it.Advance()) {
     BlockEntryInstr* block = it.Current();
+
     for (ForwardInstructionIterator instr_it(block);
          !instr_it.Done();
          instr_it.Advance()) {
@@ -6742,7 +6729,7 @@ class LoadOptimizer : public ValueObject {
 
     for (intptr_t i = 0; i < loop_headers.length(); i++) {
       BlockEntryInstr* header = loop_headers[i];
-      BlockEntryInstr* pre_header = FindPreHeader(header);
+      BlockEntryInstr* pre_header = header->ImmediateDominator();
       if (pre_header == NULL) {
         invariant_loads->Add(NULL);
         continue;

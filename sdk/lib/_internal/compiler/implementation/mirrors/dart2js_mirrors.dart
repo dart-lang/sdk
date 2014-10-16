@@ -6,6 +6,8 @@ library dart2js.mirrors;
 
 import 'dart:collection' show UnmodifiableListView, UnmodifiableMapView;
 
+import '../constants/expressions.dart';
+import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../scanner/scannerlib.dart';
 import '../resolution/resolution.dart' show Scope;
@@ -221,8 +223,8 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
         _appendCommentTokens(
             mirrorSystem.compiler.commentMap[metadata.beginToken]);
         metadata.ensureResolved(mirrorSystem.compiler);
-        _metadata.add(_convertConstantToInstanceMirror(mirrorSystem,
-                                                       metadata.value));
+        _metadata.add(_convertConstantToInstanceMirror(
+            mirrorSystem, metadata.constant, metadata.constant.value));
       }
       _appendCommentTokens(mirrorSystem.compiler.commentMap[getBeginToken()]);
     }

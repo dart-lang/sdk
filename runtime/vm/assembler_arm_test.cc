@@ -107,7 +107,7 @@ ASSEMBLER_TEST_GENERATE(Vmov, assembler) {
     __ vmovrs(R3, S5);  // R3 = S5, R3 == 41
     __ vmovrrs(R1, R2, S4);  // R1:R2 = S4:S5, R1:R2 == 43:41
     __ vmovdrr(D3, R3, R2);  // D3 = R3:R2, S6:S7 == 41:41
-    __ vmovsr(S7, R1);  // S7 = R1, S6:S7 == 41:43
+    __ vmovdr(D3, 1, R1);  // D3[1] == S7 = R1, S6:S7 == 41:43
     __ vmovrrd(R0, R1, D3);  // R0:R1 = D3, R0:R1 == 41:43
     __ sub(R0, R1, Operand(R0));  // 43-41
   } else {
@@ -666,6 +666,58 @@ ASSEMBLER_TEST_RUN(LoadStore, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    __ mov(R0, Operand(42));
+    __ bx(LR);
+  } else {
+    __ mov(R0, Operand(40));
+    __ mov(R1, Operand(42));
+    __ Push(R0);
+    Label retry;
+    __ Bind(&retry);
+    __ ldrex(R0, SP);
+    __ strex(IP, R1, SP);  // IP == 0, success
+    __ tst(IP, Operand(0));
+    __ b(&retry, NE);  // NE if context switch occurred between ldrex and strex.
+    __ Pop(R0);  // 42
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(Semaphore, test) {
+  EXPECT(test != NULL);
+  typedef int (*Semaphore)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Semaphore, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    __ mov(R0, Operand(41));
+    __ bx(LR);
+  } else {
+    __ mov(R0, Operand(40));
+    __ mov(R1, Operand(42));
+    __ Push(R0);
+    __ ldrex(R0, SP);
+    __ clrex();  // Simulate a context switch.
+    __ strex(IP, R1, SP);  // IP == 1, failure
+    __ Pop(R0);  // 40
+    __ add(R0, R0, Operand(IP));
+    __ bx(LR);
+  }
+}
+
+
+ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
+  EXPECT(test != NULL);
+  typedef int (*FailedSemaphore)() DART_UNUSED;
+  EXPECT_EQ(41, EXECUTE_TEST_CODE_INT32(FailedSemaphore, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(AddSub, assembler) {
   __ mov(R1, Operand(40));
   __ sub(R1, R1, Operand(2));
@@ -700,6 +752,24 @@ ASSEMBLER_TEST_RUN(AddCarry, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
+  __ LoadImmediate(R2, 0xFFFFFFFF);
+  __ mov(R1, Operand(1));
+  __ mov(R0, Operand(0));
+  __ adds(IP, R2, Operand(R1));  // c_out = 1.
+  __ adcs(IP, R2, Operand(R0));  // c_in = 1, c_out = 1.
+  __ adc(R0, R0, Operand(R0));  // c_in = 1.
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(AddCarryInOut, test) {
+  EXPECT(test != NULL);
+  typedef int (*AddCarryInOut)() DART_UNUSED;
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(AddCarryInOut, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(SubCarry, assembler) {
   __ LoadImmediate(R2, 0x0);
   __ mov(R1, Operand(1));
@@ -714,6 +784,40 @@ ASSEMBLER_TEST_RUN(SubCarry, test) {
   EXPECT(test != NULL);
   typedef int (*SubCarry)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SubCarry, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(SubCarryInOut, assembler) {
+  __ mov(R1, Operand(1));
+  __ mov(R0, Operand(0));
+  __ subs(IP, R0, Operand(R1));  // c_out = 1.
+  __ sbcs(IP, R0, Operand(R0));  // c_in = 1, c_out = 1.
+  __ sbc(R0, R0, Operand(R0));  // c_in = 1.
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(SubCarryInOut, test) {
+  EXPECT(test != NULL);
+  typedef int (*SubCarryInOut)() DART_UNUSED;
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SubCarryInOut, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Overflow, assembler) {
+  __ LoadImmediate(R0, 0xFFFFFFFF);
+  __ LoadImmediate(R1, 0x7FFFFFFF);
+  __ adds(IP, R0, Operand(1));  // c_out = 1.
+  __ adcs(IP, R1, Operand(0));  // c_in = 1, c_out = 1, v = 1.
+  __ mov(R0, Operand(1), VS);
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(Overflow, test) {
+  EXPECT(test != NULL);
+  typedef int (*Overflow)() DART_UNUSED;
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Overflow, test->entry()));
 }
 
 
@@ -816,6 +920,7 @@ ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
     __ Pop(R4);
   } else {
     __ LoadImmediate(R0, 6);
+    __ LoadImmediate(R1, 0);
   }
   __ bx(LR);
 #if defined(USING_SIMULATOR)
@@ -842,6 +947,7 @@ ASSEMBLER_TEST_GENERATE(Multiply32To64, assembler) {
     __ smull(R0, R1, R0, R2);
   } else {
     __ LoadImmediate(R0, 6);
+    __ LoadImmediate(R1, 0);
   }
   __ bx(LR);
 #if defined(USING_SIMULATOR)
@@ -868,6 +974,7 @@ ASSEMBLER_TEST_GENERATE(MultiplyAccum32To64, assembler) {
     __ smlal(R0, R1, R0, R2);
   } else {
     __ LoadImmediate(R0, 3);
+    __ LoadImmediate(R1, 0);
   }
   __ bx(LR);
 #if defined(USING_SIMULATOR)
@@ -878,10 +985,38 @@ ASSEMBLER_TEST_GENERATE(MultiplyAccum32To64, assembler) {
 
 ASSEMBLER_TEST_RUN(MultiplyAccum32To64, test) {
   EXPECT(test != NULL);
-  typedef int64_t (*Multiply32To64)
+  typedef int64_t (*MultiplyAccum32To64)
       (int64_t operand0, int64_t operand1) DART_UNUSED;
-  EXPECT_EQ(3,
-            EXECUTE_TEST_CODE_INT64_LL(Multiply32To64, test->entry(), -3, -2));
+  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT64_LL(MultiplyAccum32To64, test->entry(),
+                                          -3, -2));
+}
+
+
+ASSEMBLER_TEST_GENERATE(MultiplyAccumAccum32To64, assembler) {
+#if defined(USING_SIMULATOR)
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  HostCPUFeatures::set_arm_version(ARMv7);
+#endif
+  if (TargetCPUFeatures::arm_version() == ARMv7) {
+    __ umaal(R0, R1, R2, R3);
+  } else {
+    __ LoadImmediate(R0, 3 + 7 + 5 * 11);
+    __ LoadImmediate(R1, 0);
+  }
+  __ bx(LR);
+#if defined(USING_SIMULATOR)
+  HostCPUFeatures::set_arm_version(version);
+#endif
+}
+
+
+ASSEMBLER_TEST_RUN(MultiplyAccumAccum32To64, test) {
+  EXPECT(test != NULL);
+  typedef int64_t (*MultiplyAccumAccum32To64)
+      (int64_t operand0, int64_t operand1) DART_UNUSED;
+  EXPECT_EQ(3 + 7 + 5 * 11,
+            EXECUTE_TEST_CODE_INT64_LL(MultiplyAccumAccum32To64, test->entry(),
+                                       (3LL << 32) + 7, (5LL << 32) + 11));
 }
 
 
@@ -900,7 +1035,7 @@ ASSEMBLER_TEST_GENERATE(Clz, assembler) {
   __ clz(R1, R0);
   __ cmp(R1, Operand(0));
   __ b(&error, NE);
-  __ Lsr(R0, R0, 3);
+  __ Lsr(R0, R0, Operand(3));
   __ clz(R1, R0);
   __ cmp(R1, Operand(3));
   __ b(&error, NE);
@@ -979,8 +1114,8 @@ ASSEMBLER_TEST_GENERATE(Lsr1, assembler) {
   Label skip;
 
   __ mov(R0, Operand(1));
-  __ Lsl(R0, R0, 31);
-  __ Lsr(R0, R0, 31);
+  __ Lsl(R0, R0, Operand(31));
+  __ Lsr(R0, R0, Operand(31));
   __ bx(LR);
 }
 
@@ -996,8 +1131,8 @@ ASSEMBLER_TEST_GENERATE(Asr1, assembler) {
   Label skip;
 
   __ mov(R0, Operand(1));
-  __ Lsl(R0, R0, 31);
-  __ Asr(R0, R0, 31);
+  __ Lsl(R0, R0, Operand(31));
+  __ Asr(R0, R0, Operand(31));
   __ bx(LR);
 }
 
@@ -3520,7 +3655,7 @@ ASSEMBLER_TEST_RUN(Vmaxqs, test) {
 static float arm_recip_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-85.
   if (isinf(a) || (fabs(a) >= exp2f(126))) return 0.0;
-  else if (a == 0.0) return INFINITY;
+  else if (a == 0.0) return kPosInfinity;
   else if (isnan(a)) return a;
 
   uint32_t a_bits = bit_cast<uint32_t, float>(a);
@@ -3640,7 +3775,7 @@ ASSEMBLER_TEST_RUN(Reciprocal, test) {
 static float arm_reciprocal_sqrt_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-87.
   if (isinf(a) || (fabs(a) >= exp2f(126))) return 0.0;
-  else if (a == 0.0) return INFINITY;
+  else if (a == 0.0) return kPosInfinity;
   else if (isnan(a)) return a;
 
   uint32_t a_bits = bit_cast<uint32_t, float>(a);

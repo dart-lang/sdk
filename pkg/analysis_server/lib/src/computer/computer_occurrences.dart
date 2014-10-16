@@ -6,7 +6,7 @@ library computer.occurrences;
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol.dart' as protocol;
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -29,7 +29,7 @@ class DartUnitOccurrencesComputer {
     _unit.accept(new _DartUnitOccurrencesComputerVisitor(this));
     List<protocol.Occurrences> occurrences = <protocol.Occurrences>[];
     _elementsOffsets.forEach((engineElement, offsets) {
-      var serverElement = new protocol.Element.fromEngine(engineElement);
+      var serverElement = protocol.newElement_fromEngine(engineElement);
       var length = engineElement.displayName.length;
       occurrences.add(new protocol.Occurrences(serverElement, offsets, length));
     });

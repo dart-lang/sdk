@@ -1,14 +1,24 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:convert';
+
 import 'package:scheduled_test/scheduled_test.dart';
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
+
 main() {
   initConfig();
   integration(
       "compiles dart.js and interop.js next to entrypoints when "
           "dartjs is explicitly configured",
       () {
+    // Dart2js can take a long time to compile dart code, so we increase the
+    // timeout to cope with that.
     currentSchedule.timeout *= 3;
+
     serve([d.dir('api', [d.dir('packages', [d.file('browser', JSON.encode({
             'versions': [packageVersionApiMap(packageMap('browser', '1.0.0'))]
           })),
@@ -40,6 +50,7 @@ main() {
                                                   [
                                                       d.file('dart.js', 'contents of dart.js'),
                                                       d.file('interop.js', 'contents of interop.js')])])])])])]);
+
     d.dir(appPath, [d.pubspec({
         "name": "myapp",
         "dependencies": {
@@ -53,12 +64,15 @@ main() {
       }),
           d.dir(
               'web',
-              [d.file('file.dart', 'void main() => print("hello");')])]).create();
+              [d.file('file.dart', 'void main() => print("hello");'),])]).create();
+
     pubGet();
+
     schedulePub(
         args: ["build"],
         output: new RegExp(r'Built 4 files to "build".'),
         exitCode: 0);
+
     d.dir(
         appPath,
         [
@@ -77,6 +91,6 @@ main() {
                                         'browser',
                                         [
                                             d.file('dart.js', 'contents of dart.js'),
-                                            d.file('interop.js', 'contents of interop.js')])])])])]).validate();
+                                            d.file('interop.js', 'contents of interop.js')])]),])])]).validate();
   });
 }

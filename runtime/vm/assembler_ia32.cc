@@ -1598,7 +1598,14 @@ void Assembler::cdq() {
 void Assembler::idivl(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF7);
-  EmitUint8(0xF8 | reg);
+  EmitOperand(7, Operand(reg));
+}
+
+
+void Assembler::divl(Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF7);
+  EmitOperand(6, Operand(reg));
 }
 
 
@@ -1747,7 +1754,7 @@ void Assembler::sarl(const Address& address, Register shifter) {
 }
 
 
-void Assembler::shld(Register dst, Register src) {
+void Assembler::shldl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
   EmitUint8(0xA5);
@@ -1755,7 +1762,7 @@ void Assembler::shld(Register dst, Register src) {
 }
 
 
-void Assembler::shld(Register dst, Register src, const Immediate& imm) {
+void Assembler::shldl(Register dst, Register src, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(imm.is_int8());
   EmitUint8(0x0F);
@@ -1765,7 +1772,7 @@ void Assembler::shld(Register dst, Register src, const Immediate& imm) {
 }
 
 
-void Assembler::shld(const Address& operand, Register src) {
+void Assembler::shldl(const Address& operand, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
   EmitUint8(0xA5);
@@ -1773,7 +1780,7 @@ void Assembler::shld(const Address& operand, Register src) {
 }
 
 
-void Assembler::shrd(Register dst, Register src) {
+void Assembler::shrdl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
   EmitUint8(0xAD);
@@ -1781,7 +1788,7 @@ void Assembler::shrd(Register dst, Register src) {
 }
 
 
-void Assembler::shrd(Register dst, Register src, const Immediate& imm) {
+void Assembler::shrdl(Register dst, Register src, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(imm.is_int8());
   EmitUint8(0x0F);
@@ -1791,7 +1798,7 @@ void Assembler::shrd(Register dst, Register src, const Immediate& imm) {
 }
 
 
-void Assembler::shrd(const Address& dst, Register src) {
+void Assembler::shrdl(const Address& dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
   EmitUint8(0xAD);
@@ -2089,6 +2096,11 @@ void Assembler::Drop(intptr_t stack_elements) {
 }
 
 
+void Assembler::LoadIsolate(Register dst) {
+  movl(dst, Immediate(reinterpret_cast<uword>(Isolate::Current())));
+}
+
+
 void Assembler::LoadObject(Register dst, const Object& object) {
   if (object.IsSmi() || object.InVMHeap()) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));
@@ -2200,13 +2212,17 @@ void Assembler::StoreIntoObject(Register object,
     StoreIntoObjectFilterNoSmi(object, value, &done);
   }
   // A store buffer update is required.
-  if (value != EAX) pushl(EAX);  // Preserve EAX.
-  if (object != EAX) {
-    movl(EAX, object);
+  if (value != EDX) {
+    pushl(EDX);  // Preserve EDX.
+  }
+  if (object != EDX) {
+    movl(EDX, object);
   }
   StubCode* stub_code = Isolate::Current()->stub_code();
   call(&stub_code->UpdateStoreBufferLabel());
-  if (value != EAX) popl(EAX);  // Restore EAX.
+  if (value != EDX) {
+    popl(EDX);  // Restore EDX.
+  }
   Bind(&done);
 }
 
@@ -2733,25 +2749,16 @@ void Assembler::LoadClassId(Register result, Register object) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
-  movl(result, FieldAddress(CTX, Context::isolate_offset()));
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  movl(result, Address(result, table_offset_in_isolate));
+  movl(result,
+       Address::Absolute(Isolate::Current()->class_table()->TableAddress()));
   movl(result, Address(result, class_id, TIMES_4, 0));
 }
 
 
-void Assembler::LoadClass(Register result,
-                          Register object,
-                          Register scratch) {
+void Assembler::LoadClass(Register result, Register object, Register scratch) {
   ASSERT(scratch != result);
   LoadClassId(scratch, object);
-
-  movl(result, FieldAddress(CTX, Context::isolate_offset()));
-  const intptr_t table_offset_in_isolate =
-      Isolate::class_table_offset() + ClassTable::table_offset();
-  movl(result, Address(result, table_offset_in_isolate));
-  movl(result, Address(result, scratch, TIMES_4, 0));
+  LoadClassById(result, scratch);
 }
 
 

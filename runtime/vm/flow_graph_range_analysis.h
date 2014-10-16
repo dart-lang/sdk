@@ -490,6 +490,10 @@ class RangeUtils : public AllStatic  {
   static bool IsWithin(Range* range, int64_t min, int64_t max) {
     return !Range::IsUnknown(range) && range->IsWithin(min, max);
   }
+
+  static bool IsPositive(Range* range) {
+    return !Range::IsUnknown(range) && range->IsPositive();
+  }
 };
 
 
@@ -509,6 +513,14 @@ class RangeAnalysis : public ValueObject {
   // Returns meaningful results for uses of non-smi definitions that have smi
   // as a reaching type.
   const Range* GetSmiRange(Value* value) const;
+
+  static bool IsIntegerDefinition(Definition* defn) {
+    return (defn->Type()->ToCid() == kSmiCid) ||
+        defn->IsMintDefinition() ||
+        defn->IsInt32Definition();
+  }
+
+  void AssignRangesRecursively(Definition* defn);
 
  private:
   enum JoinOperator {
@@ -539,7 +551,7 @@ class RangeAnalysis : public ValueObject {
                                        Range* constraint,
                                        Instruction* after);
 
-  void ConstrainValueAfterBranch(Value* use, Definition* defn);
+  bool ConstrainValueAfterBranch(Value* use, Definition* defn);
   void ConstrainValueAfterCheckArrayBound(Value* use, Definition* defn);
 
   // Replace uses of the definition def that are dominated by instruction dom
@@ -553,7 +565,7 @@ class RangeAnalysis : public ValueObject {
   void InferRanges();
 
   // Collect integer definition in the reverse postorder.
-  void CollectDefinitions(BlockEntryInstr* block, BitVector* set);
+  void CollectDefinitions(BitVector* set);
 
   // Recompute ranges of all definitions until they stop changing.
   // Apply the given JoinOperator when computing Phi ranges.
@@ -569,6 +581,8 @@ class RangeAnalysis : public ValueObject {
 
   // Convert mint operations that stay within int32 range into Int32 operations.
   void NarrowMintToInt32();
+
+  void DiscoverSimpleInductionVariables();
 
   // Remove artificial Constraint instructions and replace them with actual
   // unconstrained definitions.

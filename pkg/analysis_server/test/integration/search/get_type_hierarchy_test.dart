@@ -6,9 +6,10 @@ library test.integration.search.domain;
 
 import 'dart:async';
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 /**
@@ -18,13 +19,13 @@ class HierarchyResults {
   /**
    * The list of hierarchy items from the result.
    */
-  List<Map> items;
+  List<TypeHierarchyItem> items;
 
   /**
    * The first hierarchy item from the result, which represents the pivot
    * class.
    */
-  Map pivot;
+  TypeHierarchyItem pivot;
 
   /**
    * A map from element name to item index.
@@ -35,19 +36,18 @@ class HierarchyResults {
    * Create a [HierarchyResults] object based on the result from a
    * getTypeHierarchy request.
    */
-  HierarchyResults(result) {
-    items = result['hierarchyItems'];
+  HierarchyResults(this.items) {
     pivot = items[0];
     nameToIndex = <String, int> {};
     for (int i = 0; i < items.length; i++) {
-      nameToIndex[items[i]['classElement']['name']] = i;
+      nameToIndex[items[i].classElement.name] = i;
     }
   }
 
   /**
    * Get an item by class name.
    */
-  Map getItem(String name) {
+  TypeHierarchyItem getItem(String name) {
     if (nameToIndex.containsKey(name)) {
       return items[nameToIndex[name]];
     } else {
@@ -95,11 +95,11 @@ class Derived extends Pivot {}
       void checkElement(String name) {
         // We don't check the full element data structure; just enough to make
         // sure that we're pointing to the correct element.
-        Map element = results.items[results.nameToIndex[name]]['classElement'];
-        expect(element['kind'], equals('CLASS'));
-        expect(element['name'], equals(name));
+        Element element = results.items[results.nameToIndex[name]].classElement;
+        expect(element.kind, equals(ElementKind.CLASS));
+        expect(element.name, equals(name));
         if (name != 'Object') {
-          expect(element['location']['offset'], equals(text.indexOf(
+          expect(element.location.offset, equals(text.indexOf(
               'class $name') + 'class '.length));
         }
       }
@@ -118,9 +118,9 @@ class Pivot /* target */ extends Base<int> {}
 ''';
     return typeHierarchyTest(text).then((HierarchyResults results) {
       expect(results.items, hasLength(3));
-      expect(results.getItem('Object')['displayName'], isNull);
-      expect(results.getItem('Base')['displayName'], equals('Base<int>'));
-      expect(results.getItem('Pivot')['displayName'], isNull);
+      expect(results.getItem('Object').displayName, isNull);
+      expect(results.getItem('Base').displayName, equals('Base<int>'));
+      expect(results.getItem('Pivot').displayName, isNull);
     });
   }
 
@@ -140,14 +140,14 @@ class Derived2 extends Derived1 {
 }''';
     return typeHierarchyTest(text).then((HierarchyResults results) {
       expect(results.items, hasLength(6));
-      expect(results.getItem('Object')['memberElement'], isNull);
-      expect(results.getItem('Base1')['memberElement']['location']['offset'],
+      expect(results.getItem('Object').memberElement, isNull);
+      expect(results.getItem('Base1').memberElement.location.offset,
           equals(text.indexOf('foo /* base1 */')));
-      expect(results.getItem('Base2')['memberElement'], isNull);
-      expect(results.getItem('Pivot')['memberElement']['location']['offset'],
+      expect(results.getItem('Base2').memberElement, isNull);
+      expect(results.getItem('Pivot').memberElement.location.offset,
           equals(text.indexOf('foo /* target */')));
-      expect(results.getItem('Derived1')['memberElement'], isNull);
-      expect(results.getItem('Derived2')['memberElement']['location']['offset'],
+      expect(results.getItem('Derived1').memberElement, isNull);
+      expect(results.getItem('Derived2').memberElement.location.offset,
           equals(text.indexOf('foo /* derived2 */')));
     });
   }
@@ -161,12 +161,12 @@ class Pivot /* target */ extends Base2 {}
 ''';
     return typeHierarchyTest(text).then((HierarchyResults results) {
       expect(results.items, hasLength(4));
-      expect(results.getItem('Object')['superclass'], isNull);
-      expect(results.getItem('Base1')['superclass'], equals(
+      expect(results.getItem('Object').superclass, isNull);
+      expect(results.getItem('Base1').superclass, equals(
           results.nameToIndex['Object']));
-      expect(results.getItem('Base2')['superclass'], equals(
+      expect(results.getItem('Base2').superclass, equals(
           results.nameToIndex['Base1']));
-      expect(results.getItem('Pivot')['superclass'], equals(
+      expect(results.getItem('Pivot').superclass, equals(
           results.nameToIndex['Base2']));
     });
   }
@@ -180,14 +180,14 @@ class Pivot /* target */ implements Interface1, Interface2 {}
 ''';
     return typeHierarchyTest(text).then((HierarchyResults results) {
       expect(results.items, hasLength(4));
-      expect(results.pivot['interfaces'], hasLength(2));
-      expect(results.pivot['interfaces'], contains(
+      expect(results.pivot.interfaces, hasLength(2));
+      expect(results.pivot.interfaces, contains(
           results.nameToIndex['Interface1']));
-      expect(results.pivot['interfaces'], contains(
+      expect(results.pivot.interfaces, contains(
           results.nameToIndex['Interface2']));
-      expect(results.getItem('Object')['interfaces'], isEmpty);
-      expect(results.getItem('Interface1')['interfaces'], isEmpty);
-      expect(results.getItem('Interface2')['interfaces'], isEmpty);
+      expect(results.getItem('Object').interfaces, isEmpty);
+      expect(results.getItem('Interface1').interfaces, isEmpty);
+      expect(results.getItem('Interface2').interfaces, isEmpty);
     });
   }
 
@@ -201,13 +201,13 @@ class Pivot /* target */ extends Base with Mixin1, Mixin2 {}
 ''';
     return typeHierarchyTest(text).then((HierarchyResults results) {
       expect(results.items, hasLength(5));
-      expect(results.pivot['mixins'], hasLength(2));
-      expect(results.pivot['mixins'], contains(results.nameToIndex['Mixin1']));
-      expect(results.pivot['mixins'], contains(results.nameToIndex['Mixin2']));
-      expect(results.getItem('Object')['mixins'], isEmpty);
-      expect(results.getItem('Base')['mixins'], isEmpty);
-      expect(results.getItem('Mixin1')['mixins'], isEmpty);
-      expect(results.getItem('Mixin2')['mixins'], isEmpty);
+      expect(results.pivot.mixins, hasLength(2));
+      expect(results.pivot.mixins, contains(results.nameToIndex['Mixin1']));
+      expect(results.pivot.mixins, contains(results.nameToIndex['Mixin2']));
+      expect(results.getItem('Object').mixins, isEmpty);
+      expect(results.getItem('Base').mixins, isEmpty);
+      expect(results.getItem('Mixin1').mixins, isEmpty);
+      expect(results.getItem('Mixin2').mixins, isEmpty);
     });
   }
 
@@ -222,17 +222,17 @@ class Sub2a extends Sub2 {}
 ''';
     return typeHierarchyTest(text).then((HierarchyResults results) {
       expect(results.items, hasLength(6));
-      expect(results.pivot['subclasses'], hasLength(2));
-      expect(results.pivot['subclasses'], contains(results.nameToIndex['Sub1'])
+      expect(results.pivot.subclasses, hasLength(2));
+      expect(results.pivot.subclasses, contains(results.nameToIndex['Sub1'])
           );
-      expect(results.pivot['subclasses'], contains(results.nameToIndex['Sub2'])
+      expect(results.pivot.subclasses, contains(results.nameToIndex['Sub2'])
           );
-      expect(results.getItem('Object')['subclasses'], isEmpty);
-      expect(results.getItem('Base')['subclasses'], isEmpty);
-      expect(results.getItem('Sub1')['subclasses'], isEmpty);
-      expect(results.getItem('Sub2')['subclasses'], equals(
+      expect(results.getItem('Object').subclasses, isEmpty);
+      expect(results.getItem('Base').subclasses, isEmpty);
+      expect(results.getItem('Sub1').subclasses, isEmpty);
+      expect(results.getItem('Sub2').subclasses, equals(
           [results.nameToIndex['Sub2a']]));
-      expect(results.getItem('Sub2a')['subclasses'], isEmpty);
+      expect(results.getItem('Sub2a').subclasses, isEmpty);
     });
   }
 
@@ -263,17 +263,14 @@ main /* target */ () {
   Future<HierarchyResults> typeHierarchyTest(String text) {
     int offset = text.indexOf(' /* target */') - 1;
     sendAnalysisUpdateContent({
-      pathname: {
-        'type': 'add',
-        'content': text
-      }
+      pathname: new AddContentOverlay(text)
     });
     return analysisFinished.then((_) => sendSearchGetTypeHierarchy(pathname,
         offset)).then((result) {
-      if (result.isEmpty) {
+      if (result.hierarchyItems == null) {
         return null;
       } else {
-        return new HierarchyResults(result);
+        return new HierarchyResults(result.hierarchyItems);
       }
     });
   }

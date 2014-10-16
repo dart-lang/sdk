@@ -369,6 +369,14 @@ enum LoadStoreRegOp {
   FLDRQ = LDR | B26 | B23,
 };
 
+// C3.3.14-16
+enum LoadStoreRegPairOp {
+  LoadStoreRegPairMask = 0x3a000000,
+  LoadStoreRegPairFixed = LoadStoreFixed | B29,
+  STP = LoadStoreRegPairFixed,
+  LDP = LoadStoreRegPairFixed | B22,
+};
+
 // C3.4.1
 enum AddSubImmOp {
   AddSubImmMask = 0x1f000000,
@@ -410,6 +418,14 @@ enum AddSubShiftExtOp {
   AddSubShiftExtFixed = DPRegisterFixed | B24,
   ADD = AddSubShiftExtFixed,
   SUB = AddSubShiftExtFixed | B30,
+};
+
+// C3.5.3
+enum AddSubWithCarryOp {
+  AddSubWithCarryMask = 0x1fe00000,
+  AddSubWithCarryFixed = DPRegisterFixed | B28,
+  ADC = AddSubWithCarryFixed,
+  SBC = AddSubWithCarryFixed | B30,
 };
 
 // C3.5.6
@@ -558,10 +574,10 @@ enum FPImmOp {
 enum FPIntCvtOp {
   FPIntCvtMask = 0x5f20fc00,
   FPIntCvtFixed = FPFixed | B21,
-  FMOVRD = FPIntCvtFixed | B31 | B22 | B18 | B17,
-  FMOVDR = FPIntCvtFixed | B31 | B22 | B18 | B17 | B16,
-  FCVTZDS = FPIntCvtFixed | B31 | B22 | B20 | B19,
-  SCVTFD = FPIntCvtFixed | B31 | B22 | B17,
+  FMOVRD = FPIntCvtFixed | B22 | B18 | B17,
+  FMOVDR = FPIntCvtFixed | B22 | B18 | B17 | B16,
+  FCVTZDS = FPIntCvtFixed | B22 | B20 | B19,
+  SCVTFD = FPIntCvtFixed |  B22 | B17,
 };
 
 
@@ -581,12 +597,14 @@ _V(TestAndBranch)                                                              \
 _V(UnconditionalBranch)                                                        \
 _V(UnconditionalBranchReg)                                                     \
 _V(LoadStoreReg)                                                               \
+_V(LoadStoreRegPair)                                                           \
 _V(LoadRegLiteral)                                                             \
 _V(AddSubImm)                                                                  \
 _V(LogicalImm)                                                                 \
 _V(MoveWide)                                                                   \
 _V(PCRel)                                                                      \
 _V(AddSubShiftExt)                                                             \
+_V(AddSubWithCarry)                                                            \
 _V(ConditionalSelect)                                                          \
 _V(MiscDP2Source)                                                              \
 _V(MiscDP3Source)                                                              \
@@ -654,6 +672,8 @@ enum InstructionFields {
   kRmBits = 5,
   kRtShift = 0,
   kRtBits = 5,
+  kRt2Shift = 10,
+  kRt2Bits = 5,
 
   // V Registers.
   kVdShift = 0,
@@ -674,6 +694,9 @@ enum InstructionFields {
   kImm5Bits = 5,
   kImm6Shift = 10,
   kImm6Bits = 6,
+  kImm7Shift = 15,
+  kImm7Bits = 7,
+  kImm7Mask = 0x7f << kImm7Shift,
   kImm8Shift = 13,
   kImm8Bits = 8,
   kImm9Shift = 12,
@@ -839,6 +862,8 @@ class Instr {
                                         Bits(kRmShift, kRmBits)); }
   inline Register RtField() const { return static_cast<Register>(
                                         Bits(kRtShift, kRtBits)); }
+  inline Register Rt2Field() const { return static_cast<Register>(
+                                        Bits(kRt2Shift, kRt2Bits)); }
 
   inline VRegister VdField() const { return static_cast<VRegister>(
                                         Bits(kVdShift, kVdBits)); }
@@ -852,6 +877,10 @@ class Instr {
   // Immediates
   inline int Imm3Field() const { return Bits(kImm3Shift, kImm3Bits); }
   inline int Imm6Field() const { return Bits(kImm6Shift, kImm6Bits); }
+  inline int Imm7Field() const { return Bits(kImm7Shift, kImm7Bits); }
+  // Sign-extended Imm7Field()
+  inline int64_t SImm7Field() const {
+      return (static_cast<int32_t>(Imm7Field()) << 25) >> 25; }
   inline int Imm8Field() const { return Bits(kImm8Shift, kImm8Bits); }
   inline int Imm9Field() const { return Bits(kImm9Shift, kImm9Bits); }
   // Sign-extended Imm9Field()

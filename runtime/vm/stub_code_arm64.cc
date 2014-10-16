@@ -435,6 +435,30 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 }
 
 
+// Called from array allocate instruction when the allocation stub has been
+// disabled.
+// R1: element type (preserved).
+// R2: length (preserved).
+void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Setup space on stack for return value and preserve length, element type.
+  __ Push(R1);
+  __ Push(R2);
+  __ PushObject(Object::null_object(), PP);
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  // Get Code object result and restore length, element type.
+  __ Pop(R0);
+  __ Pop(R2);
+  __ Pop(R1);
+  // Remove the stub frame.
+  __ LeaveStubFrame();
+  // Jump to the dart function.
+  __ LoadFieldFromOffset(R0, R0, Code::instructions_offset(), kNoPP);
+  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag, kNoPP);
+  __ br(R0);
+}
+
+
 // Input parameters:
 //   R2: smi-tagged argument count, may be zero.
 //   FP[kParamEndSlotFromFp + 1]: last argument.
@@ -444,7 +468,9 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ LoadObject(R1, Object::null_object(), PP);
   // R1: null element type for raw Array.
   // R2: smi-tagged argument count, may be zero.
-  __ BranchLink(&stub_code->AllocateArrayLabel(), PP);
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  const ExternalLabel array_label(array_stub.EntryPoint());
+  __ BranchLink(&array_label, PP);
   // R0: newly allocated array.
   // R2: smi-tagged argument count, may be zero (was preserved by the stub).
   __ Push(R0);  // Array is in R0 and on top of stack.
@@ -504,8 +530,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
   __ EnterFrame(0);
-  __ Push(ZR);
-  __ TagAndPushPP();
+  __ TagAndPushPPAndPcMarker(ZR);
 
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
@@ -542,8 +567,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
   __ EnterFrame(0);
-  __ Push(ZR);
-  __ TagAndPushPP();
+  __ TagAndPushPPAndPcMarker(ZR);
 
   if (preserve_result) {
     __ Push(R1);  // Preserve result as first local.
@@ -642,13 +666,15 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   R1: array element type (either NULL or an instantiated type).
 // NOTE: R2 cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in R0.
-void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
+void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+  *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   // Assert that length is a Smi.
-  __ tsti(R2, kSmiTagMask);
+  __ tsti(R2, Immediate(kSmiTagMask));
   if (FLAG_use_slow_path) {
     __ b(&slow_case);
   } else {
@@ -678,7 +704,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ LoadImmediate(R3, fixed_size, kNoPP);
   __ add(R3, R3, Operand(R2, LSL, 2));  // R2 is Smi.
   ASSERT(kSmiTagShift == 1);
-  __ andi(R3, R3, ~(kObjectAlignment - 1));
+  __ andi(R3, R3, Immediate(~(kObjectAlignment - 1)));
   __ adds(R7, R3, Operand(R0));
   __ b(&slow_case, VS);
 
@@ -774,6 +800,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ Pop(R0);
   __ LeaveStubFrame();
   __ ret();
+  *patch_code_pc_offset = assembler->CodeSize();
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  __ BranchPatchable(&stub_code->FixAllocateArrayStubTargetLabel());
 }
 
 
@@ -838,7 +867,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadFromOffset(CTX, R3, VMHandles::kOffsetOfRawPtrInHandle, PP);
 
   // Load Isolate pointer into temporary register R5.
-  __ LoadImmediate(R5, Isolate::CurrentAddress(), PP);
+  __ LoadIsolate(R5, PP);
 
   // Cache the new Context pointer into CTX while executing Dart code.
   __ LoadFromOffset(CTX, R3, VMHandles::kOffsetOfRawPtrInHandle, PP);
@@ -912,7 +941,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize, PP);
 
   // Load Isolate pointer into CTX. Drop Context.
-  __ LoadImmediate(CTX, Isolate::CurrentAddress(), PP);
+  __ LoadIsolate(CTX, PP);
 
   // Restore the current VMTag from the stack.
   __ ldr(R4, Address(SP, 2 * kWordSize));
@@ -968,7 +997,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ LoadImmediate(R2, fixed_size, kNoPP);
     __ add(R2, R2, Operand(R1, LSL, 3));
     ASSERT(kSmiTagShift == 1);
-    __ andi(R2, R2, ~(kObjectAlignment - 1));
+    __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));
 
     // Now allocate the object.
     // R1: number of context variables.
@@ -1029,7 +1058,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // Load Isolate pointer into R2.
     // R0: new object.
     // R1: number of context variables.
-    __ LoadImmediate(R2, Isolate::CurrentAddress(), kNoPP);
+    __ LoadIsolate(R2, kNoPP);
     // R2: isolate, not an object.
     __ StoreFieldToOffset(R2, R0, Context::isolate_offset(), kNoPP);
 
@@ -1086,7 +1115,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
   __ LoadFieldFromOffset(TMP, R0, Object::tags_offset(), kNoPP);
-  __ tsti(TMP, 1 << RawObject::kRememberedBit);
+  __ tsti(TMP, Immediate(1 << RawObject::kRememberedBit));
   __ b(&add_to_buffer, EQ);
   __ ret();
 
@@ -1096,13 +1125,13 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Push(R2);
   __ Push(R3);
 
-  __ orri(R2, TMP, 1 << RawObject::kRememberedBit);
+  __ orri(R2, TMP, Immediate(1 << RawObject::kRememberedBit));
   __ StoreFieldToOffset(R2, R0, Object::tags_offset(), kNoPP);
 
   // Load the isolate.
   // Spilled: R1, R2, R3.
   // R0: address being stored.
-  __ LoadImmediate(R1, Isolate::CurrentAddress(), kNoPP);
+  __ LoadIsolate(R1, kNoPP);
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1133,7 +1162,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(0 * kWordSize);
-  __ LoadImmediate(R0, Isolate::CurrentAddress(), kNoPP);
+  __ LoadIsolate(R0, kNoPP);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
@@ -1362,7 +1391,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ ldr(R0, Address(SP, + 0 * kWordSize));  // Right.
   __ ldr(R1, Address(SP, + 1 * kWordSize));  // Left.
   __ orr(TMP, R0, Operand(R1));
-  __ tsti(TMP, kSmiTagMask);
+  __ tsti(TMP, Immediate(kSmiTagMask));
   __ b(not_smi_or_overflow, NE);
   switch (kind) {
     case Token::kADD: {
@@ -1439,7 +1468,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ LoadFromOffset(R6, R5, ICData::state_bits_offset() - kHeapObjectTag,
                       kNoPP, kUnsignedWord);
     ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
-    __ andi(R6, R6, ICData::NumArgsTestedMask());
+    __ andi(R6, R6, Immediate(ICData::NumArgsTestedMask()));
     __ CompareImmediate(R6, num_args, kNoPP);
     __ b(&ok, EQ);
     __ Stop("Incorrect stub for IC data");
@@ -1449,7 +1478,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadImmediate(R6, Isolate::CurrentAddress(), kNoPP);
+  __ LoadIsolate(R6, kNoPP);
   __ LoadFromOffset(
       R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
   __ CompareRegisters(R6, ZR);
@@ -1671,7 +1700,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
     __ LoadFromOffset(R6, R5, ICData::state_bits_offset() - kHeapObjectTag,
                       kNoPP, kUnsignedWord);
     ASSERT(ICData::NumArgsTestedShift() == 0);  // No shift needed.
-    __ andi(R6, R6, ICData::NumArgsTestedMask());
+    __ andi(R6, R6, Immediate(ICData::NumArgsTestedMask()));
     __ CompareImmediate(R6, 0, kNoPP);
     __ b(&ok, EQ);
     __ Stop("Incorrect IC data for unoptimized static call");
@@ -1681,7 +1710,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadImmediate(R6, Isolate::CurrentAddress(), kNoPP);
+  __ LoadIsolate(R6, kNoPP);
   __ LoadFromOffset(
       R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
   __ CompareImmediate(R6, 0, kNoPP);
@@ -2003,9 +2032,9 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
                                                     const Register unused2) {
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.
-  __ tsti(left, kSmiTagMask);
+  __ tsti(left, Immediate(kSmiTagMask));
   __ b(&reference_compare, EQ);
-  __ tsti(right, kSmiTagMask);
+  __ tsti(right, Immediate(kSmiTagMask));
   __ b(&reference_compare, EQ);
 
   // Value compare for two doubles.

@@ -5,13 +5,13 @@
 library pub.cached_package;
 
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 import 'barback/transformer_config.dart';
 import 'io.dart';
 import 'package.dart';
 import 'pubspec.dart';
-import 'version.dart';
 
 /// A [Package] whose `lib` directory has been precompiled and cached.
 ///

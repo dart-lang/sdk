@@ -705,24 +705,24 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerCompileTimeConstant(Constant constant, Registry registry) {
+  void registerCompileTimeConstant(ConstantValue constant, Registry registry) {
     registerCompileTimeConstantInternal(constant, registry);
-    for (Constant dependency in constant.getDependencies()) {
+    for (ConstantValue dependency in constant.getDependencies()) {
       registerCompileTimeConstant(dependency, registry);
     }
   }
 
-  void registerCompileTimeConstantInternal(Constant constant,
+  void registerCompileTimeConstantInternal(ConstantValue constant,
                                            Registry registry) {
     DartType type = constant.computeType(compiler);
     registerInstantiatedConstantType(type, registry);
 
     if (constant.isFunction) {
-      FunctionConstant function = constant;
+      FunctionConstantValue function = constant;
       registry.registerGetOfStaticFunction(function.element);
     } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
-      InterceptorConstant interceptor = constant;
+      InterceptorConstantValue interceptor = constant;
       registerInstantiatedConstantType(interceptor.dispatchedType, registry);
     } else if (constant.isType) {
       enqueueInResolution(getCreateRuntimeType(), registry);
@@ -751,7 +751,7 @@ class JavaScriptBackend extends Backend {
                                 Element annotatedElement,
                                 Registry registry) {
     assert(registry.isForResolution);
-    Constant constant = constants.getConstantForMetadata(metadata);
+    ConstantValue constant = constants.getConstantForMetadata(metadata).value;
     registerCompileTimeConstant(constant, registry);
     metadataConstants.add(new Dependency(constant, annotatedElement));
   }
@@ -1038,6 +1038,18 @@ class JavaScriptBackend extends Backend {
   }
 
   void enableIsolateSupport(Enqueuer enqueuer) {
+    // TODO(floitsch): We should also ensure that the class IsolateMessage is
+    // instantiated. Currently, just enabling isolate support works.
+    if (compiler.mainFunction != null) {
+      // The JavaScript backend implements [Isolate.spawn] by looking up
+      // top-level functions by name. So all top-level function tear-off
+      // closures have a private name field.
+      //
+      // The JavaScript backend of [Isolate.spawnUri] uses the same internal
+      // implementation as [Isolate.spawn], and fails if it cannot look main up
+      // by name.
+      enqueuer.registerGetOfStaticFunction(compiler.mainFunction);
+    }
     if (enqueuer.isResolutionQueue) {
       for (String name in const [START_ROOT_ISOLATE,
                                  '_currentIsolate',
@@ -1154,10 +1166,10 @@ class JavaScriptBackend extends Backend {
       return;
     }
     if (kind.category == ElementCategory.VARIABLE) {
-      Constant initialValue = constants.getConstantForVariable(element);
+      ConstantExpression initialValue = constants.getConstantForVariable(element);
       if (initialValue != null) {
-        registerCompileTimeConstant(initialValue, work.registry);
-        constants.addCompileTimeConstantForEmission(initialValue);
+        registerCompileTimeConstant(initialValue.value, work.registry);
+        constants.addCompileTimeConstantForEmission(initialValue.value);
         // We don't need to generate code for static or top-level
         // variables. For instance variables, we may need to generate
         // the checked setter.
@@ -1611,7 +1623,8 @@ class JavaScriptBackend extends Backend {
     if (mustRetainMetadata && referencedFromMirrorSystem(element)) {
       for (MetadataAnnotation metadata in element.metadata) {
         metadata.ensureResolved(compiler);
-        Constant constant = constants.getConstantForMetadata(metadata);
+        ConstantValue constant =
+            constants.getConstantForMetadata(metadata).value;
         constants.addCompileTimeConstantForEmission(constant);
       }
       return true;
@@ -1880,7 +1893,7 @@ class JavaScriptBackend extends Backend {
       // all metadata but only stuff that potentially would match one
       // of the used meta targets.
       metadata.ensureResolved(compiler);
-      Constant value = metadata.value;
+      ConstantValue value = metadata.constant.value;
       if (value == null) continue;
       DartType type = value.computeType(compiler);
       if (metaTargetsUsed.contains(type.element)) return true;
@@ -1903,7 +1916,7 @@ class JavaScriptBackend extends Backend {
   computeMembersNeededForReflection() {
     if (_membersNeededForReflection != null) return;
     if (compiler.mirrorsLibrary == null) {
-      _membersNeededForReflection = new Set<Element>();
+      _membersNeededForReflection = const ImmutableEmptySet<Element>();
       return;
     }
     // Compute a mapping from class to the closures it contains, so we
@@ -1916,36 +1929,36 @@ class JavaScriptBackend extends Backend {
     bool foundClosure = false;
     Set<Element> reflectableMembers = new Set<Element>();
     ResolutionEnqueuer resolution = compiler.enqueuer.resolution;
-    for (ClassElement cls in resolution.universe.instantiatedClasses) {
+    for (ClassElement cls in resolution.universe.directlyInstantiatedClasses) {
       // Do not process internal classes.
       if (cls.library.isInternalLibrary || cls.isInjected) continue;
       if (referencedFromMirrorSystem(cls)) {
         Set<Name> memberNames = new Set<Name>();
-        // 1) the class (should be live)
-        assert(invariant(cls, resolution.isLive(cls)));
+        // 1) the class (should be resolved)
+        assert(invariant(cls, cls.isResolved));
         reflectableMembers.add(cls);
-        // 2) its constructors (if live)
+        // 2) its constructors (if resolved)
         cls.constructors.forEach((Element constructor) {
-          if (resolution.isLive(constructor)) {
+          if (resolution.hasBeenResolved(constructor)) {
             reflectableMembers.add(constructor);
           }
         });
-        // 3) all members, including fields via getter/setters (if live)
+        // 3) all members, including fields via getter/setters (if resolved)
         cls.forEachClassMember((Member member) {
-          if (resolution.isLive(member.element)) {
+          if (resolution.hasBeenResolved(member.element)) {
             memberNames.add(member.name);
             reflectableMembers.add(member.element);
           }
         });
-        // 4) all overriding members of subclasses/subtypes (should be live)
+        // 4) all overriding members of subclasses/subtypes (should be resolved)
         if (compiler.world.hasAnySubtype(cls)) {
           for (ClassElement subcls in compiler.world.subtypesOf(cls)) {
             subcls.forEachClassMember((Member member) {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.
                 // assert(invariant(member.element,
-                //    resolution.isLive(member.element)));
-                if (resolution.isLive(member.element)) {
+                //    resolution.hasBeenResolved(member.element)));
+                if (resolution.hasBeenResolved(member.element)) {
                   reflectableMembers.add(member.element);
                 }
               }
@@ -1961,13 +1974,13 @@ class JavaScriptBackend extends Backend {
       } else {
         // check members themselves
         cls.constructors.forEach((ConstructorElement element) {
-          if (!compiler.enqueuer.resolution.isLive(element)) return;
+          if (!resolution.hasBeenResolved(element)) return;
           if (referencedFromMirrorSystem(element, false)) {
             reflectableMembers.add(element);
           }
         });
         cls.forEachClassMember((Member member) {
-          if (!compiler.enqueuer.resolution.isLive(member.element)) return;
+          if (!resolution.hasBeenResolved(member.element)) return;
           if (referencedFromMirrorSystem(member.element, false)) {
             reflectableMembers.add(member.element);
           }
@@ -1992,7 +2005,7 @@ class JavaScriptBackend extends Backend {
       if (lib.isInternalLibrary) continue;
       lib.forEachLocalMember((Element member) {
         if (!member.isClass &&
-            compiler.enqueuer.resolution.isLive(member) &&
+            resolution.hasBeenResolved(member) &&
             referencedFromMirrorSystem(member)) {
           reflectableMembers.add(member);
         }
@@ -2151,8 +2164,8 @@ class JavaScriptBackend extends Backend {
     bool hasNoSideEffects = false;
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
-      if (!metadata.value.isConstructedObject) continue;
-      ObjectConstant value = metadata.value;
+      if (!metadata.constant.value.isConstructedObject) continue;
+      ObjectConstantValue value = metadata.constant.value;
       ClassElement cls = value.type.element;
       if (cls == noInlineClass) {
         hasNoInline = true;
@@ -2210,6 +2223,19 @@ class JavaScriptBackend extends Backend {
 
   FunctionElement helperForMainArity() {
     return findHelper('mainHasTooManyParameters');
+  }
+
+  void forgetElement(Element element) {
+    constants.forgetElement(element);
+    constantCompilerTask.dartConstantCompiler.forgetElement(element);
+  }
+
+  void registerMainHasArguments(Enqueuer enqueuer) {
+    // If the main method takes arguments, this compilation could be the target
+    // of Isolate.spawnUri. Strictly speaking, that can happen also if main
+    // takes no arguments, but in this case the spawned isolate can't
+    // communicate with the spawning isolate.
+    enqueuer.enableIsolateSupport();
   }
 }
 
@@ -2412,7 +2438,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
 
 /// Records that [constant] is used by the element behind [registry].
 class Dependency {
-  final Constant constant;
+  final ConstantValue constant;
   final Element annotatedElement;
 
   const Dependency(this.constant, this.annotatedElement);

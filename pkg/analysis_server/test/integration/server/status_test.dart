@@ -6,9 +6,10 @@ library test.integration.server.status;
 
 import 'dart:async';
 
-import '../../reflective_tests.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import '../integration_tests.dart';
 
 @ReflectiveTestCase()
@@ -19,9 +20,9 @@ class Test extends AbstractAnalysisServerIntegrationTest {
     // analyzing=false.
     Completer analysisBegun = new Completer();
     Completer analysisFinished = new Completer();
-    onServerStatus.listen((params) {
-      if (params['analysis'] != null) {
-        if (params['analysis']['isAnalyzing']) {
+    onServerStatus.listen((ServerStatusParams params) {
+      if (params.analysis != null) {
+        if (params.analysis.isAnalyzing) {
           expect(analysisBegun.isCompleted, isFalse);
           analysisBegun.complete();
         } else {

@@ -109,6 +109,9 @@ abstract class DartType {
   /// Is [: true :] if this type is the void type.
   bool get isVoid => kind == TypeKind.VOID;
 
+  /// Is [: true :] if this is the type of `Object` from dart:core.
+  bool get isObject => false;
+
   /// Is [: true :] if this type is an interface type.
   bool get isInterfaceType => kind == TypeKind.INTERFACE;
 
@@ -455,6 +458,8 @@ class InterfaceType extends GenericType {
   TypeKind get kind => TypeKind.INTERFACE;
 
   String get name => element.name;
+
+  bool get isObject => element.isObject;
 
   InterfaceType createInstantiation(List<DartType> newTypeArguments) {
     return new InterfaceType(element, newTypeArguments);

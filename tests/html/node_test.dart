@@ -316,6 +316,13 @@ main() {
       expect(node.nodes[6], isImageElement);
       expect(node.nodes[7], isInputElement);
       expect(node.nodes[8], isComment);
+
+      var d = new DivElement();
+      var ns = d.nodes;
+      // `insertAll` should work when positioned at end.
+      ns.insertAll(ns.length, [new HRElement()]);
+      expect(ns.length, 1);
+      expect(ns[0], isHRElement);
     });
 
     testUnsupported('removeRange', () {

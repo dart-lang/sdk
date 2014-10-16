@@ -134,6 +134,7 @@ class HtmlDartGenerator(object):
     for parent_interface in sorted(secondary_parents):
       if isinstance(parent_interface, str):
         continue
+
       for attr in sorted(parent_interface.attributes, ConstantOutputOrder):
         if not FindMatchingAttribute(interface, attr):
           if attr.type.id != 'EventHandler':

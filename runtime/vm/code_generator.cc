@@ -1209,7 +1209,9 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // Since the code is referenced from the frame and the ZoneHandle,
     // it cannot have been removed from the function.
     ASSERT(function.HasCode());
-    if (!CanOptimizeFunction(function, isolate)) {
+    // Don't do OSR on intrinsified functions: The intrinsic code expects to be
+    // called like a regular function and can't be entered via OSR.
+    if (!CanOptimizeFunction(function, isolate) || function.is_intrinsic()) {
       return;
     }
     intptr_t osr_id =
@@ -1377,6 +1379,7 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
     CodePatcher::PatchStaticCallAt(frame->pc(),
                                    caller_code,
                                    alloc_stub.EntryPoint());
+    caller_code.SetStubCallTargetCodeAt(frame->pc(), alloc_stub);
   }
   if (FLAG_trace_patching) {
     OS::PrintErr("FixAllocationStubTarget: caller %#" Px " alloc-class %s "
@@ -1404,8 +1407,9 @@ DEOPT_REASONS(DEOPT_REASON_TO_TEXT)
 void DeoptimizeAt(const Code& optimized_code, uword pc) {
   ASSERT(optimized_code.is_optimized());
   ICData::DeoptReasonId deopt_reason = ICData::kDeoptUnknown;
-  const DeoptInfo& deopt_info =
-      DeoptInfo::Handle(optimized_code.GetDeoptInfoAtPc(pc, &deopt_reason));
+  uint32_t deopt_flags = 0;
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(
+      optimized_code.GetDeoptInfoAtPc(pc, &deopt_reason, &deopt_flags));
   ASSERT(!deopt_info.IsNull());
   const Function& function = Function::Handle(optimized_code.function());
   const Code& unoptimized_code = Code::Handle(function.unoptimized_code());

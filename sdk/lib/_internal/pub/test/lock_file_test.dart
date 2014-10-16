@@ -6,6 +6,7 @@ library lock_file_test;
 
 import 'dart:async';
 
+import 'package:pub_semver/pub_semver.dart';
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
 
@@ -14,7 +15,6 @@ import '../lib/src/package.dart';
 import '../lib/src/pubspec.dart';
 import '../lib/src/source.dart';
 import '../lib/src/source_registry.dart';
-import '../lib/src/version.dart';
 import 'test_pub.dart';
 
 class MockSource extends Source {

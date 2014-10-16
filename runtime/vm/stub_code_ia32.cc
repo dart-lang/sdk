@@ -29,6 +29,8 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DEFINE_FLAG(bool, verify_incoming_contexts, false, "");
 
+#define INT32_SIZEOF(x) static_cast<int32_t>(sizeof(x))
+
 // Input parameters:
 //   ESP : points to return address.
 //   ESP + 4 : address of last argument in argument array.
@@ -86,7 +88,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movl(Address(CTX, Isolate::vm_tag_offset()), ECX);
 
   // Reserve space for arguments and align frame before entering C++ world.
-  __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments)));
+  __ AddImmediate(ESP, Immediate(-INT32_SIZEOF(NativeArguments)));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
@@ -210,7 +212,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Reserve space for the native arguments structure, the outgoing parameters
   // (pointer to the native arguments structure, the C function entry point)
   // and align frame before entering the C++ world.
-  __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments) - (2 * kWordSize)));
+  __ AddImmediate(ESP,
+                  Immediate(-INT32_SIZEOF(NativeArguments) - (2 * kWordSize)));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
@@ -314,7 +317,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Reserve space for the native arguments structure, the outgoing parameter
   // (pointer to the native arguments structure) and align frame before
   // entering the C++ world.
-  __ AddImmediate(ESP, Immediate(-sizeof(NativeArguments) - kWordSize));
+  __ AddImmediate(ESP, Immediate(-INT32_SIZEOF(NativeArguments) - kWordSize));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
@@ -411,6 +414,29 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 }
 
 
+// Called from array allocate instruction when the allocation stub has been
+// disabled.
+// EDX: length (preserved).
+// ECX: element type (preserved).
+void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ EnterStubFrame();
+  __ pushl(EDX);       // Preserve length.
+  __ pushl(ECX);       // Preserve element type.
+  __ pushl(raw_null);  // Setup space on stack for return value.
+  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
+  __ popl(EAX);  // Get Code object.
+  __ popl(ECX);  // Restore element type.
+  __ popl(EDX);  // Restore length.
+  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
+  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ LeaveFrame();
+  __ jmp(EAX);
+  __ int3();
+}
+
+
 // Input parameters:
 //   EDX: smi-tagged argument count, may be zero.
 //   EBP[kParamEndSlotFromFp + 1]: last argument.
@@ -422,7 +448,9 @@ static void PushArgumentsArray(Assembler* assembler) {
 
   // Allocate array to store arguments of caller.
   __ movl(ECX, raw_null);  // Null element type for raw Array.
-  __ call(&stub_code->AllocateArrayLabel());
+  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  const ExternalLabel array_label(array_stub.EntryPoint());
+  __ call(&array_label);
   __ SmiUntag(EDX);
   // EAX: newly allocated array.
   // EDX: length of the array (was preserved by the stub).
@@ -610,7 +638,9 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   ECX : array element type (either NULL or an instantiated type).
 // Uses EAX, EBX, ECX, EDI  as temporary registers.
 // The newly allocated object is returned in EAX.
-void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
+void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
+    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+  *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -738,6 +768,11 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ popl(EAX);  // Pop return value from return slot.
   __ LeaveFrame();
   __ ret();
+  // Emit function patching code. This will be swapped with the first 5 bytes
+  // at entry point.
+  *patch_code_pc_offset = assembler->CodeSize();
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  __ jmp(&stub_code->FixAllocateArrayStubTargetLabel());
 }
 
 
@@ -773,7 +808,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(CTX, Address(EBP, kNewContextOffset));
   __ movl(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
 
-  __ movl(EDI, Immediate(Isolate::CurrentAddress()));
+  __ LoadIsolate(EDI);
 
   // Save the current VMTag on the stack.
   ASSERT(kSavedVMTagSlotFromEntryFp == -4);
@@ -860,7 +895,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
 
   // Load Isolate pointer into CTX. Drop Context.
-  __ movl(CTX, Immediate(Isolate::CurrentAddress()));
+  __ LoadIsolate(CTX);
 
   // Restore the saved Context pointer into the Isolate structure.
   __ popl(Address(CTX, Isolate::top_context_offset()));
@@ -1015,57 +1050,62 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
-//   EAX: Address being stored
+//   EDX: Address being stored
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Save values being destroyed.
-  __ pushl(EDX);
+  __ pushl(EAX);
   __ pushl(ECX);
 
   Label add_to_buffer;
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
-  // Spilled: EDX, ECX
-  // EAX: Address being stored
-  __ movl(ECX, FieldAddress(EAX, Object::tags_offset()));
-  __ testl(ECX, Immediate(1 << RawObject::kRememberedBit));
+  // Spilled: EAX, ECX
+  // EDX: Address being stored
+  Label reload;
+  __ Bind(&reload);
+  __ movl(EAX, FieldAddress(EDX, Object::tags_offset()));
+  __ testl(EAX, Immediate(1 << RawObject::kRememberedBit));
   __ j(EQUAL, &add_to_buffer, Assembler::kNearJump);
   __ popl(ECX);
-  __ popl(EDX);
+  __ popl(EAX);
   __ ret();
 
   // Update the tags that this object has been remembered.
-  // EAX: Address being stored
-  // ECX: Current tag value
+  // EDX: Address being stored
+  // EAX: Current tag value
   __ Bind(&add_to_buffer);
+  __ movl(ECX, EAX);
   __ orl(ECX, Immediate(1 << RawObject::kRememberedBit));
-  __ movl(FieldAddress(EAX, Object::tags_offset()), ECX);
+  // Compare the tag word with EAX, update to ECX if unchanged.
+  __ LockCmpxchgl(FieldAddress(EDX, Object::tags_offset()), ECX);
+  __ j(NOT_EQUAL, &reload);
 
   // Load the isolate.
-  // Spilled: EDX, ECX
-  // EAX: Address being stored
-  __ movl(EDX, Immediate(Isolate::CurrentAddress()));
+  // Spilled: EAX, ECX
+  // EDX: Address being stored
+  __ LoadIsolate(EAX);
 
   // Load the StoreBuffer block out of the isolate. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
-  // Spilled: EDX, ECX
-  // EAX: Address being stored
-  // EDX: Isolate
-  __ movl(EDX, Address(EDX, Isolate::store_buffer_offset()));
-  __ movl(ECX, Address(EDX, StoreBufferBlock::top_offset()));
-  __ movl(Address(EDX, ECX, TIMES_4, StoreBufferBlock::pointers_offset()), EAX);
+  // Spilled: EAX, ECX
+  // EDX: Address being stored
+  // EAX: Isolate
+  __ movl(EAX, Address(EAX, Isolate::store_buffer_offset()));
+  __ movl(ECX, Address(EAX, StoreBufferBlock::top_offset()));
+  __ movl(Address(EAX, ECX, TIMES_4, StoreBufferBlock::pointers_offset()), EDX);
 
   // Increment top_ and check for overflow.
-  // Spilled: EDX, ECX
+  // Spilled: EAX, ECX
   // ECX: top_
-  // EDX: StoreBufferBlock
+  // EAX: StoreBufferBlock
   Label L;
   __ incl(ECX);
-  __ movl(Address(EDX, StoreBufferBlock::top_offset()), ECX);
+  __ movl(Address(EAX, StoreBufferBlock::top_offset()), ECX);
   __ cmpl(ECX, Immediate(StoreBufferBlock::kSize));
   // Restore values.
-  // Spilled: EDX, ECX
+  // Spilled: EAX, ECX
   __ popl(ECX);
-  __ popl(EDX);
+  __ popl(EAX);
   __ j(EQUAL, &L, Assembler::kNearJump);
   __ ret();
 
@@ -1074,8 +1114,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(1 * kWordSize);
-  __ movl(EAX, Immediate(Isolate::CurrentAddress()));
-  __ movl(Address(ESP, 0), EAX);  // Push the isolate as the only argument.
+  __ LoadIsolate(EDX);
+  __ movl(Address(ESP, 0), EDX);  // Push the isolate as the only argument.
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
@@ -1381,8 +1421,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   // Check single stepping.
   Label stepping, done_stepping;
-  uword single_step_address =
-      Isolate::CurrentAddress() + Isolate::single_step_offset();
+  uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
+      Isolate::single_step_offset();
   __ cmpb(Address::Absolute(single_step_address), Immediate(0));
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
@@ -1619,8 +1659,8 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 #endif  // DEBUG
   // Check single stepping.
   Label stepping, done_stepping;
-  uword single_step_address =
-      Isolate::CurrentAddress() + Isolate::single_step_offset();
+  uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
+      Isolate::single_step_offset();
   __ cmpb(Address::Absolute(single_step_address), Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
   __ Bind(&done_stepping);

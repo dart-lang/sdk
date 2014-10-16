@@ -4,7 +4,6 @@
 
 library object_view;
 
-import 'dart:async';
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';

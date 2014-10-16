@@ -1,8 +1,8 @@
-<!DOCTYPE html><html><head><script src="packages/web_components/dart_support.js"></script>
+<!DOCTYPE html><html style="height: 100%"><head><script src="packages/web_components/dart_support.js"></script>
 
   <meta charset="utf-8">
   <title>Dart VM Observatory</title>
-  
+  <script src="packages/web_components/platform.js"></script>
   
   
   
@@ -10,17 +10,7 @@
   
   
 </head>
-<body><script src="packages/web_components/platform.js"></script>
-
-
-<!-- unminified for debugging:
-<link rel="import" href="src/js/polymer/layout.html">
-<script src="src/js/polymer/polymer.concat.js"></script>
--->
-
-
-
-<style shim-shadowdom="">
+<body style="height: 100%"><div hidden=""><style shim-shadowdom="">
 /*******************************
           Flex Layout
 *******************************/
@@ -297,11 +287,20 @@ html /deep/ [segment], html /deep/ segment {
   border-radius: 5px 5px 5px 5px;
 }
 
-</style><script src="packages/polymer/src/js/polymer/polymer.js"></script><script>
+</style>
+
+<script src="packages/polymer/src/js/polymer/polymer.js"></script>
+
+<script>
 // TODO(sigmund): remove this script tag (dartbug.com/19650). This empty
 // script tag is necessary to work around a bug in Chrome 36.
-</script><script type="text/javascript" src="https://www.google.com/jsapi"></script><style>
-/* Global styles */
+</script>
+
+<!-- unminified for debugging:
+<link rel="import" href="src/js/polymer/layout.html">
+<script src="src/js/polymer/polymer.concat.js"></script>
+-->
+<script type="text/javascript" src="https://www.google.com/jsapi"></script><style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -558,56 +557,6 @@ hr {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <polymer-element name="curly-block">
   <template>
     <style>
@@ -651,8 +600,10 @@ hr {
 
 
 
+
 <polymer-element name="observatory-element">
 </polymer-element>
+
 
 
 
@@ -664,8 +615,7 @@ hr {
 </polymer-element>
 
 <polymer-element name="object-ref" extends="service-ref">
-  <template><style>
-/* Global styles */
+  <template><style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -928,10 +878,11 @@ hr {
   </template>
 </polymer-element>
 
+
+
 <polymer-element name="instance-ref" extends="service-ref">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -1294,6 +1245,8 @@ hr {
 </polymer-element>
 
 
+
+
 <polymer-element name="action-link">
   <template>
     <style>
@@ -1333,12 +1286,9 @@ hr {
 
 
 
-
-
 <polymer-element name="nav-bar" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -1789,7 +1739,7 @@ hr {
 <polymer-element name="isolate-nav-menu" extends="observatory-element">
   <template>
     <nav-menu link="{{ hashLinkWorkaround }}" anchor="{{ isolate.name }}" last="{{ last }}">
-      <nav-menu-item link="{{ isolate.relativeLink('stacktrace') }}" anchor="stack trace"></nav-menu-item>
+      <nav-menu-item link="{{ '/debugger' + isolate.link }}" anchor="debugger"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeLink('profile') }}" anchor="cpu profile"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeLink('allocationprofile') }}" anchor="allocation profile"></nav-menu-item>
       <nav-menu-item link="{{ isolate.relativeLink('heapmap') }}" anchor="heap map"></nav-menu-item>
@@ -1932,10 +1882,12 @@ hr {
 
 
 
+
+
+
 <polymer-element name="breakpoint-list" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -2217,9 +2169,9 @@ hr {
 
 
 
+
 <polymer-element name="class-ref" extends="service-ref">
-  <template><style>
-/* Global styles */
+  <template><style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -2481,10 +2433,10 @@ hr {
 
 
 
+
 <polymer-element name="class-tree" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -2858,23 +2810,9 @@ hr {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 <polymer-element name="error-ref" extends="service-ref">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -3145,6 +3083,9 @@ hr {
   </template>
 </polymer-element>
 
+
+
+
 <polymer-element name="eval-box" extends="observatory-element">
   <template>
     <style>
@@ -3232,6 +3173,7 @@ hr {
 
 
 
+
 <polymer-element name="eval-link">
   <template>
     <style>
@@ -3263,10 +3205,10 @@ hr {
 
 
 
+
 <polymer-element name="field-ref" extends="service-ref">
   <template>
-  <style>
-/* Global styles */
+  <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -3541,9 +3483,9 @@ hr {
 
 
 
+
 <polymer-element name="function-ref" extends="service-ref">
-  <template><style>
-/* Global styles */
+  <template><style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -3810,9 +3752,10 @@ hr {
 
 
 
+
+
 <polymer-element name="library-ref" extends="service-ref">
-  <template><style>
-/* Global styles */
+  <template><style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -4078,15 +4021,15 @@ hr {
 
 
 
+
+
+
 <polymer-element name="script-inset" extends="observatory-element">
   <template>
     <style>
       .sourceInset {
-        padding-left: 15%;
-        padding-right: 15%;
       }
       .sourceBox {
-        width: 100%;
         background-color: #f5f5f5;
         border: 1px solid #ccc;
         padding: 10px;
@@ -4121,7 +4064,7 @@ hr {
     </style>
     <div class="sourceInset">
       <content></content>
-      <div class="sourceBox" style="height:{{height}}">
+      <div class="sourceBox" style="max-height:{{height}}">
         <div class="sourceTable">
           <template if="{{ linesReady }}">
             <template repeat="{{ line in lines }}">
@@ -4231,10 +4174,10 @@ hr {
 
 
 
+
 <polymer-element name="script-ref" extends="service-ref">
 <template>
-  <style>
-/* Global styles */
+  <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -4493,10 +4436,11 @@ hr {
 </polymer-element>
 
 
+
+
 <polymer-element name="class-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -4931,10 +4875,10 @@ hr {
 
 
 
+
 <polymer-element name="code-ref" extends="service-ref">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -5209,10 +5153,10 @@ hr {
 
 
 
+
 <polymer-element name="code-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -5630,10 +5574,1497 @@ hr {
 
 
 
+
+
+
+
+
+<!-- TODO(turnidge): Use core-icon once core_elements work properly in
+     devtools -->
+<polymer-element name="icon-expand-less" noscript="">
+  <template>
+    <svg width="24" height="24">
+      <polygon points="12,8 6,14 7.4,15.4 12,10.8 16.6,15.4 18,14 "></polygon>
+    </svg>
+  </template>
+</polymer-element>
+
+<polymer-element name="icon-expand-more" noscript="">
+  <template>
+    <svg width="24" height="24">
+      <polygon points="16.6,8.6 12,13.2 7.4,8.6 6,10 12,16 18,10 "></polygon>
+    </svg>
+  </template>
+</polymer-element>
+
+<polymer-element name="debugger-page" extends="observatory-element">
+  <template>
+    <style>/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <style>
+      .container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      nav-bar {
+        flex: 0 0 auto;
+      }
+      .stack {
+        flex: 0 0 auto;
+        overflow-y: auto;
+      }
+      core-splitter {
+        flex: 0 0 auto;
+      }
+      .console {
+        flex: 1 1 auto;
+        overflow-y: auto;
+      }
+      .commandline {
+        flex: 0 0 auto;
+      }
+    </style>
+
+    <div class="container">
+      <nav-bar>
+	<top-nav-menu last="{{ true }}"></top-nav-menu>
+	<isolate-nav-menu isolate="{{ isolate }}" last="{{ true }}">
+	</isolate-nav-menu>
+	<nav-control></nav-control>
+      </nav-bar>
+
+      <div id="stack" class="stack">
+	<debugger-stack isolate="{{ isolate }}"></debugger-stack>
+      </div>
+      <!--
+      <core-splitter direction="up" allowOverflow=true></core-splitter>
+      <div class="console">
+	<debugger-console isolate="{{ isolate }}"></debugger-console>
+      </div>
+      <div class="commandline">
+	<debugger-input isolate="{{ isolate }}"></debugger-input>
+      </div>
+      -->
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="debugger-stack" extends="observatory-element">
+  <template>
+    <style>/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <template if="{{ stack == null }}">
+      Loading stack frames
+    </template>
+    <template if="{{ stack != null }}">
+      <ul class="list-group">
+        <template repeat="{{ frame in stack['members'] }}">
+          <li class="list-group-item">
+            <debugger-frame frame="{{ frame }}" expand="{{ frame['depth'] == activeFrame }}">
+            </debugger-frame>
+          </li>
+        </template>
+      </ul>
+    </template>
+  </template>
+</polymer-element>
+
+
+<polymer-element name="debugger-frame" extends="observatory-element">
+  <template>
+    <style>/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <style>
+      .frameOuter {
+        position: relative;
+        padding: 5px;
+        border: 1px solid white;
+      }
+      .frameOuter:hover {
+        border: 1px solid #e0e0e0;
+      }
+      .shadow {
+        box-shadow:  0 2px 10px 0 rgba(0, 0, 0, 0.16),
+                     0 2px 5px 0 rgba(0, 0, 0, 0.26);
+      }
+      .frameSummaryText {
+        display: inline-block;
+        padding: 5px;
+      }
+      .frameId {
+        display: inline-block;
+        width: 60px;
+      }
+      .frameOuter .frameExpander {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        display: none;
+      }
+      .frameOuter:hover .frameExpander{
+        display: inline-block;
+      }
+      .frameContractor {
+        position: absolute;
+        right: 5px;
+        bottom: 5px;
+        display: inline-block;
+      }
+    </style>
+    <div id="frameOuter" class="frameOuter">
+      <a on-click="{{ toggleExpand }}">
+        <div class="frameSummary">
+          <div class="frameSummaryText">
+            <div class="frameId"><b>frame {{ frame['depth'] }}</b></div>
+            <function-ref ref="{{ frame['function'] }}"></function-ref>
+            ( <script-ref ref="{{ frame['script'] }}" pos="{{ frame['tokenPos'] }}">
+            </script-ref> )
+          </div>
+          <template if="{{ !expanded }}">
+            <div class="frameExpander">
+              <icon-expand-more></icon-expand-more>
+            </div>
+          </template>
+        </div>
+      </a>
+
+      <template if="{{expanded}}">
+        <div class="frameDetails">
+          <div class="flex-row">
+            <div class="flex-item-60-percent">
+              <script-inset height="{{ scriptHeight }}" script="{{ frame['function'].script }}" startpos="{{ frame['function'].tokenPos }}" endpos="{{ frame['function'].endTokenPos }}" currentpos="{{ frame['tokenPos'] }}">
+              </script-inset>
+            </div>
+            <div class="flex-item-40-percent">
+              <div style="padding:10px;" class="memberList">
+                <template repeat="{{ v in frame['vars'] }}">
+                  <div class="memberItem">
+                    <div class="memberName">{{ v['name']}}</div>
+                    <div class="memberValue">
+                      <any-service-ref ref="{{ v['value'] }}">
+                      </any-service-ref>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+          <!-- TODO(turnidge): Add eval box here? -->
+          <div class="frameContractor">
+            <template if="{{expanded}}">
+              <a on-click="{{ toggleExpand }}">
+                <icon-expand-less></icon-expand-less>
+              </a>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="debugger-console" extends="observatory-element">
+  <template>
+    <style>/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <style>
+      .textBox {
+        position: absolute;
+        bottom: 0px;
+        width: 100%;
+      }
+    </style>
+    <div>
+      Debugging console is not yet implemented.<br>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="debugger-input" extends="observatory-element">
+  <template>
+    <style>/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <style>
+      .textBox {
+        font: 400 16px 'Montserrat', sans-serif;
+        width: 100%;
+      }
+    </style>
+    <input id="textBox" class="textBox" type="text" value="{{ text }}">
+  </template>
+</polymer-element>
+
+
+
+
+
+
+
 <polymer-element name="error-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -5908,10 +7339,13 @@ hr {
 
 
 
+
+
+
+
 <polymer-element name="field-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -6254,304 +7688,9 @@ hr {
 
 
 
-
-
-
-
-
-
-
-<polymer-element name="stack-frame" extends="observatory-element">
-  <template>
-    <style>
-/* Global styles */
-* {
-  margin: 0;
-  padding: 0;
-  font: 400 14px 'Montserrat', sans-serif;
-  color: #333;
-  box-sizing: border-box;
-}
-
-.content {
-  padding-left: 10%;
-  font: 400 14px 'Montserrat', sans-serif;
-}
-
-.content-centered {
-  padding-left: 10%;
-  padding-right: 10%;
-  font: 400 14px 'Montserrat', sans-serif;
-}
-
-.content-centered-big {
-  padding-left: 5%;
-  padding-right: 5%;
-  font: 400 14px 'Montserrat', sans-serif;
-}
-
-h1 {
-  font: 400 18px 'Montserrat', sans-serif;
-}
-
-.memberList {
-  display: table;
-}
-
-.memberItem {
-  display: table-row;
-}
-
-.memberName, .memberValue {
-  display: table-cell;
-  vertical-align: top;
-  padding: 3px 0 3px 1em;
-  font: 400 14px 'Montserrat', sans-serif;
-}
-
-.memberSmall {
-  display: table-cell;
-  vertical-align: top;
-  padding: 3px 0 3px 1em;
-  font: 400 12px 'Montserrat', sans-serif;
-}
-
-.monospace {
-  font-family: consolas, courier, monospace;
-  font-size: 1em;
-  line-height: 1.2em;
-  white-space: nowrap;
-}
-
-a {
-  color: #0489c3;
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-em {
-  color: inherit;
-  font-style: italic;
-}
-
-b {
-  color: inherit;
-  font-weight: bold;
-}
-
-hr {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  border: 0;
-  border-top: 1px solid #eee;
-  height: 0;
-  box-sizing: content-box;
-}
-
-.list-group {
-  padding-left: 0;
-  margin-bottom: 20px;
-}
-
-.list-group-item {
-  position: relative;
-  display: block;
-  padding: 10px 15px;
-  margin-bottom: -1px;
-  background-color: #fff;
-}
-
-.list-group-item:first-child {
-  /* rounded top corners */
-  border-top-right-radius:4px;
-  border-top-left-radius:4px;
-}
-
-.list-group-item:last-child {
-  margin-bottom: 0;
-  /* rounded bottom corners */
-  border-bottom-right-radius: 4px;
-  border-bottom-left-radius:4px;
-}
-
-/* Flex row container */
-.flex-row {
-  display: flex;
-  flex-direction: row;
-}
-
-/* Flex column container */
-.flex-column {
-  display: flex;
-  flex-direction: column;
-}
-
-.flex-item-fit {
-  flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: auto;
-}
-
-.flex-item-no-shrink {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: auto;
-}
-
-.flex-item-fill {
-  flex-grow: 0;
-  flex-shrink: 1;  /* shrink when pressured */
-  flex-basis: 100%;  /* try and take 100% */
-}
-
-.flex-item-fixed-1-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 8.3%;
-}
-
-.flex-item-fixed-2-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 16.6%;
-}
-
-.flex-item-fixed-4-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 33.3333%;
-}
-
-.flex-item-fixed-6-12, .flex-item-50-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 50%;
-}
-
-.flex-item-fixed-8-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 66.6666%;
-}
-
-.flex-item-fixed-9-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 75%;
-}
-
-
-.flex-item-fixed-12-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 100%;
-}
-
-.flex-item-10-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 10%;
-}
-
-.flex-item-15-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 15%;
-}
-
-.flex-item-20-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 20%;
-}
-
-.flex-item-30-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 30%;
-}
-
-.flex-item-40-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 40%;
-}
-
-.flex-item-50-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 50%;
-}
-
-.flex-item-60-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 60%;
-}
-
-.flex-item-70-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 70%;
-}
-
-.flex-item-80-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 80%;
-}
-
-.well {
-  min-height: 20px;
-  padding: 19px;
-  margin-bottom: 20px;
-  background-color: #f5f5f5;
-  border: 1px solid #e3e3e3;
-  border-radius: 4px;
-  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
-}
-
-.break-wrap {
-  word-wrap: break-word;
-}
-</style>
-    <div class="flex-row">
-      <div class="flex-item-fixed-1-12">
-      </div>
-      <div class="flex-item-fixed-1-12">
-        #{{ frame['depth'] }}
-      </div>
-      <div class="flex-item-fixed-9-12">
-        <function-ref ref="{{ frame['function'] }}"></function-ref>
-          ( <script-ref ref="{{ frame['script'] }}" pos="{{ frame['tokenPos'] }}">
-          </script-ref> )
-
-          <curly-block>
-            <div class="memberList">
-              <template repeat="{{ v in frame['vars'] }}">
-                <div class="memberItem">
-                  <div class="memberName">{{ v['name']}}</div>
-                  <div class="memberValue">
-                    <any-service-ref ref="{{ v['value'] }}"></any-service-ref>
-                  </div>
-                </div>
-              </template>
-            </div>
-          </curly-block>
-      </div>
-      <div class="flex-item-fixed-1-12">
-      </div>
-    </div>
-  </template>
-</polymer-element>
-
 <polymer-element name="flag-list" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -6841,8 +7980,7 @@ hr {
 
 <polymer-element name="flag-item" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -7116,10 +8254,11 @@ hr {
 
 
 
+
+
 <polymer-element name="function-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -7486,10 +8625,10 @@ hr {
 
 
 
+
 <polymer-element name="heap-map" extends="observatory-element">
 <template>
-  <style>
-/* Global styles */
+  <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -7780,10 +8919,10 @@ hr {
 
 
 
+
 <polymer-element name="io-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -8095,8 +9234,7 @@ hr {
 
 <polymer-element name="io-ref" extends="service-ref">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -8370,8 +9508,7 @@ hr {
 
 <polymer-element name="io-http-server-list-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -8651,8 +9788,7 @@ hr {
 
 <polymer-element name="io-http-server-ref" extends="service-ref">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -8912,8 +10048,7 @@ hr {
 
 <polymer-element name="io-http-server-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -9220,8 +10355,7 @@ hr {
 
 <polymer-element name="io-http-server-connection-ref" extends="service-ref">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -9481,8 +10615,7 @@ hr {
 
 <polymer-element name="io-http-server-connection-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -9769,8 +10902,7 @@ hr {
 
 <polymer-element name="io-socket-ref" extends="service-ref">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -10030,8 +11162,7 @@ hr {
 
 <polymer-element name="io-socket-list-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -10311,8 +11442,7 @@ hr {
 
 <polymer-element name="io-socket-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -10661,8 +11791,7 @@ hr {
 
 <polymer-element name="io-web-socket-ref" extends="service-ref">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -10922,8 +12051,7 @@ hr {
 
 <polymer-element name="io-web-socket-list-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -11203,8 +12331,7 @@ hr {
 
 <polymer-element name="io-web-socket-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -11483,8 +12610,7 @@ hr {
 
 <polymer-element name="io-random-access-file-ref" extends="service-ref">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -11744,8 +12870,7 @@ hr {
 
 <polymer-element name="io-random-access-file-list-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -12025,8 +13150,7 @@ hr {
 
 <polymer-element name="io-random-access-file-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -12313,8 +13437,7 @@ hr {
 
 <polymer-element name="io-process-list-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -12594,8 +13717,7 @@ hr {
 
 <polymer-element name="io-process-ref" extends="service-ref">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -12860,8 +13982,7 @@ hr {
 
 <polymer-element name="io-process-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -13193,9 +14314,9 @@ hr {
 
 
 
+
 <polymer-element name="isolate-ref" extends="service-ref">
-<template><style>
-/* Global styles */
+<template><style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -13461,10 +14582,10 @@ hr {
 
 
 
+
 <polymer-element name="isolate-summary" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -13825,8 +14946,7 @@ hr {
         white-space: pre;
       }
     </style>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -14114,12 +15234,12 @@ hr {
         <br>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" _href="{{ gotoLink('/class-tree' + isolate.link) }}">class hierarchy</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/debugger' + isolate.link) }}">debugger</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('stacktrace')) }}">stack trace</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/class-tree' + isolate.link) }}">class hierarchy</a>
           </div>
         </div>
         <div class="memberItem">
@@ -14177,10 +15297,10 @@ hr {
 
 
 
+
 <polymer-element name="isolate-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -14577,15 +15697,9 @@ hr {
 
 
 
-
-
-
-
-
 <polymer-element name="inbound-reference" extends="service-ref">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -14871,10 +15985,13 @@ hr {
 
 
 
+
+
+
+
 <polymer-element name="object-common" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -15220,10 +16337,10 @@ hr {
 
 
 
+
 <polymer-element name="context-ref" extends="service-ref">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -15502,10 +16619,11 @@ hr {
 </polymer-element>
 
 
+
+
 <polymer-element name="instance-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -15935,6 +17053,7 @@ hr {
 
 
 
+
 <polymer-element name="json-view" extends="observatory-element">
   <template>
     <nav-bar>
@@ -15957,10 +17076,11 @@ hr {
 
 
 
+
+
 <polymer-element name="library-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -16347,10 +17467,10 @@ hr {
 
 
 
+
 <polymer-element name="metrics-page" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -16663,8 +17783,7 @@ hr {
 
 <polymer-element name="metric-details" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -16976,8 +18095,7 @@ hr {
 
 <polymer-element name="metrics-graph" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -17254,10 +18372,12 @@ hr {
 
 
 
+
+
+
 <polymer-element name="object-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -17545,23 +18665,9 @@ hr {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 <polymer-element name="context-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -17876,10 +18982,14 @@ hr {
 
 
 
+
+
+
+
+
 <polymer-element name="heap-profile" extends="observatory-element">
 <template>
-  <style>
-/* Global styles */
+  <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -18394,10 +19504,11 @@ hr {
   </template>
 </polymer-element>
 
+
+
 <polymer-element name="isolate-profile" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -18836,10 +19947,12 @@ hr {
 
 
 
+
+
+
 <polymer-element name="script-view" extends="observatory-element">
 <template>
-  <style>
-/* Global styles */
+  <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -19125,292 +20238,6 @@ hr {
 
 
 
-<polymer-element name="stack-trace" extends="observatory-element">
-  <template>
-    <style>
-/* Global styles */
-* {
-  margin: 0;
-  padding: 0;
-  font: 400 14px 'Montserrat', sans-serif;
-  color: #333;
-  box-sizing: border-box;
-}
-
-.content {
-  padding-left: 10%;
-  font: 400 14px 'Montserrat', sans-serif;
-}
-
-.content-centered {
-  padding-left: 10%;
-  padding-right: 10%;
-  font: 400 14px 'Montserrat', sans-serif;
-}
-
-.content-centered-big {
-  padding-left: 5%;
-  padding-right: 5%;
-  font: 400 14px 'Montserrat', sans-serif;
-}
-
-h1 {
-  font: 400 18px 'Montserrat', sans-serif;
-}
-
-.memberList {
-  display: table;
-}
-
-.memberItem {
-  display: table-row;
-}
-
-.memberName, .memberValue {
-  display: table-cell;
-  vertical-align: top;
-  padding: 3px 0 3px 1em;
-  font: 400 14px 'Montserrat', sans-serif;
-}
-
-.memberSmall {
-  display: table-cell;
-  vertical-align: top;
-  padding: 3px 0 3px 1em;
-  font: 400 12px 'Montserrat', sans-serif;
-}
-
-.monospace {
-  font-family: consolas, courier, monospace;
-  font-size: 1em;
-  line-height: 1.2em;
-  white-space: nowrap;
-}
-
-a {
-  color: #0489c3;
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-em {
-  color: inherit;
-  font-style: italic;
-}
-
-b {
-  color: inherit;
-  font-weight: bold;
-}
-
-hr {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  border: 0;
-  border-top: 1px solid #eee;
-  height: 0;
-  box-sizing: content-box;
-}
-
-.list-group {
-  padding-left: 0;
-  margin-bottom: 20px;
-}
-
-.list-group-item {
-  position: relative;
-  display: block;
-  padding: 10px 15px;
-  margin-bottom: -1px;
-  background-color: #fff;
-}
-
-.list-group-item:first-child {
-  /* rounded top corners */
-  border-top-right-radius:4px;
-  border-top-left-radius:4px;
-}
-
-.list-group-item:last-child {
-  margin-bottom: 0;
-  /* rounded bottom corners */
-  border-bottom-right-radius: 4px;
-  border-bottom-left-radius:4px;
-}
-
-/* Flex row container */
-.flex-row {
-  display: flex;
-  flex-direction: row;
-}
-
-/* Flex column container */
-.flex-column {
-  display: flex;
-  flex-direction: column;
-}
-
-.flex-item-fit {
-  flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: auto;
-}
-
-.flex-item-no-shrink {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: auto;
-}
-
-.flex-item-fill {
-  flex-grow: 0;
-  flex-shrink: 1;  /* shrink when pressured */
-  flex-basis: 100%;  /* try and take 100% */
-}
-
-.flex-item-fixed-1-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 8.3%;
-}
-
-.flex-item-fixed-2-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 16.6%;
-}
-
-.flex-item-fixed-4-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 33.3333%;
-}
-
-.flex-item-fixed-6-12, .flex-item-50-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 50%;
-}
-
-.flex-item-fixed-8-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 66.6666%;
-}
-
-.flex-item-fixed-9-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 75%;
-}
-
-
-.flex-item-fixed-12-12 {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 100%;
-}
-
-.flex-item-10-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 10%;
-}
-
-.flex-item-15-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 15%;
-}
-
-.flex-item-20-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 20%;
-}
-
-.flex-item-30-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 30%;
-}
-
-.flex-item-40-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 40%;
-}
-
-.flex-item-50-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 50%;
-}
-
-.flex-item-60-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 60%;
-}
-
-.flex-item-70-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 70%;
-}
-
-.flex-item-80-percent {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 80%;
-}
-
-.well {
-  min-height: 20px;
-  padding: 19px;
-  margin-bottom: 20px;
-  background-color: #f5f5f5;
-  border: 1px solid #e3e3e3;
-  border-radius: 4px;
-  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
-}
-
-.break-wrap {
-  word-wrap: break-word;
-}
-</style>
-    <nav-bar>
-      <top-nav-menu></top-nav-menu>
-      <isolate-nav-menu isolate="{{ trace.isolate }}"></isolate-nav-menu>
-      <nav-menu link="{{ trace.isolate.relativeLink('stacktrace') }}" anchor="stack trace" last="{{ true }}"></nav-menu>
-      <nav-refresh callback="{{ refresh }}"></nav-refresh>
-      <nav-control></nav-control>
-    </nav-bar>
-    <template if="{{ trace['members'].isEmpty }}">
-      <div class="content">
-        <em>No stack</em>
-      </div>
-    </template>
-    <template if="{{ trace['members'].isNotEmpty }}">
-      <ul class="list-group">
-        <template repeat="{{ frame in trace['members'] }}">
-          <li class="list-group-item">
-            <stack-frame frame="{{ frame }}"></stack-frame>
-          </li>
-        </template>
-      </ul>
-    </template>
-  </template>
-</polymer-element>
-
-
-
-
-
-
 
 
 
@@ -19419,8 +20246,7 @@ hr {
 
 <polymer-element name="vm-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -19731,6 +20557,7 @@ hr {
   </template>
 </polymer-element>
 
+
 <polymer-element name="service-view" extends="observatory-element">
   <!-- This element explicitly manages the child elements to avoid setting
        an observable property on the old element to an invalid type. -->
@@ -19738,8 +20565,7 @@ hr {
 
 <polymer-element name="trace-view" extends="observatory-element">
    <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -20020,8 +20846,7 @@ hr {
 
 <polymer-element name="map-viewer" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -20306,8 +21131,7 @@ hr {
 
 <polymer-element name="list-viewer" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -20589,6 +21413,7 @@ hr {
 </polymer-element>
 
 
+
 <polymer-element name="observatory-application" extends="observatory-element">
   <!-- This element explicitly manages its child elements -->
 </polymer-element>
@@ -20597,10 +21422,15 @@ hr {
 
 
 
+
+
+
+
+
+
 <polymer-element name="service-exception-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -20874,10 +21704,10 @@ hr {
 
 
 
+
 <polymer-element name="service-error-view" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -21147,6 +21977,8 @@ hr {
 
 
 
+
+
 <polymer-element name="vm-connect-target" extends="observatory-element">
   <template>
     <style>
@@ -21159,8 +21991,7 @@ hr {
         background: #ff0000;
       }
     </style>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -21430,8 +22261,7 @@ hr {
 
 <polymer-element name="vm-connect" extends="observatory-element">
   <template>
-    <style>
-/* Global styles */
+    <style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -21750,9 +22580,9 @@ hr {
 
 
 
+
 <polymer-element name="vm-ref" extends="service-ref">
-  <template><style>
-/* Global styles */
+  <template><style>/* Global styles */
 * {
   margin: 0;
   padding: 0;
@@ -22012,6 +22842,9 @@ hr {
 
 
 
+
+</div>
   <observatory-application></observatory-application>
+
 
 <script src="index.html_bootstrap.dart.js" async=""></script></body></html>

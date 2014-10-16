@@ -32,6 +32,8 @@ class _ConvertedWorldImpl implements ConvertedWorld {
 
   _ConvertedWorldImpl(this.mainFunction);
 
+  // TODO(johnniwinther): Add all used libraries and all SDK libraries to the
+  // set of libraries in the converted world.
   Iterable<dart2js.LibraryElement> get libraries => [mainFunction.library];
 
   Iterable<dart2js.AstElement> get resolvedElements => executableElements.keys;
@@ -45,13 +47,29 @@ ConvertedWorld convertWorld(ClosedWorld closedWorld) {
   ElementConverter converter = new ElementConverter();
   _ConvertedWorldImpl convertedWorld = new _ConvertedWorldImpl(
       converter.convertElement(closedWorld.mainFunction));
-  closedWorld.executableElements.forEach(
-      (analyzer.ExecutableElement analyzerElement, AstNode node) {
+
+  void convert(analyzer.Element analyzerElement, AstNode node) {
+    // Skip conversion of SDK sources since we don't generate code for it
+    // anyway.
+    if (analyzerElement.source.isInSystemLibrary) return;
+
     dart2js.AstElement dart2jsElement =
         converter.convertElement(analyzerElement);
-    CpsGeneratingVisitor visitor = new CpsGeneratingVisitor(converter);
-    convertedWorld.executableElements[dart2jsElement] = node.accept(visitor);
-  });
+    CpsGeneratingVisitor visitor =
+        new CpsGeneratingVisitor(converter, analyzerElement);
+    ir.Node cpsNode = node.accept(visitor);
+    if (cpsNode != null) {
+      convertedWorld.executableElements[dart2jsElement] = cpsNode;
+    } else {
+      visitor.giveUp(node,
+          'No CPS node generated for $analyzerElement (${node.runtimeType}).');
+    }
+  }
+
+  closedWorld.executableElements.forEach(convert);
+  closedWorld.variables.forEach(convert);
+  closedWorld.fields.forEach(convert);
+
   return convertedWorld;
 }
 

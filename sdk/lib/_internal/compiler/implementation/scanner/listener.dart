@@ -1116,8 +1116,50 @@ class ElementListener extends Listener {
   /// Finds the preceding token via the begin token of the last AST node pushed
   /// on the [nodes] stack.
   Token findPrecedingToken(Token token) {
-    if (!nodes.isEmpty && nodes.head != null) {
-      Token current = nodes.head.getBeginToken();
+    Token result;
+    Link<Node> nodes = this.nodes;
+    while (!nodes.isEmpty) {
+      result = findPrecedingTokenFromNode(nodes.head, token);
+      if (result != null) {
+        return result;
+      }
+      nodes = nodes.tail;
+    }
+    if (compilationUnitElement != null) {
+      if (compilationUnitElement is CompilationUnitElementX) {
+        CompilationUnitElementX unit = compilationUnitElement;
+        Link<Element> members = unit.localMembers;
+        while (!members.isEmpty) {
+          ElementX member = members.head;
+          DeclarationSite site = member.declarationSite;
+          if (site is PartialElement) {
+            result = findPrecedingTokenFromToken(site.endToken, token);
+            if (result != null) {
+              return result;
+            }
+          }
+          members = members.tail;
+        }
+        result =
+            findPrecedingTokenFromNode(compilationUnitElement.partTag, token);
+        if (result != null) {
+          return result;
+        }
+      }
+    }
+    return token;
+  }
+
+  Token findPrecedingTokenFromNode(Node node, Token token) {
+    if (node != null) {
+      return findPrecedingTokenFromToken(node.getBeginToken(), token);
+    }
+    return null;
+  }
+
+  Token findPrecedingTokenFromToken(Token start, Token token) {
+    if (start != null) {
+      Token current = start;
       while (current.kind != EOF_TOKEN && current.next != token) {
         current = current.next;
       }
@@ -1125,7 +1167,7 @@ class ElementListener extends Listener {
         return current;
       }
     }
-    return token;
+    return null;
   }
 
   Token expectedIdentifier(Token token) {
@@ -2227,6 +2269,10 @@ abstract class PartialFunctionMixin implements FunctionElement {
   }
 
   Token get position => _position;
+
+  void reusePartialFunctionMixin() {
+    cachedNode = null;
+  }
 }
 
 class PartialFunctionElement extends FunctionElementX
@@ -2242,6 +2288,11 @@ class PartialFunctionElement extends FunctionElementX
       : super(name, kind, modifiers, enclosing, hasNoBody) {
     init(beginToken, getOrSet, endToken);
   }
+
+  void reuseElement() {
+    super.reuseElement();
+    reusePartialFunctionMixin();
+  }
 }
 
 class PartialConstructorElement extends ConstructorElementX
@@ -2254,6 +2305,11 @@ class PartialConstructorElement extends ConstructorElementX
                             Element enclosing)
       : super(name, kind, modifiers, enclosing) {
     init(beginToken, null, endToken);
+  }
+
+  void reuseElement() {
+    super.reuseElement();
+    reusePartialFunctionMixin();
   }
 }
 
@@ -2361,6 +2417,13 @@ class PartialMetadataAnnotation extends MetadataAnnotationX {
                               annotatedElement,
                               (p) => p.parseMetadata(beginToken));
     cachedNode = metadata.expression;
+    return cachedNode;
+  }
+
+  bool get hasNode => cachedNode != null;
+
+  Node get node {
+    assert(invariant(this, hasNode));
     return cachedNode;
   }
 }

@@ -133,6 +133,8 @@ generic_closure_test: RuntimeError # Issue 12605
 const_switch_test/02: RuntimeError # Issue 17960
 const_switch_test/04: RuntimeError # Issue 17960
 
+deferred_constant_list_test: RuntimeError # Issue 21293
+
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793
 map_literal3_test: CompileTimeError # Issue 12793
@@ -147,9 +149,6 @@ numbers_test: RuntimeError, OK # Issue 1533
 canonical_const2_test: RuntimeError, OK # Issue 1533
 bit_operations_test: RuntimeError, OK # Issue 1533
 expect_test: RuntimeError, OK # Issue 13080
-
-[ ($compiler == dart2js || $compiler == dart2dart) && $unchecked ]
-type_check_const_function_typedef2_test/00: MissingCompileTimeError, OK
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

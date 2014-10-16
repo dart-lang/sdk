@@ -147,7 +147,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return graph.thisInstruction;
     }
 
-    Constant constant = new InterceptorConstant(constantInterceptor.thisType);
+    ConstantValue constant =
+        new InterceptorConstantValue(constantInterceptor.thisType);
     return graph.addConstant(constant, compiler);
   }
 

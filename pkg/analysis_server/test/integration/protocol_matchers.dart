@@ -669,6 +669,30 @@ final Matcher isEditGetRefactoringResult = new LazyMatcher(() => new MatchesJson
   }));
 
 /**
+ * edit.sortMembers params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+final Matcher isEditSortMembersParams = new LazyMatcher(() => new MatchesJsonObject(
+  "edit.sortMembers params", {
+    "file": isFilePath
+  }));
+
+/**
+ * edit.sortMembers result
+ *
+ * {
+ *   "edit": SourceFileEdit
+ * }
+ */
+final Matcher isEditSortMembersResult = new LazyMatcher(() => new MatchesJsonObject(
+  "edit.sortMembers result", {
+    "edit": isSourceFileEdit
+  }));
+
+/**
  * execution.createContext params
  *
  * {
@@ -843,6 +867,7 @@ final Matcher isAnalysisErrorSeverity = new MatchesEnum("AnalysisErrorSeverity",
  *
  * enum {
  *   ANGULAR
+ *   CHECKED_MODE_COMPILE_TIME_ERROR
  *   COMPILE_TIME_ERROR
  *   HINT
  *   POLYMER
@@ -854,6 +879,7 @@ final Matcher isAnalysisErrorSeverity = new MatchesEnum("AnalysisErrorSeverity",
  */
 final Matcher isAnalysisErrorType = new MatchesEnum("AnalysisErrorType", [
   "ANGULAR",
+  "CHECKED_MODE_COMPILE_TIME_ERROR",
   "COMPILE_TIME_ERROR",
   "HINT",
   "POLYMER",
@@ -1663,6 +1689,8 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   INVALID_REQUEST
  *   SERVER_ALREADY_STARTED
  *   SERVER_ERROR
+ *   SORT_MEMBERS_INVALID_FILE
+ *   SORT_MEMBERS_PARSE_ERRORS
  *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
  *   UNSUPPORTED_FEATURE
@@ -1675,6 +1703,8 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "INVALID_REQUEST",
   "SERVER_ALREADY_STARTED",
   "SERVER_ERROR",
+  "SORT_MEMBERS_INVALID_FILE",
+  "SORT_MEMBERS_PARSE_ERRORS",
   "UNANALYZED_PRIORITY_FILES",
   "UNKNOWN_REQUEST",
   "UNSUPPORTED_FEATURE"
@@ -2010,14 +2040,4 @@ final Matcher isRenameOptions = new LazyMatcher(() => new MatchesJsonObject(
   "rename options", {
     "newName": isString
   }));
-
-/**
- * sortMembers feedback
- */
-final Matcher isSortMembersFeedback = isNull;
-
-/**
- * sortMembers options
- */
-final Matcher isSortMembersOptions = isNull;
 

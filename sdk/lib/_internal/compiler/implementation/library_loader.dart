@@ -23,7 +23,7 @@ import 'elements/modelx.dart'
          LibraryElementX,
          PrefixElementX;
 import 'helpers/helpers.dart';  // Included for debug helpers.
-import 'native_handler.dart' as native;
+import 'native/native.dart' as native;
 import 'tree/tree.dart';
 import 'util/util.dart' show Link, LinkBuilder;
 

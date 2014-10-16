@@ -63,7 +63,7 @@ class ServerGetVersionResult implements HasToJson {
 
   factory ServerGetVersionResult.fromResponse(Response response) {
     return new ServerGetVersionResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -510,7 +510,7 @@ class AnalysisGetErrorsResult implements HasToJson {
 
   factory AnalysisGetErrorsResult.fromResponse(Response response) {
     return new AnalysisGetErrorsResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -661,7 +661,7 @@ class AnalysisGetHoverResult implements HasToJson {
 
   factory AnalysisGetHoverResult.fromResponse(Response response) {
     return new AnalysisGetHoverResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -1945,7 +1945,7 @@ class CompletionGetSuggestionsResult implements HasToJson {
 
   factory CompletionGetSuggestionsResult.fromResponse(Response response) {
     return new CompletionGetSuggestionsResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2259,7 +2259,7 @@ class SearchFindElementReferencesResult implements HasToJson {
 
   factory SearchFindElementReferencesResult.fromResponse(Response response) {
     return new SearchFindElementReferencesResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2398,7 +2398,7 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
 
   factory SearchFindMemberDeclarationsResult.fromResponse(Response response) {
     return new SearchFindMemberDeclarationsResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2530,7 +2530,7 @@ class SearchFindMemberReferencesResult implements HasToJson {
 
   factory SearchFindMemberReferencesResult.fromResponse(Response response) {
     return new SearchFindMemberReferencesResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2663,7 +2663,7 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
 
   factory SearchFindTopLevelDeclarationsResult.fromResponse(Response response) {
     return new SearchFindTopLevelDeclarationsResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2798,11 +2798,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
    */
   List<TypeHierarchyItem> hierarchyItems;
 
-  SearchGetTypeHierarchyResult({this.hierarchyItems}) {
-    if (hierarchyItems == null) {
-      hierarchyItems = <TypeHierarchyItem>[];
-    }
-  }
+  SearchGetTypeHierarchyResult({this.hierarchyItems});
 
   factory SearchGetTypeHierarchyResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2812,8 +2808,6 @@ class SearchGetTypeHierarchyResult implements HasToJson {
       List<TypeHierarchyItem> hierarchyItems;
       if (json.containsKey("hierarchyItems")) {
         hierarchyItems = jsonDecoder._decodeList(jsonPath + ".hierarchyItems", json["hierarchyItems"], (String jsonPath, Object json) => new TypeHierarchyItem.fromJson(jsonDecoder, jsonPath, json));
-      } else {
-        hierarchyItems = <TypeHierarchyItem>[];
       }
       return new SearchGetTypeHierarchyResult(hierarchyItems: hierarchyItems);
     } else {
@@ -2823,12 +2817,12 @@ class SearchGetTypeHierarchyResult implements HasToJson {
 
   factory SearchGetTypeHierarchyResult.fromResponse(Response response) {
     return new SearchGetTypeHierarchyResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    if (hierarchyItems.isNotEmpty) {
+    if (hierarchyItems != null) {
       result["hierarchyItems"] = hierarchyItems.map((TypeHierarchyItem value) => value.toJson()).toList();
     }
     return result;
@@ -3084,7 +3078,7 @@ class EditGetAssistsResult implements HasToJson {
 
   factory EditGetAssistsResult.fromResponse(Response response) {
     return new EditGetAssistsResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3246,7 +3240,7 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
 
   factory EditGetAvailableRefactoringsResult.fromResponse(Response response) {
     return new EditGetAvailableRefactoringsResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3393,7 +3387,7 @@ class EditGetFixesResult implements HasToJson {
 
   factory EditGetFixesResult.fromResponse(Response response) {
     return new EditGetFixesResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3633,11 +3627,7 @@ class EditGetRefactoringResult implements HasToJson {
    */
   List<String> potentialEdits;
 
-  EditGetRefactoringResult(this.initialProblems, this.optionsProblems, this.finalProblems, {this.feedback, this.change, this.potentialEdits}) {
-    if (potentialEdits == null) {
-      potentialEdits = <String>[];
-    }
-  }
+  EditGetRefactoringResult(this.initialProblems, this.optionsProblems, this.finalProblems, {this.feedback, this.change, this.potentialEdits});
 
   factory EditGetRefactoringResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3673,8 +3663,6 @@ class EditGetRefactoringResult implements HasToJson {
       List<String> potentialEdits;
       if (json.containsKey("potentialEdits")) {
         potentialEdits = jsonDecoder._decodeList(jsonPath + ".potentialEdits", json["potentialEdits"], jsonDecoder._decodeString);
-      } else {
-        potentialEdits = <String>[];
       }
       return new EditGetRefactoringResult(initialProblems, optionsProblems, finalProblems, feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
@@ -3684,7 +3672,7 @@ class EditGetRefactoringResult implements HasToJson {
 
   factory EditGetRefactoringResult.fromResponse(Response response) {
     return new EditGetRefactoringResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3698,7 +3686,7 @@ class EditGetRefactoringResult implements HasToJson {
     if (change != null) {
       result["change"] = change.toJson();
     }
-    if (potentialEdits.isNotEmpty) {
+    if (potentialEdits != null) {
       result["potentialEdits"] = potentialEdits;
     }
     return result;
@@ -3733,6 +3721,139 @@ class EditGetRefactoringResult implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, feedback.hashCode);
     hash = _JenkinsSmiHash.combine(hash, change.hashCode);
     hash = _JenkinsSmiHash.combine(hash, potentialEdits.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.sortMembers params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+class EditSortMembersParams implements HasToJson {
+  /**
+   * The Dart file to sort.
+   */
+  String file;
+
+  EditSortMembersParams(this.file);
+
+  factory EditSortMembersParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      return new EditSortMembersParams(file);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.sortMembers params");
+    }
+  }
+
+  factory EditSortMembersParams.fromRequest(Request request) {
+    return new EditSortMembersParams.fromJson(
+        new RequestDecoder(request), "params", request._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "edit.sortMembers", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is EditSortMembersParams) {
+      return file == other.file;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.sortMembers result
+ *
+ * {
+ *   "edit": SourceFileEdit
+ * }
+ */
+class EditSortMembersResult implements HasToJson {
+  /**
+   * The file edit that is to be applied to the given file to effect the
+   * sorting.
+   */
+  SourceFileEdit edit;
+
+  EditSortMembersResult(this.edit);
+
+  factory EditSortMembersResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      SourceFileEdit edit;
+      if (json.containsKey("edit")) {
+        edit = new SourceFileEdit.fromJson(jsonDecoder, jsonPath + ".edit", json["edit"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "edit");
+      }
+      return new EditSortMembersResult(edit);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.sortMembers result");
+    }
+  }
+
+  factory EditSortMembersResult.fromResponse(Response response) {
+    return new EditSortMembersResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["edit"] = edit.toJson();
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is EditSortMembersResult) {
+      return edit == other.edit;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, edit.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -3837,7 +3958,7 @@ class ExecutionCreateContextResult implements HasToJson {
 
   factory ExecutionCreateContextResult.fromResponse(Response response) {
     return new ExecutionCreateContextResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -4096,7 +4217,7 @@ class ExecutionMapUriResult implements HasToJson {
 
   factory ExecutionMapUriResult.fromResponse(Response response) {
     return new ExecutionMapUriResult.fromJson(
-        new ResponseDecoder(response), "result", response._result);
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -4250,11 +4371,7 @@ class ExecutionLaunchDataParams implements HasToJson {
    */
   List<String> referencedFiles;
 
-  ExecutionLaunchDataParams(this.file, {this.kind, this.referencedFiles}) {
-    if (referencedFiles == null) {
-      referencedFiles = <String>[];
-    }
-  }
+  ExecutionLaunchDataParams(this.file, {this.kind, this.referencedFiles});
 
   factory ExecutionLaunchDataParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4274,8 +4391,6 @@ class ExecutionLaunchDataParams implements HasToJson {
       List<String> referencedFiles;
       if (json.containsKey("referencedFiles")) {
         referencedFiles = jsonDecoder._decodeList(jsonPath + ".referencedFiles", json["referencedFiles"], jsonDecoder._decodeString);
-      } else {
-        referencedFiles = <String>[];
       }
       return new ExecutionLaunchDataParams(file, kind: kind, referencedFiles: referencedFiles);
     } else {
@@ -4294,7 +4409,7 @@ class ExecutionLaunchDataParams implements HasToJson {
     if (kind != null) {
       result["kind"] = kind.toJson();
     }
-    if (referencedFiles.isNotEmpty) {
+    if (referencedFiles != null) {
       result["referencedFiles"] = referencedFiles;
     }
     return result;
@@ -4403,13 +4518,6 @@ class AddContentOverlay implements HasToJson {
  */
 class AnalysisError implements HasToJson {
   /**
-   * Returns a list of AnalysisErrors correponding to the given list of Engine
-   * errors.
-   */
-  static List<AnalysisError> listFromEngine(engine.LineInfo lineInfo, List<engine.AnalysisError> errors) =>
-      _analysisErrorListFromEngine(lineInfo, errors);
-
-  /**
    * The severity of the error.
    */
   AnalysisErrorSeverity severity;
@@ -4477,12 +4585,6 @@ class AnalysisError implements HasToJson {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisError");
     }
   }
-
-  /**
-   * Construct based on error information from the analyzer engine.
-   */
-  factory AnalysisError.fromEngine(engine.LineInfo lineInfo, engine.AnalysisError error) =>
-      _analysisErrorFromEngine(lineInfo, error);
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
@@ -4578,13 +4680,6 @@ class AnalysisErrorFixes implements HasToJson {
     return result;
   }
 
-  /**
-   * Add a [Fix]
-   */
-  void addFix(Fix fix) {
-    fixes.add(fix.change);
-  }
-
   @override
   String toString() => JSON.encode(toJson());
 
@@ -4615,7 +4710,7 @@ class AnalysisErrorFixes implements HasToJson {
  *   ERROR
  * }
  */
-class AnalysisErrorSeverity {
+class AnalysisErrorSeverity implements Enum {
   static const INFO = const AnalysisErrorSeverity._("INFO");
 
   static const WARNING = const AnalysisErrorSeverity._("WARNING");
@@ -4660,6 +4755,7 @@ class AnalysisErrorSeverity {
  *
  * enum {
  *   ANGULAR
+ *   CHECKED_MODE_COMPILE_TIME_ERROR
  *   COMPILE_TIME_ERROR
  *   HINT
  *   POLYMER
@@ -4669,8 +4765,10 @@ class AnalysisErrorSeverity {
  *   TODO
  * }
  */
-class AnalysisErrorType {
+class AnalysisErrorType implements Enum {
   static const ANGULAR = const AnalysisErrorType._("ANGULAR");
+
+  static const CHECKED_MODE_COMPILE_TIME_ERROR = const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
 
   static const COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
 
@@ -4694,6 +4792,8 @@ class AnalysisErrorType {
     switch (name) {
       case "ANGULAR":
         return ANGULAR;
+      case "CHECKED_MODE_COMPILE_TIME_ERROR":
+        return CHECKED_MODE_COMPILE_TIME_ERROR;
       case "COMPILE_TIME_ERROR":
         return COMPILE_TIME_ERROR;
       case "HINT":
@@ -4861,7 +4961,7 @@ class AnalysisOptions implements HasToJson {
  *   OVERRIDES
  * }
  */
-class AnalysisService {
+class AnalysisService implements Enum {
   static const FOLDING = const AnalysisService._("FOLDING");
 
   static const HIGHLIGHTS = const AnalysisService._("HIGHLIGHTS");
@@ -5058,7 +5158,7 @@ class ChangeContentOverlay implements HasToJson {
  *   HIGH
  * }
  */
-class CompletionRelevance {
+class CompletionRelevance implements Enum {
   static const LOW = const CompletionRelevance._("LOW");
 
   static const DEFAULT = const CompletionRelevance._("DEFAULT");
@@ -5232,14 +5332,7 @@ class CompletionSuggestion implements HasToJson {
    */
   String parameterType;
 
-  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.element, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.positionalParameterCount, this.parameterName, this.parameterType}) {
-    if (parameterNames == null) {
-      parameterNames = <String>[];
-    }
-    if (parameterTypes == null) {
-      parameterTypes = <String>[];
-    }
-  }
+  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.element, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.positionalParameterCount, this.parameterName, this.parameterType});
 
   factory CompletionSuggestion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5311,14 +5404,10 @@ class CompletionSuggestion implements HasToJson {
       List<String> parameterNames;
       if (json.containsKey("parameterNames")) {
         parameterNames = jsonDecoder._decodeList(jsonPath + ".parameterNames", json["parameterNames"], jsonDecoder._decodeString);
-      } else {
-        parameterNames = <String>[];
       }
       List<String> parameterTypes;
       if (json.containsKey("parameterTypes")) {
         parameterTypes = jsonDecoder._decodeList(jsonPath + ".parameterTypes", json["parameterTypes"], jsonDecoder._decodeString);
-      } else {
-        parameterTypes = <String>[];
       }
       int requiredParameterCount;
       if (json.containsKey("requiredParameterCount")) {
@@ -5366,10 +5455,10 @@ class CompletionSuggestion implements HasToJson {
     if (returnType != null) {
       result["returnType"] = returnType;
     }
-    if (parameterNames.isNotEmpty) {
+    if (parameterNames != null) {
       result["parameterNames"] = parameterNames;
     }
-    if (parameterTypes.isNotEmpty) {
+    if (parameterTypes != null) {
       result["parameterTypes"] = parameterTypes;
     }
     if (requiredParameterCount != null) {
@@ -5467,7 +5556,7 @@ class CompletionSuggestion implements HasToJson {
  *   TYPE_PARAMETER
  * }
  */
-class CompletionSuggestionKind {
+class CompletionSuggestionKind implements Enum {
   static const ARGUMENT_LIST = const CompletionSuggestionKind._("ARGUMENT_LIST");
 
   static const CLASS = const CompletionSuggestionKind._("CLASS");
@@ -5572,12 +5661,6 @@ class CompletionSuggestionKind {
     }
     throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestionKind");
   }
-
-  /**
-   * Construct from an analyzer engine element kind.
-   */
-  factory CompletionSuggestionKind.fromElementKind(engine.ElementKind kind) =>
-      _completionSuggestionKindFromElementKind(kind);
 
   @override
   String toString() => "CompletionSuggestionKind.$name";
@@ -5702,12 +5785,6 @@ class Element implements HasToJson {
     }
   }
 
-  /**
-   * Construct based on a value from the analyzer engine.
-   */
-  factory Element.fromEngine(engine.Element element) =>
-      elementFromEngine(element);
-
   bool get isAbstract => (flags & FLAG_ABSTRACT) != 0;
   bool get isConst => (flags & FLAG_CONST) != 0;
   bool get isFinal => (flags & FLAG_FINAL) != 0;
@@ -5787,7 +5864,7 @@ class Element implements HasToJson {
  *   UNKNOWN
  * }
  */
-class ElementKind {
+class ElementKind implements Enum {
   static const CLASS = const ElementKind._("CLASS");
 
   static const CLASS_TYPE_ALIAS = const ElementKind._("CLASS_TYPE_ALIAS");
@@ -5889,12 +5966,6 @@ class ElementKind {
     throw jsonDecoder.mismatch(jsonPath, "ElementKind");
   }
 
-  /**
-   * Construct based on a value from the analyzer engine.
-   */
-  factory ElementKind.fromEngine(engine.ElementKind kind) =>
-      _elementKindFromEngine(kind);
-
   @override
   String toString() => "ElementKind.$name";
 
@@ -5983,7 +6054,7 @@ class ExecutableFile implements HasToJson {
  *   SERVER
  * }
  */
-class ExecutableKind {
+class ExecutableKind implements Enum {
   static const CLIENT = const ExecutableKind._("CLIENT");
 
   static const EITHER = const ExecutableKind._("EITHER");
@@ -6034,7 +6105,7 @@ class ExecutableKind {
  *   LAUNCH_DATA
  * }
  */
-class ExecutionService {
+class ExecutionService implements Enum {
   static const LAUNCH_DATA = const ExecutionService._("LAUNCH_DATA");
 
   final String name;
@@ -6077,7 +6148,7 @@ class ExecutionService {
  *   TOP_LEVEL_DECLARATION
  * }
  */
-class FoldingKind {
+class FoldingKind implements Enum {
   static const COMMENT = const FoldingKind._("COMMENT");
 
   static const CLASS_MEMBER = const FoldingKind._("CLASS_MEMBER");
@@ -6341,7 +6412,7 @@ class HighlightRegion implements HasToJson {
  *   TYPE_PARAMETER
  * }
  */
-class HighlightRegionType {
+class HighlightRegionType implements Enum {
   static const ANNOTATION = const HighlightRegionType._("ANNOTATION");
 
   static const BUILT_IN = const HighlightRegionType._("BUILT_IN");
@@ -6912,7 +6983,7 @@ class LinkedEditSuggestion implements HasToJson {
  *   VARIABLE
  * }
  */
-class LinkedEditSuggestionKind {
+class LinkedEditSuggestionKind implements Enum {
   static const METHOD = const LinkedEditSuggestionKind._("METHOD");
 
   static const PARAMETER = const LinkedEditSuggestionKind._("PARAMETER");
@@ -7037,30 +7108,6 @@ class Location implements HasToJson {
       throw jsonDecoder.mismatch(jsonPath, "Location");
     }
   }
-
-  /**
-   * Create a Location based on an [engine.Element].
-   */
-  factory Location.fromElement(engine.Element element) =>
-      _locationFromElement(element);
-
-  /**
-   * Create a Location based on an [engine.SearchMatch].
-   */
-  factory Location.fromMatch(engine.SearchMatch match) =>
-      _locationFromMatch(match);
-
-  /**
-   * Create a Location based on an [engine.AstNode].
-   */
-  factory Location.fromNode(engine.AstNode node) =>
-      _locationFromNode(node);
-
-  /**
-   * Create a Location based on an [engine.CompilationUnit].
-   */
-  factory Location.fromUnit(engine.CompilationUnit unit, engine.SourceRange range) =>
-      _locationFromUnit(unit, range);
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
@@ -7309,11 +7356,7 @@ class Outline implements HasToJson {
    */
   List<Outline> children;
 
-  Outline(this.element, this.offset, this.length, {this.children}) {
-    if (children == null) {
-      children = <Outline>[];
-    }
-  }
+  Outline(this.element, this.offset, this.length, {this.children});
 
   factory Outline.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -7341,8 +7384,6 @@ class Outline implements HasToJson {
       List<Outline> children;
       if (json.containsKey("children")) {
         children = jsonDecoder._decodeList(jsonPath + ".children", json["children"], (String jsonPath, Object json) => new Outline.fromJson(jsonDecoder, jsonPath, json));
-      } else {
-        children = <Outline>[];
       }
       return new Outline(element, offset, length, children: children);
     } else {
@@ -7355,7 +7396,7 @@ class Outline implements HasToJson {
     result["element"] = element.toJson();
     result["offset"] = offset;
     result["length"] = length;
-    if (children.isNotEmpty) {
+    if (children != null) {
       result["children"] = children.map((Outline value) => value.toJson()).toList();
     }
     return result;
@@ -7421,11 +7462,7 @@ class Override implements HasToJson {
    */
   List<OverriddenMember> interfaceMembers;
 
-  Override(this.offset, this.length, {this.superclassMember, this.interfaceMembers}) {
-    if (interfaceMembers == null) {
-      interfaceMembers = <OverriddenMember>[];
-    }
-  }
+  Override(this.offset, this.length, {this.superclassMember, this.interfaceMembers});
 
   factory Override.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -7451,8 +7488,6 @@ class Override implements HasToJson {
       List<OverriddenMember> interfaceMembers;
       if (json.containsKey("interfaceMembers")) {
         interfaceMembers = jsonDecoder._decodeList(jsonPath + ".interfaceMembers", json["interfaceMembers"], (String jsonPath, Object json) => new OverriddenMember.fromJson(jsonDecoder, jsonPath, json));
-      } else {
-        interfaceMembers = <OverriddenMember>[];
       }
       return new Override(offset, length, superclassMember: superclassMember, interfaceMembers: interfaceMembers);
     } else {
@@ -7467,7 +7502,7 @@ class Override implements HasToJson {
     if (superclassMember != null) {
       result["superclassMember"] = superclassMember.toJson();
     }
-    if (interfaceMembers.isNotEmpty) {
+    if (interfaceMembers != null) {
       result["interfaceMembers"] = interfaceMembers.map((OverriddenMember value) => value.toJson()).toList();
     }
     return result;
@@ -7541,12 +7576,6 @@ class OverriddenMember implements HasToJson {
       throw jsonDecoder.mismatch(jsonPath, "OverriddenMember");
     }
   }
-
-  /**
-   * Construct based on an element from the analyzer engine.
-   */
-  factory OverriddenMember.fromEngine(engine.Element member) =>
-      _overriddenMemberFromEngine(member);
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
@@ -7663,7 +7692,7 @@ class Position implements HasToJson {
  *   SORT_MEMBERS
  * }
  */
-class RefactoringKind {
+class RefactoringKind implements Enum {
   static const CONVERT_GETTER_TO_METHOD = const RefactoringKind._("CONVERT_GETTER_TO_METHOD");
 
   static const CONVERT_METHOD_TO_GETTER = const RefactoringKind._("CONVERT_METHOD_TO_GETTER");
@@ -7929,7 +7958,7 @@ class RefactoringOptions implements HasToJson {
  *   NAMED
  * }
  */
-class RefactoringMethodParameterKind {
+class RefactoringMethodParameterKind implements Enum {
   static const REQUIRED = const RefactoringMethodParameterKind._("REQUIRED");
 
   static const POSITIONAL = const RefactoringMethodParameterKind._("POSITIONAL");
@@ -8068,7 +8097,7 @@ class RefactoringProblem implements HasToJson {
  *   FATAL
  * }
  */
-class RefactoringProblemSeverity {
+class RefactoringProblemSeverity implements Enum {
   static const INFO = const RefactoringProblemSeverity._("INFO");
 
   static const WARNING = const RefactoringProblemSeverity._("WARNING");
@@ -8265,12 +8294,14 @@ class RequestError implements HasToJson {
  *   INVALID_REQUEST
  *   SERVER_ALREADY_STARTED
  *   SERVER_ERROR
+ *   SORT_MEMBERS_INVALID_FILE
+ *   SORT_MEMBERS_PARSE_ERRORS
  *   UNANALYZED_PRIORITY_FILES
  *   UNKNOWN_REQUEST
  *   UNSUPPORTED_FEATURE
  * }
  */
-class RequestErrorCode {
+class RequestErrorCode implements Enum {
   /**
    * An "analysis.getErrors" request specified a FilePath which does not match
    * a file currently subject to analysis.
@@ -8309,6 +8340,18 @@ class RequestErrorCode {
    * server.error notification.
    */
   static const SERVER_ERROR = const RequestErrorCode._("SERVER_ERROR");
+
+  /**
+   * An "edit.sortMembers" request specified a FilePath which does not match a
+   * Dart file in an analysis root.
+   */
+  static const SORT_MEMBERS_INVALID_FILE = const RequestErrorCode._("SORT_MEMBERS_INVALID_FILE");
+
+  /**
+   * An "edit.sortMembers" request specified a Dart file that has scan or parse
+   * errors.
+   */
+  static const SORT_MEMBERS_PARSE_ERRORS = const RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
 
   /**
    * An "analysis.setPriorityFiles" request includes one or more files that are
@@ -8352,6 +8395,10 @@ class RequestErrorCode {
         return SERVER_ALREADY_STARTED;
       case "SERVER_ERROR":
         return SERVER_ERROR;
+      case "SORT_MEMBERS_INVALID_FILE":
+        return SORT_MEMBERS_INVALID_FILE;
+      case "SORT_MEMBERS_PARSE_ERRORS":
+        return SORT_MEMBERS_PARSE_ERRORS;
       case "UNANALYZED_PRIORITY_FILES":
         return UNANALYZED_PRIORITY_FILES;
       case "UNKNOWN_REQUEST":
@@ -8452,12 +8499,6 @@ class SearchResult implements HasToJson {
     }
   }
 
-  /**
-   * Construct based on a value from the search engine.
-   */
-  factory SearchResult.fromMatch(engine.SearchMatch match) =>
-      searchResultFromMatch(match);
-
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["location"] = location.toJson();
@@ -8505,7 +8546,7 @@ class SearchResult implements HasToJson {
  *   WRITE
  * }
  */
-class SearchResultKind {
+class SearchResultKind implements Enum {
   /**
    * The declaration of an element.
    */
@@ -8577,12 +8618,6 @@ class SearchResultKind {
     throw jsonDecoder.mismatch(jsonPath, "SearchResultKind");
   }
 
-  /**
-   * Construct based on a value from the search engine.
-   */
-  factory SearchResultKind.fromEngine(engine.MatchKind kind) =>
-      _searchResultKindFromEngine(kind);
-
   @override
   String toString() => "SearchResultKind.$name";
 
@@ -8596,7 +8631,7 @@ class SearchResultKind {
  *   STATUS
  * }
  */
-class ServerService {
+class ServerService implements Enum {
   static const STATUS = const ServerService._("STATUS");
 
   final String name;
@@ -8718,19 +8753,6 @@ class SourceChange implements HasToJson {
    */
   void addEdit(String file, int fileStamp, SourceEdit edit) =>
       _addEditToSourceChange(this, file, fileStamp, edit);
-
-  /**
-   * Adds [edit] to the [FileEdit] for the given [source].
-   */
-  void addSourceEdit(engine.AnalysisContext context,
-      engine.Source source, SourceEdit edit) =>
-      _addSourceEditToSourceChange(this, context, source, edit);
-
-  /**
-   * Adds [edit] to the [FileEdit] for the given [element].
-   */
-  void addElementEdit(engine.Element element, SourceEdit edit) =>
-      _addElementEditToSourceChange(this, element, edit);
 
   /**
    * Adds the given [FileEdit].
@@ -8856,12 +8878,6 @@ class SourceEdit implements HasToJson {
       throw jsonDecoder.mismatch(jsonPath, "SourceEdit");
     }
   }
-
-  /**
-   * Construct based on a SourceRange.
-   */
-  SourceEdit.range(engine.SourceRange range, String replacement, {String id})
-      : this(range.offset, range.length, replacement, id: id);
 
   /**
    * The end of the region to be modified.
@@ -10222,39 +10238,5 @@ class RenameOptions extends RefactoringOptions implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, newName.hashCode);
     return _JenkinsSmiHash.finish(hash);
-  }
-}
-/**
- * sortMembers feedback
- */
-class SortMembersFeedback {
-  @override
-  bool operator==(other) {
-    if (other is SortMembersFeedback) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    return 173473419;
-  }
-}
-/**
- * sortMembers options
- */
-class SortMembersOptions {
-  @override
-  bool operator==(other) {
-    if (other is SortMembersOptions) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    return 99705880;
   }
 }

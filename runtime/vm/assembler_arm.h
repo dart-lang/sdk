@@ -231,6 +231,10 @@ class Address : public ValueObject {
     encoding_ |= static_cast<uint32_t>(rn) << kRnShift;
   }
 
+  // There is no register offset mode unless Mode is Offset, in which case the
+  // shifted register case below should be used.
+  Address(Register rn, Register r, Mode am);
+
   Address(Register rn, Register rm,
           Shift shift = LSL, uint32_t shift_imm = 0, Mode am = Offset) {
     Operand o(rm, shift, shift_imm);
@@ -242,6 +246,9 @@ class Address : public ValueObject {
     }
     encoding_ = o.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
   }
+
+  // There is no shifted register mode with a register shift.
+  Address(Register rn, Register rm, Shift shift, Register r, Mode am = Offset);
 
   static OperandSize OperandSizeFor(intptr_t cid);
 
@@ -278,6 +285,9 @@ class FieldAddress : public Address {
  public:
   FieldAddress(Register base, int32_t disp)
       : Address(base, disp - kHeapObjectTag) { }
+
+  // This addressing mode does not exist.
+  FieldAddress(Register base, Register r);
 
   FieldAddress(const FieldAddress& other) : Address(other) { }
 
@@ -396,8 +406,6 @@ class Assembler : public ValueObject {
 
   // Miscellaneous data-processing instructions.
   void clz(Register rd, Register rm, Condition cond = AL);
-  void movw(Register rd, uint16_t imm16, Condition cond = AL);
-  void movt(Register rd, uint16_t imm16, Condition cond = AL);
 
   // Multiply instructions.
   void mul(Register rd, Register rn, Register rm, Condition cond = AL);
@@ -413,6 +421,8 @@ class Assembler : public ValueObject {
   void smlal(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
   void umlal(Register rd_lo, Register rd_hi, Register rn, Register rm,
+             Condition cond = AL);
+  void umaal(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
 
   // Division instructions.
@@ -458,6 +468,7 @@ class Assembler : public ValueObject {
   void vmovrrs(Register rt, Register rt2, SRegister sm, Condition cond = AL);
   void vmovdrr(DRegister dm, Register rt, Register rt2, Condition cond = AL);
   void vmovrrd(Register rt, Register rt2, DRegister dm, Condition cond = AL);
+  void vmovdr(DRegister dd, int i, Register rt, Condition cond = AL);
   void vmovs(SRegister sd, SRegister sm, Condition cond = AL);
   void vmovd(DRegister dd, DRegister dm, Condition cond = AL);
   void vmovq(QRegister qd, QRegister qm);
@@ -547,7 +558,8 @@ class Assembler : public ValueObject {
   void vcmpd(DRegister dd, DRegister dm, Condition cond = AL);
   void vcmpsz(SRegister sd, Condition cond = AL);
   void vcmpdz(DRegister dd, Condition cond = AL);
-  void vmstat(Condition cond = AL);  // VMRS APSR_nzcv, FPSCR
+  void vmrs(Register rd, Condition cond = AL);
+  void vmstat(Condition cond = AL);
 
   // Duplicates the operand of size sz at index idx from dm to all elements of
   // qd. This is a special case of vtbl.
@@ -627,6 +639,8 @@ class Assembler : public ValueObject {
   void Drop(intptr_t stack_elements);
 
   void LoadPoolPointer();
+
+  void LoadIsolate(Register rd);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void PushObject(const Object& object);
@@ -714,14 +728,19 @@ class Assembler : public ValueObject {
 
   // Convenience shift instructions. Use mov instruction with shifter operand
   // for variants setting the status flags.
-  void Lsl(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
+  void Lsl(Register rd, Register rm, const Operand& shift_imm,
+           Condition cond = AL);
   void Lsl(Register rd, Register rm, Register rs, Condition cond = AL);
-  void Lsr(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
+  void Lsr(Register rd, Register rm, const Operand& shift_imm,
+           Condition cond = AL);
   void Lsr(Register rd, Register rm, Register rs, Condition cond = AL);
-  void Asr(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
+  void Asr(Register rd, Register rm, const Operand& shift_imm,
+           Condition cond = AL);
   void Asr(Register rd, Register rm, Register rs, Condition cond = AL);
-  void Asrs(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
-  void Ror(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
+  void Asrs(Register rd, Register rm, const Operand& shift_imm,
+            Condition cond = AL);
+  void Ror(Register rd, Register rm, const Operand& shift_imm,
+           Condition cond = AL);
   void Ror(Register rd, Register rm, Register rs, Condition cond = AL);
   void Rrx(Register rd, Register rm, Condition cond = AL);
 
@@ -735,19 +754,19 @@ class Assembler : public ValueObject {
   void Vdivqs(QRegister qd, QRegister qn, QRegister qm);
 
   void SmiTag(Register reg, Condition cond = AL) {
-    Lsl(reg, reg, kSmiTagSize, cond);
+    Lsl(reg, reg, Operand(kSmiTagSize), cond);
   }
 
   void SmiTag(Register dst, Register src, Condition cond = AL) {
-    Lsl(dst, src, kSmiTagSize, cond);
+    Lsl(dst, src, Operand(kSmiTagSize), cond);
   }
 
   void SmiUntag(Register reg, Condition cond = AL) {
-    Asr(reg, reg, kSmiTagSize, cond);
+    Asr(reg, reg, Operand(kSmiTagSize), cond);
   }
 
   void SmiUntag(Register dst, Register src, Condition cond = AL) {
-    Asr(dst, src, kSmiTagSize, cond);
+    Asr(dst, src, Operand(kSmiTagSize), cond);
   }
 
   // Untag the value in the register assuming it is a smi.
@@ -756,7 +775,7 @@ class Assembler : public ValueObject {
   // Otherwise fall-through.
   void SmiUntag(Register dst, Register src, Label* is_smi) {
     ASSERT(kSmiTagSize == 1);
-    Asrs(dst, src, kSmiTagSize);
+    Asrs(dst, src, Operand(kSmiTagSize));
     b(is_smi, CC);
   }
 
@@ -797,14 +816,21 @@ class Assembler : public ValueObject {
     return TargetCPUFeatures::store_pc_read_offset();
   }
 
-  void UpdateAllocationStats(intptr_t cid,
-                             Register temp_reg,
-                             Heap::Space space);
-
-  void UpdateAllocationStatsWithSize(intptr_t cid,
-                                     Register size_reg,
-                                     Register temp_reg,
-                                     Heap::Space space);
+  // The register into which the allocation stats table is loaded with
+  // LoadAllocationStatsAddress should be passed to
+  // IncrementAllocationStats(WithSize) as stats_addr_reg to update the
+  // allocation stats. These are separate assembler macros so we can
+  // avoid a dependent load too nearby the load of the table address.
+  void LoadAllocationStatsAddress(Register dest,
+                                  intptr_t cid,
+                                  Heap::Space space);
+  void IncrementAllocationStats(Register stats_addr,
+                                intptr_t cid,
+                                Heap::Space space);
+  void IncrementAllocationStatsWithSize(Register stats_addr_reg,
+                                        Register size_reg,
+                                        intptr_t cid,
+                                        Heap::Space space);
 
   Address ElementAddressForIntIndex(bool is_load,
                                     bool is_external,
@@ -859,6 +885,11 @@ class Assembler : public ValueObject {
   int32_t prologue_offset_;
 
   bool use_far_branches_;
+
+  // If you are thinking of using one or both of these instructions directly,
+  // instead LoadImmediate should probably be used.
+  void movw(Register rd, uint16_t imm16, Condition cond = AL);
+  void movt(Register rd, uint16_t imm16, Condition cond = AL);
 
   int32_t AddObject(const Object& obj);
   int32_t AddExternalLabel(const ExternalLabel* label);

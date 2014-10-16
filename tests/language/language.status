@@ -27,8 +27,10 @@ async_test/*: Skip
 async_control_structures_test: Skip
 await_test: Skip
 await_future_test: Skip
+await_nonfuture_test: Skip
 await_exceptions_test: Skip
 await_backwards_compatibility_test/*: Skip
+vm/optimized_await_regress_test: Skip
 
 [ $compiler == dart2dart]
 # Async/await not yet supported in dart2dart.
@@ -36,6 +38,7 @@ async_test/*: Skip
 async_control_structures_test: Skip
 await_test: Skip
 await_future_test: Skip
+await_nonfuture_test: Skip
 await_exceptions_test: Skip
 await_backwards_compatibility_test/*: Skip
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523
@@ -60,16 +63,11 @@ least_upper_bound_expansive_test/*: Fail, OK
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
-
+large_class_declaration_test: Skip # Issue 21343
 unicode_bom_test: Fail # Issue 16067
 
 [ $compiler == none && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
-
-[ $compiler == none && $unchecked ]
-# Only checked mode reports an error on type assignment
-# problems in compile time constants.
-type_check_const_function_typedef2_test/00: Fail, OK
 
 [ $compiler == none ]
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478

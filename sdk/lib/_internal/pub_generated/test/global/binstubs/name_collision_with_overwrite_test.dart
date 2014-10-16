@@ -1,8 +1,14 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
+
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 import 'utils.dart';
+
 main() {
   initConfig();
   integration("overwrites an existing binstub if --overwrite is passed", () {
@@ -15,6 +21,7 @@ main() {
         }
       }),
           d.dir("bin", [d.file("foo.dart", "main() => print('ok');")])]).create();
+
     d.dir("bar", [d.pubspec({
         "name": "bar",
         "executables": {
@@ -24,7 +31,9 @@ main() {
         }
       }),
           d.dir("bin", [d.file("bar.dart", "main() => print('ok');")])]).create();
+
     schedulePub(args: ["global", "activate", "-spath", "../foo"]);
+
     var pub =
         startPub(args: ["global", "activate", "-spath", "../bar", "--overwrite"]);
     pub.stdout.expect(
@@ -32,6 +41,7 @@ main() {
     pub.stderr.expect("Replaced collide1 previously installed from foo.");
     pub.stderr.expect("Replaced collide2 previously installed from foo.");
     pub.shouldExit();
+
     d.dir(
         cachePath,
         [

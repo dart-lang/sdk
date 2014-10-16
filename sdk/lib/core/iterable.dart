@@ -174,11 +174,11 @@ abstract class Iterable<E> {
   /**
    * Creates a [Set] containing the same elements as this iterable.
    *
-   * The returned `Set` will have the same `Set.length`
-   * as the `length` of this iterable,
-   * and its `Set.contains` will return the same result
-   * as the `contains` of this iterable.
-   * The order of the elements may be different.
+   * The set may contain fewer elements than the iterable,
+   * if the iterable contains the an element more than once,
+   * or it contains one or more elements that are equal.
+   * The order of the elements in the set is not guaranteed to be the same
+   * as for the iterable.
    */
   Set<E> toSet();
 

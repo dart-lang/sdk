@@ -1,6 +1,11 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS d.file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import '../serve/utils.dart';
+
 main() {
   initConfig();
   integration("doesn't support invalid environment type", () {
@@ -8,11 +13,13 @@ main() {
         "name": "myapp",
         "transformers": [{
             "\$dart2js": {
-              "environment": "foo"
+              "environment": "foo",
             }
           }]
       }), d.dir("web", [d.file("main.dart", "void main() {}")])]).create();
+
     var server = pubServe();
+    // Make a request first to trigger compilation.
     requestShould404("main.dart.js");
     server.stderr.expect(
         emitsLines(

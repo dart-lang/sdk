@@ -940,6 +940,7 @@ class Scanner {
       return firstToken;
     } finally {
       instrumentation.log2(2);
+      //Log if over 1ms
     }
   }
 
@@ -1177,6 +1178,7 @@ class Scanner {
     _tail = _tail.setNext(eofToken);
     if (_stackEnd >= 0) {
       _hasUnmatchedGroups = true;
+      // TODO(brianwilkerson) Fix the ungrouped tokens?
     }
   }
 

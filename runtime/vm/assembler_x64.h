@@ -185,12 +185,18 @@ class Address : public Operand {
     }
   }
 
+  // This addressing mode does not exist.
+  Address(Register base, Register r);
+
   Address(Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != RSP);  // Illegal addressing mode.
     SetModRM(0, RSP);
     SetSIB(scale, index, RBP);
     SetDisp32(disp);
   }
+
+  // This addressing mode does not exist.
+  Address(Register index, ScaleFactor scale, Register r);
 
   Address(Register base, Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != RSP);  // Illegal addressing mode.
@@ -208,6 +214,9 @@ class Address : public Operand {
     }
   }
 
+  // This addressing mode does not exist.
+  Address(Register base, Register index, ScaleFactor scale, Register r);
+
   Address(const Address& other) : Operand(other) { }
 
   Address& operator=(const Address& other) {
@@ -218,6 +227,9 @@ class Address : public Operand {
   static Address AddressBaseImm32(Register base, int32_t disp) {
     return Address(base, disp, true);
   }
+
+  // This addressing mode does not exist.
+  static Address AddressBaseImm32(Register base, Register r);
 
  private:
   Address(Register base, int32_t disp, bool fixed) {
@@ -236,8 +248,14 @@ class FieldAddress : public Address {
   FieldAddress(Register base, int32_t disp)
       : Address(base, disp - kHeapObjectTag) { }
 
+  // This addressing mode does not exist.
+  FieldAddress(Register base, Register r);
+
   FieldAddress(Register base, Register index, ScaleFactor scale, int32_t disp)
       : Address(base, index, scale, disp - kHeapObjectTag) { }
+
+  // This addressing mode does not exist.
+  FieldAddress(Register base, Register index, ScaleFactor scale, Register r);
 
   FieldAddress(const FieldAddress& other) : Address(other) { }
 
@@ -459,7 +477,8 @@ class Assembler : public ValueObject {
   void shufpd(XmmRegister dst, XmmRegister src, const Immediate& mask);
 
   void comisd(XmmRegister a, XmmRegister b);
-  void cvtsi2sd(XmmRegister a, Register b);
+  void cvtsi2sdq(XmmRegister a, Register b);
+  void cvtsi2sdl(XmmRegister a, Register b);
   void cvttsd2siq(Register dst, XmmRegister src);
 
   void cvtss2sd(XmmRegister dst, XmmRegister src);
@@ -527,31 +546,40 @@ class Assembler : public ValueObject {
   void XorImmediate(Register dst, const Immediate& imm, Register pp);
 
   void addl(Register dst, Register src);
-  void addl(const Address& address, const Immediate& imm);
+  void addl(Register dst, const Address& address);
+  void addl(const Address& address, Register src);
+  void adcl(Register dst, Register src);
+  void adcl(Register dst, const Immediate& imm);
+  void adcl(Register dst, const Address& address);
 
   void addq(Register dst, Register src);
-  void addq(Register reg, const Immediate& imm);
-  void addq(Register reg, const Address& address);
+  void addq(Register dst, const Immediate& imm);
+  void addq(Register dst, const Address& address);
   void addq(const Address& address, const Immediate& imm);
-  void addq(const Address& address, Register reg);
-
-  void adcl(Register dst, Register src);
-
-  void subl(Register dst, Register src);
+  void addq(const Address& address, Register src);
 
   void cdq();
   void cqo();
 
   void idivl(Register reg);
+  void divl(Register reg);
+
   void idivq(Register reg);
 
   void imull(Register dst, Register src);
   void imull(Register reg, const Immediate& imm);
+  void mull(Register reg);
 
   void imulq(Register dst, Register src);
   void imulq(Register dst, const Address& address);
   void imulq(Register dst, const Immediate& imm);
   void MulImmediate(Register reg, const Immediate& imm, Register pp);
+
+  void subl(Register dst, Register src);
+  void subl(Register dst, const Address& address);
+  void sbbl(Register dst, Register src);
+  void sbbl(Register dst, const Immediate& imm);
+  void sbbl(Register dst, const Address& address);
 
   void subq(Register dst, Register src);
   void subq(Register reg, const Immediate& imm);
@@ -565,6 +593,7 @@ class Assembler : public ValueObject {
   void shrl(Register operand, Register shifter);
   void sarl(Register reg, const Immediate& imm);
   void sarl(Register operand, Register shifter);
+  void shldl(Register dst, Register src, const Immediate& imm);
 
   void shlq(Register reg, const Immediate& imm);
   void shlq(Register operand, Register shifter);
@@ -698,6 +727,7 @@ class Assembler : public ValueObject {
   bool CanLoadImmediateFromPool(const Immediate& imm, Register pp);
   void LoadImmediate(Register reg, const Immediate& imm, Register pp);
   void LoadImmediate(const Address& dst, const Immediate& imm, Register pp);
+  void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj, Register pp);
   void JmpPatchable(const ExternalLabel* label, Register pp);
   void Jmp(const ExternalLabel* label, Register pp);
@@ -753,9 +783,9 @@ class Assembler : public ValueObject {
    */
   void LoadClassId(Register result, Register object);
 
-  void LoadClassById(Register result, Register class_id);
+  void LoadClassById(Register result, Register class_id, Register pp);
 
-  void LoadClass(Register result, Register object);
+  void LoadClass(Register result, Register object, Register pp);
 
   void CompareClassId(Register object, intptr_t class_id);
 
@@ -1013,7 +1043,6 @@ class Assembler : public ValueObject {
   inline void EmitInt64(int64_t value);
 
   inline void EmitRegisterREX(Register reg, uint8_t rex);
-  inline void EmitRegisterOperand(int rm, int reg);
   inline void EmitOperandREX(int rm, const Operand& operand, uint8_t rex);
   inline void EmitXmmRegisterOperand(int rm, XmmRegister reg);
   inline void EmitFixup(AssemblerFixup* fixup);

@@ -1,7 +1,13 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS d.file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library pub_tests;
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import '../serve/utils.dart';
+
 const TRANSFORMER = """
 import 'dart:async';
 
@@ -22,6 +28,7 @@ class RewriteTransformer extends Transformer {
   }
 }
 """;
+
 main() {
   initConfig();
   withBarbackVersions("any", () {
@@ -32,7 +39,9 @@ main() {
         }),
             d.dir("lib", [d.dir("src", [d.file("transformer.dart", TRANSFORMER)])]),
             d.dir("web", [d.file("foo.txt", "foo")])]).create();
+
       createLockFile('myapp', pkg: ['barback']);
+
       pubServe();
       requestShouldSucceed("foo.out", "[[102, 111, 111]].out");
       endPubServe();

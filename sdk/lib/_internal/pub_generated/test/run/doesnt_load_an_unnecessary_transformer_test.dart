@@ -1,6 +1,11 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import '../serve/utils.dart';
+
 const TRANSFORMER = """
 import 'dart:async';
 
@@ -16,6 +21,7 @@ class BrokenTransformer extends Transformer {
   void apply(Transform transform) {}
 }
 """;
+
 main() {
   initConfig();
   withBarbackVersions("any", () {
@@ -34,7 +40,12 @@ main() {
                     d.file("myapp.dart", ""),
                     d.dir("src", [d.file("transformer.dart", TRANSFORMER)])]),
             d.dir("bin", [d.file("hi.dart", "void main() => print('Hello!');")])]).create();
+
       createLockFile('myapp', pkg: ['barback']);
+
+      // This shouldn't load the transformer, since it doesn't transform
+      // anything that the entrypoint imports. If it did load the transformer,
+      // we'd know since it would throw an exception.
       var pub = pubRun(args: ["hi"]);
       pub.stdout.expect("Hello!");
       pub.shouldExit();

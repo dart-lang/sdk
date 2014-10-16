@@ -137,9 +137,14 @@ Future<List<String>> testStringifier(String code,
 /// returns the resulting definitions.
 List<FunctionDefinition> testUnstringifier(List<String> sexprs) {
   return sexprs.map((String sexpr) {
-    final function = new SExpressionUnstringifier().unstringify(sexpr);
-    Expect.isNotNull(function, "Unstringification failed:\n\n$sexpr");
-    return function;
+    try {
+      final function = new SExpressionUnstringifier().unstringify(sexpr);
+      Expect.isNotNull(function, "Unstringification failed:\n\n$sexpr");
+      return function;
+    } catch (e, s) {
+      print('$e\n$s');
+      Expect.fail('Error unstringifying "$sexpr": $e');
+    }
   }).toList();
 }
 

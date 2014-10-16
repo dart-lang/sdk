@@ -3734,7 +3734,7 @@ window.PolymerGestures = {};
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
 Polymer = {
-  version: '0.4.1-d61654b'
+  version: '0.4.2-8c339cf'
 };
 
 /*
@@ -3815,17 +3815,18 @@ if (!window.Platform) {
 
 (function(scope) {
 
-var hasNative = ('import' in document.createElement('link'));
+var IMPORT_LINK_TYPE = 'import';
+var hasNative = (IMPORT_LINK_TYPE in document.createElement('link'));
 var useNative = hasNative;
-
-isIE = /Trident/.test(navigator.userAgent);
+var isIE = /Trident/.test(navigator.userAgent);
 
 // TODO(sorvell): SD polyfill intrusion
 var hasShadowDOMPolyfill = Boolean(window.ShadowDOMPolyfill);
 var wrap = function(node) {
   return hasShadowDOMPolyfill ? ShadowDOMPolyfill.wrapIfNeeded(node) : node;
 };
-var mainDoc = wrap(document);
+
+var rootDocument = wrap(document);
     
 // NOTE: We cannot polyfill document.currentScript because it's not possible
 // both to override and maintain the ability to capture the native value;
@@ -3845,14 +3846,14 @@ var currentScriptDescriptor = {
 };
 
 Object.defineProperty(document, '_currentScript', currentScriptDescriptor);
-Object.defineProperty(mainDoc, '_currentScript', currentScriptDescriptor);
+Object.defineProperty(rootDocument, '_currentScript', currentScriptDescriptor);
 
 // call a callback when all HTMLImports in the document at call (or at least
 //  document ready) time have loaded.
 // 1. ensure the document is in a ready state (has dom), then 
 // 2. watch for loading of imports and call callback when done
-function whenImportsReady(callback, doc) {
-  doc = doc || mainDoc;
+function whenReady(callback, doc) {
+  doc = doc || rootDocument;
   // if document is loading, wait and try again
   whenDocumentReady(function() {
     watchImportsLoad(callback, doc);
@@ -3892,8 +3893,8 @@ function watchImportsLoad(callback, doc) {
   var imports = doc.querySelectorAll('link[rel=import]');
   var loaded = 0, l = imports.length;
   function checkDone(d) { 
-    if (loaded == l) {
-      callback && callback();
+    if ((loaded == l) && callback) {
+       callback();
     }
   }
   function loadedImport(e) {
@@ -3986,10 +3987,10 @@ if (useNative) {
 // have loaded. This event is required to simulate the script blocking 
 // behavior of native imports. A main document script that needs to be sure
 // imports have loaded should wait for this event.
-whenImportsReady(function() {
+whenReady(function() {
   HTMLImports.ready = true;
   HTMLImports.readyTime = new Date().getTime();
-  mainDoc.dispatchEvent(
+  rootDocument.dispatchEvent(
     new CustomEvent('HTMLImportsLoaded', {bubbles: true})
   );
 });
@@ -3997,11 +3998,10 @@ whenImportsReady(function() {
 // exports
 scope.useNative = useNative;
 scope.isImportLoaded = isImportLoaded;
-scope.whenReady = whenImportsReady;
+scope.whenReady = whenReady;
+scope.rootDocument = rootDocument;
+scope.IMPORT_LINK_TYPE = IMPORT_LINK_TYPE;
 scope.isIE = isIE;
-
-// deprecated
-scope.whenImportsReady = whenImportsReady;
 
 })(window.HTMLImports);
 /*
@@ -9404,7 +9404,7 @@ scope.styleResolver = styleResolver;
         throw 'Element name could not be inferred.';
       }
     }
-    if (getRegisteredPrototype[name]) {
+    if (getRegisteredPrototype(name)) {
       throw 'Already registered (Polymer) prototype for element ' + name;
     }
     // cache the prototype
@@ -10676,7 +10676,7 @@ scope.api.declaration.path = path;
   function whenReady(callback) {
     queue.waitToReady = true;
     Platform.endOfMicrotask(function() {
-      HTMLImports.whenImportsReady(function() {
+      HTMLImports.whenReady(function() {
         queue.addReadyCallback(callback);
         queue.waitToReady = false;
         queue.check();

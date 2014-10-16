@@ -65,6 +65,11 @@ class MemoryResourceProvider implements ResourceProvider {
     return resource;
   }
 
+  @override
+  Folder getStateLocation(String pluginId) {
+    return newFolder('/user/home/$pluginId');
+  }
+
   void modifyFile(String path, String content) {
     _checkFileAtPath(path);
     _pathToContent[path] = content;

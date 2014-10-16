@@ -152,6 +152,21 @@ void main() {
       }, [
         'warning: ${MISSING_INIT_POLYMER.snippet}',
       ]);
+
+    _testLinter('dart_support unnecessary', {
+        'a|web/test.html': '<!DOCTYPE html><html>'
+            '<script src="packages/web_components/dart_support.js"></script>'
+            '<link rel="import" href="../../packages/polymer/polymer.html">'
+            '<polymer-element name="x-a"></polymer-element>'
+            '<script type="application/dart" src="foo.dart">'
+            '</script>'
+            '<script src="packages/browser/dart.js"></script>'
+            '</html>',
+      }, [
+        'warning: ${DART_SUPPORT_NO_LONGER_REQUIRED.snippet} '
+        '(web/test.html 0 21)'
+      ]);
+
   });
 
   group('single script tag per document', () {

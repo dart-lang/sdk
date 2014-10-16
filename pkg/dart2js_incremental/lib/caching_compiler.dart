@@ -85,14 +85,17 @@ Future<Compiler> reuseCompiler(
         ..compilationFailed = false;
     JavaScriptBackend backend = compiler.backend;
 
-    backend.emitter.oldEmitter.cachedElements.addAll(
-        backend.generatedCode.keys);
+    // TODO(ahe): Seems this cache only serves to tell
+    // [OldEmitter.invalidateCaches] if it was invoked on a full compile (in
+    // which case nothing should be invalidated), or if it is an incremental
+    // compilation (in which case, holders/owners of newly compiled methods
+    // must be invalidated).
+    backend.emitter.oldEmitter.cachedElements.add(null);
 
     compiler.enqueuer.codegen.newlyEnqueuedElements.clear();
 
     backend.emitter.oldEmitter.containerBuilder
-        ..staticGetters.clear()
-        ..methodClosures.clear();
+        ..staticGetters.clear();
 
     backend.emitter.oldEmitter.nsmEmitter
         ..trivialNsmHandlers.clear();
@@ -105,7 +108,7 @@ Future<Compiler> reuseCompiler(
         ..rtiNeededClasses.clear()
         ..cachedClassesUsingTypeVariableTests = null;
 
-    backend.emitter.interceptorEmitter
+    backend.emitter.oldEmitter.interceptorEmitter
         ..interceptorInvocationNames.clear();
 
     backend.emitter.oldEmitter.metadataEmitter
@@ -117,9 +120,7 @@ Future<Compiler> reuseCompiler(
         ..nativeClasses.clear()
         ..nativeMethods.clear();
 
-    backend.emitter
-        ..readTypeVariables.clear()
-        ..instantiatedClasses = null;
+    backend.emitter.readTypeVariables.clear();
 
     backend.emitter.oldEmitter
         ..outputBuffers.clear()

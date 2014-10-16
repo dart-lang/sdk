@@ -1,13 +1,22 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library lock_file_test;
+
 import 'package:unittest/unittest.dart';
+
 import '../lib/src/ascii_tree.dart' as tree;
 import '../lib/src/utils.dart';
+
 main() {
   runningAsTest = true;
+
   group('tree.fromFiles', () {
     test('no files', () {
       expect(tree.fromFiles([]), equals(""));
     });
+
     test('up to ten files in one directory are shown', () {
       var files = [
           "dir/a.dart",
@@ -34,6 +43,7 @@ main() {
     '-- j.dart
 """));
     });
+
     test('files are elided if there are more than ten', () {
       var files = [
           "dir/a.dart",
@@ -58,6 +68,7 @@ main() {
     '-- k.dart
 """));
     });
+
     test('files are not elided at the top level', () {
       var files = [
           "a.dart",
@@ -85,6 +96,7 @@ main() {
 '-- k.dart
 """));
     });
+
     test('a complex example', () {
       var files = [
           "TODO",
@@ -108,6 +120,7 @@ main() {
           "test/all_test.dart",
           "test/path_posix_test.dart",
           "test/path_windows_test.dart"];
+
       expect(tree.fromFiles(files), equals("""
 |-- .gitignore
 |-- README.md
@@ -131,10 +144,12 @@ main() {
 """));
     });
   });
+
   group('treeFromMap', () {
     test('empty map', () {
       expect(tree.fromMap({}), equals(""));
     });
+
     test('a complex example', () {
       var map = {
         ".gitignore": {},
@@ -145,7 +160,7 @@ main() {
           "main.dart": {},
           "web copy": {
             "web_example.dart": {}
-          }
+          },
         },
         "lib": {
           "path.dart": {}
@@ -164,6 +179,7 @@ main() {
           "split_test.dart": {}
         }
       };
+
       expect(tree.fromMap(map), equals("""
 |-- .gitignore
 |-- README.md
@@ -190,6 +206,7 @@ main() {
 """));
     });
   });
+
   test('does not elide children if showAllChildren is true', () {
     var map = {
       'dir': {
@@ -204,7 +221,7 @@ main() {
         'i.dart': {},
         'j.dart': {},
         'k.dart': {},
-        'l.dart': {}
+        'l.dart': {},
       }
     };
     expect(tree.fromMap(map, showAllChildren: true), equals("""
@@ -223,4 +240,5 @@ main() {
     '-- l.dart
 """));
   });
+
 }

@@ -365,8 +365,10 @@ class MockDeferredLoadTask extends DeferredLoadTask {
   }
 }
 
-api.DiagnosticHandler createHandler(MockCompiler compiler, String text) {
+api.DiagnosticHandler createHandler(MockCompiler compiler, String text,
+                                    {bool verbose: false}) {
   return (uri, int begin, int end, String message, kind) {
+    if (kind == api.Diagnostic.VERBOSE_INFO && !verbose) return;
     SourceFile sourceFile;
     if (uri == null) {
       sourceFile = new StringSourceFile('analysis', text);
@@ -374,7 +376,7 @@ api.DiagnosticHandler createHandler(MockCompiler compiler, String text) {
       sourceFile = compiler.sourceFiles[uri.toString()];
     }
     if (sourceFile != null && begin != null && end != null) {
-      print(sourceFile.getLocationMessage(message, begin, end, true, (x) => x));
+      print(sourceFile.getLocationMessage(message, begin, end));
     } else {
       print(message);
     }

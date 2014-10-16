@@ -166,6 +166,37 @@ class AccessSemantics {
    * the case of a read-modify-write operation (e.g. "+=").
    */
   bool get isWrite => identifier.inSetterContext();
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('AccessSemantics[');
+    sb.write('kind=$kind,');
+    if (isRead && isWrite) {
+      assert(!isInvoke);
+      sb.write('read/write,');
+    } else if (isRead) {
+      sb.write('read,');
+    } else if (isWrite) {
+      sb.write('write,');
+    } else if (isInvoke) {
+      sb.write('call,');
+    }
+    if (element != null) {
+      sb.write('element=');
+      if (classElement != null) {
+        sb.write('${classElement.name}.');
+      }
+      sb.write('${element}');
+    } else {
+      if (target == null) {
+        sb.write('target=this.$identifier');
+      } else {
+        sb.write('target=$target.$identifier');
+      }
+    }
+    sb.write(']');
+    return sb.toString();
+  }
 }
 
 /**

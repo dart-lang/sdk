@@ -54,17 +54,21 @@ Middleware createMiddleware({requestHandler(Request request),
 
   if (responseHandler == null) responseHandler = (response) => response;
 
+  var onError = null;
+  if (errorHandler != null) {
+    onError = (error, stackTrace) {
+      if (error is HijackException) throw error;
+      return errorHandler(error, stackTrace);
+    };
+  }
+
   return (Handler innerHandler) {
     return (request) {
       return syncFuture(() => requestHandler(request)).then((response) {
         if (response != null) return response;
 
         return syncFuture(() => innerHandler(request))
-            .then((response) => responseHandler(response),
-                onError: (error, stackTrace) {
-          if (error is HijackException) throw error;
-          return errorHandler(error, stackTrace);
-        });
+            .then((response) => responseHandler(response), onError: onError);
       });
     };
   };

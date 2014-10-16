@@ -1,5 +1,10 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
+
 const TRANSFORMER = """
 import 'dart:async';
 
@@ -19,6 +24,7 @@ class DartTransformer extends Transformer {
   }
 }
 """;
+
 main() {
   initConfig();
   integration(
@@ -26,6 +32,7 @@ main() {
       () {
     servePackages((builder) {
       builder.serveRepoPackage("barback");
+
       builder.serve("foo", "1.0.0", deps: {
         "barback": "any"
       }, pubspec: {
@@ -39,10 +46,15 @@ main() {
                           "src",
                           [d.file("transformer.dart", TRANSFORMER), d.file("primary.in", "")])])]);
     });
+
     schedulePub(args: ["global", "activate", "foo"]);
+
+    // By default it should run in release mode.
     var pub = pubRun(global: true, args: ["foo:script"]);
     pub.stdout.expect("release");
     pub.shouldExit();
+
+    // A custom mode should be specifiable.
     pub = pubRun(global: true, args: ["--mode", "custom-mode", "foo:script"]);
     pub.stdout.expect("custom-mode");
     pub.shouldExit();

@@ -9,14 +9,13 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   factory $CLASSNAME(String type,
       {Window view, bool canBubble: true, bool cancelable: true,
       int keyLocation: 1, bool ctrlKey: false,
-      bool altKey: false, bool shiftKey: false, bool metaKey: false,
-      bool altGraphKey: false}) {
+      bool altKey: false, bool shiftKey: false, bool metaKey: false}) {
     if (view == null) {
       view = window;
     }
     final e = document._createEvent("KeyboardEvent");
     e._initKeyboardEvent(type, canBubble, cancelable, view, "",
-        keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
+        keyLocation, ctrlKey, altKey, shiftKey, metaKey);
     return e;
   }
 
