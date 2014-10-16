@@ -11903,8 +11903,9 @@ class ResolutionState {
   Source _librarySource;
 
   /**
-   * A table mapping data descriptors to the cached results for those
-   * descriptors.
+   * A table mapping descriptors to the cached results for those descriptors.
+   * If there is no entry for a given descriptor then the state is implicitly
+   * [CacheState.INVALID] and the value is implicitly the default value.
    */
   Map<DataDescriptor, CachedResult> resultMap
       = new HashMap<DataDescriptor, CachedResult>();
@@ -12027,16 +12028,20 @@ class ResolutionState {
     if (state == CacheState.VALID) {
       throw new ArgumentError("use setValue() to set the state to VALID");
     }
-    CachedResult result = resultMap.putIfAbsent(
-        descriptor,
-        () => new CachedResult(descriptor));
-    result.state = state;
-    if (state != CacheState.IN_PROCESS) {
-      //
-      // If the state is in-process, we can leave the current value in the cache
-      // for any 'get' methods to access.
-      //
-      result.value = descriptor.defaultValue;
+    if (state == CacheState.INVALID) {
+      resultMap.remove(descriptor);
+    } else {
+      CachedResult result = resultMap.putIfAbsent(
+          descriptor,
+          () => new CachedResult(descriptor));
+      result.state = state;
+      if (state != CacheState.IN_PROCESS) {
+        //
+        // If the state is in-process, we can leave the current value in the cache
+        // for any 'get' methods to access.
+        //
+        result.value = descriptor.defaultValue;
+      }
     }
   }
 
@@ -12132,7 +12137,7 @@ class ResolutionState {
     buffer.write("; ");
     buffer.write(label);
     buffer.write(" = ");
-    buffer.write(result == null ? "INVALID" : result.state);
+    buffer.write(result == null ? CacheState.INVALID : result.state);
   }
 }
 
@@ -13004,16 +13009,20 @@ abstract class SourceEntry {
       throw new ArgumentError("use setValue() to set the state to VALID");
     }
     _validateStateChange(descriptor, state);
-    CachedResult result = resultMap.putIfAbsent(
-        descriptor,
-        () => new CachedResult(descriptor));
-    result.state = state;
-    if (state != CacheState.IN_PROCESS) {
-      //
-      // If the state is in-process, we can leave the current value in the cache
-      // for any 'get' methods to access.
-      //
-      result.value = descriptor.defaultValue;
+    if (state == CacheState.INVALID) {
+      resultMap.remove(descriptor);
+    } else {
+      CachedResult result = resultMap.putIfAbsent(
+          descriptor,
+          () => new CachedResult(descriptor));
+      result.state = state;
+      if (state != CacheState.IN_PROCESS) {
+        //
+        // If the state is in-process, we can leave the current value in the cache
+        // for any 'get' methods to access.
+        //
+        result.value = descriptor.defaultValue;
+      }
     }
   }
 
@@ -13156,7 +13165,7 @@ abstract class SourceEntry {
     buffer.write("; ");
     buffer.write(label);
     buffer.write(" = ");
-    buffer.write(result == null ? "INVALID" : result.state);
+    buffer.write(result == null ? CacheState.INVALID : result.state);
   }
 
   /**
