@@ -10,6 +10,7 @@ import 'package:analysis_server/src/protocol.dart' as protocol show Element,
     ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -104,72 +105,12 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   @override
   visitClassDeclaration(ClassDeclaration node) {
     _addClassDeclarationMembers(node);
-    _addInheritedTypeMembers(node);
+    visitInheritedTypes(node, (ClassDeclaration classNode) {
+      _addClassDeclarationMembers(classNode);
+    }, (String typeName) {
+      // ignored
+    });
     visitNode(node);
-  }
-
-  void _addInheritedTypeMembers(ClassDeclaration node) {
-    ExtendsClause extendsClause = node.extendsClause;
-    if (extendsClause != null) {
-      _addLocalTypeMembers(extendsClause.superclass, node);
-    }
-    ImplementsClause implementsClause = node.implementsClause;
-    if (implementsClause != null) {
-      NodeList<TypeName> interfaces = implementsClause.interfaces;
-      if (interfaces != null) {
-        interfaces.forEach((TypeName type) {
-          _addLocalTypeMembers(type, node);
-        });
-      }
-    }
-    WithClause withClause = node.withClause;
-    if (withClause != null) {
-      NodeList<TypeName> mixinTypes = withClause.mixinTypes;
-      if (mixinTypes != null) {
-        mixinTypes.forEach((TypeName type) {
-          _addLocalTypeMembers(type, node);
-        });
-      }
-    }
-  }
-
-  void _addLocalTypeMembers(TypeName type, ClassDeclaration node) {
-    if (type == null) {
-      return;
-    }
-    Identifier typeId = type.name;
-    if (typeId == null) {
-      return;
-    }
-    String typeName = typeId.name;
-    if (typeName == null || typeName.length == 0) {
-      return;
-    }
-    CompilationUnit unit = node.getAncestor((p) => p is CompilationUnit);
-    if (unit == null) {
-      return;
-    }
-    unit.declarations.forEach((CompilationUnitMember m) {
-      if (m is ClassDeclaration) {
-        SimpleIdentifier id = m.name;
-        if (id != null) {
-          if (id.name == typeName) {
-            _addClassDeclarationMembers(m);
-            _addInheritedTypeMembers(m);
-          }
-        }
-      }
-    });
-  }
-
-  void _addClassDeclarationMembers(ClassDeclaration node) {
-    node.members.forEach((ClassMember classMbr) {
-      if (classMbr is FieldDeclaration) {
-        _addFieldSuggestions(node, classMbr);
-      } else if (classMbr is MethodDeclaration) {
-        _addMethodSuggestion(node, classMbr);
-      }
-    });
   }
 
   @override
@@ -320,6 +261,16 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
         request.offset > name.end) {
       visitNode(node);
     }
+  }
+
+  void _addClassDeclarationMembers(ClassDeclaration node) {
+    node.members.forEach((ClassMember classMbr) {
+      if (classMbr is FieldDeclaration) {
+        _addFieldSuggestions(node, classMbr);
+      } else if (classMbr is MethodDeclaration) {
+        _addMethodSuggestion(node, classMbr);
+      }
+    });
   }
 
   void _addClassSuggestion(ClassDeclaration declaration) {

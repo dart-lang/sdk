@@ -679,6 +679,32 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_Block_inherited_imported() {
+    // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
+    addSource('/testB.dart', '''
+      lib B;
+      class F { var f1; f2() { } }
+      class E extends F { var e1; e2() { } }
+      class I { int i1; i2() { } }
+      class M { var m1; int m2() { } }''');
+    addTestSource('''
+      import "/testB.dart";
+      class A extends E implements I with M {a() {^}}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestImportedGetter('e1', null);
+      assertSuggestImportedGetter('f1', null);
+      assertSuggestImportedGetter('i1', 'int');
+      assertSuggestImportedGetter('m1', null);
+      //TODO (danrubel) include declared type in suggestion
+      assertSuggestImportedMethod('e2', null, null);
+      assertSuggestImportedMethod('f2', null, null);
+      assertSuggestImportedMethod('i2', null, null);
+      //assertSuggestImportedMethod('m2', null, null);
+      assertNotSuggested('==');
+    });
+  }
+
   test_Block_inherited_local() {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addTestSource('''
