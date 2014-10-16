@@ -58,7 +58,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     // InvocationComputer makes selector suggestions
     Expression target = node.target;
     if (target != null && request.offset <= target.end) {
-      return _addImportedElementSuggestions(node);
+      return _addImportedElementSuggestions(node, excludeVoidReturn: true);
     }
     return new Future.value(false);
   }
@@ -80,7 +80,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
 
   @override
   Future<bool> visitExpression(Expression node) {
-    return _addImportedElementSuggestions(node);
+    return _addImportedElementSuggestions(node, excludeVoidReturn: true);
   }
 
   @override
@@ -109,7 +109,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     if (leftParen != null && request.offset >= leftParen.end) {
       Token rightParen = node.rightParenthesis;
       if (rightParen == null || request.offset <= rightParen.offset) {
-        return _addImportedElementSuggestions(node);
+        return _addImportedElementSuggestions(node, excludeVoidReturn: true);
       }
     }
     return new Future.value(false);
@@ -119,7 +119,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   Future<bool> visitInterpolationExpression(InterpolationExpression node) {
     Expression expression = node.expression;
     if (expression is SimpleIdentifier) {
-      return _addImportedElementSuggestions(node);
+      return _addImportedElementSuggestions(node, excludeVoidReturn: true);
     }
     return new Future.value(false);
   }
@@ -128,7 +128,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
   Future<bool> visitMethodInvocation(MethodInvocation node) {
     Token period = node.period;
     if (period == null || request.offset <= period.offset) {
-      return _addImportedElementSuggestions(node);
+      return _addImportedElementSuggestions(node, excludeVoidReturn: true);
     }
     return new Future.value(false);
   }
@@ -144,7 +144,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     // InvocationComputer makes selector suggestions
     Token period = node.period;
     if (period != null && request.offset <= period.offset) {
-      return _addImportedElementSuggestions(node);
+      return _addImportedElementSuggestions(node, excludeVoidReturn: true);
     }
     return new Future.value(false);
   }
@@ -155,7 +155,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     // InvocationComputer makes property name suggestions
     var operator = node.operator;
     if (operator != null && request.offset < operator.offset) {
-      return _addImportedElementSuggestions(node);
+      return _addImportedElementSuggestions(node, excludeVoidReturn: true);
     }
     return new Future.value(false);
   }
@@ -180,7 +180,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     Token equals = node.equals;
     // Make suggestions for the RHS of a variable declaration
     if (equals != null && request.offset >= equals.end) {
-      return _addImportedElementSuggestions(node);
+      return _addImportedElementSuggestions(node, excludeVoidReturn: true);
     }
     return new Future.value(false);
   }
@@ -196,12 +196,21 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     return new Future.value(false);
   }
 
-  void _addElementSuggestion(Element element, CompletionRelevance relevance) {
+  void _addElementSuggestion(Element element, bool typesOnly, bool excludeVoidReturn, CompletionRelevance relevance) {
 
     if (element is ExecutableElement) {
       if (element.isOperator) {
         return;
       }
+      if (excludeVoidReturn) {
+        DartType returnType = element.returnType;
+        if (returnType != null && returnType.isVoid) {
+          return;
+        }
+      }
+    }
+    if (typesOnly && element is! ClassElement) {
+      return;
     }
 
     CompletionSuggestionKind kind =
@@ -237,14 +246,14 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     request.suggestions.add(suggestion);
   }
 
-  void _addElementSuggestions(List<Element> elements) {
+  void _addElementSuggestions(List<Element> elements, bool typesOnly, bool excludeVoidReturn) {
     elements.forEach((Element elem) {
-      _addElementSuggestion(elem, CompletionRelevance.DEFAULT);
+      _addElementSuggestion(elem, typesOnly, excludeVoidReturn, CompletionRelevance.DEFAULT);
     });
   }
 
   Future<bool> _addImportedElementSuggestions(AstNode node, {bool typesOnly:
-      false}) {
+      false, bool excludeVoidReturn: false}) {
 
     // Exclude elements from local library
     // because they are provided by LocalComputer
@@ -264,10 +273,8 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
             importNamespace.definedNames.forEach((String name, Element elem) {
               if (elem is ClassElement) {
                 classMap[name] = elem;
-                _addElementSuggestion(elem, CompletionRelevance.DEFAULT);
-              } else if (!typesOnly) {
-                _addElementSuggestion(elem, CompletionRelevance.DEFAULT);
               }
+                _addElementSuggestion(elem, typesOnly, excludeVoidReturn, CompletionRelevance.DEFAULT);
             });
           } else {
             // Exclude elements from prefixed imports
@@ -287,10 +294,8 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     coreNamespace.definedNames.forEach((String name, Element elem) {
       if (elem is ClassElement) {
         classMap[name] = elem;
-        _addElementSuggestion(elem, CompletionRelevance.DEFAULT);
-      } else if (!typesOnly) {
-        _addElementSuggestion(elem, CompletionRelevance.DEFAULT);
       }
+        _addElementSuggestion(elem, typesOnly, excludeVoidReturn, CompletionRelevance.DEFAULT);
     });
 
     // Build a list of inherited types that are imported
@@ -308,12 +313,12 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
         String name = inheritedTypes.removeLast();
         ClassElement elem = classMap[name];
         if (visited.add(name) && elem != null) {
-          _addElementSuggestions(elem.accessors);
-          _addElementSuggestions(elem.methods);
+          _addElementSuggestions(elem.accessors, typesOnly, excludeVoidReturn);
+          _addElementSuggestions(elem.methods, typesOnly, excludeVoidReturn);
           elem.allSupertypes.forEach((InterfaceType type) {
             if (visited.add(type.name)) {
-              _addElementSuggestions(type.accessors);
-              _addElementSuggestions(type.methods);
+              _addElementSuggestions(type.accessors, typesOnly, excludeVoidReturn);
+              _addElementSuggestions(type.methods, typesOnly, excludeVoidReturn);
             }
           });
         }
@@ -334,7 +339,7 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
               !excludedLibs.contains(element.library) &&
               !completionSet.contains(element.displayName)) {
             if (!typesOnly || element is ClassElement) {
-              _addElementSuggestion(element, CompletionRelevance.LOW);
+              _addElementSuggestion(element, typesOnly, excludeVoidReturn, CompletionRelevance.LOW);
             }
           }
         }

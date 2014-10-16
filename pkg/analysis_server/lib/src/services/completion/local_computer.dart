@@ -59,8 +59,11 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
 
   final DartCompletionRequest request;
   bool typesOnly = false;
+  bool excludeVoidReturn;
 
-  _LocalVisitor(this.request);
+  _LocalVisitor(this.request) {
+    excludeVoidReturn = _computeExcludeVoidReturn(request.node);
+  }
 
   @override
   visitBlock(Block node) {
@@ -312,6 +315,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     if (typesOnly) {
       return;
     }
+    if (excludeVoidReturn && _isVoid(declaration.returnType)) {
+      return;
+    }
     CompletionSuggestion suggestion = _addSuggestion(
         declaration.name,
         CompletionSuggestionKind.FUNCTION,
@@ -353,9 +359,15 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       kind = protocol.ElementKind.GETTER;
       csKind = CompletionSuggestionKind.GETTER;
     } else if (classMbr.isSetter) {
+      if (excludeVoidReturn) {
+        return;
+      }
       kind = protocol.ElementKind.SETTER;
       csKind = CompletionSuggestionKind.SETTER;
     } else {
+      if (excludeVoidReturn && _isVoid(classMbr.returnType)) {
+        return;
+      }
       kind = protocol.ElementKind.METHOD;
       csKind = CompletionSuggestionKind.METHOD;
     }
@@ -468,6 +480,16 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
   }
 
+  bool _computeExcludeVoidReturn(AstNode node) {
+    if (node is Block) {
+      return false;
+    } else if (node is SimpleIdentifier) {
+      return node.parent is ExpressionStatement ? false : true;
+    } else {
+      return true;
+    }
+  }
+
   /**
    * Create a new protocol Element for inclusion in a completion suggestion.
    */
@@ -492,6 +514,16 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       metadata != null &&
           metadata.any(
               (Annotation a) => a.name is SimpleIdentifier && a.name.name == 'deprecated');
+
+  bool _isVoid(TypeName returnType) {
+    if (returnType != null) {
+      Identifier id = returnType.name;
+      if (id != null && id.name == 'void') {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Return the name for the given type.
