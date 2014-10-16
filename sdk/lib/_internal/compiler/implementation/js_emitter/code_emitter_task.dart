@@ -25,6 +25,16 @@ class CodeEmitterTask extends CompilerTask {
       new Map<OutputUnit, List<ClassElement>>();
   final Map<OutputUnit, List<ConstantValue>> outputConstantLists =
       new Map<OutputUnit, List<ConstantValue>>();
+  final Map<OutputUnit, List<Element>> outputStaticLists =
+      new Map<OutputUnit, List<Element>>();
+  final Map<OutputUnit, Set<LibraryElement>> outputLibraryLists =
+      new Map<OutputUnit, Set<LibraryElement>>();
+
+  /// True, if the output contains a constant list.
+  ///
+  /// This flag is updated in [computeNeededConstants].
+  bool outputContainsConstantList = false;
+
   final List<ClassElement> nativeClasses = <ClassElement>[];
 
   /// Records if a type variable is read dynamically for type tests.
@@ -163,6 +173,9 @@ class CodeEmitterTask extends CompilerTask {
         compiler.hasIncrementalSupport ? null : emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
+
+      if (constant.isList) outputContainsConstantList = true;
+
       OutputUnit constantUnit =
           compiler.deferredLoadTask.outputUnitForConstant(constant);
       if (constantUnit == null) {
@@ -286,6 +299,33 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
+  void computeNeededStatics() {
+    bool isStaticFunction(Element element) =>
+        !element.isInstanceMember && !element.isField;
+
+    Iterable<Element> elements =
+        backend.generatedCode.keys.where(isStaticFunction);
+
+    for (Element element in Elements.sortedByPosition(elements)) {
+      outputStaticLists.putIfAbsent(
+          compiler.deferredLoadTask.outputUnitForElement(element),
+          () => new List<Element>())
+          .add(element);
+    }
+  }
+
+  void computeNeededLibraries() {
+    void addSurroundingLibraryToSet(Element element) {
+      OutputUnit unit = compiler.deferredLoadTask.outputUnitForElement(element);
+      LibraryElement library = element.library;
+      outputLibraryLists.putIfAbsent(unit, () => new Set<LibraryElement>())
+          .add(library);
+    }
+
+    backend.generatedCode.keys.forEach(addSurroundingLibraryToSet);
+    neededClasses.forEach(addSurroundingLibraryToSet);
+}
+
   void assembleProgram() {
     measure(() {
       emitter.invalidateCaches();
@@ -296,6 +336,9 @@ class CodeEmitterTask extends CompilerTask {
 
       computeNeededDeclarations();
       computeNeededConstants();
+      computeNeededStatics();
+      computeNeededLibraries();
+
 
       Program program;
       if (USE_NEW_EMITTER) {
