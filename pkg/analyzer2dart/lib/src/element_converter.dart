@@ -147,4 +147,10 @@ class ElementConverterVisitor
     }
     return null;
   }
+
+  @override
+  dart2js.Element visitLocalVariableElement(
+      analyzer.LocalVariableElement input) {
+    return new LocalVariableElementY(converter, input);
+  }
 }

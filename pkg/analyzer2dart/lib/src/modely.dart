@@ -634,8 +634,20 @@ class TypedefElementY extends TypeDeclarationElementY
   get functionSignature => unsupported('functionSignature');
 }
 
+abstract class VariableElementMixin
+    implements ElementY, dart2js.VariableElement {
+  @override
+  get initializer => unsupported('initializer');
+
+  @override
+  get memberContext => unsupported('memberContext');
+}
+
 class TopLevelVariableElementY extends ElementY
-    with AnalyzableElementY, AstElementY, TopLevelElementMixin
+    with AnalyzableElementY,
+         AstElementY,
+         TopLevelElementMixin,
+         VariableElementMixin
     implements dart2js.FieldElement {
 
   analyzer.TopLevelVariableElement get element => super.element;
@@ -650,11 +662,30 @@ class TopLevelVariableElementY extends ElementY
       : super(converter, element);
 
   @override
-  get initializer => unsupported('initializer');
-
-  @override
-  get memberContext => unsupported('memberContext');
-
-  @override
   get nestedClosures => unsupported('nestedClosures');
+}
+
+class LocalVariableElementY extends ElementY
+    with AnalyzableElementY, AstElementY, VariableElementMixin
+    implements dart2js.LocalVariableElement {
+
+  analyzer.LocalVariableElement get element => super.element;
+
+  dart2js.ElementKind get kind => dart2js.ElementKind.VARIABLE;
+
+  @override
+  bool get isLocal => true;
+
+  @override
+  bool get isConst => element.isConst;
+
+  LocalVariableElementY(ElementConverter converter,
+                        analyzer.LocalVariableElement element)
+      : super(converter, element);
+
+  @override
+  get executableContext => unsupported('executableContext');
+
+  @override
+  dart2js.DartType get type => unsupported('type');
 }

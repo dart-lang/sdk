@@ -40,7 +40,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node> {
     // Visit the body directly to avoid processing the signature as expressions.
     node.functionExpression.body.accept(this);
     return irBuilder.buildFunctionDefinition(
-        converter.convertElement(function), const [], const []);
+        converter.convertElement(function), const []);
   }
 
   @override
@@ -119,6 +119,18 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node> {
   @override
   ir.Node visitParameterAccess(AstNode node, AccessSemantics semantics) {
     return handleLocalAccess(node, semantics);
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    // TODO(johnniwinther): Handle constant local variables.
+    ir.Node initialValue;
+    if (node.initializer != null) {
+      initialValue = node.initializer.accept(this);
+    }
+    irBuilder.declareLocalVariable(
+        converter.convertElement(node.element),
+        initialValue: initialValue);
   }
 
   ir.Primitive handleLocalAccess(AstNode node, AccessSemantics semantics) {

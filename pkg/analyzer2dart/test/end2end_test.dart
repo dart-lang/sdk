@@ -176,6 +176,28 @@ main(args) {
 }
 ''');
   });
+
+  test('Local variables', () {
+    checkResult('''
+main() {
+  var a;
+  return a;
+}
+''', '''
+main() {}
+''');
+
+    checkResult('''
+main() {
+  var a = 0;
+  return a;
+}
+''', '''
+main() {
+  return 0;
+}
+''');
+  });
 }
 
 checkResult(String input, [String expectedOutput]) {

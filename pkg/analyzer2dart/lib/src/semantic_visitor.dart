@@ -31,7 +31,7 @@ abstract class SemanticVisitor<R> extends RecursiveAstVisitor<R> {
     }
     if (!condition) {
       reportMessage(node, message);
-      throw new AssertionError();
+      return false;
     }
     return true;
   }

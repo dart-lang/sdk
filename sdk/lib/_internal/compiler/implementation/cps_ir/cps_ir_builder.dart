@@ -165,6 +165,8 @@ class Environment {
 
   ir.Primitive lookup(Element element) {
     assert(!element.isConst);
+    assert(invariant(element, variable2index.containsKey(element),
+                     message: "Unknown variable: $element."));
     return index2value[variable2index[element]];
   }
 
@@ -237,6 +239,8 @@ class IrBuilder {
   /// A map from variable indexes to their values.
   Environment environment = new Environment.empty();
 
+  List<ConstDeclaration> _localConstants = <ConstDeclaration>[];
+
   // The IR builder maintains a context, which is an expression with a hole in
   // it.  The hole represents the focus where new expressions can be added.
   // The context is implemented by 'root' which is the root of the expression
@@ -277,6 +281,33 @@ class IrBuilder {
       add(new ir.SetClosureVariable(parameterElement, parameter));
     } else {
       environment.extend(parameterElement, parameter);
+    }
+  }
+
+  void declareLocalConstant(LocalVariableElement variableElement,
+                            ConstantExpression value) {
+    _localConstants.add(new ConstDeclaration(variableElement, value));
+  }
+
+  void declareLocalVariable(LocalVariableElement variableElement,
+                            {ir.Primitive initialValue,
+                             bool isClosureVariable: false}) {
+    assert(isOpen);
+    if (initialValue == null) {
+      // TODO(kmillikin): Consider pooling constants.
+      // The initial value is null.
+      initialValue = makePrimConst(constantSystem.createNull());
+      add(new ir.LetPrim(initialValue));
+    }
+    if (isClosureVariable) {
+      add(new ir.SetClosureVariable(variableElement,
+                                    initialValue,
+                                    isDeclaration: true));
+    } else {
+      // In case a primitive was introduced for the initializer expression,
+      // use this variable element to help derive a good name for it.
+      initialValue.useElementAsHint(variableElement);
+      environment.extend(variableElement, initialValue);
     }
   }
 
@@ -378,17 +409,18 @@ class IrBuilder {
   /// [createParameter].
   ir.FunctionDefinition buildFunctionDefinition(
       FunctionElement element,
-      List<ConstDeclaration> constants,
       List<ConstantExpression> defaults) {
     if (!element.isAbstract) {
       ensureReturn();
       return new ir.FunctionDefinition(
-          element, returnContinuation, _parameters, _root, constants, defaults);
+          element, returnContinuation, _parameters, _root,
+          _localConstants, defaults);
     } else {
       assert(invariant(element, _root == null,
           message: "Non-empty body for abstract method $element: $_root"));
-      assert(invariant(element, constants.isEmpty,
-          message: "Local constants for abstract method $element: $constants"));
+      assert(invariant(element, _localConstants.isEmpty,
+          message: "Local constants for abstract method $element: "
+                   "$_localConstants"));
       return new ir.FunctionDefinition.abstract(
                 element, _parameters, defaults);
     }
@@ -453,8 +485,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
   /// A stack of collectors for continues.
   final List<JumpCollector> continueCollectors;
 
-  final List<ConstDeclaration> localConstants;
-
   FunctionElement currentFunction;
   final DetectClosureVariables closureLocals;
 
@@ -462,7 +492,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
   IrBuilderVisitor(TreeElements elements, this.compiler, this.sourceFile)
       : breakCollectors = <JumpCollector>[],
         continueCollectors = <JumpCollector>[],
-        localConstants = <ConstDeclaration>[],
         closureLocals = new DetectClosureVariables(elements),
         super(elements) {
     constantSystem = compiler.backend.constantSystem;
@@ -479,12 +508,12 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
         sourceFile = parent.sourceFile,
         breakCollectors = parent.breakCollectors,
         continueCollectors = parent.continueCollectors,
-        localConstants = parent.localConstants,
         currentFunction = parent.currentFunction,
         closureLocals = parent.closureLocals,
         super(parent.elements) {
     constantSystem = parent.constantSystem;
     returnContinuation = parent.returnContinuation;
+    _localConstants = parent._localConstants;
     environment = new Environment.from(parent.environment);
   }
 
@@ -501,12 +530,12 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
         sourceFile = parent.sourceFile,
         breakCollectors = parent.breakCollectors,
         continueCollectors = parent.continueCollectors,
-        localConstants = parent.localConstants,
         currentFunction = parent.currentFunction,
         closureLocals = parent.closureLocals,
         super(parent.elements) {
     constantSystem = parent.constantSystem;
     returnContinuation = parent.returnContinuation;
+    _localConstants = parent._localConstants;
     parent.environment.index2variable.forEach(createParameter);
   }
 
@@ -543,7 +572,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
     });
 
     visit(function.body);
-    return buildFunctionDefinition(element, localConstants, defaults);
+    return buildFunctionDefinition(element, defaults);
   }
 
   ir.Primitive visit(ast.Node node) => node.accept(this);
@@ -1141,7 +1170,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
         assert(definition.arguments.tail.isEmpty);
         VariableElement element = elements[definition];
         ConstantExpression value = getConstantForVariable(element);
-        localConstants.add(new ConstDeclaration(element, value));
+        declareLocalConstant(element, value);
       }
     } else {
       for (ast.Node definition in node.definitions.nodes) {
@@ -1155,21 +1184,10 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
           initialValue = visit(definition.arguments.head);
         } else {
           assert(definition is ast.Identifier);
-          // The initial value is null.
-          // TODO(kmillikin): Consider pooling constants.
-          initialValue = makePrimConst(constantSystem.createNull());
-          add(new ir.LetPrim(initialValue));
         }
-        if (isClosureVariable(element)) {
-          LocalElement local = element;
-          add(new ir.SetClosureVariable(local, initialValue,
-                                        isDeclaration: true));
-        } else {
-          // In case a primitive was introduced for the initializer expression,
-          // use this variable element to help derive a good name for it.
-          initialValue.useElementAsHint(element);
-          environment.extend(element, initialValue);
-        }
+        declareLocalVariable(element,
+                             initialValue: initialValue,
+                             isClosureVariable: isClosureVariable(element));
       }
     }
     return null;
