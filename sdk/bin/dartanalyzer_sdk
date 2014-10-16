@@ -1,0 +1,31 @@
+#!/bin/bash
+# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Run dartanalyzer.dart on the Dart VM. This script assumes the Dart SDK's
+# directory structure.
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
+
+SDK_ARG="--dart-sdk=$SDK_DIR"
+
+SNAPSHOT="$BIN_DIR/snapshots/dartanalyzer.dart.snapshot"
+
+# We are running the snapshot in the built SDK.
+DART="$BIN_DIR/dart"
+exec "$DART" "$SNAPSHOT" "$SDK_ARG" "$@"

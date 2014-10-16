@@ -392,5 +392,24 @@ class DartBasedAnalyzerCompilerConfiguration
           'dart2analyzer', isDebug: isDebug, isChecked: isChecked,
           isHostChecked: isHostChecked, useSdk: useSdk);
 
-  String computeCompilerPath(String buildDir) => 'editor/tools/analyzer';
+  String computeCompilerPath(String buildDir) {
+    var prefix = 'sdk/bin';
+    String suffix = executableScriptSuffix;
+    if (isHostChecked) {
+      if (useSdk) {
+        throw "--host-checked and --use-sdk cannot be used together";
+      }
+      // The script dartanalyzer_developer is not included in the
+      // shipped SDK, that is the script is not installed in
+      // "$buildDir/dart-sdk/bin/"
+      // TODO(paulberry): the script dartanalyzer_developer currently
+      // points to the wrong place (the Java-based analyzer).  Once
+      // this is fixed, we should run dartanalyzer_developer when in
+      // isHostChecked mode.
+    }
+    if (useSdk) {
+      prefix = '$buildDir/dart-sdk/bin';
+    }
+    return '$prefix/dartanalyzer$suffix';
+  }
 }

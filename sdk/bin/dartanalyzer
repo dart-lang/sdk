@@ -3,7 +3,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Run dartanalyzer.dart on the Dart VM. This script assumes the Dart SDK's
+# Run dartanalyzer.dart on the Dart VM. This script assumes the Dart repo's
 # directory structure.
 
 function follow_links() {
@@ -24,8 +24,38 @@ SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
 
 SDK_ARG="--dart-sdk=$SDK_DIR"
 
-SNAPSHOT="$BIN_DIR/snapshots/dartanalyzer.dart.snapshot"
-
-# We are running the snapshot in the built SDK.
 DART="$BIN_DIR/dart"
-exec "$DART" "$SNAPSHOT" "$SDK_ARG" "$@"
+
+unset EXTRA_VM_OPTIONS
+declare -a EXTRA_VM_OPTIONS
+
+case $0 in
+  *_developer)
+    EXTRA_VM_OPTIONS+=('--checked')
+    ;;
+esac
+
+# We allow extra vm options to be passed in through an environment variable.
+if [[ $DART_VM_OPTIONS ]]; then
+  read -a OPTIONS <<< "$DART_VM_OPTIONS"
+  EXTRA_VM_OPTIONS+=("${OPTIONS[@]}")
+fi
+
+DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
+
+ANALYZER="$DART_ROOT/pkg/analyzer/bin/analyzer.dart"
+
+if [ -z "$DART_CONFIGURATION" ];
+then
+  DART_CONFIGURATION="ReleaseIA32"
+fi
+
+if [[ `uname` == 'Darwin' ]]; then
+  BUILD_DIR="$DART_ROOT/xcodebuild/$DART_CONFIGURATION"
+else
+  BUILD_DIR="$DART_ROOT/out/$DART_CONFIGURATION"
+fi
+
+PACKAGE_ROOT="$BUILD_DIR/packages/"
+
+exec "$DART" "${EXTRA_VM_OPTIONS[@]}" "--package-root=$PACKAGE_ROOT" "$ANALYZER" "$SDK_ARG" "$@"

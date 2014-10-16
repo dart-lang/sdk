@@ -12,6 +12,7 @@ rem Get rid of surrounding quotes.
 for %%i in ("%RETURNED_BIN_DIR%") do set BIN_DIR=%%~fi
 
 set DART=%BIN_DIR%\dart
+set SNAPSHOT=%BIN_DIR%\snapshots\dartanalyzer.dart.snapshot
 
 rem Get absolute full name for SDK_DIR.
 for %%i in ("%BIN_DIR%\..\") do set SDK_DIR=%%~fi
@@ -21,33 +22,7 @@ if %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
 set SDK_ARG=--dart-sdk=%SDK_DIR%
 
-set EXTRA_VM_OPTIONS=
-
-if _%DARTANALYZER_DEVELOPER_MODE%_ == _1_ (
-  set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --checked
-)
-
-rem We allow extra vm options to be passed in through an environment variable.
-if not "_%DART_VM_OPTIONS%_" == "__" (
-  set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% %DART_VM_OPTIONS%
-)
-
-rem Get absolute full name for DART_ROOT.
-for %%i in ("%SDK_DIR%\..\") do set DART_ROOT=%%~fi
-
-rem Remove trailing backslash if there is one
-if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
-
-set ANALYZER=%DART_ROOT%\pkg\analyzer\bin\analyzer.dart
-
-rem DART_CONFIGURATION defaults to ReleaseIA32
-if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseIA32
-
-set BUILD_DIR=%DART_ROOT%\build\%DART_CONFIGURATION%
-
-set PACKAGE_ROOT=%BUILD_DIR%\packages
-
-"%DART%" %EXTRA_VM_OPTIONS% "--package-root=%PACKAGE_ROOT%" "%ANALYZER%" "%SDK_ARG%" %*
+"%DART%" "%SNAPSHOT%" "%SDK_ARG%" %*
 
 endlocal
 
