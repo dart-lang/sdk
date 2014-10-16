@@ -13,7 +13,6 @@ indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 form_data_test/functional: Skip # Issue 19726
 indexeddb_4_test: Skip # Issue 19726
 mouse_event_test: Fail # Issue 20437
-storage_quota_test/missingenumcheck: Fail
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540
@@ -24,8 +23,6 @@ custom/element_upgrade_test: Fail # Issue 17298
 
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor.
-fontface_loaded_test: Fail # Support for promises.
-storage_quota_test: Fail # Support for promises.
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this

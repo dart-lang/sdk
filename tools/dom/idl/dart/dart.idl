@@ -353,6 +353,9 @@ interface Window : EventTarget {
   [RaisesException] void scroll(long x, long y, optional Dictionary scrollOptions);
 };
 
+[DartSuppress]
+interface Promise {};
+
 [DartSupplemental]
 interface CanvasRenderingContext2D {
     [DartSuppress] void webkitPutImageDataHD(ImageData? imagedata, float dx, float dy);

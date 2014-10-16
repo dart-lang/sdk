@@ -1154,7 +1154,6 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'ClientRect': TypeData(clazz='Interface',
         dart_type='Rectangle', suppress_interface=True),
     'Date': TypeData(clazz='Primitive', dart_type='DateTime', native_type='double'),
-    'Promise': TypeData(clazz='Primitive', dart_type='Future', native_type='ScriptPromise'),
     'DOMObject': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'DOMString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
     # TODO(vsm): This won't actually work until we convert the Map to

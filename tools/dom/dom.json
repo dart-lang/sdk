@@ -925,23 +925,7 @@
     "support_level": "untriaged"
   },
   "CacheStorage": {
-    "members": {
-      "create": {
-        "support_level": "untriaged"
-      },
-      "delete": {
-        "support_level": "untriaged"
-      },
-      "get": {
-        "support_level": "untriaged"
-      },
-      "has": {
-        "support_level": "untriaged"
-      },
-      "keys": {
-        "support_level": "untriaged"
-      }
-    },
+    "members": {},
     "support_level": "untriaged"
   },
   "Canvas2DContextAttributes": {
@@ -1511,20 +1495,7 @@
     "support_level": "untriaged"
   },
   "CredentialsContainer": {
-    "members": {
-      "notifyFailedSignIn": {
-        "support_level": "untriaged"
-      },
-      "notifySignedIn": {
-        "support_level": "untriaged"
-      },
-      "notifySignedOut": {
-        "support_level": "untriaged"
-      },
-      "request": {
-        "support_level": "untriaged"
-      }
-    },
+    "members": {},
     "support_level": "untriaged"
   },
   "Crypto": {
@@ -3604,20 +3575,7 @@
     "support_level": "untriaged"
   },
   "FetchBodyStream": {
-    "members": {
-      "asArrayBuffer": {
-        "support_level": "untriaged"
-      },
-      "asBlob": {
-        "support_level": "untriaged"
-      },
-      "asJSON": {
-        "support_level": "untriaged"
-      },
-      "asText": {
-        "support_level": "untriaged"
-      }
-    },
+    "members": {},
     "support_level": "untriaged"
   },
   "FetchEvent": {
@@ -3852,9 +3810,6 @@
       "load": {
         "support_level": "untriaged"
       },
-      "loaded": {
-        "support_level": "untriaged"
-      },
       "status": {
         "support_level": "untriaged"
       },
@@ -4009,17 +3964,7 @@
     "support_level": "experimental"
   },
   "Geofencing": {
-    "members": {
-      "getRegisteredRegions": {
-        "support_level": "untriaged"
-      },
-      "registerRegion": {
-        "support_level": "untriaged"
-      },
-      "unregisterRegion": {
-        "support_level": "untriaged"
-      }
-    },
+    "members": {},
     "support_level": "untriaged"
   },
   "GeofencingRegion": {
@@ -7226,9 +7171,6 @@
     "members": {
       "addEventListener": {},
       "close": {},
-      "closed": {
-        "support_level": "untriaged"
-      },
       "dispatchEvent": {},
       "error": {},
       "keySystem": {},
@@ -7257,9 +7199,6 @@
     "comment": "https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html",
     "members": {
       "MediaKeys": {},
-      "create": {
-        "support_level": "untriaged"
-      },
       "createSession": {},
       "isTypeSupported": {
         "support_level": "untriaged"
@@ -7654,9 +7593,6 @@
         "comment": "http://dev.w3.org/geo/api/spec-source.html#navi-geo",
         "dart_action": "unstable",
         "support_level": "stable"
-      },
-      "getBattery": {
-        "support_level": "untriaged"
       },
       "getGamepads": {
         "support_level": "untriaged"
@@ -8691,11 +8627,7 @@
     "support_level": "untriaged"
   },
   "PushManager": {
-    "members": {
-      "register": {
-        "support_level": "untriaged"
-      }
-    },
+    "members": {},
     "support_level": "untriaged"
   },
   "PushRegistration": {
@@ -12660,9 +12592,6 @@
       "angle": {
         "support_level": "untriaged"
       },
-      "lock": {
-        "support_level": "untriaged"
-      },
       "onchange": {
         "support_level": "untriaged"
       },
@@ -12798,11 +12727,7 @@
     "support_level": "untriaged"
   },
   "ServiceWorkerClients": {
-    "members": {
-      "getServiced": {
-        "support_level": "untriaged"
-      }
-    },
+    "members": {},
     "support_level": "untriaged"
   },
   "ServiceWorkerContainer": {
@@ -12814,9 +12739,6 @@
         "support_level": "untriaged"
       },
       "installing": {
-        "support_level": "untriaged"
-      },
-      "ready": {
         "support_level": "untriaged"
       },
       "register": {
@@ -12834,9 +12756,6 @@
   "ServiceWorkerGlobalScope": {
     "members": {
       "clients": {
-        "support_level": "untriaged"
-      },
-      "fetch": {
         "support_level": "untriaged"
       },
       "nativeCaches": {
@@ -12860,9 +12779,6 @@
         "support_level": "untriaged"
       },
       "scope": {
-        "support_level": "untriaged"
-      },
-      "unregister": {
         "support_level": "untriaged"
       },
       "waiting": {
