@@ -9,9 +9,6 @@ import 'model_emitter.dart';
 import '../../common.dart';
 import '../../js/js.dart' as js;
 
-import '../../constants/values.dart' show PrimitiveConstantValue;
-import '../../tree/tree.dart' show DartString;
-
 import '../../js_backend/js_backend.dart' show Namer, JavaScriptBackend;
 import '../../js_emitter/js_emitter.dart' as emitterTask show
     CodeEmitterTask,
@@ -20,11 +17,15 @@ import '../../js_emitter/js_emitter.dart' as emitterTask show
 class Emitter implements emitterTask.Emitter {
   final Compiler _compiler;
   final Namer namer;
+  final ModelEmitter _emitter;
 
-  Emitter(this._compiler, this.namer);
+  Emitter(Compiler compiler, Namer namer)
+      : this._compiler = compiler,
+        this.namer = namer,
+        _emitter = new ModelEmitter(compiler, namer);
 
   void emitProgram(Program program) {
-    new ModelEmitter(_compiler).emitProgram(program);
+    _emitter.emitProgram(program);
   }
 
   // TODO(floitsch): copied from OldEmitter. Adjust or share.
@@ -68,16 +69,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   js.Expression constantReference(ConstantValue value) {
-    if (!value.isPrimitive) return js.string("<<unimplemented>>");
-    PrimitiveConstantValue constant = value;
-    if (constant.isBool) return new js.LiteralBool(constant.isTrue);
-    if (constant.isString) {
-      DartString dartString = constant.primitiveValue;
-      return js.string(dartString.slowToString());
-    }
-    if (constant.isNum) return js.number(constant.primitiveValue);
-    if (constant.isNull) return new js.LiteralNull();
-    return js.string("<<unimplemented>>");
+    return _emitter.constantEmitter.reference(value);
   }
 
   void invalidateCaches() {}

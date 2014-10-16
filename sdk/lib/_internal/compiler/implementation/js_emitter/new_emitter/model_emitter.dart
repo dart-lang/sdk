@@ -6,6 +6,7 @@ library dart2js.new_js_emitter.model_emitter;
 
 import '../../dart2jslib.dart' show Compiler;
 import '../../js/js.dart' as js;
+import '../../js_backend/js_backend.dart' show Namer, ConstantEmitter;
 import '../../../js_lib/shared/embedded_names.dart' show
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,
@@ -16,6 +17,8 @@ import '../model.dart';
 
 class ModelEmitter {
   final Compiler compiler;
+  final Namer namer;
+  final ConstantEmitter constantEmitter;
 
   /// For deferred loading we communicate the initializers via this global var.
   static const String deferredInitializersGlobal =
@@ -23,7 +26,10 @@ class ModelEmitter {
 
   static const String deferredExtension = ".part.js";
 
-  ModelEmitter(this.compiler);
+  ModelEmitter(Compiler compiler, Namer namer)
+      : this.compiler = compiler,
+        this.namer = namer,
+        constantEmitter = new ConstantEmitter(compiler, namer);
 
   void emitProgram(Program program) {
     List<Output> outputs = program.outputs;
@@ -66,6 +72,7 @@ class ModelEmitter {
         [emitDeferredInitializerGlobal(loadMap),
          emitHolders(unit.holders),
          emitEmbeddedGlobals(loadMap),
+         emitConstants(unit.constants),
          unit.main,
          program]);
   }
@@ -167,9 +174,22 @@ class ModelEmitter {
   js.Expression emitDeferredUnit(DeferredOutput unit, List<Holder> holders) {
     // TODO(floitsch): the hash must depend on the output.
     int hash = this.hashCode;
+    if (unit.constants.isNotEmpty) {
+      throw new UnimplementedError("constants in deferred units");
+    }
     js.ArrayInitializer content =
         new js.ArrayInitializer.from(unit.libraries.map(emitLibrary));
     return js.js("$deferredInitializersGlobal[$hash] = #", content);
+  }
+
+  js.Block emitConstants(List<Constant> constants) {
+    Iterable<js.Statement> statements = constants.map((Constant constant) {
+      js.Expression code =
+          constantEmitter.initializationExpression(constant.value);
+      return js.js.statement("#.# = #;",
+                             [constant.holder.name, constant.name, code]);
+    });
+    return new js.Block(statements.toList());
   }
 
   js.Expression emitLibrary(Library library) {
@@ -292,6 +312,9 @@ final String boilerplate = r"""
   setupProgram();
 
   // Initialize globals.
+  #;
+
+  // Initialize constants.
   #;
 
   var end = Date.now();

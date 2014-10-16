@@ -5,6 +5,7 @@
 library dart2js.new_js_emitter.model;
 
 import '../js/js.dart' as js show Expression;
+import '../constants/values.dart' show ConstantValue;
 
 class Program {
   final List<Output> outputs;
@@ -14,43 +15,78 @@ class Program {
   Program(this.outputs, this.loadMap);
 }
 
+/**
+ * This class represents a JavaScript object that contains static state, like
+ * classes or functions.
+ */
 class Holder {
   final String name;
   final int index;
   Holder(this.name, this.index);
 }
 
+/**
+ * This class represents one output file.
+ *
+ * If no library is deferred, there is only one [Output] of type [MainOutput].
+ */
 abstract class Output {
   bool get isMainOutput => mainOutput == this;
   MainOutput get mainOutput;
   final List<Library> libraries;
+  final List<Constant> constants;
 
   /// Output file name without extension.
   final String outputFileName;
 
-  Output(this.outputFileName, this.libraries);
+  Output(this.outputFileName,
+         this.libraries,
+         this.constants);
 }
 
+/**
+ * The main output file.
+ *
+ * This code emitted from this [Output] must be loaded first. It can then load
+ * other [DeferredOutput]s.
+ */
 class MainOutput extends Output {
   final js.Expression main;
   final List<Holder> holders;
 
-  MainOutput(
-      String outputFileName, this.main, List<Library> libraries, this.holders)
-      : super(outputFileName, libraries);
+  MainOutput(String outputFileName,
+             this.main,
+             List<Library> libraries,
+             List<Constant> constants,
+             this.holders)
+      : super(outputFileName, libraries, constants);
 
   MainOutput get mainOutput => this;
 }
 
+/**
+ * An output (file) for deferred code.
+ */
 class DeferredOutput extends Output {
   final MainOutput mainOutput;
   final String name;
 
   List<Holder> get holders => mainOutput.holders;
 
-  DeferredOutput(String outputFileName, this.name,
-                 this.mainOutput, List<Library> libraries)
-      : super(outputFileName, libraries);
+  DeferredOutput(String outputFileName,
+                 this.name,
+                 this.mainOutput,
+                 List<Library> libraries,
+                 List<Constant> constants)
+      : super(outputFileName, libraries, constants);
+}
+
+class Constant {
+  final String name;
+  final Holder holder;
+  final ConstantValue value;
+
+  Constant(this.name, this.holder, this.value);
 }
 
 class Library {

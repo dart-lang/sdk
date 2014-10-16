@@ -42,11 +42,11 @@ class ProgramBuilder {
   /// generate the deferredLoadingMap (to know which hunks to load).
   final Map<OutputUnit, Output> _outputs = <OutputUnit, Output>{};
 
-  Program buildProgram() {
-    Set<ClassElement> neededClasses = _task.neededClasses;
-    Iterable<Element> neededStatics = backend.generatedCode.keys
-        .where((Element e) => !e.isInstanceMember && !e.isField);
+  /// Mapping from [ConstantValue] to constructed [Constant]. We need this to
+  /// update field-initializers to point to the ConstantModel.
+  final Map<ConstantValue, Constant> _constants = <ConstantValue, Constant>{};
 
+  Program buildProgram() {
     _task.outputClassLists.forEach(_registry.registerElements);
     _task.outputStaticLists.forEach(_registry.registerElements);
 
@@ -96,6 +96,7 @@ class ProgramBuilder {
         "",  // The empty string is the name for the main output file.
         namer.elementAccess(_compiler.mainFunction),
         _buildLibraries(fragment),
+        _buildConstants(fragment),
         _registry.holders.toList(growable: false));
     _outputs[fragment.outputUnit] = result;
     return result;
@@ -115,9 +116,26 @@ class ProgramBuilder {
                                       Fragment fragment) {
     DeferredOutput result = new DeferredOutput(
         _outputFileName(fragment.name), fragment.name,
-        mainOutput, _buildLibraries(fragment));
+        mainOutput,
+        _buildLibraries(fragment),
+        _buildConstants(fragment));
     _outputs[fragment.outputUnit] = result;
     return result;
+  }
+
+  List<Constant> _buildConstants(Fragment fragment) {
+    List<ConstantValue> constantValues =
+        _task.outputConstantLists[fragment.outputUnit];
+    if (constantValues == null) return const <Constant>[];
+    return constantValues.map((ConstantValue constantValue) {
+      assert(!_constants.containsKey(constantValue));
+      String name = namer.constantName(constantValue);
+      String constantObject = namer.globalObjectForConstant(constantValue);
+      Holder holder = _registry.registerHolder(constantObject);
+      Constant constant = new Constant(name, holder, constantValue);
+      _constants[constantValue] = constant;
+      return constant;
+    }).toList();
   }
 
   List<Library> _buildLibraries(Fragment fragment) {
