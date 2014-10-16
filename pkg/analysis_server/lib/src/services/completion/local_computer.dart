@@ -213,6 +213,19 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
+  visitMethodInvocation(MethodInvocation node) {
+    // InvocationComputer adds suggestions for method selector
+    Token period = node.period;
+    if (period != null && period.offset < request.offset) {
+      ArgumentList argumentList = node.argumentList;
+      if (argumentList == null || request.offset <= argumentList.offset) {
+        return;
+      }
+    }
+    visitNode(node);
+  }
+
+  @override
   visitNamespaceDirective(NamespaceDirective node) {
     // No suggestions
   }
@@ -373,12 +386,14 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
     CompletionSuggestion suggestion =
         _addSuggestion(classMbr.name, csKind, classMbr.returnType, node);
-    suggestion.element = _createElement(
-        kind,
-        classMbr.name,
-        classMbr.returnType,
-        classMbr.isAbstract,
-        _isDeprecated(classMbr.metadata));
+    if (suggestion != null) {
+      suggestion.element = _createElement(
+          kind,
+          classMbr.name,
+          classMbr.returnType,
+          classMbr.isAbstract,
+          _isDeprecated(classMbr.metadata));
+    }
   }
 
   void _addParamListSuggestions(FormalParameterList paramList) {
@@ -422,7 +437,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       CompletionSuggestionKind kind, TypeName typeName, ClassDeclaration classDecl) {
     if (id != null) {
       String completion = id.name;
-      if (completion != null && completion.length > 0) {
+      if (completion != null && completion.length > 0 && completion != '_') {
         CompletionSuggestion suggestion = new CompletionSuggestion(
             kind,
             CompletionRelevance.DEFAULT,

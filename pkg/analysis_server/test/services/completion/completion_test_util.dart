@@ -1312,7 +1312,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_MethodDeclaration_parameters_named() {
     // Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {@deprecated Z a(X x, {y: boo}) {^}}');
+    addTestSource('class A {@deprecated Z a(X x, _, b, {y: boo}) {^}}');
     computeFast();
     return computeFull(true).then((_) {
       CompletionSuggestion methodA = assertSuggestLocalMethod('a', 'A', 'Z');
@@ -1322,7 +1322,9 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       }
       assertSuggestParameter('x', 'X');
       assertSuggestParameter('y', null);
+      assertSuggestParameter('b', null);
       assertSuggestImportedClass('int');
+      assertNotSuggested('_');
     });
   }
 
@@ -1340,6 +1342,38 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestParameter('x', 'X');
       assertSuggestParameter('y', 'int');
       assertSuggestImportedClass('String');
+    });
+  }
+
+  test_MethodInvocation_no_semicolon() {
+    // MethodInvocation  ExpressionStatement  Block
+    addTestSource('''
+      main() { }
+      class I {X get f => new A();get _g => new A();}
+      class A implements I {
+        var b; X _c;
+        X get d => new A();get _e => new A();
+        // no semicolon between completion point and next statement
+        set s1(I x) {} set _s2(I x) {x.^ m(null);}
+        m(X x) {} I _n(X x) {}}
+      class X{}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('f', 'X');
+      assertSuggestInvocationGetter('_g', null);
+      assertNotSuggested('b');
+      assertNotSuggested('_c');
+      assertNotSuggested('d');
+      assertNotSuggested('_e');
+      assertNotSuggested('s1');
+      assertNotSuggested('_s2');
+      assertNotSuggested('m');
+      assertNotSuggested('_n');
+      assertNotSuggested('a');
+      assertNotSuggested('A');
+      assertNotSuggested('X');
+      assertNotSuggested('Object');
+      assertNotSuggested('==');
     });
   }
 
