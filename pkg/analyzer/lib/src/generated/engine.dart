@@ -1436,7 +1436,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<Source> getLibrariesContaining(Source source) {
     SourceEntry sourceEntry = _getReadableSourceEntryOrNull(source);
     if (sourceEntry is DartEntry) {
-      return sourceEntry.getValue(DartEntry.CONTAINING_LIBRARIES);
+      return sourceEntry.containingLibraries;
     }
     return Source.EMPTY_ARRAY;
   }
@@ -3176,7 +3176,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           return _createResolveDartLibraryTask(source, dartEntry);
         }
       }
-      List<Source> librariesContaining = dartEntry.getValue(DartEntry.CONTAINING_LIBRARIES);
+      List<Source> librariesContaining = dartEntry.containingLibraries;
       for (Source librarySource in librariesContaining) {
         SourceEntry librarySourceEntry = _cache.get(librarySource);
         if (librarySourceEntry is DartEntry) {
@@ -7309,6 +7309,32 @@ class CacheState extends Enum<CacheState> {
 }
 
 /**
+ * A `CachedResult` is a single analysis result that is stored in a
+ * [SourceEntry].
+ */
+class CachedResult<E> {
+  /**
+   * The state of the cached value.
+   */
+  CacheState state;
+
+  /**
+   * The value being cached, or `null` if there is no value (for example, when
+   * the [state] is [CacheState.INVALID].
+   */
+  E value;
+
+  /**
+   * Initialize a newly created result holder to represent the value of data
+   * described by the given [descriptor].
+   */
+  CachedResult(DataDescriptor descriptor) {
+    state = CacheState.INVALID;
+    value = descriptor.defaultValue;
+  }
+}
+
+/**
  * The interface `ChangeNotice` defines the behavior of objects that represent a change to the
  * analysis results associated with a given source.
  */
@@ -7727,103 +7753,6 @@ class CycleBuilder_SourceEntryPair {
  */
 class DartEntry extends SourceEntry {
   /**
-   * The state of the cached token stream.
-   */
-  CacheState _tokenStreamState = CacheState.INVALID;
-
-  /**
-   * The head of the token stream, or `null` if the token stream is not
-   * currently cached.
-   */
-  Token _tokenStream;
-
-  /**
-   * The state of the cached scan errors.
-   */
-  CacheState _scanErrorsState = CacheState.INVALID;
-
-  /**
-   * The errors produced while scanning the compilation unit, or an empty array
-   * if the errors are not currently cached.
-   */
-  List<AnalysisError> _scanErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The state of the cached source kind.
-   */
-  CacheState _sourceKindState = CacheState.INVALID;
-
-  /**
-   * The kind of this source.
-   */
-  SourceKind _sourceKind = SourceKind.UNKNOWN;
-
-  /**
-   * The state of the cached parsed compilation unit.
-   */
-  CacheState _parsedUnitState = CacheState.INVALID;
-
-  /**
-   * A flag indicating whether the parsed AST structure has been accessed since
-   * it was set. This is used to determine whether the structure needs to be
-   * copied before it is resolved.
-   */
-  bool _parsedUnitAccessed = false;
-
-  /**
-   * The parsed compilation unit, or `null` if the parsed compilation unit is
-   * not currently cached.
-   */
-  CompilationUnit _parsedUnit;
-
-  /**
-   * The state of the cached parse errors.
-   */
-  CacheState _parseErrorsState = CacheState.INVALID;
-
-  /**
-   * The errors produced while parsing the compilation unit, or an empty array
-   * if the errors are not currently cached.
-   */
-  List<AnalysisError> _parseErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The state of the cached list of imported libraries.
-   */
-  CacheState _importedLibrariesState = CacheState.INVALID;
-
-  /**
-   * The list of libraries imported by the library, or an empty array if the
-   * list is not currently cached. The list will be empty if the Dart file is a
-   * part rather than a library.
-   */
-  List<Source> _importedLibraries = Source.EMPTY_ARRAY;
-
-  /**
-   * The state of the cached list of exported libraries.
-   */
-  CacheState _exportedLibrariesState = CacheState.INVALID;
-
-  /**
-   * The list of libraries exported by the library, or an empty array if the
-   * list is not currently cached. The list will be empty if the Dart file is a
-   * part rather than a library.
-   */
-  List<Source> _exportedLibraries = Source.EMPTY_ARRAY;
-
-  /**
-   * The state of the cached list of included parts.
-   */
-  CacheState _includedPartsState = CacheState.INVALID;
-
-  /**
-   * The list of parts included in the library, or an empty array if the list is
-   * not currently cached. The list will be empty if the Dart file is a part
-   * rather than a library.
-   */
-  List<Source> _includedParts = Source.EMPTY_ARRAY;
-
-  /**
    * The list of libraries that contain this compilation unit. The list will be
    * empty if there are no known libraries that contain this compilation unit.
    */
@@ -7838,56 +7767,33 @@ class DartEntry extends SourceEntry {
       = new ResolutionState();
 
   /**
-   * The state of the cached library element.
-   */
-  CacheState _elementState = CacheState.INVALID;
-
-  /**
-   * The element representing the library, or `null` if the element is not
-   * currently cached.
-   */
-  LibraryElement _element;
-
-  /**
-   * The state of the cached public namespace.
-   */
-  CacheState _publicNamespaceState = CacheState.INVALID;
-
-  /**
-   * The public namespace of the library, or `null` if the namespace is not
-   * currently cached.
-   */
-  Namespace _publicNamespace;
-
-  /**
-   * The state of the cached client/ server flag.
-   */
-  CacheState _clientServerState = CacheState.INVALID;
-
-  /**
-   * The state of the cached launchable flag.
-   */
-  CacheState _launchableState = CacheState.INVALID;
-
-  /**
-   * The error produced while performing Angular resolution, or an empty array
-   * if there are no errors if the error are not currently cached.
-   */
-  List<AnalysisError> _angularErrors = AnalysisError.NO_ERRORS;
-
-  /**
    * The data descriptor representing the errors reported during Angular
    * resolution.
    */
   static final DataDescriptor<List<AnalysisError>> ANGULAR_ERRORS
-      = new DataDescriptor<List<AnalysisError>>("DartEntry.ANGULAR_ERRORS");
+      = new DataDescriptor<List<AnalysisError>>("DartEntry.ANGULAR_ERRORS", AnalysisError.NO_ERRORS);
+
+  /**
+   * The data descriptor representing the errors resulting from building the
+   * element model.
+   */
+  static final DataDescriptor<List<AnalysisError>> BUILD_ELEMENT_ERRORS
+      = new DataDescriptor<List<AnalysisError>>("DartEntry.BUILD_ELEMENT_ERRORS", AnalysisError.NO_ERRORS);
+
+  /**
+   * The data descriptor representing the AST structure after the element model
+   * has been built (and declarations are resolved) but before other resolution
+   * has been performed.
+   */
+  static final DataDescriptor<CompilationUnit> BUILT_UNIT
+      = new DataDescriptor<CompilationUnit>("DartEntry.BUILT_UNIT");
 
   /**
    * The data descriptor representing the list of libraries that contain this
    * compilation unit.
    */
   static final DataDescriptor<List<Source>> CONTAINING_LIBRARIES
-      = new DataDescriptor<List<Source>>("DartEntry.CONTAINING_LIBRARIES");
+      = new DataDescriptor<List<Source>>("DartEntry.CONTAINING_LIBRARIES", Source.EMPTY_ARRAY);
 
   /**
    * The data descriptor representing the library element for the library. This
@@ -7903,14 +7809,14 @@ class DartEntry extends SourceEntry {
    * a library.
    */
   static final DataDescriptor<List<Source>> EXPORTED_LIBRARIES
-      = new DataDescriptor<List<Source>>("DartEntry.EXPORTED_LIBRARIES");
+      = new DataDescriptor<List<Source>>("DartEntry.EXPORTED_LIBRARIES", Source.EMPTY_ARRAY);
 
   /**
    * The data descriptor representing the hints resulting from auditing the
    * source.
    */
   static final DataDescriptor<List<AnalysisError>> HINTS
-      = new DataDescriptor<List<AnalysisError>>("DartEntry.HINTS");
+      = new DataDescriptor<List<AnalysisError>>("DartEntry.HINTS", AnalysisError.NO_ERRORS);
 
   /**
    * The data descriptor representing the list of imported libraries. This data
@@ -7918,7 +7824,7 @@ class DartEntry extends SourceEntry {
    * a library.
    */
   static final DataDescriptor<List<Source>> IMPORTED_LIBRARIES
-      = new DataDescriptor<List<Source>>("DartEntry.IMPORTED_LIBRARIES");
+      = new DataDescriptor<List<Source>>("DartEntry.IMPORTED_LIBRARIES", Source.EMPTY_ARRAY);
 
   /**
    * The data descriptor representing the list of included parts. This data is
@@ -7926,7 +7832,7 @@ class DartEntry extends SourceEntry {
    * library.
    */
   static final DataDescriptor<List<Source>> INCLUDED_PARTS
-      = new DataDescriptor<List<Source>>("DartEntry.INCLUDED_PARTS");
+      = new DataDescriptor<List<Source>>("DartEntry.INCLUDED_PARTS", Source.EMPTY_ARRAY);
 
   /**
    * The data descriptor representing the client flag. This data is only
@@ -7934,7 +7840,7 @@ class DartEntry extends SourceEntry {
    * library.
    */
   static final DataDescriptor<bool> IS_CLIENT
-      = new DataDescriptor<bool>("DartEntry.IS_CLIENT");
+      = new DataDescriptor<bool>("DartEntry.IS_CLIENT", false);
 
   /**
    * The data descriptor representing the launchable flag. This data is only
@@ -7942,14 +7848,14 @@ class DartEntry extends SourceEntry {
    * library.
    */
   static final DataDescriptor<bool> IS_LAUNCHABLE
-      = new DataDescriptor<bool>("DartEntry.IS_LAUNCHABLE");
+      = new DataDescriptor<bool>("DartEntry.IS_LAUNCHABLE", false);
 
   /**
    * The data descriptor representing the errors resulting from parsing the
    * source.
    */
   static final DataDescriptor<List<AnalysisError>> PARSE_ERRORS
-      = new DataDescriptor<List<AnalysisError>>("DartEntry.PARSE_ERRORS");
+      = new DataDescriptor<List<AnalysisError>>("DartEntry.PARSE_ERRORS", AnalysisError.NO_ERRORS);
 
   /**
    * The data descriptor representing the parsed AST structure.
@@ -7970,7 +7876,7 @@ class DartEntry extends SourceEntry {
    * source.
    */
   static final DataDescriptor<List<AnalysisError>> RESOLUTION_ERRORS
-      = new DataDescriptor<List<AnalysisError>>("DartEntry.RESOLUTION_ERRORS");
+      = new DataDescriptor<List<AnalysisError>>("DartEntry.RESOLUTION_ERRORS", AnalysisError.NO_ERRORS);
 
   /**
    * The data descriptor representing the resolved AST structure.
@@ -7982,13 +7888,13 @@ class DartEntry extends SourceEntry {
    * The data descriptor representing the token stream.
    */
   static final DataDescriptor<List<AnalysisError>> SCAN_ERRORS
-      = new DataDescriptor<List<AnalysisError>>("DartEntry.SCAN_ERRORS");
+      = new DataDescriptor<List<AnalysisError>>("DartEntry.SCAN_ERRORS", AnalysisError.NO_ERRORS);
 
   /**
    * The data descriptor representing the source kind.
    */
   static final DataDescriptor<SourceKind> SOURCE_KIND
-      = new DataDescriptor<SourceKind>("DartEntry.SOURCE_KIND");
+      = new DataDescriptor<SourceKind>("DartEntry.SOURCE_KIND", SourceKind.UNKNOWN);
 
   /**
    * The data descriptor representing the token stream.
@@ -8001,20 +7907,7 @@ class DartEntry extends SourceEntry {
    * source.
    */
   static final DataDescriptor<List<AnalysisError>> VERIFICATION_ERRORS
-      = new DataDescriptor<List<AnalysisError>>("DartEntry.VERIFICATION_ERRORS");
-
-  /**
-   * The index of the flag indicating whether this library is launchable
-   * (whether the file has a main method).
-   */
-  static int _LAUNCHABLE_INDEX = 1;
-
-  /**
-   * The index of the flag indicating whether the library is client code
-   * (whether the library depends on the html library). If the library is not
-   * "client code", then it is referred to as "server code".
-   */
-  static int _CLIENT_CODE_INDEX = 2;
+      = new DataDescriptor<List<AnalysisError>>("DartEntry.VERIFICATION_ERRORS", AnalysisError.NO_ERRORS);
 
   /**
    * Add the given [librarySource] to the list of libraries that contain this
@@ -8028,15 +7921,8 @@ class DartEntry extends SourceEntry {
    * Flush any AST structures being maintained by this entry.
    */
   void flushAstStructures() {
-    if (_tokenStreamState == CacheState.VALID) {
-      _tokenStreamState = CacheState.FLUSHED;
-      _tokenStream = null;
-    }
-    if (_parsedUnitState == CacheState.VALID) {
-      _parsedUnitState = CacheState.FLUSHED;
-      _parsedUnitAccessed = false;
-      _parsedUnit = null;
-    }
+    _flush(TOKEN_STREAM);
+    _flush(PARSED_UNIT);
     _resolutionState.flushAstStructures();
   }
 
@@ -8046,17 +7932,17 @@ class DartEntry extends SourceEntry {
    */
   List<AnalysisError> get allErrors {
     List<AnalysisError> errors = new List<AnalysisError>();
-    ListUtilities.addAll(errors, _scanErrors);
-    ListUtilities.addAll(errors, _parseErrors);
+    errors.addAll(getValue(SCAN_ERRORS));
+    errors.addAll(getValue(PARSE_ERRORS));
     ResolutionState state = _resolutionState;
     while (state != null) {
-      ListUtilities.addAll(errors, state._buildElementErrors);
-      ListUtilities.addAll(errors, state._resolutionErrors);
-      ListUtilities.addAll(errors, state._verificationErrors);
-      ListUtilities.addAll(errors, state._hints);
+      errors.addAll(state.getValue(BUILD_ELEMENT_ERRORS));
+      errors.addAll(state.getValue(RESOLUTION_ERRORS));
+      errors.addAll(state.getValue(VERIFICATION_ERRORS));
+      errors.addAll(state.getValue(HINTS));
       state = state._nextState;
     }
-    ListUtilities.addAll(errors, _angularErrors);
+    errors.addAll(getValue(ANGULAR_ERRORS));
     if (errors.length == 0) {
       return AnalysisError.NO_ERRORS;
     }
@@ -8069,14 +7955,13 @@ class DartEntry extends SourceEntry {
    * or `null` if there is no parsed compilation unit available.
    */
   CompilationUnit get anyParsedCompilationUnit {
-    if (_parsedUnitState == CacheState.VALID) {
-      _parsedUnitAccessed = true;
-      return _parsedUnit;
+    if (getState(PARSED_UNIT) == CacheState.VALID) {
+      return getValue(PARSED_UNIT);
     }
     ResolutionState state = _resolutionState;
     while (state != null) {
-      if (state._builtUnitState == CacheState.VALID) {
-        return state._builtUnit;
+      if (state.getState(BUILT_UNIT) == CacheState.VALID) {
+        return state.getValue(BUILT_UNIT);
       }
       state = state._nextState;
     }
@@ -8091,12 +7976,11 @@ class DartEntry extends SourceEntry {
   CompilationUnit get anyResolvedCompilationUnit {
     ResolutionState state = _resolutionState;
     while (state != null) {
-      if (state._resolvedUnitState == CacheState.VALID) {
-        return state._resolvedUnit;
+      if (state.getState(RESOLVED_UNIT) == CacheState.VALID) {
+        return state.getValue(RESOLVED_UNIT);
       }
       state = state._nextState;
     }
-    ;
     return null;
   }
 
@@ -8106,7 +7990,7 @@ class DartEntry extends SourceEntry {
   List<Source> get containingLibraries => _containingLibraries;
 
   @override
-  SourceKind get kind => _sourceKind;
+  SourceKind get kind => getValue(SOURCE_KIND);
 
   /**
    * The library sources containing the receiver's source.
@@ -8129,61 +8013,24 @@ class DartEntry extends SourceEntry {
    * not been parsed.
    */
   CompilationUnit get resolvableCompilationUnit {
-    if (_parsedUnitState == CacheState.VALID) {
-      if (_parsedUnitAccessed) {
-        return _parsedUnit.accept(new AstCloner()) as CompilationUnit;
-      }
-      CompilationUnit unit = _parsedUnit;
-      _parsedUnitState = CacheState.FLUSHED;
-      _parsedUnitAccessed = false;
-      _parsedUnit = null;
+    if (getState(PARSED_UNIT) == CacheState.VALID) {
+      CompilationUnit unit = getValue(PARSED_UNIT);
+      setState(PARSED_UNIT, CacheState.FLUSHED);
       return unit;
     }
     ResolutionState state = _resolutionState;
     while (state != null) {
-      if (state._builtUnitState == CacheState.VALID) {
+      if (state.getState(BUILT_UNIT) == CacheState.VALID) {
         // TODO(brianwilkerson) We're cloning the structure to remove any
         // previous resolution data, but I'm not sure that's necessary.
-        return state._builtUnit.accept(new AstCloner()) as CompilationUnit;
+        return state.getValue(BUILT_UNIT).accept(new AstCloner()) as CompilationUnit;
       }
-      if (state._resolvedUnitState == CacheState.VALID) {
-        return state._resolvedUnit.accept(new AstCloner()) as CompilationUnit;
+      if (state.getState(RESOLVED_UNIT) == CacheState.VALID) {
+        return state.getValue(RESOLVED_UNIT).accept(new AstCloner()) as CompilationUnit;
       }
       state = state._nextState;
     }
-    ;
     return null;
-  }
-
-  @override
-  CacheState getState(DataDescriptor descriptor) {
-    if (identical(descriptor, DartEntry.ELEMENT)) {
-      return _elementState;
-    } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
-      return _exportedLibrariesState;
-    } else if (identical(descriptor, DartEntry.IMPORTED_LIBRARIES)) {
-      return _importedLibrariesState;
-    } else if (identical(descriptor, DartEntry.INCLUDED_PARTS)) {
-      return _includedPartsState;
-    } else if (identical(descriptor, DartEntry.IS_CLIENT)) {
-      return _clientServerState;
-    } else if (identical(descriptor, DartEntry.IS_LAUNCHABLE)) {
-      return _launchableState;
-    } else if (identical(descriptor, DartEntry.PARSE_ERRORS)) {
-      return _parseErrorsState;
-    } else if (identical(descriptor, DartEntry.PARSED_UNIT)) {
-      return _parsedUnitState;
-    } else if (identical(descriptor, DartEntry.PUBLIC_NAMESPACE)) {
-      return _publicNamespaceState;
-    } else if (identical(descriptor, DartEntry.SCAN_ERRORS)) {
-      return _scanErrorsState;
-    } else if (identical(descriptor, DartEntry.SOURCE_KIND)) {
-      return _sourceKindState;
-    } else if (identical(descriptor, DartEntry.TOKEN_STREAM)) {
-      return _tokenStreamState;
-    } else {
-      return super.getState(descriptor);
-    }
   }
 
   /**
@@ -8191,67 +8038,17 @@ class DartEntry extends SourceEntry {
    * context of the given [librarySource].
    */
   CacheState getStateInLibrary(DataDescriptor descriptor, Source librarySource) {
+    if (!_isValidLibraryDescriptor(descriptor)) {
+      throw new ArgumentError("Invalid descriptor: $descriptor");
+    }
     ResolutionState state = _resolutionState;
     while (state != null) {
       if (librarySource == state._librarySource) {
-        if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
-          return state._resolutionErrorsState;
-        } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
-          return state._resolvedUnitState;
-        } else if (identical(descriptor, DartEntry.VERIFICATION_ERRORS)) {
-          return state._verificationErrorsState;
-        } else if (identical(descriptor, DartEntry.HINTS)) {
-          return state._hintsState;
-        } else {
-          throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
-        }
+        return state.getState(descriptor);
       }
       state = state._nextState;
     }
-    ;
-    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)
-        || identical(descriptor, DartEntry.RESOLVED_UNIT)
-        || identical(descriptor, DartEntry.VERIFICATION_ERRORS)
-        || identical(descriptor, DartEntry.HINTS)) {
-      return CacheState.INVALID;
-    } else {
-      throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
-    }
-  }
-
-  @override
-  Object getValue(DataDescriptor descriptor) {
-    if (identical(descriptor, DartEntry.ANGULAR_ERRORS)) {
-      return _angularErrors;
-    } else if (identical(descriptor, DartEntry.CONTAINING_LIBRARIES)) {
-      return new List.from(_containingLibraries);
-    } else if (identical(descriptor, DartEntry.ELEMENT)) {
-      return _element;
-    } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
-      return _exportedLibraries;
-    } else if (identical(descriptor, DartEntry.IMPORTED_LIBRARIES)) {
-      return _importedLibraries;
-    } else if (identical(descriptor, DartEntry.INCLUDED_PARTS)) {
-      return _includedParts;
-    } else if (identical(descriptor, DartEntry.IS_CLIENT)) {
-      return getFlag(_CLIENT_CODE_INDEX);
-    } else if (identical(descriptor, DartEntry.IS_LAUNCHABLE)) {
-      return getFlag(_LAUNCHABLE_INDEX);
-    } else if (identical(descriptor, DartEntry.PARSE_ERRORS)) {
-      return _parseErrors;
-    } else if (identical(descriptor, DartEntry.PARSED_UNIT)) {
-      _parsedUnitAccessed = true;
-      return _parsedUnit;
-    } else if (identical(descriptor, DartEntry.PUBLIC_NAMESPACE)) {
-      return _publicNamespace;
-    } else if (identical(descriptor, DartEntry.SCAN_ERRORS)) {
-      return _scanErrors;
-    } else if (identical(descriptor, DartEntry.SOURCE_KIND)) {
-      return _sourceKind;
-    } else if (identical(descriptor, DartEntry.TOKEN_STREAM)) {
-      return _tokenStream;
-    }
-    return super.getValue(descriptor);
+    return CacheState.INVALID;
   }
 
   /**
@@ -8260,33 +8057,17 @@ class DartEntry extends SourceEntry {
    * the descriptor is not in the cache.
    */
   Object getValueInLibrary(DataDescriptor descriptor, Source librarySource) {
+    if (!_isValidLibraryDescriptor(descriptor)) {
+      throw new ArgumentError("Invalid descriptor: $descriptor");
+    }
     ResolutionState state = _resolutionState;
     while (state != null) {
       if (librarySource == state._librarySource) {
-        if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
-          return state._resolutionErrors;
-        } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
-          return state._resolvedUnit;
-        } else if (identical(descriptor, DartEntry.VERIFICATION_ERRORS)) {
-          return state._verificationErrors;
-        } else if (identical(descriptor, DartEntry.HINTS)) {
-          return state._hints;
-        } else {
-          throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
-        }
+        return state.getValue(descriptor);
       }
       state = state._nextState;
     }
-    ;
-    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)
-        || identical(descriptor, DartEntry.VERIFICATION_ERRORS)
-        || identical(descriptor, DartEntry.HINTS)) {
-      return AnalysisError.NO_ERRORS;
-    } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
-      return null;
-    } else {
-      throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
-    }
+    return descriptor.defaultValue;
   }
 
   /**
@@ -8296,50 +8077,18 @@ class DartEntry extends SourceEntry {
    * marked as invalid.
    */
   bool hasInvalidData(DataDescriptor descriptor) {
-    if (identical(descriptor, DartEntry.ELEMENT)) {
-      return _elementState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
-      return _exportedLibrariesState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.IMPORTED_LIBRARIES)) {
-      return _importedLibrariesState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.INCLUDED_PARTS)) {
-      return _includedPartsState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.IS_CLIENT)) {
-      return _clientServerState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.IS_LAUNCHABLE)) {
-      return _launchableState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.PARSE_ERRORS)) {
-      return _parseErrorsState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.PARSED_UNIT)) {
-      return _parsedUnitState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.PUBLIC_NAMESPACE)) {
-      return _publicNamespaceState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.SCAN_ERRORS)) {
-      return _scanErrorsState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.SOURCE_KIND)) {
-      return _sourceKindState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.TOKEN_STREAM)) {
-      return _tokenStreamState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)
-        || identical(descriptor, DartEntry.RESOLVED_UNIT)
-        || identical(descriptor, DartEntry.VERIFICATION_ERRORS)
-        || identical(descriptor, DartEntry.HINTS)) {
+    if (_isValidDescriptor(descriptor)) {
+      return getState(descriptor) == CacheState.INVALID;
+    } else if (_isValidLibraryDescriptor(descriptor)) {
       ResolutionState state = _resolutionState;
       while (state != null) {
-        if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
-          return state._resolutionErrorsState == CacheState.INVALID;
-        } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
-          return state._resolvedUnitState == CacheState.INVALID;
-        } else if (identical(descriptor, DartEntry.VERIFICATION_ERRORS)) {
-          return state._verificationErrorsState == CacheState.INVALID;
-        } else if (identical(descriptor, DartEntry.HINTS)) {
-          return state._hintsState == CacheState.INVALID;
+        if (state.getState(descriptor) == CacheState.INVALID) {
+          return true;
         }
+        state = state._nextState;
       }
-      return false;
-    } else {
-      return super.getState(descriptor) == CacheState.INVALID;
     }
+    return false;
   }
 
   /**
@@ -8348,13 +8097,13 @@ class DartEntry extends SourceEntry {
    * [resolvableCompilationUnit] will return a non-`null` result.
    */
   bool get hasResolvableCompilationUnit {
-    if (_parsedUnitState == CacheState.VALID) {
+    if (getState(PARSED_UNIT) == CacheState.VALID) {
       return true;
     }
     ResolutionState state = _resolutionState;
     while (state != null) {
-      if (state._builtUnitState == CacheState.VALID
-          || state._resolvedUnitState == CacheState.VALID) {
+      if (state.getState(BUILT_UNIT) == CacheState.VALID
+          || state.getState(RESOLVED_UNIT) == CacheState.VALID) {
         return true;
       }
       state = state._nextState;
@@ -8366,17 +8115,11 @@ class DartEntry extends SourceEntry {
   @override
   void invalidateAllInformation() {
     super.invalidateAllInformation();
-    _scanErrors = AnalysisError.NO_ERRORS;
-    _scanErrorsState = CacheState.INVALID;
-    _tokenStream = null;
-    _tokenStreamState = CacheState.INVALID;
-    _sourceKind = SourceKind.UNKNOWN;
-    _sourceKindState = CacheState.INVALID;
-    _parseErrors = AnalysisError.NO_ERRORS;
-    _parseErrorsState = CacheState.INVALID;
-    _parsedUnit = null;
-    _parsedUnitAccessed = false;
-    _parsedUnitState = CacheState.INVALID;
+    setState(SCAN_ERRORS, CacheState.INVALID);
+    setState(TOKEN_STREAM, CacheState.INVALID);
+    setState(SOURCE_KIND, CacheState.INVALID);
+    setState(PARSE_ERRORS, CacheState.INVALID);
+    setState(PARSED_UNIT, CacheState.INVALID);
     _discardCachedResolutionInformation(true);
   }
 
@@ -8386,18 +8129,14 @@ class DartEntry extends SourceEntry {
    * results of converting URIs to source files should also be invalidated.
    */
   void invalidateAllResolutionInformation(bool invalidateUris) {
-    if (_parsedUnitState == CacheState.FLUSHED) {
+    if (getState(PARSED_UNIT) == CacheState.FLUSHED) {
       ResolutionState state = _resolutionState;
       while (state != null) {
-        if (state._builtUnitState == CacheState.VALID) {
-          _parsedUnit = state._builtUnit;
-          _parsedUnitAccessed = true;
-          _parsedUnitState = CacheState.VALID;
+        if (state.getState(BUILT_UNIT) == CacheState.VALID) {
+          setValue(PARSED_UNIT, state.getValue(BUILT_UNIT));
           break;
-        } else if (state._resolvedUnitState == CacheState.VALID) {
-          _parsedUnit = state._resolvedUnit;
-          _parsedUnitAccessed = true;
-          _parsedUnitState = CacheState.VALID;
+        } else if (state.getState(RESOLVED_UNIT) == CacheState.VALID) {
+          setValue(PARSED_UNIT, state.getValue(RESOLVED_UNIT));
           break;
         }
         state = state._nextState;
@@ -8412,7 +8151,7 @@ class DartEntry extends SourceEntry {
   bool get isRefactoringSafe {
     ResolutionState state = _resolutionState;
     while (state != null) {
-      CacheState resolvedState = state._resolvedUnitState;
+      CacheState resolvedState = state.getState(RESOLVED_UNIT);
       if (resolvedState != CacheState.VALID
           && resolvedState != CacheState.FLUSHED) {
         return false;
@@ -8433,29 +8172,11 @@ class DartEntry extends SourceEntry {
    */
   void recordBuildElementErrorInLibrary(Source librarySource, CaughtException exception) {
     this.exception = exception;
-    _element = null;
-    _elementState = CacheState.ERROR;
-    clearFlags([_LAUNCHABLE_INDEX, _CLIENT_CODE_INDEX]);
-    _clientServerState = CacheState.ERROR;
-    _launchableState = CacheState.ERROR;
+    setState(ELEMENT, CacheState.ERROR);
+    setState(IS_LAUNCHABLE, CacheState.ERROR);
+    setState(IS_CLIENT, CacheState.ERROR);
     ResolutionState state = _getOrCreateResolutionState(librarySource);
     state.recordBuildElementError();
-  }
-
-  /**
-   * Record that an in-process model build has stopped without recording results
-   * because the results were invalidated before they could be recorded.
-   */
-  void recordBuildElementNotInProcess() {
-    if (_elementState == CacheState.IN_PROCESS) {
-      _elementState = CacheState.INVALID;
-    }
-    if (_clientServerState == CacheState.IN_PROCESS) {
-      _clientServerState = CacheState.INVALID;
-    }
-    if (_launchableState == CacheState.IN_PROCESS) {
-      _launchableState = CacheState.INVALID;
-    }
   }
 
   @override
@@ -8484,73 +8205,13 @@ class DartEntry extends SourceEntry {
    * including any resolution-based information, as being in error.
    */
   void recordParseError(CaughtException exception) {
-    _sourceKind = SourceKind.UNKNOWN;
-    _sourceKindState = CacheState.ERROR;
-    _parseErrors = AnalysisError.NO_ERRORS;
-    _parseErrorsState = CacheState.ERROR;
-    _parsedUnit = null;
-    _parsedUnitAccessed = false;
-    _parsedUnitState = CacheState.ERROR;
-    _exportedLibraries = Source.EMPTY_ARRAY;
-    _exportedLibrariesState = CacheState.ERROR;
-    _importedLibraries = Source.EMPTY_ARRAY;
-    _importedLibrariesState = CacheState.ERROR;
-    _includedParts = Source.EMPTY_ARRAY;
-    _includedPartsState = CacheState.ERROR;
+    setState(SOURCE_KIND, CacheState.ERROR);
+    setState(PARSE_ERRORS, CacheState.ERROR);
+    setState(PARSED_UNIT, CacheState.ERROR);
+    setState(EXPORTED_LIBRARIES, CacheState.ERROR);
+    setState(IMPORTED_LIBRARIES, CacheState.ERROR);
+    setState(INCLUDED_PARTS, CacheState.ERROR);
     recordResolutionError(exception);
-  }
-
-  /**
-   * Record that the parse-related information for the associated source is
-   * about to be computed by the current thread.
-   */
-  void recordParseInProcess() {
-    if (_sourceKindState != CacheState.VALID) {
-      _sourceKindState = CacheState.IN_PROCESS;
-    }
-    if (_parseErrorsState != CacheState.VALID) {
-      _parseErrorsState = CacheState.IN_PROCESS;
-    }
-    if (_parsedUnitState != CacheState.VALID) {
-      _parsedUnitState = CacheState.IN_PROCESS;
-    }
-    if (_exportedLibrariesState != CacheState.VALID) {
-      _exportedLibrariesState = CacheState.IN_PROCESS;
-    }
-    if (_importedLibrariesState != CacheState.VALID) {
-      _importedLibrariesState = CacheState.IN_PROCESS;
-    }
-    if (_includedPartsState != CacheState.VALID) {
-      _includedPartsState = CacheState.IN_PROCESS;
-    }
-  }
-
-  /**
-   * Record that an in-process parse has stopped without recording results
-   * because the results were invalidated before they could be recorded.
-   */
-  void recordParseNotInProcess() {
-    if (getState(SourceEntry.LINE_INFO) == CacheState.IN_PROCESS) {
-      setState(SourceEntry.LINE_INFO, CacheState.INVALID);
-    }
-    if (_sourceKindState == CacheState.IN_PROCESS) {
-      _sourceKindState = CacheState.INVALID;
-    }
-    if (_parseErrorsState == CacheState.IN_PROCESS) {
-      _parseErrorsState = CacheState.INVALID;
-    }
-    if (_parsedUnitState == CacheState.IN_PROCESS) {
-      _parsedUnitState = CacheState.INVALID;
-    }
-    if (_exportedLibrariesState == CacheState.IN_PROCESS) {
-      _exportedLibrariesState = CacheState.INVALID;
-    }
-    if (_importedLibrariesState == CacheState.IN_PROCESS) {
-      _importedLibrariesState = CacheState.INVALID;
-    }
-    if (_includedPartsState == CacheState.IN_PROCESS) {
-      _includedPartsState = CacheState.INVALID;
-    }
   }
 
   /**
@@ -8563,13 +8224,10 @@ class DartEntry extends SourceEntry {
    */
   void recordResolutionError(CaughtException exception) {
     this.exception = exception;
-    _element = null;
-    _elementState = CacheState.ERROR;
-    clearFlags([_LAUNCHABLE_INDEX, _CLIENT_CODE_INDEX]);
-    _clientServerState = CacheState.ERROR;
-    _launchableState = CacheState.ERROR;
-    _publicNamespace = null;
-    _publicNamespaceState = CacheState.ERROR;
+    setState(ELEMENT, CacheState.ERROR);
+    setState(IS_CLIENT, CacheState.ERROR);
+    setState(IS_LAUNCHABLE, CacheState.ERROR);
+    setState(PUBLIC_NAMESPACE, CacheState.ERROR);
     _resolutionState.recordResolutionErrorsInAllLibraries();
   }
 
@@ -8583,37 +8241,12 @@ class DartEntry extends SourceEntry {
    */
   void recordResolutionErrorInLibrary(Source librarySource, CaughtException exception) {
     this.exception = exception;
-    _element = null;
-    _elementState = CacheState.ERROR;
-    clearFlags([_LAUNCHABLE_INDEX, _CLIENT_CODE_INDEX]);
-    _clientServerState = CacheState.ERROR;
-    _launchableState = CacheState.ERROR;
-    _publicNamespace = null;
-    _publicNamespaceState = CacheState.ERROR;
+    setState(ELEMENT, CacheState.ERROR);
+    setState(IS_CLIENT, CacheState.ERROR);
+    setState(IS_LAUNCHABLE, CacheState.ERROR);
+    setState(PUBLIC_NAMESPACE, CacheState.ERROR);
     ResolutionState state = _getOrCreateResolutionState(librarySource);
     state.recordResolutionError();
-  }
-
-  /**
-   * Record that an in-process resolution has stopped without recording results because the results
-   * were invalidated before they could be recorded.
-   */
-  void recordResolutionNotInProcess() {
-    if (_elementState == CacheState.IN_PROCESS) {
-      _elementState = CacheState.INVALID;
-    }
-    if (_clientServerState == CacheState.IN_PROCESS) {
-      _clientServerState = CacheState.INVALID;
-    }
-    if (_launchableState == CacheState.IN_PROCESS) {
-      _launchableState = CacheState.INVALID;
-    }
-    // TODO(brianwilkerson) Remove the code above this line after resolution and element building
-    // are separated.
-    if (_publicNamespaceState == CacheState.IN_PROCESS) {
-      _publicNamespaceState = CacheState.INVALID;
-    }
-    _resolutionState.recordResolutionNotInProcess();
   }
 
   /**
@@ -8624,43 +8257,9 @@ class DartEntry extends SourceEntry {
   @override
   void recordScanError(CaughtException exception) {
     super.recordScanError(exception);
-    _scanErrors = AnalysisError.NO_ERRORS;
-    _scanErrorsState = CacheState.ERROR;
-    _tokenStream = null;
-    _tokenStreamState = CacheState.ERROR;
+    setState(SCAN_ERRORS, CacheState.ERROR);
+    setState(TOKEN_STREAM, CacheState.ERROR);
     recordParseError(exception);
-  }
-
-  /**
-   * Record that the scan-related information for the associated source is about
-   * to be computed by the current thread.
-   */
-  void recordScanInProcess() {
-    if (getState(SourceEntry.LINE_INFO) != CacheState.VALID) {
-      setState(SourceEntry.LINE_INFO, CacheState.IN_PROCESS);
-    }
-    if (_scanErrorsState != CacheState.VALID) {
-      _scanErrorsState = CacheState.IN_PROCESS;
-    }
-    if (_tokenStreamState != CacheState.VALID) {
-      _tokenStreamState = CacheState.IN_PROCESS;
-    }
-  }
-
-  /**
-   * Record that an in-process scan has stopped without recording results
-   * because the results were invalidated before they could be recorded.
-   */
-  void recordScanNotInProcess() {
-    if (getState(SourceEntry.LINE_INFO) == CacheState.IN_PROCESS) {
-      setState(SourceEntry.LINE_INFO, CacheState.INVALID);
-    }
-    if (_scanErrorsState == CacheState.IN_PROCESS) {
-      _scanErrorsState = CacheState.INVALID;
-    }
-    if (_tokenStreamState == CacheState.IN_PROCESS) {
-      _tokenStreamState = CacheState.INVALID;
-    }
   }
 
   /**
@@ -8727,53 +8326,6 @@ class DartEntry extends SourceEntry {
     _containingLibraries.add(librarySource);
   }
 
-  @override
-  void setState(DataDescriptor descriptor, CacheState state) {
-    if (identical(descriptor, DartEntry.ELEMENT)) {
-      _element = updatedValue(state, _element, null);
-      _elementState = state;
-    } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
-      _exportedLibraries = updatedValue(state, _exportedLibraries, Source.EMPTY_ARRAY);
-      _exportedLibrariesState = state;
-    } else if (identical(descriptor, DartEntry.IMPORTED_LIBRARIES)) {
-      _importedLibraries = updatedValue(state, _importedLibraries, Source.EMPTY_ARRAY);
-      _importedLibrariesState = state;
-    } else if (identical(descriptor, DartEntry.INCLUDED_PARTS)) {
-      _includedParts = updatedValue(state, _includedParts, Source.EMPTY_ARRAY);
-      _includedPartsState = state;
-    } else if (identical(descriptor, DartEntry.IS_CLIENT)) {
-      _updateValueOfFlag(_CLIENT_CODE_INDEX, state);
-      _clientServerState = state;
-    } else if (identical(descriptor, DartEntry.IS_LAUNCHABLE)) {
-      _updateValueOfFlag(_LAUNCHABLE_INDEX, state);
-      _launchableState = state;
-    } else if (identical(descriptor, DartEntry.PARSE_ERRORS)) {
-      _parseErrors = updatedValue(state, _parseErrors, AnalysisError.NO_ERRORS);
-      _parseErrorsState = state;
-    } else if (identical(descriptor, DartEntry.PARSED_UNIT)) {
-      CompilationUnit newUnit = updatedValue(state, _parsedUnit, null);
-      if (!identical(newUnit, _parsedUnit)) {
-        _parsedUnitAccessed = false;
-      }
-      _parsedUnit = newUnit;
-      _parsedUnitState = state;
-    } else if (identical(descriptor, DartEntry.PUBLIC_NAMESPACE)) {
-      _publicNamespace = updatedValue(state, _publicNamespace, null);
-      _publicNamespaceState = state;
-    } else if (identical(descriptor, DartEntry.SCAN_ERRORS)) {
-      _scanErrors = updatedValue(state, _scanErrors, AnalysisError.NO_ERRORS);
-      _scanErrorsState = state;
-    } else if (identical(descriptor, DartEntry.SOURCE_KIND)) {
-      _sourceKind = updatedValue(state, _sourceKind, SourceKind.UNKNOWN);
-      _sourceKindState = state;
-    } else if (identical(descriptor, DartEntry.TOKEN_STREAM)) {
-      _tokenStream = updatedValue(state, _tokenStream, null);
-      _tokenStreamState = state;
-    } else {
-      super.setState(descriptor, state);
-    }
-  }
-
   /**
    * Set the state of the data represented by the given descriptor in the context of the given
    * library to the given state.
@@ -8784,68 +8336,11 @@ class DartEntry extends SourceEntry {
    * @param cacheState the new state of the data represented by the given descriptor
    */
   void setStateInLibrary(DataDescriptor descriptor, Source librarySource, CacheState cacheState) {
+    if (!_isValidLibraryDescriptor(descriptor)) {
+      throw new ArgumentError("Invalid descriptor: $descriptor");
+    }
     ResolutionState state = _getOrCreateResolutionState(librarySource);
-    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
-      state._resolutionErrors = updatedValue(cacheState, state._resolutionErrors, AnalysisError.NO_ERRORS);
-      state._resolutionErrorsState = cacheState;
-    } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
-      state._resolvedUnit = updatedValue(cacheState, state._resolvedUnit, null);
-      state._resolvedUnitState = cacheState;
-    } else if (identical(descriptor, DartEntry.VERIFICATION_ERRORS)) {
-      state._verificationErrors = updatedValue(cacheState, state._verificationErrors, AnalysisError.NO_ERRORS);
-      state._verificationErrorsState = cacheState;
-    } else if (identical(descriptor, DartEntry.HINTS)) {
-      state._hints = updatedValue(cacheState, state._hints, AnalysisError.NO_ERRORS);
-      state._hintsState = cacheState;
-    } else {
-      throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
-    }
-  }
-
-  @override
-  void setValue(DataDescriptor descriptor, Object value) {
-    if (identical(descriptor, DartEntry.ANGULAR_ERRORS)) {
-      _angularErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
-    } else if (identical(descriptor, DartEntry.ELEMENT)) {
-      _element = value as LibraryElement;
-      _elementState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
-      _exportedLibraries = value == null ? Source.EMPTY_ARRAY : (value as List<Source>);
-      _exportedLibrariesState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.IMPORTED_LIBRARIES)) {
-      _importedLibraries = value == null ? Source.EMPTY_ARRAY : (value as List<Source>);
-      _importedLibrariesState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.INCLUDED_PARTS)) {
-      _includedParts = value == null ? Source.EMPTY_ARRAY : (value as List<Source>);
-      _includedPartsState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.IS_CLIENT)) {
-      setFlag(_CLIENT_CODE_INDEX, value as bool);
-      _clientServerState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.IS_LAUNCHABLE)) {
-      setFlag(_LAUNCHABLE_INDEX, value as bool);
-      _launchableState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.PARSE_ERRORS)) {
-      _parseErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
-      _parseErrorsState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.PARSED_UNIT)) {
-      _parsedUnit = value as CompilationUnit;
-      _parsedUnitAccessed = false;
-      _parsedUnitState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.PUBLIC_NAMESPACE)) {
-      _publicNamespace = value as Namespace;
-      _publicNamespaceState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.SCAN_ERRORS)) {
-      _scanErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
-      _scanErrorsState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.SOURCE_KIND)) {
-      _sourceKind = value as SourceKind;
-      _sourceKindState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.TOKEN_STREAM)) {
-      _tokenStream = value as Token;
-      _tokenStreamState = CacheState.VALID;
-    } else {
-      super.setValue(descriptor, value);
-    }
+    state.setState(descriptor, cacheState);
   }
 
   /**
@@ -8858,59 +8353,48 @@ class DartEntry extends SourceEntry {
    * @param value the new value of the data represented by the given descriptor and library
    */
   void setValueInLibrary(DataDescriptor descriptor, Source librarySource, Object value) {
-    ResolutionState state = _getOrCreateResolutionState(librarySource);
-    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
-      state._resolutionErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
-      state._resolutionErrorsState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
-      state._resolvedUnit = value as CompilationUnit;
-      state._resolvedUnitState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.VERIFICATION_ERRORS)) {
-      state._verificationErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
-      state._verificationErrorsState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.HINTS)) {
-      state._hints = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
-      state._hintsState = CacheState.VALID;
+    if (!_isValidLibraryDescriptor(descriptor)) {
+      throw new ArgumentError("Invalid descriptor: $descriptor");
     }
+    ResolutionState state = _getOrCreateResolutionState(librarySource);
+    state.setValue(descriptor, value);
   }
 
   @override
-  bool get hasErrorState => super.hasErrorState || _scanErrorsState == CacheState.ERROR || _tokenStreamState == CacheState.ERROR || _sourceKindState == CacheState.ERROR || _parsedUnitState == CacheState.ERROR || _parseErrorsState == CacheState.ERROR || _importedLibrariesState == CacheState.ERROR || _exportedLibrariesState == CacheState.ERROR || _includedPartsState == CacheState.ERROR || _elementState == CacheState.ERROR || _publicNamespaceState == CacheState.ERROR || _clientServerState == CacheState.ERROR || _launchableState == CacheState.ERROR || _resolutionState.hasErrorState;
-
-  @override
-  bool writeDiffOn(JavaStringBuilder builder, SourceEntry oldEntry) {
-    bool needsSeparator = super.writeDiffOn(builder, oldEntry);
+  bool _writeDiffOn(StringBuffer buffer, SourceEntry oldEntry) {
+    bool needsSeparator = super._writeDiffOn(buffer, oldEntry);
     if (oldEntry is! DartEntry) {
       if (needsSeparator) {
-        builder.append("; ");
+        buffer.write("; ");
       }
-      builder.append("entry type changed; was ${oldEntry.runtimeType.toString()}");
+      buffer.write("entry type changed; was ");
+      buffer.write(oldEntry.runtimeType.toString());
       return true;
     }
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.TOKEN_STREAM, "tokenStream");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.SCAN_ERRORS, "scanErrors");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.SOURCE_KIND, "sourceKind");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.PARSED_UNIT, "parsedUnit");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.PARSE_ERRORS, "parseErrors");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.IMPORTED_LIBRARIES, "importedLibraries");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.EXPORTED_LIBRARIES, "exportedLibraries");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.INCLUDED_PARTS, "includedParts");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.ELEMENT, "element");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.PUBLIC_NAMESPACE, "publicNamespace");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.IS_CLIENT, "clientServer");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.IS_LAUNCHABLE, "launchable");
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "tokenStream", DartEntry.TOKEN_STREAM, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "scanErrors", DartEntry.SCAN_ERRORS, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "sourceKind", DartEntry.SOURCE_KIND, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "parsedUnit", DartEntry.PARSED_UNIT, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "parseErrors", DartEntry.PARSE_ERRORS, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "importedLibraries", DartEntry.IMPORTED_LIBRARIES, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "exportedLibraries", DartEntry.EXPORTED_LIBRARIES, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "includedParts", DartEntry.INCLUDED_PARTS, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "element", DartEntry.ELEMENT, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "publicNamespace", DartEntry.PUBLIC_NAMESPACE, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "clientServer", DartEntry.IS_CLIENT, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "launchable", DartEntry.IS_LAUNCHABLE, oldEntry);
     // TODO(brianwilkerson) Add better support for containingLibraries. It would be nice to be able
     // to report on size-preserving changes.
     int oldLibraryCount = (oldEntry as DartEntry)._containingLibraries.length;
     int libraryCount = _containingLibraries.length;
     if (oldLibraryCount != libraryCount) {
       if (needsSeparator) {
-        builder.append("; ");
+        buffer.write("; ");
       }
-      builder.append("containingLibraryCount = ");
-      builder.append(oldLibraryCount);
-      builder.append(" -> ");
-      builder.append(libraryCount);
+      buffer.write("containingLibraryCount = ");
+      buffer.write(oldLibraryCount);
+      buffer.write(" -> ");
+      buffer.write(libraryCount);
       needsSeparator = true;
     }
     //
@@ -8932,60 +8416,46 @@ class DartEntry extends SourceEntry {
         ResolutionState oldState = oldStateMap.remove(librarySource);
         if (oldState == null) {
           if (needsSeparator) {
-            builder.append("; ");
+            buffer.write("; ");
           }
-          builder.append("added resolution for ");
-          builder.append(librarySource.fullName);
+          buffer.write("added resolution for ");
+          buffer.write(librarySource.fullName);
           needsSeparator = true;
         } else {
-          needsSeparator = oldState.writeDiffOn(builder, needsSeparator, oldEntry as DartEntry);
+          needsSeparator = oldState._writeDiffOn(buffer, needsSeparator, oldEntry as DartEntry);
         }
       }
       state = state._nextState;
     }
     for (Source librarySource in oldStateMap.keys.toSet()) {
       if (needsSeparator) {
-        builder.append("; ");
+        buffer.write("; ");
       }
-      builder.append("removed resolution for ");
-      builder.append(librarySource.fullName);
+      buffer.write("removed resolution for ");
+      buffer.write(librarySource.fullName);
       needsSeparator = true;
     }
     return needsSeparator;
   }
 
   @override
-  void writeOn(JavaStringBuilder builder) {
-    builder.append("Dart: ");
-    super.writeOn(builder);
-    builder.append("; tokenStream = ");
-    builder.append(_tokenStreamState);
-    builder.append("; scanErrors = ");
-    builder.append(_scanErrorsState);
-    builder.append("; sourceKind = ");
-    builder.append(_sourceKindState);
-    builder.append("; parsedUnit = ");
-    builder.append(_parsedUnitState);
-    builder.append(" (");
-    builder.append(_parsedUnitAccessed ? "T" : "F");
-    builder.append("); parseErrors = ");
-    builder.append(_parseErrorsState);
-    builder.append("; exportedLibraries = ");
-    builder.append(_exportedLibrariesState);
-    builder.append("; importedLibraries = ");
-    builder.append(_importedLibrariesState);
-    builder.append("; includedParts = ");
-    builder.append(_includedPartsState);
-    builder.append("; element = ");
-    builder.append(_elementState);
-    builder.append("; publicNamespace = ");
-    builder.append(_publicNamespaceState);
-    builder.append("; clientServer = ");
-    builder.append(_clientServerState);
-    builder.append("; launchable = ");
-    builder.append(_launchableState);
-    //    builder.append("; angularElements = ");
-    _resolutionState.writeOn(builder);
+  void _writeOn(StringBuffer buffer) {
+    buffer.write("Dart: ");
+    super._writeOn(buffer);
+    _writeStateOn(buffer, "tokenStream", TOKEN_STREAM);
+    _writeStateOn(buffer, "scanErrors", SCAN_ERRORS);
+    _writeStateOn(buffer, "sourceKind", SOURCE_KIND);
+    _writeStateOn(buffer, "parsedUnit", PARSED_UNIT);
+    _writeStateOn(buffer, "parseErrors", PARSE_ERRORS);
+    _writeStateOn(buffer, "exportedLibraries", EXPORTED_LIBRARIES);
+    _writeStateOn(buffer, "importedLibraries", IMPORTED_LIBRARIES);
+    _writeStateOn(buffer, "includedParts", INCLUDED_PARTS);
+    _writeStateOn(buffer, "element", ELEMENT);
+    _writeStateOn(buffer, "publicNamespace", PUBLIC_NAMESPACE);
+    _writeStateOn(buffer, "clientServer", IS_CLIENT);
+    _writeStateOn(buffer, "launchable", IS_LAUNCHABLE);
+    _writeStateOn(buffer, "angularErrors", ANGULAR_ERRORS);
+    _resolutionState._writeOn(buffer);
   }
 
   /**
@@ -8995,21 +8465,15 @@ class DartEntry extends SourceEntry {
    *          be invalidated.
    */
   void _discardCachedResolutionInformation(bool invalidateUris) {
-    _element = null;
-    _elementState = CacheState.INVALID;
-    clearFlags([_LAUNCHABLE_INDEX, _CLIENT_CODE_INDEX]);
-    _clientServerState = CacheState.INVALID;
-    _launchableState = CacheState.INVALID;
-    _publicNamespace = null;
-    _publicNamespaceState = CacheState.INVALID;
+    setState(ELEMENT, CacheState.INVALID);
+    setState(IS_CLIENT, CacheState.INVALID);
+    setState(IS_LAUNCHABLE, CacheState.INVALID);
+    setState(PUBLIC_NAMESPACE, CacheState.INVALID);
     _resolutionState.invalidateAllResolutionInformation();
     if (invalidateUris) {
-      _importedLibraries = Source.EMPTY_ARRAY;
-      _importedLibrariesState = CacheState.INVALID;
-      _exportedLibraries = Source.EMPTY_ARRAY;
-      _exportedLibrariesState = CacheState.INVALID;
-      _includedParts = Source.EMPTY_ARRAY;
-      _includedPartsState = CacheState.INVALID;
+      setState(EXPORTED_LIBRARIES, CacheState.INVALID);
+      setState(IMPORTED_LIBRARIES, CacheState.INVALID);
+      setState(INCLUDED_PARTS, CacheState.INVALID);
     }
   }
 
@@ -9037,6 +8501,38 @@ class DartEntry extends SourceEntry {
     return state;
   }
 
+  @override
+  bool _isValidDescriptor(DataDescriptor descriptor) {
+    return descriptor == ANGULAR_ERRORS
+        || descriptor == CONTAINING_LIBRARIES
+        || descriptor == ELEMENT
+        || descriptor == EXPORTED_LIBRARIES
+        || descriptor == IMPORTED_LIBRARIES
+        || descriptor == INCLUDED_PARTS
+        || descriptor == IS_CLIENT
+        || descriptor == IS_LAUNCHABLE
+        || descriptor == PARSED_UNIT
+        || descriptor == PARSE_ERRORS
+        || descriptor == PUBLIC_NAMESPACE
+        || descriptor == SCAN_ERRORS
+        || descriptor == SOURCE_KIND
+        || descriptor == TOKEN_STREAM
+        || super._isValidDescriptor(descriptor);
+  }
+
+  /**
+   * Return `true` if the [descriptor] is valid for this entry when the data is
+   * relative to a library.
+   */
+  bool _isValidLibraryDescriptor(DataDescriptor descriptor) {
+    return descriptor == BUILD_ELEMENT_ERRORS
+        || descriptor == BUILT_UNIT
+        || descriptor == HINTS
+        || descriptor == RESOLUTION_ERRORS
+        || descriptor == RESOLVED_UNIT
+        || descriptor == VERIFICATION_ERRORS;
+  }
+
   /**
    * Given that the specified flag is being transitioned to the given state, set the value of the
    * flag to the value that should be kept in the cache.
@@ -9052,7 +8548,7 @@ class DartEntry extends SourceEntry {
       // If the value is in process, we can leave the current value in the cache for any 'get'
       // methods to access.
       //
-      setFlag(index, false);
+      _setFlag(index, false);
     }
   }
 }
@@ -9068,11 +8564,15 @@ class DataDescriptor<E> {
   final String _name;
 
   /**
-   * Initialize a newly created descriptor to have the given name.
-   *
-   * @param name the name of the descriptor
+   * The default value used when the data does not exist.
    */
-  DataDescriptor(this._name);
+  final E defaultValue;
+
+  /**
+   * Initialize a newly created descriptor to have the given [name] and
+   * [defaultValue].
+   */
+  DataDescriptor(this._name, [this.defaultValue = null]);
 
   @override
   String toString() => _name;
@@ -9441,143 +8941,6 @@ class GetContentTask extends AnalysisTask {
  */
 class HtmlEntry extends SourceEntry {
   /**
-   * The state of the cached parsed (but not resolved) HTML unit.
-   */
-  CacheState _parsedUnitState = CacheState.INVALID;
-
-  /**
-   * The parsed HTML unit, or `null` if the parsed HTML unit is not currently cached.
-   */
-  ht.HtmlUnit _parsedUnit;
-
-  /**
-   * The state of the cached resolved HTML unit.
-   */
-  CacheState _resolvedUnitState = CacheState.INVALID;
-
-  /**
-   * The resolved HTML unit, or `null` if the resolved HTML unit is not currently cached.
-   */
-  ht.HtmlUnit _resolvedUnit;
-
-  /**
-   * The state of the cached parse errors.
-   */
-  CacheState _parseErrorsState = CacheState.INVALID;
-
-  /**
-   * The errors produced while scanning and parsing the HTML, or `null` if the errors are not
-   * currently cached.
-   */
-  List<AnalysisError> _parseErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The state of the cached resolution errors.
-   */
-  CacheState _resolutionErrorsState = CacheState.INVALID;
-
-  /**
-   * The errors produced while resolving the HTML, or `null` if the errors are not currently
-   * cached.
-   */
-  List<AnalysisError> _resolutionErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The state of the cached list of referenced libraries.
-   */
-  CacheState _referencedLibrariesState = CacheState.INVALID;
-
-  /**
-   * The list of libraries referenced in the HTML, or `null` if the list is not currently
-   * cached. Note that this list does not include libraries defined directly within the HTML file.
-   */
-  List<Source> _referencedLibraries = Source.EMPTY_ARRAY;
-
-  /**
-   * The state of the cached HTML element.
-   */
-  CacheState _elementState = CacheState.INVALID;
-
-  /**
-   * The element representing the HTML file, or `null` if the element is not currently cached.
-   */
-  HtmlElement _element;
-
-  /**
-   * The state of the [angularApplication].
-   */
-  CacheState _angularApplicationState = CacheState.VALID;
-
-  /**
-   * Information about the Angular Application this unit is used in.
-   */
-  AngularApplication _angularApplication;
-
-  /**
-   * The state of the [angularEntry].
-   */
-  CacheState _angularEntryState = CacheState.INVALID;
-
-  /**
-   * Information about the Angular Application this unit is entry point for.
-   */
-  AngularApplication _angularEntry = null;
-
-  /**
-   * The state of the [angularComponent].
-   */
-  CacheState _angularComponentState = CacheState.VALID;
-
-  /**
-   * Information about the [AngularComponentElement] this unit is used as template for.
-   */
-  AngularComponentElement _angularComponent = null;
-
-  /**
-   * The state of the Angular resolution errors.
-   */
-  CacheState _angularErrorsState = CacheState.INVALID;
-
-  /**
-   * The hints produced while performing Angular resolution, or an empty array if the error are not
-   * currently cached.
-   */
-  List<AnalysisError> _angularErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The state of the cached hints.
-   */
-  CacheState _hintsState = CacheState.INVALID;
-
-  /**
-   * The hints produced while auditing the compilation unit, or an empty array if the hints are not
-   * currently cached.
-   */
-  List<AnalysisError> _hints = AnalysisError.NO_ERRORS;
-
-  /**
-   * The state of the Polymer elements.
-   */
-  CacheState _polymerBuildErrorsState = CacheState.INVALID;
-
-  /**
-   * The hints produced while performing Polymer HTML elements building, or an empty array if the
-   * error are not currently cached.
-   */
-  List<AnalysisError> _polymerBuildErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The state of the Polymer resolution errors.
-   */
-  CacheState _polymerResolutionErrorsState = CacheState.INVALID;
-
-  /**
-   * The hints produced while performing Polymer resolution, or an empty array if the error are not
-   * currently cached.
-   */
-  List<AnalysisError> _polymerResolutionErrors = AnalysisError.NO_ERRORS;
-
-  /**
    * The data descriptor representing the information about an Angular
    * application this source is used in.
    */
@@ -9603,7 +8966,7 @@ class HtmlEntry extends SourceEntry {
    * resolution.
    */
   static final DataDescriptor<List<AnalysisError>> ANGULAR_ERRORS
-      = new DataDescriptor<List<AnalysisError>>("HtmlEntry.ANGULAR_ERRORS");
+      = new DataDescriptor<List<AnalysisError>>("HtmlEntry.ANGULAR_ERRORS", AnalysisError.NO_ERRORS);
 
   /**
    * The data descriptor representing the HTML element.
@@ -9616,14 +8979,14 @@ class HtmlEntry extends SourceEntry {
    * source.
    */
   static final DataDescriptor<List<AnalysisError>> HINTS
-      = new DataDescriptor<List<AnalysisError>>("HtmlEntry.HINTS");
+      = new DataDescriptor<List<AnalysisError>>("HtmlEntry.HINTS", AnalysisError.NO_ERRORS);
 
   /**
    * The data descriptor representing the errors resulting from parsing the
    * source.
    */
   static final DataDescriptor<List<AnalysisError>> PARSE_ERRORS
-      = new DataDescriptor<List<AnalysisError>>("HtmlEntry.PARSE_ERRORS");
+      = new DataDescriptor<List<AnalysisError>>("HtmlEntry.PARSE_ERRORS", AnalysisError.NO_ERRORS);
 
   /**
    * The data descriptor representing the parsed AST structure.
@@ -9641,89 +9004,55 @@ class HtmlEntry extends SourceEntry {
    * The data descriptor representing the list of referenced libraries.
    */
   static final DataDescriptor<List<Source>> REFERENCED_LIBRARIES
-      = new DataDescriptor<List<Source>>("HtmlEntry.REFERENCED_LIBRARIES");
+      = new DataDescriptor<List<Source>>("HtmlEntry.REFERENCED_LIBRARIES", Source.EMPTY_ARRAY);
 
   /**
    * The data descriptor representing the errors resulting from resolving the
    * source.
    */
   static final DataDescriptor<List<AnalysisError>> RESOLUTION_ERRORS
-      = new DataDescriptor<List<AnalysisError>>("HtmlEntry.RESOLUTION_ERRORS");
+      = new DataDescriptor<List<AnalysisError>>("HtmlEntry.RESOLUTION_ERRORS", AnalysisError.NO_ERRORS);
 
   /**
    * The data descriptor representing the status of Polymer elements in the
    * source.
    */
   static final DataDescriptor<List<AnalysisError>> POLYMER_BUILD_ERRORS
-      = new DataDescriptor<List<AnalysisError>>("HtmlEntry.POLYMER_BUILD_ERRORS");
+      = new DataDescriptor<List<AnalysisError>>("HtmlEntry.POLYMER_BUILD_ERRORS", AnalysisError.NO_ERRORS);
 
   /**
    * The data descriptor representing the errors reported during Polymer
    * resolution.
    */
   static final DataDescriptor<List<AnalysisError>> POLYMER_RESOLUTION_ERRORS
-      = new DataDescriptor<List<AnalysisError>>("HtmlEntry.POLYMER_RESOLUTION_ERRORS");
+      = new DataDescriptor<List<AnalysisError>>("HtmlEntry.POLYMER_RESOLUTION_ERRORS", AnalysisError.NO_ERRORS);
 
   /**
    * Flush any AST structures being maintained by this entry.
    */
   void flushAstStructures() {
-    if (_parsedUnitState == CacheState.VALID) {
-      _parsedUnitState = CacheState.FLUSHED;
-      _parsedUnit = null;
-    }
-    if (_resolvedUnitState == CacheState.VALID) {
-      _resolvedUnitState = CacheState.FLUSHED;
-      _resolvedUnit = null;
-    }
-    if (_angularEntryState == CacheState.VALID) {
-      _angularEntryState = CacheState.FLUSHED;
-    }
-    if (_angularErrorsState == CacheState.VALID) {
-      _angularErrorsState = CacheState.FLUSHED;
-    }
+    _flush(PARSED_UNIT);
+    _flush(RESOLVED_UNIT);
+    _flush(ANGULAR_ENTRY);
+    _flush(ANGULAR_ERRORS);
   }
 
   /**
-   * Return all of the errors associated with the compilation unit that are
-   * currently cached.
+   * Return all of the errors associated with the HTML file that are currently
+   * cached.
    */
   List<AnalysisError> get allErrors {
     List<AnalysisError> errors = new List<AnalysisError>();
-    if (_parseErrors != null) {
-      for (AnalysisError error in _parseErrors) {
-        errors.add(error);
-      }
-    }
-    if (_resolutionErrors != null) {
-      for (AnalysisError error in _resolutionErrors) {
-        errors.add(error);
-      }
-    }
-    if (_angularErrors != null) {
-      for (AnalysisError error in _angularErrors) {
-        errors.add(error);
-      }
-    }
-    if (_hints != null) {
-      for (AnalysisError error in _hints) {
-        errors.add(error);
-      }
-    }
-    if (_polymerBuildErrors != null) {
-      for (AnalysisError error in _polymerBuildErrors) {
-        errors.add(error);
-      }
-    }
-    if (_polymerResolutionErrors != null) {
-      for (AnalysisError error in _polymerResolutionErrors) {
-        errors.add(error);
-      }
-    }
+    errors.addAll(getValue(PARSE_ERRORS));
+    errors.addAll(getValue(RESOLUTION_ERRORS));
+    errors.addAll(getValue(ANGULAR_ERRORS));
+    errors.addAll(getValue(HINTS));
+    errors.addAll(getValue(POLYMER_BUILD_ERRORS));
+    errors.addAll(getValue(POLYMER_RESOLUTION_ERRORS));
     if (errors.length == 0) {
       return AnalysisError.NO_ERRORS;
     }
-    return new List.from(errors);
+    return errors;
   }
 
   /**
@@ -9732,13 +9061,11 @@ class HtmlEntry extends SourceEntry {
    * available.
    */
   ht.HtmlUnit get anyParsedUnit {
-    if (_parsedUnitState == CacheState.VALID) {
-      //      parsedUnitAccessed = true;
-      return _parsedUnit;
+    if (getState(PARSED_UNIT) == CacheState.VALID) {
+      return getValue(PARSED_UNIT);
     }
-    if (_resolvedUnitState == CacheState.VALID) {
-      //      resovledUnitAccessed = true;
-      return _resolvedUnit;
+    if (getState(RESOLVED_UNIT) == CacheState.VALID) {
+      return getValue(RESOLVED_UNIT);
     }
     return null;
   }
@@ -9747,105 +9074,29 @@ class HtmlEntry extends SourceEntry {
   SourceKind get kind => SourceKind.HTML;
 
   @override
-  CacheState getState(DataDescriptor descriptor) {
-    if (identical(descriptor, HtmlEntry.ANGULAR_APPLICATION)) {
-      return _angularApplicationState;
-    } else if (identical(descriptor, HtmlEntry.ANGULAR_COMPONENT)) {
-      return _angularComponentState;
-    } else if (identical(descriptor, HtmlEntry.ANGULAR_ENTRY)) {
-      return _angularEntryState;
-    } else if (identical(descriptor, HtmlEntry.ANGULAR_ERRORS)) {
-      return _angularErrorsState;
-    } else if (identical(descriptor, HtmlEntry.ELEMENT)) {
-      return _elementState;
-    } else if (identical(descriptor, HtmlEntry.PARSE_ERRORS)) {
-      return _parseErrorsState;
-    } else if (identical(descriptor, HtmlEntry.PARSED_UNIT)) {
-      return _parsedUnitState;
-    } else if (identical(descriptor, HtmlEntry.RESOLVED_UNIT)) {
-      return _resolvedUnitState;
-    } else if (identical(descriptor, HtmlEntry.REFERENCED_LIBRARIES)) {
-      return _referencedLibrariesState;
-    } else if (identical(descriptor, HtmlEntry.RESOLUTION_ERRORS)) {
-      return _resolutionErrorsState;
-    } else if (identical(descriptor, HtmlEntry.HINTS)) {
-      return _hintsState;
-    } else if (identical(descriptor, HtmlEntry.POLYMER_BUILD_ERRORS)) {
-      return _polymerBuildErrorsState;
-    } else if (identical(descriptor, HtmlEntry.POLYMER_RESOLUTION_ERRORS)) {
-      return _polymerResolutionErrorsState;
-    }
-    return super.getState(descriptor);
-  }
-
-  @override
-  Object getValue(DataDescriptor descriptor) {
-    if (identical(descriptor, HtmlEntry.ANGULAR_APPLICATION)) {
-      return _angularApplication;
-    } else if (identical(descriptor, HtmlEntry.ANGULAR_COMPONENT)) {
-      return _angularComponent;
-    } else if (identical(descriptor, HtmlEntry.ANGULAR_ENTRY)) {
-      return _angularEntry;
-    } else if (identical(descriptor, HtmlEntry.ANGULAR_ERRORS)) {
-      return _angularErrors;
-    } else if (identical(descriptor, HtmlEntry.ELEMENT)) {
-      return _element;
-    } else if (identical(descriptor, HtmlEntry.PARSE_ERRORS)) {
-      return _parseErrors;
-    } else if (identical(descriptor, HtmlEntry.PARSED_UNIT)) {
-      return _parsedUnit;
-    } else if (identical(descriptor, HtmlEntry.RESOLVED_UNIT)) {
-      return _resolvedUnit;
-    } else if (identical(descriptor, HtmlEntry.REFERENCED_LIBRARIES)) {
-      return _referencedLibraries;
-    } else if (identical(descriptor, HtmlEntry.RESOLUTION_ERRORS)) {
-      return _resolutionErrors;
-    } else if (identical(descriptor, HtmlEntry.HINTS)) {
-      return _hints;
-    } else if (identical(descriptor, HtmlEntry.POLYMER_BUILD_ERRORS)) {
-      return _polymerBuildErrors;
-    } else if (identical(descriptor, HtmlEntry.POLYMER_RESOLUTION_ERRORS)) {
-      return _polymerResolutionErrors;
-    }
-    return super.getValue(descriptor);
-  }
-
-  @override
   void invalidateAllInformation() {
     super.invalidateAllInformation();
-    _parseErrors = AnalysisError.NO_ERRORS;
-    _parseErrorsState = CacheState.INVALID;
-    _parsedUnit = null;
-    _parsedUnitState = CacheState.INVALID;
-    _resolvedUnit = null;
-    _resolvedUnitState = CacheState.INVALID;
+    setState(PARSE_ERRORS, CacheState.INVALID);
+    setState(PARSED_UNIT, CacheState.INVALID);
+    setState(RESOLVED_UNIT, CacheState.INVALID);
     invalidateAllResolutionInformation(true);
   }
 
   /**
    * Invalidate all of the resolution information associated with the HTML file.
-   *
-   * @param invalidateUris true if the cached results of converting URIs to source files should also
-   *          be invalidated.
+   * If [invalidateUris] is `true`, the cached results of converting URIs to
+   * source files should also be invalidated.
    */
   void invalidateAllResolutionInformation(bool invalidateUris) {
-    _angularEntry = null;
-    _angularEntryState = CacheState.INVALID;
-    _angularErrors = AnalysisError.NO_ERRORS;
-    _angularErrorsState = CacheState.INVALID;
-    _polymerBuildErrors = AnalysisError.NO_ERRORS;
-    _polymerBuildErrorsState = CacheState.INVALID;
-    _polymerResolutionErrors = AnalysisError.NO_ERRORS;
-    _polymerResolutionErrorsState = CacheState.INVALID;
-    _element = null;
-    _elementState = CacheState.INVALID;
-    _resolutionErrors = AnalysisError.NO_ERRORS;
-    _resolutionErrorsState = CacheState.INVALID;
-    _hints = AnalysisError.NO_ERRORS;
-    _hintsState = CacheState.INVALID;
+    setState(ANGULAR_ENTRY, CacheState.INVALID);
+    setState(ANGULAR_ERRORS, CacheState.INVALID);
+    setState(POLYMER_BUILD_ERRORS, CacheState.INVALID);
+    setState(POLYMER_RESOLUTION_ERRORS, CacheState.INVALID);
+    setState(ELEMENT, CacheState.INVALID);
+    setState(RESOLUTION_ERRORS, CacheState.INVALID);
+    setState(HINTS, CacheState.INVALID);
     if (invalidateUris) {
-      _referencedLibraries = Source.EMPTY_ARRAY;
-      _referencedLibrariesState = CacheState.INVALID;
+      setState(REFERENCED_LIBRARIES, CacheState.INVALID);
     }
   }
 
@@ -9856,195 +9107,93 @@ class HtmlEntry extends SourceEntry {
   }
 
   /**
-   * Record that an error was encountered while attempting to parse the source associated with this
-   * entry.
-   *
-   * @param exception the exception that shows where the error occurred
+   * Record that an [exception] was encountered while attempting to parse the
+   * source associated with this entry.
    */
   void recordParseError(CaughtException exception) {
     // If the scanning and parsing of HTML are separated, the following line can be removed.
     recordScanError(exception);
-    _parseErrors = AnalysisError.NO_ERRORS;
-    _parseErrorsState = CacheState.ERROR;
-    _parsedUnit = null;
-    _parsedUnitState = CacheState.ERROR;
-    _referencedLibraries = Source.EMPTY_ARRAY;
-    _referencedLibrariesState = CacheState.ERROR;
+    setState(PARSE_ERRORS, CacheState.ERROR);
+    setState(PARSED_UNIT, CacheState.ERROR);
+    setState(REFERENCED_LIBRARIES, CacheState.ERROR);
     recordResolutionError(exception);
   }
 
   /**
-   * Record that an error was encountered while attempting to resolve the source associated with
-   * this entry.
-   *
-   * @param exception the exception that shows where the error occurred
+   * Record that an [exception] was encountered while attempting to resolve the
+   * source associated with this entry.
    */
   void recordResolutionError(CaughtException exception) {
     this.exception = exception;
-    _angularErrors = AnalysisError.NO_ERRORS;
-    _angularErrorsState = CacheState.ERROR;
-    _resolvedUnit = null;
-    _resolvedUnitState = CacheState.ERROR;
-    _element = null;
-    _elementState = CacheState.ERROR;
-    _resolutionErrors = AnalysisError.NO_ERRORS;
-    _resolutionErrorsState = CacheState.ERROR;
-    _hints = AnalysisError.NO_ERRORS;
-    _hintsState = CacheState.ERROR;
-    _polymerBuildErrors = AnalysisError.NO_ERRORS;
-    _polymerBuildErrorsState = CacheState.ERROR;
-    _polymerResolutionErrors = AnalysisError.NO_ERRORS;
-    _polymerResolutionErrorsState = CacheState.ERROR;
+    setState(ANGULAR_ERRORS, CacheState.ERROR);
+    setState(RESOLVED_UNIT, CacheState.ERROR);
+    setState(ELEMENT, CacheState.ERROR);
+    setState(RESOLUTION_ERRORS, CacheState.ERROR);
+    setState(HINTS, CacheState.ERROR);
+    setState(POLYMER_BUILD_ERRORS, CacheState.ERROR);
+    setState(POLYMER_RESOLUTION_ERRORS, CacheState.ERROR);
   }
 
   @override
-  void setState(DataDescriptor descriptor, CacheState state) {
-    if (identical(descriptor, HtmlEntry.ANGULAR_APPLICATION)) {
-      _angularApplication = updatedValue(state, _angularApplication, null);
-      _angularApplicationState = state;
-    } else if (identical(descriptor, HtmlEntry.ANGULAR_COMPONENT)) {
-      _angularComponent = updatedValue(state, _angularComponent, null);
-      _angularComponentState = state;
-    } else if (identical(descriptor, HtmlEntry.ANGULAR_ENTRY)) {
-      _angularEntry = updatedValue(state, _angularEntry, null);
-      _angularEntryState = state;
-    } else if (identical(descriptor, HtmlEntry.ANGULAR_ERRORS)) {
-      _angularErrors = updatedValue(state, _angularErrors, null);
-      _angularErrorsState = state;
-    } else if (identical(descriptor, HtmlEntry.ELEMENT)) {
-      _element = updatedValue(state, _element, null);
-      _elementState = state;
-    } else if (identical(descriptor, HtmlEntry.PARSE_ERRORS)) {
-      _parseErrors = updatedValue(state, _parseErrors, null);
-      _parseErrorsState = state;
-    } else if (identical(descriptor, HtmlEntry.PARSED_UNIT)) {
-      _parsedUnit = updatedValue(state, _parsedUnit, null);
-      _parsedUnitState = state;
-    } else if (identical(descriptor, HtmlEntry.RESOLVED_UNIT)) {
-      _resolvedUnit = updatedValue(state, _resolvedUnit, null);
-      _resolvedUnitState = state;
-    } else if (identical(descriptor, HtmlEntry.REFERENCED_LIBRARIES)) {
-      _referencedLibraries = updatedValue(state, _referencedLibraries, Source.EMPTY_ARRAY);
-      _referencedLibrariesState = state;
-    } else if (identical(descriptor, HtmlEntry.RESOLUTION_ERRORS)) {
-      _resolutionErrors = updatedValue(state, _resolutionErrors, AnalysisError.NO_ERRORS);
-      _resolutionErrorsState = state;
-    } else if (identical(descriptor, HtmlEntry.HINTS)) {
-      _hints = updatedValue(state, _hints, AnalysisError.NO_ERRORS);
-      _hintsState = state;
-    } else if (identical(descriptor, HtmlEntry.POLYMER_BUILD_ERRORS)) {
-      _polymerBuildErrors = updatedValue(state, _polymerBuildErrors, null);
-      _polymerBuildErrorsState = state;
-    } else if (identical(descriptor, HtmlEntry.POLYMER_RESOLUTION_ERRORS)) {
-      _polymerResolutionErrors = updatedValue(state, _polymerResolutionErrors, null);
-      _polymerResolutionErrorsState = state;
-    } else {
-      super.setState(descriptor, state);
-    }
+  bool _isValidDescriptor(DataDescriptor descriptor) {
+    return descriptor == ANGULAR_APPLICATION
+        || descriptor == ANGULAR_COMPONENT
+        || descriptor == ANGULAR_ENTRY
+        || descriptor == ANGULAR_ERRORS
+        || descriptor == ELEMENT
+        || descriptor == HINTS
+        || descriptor == PARSED_UNIT
+        || descriptor == PARSE_ERRORS
+        || descriptor == POLYMER_BUILD_ERRORS
+        || descriptor == POLYMER_RESOLUTION_ERRORS
+        || descriptor == REFERENCED_LIBRARIES
+        || descriptor == RESOLUTION_ERRORS
+        || descriptor == RESOLVED_UNIT
+        || super._isValidDescriptor(descriptor);
   }
 
   @override
-  void setValue(DataDescriptor descriptor, Object value) {
-    if (identical(descriptor, HtmlEntry.ANGULAR_APPLICATION)) {
-      _angularApplication = value as AngularApplication;
-      _angularApplicationState = CacheState.VALID;
-    } else if (identical(descriptor, HtmlEntry.ANGULAR_COMPONENT)) {
-      _angularComponent = value as AngularComponentElement;
-      _angularComponentState = CacheState.VALID;
-    } else if (identical(descriptor, HtmlEntry.ANGULAR_ENTRY)) {
-      _angularEntry = value as AngularApplication;
-      _angularEntryState = CacheState.VALID;
-    } else if (identical(descriptor, HtmlEntry.ANGULAR_ERRORS)) {
-      _angularErrors = value as List<AnalysisError>;
-      _angularErrorsState = CacheState.VALID;
-    } else if (identical(descriptor, HtmlEntry.ELEMENT)) {
-      _element = value as HtmlElement;
-      _elementState = CacheState.VALID;
-    } else if (identical(descriptor, HtmlEntry.PARSE_ERRORS)) {
-      _parseErrors = value as List<AnalysisError>;
-      _parseErrorsState = CacheState.VALID;
-    } else if (identical(descriptor, HtmlEntry.PARSED_UNIT)) {
-      _parsedUnit = value as ht.HtmlUnit;
-      _parsedUnitState = CacheState.VALID;
-    } else if (identical(descriptor, HtmlEntry.RESOLVED_UNIT)) {
-      _resolvedUnit = value as ht.HtmlUnit;
-      _resolvedUnitState = CacheState.VALID;
-    } else if (identical(descriptor, HtmlEntry.REFERENCED_LIBRARIES)) {
-      _referencedLibraries = value == null ? Source.EMPTY_ARRAY : (value as List<Source>);
-      _referencedLibrariesState = CacheState.VALID;
-    } else if (identical(descriptor, HtmlEntry.RESOLUTION_ERRORS)) {
-      _resolutionErrors = value as List<AnalysisError>;
-      _resolutionErrorsState = CacheState.VALID;
-    } else if (identical(descriptor, HtmlEntry.HINTS)) {
-      _hints = value as List<AnalysisError>;
-      _hintsState = CacheState.VALID;
-    } else if (identical(descriptor, HtmlEntry.POLYMER_BUILD_ERRORS)) {
-      _polymerBuildErrors = value as List<AnalysisError>;
-      _polymerBuildErrorsState = CacheState.VALID;
-    } else if (identical(descriptor, HtmlEntry.POLYMER_RESOLUTION_ERRORS)) {
-      _polymerResolutionErrors = value as List<AnalysisError>;
-      _polymerResolutionErrorsState = CacheState.VALID;
-    } else {
-      super.setValue(descriptor, value);
-    }
-  }
-
-  @override
-  bool get hasErrorState => super.hasErrorState || _parsedUnitState == CacheState.ERROR || _resolvedUnitState == CacheState.ERROR || _parseErrorsState == CacheState.ERROR || _resolutionErrorsState == CacheState.ERROR || _referencedLibrariesState == CacheState.ERROR || _elementState == CacheState.ERROR || _angularErrorsState == CacheState.ERROR || _hintsState == CacheState.ERROR || _polymerBuildErrorsState == CacheState.ERROR || _polymerResolutionErrorsState == CacheState.ERROR;
-
-  @override
-  bool writeDiffOn(JavaStringBuilder builder, SourceEntry oldEntry) {
-    bool needsSeparator = super.writeDiffOn(builder, oldEntry);
+  bool _writeDiffOn(StringBuffer buffer, SourceEntry oldEntry) {
+    bool needsSeparator = super._writeDiffOn(buffer, oldEntry);
     if (oldEntry is! HtmlEntry) {
       if (needsSeparator) {
-        builder.append("; ");
+        buffer.write("; ");
       }
-      builder.append("entry type changed; was ${oldEntry.runtimeType.toString()}");
+      buffer.write("entry type changed; was ");
+      buffer.write(oldEntry.runtimeType);
       return true;
     }
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, HtmlEntry.PARSE_ERRORS, "parseErrors");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, HtmlEntry.PARSED_UNIT, "parsedUnit");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, HtmlEntry.RESOLVED_UNIT, "resolvedUnit");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, HtmlEntry.RESOLUTION_ERRORS, "resolutionErrors");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, HtmlEntry.REFERENCED_LIBRARIES, "referencedLibraries");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, HtmlEntry.ELEMENT, "element");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, HtmlEntry.ANGULAR_APPLICATION, "angularApplicationState");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, HtmlEntry.ANGULAR_COMPONENT, "angularComponent");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, HtmlEntry.ANGULAR_ENTRY, "angularEntry");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, HtmlEntry.ANGULAR_ERRORS, "angularErrors");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, HtmlEntry.POLYMER_BUILD_ERRORS, "polymerBuildErrors");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, HtmlEntry.POLYMER_RESOLUTION_ERRORS, "polymerResolutionErrors");
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "parseErrors", HtmlEntry.PARSE_ERRORS, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "parsedUnit", HtmlEntry.PARSED_UNIT, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "resolvedUnit", HtmlEntry.RESOLVED_UNIT, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "resolutionErrors", HtmlEntry.RESOLUTION_ERRORS, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "referencedLibraries", HtmlEntry.REFERENCED_LIBRARIES, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "element", HtmlEntry.ELEMENT, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "angularApplicationState", HtmlEntry.ANGULAR_APPLICATION, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "angularComponent", HtmlEntry.ANGULAR_COMPONENT, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "angularEntry", HtmlEntry.ANGULAR_ENTRY, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "angularErrors", HtmlEntry.ANGULAR_ERRORS, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "polymerBuildErrors", HtmlEntry.POLYMER_BUILD_ERRORS, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "polymerResolutionErrors", HtmlEntry.POLYMER_RESOLUTION_ERRORS, oldEntry);
     return needsSeparator;
   }
 
   @override
-  void writeOn(JavaStringBuilder builder) {
-    builder.append("Html: ");
-    super.writeOn(builder);
-    builder.append("; parseErrors = ");
-    builder.append(_parseErrorsState);
-    builder.append("; parsedUnit = ");
-    builder.append(_parsedUnitState);
-    builder.append("; resolvedUnit = ");
-    builder.append(_resolvedUnitState);
-    builder.append("; resolutionErrors = ");
-    builder.append(_resolutionErrorsState);
-    builder.append("; referencedLibraries = ");
-    builder.append(_referencedLibrariesState);
-    builder.append("; element = ");
-    builder.append(_elementState);
-    builder.append("; angularApplication = ");
-    builder.append(_angularApplicationState);
-    builder.append("; angularComponent = ");
-    builder.append(_angularComponentState);
-    builder.append("; angularEntry = ");
-    builder.append(_angularEntryState);
-    builder.append("; angularErrors = ");
-    builder.append(_angularErrorsState);
-    builder.append("; polymerBuildErrors = ");
-    builder.append(_polymerBuildErrorsState);
-    builder.append("; polymerResolutionErrors = ");
-    builder.append(_polymerResolutionErrorsState);
+  void _writeOn(StringBuffer buffer) {
+    buffer.write("Html: ");
+    super._writeOn(buffer);
+    _writeStateOn(buffer, "parseErrors", PARSE_ERRORS);
+    _writeStateOn(buffer, "parsedUnit", PARSED_UNIT);
+    _writeStateOn(buffer, "resolvedUnit", RESOLVED_UNIT);
+    _writeStateOn(buffer, "resolutionErrors", RESOLUTION_ERRORS);
+    _writeStateOn(buffer, "referencedLibraries", REFERENCED_LIBRARIES);
+    _writeStateOn(buffer, "element", ELEMENT);
+    _writeStateOn(buffer, "angularApplication", ANGULAR_APPLICATION);
+    _writeStateOn(buffer, "angularComponent", ANGULAR_COMPONENT);
+    _writeStateOn(buffer, "angularEntry", ANGULAR_ENTRY);
+    _writeStateOn(buffer, "angularErrors", ANGULAR_ERRORS);
+    _writeStateOn(buffer, "polymerBuildErrors", POLYMER_BUILD_ERRORS);
+    _writeStateOn(buffer, "polymerResolutionErrors", POLYMER_RESOLUTION_ERRORS);
   }
 }
 
@@ -12754,89 +11903,57 @@ class ResolutionState {
   Source _librarySource;
 
   /**
-   * The state of the cached compilation unit that contains references to the built element model.
+   * A table mapping data descriptors to the cached results for those
+   * descriptors.
    */
-  CacheState _builtUnitState = CacheState.INVALID;
-
-  /**
-   * The compilation unit that contains references to the built element model, or `null` if
-   * that compilation unit is not currently cached.
-   */
-  CompilationUnit _builtUnit;
-
-  /**
-   * The state of the cached errors reported while building an element model.
-   */
-  CacheState _buildElementErrorsState = CacheState.INVALID;
-
-  /**
-   * The errors produced while building an element model, or an empty array if the errors are not
-   * currently cached.
-   */
-  List<AnalysisError> _buildElementErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The state of the cached resolved compilation unit.
-   */
-  CacheState _resolvedUnitState = CacheState.INVALID;
-
-  /**
-   * The resolved compilation unit, or `null` if the resolved compilation unit is not
-   * currently cached.
-   */
-  CompilationUnit _resolvedUnit;
-
-  /**
-   * The state of the cached resolution errors.
-   */
-  CacheState _resolutionErrorsState = CacheState.INVALID;
-
-  /**
-   * The errors produced while resolving the compilation unit, or an empty array if the errors are
-   * not currently cached.
-   */
-  List<AnalysisError> _resolutionErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The state of the cached verification errors.
-   */
-  CacheState _verificationErrorsState = CacheState.INVALID;
-
-  /**
-   * The errors produced while verifying the compilation unit, or an empty array if the errors are
-   * not currently cached.
-   */
-  List<AnalysisError> _verificationErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The state of the cached hints.
-   */
-  CacheState _hintsState = CacheState.INVALID;
-
-  /**
-   * The hints produced while auditing the compilation unit, or an empty array if the hints are
-   * not currently cached.
-   */
-  List<AnalysisError> _hints = AnalysisError.NO_ERRORS;
+  Map<DataDescriptor, CachedResult> resultMap
+      = new HashMap<DataDescriptor, CachedResult>();
 
   /**
    * Flush any AST structures being maintained by this state.
    */
   void flushAstStructures() {
-    if (_builtUnitState == CacheState.VALID) {
-      _builtUnitState = CacheState.FLUSHED;
-      _builtUnit = null;
-    }
-    if (_resolvedUnitState == CacheState.VALID) {
-      _resolvedUnitState = CacheState.FLUSHED;
-      _resolvedUnit = null;
-    }
+    _flush(DartEntry.BUILT_UNIT);
+    _flush(DartEntry.RESOLVED_UNIT);
     if (_nextState != null) {
       _nextState.flushAstStructures();
     }
   }
 
-  bool get hasErrorState => _builtUnitState == CacheState.ERROR || _buildElementErrorsState == CacheState.ERROR || _resolvedUnitState == CacheState.ERROR || _resolutionErrorsState == CacheState.ERROR || _verificationErrorsState == CacheState.ERROR || _hintsState == CacheState.ERROR || (_nextState != null && _nextState.hasErrorState);
+  /**
+   * Return the state of the data represented by the given [descriptor].
+   */
+  CacheState getState(DataDescriptor descriptor) {
+    CachedResult result = resultMap[descriptor];
+    if (result == null) {
+      return CacheState.INVALID;
+    }
+    return result.state;
+  }
+
+  /**
+   * Return the value of the data represented by the given [descriptor], or
+   * `null` if the data represented by the descriptor is not valid.
+   */
+  /*<V>*/ dynamic /*V*/ getValue(DataDescriptor/*<V>*/ descriptor) {
+    CachedResult result = resultMap[descriptor];
+    if (result == null) {
+      return descriptor.defaultValue;
+    }
+    return result.value;
+  }
+
+  /**
+   * Return `true` if the state of any data value is [CacheState.ERROR].
+   */
+  bool hasErrorState() {
+    for (CachedResult result in resultMap.values) {
+      if (result.state == CacheState.ERROR) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Invalidate all of the resolution information associated with the compilation unit.
@@ -12844,18 +11961,12 @@ class ResolutionState {
   void invalidateAllResolutionInformation() {
     _nextState = null;
     _librarySource = null;
-    _builtUnitState = CacheState.INVALID;
-    _builtUnit = null;
-    _buildElementErrorsState = CacheState.INVALID;
-    _buildElementErrors = AnalysisError.NO_ERRORS;
-    _resolvedUnitState = CacheState.INVALID;
-    _resolvedUnit = null;
-    _resolutionErrorsState = CacheState.INVALID;
-    _resolutionErrors = AnalysisError.NO_ERRORS;
-    _verificationErrorsState = CacheState.INVALID;
-    _verificationErrors = AnalysisError.NO_ERRORS;
-    _hintsState = CacheState.INVALID;
-    _hints = AnalysisError.NO_ERRORS;
+    setState(DartEntry.BUILT_UNIT, CacheState.INVALID);
+    setState(DartEntry.BUILD_ELEMENT_ERRORS, CacheState.INVALID);
+    setState(DartEntry.RESOLVED_UNIT, CacheState.INVALID);
+    setState(DartEntry.RESOLUTION_ERRORS, CacheState.INVALID);
+    setState(DartEntry.VERIFICATION_ERRORS, CacheState.INVALID);
+    setState(DartEntry.HINTS, CacheState.INVALID);
   }
 
   /**
@@ -12863,10 +11974,8 @@ class ResolutionState {
    * represented by this state.
    */
   void recordBuildElementError() {
-    _builtUnitState = CacheState.ERROR;
-    _builtUnit = null;
-    _buildElementErrorsState = CacheState.ERROR;
-    _buildElementErrors = AnalysisError.NO_ERRORS;
+    setState(DartEntry.BUILT_UNIT, CacheState.ERROR);
+    setState(DartEntry.BUILD_ELEMENT_ERRORS, CacheState.ERROR);
     recordResolutionError();
   }
 
@@ -12875,8 +11984,7 @@ class ResolutionState {
    * by this entry. This will set the state of all verification information as being in error.
    */
   void recordHintError() {
-    _hints = AnalysisError.NO_ERRORS;
-    _hintsState = CacheState.ERROR;
+    setState(DartEntry.HINTS, CacheState.ERROR);
   }
 
   /**
@@ -12884,10 +11992,8 @@ class ResolutionState {
    * state.
    */
   void recordResolutionError() {
-    _resolvedUnitState = CacheState.ERROR;
-    _resolvedUnit = null;
-    _resolutionErrorsState = CacheState.ERROR;
-    _resolutionErrors = AnalysisError.NO_ERRORS;
+    setState(DartEntry.RESOLVED_UNIT, CacheState.ERROR);
+    setState(DartEntry.RESOLUTION_ERRORS, CacheState.ERROR);
     recordVerificationError();
   }
 
@@ -12897,39 +12003,9 @@ class ResolutionState {
    * will not change the state of any parse results.
    */
   void recordResolutionErrorsInAllLibraries() {
-    _builtUnitState = CacheState.ERROR;
-    _builtUnit = null;
-    _buildElementErrorsState = CacheState.ERROR;
-    _buildElementErrors = AnalysisError.NO_ERRORS;
-    _resolvedUnitState = CacheState.ERROR;
-    _resolvedUnit = null;
-    _resolutionErrorsState = CacheState.ERROR;
-    _resolutionErrors = AnalysisError.NO_ERRORS;
-    recordVerificationError();
+    recordBuildElementError();
     if (_nextState != null) {
       _nextState.recordResolutionErrorsInAllLibraries();
-    }
-  }
-
-  /**
-   * Record that an in-process parse has stopped without recording results because the results
-   * were invalidated before they could be recorded.
-   */
-  void recordResolutionNotInProcess() {
-    if (_resolvedUnitState == CacheState.IN_PROCESS) {
-      _resolvedUnitState = CacheState.INVALID;
-    }
-    if (_resolutionErrorsState == CacheState.IN_PROCESS) {
-      _resolutionErrorsState = CacheState.INVALID;
-    }
-    if (_verificationErrorsState == CacheState.IN_PROCESS) {
-      _verificationErrorsState = CacheState.INVALID;
-    }
-    if (_hintsState == CacheState.IN_PROCESS) {
-      _hintsState = CacheState.INVALID;
-    }
-    if (_nextState != null) {
-      _nextState.recordResolutionNotInProcess();
     }
   }
 
@@ -12939,9 +12015,52 @@ class ResolutionState {
    * in error.
    */
   void recordVerificationError() {
-    _verificationErrors = AnalysisError.NO_ERRORS;
-    _verificationErrorsState = CacheState.ERROR;
+    setState(DartEntry.VERIFICATION_ERRORS, CacheState.ERROR);
     recordHintError();
+  }
+
+  /**
+   * Set the state of the data represented by the given [descriptor] to the
+   * given [state].
+   */
+  void setState(DataDescriptor descriptor, CacheState state) {
+    if (state == CacheState.VALID) {
+      throw new ArgumentError("use setValue() to set the state to VALID");
+    }
+    CachedResult result = resultMap.putIfAbsent(
+        descriptor,
+        () => new CachedResult(descriptor));
+    result.state = state;
+    if (state != CacheState.IN_PROCESS) {
+      //
+      // If the state is in-process, we can leave the current value in the cache
+      // for any 'get' methods to access.
+      //
+      result.value = descriptor.defaultValue;
+    }
+  }
+
+  /**
+   * Set the value of the data represented by the given [descriptor] to the
+   * given [value].
+   */
+  void setValue(DataDescriptor/*<V>*/ descriptor, dynamic /*V*/ value) {
+    CachedResult result = resultMap.putIfAbsent(
+        descriptor,
+        () => new CachedResult(descriptor));
+    result.state = CacheState.VALID;
+    result.value = value == null ? descriptor.defaultValue : value;
+  }
+
+  /**
+   * Flush the value of the data described by the [descriptor].
+   */
+  void _flush(DataDescriptor descriptor) {
+    CachedResult result = resultMap[descriptor];
+    if (result != null && result.state == CacheState.VALID) {
+      result.state = CacheState.FLUSHED;
+      result.value = descriptor.defaultValue;
+    }
   }
 
   /**
@@ -12952,11 +12071,11 @@ class ResolutionState {
    * @param oldEntry the entry that was replaced by this entry
    * @return `true` if some difference was written
    */
-  bool writeDiffOn(JavaStringBuilder builder, bool needsSeparator, DartEntry oldEntry) {
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.RESOLVED_UNIT, _resolvedUnitState, "resolvedUnit");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.RESOLUTION_ERRORS, _resolutionErrorsState, "resolutionErrors");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.VERIFICATION_ERRORS, _verificationErrorsState, "verificationErrors");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.HINTS, _hintsState, "hints");
+  bool _writeDiffOn(StringBuffer buffer, bool needsSeparator, DartEntry oldEntry) {
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "resolvedUnit", DartEntry.RESOLVED_UNIT, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "resolutionErrors", DartEntry.RESOLUTION_ERRORS, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "verificationErrors", DartEntry.VERIFICATION_ERRORS, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "hints", DartEntry.HINTS, oldEntry);
     return needsSeparator;
   }
 
@@ -12966,51 +12085,54 @@ class ResolutionState {
    *
    * @param builder the builder to which the text should be written
    */
-  void writeOn(JavaStringBuilder builder) {
+  void _writeOn(StringBuffer buffer) {
     if (_librarySource != null) {
-      builder.append("; builtUnit = ");
-      builder.append(_builtUnitState);
-      builder.append("; buildElementErrors = ");
-      builder.append(_buildElementErrorsState);
-      builder.append("; resolvedUnit = ");
-      builder.append(_resolvedUnitState);
-      builder.append("; resolutionErrors = ");
-      builder.append(_resolutionErrorsState);
-      builder.append("; verificationErrors = ");
-      builder.append(_verificationErrorsState);
-      builder.append("; hints = ");
-      builder.append(_hintsState);
+      _writeStateOn(buffer, "builtUnit", DartEntry.BUILT_UNIT);
+      _writeStateOn(buffer, "buildElementErrors", DartEntry.BUILD_ELEMENT_ERRORS);
+      _writeStateOn(buffer, "resolvedUnit", DartEntry.RESOLVED_UNIT);
+      _writeStateOn(buffer, "resolutionErrors", DartEntry.RESOLUTION_ERRORS);
+      _writeStateOn(buffer, "verificationErrors", DartEntry.VERIFICATION_ERRORS);
+      _writeStateOn(buffer, "hints", DartEntry.HINTS);
       if (_nextState != null) {
-        _nextState.writeOn(builder);
+        _nextState._writeOn(buffer);
       }
     }
   }
 
   /**
-   * Write a textual representation of the difference between the state of the specified data
-   * between the old entry and this entry to the given string builder.
-   *
-   * @param builder the string builder to which the difference is to be written
-   * @param needsSeparator `true` if any data that is written
-   * @param oldEntry the entry that was replaced by this entry
-   * @param descriptor the descriptor defining the data whose state is being compared
-   * @param label the label used to describe the state
-   * @return `true` if some difference was written
+   * Write a textual representation of the difference between the state of the
+   * value described by the given [descriptor] between the [oldEntry] and this
+   * entry to the given [buffer]. Return `true` if some difference was written.
    */
-  bool writeStateDiffOn(JavaStringBuilder builder, bool needsSeparator, SourceEntry oldEntry, DataDescriptor descriptor, CacheState newState, String label) {
-    CacheState oldState = (oldEntry as DartEntry).getStateInLibrary(descriptor, _librarySource);
+  bool _writeStateDiffOn(StringBuffer buffer, bool needsSeparator, String label,
+        DataDescriptor descriptor, SourceEntry oldEntry) {
+    CacheState oldState = oldEntry.getState(descriptor);
+    CacheState newState = getState(descriptor);
     if (oldState != newState) {
       if (needsSeparator) {
-        builder.append("; ");
+        buffer.write("; ");
       }
-      builder.append(label);
-      builder.append(" = ");
-      builder.append(oldState);
-      builder.append(" -> ");
-      builder.append(newState);
+      buffer.write(label);
+      buffer.write(" = ");
+      buffer.write(oldState);
+      buffer.write(" -> ");
+      buffer.write(newState);
       return true;
     }
     return needsSeparator;
+  }
+
+  /**
+   * Write a textual representation of the state of the value described by the
+   * given [descriptor] to the given bugger, prefixed by the given [label] to
+   * the given [buffer].
+   */
+  void _writeStateOn(StringBuffer buffer, String label, DataDescriptor descriptor) {
+    CachedResult result = resultMap[descriptor];
+    buffer.write("; ");
+    buffer.write(label);
+    buffer.write(" = ");
+    buffer.write(result == null ? "INVALID" : result.state);
   }
 }
 
@@ -13712,7 +12834,13 @@ abstract class SourceEntry {
    * The most recent time at which the state of the source matched the state
    * represented by this entry.
    */
-  int _modificationTime = 0;
+  int modificationTime = 0;
+
+  /**
+   * The exception that caused one or more values to have a state of
+   * [CacheState.ERROR].
+   */
+  CaughtException exception;
 
   /**
    * A bit-encoding of boolean flags associated with this element.
@@ -13720,31 +12848,11 @@ abstract class SourceEntry {
   int _flags = 0;
 
   /**
-   * The exception that caused one or more values to have a state of
-   * [CacheState.ERROR].
+   * A table mapping data descriptors to the cached results for those
+   * descriptors.
    */
-  CaughtException _exception;
-
-  /**
-   * The state of the cached content.
-   */
-  CacheState _contentState = CacheState.INVALID;
-
-  /**
-   * The content of the source, or `null` if the content is not currently cached.
-   */
-  String _content;
-
-  /**
-   * The state of the cached line information.
-   */
-  CacheState _lineInfoState = CacheState.INVALID;
-
-  /**
-   * The line information computed for the source, or `null` if the line
-   * information is not currently cached.
-   */
-  LineInfo _lineInfo;
+  Map<DataDescriptor, CachedResult> resultMap
+      = new HashMap<DataDescriptor, CachedResult>();
 
   /**
    * The data descriptor representing the contents of the source.
@@ -13766,48 +12874,97 @@ abstract class SourceEntry {
   static int _EXPLICITLY_ADDED_FLAG = 0;
 
   /**
-   * Fix the state of the [exception] to match the current state of the entry.
-   */
-  void fixExceptionState() {
-    if (hasErrorState) {
-      if (_exception == null) {
-        //
-        // This code should never be reached, but is a fail-safe in case an exception is not
-        // recorded when it should be.
-        //
-        _exception = new CaughtException(new AnalysisException("State set to ERROR without setting an exception"), null);
-      }
-    } else {
-      _exception = null;
-    }
-  }
-
-  /**
-   * Return a textual representation of the difference between the old entry and this entry. The
-   * difference is represented as a sequence of fields whose value would change if the old entry
-   * were converted into the new entry.
-   *
-   * @param oldEntry the entry being diff'd with this entry
-   * @return a textual representation of the difference
-   */
-  String getDiff(SourceEntry oldEntry) {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    writeDiffOn(builder, oldEntry);
-    return builder.toString();
-  }
-
-  /**
-   * Return the exception that caused one or more values to have a state of
-   * [CacheState.ERROR].
-   */
-  CaughtException get exception => _exception;
-
-  /**
    * Return `true` if the source was explicitly added to the context or `false`
    * if the source was implicitly added because it was referenced by another
    * source.
    */
-  bool get explicitlyAdded => getFlag(_EXPLICITLY_ADDED_FLAG);
+  bool get explicitlyAdded => _getFlag(_EXPLICITLY_ADDED_FLAG);
+
+  /**
+   * Set whether the source was explicitly added to the context to match the
+   * [explicitlyAdded] flag.
+   */
+  void set explicitlyAdded(bool explicitlyAdded) {
+    _setFlag(_EXPLICITLY_ADDED_FLAG, explicitlyAdded);
+  }
+
+  /**
+   * Fix the state of the [exception] to match the current state of the entry.
+   */
+  void fixExceptionState() {
+    if (hasErrorState()) {
+      if (exception == null) {
+        //
+        // This code should never be reached, but is a fail-safe in case an
+        // exception is not recorded when it should be.
+        //
+        String message = "State set to ERROR without setting an exception";
+        exception = new CaughtException(new AnalysisException(message), null);
+      }
+    } else {
+      exception = null;
+    }
+  }
+
+  /**
+   * Return a textual representation of the difference between the [oldEntry]
+   * and this entry. The difference is represented as a sequence of fields whose
+   * value would change if the old entry were converted into the new entry.
+   */
+  String getDiff(SourceEntry oldEntry) {
+    StringBuffer buffer = new StringBuffer();
+    _writeDiffOn(buffer, oldEntry);
+    return buffer.toString();
+  }
+
+  /**
+   * Return the state of the data represented by the given [descriptor].
+   */
+  CacheState getState(DataDescriptor descriptor) {
+    if (!_isValidDescriptor(descriptor)) {
+      throw new ArgumentError("Invalid descriptor: $descriptor");
+    }
+    CachedResult result = resultMap[descriptor];
+    if (result == null) {
+      return CacheState.INVALID;
+    }
+    return result.state;
+  }
+
+  /**
+   * Return the value of the data represented by the given [descriptor], or
+   * `null` if the data represented by the descriptor is not valid.
+   */
+  /*<V>*/ dynamic /*V*/ getValue(DataDescriptor/*<V>*/ descriptor) {
+    if (!_isValidDescriptor(descriptor)) {
+      throw new ArgumentError("Invalid descriptor: $descriptor");
+    }
+    CachedResult result = resultMap[descriptor];
+    if (result == null) {
+      return descriptor.defaultValue;
+    }
+    return result.value;
+  }
+
+  /**
+   * Return `true` if the state of any data value is [CacheState.ERROR].
+   */
+  bool hasErrorState() {
+    for (CachedResult result in resultMap.values) {
+      if (result.state == CacheState.ERROR) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Invalidate all of the information associated with this source.
+   */
+  void invalidateAllInformation() {
+    setState(CONTENT, CacheState.INVALID);
+    setState(LINE_INFO, CacheState.INVALID);
+  }
 
   /**
    * Return the kind of the source, or `null` if the kind is not currently
@@ -13816,294 +12973,210 @@ abstract class SourceEntry {
   SourceKind get kind;
 
   /**
-   * Return the most recent time at which the state of the source matched the
-   * state represented by this entry.
-   */
-  int get modificationTime => _modificationTime;
-
-  /**
-   * Return the state of the data represented by the given [descriptor].
-   */
-  CacheState getState(DataDescriptor descriptor) {
-    if (identical(descriptor, SourceEntry.CONTENT)) {
-      return _contentState;
-    } else if (identical(descriptor, SourceEntry.LINE_INFO)) {
-      return _lineInfoState;
-    } else {
-      throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
-    }
-  }
-
-  /**
-   * Return the value of the data represented by the given [descriptor], or
-   * `null` if the data represented by the descriptor is not in the cache.
-   */
-  Object getValue(DataDescriptor descriptor) {
-    if (identical(descriptor, SourceEntry.CONTENT)) {
-      return _content;
-    } else if (identical(descriptor, SourceEntry.LINE_INFO)) {
-      return _lineInfo;
-    } else {
-      throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
-    }
-  }
-
-  /**
-   * Invalidate all of the information associated with this source.
-   */
-  void invalidateAllInformation() {
-    _content = null;
-    _contentState = _checkContentState(CacheState.INVALID);
-    _lineInfo = null;
-    _lineInfoState = CacheState.INVALID;
-  }
-
-  /**
-   * Record that an error occurred while attempting to get the contents of the source represented by
-   * this entry. This will set the state of all information, including any resolution-based
-   * information, as being in error.
-   *
-   * @param exception the exception that shows where the error occurred
+   * Record that an [exception] occurred while attempting to get the contents of
+   * the source represented by this entry. This will set the state of all
+   * information, including any resolution-based information, as being in error.
    */
   void recordContentError(CaughtException exception) {
-    _content = null;
-    _contentState = CacheState.ERROR;
+    setState(CONTENT, CacheState.ERROR);
     recordScanError(exception);
   }
 
   /**
-   * Record that an error occurred while attempting to scan or parse the entry represented by this
-   * entry. This will set the state of all information, including any resolution-based information,
-   * as being in error.
-   *
-   * @param exception the exception that shows where the error occurred
+   * Record that an [exception] occurred while attempting to scan or parse the
+   * entry represented by this entry. This will set the state of all
+   * information, including any resolution-based information, as being in error.
    */
   void recordScanError(CaughtException exception) {
     this.exception = exception;
-    _lineInfo = null;
-    _lineInfoState = CacheState.ERROR;
+    setState(LINE_INFO, CacheState.ERROR);
   }
 
   /**
-   * Set whether the source was explicitly added to the context to match the
-   * given value.
-   */
-  void set explicitlyAdded(bool explicitlyAdded) {
-    setFlag(_EXPLICITLY_ADDED_FLAG, explicitlyAdded);
-  }
-
-  /**
-   * Set the most recent time at which the state of the source matched the state
-   * represented by this entry to the given time.
-   */
-  void set modificationTime(int time) {
-    _modificationTime = time;
-  }
-
-  /**
-   * Set the state of the data represented by the given descriptor to the given state.
-   *
-   * @param descriptor the descriptor representing the data whose state is to be set
-   * @param the new state of the data represented by the given descriptor
+   * Set the state of the data represented by the given [descriptor] to the
+   * given [state].
    */
   void setState(DataDescriptor descriptor, CacheState state) {
-    if (identical(descriptor, SourceEntry.CONTENT)) {
-      _content = updatedValue(state, _content, null);
-      _contentState = _checkContentState(state);
-    } else if (identical(descriptor, SourceEntry.LINE_INFO)) {
-      _lineInfo = updatedValue(state, _lineInfo, null);
-      _lineInfoState = state;
-    } else {
-      throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
+    if (!_isValidDescriptor(descriptor)) {
+      throw new ArgumentError("Invalid descriptor: $descriptor");
+    }
+    if (state == CacheState.VALID) {
+      throw new ArgumentError("use setValue() to set the state to VALID");
+    }
+    _validateStateChange(descriptor, state);
+    CachedResult result = resultMap.putIfAbsent(
+        descriptor,
+        () => new CachedResult(descriptor));
+    result.state = state;
+    if (state != CacheState.IN_PROCESS) {
+      //
+      // If the state is in-process, we can leave the current value in the cache
+      // for any 'get' methods to access.
+      //
+      result.value = descriptor.defaultValue;
     }
   }
 
   /**
-   * Set the value of the data represented by the given descriptor to the given value.
-   *
-   * @param descriptor the descriptor representing the data whose value is to be set
-   * @param value the new value of the data represented by the given descriptor
+   * Set the value of the data represented by the given [descriptor] to the
+   * given [value].
    */
-  void setValue(DataDescriptor descriptor, Object value) {
-    if (identical(descriptor, SourceEntry.CONTENT)) {
-      _content = value as String;
-      _contentState = _checkContentState(CacheState.VALID);
-    } else if (identical(descriptor, SourceEntry.LINE_INFO)) {
-      _lineInfo = value as LineInfo;
-      _lineInfoState = CacheState.VALID;
-    } else {
-      throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
+  void setValue(DataDescriptor/*<V>*/ descriptor, dynamic /*V*/ value) {
+    if (!_isValidDescriptor(descriptor)) {
+      throw new ArgumentError("Invalid descriptor: $descriptor");
     }
+    _validateStateChange(descriptor, CacheState.VALID);
+    CachedResult result = resultMap.putIfAbsent(
+        descriptor,
+        () => new CachedResult(descriptor));
+    result.state = CacheState.VALID;
+    result.value = value == null ? descriptor.defaultValue : value;
   }
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    writeOn(builder);
-    return builder.toString();
+    StringBuffer buffer = new StringBuffer();
+    _writeOn(buffer);
+    return buffer.toString();
   }
 
   /**
-   * Set the value of all of the flags with the given indexes to false.
-   *
-   * @param indexes the indexes of the flags whose value is to be set to false
+   * Set the value of all of the flags with the given [indexes] to false.
    */
-  void clearFlags(List<int> indexes) {
+  void _clearFlags(List<int> indexes) {
     for (int i = 0; i < indexes.length; i++) {
       _flags = BooleanArray.set(_flags, indexes[i], false);
     }
   }
 
   /**
-   * Return the value of the flag with the given index.
-   *
-   * @param index the index of the flag whose value is to be returned
-   * @return the value of the flag with the given index
+   * Flush the value of the data described by the [descriptor].
    */
-  bool getFlag(int index) => BooleanArray.get(_flags, index);
-
-  /**
-   * Return `true` if the state of any data value is [CacheState.ERROR].
-   *
-   * @return `true` if the state of any data value is [CacheState.ERROR]
-   */
-  bool get hasErrorState => _contentState == CacheState.ERROR || _lineInfoState == CacheState.ERROR;
-
-  /**
-   * Set the exception that caused one or more values to have a state of
-   * [CacheState.ERROR] to the given [exception].
-   */
-  void set exception(CaughtException exception) {
-    if (exception == null) {
-      throw new IllegalArgumentException("exception cannot be null");
+  void _flush(DataDescriptor descriptor) {
+    CachedResult result = resultMap[descriptor];
+    if (result != null && result.state == CacheState.VALID) {
+      _validateStateChange(descriptor, CacheState.FLUSHED);
+      result.state = CacheState.FLUSHED;
+      result.value = descriptor.defaultValue;
     }
-    this._exception = exception;
   }
 
   /**
-   * Set the value of the flag with the given index to the given value.
-   *
-   * @param index the index of the flag whose value is to be returned
-   * @param value the value of the flag with the given index
+   * Return the value of the flag with the given [index].
    */
-  void setFlag(int index, bool value) {
+  bool _getFlag(int index) => BooleanArray.get(_flags, index);
+
+  /**
+   * Return `true` if the [descriptor] is valid for this entry.
+   */
+  bool _isValidDescriptor(DataDescriptor descriptor) {
+    return descriptor == CONTENT
+        || descriptor == LINE_INFO;
+  }
+
+  /**
+   * Set the value of the flag with the given [index] to the given [value].
+   */
+  void _setFlag(int index, bool value) {
     _flags = BooleanArray.set(_flags, index, value);
   }
 
   /**
-   * Given that some data is being transitioned to the given state, return the value that should be
-   * kept in the cache.
-   *
-   * @param state the state to which the data is being transitioned
-   * @param currentValue the value of the data before the transition
-   * @param defaultValue the value to be used if the current value is to be removed from the cache
-   * @return the value of the data that should be kept in the cache
+   * Write a textual representation of the difference between the [oldEntry] and
+   * this entry to the given string [buffer]. Return `true` if some difference
+   * was written.
    */
-  Object updatedValue(CacheState state, Object currentValue, Object defaultValue) {
-    if (state == CacheState.VALID) {
-      throw new IllegalArgumentException("Use setValue() to set the state to VALID");
-    } else if (state == CacheState.IN_PROCESS) {
-      //
-      // We can leave the current value in the cache for any 'get' methods to access.
-      //
-      return currentValue;
-    }
-    return defaultValue;
-  }
-
-  /**
-   * Write a textual representation of the difference between the old entry and this entry to the
-   * given string builder.
-   *
-   * @param builder the string builder to which the difference is to be written
-   * @param oldEntry the entry that was replaced by this entry
-   * @return `true` if some difference was written
-   */
-  bool writeDiffOn(JavaStringBuilder builder, SourceEntry oldEntry) {
+  bool _writeDiffOn(StringBuffer buffer, SourceEntry oldEntry) {
     bool needsSeparator = false;
     CaughtException oldException = oldEntry.exception;
-    if (!identical(oldException, _exception)) {
-      builder.append("exception = ");
-      builder.append(oldException.runtimeType);
-      builder.append(" -> ");
-      builder.append(_exception.runtimeType);
+    if (!identical(oldException, exception)) {
+      buffer.write("exception = ");
+      buffer.write(oldException.runtimeType);
+      buffer.write(" -> ");
+      buffer.write(exception.runtimeType);
       needsSeparator = true;
     }
     int oldModificationTime = oldEntry.modificationTime;
-    if (oldModificationTime != _modificationTime) {
+    if (oldModificationTime != modificationTime) {
       if (needsSeparator) {
-        builder.append("; ");
+        buffer.write("; ");
       }
-      builder.append("time = ");
-      builder.append(oldModificationTime);
-      builder.append(" -> ");
-      builder.append(_modificationTime);
+      buffer.write("time = ");
+      buffer.write(oldModificationTime);
+      buffer.write(" -> ");
+      buffer.write(modificationTime);
       needsSeparator = true;
     }
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, SourceEntry.CONTENT, "content");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, SourceEntry.LINE_INFO, "lineInfo");
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "content", CONTENT, oldEntry);
+    needsSeparator = _writeStateDiffOn(buffer, needsSeparator, "lineInfo", LINE_INFO, oldEntry);
     return needsSeparator;
   }
 
   /**
-   * Write a textual representation of this entry to the given builder. The result will only be used
-   * for debugging purposes.
-   *
-   * @param builder the builder to which the text should be written
+   * Write a textual representation of this entry to the given [buffer]. The
+   * result should only be used for debugging purposes.
    */
-  void writeOn(JavaStringBuilder builder) {
-    builder.append("time = ");
-    builder.append(_modificationTime);
-    builder.append("; content = ");
-    builder.append(_contentState);
-    builder.append("; lineInfo = ");
-    builder.append(_lineInfoState);
+  void _writeOn(StringBuffer buffer) {
+    buffer.write("time = ");
+    buffer.write(modificationTime);
+    _writeStateOn(buffer, "content", CONTENT);
+    _writeStateOn(buffer, "lineInfo", LINE_INFO);
   }
 
   /**
-   * Write a textual representation of the difference between the state of the specified data
-   * between the old entry and this entry to the given string builder.
-   *
-   * @param builder the string builder to which the difference is to be written
-   * @param needsSeparator `true` if any data that is written
-   * @param oldEntry the entry that was replaced by this entry
-   * @param descriptor the descriptor defining the data whose state is being compared
-   * @param label the label used to describe the state
-   * @return `true` if some difference was written
+   * Write a textual representation of the difference between the state of the
+   * value described by the given [descriptor] between the [oldEntry] and this
+   * entry to the given [buffer]. Return `true` if some difference was written.
    */
-  bool writeStateDiffOn(JavaStringBuilder builder, bool needsSeparator, SourceEntry oldEntry, DataDescriptor descriptor, String label) {
+  bool _writeStateDiffOn(StringBuffer buffer, bool needsSeparator, String label,
+        DataDescriptor descriptor, SourceEntry oldEntry) {
     CacheState oldState = oldEntry.getState(descriptor);
     CacheState newState = getState(descriptor);
     if (oldState != newState) {
       if (needsSeparator) {
-        builder.append("; ");
+        buffer.write("; ");
       }
-      builder.append(label);
-      builder.append(" = ");
-      builder.append(oldState);
-      builder.append(" -> ");
-      builder.append(newState);
+      buffer.write(label);
+      buffer.write(" = ");
+      buffer.write(oldState);
+      buffer.write(" -> ");
+      buffer.write(newState);
       return true;
     }
     return needsSeparator;
   }
 
   /**
-   * If the state is changing from ERROR to anything else, capture the information. This is an
-   * attempt to discover the underlying cause of a long-standing bug.
-   *
-   * @param newState the new state of the content
-   * @return the new state of the content
+   * Write a textual representation of the state of the value described by the
+   * given [descriptor] to the given bugger, prefixed by the given [label] to
+   * the given [buffer].
    */
-  CacheState _checkContentState(CacheState newState) {
-    if (_contentState == CacheState.ERROR) {
-      InstrumentationBuilder builder = Instrumentation.builder2("SourceEntryImpl-checkContentState");
-      builder.data3("message", "contentState changing from ${_contentState} to ${newState}");
+  void _writeStateOn(StringBuffer buffer, String label, DataDescriptor descriptor) {
+    CachedResult result = resultMap[descriptor];
+    buffer.write("; ");
+    buffer.write(label);
+    buffer.write(" = ");
+    buffer.write(result == null ? "INVALID" : result.state);
+  }
+
+  /**
+   * If the state of the value described by the given [descriptor] is changing
+   * from ERROR to anything else, capture the information. This is an attempt to
+   * discover the underlying cause of a long-standing bug.
+   */
+  void _validateStateChange(DataDescriptor descriptor, CacheState newState) {
+    if (descriptor != CONTENT) {
+      return;
+    }
+    CachedResult result = resultMap[CONTENT];
+    if (result != null && result.state == CacheState.ERROR) {
+      String message = "contentState changing from ${result.state} to ${newState}";
+      InstrumentationBuilder builder = Instrumentation.builder2("SourceEntry-validateStateChange");
+      builder.data3("message", message);
       //builder.data("source", source.getFullName());
-      builder.record(new CaughtException(new AnalysisException(), null));
+      builder.record(new CaughtException(new AnalysisException(message), null));
       builder.log();
     }
-    return newState;
   }
 }
 
