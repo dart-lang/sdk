@@ -47,8 +47,8 @@ class ProgramBuilder {
     Iterable<Element> neededStatics = backend.generatedCode.keys
         .where((Element e) => !e.isInstanceMember && !e.isField);
 
-    Elements.sortedByPosition(neededClasses).forEach(_registry.registerElement);
-    Elements.sortedByPosition(neededStatics).forEach(_registry.registerElement);
+    _task.outputClassLists.forEach(_registry.registerElements);
+    _task.outputStaticLists.forEach(_registry.registerElements);
 
     // TODO(kasperl): There's code that implicitly needs access to the special
     // $ holder so we have to register that. Can we track if we have to?
