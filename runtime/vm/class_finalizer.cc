@@ -1146,16 +1146,21 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   AbstractType& type = AbstractType::Handle(function.result_type());
   // It is not a compile time error if this name does not resolve to a class or
   // interface.
-  type = FinalizeType(cls, type, kCanonicalize);
+  AbstractType& finalized_type =
+      AbstractType::Handle(FinalizeType(cls, type, kCanonicalize));
   // The result type may be malformed or malbounded.
-  function.set_result_type(type);
+  if (type.raw() != finalized_type.raw()) {
+    function.set_result_type(type);
+  }
   // Resolve formal parameter types.
   const intptr_t num_parameters = function.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
-    type = FinalizeType(cls, type, kCanonicalize);
+    finalized_type = FinalizeType(cls, type, kCanonicalize);
     // The parameter type may be malformed or malbounded.
-    function.SetParameterTypeAt(i, type);
+    if (type.raw() != finalized_type.raw()) {
+      function.SetParameterTypeAt(i, type);
+    }
   }
 }
 

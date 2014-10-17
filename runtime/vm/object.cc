@@ -5459,6 +5459,8 @@ RawAbstractType* Function::ParameterTypeAt(intptr_t index) const {
 void Function::SetParameterTypeAt(
     intptr_t index, const AbstractType& value) const {
   ASSERT(!value.IsNull());
+  // Method extractor parameters are in the VM heap.
+  ASSERT(kind() != RawFunction::kMethodExtractor);
   const Array& parameter_types = Array::Handle(raw_ptr()->parameter_types_);
   parameter_types.SetAt(index, value);
 }
