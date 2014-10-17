@@ -243,6 +243,198 @@ main() {
 }
 ''');
   });
+
+  test('Binary expressions', () {
+    checkResult('''
+main(a) {
+  return a + deprecated;
+}
+''', '''
+main(a) {
+  return a + deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a - deprecated;
+}
+''', '''
+main(a) {
+  return a - deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a * deprecated;
+}
+''', '''
+main(a) {
+  return a * deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a / deprecated;
+}
+''', '''
+main(a) {
+  return a / deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a ~/ deprecated;
+}
+''', '''
+main(a) {
+  return a ~/ deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a % deprecated;
+}
+''', '''
+main(a) {
+  return a % deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a < deprecated;
+}
+''', '''
+main(a) {
+  return a < deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a <= deprecated;
+}
+''', '''
+main(a) {
+  return a <= deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a > deprecated;
+}
+''', '''
+main(a) {
+  return a > deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a >= deprecated;
+}
+''', '''
+main(a) {
+  return a >= deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a << deprecated;
+}
+''', '''
+main(a) {
+  return a << deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a >> deprecated;
+}
+''', '''
+main(a) {
+  return a >> deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a & deprecated;
+}
+''', '''
+main(a) {
+  return a & deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a | deprecated;
+}
+''', '''
+main(a) {
+  return a | deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a ^ deprecated;
+}
+''', '''
+main(a) {
+  return a ^ deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a == deprecated;
+}
+''', '''
+main(a) {
+  return a == deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a != deprecated;
+}
+''', '''
+main(a) {
+  return !(a == deprecated);
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a || deprecated;
+}
+''', '''
+main(a) {
+  return a || deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a && deprecated;
+}
+''', '''
+main(a) {
+  return a && deprecated;
+}
+''');
+  });
 }
 
 checkResult(String input, [String expectedOutput]) {

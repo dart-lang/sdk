@@ -187,4 +187,38 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     return irBuilder.buildStaticGet(target,
         new Selector.getter(target.name, target.library));
   }
+
+  ir.Primitive handleBinaryExpression(BinaryExpression node,
+                                      String op) {
+    ir.Primitive left = node.leftOperand.accept(this);
+    ir.Primitive right = node.rightOperand.accept(this);
+    Selector selector = new Selector.binaryOperator(op);
+    return irBuilder.buildDynamicInvocation(
+        left, selector, <ir.Definition>[right]);
+  }
+
+  ir.Node handleLazyOperator(BinaryExpression node, {bool isLazyOr: false}) {
+    ir.Primitive left = node.leftOperand.accept(this);
+    ir.Primitive buildRightValue(IrBuilder builder) {
+      return withBuilder(builder, () => node.rightOperand.accept(this));
+    }
+    return irBuilder.buildLogicalOperator(
+        left, buildRightValue, isLazyOr: isLazyOr);
+  }
+
+  @override
+  ir.Node visitBinaryExpression(BinaryExpression node) {
+    // TODO(johnniwinther,paulberry,brianwilkerson): The operator should be
+    // available through an enum.
+    String op = node.operator.lexeme;
+    switch (op) {
+    case '||':
+    case '&&':
+      return handleLazyOperator(node, isLazyOr: op == '||');
+    case '!=':
+      return irBuilder.buildNegation(handleBinaryExpression(node, '=='));
+    default:
+      return handleBinaryExpression(node, op);
+    }
+  }
 }
