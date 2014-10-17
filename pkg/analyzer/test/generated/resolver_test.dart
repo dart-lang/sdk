@@ -842,6 +842,19 @@ class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_redirectingConstructor_paramTypeMismatch() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A.a1(x) : this.a2(x);",
+        "  const A.a2(String x);",
+        "}",
+        "var v = const A.a1(0);"]));
+    resolve(source);
+    assertErrors(source, [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH]);
+    verify([source]);
+  }
+
   void test_parameterAssignable_null() {
     // Null is assignable to anything.
     Source source = addSource(EngineTestCase.createSource([

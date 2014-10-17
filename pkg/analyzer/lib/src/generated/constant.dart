@@ -791,6 +791,15 @@ class ConstantValueComputer {
           superName = name.name;
         }
         superArguments = superConstructorInvocation.argumentList.arguments;
+      } else if (initializer is RedirectingConstructorInvocation) {
+        // This is a redirecting constructor, so just evaluate the constructor
+        // it redirects to.
+        ConstructorElement constructor = initializer.staticElement;
+        if (constructor != null && constructor.isConst) {
+          return _evaluateConstructorCall(
+              node, initializer.argumentList.arguments, constructor,
+              initializerVisitor, errorReporter);
+        }
       }
     }
     // Evaluate explicit or implicit call to super().
@@ -912,6 +921,15 @@ class ConstantValueComputer_InitializerCloner extends AstCloner {
   @override
   SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     SuperConstructorInvocation invocation = super.visitSuperConstructorInvocation(node);
+    invocation.staticElement = node.staticElement;
+    return invocation;
+  }
+
+  @override
+  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation invocation =
+        super.visitRedirectingConstructorInvocation(node);
     invocation.staticElement = node.staticElement;
     return invocation;
   }
@@ -4454,6 +4472,19 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
       // to check because there's nothing we can do about it at this point.
       if (constructorDeclaration != null) {
         _referenceGraph.addEdge(_source, constructorDeclaration);
+      }
+    }
+    return null;
+  }
+
+  @override
+  Object visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    super.visitRedirectingConstructorInvocation(node);
+    ConstructorElement target = node.staticElement;
+    if (target != null && target.isConst) {
+      ConstructorDeclaration targetDeclaration = _constructorDeclarationMap[target];
+      if (targetDeclaration != null) {
+        _referenceGraph.addEdge(_source, targetDeclaration);
       }
     }
     return null;

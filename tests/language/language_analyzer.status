@@ -469,6 +469,9 @@ compile_time_constant_checked3_test/02: MissingCompileTimeError # Issue 16391
 compile_time_constant_checked3_test/03: MissingCompileTimeError # Issue 16391
 compile_time_constant_checked3_test/04: MissingCompileTimeError # Issue 16391
 compile_time_constant_checked3_test/06: MissingCompileTimeError # Issue 16391
+compile_time_constant_checked4_test/01: MissingCompileTimeError # Issue 16391
+compile_time_constant_checked4_test/02: MissingCompileTimeError # Issue 16391
+compile_time_constant_checked4_test/03: MissingCompileTimeError # Issue 16391
 compile_time_constant_checked_test/02: MissingCompileTimeError # Issue 16391
 const_constructor2_test/13: MissingCompileTimeError # Issue 16391
 const_constructor2_test/14: MissingCompileTimeError # Issue 16391
