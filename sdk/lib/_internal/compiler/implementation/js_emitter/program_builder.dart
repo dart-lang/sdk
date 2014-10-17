@@ -13,9 +13,10 @@ import '../js_backend/js_backend.dart' show
     JavaScriptBackend,
     JavaScriptConstantCompiler;
 
-import '../js_emitter/js_emitter.dart' as emitterTask show
+import 'js_emitter.dart' as emitterTask show
     CodeEmitterTask,
-    Emitter;
+    Emitter,
+    InterceptorStubGenerator;
 
 import '../universe/universe.dart' show Universe;
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
@@ -192,6 +193,11 @@ class ProgramBuilder {
         .where((e) => universe.staticFunctionsNeedingGetter.contains(e))
         .map(_buildStaticMethodTearOff));
 
+    if (library == backend.interceptorsLibrary) {
+      statics.addAll(_generateGetInterceptorMethods());
+      statics.addAll(_generateOneShotInterceptors());
+    }
+
     List<Class> classes = elements
         .where((e) => e is ClassElement)
         .map(_buildClass)
@@ -222,6 +228,37 @@ class ProgramBuilder {
   Method _buildMethod(FunctionElement element, js.Expression code) {
     String name = namer.getNameOfInstanceMember(element);
     return new Method(name, code);
+  }
+
+  Iterable<StaticMethod> _generateGetInterceptorMethods() {
+    emitterTask.InterceptorStubGenerator stubGenerator =
+        new emitterTask.InterceptorStubGenerator(_compiler, namer, backend);
+
+    String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
+    Holder holder = _registry.registerHolder(holderName);
+
+    Map<String, Set<ClassElement>> specializedGetInterceptors =
+        backend.specializedGetInterceptors;
+    List<String> names = specializedGetInterceptors.keys.toList()..sort();
+    return names.map((String name) {
+      Set<ClassElement> classes = specializedGetInterceptors[name];
+      js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
+      return new StaticMethod(name, holder, code);
+    });
+  }
+
+  Iterable<StaticMethod> _generateOneShotInterceptors() {
+    emitterTask.InterceptorStubGenerator stubGenerator =
+        new emitterTask.InterceptorStubGenerator(_compiler, namer, backend);
+
+    String holderName = namer.globalObjectFor(backend.interceptorsLibrary);
+    Holder holder = _registry.registerHolder(holderName);
+
+    List<String> names = backend.oneShotInterceptors.keys.toList()..sort();
+    return names.map((String name) {
+      js.Expression code = stubGenerator.generateOneShotInterceptor(name);
+      return new StaticMethod(name, holder, code);
+    });
   }
 
   StaticMethod _buildStaticMethod(FunctionElement element) {
