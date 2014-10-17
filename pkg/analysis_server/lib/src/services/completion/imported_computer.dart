@@ -196,7 +196,8 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     return new Future.value(false);
   }
 
-  void _addElementSuggestion(Element element, bool typesOnly, bool excludeVoidReturn, CompletionRelevance relevance) {
+  void _addElementSuggestion(Element element, bool typesOnly,
+      bool excludeVoidReturn, CompletionRelevance relevance) {
 
     if (element is ExecutableElement) {
       if (element.isOperator) {
@@ -246,9 +247,14 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
     request.suggestions.add(suggestion);
   }
 
-  void _addElementSuggestions(List<Element> elements, bool typesOnly, bool excludeVoidReturn) {
+  void _addElementSuggestions(List<Element> elements, bool typesOnly,
+      bool excludeVoidReturn) {
     elements.forEach((Element elem) {
-      _addElementSuggestion(elem, typesOnly, excludeVoidReturn, CompletionRelevance.DEFAULT);
+      _addElementSuggestion(
+          elem,
+          typesOnly,
+          excludeVoidReturn,
+          CompletionRelevance.DEFAULT);
     });
   }
 
@@ -274,7 +280,11 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
               if (elem is ClassElement) {
                 classMap[name] = elem;
               }
-                _addElementSuggestion(elem, typesOnly, excludeVoidReturn, CompletionRelevance.DEFAULT);
+              _addElementSuggestion(
+                  elem,
+                  typesOnly,
+                  excludeVoidReturn,
+                  CompletionRelevance.DEFAULT);
             });
           } else {
             // Exclude elements from prefixed imports
@@ -295,7 +305,11 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
       if (elem is ClassElement) {
         classMap[name] = elem;
       }
-        _addElementSuggestion(elem, typesOnly, excludeVoidReturn, CompletionRelevance.DEFAULT);
+      _addElementSuggestion(
+          elem,
+          typesOnly,
+          excludeVoidReturn,
+          CompletionRelevance.DEFAULT);
     });
 
     // Build a list of inherited types that are imported
@@ -317,8 +331,14 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
           _addElementSuggestions(elem.methods, typesOnly, excludeVoidReturn);
           elem.allSupertypes.forEach((InterfaceType type) {
             if (visited.add(type.name)) {
-              _addElementSuggestions(type.accessors, typesOnly, excludeVoidReturn);
-              _addElementSuggestions(type.methods, typesOnly, excludeVoidReturn);
+              _addElementSuggestions(
+                  type.accessors,
+                  typesOnly,
+                  excludeVoidReturn);
+              _addElementSuggestions(
+                  type.methods,
+                  typesOnly,
+                  excludeVoidReturn);
             }
           });
         }
@@ -339,7 +359,11 @@ class _ImportedVisitor extends GeneralizingAstVisitor<Future<bool>> {
               !excludedLibs.contains(element.library) &&
               !completionSet.contains(element.displayName)) {
             if (!typesOnly || element is ClassElement) {
-              _addElementSuggestion(element, typesOnly, excludeVoidReturn, CompletionRelevance.LOW);
+              _addElementSuggestion(
+                  element,
+                  typesOnly,
+                  excludeVoidReturn,
+                  CompletionRelevance.LOW);
             }
           }
         }

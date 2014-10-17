@@ -107,6 +107,7 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CLASS));
     expect(element.name, equals(name));
+    expect(element.parameters, isNull);
     expect(element.returnType, isNull);
     return cs;
   }
@@ -125,6 +126,10 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(element.kind, equals(protocol.ElementKind.FUNCTION));
     expect(element.name, equals(name));
     expect(element.isDeprecated, equals(isDeprecated));
+    String param = element.parameters;
+    expect(param, isNotNull);
+    expect(param[0], equals('('));
+    expect(param[param.length - 1], equals(')'));
     expect(
         element.returnType,
         equals(returnType != null ? returnType : 'dynamic'));
@@ -140,6 +145,9 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.GETTER));
     expect(element.name, equals(name));
+    //TODO (danrubel) getter should have parameters
+    // but not used in code completion
+    //expect(element.parameters, '()');
     expect(
         element.returnType,
         equals(returnType != null ? returnType : 'dynamic'));
@@ -155,6 +163,7 @@ class AbstractCompletionTest extends AbstractContextTest {
       protocol.Element element = cs.element;
       expect(element, isNotNull);
       expect(element.kind, equals(protocol.ElementKind.LIBRARY));
+      expect(element.parameters, isNull);
       expect(element.returnType, isNull);
       return cs;
     } else {
@@ -174,6 +183,7 @@ class AbstractCompletionTest extends AbstractContextTest {
       expect(element, isNotNull);
       expect(element.kind, equals(protocol.ElementKind.LOCAL_VARIABLE));
       expect(element.name, equals(name));
+      expect(element.parameters, isNull);
       expect(
           element.returnType,
           equals(returnType != null ? returnType : 'dynamic'));
@@ -194,6 +204,10 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.METHOD));
     expect(element.name, equals(name));
+    String param = element.parameters;
+    expect(param, isNotNull);
+    expect(param[0], equals('('));
+    expect(param[param.length - 1], equals(')'));
     expect(
         element.returnType,
         equals(returnType != null ? returnType : 'dynamic'));
@@ -210,6 +224,10 @@ class AbstractCompletionTest extends AbstractContextTest {
       expect(element, isNotNull);
       expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
       expect(element.name, equals(name));
+      String param = element.parameters;
+      expect(param, isNotNull);
+      expect(param[0], equals('('));
+      expect(param[param.length - 1], equals(')'));
       expect(element.returnType, equals(returnType));
       return cs;
     } else {
@@ -228,6 +246,7 @@ class AbstractCompletionTest extends AbstractContextTest {
       expect(element, isNotNull);
       expect(element.kind, equals(protocol.ElementKind.PARAMETER));
       expect(element.name, equals(name));
+      expect(element.parameters, isNull);
       expect(
           element.returnType,
           equals(returnType != null ? returnType : 'dynamic'));
@@ -245,6 +264,8 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.SETTER));
     expect(element.name, equals(name));
+    // TODO (danrubel) assert setter param
+    //expect(element.parameters, isNull);
     expect(element.returnType, isNull);
     return cs;
   }
@@ -258,6 +279,7 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.TOP_LEVEL_VARIABLE));
     expect(element.name, equals(name));
+    expect(element.parameters, isNull);
     //TODO (danrubel) return type level variable 'type' but not as 'returnType'
 //    expect(
 //        element.returnType,
