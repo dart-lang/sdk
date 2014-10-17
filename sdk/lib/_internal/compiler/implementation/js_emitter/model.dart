@@ -35,12 +35,15 @@ abstract class Output {
   MainOutput get mainOutput;
   final List<Library> libraries;
   final List<Constant> constants;
+  // TODO(floitsch): should we move static fields into libraries or classes?
+  final List<StaticField> staticNonFinalFields;
 
   /// Output file name without extension.
   final String outputFileName;
 
   Output(this.outputFileName,
          this.libraries,
+         this.staticNonFinalFields,
          this.constants);
 }
 
@@ -57,9 +60,10 @@ class MainOutput extends Output {
   MainOutput(String outputFileName,
              this.main,
              List<Library> libraries,
+             List<StaticField> staticNonFinalFields,
              List<Constant> constants,
              this.holders)
-      : super(outputFileName, libraries, constants);
+      : super(outputFileName, libraries, staticNonFinalFields, constants);
 
   MainOutput get mainOutput => this;
 }
@@ -77,8 +81,9 @@ class DeferredOutput extends Output {
                  this.name,
                  this.mainOutput,
                  List<Library> libraries,
+                 List<StaticField> staticNonFinalFields,
                  List<Constant> constants)
-      : super(outputFileName, libraries, constants);
+      : super(outputFileName, libraries, staticNonFinalFields, constants);
 }
 
 class Constant {
@@ -94,6 +99,19 @@ class Library {
   final List<StaticMethod> statics;
   final List<Class> classes;
   Library(this.uri, this.statics, this.classes);
+}
+
+class StaticField {
+  final String name;
+  // TODO(floitsch): the holder for static fields is the isolate object. We
+  // could remove this field and use the isolate object directly.
+  final Holder holder;
+  final js.Expression code;
+  final bool isFinal;
+  final bool isLazy;
+
+  StaticField(this.name, this.holder, this.code,
+              this.isFinal, this.isLazy);
 }
 
 class Class {

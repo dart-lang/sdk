@@ -73,6 +73,7 @@ class ModelEmitter {
          emitHolders(unit.holders),
          emitEmbeddedGlobals(loadMap),
          emitConstants(unit.constants),
+         emitStaticNonFinalFields(unit.staticNonFinalFields),
          unit.main,
          program]);
   }
@@ -188,6 +189,14 @@ class ModelEmitter {
           constantEmitter.initializationExpression(constant.value);
       return js.js.statement("#.# = #;",
                              [constant.holder.name, constant.name, code]);
+    });
+    return new js.Block(statements.toList());
+  }
+
+  js.Block emitStaticNonFinalFields(List<StaticField> fields) {
+    Iterable<js.Statement> statements = fields.map((StaticField field) {
+      return js.js.statement("#.# = #;",
+                             [field.holder.name, field.name, field.code]);
     });
     return new js.Block(statements.toList());
   }
@@ -315,6 +324,9 @@ final String boilerplate = r"""
   #;
 
   // Initialize constants.
+  #;
+
+  // Initialize static non-final fields.
   #;
 
   var end = Date.now();

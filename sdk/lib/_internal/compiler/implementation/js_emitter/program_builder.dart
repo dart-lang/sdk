@@ -8,7 +8,11 @@ import 'model.dart';
 import '../common.dart';
 import '../js/js.dart' as js;
 
-import '../js_backend/js_backend.dart' show Namer, JavaScriptBackend;
+import '../js_backend/js_backend.dart' show
+    Namer,
+    JavaScriptBackend,
+    JavaScriptConstantCompiler;
+
 import '../js_emitter/js_emitter.dart' as emitterTask show
     CodeEmitterTask,
     Emitter;
@@ -49,6 +53,7 @@ class ProgramBuilder {
   Program buildProgram() {
     _task.outputClassLists.forEach(_registry.registerElements);
     _task.outputStaticLists.forEach(_registry.registerElements);
+    _task.outputConstantLists.forEach(_registerConstants);
 
     // TODO(kasperl): There's code that implicitly needs access to the special
     // $ holder so we have to register that. Can we track if we have to?
@@ -96,6 +101,7 @@ class ProgramBuilder {
         "",  // The empty string is the name for the main output file.
         namer.elementAccess(_compiler.mainFunction),
         _buildLibraries(fragment),
+        _buildStaticNonFinalFields(fragment),
         _buildConstants(fragment),
         _registry.holders.toList(growable: false));
     _outputs[fragment.outputUnit] = result;
@@ -118,6 +124,7 @@ class ProgramBuilder {
         _outputFileName(fragment.name), fragment.name,
         mainOutput,
         _buildLibraries(fragment),
+        _buildStaticNonFinalFields(fragment),
         _buildConstants(fragment));
     _outputs[fragment.outputUnit] = result;
     return result;
@@ -127,15 +134,40 @@ class ProgramBuilder {
     List<ConstantValue> constantValues =
         _task.outputConstantLists[fragment.outputUnit];
     if (constantValues == null) return const <Constant>[];
-    return constantValues.map((ConstantValue constantValue) {
-      assert(!_constants.containsKey(constantValue));
-      String name = namer.constantName(constantValue);
-      String constantObject = namer.globalObjectForConstant(constantValue);
-      Holder holder = _registry.registerHolder(constantObject);
-      Constant constant = new Constant(name, holder, constantValue);
-      _constants[constantValue] = constant;
-      return constant;
-    }).toList();
+    return constantValues.map((ConstantValue value) => _constants[value])
+        .toList(growable: false);
+  }
+
+  List<StaticField> _buildStaticNonFinalFields(Fragment fragment) {
+    // TODO(floitsch): handle static non-final fields correctly with deferred
+    // libraries.
+    if (fragment != _registry.mainFragment) return const <StaticField>[];
+    Iterable<VariableElement> staticNonFinalFields =
+        backend.constants.getStaticNonFinalFieldsForEmission();
+    return Elements.sortedByPosition(staticNonFinalFields)
+        .map(_buildStaticField)
+        .toList(growable: false);
+  }
+
+  StaticField _buildStaticField(Element element) {
+    JavaScriptConstantCompiler handler = backend.constants;
+    ConstantValue initialValue = handler.getInitialValueFor(element).value;
+    js.Expression code = _task.emitter.constantReference(initialValue);
+    String name = namer.getNameOfGlobalField(element);
+    bool isFinal = false;
+    bool isLazy = false;
+    return new StaticField(name, _registry.registerHolder(r'$'), code,
+                           isFinal, isLazy);
+  }
+
+  List<StaticField> _buildStaticLazilyInitializedFields(Fragment fragment) {
+    JavaScriptConstantCompiler handler = backend.constants;
+    List<VariableElement> lazyFields =
+        handler.getLazilyInitializedFieldsForEmission();
+    // TODO(floitsch): handle static lazy finals correctly with deferred
+    // libraries.
+    if (fragment != _registry.mainFragment) return const <StaticField>[];
+    throw new UnimplementedError("lazy statics");
   }
 
   List<Library> _buildLibraries(Fragment fragment) {
@@ -205,5 +237,18 @@ class ProgramBuilder {
     // TODO(kasperl): This clearly doesn't work yet.
     js.Expression code = js.string("<<unimplemented>>");
     return new StaticMethod(name, _registry.registerHolder(holder), code);
+  }
+
+  void _registerConstants(OutputUnit outputUnit,
+                          List<ConstantValue> constantValues) {
+    if (constantValues == null) return;
+    for (ConstantValue constantValue in constantValues) {
+      assert(!_constants.containsKey(constantValue));
+      String name = namer.constantName(constantValue);
+      String constantObject = namer.globalObjectForConstant(constantValue);
+      Holder holder = _registry.registerHolder(constantObject);
+      Constant constant = new Constant(name, holder, constantValue);
+      _constants[constantValue] = constant;
+    };
   }
 }

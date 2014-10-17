@@ -22,7 +22,10 @@ class Fragment {
   final OutputUnit outputUnit;
 
   Fragment.main(this.outputUnit) : name = "";
-  Fragment.deferred(this.outputUnit, this.name);
+
+  Fragment.deferred(this.outputUnit, this.name) {
+    assert(name != "");
+  }
 
   void add(LibraryElement library, Element element) {
     if (_lastLibrary != library) {
