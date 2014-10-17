@@ -1,5 +1,5 @@
 name: polymer
-version: 0.15.1
+version: 0.15.1+1
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 description: >
   Polymer.dart is a new type of library for the web, built on top of Web

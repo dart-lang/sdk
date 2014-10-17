@@ -551,8 +551,8 @@ To do this, use the following pattern to update your pubspec.yaml:
 
     transformers:
     - polymer:
-      inline_stylesheets:
-        web/my_file.css: false
+        inline_stylesheets:
+          web/my_file.css: false
 
 If you would like to hide this warning and keep it inlined, do the same thing
 but assign the value to true.

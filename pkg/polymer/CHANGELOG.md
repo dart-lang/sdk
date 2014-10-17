@@ -1,4 +1,7 @@
-#### 0.15.1-dev
+#### 0.15.1+1
+  * Fix typo in error message polymer#42
+
+#### 0.15.1
   * Upgraded to polymer [0.4.2][]
   * No need to include dart_support.js in your entrypoints anymore.
 
