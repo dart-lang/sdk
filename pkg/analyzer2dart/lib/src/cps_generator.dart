@@ -10,6 +10,8 @@ import 'package:compiler/implementation/elements/elements.dart' as dart2js;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/element.dart' as analyzer;
 
+import 'package:compiler/implementation/dart2jslib.dart'
+    show DART_CONSTANT_SYSTEM;
 import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart' as ir;
 import 'package:compiler/implementation/cps_ir/cps_ir_builder.dart';
 import 'package:compiler/implementation/universe/universe.dart';
@@ -19,10 +21,10 @@ import 'element_converter.dart';
 import 'util.dart';
 import 'package:analyzer2dart/src/identifier_semantics.dart';
 
-class CpsGeneratingVisitor extends SemanticVisitor<ir.Node> {
+class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
+    with IrBuilderMixin {
   final analyzer.Element element;
   final ElementConverter converter;
-  final IrBuilder irBuilder = new IrBuilder();
 
   CpsGeneratingVisitor(this.converter, this.element);
 
@@ -31,16 +33,24 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node> {
   @override
   ir.FunctionDefinition visitFunctionDeclaration(FunctionDeclaration node) {
     analyzer.FunctionElement function = node.element;
-    function.parameters.forEach((analyzer.ParameterElement parameter) {
-      // TODO(johnniwinther): Support "closure variables", that is variables
-      // accessed from an inner function.
-      irBuilder.createParameter(converter.convertElement(parameter),
-                                isClosureVariable: false);
+    dart2js.FunctionElement element = converter.convertElement(function);
+    return withBuilder(
+        new IrBuilder(DART_CONSTANT_SYSTEM,
+                      element,
+                      // TODO(johnniwinther): Supported closure variables.
+                      const <dart2js.Local>[]),
+        () {
+      function.parameters.forEach((analyzer.ParameterElement parameter) {
+        // TODO(johnniwinther): Support "closure variables", that is variables
+        // accessed from an inner function.
+        irBuilder.createParameter(converter.convertElement(parameter),
+                                  isClosureVariable: false);
+      });
+      // Visit the body directly to avoid processing the signature as
+      // expressions.
+      node.functionExpression.body.accept(this);
+      return irBuilder.buildFunctionDefinition(element, const []);
     });
-    // Visit the body directly to avoid processing the signature as expressions.
-    node.functionExpression.body.accept(this);
-    return irBuilder.buildFunctionDefinition(
-        converter.convertElement(function), const []);
   }
 
   @override
