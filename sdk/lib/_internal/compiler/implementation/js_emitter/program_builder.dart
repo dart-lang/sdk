@@ -161,16 +161,6 @@ class ProgramBuilder {
                            isFinal, isLazy);
   }
 
-  List<StaticField> _buildStaticLazilyInitializedFields(Fragment fragment) {
-    JavaScriptConstantCompiler handler = backend.constants;
-    List<VariableElement> lazyFields =
-        handler.getLazilyInitializedFieldsForEmission();
-    // TODO(floitsch): handle static lazy finals correctly with deferred
-    // libraries.
-    if (fragment != _registry.mainFragment) return const <StaticField>[];
-    throw new UnimplementedError("lazy statics");
-  }
-
   List<Library> _buildLibraries(Fragment fragment) {
     List<Library> libraries = new List<Library>(fragment.length);
     int count = 0;
