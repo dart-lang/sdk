@@ -20,7 +20,8 @@ main() {
 @ReflectiveTestCase()
 class KeywordComputerTest extends AbstractCompletionTest {
 
-  void assertSuggestKeywords(Iterable<Keyword> expectedKeywords) {
+  void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
     Set<Keyword> actualKeywords = new Set<Keyword>();
     request.suggestions.forEach((CompletionSuggestion s) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
@@ -32,7 +33,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
             fail('Duplicate keyword suggested: ${s.completion}');
           }
         }
-        expect(s.relevance, equals(CompletionRelevance.DEFAULT));
+        expect(s.relevance, equals(relevance));
         expect(s.selectionOffset, equals(s.completion.length));
         expect(s.selectionLength, equals(0));
         expect(s.isDeprecated, equals(false));
@@ -74,26 +75,32 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.CONST,
             Keyword.FINAL,
             Keyword.TYPEDEF,
-            Keyword.VAR]);
+            Keyword.VAR],
+        CompletionRelevance.HIGH);
   }
 
   test_before_import() {
     addTestSource('^ import foo;');
     expect(computeFast(), isTrue);
     assertSuggestKeywords(
-        [Keyword.EXPORT, Keyword.IMPORT, Keyword.LIBRARY, Keyword.PART]);
+        [Keyword.EXPORT, Keyword.IMPORT, Keyword.LIBRARY, Keyword.PART],
+        CompletionRelevance.HIGH);
   }
 
   test_class() {
     addTestSource('class A ^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS]);
+    assertSuggestKeywords(
+        [Keyword.EXTENDS, Keyword.IMPLEMENTS],
+        CompletionRelevance.HIGH);
   }
 
   test_class_extends() {
     addTestSource('class A extends foo ^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([Keyword.IMPLEMENTS, Keyword.WITH]);
+    assertSuggestKeywords(
+        [Keyword.IMPLEMENTS, Keyword.WITH],
+        CompletionRelevance.HIGH);
   }
 
   test_class_extends_name() {
@@ -105,7 +112,7 @@ class KeywordComputerTest extends AbstractCompletionTest {
   test_class_implements() {
     addTestSource('class A ^ implements foo');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords([Keyword.EXTENDS]);
+    assertSuggestKeywords([Keyword.EXTENDS], CompletionRelevance.HIGH);
   }
 
   test_class_implements_name() {
@@ -140,7 +147,8 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.LIBRARY,
             Keyword.PART,
             Keyword.TYPEDEF,
-            Keyword.VAR]);
+            Keyword.VAR],
+        CompletionRelevance.HIGH);
   }
 
   test_function_body() {
@@ -199,7 +207,8 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.IMPORT,
             Keyword.PART,
             Keyword.TYPEDEF,
-            Keyword.VAR]);
+            Keyword.VAR],
+        CompletionRelevance.HIGH);
   }
 
   test_library_name() {
@@ -253,7 +262,8 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.IMPORT,
             Keyword.PART,
             Keyword.TYPEDEF,
-            Keyword.VAR]);
+            Keyword.VAR],
+        CompletionRelevance.HIGH);
   }
 
   test_partial_class() {
@@ -270,7 +280,8 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.LIBRARY,
             Keyword.PART,
             Keyword.TYPEDEF,
-            Keyword.VAR]);
+            Keyword.VAR],
+        CompletionRelevance.HIGH);
   }
 
   test_partial_class2() {
@@ -286,7 +297,8 @@ class KeywordComputerTest extends AbstractCompletionTest {
             Keyword.IMPORT,
             Keyword.PART,
             Keyword.TYPEDEF,
-            Keyword.VAR]);
+            Keyword.VAR],
+        CompletionRelevance.HIGH);
   }
 
   void _appendKeywords(StringBuffer msg, Iterable<Keyword> keywords) {
