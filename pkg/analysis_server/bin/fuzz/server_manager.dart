@@ -9,10 +9,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:matcher/matcher.dart';
-
-import 'byte_stream_channel.dart';
-import 'channel.dart';
-import 'protocol.dart';
+import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 
 part 'logging_client_channel.dart';
 
