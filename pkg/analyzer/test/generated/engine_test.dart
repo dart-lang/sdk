@@ -28,6 +28,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/task/task_dart.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart' as _ut;
 
@@ -2587,7 +2588,7 @@ class DartEntryTest extends EngineTestCase {
         entry.getState(DartEntry.IS_LAUNCHABLE));
   }
 
-  void test_recordBuildElementErrorInLibrary() {
+  void test_recordBuildElementError() {
     // TODO(brianwilkerson) This test should set the state for two libraries,
     // record an error in one library, then verify that the data for the other
     // library is still valid.
@@ -2599,6 +2600,12 @@ class DartEntryTest extends EngineTestCase {
     JUnitTestCase.assertSame(
         CacheState.INVALID,
         entry.getState(SourceEntry.CONTENT));
+    JUnitTestCase.assertSame(
+        CacheState.ERROR,
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, source));
+    JUnitTestCase.assertSame(
+        CacheState.ERROR,
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
     JUnitTestCase.assertSame(
         CacheState.ERROR,
         entry.getState(DartEntry.ELEMENT));
@@ -2627,7 +2634,7 @@ class DartEntryTest extends EngineTestCase {
         CacheState.INVALID,
         entry.getState(DartEntry.PARSED_UNIT));
     JUnitTestCase.assertSame(
-        CacheState.INVALID,
+        CacheState.ERROR,
         entry.getState(DartEntry.PUBLIC_NAMESPACE));
     JUnitTestCase.assertSame(
         CacheState.INVALID,
@@ -2954,7 +2961,7 @@ class DartEntryTest extends EngineTestCase {
   }
 
   void test_recordScanError() {
-    //    Source source = new TestSource();
+//    Source source = new TestSource();
     DartEntry entry = new DartEntry();
     entry.recordScanError(new CaughtException(new AnalysisException(), null));
     JUnitTestCase.assertSame(
@@ -3002,12 +3009,12 @@ class DartEntryTest extends EngineTestCase {
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
     // don't know anything about.
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
+//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, source));
+//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
   }
 
   void test_recordVerificationErrorInLibrary() {
@@ -6856,6 +6863,12 @@ class TestAnalysisContext_test_setSourceFactory extends TestAnalysisContext {
  * failure.
  */
 class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
+  @override
+  E visitBuildUnitElementTask(BuildUnitElementTask task) {
+    JUnitTestCase.fail("Unexpectedly invoked visitGenerateDartErrorsTask");
+    return null;
+  }
+
   @override
   E visitGenerateDartErrorsTask(GenerateDartErrorsTask task) {
     JUnitTestCase.fail("Unexpectedly invoked visitGenerateDartErrorsTask");

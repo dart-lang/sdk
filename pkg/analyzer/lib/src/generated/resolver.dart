@@ -1269,17 +1269,14 @@ class ClassScope extends EnclosedScope {
 }
 
 /**
- * Instances of the class `CompilationUnitBuilder` build an element model for a single
- * compilation unit.
+ * A `CompilationUnitBuilder` builds an element model for a single compilation
+ * unit.
  */
 class CompilationUnitBuilder {
   /**
-   * Build the compilation unit element for the given source.
-   *
-   * @param source the source describing the compilation unit
-   * @param unit the AST structure representing the compilation unit
-   * @return the compilation unit element that was built
-   * @throws AnalysisException if the analysis could not be performed
+   * Build the compilation unit element for the given [source] based on the
+   * compilation [unit] associated with the source. Throw an AnalysisException
+   * if the element could not be built.
    */
   CompilationUnitElementImpl buildCompilationUnit(Source source, CompilationUnit unit) {
     TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
@@ -1299,6 +1296,7 @@ class CompilationUnitBuilder {
       element.types = holder.types;
       element.topLevelVariables = holder.topLevelVariables;
       unit.element = element;
+      holder.validate();
       return element;
     } finally {
       timeCounter.stop();

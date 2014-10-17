@@ -8,6 +8,9 @@
 library engine;
 
 import 'dart:collection';
+
+import 'package:analyzer/src/task/task_dart.dart';
+
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'utilities_collection.dart';
@@ -2478,6 +2481,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Create a [BuildUnitElementTask] for the given [source].
+   */
+  AnalysisContextImpl_TaskData _createBuildUnitElementTask(Source source, DartEntry dartEntry, Source librarySource) {
+    CompilationUnit unit = dartEntry.resolvableCompilationUnit;
+    if (unit == null) {
+      return _createParseDartTask(source, dartEntry);
+    }
+    return new AnalysisContextImpl_TaskData(
+        new BuildUnitElementTask(this, source, librarySource, unit),
+        false);
+  }
+
+  /**
    * Create a [GenerateDartErrorsTask] for the given source, marking the verification errors
    * as being in-process. The compilation unit and the library can be the same if the compilation
    * unit is the defining compilation unit of the library.
@@ -2553,12 +2569,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Create a [ParseDartTask] for the given source, marking the parse errors as being
-   * in-process.
-   *
-   * @param source the source whose content is to be parsed
-   * @param dartEntry the entry for the source
-   * @return task data representing the created task
+   * Create a [ParseDartTask] for the given [source].
    */
   AnalysisContextImpl_TaskData _createParseDartTask(Source source, DartEntry dartEntry) {
     if (dartEntry.getState(DartEntry.TOKEN_STREAM) != CacheState.VALID || dartEntry.getState(SourceEntry.LINE_INFO) != CacheState.VALID) {
@@ -2571,12 +2582,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Create a [ParseHtmlTask] for the given source, marking the parse errors as being
-   * in-process.
-   *
-   * @param source the source whose content is to be parsed
-   * @param htmlEntry the entry for the source
-   * @return task data representing the created task
+   * Create a [ParseHtmlTask] for the given [source].
    */
   AnalysisContextImpl_TaskData _createParseHtmlTask(Source source, HtmlEntry htmlEntry) {
     if (htmlEntry.getState(SourceEntry.CONTENT) != CacheState.VALID) {
@@ -3811,6 +3817,27 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Record the results produced by performing a [task] and return the cache
+   * entry associated with the results.
+   */
+  DartEntry _recordBuildUnitElementTask(BuildUnitElementTask task) {
+    Source source = task.source;
+    Source library = task.library;
+    DartEntry dartEntry = _cache.get(source);
+    CaughtException thrownException = task.exception;
+    if (thrownException != null) {
+      dartEntry.recordBuildElementErrorInLibrary(library, thrownException);
+      throw new AnalysisException('<rethrow>', thrownException);
+    }
+    dartEntry.setValueInLibrary(DartEntry.BUILT_UNIT, library, task.unit);
+    dartEntry.setValueInLibrary(DartEntry.BUILT_ELEMENT, library, task.unitElement);
+    ChangeNoticeImpl notice = _getNotice(source);
+    LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
+    notice.setErrors(dartEntry.allErrors, lineInfo);
+    return dartEntry;
+  }
+
+  /**
    * Given a cache entry and a library element, record the library element and other information
    * gleaned from the element in the cache entry.
    *
@@ -3841,7 +3868,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     dartEntry.setValueInLibrary(
         DartEntry.VERIFICATION_ERRORS,
         librarySource,
-            task.errors);
+        task.errors);
     ChangeNoticeImpl notice = _getNotice(source);
     LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
     notice.setErrors(dartEntry.allErrors, lineInfo);
@@ -4411,8 +4438,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 }
 
 /**
- * Instances of the class `AnalysisTaskResultRecorder` are used by an analysis context to
- * record the results of a task.
+ * An `AnalysisTaskResultRecorder` is used by an analysis context to record the
+ * results of a task.
  */
 class AnalysisContextImpl_AnalysisTaskResultRecorder implements AnalysisTaskVisitor<SourceEntry> {
   final AnalysisContextImpl AnalysisContextImpl_this;
@@ -4420,49 +4447,68 @@ class AnalysisContextImpl_AnalysisTaskResultRecorder implements AnalysisTaskVisi
   AnalysisContextImpl_AnalysisTaskResultRecorder(this.AnalysisContextImpl_this);
 
   @override
-  DartEntry visitGenerateDartErrorsTask(GenerateDartErrorsTask task) => AnalysisContextImpl_this._recordGenerateDartErrorsTask(task);
+  DartEntry visitBuildUnitElementTask(BuildUnitElementTask task)
+      => AnalysisContextImpl_this._recordBuildUnitElementTask(task);
 
   @override
-  DartEntry visitGenerateDartHintsTask(GenerateDartHintsTask task) => AnalysisContextImpl_this._recordGenerateDartHintsTask(task);
+  DartEntry visitGenerateDartErrorsTask(GenerateDartErrorsTask task)
+      => AnalysisContextImpl_this._recordGenerateDartErrorsTask(task);
 
   @override
-  SourceEntry visitGetContentTask(GetContentTask task) => AnalysisContextImpl_this._recordGetContentsTask(task);
+  DartEntry visitGenerateDartHintsTask(GenerateDartHintsTask task)
+      => AnalysisContextImpl_this._recordGenerateDartHintsTask(task);
 
   @override
-  DartEntry visitIncrementalAnalysisTask(IncrementalAnalysisTask task) => AnalysisContextImpl_this._recordIncrementalAnalysisTaskResults(task);
+  SourceEntry visitGetContentTask(GetContentTask task)
+      => AnalysisContextImpl_this._recordGetContentsTask(task);
 
   @override
-  DartEntry visitParseDartTask(ParseDartTask task) => AnalysisContextImpl_this._recordParseDartTaskResults(task);
+  DartEntry visitIncrementalAnalysisTask(IncrementalAnalysisTask task)
+      => AnalysisContextImpl_this._recordIncrementalAnalysisTaskResults(task);
 
   @override
-  HtmlEntry visitParseHtmlTask(ParseHtmlTask task) => AnalysisContextImpl_this._recordParseHtmlTaskResults(task);
+  DartEntry visitParseDartTask(ParseDartTask task)
+      => AnalysisContextImpl_this._recordParseDartTaskResults(task);
 
   @override
-  HtmlEntry visitPolymerBuildHtmlTask(PolymerBuildHtmlTask task) => AnalysisContextImpl_this._recordPolymerBuildHtmlTaskResults(task);
+  HtmlEntry visitParseHtmlTask(ParseHtmlTask task)
+      => AnalysisContextImpl_this._recordParseHtmlTaskResults(task);
 
   @override
-  HtmlEntry visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task) => AnalysisContextImpl_this._recordPolymerResolveHtmlTaskResults(task);
+  HtmlEntry visitPolymerBuildHtmlTask(PolymerBuildHtmlTask task)
+      => AnalysisContextImpl_this._recordPolymerBuildHtmlTaskResults(task);
 
   @override
-  HtmlEntry visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task) => AnalysisContextImpl_this._recordResolveAngularComponentTemplateTaskResults(task);
+  HtmlEntry visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task)
+      => AnalysisContextImpl_this._recordPolymerResolveHtmlTaskResults(task);
 
   @override
-  HtmlEntry visitResolveAngularEntryHtmlTask(ResolveAngularEntryHtmlTask task) => AnalysisContextImpl_this._recordResolveAngularEntryHtmlTaskResults(task);
+  HtmlEntry visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task)
+      => AnalysisContextImpl_this._recordResolveAngularComponentTemplateTaskResults(task);
 
   @override
-  DartEntry visitResolveDartLibraryCycleTask(ResolveDartLibraryCycleTask task) => AnalysisContextImpl_this.recordResolveDartLibraryCycleTaskResults(task);
+  HtmlEntry visitResolveAngularEntryHtmlTask(ResolveAngularEntryHtmlTask task)
+      => AnalysisContextImpl_this._recordResolveAngularEntryHtmlTaskResults(task);
 
   @override
-  DartEntry visitResolveDartLibraryTask(ResolveDartLibraryTask task) => AnalysisContextImpl_this.recordResolveDartLibraryTaskResults(task);
+  DartEntry visitResolveDartLibraryCycleTask(ResolveDartLibraryCycleTask task)
+      => AnalysisContextImpl_this.recordResolveDartLibraryCycleTaskResults(task);
 
   @override
-  DartEntry visitResolveDartUnitTask(ResolveDartUnitTask task) => AnalysisContextImpl_this._recordResolveDartUnitTaskResults(task);
+  DartEntry visitResolveDartLibraryTask(ResolveDartLibraryTask task)
+      => AnalysisContextImpl_this.recordResolveDartLibraryTaskResults(task);
 
   @override
-  HtmlEntry visitResolveHtmlTask(ResolveHtmlTask task) => AnalysisContextImpl_this._recordResolveHtmlTaskResults(task);
+  DartEntry visitResolveDartUnitTask(ResolveDartUnitTask task)
+      => AnalysisContextImpl_this._recordResolveDartUnitTaskResults(task);
 
   @override
-  DartEntry visitScanDartTask(ScanDartTask task) => AnalysisContextImpl_this._recordScanDartTaskResults(task);
+  HtmlEntry visitResolveHtmlTask(ResolveHtmlTask task)
+      => AnalysisContextImpl_this._recordResolveHtmlTaskResults(task);
+
+  @override
+  DartEntry visitScanDartTask(ScanDartTask task)
+      => AnalysisContextImpl_this._recordScanDartTaskResults(task);
 }
 
 class AnalysisContextImpl_ContextRetentionPolicy implements CacheRetentionPolicy {
@@ -5937,143 +5983,104 @@ abstract class AnalysisTask {
 }
 
 /**
- * The interface `AnalysisTaskVisitor` defines the behavior of objects that can visit tasks.
- * While tasks are not structured in any interesting way, this class provides the ability to
- * dispatch to an appropriate method.
+ * An `AnalysisTaskVisitor` visits tasks. While tasks are not structured in any
+ * interesting way, this class provides the ability to dispatch to an
+ * appropriate method.
  */
 abstract class AnalysisTaskVisitor<E> {
   /**
-   * Visit a [GenerateDartErrorsTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
+   */
+  E visitBuildUnitElementTask(BuildUnitElementTask task);
+
+  /**
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitGenerateDartErrorsTask(GenerateDartErrorsTask task);
 
   /**
-   * Visit a [GenerateDartHintsTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitGenerateDartHintsTask(GenerateDartHintsTask task);
 
   /**
-   * Visit a [GetContentTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitGetContentTask(GetContentTask task);
 
   /**
-   * Visit an [IncrementalAnalysisTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitIncrementalAnalysisTask(IncrementalAnalysisTask incrementalAnalysisTask);
 
   /**
-   * Visit a [ParseDartTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitParseDartTask(ParseDartTask task);
 
   /**
-   * Visit a [ParseHtmlTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitParseHtmlTask(ParseHtmlTask task);
 
   /**
-   * Visit a [PolymerBuildHtmlTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitPolymerBuildHtmlTask(PolymerBuildHtmlTask task);
 
   /**
-   * Visit a [PolymerResolveHtmlTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitPolymerResolveHtmlTask(PolymerResolveHtmlTask task);
 
   /**
-   * Visit a [ResolveAngularComponentTemplateTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task);
 
   /**
-   * Visit a [ResolveAngularEntryHtmlTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitResolveAngularEntryHtmlTask(ResolveAngularEntryHtmlTask task);
 
   /**
-   * Visit a [ResolveDartLibraryCycleTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitResolveDartLibraryCycleTask(ResolveDartLibraryCycleTask task);
 
   /**
-   * Visit a [ResolveDartLibraryTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitResolveDartLibraryTask(ResolveDartLibraryTask task);
 
   /**
-   * Visit a [ResolveDartUnitTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitResolveDartUnitTask(ResolveDartUnitTask task);
 
   /**
-   * Visit a [ResolveHtmlTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitResolveHtmlTask(ResolveHtmlTask task);
 
   /**
-   * Visit a [ScanDartTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
+   * Visit the given [task], returning the result of the visit. This method will
+   * throw an AnalysisException if the visitor throws an exception.
    */
   E visitScanDartTask(ScanDartTask task);
 }
@@ -7774,11 +7781,12 @@ class DartEntry extends SourceEntry {
       = new DataDescriptor<List<AnalysisError>>("DartEntry.ANGULAR_ERRORS", AnalysisError.NO_ERRORS);
 
   /**
-   * The data descriptor representing the errors resulting from building the
-   * element model.
+   * The data descriptor representing the element model representing a single
+   * compilation unit. This model is incomplete and should not be used except as
+   * input to another task.
    */
-  static final DataDescriptor<List<AnalysisError>> BUILD_ELEMENT_ERRORS
-      = new DataDescriptor<List<AnalysisError>>("DartEntry.BUILD_ELEMENT_ERRORS", AnalysisError.NO_ERRORS);
+  static final DataDescriptor<List<AnalysisError>> BUILT_ELEMENT
+      = new DataDescriptor<List<AnalysisError>>("DartEntry.BUILT_ELEMENT");
 
   /**
    * The data descriptor representing the AST structure after the element model
@@ -7936,7 +7944,6 @@ class DartEntry extends SourceEntry {
     errors.addAll(getValue(PARSE_ERRORS));
     ResolutionState state = _resolutionState;
     while (state != null) {
-      errors.addAll(state.getValue(BUILD_ELEMENT_ERRORS));
       errors.addAll(state.getValue(RESOLUTION_ERRORS));
       errors.addAll(state.getValue(VERIFICATION_ERRORS));
       errors.addAll(state.getValue(HINTS));
@@ -8162,21 +8169,15 @@ class DartEntry extends SourceEntry {
   }
 
   /**
-   * Record that an error occurred while attempting to build the element model
-   * for the source represented by this entry. This will set the state of all
-   * resolution-based information as being in error, but will not change the
-   * state of any parse results.
-   *
-   * @param librarySource the source of the library in which the element model was being built
-   * @param exception the exception that shows where the error occurred
+   * Record that an [exception] occurred while attempting to build the element
+   * model for the source represented by this entry in the context of the given
+   * [library]. This will set the state of all resolution-based information as
+   * being in error, but will not change the state of any parse results.
    */
   void recordBuildElementErrorInLibrary(Source librarySource, CaughtException exception) {
-    this.exception = exception;
-    setState(ELEMENT, CacheState.ERROR);
-    setState(IS_LAUNCHABLE, CacheState.ERROR);
-    setState(IS_CLIENT, CacheState.ERROR);
-    ResolutionState state = _getOrCreateResolutionState(librarySource);
-    state.recordBuildElementError();
+    setStateInLibrary(BUILT_ELEMENT, librarySource, CacheState.ERROR);
+    setStateInLibrary(BUILT_UNIT, librarySource, CacheState.ERROR);
+    recordResolutionErrorInLibrary(librarySource, exception);
   }
 
   @override
@@ -8525,7 +8526,7 @@ class DartEntry extends SourceEntry {
    * relative to a library.
    */
   bool _isValidLibraryDescriptor(DataDescriptor descriptor) {
-    return descriptor == BUILD_ELEMENT_ERRORS
+    return descriptor == BUILT_ELEMENT
         || descriptor == BUILT_UNIT
         || descriptor == HINTS
         || descriptor == RESOLUTION_ERRORS
@@ -11962,8 +11963,6 @@ class ResolutionState {
   void invalidateAllResolutionInformation() {
     _nextState = null;
     _librarySource = null;
-    setState(DartEntry.BUILT_UNIT, CacheState.INVALID);
-    setState(DartEntry.BUILD_ELEMENT_ERRORS, CacheState.INVALID);
     setState(DartEntry.RESOLVED_UNIT, CacheState.INVALID);
     setState(DartEntry.RESOLUTION_ERRORS, CacheState.INVALID);
     setState(DartEntry.VERIFICATION_ERRORS, CacheState.INVALID);
@@ -11971,26 +11970,27 @@ class ResolutionState {
   }
 
   /**
-   * Record that an error occurred while attempting to build the element model for the source
-   * represented by this state.
+   * Record that an exception occurred while attempting to build the element
+   * model for the source associated with this state.
    */
   void recordBuildElementError() {
     setState(DartEntry.BUILT_UNIT, CacheState.ERROR);
-    setState(DartEntry.BUILD_ELEMENT_ERRORS, CacheState.ERROR);
+    setState(DartEntry.BUILT_ELEMENT, CacheState.ERROR);
     recordResolutionError();
   }
 
   /**
-   * Record that an error occurred while attempting to generate hints for the source represented
-   * by this entry. This will set the state of all verification information as being in error.
+   * Record that an exception occurred while attempting to generate hints for
+   * the source associated with this entry. This will set the state of all
+   * verification information as being in error.
    */
   void recordHintError() {
     setState(DartEntry.HINTS, CacheState.ERROR);
   }
 
   /**
-   * Record that an error occurred while attempting to resolve the source represented by this
-   * state.
+   * Record that an exception occurred while attempting to resolve the source
+   * associated with this state.
    */
   void recordResolutionError() {
     setState(DartEntry.RESOLVED_UNIT, CacheState.ERROR);
@@ -11999,9 +11999,9 @@ class ResolutionState {
   }
 
   /**
-   * Record that an error occurred while attempting to scan or parse the entry represented by this
-   * entry. This will set the state of all resolution-based information as being in error, but
-   * will not change the state of any parse results.
+   * Record that an exception occurred while attempting to scan or parse the
+   * source associated with this entry. This will set the state of all
+   * resolution-based information as being in error.
    */
   void recordResolutionErrorsInAllLibraries() {
     recordBuildElementError();
@@ -12011,9 +12011,9 @@ class ResolutionState {
   }
 
   /**
-   * Record that an error occurred while attempting to generate errors and warnings for the source
-   * represented by this entry. This will set the state of all verification information as being
-   * in error.
+   * Record that an exception occurred while attempting to generate errors and
+   * warnings for the source associated with this entry. This will set the state
+   * of all verification information as being in error.
    */
   void recordVerificationError() {
     setState(DartEntry.VERIFICATION_ERRORS, CacheState.ERROR);
@@ -12092,8 +12092,8 @@ class ResolutionState {
    */
   void _writeOn(StringBuffer buffer) {
     if (_librarySource != null) {
+      _writeStateOn(buffer, "builtElement", DartEntry.BUILT_ELEMENT);
       _writeStateOn(buffer, "builtUnit", DartEntry.BUILT_UNIT);
-      _writeStateOn(buffer, "buildElementErrors", DartEntry.BUILD_ELEMENT_ERRORS);
       _writeStateOn(buffer, "resolvedUnit", DartEntry.RESOLVED_UNIT);
       _writeStateOn(buffer, "resolutionErrors", DartEntry.RESOLUTION_ERRORS);
       _writeStateOn(buffer, "verificationErrors", DartEntry.VERIFICATION_ERRORS);
