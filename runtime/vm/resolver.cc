@@ -85,12 +85,8 @@ static RawFunction* CreateMethodExtractor(const String& getter_name,
   const intptr_t kNumParameters = 1;
   extractor.set_num_fixed_parameters(kNumParameters);
   extractor.SetNumOptionalParameters(0, 0);
-  extractor.set_parameter_types(Array::Handle(Array::New(kNumParameters,
-                                                         Heap::kOld)));
-  extractor.set_parameter_names(Array::Handle(Array::New(kNumParameters,
-                                                         Heap::kOld)));
-  extractor.SetParameterTypeAt(0, Type::Handle(Type::DynamicType()));
-  extractor.SetParameterNameAt(0, Symbols::This());
+  extractor.set_parameter_types(Object::extractor_parameter_types());
+  extractor.set_parameter_names(Object::extractor_parameter_names());
   extractor.set_result_type(Type::Handle(Type::DynamicType()));
 
   extractor.set_extracted_method_closure(closure_function);

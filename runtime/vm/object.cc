@@ -101,6 +101,8 @@ Array* Object::zero_array_ = NULL;
 PcDescriptors* Object::empty_descriptors_ = NULL;
 LocalVarDescriptors* Object::empty_var_descriptors_ = NULL;
 ExceptionHandlers* Object::empty_exception_handlers_ = NULL;
+Array* Object::extractor_parameter_types_ = NULL;
+Array* Object::extractor_parameter_names_ = NULL;
 Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
 Instance* Object::unknown_constant_ = NULL;
@@ -449,7 +451,10 @@ static type SpecialCharacter(type value) {
 }
 
 
-void Object::InitOnce() {
+void Object::InitOnce(Isolate* isolate) {
+  // Should only be run by the vm isolate.
+  ASSERT(isolate == Dart::vm_isolate());
+
   // TODO(iposva): NoGCScope needs to be added here.
   ASSERT(class_class() == null_);
   // Initialize the static vtable values.
@@ -460,7 +465,6 @@ void Object::InitOnce() {
     Smi::handle_vtable_ = fake_smi.vtable();
   }
 
-  Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
 
   // Allocate the read only object handles here.
@@ -474,6 +478,8 @@ void Object::InitOnce() {
   empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
   empty_var_descriptors_ = LocalVarDescriptors::ReadOnlyHandle();
   empty_exception_handlers_ = ExceptionHandlers::ReadOnlyHandle();
+  extractor_parameter_types_ = Array::ReadOnlyHandle();
+  extractor_parameter_names_ = Array::ReadOnlyHandle();
   sentinel_ = Instance::ReadOnlyHandle();
   transition_sentinel_ = Instance::ReadOnlyHandle();
   unknown_constant_ =  Instance::ReadOnlyHandle();
@@ -793,6 +799,12 @@ void Object::InitOnce() {
   ASSERT(empty_array_->IsArray());
   ASSERT(!zero_array_->IsSmi());
   ASSERT(zero_array_->IsArray());
+  ASSERT(!empty_descriptors_->IsSmi());
+  ASSERT(empty_descriptors_->IsPcDescriptors());
+  ASSERT(!empty_var_descriptors_->IsSmi());
+  ASSERT(empty_var_descriptors_->IsLocalVarDescriptors());
+  ASSERT(!empty_exception_handlers_->IsSmi());
+  ASSERT(empty_exception_handlers_->IsExceptionHandlers());
   ASSERT(!sentinel_->IsSmi());
   ASSERT(sentinel_->IsInstance());
   ASSERT(!transition_sentinel_->IsSmi());
@@ -813,14 +825,44 @@ void Object::InitOnce() {
 }
 
 
+// An object visitor which will mark all visited objects. This is used to
+// premark all objects in the vm_isolate_ heap.
+class PremarkingVisitor : public ObjectVisitor {
+ public:
+  explicit PremarkingVisitor(Isolate* isolate) : ObjectVisitor(isolate) {}
+
+  void VisitObject(RawObject* obj) {
+    // RawInstruction objects are premarked on allocation.
+    if (!obj->IsMarked()) {
+      obj->SetMarkBit();
+    }
+  }
+};
+
+
 #define SET_CLASS_NAME(class_name, name)                                       \
   cls = class_name##_class();                                                  \
   cls.set_name(Symbols::name());                                               \
 
-void Object::RegisterSingletonClassNames() {
-  Class& cls = Class::Handle();
+void Object::FinalizeVMIsolate(Isolate* isolate) {
+  // Should only be run by the vm isolate.
+  ASSERT(isolate == Dart::vm_isolate());
+
+  // Allocate the parameter arrays for method extractor types and names.
+  *extractor_parameter_types_ = Array::New(1, Heap::kOld);
+  extractor_parameter_types_->SetAt(0, Type::Handle(Type::DynamicType()));
+  *extractor_parameter_names_ = Array::New(1, Heap::kOld);
+  extractor_parameter_names_->SetAt(0, Symbols::This());
+
+  ASSERT(!extractor_parameter_types_->IsSmi());
+  ASSERT(extractor_parameter_types_->IsArray());
+  ASSERT(!extractor_parameter_names_->IsSmi());
+  ASSERT(extractor_parameter_names_->IsArray());
+
 
   // Set up names for all VM singleton classes.
+  Class& cls = Class::Handle(isolate);
+
   SET_CLASS_NAME(class, Class);
   SET_CLASS_NAME(dynamic, Dynamic);
   SET_CLASS_NAME(void, Void);
@@ -855,10 +897,17 @@ void Object::RegisterSingletonClassNames() {
 
   // Set up names for object array and one byte string class which are
   // pre-allocated in the vm isolate also.
-  cls = Dart::vm_isolate()->object_store()->array_class();
+  cls = isolate->object_store()->array_class();
   cls.set_name(Symbols::_List());
-  cls = Dart::vm_isolate()->object_store()->one_byte_string_class();
+  cls = isolate->object_store()->one_byte_string_class();
   cls.set_name(Symbols::OneByteString());
+
+  // Make the VM isolate read-only after setting all objects as marked.
+  PremarkingVisitor premarker(isolate);
+  isolate->heap()->WriteProtect(false);
+  ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
+  isolate->heap()->IterateOldObjects(&premarker);
+  isolate->heap()->WriteProtect(true);
 }
 
 

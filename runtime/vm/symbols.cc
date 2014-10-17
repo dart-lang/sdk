@@ -72,7 +72,6 @@ void Symbols::InitOnce(Isolate* isolate) {
     AddToVMIsolate(*str);
     symbol_handles_[i] = str;
   }
-  Object::RegisterSingletonClassNames();
 
   // Create symbols for language keywords. Some keywords are equal to
   // symbols we already created, so use New() instead of Add() to ensure

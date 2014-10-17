@@ -404,6 +404,16 @@ class Object {
     return *empty_exception_handlers_;
   }
 
+  static const Array& extractor_parameter_types() {
+    ASSERT(extractor_parameter_types_ != NULL);
+    return *extractor_parameter_types_;
+  }
+
+  static const Array& extractor_parameter_names() {
+    ASSERT(extractor_parameter_names_ != NULL);
+    return *extractor_parameter_names_;
+  }
+
   // The sentinel is a value that cannot be produced by Dart code.
   // It can be used to mark special values, for example to distinguish
   // "uninitialized" fields.
@@ -491,10 +501,14 @@ class Object {
   }
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
+  // Initialize the VM isolate.
+  static void InitOnce(Isolate* isolate);
+  static void FinalizeVMIsolate(Isolate* isolate);
+
+  // Initialize a new isolate either from source or from a snapshot.
   static RawError* Init(Isolate* isolate);
   static void InitFromSnapshot(Isolate* isolate);
-  static void InitOnce();
-  static void RegisterSingletonClassNames();
+
   static void MakeUnusedSpaceTraversable(const Object& obj,
                                          intptr_t original_size,
                                          intptr_t used_size);
@@ -761,6 +775,8 @@ class Object {
   static PcDescriptors* empty_descriptors_;
   static LocalVarDescriptors* empty_var_descriptors_;
   static ExceptionHandlers* empty_exception_handlers_;
+  static Array* extractor_parameter_types_;
+  static Array* extractor_parameter_names_;
   static Instance* sentinel_;
   static Instance* transition_sentinel_;
   static Instance* unknown_constant_;
