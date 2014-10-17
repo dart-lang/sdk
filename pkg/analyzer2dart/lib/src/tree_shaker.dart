@@ -14,7 +14,7 @@ import 'package:compiler/implementation/universe/universe.dart';
 import 'closed_world.dart';
 import 'util.dart';
 import 'semantic_visitor.dart';
-import 'package:analyzer2dart/src/identifier_semantics.dart';
+import 'identifier_semantics.dart';
 
 /**
  * The result of performing local reachability analysis on a method.

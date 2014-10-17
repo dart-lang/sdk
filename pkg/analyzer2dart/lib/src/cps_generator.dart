@@ -19,7 +19,7 @@ import 'package:compiler/implementation/universe/universe.dart';
 import 'semantic_visitor.dart';
 import 'element_converter.dart';
 import 'util.dart';
-import 'package:analyzer2dart/src/identifier_semantics.dart';
+import 'identifier_semantics.dart';
 
 class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     with IrBuilderMixin {
@@ -53,13 +53,9 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     });
   }
 
-  @override
-  visitStaticMethodInvocation(MethodInvocation node,
-                              AccessSemantics semantics) {
-    analyzer.Element staticElement = semantics.element;
-    dart2js.Element element = converter.convertElement(staticElement);
+  List<ir.Definition> visitArguments(ArgumentList argumentList) {
     List<ir.Definition> arguments = <ir.Definition>[];
-    for (Expression argument in node.argumentList.arguments) {
+    for (Expression argument in argumentList.arguments) {
       ir.Definition value = argument.accept(this);
       if (value == null) {
         giveUp(argument,
@@ -67,6 +63,27 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       }
       arguments.add(value);
     }
+    return arguments;
+  }
+
+  @override
+  ir.Primitive visitDynamicInvocation(MethodInvocation node,
+                                      AccessSemantics semantics) {
+    // TODO(johnniwinther): Handle implicit `this`.
+    ir.Primitive receiver = semantics.target.accept(this);
+    List<ir.Definition> arguments = visitArguments(node.argumentList);
+    return irBuilder.buildDynamicInvocation(
+        receiver,
+        createSelectorFromMethodInvocation(node, node.methodName.name),
+        arguments);
+  }
+
+  @override
+  ir.Primitive visitStaticMethodInvocation(MethodInvocation node,
+                                           AccessSemantics semantics) {
+    analyzer.Element staticElement = semantics.element;
+    dart2js.Element element = converter.convertElement(staticElement);
+    List<ir.Definition> arguments = visitArguments(node.argumentList);
     return irBuilder.buildStaticInvocation(
         element,
         createSelectorFromMethodInvocation(node, node.methodName.name),
@@ -147,7 +164,16 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     analyzer.Element element = semantics.element;
     dart2js.Element target = converter.convertElement(element);
     assert(invariant(node, target.isLocal, '$target expected to be local.'));
-    return irBuilder.buildGetLocal(target);
+    return irBuilder.buildLocalGet(target);
+  }
+
+  @override
+  ir.Node visitDynamicAccess(AstNode node, AccessSemantics semantics) {
+    // TODO(johnniwinther): Handle implicit `this`.
+    ir.Primitive receiver = semantics.target.accept(this);
+    return irBuilder.buildDynamicGet(receiver,
+        new Selector.getter(semantics.identifier.name,
+                            converter.convertElement(element.library)));
   }
 
   @override
@@ -157,8 +183,8 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     // TODO(johnniwinther): Selector information should be computed in the
     // [TreeShaker] and shared with the [CpsGeneratingVisitor].
     assert(invariant(node, target.isTopLevel || target.isStatic,
-        '$target expected to be top-level or static.'));
-    return irBuilder.buildGetStatic(target,
+                     '$target expected to be top-level or static.'));
+    return irBuilder.buildStaticGet(target,
         new Selector.getter(target.name, target.library));
   }
 }

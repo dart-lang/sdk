@@ -345,8 +345,10 @@ class IrBuilder {
   bool get isOpen => _root == null || _current != null;
 
   /// Create a parameter for [parameterElement] and add it to the current
-  /// environment. If [isClosureVariable] marks whether [parameterElement] is
-  /// accessed from an inner function.
+  /// environment.
+  ///
+  /// [isClosureVariable] marks whether [parameterElement] is accessed from an
+  /// inner function.
   void createParameter(LocalElement parameterElement,
                        {bool isClosureVariable: false}) {
     ir.Parameter parameter = new ir.Parameter(parameterElement);
@@ -358,11 +360,18 @@ class IrBuilder {
     }
   }
 
+  /// Add the constant [variableElement] to the environment with [value] as its
+  /// constant value.
   void declareLocalConstant(LocalVariableElement variableElement,
                             ConstantExpression value) {
     state.localConstants.add(new ConstDeclaration(variableElement, value));
   }
 
+  /// Add [variableElement] to the environment with [initialValue] as its
+  /// initial value.
+  ///
+  /// [isClosureVariable] marks whether [variableElement] is accessed from an
+  /// inner function.
   void declareLocalVariable(LocalVariableElement variableElement,
                             {ir.Primitive initialValue,
                              bool isClosureVariable: false}) {
@@ -451,17 +460,28 @@ class IrBuilder {
   }
 
   /// Create a get access of [local].
-  ir.Primitive buildGetLocal(Element local) {
+  ir.Primitive buildLocalGet(Element local) {
     assert(isOpen);
     return environment.lookup(local);
   }
 
   /// Create a get access of the static [element].
-  ir.Primitive buildGetStatic(Element element, Selector selector) {
+  ir.Primitive buildStaticGet(Element element, Selector selector) {
     assert(isOpen);
     assert(selector.isGetter);
     return continueWithExpression(
-        (k) => new ir.InvokeStatic(element, selector, k, []));
+        (k) => new ir.InvokeStatic(
+            element, selector, k, const <ir.Definition>[]));
+  }
+
+  /// Create a dynamic get access on [receiver] where the property is defined
+  /// by the getter [selector].
+  ir.Primitive buildDynamicGet(ir.Primitive receiver, Selector selector) {
+    assert(isOpen);
+    assert(selector.isGetter);
+    return continueWithExpression(
+        (k) => new ir.InvokeMethod(
+            receiver, selector, k, const <ir.Definition>[]));
   }
 
   /**
@@ -498,6 +518,28 @@ class IrBuilder {
       return new ir.FunctionDefinition.abstract(
                 element, _parameters, defaults);
     }
+  }
+
+
+  /// Create a super invocation with method name and arguments structure defined
+  /// by [selector] and argument values defined by [arguments].
+  ir.Primitive buildSuperInvocation(Selector selector,
+                                    List<ir.Definition> arguments) {
+    assert(isOpen);
+    return continueWithExpression(
+        (k) => new ir.InvokeSuperMethod(selector, k, arguments));
+
+  }
+
+  /// Create a dynamic invocation on [receiver] with method name and arguments
+  /// structure defined by [selector] and argument values defined by
+  /// [arguments].
+  ir.Primitive buildDynamicInvocation(ir.Definition receiver,
+                                      Selector selector,
+                                      List<ir.Definition> arguments) {
+    assert(isOpen);
+    return continueWithExpression(
+        (k) => new ir.InvokeMethod(receiver, selector, k, arguments));
   }
 
   /// Create a static invocation of [element] with arguments structure defined
@@ -1485,8 +1527,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     for (ast.Node n in node.arguments) {
       arguments.add(visit(n));
     }
-    return irBuilder.continueWithExpression(
-        (k) => createDynamicInvoke(node, selector, receiver, k, arguments));
+    return irBuilder.buildDynamicInvocation(receiver, selector, arguments);
   }
 
   _GetterElements translateGetter(ast.Send node, Selector selector) {
@@ -1504,7 +1545,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       irBuilder.add(new ir.LetPrim(result));
     } else if (Elements.isLocal(element)) {
       // Reference to local variable
-      result = irBuilder.buildGetLocal(element);
+      result = irBuilder.buildLocalGet(element);
     } else if (element == null ||
                Elements.isInstanceField(element) ||
                Elements.isInstanceMethod(element) ||
@@ -1535,7 +1576,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       // so the vm can fail at runtime.
       assert(selector.kind == SelectorKind.GETTER ||
              selector.kind == SelectorKind.SETTER);
-      result = irBuilder.buildGetStatic(element, selector);
+      result = irBuilder.buildStaticGet(element, selector);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
       // Convert a top-level or static function to a function object.
       result = translateConstant(node);
@@ -1728,7 +1769,10 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     if (node.isPropertyAccess) {
       return visitGetterSend(node);
     } else {
-      return visitDynamicSend(node);
+      Selector selector = elements.getSelector(node);
+      List<ir.Primitive> arguments =
+          node.arguments.mapToList(visit, growable: false);
+      return irBuilder.buildSuperInvocation(selector, arguments);
     }
   }
 

@@ -11,7 +11,6 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:compiler/implementation/dart_backend/backend_ast_to_frontend_ast.dart';
 import 'package:unittest/unittest.dart';
 
 import '../lib/src/closed_world.dart';
@@ -195,6 +194,52 @@ main() {
 ''', '''
 main() {
   return 0;
+}
+''');
+  });
+
+  test('Dynamic access', () {
+    checkResult('''
+main(a) {
+  return a.foo;
+}
+''', '''
+main(a) {
+  return a.foo;
+}
+''');
+
+    checkResult('''
+main() {
+  var a = "";
+  return a.foo;
+}
+''', '''
+main() {
+  return "".foo;
+}
+''');
+  });
+
+  test('Dynamic invocation', () {
+    checkResult('''
+main(a) {
+  return a.foo(0);
+}
+''', '''
+main(a) {
+  return a.foo(0);
+}
+''');
+
+    checkResult('''
+main() {
+  var a = "";
+  return a.foo(0, 1);
+}
+''', '''
+main() {
+  return "".foo(0, 1);
 }
 ''');
   });
