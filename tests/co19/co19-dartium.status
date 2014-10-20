@@ -2,6 +2,22 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+LayoutTests/fast/borders/border-radius-child_t01: Skip # co19 issue 732.
+LayoutTests/fast/css-generated-content/hit-test-generated-content_t01: Skip # co19 issue 732.
+LayoutTests/fast/css/collapsed-whitespace-reattach-in-style-recalc_t01: Skip # co19 issue 732.
+LayoutTests/fast/events/document-elementFromPoint_t01: Skip # co19 issue 732.
+LayoutTests/fast/sub-pixel/float-containing-block-with-margin_t01: Skip # co19 issue 732.
+LayoutTests/fast/sub-pixel/table-rows-have-stable-height_t01: Skip # co19 issue 732.
+LayoutTests/fast/table/col-width-span-expand_t01: Skip # co19 issue 732.
+LayoutTests/fast/text-autosizing/vertical-writing-mode_t01: Skip # co19 issue 732.
+LayoutTests/fast/text/international/rtl-text-wrapping_t01: Skip # co19 issue 732.
+LayoutTests/fast/writing-mode/positionForPoint_t01: Skip # co19 issue 732.
+LayoutTests/fast/css/computed-offset-with-zoom_t01: Skip # co19 issue 732.
+LayoutTests/fast/sub-pixel/inline-block-with-padding_t01: Skip # co19 issue 732.
+LayoutTests/fast/sub-pixel/size-of-span-with-different-positions_t01: Skip # co19 issue 732.
+LayoutTests/fast/text/international/complex-text-rectangle_t01: Skip # co19 issue 732.
+LayoutTests/fast/text/line-breaks-after-hyphen-before-number_t01: Skip # co19 issue 732.
+
 [ $compiler == none && $runtime == drt ]
 *: Skip # running co19 tests on content_shell would make our dartium cycle-times very long
 
