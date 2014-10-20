@@ -375,71 +375,20 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     return null;
   }
 
-  ir.Primitive visitIf(ast.If node) {
-    assert(irBuilder.isOpen);
+   visitIf(ast.If node) {
     ir.Primitive condition = visit(node.condition);
 
-    // The then and else parts are delimited.
-    IrBuilder thenBuilder = new IrBuilder.delimited(irBuilder);
-    IrBuilder elseBuilder = new IrBuilder.delimited(irBuilder);
-    withBuilder(thenBuilder, () => visit(node.thenPart));
-    if (node.hasElsePart) {
-      withBuilder(elseBuilder, () => visit(node.elsePart));
+    void buildThenPart(IrBuilder thenBuilder) {
+      withBuilder(thenBuilder, () => visit(node.thenPart));
     }
 
-    // Build the term
-    // (Result =) let cont then() = [[thenPart]] in
-    //            let cont else() = [[elsePart]] in
-    //              if condition (then, else)
-    ir.Continuation thenContinuation = new ir.Continuation([]);
-    ir.Continuation elseContinuation = new ir.Continuation([]);
-    ir.Expression letElse =
-        new ir.LetCont(elseContinuation,
-          new ir.Branch(new ir.IsTrue(condition),
-                        thenContinuation,
-                        elseContinuation));
-    ir.Expression letThen = new ir.LetCont(thenContinuation, letElse);
-    ir.Expression result = letThen;
-
-    ir.Continuation joinContinuation;  // Null if there is no join.
-    if (thenBuilder.isOpen && elseBuilder.isOpen) {
-      // There is a join-point continuation.  Build the term
-      // 'let cont join(x, ...) = [] in Result' and plug invocations of the
-      // join-point continuation into the then and else continuations.
-      JumpCollector jumps = new JumpCollector(null);
-      jumps.addJump(thenBuilder);
-      jumps.addJump(elseBuilder);
-      joinContinuation =
-          irBuilder.createJoin(irBuilder.environment.length, jumps);
-      result = new ir.LetCont(joinContinuation, result);
-    }
-
-    // The then or else term root could be null, but not both.  If there is
-    // a join then an InvokeContinuation was just added to both of them.  If
-    // there is no join, then at least one of them is closed and thus has a
-    // non-null root by the definition of the predicate isClosed.  In the
-    // case that one of them is null, it must be the only one that is open
-    // and thus contains the new hole in the context.  This case is handled
-    // after the branch is plugged into the current hole.
-    thenContinuation.body = thenBuilder._root;
-    elseContinuation.body = elseBuilder._root;
-
-    irBuilder.add(result);
-    if (joinContinuation == null) {
-      // At least one subexpression is closed.
-      if (thenBuilder.isOpen) {
-        irBuilder._current =
-            (thenBuilder._root == null) ? letThen : thenBuilder._current;
-        irBuilder.environment = thenBuilder.environment;
-      } else if (elseBuilder.isOpen) {
-        irBuilder._current =
-            (elseBuilder._root == null) ? letElse : elseBuilder._current;
-        irBuilder.environment = elseBuilder.environment;
-      } else {
-        irBuilder._current = null;
+    void buildElsePart(IrBuilder elseBuilder) {
+      if (node.hasElsePart) {
+        withBuilder(elseBuilder, () => visit(node.elsePart));
       }
     }
-    return null;
+
+    irBuilder.buildIf(condition, buildThenPart, buildElsePart);
   }
 
   ir.Primitive visitLabeledStatement(ast.LabeledStatement node) {

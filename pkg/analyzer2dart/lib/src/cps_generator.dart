@@ -221,4 +221,21 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       return handleBinaryExpression(node, op);
     }
   }
+
+  @override
+  visitIfStatement(IfStatement node) {
+    ir.Primitive condition = node.condition.accept(this);
+
+    void buildThenPart(IrBuilder thenBuilder) {
+      withBuilder(thenBuilder, () => node.thenStatement.accept(this));
+    }
+
+    void buildElsePart(IrBuilder elseBuilder) {
+      if (node.elseStatement != null) {
+        withBuilder(elseBuilder, () => node.elseStatement.accept(this));
+      }
+    }
+
+    irBuilder.buildIf(condition, buildThenPart, buildElsePart);
+  }
 }

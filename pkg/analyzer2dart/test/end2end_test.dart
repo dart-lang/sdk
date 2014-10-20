@@ -435,6 +435,57 @@ main(a) {
 }
 ''');
   });
+
+  test('If statement', () {
+    checkResult('''
+main(a) {
+  if (a) {
+    print(0);
+  }
+}
+''', '''
+main(a) {
+  if (a) {
+    print(0);
+  }
+}
+''');
+
+    checkResult('''
+main(a) {
+  if (a) {
+    print(0);
+  } else {
+    print(1);
+  }
+}
+''', '''
+main(a) {
+  a ? print(0) : print(1);
+}
+''');
+
+    checkResult('''
+main(a) {
+  if (a) {
+    print(0);
+  } else {
+    print(1);
+    print(2);
+  }
+}
+''', '''
+main(a) {
+  if (a) {
+    print(0);
+  } else {
+    print(1);
+    print(2);
+  }
+}
+''');
+
+  });
 }
 
 checkResult(String input, [String expectedOutput]) {
