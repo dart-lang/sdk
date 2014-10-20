@@ -1223,20 +1223,29 @@ class BrowserTestRunner {
   }
 
   Future<bool> terminate() {
-    var futures = [];
+    var browsers = [];
     underTermination = true;
     testingServer.underTermination = true;
     for (BrowserTestingStatus status in browserStatus.values) {
-      futures.add(status.browser.close());
+      browsers.add(status.browser);
       if (status.nextTestTimeout != null) {
         status.nextTestTimeout.cancel();
         status.nextTestTimeout = null;
       }
     }
-    return Future.wait(futures).then((values) {
+    // Success if all the browsers closed successfully.
+    bool success = true;
+    Future closeBrowser(Browser b) {
+      return b.close().then((bool closeSucceeded) {
+        if (!closeSucceeded) {
+          success = false;
+        }
+      });
+    }
+    return Future.forEach(browsers, closeBrowser).then((_) {
       testingServer.errorReportingServer.close();
       printDoubleReportingTests();
-      return !values.contains(false);
+      return success;
     });
   }
 
@@ -1429,6 +1438,26 @@ class BrowserTestingServer {
     String driverContent = """
 <!DOCTYPE html><html>
 <head>
+  <style>
+    body {
+      margin: 0;
+    }
+    .box {
+      overflow: hidden;
+      overflow-y: auto;
+      position: absolute;
+      left: 0;
+      right: 0;
+    }
+    .controller.box {
+      height: 75px;
+      top: 0;
+    }
+    .test.box {
+      top: 75px;
+      bottom: 0;
+    }
+  </style>
   <title>Driving page</title>
   <script type='text/javascript'>
     var STATUS_UPDATE_INTERVAL = 10000;
@@ -1710,10 +1739,14 @@ class BrowserTestingServer {
   </script>
 </head>
   <body onload="startTesting()">
-    Dart test driver, number of tests: <div id="number"></div><br>
-    Currently executing: <div id="currently_executing"></div><br>
-    Unhandled error: <div id="unhandled_error"></div>
-    <iframe id="embedded_iframe"></iframe>
+    <div class="controller box">
+    Dart test driver, number of tests: <span id="number"></span><br>
+    Currently executing: <span id="currently_executing"></span><br>
+    Unhandled error: <span id="unhandled_error"></span>
+    </div>
+    <div class="test box">
+      <iframe style="width:100%;height:100%;" id="embedded_iframe"></iframe>
+    </div>
   </body>
 </html>
 """;
