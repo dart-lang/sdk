@@ -484,7 +484,18 @@ main(a) {
   }
 }
 ''');
+  });
 
+  test('If statement', () {
+    checkResult('''
+main(a) {
+  return a ? print(0) : print(1);
+}
+''', '''
+main(a) {
+  return a ? print(0) : print(1);
+}
+''');
   });
 }
 

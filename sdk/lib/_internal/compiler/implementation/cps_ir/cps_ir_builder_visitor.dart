@@ -111,7 +111,7 @@ class _GetterElements {
  * an expression.
  */
 class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
-    with IrBuilderMixin {
+    with IrBuilderMixin<ast.Node> {
   final Compiler compiler;
   final SourceFile sourceFile;
 
@@ -376,19 +376,10 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   }
 
    visitIf(ast.If node) {
-    ir.Primitive condition = visit(node.condition);
-
-    void buildThenPart(IrBuilder thenBuilder) {
-      withBuilder(thenBuilder, () => visit(node.thenPart));
-    }
-
-    void buildElsePart(IrBuilder elseBuilder) {
-      if (node.hasElsePart) {
-        withBuilder(elseBuilder, () => visit(node.elsePart));
-      }
-    }
-
-    irBuilder.buildIf(condition, buildThenPart, buildElsePart);
+    irBuilder.buildIf(
+        build(node.condition),
+        subbuild(node.thenPart),
+        subbuild(node.elsePart));
   }
 
   ir.Primitive visitLabeledStatement(ast.LabeledStatement node) {
@@ -636,58 +627,16 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   ir.Primitive visitReturn(ast.Return node) {
     assert(irBuilder.isOpen);
     assert(invariant(node, node.beginToken.value != 'native'));
-    if (node.expression == null) {
-      irBuilder.buildReturn();
-    } else {
-      irBuilder.buildReturn(visit(node.expression));
-    }
+    irBuilder.buildReturn(build(node.expression));
     return null;
   }
 
   // ==== Expressions ====
   ir.Primitive visitConditional(ast.Conditional node) {
-    assert(irBuilder.isOpen);
-    ir.Primitive condition = visit(node.condition);
-
-    // The then and else expressions are delimited.
-    IrBuilder thenBuilder = new IrBuilder.delimited(irBuilder);
-    IrBuilder elseBuilder = new IrBuilder.delimited(irBuilder);
-    ir.Primitive thenValue =
-        withBuilder(thenBuilder, () => visit(node.thenExpression));
-    ir.Primitive elseValue =
-        withBuilder(elseBuilder, () => visit(node.elseExpression));
-
-    // Treat the values of the subexpressions as named values in the
-    // environment, so they will be treated as arguments to the join-point
-    // continuation.
-    assert(irBuilder.environment.length == thenBuilder.environment.length);
-    assert(irBuilder.environment.length == elseBuilder.environment.length);
-    thenBuilder.environment.extend(null, thenValue);
-    elseBuilder.environment.extend(null, elseValue);
-    JumpCollector jumps = new JumpCollector(null);
-    jumps.addJump(thenBuilder);
-    jumps.addJump(elseBuilder);
-    ir.Continuation joinContinuation =
-        irBuilder.createJoin(irBuilder.environment.length + 1, jumps);
-
-    // Build the term
-    //   let cont join(x, ..., result) = [] in
-    //   let cont then() = [[thenPart]]; join(v, ...) in
-    //   let cont else() = [[elsePart]]; join(v, ...) in
-    //     if condition (then, else)
-    ir.Continuation thenContinuation = new ir.Continuation([]);
-    ir.Continuation elseContinuation = new ir.Continuation([]);
-    thenContinuation.body = thenBuilder._root;
-    elseContinuation.body = elseBuilder._root;
-    irBuilder.add(new ir.LetCont(joinContinuation,
-            new ir.LetCont(thenContinuation,
-                new ir.LetCont(elseContinuation,
-                    new ir.Branch(new ir.IsTrue(condition),
-                                  thenContinuation,
-                                  elseContinuation)))));
-    return (thenValue == elseValue)
-        ? thenValue
-        : joinContinuation.parameters.last;
+    return irBuilder.buildConditional(
+        build(node.condition),
+        subbuild(node.thenExpression),
+        subbuild(node.elseExpression));
   }
 
   // For all simple literals:
@@ -1314,5 +1263,4 @@ class DetectClosureVariables extends ast.Visitor {
     visit(node.body);
     currentFunction = oldFunction;
   }
-
 }

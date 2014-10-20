@@ -22,13 +22,15 @@ import 'util.dart';
 import 'identifier_semantics.dart';
 
 class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
-    with IrBuilderMixin {
+    with IrBuilderMixin<AstNode> {
   final analyzer.Element element;
   final ElementConverter converter;
 
   CpsGeneratingVisitor(this.converter, this.element);
 
   Source get currentSource => element.source;
+
+  ir.Node visit(AstNode node) => node.accept(this);
 
   @override
   ir.FunctionDefinition visitFunctionDeclaration(FunctionDeclaration node) {
@@ -48,7 +50,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       });
       // Visit the body directly to avoid processing the signature as
       // expressions.
-      node.functionExpression.body.accept(this);
+      visit(node.functionExpression.body);
       return irBuilder.buildFunctionDefinition(element, const []);
     });
   }
@@ -56,7 +58,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   List<ir.Definition> visitArguments(ArgumentList argumentList) {
     List<ir.Definition> arguments = <ir.Definition>[];
     for (Expression argument in argumentList.arguments) {
-      ir.Definition value = argument.accept(this);
+      ir.Definition value = build(argument);
       if (value == null) {
         giveUp(argument,
             'Unsupported argument: $argument (${argument.runtimeType}).');
@@ -70,7 +72,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   ir.Primitive visitDynamicInvocation(MethodInvocation node,
                                       AccessSemantics semantics) {
     // TODO(johnniwinther): Handle implicit `this`.
-    ir.Primitive receiver = semantics.target.accept(this);
+    ir.Primitive receiver = build(semantics.target);
     List<ir.Definition> arguments = visitArguments(node.argumentList);
     return irBuilder.buildDynamicInvocation(
         receiver,
@@ -131,11 +133,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
 
   @override
   visitReturnStatement(ReturnStatement node) {
-    if (node.expression != null) {
-      irBuilder.buildReturn(node.expression.accept(this));
-    } else {
-      irBuilder.buildReturn();
-    }
+    irBuilder.buildReturn(build(node.expression));
   }
 
   @override
@@ -151,10 +149,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     // TODO(johnniwinther): Handle constant local variables.
-    ir.Node initialValue;
-    if (node.initializer != null) {
-      initialValue = node.initializer.accept(this);
-    }
+    ir.Node initialValue = build(node.initializer);
     irBuilder.declareLocalVariable(
         converter.convertElement(node.element),
         initialValue: initialValue);
@@ -170,7 +165,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   @override
   ir.Node visitDynamicAccess(AstNode node, AccessSemantics semantics) {
     // TODO(johnniwinther): Handle implicit `this`.
-    ir.Primitive receiver = semantics.target.accept(this);
+    ir.Primitive receiver = build(semantics.target);
     return irBuilder.buildDynamicGet(receiver,
         new Selector.getter(semantics.identifier.name,
                             converter.convertElement(element.library)));
@@ -190,20 +185,18 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
 
   ir.Primitive handleBinaryExpression(BinaryExpression node,
                                       String op) {
-    ir.Primitive left = node.leftOperand.accept(this);
-    ir.Primitive right = node.rightOperand.accept(this);
+    ir.Primitive left = build(node.leftOperand);
+    ir.Primitive right = build(node.rightOperand);
     Selector selector = new Selector.binaryOperator(op);
     return irBuilder.buildDynamicInvocation(
         left, selector, <ir.Definition>[right]);
   }
 
   ir.Node handleLazyOperator(BinaryExpression node, {bool isLazyOr: false}) {
-    ir.Primitive left = node.leftOperand.accept(this);
-    ir.Primitive buildRightValue(IrBuilder builder) {
-      return withBuilder(builder, () => node.rightOperand.accept(this));
-    }
     return irBuilder.buildLogicalOperator(
-        left, buildRightValue, isLazyOr: isLazyOr);
+        build(node.leftOperand),
+        subbuild(node.rightOperand),
+        isLazyOr: isLazyOr);
   }
 
   @override
@@ -223,19 +216,18 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   }
 
   @override
+  ir.Node visitConditionalExpression(ConditionalExpression node) {
+    return irBuilder.buildConditional(
+        build(node.condition),
+        subbuild(node.thenExpression),
+        subbuild(node.elseExpression));
+  }
+
+  @override
   visitIfStatement(IfStatement node) {
-    ir.Primitive condition = node.condition.accept(this);
-
-    void buildThenPart(IrBuilder thenBuilder) {
-      withBuilder(thenBuilder, () => node.thenStatement.accept(this));
-    }
-
-    void buildElsePart(IrBuilder elseBuilder) {
-      if (node.elseStatement != null) {
-        withBuilder(elseBuilder, () => node.elseStatement.accept(this));
-      }
-    }
-
-    irBuilder.buildIf(condition, buildThenPart, buildElsePart);
+    irBuilder.buildIf(
+        build(node.condition),
+        subbuild(node.thenStatement),
+        subbuild(node.elseStatement));
   }
 }

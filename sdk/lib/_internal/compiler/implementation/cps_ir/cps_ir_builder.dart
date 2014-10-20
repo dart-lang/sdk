@@ -127,8 +127,11 @@ class JumpCollector {
   }
 }
 
-/// Mixin that provided encapsulated access to nested builders.
-class IrBuilderMixin {
+/// Function for building nodes in the context of the provided [builder].
+typedef ir.Node SubbuildFunction(IrBuilder builder);
+
+/// Mixin that provides encapsulated access to nested builders.
+abstract class IrBuilderMixin<N> {
   IrBuilder _irBuilder;
 
   /// Execute [f] with [builder] as the current builder.
@@ -146,8 +149,20 @@ class IrBuilderMixin {
     assert(_irBuilder != null);
     return _irBuilder;
   }
-}
 
+  /// Visits the [node].
+  ir.Primitive visit(N node);
+
+  /// Builds and returns the [ir.Node] for [node] or returns `null` if
+  /// [node] is `null`.
+  ir.Node build(N node) => node != null ? visit(node) : null;
+
+  /// Returns a closure that takes an [IrBuilder] and builds [node] in its
+  /// context using [build].
+  SubbuildFunction subbuild(N node) {
+    return (IrBuilder builder) => withBuilder(builder, () => build(node));
+  }
+}
 
 /// Shared state between nested builders.
 class IrBuilderSharedState {
@@ -355,6 +370,56 @@ class IrBuilder {
         state.constantSystem.createString(new ast.DartString.literal(value)));
   }
 
+  /// Creates a conditional expression with the provided [condition] where the
+  /// then and else expression are created through the [buildThenExpression] and
+  /// [buildElseExpression] functions, respectively.
+  ir.Primitive buildConditional(
+      ir.Primitive condition,
+      ir.Primitive buildThenExpression(IrBuilder builder),
+      ir.Primitive buildElseExpression(IrBuilder builder)) {
+
+    assert(isOpen);
+
+    // The then and else expressions are delimited.
+    IrBuilder thenBuilder = new IrBuilder.delimited(this);
+    IrBuilder elseBuilder = new IrBuilder.delimited(this);
+    ir.Primitive thenValue = buildThenExpression(thenBuilder);
+    ir.Primitive elseValue = buildElseExpression(elseBuilder);
+
+    // Treat the values of the subexpressions as named values in the
+    // environment, so they will be treated as arguments to the join-point
+    // continuation.
+    assert(environment.length == thenBuilder.environment.length);
+    assert(environment.length == elseBuilder.environment.length);
+    thenBuilder.environment.extend(null, thenValue);
+    elseBuilder.environment.extend(null, elseValue);
+    JumpCollector jumps = new JumpCollector(null);
+    jumps.addJump(thenBuilder);
+    jumps.addJump(elseBuilder);
+    ir.Continuation joinContinuation =
+        createJoin(environment.length + 1, jumps);
+
+    // Build the term
+    //   let cont join(x, ..., result) = [] in
+    //   let cont then() = [[thenPart]]; join(v, ...) in
+    //   let cont else() = [[elsePart]]; join(v, ...) in
+    //     if condition (then, else)
+    ir.Continuation thenContinuation = new ir.Continuation([]);
+    ir.Continuation elseContinuation = new ir.Continuation([]);
+    thenContinuation.body = thenBuilder._root;
+    elseContinuation.body = elseBuilder._root;
+    add(new ir.LetCont(joinContinuation,
+            new ir.LetCont(thenContinuation,
+                new ir.LetCont(elseContinuation,
+                    new ir.Branch(new ir.IsTrue(condition),
+                                  thenContinuation,
+                                  elseContinuation)))));
+    return (thenValue == elseValue)
+        ? thenValue
+        : joinContinuation.parameters.last;
+
+  }
+
   /// Create a get access of [local].
   ir.Primitive buildLocalGet(Element local) {
     assert(isOpen);
@@ -447,10 +512,12 @@ class IrBuilder {
   }
 
   /// Creates an if-then-else statement with the provided [condition] where the
-  /// then and else branches are created throught the [buildThenPart] and
+  /// then and else branches are created through the [buildThenPart] and
   /// [buildElsePart] functions, respectively.
   ///
   /// An if-then statement is created if [buildElsePart] is a no-op.
+  // TODO(johnniwinther): Unify implementation with [buildConditional] and
+  // [_buildLogicalOperator].
   void buildIf(ir.Primitive condition,
                void buildThenPart(IrBuilder builder),
                void buildElsePart(IrBuilder builder)) {
