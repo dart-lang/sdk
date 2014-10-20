@@ -100,10 +100,11 @@ class OldEmitter implements Emitter {
   OldEmitter(Compiler compiler, Namer namer, this.generateSourceMap, this.task)
       : this.compiler = compiler,
         this.namer = namer,
-        constantEmitter = new ConstantEmitter(compiler, namer),
         cachedEmittedConstants = compiler.cacheStrategy.newSet(),
         cachedClassBuilders = compiler.cacheStrategy.newMap(),
         cachedElements = compiler.cacheStrategy.newSet() {
+    constantEmitter =
+        new ConstantEmitter(compiler, namer, makeConstantListTemplate);
     containerBuilder.emitter = this;
     classEmitter.emitter = this;
     nsmEmitter.emitter = this;
@@ -990,6 +991,12 @@ class OldEmitter implements Emitter {
     if (compiler.hasIncrementalSupport && isMainBuffer) {
       mainBuffer.add(cachedEmittedConstantsBuffer);
     }
+  }
+
+  jsAst.Template get makeConstantListTemplate {
+    // TODO(floitsch): there is no harm in caching the template.
+    return jsAst.js.uncachedExpressionTemplate(
+        '${namer.isolateName}.$makeConstListProperty(#)');
   }
 
   void emitMakeConstantList(CodeBuffer buffer) {

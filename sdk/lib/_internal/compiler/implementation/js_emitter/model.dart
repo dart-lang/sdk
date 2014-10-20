@@ -9,10 +9,11 @@ import '../constants/values.dart' show ConstantValue;
 
 class Program {
   final List<Output> outputs;
+  final bool outputContainsConstantList;
   /// A map from load id to the list of outputs that need to be loaded.
   final Map<String, List<Output>> loadMap;
 
-  Program(this.outputs, this.loadMap);
+  Program(this.outputs, this.outputContainsConstantList, this.loadMap);
 }
 
 /**

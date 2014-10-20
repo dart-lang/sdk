@@ -68,7 +68,8 @@ class ProgramBuilder {
     outputs[0] = mainOutput;
     outputs.setAll(1, deferredOutputs);
 
-    Program result = new Program(outputs, _buildLoadMap());
+    Program result =
+        new Program(outputs, _task.outputContainsConstantList, _buildLoadMap());
 
     // Resolve the superclass references after we've processed all the classes.
     _classes.forEach((ClassElement element, Class c) {
