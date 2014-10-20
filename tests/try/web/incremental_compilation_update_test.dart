@@ -95,8 +95,72 @@ main() {
 """,
             const <String> ['b a', 'c a']),
     ],
-];
 
+    // Test modifying a static method works.
+    const <ProgramResult>[
+        const ProgramResult(
+            """
+class C {
+  static m() {
+    print('v1');
+  }
+}
+main() {
+  C.m();
+}
+""",
+            const <String> ['v1']),
+        const ProgramResult(
+            """
+class C {
+  static m() {
+    print('v2');
+  }
+}
+main() {
+  C.m();
+}
+""",
+            const <String> ['v2']),
+    ],
+
+    // Test modifying an instance method works.
+    const <ProgramResult>[
+        const ProgramResult(
+            """
+class C {
+  m() {
+    print('v1');
+  }
+}
+var instance;
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+  instance.m();
+}
+""",
+            const <String> ['v1']),
+        const ProgramResult(
+            """
+class C {
+  m() {
+    print('v2');
+  }
+}
+var instance;
+main() {
+  if (instance == null) {
+    instance = new C();
+  }
+  instance.m();
+}
+""",
+            // TODO(ahe): This test is failing, should print "v2".
+            const <String> ['v1']),
+    ],
+];
 
 void main() {
   listener.start();
@@ -139,8 +203,9 @@ Future compileAndRun(List<ProgramResult> programs) {
           Uri uri = test.scriptUri.resolve('?v${version++}');
           inputProvider.cachedSources[uri] = new Future.value(program.code);
           Future future = test.incrementalCompiler.compileUpdates(
-              {test.scriptUri: uri});
+              {test.scriptUri: uri}, logVerbose: print, logTime: print);
           return future.then((String update) {
+            print({'update': update});
             iframe.contentWindow.postMessage(['apply-update', update], '*');
 
             return listener.expect(
