@@ -279,7 +279,34 @@ class ProgramBuilder {
                                     ClassElement holder) {
     assert(invariant(field, field.isDeclaration));
     String name = namer.fieldPropertyName(field);
-    return new InstanceField(name);
+
+    int getterFlags = 0;
+    if (_fieldNeedsGetter(field)) {
+      bool isIntercepted = backend.fieldHasInterceptedGetter(field);
+      if (isIntercepted) {
+        getterFlags += 2;
+        if (backend.isInterceptorClass(holder)) {
+          getterFlags += 1;
+        }
+      } else {
+        getterFlags = 1;
+      }
+    }
+
+    int setterFlags = 0;
+    if (_fieldNeedsSetter(field)) {
+      bool isIntercepted = backend.fieldHasInterceptedSetter(field);
+      if (isIntercepted) {
+        setterFlags += 2;
+        if (backend.isInterceptorClass(holder)) {
+          setterFlags += 1;
+        }
+      } else {
+        setterFlags = 1;
+      }
+    }
+
+    return new InstanceField(name, getterFlags, setterFlags);
   }
 
   Iterable<StaticMethod> _generateOneShotInterceptors() {

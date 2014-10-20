@@ -137,8 +137,23 @@ class Class {
 class InstanceField {
   final String name;
 
+  /// 00: Does not need any getter.
+  /// 01:  function() { return this.field; }
+  /// 10:  function(receiver) { return receiver.field; }
+  /// 11:  function(receiver) { return this.field; }
+  final int getterFlags;
+
+  /// 00: Does not need any setter.
+  /// 01:  function(value) { this.field = value; }
+  /// 10:  function(receiver, value) { receiver.field = value; }
+  /// 11:  function(receiver, value) { this.field = value; }
+  final int setterFlags;
+
   // TODO(floitsch): support renamed fields.
-  InstanceField(this.name);
+  InstanceField(this.name, this.getterFlags, this.setterFlags);
+
+  bool get needsGetter => getterFlags != 0;
+  bool get needsSetter => setterFlags != 0;
 }
 
 class Method {

@@ -239,16 +239,57 @@ class ModelEmitter {
     return template.instantiate(const []);
   }
 
-  Iterable<js.Expression> _generateGettersSetters(Class cls) {
-    return [];
+  Method _generateGetter(InstanceField field) {
+    String getterTemplateFor(int flags) {
+      switch (flags) {
+        case 1: return "function() { return this[#]; }";
+        case 2: return "function(receiver) { return receiver[#]; }";
+        case 3: return "function(receiver) { return this[#]; }";
+      }
+      return null;
+    }
+
+    js.Expression fieldName = js.string(field.name);
+    js.Expression code = js.js(getterTemplateFor(field.getterFlags), fieldName);
+    String getterName = "${namer.getterPrefix}${field.name}";
+    return new Method(getterName, code);
+  }
+
+  Method _generateSetter(InstanceField field) {
+    String setterTemplateFor(int flags) {
+      switch (flags) {
+        case 1: return "function(val) { return this[#] = val; }";
+        case 2: return "function(receiver, val) { return receiver[#] = val; }";
+        case 3: return "function(receiver, val) { return this[#] = val; }";
+      }
+      return null;
+    }
+    js.Expression fieldName = js.string(field.name);
+    js.Expression code = js.js(setterTemplateFor(field.setterFlags), fieldName);
+    String setterName = "${namer.setterPrefix}${field.name}";
+    return new Method(setterName, code);
+  }
+
+  Iterable<Method> _generateGettersSetters(Class cls) {
+    Iterable<Method> getters = cls.fields
+        .where((InstanceField field) => field.needsGetter)
+        .map(_generateGetter);
+
+    Iterable<Method> setters = cls.fields
+        .where((InstanceField field) => field.needsSetter)
+        .map(_generateSetter);
+
+    return [getters, setters].expand((x) => x);
   }
 
   js.Expression emitClass(Class cls) {
     List elements = [ js.string(cls.superclassName),
                       js.number(cls.superclassHolderIndex),
                       _generateConstructor(cls) ];
-    elements.addAll(_generateGettersSetters(cls));
-    elements.addAll(cls.methods.expand((e) => [ js.string(e.name), e.code ]));
+    Iterable<Method> methods = cls.methods;
+    Iterable<Method> gettersSetters = _generateGettersSetters(cls);
+    Iterable<Method> allMethods = [methods, gettersSetters].expand((x) => x);
+    elements.addAll(allMethods.expand((e) => [ js.string(e.name), e.code ]));
     return unparse(compiler, new js.ArrayInitializer.from(elements));
   }
 
