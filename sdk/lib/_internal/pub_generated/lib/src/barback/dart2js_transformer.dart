@@ -30,7 +30,6 @@ final _validOptions = new Set<String>.from(
         'verbose',
         'environment',
         'analyzeAll',
-        'preserveUris',
         'suppressWarnings',
         'suppressHints',
         'suppressPackageWarnings',
@@ -153,7 +152,6 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
         environment: _configEnvironment,
         packageRoot: _environment.rootPackage.path("packages"),
         analyzeAll: _configBool('analyzeAll'),
-        preserveUris: _configBool('preserveUris'),
         suppressWarnings: _configBool('suppressWarnings'),
         suppressHints: _configBool('suppressHints'),
         suppressPackageWarnings: _configBool(

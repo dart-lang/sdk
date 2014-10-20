@@ -362,9 +362,8 @@ class JavaScriptBackend extends Backend {
   /// program, this variable will stil be false.
   bool hasRetainedMetadata = false;
 
-  /// True if a call to preserveUris has been seen and the preserve-uris flag
-  /// is set.
-  bool mustPreserveUris = false;
+  /// True if a call to preserveUris has been seen.
+  bool mustRetainUris = false;
 
   /// True if a call to preserveLibraryNames has been seen.
   bool mustRetainLibraryNames = false;
@@ -1569,7 +1568,7 @@ class JavaScriptBackend extends Backend {
     } else if (element == preserveMetadataMarker) {
       mustRetainMetadata = true;
     } else if (element == preserveUrisMarker) {
-      if (compiler.preserveUris) mustPreserveUris = true;
+      mustRetainUris = true;
     } else if (element == preserveLibraryNamesMarker) {
       mustRetainLibraryNames = true;
     } else if (element == getIsolateAffinityTagMarker) {

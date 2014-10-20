@@ -24,8 +24,8 @@ import 'asset_environment.dart';
 /// The set of all valid configuration options for this transformer.
 final _validOptions = new Set<String>.from([
   'commandLineOptions', 'checked', 'csp', 'minify', 'verbose', 'environment',
-  'analyzeAll', 'preserveUris', 'suppressWarnings', 'suppressHints',
-  'suppressPackageWarnings', 'terse'
+  'analyzeAll', 'suppressWarnings', 'suppressHints', 'suppressPackageWarnings',
+  'terse'
 ]);
 
 /// A [Transformer] that uses dart2js's library API to transform Dart
@@ -141,7 +141,6 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
         environment: _configEnvironment,
         packageRoot: _environment.rootPackage.path("packages"),
         analyzeAll: _configBool('analyzeAll'),
-        preserveUris: _configBool('preserveUris'),
         suppressWarnings: _configBool('suppressWarnings'),
         suppressHints: _configBool('suppressHints'),
         suppressPackageWarnings: _configBool(

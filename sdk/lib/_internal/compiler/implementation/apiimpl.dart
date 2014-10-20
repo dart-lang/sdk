@@ -45,7 +45,6 @@ class Compiler extends leg.Compiler {
             trustTypeAnnotations:
                 hasOption(options, '--trust-type-annotations'),
             enableMinification: hasOption(options, '--minify'),
-            preserveUris: hasOption(options, '--preserve-uris'),
             enableNativeLiveTypeAnalysis:
                 !hasOption(options, '--disable-native-live-type-analysis'),
             emitJavaScript: !(hasOption(options, '--output-type=dart') ||

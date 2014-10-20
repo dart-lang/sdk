@@ -58,10 +58,9 @@ abstract class CompilerProvider {
 Future compile(String entrypoint, CompilerProvider provider,
     {Iterable<String> commandLineOptions, bool checked: false, bool csp: false,
     bool minify: true, bool verbose: false, Map<String, String> environment,
-    String packageRoot, bool analyzeAll: false, bool preserveUris: false,
-    bool suppressWarnings: false, bool suppressHints: false,
-    bool suppressPackageWarnings: true, bool terse: false,
-    bool includeSourceMapUrls: false, bool toDart: false}) {
+    String packageRoot, bool analyzeAll: false, bool suppressWarnings: false,
+    bool suppressHints: false, bool suppressPackageWarnings: true, bool terse:
+    false, bool includeSourceMapUrls: false, bool toDart: false}) {
   return new Future.sync(() {
     var options = <String>['--categories=Client,Server'];
     if (checked) options.add('--enable-checked-mode');
@@ -69,7 +68,6 @@ Future compile(String entrypoint, CompilerProvider provider,
     if (minify) options.add('--minify');
     if (verbose) options.add('--verbose');
     if (analyzeAll) options.add('--analyze-all');
-    if (preserveUris) options.add('--preserve-uris');
     if (suppressWarnings) options.add('--suppress-warnings');
     if (suppressHints) options.add('--suppress-hints');
     if (!suppressPackageWarnings) options.add('--show-package-warnings');

@@ -141,17 +141,7 @@ class JsMirrorSystem implements MirrorSystem {
     if (jsLibraries == null) return result;
     for (List data in jsLibraries) {
       String name = data[0];
-      String uriString = data[1];
-      Uri uri;
-      // The Uri has been compiled out. Create a URI from the simple name.
-      if (uriString != "") {
-        uri = Uri.parse(uriString);
-      } else {
-        uri = new Uri(scheme: 'https',
-                      host: 'dartlang.org',
-                      path: 'dart2js-stripped-uri',
-                      queryParameters: { 'lib': name });
-      }
+      Uri uri = Uri.parse(data[1]);
       List<String> classes = data[2];
       List<String> functions = data[3];
       var metadataFunction = data[4];

@@ -1209,7 +1209,7 @@ class OldEmitter implements Emitter {
 
   void writeLibraryDescriptors(CodeBuffer buffer, LibraryElement library) {
     var uri = "";
-    if (!compiler.enableMinification || backend.mustPreserveUris) {
+    if (!compiler.enableMinification || backend.mustRetainUris) {
       uri = library.canonicalUri;
       if (uri.scheme == 'file' && compiler.outputUri != null) {
         uri = relativize(compiler.outputUri, library.canonicalUri, false);

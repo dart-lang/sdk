@@ -288,7 +288,6 @@ Future compile(List<String> argv) {
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('--allow-mock-compilation', passThrough),
     new OptionHandler('--minify|-m', implyCompilation),
-    new OptionHandler('--preserve-uris', passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
     new OptionHandler('--disable-diagnostic-colors',
                       (_) => diagnosticHandler.enableColors = false),
@@ -524,10 +523,6 @@ Supported options:
 
   --show-package-warnings
     Show warnings and hints generated from packages.
-
-  --preserve-uris
-    Preserve the source URIs in the reflection data. Without this flag the
-    `uri` getter for `LibraryMirror`s is mangled in minified mode.
 
   --csp
     Disables dynamic generation of code in the generated output. This is
