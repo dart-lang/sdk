@@ -37,10 +37,10 @@ class DartUnitOccurrencesComputer {
   }
 
   void _addOccurrence(Element element, int offset) {
+    element = _canonicalizeElement(element);
     if (element == null || element == DynamicElementImpl.instance) {
       return;
     }
-    element = _canonicalizeElement(element);
     List<int> offsets = _elementsOffsets[element];
     if (offsets == null) {
       offsets = <int>[];

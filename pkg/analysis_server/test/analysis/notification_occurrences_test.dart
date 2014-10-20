@@ -136,6 +136,16 @@ class A {
     });
   }
 
+  test_field_unresolved() {
+    addTestFile('''
+class A {
+  A(this.noSuchField);
+}
+''');
+    // no checks for occurrences, just ensure that there is no NPE
+    return prepareOccurrences();
+  }
+
   test_localVariable() {
     addTestFile('''
 main() {
