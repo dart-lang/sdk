@@ -38,6 +38,8 @@ abstract class Output {
   final List<Constant> constants;
   // TODO(floitsch): should we move static fields into libraries or classes?
   final List<StaticField> staticNonFinalFields;
+  // TODO(floitsch): lazy fields should be in their library or even class.
+  final List<StaticField> staticLazilyInitializedFields;
 
   /// Output file name without extension.
   final String outputFileName;
@@ -45,6 +47,7 @@ abstract class Output {
   Output(this.outputFileName,
          this.libraries,
          this.staticNonFinalFields,
+         this.staticLazilyInitializedFields,
          this.constants);
 }
 
@@ -62,9 +65,14 @@ class MainOutput extends Output {
              this.main,
              List<Library> libraries,
              List<StaticField> staticNonFinalFields,
+             List<StaticField> staticLazilyInitializedFields,
              List<Constant> constants,
              this.holders)
-      : super(outputFileName, libraries, staticNonFinalFields, constants);
+      : super(outputFileName,
+              libraries,
+              staticNonFinalFields,
+              staticLazilyInitializedFields,
+              constants);
 
   MainOutput get mainOutput => this;
 }
@@ -83,8 +91,13 @@ class DeferredOutput extends Output {
                  this.mainOutput,
                  List<Library> libraries,
                  List<StaticField> staticNonFinalFields,
+                 List<StaticField> staticLazilyInitializedFields,
                  List<Constant> constants)
-      : super(outputFileName, libraries, staticNonFinalFields, constants);
+      : super(outputFileName,
+              libraries,
+              staticNonFinalFields,
+              staticLazilyInitializedFields,
+              constants);
 }
 
 class Constant {

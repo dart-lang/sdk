@@ -106,6 +106,7 @@ class ProgramBuilder {
         namer.elementAccess(_compiler.mainFunction),
         _buildLibraries(fragment),
         _buildStaticNonFinalFields(fragment),
+        _buildStaticLazilyInitializedFields(fragment),
         _buildConstants(fragment),
         _registry.holders.toList(growable: false));
     _outputs[fragment.outputUnit] = result;
@@ -129,6 +130,7 @@ class ProgramBuilder {
         mainOutput,
         _buildLibraries(fragment),
         _buildStaticNonFinalFields(fragment),
+        _buildStaticLazilyInitializedFields(fragment),
         _buildConstants(fragment));
     _outputs[fragment.outputUnit] = result;
     return result;
@@ -160,6 +162,35 @@ class ProgramBuilder {
     String name = namer.getNameOfGlobalField(element);
     bool isFinal = false;
     bool isLazy = false;
+    return new StaticField(name, _registry.registerHolder(r'$'), code,
+                           isFinal, isLazy);
+  }
+
+  List<StaticField> _buildStaticLazilyInitializedFields(Fragment fragment) {
+    // TODO(floitsch): lazy fields should just be in their respective
+    // libraries.
+    if (fragment != _registry.mainFragment) return const <StaticField>[];
+
+    JavaScriptConstantCompiler handler = backend.constants;
+    List<VariableElement> lazyFields =
+        handler.getLazilyInitializedFieldsForEmission();
+    return Elements.sortedByPosition(lazyFields)
+        .map(_buildLazyField)
+        .where((field) => field != null)  // Happens when the field was unused.
+        .toList(growable: false);
+  }
+
+  StaticField _buildLazyField(Element element) {
+    JavaScriptConstantCompiler handler = backend.constants;
+    js.Expression code = backend.generatedCode[element];
+    // The code is null if we ended up not needing the lazily
+    // initialized field after all because of constant folding
+    // before code generation.
+    if (code == null) return null;
+
+    String name = namer.getNameOfGlobalField(element);
+    bool isFinal = element.isFinal;
+    bool isLazy = true;
     return new StaticField(name, _registry.registerHolder(r'$'), code,
                            isFinal, isLazy);
   }

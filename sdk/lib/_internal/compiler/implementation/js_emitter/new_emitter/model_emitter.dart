@@ -6,7 +6,11 @@ library dart2js.new_js_emitter.model_emitter;
 
 import '../../dart2jslib.dart' show Compiler;
 import '../../js/js.dart' as js;
-import '../../js_backend/js_backend.dart' show Namer, ConstantEmitter;
+import '../../js_backend/js_backend.dart' show
+    JavaScriptBackend,
+    Namer,
+    ConstantEmitter;
+
 import '../../../js_lib/shared/embedded_names.dart' show
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,
@@ -19,6 +23,8 @@ class ModelEmitter {
   final Compiler compiler;
   final Namer namer;
   final ConstantEmitter constantEmitter;
+
+  JavaScriptBackend get backend => compiler.backend;
 
   /// For deferred loading we communicate the initializers via this global var.
   static const String deferredInitializersGlobal =
@@ -66,12 +72,15 @@ class ModelEmitter {
 
   js.Statement emitMainUnit(Program program) {
     MainOutput unit = program.outputs.first;
-    js.Expression code =
-        new js.ArrayInitializer.from(unit.libraries.map(emitLibrary));
+    List<js.Expression> elements = unit.libraries.map(emitLibrary).toList();
+    elements.add(
+        emitLazilyInitializedStatics(unit.staticLazilyInitializedFields));
+    js.Expression code = new js.ArrayInitializer.from(elements);
     return js.js.statement(
         boilerplate,
         [emitDeferredInitializerGlobal(program.loadMap),
          emitHolders(unit.holders),
+         namer.elementAccess(backend.getCyclicThrowHelper()),
          program.outputContainsConstantList,
          emitEmbeddedGlobals(program.loadMap),
          emitConstants(unit.constants),
@@ -209,6 +218,15 @@ class ModelEmitter {
     return new js.Block(statements.toList());
   }
 
+  js.Expression emitLazilyInitializedStatics(List<StaticField> fields) {
+    Iterable fieldDescriptors = fields.expand((field) =>
+        [ js.string(field.name),
+          js.string("${namer.getterPrefix}${field.name}"),
+          js.number(field.holder.index),
+          emitLazyInitializer(field) ]);
+    return new js.ArrayInitializer.from(fieldDescriptors);
+  }
+
   js.Expression emitLibrary(Library library) {
     Iterable staticDescriptors = library.statics.expand((e) =>
         [ js.string(e.name), js.number(e.holder.index), emitStaticMethod(e) ]);
@@ -293,6 +311,11 @@ class ModelEmitter {
     return unparse(compiler, new js.ArrayInitializer.from(elements));
   }
 
+  js.Expression emitLazyInitializer(StaticField field) {
+    assert(field.isLazy);
+    return unparse(compiler, field.code);
+  }
+
   js.Expression emitStaticMethod(StaticMethod method) {
     return unparse(compiler, method.code);
   }
@@ -309,9 +332,10 @@ final String boilerplate = r"""
   #;
 
   function setupProgram() {
-    for (var i = 0; i < program.length; i++) {
+    for (var i = 0; i < program.length - 1; i++) {
       setupLibrary(program[i]);
     }
+    setupLazyStatics(program[i]);
   }
 
   function setupLibrary(library) {
@@ -328,11 +352,45 @@ final String boilerplate = r"""
     }
   }
 
+  function setupLazyStatics(statics) {
+    for (var i = 0; i < statics.length; i += 4) {
+      var name = statics[i];
+      var getterName = statics[i + 1];
+      var holderIndex = statics[i + 2];
+      var initializer = statics[i + 3];
+      setupLazyStatic(name, getterName, holders[holderIndex], initializer);
+    }
+  }
+
   function setupStatic(name, holder, descriptor) {
     holder[name] = function() {
       var method = compile(name, descriptor);
       holder[name] = method;
       return method.apply(this, arguments);
+    };
+  }
+
+  function setupLazyStatic(name, getterName, holder, descriptor) {
+    holder[name] = null;
+    holder[getterName] = function() {
+      var initializer = compile(name, descriptor);
+      holder[getterName] = function() { #(name) };  // cyclicThrowHelper
+      var result;
+      var sentinelInProgress = descriptor;
+      try {
+        result = holder[name] = sentinelInProgress;
+        result = holder[name] = initializer();
+      } finally {
+        // Use try-finally, not try-catch/throw as it destroys the stack trace.
+        if (result === sentinelInProgress) {
+          // The lazy static (holder[name]) might have been set to a different
+          // value. According to spec we still have to reset it to null, if the
+          // initialization failed.
+          holder[name] = null;
+        }
+        holder[getterName] = function() { return this[name]; };
+      }
+      return result;
     };
   }
 
