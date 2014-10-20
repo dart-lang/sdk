@@ -280,9 +280,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     ir.Primitive condition;
     if (node.condition == null) {
       // If the condition is empty then the body is entered unconditionally.
-      condition = irBuilder.makePrimConst(
-          irBuilder.state.constantSystem.createBool(true));
-      condBuilder.add(new ir.LetPrim(condition));
+      condition = condBuilder.buildBooleanLiteral(true);
     } else {
       condition = withBuilder(condBuilder, () => visit(node.condition));
     }
@@ -1196,9 +1194,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       // Do the modification of the value in getter.
       ir.Primitive arg;
       if (ast.Operator.INCREMENT_OPERATORS.contains(op.source)) {
-        arg = irBuilder.makePrimConst(
-            irBuilder.state.constantSystem.createInt(1));
-        irBuilder.add(new ir.LetPrim(arg));
+        arg = irBuilder.buildIntegerLiteral(1);
       } else {
         arg = visit(getAssignArgument());
       }
@@ -1276,9 +1272,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     if (constant == null) {
       constant = getConstantForNode(node);
     }
-    ir.Primitive primitive = irBuilder.makeConst(constant);
-    irBuilder.add(new ir.LetPrim(primitive));
-    return primitive;
+    return irBuilder.buildConstantLiteral(constant);
   }
 
   ir.FunctionDefinition makeSubFunction(ast.FunctionExpression node) {

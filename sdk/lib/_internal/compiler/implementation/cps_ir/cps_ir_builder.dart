@@ -280,8 +280,7 @@ class IrBuilder {
     if (initialValue == null) {
       // TODO(kmillikin): Consider pooling constants.
       // The initial value is null.
-      initialValue = makePrimConst(state.constantSystem.createNull());
-      add(new ir.LetPrim(initialValue));
+      initialValue = buildNullLiteral();
     }
     if (isClosureVariable) {
       add(new ir.SetClosureVariable(variableElement,
@@ -317,46 +316,42 @@ class IrBuilder {
     return v;
   }
 
-  ir.Constant makeConst(ConstantExpression exp) {
-    return new ir.Constant(exp);
-  }
-
-  ir.Constant makePrimConst(PrimitiveConstantValue value) {
-    return makeConst(new PrimitiveConstantExpression(value));
-  }
-
-  // TODO(johnniwinther): Build constants directly through [ConstExp] when these
-  // are created from analyzer2dart.
-  ir.Node buildPrimConst(PrimitiveConstantValue constant) {
+  /// Create a constant literal from [constant].
+  ir.Constant buildConstantLiteral(ConstantExpression constant) {
     assert(isOpen);
-    ir.Node prim = makePrimConst(constant);
+    ir.Constant prim = new ir.Constant(constant);
     add(new ir.LetPrim(prim));
     return prim;
   }
 
+  // Helper for building primitive literals.
+  ir.Constant _buildPrimitiveConstant(PrimitiveConstantValue constant) {
+    return buildConstantLiteral(new PrimitiveConstantExpression(constant));
+  }
+
   /// Create an integer literal.
   ir.Constant buildIntegerLiteral(int value) {
-    return buildPrimConst(state.constantSystem.createInt(value));
+    return _buildPrimitiveConstant(state.constantSystem.createInt(value));
   }
 
   /// Create an double literal.
   ir.Constant buildDoubleLiteral(double value) {
-    return buildPrimConst(state.constantSystem.createDouble(value));
+    return _buildPrimitiveConstant(state.constantSystem.createDouble(value));
   }
 
   /// Create an bool literal.
   ir.Constant buildBooleanLiteral(bool value) {
-    return buildPrimConst(state.constantSystem.createBool(value));
+    return _buildPrimitiveConstant(state.constantSystem.createBool(value));
   }
 
   /// Create an null literal.
   ir.Constant buildNullLiteral() {
-    return buildPrimConst(state.constantSystem.createNull());
+    return _buildPrimitiveConstant(state.constantSystem.createNull());
   }
 
   /// Create a string literal.
   ir.Constant buildStringLiteral(String value) {
-    return buildPrimConst(
+    return _buildPrimitiveConstant(
         state.constantSystem.createString(new ast.DartString.literal(value)));
   }
 
@@ -392,8 +387,7 @@ class IrBuilder {
    */
   void ensureReturn() {
     if (!isOpen) return;
-    ir.Constant constant = makePrimConst(state.constantSystem.createNull());
-    add(new ir.LetPrim(constant));
+    ir.Constant constant = buildNullLiteral();
     add(new ir.InvokeContinuation(state.returnContinuation, [constant]));
     _current = null;
   }
@@ -461,8 +455,7 @@ class IrBuilder {
     // Return without a subexpression is translated as if it were return null.
     assert(isOpen);
     if (value == null) {
-      value = makePrimConst(state.constantSystem.createNull());
-      add(new ir.LetPrim(value));
+      value = buildNullLiteral();
     }
     add(new ir.InvokeContinuation(state.returnContinuation, [value]));
     _current = null;
@@ -507,10 +500,13 @@ class IrBuilder {
     ir.Continuation thenContinuation = new ir.Continuation([]);
     ir.Continuation elseContinuation = new ir.Continuation([]);
 
-    ir.Constant trueConstant =
-        makePrimConst(state.constantSystem.createBool(true));
-    ir.Constant falseConstant =
-        makePrimConst(state.constantSystem.createBool(false));
+    ir.Constant makeBoolConstant(bool value) {
+      return new ir.Constant(new PrimitiveConstantExpression(
+          state.constantSystem.createBool(value)));
+    }
+
+    ir.Constant trueConstant = makeBoolConstant(true);
+    ir.Constant falseConstant = makeBoolConstant(false);
 
     thenContinuation.body = new ir.LetPrim(falseConstant)
         ..plug(new ir.InvokeContinuation(joinContinuation, [falseConstant]));
@@ -553,17 +549,11 @@ class IrBuilder {
 
     // If we don't evaluate the right subexpression, the value of the whole
     // expression is this constant.
-    ir.Constant leftBool = emptyBuilder.makePrimConst(
-        emptyBuilder.state.constantSystem.createBool(isLazyOr));
+    ir.Constant leftBool = emptyBuilder.buildBooleanLiteral(isLazyOr);
     // If we do evaluate the right subexpression, the value of the expression
     // is a true or false constant.
-    ir.Constant rightTrue = rightTrueBuilder.makePrimConst(
-        rightTrueBuilder.state.constantSystem.createBool(true));
-    ir.Constant rightFalse = rightFalseBuilder.makePrimConst(
-        rightFalseBuilder.state.constantSystem.createBool(false));
-    emptyBuilder.add(new ir.LetPrim(leftBool));
-    rightTrueBuilder.add(new ir.LetPrim(rightTrue));
-    rightFalseBuilder.add(new ir.LetPrim(rightFalse));
+    ir.Constant rightTrue = rightTrueBuilder.buildBooleanLiteral(true);
+    ir.Constant rightFalse = rightFalseBuilder.buildBooleanLiteral(false);
 
     // Treat the result values as named values in the environment, so they
     // will be treated as arguments to the join-point continuation.
