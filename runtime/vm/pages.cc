@@ -15,12 +15,14 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, heap_growth_space_ratio, 20,
-            "The desired maximum percentage of free space after GC");
-DEFINE_FLAG(int, heap_growth_time_ratio, 3,
-            "The desired maximum percentage of time spent in GC");
-DEFINE_FLAG(int, heap_growth_rate, 280,
+DEFINE_FLAG(int, heap_growth_rate, 0,
             "The max number of pages the heap can grow at a time");
+DEFINE_FLAG(int, old_gen_growth_space_ratio, 20,
+            "The desired maximum percentage of free space after old gen GC");
+DEFINE_FLAG(int, old_gen_growth_time_ratio, 3,
+            "The desired maximum percentage of time spent in old gen GC");
+DEFINE_FLAG(int, old_gen_growth_rate, 280,
+            "The max number of pages the old generation can grow at a time");
 DEFINE_FLAG(bool, print_free_list_before_gc, false,
             "Print free list statistics before a GC");
 DEFINE_FLAG(bool, print_free_list_after_gc, false,
@@ -141,9 +143,9 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       tasks_lock_(new Monitor()),
       tasks_(0),
       page_space_controller_(heap,
-                             FLAG_heap_growth_space_ratio,
-                             FLAG_heap_growth_rate,
-                             FLAG_heap_growth_time_ratio),
+                             FLAG_old_gen_growth_space_ratio,
+                             FLAG_old_gen_growth_rate,
+                             FLAG_old_gen_growth_time_ratio),
       gc_time_micros_(0),
       collections_(0) {
 }
