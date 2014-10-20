@@ -1430,6 +1430,31 @@ class CDataSection extends Text {
 class CacheStorage extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CacheStorage._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CacheStorage.create')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future create(String cacheName) native;
+
+  @DomName('CacheStorage.delete')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future delete(String cacheName) native;
+
+  @DomName('CacheStorage.get')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future get(String cacheName) native;
+
+  @DomName('CacheStorage.has')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future has(String cacheName) native;
+
+  @DomName('CacheStorage.keys')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future keys() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2819,6 +2844,42 @@ class Credential extends Interceptor {
 class CredentialsContainer extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CredentialsContainer._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CredentialsContainer.notifyFailedSignIn')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future notifyFailedSignIn([Credential credential]) native;
+
+  @DomName('CredentialsContainer.notifySignedIn')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future notifySignedIn([Credential credential]) native;
+
+  @DomName('CredentialsContainer.notifySignedOut')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future notifySignedOut() native;
+
+  @DomName('CredentialsContainer.request')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future request([Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _request_1(options_1);
+    }
+    return _request_2();
+  }
+  @JSName('request')
+  @DomName('CredentialsContainer.request')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _request_1(options) native;
+  @JSName('request')
+  @DomName('CredentialsContainer.request')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _request_2() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13894,6 +13955,27 @@ class FederatedCredential extends Credential {
 class FetchBodyStream extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory FetchBodyStream._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('FetchBodyStream.asArrayBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future asArrayBuffer() native;
+
+  @DomName('FetchBodyStream.asBlob')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future asBlob() native;
+
+  @JSName('asJSON')
+  @DomName('FetchBodyStream.asJSON')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future asJson() native;
+
+  @DomName('FetchBodyStream.asText')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future asText() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14660,6 +14742,11 @@ class FontFace extends Interceptor {
   @Experimental() // untriaged
   String featureSettings;
 
+  @DomName('FontFace.loaded')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Future loaded;
+
   @DomName('FontFace.status')
   @DocsEditable()
   @Experimental() // untriaged
@@ -14689,6 +14776,11 @@ class FontFace extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   String weight;
+
+  @DomName('FontFace.load')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future load() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14999,6 +15091,21 @@ class GamepadEvent extends Event {
 class Geofencing extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Geofencing._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('Geofencing.getRegisteredRegions')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getRegisteredRegions() native;
+
+  @DomName('Geofencing.registerRegion')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future registerRegion(GeofencingRegion region) native;
+
+  @DomName('Geofencing.unregisterRegion')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future unregisterRegion(String regionId) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18380,6 +18487,11 @@ class InstallEvent extends InstallPhaseEvent {
   // To suppress missing implicit constructor warnings.
   factory InstallEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('InstallEvent.reloadAll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future reloadAll() native;
+
   @DomName('InstallEvent.replace')
   @DocsEditable()
   @Experimental() // untriaged
@@ -19584,6 +19696,11 @@ class MediaKeySession extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MediaKeySession._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('MediaKeySession.closed')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Future closed;
+
   @DomName('MediaKeySession.error')
   @DocsEditable()
   final MediaKeyError error;
@@ -19595,6 +19712,16 @@ class MediaKeySession extends EventTarget {
   @DomName('MediaKeySession.sessionId')
   @DocsEditable()
   final String sessionId;
+
+  @DomName('MediaKeySession.release')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future release() native;
+
+  @JSName('update')
+  @DomName('MediaKeySession.update')
+  @DocsEditable()
+  Future _update(response) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19613,6 +19740,16 @@ class MediaKeys extends Interceptor {
   @DomName('MediaKeys.keySystem')
   @DocsEditable()
   final String keySystem;
+
+  @DomName('MediaKeys.create')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static Future create(String keySystem) native;
+
+  @JSName('createSession')
+  @DomName('MediaKeys.createSession')
+  @DocsEditable()
+  Future _createSession(String initDataType, initData, [String sessionType]) native;
 
   @DomName('MediaKeys.isTypeSupported')
   @DocsEditable()
@@ -21278,6 +21415,11 @@ class Navigator extends NavigatorCpu implements NavigatorLanguage, NavigatorOnLi
   @Experimental()
   // http://www.w3.org/TR/quota-api/#accessing-storagequota
   final DeprecatedStorageQuota temporaryStorage;
+
+  @DomName('Navigator.getBattery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getBattery() native;
 
   @DomName('Navigator.getGamepads')
   @DocsEditable()
@@ -23678,6 +23820,11 @@ class PushEvent extends Event {
 class PushManager extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory PushManager._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PushManager.register')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future register(String senderId) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24864,6 +25011,11 @@ class ScreenOrientation extends EventTarget {
   @Experimental() // untriaged
   final String type;
 
+  @DomName('ScreenOrientation.lock')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future lock(String orientation) native;
+
   @DomName('ScreenOrientation.unlock')
   @DocsEditable()
   @Experimental() // untriaged
@@ -25275,6 +25427,11 @@ class ServiceWorkerClient extends Interceptor {
 class ServiceWorkerClients extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerClients._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ServiceWorkerClients.getServiced')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getServiced() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25304,10 +25461,41 @@ class ServiceWorkerContainer extends Interceptor {
   @Experimental() // untriaged
   final _ServiceWorker installing;
 
+  @DomName('ServiceWorkerContainer.ready')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Future ready;
+
   @DomName('ServiceWorkerContainer.waiting')
   @DocsEditable()
   @Experimental() // untriaged
   final _ServiceWorker waiting;
+
+  @DomName('ServiceWorkerContainer.register')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future register(String url, [Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _register_1(url, options_1);
+    }
+    return _register_2(url);
+  }
+  @JSName('register')
+  @DomName('ServiceWorkerContainer.register')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _register_1(url, options) native;
+  @JSName('register')
+  @DomName('ServiceWorkerContainer.register')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _register_2(url) native;
+
+  @DomName('ServiceWorkerContainer.unregister')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future unregister([String scope]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25341,6 +25529,47 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   @DocsEditable()
   @Experimental() // untriaged
   final String scope;
+
+  @DomName('ServiceWorkerGlobalScope.fetch')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _fetch(request, [Map requestInitDict]) {
+    if ((request is String || request == null) && requestInitDict == null) {
+      return _fetch_1(request);
+    }
+    if (requestInitDict != null && (request is String || request == null)) {
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
+      return _fetch_2(request, requestInitDict_1);
+    }
+    if ((request is Request || request == null) && requestInitDict == null) {
+      return _fetch_3(request);
+    }
+    if (requestInitDict != null && (request is Request || request == null)) {
+      var requestInitDict_2 = convertDartToNative_Dictionary(requestInitDict);
+      return _fetch_4(request, requestInitDict_2);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  @JSName('fetch')
+  @DomName('ServiceWorkerGlobalScope.fetch')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _fetch_1(String request) native;
+  @JSName('fetch')
+  @DomName('ServiceWorkerGlobalScope.fetch')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _fetch_2(String request, requestInitDict) native;
+  @JSName('fetch')
+  @DomName('ServiceWorkerGlobalScope.fetch')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _fetch_3(Request request) native;
+  @JSName('fetch')
+  @DomName('ServiceWorkerGlobalScope.fetch')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _fetch_4(Request request, requestInitDict) native;
 
   @DomName('ServiceWorkerGlobalScope.onmessage')
   @DocsEditable()
@@ -25379,6 +25608,11 @@ class ServiceWorkerRegistration extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   final _ServiceWorker waiting;
+
+  @DomName('ServiceWorkerRegistration.unregister')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future unregister() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26770,6 +27004,16 @@ class StorageQuota extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   final List<String> supportedTypes;
+
+  @DomName('StorageQuota.queryInfo')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future queryInfo(String type) native;
+
+  @DomName('StorageQuota.requestPersistentQuota')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future requestPersistentQuota(int newQuota) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
