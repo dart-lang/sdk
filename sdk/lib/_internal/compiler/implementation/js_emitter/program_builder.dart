@@ -13,6 +13,8 @@ import '../js_backend/js_backend.dart' show
     JavaScriptBackend,
     JavaScriptConstantCompiler;
 
+import '../closure.dart' show ClosureFieldElement;
+
 import 'js_emitter.dart' as emitterTask show
     CodeEmitterTask,
     Emitter,
@@ -198,20 +200,33 @@ class ProgramBuilder {
   }
 
   Class _buildClass(ClassElement element) {
+    bool isInstantiated =
+        _compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
+
     List<Method> methods = [];
+    List<InstanceField> fields = [];
+
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(element, member.isDeclaration));
+      assert(invariant(element, element == enclosing));
+
       if (Elements.isNonAbstractInstanceMethod(member)) {
         js.Expression code = backend.generatedCode[member];
         // TODO(kasperl): Figure out under which conditions code is null.
         if (code != null) methods.add(_buildMethod(member, code));
+      } else if (member.isField && !member.isStatic) {
+        fields.add(_buildInstanceField(member, enclosing));
       }
     }
+
     ClassElement implementation = element.implementation;
-    implementation.forEachMember(visitMember, includeBackendMembers: true);
+    if (isInstantiated) {
+      implementation.forEachMember(visitMember, includeBackendMembers: true);
+    }
     String name = namer.getNameOfClass(element);
-    String holder = namer.globalObjectFor(element);
-    Class result = new Class(name, _registry.registerHolder(holder), methods);
+    String holderName = namer.globalObjectFor(element);
+    Holder holder = _registry.registerHolder(holderName);
+    Class result = new Class(name, holder, methods, fields);
     _classes[element] = result;
     return result;
   }
@@ -236,6 +251,35 @@ class ProgramBuilder {
       js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
       return new StaticMethod(name, holder, code);
     });
+  }
+
+  bool _fieldNeedsGetter(VariableElement field) {
+    assert(field.isField);
+    if (_fieldAccessNeverThrows(field)) return false;
+    return backend.shouldRetainGetter(field)
+        || _compiler.codegenWorld.hasInvokedGetter(field, _compiler.world);
+  }
+
+  bool _fieldNeedsSetter(VariableElement field) {
+    assert(field.isField);
+    if (_fieldAccessNeverThrows(field)) return false;
+    return (!field.isFinal && !field.isConst)
+        && (backend.shouldRetainSetter(field)
+            || _compiler.codegenWorld.hasInvokedSetter(field, _compiler.world));
+  }
+
+  // We never access a field in a closure (a captured variable) without knowing
+  // that it is there.  Therefore we don't need to use a getter (that will throw
+  // if the getter method is missing), but can always access the field directly.
+  bool _fieldAccessNeverThrows(VariableElement field) {
+    return field is ClosureFieldElement;
+  }
+
+  InstanceField _buildInstanceField(VariableElement field,
+                                    ClassElement holder) {
+    assert(invariant(field, field.isDeclaration));
+    String name = namer.fieldPropertyName(field);
+    return new InstanceField(name);
   }
 
   Iterable<StaticMethod> _generateOneShotInterceptors() {

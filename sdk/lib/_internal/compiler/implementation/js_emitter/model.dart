@@ -120,7 +120,9 @@ class Class {
   final Holder holder;
   Class superclass;
   final List<Method> methods;
-  Class(this.name, this.holder, this.methods);
+  final List<InstanceField> fields;
+
+  Class(this.name, this.holder, this.methods, this.fields);
 
   void setSuperclass(Class superclass) {
     this.superclass = superclass;
@@ -130,6 +132,13 @@ class Class {
       => (superclass == null) ? "" : superclass.name;
   int get superclassHolderIndex
       => (superclass == null) ? 0 : superclass.holder.index;
+}
+
+class InstanceField {
+  final String name;
+
+  // TODO(floitsch): support renamed fields.
+  InstanceField(this.name);
 }
 
 class Method {

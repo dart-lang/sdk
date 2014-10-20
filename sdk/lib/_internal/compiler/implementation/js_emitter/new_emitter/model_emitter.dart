@@ -221,9 +221,33 @@ class ModelEmitter {
     return new js.ArrayInitializer.from([staticArray, classArray]);
   }
 
+  js.Expression _generateConstructor(Class cls) {
+    List<String> allFieldNames = <String>[];
+    Class currentClass = cls;
+    while (currentClass != null) {
+      allFieldNames.addAll(
+          currentClass.fields.map((InstanceField field) => field.name));
+      currentClass = currentClass.superclass;
+    }
+    String name = cls.name;
+    String parameters = allFieldNames.join(', ');
+    String assignments = allFieldNames
+        .map((String field) => "this.$field = $field;\n")
+        .join();
+    String code = 'function $name($parameters) { $assignments }';
+    js.Template template = js.js.uncachedExpressionTemplate(code);
+    return template.instantiate(const []);
+  }
+
+  Iterable<js.Expression> _generateGettersSetters(Class cls) {
+    return [];
+  }
+
   js.Expression emitClass(Class cls) {
     List elements = [ js.string(cls.superclassName),
-                      js.number(cls.superclassHolderIndex) ];
+                      js.number(cls.superclassHolderIndex),
+                      _generateConstructor(cls) ];
+    elements.addAll(_generateGettersSetters(cls));
     elements.addAll(cls.methods.expand((e) => [ js.string(e.name), e.code ]));
     return unparse(compiler, new js.ArrayInitializer.from(elements));
   }
@@ -296,12 +320,12 @@ final String boilerplate = r"""
   function compileConstructor(name, descriptor) {
     descriptor = compile(name, descriptor);
     var prototype = determinePrototype(descriptor);
-    for (var i = 2; i < descriptor.length; i += 2) {
+    var constructor = descriptor[2];
+    for (var i = 3; i < descriptor.length; i += 2) {
       prototype[descriptor[i]] = descriptor[i + 1];
     }
-    var result = function() { };  // TODO(kasperl): Compile.
-    result.prototype = prototype;
-    return result;
+    constructor.prototype = prototype;
+    return constructor;
   }
 
   function determinePrototype(descriptor) {
