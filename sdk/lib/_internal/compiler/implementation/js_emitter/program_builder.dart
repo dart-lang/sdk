@@ -210,7 +210,7 @@ class ProgramBuilder {
       assert(invariant(element, member.isDeclaration));
       assert(invariant(element, element == enclosing));
 
-      if (Elements.isNonAbstractInstanceMethod(member)) {
+      if (Elements.isNonAbstractInstanceMember(member)) {
         js.Expression code = backend.generatedCode[member];
         // TODO(kasperl): Figure out under which conditions code is null.
         if (code != null) methods.add(_buildMethod(member, code));

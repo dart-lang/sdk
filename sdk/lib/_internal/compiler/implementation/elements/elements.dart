@@ -508,15 +508,15 @@ class Elements {
            && (identical(element.kind, ElementKind.FUNCTION));
   }
 
-  /// Also returns true for [ConstructorBodyElement]s.
-  static bool isNonAbstractInstanceMethod(Element element) {
+  /// Also returns true for [ConstructorBodyElement]s and getters/setters.
+  static bool isNonAbstractInstanceMember(Element element) {
     // The generative constructor body is not a function. We therefore treat
     // it specially.
     if (element.isGenerativeConstructorBody) return true;
     return !Elements.isUnresolved(element) &&
         !element.isAbstract &&
         element.isInstanceMember &&
-        element.isFunction;
+        (element.isFunction || element.isAccessor);
   }
 
   static bool isNativeOrExtendsNative(ClassElement element) {
