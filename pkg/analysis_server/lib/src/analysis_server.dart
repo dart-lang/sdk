@@ -684,7 +684,7 @@ class AnalysisServer {
   AnalysisContext getAnalysisContext(String path) {
     // try to find a containing context
     for (Folder folder in folderMap.keys) {
-      if (path.startsWith(folder.path)) {
+      if (folder.contains(path)) {
         return folderMap[folder];
       }
     }
