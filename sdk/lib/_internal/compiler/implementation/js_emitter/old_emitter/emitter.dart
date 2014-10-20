@@ -920,25 +920,18 @@ class OldEmitter implements Emitter {
         //   lazyInitializer(prototype, 'name', fieldName, getterName, initial);
         // The name is used for error reporting. The 'initial' must be a
         // closure that constructs the initial value.
-        jsAst.Expression getter = buildLazyInitializedGetter(element);
-        jsAst.Expression init = js('#(#,#,#,#,#,#)',
+        jsAst.Expression init = js('#(#,#,#,#,#)',
             [js(lazyInitializerName),
                 js(isolateProperties),
                 js.string(element.name),
                 js.string(namer.getNameX(element)),
                 js.string(namer.getLazyInitializerName(element)),
-                code,
-                getter == null ? [] : [getter]]);
+                code]);
         buffer.write(jsAst.prettyPrint(init, compiler,
                                        monitor: compiler.dumpInfoTask));
         buffer.write("$N");
       }
     }
-  }
-
-  jsAst.Expression buildLazyInitializedGetter(VariableElement element) {
-    // Nothing to do, the 'lazy' function will create the getter.
-    return null;
   }
 
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
