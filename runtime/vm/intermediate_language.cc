@@ -2566,6 +2566,16 @@ void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+bool ParallelMoveInstr::IsRedundant() const {
+  for (intptr_t i = 0; i < moves_.length(); i++) {
+    if (!moves_[i]->IsRedundant()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 LocationSummary* ParallelMoveInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool optimizing) const {
   return NULL;

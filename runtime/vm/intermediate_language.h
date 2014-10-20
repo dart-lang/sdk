@@ -1078,6 +1078,8 @@ class ParallelMoveInstr : public TemplateInstruction<0> {
 
   intptr_t NumMoves() const { return moves_.length(); }
 
+  bool IsRedundant() const;
+
   virtual void PrintTo(BufferFormatter* f) const;
 
   virtual bool MayThrow() const { return false; }
@@ -1136,6 +1138,10 @@ class BlockEntryInstr : public Instruction {
 
   bool HasParallelMove() const {
     return parallel_move_ != NULL;
+  }
+
+  bool HasNonRedundantParallelMove() const {
+    return HasParallelMove() && !parallel_move()->IsRedundant();
   }
 
   ParallelMoveInstr* GetParallelMove() {
@@ -2165,6 +2171,10 @@ class GotoInstr : public TemplateInstruction<0> {
 
   bool HasParallelMove() const {
     return parallel_move_ != NULL;
+  }
+
+  bool HasNonRedundantParallelMove() const {
+    return HasParallelMove() && !parallel_move()->IsRedundant();
   }
 
   ParallelMoveInstr* GetParallelMove() {

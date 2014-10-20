@@ -225,9 +225,9 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 
 
 static bool IsEmptyBlock(BlockEntryInstr* block) {
-  return !block->HasParallelMove() &&
+  return !block->HasNonRedundantParallelMove() &&
          block->next()->IsGoto() &&
-         !block->next()->AsGoto()->HasParallelMove();
+         !block->next()->AsGoto()->HasNonRedundantParallelMove();
 }
 
 
