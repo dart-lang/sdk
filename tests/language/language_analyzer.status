@@ -461,6 +461,7 @@ compile_time_constant10_test/none: CompileTimeError # Issue 21177
 # Issue 16391. These tests are supposed to produce a compile time
 # error in checked mode, but they don't:
 [ $compiler == dartanalyzer && $checked ]
+assign_static_type_test/02: MissingCompileTimeError # Issue 16391
 compile_time_constant_checked2_test/02: MissingCompileTimeError # Issue 16391
 compile_time_constant_checked2_test/03: MissingCompileTimeError # Issue 16391
 compile_time_constant_checked2_test/04: MissingCompileTimeError # Issue 16391
@@ -486,3 +487,4 @@ const_constructor3_test/04: MissingCompileTimeError # Issue 16391
 const_init2_test/02: MissingCompileTimeError # Issue 16391
 malformed2_test/01: MissingCompileTimeError # Issue 16391
 type_check_const_function_typedef2_test/00: MissingCompileTimeError # Issue 16391
+type_parameter_test/05: MissingCompileTimeError # Issue 16391
