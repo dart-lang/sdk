@@ -426,7 +426,7 @@ final htmlBlinkMap = {
   'ReadableStream': () => ReadableStream,
   'Rect': () => _Rect,
   'RelatedEvent': () => RelatedEvent,
-  'Request': () => Request,
+  'Request': () => _Request,
   'ResourceProgressEvent': () => ResourceProgressEvent,
   'Response': () => _Response,
   'Screen': () => Screen,
@@ -14639,7 +14639,7 @@ class FetchEvent extends Event {
   @DomName('FetchEvent.request')
   @DocsEditable()
   @Experimental() // untriaged
-  Request get request => _blink.BlinkFetchEvent.request_Getter(this);
+  _Request get request => _blink.BlinkFetchEvent.request_Getter(this);
 
   @DomName('FetchEvent.respondWith')
   @DocsEditable()
@@ -26043,64 +26043,6 @@ class RelatedEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable()
-@DomName('Request')
-@Experimental() // untriaged
-class Request extends NativeFieldWrapperClass2 {
-  // To suppress missing implicit constructor warnings.
-  factory Request._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('Request.Request')
-  @DocsEditable()
-  factory Request(input, [Map requestInitDict]) {
-    if ((input is String || input == null) && requestInitDict == null) {
-      return _blink.BlinkRequest.constructorCallback_DOMString(input);
-    }
-    if ((requestInitDict is Map || requestInitDict == null) && (input is String || input == null)) {
-      return _blink.BlinkRequest.constructorCallback_DOMString_Dictionary(input, requestInitDict);
-    }
-    if ((input is Request || input == null) && requestInitDict == null) {
-      return _blink.BlinkRequest.constructorCallback_Request(input);
-    }
-    if ((requestInitDict is Map || requestInitDict == null) && (input is Request || input == null)) {
-      return _blink.BlinkRequest.constructorCallback_Request_Dictionary(input, requestInitDict);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @DomName('Request.credentials')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get credentials => _blink.BlinkRequest.credentials_Getter(this);
-
-  @DomName('Request.headers')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Headers get headers => _blink.BlinkRequest.headers_Getter(this);
-
-  @DomName('Request.mode')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get mode => _blink.BlinkRequest.mode_Getter(this);
-
-  @DomName('Request.referrer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get referrer => _blink.BlinkRequest.referrer_Getter(this);
-
-  @DomName('Request.url')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get url => _blink.BlinkRequest.url_Getter(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 @DomName('RequestAnimationFrameCallback')
 typedef void RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35661,6 +35603,64 @@ abstract class _RadioNodeList extends NodeList {
 abstract class _Rect extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _Rect._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('Request')
+@Experimental() // untriaged
+class _Request extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory _Request._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('Request.Request')
+  @DocsEditable()
+  factory _Request(input, [Map requestInitDict]) {
+    if ((input is String || input == null) && requestInitDict == null) {
+      return _blink.BlinkRequest.constructorCallback_DOMString(input);
+    }
+    if ((requestInitDict is Map || requestInitDict == null) && (input is String || input == null)) {
+      return _blink.BlinkRequest.constructorCallback_DOMString_Dictionary(input, requestInitDict);
+    }
+    if ((input is _Request || input == null) && requestInitDict == null) {
+      return _blink.BlinkRequest.constructorCallback_Request(input);
+    }
+    if ((requestInitDict is Map || requestInitDict == null) && (input is _Request || input == null)) {
+      return _blink.BlinkRequest.constructorCallback_Request_Dictionary(input, requestInitDict);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('Request.credentials')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get credentials => _blink.BlinkRequest.credentials_Getter(this);
+
+  @DomName('Request.headers')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Headers get headers => _blink.BlinkRequest.headers_Getter(this);
+
+  @DomName('Request.mode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get mode => _blink.BlinkRequest.mode_Getter(this);
+
+  @DomName('Request.referrer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get referrer => _blink.BlinkRequest.referrer_Getter(this);
+
+  @DomName('Request.url')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get url => _blink.BlinkRequest.url_Getter(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

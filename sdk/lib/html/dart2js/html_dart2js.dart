@@ -13916,7 +13916,7 @@ class FetchEvent extends Event {
   @DomName('FetchEvent.request')
   @DocsEditable()
   @Experimental() // untriaged
-  final Request request;
+  final _Request request;
 
   @DomName('FetchEvent.respondWith')
   @DocsEditable()
@@ -23981,66 +23981,6 @@ class RelatedEvent extends Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-@DocsEditable()
-@DomName('Request')
-@Experimental() // untriaged
-@Native("Request")
-class Request extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory Request._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('Request.Request')
-  @DocsEditable()
-  factory Request(input, [Map requestInitDict]) {
-    if ((input is String || input == null) && requestInitDict == null) {
-      return Request._create_1(input);
-    }
-    if ((requestInitDict is Map || requestInitDict == null) && (input is String || input == null)) {
-      return Request._create_2(input, requestInitDict);
-    }
-    if ((input is Request || input == null) && requestInitDict == null) {
-      return Request._create_3(input);
-    }
-    if ((requestInitDict is Map || requestInitDict == null) && (input is Request || input == null)) {
-      return Request._create_4(input, requestInitDict);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  static Request _create_1(input) => JS('Request', 'new Request(#)', input);
-  static Request _create_2(input, requestInitDict) => JS('Request', 'new Request(#,#)', input, requestInitDict);
-  static Request _create_3(input) => JS('Request', 'new Request(#)', input);
-  static Request _create_4(input, requestInitDict) => JS('Request', 'new Request(#,#)', input, requestInitDict);
-
-  @DomName('Request.credentials')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String credentials;
-
-  @DomName('Request.headers')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Headers headers;
-
-  @DomName('Request.mode')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String mode;
-
-  @DomName('Request.referrer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String referrer;
-
-  @DomName('Request.url')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String url;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // WARNING: Do not edit - generated code.
 
 
@@ -33362,6 +33302,66 @@ abstract class _RGBColor extends Interceptor {
 abstract class _Rect extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _Rect._() { throw new UnsupportedError("Not supported"); }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('Request')
+@Experimental() // untriaged
+@Native("Request")
+class _Request extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory _Request._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('Request.Request')
+  @DocsEditable()
+  factory _Request(input, [Map requestInitDict]) {
+    if ((input is String || input == null) && requestInitDict == null) {
+      return _Request._create_1(input);
+    }
+    if ((requestInitDict is Map || requestInitDict == null) && (input is String || input == null)) {
+      return _Request._create_2(input, requestInitDict);
+    }
+    if ((input is _Request || input == null) && requestInitDict == null) {
+      return _Request._create_3(input);
+    }
+    if ((requestInitDict is Map || requestInitDict == null) && (input is _Request || input == null)) {
+      return _Request._create_4(input, requestInitDict);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  static _Request _create_1(input) => JS('_Request', 'new Request(#)', input);
+  static _Request _create_2(input, requestInitDict) => JS('_Request', 'new Request(#,#)', input, requestInitDict);
+  static _Request _create_3(input) => JS('_Request', 'new Request(#)', input);
+  static _Request _create_4(input, requestInitDict) => JS('_Request', 'new Request(#,#)', input, requestInitDict);
+
+  @DomName('Request.credentials')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String credentials;
+
+  @DomName('Request.headers')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Headers headers;
+
+  @DomName('Request.mode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String mode;
+
+  @DomName('Request.referrer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String referrer;
+
+  @DomName('Request.url')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String url;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
