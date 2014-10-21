@@ -3720,7 +3720,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       FunctionBody body = expression.body;
       sc.Token property = node.propertyKeyword;
-      if (property == null) {
+      if (property == null || _inFunction) {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element = new FunctionElementImpl.forNode(functionName);
         element.functions = holder.functions;

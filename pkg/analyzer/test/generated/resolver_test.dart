@@ -1918,6 +1918,34 @@ class ErrorResolverTest extends ResolverTestCase {
     assertErrors(source, [ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH]);
     verify([source]);
   }
+
+  void test_enclosingElement_invalidLocalFunction() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class C {",
+        "  C() {",
+        "    int get x => 0;",
+        "  }",
+        "}"]));
+    LibraryElement library = resolve(source);
+    JUnitTestCase.assertNotNull(library);
+    var unit = library.definingCompilationUnit;
+    JUnitTestCase.assertNotNull(unit);
+    var types = unit.types;
+    JUnitTestCase.assertNotNull(types);
+    EngineTestCase.assertSizeOfList(1, types);
+    var type = types[0];
+    JUnitTestCase.assertNotNull(type);
+    var constructors = type.constructors;
+    JUnitTestCase.assertNotNull(constructors);
+    EngineTestCase.assertSizeOfList(1, constructors);
+    ConstructorElement constructor = constructors[0];
+    JUnitTestCase.assertNotNull(constructor);
+    List<FunctionElement> functions = constructor.functions;
+    JUnitTestCase.assertNotNull(functions);
+    EngineTestCase.assertSizeOfList(1, functions);
+    JUnitTestCase.assertEquals(constructor, functions[0].enclosingElement);
+    assertErrors(source, [ParserErrorCode.GETTER_IN_FUNCTION]);
+  }
 }
 
 class HintCodeTest extends ResolverTestCase {
