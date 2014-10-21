@@ -4453,10 +4453,12 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  uint32_t flags = generalized_ ? ICData::kGeneralized : 0;
+  flags |= licm_hoisted_ ? ICData::kHoisted : 0;
   Label* deopt = compiler->AddDeoptStub(
       deopt_id(),
       ICData::kDeoptCheckArrayBound,
-      generalized_ ? ICData::kGeneralized : 0);
+      flags);
 
   Location length_loc = locs()->in(kLengthPos);
   Location index_loc = locs()->in(kIndexPos);

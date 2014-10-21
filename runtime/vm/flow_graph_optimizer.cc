@@ -5046,9 +5046,9 @@ void LICM::Hoist(ForwardInstructionIterator* it,
     current->AsCheckSmi()->set_licm_hoisted(true);
   } else if (current->IsCheckEitherNonSmi()) {
     current->AsCheckEitherNonSmi()->set_licm_hoisted(true);
+  } else if (current->IsCheckArrayBound()) {
+    current->AsCheckArrayBound()->set_licm_hoisted(true);
   }
-  // TODO(fschneider): Avoid repeated deoptimization when
-  // speculatively hoisting checks.
   if (FLAG_trace_optimization) {
     OS::Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",
               current->DebugName(),

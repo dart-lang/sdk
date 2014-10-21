@@ -7946,7 +7946,7 @@ class CheckClassIdInstr : public TemplateInstruction<1> {
 class CheckArrayBoundInstr : public TemplateInstruction<2> {
  public:
   CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : generalized_(false) {
+      : generalized_(false), licm_hoisted_(false) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
     // Override generated deopt-id.
@@ -7982,6 +7982,8 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
   virtual bool MayThrow() const { return false; }
 
+  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+
   // Give a name to the location/input indices.
   enum {
     kLengthPos = 0,
@@ -7990,6 +7992,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
  private:
   bool generalized_;
+  bool licm_hoisted_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };
