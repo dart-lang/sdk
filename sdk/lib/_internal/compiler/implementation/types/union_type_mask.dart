@@ -15,7 +15,7 @@ class UnionTypeMask implements TypeMask {
   }
 
   static TypeMask unionOf(Iterable<TypeMask> masks, ClassWorld classWorld) {
-    assert(masks.every((mask) => TypeMask.isNormalized(mask, classWorld)));
+    assert(masks.every((mask) => TypeMask.assertIsNormalized(mask, classWorld)));
     List<FlatTypeMask> disjoint = <FlatTypeMask>[];
     unionOfHelper(masks, disjoint, classWorld);
     if (disjoint.isEmpty) return new TypeMask.nonNullEmpty();
@@ -24,7 +24,7 @@ class UnionTypeMask implements TypeMask {
     }
     if (disjoint.length == 1) return disjoint[0];
     UnionTypeMask union = new UnionTypeMask._internal(disjoint);
-    assert(TypeMask.isNormalized(union, classWorld));
+    assert(TypeMask.assertIsNormalized(union, classWorld));
     return union;
   }
 

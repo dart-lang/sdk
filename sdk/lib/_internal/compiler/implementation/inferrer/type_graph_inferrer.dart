@@ -252,7 +252,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     if (otherType.isNullable && otherType.containsAll(classWorld)) {
       return receiver;
     }
-    assert(TypeMask.isNormalized(otherType, classWorld));
+    assert(TypeMask.assertIsNormalized(otherType, classWorld));
     TypeInformation newType = new NarrowTypeInformation(receiver, otherType);
     allocatedTypes.add(newType);
     return newType;
@@ -280,7 +280,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     if (type.type.isExact) {
       return type;
     } else {
-      assert(TypeMask.isNormalized(otherType, classWorld));
+      assert(TypeMask.assertIsNormalized(otherType, classWorld));
       TypeInformation newType = new NarrowTypeInformation(type, otherType);
       allocatedTypes.add(newType);
       return newType;
@@ -790,7 +790,7 @@ class TypeGraphInferrerEngine
                 // the old type around to ensure that we get a complete view
                 // of the type graph and do not drop any flow edges.
                 TypeMask refinedType = value.computeMask(compiler);
-                assert(TypeMask.isNormalized(refinedType, classWorld));
+                assert(TypeMask.assertIsNormalized(refinedType, classWorld));
                 type = new NarrowTypeInformation(type, refinedType);
                 types.allocatedTypes.add(type);
               }

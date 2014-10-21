@@ -43,7 +43,7 @@ class FlatTypeMask implements TypeMask {
 
   /**
    * Ensures that the generated mask is normalized, i.e., a call to
-   * [TypeMask.isNormalized] with the factory's result returns `true`.
+   * [TypeMask.assertIsNormalized] with the factory's result returns `true`.
    */
   factory FlatTypeMask.normalized(ClassElement base, int flags, World world) {
     if ((flags >> 1) == EMPTY || ((flags >> 1) == EXACT)) {
@@ -240,8 +240,8 @@ class FlatTypeMask implements TypeMask {
 
   TypeMask union(TypeMask other, ClassWorld classWorld) {
     assert(other != null);
-    assert(TypeMask.isNormalized(this, classWorld));
-    assert(TypeMask.isNormalized(other, classWorld));
+    assert(TypeMask.assertIsNormalized(this, classWorld));
+    assert(TypeMask.assertIsNormalized(other, classWorld));
     if (other is! FlatTypeMask) return other.union(this, classWorld);
     FlatTypeMask flatOther = other;
     if (isEmpty) {
@@ -265,8 +265,8 @@ class FlatTypeMask implements TypeMask {
 
   TypeMask unionSame(FlatTypeMask other, ClassWorld classWorld) {
     assert(base == other.base);
-    assert(TypeMask.isNormalized(this, classWorld));
-    assert(TypeMask.isNormalized(other, classWorld));
+    assert(TypeMask.assertIsNormalized(this, classWorld));
+    assert(TypeMask.assertIsNormalized(other, classWorld));
     // The two masks share the base type, so we must chose the least
     // constraining kind (the highest) of the two. If either one of
     // the masks are nullable the result should be nullable too.
@@ -279,15 +279,15 @@ class FlatTypeMask implements TypeMask {
     } else if (other.flags == combined) {
       return other;
     } else {
-      return new FlatTypeMask.internal(base, combined);
+      return new FlatTypeMask.normalized(base, combined, classWorld);
     }
   }
 
   TypeMask unionStrictSubclass(FlatTypeMask other, ClassWorld classWorld) {
     assert(base != other.base);
     assert(classWorld.isSubclassOf(other.base, base));
-    assert(TypeMask.isNormalized(this, classWorld));
-    assert(TypeMask.isNormalized(other, classWorld));
+    assert(TypeMask.assertIsNormalized(this, classWorld));
+    assert(TypeMask.assertIsNormalized(other, classWorld));
     int combined;
     if ((isExact && other.isExact) || base == classWorld.objectClass) {
       // Since the other mask is a subclass of this mask, we need the
@@ -305,9 +305,7 @@ class FlatTypeMask implements TypeMask {
     // If we weaken the constraint on this type, we have to make sure that
     // the result is normalized.
     return (flags != combined)
-        ? (combined >> 1 == flags >> 1)
-            ? new FlatTypeMask.internal(base, combined)
-            : new FlatTypeMask.normalized(base, combined, classWorld)
+        ? new FlatTypeMask.normalized(base, combined, classWorld)
         : this;
   }
 
@@ -315,8 +313,8 @@ class FlatTypeMask implements TypeMask {
     assert(base != other.base);
     assert(!classWorld.isSubclassOf(other.base, base));
     assert(classWorld.isSubtypeOf(other.base, base));
-    assert(TypeMask.isNormalized(this, classWorld));
-    assert(TypeMask.isNormalized(other, classWorld));
+    assert(TypeMask.assertIsNormalized(this, classWorld));
+    assert(TypeMask.assertIsNormalized(other, classWorld));
     // Since the other mask is a subtype of this mask, we need the
     // resulting union to be a subtype too. If either one of the masks
     // are nullable the result should be nullable too.
@@ -324,22 +322,22 @@ class FlatTypeMask implements TypeMask {
     // We know there is at least one subtype, [other.base], so no need
     // to normalize.
     return (flags != combined)
-        ? new FlatTypeMask.internal(base, combined)
+        ? new FlatTypeMask.normalized(base, combined, classWorld)
         : this;
   }
 
   TypeMask intersection(TypeMask other, ClassWorld classWorld) {
     assert(other != null);
     if (other is! FlatTypeMask) return other.intersection(this, classWorld);
-    assert(TypeMask.isNormalized(this, classWorld));
-    assert(TypeMask.isNormalized(other, classWorld));
+    assert(TypeMask.assertIsNormalized(this, classWorld));
+    assert(TypeMask.assertIsNormalized(other, classWorld));
     FlatTypeMask flatOther = other;
     if (isEmpty) {
       return flatOther.isNullable ? this : nonNullable();
     } else if (flatOther.isEmpty) {
       return isNullable ? flatOther : other.nonNullable();
     } else if (base == flatOther.base) {
-      return intersectionSame(flatOther);
+      return intersectionSame(flatOther, classWorld);
     } else if (classWorld.isSubclassOf(flatOther.base, base)) {
       return intersectionStrictSubclass(flatOther, classWorld);
     } else if (classWorld.isSubclassOf(base, flatOther.base)) {
@@ -353,7 +351,7 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  TypeMask intersectionSame(FlatTypeMask other) {
+  TypeMask intersectionSame(FlatTypeMask other, ClassWorld classWorld) {
     assert(base == other.base);
     // The two masks share the base type, so we must chose the most
     // constraining kind (the lowest) of the two. Only if both masks
@@ -367,13 +365,14 @@ class FlatTypeMask implements TypeMask {
     } else if (other.flags == combined) {
       return other;
     } else {
-      return new FlatTypeMask.internal(base, combined);
+      return new FlatTypeMask.normalized(base, combined, classWorld);
     }
   }
 
-  TypeMask intersectionStrictSubclass(FlatTypeMask other, ClassWorld world) {
+  TypeMask intersectionStrictSubclass(FlatTypeMask other,
+                                      ClassWorld classWorld) {
     assert(base != other.base);
-    assert(world.isSubclassOf(other.base, base));
+    assert(classWorld.isSubclassOf(other.base, base));
     // If this mask isn't at least a subclass mask, then the
     // intersection with the other mask is empty.
     if (isExact) return intersectionEmpty(other);
@@ -386,7 +385,7 @@ class FlatTypeMask implements TypeMask {
     if (other.flags == combined) {
       return other;
     } else {
-      return new FlatTypeMask.internal(other.base, combined);
+      return new FlatTypeMask.normalized(other.base, combined, classWorld);
     }
   }
 
@@ -404,7 +403,7 @@ class FlatTypeMask implements TypeMask {
     if (other.flags == combined) {
       return other;
     } else {
-      return new FlatTypeMask.internal(other.base, combined);
+      return new FlatTypeMask.normalized(other.base, combined, classWorld);
     }
   }
 
