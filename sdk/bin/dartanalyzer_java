@@ -1,9 +1,24 @@
-#!/bin/bash --posix
+#!/bin/bash
 # Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# This file is used to execute the analyzer by running the jar file.
+# It is a simple wrapper enabling us to have simpler command lines in
+# the testing infrastructure.
 set -e
+
+FOUND_BATCH=0
+for ARG in "$@"
+do
+  case $ARG in
+    -batch|--batch)
+      FOUND_BATCH=1
+      ;;
+    *)
+      ;;
+  esac
+done
 
 function follow_links() {
   file="$1"
@@ -18,64 +33,28 @@ function follow_links() {
 PROG_NAME="$(follow_links "$BASH_SOURCE")"
 
 # Handle the case where dart-sdk/bin has been symlinked to.
-SCRIPT_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
-DART_ANALYZER_HOME="$(cd "${SCRIPT_DIR%/*}" ; pwd -P)"
+SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
 
-FOUND_BATCH=0
-FOUND_SDK=0
-for ARG in "$@"
-do
-  case $ARG in
-    -batch|--batch)
-      FOUND_BATCH=1
-      ;;
-    --dart-sdk)
-      FOUND_SDK=1
-      ;;
-    *)
-      ;;
-  esac
-done
-
-DART_SDK=""
-if [ $FOUND_SDK -eq 0 ] ; then
-  if [ -f "$DART_ANALYZER_HOME/lib/core/core.dart" ] ; then
-    DART_SDK=(--dart-sdk "$DART_ANALYZER_HOME")
-  else
-    DART_SDK_HOME=$(dirname "$DART_ANALYZER_HOME")/dart-sdk
-    if [ -d "$DART_SDK_HOME" ] ; then
-      DART_SDK=(--dart-sdk "$DART_SDK_HOME")
-    else
-      DART_SDK_HOME=$(dirname "$DART_SDK_HOME")/dart-sdk
-      if [ -d "$DART_SDK_HOME" ] ; then
-        DART_SDK=(--dart-sdk "$DART_SDK_HOME")
-      else
-        echo "Couldn't find Dart SDK. Specify with --dart-sdk cmdline argument"
-      fi
-    fi
-  fi
+if [ -z "$DART_CONFIGURATION" ];
+then
+  DART_CONFIGURATION="ReleaseIA32"
 fi
 
-if [ -f "$DART_SDK_HOME/util/dartanalyzer/dartanalyzer.jar" ] ; then
-  DART_ANALYZER_LIBS=$DART_SDK_HOME/util/dartanalyzer
-elif [ -f "$DART_ANALYZER_HOME/util/dartanalyzer/dartanalyzer.jar" ] ; then
-  DART_ANALYZER_LIBS=$DART_ANALYZER_HOME/util/dartanalyzer
+if [ `uname` == 'Darwin' ];
+then
+  JAR_DIR="$BIN_DIR"/../../xcodebuild/$DART_CONFIGURATION/dartanalyzer
 else
-  echo "Configuration problem. Couldn't find dartanalyzer.jar."
-  exit 1
+  JAR_DIR="$BIN_DIR"/../../out/$DART_CONFIGURATION/dartanalyzer
 fi
 
-if [ -x /usr/libexec/java_home ]; then
-  export JAVA_HOME=$(/usr/libexec/java_home -v '1.6+')
-fi
+JAR_FILE="$JAR_DIR/dartanalyzer.jar"
 
 EXTRA_JVMARGS="-Xss2M "
 OS=`uname | tr "[A-Z]" "[a-z]"`
 if [ "$OS" == "darwin" ] ; then
   # Bump up the heap on Mac VMs, some of which default to 128M or less.
-  # Users can specify DART_JVMARGS in the environment to override this
-  # setting.
   EXTRA_JVMARGS+=" -Xmx512M -client "
 else
   # On other architectures
@@ -86,5 +65,4 @@ else
   fi
 fi
 
-exec java $EXTRA_JVMARGS $DART_JVMARGS -ea -jar \
-  "$DART_ANALYZER_LIBS/dartanalyzer.jar" "${DART_SDK[@]}" $@
+exec java $EXTRA_JVMARGS -jar "$JAR_FILE" --dart-sdk "$SDK_DIR" "$@"

@@ -350,7 +350,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
   String computeCompilerPath(String buildDir) {
     String suffix = executableScriptSuffix;
-    return 'sdk/bin/dartanalyzer_developer$suffix';
+    return 'sdk/bin/dartanalyzer_java$suffix';
   }
 
   CommandArtifact computeCompilationArtifact(
@@ -402,10 +402,7 @@ class DartBasedAnalyzerCompilerConfiguration
       // The script dartanalyzer_developer is not included in the
       // shipped SDK, that is the script is not installed in
       // "$buildDir/dart-sdk/bin/"
-      // TODO(paulberry): the script dartanalyzer_developer currently
-      // points to the wrong place (the Java-based analyzer).  Once
-      // this is fixed, we should run dartanalyzer_developer when in
-      // isHostChecked mode.
+      return '$prefix/dartanalyzer_developer$suffix';
     }
     if (useSdk) {
       prefix = '$buildDir/dart-sdk/bin';
