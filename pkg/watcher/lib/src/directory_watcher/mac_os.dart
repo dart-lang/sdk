@@ -73,30 +73,15 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   /// a subdirectory that was moved into the watched directory.
   StreamSubscription<FileSystemEntity> _listSubscription;
 
-  /// The timer for tracking how long we wait for an initial batch of bogus
-  /// events (see issue 14373).
-  Timer _bogusEventTimer;
-
   _MacOSDirectoryWatcher(String directory, int parentId)
       : directory = directory,
         _files = new PathSet(directory),
         _id = "$parentId/${_count++}" {
-    _startWatch();
-
-    // Before we're ready to emit events, wait for [_listDir] to complete and
-    // for enough time to elapse that if bogus events (issue 14373) would be
-    // emitted, they will be.
-    //
-    // If we do receive a batch of events, [_onBatch] will ensure that these
-    // futures don't fire and that the directory is re-listed.
-    Future.wait([
-      _listDir().then((_) {
-        if (MacOSDirectoryWatcher.logDebugInfo) {
-          print("[$_id] finished initial directory list");
-        }
-      }),
-      _waitForBogusEvents()
-    ]).then((_) {
+    _listDir().then((_) {
+      if (MacOSDirectoryWatcher.logDebugInfo) {
+        print("[$_id] finished initial directory list");
+      }
+      _startWatch();
       if (MacOSDirectoryWatcher.logDebugInfo) {
         print("[$_id] watcher is ready, known files:");
         for (var file in _files.toSet()) {
@@ -132,29 +117,6 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
       for (var file in _files.toSet()) {
         print("[$_id]   ${p.relative(file, from: directory)}");
       }
-    }
-
-    // If we get a batch of events before we're ready to begin emitting events,
-    // it's probable that it's a batch of pre-watcher events (see issue 14373).
-    // Ignore those events and re-list the directory.
-    if (!isReady) {
-      if (MacOSDirectoryWatcher.logDebugInfo) {
-        print("[$_id] not ready to emit events, re-listing directory");
-      }
-
-      // Cancel the timer because bogus events only occur in the first batch, so
-      // we can fire [ready] as soon as we're done listing the directory.
-      _bogusEventTimer.cancel();
-      _listDir().then((_) {
-        if (MacOSDirectoryWatcher.logDebugInfo) {
-          print("[$_id] watcher is ready, known files:");
-          for (var file in _files.toSet()) {
-            print("[$_id]   ${p.relative(file, from: directory)}");
-          }
-        }
-        _readyCompleter.complete();
-      });
-      return;
     }
 
     _sortEvents(batch).forEach((path, events) {
@@ -392,17 +354,6 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
     _watchSubscription = null;
 
-    // If the directory still exists and we're still expecting bogus events,
-    // this is probably issue 14849 rather than a real close event. We should
-    // just restart the watcher.
-    if (!isReady && new Directory(directory).existsSync()) {
-      if (MacOSDirectoryWatcher.logDebugInfo) {
-        print("[$_id] fake closure (issue 14849), re-opening stream");
-      }
-      _startWatch();
-      return;
-    }
-
     // FSEvents can fail to report the contents of the directory being removed
     // when the directory itself is removed, so we need to manually mark the
     // files as removed.
@@ -439,19 +390,6 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
         onError: _emitError,
         onDone: completer.complete,
         cancelOnError: true);
-    return completer.future;
-  }
-
-  /// Wait 200ms for a batch of bogus events (issue 14373) to come in.
-  ///
-  /// 200ms is short in terms of human interaction, but longer than any Mac OS
-  /// watcher tests take on the bots, so it should be safe to assume that any
-  /// bogus events will be signaled in that time frame.
-  Future _waitForBogusEvents() {
-    var completer = new Completer();
-    _bogusEventTimer = new Timer(
-        new Duration(milliseconds: 200),
-        completer.complete);
     return completer.future;
   }
 
