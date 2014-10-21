@@ -70,7 +70,10 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
       JS('JSExtendableArray', '#', new JSArray<E>.typed(allocation));
 
   static List markFixedList(List list) {
-    JS('void', r'#.fixed$length = init', list);
+    // Functions are stored in the hidden class and not as properties in
+    // the object. We never actually look at the value, but only want
+    // to know if the property exists.
+    JS('void', r'#.fixed$length = Array', list);
     return JS('JSFixedArray', '#', list);
   }
 

@@ -1002,13 +1002,15 @@ class OldEmitter implements Emitter {
   void emitMakeConstantList(CodeBuffer buffer) {
     buffer.write(
         jsAst.prettyPrint(
+            // Functions are stored in the hidden class and not as properties in
+            // the object. We never actually look at the value, but only want
+            // to know if the property exists.
             js.statement(r'''#.# = function(list) {
-                                     list.immutable$list = #;
-                                     list.fixed$length = #;
+                                     list.immutable$list = Array;
+                                     list.fixed$length = Array;
                                      return list;
                                    }''',
-                         [namer.isolateName, makeConstListProperty, initName,
-                          initName]),
+                         [namer.isolateName, makeConstListProperty]),
             compiler, monitor: compiler.dumpInfoTask));
     buffer.write(N);
   }
