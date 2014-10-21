@@ -23,6 +23,7 @@ namespace dart {
   V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 1142676276)                \
   V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 330269934)                   \
   V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 59490554)                  \
+  V(_TypedList, _getInt64, ByteArrayBaseGetInt64, 322272622)                   \
   V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 393003933)               \
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1792407200)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1338379857)          \
@@ -33,6 +34,7 @@ namespace dart {
   V(_TypedList, _setUint16, ByteArrayBaseSetUint16, 888580944)                 \
   V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 1708248181)                  \
   V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 1863152792)                \
+  V(_TypedList, _setInt64, ByteArrayBaseSetInt64, 1473080053)                  \
   V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1148703855)              \
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 972883980)               \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 950522310)           \
@@ -136,6 +138,8 @@ namespace dart {
   V(_Int32Array, []=, Int32ArraySetIndexed, 338968571)                         \
   V(_Uint32Array, [], Uint32ArrayGetIndexed, 1640672852)                       \
   V(_Uint32Array, []=, Uint32ArraySetIndexed, 1472976717)                      \
+  V(_Int64Array, [], Int64ArrayGetIndexed, 206855782)                          \
+  V(_Int64Array, []=, Int64ArraySetIndexed, 1258282177)                        \
   V(_Float32x4Array, [], Float32x4ArrayGetIndexed, 1466627059)                 \
   V(_Float32x4Array, []=, Float32x4ArraySetIndexed, 2141660076)                \
   V(_Int32x4Array, [], Int32x4ArrayGetIndexed, 818792056)                      \
@@ -349,6 +353,8 @@ namespace dart {
   V(_Int16Array, []=, Int16ArraySetIndexed, 1610252345)                        \
   V(_Int32Array, [], Int32ArrayGetIndexed, 203101370)                          \
   V(_Int32Array, []=, Int32ArraySetIndexed, 338968571)                         \
+  V(_Int64Array, [], Int64ArrayGetIndexed, 206855782)                          \
+  V(_Int64Array, []=, Int64ArraySetIndexed, 1258282177)                        \
   V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 1543480955)                 \
   V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 936729641)                 \
   V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 1898018934)                   \

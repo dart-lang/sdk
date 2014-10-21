@@ -6287,15 +6287,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(locs()->in(1).constant().IsSmi());
     const int32_t shift =
         reinterpret_cast<int32_t>(locs()->in(1).constant().raw()) >> 1;
-    if ((shift < 0) || (shift > kMintShiftCountLimit)) {
-      __ b(deopt);
-      return;
-    } else if (shift == 0) {
-      // Nothing to do for zero shift amount.
-      __ mov(out_lo, Operand(left_lo));
-      __ mov(out_hi, Operand(left_hi));
-      return;
-    }
     switch (op_kind()) {
       case Token::kSHR: {
         if (shift < 32) {
@@ -6526,28 +6517,16 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(constant.IsSmi());
     const intptr_t shift_value = Smi::Cast(constant).Value();
 
-    // Check constant shift value.
-    if (shift_value == 0) {
-      // Nothing to do.
-      __ mov(out, Operand(left));
-    } else if (shift_value < 0) {
-      // Invalid shift value.
-      __ b(deopt);
-    } else if (shift_value > kShifterLimit) {
-      // Result is 0.
-      __ eor(out, out, Operand(out));
-    } else {
-      // Do the shift: (shift_value > 0) && (shift_value <= kShifterLimit).
-      switch (op_kind()) {
-        case Token::kSHR:
-          __ Lsr(out, left, Operand(shift_value));
-          break;
-        case Token::kSHL:
-          __ Lsl(out, left, Operand(shift_value));
-          break;
-        default:
-          UNREACHABLE();
-      }
+    // Do the shift: (shift_value > 0) && (shift_value <= kShifterLimit).
+    switch (op_kind()) {
+      case Token::kSHR:
+        __ Lsr(out, left, Operand(shift_value));
+        break;
+      case Token::kSHL:
+        __ Lsl(out, left, Operand(shift_value));
+        break;
+      default:
+        UNREACHABLE();
     }
     return;
   }

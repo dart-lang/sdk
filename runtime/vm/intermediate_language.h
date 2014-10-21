@@ -1652,9 +1652,14 @@ class Definition : public Instruction {
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
   void ClearSSATempIndex() { ssa_temp_index_ = -1; }
   bool HasPairRepresentation() const {
+#if defined(TARGET_ARCH_X64)
+    return (representation() == kPairOfTagged) ||
+           (representation() == kPairOfUnboxedDouble);
+#else
     return (representation() == kPairOfTagged) ||
            (representation() == kPairOfUnboxedDouble) ||
            (representation() == kUnboxedMint);
+#endif
   }
 
   // Compile time type of the definition, which may be requested before type

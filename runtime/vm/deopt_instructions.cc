@@ -190,6 +190,7 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
     case DeoptInstr::kFloat64x2:
     case DeoptInstr::kWord:
     case DeoptInstr::kDouble:
+    case DeoptInstr::kMint:
     case DeoptInstr::kMintPair:
     case DeoptInstr::kInt32:
     case DeoptInstr::kUint32:
@@ -575,6 +576,7 @@ class DeoptIntInstr : public DeoptIntegerInstrBase {
 
 typedef DeoptIntInstr<DeoptInstr::kUint32, uint32_t> DeoptUint32Instr;
 typedef DeoptIntInstr<DeoptInstr::kInt32, int32_t> DeoptInt32Instr;
+typedef DeoptIntInstr<DeoptInstr::kMint, int64_t> DeoptMintInstr;
 
 
 template<DeoptInstr::Kind K,
@@ -904,6 +906,8 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
       return new DeoptWordInstr(source_index);
     case kDouble:
       return new DeoptDoubleInstr(source_index);
+    case kMint:
+      return new DeoptMintInstr(source_index);
     case kMintPair:
       return new DeoptMintPairInstr(source_index);
     case kInt32:
@@ -948,6 +952,7 @@ const char* DeoptInstr::KindToCString(Kind kind) {
       return "word";
     case kDouble:
       return "double";
+    case kMint:
     case kMintPair:
       return "mint";
     case kInt32:
@@ -1130,11 +1135,16 @@ void DeoptInfoBuilder::AddCopy(Value* value,
           ToCpuRegisterSource(source_loc));
         break;
       case kUnboxedMint: {
-        ASSERT(source_loc.IsPairLocation());
-        PairLocation* pair = source_loc.AsPairLocation();
-        deopt_instr = new(isolate()) DeoptMintPairInstr(
-            ToCpuRegisterSource(pair->At(0)),
-            ToCpuRegisterSource(pair->At(1)));
+        if (source_loc.IsPairLocation()) {
+          PairLocation* pair = source_loc.AsPairLocation();
+          deopt_instr = new(isolate()) DeoptMintPairInstr(
+              ToCpuRegisterSource(pair->At(0)),
+              ToCpuRegisterSource(pair->At(1)));
+        } else {
+          ASSERT(!source_loc.IsPairLocation());
+          deopt_instr = new(isolate()) DeoptMintInstr(
+              ToCpuRegisterSource(source_loc));
+        }
         break;
       }
       case kUnboxedInt32:

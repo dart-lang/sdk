@@ -221,9 +221,12 @@ class DeoptInstr : public ZoneAllocated {
     kFloat32x4,
     kFloat64x2,
     kInt32x4,
-    // Mints are split into low and high words. Each word can be in a register
-    // or stack slot. Note Mints are only used on 32-bit architectures.
+    // Mints are split into low and high words on 32-bit architectures. Each
+    // word can be in a register or stack slot. Note Mint pairs are only
+    // used on 32-bit architectures.
     kMintPair,
+    // Mints are held in one word on 64-bit architectures.
+    kMint,
     kInt32,
     kUint32,
     kPcMarker,

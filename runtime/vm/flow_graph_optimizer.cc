@@ -63,6 +63,13 @@ static bool CanUnboxDouble() {
 }
 
 
+static bool ShouldInlineInt64ArrayOps() {
+#if defined(TARGET_ARCH_X64)
+  return true;
+#endif
+  return false;
+}
+
 static bool CanConvertUnboxedMintToDouble() {
 #if defined(TARGET_ARCH_IA32)
   return true;
@@ -1176,6 +1183,10 @@ static intptr_t MethodKindToCid(MethodRecognizer::Kind kind) {
     case MethodRecognizer::kUint32ArraySetIndexed:
       return kTypedDataUint32ArrayCid;
 
+    case MethodRecognizer::kInt64ArrayGetIndexed:
+    case MethodRecognizer::kInt64ArraySetIndexed:
+      return kTypedDataInt64ArrayCid;
+
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
     case MethodRecognizer::kFloat32x4ArraySetIndexed:
       return kTypedDataFloat32x4ArrayCid;
@@ -1300,6 +1311,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
       case kTypedDataUint16ArrayCid:
       case kTypedDataInt32ArrayCid:
       case kTypedDataUint32ArrayCid:
+      case kTypedDataInt64ArrayCid:
         ASSERT(value_type.IsIntType());
         // Fall through.
       case kTypedDataFloat32ArrayCid:
@@ -1460,6 +1472,11 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       if (!CanUnboxInt32()) return false;
       return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
 
+    case MethodRecognizer::kInt64ArrayGetIndexed:
+      if (!ShouldInlineInt64ArrayOps()) {
+        return false;
+      }
+      return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
     // Recognized []= operators.
     case MethodRecognizer::kObjectArraySetIndexed:
     case MethodRecognizer::kGrowableArraySetIndexed:
@@ -1487,6 +1504,12 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       // which can only deal unbox these values.
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
       if (!HasOnlySmiOrMint(value_check)) {
+        return false;
+      }
+      return InlineSetIndexed(kind, target, call, receiver, token_pos,
+                              &ic_data, value_check, entry, last);
+    case MethodRecognizer::kInt64ArraySetIndexed:
+      if (!ShouldInlineInt64ArrayOps()) {
         return false;
       }
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
