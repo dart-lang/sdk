@@ -584,30 +584,40 @@ class DartiumBackend(HtmlDartGenerator):
   def RootClassName(self):
     return 'NativeFieldWrapperClass2'
 
-  def DeriveNativeEntry(self, operation_id, native_suffix, type_ids, skip_types):
+  # This code matches up with the _generate_native_entry code in
+  # dart_utilities.py in the dartium repository.  Any changes to this
+  # should have matching changes on that end.
+  def DeriveNativeEntry(self, name, kind, count):
     interface_id = self._interface.id
     database = self._database
-    type_ids = map(lambda type_id : TypeIdToBlinkName(type_id, database),
-                   type_ids)
-    encoded_type_ids = map(EncodeType, type_ids)
-    if native_suffix:
-      operation_id = "%s_%s" % (operation_id, native_suffix)
-      interface_id = TypeIdToBlinkName(interface_id, database)
+    tag = ""
+    if kind == 'Getter':
+        tag = "%s_Getter" % name
+        blink_entry = tag
+    elif kind == 'Setter':
+        tag = "%s_Setter" % name
+        blink_entry = tag
+    elif kind == 'Constructor':
+        tag = "constructorCallback"
+        blink_entry = tag
+    elif kind == 'Method':
+        tag = "%s_Callback" % name
+        blink_entry = tag
 
-    def DeriveString(components, types, use_types):
-      if use_types:
-        components.extend(types)
-      full_name = "_".join(components)
-      return full_name
+    interface_id = TypeIdToBlinkName(interface_id, database)
 
     def mkPublic(s):
       if s.startswith("_") or s.startswith("$"):
         return "$" + s
       return s
 
-    dart_name = mkPublic(DeriveString([operation_id], encoded_type_ids, True))
-    resolver_string = DeriveString([interface_id, operation_id], type_ids,
-                                   not skip_types)
+    if count:
+      arity = str(count)
+      dart_name = mkPublic("_".join([tag, arity]))
+    else:
+      dart_name = mkPublic(tag)
+    resolver_string = "_".join([interface_id, tag])
+
     return (dart_name, resolver_string)
 
 
@@ -703,9 +713,8 @@ class DartiumBackend(HtmlDartGenerator):
     parameters = constructor_info.ParametersAsStringOfVariables(argument_count)
     interface_name =  self._interface_type_info.interface_name()
 
-    type_ids = [p.type.id for p in arguments[:argument_count]]
     dart_native_name, constructor_callback_id = \
-        self.DeriveNativeEntry(cpp_suffix, None, type_ids, is_custom)
+        self.DeriveNativeEntry(cpp_suffix, 'Constructor', argument_count)
     if constructor_callback_id in _cpp_resolver_string_map:
         constructor_callback_id = \
             _cpp_resolver_string_map[constructor_callback_id]
@@ -1005,7 +1014,7 @@ class DartiumBackend(HtmlDartGenerator):
     native_suffix = 'Getter'
     auto_scope_setup = self._GenerateAutoSetupScope(attr.id, native_suffix)
     native_entry = \
-        self.DeriveNativeEntry(attr.id, native_suffix, [], True)
+        self.DeriveNativeEntry(attr.id, 'Getter', None)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, False, return_type, parameters,
         native_suffix, is_custom, auto_scope_setup, native_entry=native_entry)
@@ -1060,7 +1069,7 @@ class DartiumBackend(HtmlDartGenerator):
     native_suffix = 'Setter'
     auto_scope_setup = self._GenerateAutoSetupScope(attr.id, native_suffix)
     native_entry = \
-        self.DeriveNativeEntry(attr.id, native_suffix, [attr.type.id], True)
+        self.DeriveNativeEntry(attr.id, 'Setter', None)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
         dart_declaration, False, return_type, parameters,
         native_suffix, is_custom, auto_scope_setup, native_entry=native_entry)
@@ -1123,8 +1132,7 @@ class DartiumBackend(HtmlDartGenerator):
       # First emit a toplevel function to do the native call
       # Calls to this are emitted elsewhere,
       dart_native_name, resolver_string = \
-          self.DeriveNativeEntry("item", "Callback", ["unsigned long"],
-                                 is_custom)
+          self.DeriveNativeEntry("item", 'Method', 1)
       if resolver_string in _cpp_resolver_string_map:
           resolver_string = \
               _cpp_resolver_string_map[resolver_string]
@@ -1230,7 +1238,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     operation = info.operations[0]
     is_custom = _IsCustom(operation)
-    has_optional_arguments = any(self._IsArgumentOptionalInWebCore(operation, argument) for argument in operation.arguments)
+    has_optional_arguments = any(IsOptional(argument) for argument in operation.arguments)
     needs_dispatcher = not is_custom and (len(info.operations) > 1 or has_optional_arguments)
 
     if info.callback_args:
@@ -1240,11 +1248,8 @@ class DartiumBackend(HtmlDartGenerator):
       argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
       native_suffix = 'Callback'
       auto_scope_setup = self._GenerateAutoSetupScope(info.name, native_suffix)
-      type_ids = [argument.type.id
-                  for argument in operation.arguments[:len(info.param_infos)]]
       native_entry = \
-          self.DeriveNativeEntry(operation.id, native_suffix, type_ids,
-                                 is_custom)
+          self.DeriveNativeEntry(operation.id, 'Method', len(info.param_infos))
       cpp_callback_name = self._GenerateNativeBinding(
         info.name, argument_count, dart_declaration,
         info.IsStatic(), return_type, parameters,
@@ -1275,11 +1280,8 @@ class DartiumBackend(HtmlDartGenerator):
       formals_s = ", ".join(formals)
       dart_declaration = '%s(%s)' % (
         base_name, formals_s)
-      type_ids = [argument.type.id
-                  for argument in operation.arguments[:argument_count]]
       native_entry = \
-          self.DeriveNativeEntry(operation.id, native_suffix, type_ids,
-                                 is_custom)
+          self.DeriveNativeEntry(operation.id, 'Method', argument_count)
       overload_base_name = native_entry[0]
       overload_name = \
           self.DeriveQualifiedBlinkName(self._interface.id,
@@ -1303,7 +1305,7 @@ class DartiumBackend(HtmlDartGenerator):
         operations,
         dart_declaration,
         GenerateCall,
-        self._IsArgumentOptionalInWebCore)
+        IsOptional)
 
   def SecondaryContext(self, interface):
     pass

@@ -1085,7 +1085,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         operations,
         declaration,
         GenerateCall,
-        lambda _, argument: IsOptional(argument),
+        IsOptional,
         can_omit_type_check=lambda type, pos: type == parameter_types[pos])
 
   def _AddInterfaceOperation(self, info, html_name):

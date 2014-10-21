@@ -475,7 +475,7 @@ class HtmlDartGenerator(object):
           version, operations[signature_index], argument_count)
 
     def IsOptional(signature_index, argument):
-      return is_optional(operations[signature_index], argument)
+      return is_optional(argument)
 
     emitter = self._members_emitter
 
@@ -589,8 +589,7 @@ class HtmlDartGenerator(object):
         if self._dart_use_blink:
             type_ids = [p.type.id for p in arguments]
             base_name, rs = \
-                self.DeriveNativeEntry("constructorCallback", None, type_ids,
-                                       False)
+                self.DeriveNativeEntry("constructorCallback", 'Constructor', argument_count)
             qualified_name = \
                 self.DeriveQualifiedBlinkName(self._interface.id,
                                               base_name)

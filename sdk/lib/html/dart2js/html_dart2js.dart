@@ -25541,10 +25541,10 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
       var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
       return _fetch_2(request, requestInitDict_1);
     }
-    if ((request is Request || request == null) && requestInitDict == null) {
+    if ((request is _Request || request == null) && requestInitDict == null) {
       return _fetch_3(request);
     }
-    if (requestInitDict != null && (request is Request || request == null)) {
+    if (requestInitDict != null && (request is _Request || request == null)) {
       var requestInitDict_2 = convertDartToNative_Dictionary(requestInitDict);
       return _fetch_4(request, requestInitDict_2);
     }
@@ -25564,12 +25564,12 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   @DomName('ServiceWorkerGlobalScope.fetch')
   @DocsEditable()
   @Experimental() // untriaged
-  Future _fetch_3(Request request) native;
+  Future _fetch_3(_Request request) native;
   @JSName('fetch')
   @DomName('ServiceWorkerGlobalScope.fetch')
   @DocsEditable()
   @Experimental() // untriaged
-  Future _fetch_4(Request request, requestInitDict) native;
+  Future _fetch_4(_Request request, requestInitDict) native;
 
   @DomName('ServiceWorkerGlobalScope.onmessage')
   @DocsEditable()

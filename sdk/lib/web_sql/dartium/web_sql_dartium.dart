@@ -103,29 +103,48 @@ class SqlDatabase extends NativeFieldWrapperClass2 {
   @DocsEditable()
   String get version => _blink.BlinkDatabase.version_Getter(this);
 
-  /**
-   * Atomically update the database version to [newVersion], asynchronously
-   * running [callback] on the [SqlTransaction] representing this
-   * [changeVersion] transaction.
-   *
-   * If [callback] runs successfully, then [successCallback] is called.
-   * Otherwise, [errorCallback] is called.
-   *
-   * [oldVersion] should match the database's current [version] exactly.
-   *
-   * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
-   */
-  @DomName('Database.changeVersion')
-  @DocsEditable()
-  void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) => _blink.BlinkDatabase.changeVersion_Callback_DOMString_DOMString_SQLTransactionCallback_SQLTransactionErrorCallback_VoidCallback(this, oldVersion, newVersion, callback, errorCallback, successCallback);
+  void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) {
+    if (successCallback != null) {
+      _blink.BlinkDatabase.changeVersion_Callback_5(this, oldVersion, newVersion, callback, errorCallback, successCallback);
+      return;
+    }
+    if (errorCallback != null) {
+      _blink.BlinkDatabase.changeVersion_Callback_4(this, oldVersion, newVersion, callback, errorCallback);
+      return;
+    }
+    if (callback != null) {
+      _blink.BlinkDatabase.changeVersion_Callback_3(this, oldVersion, newVersion, callback);
+      return;
+    }
+    _blink.BlinkDatabase.changeVersion_Callback_2(this, oldVersion, newVersion);
+    return;
+  }
 
-  @DomName('Database.readTransaction')
-  @DocsEditable()
-  void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) => _blink.BlinkDatabase.readTransaction_Callback_SQLTransactionCallback_SQLTransactionErrorCallback_VoidCallback(this, callback, errorCallback, successCallback);
+  void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) {
+    if (successCallback != null) {
+      _blink.BlinkDatabase.readTransaction_Callback_3(this, callback, errorCallback, successCallback);
+      return;
+    }
+    if (errorCallback != null) {
+      _blink.BlinkDatabase.readTransaction_Callback_2(this, callback, errorCallback);
+      return;
+    }
+    _blink.BlinkDatabase.readTransaction_Callback_1(this, callback);
+    return;
+  }
 
-  @DomName('Database.transaction')
-  @DocsEditable()
-  void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) => _blink.BlinkDatabase.transaction_Callback_SQLTransactionCallback_SQLTransactionErrorCallback_VoidCallback(this, callback, errorCallback, successCallback);
+  void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) {
+    if (successCallback != null) {
+      _blink.BlinkDatabase.transaction_Callback_3(this, callback, errorCallback, successCallback);
+      return;
+    }
+    if (errorCallback != null) {
+      _blink.BlinkDatabase.transaction_Callback_2(this, callback, errorCallback);
+      return;
+    }
+    _blink.BlinkDatabase.transaction_Callback_1(this, callback);
+    return;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -234,10 +253,10 @@ class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, 
   Map operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.range(index, 0, length);
-    return _blink.BlinkSQLResultSetRowList.item_Callback_ul(this, index);
+    return _blink.BlinkSQLResultSetRowList.item_Callback_1(this, index);
   }
 
-  Map _nativeIndexedGetter(int index) => _blink.BlinkSQLResultSetRowList.item_Callback_ul(this, index);
+  Map _nativeIndexedGetter(int index) => _blink.BlinkSQLResultSetRowList.item_Callback_1(this, index);
 
   void operator[]=(int index, Map value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -279,7 +298,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, 
 
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
-  Map item(int index) => _blink.BlinkSQLResultSetRowList.item_Callback_ul(this, index);
+  Map item(int index) => _blink.BlinkSQLResultSetRowList.item_Callback_1(this, index);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -302,7 +321,7 @@ class SqlTransaction extends NativeFieldWrapperClass2 {
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
-  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) => _blink.BlinkSQLTransaction.executeSql_Callback_DOMString_A_object_A_SQLStatementCallback_SQLStatementErrorCallback(this, sqlStatement, arguments, callback, errorCallback);
+  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) => _blink.BlinkSQLTransaction.executeSql_Callback_4(this, sqlStatement, arguments, callback, errorCallback);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
