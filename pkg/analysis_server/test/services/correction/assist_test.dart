@@ -146,19 +146,6 @@ main() {
 ''');
   }
 
-  void test_addTypeAnnotation_local_OK_List() {
-    _indexTestUnit('''
-main() {
-  var v = <String>[];
-}
-''');
-    assertHasAssistAt('v =', AssistKind.ADD_TYPE_ANNOTATION, '''
-main() {
-  List<String> v = <String>[];
-}
-''');
-  }
-
   void test_addTypeAnnotation_local_OK_int() {
     _indexTestUnit('''
 main() {
@@ -168,6 +155,19 @@ main() {
     assertHasAssistAt('v =', AssistKind.ADD_TYPE_ANNOTATION, '''
 main() {
   int v = 0;
+}
+''');
+  }
+
+  void test_addTypeAnnotation_local_OK_List() {
+    _indexTestUnit('''
+main() {
+  var v = <String>[];
+}
+''');
+    assertHasAssistAt('v =', AssistKind.ADD_TYPE_ANNOTATION, '''
+main() {
+  List<String> v = <String>[];
 }
 ''');
   }
@@ -350,6 +350,21 @@ main() {
 ''');
   }
 
+  void test_convertToBlockBody_OK_constructor() {
+    _indexTestUnit('''
+class A {
+  factory A() => null;
+}
+''');
+    assertHasAssistAt('A()', AssistKind.CONVERT_INTO_BLOCK_BODY, '''
+class A {
+  factory A() {
+    return null;
+  }
+}
+''');
+  }
+
   void test_convertToBlockBody_OK_method() {
     _indexTestUnit('''
 class A {
@@ -416,6 +431,21 @@ main() {
 setup(x) {}
 main() {
   setup(() => 42);
+}
+''');
+  }
+
+  void test_convertToExpressionBody_OK_constructor() {
+    _indexTestUnit('''
+class A {
+  factory A() {
+    return null;
+  }
+}
+''');
+    assertHasAssistAt('A()', AssistKind.CONVERT_INTO_EXPRESSION_BODY, '''
+class A {
+  factory A() => null;
 }
 ''');
   }
@@ -511,75 +541,6 @@ fff() {
 }
 ''');
     assertNoAssistAt('fff()', AssistKind.CONVERT_INTO_EXPRESSION_BODY);
-  }
-
-  void test_convertToIsNotEmpty_OK_on_isEmpty() {
-    _indexTestUnit('''
-main(String str) {
-  !str.isEmpty;
-}
-''');
-    assertHasAssistAt('isEmpty', AssistKind.CONVERT_INTO_IS_NOT_EMPTY, '''
-main(String str) {
-  str.isNotEmpty;
-}
-''');
-  }
-
-  void test_convertToIsNotEmpty_OK_on_str() {
-    _indexTestUnit('''
-main(String str) {
-  !str.isEmpty;
-}
-''');
-    assertHasAssistAt('str.', AssistKind.CONVERT_INTO_IS_NOT_EMPTY, '''
-main(String str) {
-  str.isNotEmpty;
-}
-''');
-  }
-
-  void test_convertToIsNotEmpty_OK_propertyAccess() {
-    _indexTestUnit('''
-main(String str) {
-  !'text'.isEmpty;
-}
-''');
-    assertHasAssistAt('isEmpty', AssistKind.CONVERT_INTO_IS_NOT_EMPTY, '''
-main(String str) {
-  'text'.isNotEmpty;
-}
-''');
-  }
-
-  void test_convertToIsNotEmpty_wrong_notInPrefixExpression() {
-    _indexTestUnit('''
-main(String str) {
-  str.isEmpty;
-}
-''');
-    assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
-  }
-
-  void test_convertToIsNotEmpty_wrong_notIsEmpty() {
-    _indexTestUnit('''
-main(int p) {
-  !p.isEven;
-}
-''');
-    assertNoAssistAt('isEven;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
-  }
-
-  void test_convertToIsNotEmpty_wrote_noIsNotEmpty() {
-    _indexTestUnit('''
-class A {
-  bool get isEmpty => false;
-}
-main(A a) {
-  !a.isEmpty;
-}
-''');
-    assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
   }
 
   void test_convertToIsNot_OK_childOfIs_left() {
@@ -754,6 +715,75 @@ main(p) {
 }
 ''');
     assertNoAssistAt('++(', AssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  void test_convertToIsNotEmpty_OK_on_isEmpty() {
+    _indexTestUnit('''
+main(String str) {
+  !str.isEmpty;
+}
+''');
+    assertHasAssistAt('isEmpty', AssistKind.CONVERT_INTO_IS_NOT_EMPTY, '''
+main(String str) {
+  str.isNotEmpty;
+}
+''');
+  }
+
+  void test_convertToIsNotEmpty_OK_on_str() {
+    _indexTestUnit('''
+main(String str) {
+  !str.isEmpty;
+}
+''');
+    assertHasAssistAt('str.', AssistKind.CONVERT_INTO_IS_NOT_EMPTY, '''
+main(String str) {
+  str.isNotEmpty;
+}
+''');
+  }
+
+  void test_convertToIsNotEmpty_OK_propertyAccess() {
+    _indexTestUnit('''
+main(String str) {
+  !'text'.isEmpty;
+}
+''');
+    assertHasAssistAt('isEmpty', AssistKind.CONVERT_INTO_IS_NOT_EMPTY, '''
+main(String str) {
+  'text'.isNotEmpty;
+}
+''');
+  }
+
+  void test_convertToIsNotEmpty_wrong_notInPrefixExpression() {
+    _indexTestUnit('''
+main(String str) {
+  str.isEmpty;
+}
+''');
+    assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+  }
+
+  void test_convertToIsNotEmpty_wrong_notIsEmpty() {
+    _indexTestUnit('''
+main(int p) {
+  !p.isEven;
+}
+''');
+    assertNoAssistAt('isEven;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+  }
+
+  void test_convertToIsNotEmpty_wrote_noIsNotEmpty() {
+    _indexTestUnit('''
+class A {
+  bool get isEmpty => false;
+}
+main(A a) {
+  !a.isEmpty;
+}
+''');
+    assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
   }
 
   void test_exchangeBinaryExpressionArguments_OK_extended_mixOperator_1() {
