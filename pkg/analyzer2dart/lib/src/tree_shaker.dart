@@ -137,6 +137,20 @@ class LocalReachabilityComputer {
           }
         }
       }
+    } else if (selector.kind == SelectorKind.SETTER) {
+      // accessor.name uses the convention that setter names end in '='.
+      String selectorNameWithEquals = '${selector.name}=';
+      for (PropertyAccessorElement accessor in classElement.accessors) {
+        if (accessor.isSetter && selectorNameWithEquals == accessor.name) {
+          if (accessor.isSynthetic) {
+            // This accessor is implied by the corresponding field declaration.
+            // TODO(paulberry): should we distinguish reads and writes?
+            fields.add(accessor.variable);
+          } else {
+            accessors.add(accessor);
+          }
+        }
+      }
     }
   }
 }
@@ -294,8 +308,10 @@ class TreeShakingVisitor extends SemanticVisitor {
           new Selector.getter(semantics.identifier.name, null));
     }
     if (semantics.isWrite) {
-      // TODO(paulberry): implement.
-      return giveUp(node, '_handlePropertyAccess of ${semantics}.');
+      // Selector.setter constructor uses the convention that setter names
+      // don't end in '='.
+      analysis.invokes.add(
+          new Selector.setter(semantics.identifier.name, null));
     }
   }
 

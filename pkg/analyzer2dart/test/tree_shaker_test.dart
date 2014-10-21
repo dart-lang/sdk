@@ -27,10 +27,23 @@ foo() {
     helper.assertHasFunction('foo');
   });
 
-  test('Toplevel field access', () {
+  test('Toplevel field read', () {
     var helper = new TreeShakerTestHelper('''
 main() {
   return foo;
+}
+var foo;
+var bar;
+''');
+    helper.assertHasFunction('main');
+    helper.assertHasVariable('foo');
+    helper.assertNoVariable('bar');
+  });
+
+  test('Toplevel field write', () {
+    var helper = new TreeShakerTestHelper('''
+main() {
+  foo = 1;
 }
 var foo;
 var bar;
@@ -145,10 +158,14 @@ main() {
 class A {
   get g1 => null;
   get g2 => null;
+  set g1(x) {}
+  set g2(x) {}
 }
 class B {
   get g1 => null;
   get g2 => null;
+  set g1(x) {}
+  set g2(x) {}
 }
 main() {
   new A().g1;
@@ -158,9 +175,41 @@ main() {
     helper.assertNoGetter('A.g2');
     helper.assertNoGetter('B.g1');
     helper.assertNoGetter('B.g2');
+    helper.assertNoSetter('A.g1');
+    helper.assertNoSetter('A.g2');
+    helper.assertNoSetter('B.g1');
+    helper.assertNoSetter('B.g2');
   });
 
-  test('Field access', () {
+  test('Setter usage', () {
+    var helper = new TreeShakerTestHelper('''
+class A {
+  get g1 => null;
+  get g2 => null;
+  set g1(x) {}
+  set g2(x) {}
+}
+class B {
+  get g1 => null;
+  get g2 => null;
+  set g1(x) {}
+  set g2(x) {}
+}
+main() {
+  new A().g1 = 1;
+}
+''');
+    helper.assertHasSetter('A.g1');
+    helper.assertNoSetter('A.g2');
+    helper.assertNoSetter('B.g1');
+    helper.assertNoSetter('B.g2');
+    helper.assertNoGetter('A.g1');
+    helper.assertNoGetter('A.g2');
+    helper.assertNoGetter('B.g1');
+    helper.assertNoGetter('B.g2');
+  });
+
+  test('Field read', () {
     var helper = new TreeShakerTestHelper('''
 class A {
   var f1;
@@ -172,6 +221,26 @@ class B {
 }
 main() {
   new A().f1;
+}
+''');
+    helper.assertHasField('A.f1');
+    helper.assertNoField('A.f2');
+    helper.assertNoField('B.f1');
+    helper.assertNoField('B.f2');
+  });
+
+  test('Field write', () {
+    var helper = new TreeShakerTestHelper('''
+class A {
+  var f1;
+  var f2;
+}
+class B {
+  var f1;
+  var f2;
+}
+main() {
+  new A().f1 = 1;
 }
 ''');
     helper.assertHasField('A.f1');
@@ -276,6 +345,11 @@ class TreeShakerTestHelper {
   Map<String, MethodDeclaration> getters = <String, MethodDeclaration>{};
 
   /**
+   * Setters contained in [world], indexed by className.propertyName.
+   */
+  Map<String, MethodDeclaration> setters = <String, MethodDeclaration>{};
+
+  /**
    * Fields contained in [world], indexed by className.fieldName.
    */
   Map<String, VariableDeclaration> fields = <String, VariableDeclaration>{};
@@ -322,9 +396,11 @@ class TreeShakerTestHelper {
         if (declaration.isGetter) {
           getters['${element.enclosingElement.name}.${element.name}'] =
               declaration;
+        } else if (declaration.isSetter) {
+          setters['${element.enclosingElement.name}.${element.displayName}'] =
+              declaration;
         } else {
-          // TODO(paulberry): handle setters.
-          throw new UnimplementedError();
+          fail('Unexpected property accessor (neither getter nor setter)');
         }
       }
     });
@@ -377,6 +453,13 @@ class TreeShakerTestHelper {
   }
 
   /**
+   * Asserts that [world] contains a setter with the given qualified name.
+   */
+  void assertHasSetter(String qualifiedName) {
+    expect(setters, contains(qualifiedName));
+  }
+
+  /**
    * Asserts that [world] instantiates a class with the given name.
    */
   void assertHasInstantiatedClass(String name) {
@@ -422,6 +505,14 @@ class TreeShakerTestHelper {
    */
   void assertNoGetter(String qualifiedName) {
     expect(getters, isNot(contains(qualifiedName)));
+  }
+
+  /**
+   * Asserts that [world] doesn't contain a setter with the given qualified
+   * name.
+   */
+  void assertNoSetter(String qualifiedName) {
+    expect(setters, isNot(contains(qualifiedName)));
   }
 
   /**
