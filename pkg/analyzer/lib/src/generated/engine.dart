@@ -2010,7 +2010,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             dartEntry.recordResolutionErrorInLibrary(
                 librarySource,
                 thrownException);
-            _cache.remove(source);
           }
           if (source != librarySource) {
             _workManager.add(source, SourcePriority.PRIORITY_PART);

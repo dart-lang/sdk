@@ -256,6 +256,26 @@ class B {
     });
   }
 
+  /**
+   * Code like this caused NPE in the past.
+   *
+   * https://code.google.com/p/dart/issues/detail?id=21373
+   */
+  test_invalidGetterInConstructor() {
+    addTestFile('''
+class A {
+  A() {
+    get badGetter {
+      const int CONST = 0;
+    }
+  }
+}
+''');
+    return prepareOutline().then((_) {
+      expect(outline, isNotNull);
+    });
+  }
+
   test_localFunctions() {
     addTestFile('''
 class A {

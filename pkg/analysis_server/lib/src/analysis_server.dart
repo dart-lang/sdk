@@ -651,10 +651,11 @@ class AnalysisServer {
                 sendAnalysisNotificationOccurrences(this, file, dartUnit);
                 break;
               case AnalysisService.OUTLINE:
+                LineInfo lineInfo = context.getLineInfo(source);
                 sendAnalysisNotificationOutline(
                     this,
-                    context,
                     source,
+                    lineInfo,
                     dartUnit);
                 break;
               case AnalysisService.OVERRIDES:
