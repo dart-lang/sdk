@@ -5841,8 +5841,9 @@ class String : public Instance {
 class OneByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
-    NoGCScope no_gc;
-    return *CharAddr(str, index);
+    ASSERT((index >= 0) && (index < str.Length()));
+    ASSERT(str.IsOneByteString());
+    return raw_ptr(str)->data()[index];
   }
 
   static void SetCharAt(const String& str, intptr_t index, uint8_t code_unit) {
@@ -5971,8 +5972,9 @@ class OneByteString : public AllStatic {
 class TwoByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
-    NoGCScope no_gc;
-    return *CharAddr(str, index);
+    ASSERT((index >= 0) && (index < str.Length()));
+    ASSERT(str.IsTwoByteString());
+    return raw_ptr(str)->data()[index];
   }
 
   static void SetCharAt(const String& str, intptr_t index, uint16_t ch) {

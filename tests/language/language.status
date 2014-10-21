@@ -63,7 +63,6 @@ least_upper_bound_expansive_test/*: Fail, OK
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
-large_class_declaration_test: Skip # Issue 21343
 unicode_bom_test: Fail # Issue 16067
 
 [ $compiler == none && $checked ]

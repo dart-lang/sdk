@@ -17040,18 +17040,17 @@ intptr_t String::Hash(const int32_t* characters, intptr_t len) {
 uint16_t String::CharAt(intptr_t index) const {
   intptr_t class_id = raw()->GetClassId();
   ASSERT(RawObject::IsStringClassId(class_id));
-  NoGCScope no_gc;
   if (class_id == kOneByteStringCid) {
-    return *OneByteString::CharAddr(*this, index);
+    return OneByteString::CharAt(*this, index);
   }
   if (class_id == kTwoByteStringCid) {
-    return *TwoByteString::CharAddr(*this, index);
+    return TwoByteString::CharAt(*this, index);
   }
   if (class_id == kExternalOneByteStringCid) {
-    return *ExternalOneByteString::CharAddr(*this, index);
+    return ExternalOneByteString::CharAt(*this, index);
   }
   ASSERT(class_id == kExternalTwoByteStringCid);
-  return *ExternalTwoByteString::CharAddr(*this, index);
+  return ExternalTwoByteString::CharAt(*this, index);
 }
 
 
