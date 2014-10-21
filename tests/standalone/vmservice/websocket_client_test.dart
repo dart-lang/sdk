@@ -12,6 +12,10 @@ class ClientsRequestTest extends ServiceWebSocketRequestHelper {
   int _count = 0;
 
   onResponse(var seq, Map response) {
+    if (seq == null) {
+      // Ignore push events.
+      return;
+    }
     if (seq == 'cli') {
       // Verify response is correct for 'cli' sequence id.
       Expect.equals('ClientList', response['type']);
