@@ -451,8 +451,11 @@ final String boilerplate = r"""
 
   if (#) { // outputContainsConstantList
     function makeConstList(list) {
-      list.immutable$list = 1;
-      list.fixed$length = 1;
+      // By assigning a function to the properties they become part of the
+      // hidden class. The actual values of the fields don't matter, since we
+      // only check if they exist.
+      list.immutable$list = Array;
+      list.fixed$length = Array;
       return list;
     }
   }
