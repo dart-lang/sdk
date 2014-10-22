@@ -21,6 +21,9 @@ LayoutTests/fast/text/line-breaks-after-hyphen-before-number_t01: Skip # co19 is
 [ $compiler == none && $runtime == drt ]
 *: Skip # running co19 tests on content_shell would make our dartium cycle-times very long
 
+[ $compiler == none && $runtime == dartium && $system == macos ]
+LayoutTests/fast/writing-mode/broken-ideographic-font_t01: Skip # Timing out on the bots
+
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 LayoutTests/fast/canvas/canvas-lineDash-input-sequence_t01: Skip # Issue 20867
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: Skip # Issue 20540
