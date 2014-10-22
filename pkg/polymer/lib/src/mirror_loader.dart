@@ -65,22 +65,29 @@ List<Function> discoverInitializers(Iterable<String> librariesToLoad) {
 /// called after all HTML imports are resolved. Polymer ensures this by asking
 /// users to put their Dart script tags after all HTML imports (this is checked
 /// by the linter, and Dartium will otherwise show an error message).
-List<_ScriptInfo> _discoverScripts(Document doc, String baseUri, [_State state]) {
+Iterable<_ScriptInfo> _discoverScripts(
+    Document doc, String baseUri, [_State state]) {
   if (state == null) state = new _State();
   if (doc == null) {
     print('warning: $baseUri not found.');
-    return state.scripts;
+    return state.scripts.values;
   }
-  if (!state.seen.add(doc)) return state.scripts;
+  if (!state.seen.add(doc)) return state.scripts.values;
 
   for (var node in doc.querySelectorAll('script,link[rel="import"]')) {
     if (node is LinkElement) {
       _discoverScripts(node.import, node.href, state);
     } else if (node is ScriptElement && node.type == 'application/dart') {
-      state.scripts.add(_scriptInfoFor(node, baseUri));
+      var info = _scriptInfoFor(node, baseUri);
+      if (state.scripts.containsKey(info.resolvedUrl)) {
+        print('warning: Script `${info.resolvedUrl}` included more than once. '
+            'See http://goo.gl/5HPeuP#polymer_44 for more details.');
+      } else {
+        state.scripts[info.resolvedUrl] = info;
+      }
     }
   }
-  return state.scripts;
+  return state.scripts.values;
 }
 
 /// Internal state used in [_discoverScripts].
@@ -89,7 +96,7 @@ class _State {
   final Set<Document> seen = new Set();
 
   /// Scripts that have been discovered, in tree order.
-  final List<_ScriptInfo> scripts = [];
+  final LinkedHashMap<String, _ScriptInfo> scripts = {};
 }
 
 /// Holds information about a Dart script tag.

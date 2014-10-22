@@ -491,10 +491,39 @@ places you probably want to override this behavior to prevent duplicate code.
 To do this, use the following pattern to update your pubspec.yaml:</p>
 <pre><code>transformers:
 - polymer:
-  inline_stylesheets:
-    web/my_file.css: false
+    inline_stylesheets:
+      web/my_file.css: false
 </code></pre>
 <p>If you would like to hide this warning and keep it inlined, do the same thing
 but assign the value to true.</p>
+</div><hr />
+
+<div id="polymer_43"><h3>"dart_support.js" not necessary <a href="#polymer_43">#43</a></h3>
+<p>The script <code>packages/web_components/dart_support.js</code> is still used, but you no
+longer need to put it in your application's entrypoint.</p>
+<p>In the past this file served two purposes:</p><ul><li>to make dart2js work well with the platform polyfills, and</li><li>to support registering Dart APIs for JavaScript custom elements.</li></ul>
+<p>Now, the code from <code>dart_support.js</code> is split in two halves. The half for
+dart2js is now injected by the polymer transformers automatically during <code>pub
+build</code>. The <code>web_components</code> package provides an HTML file containing the other
+half.  Developers of packages that wrap JavaScript custom elements (like
+<code>core_elements</code> and <code>paper_elements</code>) will import that file directly, so
+application developers don't have to worry about it anymore.</p>
+</div><hr />
+
+<div id="polymer_44"><h3>A dart script file was included more than once. <a href="#polymer_44">#44</a></h3>
+<p>Duplicate dart scripts often happen if you have multiple html imports that
+include the same script. The simplest workaround for this is to move your dart
+script to its own html file, and import that instead of the script (html imports
+are automatically deduped).</p>
+<p>For example:</p>
+<pre><code>&lt;script type="application/dart" src="foo.dart"&gt;&lt;/script&gt;
+</code></pre>
+<p>Should turn into:</p>
+<pre><code>&lt;link rel="import" href="foo.html"&gt;
+</code></pre>
+<p>And <code>foo.html</code> should look like:</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;script type="application/dart" src="foo.dart"&gt;&lt;/script&gt;
+</code></pre>
 </div><hr /></body>
 </html>

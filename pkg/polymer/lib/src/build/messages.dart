@@ -580,3 +580,26 @@ half.  Developers of packages that wrap JavaScript custom elements (like
 application developers don't have to worry about it anymore.
 '''
 );
+
+const SCRIPT_INCLUDED_MORE_THAN_ONCE = const MessageTemplate(
+    const MessageId('polymer', 44),
+    'The `%-url-%` script was included more than once.',
+    'Dart script file included more than once.',
+    '''
+Duplicate dart scripts often happen if you have multiple html imports that
+include the same script. The simplest workaround for this is to move your dart
+script to its own html file, and import that instead of the script (html imports
+are automatically deduped).
+
+For example:
+
+    <script type="application/dart" src="foo.dart"></script>
+
+Should turn into:
+
+    <link rel="import" href="foo.html">
+
+And `foo.html` should look like:
+
+    <script type="application/dart" src="foo.dart"></script>
+''');

@@ -7,6 +7,7 @@ library polymer.src.build.import_inliner;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:collection' show LinkedHashSet;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -30,7 +31,7 @@ class _HtmlInliner extends PolymerTransformer {
   final BuildLogger logger;
   final AssetId docId;
   final seen = new Set<AssetId>();
-  final scriptIds = <AssetId>[];
+  final scriptIds = new LinkedHashSet<AssetId>();
   final inlinedStylesheetIds = new Set<AssetId>();
   final extractedFiles = new Set<AssetId>();
   bool experimentalBootstrap = false;
@@ -94,7 +95,7 @@ class _HtmlInliner extends PolymerTransformer {
           docId.addExtension('._data'),
           JSON.encode({
             'experimental_bootstrap': experimentalBootstrap,
-            'script_ids': scriptIds,
+            'script_ids': scriptIds.toList(),
           }, toEncodable: (id) => id.serialize())));
 
       // Write out the logs collected by our [BuildLogger].
@@ -240,6 +241,13 @@ class _HtmlInliner extends PolymerTransformer {
         script.remove();
         var src = script.attributes['src'];
         var srcId = uriToAssetId(docId, src, logger, script.sourceSpan);
+
+        // No duplicates allowed!
+        if (scriptIds.contains(srcId)) {
+          logger.warning(SCRIPT_INCLUDED_MORE_THAN_ONCE.create({'url': src}),
+              span: script.sourceSpan);
+          return true;
+        }
 
         // We check for extractedFiles because 'hasInput' below is only true for
         // assets that existed before this transformer runs (hasInput is false
