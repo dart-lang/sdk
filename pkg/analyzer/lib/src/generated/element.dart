@@ -5134,9 +5134,18 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
   /**
    * Initialize a newly created type alias element to have the given name.
    *
+   * [name] the name of this element
+   * [nameOffset] the offset of the name of this element in the file that
+   *    contains the declaration of this element
+   */
+  FunctionTypeAliasElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  /**
+   * Initialize a newly created type alias element to have the given name.
+   *
    * @param name the name of this element
    */
-  FunctionTypeAliasElementImpl(Identifier name) : super.forNode(name);
+  FunctionTypeAliasElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFunctionTypeAliasElement(this);

@@ -132,7 +132,7 @@ class AnalysisContextFactory {
     futureElement.constructors = <ConstructorElement> [futureConstructor];
     //   Future then(onValue(T value), { Function onError });
     List<ParameterElement> parameters = <ParameterElement> [ElementFactory.requiredParameter2("value", futureElement.typeParameters[0].type)];
-    FunctionTypeAliasElementImpl aliasElement = new FunctionTypeAliasElementImpl(null);
+    FunctionTypeAliasElementImpl aliasElement = new FunctionTypeAliasElementImpl.forNode(null);
     aliasElement.synthetic = true;
     aliasElement.shareParameters(parameters);
     aliasElement.returnType = provider.dynamicType;
@@ -6414,7 +6414,7 @@ class ScopeBuilderTest extends EngineTestCase {
     FunctionTypeAlias aliasNode = AstFactory.typeAlias(AstFactory.typeName4("A", []), "F", AstFactory.typeParameterList([]), AstFactory.formalParameterList([]));
     unit.declarations.add(aliasNode);
     SimpleIdentifier aliasName = aliasNode.name;
-    FunctionTypeAliasElement aliasElement = new FunctionTypeAliasElementImpl(aliasName);
+    FunctionTypeAliasElement aliasElement = new FunctionTypeAliasElementImpl.forNode(aliasName);
     aliasName.staticElement = aliasElement;
     (unit.element as CompilationUnitElementImpl).typeAliases = <FunctionTypeAliasElement> [aliasElement];
     return aliasNode;
@@ -8446,6 +8446,82 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   }
 }
 
+
+/**
+ * Like [StaticTypeAnalyzerTest], but as end-to-end tests.
+ */
+class StaticTypeAnalyzer2Test extends ResolverTestCase {
+  String testCode;
+  Source testSource;
+  CompilationUnit testUnit;
+
+  void test_MethodInvocation_nameType_localVariable() {
+    String code = r"""
+typedef Foo();
+main() {
+  Foo foo;
+  foo();
+}
+""";
+    _resolveTestUnit(code);
+    // "foo" should be resolved to the "Foo" type
+    SimpleIdentifier identifier = _findIdentifier("foo();");
+    DartType type = identifier.staticType;
+    _ut.expect(type, new _ut.isInstanceOf<FunctionType>());
+  }
+
+  void test_MethodInvocation_nameType_parameter_FunctionTypeAlias() {
+    String code = r"""
+typedef Foo();
+main(Foo foo) {
+  foo();
+}
+""";
+    _resolveTestUnit(code);
+    // "foo" should be resolved to the "Foo" type
+    SimpleIdentifier identifier = _findIdentifier("foo();");
+    DartType type = identifier.staticType;
+    _ut.expect(type, new _ut.isInstanceOf<FunctionType>());
+  }
+
+  void test_MethodInvocation_nameType_parameter_propagatedType() {
+    String code = r"""
+typedef Foo();
+main(p) {
+  if (p is Foo) {
+    p();
+  }
+}
+""";
+    _resolveTestUnit(code);
+    SimpleIdentifier identifier = _findIdentifier("p()");
+    _ut.expect(identifier.staticType, DynamicTypeImpl.instance);
+    {
+      FunctionType type = identifier.propagatedType;
+      _ut.expect(type, _ut.isNotNull);
+      _ut.expect(type.name, 'Foo');
+    }
+  }
+
+  SimpleIdentifier _findIdentifier(String search) {
+    SimpleIdentifier identifier = EngineTestCase.findNode(
+        testUnit,
+        testCode,
+        search,
+        (node) => node is SimpleIdentifier);
+    return identifier;
+  }
+
+  void _resolveTestUnit(String code) {
+    testCode = code;
+    testSource = addSource(testCode);
+    LibraryElement library = resolve(testSource);
+    assertNoErrors(testSource);
+    verify([testSource]);
+    testUnit = resolveCompilationUnit(testSource, library);
+  }
+}
+
 /**
  * Instances of the class `StaticTypeVerifier` verify that all of the nodes in an AST
  * structure that should have a static type associated with them do have a static type.
@@ -9397,6 +9473,7 @@ class TypeOverrideManagerTest extends EngineTestCase {
     JUnitTestCase.assertNull(manager.getType(ElementFactory.localVariableElement2("v")));
   }
 }
+
 
 class TypePropagationTest extends ResolverTestCase {
   void fail_mergePropagatedTypesAtJoinPoint_1() {
@@ -11073,6 +11150,7 @@ main() {
   runReflectiveTests(LibraryResolverTest);
   runReflectiveTests(LibraryTest);
   runReflectiveTests(StaticTypeAnalyzerTest);
+  runReflectiveTests(StaticTypeAnalyzer2Test);
   runReflectiveTests(SubtypeManagerTest);
   runReflectiveTests(TypeOverrideManagerTest);
   runReflectiveTests(TypeProviderImplTest);
