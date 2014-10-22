@@ -1,3 +1,7 @@
+#### 0.15.1+2
+  * Handle and warn about cases where a script file is included twice from the
+    same entrypoint [21332](http://dartbug.com/21332).
+
 #### 0.15.1+1
   * Fix typo in error message polymer#42
 
