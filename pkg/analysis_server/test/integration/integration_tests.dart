@@ -52,12 +52,6 @@ abstract class AbstractAnalysisServerIntegrationTest extends
   bool skipShutdown = false;
 
   /**
-   * Data associated with the "server.connected" notification that was received
-   * when the server started up.
-   */
-  var serverConnectedParams;
-
-  /**
    * True if we are currently subscribed to [SERVER_STATUS] updates.
    */
   bool _subscribedToServerStatus = false;
@@ -156,8 +150,8 @@ abstract class AbstractAnalysisServerIntegrationTest extends
       expect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
-    return server.start(dispatchNotification).then((params) {
-      serverConnectedParams = params;
+    return server.start().then((_) {
+      server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;
       });
@@ -688,14 +682,11 @@ class Server {
    * Start the server.  If [debugServer] is true, the server will be started
    * with "--debug", allowing a debugger to be attached.
    */
-  Future start(NotificationProcessor notificationProcessor, {bool debugServer:
-      false}) {
+  Future start({bool debugServer: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
     }
     _time.start();
-    // TODO(paulberry): move the logic for finding the script, the dart
-    // executable, and the package root into a shell script.
     String dartBinary = Platform.executable;
     String rootDir =
         findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
@@ -711,64 +702,71 @@ class Server {
     arguments.add(serverPath);
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
-      process.stdout.transform(
-          (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
-        String trimmedLine = line.trim();
-        _recordStdio('RECV: $trimmedLine');
-        var message;
-        try {
-          message = JSON.decoder.convert(trimmedLine);
-        } catch (exception) {
-          _badDataFromServer();
-          return;
-        }
-        expect(message, isMap);
-        Map messageAsMap = message;
-        if (messageAsMap.containsKey('id')) {
-          expect(messageAsMap['id'], isString);
-          String id = message['id'];
-          Completer completer = _pendingCommands[id];
-          if (completer == null) {
-            fail('Unexpected response from server: id=$id');
-          } else {
-            _pendingCommands.remove(id);
-          }
-          if (messageAsMap.containsKey('error')) {
-            // TODO(paulberry): propagate the error info to the completer.
-            completer.completeError(
-                new UnimplementedError(
-                    'Server responded with an error: ${JSON.encode(message)}'));
-          } else {
-            completer.complete(messageAsMap['result']);
-          }
-          // Check that the message is well-formed.  We do this after calling
-          // completer.complete() or completer.completeError() so that we don't
-          // stall the test in the event of an error.
-          expect(message, isResponse);
-        } else {
-          // Message is a notification.  It should have an event and possibly
-          // params.
-          expect(messageAsMap, contains('event'));
-          expect(messageAsMap['event'], isString);
-          notificationProcessor(messageAsMap['event'], messageAsMap['params']);
-          // Check that the message is well-formed.  We do this after calling
-          // notificationController.add() so that we don't stall the test in the
-          // event of an error.
-          expect(message, isNotification);
-        }
-      });
-      process.stderr.transform(
-          (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
-        String trimmedLine = line.trim();
-        _recordStdio('ERR:  $trimmedLine');
-        _badDataFromServer();
-      });
       process.exitCode.then((int code) {
         _recordStdio('TERMINATED WITH EXIT CODE $code');
         if (code != 0) {
           _badDataFromServer();
         }
       });
+    });
+  }
+
+  /**
+   * Start listening to output from the server, and deliver notifications to
+   * [notificationProcessor].
+   */
+  void listenToOutput(NotificationProcessor notificationProcessor) {
+    _process.stdout.transform(
+        (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
+      String trimmedLine = line.trim();
+      _recordStdio('RECV: $trimmedLine');
+      var message;
+      try {
+        message = JSON.decoder.convert(trimmedLine);
+      } catch (exception) {
+        _badDataFromServer();
+        return;
+      }
+      expect(message, isMap);
+      Map messageAsMap = message;
+      if (messageAsMap.containsKey('id')) {
+        expect(messageAsMap['id'], isString);
+        String id = message['id'];
+        Completer completer = _pendingCommands[id];
+        if (completer == null) {
+          fail('Unexpected response from server: id=$id');
+        } else {
+          _pendingCommands.remove(id);
+        }
+        if (messageAsMap.containsKey('error')) {
+          // TODO(paulberry): propagate the error info to the completer.
+          completer.completeError(
+              new UnimplementedError(
+                  'Server responded with an error: ${JSON.encode(message)}'));
+        } else {
+          completer.complete(messageAsMap['result']);
+        }
+        // Check that the message is well-formed.  We do this after calling
+        // completer.complete() or completer.completeError() so that we don't
+        // stall the test in the event of an error.
+        expect(message, isResponse);
+      } else {
+        // Message is a notification.  It should have an event and possibly
+        // params.
+        expect(messageAsMap, contains('event'));
+        expect(messageAsMap['event'], isString);
+        notificationProcessor(messageAsMap['event'], messageAsMap['params']);
+        // Check that the message is well-formed.  We do this after calling
+        // notificationController.add() so that we don't stall the test in the
+        // event of an error.
+        expect(message, isNotification);
+      }
+    });
+    _process.stderr.transform(
+        (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
+      String trimmedLine = line.trim();
+      _recordStdio('ERR:  $trimmedLine');
+      _badDataFromServer();
     });
   }
 
@@ -824,6 +822,14 @@ class Server {
     for (String line in _recordedStdio) {
       print(line);
     }
+  }
+
+  /**
+   * Return a future that will complete when all commands that have been sent
+   * to the server so far have been flushed to the OS buffer.
+   */
+  Future flushCommands() {
+    return _process.stdin.flush();
   }
 
   /**

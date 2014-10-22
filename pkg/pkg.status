@@ -19,6 +19,7 @@ scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
+analysis_server/test/integration/asynchrony_test: Skip # Issue 21252
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
