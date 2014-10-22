@@ -200,7 +200,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
     }
     exec_pages_tail_ = page;
   }
-  usage_.capacity_in_words += kPageSizeInWords;
+  IncreaseCapacityInWordsLocked(kPageSizeInWords);
   page->set_object_end(page->memory_->end());
   return page;
 }
@@ -211,7 +211,7 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
   HeapPage* page = HeapPage::Allocate(page_size_in_words, type);
   page->set_next(large_pages_);
   large_pages_ = page;
-  usage_.capacity_in_words += page_size_in_words;
+  IncreaseCapacityInWords(page_size_in_words);
   // Only one object in this page (at least until String::MakeExternal or
   // Array::MakeArray is called).
   page->set_object_end(page->object_start() + size);
@@ -230,8 +230,7 @@ void PageSpace::TruncateLargePage(HeapPage* page,
   const intptr_t old_page_size_in_words = (memory->size() >> kWordSizeLog2);
   if (new_page_size_in_words < old_page_size_in_words) {
     memory->Truncate(new_page_size_in_words << kWordSizeLog2);
-    usage_.capacity_in_words -= old_page_size_in_words;
-    usage_.capacity_in_words += new_page_size_in_words;
+    IncreaseCapacityInWords(new_page_size_in_words - old_page_size_in_words);
     page->set_object_end(page->object_start() + new_object_size_in_bytes);
   }
 }
@@ -241,7 +240,7 @@ void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
   bool is_exec = (page->type() == HeapPage::kExecutable);
   {
     MutexLocker ml(pages_lock_);
-    usage_.capacity_in_words -= (page->memory_->size() >> kWordSizeLog2);
+    IncreaseCapacityInWordsLocked(-(page->memory_->size() >> kWordSizeLog2));
     if (!is_exec) {
       // Remove the page from the list of data pages.
       if (previous_page != NULL) {
@@ -270,7 +269,7 @@ void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
 
 
 void PageSpace::FreeLargePage(HeapPage* page, HeapPage* previous_page) {
-  usage_.capacity_in_words -= (page->memory_->size() >> kWordSizeLog2);
+  IncreaseCapacityInWords(-(page->memory_->size() >> kWordSizeLog2));
   // Remove the page from the list.
   if (previous_page != NULL) {
     previous_page->set_next(page->next());
@@ -297,7 +296,7 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
                                         bool is_locked) {
   ASSERT(size < kAllocatablePageSize);
   uword result = 0;
-  SpaceUsage after_allocation = usage_;
+  SpaceUsage after_allocation = GetCurrentUsage();
   after_allocation.used_in_words += size >> kWordSizeLog2;
   // Can we grow by one page?
   after_allocation.capacity_in_words += kPageSizeInWords;
@@ -308,7 +307,8 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
     ASSERT(page != NULL);
     // Start of the newly allocated page is the allocated object.
     result = page->object_start();
-    usage_ = after_allocation;
+    // Note: usage_.capacity_in_words is increased by AllocatePage.
+    usage_.used_in_words += size >> kWordSizeLog2;
     // Enqueue the remainder in the free list.
     uword free_start = result + size;
     intptr_t free_size = page->object_end() - free_start;
@@ -332,7 +332,7 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 #ifdef DEBUG
-  SpaceUsage usage_before = usage_;
+  SpaceUsage usage_before = GetCurrentUsage();
 #endif
   uword result = 0;
   if (size < kAllocatablePageSize) {
@@ -354,7 +354,7 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       // On overflow we fail to allocate.
       return 0;
     }
-    SpaceUsage after_allocation = usage_;
+    SpaceUsage after_allocation = GetCurrentUsage();
     after_allocation.used_in_words += size >> kWordSizeLog2;
     after_allocation.capacity_in_words += page_size_in_words;
     if ((growth_policy == kForceGrowth ||
@@ -363,7 +363,8 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       HeapPage* page = AllocateLargePage(size, type);
       if (page != NULL) {
         result = page->object_start();
-        usage_ = after_allocation;
+        // Note: usage_.capacity_in_words is increased by AllocateLargePage.
+        usage_.used_in_words += size >> kWordSizeLog2;
       }
     }
   }
@@ -377,9 +378,8 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
     }
   } else {
 #ifdef DEBUG
-    // A failed allocation should not change usage_.
+    // A failed allocation should not change used_in_words.
     ASSERT(usage_before.used_in_words == usage_.used_in_words);
-    ASSERT(usage_before.capacity_in_words == usage_.capacity_in_words);
 #endif
   }
   ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
@@ -669,7 +669,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   WriteProtectCode(false);
 
   // Save old value before GCMarker visits the weak persistent handles.
-  SpaceUsage usage_before = usage_;
+  SpaceUsage usage_before = GetCurrentUsage();
 
   // Mark all reachable old-gen objects.
   bool collect_code = FLAG_collect_code && ShouldCollectCode();
@@ -770,7 +770,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   int64_t end = OS::GetCurrentTimeMicros();
 
   // Record signals for growth control. Include size of external allocations.
-  page_space_controller_.EvaluateGarbageCollection(usage_before, usage_,
+  page_space_controller_.EvaluateGarbageCollection(usage_before,
+                                                   GetCurrentUsage(),
                                                    start, end);
 
   heap_->RecordTime(kMarkObjects, mid1 - start);
