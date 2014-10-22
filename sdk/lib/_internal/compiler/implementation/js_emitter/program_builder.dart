@@ -79,7 +79,14 @@ class ProgramBuilder {
         c.setSuperclass(_classes[element.superclass]);
       }
     });
+
+    _markEagerClasses();
+
     return result;
+  }
+
+  void _markEagerClasses() {
+    _markEagerInterceptorClasses();
   }
 
   /// Builds a map from loadId to outputs-to-load.
@@ -265,6 +272,20 @@ class ProgramBuilder {
   Method _buildMethod(FunctionElement element, js.Expression code) {
     String name = namer.getNameOfInstanceMember(element);
     return new Method(name, code);
+  }
+
+  // The getInterceptor methods directly access the prototype of classes.
+  // We must evaluate these classes eagerly so that the prototype is
+  // accessible.
+  void _markEagerInterceptorClasses() {
+    Map<String, Set<ClassElement>> specializedGetInterceptors =
+        backend.specializedGetInterceptors;
+    for (Set<ClassElement> classes in specializedGetInterceptors.values) {
+      for (ClassElement element in classes) {
+        Class cls = _classes[element];
+        if (cls != null) cls.isEager = true;
+      }
+    }
   }
 
   Iterable<StaticMethod> _generateGetInterceptorMethods() {

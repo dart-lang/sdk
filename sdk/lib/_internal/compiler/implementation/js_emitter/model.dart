@@ -112,6 +112,7 @@ class Library {
   final String uri;
   final List<StaticMethod> statics;
   final List<Class> classes;
+
   Library(this.uri, this.statics, this.classes);
 }
 
@@ -135,7 +136,11 @@ class Class {
   final List<Method> methods;
   final List<InstanceField> fields;
 
-  Class(this.name, this.holder, this.methods, this.fields);
+  /// Whether the class must be evaluated eagerly.
+  bool isEager = false;
+
+  Class(this.name, this.holder, this.methods, this.fields,
+        { this.isEager: false });
 
   void setSuperclass(Class superclass) {
     this.superclass = superclass;

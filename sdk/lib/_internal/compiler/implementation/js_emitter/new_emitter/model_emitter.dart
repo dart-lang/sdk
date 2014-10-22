@@ -85,6 +85,7 @@ class ModelEmitter {
          emitEmbeddedGlobals(program.loadMap),
          emitConstants(unit.constants),
          emitStaticNonFinalFields(unit.staticNonFinalFields),
+         emitEagerClassInitializations(unit.libraries),
          unit.main,
          code]);
   }
@@ -190,6 +191,7 @@ class ModelEmitter {
   }
 
   js.Expression emitDeferredUnit(DeferredOutput unit, List<Holder> holders) {
+    // TODO(floitsch): initialize eager classes.
     // TODO(floitsch): the hash must depend on the output.
     int hash = this.hashCode;
     if (unit.constants.isNotEmpty) {
@@ -225,6 +227,19 @@ class ModelEmitter {
           js.number(field.holder.index),
           emitLazyInitializer(field) ]);
     return new js.ArrayInitializer.from(fieldDescriptors);
+  }
+
+  js.Block emitEagerClassInitializations(List<Library> libraries) {
+    js.Statement createInstantiation(Class cls) {
+      return js.js.statement('new #.#()', [cls.holder.name, cls.name]);
+    }
+
+    List<js.Statement> instantiations =
+        libraries.expand((Library library) => library.classes)
+                 .where((Class cls) => cls.isEager)
+                 .map(createInstantiation)
+                 .toList(growable: false);
+    return new js.Block(instantiations);
   }
 
   js.Expression emitLibrary(Library library) {
@@ -469,6 +484,9 @@ final String boilerplate = r"""
   #;
 
   // Initialize static non-final fields.
+  #;
+
+  // Initialize eager classes.
   #;
 
   var end = Date.now();
