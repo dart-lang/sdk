@@ -645,6 +645,10 @@ abstract class Compiler implements DiagnosticListener {
       new ResolutionRegistry.internal(null, new TreeElementMapping(null));
 
   final bool enableMinification;
+
+  /// When `true` emits URIs in the reflection metadata.
+  final bool preserveUris;
+
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
   final bool trustTypeAnnotations;
@@ -934,6 +938,7 @@ abstract class Compiler implements DiagnosticListener {
             bool disableTypeInferenceFlag: false,
             this.maxConcreteTypeSize: 5,
             this.enableMinification: false,
+            this.preserveUris: false,
             this.enableNativeLiveTypeAnalysis: false,
             bool emitJavaScript: true,
             bool dart2dartMultiFile: false,

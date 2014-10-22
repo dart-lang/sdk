@@ -206,7 +206,12 @@ testLibraryUri(var value, bool check(Uri)) {
   var valueMirror = reflect(value);
   ClassMirror valueClass = valueMirror.type;
   LibraryMirror valueLibrary = valueClass.owner;
-  expect(check(valueLibrary.uri), isTrue);
+  Uri uri = valueLibrary.uri;
+  if (uri.scheme != "https" ||
+      uri.host != "dartlang.org" ||
+      uri.path != "/dart2js-stripped-uri") {
+    expect(check(uri), isTrue);
+  }
 }
 
 main() {

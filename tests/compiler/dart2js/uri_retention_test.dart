@@ -12,21 +12,30 @@ import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart' show
     compilerFor;
 
-Future<String> compileSources(sources, {bool minify}) {
-  var compiler = compilerFor(sources, options: minify ? ['--minify'] : []);
+Future<String> compileSources(sources, {bool minify, bool preserveUri}) {
+  var options = [];
+  if (minify) options.add("--minify");
+  if (preserveUri) options.add("--preserve-uris");
+  var compiler = compilerFor(sources, options: options);
   return compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
     return compiler.assembledCode;
   });
 }
 
 Future test(sources, { bool libName, bool fileName }) {
-  return compileSources(sources, minify: false).then((output) {
+  return
+      compileSources(sources, minify: false, preserveUri: false).then((output) {
     // Unminified the sources should always contain the library name and the
     // file name.
     Expect.isTrue(output.contains("main_lib"));
     Expect.isTrue(output.contains("main.dart"));
   }).then((_) {
-    compileSources(sources, minify: true).then((output) {
+    compileSources(sources, minify: true, preserveUri: false).then((output) {
+      Expect.equals(libName, output.contains("main_lib"));
+      Expect.isFalse(output.contains("main.dart"));
+    });
+  }).then((_) {
+    compileSources(sources, minify: true, preserveUri: true).then((output) {
       Expect.equals(libName, output.contains("main_lib"));
       Expect.equals(fileName, output.contains("main.dart"));
     });
