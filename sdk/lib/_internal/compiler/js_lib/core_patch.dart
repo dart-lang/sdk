@@ -6,7 +6,7 @@
 import "dart:_internal" as _symbol_dev;
 import 'dart:_interceptors';
 import 'dart:_js_helper' show patch,
-                              checkNull,
+                              checkInt,
                               getRuntimeType,
                               JSSyntaxRegExp,
                               Primitives,
@@ -156,19 +156,16 @@ class DateTime {
                      int second,
                      int millisecond,
                      bool isUtc)
-      : this.isUtc = checkNull(isUtc),
-        millisecondsSinceEpoch = Primitives.valueFromDecomposedDate(
-            year, month, day, hour, minute, second, millisecond, isUtc) {
-    if (millisecondsSinceEpoch == null) throw new ArgumentError();
-    Primitives.lazyAsJsDate(this);
-  }
+        // checkBool is manually inlined here because dart2js doesn't inline it
+        // and [isUtc] is usually a constant.
+      : this.isUtc = isUtc is bool ? isUtc : throw new ArgumentError(isUtc),
+        millisecondsSinceEpoch = checkInt(Primitives.valueFromDecomposedDate(
+            year, month, day, hour, minute, second, millisecond, isUtc));
 
   @patch
   DateTime._now()
       : isUtc = false,
-        millisecondsSinceEpoch = Primitives.dateNow() {
-    Primitives.lazyAsJsDate(this);
-  }
+        millisecondsSinceEpoch = Primitives.dateNow();
 
   @patch
   static int _brokenDownDateToMillisecondsSinceEpoch(
