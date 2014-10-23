@@ -7164,7 +7164,8 @@ class DeclaredVariablesTest extends EngineTestCase {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables = new DeclaredVariables();
-    _assertUnknownDartObject(variables.getBool(typeProvider, variableName));
+    _assertUnknownDartObject(typeProvider.boolType,
+        variables.getBool(typeProvider, variableName));
   }
 
   void test_getInt_invalid() {
@@ -7181,7 +7182,8 @@ class DeclaredVariablesTest extends EngineTestCase {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables = new DeclaredVariables();
-    _assertUnknownDartObject(variables.getInt(typeProvider, variableName));
+    _assertUnknownDartObject(typeProvider.intType,
+        variables.getInt(typeProvider, variableName));
   }
 
   void test_getInt_valid() {
@@ -7209,15 +7211,18 @@ class DeclaredVariablesTest extends EngineTestCase {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables = new DeclaredVariables();
-    _assertUnknownDartObject(variables.getString(typeProvider, variableName));
+    _assertUnknownDartObject(typeProvider.stringType,
+        variables.getString(typeProvider, variableName));
   }
 
   void _assertNullDartObject(TestTypeProvider typeProvider, DartObject result) {
     JUnitTestCase.assertEquals(typeProvider.nullType, result.type);
   }
 
-  void _assertUnknownDartObject(DartObject result) {
+  void _assertUnknownDartObject(ParameterizedType expectedType,
+                                DartObject result) {
     JUnitTestCase.assertTrue((result as DartObjectImpl).isUnknown);
+    JUnitTestCase.assertEquals(expectedType, result.type);
   }
 }
 

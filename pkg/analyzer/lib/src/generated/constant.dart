@@ -2425,7 +2425,8 @@ class DeclaredVariables {
   DartObject getString(TypeProvider typeProvider, String variableName) {
     String value = _declaredVariables[variableName];
     if (value == null) {
-      return new DartObjectImpl(typeProvider.intType, IntState.UNKNOWN_VALUE);
+      return new DartObjectImpl(typeProvider.stringType,
+          StringState.UNKNOWN_VALUE);
     }
     return new DartObjectImpl(typeProvider.stringType, new StringState(value));
   }

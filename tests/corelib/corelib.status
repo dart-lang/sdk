@@ -146,6 +146,41 @@ int_parse_radix_test: Fail, OK # Test contains errors but doesn’t mark them as
 list_insert_test: Fail, OK # Test contains errors but doesn’t mark them as expected
 list_removeat_test: Fail, OK # Test contains errors but doesn’t mark them as expected
 
+# Issue 16391. These tests are supposed to produce a compile time
+# error in checked mode, but they don't:
+[ $compiler == dartanalyzer && $checked ]
+from_environment_const_type_test/02: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/03: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/04: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/06: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/07: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/08: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/09: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/11: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/12: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/13: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/14: MissingCompileTimeError # Issue 16391
+from_environment_const_type_test/16: MissingCompileTimeError # Issue 16391
+from_environment_const_type_undefined_test/02: MissingCompileTimeError # Issue 16391
+from_environment_const_type_undefined_test/03: MissingCompileTimeError # Issue 16391
+from_environment_const_type_undefined_test/04: MissingCompileTimeError # Issue 16391
+from_environment_const_type_undefined_test/06: MissingCompileTimeError # Issue 16391
+from_environment_const_type_undefined_test/07: MissingCompileTimeError # Issue 16391
+from_environment_const_type_undefined_test/08: MissingCompileTimeError # Issue 16391
+
+# Analyzer's implementation of fromEnvironment assumes that undefined
+# environment variables have an unspecified value (rather than being
+# null) because it is expected that the user will supply a value when
+# the code is run.  This means that it produces slightly different
+# error messages than the VM and Dart2js.
+[ $compiler == dart2analyzer && $checked ]
+from_environment_const_type_undefined_test/09: CompileTimeError
+from_environment_const_type_undefined_test/11: CompileTimeError
+from_environment_const_type_undefined_test/12: CompileTimeError
+from_environment_const_type_undefined_test/13: CompileTimeError
+from_environment_const_type_undefined_test/14: CompileTimeError
+from_environment_const_type_undefined_test/16: CompileTimeError
+
 [ $compiler == dart2analyzer ]
 int_parse_radix_test: fail
 list_insert_test: fail
