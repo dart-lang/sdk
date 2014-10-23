@@ -685,7 +685,7 @@ class Server {
    * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
   Future start(NotificationProcessor notificationProcessor, {bool debugServer:
-      false, bool profileServer: true}) {
+      false, bool profileServer: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
     }
