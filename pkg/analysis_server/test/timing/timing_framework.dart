@@ -90,8 +90,8 @@ abstract class TimingTest extends IntegrationTestMixin {
       serverConnected.complete();
     });
     skipShutdown = true;
-    return server.start(dispatchNotification, profileServer: true).then((params) {
-server.listenToOutput(dispatchNotification);
+    return server.start(profileServer: true).then((params) {
+      server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;
       });

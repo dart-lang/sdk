@@ -150,7 +150,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends
       expect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
-    return server.start(null).then((_) {
+    return server.start().then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;
@@ -684,8 +684,7 @@ class Server {
    * `true`, the server will be started with "--observe" and
    * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
-  Future start(NotificationProcessor notificationProcessor, {bool debugServer:
-      false, bool profileServer: false}) {
+  Future start({bool debugServer: false, bool profileServer: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
     }
