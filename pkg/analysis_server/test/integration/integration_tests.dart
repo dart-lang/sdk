@@ -150,7 +150,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends
       expect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
-    return server.start().then((_) {
+    return server.start(null).then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;
@@ -679,10 +679,13 @@ class Server {
   }
 
   /**
-   * Start the server.  If [debugServer] is true, the server will be started
-   * with "--debug", allowing a debugger to be attached.
+   * Start the server.  If [debugServer] is `true`, the server will be started
+   * with "--debug", allowing a debugger to be attached. If [profileServer] is
+   * `true`, the server will be started with "--observe" and
+   * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
-  Future start({bool debugServer: false}) {
+  Future start(NotificationProcessor notificationProcessor, {bool debugServer:
+      false, bool profileServer: true}) {
     if (_process != null) {
       throw new Exception('Process already started');
     }
@@ -694,6 +697,10 @@ class Server {
     List<String> arguments = [];
     if (debugServer) {
       arguments.add('--debug');
+    }
+    if (profileServer) {
+      arguments.add('--observe');
+      arguments.add('--pause-isolates-on-exit');
     }
     if (Platform.packageRoot.isNotEmpty) {
       arguments.add('--package-root=${Platform.packageRoot}');

@@ -5,6 +5,7 @@
 library test.timing.simple;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:path/path.dart';
@@ -22,6 +23,9 @@ void main(List<String> args) {
     print('averageTime = ${result.averageTime}');
     print('maxTime = ${result.maxTime}');
     print('standardDeviation = ${result.standardDeviation}');
+    print('');
+    print('Press return to exit');
+    return stdin.first;
   });
 }
 
