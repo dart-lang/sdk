@@ -17,8 +17,11 @@ hamcrest - in third_party/hamcrest
 Httplib2 - in samples/third_party/httplib2
 JSON - in third_party/json
 JUnit - in third_party/junit
+NSS - in third_party/nss and third_party/net_nss
 Oauth - in samples/third_party/oauth2client
+SQLite - in third_party/sqlite
 weberknecht - in third_party/weberknecht
+zlib - in third_party/zlib
 fest - in third_party/fest
 mockito - in third_party/mockito
 
