@@ -40,6 +40,28 @@ class DartUnitNavigationComputer {
     _regions.add(new protocol.NavigationRegion(offset, length, [target]));
   }
 
+  void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
+    int offset = a.offset;
+    int length = b.end - offset;
+    _addRegion(offset, length, element);
+  }
+
+  void _addRegion_nodeStart_nodeStart(AstNode a, AstNode b, Element element,
+      {bool excludeLastChar: false}) {
+    int offset = a.offset;
+    int length = b.offset - offset;
+    if (excludeLastChar) {
+      length--;
+    }
+    _addRegion(offset, length, element);
+  }
+
+  void _addRegion_tokenStart_nodeEnd(Token a, AstNode b, Element element) {
+    int offset = a.offset;
+    int length = b.end - offset;
+    _addRegion(offset, length, element);
+  }
+
   void _addRegionForNode(AstNode node, Element element) {
     int offset = node.offset;
     int length = node.length;
@@ -49,24 +71,6 @@ class DartUnitNavigationComputer {
   void _addRegionForToken(Token token, Element element) {
     int offset = token.offset;
     int length = token.length;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
-    int offset = a.offset;
-    int length = b.end - offset;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegion_nodeStart_nodeStart(AstNode a, AstNode b, Element element) {
-    int offset = a.offset;
-    int length = b.offset - offset;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegion_tokenStart_nodeEnd(Token a, AstNode b, Element element) {
-    int offset = a.offset;
-    int length = b.end - offset;
     _addRegion(offset, length, element);
   }
 }
@@ -79,14 +83,31 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
 
   @override
   visitAssignmentExpression(AssignmentExpression node) {
+    _safelyVisit(node.leftHandSide);
     computer._addRegionForToken(node.operator, node.bestElement);
-    return super.visitAssignmentExpression(node);
+    _safelyVisit(node.rightHandSide);
   }
 
   @override
   visitBinaryExpression(BinaryExpression node) {
+    _safelyVisit(node.leftOperand);
     computer._addRegionForToken(node.operator, node.bestElement);
-    return super.visitBinaryExpression(node);
+    _safelyVisit(node.rightOperand);
+  }
+
+  @override
+  visitCompilationUnit(CompilationUnit unit) {
+    // prepare top-level nodes sorted by their offsets
+    List<AstNode> nodes = <AstNode>[];
+    nodes.addAll(unit.directives);
+    nodes.addAll(unit.declarations);
+    nodes.sort((a, b) {
+      return a.offset - b.offset;
+    });
+    // visit sorted nodes
+    for (AstNode node in nodes) {
+      node.accept(this);
+    }
   }
 
   @override
@@ -105,7 +126,7 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
             node.element);
       }
     }
-    return super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration(node);
   }
 
   @override
@@ -115,7 +136,7 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
       Element element = exportElement.exportedLibrary;
       computer._addRegion_tokenStart_nodeEnd(node.keyword, node.uri, element);
     }
-    return super.visitExportDirective(node);
+    super.visitExportDirective(node);
   }
 
   @override
@@ -125,13 +146,13 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
       Element element = importElement.importedLibrary;
       computer._addRegion_tokenStart_nodeEnd(node.keyword, node.uri, element);
     }
-    return super.visitImportDirective(node);
+    super.visitImportDirective(node);
   }
 
   @override
   visitIndexExpression(IndexExpression node) {
+    super.visitIndexExpression(node);
     computer._addRegionForToken(node.rightBracket, node.bestElement);
-    return super.visitIndexExpression(node);
   }
 
   @override
@@ -147,13 +168,14 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
             node.argumentList,
             element);
       } else {
-        // add region for "type" first, so that it is found before "new "
-        computer._addRegionForNode(constructorName.type, classElement);
-        // "new "
+        // "new ", excluding last character
         computer._addRegion_nodeStart_nodeStart(
             node,
             constructorName.type,
-            element);
+            element,
+            excludeLastChar: true);
+        // "ClassName"
+        computer._addRegionForNode(constructorName.type, classElement);
         // optional ".name"
         if (constructorName.period != null) {
           computer._addRegion_tokenStart_nodeEnd(
@@ -163,7 +185,7 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
         }
       }
     }
-    return super.visitInstanceCreationExpression(node);
+    _safelyVisit(node.argumentList);
   }
 
   @override
@@ -172,7 +194,7 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
         node.keyword,
         node.uri,
         node.element);
-    return super.visitPartDirective(node);
+    super.visitPartDirective(node);
   }
 
   @override
@@ -181,27 +203,33 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
         node.keyword,
         node.libraryName,
         node.element);
-    return super.visitPartOfDirective(node);
+    super.visitPartOfDirective(node);
   }
 
   @override
   visitPostfixExpression(PostfixExpression node) {
+    super.visitPostfixExpression(node);
     computer._addRegionForToken(node.operator, node.bestElement);
-    return super.visitPostfixExpression(node);
   }
 
   @override
   visitPrefixExpression(PrefixExpression node) {
     computer._addRegionForToken(node.operator, node.bestElement);
-    return super.visitPrefixExpression(node);
+    super.visitPrefixExpression(node);
   }
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.parent is ConstructorDeclaration) {
-    } else {
-      computer._addRegionForNode(node, node.bestElement);
+      return;
     }
-    return super.visitSimpleIdentifier(node);
+    Element element = node.bestElement;
+    computer._addRegionForNode(node, element);
+  }
+
+  void _safelyVisit(AstNode node) {
+    if (node != null) {
+      node.accept(this);
+    }
   }
 }

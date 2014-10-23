@@ -123,6 +123,17 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
     findRegion(offset, length, false);
   }
 
+  void assertRegionsSorted() {
+    int lastEnd = -1;
+    for (NavigationRegion region in regions) {
+      int offset = region.offset;
+      if (offset < lastEnd) {
+        fail('$lastEnd was expected to be > $offset in\n' + regions.join('\n'));
+      }
+      lastEnd = offset + region.length;
+    }
+  }
+
   /**
    * Finds the navigation region with the given [offset] and [length].
    * If [length] is `-1`, then it is ignored.
@@ -156,7 +167,9 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
 
   Future prepareNavigation() {
     addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
-    return waitForTasksFinished();
+    return waitForTasksFinished().then((_) {
+      assertRegionsSorted();
+    });
   }
 
   void processNotification(Notification notification) {
@@ -283,6 +296,19 @@ main() {
     });
   }
 
+  test_identifier_whenStrayImportDirective() {
+    addTestFile('''
+main() {
+  int aaa = 42;
+  print(aaa);
+}
+import 'dart:math';
+''');
+    return prepareNavigation().then((_) {
+      assertHasRegionTarget('aaa);', 'aaa = 42');
+    });
+  }
+
   test_instanceCreation_implicit() {
     addTestFile('''
 class A {
@@ -308,7 +334,7 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        findRegion(findOffset('new '), 'new '.length, true);
+        findRegion(findOffset('new '), 'new'.length, true);
         assertHasTarget('named() {}');
       }
       {
@@ -333,7 +359,7 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        findRegion(findOffset('new '), 'new '.length, true);
+        findRegion(findOffset('new '), 'new'.length, true);
         assertHasTarget('A() {}', 0);
       }
       {

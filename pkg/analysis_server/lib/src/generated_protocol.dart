@@ -1542,12 +1542,13 @@ class AnalysisNavigationParams implements HasToJson {
   String file;
 
   /**
-   * The navigation regions contained in the file. Each navigation region
-   * represents a list of targets associated with some range. The lists will
-   * usually contain a single target, but can contain more in the case of a
-   * part that is included in multiple libraries or in Dart code that is
-   * compiled against multiple versions of a package. Note that the navigation
-   * regions that are returned do not overlap other navigation regions.
+   * The navigation regions contained in the file. The regions are sorted by
+   * their offsets. Each navigation region represents a list of targets
+   * associated with some range. The lists will usually contain a single
+   * target, but can contain more in the case of a part that is included in
+   * multiple libraries or in Dart code that is compiled against multiple
+   * versions of a package. Note that the navigation regions that are returned
+   * do not overlap other navigation regions.
    */
   List<NavigationRegion> regions;
 
