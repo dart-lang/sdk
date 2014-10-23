@@ -31,9 +31,16 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
 class Difference {
   final DeclarationSite before;
   final DeclarationSite after;
+
+  /// Records the position of first difference between [before] and [after]. If
+  /// either [before] or [after] are null, [token] is null.
   Token token;
 
-  Difference(this.before, this.after);
+  Difference(this.before, this.after) {
+    if (before == after) {
+      throw '[before] and [after] are the same.';
+    }
+  }
 
   String toString() {
     if (before == null) return 'Added($after)';
@@ -48,8 +55,10 @@ List<Difference> computeDifference(
   Map<String, DeclarationSite> beforeMap = <String, DeclarationSite>{};
   before.forEachLocalMember((modelx.ElementX element) {
     DeclarationSite site = element.declarationSite;
-    assert(site != null);
-    beforeMap[element.name] = site;
+    assert(site != null || element.isSynthesized);
+    if (!element.isSynthesized) {
+      beforeMap[element.name] = site;
+    }
   });
   List<Difference> modifications = <Difference>[];
   List<Difference> potentiallyChanged = <Difference>[];

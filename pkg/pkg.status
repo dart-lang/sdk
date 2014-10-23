@@ -19,6 +19,7 @@ scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
+analysis_server/test/integration/asynchrony_test: Skip # Issue 21252
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
@@ -107,11 +108,13 @@ third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 analyzer/test/generated/engine_test: Skip # Slow
 analyzer/test/generated/static_type_warning_code_test: Pass, Slow
+analyzer/test/generated/compile_time_error_code_test: Pass, Slow
 
 analyzer/test/enum_test: Fail # Issue 21323
 
 analysis_server/test/search/element_references_test: Pass, Slow
 analysis_server/test/services/index/store/codec_test: Pass, Slow
+analysis_server/test/edit/assists_test: Pass, Slow
 
 # Analysis server integration tests don't make sense to run under
 # dart2js, since the code under test always runs in the Dart vm as a

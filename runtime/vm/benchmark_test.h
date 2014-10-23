@@ -17,7 +17,7 @@
 namespace dart {
 
 DECLARE_FLAG(int, code_heap_size);
-DECLARE_FLAG(int, heap_growth_space_ratio);
+DECLARE_FLAG(int, old_gen_growth_space_ratio);
 
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
 // it is initialized to NULL.
@@ -32,7 +32,7 @@ extern const uint8_t* snapshot_buffer;
   static Benchmark kRegister##name(Dart_Benchmark##name, #name, kind);         \
   static void Dart_BenchmarkHelper##name(Benchmark* benchmark);                \
   void Dart_Benchmark##name(Benchmark* benchmark) {                            \
-    FLAG_heap_growth_space_ratio = 100;                                        \
+    FLAG_old_gen_growth_space_ratio = 100;                                     \
     BenchmarkIsolateScope __isolate__(benchmark);                              \
     StackZone __zone__(benchmark->isolate());                                  \
     HandleScope __hs__(benchmark->isolate());                                  \

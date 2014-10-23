@@ -112,7 +112,7 @@ $endif
 $if DARTIUM
 
   bool _hasProperty(String propertyName) =>
-      _blink.BlinkCSSStyleDeclaration.$__propertyQuery___Callback_DOMString(this, propertyName);
+      _blink.BlinkCSSStyleDeclaration.$__propertyQuery___Callback_1(this, propertyName);
 $endif
 
   @DomName('CSSStyleDeclaration.setProperty')

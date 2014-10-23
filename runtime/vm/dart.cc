@@ -45,21 +45,6 @@ ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
 
-// An object visitor which will mark all visited objects. This is used to
-// premark all objects in the vm_isolate_ heap.
-class PremarkingVisitor : public ObjectVisitor {
- public:
-  explicit PremarkingVisitor(Isolate* isolate) : ObjectVisitor(isolate) {}
-
-  void VisitObject(RawObject* obj) {
-    // RawInstruction objects are premarked on allocation.
-    if (!obj->IsMarked()) {
-      obj->SetMarkBit();
-    }
-  }
-};
-
-
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
 // for use across all isolates. Having these global pre created handles
@@ -131,7 +116,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
                FLAG_old_gen_heap_size * MBInWords);
     ObjectStore::Init(vm_isolate_);
     TargetCPUFeatures::InitOnce();
-    Object::InitOnce();
+    Object::InitOnce(vm_isolate_);
     ArgumentsDescriptor::InitOnce();
     StubCode::InitOnce();
     Symbols::InitOnce(vm_isolate_);
@@ -142,11 +127,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
       return "SSE2 is required.";
     }
 #endif
-    PremarkingVisitor premarker(vm_isolate_);
-    vm_isolate_->heap()->WriteProtect(false);
-    ASSERT(vm_isolate_->heap()->UsedInWords(Heap::kNew) == 0);
-    vm_isolate_->heap()->IterateOldObjects(&premarker);
-    vm_isolate_->heap()->WriteProtect(true);
+    Object::FinalizeVMIsolate(vm_isolate_);
   }
   // There is a planned and known asymmetry here: We enter one scope for the VM
   // isolate so that we can allocate the "persistent" scoped handles for the

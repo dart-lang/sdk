@@ -243,6 +243,7 @@ abstract class _MyClass {}''');
       expect(location.startLine, 2);
       expect(location.startColumn, 16);
     }
+    expect(element.parameters, isNull);
     expect(
         element.flags,
         Element.FLAG_ABSTRACT | Element.FLAG_DEPRECATED | Element.FLAG_PRIVATE);
@@ -300,7 +301,7 @@ class A {
   void test_fromElement_GETTER() {
     engine.Source source = addSource('/test.dart', '''
 class A {
-  String myGetter => 42;
+  String get myGetter => 42;
 }''');
     engine.CompilationUnit unit = resolveLibraryUnit(source);
     engine.PropertyAccessorElement engineElement =
@@ -312,10 +313,10 @@ class A {
     {
       Location location = element.location;
       expect(location.file, '/test.dart');
-      expect(location.offset, 19);
+      expect(location.offset, 23);
       expect(location.length, 'myGetter'.length);
       expect(location.startLine, 2);
-      expect(location.startColumn, 10);
+      expect(location.startColumn, 14);
     }
     expect(element.parameters, '()');
     expect(element.returnType, 'String');

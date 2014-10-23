@@ -19,10 +19,12 @@ import 'package:compiler/implementation/dart2jslib.dart' show
 import 'package:compiler/implementation/elements/elements.dart' show
     Element,
     FunctionElement,
-    LibraryElement;
+    LibraryElement,
+    ScopeContainerElement;
 
 import 'package:compiler/implementation/scanner/scannerlib.dart' show
     EOF_TOKEN,
+    PartialClassElement,
     PartialElement,
     PartialFunctionElement,
     Token;
@@ -31,7 +33,9 @@ import 'package:compiler/implementation/source_file.dart' show
     StringSourceFile;
 
 import 'package:compiler/implementation/tree/tree.dart' show
-    FunctionExpression;
+    ClassNode,
+    FunctionExpression,
+    NodeList;
 
 import 'package:compiler/implementation/js/js.dart' show
     js;
@@ -54,6 +58,11 @@ import 'diff.dart' show
 
 typedef void Logger(message);
 
+typedef bool Reuser(
+    Token diffToken,
+    PartialElement before,
+    PartialElement after);
+
 // TODO(ahe): Generalize this class. For now only works for Compiler.mainApp,
 // and only if that library has exactly one compilation unit.
 class LibraryUpdater {
@@ -72,6 +81,8 @@ class LibraryUpdater {
   // When [true], updates must be applied (using [applyUpdates]) before the
   // [compiler]'s state correctly reflects the updated program.
   bool hasPendingUpdates = false;
+
+  bool onlySimpleUpdates = true;
 
   final List<Update> updates = <Update>[];
 
@@ -126,35 +137,50 @@ class LibraryUpdater {
     LibraryElement newLibrary = dartPrivacyIsBroken.createLibrarySync(
         null, sourceScript, uri);
     logTime('New library synthesized.');
-    List<Difference> differences = computeDifference(library, newLibrary);
+    return canReuseScopeContainerElement(library, newLibrary);
+  }
+
+  bool canReuseScopeContainerElement(
+      ScopeContainerElement element,
+      ScopeContainerElement newElement) {
+    List<Difference> differences = computeDifference(element, newElement);
     logTime('Differences computed.');
     for (Difference difference in differences) {
       logTime('Looking at difference: $difference');
       if (difference.before == null || difference.after == null) {
         logVerbose('Scope changed in $difference');
         // Scope changed, don't reuse library.
+        onlySimpleUpdates = false;
         return false;
       }
       Token diffToken = difference.token;
       if (diffToken == null) {
         logVerbose('No token stored in difference.');
+        onlySimpleUpdates = false;
         return false;
       }
       if (difference.after is! PartialElement &&
           difference.before is! PartialElement) {
         logVerbose('Not a PartialElement: $difference');
         // Don't know how to recompile element.
+        onlySimpleUpdates = false;
         return false;
       }
       PartialElement before = difference.before;
       PartialElement after = difference.after;
 
+      Reuser reuser;
+
       if (before is PartialFunctionElement && after is PartialFunctionElement) {
-        if (!canReuseFunction(diffToken, before, after)) {
-          return false;
-        }
+        reuser = canReuseFunction;
+      } else if (before is PartialClassElement &&
+                 after is PartialClassElement) {
+        reuser = canReuseClass;
       } else {
-        // Unhandled kind of element.
+        reuser = cannotReuse;
+      }
+      if (!reuser(diffToken, before, after)) {
+        onlySimpleUpdates = false;
         return false;
       }
     }
@@ -174,27 +200,69 @@ class LibraryUpdater {
     FunctionExpression node =
         after.parseNode(compiler).asFunctionExpression();
     if (node == null) {
-      print('Not a function expression.');
+      logVerbose('Not a function expression.');
       return false;
     }
     Token last = after.endToken;
     if (node.body != null) {
       last = node.body.getBeginToken();
     }
-    Token token = after.beginToken;
-    while (token != last && token.kind != EOF_TOKEN) {
-      if (token == diffToken) {
-        logVerbose('Signature changed');
-        return false;
-      }
-      token = token.next;
+    if (isTokenBetween(diffToken, after.beginToken, last)) {
+      logVerbose('Signature changed.');
+      return false;
     }
-    print('Simple modification of ${after} detected');
+    logVerbose('Simple modification of ${after} detected');
     updates.add(new FunctionUpdate(compiler, before, after));
     return true;
   }
 
+  bool canReuseClass(
+      Token diffToken,
+      PartialClassElement before,
+      PartialClassElement after) {
+    ClassNode node = after.parseNode(compiler).asClassNode();
+    if (node == null) {
+      logVerbose('Not a ClassNode.');
+      return false;
+    }
+    NodeList body = node.body;
+    if (body == null) {
+      logVerbose('Class has no body.');
+      return false;
+    }
+    if (isTokenBetween(diffToken, node.beginToken, body.beginToken)) {
+      logVerbose('Class header changed.');
+      return false;
+    }
+    logVerbose('Simple modification of ${after} detected');
+    return canReuseScopeContainerElement(before, after);
+  }
+
+  bool isTokenBetween(Token token, Token first, Token last) {
+    Token current = first;
+    while (current != last && current.kind != EOF_TOKEN) {
+      if (current == token) {
+        return true;
+      }
+      current = current.next;
+    }
+    return false;
+  }
+
+  bool cannotReuse(
+      Token diffToken,
+      PartialElement before,
+      PartialElement after) {
+    logVerbose(
+        'Unhandled change:'
+        ' ${before} (${before.runtimeType} -> ${after.runtimeType}).');
+    return false;
+  }
+
   List<Element> applyUpdates() {
+    if (!onlySimpleUpdates) {
+      throw new StateError("Can't compute update.");
+    }
     return updates.map((Update update) => update.apply()).toList();
   }
 

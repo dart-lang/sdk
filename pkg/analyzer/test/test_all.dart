@@ -13,6 +13,7 @@ import 'generated/test_all.dart' as generated;
 import 'options_test.dart' as options;
 import 'parse_compilation_unit_test.dart' as parse_compilation_unit;
 import 'source/test_all.dart' as source;
+import 'task/test_all.dart' as task;
 
 
 /// Utility for manually running all tests.
@@ -26,5 +27,6 @@ main() {
     options.main();
     parse_compilation_unit.main();
     source.main();
+    task.main();
   });
 }

@@ -107,6 +107,7 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CLASS));
     expect(element.name, equals(name));
+    expect(element.parameters, isNull);
     expect(element.returnType, isNull);
     return cs;
   }
@@ -125,6 +126,10 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(element.kind, equals(protocol.ElementKind.FUNCTION));
     expect(element.name, equals(name));
     expect(element.isDeprecated, equals(isDeprecated));
+    String param = element.parameters;
+    expect(param, isNotNull);
+    expect(param[0], equals('('));
+    expect(param[param.length - 1], equals(')'));
     expect(
         element.returnType,
         equals(returnType != null ? returnType : 'dynamic'));
@@ -140,6 +145,9 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.GETTER));
     expect(element.name, equals(name));
+    //TODO (danrubel) getter should have parameters
+    // but not used in code completion
+    //expect(element.parameters, '()');
     expect(
         element.returnType,
         equals(returnType != null ? returnType : 'dynamic'));
@@ -155,6 +163,7 @@ class AbstractCompletionTest extends AbstractContextTest {
       protocol.Element element = cs.element;
       expect(element, isNotNull);
       expect(element.kind, equals(protocol.ElementKind.LIBRARY));
+      expect(element.parameters, isNull);
       expect(element.returnType, isNull);
       return cs;
     } else {
@@ -174,6 +183,7 @@ class AbstractCompletionTest extends AbstractContextTest {
       expect(element, isNotNull);
       expect(element.kind, equals(protocol.ElementKind.LOCAL_VARIABLE));
       expect(element.name, equals(name));
+      expect(element.parameters, isNull);
       expect(
           element.returnType,
           equals(returnType != null ? returnType : 'dynamic'));
@@ -194,6 +204,10 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.METHOD));
     expect(element.name, equals(name));
+    String param = element.parameters;
+    expect(param, isNotNull);
+    expect(param[0], equals('('));
+    expect(param[param.length - 1], equals(')'));
     expect(
         element.returnType,
         equals(returnType != null ? returnType : 'dynamic'));
@@ -210,6 +224,10 @@ class AbstractCompletionTest extends AbstractContextTest {
       expect(element, isNotNull);
       expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
       expect(element.name, equals(name));
+      String param = element.parameters;
+      expect(param, isNotNull);
+      expect(param[0], equals('('));
+      expect(param[param.length - 1], equals(')'));
       expect(element.returnType, equals(returnType));
       return cs;
     } else {
@@ -228,6 +246,7 @@ class AbstractCompletionTest extends AbstractContextTest {
       expect(element, isNotNull);
       expect(element.kind, equals(protocol.ElementKind.PARAMETER));
       expect(element.name, equals(name));
+      expect(element.parameters, isNull);
       expect(
           element.returnType,
           equals(returnType != null ? returnType : 'dynamic'));
@@ -245,6 +264,8 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.SETTER));
     expect(element.name, equals(name));
+    // TODO (danrubel) assert setter param
+    //expect(element.parameters, isNull);
     expect(element.returnType, isNull);
     return cs;
   }
@@ -258,6 +279,7 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.TOP_LEVEL_VARIABLE));
     expect(element.name, equals(name));
+    expect(element.parameters, isNull);
     //TODO (danrubel) return type level variable 'type' but not as 'returnType'
 //    expect(
 //        element.returnType,
@@ -962,11 +984,14 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class _B { }''');
     addTestSource('''
       import "/testA.dart";
-      class C {foo(){O^}}''');
+      class C {foo(){O^} void bar() {}}''');
     computeFast();
     return computeFull(true).then((_) {
       assertSuggestImportedClass('A');
       assertSuggestImportedFunction('F1', '_B', false);
+      assertSuggestLocalClass('C');
+      assertSuggestLocalMethod('foo', 'C', null);
+      assertSuggestLocalMethod('bar', 'C', 'void');
       assertSuggestLocalClass('C');
       assertNotSuggested('x');
       assertNotSuggested('_B');
@@ -1074,22 +1099,29 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ForStatement_updaters_prefix_expression() {
     // SimpleIdentifier  PrefixExpression  ForStatement
-    addTestSource('main() {for (int index = 0; index < 10; ++i^)}');
+    addTestSource('''
+      void bar() { }
+      main() {for (int index = 0; index < 10; ++i^)}''');
     computeFast();
     return computeFull(true).then((_) {
       assertSuggestLocalVariable('index', 'int');
+      assertSuggestLocalFunction('main', null);
+      assertNotSuggested('bar');
     });
   }
 
   test_FunctionExpression_body_function() {
     // Block  BlockFunctionBody  FunctionExpression
-    addTestSource('String foo(List args) {x.then((R b) {^});}');
+    addTestSource('''
+      void bar() { }
+      String foo(List args) {x.then((R b) {^});}''');
     computeFast();
     return computeFull(true).then((_) {
       var f = assertSuggestLocalFunction('foo', 'String', false);
       if (f != null) {
         expect(f.element.isPrivate, isFalse);
       }
+      assertSuggestLocalFunction('bar', 'void');
       assertSuggestParameter('args', 'List');
       assertSuggestParameter('b', 'R');
       assertSuggestImportedClass('Object');
@@ -1215,12 +1247,16 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   test_IsExpression_target() {
     // IfStatement  Block  BlockFunctionBody
     addTestSource('''
+      foo() { }
+      void bar() { }
       class A {int x; int y() => 0;}
       main(){var a; if (^ is A)}''');
     computeFast();
     return computeFull(true).then((_) {
       assertSuggestLocalVariable('a', null);
       assertSuggestLocalFunction('main', null);
+      assertSuggestLocalFunction('foo', null);
+      assertNotSuggested('bar');
       assertSuggestLocalClass('A');
       assertSuggestImportedClass('Object');
     });
@@ -1298,7 +1334,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_MethodDeclaration_parameters_named() {
     // Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {@deprecated Z a(X x, {y: boo}) {^}}');
+    addTestSource('class A {@deprecated Z a(X x, _, b, {y: boo}) {^}}');
     computeFast();
     return computeFull(true).then((_) {
       CompletionSuggestion methodA = assertSuggestLocalMethod('a', 'A', 'Z');
@@ -1308,19 +1344,58 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       }
       assertSuggestParameter('x', 'X');
       assertSuggestParameter('y', null);
+      assertSuggestParameter('b', null);
       assertSuggestImportedClass('int');
+      assertNotSuggested('_');
     });
   }
 
   test_MethodDeclaration_parameters_positional() {
     // Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {Z a(X x, [int y=1]) {^}}');
+    addTestSource('''
+      foo() { }
+      void bar() { }
+      class A {Z a(X x, [int y=1]) {^}}''');
     computeFast();
     return computeFull(true).then((_) {
+      assertSuggestLocalFunction('foo', null);
+      assertSuggestLocalFunction('bar', 'void');
       assertSuggestLocalMethod('a', 'A', 'Z');
       assertSuggestParameter('x', 'X');
       assertSuggestParameter('y', 'int');
       assertSuggestImportedClass('String');
+    });
+  }
+
+  test_MethodInvocation_no_semicolon() {
+    // MethodInvocation  ExpressionStatement  Block
+    addTestSource('''
+      main() { }
+      class I {X get f => new A();get _g => new A();}
+      class A implements I {
+        var b; X _c;
+        X get d => new A();get _e => new A();
+        // no semicolon between completion point and next statement
+        set s1(I x) {} set _s2(I x) {x.^ m(null);}
+        m(X x) {} I _n(X x) {}}
+      class X{}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('f', 'X');
+      assertSuggestInvocationGetter('_g', null);
+      assertNotSuggested('b');
+      assertNotSuggested('_c');
+      assertNotSuggested('d');
+      assertNotSuggested('_e');
+      assertNotSuggested('s1');
+      assertNotSuggested('_s2');
+      assertNotSuggested('m');
+      assertNotSuggested('_n');
+      assertNotSuggested('a');
+      assertNotSuggested('A');
+      assertNotSuggested('X');
+      assertNotSuggested('Object');
+      assertNotSuggested('==');
     });
   }
 
@@ -1456,7 +1531,6 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     computeFast();
     return computeFull(true).then((_) {
       assertSuggestInvocationGetter('length', 'int');
-      assertNotSuggested('==');
       assertNotSuggested('A');
       assertNotSuggested('a');
       assertNotSuggested('Object');
@@ -1544,16 +1618,23 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     // VariableDeclarationStatement
     addSource('/testB.dart', '''
       lib B;
-      foo() { }
+      foo1() { }
+      void bar1() { }
       class _B { }
       class X {X.c(); X._d(); z() {}}''');
     addTestSource('''
       import "/testB.dart";
+      foo2() { }
+      void bar2() { }
       class Y {Y.c(); Y._d(); z() {}}
       class C {bar(){var f; {var x;} var e = ^ var g}}''');
     computeFast();
     return computeFull(true).then((_) {
       assertSuggestImportedClass('X');
+      assertSuggestImportedFunction('foo1', null);
+      assertNotSuggested('bar1');
+      assertSuggestLocalFunction('foo2', null);
+      assertNotSuggested('bar2');
       assertNotSuggested('_B');
       assertSuggestLocalClass('Y');
       assertSuggestLocalClass('C');

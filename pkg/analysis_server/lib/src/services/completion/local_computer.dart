@@ -59,8 +59,11 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
 
   final DartCompletionRequest request;
   bool typesOnly = false;
+  bool excludeVoidReturn;
 
-  _LocalVisitor(this.request);
+  _LocalVisitor(this.request) {
+    excludeVoidReturn = _computeExcludeVoidReturn(request.node);
+  }
 
   @override
   visitBlock(Block node) {
@@ -210,6 +213,19 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   @override
+  visitMethodInvocation(MethodInvocation node) {
+    // InvocationComputer adds suggestions for method selector
+    Token period = node.period;
+    if (period != null && period.offset < request.offset) {
+      ArgumentList argumentList = node.argumentList;
+      if (argumentList == null || request.offset <= argumentList.offset) {
+        return;
+      }
+    }
+    visitNode(node);
+  }
+
+  @override
   visitNamespaceDirective(NamespaceDirective node) {
     // No suggestions
   }
@@ -280,6 +296,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       suggestion.element = _createElement(
           protocol.ElementKind.CLASS,
           declaration.name,
+          null,
           NO_RETURN_TYPE,
           declaration.isAbstract,
           _isDeprecated(declaration.metadata));
@@ -301,6 +318,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
         suggestion.element = _createElement(
             protocol.ElementKind.GETTER,
             varDecl.name,
+            '()',
             fieldDecl.fields.type,
             false,
             isDeprecated || _isDeprecated(varDecl.metadata));
@@ -312,6 +330,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     if (typesOnly) {
       return;
     }
+    if (excludeVoidReturn && _isVoid(declaration.returnType)) {
+      return;
+    }
     CompletionSuggestion suggestion = _addSuggestion(
         declaration.name,
         CompletionSuggestionKind.FUNCTION,
@@ -321,6 +342,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       suggestion.element = _createElement(
           protocol.ElementKind.FUNCTION,
           declaration.name,
+          declaration.functionExpression.parameters.toSource(),
           declaration.returnType,
           false,
           _isDeprecated(declaration.metadata));
@@ -337,6 +359,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       suggestion.element = _createElement(
           protocol.ElementKind.LOCAL_VARIABLE,
           id,
+          null,
           returnType,
           false,
           false);
@@ -349,24 +372,37 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
     protocol.ElementKind kind;
     CompletionSuggestionKind csKind;
+    String parameters;
     if (classMbr.isGetter) {
       kind = protocol.ElementKind.GETTER;
       csKind = CompletionSuggestionKind.GETTER;
+      parameters = '()';
     } else if (classMbr.isSetter) {
+      if (excludeVoidReturn) {
+        return;
+      }
       kind = protocol.ElementKind.SETTER;
       csKind = CompletionSuggestionKind.SETTER;
+      parameters = '(${classMbr.returnType.toSource()} value)';
     } else {
+      if (excludeVoidReturn && _isVoid(classMbr.returnType)) {
+        return;
+      }
       kind = protocol.ElementKind.METHOD;
       csKind = CompletionSuggestionKind.METHOD;
+      parameters = classMbr.parameters.toSource();
     }
     CompletionSuggestion suggestion =
         _addSuggestion(classMbr.name, csKind, classMbr.returnType, node);
-    suggestion.element = _createElement(
-        kind,
-        classMbr.name,
-        classMbr.returnType,
-        classMbr.isAbstract,
-        _isDeprecated(classMbr.metadata));
+    if (suggestion != null) {
+      suggestion.element = _createElement(
+          kind,
+          classMbr.name,
+          parameters,
+          classMbr.returnType,
+          classMbr.isAbstract,
+          _isDeprecated(classMbr.metadata));
+    }
   }
 
   void _addParamListSuggestions(FormalParameterList paramList) {
@@ -401,8 +437,13 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     CompletionSuggestion suggestion =
         _addSuggestion(identifier, CompletionSuggestionKind.PARAMETER, type, null);
     if (suggestion != null) {
-      suggestion.element =
-          _createElement(protocol.ElementKind.PARAMETER, identifier, type, false, false);
+      suggestion.element = _createElement(
+          protocol.ElementKind.PARAMETER,
+          identifier,
+          null,
+          type,
+          false,
+          false);
     }
   }
 
@@ -410,7 +451,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       CompletionSuggestionKind kind, TypeName typeName, ClassDeclaration classDecl) {
     if (id != null) {
       String completion = id.name;
-      if (completion != null && completion.length > 0) {
+      if (completion != null && completion.length > 0 && completion != '_') {
         CompletionSuggestion suggestion = new CompletionSuggestion(
             kind,
             CompletionRelevance.DEFAULT,
@@ -460,6 +501,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
           suggestion.element = _createElement(
               protocol.ElementKind.TOP_LEVEL_VARIABLE,
               varDecl.name,
+              null,
               varList.type,
               false,
               isDeprecated || _isDeprecated(varDecl.metadata));
@@ -468,11 +510,22 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
   }
 
+  bool _computeExcludeVoidReturn(AstNode node) {
+    if (node is Block) {
+      return false;
+    } else if (node is SimpleIdentifier) {
+      return node.parent is ExpressionStatement ? false : true;
+    } else {
+      return true;
+    }
+  }
+
   /**
    * Create a new protocol Element for inclusion in a completion suggestion.
    */
   protocol.Element _createElement(protocol.ElementKind kind,
-      SimpleIdentifier id, TypeName returnType, bool isAbstract, bool isDeprecated) {
+      SimpleIdentifier id, String parameters, TypeName returnType,
+      bool isAbstract, bool isDeprecated) {
     String name = id.name;
     int flags = protocol.Element.makeFlags(
         isAbstract: isAbstract,
@@ -482,6 +535,7 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
         kind,
         name,
         flags,
+        parameters: parameters,
         returnType: _nameForType(returnType));
   }
 
@@ -492,6 +546,16 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
       metadata != null &&
           metadata.any(
               (Annotation a) => a.name is SimpleIdentifier && a.name.name == 'deprecated');
+
+  bool _isVoid(TypeName returnType) {
+    if (returnType != null) {
+      Identifier id = returnType.name;
+      if (id != null && id.name == 'void') {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Return the name for the given type.

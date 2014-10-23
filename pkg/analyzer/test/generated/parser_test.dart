@@ -922,12 +922,20 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parseCompilationUnit("void f(var x()) {}", [ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR]);
   }
 
-  void test_getterInFunction_block() {
+  void test_getterInFunction_block_noReturnType() {
     ParserTestCase.parseStatement("get x { return _x; }", [ParserErrorCode.GETTER_IN_FUNCTION]);
   }
 
-  void test_getterInFunction_expression() {
+  void test_getterInFunction_block_returnType() {
+    ParserTestCase.parseStatement("int get x { return _x; }", [ParserErrorCode.GETTER_IN_FUNCTION]);
+  }
+
+  void test_getterInFunction_expression_noReturnType() {
     ParserTestCase.parseStatement("get x => _x;", [ParserErrorCode.GETTER_IN_FUNCTION]);
+  }
+
+  void test_getterInFunction_expression_returnType() {
+    ParserTestCase.parseStatement("int get x => _x;", [ParserErrorCode.GETTER_IN_FUNCTION]);
   }
 
   void test_getterWithParameters() {

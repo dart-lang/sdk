@@ -269,9 +269,24 @@ abstract class IntegrationTestMixin {
    *
    *   A list of the files and directories within the included directories that
    *   should not be analyzed.
+   *
+   * packageRoots ( optional Map<FilePath, FilePath> )
+   *
+   *   A mapping from source directories to target directories that should
+   *   override the normal package: URI resolution mechanism. The analyzer will
+   *   behave as though each source directory in the map contains a special
+   *   pubspec.yaml file which resolves any package: URI to the corresponding
+   *   path within the target directory. The effect is the same as specifying
+   *   the target directory as a "--package_root" parameter to the Dart VM when
+   *   executing any Dart file inside the source directory.
+   *
+   *   Files in any directories that are not overridden by this mapping have
+   *   their package: URI's resolved using the normal pubspec.yaml mechanism.
+   *   If this field is absent, or the empty map is specified, that indicates
+   *   that the normal pubspec.yaml mechanism should always be used.
    */
-  Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded) {
-    var params = new AnalysisSetAnalysisRootsParams(included, excluded).toJson();
+  Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded, {Map<String, String> packageRoots}) {
+    var params = new AnalysisSetAnalysisRootsParams(included, excluded, packageRoots: packageRoots).toJson();
     return server.send("analysis.setAnalysisRoots", params)
         .then((result) {
       expect(result, isNull);

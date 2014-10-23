@@ -22,7 +22,10 @@ class Fragment {
   final OutputUnit outputUnit;
 
   Fragment.main(this.outputUnit) : name = "";
-  Fragment.deferred(this.outputUnit, this.name);
+
+  Fragment.deferred(this.outputUnit, this.name) {
+    assert(name != "");
+  }
 
   void add(LibraryElement library, Element element) {
     if (_lastLibrary != library) {
@@ -64,22 +67,26 @@ class Registry {
   bool get _isProgramSplit => _deferredLoadTask.isProgramSplit;
   OutputUnit get _mainOutputUnit => _deferredLoadTask.mainOutputUnit;
 
-  Fragment _computeTargetFragment(Element element) {
+  Fragment _mapUnitToFragment(OutputUnit targetUnit) {
     if (mainFragment == null) {
       mainFragment = new Fragment.main(_deferredLoadTask.mainOutputUnit);
     }
-    if (!_isProgramSplit) return mainFragment;
-    OutputUnit targetUnit = _deferredLoadTask.outputUnitForElement(element);
+    if (!_isProgramSplit) {
+      assert(targetUnit == _deferredLoadTask.mainOutputUnit);
+      return mainFragment;
+    }
     if (targetUnit == _mainOutputUnit) return mainFragment;
     String name = targetUnit.name;
     return _deferredFragmentsMap.putIfAbsent(
         targetUnit, () => new Fragment.deferred(targetUnit, name));
   }
 
-  /// Adds the element to the list of elements of the library in the right
-  /// fragment.
-  void registerElement(Element element) {
-    _computeTargetFragment(element).add(element.library, element);
+  /// Adds all elements to their respective libraries in the correct fragment.
+  void registerElements(OutputUnit outputUnit, List<Element> elements) {
+    Fragment targetFragment = _mapUnitToFragment(outputUnit);
+    for (Element element in Elements.sortedByPosition(elements)) {
+      targetFragment.add(element.library, element);
+    }
   }
 
   Holder registerHolder(String name) {

@@ -14,8 +14,8 @@ patch class Error {
   StackTrace _stackTrace;
 }
 
-patch class AssertionError extends Error {
-  AssertionError._create(
+class _AssertionError extends Error implements AssertionError {
+  _AssertionError._create(
       this._failedAssertion, this._url, this._line, this._column);
 
   static _throwNew(int assertionStart, int assertionEnd)
@@ -36,10 +36,10 @@ patch class AssertionError extends Error {
   final int _column;
 }
 
-patch class TypeError extends AssertionError {
-  TypeError._create(String url, int line, int column,
-                    this._srcType, this._dstType, this._dstName,
-                    this._errorMsg)
+class _TypeError extends _AssertionError implements TypeError {
+  _TypeError._create(String url, int line, int column,
+                     this._srcType, this._dstType, this._dstName,
+                     this._errorMsg)
       : super._create("is assignable", url, line, column);
 
   static _throwNew(int location,
@@ -66,10 +66,10 @@ patch class TypeError extends AssertionError {
   final String _errorMsg;
 }
 
-patch class CastError extends Error {
-  CastError._create(this._url, this._line, this._column,
-                    this._srcType, this._dstType, this._dstName,
-                    this._errorMsg);
+class _CastError extends Error implements CastError {
+  _CastError._create(this._url, this._line, this._column,
+                     this._srcType, this._dstType, this._dstName,
+                     this._errorMsg);
 
   // A CastError is allocated by TypeError._throwNew() when dst_name equals
   // Exceptions::kCastErrorDstName.

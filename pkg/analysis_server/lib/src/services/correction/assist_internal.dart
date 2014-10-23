@@ -114,6 +114,13 @@ class AssistProcessor {
       }
     }
     {
+      ConstructorDeclaration constructor =
+          node.getAncestor((node) => node is ConstructorDeclaration);
+      if (constructor != null) {
+        return constructor.body;
+      }
+    }
+    {
       MethodDeclaration method =
           node.getAncestor((node) => node is MethodDeclaration);
       if (method != null) {
@@ -317,62 +324,6 @@ class AssistProcessor {
     _addAssist(AssistKind.CONVERT_INTO_EXPRESSION_BODY, []);
   }
 
-  /**
-   * Converts "!isEmpty" -> "isNotEmpty" if possible.
-   */
-  void _addProposal_convertToIsNotEmpty() {
-    // prepare "expr.isEmpty"
-    AstNode isEmptyAccess = null;
-    SimpleIdentifier isEmptyIdentifier = null;
-    if (node is SimpleIdentifier) {
-      SimpleIdentifier identifier = node as SimpleIdentifier;
-      AstNode parent = identifier.parent;
-      // normal case (but rare)
-      if (parent is PropertyAccess) {
-        isEmptyIdentifier = parent.propertyName;
-        isEmptyAccess = parent;
-      }
-      // usual case
-      if (parent is PrefixedIdentifier) {
-        isEmptyIdentifier = parent.identifier;
-        isEmptyAccess = parent;
-      }
-    }
-    if (isEmptyIdentifier == null) {
-      _coverageMarker();
-      return;
-    }
-    // should be "isEmpty"
-    Element propertyElement = isEmptyIdentifier.bestElement;
-    if (propertyElement == null || "isEmpty" != propertyElement.name) {
-      _coverageMarker();
-      return;
-    }
-    // should have "isNotEmpty"
-    Element propertyTarget = propertyElement.enclosingElement;
-    if (propertyTarget == null ||
-        getChildren(propertyTarget, "isNotEmpty").isEmpty) {
-      _coverageMarker();
-      return;
-    }
-    // should be in PrefixExpression
-    if (isEmptyAccess.parent is! PrefixExpression) {
-      _coverageMarker();
-      return;
-    }
-    PrefixExpression prefixExpression =
-        isEmptyAccess.parent as PrefixExpression;
-    // should be !
-    if (prefixExpression.operator.type != TokenType.BANG) {
-      return;
-    }
-    // do replace
-    _addRemoveEdit(rangeStartStart(prefixExpression, prefixExpression.operand));
-    _addReplaceEdit(rangeNode(isEmptyIdentifier), "isNotEmpty");
-    // add proposal
-    _addAssist(AssistKind.CONVERT_INTO_IS_NOT_EMPTY, []);
-  }
-
   void _addProposal_convertToIsNot_onIs() {
     // may be child of "is"
     AstNode node = this.node;
@@ -469,6 +420,62 @@ class AssistProcessor {
     _addInsertEdit(isExpression.isOperator.end, "!");
     // add proposal
     _addAssist(AssistKind.CONVERT_INTO_IS_NOT, []);
+  }
+
+  /**
+   * Converts "!isEmpty" -> "isNotEmpty" if possible.
+   */
+  void _addProposal_convertToIsNotEmpty() {
+    // prepare "expr.isEmpty"
+    AstNode isEmptyAccess = null;
+    SimpleIdentifier isEmptyIdentifier = null;
+    if (node is SimpleIdentifier) {
+      SimpleIdentifier identifier = node as SimpleIdentifier;
+      AstNode parent = identifier.parent;
+      // normal case (but rare)
+      if (parent is PropertyAccess) {
+        isEmptyIdentifier = parent.propertyName;
+        isEmptyAccess = parent;
+      }
+      // usual case
+      if (parent is PrefixedIdentifier) {
+        isEmptyIdentifier = parent.identifier;
+        isEmptyAccess = parent;
+      }
+    }
+    if (isEmptyIdentifier == null) {
+      _coverageMarker();
+      return;
+    }
+    // should be "isEmpty"
+    Element propertyElement = isEmptyIdentifier.bestElement;
+    if (propertyElement == null || "isEmpty" != propertyElement.name) {
+      _coverageMarker();
+      return;
+    }
+    // should have "isNotEmpty"
+    Element propertyTarget = propertyElement.enclosingElement;
+    if (propertyTarget == null ||
+        getChildren(propertyTarget, "isNotEmpty").isEmpty) {
+      _coverageMarker();
+      return;
+    }
+    // should be in PrefixExpression
+    if (isEmptyAccess.parent is! PrefixExpression) {
+      _coverageMarker();
+      return;
+    }
+    PrefixExpression prefixExpression =
+        isEmptyAccess.parent as PrefixExpression;
+    // should be !
+    if (prefixExpression.operator.type != TokenType.BANG) {
+      return;
+    }
+    // do replace
+    _addRemoveEdit(rangeStartStart(prefixExpression, prefixExpression.operand));
+    _addReplaceEdit(rangeNode(isEmptyIdentifier), "isNotEmpty");
+    // add proposal
+    _addAssist(AssistKind.CONVERT_INTO_IS_NOT_EMPTY, []);
   }
 
   void _addProposal_exchangeOperands() {

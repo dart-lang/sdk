@@ -350,7 +350,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
   String computeCompilerPath(String buildDir) {
     String suffix = executableScriptSuffix;
-    return 'sdk/bin/dartanalyzer_developer$suffix';
+    return 'sdk/bin/dartanalyzer_java$suffix';
   }
 
   CommandArtifact computeCompilationArtifact(
@@ -392,5 +392,21 @@ class DartBasedAnalyzerCompilerConfiguration
           'dart2analyzer', isDebug: isDebug, isChecked: isChecked,
           isHostChecked: isHostChecked, useSdk: useSdk);
 
-  String computeCompilerPath(String buildDir) => 'editor/tools/analyzer';
+  String computeCompilerPath(String buildDir) {
+    var prefix = 'sdk/bin';
+    String suffix = executableScriptSuffix;
+    if (isHostChecked) {
+      if (useSdk) {
+        throw "--host-checked and --use-sdk cannot be used together";
+      }
+      // The script dartanalyzer_developer is not included in the
+      // shipped SDK, that is the script is not installed in
+      // "$buildDir/dart-sdk/bin/"
+      return '$prefix/dartanalyzer_developer$suffix';
+    }
+    if (useSdk) {
+      prefix = '$buildDir/dart-sdk/bin';
+    }
+    return '$prefix/dartanalyzer$suffix';
+  }
 }

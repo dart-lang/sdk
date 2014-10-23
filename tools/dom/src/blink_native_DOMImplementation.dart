@@ -46,7 +46,7 @@ class Blink_HistoryCrossFrame {
 
   static forward(_HistoryCrossFrame) native "History_forward_Callback";
 
-  static go(_HistoryCrossFrame, distance) native "History_go_Callback_long";
+  static go(_HistoryCrossFrame, distance) native "History_go_Callback";
 }
 
 class Blink_LocationCrossFrame {

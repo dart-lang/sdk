@@ -10,6 +10,8 @@ import 'package:compiler/implementation/elements/elements.dart' as dart2js;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/element.dart' as analyzer;
 
+import 'package:compiler/implementation/dart2jslib.dart'
+    show DART_CONSTANT_SYSTEM;
 import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart' as ir;
 import 'package:compiler/implementation/cps_ir/cps_ir_builder.dart';
 import 'package:compiler/implementation/universe/universe.dart';
@@ -17,46 +19,73 @@ import 'package:compiler/implementation/universe/universe.dart';
 import 'semantic_visitor.dart';
 import 'element_converter.dart';
 import 'util.dart';
-import 'package:analyzer2dart/src/identifier_semantics.dart';
+import 'identifier_semantics.dart';
 
-class CpsGeneratingVisitor extends SemanticVisitor<ir.Node> {
+class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
+    with IrBuilderMixin<AstNode> {
   final analyzer.Element element;
   final ElementConverter converter;
-  final IrBuilder irBuilder = new IrBuilder();
 
   CpsGeneratingVisitor(this.converter, this.element);
 
   Source get currentSource => element.source;
 
+  ir.Node visit(AstNode node) => node.accept(this);
+
   @override
   ir.FunctionDefinition visitFunctionDeclaration(FunctionDeclaration node) {
     analyzer.FunctionElement function = node.element;
-    function.parameters.forEach((analyzer.ParameterElement parameter) {
-      // TODO(johnniwinther): Support "closure variables", that is variables
-      // accessed from an inner function.
-      irBuilder.createParameter(converter.convertElement(parameter),
-                                isClosureVariable: false);
+    dart2js.FunctionElement element = converter.convertElement(function);
+    return withBuilder(
+        new IrBuilder(DART_CONSTANT_SYSTEM,
+                      element,
+                      // TODO(johnniwinther): Supported closure variables.
+                      const <dart2js.Local>[]),
+        () {
+      function.parameters.forEach((analyzer.ParameterElement parameter) {
+        // TODO(johnniwinther): Support "closure variables", that is variables
+        // accessed from an inner function.
+        irBuilder.createParameter(converter.convertElement(parameter),
+                                  isClosureVariable: false);
+      });
+      // Visit the body directly to avoid processing the signature as
+      // expressions.
+      visit(node.functionExpression.body);
+      return irBuilder.buildFunctionDefinition(element, const []);
     });
-    // Visit the body directly to avoid processing the signature as expressions.
-    node.functionExpression.body.accept(this);
-    return irBuilder.buildFunctionDefinition(
-        converter.convertElement(function), const [], const []);
   }
 
-  @override
-  visitStaticMethodInvocation(MethodInvocation node,
-                              AccessSemantics semantics) {
-    analyzer.Element staticElement = semantics.element;
-    dart2js.Element element = converter.convertElement(staticElement);
+  List<ir.Definition> visitArguments(ArgumentList argumentList) {
     List<ir.Definition> arguments = <ir.Definition>[];
-    for (Expression argument in node.argumentList.arguments) {
-      ir.Definition value = argument.accept(this);
+    for (Expression argument in argumentList.arguments) {
+      ir.Definition value = build(argument);
       if (value == null) {
         giveUp(argument,
             'Unsupported argument: $argument (${argument.runtimeType}).');
       }
       arguments.add(value);
     }
+    return arguments;
+  }
+
+  @override
+  ir.Primitive visitDynamicInvocation(MethodInvocation node,
+                                      AccessSemantics semantics) {
+    // TODO(johnniwinther): Handle implicit `this`.
+    ir.Primitive receiver = build(semantics.target);
+    List<ir.Definition> arguments = visitArguments(node.argumentList);
+    return irBuilder.buildDynamicInvocation(
+        receiver,
+        createSelectorFromMethodInvocation(node, node.methodName.name),
+        arguments);
+  }
+
+  @override
+  ir.Primitive visitStaticMethodInvocation(MethodInvocation node,
+                                           AccessSemantics semantics) {
+    analyzer.Element staticElement = semantics.element;
+    dart2js.Element element = converter.convertElement(staticElement);
+    List<ir.Definition> arguments = visitArguments(node.argumentList);
     return irBuilder.buildStaticInvocation(
         element,
         createSelectorFromMethodInvocation(node, node.methodName.name),
@@ -104,11 +133,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node> {
 
   @override
   visitReturnStatement(ReturnStatement node) {
-    if (node.expression != null) {
-      irBuilder.buildReturn(node.expression.accept(this));
-    } else {
-      irBuilder.buildReturn();
-    }
+    irBuilder.buildReturn(build(node.expression));
   }
 
   @override
@@ -121,11 +146,29 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node> {
     return handleLocalAccess(node, semantics);
   }
 
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    // TODO(johnniwinther): Handle constant local variables.
+    ir.Node initialValue = build(node.initializer);
+    irBuilder.declareLocalVariable(
+        converter.convertElement(node.element),
+        initialValue: initialValue);
+  }
+
   ir.Primitive handleLocalAccess(AstNode node, AccessSemantics semantics) {
     analyzer.Element element = semantics.element;
     dart2js.Element target = converter.convertElement(element);
     assert(invariant(node, target.isLocal, '$target expected to be local.'));
-    return irBuilder.buildGetLocal(target);
+    return irBuilder.buildLocalGet(target);
+  }
+
+  @override
+  ir.Node visitDynamicAccess(AstNode node, AccessSemantics semantics) {
+    // TODO(johnniwinther): Handle implicit `this`.
+    ir.Primitive receiver = build(semantics.target);
+    return irBuilder.buildDynamicGet(receiver,
+        new Selector.getter(semantics.identifier.name,
+                            converter.convertElement(element.library)));
   }
 
   @override
@@ -135,8 +178,56 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node> {
     // TODO(johnniwinther): Selector information should be computed in the
     // [TreeShaker] and shared with the [CpsGeneratingVisitor].
     assert(invariant(node, target.isTopLevel || target.isStatic,
-        '$target expected to be top-level or static.'));
-    return irBuilder.buildGetStatic(target,
+                     '$target expected to be top-level or static.'));
+    return irBuilder.buildStaticGet(target,
         new Selector.getter(target.name, target.library));
+  }
+
+  ir.Primitive handleBinaryExpression(BinaryExpression node,
+                                      String op) {
+    ir.Primitive left = build(node.leftOperand);
+    ir.Primitive right = build(node.rightOperand);
+    Selector selector = new Selector.binaryOperator(op);
+    return irBuilder.buildDynamicInvocation(
+        left, selector, <ir.Definition>[right]);
+  }
+
+  ir.Node handleLazyOperator(BinaryExpression node, {bool isLazyOr: false}) {
+    return irBuilder.buildLogicalOperator(
+        build(node.leftOperand),
+        subbuild(node.rightOperand),
+        isLazyOr: isLazyOr);
+  }
+
+  @override
+  ir.Node visitBinaryExpression(BinaryExpression node) {
+    // TODO(johnniwinther,paulberry,brianwilkerson): The operator should be
+    // available through an enum.
+    String op = node.operator.lexeme;
+    switch (op) {
+    case '||':
+    case '&&':
+      return handleLazyOperator(node, isLazyOr: op == '||');
+    case '!=':
+      return irBuilder.buildNegation(handleBinaryExpression(node, '=='));
+    default:
+      return handleBinaryExpression(node, op);
+    }
+  }
+
+  @override
+  ir.Node visitConditionalExpression(ConditionalExpression node) {
+    return irBuilder.buildConditional(
+        build(node.condition),
+        subbuild(node.thenExpression),
+        subbuild(node.elseExpression));
+  }
+
+  @override
+  visitIfStatement(IfStatement node) {
+    irBuilder.buildIf(
+        build(node.condition),
+        subbuild(node.thenStatement),
+        subbuild(node.elseStatement));
   }
 }

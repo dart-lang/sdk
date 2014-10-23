@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
-import 'package:logging/logging.dart';
 
 /**
  * The [Driver] class represents a single running instance of the analysis
@@ -27,20 +26,26 @@ class Driver {
   static const BINARY_NAME = 'server';
 
   /**
+   * The name of the option used to enable instrumentation.
+   */
+  static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
+
+  /**
    * The name of the option used to print usage information.
    */
   static const String HELP_OPTION = "help";
+
+  /**
+   * The name of the option used to specify the log file to which
+   * instrumentation data is to be written.
+   */
+  static const String INSTRUMENTATION_LOG_FILE_OPTION = "instrumentation-log-file";
 
   /**
    * The name of the option used to specify the port to which the server will
    * connect.
    */
   static const String PORT_OPTION = "port";
-
-  /**
-   * The name of the option used to specify the log file.
-   */
-  static const String LOG_FILE_OPTION = "log";
 
   /**
    * The path to the SDK.
@@ -63,32 +68,31 @@ class Driver {
    */
   void start(List<String> args) {
     ArgParser parser = new ArgParser();
-    parser.addFlag(HELP_OPTION, help:
-        "print this help message without starting a server", defaultsTo: false,
+    parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
+        help: "enable sending instrumentation information to a server",
+        defaultsTo: false,
         negatable: false);
-    parser.addOption(PORT_OPTION, help:
-        "[port] the port on which the server will listen");
-    parser.addOption(LOG_FILE_OPTION, help:
-        "[path] file to log debugging messages to");
-    parser.addOption(SDK_OPTION, help:
-        "[path] path to the sdk");
+    parser.addFlag(HELP_OPTION,
+        help: "print this help message without starting a server",
+        defaultsTo: false,
+        negatable: false);
+    parser.addOption(INSTRUMENTATION_LOG_FILE_OPTION,
+        help: "[path] the file to which instrumentation data will be logged");
+    parser.addOption(PORT_OPTION,
+        help: "[port] the port on which the server will listen");
+    parser.addOption(SDK_OPTION,
+        help: "[path] the path to the sdk");
 
     ArgResults results = parser.parse(args);
     if (results[HELP_OPTION]) {
       _printUsage(parser);
       return;
     }
-    if (results[LOG_FILE_OPTION] != null) {
-      try {
-        File file = new File(results[LOG_FILE_OPTION]);
-        IOSink sink = file.openWrite();
-        Logger.root.onRecord.listen((LogRecord record) {
-          sink.writeln(record);
-        });
-      } catch (exception) {
-        print('Could not open log file: $exception');
-        exitCode = 1;
-        return;
+    if (results[ENABLE_INSTRUMENTATION_OPTION]) {
+      if (results[INSTRUMENTATION_LOG_FILE_OPTION] != null) {
+        // TODO(brianwilkerson) Initialize the instrumentation system with logging.
+      } else {
+        // TODO(brianwilkerson) Initialize the instrumentation system without logging.
       }
     }
     int port;

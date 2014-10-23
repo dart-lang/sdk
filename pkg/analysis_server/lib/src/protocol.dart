@@ -129,6 +129,12 @@ bool _listEqual(List listA, List listB, bool itemEqual(a, b)) {
  * values.
  */
 bool _mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
+  if (mapA == null) {
+    return mapB == null;
+  }
+  if (mapB == null) {
+    return false;
+  }
   if (mapA.length != mapB.length) {
     return false;
   }

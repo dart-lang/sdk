@@ -48,7 +48,7 @@ main(List<String> arguments) {
     var pr = Process.runSync(Platform.executable,
         ["--collect-code",
          "--code-collection-interval-in-us=100000",
-         "--heap_growth_rate=10",
+         "--old_gen_growth_rate=10",
          "--log-code-drop",
          "--optimization-counter-threshold=-1",
          "--package-root=${Platform.packageRoot}",

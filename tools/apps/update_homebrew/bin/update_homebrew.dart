@@ -46,7 +46,7 @@ Future<String> getVersion(String channel, int revision) {
       .whenComplete(client.close);
 }
 
-Future<Map> setCurrentRevisions(Map revisions) {
+Future setCurrentRevisions(Map revisions) {
   return new File('$repository/dart.rb')
     .readAsLines()
     .then((lines) {
@@ -58,7 +58,7 @@ Future<Map> setCurrentRevisions(Map revisions) {
     });
 }
 
-Future<Map> setHashes(Map revisions, Map hashes) {
+Future setHashes(Map revisions, Map hashes) {
   List waitOn = [];
   for (var channel in CHANNELS) {
     hashes[channel] = {};

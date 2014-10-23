@@ -28,6 +28,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/task/task_dart.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart' as _ut;
 
@@ -543,7 +544,7 @@ class AnalysisContextImplTest extends EngineTestCase {
     CompilationUnit resolvedUnit =
         _context.computeResolvableCompilationUnit(source);
     JUnitTestCase.assertNotNull(resolvedUnit);
-    JUnitTestCase.assertNotSame(parsedUnit, resolvedUnit);
+    JUnitTestCase.assertSame(parsedUnit, resolvedUnit);
   }
 
   void test_dispose() {
@@ -2200,19 +2201,20 @@ class DartEntryTest extends EngineTestCase {
   }
 
   void test_getResolvableCompilationUnit_parsed_accessed() {
-    String importUri = "f1.dart";
+    Source librarySource = new TestSource("/lib.dart");
+    String importUri = "/f1.dart";
     Source importSource = new TestSource(importUri);
     ImportDirective importDirective =
         AstFactory.importDirective3(importUri, null, []);
     importDirective.source = importSource;
     importDirective.uriContent = importUri;
-    String exportUri = "f2.dart";
+    String exportUri = "/f2.dart";
     Source exportSource = new TestSource(exportUri);
     ExportDirective exportDirective =
         AstFactory.exportDirective2(exportUri, []);
     exportDirective.source = exportSource;
     exportDirective.uriContent = exportUri;
-    String partUri = "f3.dart";
+    String partUri = "/f3.dart";
     Source partSource = new TestSource(partUri);
     PartDirective partDirective = AstFactory.partDirective2(partUri);
     partDirective.source = partSource;
@@ -2223,6 +2225,9 @@ class DartEntryTest extends EngineTestCase {
     entry.setValue(DartEntry.PARSED_UNIT, unit);
     entry.getValue(DartEntry.PARSED_UNIT);
     CompilationUnit result = entry.resolvableCompilationUnit;
+    JUnitTestCase.assertSame(unit, result);
+    entry.setValueInLibrary(DartEntry.RESOLVED_UNIT, librarySource, unit);
+    result = entry.resolvableCompilationUnit;
     JUnitTestCase.assertNotSame(unit, result);
     NodeList<Directive> directives = result.directives;
     ImportDirective resultImportDirective = directives[0] as ImportDirective;
@@ -2287,7 +2292,7 @@ class DartEntryTest extends EngineTestCase {
     try {
       entry.getStateInLibrary(DartEntry.ELEMENT, new TestSource());
       JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
-    } on IllegalArgumentException catch (exception) {
+    } on ArgumentError catch (exception) {
       // Expected
     }
   }
@@ -2298,7 +2303,7 @@ class DartEntryTest extends EngineTestCase {
       entry.getState(DartEntry.RESOLUTION_ERRORS);
       JUnitTestCase.fail(
           "Expected IllegalArgumentException for RESOLUTION_ERRORS");
-    } on IllegalArgumentException catch (exception) {
+    } on ArgumentError catch (exception) {
       // Expected
     }
   }
@@ -2309,9 +2314,23 @@ class DartEntryTest extends EngineTestCase {
       entry.getState(DartEntry.VERIFICATION_ERRORS);
       JUnitTestCase.fail(
           "Expected IllegalArgumentException for VERIFICATION_ERRORS");
-    } on IllegalArgumentException catch (exception) {
+    } on ArgumentError catch (exception) {
       // Expected
     }
+  }
+
+  void test_getValue_containingLibraries() {
+    Source testSource = new TestSource();
+    DartEntry entry = new DartEntry();
+    List<Source> value = entry.containingLibraries;
+    EngineTestCase.assertLength(0, value);
+    entry.addContainingLibrary(testSource);
+    value = entry.containingLibraries;
+    EngineTestCase.assertLength(1, value);
+    JUnitTestCase.assertEquals(testSource, value[0]);
+    entry.removeContainingLibrary(testSource);
+    value = entry.containingLibraries;
+    EngineTestCase.assertLength(0, value);
   }
 
   void test_getValueInLibrary_invalid_element() {
@@ -2319,7 +2338,7 @@ class DartEntryTest extends EngineTestCase {
     try {
       entry.getValueInLibrary(DartEntry.ELEMENT, new TestSource());
       JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
-    } on IllegalArgumentException catch (exception) {
+    } on ArgumentError catch (exception) {
       // Expected
     }
   }
@@ -2344,23 +2363,9 @@ class DartEntryTest extends EngineTestCase {
     try {
       entry.getValueInLibrary(DartEntry.ELEMENT, source3);
       JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
-    } on IllegalArgumentException catch (exception) {
+    } on ArgumentError catch (exception) {
       // Expected
     }
-  }
-
-  void test_getValue_containingLibraries() {
-    Source testSource = new TestSource();
-    DartEntry entry = new DartEntry();
-    List<Source> value = entry.getValue(DartEntry.CONTAINING_LIBRARIES);
-    EngineTestCase.assertLength(0, value);
-    entry.addContainingLibrary(testSource);
-    value = entry.getValue(DartEntry.CONTAINING_LIBRARIES);
-    EngineTestCase.assertLength(1, value);
-    JUnitTestCase.assertEquals(testSource, value[0]);
-    entry.removeContainingLibrary(testSource);
-    value = entry.getValue(DartEntry.CONTAINING_LIBRARIES);
-    EngineTestCase.assertLength(0, value);
   }
 
   void test_getValue_invalid_resolutionErrors() {
@@ -2369,7 +2374,7 @@ class DartEntryTest extends EngineTestCase {
       entry.getValue(DartEntry.RESOLUTION_ERRORS);
       JUnitTestCase.fail(
           "Expected IllegalArgumentException for RESOLUTION_ERRORS");
-    } on IllegalArgumentException catch (exception) {
+    } on ArgumentError catch (exception) {
     }
   }
 
@@ -2379,7 +2384,7 @@ class DartEntryTest extends EngineTestCase {
       entry.getValue(DartEntry.VERIFICATION_ERRORS);
       JUnitTestCase.fail(
           "Expected IllegalArgumentException for VERIFICATION_ERRORS");
-    } on IllegalArgumentException catch (exception) {
+    } on ArgumentError catch (exception) {
       // Expected
     }
   }
@@ -2583,7 +2588,7 @@ class DartEntryTest extends EngineTestCase {
         entry.getState(DartEntry.IS_LAUNCHABLE));
   }
 
-  void test_recordBuildElementErrorInLibrary() {
+  void test_recordBuildElementError() {
     // TODO(brianwilkerson) This test should set the state for two libraries,
     // record an error in one library, then verify that the data for the other
     // library is still valid.
@@ -2595,6 +2600,12 @@ class DartEntryTest extends EngineTestCase {
     JUnitTestCase.assertSame(
         CacheState.INVALID,
         entry.getState(SourceEntry.CONTENT));
+    JUnitTestCase.assertSame(
+        CacheState.ERROR,
+        entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, source));
+    JUnitTestCase.assertSame(
+        CacheState.ERROR,
+        entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
     JUnitTestCase.assertSame(
         CacheState.ERROR,
         entry.getState(DartEntry.ELEMENT));
@@ -2623,7 +2634,7 @@ class DartEntryTest extends EngineTestCase {
         CacheState.INVALID,
         entry.getState(DartEntry.PARSED_UNIT));
     JUnitTestCase.assertSame(
-        CacheState.INVALID,
+        CacheState.ERROR,
         entry.getState(DartEntry.PUBLIC_NAMESPACE));
     JUnitTestCase.assertSame(
         CacheState.INVALID,
@@ -2826,20 +2837,6 @@ class DartEntryTest extends EngineTestCase {
 //    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
   }
 
-  void test_recordParseInProcess() {
-    DartEntry entry = new DartEntry();
-    entry.recordParseInProcess();
-    JUnitTestCase.assertSame(
-        CacheState.IN_PROCESS,
-        entry.getState(DartEntry.PARSE_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.IN_PROCESS,
-        entry.getState(DartEntry.PARSED_UNIT));
-    JUnitTestCase.assertSame(
-        CacheState.IN_PROCESS,
-        entry.getState(DartEntry.SOURCE_KIND));
-  }
-
   void test_recordResolutionError() {
     //    Source source = new TestSource();
     DartEntry entry = new DartEntry();
@@ -2964,7 +2961,7 @@ class DartEntryTest extends EngineTestCase {
   }
 
   void test_recordScanError() {
-    //    Source source = new TestSource();
+//    Source source = new TestSource();
     DartEntry entry = new DartEntry();
     entry.recordScanError(new CaughtException(new AnalysisException(), null));
     JUnitTestCase.assertSame(
@@ -3012,26 +3009,12 @@ class DartEntryTest extends EngineTestCase {
     // The following lines are commented out because we don't currently have
     // any way of setting the state for data associated with a library we
     // don't know anything about.
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
-//    assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
-  }
-
-  void test_recordScanInProcess() {
-    DartEntry entry = new DartEntry();
-    entry.recordScanInProcess();
-    JUnitTestCase.assertSame(
-        CacheState.IN_PROCESS,
-        entry.getState(SourceEntry.LINE_INFO));
-    JUnitTestCase.assertSame(
-        CacheState.IN_PROCESS,
-        entry.getState(DartEntry.SCAN_ERRORS));
-    JUnitTestCase.assertSame(
-        CacheState.IN_PROCESS,
-        entry.getState(DartEntry.TOKEN_STREAM));
+//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_ELEMENT, source));
+//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
+//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
+//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
+//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
+//    JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.VERIFICATION_ERRORS, source));
   }
 
   void test_recordVerificationErrorInLibrary() {
@@ -3194,7 +3177,7 @@ class DartEntryTest extends EngineTestCase {
     try {
       entry.setStateInLibrary(DartEntry.ELEMENT, null, CacheState.FLUSHED);
       JUnitTestCase.fail("Expected IllegalArgumentException for ELEMENT");
-    } on IllegalArgumentException catch (exception) {
+    } on ArgumentError catch (exception) {
       // Expected
     }
   }
@@ -3205,7 +3188,7 @@ class DartEntryTest extends EngineTestCase {
       entry.setState(DartEntry.RESOLUTION_ERRORS, CacheState.FLUSHED);
       JUnitTestCase.fail(
           "Expected IllegalArgumentException for RESOLUTION_ERRORS");
-    } on IllegalArgumentException catch (exception) {
+    } on ArgumentError catch (exception) {
       // Expected
     }
   }
@@ -3215,8 +3198,8 @@ class DartEntryTest extends EngineTestCase {
     try {
       entry.setState(SourceEntry.LINE_INFO, CacheState.VALID);
       JUnitTestCase.fail(
-          "Expected IllegalArgumentException for a state of VALID");
-    } on IllegalArgumentException catch (exception) {
+          "Expected ArgumentError for a state of VALID");
+    } on ArgumentError catch (exception) {
     }
   }
 
@@ -3226,10 +3209,10 @@ class DartEntryTest extends EngineTestCase {
       entry.setState(DartEntry.VERIFICATION_ERRORS, CacheState.FLUSHED);
       JUnitTestCase.fail(
           "Expected IllegalArgumentException for VERIFICATION_ERRORS");
-    } on IllegalArgumentException catch (exception) {
+    } on ArgumentError catch (exception) {
       // Expected
-    }
-  }
+     }
+   }
 
   void test_setState_isClient() {
     state2 = DartEntry.IS_CLIENT;
@@ -3935,7 +3918,7 @@ class HtmlEntryTest extends EngineTestCase {
       entry.setValue(DartEntry.ELEMENT, null);
       JUnitTestCase.fail(
           "Expected IllegalArgumentException for DartEntry.ELEMENT");
-    } on IllegalArgumentException catch (exception) {
+    } on ArgumentError catch (exception) {
     }
   }
 
@@ -3981,6 +3964,8 @@ class HtmlEntryTest extends EngineTestCase {
 
   HtmlEntry _entryWithValidState() {
     HtmlEntry entry = new HtmlEntry();
+    entry.setValue(HtmlEntry.ANGULAR_APPLICATION, null);
+    entry.setValue(HtmlEntry.ANGULAR_COMPONENT, null);
     entry.setValue(HtmlEntry.ANGULAR_ERRORS, null);
     entry.setValue(HtmlEntry.ELEMENT, null);
     entry.setValue(HtmlEntry.HINTS, null);
@@ -6878,6 +6863,12 @@ class TestAnalysisContext_test_setSourceFactory extends TestAnalysisContext {
  * failure.
  */
 class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
+  @override
+  E visitBuildUnitElementTask(BuildUnitElementTask task) {
+    JUnitTestCase.fail("Unexpectedly invoked visitGenerateDartErrorsTask");
+    return null;
+  }
+
   @override
   E visitGenerateDartErrorsTask(GenerateDartErrorsTask task) {
     JUnitTestCase.fail("Unexpectedly invoked visitGenerateDartErrorsTask");

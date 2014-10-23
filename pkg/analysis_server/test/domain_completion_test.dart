@@ -37,13 +37,13 @@ class CompletionTest extends AbstractAnalysisTest {
     int nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
     return super.addTestFile(
-        content.substring(0, completionOffset)
-        + content.substring(completionOffset + 1));
+        content.substring(0, completionOffset) +
+            content.substring(completionOffset + 1));
   }
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
-      bool isDeprecated = false, bool isPotential = false]) {
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT, bool isDeprecated
+      = false, bool isPotential = false]) {
     var cs;
     suggestions.forEach((s) {
       if (s.completion == completion) {
@@ -84,8 +84,8 @@ class CompletionTest extends AbstractAnalysisTest {
 
   Future getSuggestions() {
     return waitForTasksFinished().then((_) {
-      Request request = new CompletionGetSuggestionsParams(testFile,
-          completionOffset).toRequest('0');
+      Request request =
+          new CompletionGetSuggestionsParams(testFile, completionOffset).toRequest('0');
       Response response = handleSuccessfulRequest(request);
       var result = new CompletionGetSuggestionsResult.fromResponse(response);
       completionId = response.id;
@@ -165,8 +165,14 @@ class CompletionTest extends AbstractAnalysisTest {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset - 2));
       expect(replacementLength, equals(2));
-      assertHasResult(CompletionSuggestionKind.KEYWORD, 'import');
-      assertHasResult(CompletionSuggestionKind.KEYWORD, 'class');
+      assertHasResult(
+          CompletionSuggestionKind.KEYWORD,
+          'import',
+          CompletionRelevance.HIGH);
+      assertHasResult(
+          CompletionSuggestionKind.KEYWORD,
+          'class',
+          CompletionRelevance.HIGH);
     });
   }
 

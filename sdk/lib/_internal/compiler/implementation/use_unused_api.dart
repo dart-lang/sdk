@@ -232,7 +232,8 @@ useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
     ..buildDoubleLiteral(null)
     ..buildBooleanLiteral(null)
     ..buildNullLiteral()
-    ..buildStringLiteral(null);
+    ..buildStringLiteral(null)
+    ..buildDynamicGet(null, null);
 }
 
 useCompiler(dart2jslib.Compiler compiler) {

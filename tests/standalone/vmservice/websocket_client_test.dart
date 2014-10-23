@@ -12,6 +12,10 @@ class ClientsRequestTest extends ServiceWebSocketRequestHelper {
   int _count = 0;
 
   onResponse(var seq, Map response) {
+    if (seq == null) {
+      // Ignore push events.
+      return;
+    }
     if (seq == 'cli') {
       // Verify response is correct for 'cli' sequence id.
       Expect.equals('ClientList', response['type']);
@@ -21,6 +25,8 @@ class ClientsRequestTest extends ServiceWebSocketRequestHelper {
       // Verify response is correct for 'vm' sequence id.
       Expect.equals('VM', response['type']);
       _count++;
+    } else {
+      Expect.fail('Unexpected response from $seq: $response');
     }
     if (_count == 2) {
       // After receiving both responses, the test is complete.

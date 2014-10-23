@@ -22,44 +22,50 @@ import 'package:analyzer/src/generated/source.dart';
 
 void sendAnalysisNotificationErrors(AnalysisServer server, String file,
     LineInfo lineInfo, List<AnalysisError> errors) {
-  server.sendNotification(new protocol.AnalysisErrorsParams(file,
-      protocol.doAnalysisError_listFromEngine(lineInfo, errors)).toNotification());
+  var serverErrors = protocol.doAnalysisError_listFromEngine(lineInfo, errors);
+  var params = new protocol.AnalysisErrorsParams(file, serverErrors);
+  server.sendNotification(params.toNotification());
 }
 
 
 void sendAnalysisNotificationHighlights(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  server.sendNotification(new protocol.AnalysisHighlightsParams(file,
-      new DartUnitHighlightsComputer(dartUnit).compute()).toNotification());
+  var regions = new DartUnitHighlightsComputer(dartUnit).compute();
+  var params = new protocol.AnalysisHighlightsParams(file, regions);
+  server.sendNotification(params.toNotification());
 }
 
 
 void sendAnalysisNotificationNavigation(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  server.sendNotification(new protocol.AnalysisNavigationParams(file,
-      new DartUnitNavigationComputer(dartUnit).compute()).toNotification());
+  var regions = new DartUnitNavigationComputer(dartUnit).compute();
+  var params = new protocol.AnalysisNavigationParams(file, regions);
+  server.sendNotification(params.toNotification());
 }
 
 
 void sendAnalysisNotificationOccurrences(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  server.sendNotification(new protocol.AnalysisOccurrencesParams(file,
-      new DartUnitOccurrencesComputer(dartUnit).compute()).toNotification());
+  var occurrences = new DartUnitOccurrencesComputer(dartUnit).compute();
+  var params = new protocol.AnalysisOccurrencesParams(file, occurrences);
+  server.sendNotification(params.toNotification());
 }
 
 
-void sendAnalysisNotificationOutline(AnalysisServer server,
-    AnalysisContext context, Source source, CompilationUnit dartUnit) {
-  server.sendNotification(new protocol.AnalysisOutlineParams(source.fullName,
-      new DartUnitOutlineComputer(context, source,
-          dartUnit).compute()).toNotification());
+void sendAnalysisNotificationOutline(AnalysisServer server, Source source,
+    LineInfo lineInfo, CompilationUnit dartUnit) {
+  var outline =
+      new DartUnitOutlineComputer(source, lineInfo, dartUnit).compute();
+  var params = new protocol.AnalysisOutlineParams(source.fullName, outline);
+  server.sendNotification(params.toNotification());
 }
 
 
 void sendAnalysisNotificationOverrides(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  server.sendNotification(new protocol.AnalysisOverridesParams(file,
-      new DartUnitOverridesComputer(dartUnit).compute()).toNotification());
+  var overrides = new DartUnitOverridesComputer(dartUnit).compute();
+  var params = new protocol.AnalysisOverridesParams(file, overrides);
+  server.sendNotification(params.toNotification());
 }
 
 
@@ -95,7 +101,8 @@ class PerformAnalysisOperation extends ServerOperation {
     AnalysisResult result = context.performAnalysisTask();
     List<ChangeNotice> notices = result.changeNotices;
     if (notices == null) {
-      server.sendContextAnalysisDoneNotifications(context,
+      server.sendContextAnalysisDoneNotifications(
+          context,
           AnalysisDoneReason.COMPLETE);
       return;
     }
@@ -117,19 +124,30 @@ class PerformAnalysisOperation extends ServerOperation {
       // Dart
       CompilationUnit dartUnit = notice.compilationUnit;
       if (dartUnit != null) {
-        if (server.hasAnalysisSubscription(protocol.AnalysisService.HIGHLIGHTS, file)) {
+        if (server.hasAnalysisSubscription(
+            protocol.AnalysisService.HIGHLIGHTS,
+            file)) {
           sendAnalysisNotificationHighlights(server, file, dartUnit);
         }
-        if (server.hasAnalysisSubscription(protocol.AnalysisService.NAVIGATION, file)) {
+        if (server.hasAnalysisSubscription(
+            protocol.AnalysisService.NAVIGATION,
+            file)) {
           sendAnalysisNotificationNavigation(server, file, dartUnit);
         }
-        if (server.hasAnalysisSubscription(protocol.AnalysisService.OCCURRENCES, file)) {
+        if (server.hasAnalysisSubscription(
+            protocol.AnalysisService.OCCURRENCES,
+            file)) {
           sendAnalysisNotificationOccurrences(server, file, dartUnit);
         }
-        if (server.hasAnalysisSubscription(protocol.AnalysisService.OUTLINE, file)) {
-          sendAnalysisNotificationOutline(server, context, source, dartUnit);
+        if (server.hasAnalysisSubscription(
+            protocol.AnalysisService.OUTLINE,
+            file)) {
+          LineInfo lineInfo = notice.lineInfo;
+          sendAnalysisNotificationOutline(server, source, lineInfo, dartUnit);
         }
-        if (server.hasAnalysisSubscription(protocol.AnalysisService.OVERRIDES, file)) {
+        if (server.hasAnalysisSubscription(
+            protocol.AnalysisService.OVERRIDES,
+            file)) {
           sendAnalysisNotificationOverrides(server, file, dartUnit);
         }
       }

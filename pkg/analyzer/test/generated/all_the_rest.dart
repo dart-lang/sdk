@@ -3806,6 +3806,89 @@ class ConstantValueComputerTest extends ResolverTestCase {
         []);
   }
 
+  void test_dependencyOnNonFactoryRedirect() {
+    // a depends on A.foo() depends on A.bar()
+    _assertProperDependencies(
+        EngineTestCase.createSource(
+            [
+                "const A a = const A.foo();",
+                "class A {",
+                "  const A.foo() : this.bar();",
+                "  const A.bar();",
+                "}"]),
+        []);
+  }
+
+  void test_dependencyOnNonFactoryRedirect_arg() {
+    // a depends on A.foo() depends on b
+    _assertProperDependencies(
+        EngineTestCase.createSource(
+            [
+                "const A a = const A.foo();",
+                "const int b = 1;",
+                "class A {",
+                "  const A.foo() : this.bar(b);",
+                "  const A.bar(x) : y = x;",
+                "  final int y;"
+                "}"]),
+        []);
+  }
+
+  void test_dependencyOnNonFactoryRedirect_defaultValue() {
+    // a depends on A.foo() depends on A.bar() depends on b
+    _assertProperDependencies(
+        EngineTestCase.createSource(
+            [
+                "const A a = const A.foo();",
+                "const int b = 1;",
+                "class A {",
+                "  const A.foo() : this.bar();",
+                "  const A.bar([x = b]) : y = x;",
+                "  final int y;",
+                "}"]),
+        []);
+  }
+
+  void test_dependencyOnNonFactoryRedirect_toMissing() {
+    // a depends on A.foo() which depends on nothing, since A.bar() is
+    // missing.
+    _assertProperDependencies(
+        EngineTestCase.createSource(
+            [
+                "const A a = const A.foo();",
+                "class A {",
+                "  const A.foo() : this.bar();",
+                "}"]),
+        [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
+  }
+
+  void test_dependencyOnNonFactoryRedirect_toNonConst() {
+    // a depends on A.foo() which depends on nothing, since A.bar() is
+    // non-const.
+    _assertProperDependencies(
+        EngineTestCase.createSource(
+            [
+                "const A a = const A.foo();",
+                "class A {",
+                "  const A.foo() : this.bar();",
+                "  A.bar();",
+                "}"]),
+        []);
+  }
+
+  void test_dependencyOnNonFactoryRedirect_unnamed() {
+    // a depends on A.foo() depends on A()
+    _assertProperDependencies(
+        EngineTestCase.createSource(
+            [
+                "const A a = const A.foo();",
+                "class A {",
+                "  const A.foo() : this();",
+                "  const A();",
+                "}"]),
+        []);
+  }
+
   void test_dependencyOnOptionalParameterDefault() {
     // a depends on A() depends on B()
     _assertProperDependencies(
@@ -4124,6 +4207,119 @@ class ConstantValueComputerTest extends ResolverTestCase {
         _assertFieldType(fields, GenericState.SUPERCLASS_FIELD, "A");
     EngineTestCase.assertSizeOfMap(1, superclassFields);
     _assertIntField(superclassFields, "x", 3);
+  }
+
+  void test_instanceCreationExpression_nonFactoryRedirect() {
+    CompilationUnit compilationUnit = resolveSource(
+        EngineTestCase.createSource(
+            [
+                "const foo = const A.a1();",
+                "class A {",
+                "  const A.a1() : this.a2();",
+                "  const A.a2() : x = 5;",
+                "  final int x;",
+                "}"]));
+    Map<String, DartObjectImpl> aFields = _assertType(
+        _evaluateInstanceCreationExpression(compilationUnit, "foo"),
+        "A");
+    _assertIntField(aFields, 'x', 5);
+  }
+
+  void test_instanceCreationExpression_nonFactoryRedirect_arg() {
+    CompilationUnit compilationUnit = resolveSource(
+        EngineTestCase.createSource(
+            [
+                "const foo = const A.a1(1);",
+                "class A {",
+                "  const A.a1(x) : this.a2(x + 100);",
+                "  const A.a2(x) : y = x + 10;",
+                "  final int y;",
+                "}"]));
+    Map<String, DartObjectImpl> aFields = _assertType(
+        _evaluateInstanceCreationExpression(compilationUnit, "foo"),
+        "A");
+    _assertIntField(aFields, 'y', 111);
+  }
+
+  void test_instanceCreationExpression_nonFactoryRedirect_cycle() {
+    // It is an error to have a cycle in non-factory redirects; however, we
+    // need to make sure that even if the error occurs, attempting to evaluate
+    // the constant will terminate.
+    CompilationUnit compilationUnit = resolveSource(
+        EngineTestCase.createSource(
+            [
+                "const foo = const A();",
+                "class A {",
+                "  const A() : this.b();",
+                "  const A.b() : this();",
+                "}"]));
+    _assertValidUnknown(
+        _evaluateInstanceCreationExpression(compilationUnit, "foo"));
+  }
+
+  void test_instanceCreationExpression_nonFactoryRedirect_defaultArg() {
+    CompilationUnit compilationUnit = resolveSource(
+        EngineTestCase.createSource(
+            [
+                "const foo = const A.a1();",
+                "class A {",
+                "  const A.a1() : this.a2();",
+                "  const A.a2([x = 100]) : y = x + 10;",
+                "  final int y;",
+                "}"]));
+    Map<String, DartObjectImpl> aFields = _assertType(
+        _evaluateInstanceCreationExpression(compilationUnit, "foo"),
+        "A");
+    _assertIntField(aFields, 'y', 110);
+  }
+
+  void test_instanceCreationExpression_nonFactoryRedirect_toMissing() {
+    CompilationUnit compilationUnit = resolveSource(
+        EngineTestCase.createSource(
+            [
+                "const foo = const A.a1();",
+                "class A {",
+                "  const A.a1() : this.a2();",
+                "}"]));
+    // We don't care what value foo evaluates to (since there is a compile
+    // error), but we shouldn't crash, and we should figure
+    // out that it evaluates to an instance of class A.
+    _assertType(
+        _evaluateInstanceCreationExpression(compilationUnit, "foo"),
+        "A");
+  }
+
+  void test_instanceCreationExpression_nonFactoryRedirect_toNonConst() {
+    CompilationUnit compilationUnit = resolveSource(
+        EngineTestCase.createSource(
+            [
+                "const foo = const A.a1();",
+                "class A {",
+                "  const A.a1() : this.a2();",
+                "  A.a2();",
+                "}"]));
+    // We don't care what value foo evaluates to (since there is a compile
+    // error), but we shouldn't crash, and we should figure
+    // out that it evaluates to an instance of class A.
+    _assertType(
+        _evaluateInstanceCreationExpression(compilationUnit, "foo"),
+        "A");
+  }
+
+  void test_instanceCreationExpression_nonFactoryRedirect_unnamed() {
+    CompilationUnit compilationUnit = resolveSource(
+        EngineTestCase.createSource(
+            [
+                "const foo = const A.a1();",
+                "class A {",
+                "  const A.a1() : this();",
+                "  const A() : x = 5;",
+                "  final int x;",
+                "}"]));
+    Map<String, DartObjectImpl> aFields = _assertType(
+        _evaluateInstanceCreationExpression(compilationUnit, "foo"),
+        "A");
+    _assertIntField(aFields, 'x', 5);
   }
 
   void test_instanceCreationExpression_redirect() {

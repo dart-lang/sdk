@@ -451,6 +451,7 @@ dt.typeDefinition {
   "params": {
     "<b>included</b>": List&lt;<a href="#type_FilePath">FilePath</a>&gt;
     "<b>excluded</b>": List&lt;<a href="#type_FilePath">FilePath</a>&gt;
+    "<b>packageRoots</b>": <span style="color:#999999">optional</span> Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_FilePath">FilePath</a>&gt;
   }
 }</pre><br><pre>response: {
   "id": String
@@ -497,6 +498,26 @@ dt.typeDefinition {
             <p>
               A list of the files and directories within the
               included directories that should not be analyzed.
+            </p>
+          </dd><dt class="field"><b><i>packageRoots ( <span style="color:#999999">optional</span> Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_FilePath">FilePath</a>&gt; )</i></b></dt><dd>
+            
+            <p>
+              A mapping from source directories to target directories
+              that should override the normal package: URI resolution
+              mechanism.  The analyzer will behave as though each
+              source directory in the map contains a special
+              pubspec.yaml file which resolves any package: URI to the
+              corresponding path within the target directory.  The
+              effect is the same as specifying the target directory as
+              a "--package_root" parameter to the Dart VM when
+              executing any Dart file inside the source directory.
+            </p>
+            <p>
+              Files in any directories that are not overridden by this
+              mapping have their package: URI's resolved using the
+              normal pubspec.yaml mechanism.  If this field is absent,
+              or the empty map is specified, that indicates that the
+              normal pubspec.yaml mechanism should always be used.
             </p>
           </dd></dl></dd><dt class="request">analysis.setPriorityFiles</dt><dd><div class="box"><pre>request: {
   "id": String

@@ -8,8 +8,11 @@ class ConstantEmitter {
   ConstantReferenceEmitter _referenceEmitter;
   ConstantLiteralEmitter _literalEmitter;
 
-  ConstantEmitter(Compiler compiler, Namer namer) {
-    _literalEmitter = new ConstantLiteralEmitter(compiler, namer, this);
+  ConstantEmitter(Compiler compiler,
+                  Namer namer,
+                  jsAst.Template makeConstantListTemplate) {
+    _literalEmitter = new ConstantLiteralEmitter(
+        compiler, namer, makeConstantListTemplate, this);
     _referenceEmitter = new ConstantReferenceEmitter(compiler, namer, this);
   }
 
@@ -157,9 +160,13 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
 
   final Compiler compiler;
   final Namer namer;
+  final jsAst.Template makeConstantListTemplate;
   final ConstantEmitter constantEmitter;
 
-  ConstantLiteralEmitter(this.compiler, this.namer, this.constantEmitter);
+  ConstantLiteralEmitter(this.compiler,
+                         this.namer,
+                         this.makeConstantListTemplate,
+                         this.constantEmitter);
 
   jsAst.Expression generate(ConstantValue constant) {
     return _visit(constant);
@@ -226,11 +233,9 @@ class ConstantLiteralEmitter implements ConstantValueVisitor<jsAst.Expression> {
   }
 
   jsAst.Expression visitList(ListConstantValue constant) {
-    jsAst.Expression value = new jsAst.Call(
-        new jsAst.PropertyAccess.field(
-            new jsAst.VariableUse(namer.isolateName),
-            namer.getMappedInstanceName('makeConstantList')),
-        [new jsAst.ArrayInitializer.from(_array(constant.entries))]);
+    List<jsAst.Expression> elements = _array(constant.entries);
+    jsAst.ArrayInitializer array = new jsAst.ArrayInitializer.from(elements);
+    jsAst.Expression value = makeConstantListTemplate.instantiate([array]);
     return maybeAddTypeArguments(constant.type, value);
   }
 

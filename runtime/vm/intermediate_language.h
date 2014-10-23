@@ -1078,6 +1078,8 @@ class ParallelMoveInstr : public TemplateInstruction<0> {
 
   intptr_t NumMoves() const { return moves_.length(); }
 
+  bool IsRedundant() const;
+
   virtual void PrintTo(BufferFormatter* f) const;
 
   virtual bool MayThrow() const { return false; }
@@ -1136,6 +1138,10 @@ class BlockEntryInstr : public Instruction {
 
   bool HasParallelMove() const {
     return parallel_move_ != NULL;
+  }
+
+  bool HasNonRedundantParallelMove() const {
+    return HasParallelMove() && !parallel_move()->IsRedundant();
   }
 
   ParallelMoveInstr* GetParallelMove() {
@@ -1646,9 +1652,14 @@ class Definition : public Instruction {
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
   void ClearSSATempIndex() { ssa_temp_index_ = -1; }
   bool HasPairRepresentation() const {
+#if defined(TARGET_ARCH_X64)
+    return (representation() == kPairOfTagged) ||
+           (representation() == kPairOfUnboxedDouble);
+#else
     return (representation() == kPairOfTagged) ||
            (representation() == kPairOfUnboxedDouble) ||
            (representation() == kUnboxedMint);
+#endif
   }
 
   // Compile time type of the definition, which may be requested before type
@@ -2165,6 +2176,10 @@ class GotoInstr : public TemplateInstruction<0> {
 
   bool HasParallelMove() const {
     return parallel_move_ != NULL;
+  }
+
+  bool HasNonRedundantParallelMove() const {
+    return HasParallelMove() && !parallel_move()->IsRedundant();
   }
 
   ParallelMoveInstr* GetParallelMove() {
@@ -7936,7 +7951,7 @@ class CheckClassIdInstr : public TemplateInstruction<1> {
 class CheckArrayBoundInstr : public TemplateInstruction<2> {
  public:
   CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : generalized_(false) {
+      : generalized_(false), licm_hoisted_(false) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
     // Override generated deopt-id.
@@ -7972,6 +7987,8 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
   virtual bool MayThrow() const { return false; }
 
+  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+
   // Give a name to the location/input indices.
   enum {
     kLengthPos = 0,
@@ -7980,6 +7997,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
  private:
   bool generalized_;
+  bool licm_hoisted_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };

@@ -8,7 +8,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 import 'util.dart';
-import 'package:analyzer2dart/src/identifier_semantics.dart';
+import 'identifier_semantics.dart';
 
 /// An AST visitor which uses the [AccessSemantics] of invocations and accesses
 /// to fine-grain visitor methods.
@@ -31,7 +31,7 @@ abstract class SemanticVisitor<R> extends RecursiveAstVisitor<R> {
     }
     if (!condition) {
       reportMessage(node, message);
-      throw new AssertionError();
+      return false;
     }
     return true;
   }

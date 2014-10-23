@@ -11,7 +11,6 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:compiler/implementation/dart_backend/backend_ast_to_frontend_ast.dart';
 import 'package:unittest/unittest.dart';
 
 import '../lib/src/closed_world.dart';
@@ -173,6 +172,328 @@ main() {
     checkResult('''
 main(args) {
   return deprecated;
+}
+''');
+  });
+
+  test('Local variables', () {
+    checkResult('''
+main() {
+  var a;
+  return a;
+}
+''', '''
+main() {}
+''');
+
+    checkResult('''
+main() {
+  var a = 0;
+  return a;
+}
+''', '''
+main() {
+  return 0;
+}
+''');
+  });
+
+  test('Dynamic access', () {
+    checkResult('''
+main(a) {
+  return a.foo;
+}
+''', '''
+main(a) {
+  return a.foo;
+}
+''');
+
+    checkResult('''
+main() {
+  var a = "";
+  return a.foo;
+}
+''', '''
+main() {
+  return "".foo;
+}
+''');
+  });
+
+  test('Dynamic invocation', () {
+    checkResult('''
+main(a) {
+  return a.foo(0);
+}
+''', '''
+main(a) {
+  return a.foo(0);
+}
+''');
+
+    checkResult('''
+main() {
+  var a = "";
+  return a.foo(0, 1);
+}
+''', '''
+main() {
+  return "".foo(0, 1);
+}
+''');
+  });
+
+  test('Binary expressions', () {
+    checkResult('''
+main(a) {
+  return a + deprecated;
+}
+''', '''
+main(a) {
+  return a + deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a - deprecated;
+}
+''', '''
+main(a) {
+  return a - deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a * deprecated;
+}
+''', '''
+main(a) {
+  return a * deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a / deprecated;
+}
+''', '''
+main(a) {
+  return a / deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a ~/ deprecated;
+}
+''', '''
+main(a) {
+  return a ~/ deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a % deprecated;
+}
+''', '''
+main(a) {
+  return a % deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a < deprecated;
+}
+''', '''
+main(a) {
+  return a < deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a <= deprecated;
+}
+''', '''
+main(a) {
+  return a <= deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a > deprecated;
+}
+''', '''
+main(a) {
+  return a > deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a >= deprecated;
+}
+''', '''
+main(a) {
+  return a >= deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a << deprecated;
+}
+''', '''
+main(a) {
+  return a << deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a >> deprecated;
+}
+''', '''
+main(a) {
+  return a >> deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a & deprecated;
+}
+''', '''
+main(a) {
+  return a & deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a | deprecated;
+}
+''', '''
+main(a) {
+  return a | deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a ^ deprecated;
+}
+''', '''
+main(a) {
+  return a ^ deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a == deprecated;
+}
+''', '''
+main(a) {
+  return a == deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a != deprecated;
+}
+''', '''
+main(a) {
+  return !(a == deprecated);
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a || deprecated;
+}
+''', '''
+main(a) {
+  return a || deprecated;
+}
+''');
+
+    checkResult('''
+main(a) {
+  return a && deprecated;
+}
+''', '''
+main(a) {
+  return a && deprecated;
+}
+''');
+  });
+
+  test('If statement', () {
+    checkResult('''
+main(a) {
+  if (a) {
+    print(0);
+  }
+}
+''', '''
+main(a) {
+  if (a) {
+    print(0);
+  }
+}
+''');
+
+    checkResult('''
+main(a) {
+  if (a) {
+    print(0);
+  } else {
+    print(1);
+  }
+}
+''', '''
+main(a) {
+  a ? print(0) : print(1);
+}
+''');
+
+    checkResult('''
+main(a) {
+  if (a) {
+    print(0);
+  } else {
+    print(1);
+    print(2);
+  }
+}
+''', '''
+main(a) {
+  if (a) {
+    print(0);
+  } else {
+    print(1);
+    print(2);
+  }
+}
+''');
+  });
+
+  test('If statement', () {
+    checkResult('''
+main(a) {
+  return a ? print(0) : print(1);
+}
+''', '''
+main(a) {
+  return a ? print(0) : print(1);
 }
 ''');
   });

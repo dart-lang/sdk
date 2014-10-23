@@ -331,6 +331,12 @@ int DebuggerConnectionHandler::StartHandler(const char* address,
   listener_fd_ = ServerSocket::CreateBindListen(
       addresses->GetAt(0)->addr(), port_number, 1);
   delete addresses;
+  if (listener_fd_ < 0) {
+    fprintf(stderr, "%s", "Could not initialize debug socket\n");
+    fflush(stderr);
+    exit(255);
+  }
+
   port_number = Socket::GetPort(listener_fd_);
   DebuggerConnectionImpl::StartHandler(port_number);
   return port_number;

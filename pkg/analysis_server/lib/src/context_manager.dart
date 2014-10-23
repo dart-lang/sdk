@@ -61,6 +61,11 @@ abstract class ContextManager {
   List<String> includedPaths = <String>[];
 
   /**
+   * The map of package roots most recently passed to [setRoots].
+   */
+  Map<String, String> packageRoots = <String, String>{};
+
+  /**
    * Provider which is used to determine the mapping from package name to
    * package folder.
    */
@@ -116,14 +121,17 @@ abstract class ContextManager {
     contextFolders.forEach(_destroyContext);
 
     // Rebuild contexts based on the data last sent to setRoots().
-    setRoots(includedPaths, excludedPaths);
+    setRoots(includedPaths, excludedPaths, packageRoots);
   }
 
   /**
    * Change the set of paths which should be used as starting points to
    * determine the context directories.
    */
-  void setRoots(List<String> includedPaths, List<String> excludedPaths) {
+  void setRoots(List<String> includedPaths, List<String> excludedPaths,
+      Map<String, String> packageRoots) {
+    // TODO(paulberry): process package roots.
+    this.packageRoots = packageRoots;
     List<Folder> contextFolders = _contexts.keys.toList();
     // included
     Set<Folder> includedFolders = new HashSet<Folder>();

@@ -7,6 +7,7 @@
 
 #include "vm/freelist.h"
 #include "vm/globals.h"
+#include "vm/lockers.h"
 #include "vm/ring_buffer.h"
 #include "vm/spaces.h"
 #include "vm/virtual_memory.h"
@@ -214,11 +215,25 @@ class PageSpace {
   }
 
   intptr_t UsedInWords() const { return usage_.used_in_words; }
-  intptr_t CapacityInWords() const { return usage_.capacity_in_words; }
+  intptr_t CapacityInWords() const {
+    MutexLocker ml(pages_lock_);
+    return usage_.capacity_in_words;
+  }
+  void IncreaseCapacityInWords(intptr_t increase_in_words) {
+     MutexLocker ml(pages_lock_);
+     IncreaseCapacityInWordsLocked(increase_in_words);
+  }
+  void IncreaseCapacityInWordsLocked(intptr_t increase_in_words) {
+    DEBUG_ASSERT(pages_lock_->Owner() == Isolate::Current());
+    usage_.capacity_in_words += increase_in_words;
+  }
   intptr_t ExternalInWords() const {
     return usage_.external_in_words;
   }
-  SpaceUsage GetCurrentUsage() const { return usage_; }
+  SpaceUsage GetCurrentUsage() const {
+    MutexLocker ml(pages_lock_);
+    return usage_;
+  }
 
   bool Contains(uword addr) const;
   bool Contains(uword addr, HeapPage::PageType type) const;
@@ -385,6 +400,8 @@ class PageSpace {
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_in_words_;
+  // NOTE: The capacity component of usage_ is updated by the concurrent
+  // sweeper. Use (Increase)CapacityInWords(Locked) for thread-safe access.
   SpaceUsage usage_;
 
   // Keep track of running MarkSweep tasks.

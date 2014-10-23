@@ -31,6 +31,16 @@ main() {
   Expect.equals(#Object, NullMirror.superclass.simpleName);
   Expect.equals(null, NullMirror.superclass.superclass);
   Expect.listEquals([], NullMirror.superinterfaces);
-  Expect.equals(currentMirrorSystem().libraries[Uri.parse('dart:core')],
-                NullMirror.owner);
+  Map<Uri, LibraryMirror> libraries = currentMirrorSystem().libraries;
+  LibraryMirror coreLibrary = libraries[Uri.parse('dart:core')];
+  if (coreLibrary == null) {
+    // In minified mode we don't preserve the URIs.
+    coreLibrary = libraries.values
+        .firstWhere((LibraryMirror lm) => lm.simpleName == #dart.core);
+    Uri uri = coreLibrary.uri;
+    Expect.equals("https", uri.scheme);
+    Expect.equals("dartlang.org", uri.host);
+    Expect.equals("/dart2js-stripped-uri", uri.path);
+  }
+  Expect.equals(coreLibrary, NullMirror.owner);
 }

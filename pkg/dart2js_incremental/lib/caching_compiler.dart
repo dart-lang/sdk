@@ -135,8 +135,10 @@ Future<Compiler> reuseCompiler(
         ..recordedMangledNames.clear()
         ..additionalProperties.clear()
         ..clearCspPrecompiledNodes()
-        ..hasMakeConstantList = false
         ..elementDescriptors.clear();
+
+    backend.emitter
+        ..outputContainsConstantList = false;
 
     backend
         ..preMirrorsMethodCount = 0;

@@ -169,6 +169,28 @@ void importTests() {
       'a|web/second.js': '/*second*/'
     });
 
+  testLogOutput(
+    (options) => new ImportInliner(options),
+    'removes duplicate scripts', {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="packages/a/x_a.html">'
+          '<link rel="import" href="packages/a/x_b.html">'
+          '</head></html>',
+      'a|lib/x_a.html':
+          '<script type="application/dart" src="bar.dart"></script>',
+      'a|lib/x_b.html':
+          '<script type="application/dart" src="bar.dart"></script>',
+      'a|lib/bar.dart': 'var i = 0;'
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body></body></html>',
+      'a|web/test.html._data': expectedData(['lib/bar.dart']),
+    }, [
+      'warning: ${SCRIPT_INCLUDED_MORE_THAN_ONCE.create(
+          {'url': 'packages/a/bar.dart'}).snippet} (lib/x_b.html 0 0)'
+    ]);
+
   final cspPhases = [[new ImportInliner(
       new TransformOptions(contentSecurityPolicy: true))]];
   testPhases('extract Js scripts in CSP mode', cspPhases,

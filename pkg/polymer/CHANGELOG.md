@@ -1,4 +1,11 @@
-#### 0.15.1-dev
+#### 0.15.1+2
+  * Handle and warn about cases where a script file is included twice from the
+    same entrypoint [21332](http://dartbug.com/21332).
+
+#### 0.15.1+1
+  * Fix typo in error message polymer#42
+
+#### 0.15.1
   * Upgraded to polymer [0.4.2][]
   * No need to include dart_support.js in your entrypoints anymore.
 

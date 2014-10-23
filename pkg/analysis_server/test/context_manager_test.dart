@@ -46,7 +46,7 @@ class ContextManagerTest {
     String filePath1 = posix.join(projPath, 'packages', 'file1.dart');
     resourceProvider.newFile(filePath1, 'contents');
     // "packages" files are ignored initially
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(manager.currentContextFilePaths[projPath], isEmpty);
     // "packages" files are ignored during watch
     String filePath2 = posix.join(projPath, 'packages', 'file2.dart');
@@ -63,18 +63,19 @@ class ContextManagerTest {
     // set roots
     resourceProvider.newFolder(project);
     resourceProvider.newFolder(excludedFolder);
-    manager.setRoots(<String>[project], <String>[excludedFolder]);
+    manager.setRoots(<String>[project], <String>[excludedFolder],
+        <String, String>{});
     // verify
     expect(manager.isInAnalysisRoot('$excludedFolder/test.dart'), isFalse);
   }
 
   void test_isInAnalysisRoot_inRoot() {
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(manager.isInAnalysisRoot('$projPath/test.dart'), isTrue);
   }
 
   void test_isInAnalysisRoot_notInRoot() {
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(manager.isInAnalysisRoot('/test.dart'), isFalse);
   }
 
@@ -82,7 +83,7 @@ class ContextManagerTest {
     // create a context with a pubspec.yaml file
     String pubspecPath = posix.join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     return pumpEventQueue().then((_) {
       expect(manager.currentContextPaths.toList(), [projPath]);
       manager.now++;
@@ -103,7 +104,7 @@ class ContextManagerTest {
     String pubspec2Path = posix.join(subdir2Path, 'pubspec.yaml');
     resourceProvider.newFile(pubspec1Path, 'pubspec');
     resourceProvider.newFile(pubspec2Path, 'pubspec');
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     return pumpEventQueue().then((_) {
       expect(manager.currentContextPaths.toSet(),
           [subdir1Path, subdir2Path, projPath].toSet());
@@ -122,7 +123,7 @@ class ContextManagerTest {
   void test_setRoots_addFolderWithDartFile() {
     String filePath = posix.join(projPath, 'foo.dart');
     resourceProvider.newFile(filePath, 'contents');
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
     var filePaths = manager.currentContextFilePaths[projPath];
     expect(filePaths, hasLength(1));
@@ -132,7 +133,7 @@ class ContextManagerTest {
   void test_setRoots_addFolderWithDartFileInSubfolder() {
     String filePath = posix.join(projPath, 'foo', 'bar.dart');
     resourceProvider.newFile(filePath, 'contents');
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
     var filePaths = manager.currentContextFilePaths[projPath];
     expect(filePaths, hasLength(1));
@@ -142,7 +143,7 @@ class ContextManagerTest {
   void test_setRoots_addFolderWithDummyLink() {
     String filePath = posix.join(projPath, 'foo.dart');
     resourceProvider.newDummyLink(filePath);
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
     var filePaths = manager.currentContextFilePaths[projPath];
     expect(filePaths, isEmpty);
@@ -151,7 +152,7 @@ class ContextManagerTest {
   void test_setRoots_addFolderWithPubspec() {
     String pubspecPath = posix.join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
     expect(manager.currentContextPaths, hasLength(1));
     expect(manager.currentContextPaths, contains(projPath));
@@ -182,7 +183,7 @@ class ContextManagerTest {
       },
     };
     // set roots
-    manager.setRoots(<String>[root], <String>[]);
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
     manager.assertContextPaths([root, subProjectA, subProjectB]);
     // verify files
     manager.assertContextFiles(root, [rootFile]);
@@ -202,7 +203,7 @@ class ContextManagerTest {
 
   void test_setRoots_addFolderWithoutPubspec() {
     packageMapProvider.packageMap = null;
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
     expect(manager.currentContextPaths, hasLength(1));
     expect(manager.currentContextPaths, contains(projPath));
@@ -218,7 +219,7 @@ class ContextManagerTest {
     resourceProvider.newFile(file1, '// 1');
     resourceProvider.newFile(file2, '// 2');
     // set roots
-    manager.setRoots(<String>[project], <String>[file1]);
+    manager.setRoots(<String>[project], <String>[file1], <String, String>{});
     manager.assertContextPaths([project]);
     manager.assertContextFiles(project, [file2]);
   }
@@ -234,7 +235,7 @@ class ContextManagerTest {
     resourceProvider.newFile(fileA, 'library a;');
     resourceProvider.newFile(fileB, 'library b;');
     // set roots
-    manager.setRoots(<String>[project], <String>[folderB]);
+    manager.setRoots(<String>[project], <String>[folderB], <String, String>{});
     manager.assertContextPaths([project]);
     manager.assertContextFiles(project, [fileA]);
   }
@@ -248,11 +249,11 @@ class ContextManagerTest {
     resourceProvider.newFile(file1, '// 1');
     resourceProvider.newFile(file2, '// 2');
     // set roots
-    manager.setRoots(<String>[project], <String>[]);
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
     manager.assertContextPaths([project]);
     manager.assertContextFiles(project, [file1, file2]);
     // exclude "2"
-    manager.setRoots(<String>[project], <String>[file2]);
+    manager.setRoots(<String>[project], <String>[file2], <String, String>{});
     manager.assertContextPaths([project]);
     manager.assertContextFiles(project, [file1]);
   }
@@ -268,11 +269,11 @@ class ContextManagerTest {
     resourceProvider.newFile(fileA, 'library a;');
     resourceProvider.newFile(fileB, 'library b;');
     // initially both "aaa/a" and "bbb/b" are included
-    manager.setRoots(<String>[project], <String>[]);
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
     manager.assertContextPaths([project]);
     manager.assertContextFiles(project, [fileA, fileB]);
     // exclude "bbb/"
-    manager.setRoots(<String>[project], <String>[folderB]);
+    manager.setRoots(<String>[project], <String>[folderB], <String, String>{});
     manager.assertContextPaths([project]);
     manager.assertContextFiles(project, [fileA]);
   }
@@ -286,11 +287,11 @@ class ContextManagerTest {
     resourceProvider.newFile(file1, '// 1');
     resourceProvider.newFile(file2, '// 2');
     // set roots
-    manager.setRoots(<String>[project], <String>[file2]);
+    manager.setRoots(<String>[project], <String>[file2], <String, String>{});
     manager.assertContextPaths([project]);
     manager.assertContextFiles(project, [file1]);
     // stop excluding "2"
-    manager.setRoots(<String>[project], <String>[]);
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
     manager.assertContextPaths([project]);
     manager.assertContextFiles(project, [file1, file2]);
   }
@@ -306,11 +307,11 @@ class ContextManagerTest {
     resourceProvider.newFile(fileA, 'library a;');
     resourceProvider.newFile(fileB, 'library b;');
     // exclude "bbb/"
-    manager.setRoots(<String>[project], <String>[folderB]);
+    manager.setRoots(<String>[project], <String>[folderB], <String, String>{});
     manager.assertContextPaths([project]);
     manager.assertContextFiles(project, [fileA]);
     // stop excluding "bbb/"
-    manager.setRoots(<String>[project], <String>[]);
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
     manager.assertContextPaths([project]);
     manager.assertContextFiles(project, [fileA, fileB]);
   }
@@ -329,7 +330,7 @@ class ContextManagerTest {
     resourceProvider.newFile(subFile, 'library sub;');
     resourceProvider.newFile(subSubPubspec, 'pubspec');
     // set roots
-    manager.setRoots(<String>[root], <String>[]);
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
     manager.assertContextPaths([root, subProject]);
     manager.assertContextFiles(root, [rootFile]);
     manager.assertContextFiles(subProject, [subFile]);
@@ -341,7 +342,7 @@ class ContextManagerTest {
     packageMapProvider.packageMap = {
       'foo': [packageFolder]
     };
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(
         manager.currentContextPackageMaps[projPath],
         equals(packageMapProvider.packageMap));
@@ -352,10 +353,10 @@ class ContextManagerTest {
     String pubspecPath = posix.join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     // add one root - there is a context
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(manager.currentContextPaths, hasLength(1));
     // set empty roots - no contexts
-    manager.setRoots(<String>[], <String>[]);
+    manager.setRoots(<String>[], <String>[], <String, String>{});
     expect(manager.currentContextPaths, hasLength(0));
     expect(manager.currentContextFilePaths, hasLength(0));
   }
@@ -380,14 +381,15 @@ class ContextManagerTest {
     resourceProvider.newFile(subProjectA_file, '// sub-a');
     resourceProvider.newFile(subProjectB_file, '// sub-b');
     // set roots
-    manager.setRoots(<String>[projectA, projectB], <String>[]);
+    manager.setRoots(<String>[projectA, projectB], <String>[],
+        <String, String>{});
     manager.assertContextPaths([projectA, subProjectA, projectB, subProjectB]);
     manager.assertContextFiles(projectA, [projectA_file]);
     manager.assertContextFiles(projectB, [projectB_file]);
     manager.assertContextFiles(subProjectA, [subProjectA_file]);
     manager.assertContextFiles(subProjectB, [subProjectB_file]);
     // remove "projectB"
-    manager.setRoots(<String>[projectA], <String>[]);
+    manager.setRoots(<String>[projectA], <String>[], <String, String>{});
     manager.assertContextPaths([projectA, subProjectA]);
     manager.assertContextFiles(projectA, [projectA_file]);
     manager.assertContextFiles(subProjectA, [subProjectA_file]);
@@ -396,16 +398,16 @@ class ContextManagerTest {
   void test_setRoots_removeFolderWithoutPubspec() {
     packageMapProvider.packageMap = null;
     // add one root - there is a context
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(manager.currentContextPaths, hasLength(1));
     // set empty roots - no contexts
-    manager.setRoots(<String>[], <String>[]);
+    manager.setRoots(<String>[], <String>[], <String, String>{});
     expect(manager.currentContextPaths, hasLength(0));
     expect(manager.currentContextFilePaths, hasLength(0));
   }
 
   test_watch_addDummyLink() {
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // empty folder initially
     Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
     expect(filePaths, isEmpty);
@@ -419,7 +421,7 @@ class ContextManagerTest {
   }
 
   test_watch_addFile() {
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // empty folder initially
     Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
     expect(filePaths, hasLength(0));
@@ -434,7 +436,7 @@ class ContextManagerTest {
   }
 
   test_watch_addFileInSubfolder() {
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // empty folder initially
     Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
     expect(filePaths, hasLength(0));
@@ -458,7 +460,7 @@ class ContextManagerTest {
     // create files
     resourceProvider.newFile(fileA, 'library a;');
     // set roots
-    manager.setRoots(<String>[project], <String>[folderB]);
+    manager.setRoots(<String>[project], <String>[folderB], <String, String>{});
     manager.assertContextPaths([project]);
     manager.assertContextFiles(project, [fileA]);
     // add a file, ignored as excluded
@@ -477,7 +479,7 @@ class ContextManagerTest {
     // create files
     resourceProvider.newFile(rootFile, 'library root;');
     // set roots
-    manager.setRoots(<String>[root], <String>[]);
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
     manager.assertContextPaths([root]);
     // verify files
     manager.assertContextFiles(root, [rootFile]);
@@ -500,7 +502,7 @@ class ContextManagerTest {
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subFile, 'library a;');
     // set roots
-    manager.setRoots(<String>[root], <String>[]);
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
     manager.assertContextPaths([root]);
     // verify files
     manager.assertContextFiles(root, [rootFile, subFile]);
@@ -526,7 +528,7 @@ class ContextManagerTest {
     resourceProvider.newFile(subPubspec, 'pubspec');
     resourceProvider.newFile(subFile, 'library sub;');
     // set roots
-    manager.setRoots(<String>[root], <String>[]);
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
     manager.assertContextPaths([root, subProject]);
     manager.assertContextFiles(root, [rootFile]);
     manager.assertContextFiles(subProject, [subFile]);
@@ -543,7 +545,7 @@ class ContextManagerTest {
     String filePath = posix.join(projPath, 'foo.dart');
     // add root with a file
     resourceProvider.newFile(filePath, 'contents');
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // the file was added
     Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
     expect(filePaths, hasLength(1));
@@ -564,7 +566,7 @@ class ContextManagerTest {
     resourceProvider.newFile(rootPubspec, 'pubspec');
     resourceProvider.newFile(rootFile, 'library root;');
     // set roots
-    manager.setRoots(<String>[root], <String>[]);
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
     manager.assertContextPaths([root]);
     manager.assertContextFiles(root, [rootFile]);
     // delete the pubspec
@@ -587,7 +589,7 @@ class ContextManagerTest {
     resourceProvider.newFile(rootFile, 'library root;');
     resourceProvider.newFile(subFile, 'library a;');
     // set roots
-    manager.setRoots(<String>[root], <String>[]);
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
     manager.assertContextPaths([root, subProject]);
     // verify files
     manager.assertContextFiles(root, [rootFile]);
@@ -604,7 +606,7 @@ class ContextManagerTest {
     String filePath = posix.join(projPath, 'foo.dart');
     // add root with a file
     resourceProvider.newFile(filePath, 'contents');
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // the file was added
     Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
     expect(filePaths, hasLength(1));
@@ -627,7 +629,7 @@ class ContextManagerTest {
     String dartFilePath = posix.join(projPath, 'main.dart');
     resourceProvider.newFile(dartFilePath, 'contents');
     // the created context has the expected empty package map
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(manager.currentContextPackageMaps[projPath], isEmpty);
     // configure package map
     String packagePath = '/package/foo';
@@ -659,7 +661,7 @@ class ContextManagerTest {
     String dartFilePath = posix.join(projPath, 'main.dart');
     resourceProvider.newFile(dartFilePath, 'contents');
     // the created context has the expected empty package map
-    manager.setRoots(<String>[projPath], <String>[]);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(manager.currentContextPackageMaps[projPath], isEmpty);
     // Change the package map dependency so that the packageMapProvider is
     // re-run, and arrange for it to return null from computePackageMap().

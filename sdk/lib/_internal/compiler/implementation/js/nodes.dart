@@ -941,8 +941,10 @@ class ArrayInitializer extends Expression {
 
   ArrayInitializer(this.length, this.elements);
 
-  factory ArrayInitializer.from(Iterable<Expression> expressions) =>
-      new ArrayInitializer(expressions.length, _convert(expressions));
+  factory ArrayInitializer.from(Iterable<Expression> expressions) {
+    List<ArrayElement> elements = _convert(expressions);
+    return new ArrayInitializer(elements.length, elements);
+  }
 
   accept(NodeVisitor visitor) => visitor.visitArrayInitializer(this);
 

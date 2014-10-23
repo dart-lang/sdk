@@ -3190,9 +3190,8 @@ class Parser {
   }
 
   /**
-   * Return `true` if the current token appears to be the beginning of a function declaration.
-   *
-   * @return `true` if the current token appears to be the beginning of a function declaration
+   * Return `true` if the current token appears to be the beginning of a
+   * function declaration.
    */
   bool _isFunctionDeclaration() {
     if (_matchesKeyword(Keyword.VOID)) {
@@ -3200,13 +3199,14 @@ class Parser {
     }
     Token afterReturnType = _skipTypeName(_currentToken);
     if (afterReturnType == null) {
-      // There was no return type, but it is optional, so go back to where we started.
+      // There was no return type, but it is optional, so go back to where we
+      // started.
       afterReturnType = _currentToken;
     }
     Token afterIdentifier = _skipSimpleIdentifier(afterReturnType);
     if (afterIdentifier == null) {
-      // It's possible that we parsed the function name as if it were a type name, so see whether
-      // it makes sense if we assume that there is no type.
+      // It's possible that we parsed the function name as if it were a type
+      // name, so see whether it makes sense if we assume that there is no type.
       afterIdentifier = _skipSimpleIdentifier(_currentToken);
     }
     if (afterIdentifier == null) {
@@ -3215,14 +3215,22 @@ class Parser {
     if (_isFunctionExpression(afterIdentifier)) {
       return true;
     }
-    // It's possible that we have found a getter. While this isn't valid at this point we test for
-    // it in order to recover better.
+    // It's possible that we have found a getter. While this isn't valid at this
+    // point we test for it in order to recover better.
     if (_matchesKeyword(Keyword.GET)) {
       Token afterName = _skipSimpleIdentifier(_currentToken.next);
       if (afterName == null) {
         return false;
       }
-      return _tokenMatches(afterName, TokenType.FUNCTION) || _tokenMatches(afterName, TokenType.OPEN_CURLY_BRACKET);
+      return _tokenMatches(afterName, TokenType.FUNCTION)
+          || _tokenMatches(afterName, TokenType.OPEN_CURLY_BRACKET);
+    } else if (_tokenMatchesKeyword(afterReturnType, Keyword.GET)) {
+      Token afterName = _skipSimpleIdentifier(afterReturnType.next);
+      if (afterName == null) {
+        return false;
+      }
+      return _tokenMatches(afterName, TokenType.FUNCTION)
+          || _tokenMatches(afterName, TokenType.OPEN_CURLY_BRACKET);
     }
     return false;
   }

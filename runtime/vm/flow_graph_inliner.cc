@@ -47,8 +47,7 @@ DEFINE_FLAG(int, inlining_constant_arguments_size_threshold, 60,
 DEFINE_FLAG(int, inlining_hotness, 10,
     "Inline only hotter calls, in percents (0 .. 100); "
     "default 10%: calls above-equal 10% of max-count are inlined.");
-DEFINE_FLAG(bool, inline_recursive, true,
-    "Inline recursive calls.");
+DEFINE_FLAG(bool, inline_recursive, false, "Inline recursive calls.");
 DEFINE_FLAG(int, max_inlined_per_depth, 500,
     "Max. number of inlined calls per depth");
 DEFINE_FLAG(bool, print_inlining_tree, false, "Print inlining tree");
@@ -764,11 +763,12 @@ class CallSiteInliner : public ValueObject {
             &call_data->caller, &function, call_data->call);
         return false;
       }
-
       if (function.IsInvokeFieldDispatcher() ||
           function.IsNoSuchMethodDispatcher()) {
         // Append call sites to the currently processed list so that dispatcher
         // methods get inlined regardless of the current depth.
+        // Need a throttling mechanism for recursive inlining.
+        ASSERT(!FLAG_inline_recursive);
         inlining_call_sites_->FindCallSites(callee_graph,
                                             0,
                                             &inlined_info_);

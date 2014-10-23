@@ -1269,17 +1269,14 @@ class ClassScope extends EnclosedScope {
 }
 
 /**
- * Instances of the class `CompilationUnitBuilder` build an element model for a single
- * compilation unit.
+ * A `CompilationUnitBuilder` builds an element model for a single compilation
+ * unit.
  */
 class CompilationUnitBuilder {
   /**
-   * Build the compilation unit element for the given source.
-   *
-   * @param source the source describing the compilation unit
-   * @param unit the AST structure representing the compilation unit
-   * @return the compilation unit element that was built
-   * @throws AnalysisException if the analysis could not be performed
+   * Build the compilation unit element for the given [source] based on the
+   * compilation [unit] associated with the source. Throw an AnalysisException
+   * if the element could not be built.
    */
   CompilationUnitElementImpl buildCompilationUnit(Source source, CompilationUnit unit) {
     TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
@@ -1299,6 +1296,7 @@ class CompilationUnitBuilder {
       element.types = holder.types;
       element.topLevelVariables = holder.topLevelVariables;
       unit.element = element;
+      holder.validate();
       return element;
     } finally {
       timeCounter.stop();
@@ -3722,7 +3720,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       FunctionBody body = expression.body;
       sc.Token property = node.propertyKeyword;
-      if (property == null) {
+      if (property == null || _inFunction) {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element = new FunctionElementImpl.forNode(functionName);
         element.functions = holder.functions;
@@ -3853,7 +3851,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier aliasName = node.name;
     List<ParameterElement> parameters = holder.parameters;
     List<TypeParameterElement> typeParameters = holder.typeParameters;
-    FunctionTypeAliasElementImpl element = new FunctionTypeAliasElementImpl(aliasName);
+    FunctionTypeAliasElementImpl element = new FunctionTypeAliasElementImpl.forNode(aliasName);
     element.parameters = parameters;
     element.typeParameters = typeParameters;
     FunctionTypeImpl type = new FunctionTypeImpl.con2(element);
@@ -21742,9 +21740,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   Object visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier methodNameNode = node.methodName;
     Element staticMethodElement = methodNameNode.staticElement;
-    // Record types of the local variable invoked as a function.
-    if (staticMethodElement is LocalVariableElement) {
-      LocalVariableElement variable = staticMethodElement;
+    // Record types of the variable invoked as a function.
+    if (staticMethodElement is VariableElement) {
+      VariableElement variable = staticMethodElement;
       DartType staticType = variable.type;
       _recordStaticType(methodNameNode, staticType);
       DartType propagatedType = _overrideManager.getType(variable);
@@ -24803,7 +24801,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    */
   void _setFunctionTypedParameterType(ParameterElementImpl element, TypeName returnType, FormalParameterList parameterList) {
     List<ParameterElement> parameters = _getElements(parameterList);
-    FunctionTypeAliasElementImpl aliasElement = new FunctionTypeAliasElementImpl(null);
+    FunctionTypeAliasElementImpl aliasElement = new FunctionTypeAliasElementImpl.forNode(null);
     aliasElement.synthetic = true;
     aliasElement.shareParameters(parameters);
     aliasElement.returnType = _computeReturnType(returnType);

@@ -9,9 +9,9 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
 
 
@@ -1320,6 +1320,25 @@ class A {
     int positiveB = res(v1, v2);
   }
 }
+''');
+  }
+
+  test_singleExpression_parameter_functionTypeAlias() {
+    indexTestUnit('''
+typedef R Foo<S, R>(S s);
+void main(Foo<String, int> foo, String s) {
+  int a = foo(s);
+}
+''');
+    _createRefactoringForString('foo(s)');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+typedef R Foo<S, R>(S s);
+void main(Foo<String, int> foo, String s) {
+  int a = res(foo, s);
+}
+
+int res(Foo<String, int> foo, String s) => foo(s);
 ''');
   }
 

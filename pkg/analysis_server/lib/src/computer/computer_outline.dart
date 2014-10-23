@@ -8,7 +8,6 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 
@@ -16,21 +15,19 @@ import 'package:analyzer/src/generated/source.dart';
  * A computer for [CompilationUnit] outline.
  */
 class DartUnitOutlineComputer {
-  final CompilationUnit _unit;
-  String file;
-  LineInfo lineInfo;
+  final String file;
+  final CompilationUnit unit;
+  final LineInfo lineInfo;
 
-  DartUnitOutlineComputer(AnalysisContext context, Source source, this._unit) {
-    file = source.fullName;
-    lineInfo = context.getLineInfo(source);
-  }
+  DartUnitOutlineComputer(Source source, this.lineInfo, this.unit)
+      : file = source.fullName;
 
   /**
    * Returns the computed outline, not `null`.
    */
   Outline compute() {
     List<Outline> unitContents = <Outline>[];
-    for (CompilationUnitMember unitMember in _unit.declarations) {
+    for (CompilationUnitMember unitMember in unit.declarations) {
       if (unitMember is ClassDeclaration) {
         ClassDeclaration classDeclaration = unitMember;
         List<Outline> classContents = <Outline>[];
@@ -328,11 +325,11 @@ class DartUnitOutlineComputer {
         ElementKind.COMPILATION_UNIT,
         '<unit>',
         Element.makeFlags(),
-        location: _getLocationNode(_unit));
+        location: _getLocationNode(unit));
     return new Outline(
         element,
-        _unit.offset,
-        _unit.length,
+        unit.offset,
+        unit.length,
         children: nullIfEmpty(unitContents));
   }
 

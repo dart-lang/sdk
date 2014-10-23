@@ -321,15 +321,10 @@ class ClassEmitter extends CodeEmitterHelper {
       statics.add(property);
     }
 
-    Map<OutputUnit, ClassBuilder> classPropertyLists =
+    ClassBuilder classProperties =
         emitter.elementDescriptors.remove(classElement);
-    if (classPropertyLists != null) {
-      for (ClassBuilder classProperties in classPropertyLists.values) {
-        // TODO(sigurdm): What about deferred?
-        if (classProperties != null) {
-          statics.addAll(classProperties.properties);
-        }
-      }
+    if (classProperties != null) {
+      statics.addAll(classProperties.properties);
     }
 
     if (!statics.isEmpty) {

@@ -101,25 +101,52 @@ abstract class TypeMask {
   }
 
   /**
-   * Checks whether this mask uses the smallest possible representation for
+   * Asserts that this mask uses the smallest possible representation for
    * its types. Currently, we normalize subtype and subclass to exact if no
    * subtypes or subclasses are present and subtype to subclass if only
    * subclasses exist. We also normalize exact to empty if the corresponding
    * baseclass was never instantiated.
    */
-  static bool isNormalized(TypeMask mask, ClassWorld classWorld) {
+  static bool assertIsNormalized(TypeMask mask, ClassWorld classWorld) {
+    String reason = getNotNormalizedReason(mask, classWorld);
+    return invariant(NO_LOCATION_SPANNABLE, reason == null,
+        message: () => '$mask is not normalized: $reason');
+  }
+
+  static String getNotNormalizedReason(TypeMask mask, ClassWorld classWorld) {
     mask = nonForwardingMask(mask);
     if (mask is FlatTypeMask) {
-      if (mask.isEmpty) return true;
-      if (mask.isExact) return classWorld.isInstantiated(mask.base);
-      if (mask.isSubclass) return classWorld.hasAnySubclass(mask.base);
+      if (mask.isEmpty) return null;
+      if (mask.isExact) {
+        if (!classWorld.isInstantiated(mask.base)) {
+          return 'Exact ${mask.base} is not instantiated.';
+        }
+        return null;
+      }
+      if (mask.isSubclass) {
+        if (!classWorld.hasAnySubclass(mask.base)) {
+          return 'Subclass ${mask.base} does not have any subclasses.';
+        }
+        return null;
+      }
       assert(mask.isSubtype);
-      return classWorld.hasAnySubtype(mask.base) &&
-             !classWorld.hasOnlySubclasses(mask.base);
+      if (!classWorld.hasAnySubtype(mask.base)) {
+        return 'Subtype ${mask.base} does not have any subclasses.';
+      }
+      if (classWorld.hasOnlySubclasses(mask.base)) {
+        return 'Subtype ${mask.base} only has subclasses.';
+      }
+      return null;
     } else if (mask is UnionTypeMask) {
-      return mask.disjointMasks.every((mask) => isNormalized(mask, classWorld));
+      for (TypeMask submask in mask.disjointMasks) {
+        String submaskReason = getNotNormalizedReason(submask, classWorld);
+        if (submaskReason != null) {
+          return 'Submask $submask in $mask: $submaskReason.';
+        }
+      }
+      return null;
     }
-    return false;
+    return 'Unknown type mask $mask.';
   }
 
   /**
