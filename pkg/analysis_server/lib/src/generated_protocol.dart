@@ -741,6 +741,7 @@ class AnalysisReanalyzeResult {
  * {
  *   "included": List<FilePath>
  *   "excluded": List<FilePath>
+ *   "packageRoots": optional Map<FilePath, FilePath>
  * }
  */
 class AnalysisSetAnalysisRootsParams implements HasToJson {
@@ -755,7 +756,23 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
    */
   List<String> excluded;
 
-  AnalysisSetAnalysisRootsParams(this.included, this.excluded);
+  /**
+   * A mapping from source directories to target directories that should
+   * override the normal package: URI resolution mechanism. The analyzer will
+   * behave as though each source directory in the map contains a special
+   * pubspec.yaml file which resolves any package: URI to the corresponding
+   * path within the target directory. The effect is the same as specifying the
+   * target directory as a "--package_root" parameter to the Dart VM when
+   * executing any Dart file inside the source directory.
+   *
+   * Files in any directories that are not overridden by this mapping have
+   * their package: URI's resolved using the normal pubspec.yaml mechanism. If
+   * this field is absent, or the empty map is specified, that indicates that
+   * the normal pubspec.yaml mechanism should always be used.
+   */
+  Map<String, String> packageRoots;
+
+  AnalysisSetAnalysisRootsParams(this.included, this.excluded, {this.packageRoots});
 
   factory AnalysisSetAnalysisRootsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -774,7 +791,11 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "excluded");
       }
-      return new AnalysisSetAnalysisRootsParams(included, excluded);
+      Map<String, String> packageRoots;
+      if (json.containsKey("packageRoots")) {
+        packageRoots = jsonDecoder._decodeMap(jsonPath + ".packageRoots", json["packageRoots"], valueDecoder: jsonDecoder._decodeString);
+      }
+      return new AnalysisSetAnalysisRootsParams(included, excluded, packageRoots: packageRoots);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.setAnalysisRoots params");
     }
@@ -789,6 +810,9 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
     Map<String, dynamic> result = {};
     result["included"] = included;
     result["excluded"] = excluded;
+    if (packageRoots != null) {
+      result["packageRoots"] = packageRoots;
+    }
     return result;
   }
 
@@ -803,7 +827,8 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisSetAnalysisRootsParams) {
       return _listEqual(included, other.included, (String a, String b) => a == b) &&
-          _listEqual(excluded, other.excluded, (String a, String b) => a == b);
+          _listEqual(excluded, other.excluded, (String a, String b) => a == b) &&
+          _mapEqual(packageRoots, other.packageRoots, (String a, String b) => a == b);
     }
     return false;
   }
@@ -813,6 +838,7 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, included.hashCode);
     hash = _JenkinsSmiHash.combine(hash, excluded.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, packageRoots.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }

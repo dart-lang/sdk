@@ -159,12 +159,15 @@ final Matcher isAnalysisReanalyzeResult = isNull;
  * {
  *   "included": List<FilePath>
  *   "excluded": List<FilePath>
+ *   "packageRoots": optional Map<FilePath, FilePath>
  * }
  */
 final Matcher isAnalysisSetAnalysisRootsParams = new LazyMatcher(() => new MatchesJsonObject(
   "analysis.setAnalysisRoots params", {
     "included": isListOf(isFilePath),
     "excluded": isListOf(isFilePath)
+  }, optionalFields: {
+    "packageRoots": isMapOf(isFilePath, isFilePath)
   }));
 
 /**

@@ -436,9 +436,8 @@ class AnalysisServer {
           channel.sendResponse(exception.response);
           return;
         } catch (exception, stackTrace) {
-          RequestError error = new RequestError(
-              RequestErrorCode.SERVER_ERROR,
-              exception);
+          RequestError error =
+              new RequestError(RequestErrorCode.SERVER_ERROR, exception);
           if (stackTrace != null) {
             error.stackTrace = stackTrace.toString();
           }
@@ -563,9 +562,12 @@ class AnalysisServer {
    * projects/contexts support.
    */
   void setAnalysisRoots(String requestId, List<String> includedPaths,
-      List<String> excludedPaths) {
+      List<String> excludedPaths, Map<String, String> packageRoots) {
     try {
-      contextDirectoryManager.setRoots(includedPaths, excludedPaths);
+      contextDirectoryManager.setRoots(
+          includedPaths,
+          excludedPaths,
+          packageRoots);
     } on UnimplementedError catch (e) {
       throw new RequestFailure(
           new Response.unsupportedFeature(requestId, e.message));

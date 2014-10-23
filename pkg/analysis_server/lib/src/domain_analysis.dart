@@ -47,10 +47,10 @@ class AnalysisDomainHandler implements RequestHandler {
           if (errorInfo == null) {
             server.sendResponse(new Response.getErrorsInvalidFile(request));
           } else {
-            errors = doAnalysisError_listFromEngine(errorInfo.lineInfo,
-                errorInfo.errors);
-            server.sendResponse(new AnalysisGetErrorsResult(errors).toResponse(
-                request.id));
+            errors =
+                doAnalysisError_listFromEngine(errorInfo.lineInfo, errorInfo.errors);
+            server.sendResponse(
+                new AnalysisGetErrorsResult(errors).toResponse(request.id));
           }
           break;
         case AnalysisDoneReason.CONTEXT_REMOVED:
@@ -128,7 +128,11 @@ class AnalysisDomainHandler implements RequestHandler {
   Response setAnalysisRoots(Request request) {
     var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
     // continue in server
-    server.setAnalysisRoots(request.id, params.included, params.excluded);
+    server.setAnalysisRoots(
+        request.id,
+        params.included,
+        params.excluded,
+        params.packageRoots == null ? {} : params.packageRoots);
     return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
   }
 
@@ -147,9 +151,9 @@ class AnalysisDomainHandler implements RequestHandler {
   Response setSubscriptions(Request request) {
     var params = new AnalysisSetSubscriptionsParams.fromRequest(request);
     // parse subscriptions
-    Map<AnalysisService, Set<String>> subMap =
-        mapMap(params.subscriptions, valueCallback:
-          (List<String> subscriptions) => subscriptions.toSet());
+    Map<AnalysisService, Set<String>> subMap = mapMap(
+        params.subscriptions,
+        valueCallback: (List<String> subscriptions) => subscriptions.toSet());
     server.setAnalysisSubscriptions(subMap);
     return new AnalysisSetSubscriptionsResult().toResponse(request.id);
   }
