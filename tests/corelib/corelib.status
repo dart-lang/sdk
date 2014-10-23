@@ -6,6 +6,8 @@
 bool_from_environment2_test: Skip
 bool_from_environment_default_value_test: Skip
 bool_from_environment_test: Skip
+from_environment_const_type_test: Skip
+from_environment_const_type_undefined_test: Skip
 int_from_environment2_test: Skip
 int_from_environment3_test: Skip
 int_from_environment_default_value_test: Skip
@@ -19,6 +21,8 @@ string_from_environment_test: Skip
 bool_from_environment2_test: Skip
 bool_from_environment_default_value_test: Skip
 bool_from_environment_test: Skip
+from_environment_const_type_test: Skip
+from_environment_const_type_undefined_test: Skip
 int_from_environment2_test: Skip
 int_from_environment3_test: Skip
 int_from_environment_default_value_test: Skip
