@@ -77,6 +77,10 @@ abstract class SemanticVisitor<R> extends RecursiveAstVisitor<R> {
       node.target.accept(this);
     }
     node.argumentList.accept(this);
+    return handleMethodInvocation(node);
+  }
+
+  R handleMethodInvocation(MethodInvocation node) {
     AccessSemantics semantics = classifyMethodInvocation(node);
     switch (semantics.kind) {
       case AccessKind.DYNAMIC:
@@ -105,12 +109,20 @@ abstract class SemanticVisitor<R> extends RecursiveAstVisitor<R> {
     if (node.target != null) {
       node.target.accept(this);
     }
+    return handlePropertyAccess(node);
+  }
+
+  R handlePropertyAccess(PropertyAccess node) {
     return _handlePropertyAccess(node, classifyPropertyAccess(node));
   }
 
   @override
   R visitPrefixedIdentifier(PrefixedIdentifier node) {
     node.prefix.accept(this);
+    return handlePrefixedIdentifier(node);
+  }
+
+  R handlePrefixedIdentifier(PrefixedIdentifier node) {
     return _handlePropertyAccess(node, classifyPrefixedIdentifier(node));
   }
 

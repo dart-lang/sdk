@@ -22,11 +22,13 @@ String buildLibrarySource(
 
 const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
   'bool': 'class bool {}',
+  'Comparator': 'abstract class Comparator<T> {}',
   'DateTime': r'''
       class DateTime {
         DateTime(year);
         DateTime.utc(year);
       }''',
+  'deprecated': 'const deprecated = 0;',
   'double': r'''
       abstract class double extends num {
         static var NAN = 0;

@@ -69,6 +69,12 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   }
 
   @override
+  ir.Node visitMethodInvocation(MethodInvocation node) {
+    // Overridden to avoid eager visits of the receiver and arguments.
+    return handleMethodInvocation(node);
+  }
+
+  @override
   ir.Primitive visitDynamicInvocation(MethodInvocation node,
                                       AccessSemantics semantics) {
     // TODO(johnniwinther): Handle implicit `this`.
@@ -134,6 +140,12 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   @override
   visitReturnStatement(ReturnStatement node) {
     irBuilder.buildReturn(build(node.expression));
+  }
+
+  @override
+  ir.Node visitPropertyAccess(PropertyAccess node) {
+    // Overridden to avoid eager visits of the receiver.
+    return handlePropertyAccess(node);
   }
 
   @override
