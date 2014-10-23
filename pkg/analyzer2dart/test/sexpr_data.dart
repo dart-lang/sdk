@@ -637,4 +637,69 @@ main(a) {
   (Branch (IsTrue a) k1 k3))
 '''),
     ]),
+
+
+  // These test that unreachable statements are skipped within a block.
+  const Group('Block statements', const <TestSpec>[
+    const TestSpec('''
+main(a) {
+  return 0;
+  return 1;
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetPrim v0 (Constant IntConstant(0)))
+  (InvokeContinuation return v0))
+'''),
+
+    const TestSpec('''
+main(a) {
+  if (a) {
+    return 0;
+    return 1;
+  } else {
+    return 2;
+    return 3;
+  }
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0)
+    (LetPrim v0 (Constant IntConstant(0)))
+    (InvokeContinuation return v0))
+  (LetCont (k1)
+    (LetPrim v1 (Constant IntConstant(2)))
+    (InvokeContinuation return v1))
+  (Branch (IsTrue a) k0 k1))
+'''),
+
+    const TestSpec('''
+main(a) {
+  if (a) {
+    print(0);
+    return 0;
+    return 1;
+  } else {
+    print(2);
+    return 2;
+    return 3;
+  }
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0)
+    (LetPrim v0 (Constant IntConstant(0)))
+    (LetCont (k1 v1)
+      (LetPrim v2 (Constant IntConstant(0)))
+      (InvokeContinuation return v2))
+    (InvokeStatic print v0 k1))
+  (LetCont (k2)
+    (LetPrim v3 (Constant IntConstant(2)))
+    (LetCont (k3 v4)
+      (LetPrim v5 (Constant IntConstant(2)))
+      (InvokeContinuation return v5))
+    (InvokeStatic print v3 k3))
+  (Branch (IsTrue a) k0 k2))
+'''),
+  ]),
 ];

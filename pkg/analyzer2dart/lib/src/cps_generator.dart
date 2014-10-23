@@ -242,4 +242,9 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
         subbuild(node.thenStatement),
         subbuild(node.elseStatement));
   }
+
+  @override
+  visitBlock(Block node) {
+    irBuilder.buildBlock(node.statements, build);
+  }
 }

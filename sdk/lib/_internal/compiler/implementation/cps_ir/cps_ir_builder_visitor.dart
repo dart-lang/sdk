@@ -180,15 +180,8 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   ir.Primitive visit(ast.Node node) => node.accept(this);
 
   // ==== Statements ====
-  // Build(Block(stamements), C) = C'
-  //   where C' = statements.fold(Build, C)
-  ir.Primitive visitBlock(ast.Block node) {
-    assert(irBuilder.isOpen);
-    for (ast.Node n in node.statements.nodes) {
-      visit(n);
-      if (!irBuilder.isOpen) return null;
-    }
-    return null;
+  visitBlock(ast.Block node) {
+    irBuilder.buildBlock(node.statements.nodes, build);
   }
 
   ir.Primitive visitBreakStatement(ast.BreakStatement node) {

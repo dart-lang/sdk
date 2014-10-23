@@ -597,6 +597,21 @@ class IrBuilder {
     _current = null;
   }
 
+  /// Create a blocks of [statements] by applying [build] to all reachable
+  /// statements.
+  // TODO(johnniwinther): Type [statements] as `Iterable` when `NodeList` uses
+  // `List` instead of `Link`.
+  void buildBlock(var statements, build(statement)) {
+    // Build(Block(stamements), C) = C'
+    //   where C' = statements.fold(Build, C)
+    assert(isOpen);
+    for (var statement in statements) {
+      build(statement);
+      if (!isOpen) return;
+    }
+  }
+
+
   // Build(BreakStatement L, C) = C[InvokeContinuation(...)]
   //
   // The continuation and arguments are filled in later after translating

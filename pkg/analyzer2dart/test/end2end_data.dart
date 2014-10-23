@@ -391,4 +391,58 @@ main(a) {
 }
 '''),
   ]),
+
+  // These test that unreachable statements are skipped within a block.
+  const Group('Block statements', const <TestSpec>[
+    const TestSpec('''
+main(a) {
+  return 0;
+  return 1;
+}
+''', '''
+main(a) {
+  return 0;
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  if (a) {
+    return 0;
+    return 1;
+  } else {
+    return 2;
+    return 3;
+  }
+}
+''', '''
+main(a) {
+  return a ? 0 : 2;
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  if (a) {
+    print(0);
+    return 0;
+    return 1;
+  } else {
+    print(2);
+    return 2;
+    return 3;
+  }
+}
+''', '''
+main(a) {
+  if (a) {
+    print(0);
+    return 0;
+  } else {
+    print(2);
+    return 2;
+  }
+}
+'''),
+  ]),
 ];
