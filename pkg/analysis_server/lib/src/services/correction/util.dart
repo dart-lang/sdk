@@ -888,8 +888,8 @@ class CorrectionUtils {
    */
   String getTypeSource(DartType type) {
     StringBuffer sb = new StringBuffer();
-    // just some Function, maybe find Function Type Alias later
-    if (type is FunctionType) {
+    // just a Function, not FunctionTypeAliasElement
+    if (type is FunctionType && type.element is! FunctionTypeAliasElement) {
       return "Function";
     }
     // prepare element
@@ -912,9 +912,8 @@ class CorrectionUtils {
     String name = element.displayName;
     sb.write(name);
     // may be type arguments
-    if (type is InterfaceType) {
-      InterfaceType interfaceType = type;
-      List<DartType> arguments = interfaceType.typeArguments;
+    if (type is ParameterizedType) {
+      List<DartType> arguments = type.typeArguments;
       // check if has arguments
       bool hasArguments = false;
       for (DartType argument in arguments) {
