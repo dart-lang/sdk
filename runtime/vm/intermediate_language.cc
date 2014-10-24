@@ -109,7 +109,7 @@ CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks,
                                  intptr_t token_pos)
-    : TemplateInstruction<1>(deopt_id),
+    : TemplateInstruction(deopt_id),
       unary_checks_(unary_checks),
       cids_(unary_checks.NumberOfChecks()),
       licm_hoisted_(false),
@@ -292,7 +292,8 @@ bool AssertAssignableInstr::AttributesEqual(Instruction* other) const {
 bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
   StrictCompareInstr* other_op = other->AsStrictCompare();
   ASSERT(other_op != NULL);
-  return kind() == other_op->kind();
+  return ComparisonInstr::AttributesEqual(other) &&
+    (needs_number_check() == other_op->needs_number_check());
 }
 
 
@@ -357,18 +358,6 @@ const Field& LoadStaticFieldInstr::StaticField() const {
   Field& field = Field::Handle();
   field ^= field_value()->BoundConstant().raw();
   return field;
-}
-
-
-EffectSet LoadIndexedInstr::Dependencies() const {
-  return EffectSet::All();
-}
-
-
-bool LoadIndexedInstr::AttributesEqual(Instruction* other) const {
-  LoadIndexedInstr* other_load = other->AsLoadIndexed();
-  ASSERT(other_load != NULL);
-  return class_id() == other_load->class_id();
 }
 
 
@@ -3048,8 +3037,7 @@ ComparisonInstr* TestCidsInstr::CopyWithNewOperands(Value* new_left,
 
 bool TestCidsInstr::AttributesEqual(Instruction* other) const {
   TestCidsInstr* other_instr = other->AsTestCids();
-  ASSERT(other != NULL);
-  if (kind() != other_instr->kind()) {
+  if (!ComparisonInstr::AttributesEqual(other)) {
     return false;
   }
   if (cid_results().length() != other_instr->cid_results().length()) {
@@ -3223,7 +3211,7 @@ InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     intptr_t deopt_id,
     MethodRecognizer::Kind recognized_kind,
     intptr_t token_pos)
-    : Definition(deopt_id),
+    : PureDefinition(deopt_id),
       inputs_(inputs),
       recognized_kind_(recognized_kind),
       token_pos_(token_pos) {
@@ -3344,7 +3332,7 @@ const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
 MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
                                  intptr_t deopt_id,
                                  MergedMathInstr::Kind kind)
-    : Definition(deopt_id),
+    : PureDefinition(deopt_id),
       inputs_(inputs),
       kind_(kind) {
   ASSERT(inputs_->length() == InputCountFor(kind_));
