@@ -791,7 +791,7 @@ class AnalysisServer {
     List<Source> librarySources = context.getLibrariesContaining(unitSource);
     for (Source librarySource in librarySources) {
       CompilationUnit unit =
-          context.getResolvedCompilationUnit2(unitSource, librarySource);
+          context.resolveCompilationUnit2(unitSource, librarySource);
       if (unit != null) {
         units.add(unit);
       }
@@ -801,7 +801,7 @@ class AnalysisServer {
   }
 
   /**
-   * Returns [AstNode]s at the given [offset] of the given [file].
+   * Returns resolved [AstNode]s at the given [offset] of the given [file].
    *
    * May be empty, but not `null`.
    */
@@ -820,7 +820,7 @@ class AnalysisServer {
   /**
    * Returns [Element]s at the given [offset] of the given [file].
    *
-   * May be empty if not resolved, but not `null`.
+   * May be empty if cannot be resolved, but not `null`.
    */
   List<Element> getElementsAtOffset(String file, int offset) {
     List<AstNode> nodes = getNodesAtOffset(file, offset);
