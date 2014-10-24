@@ -990,11 +990,11 @@ class LoseContext extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable()
-  void loseContext() => _blink.BlinkWebGLLoseContext.loseContext_Callback(this);
+  void loseContext() => _blink.BlinkWebGLLoseContext.loseContext_Callback_0(this);
 
   @DomName('WebGLLoseContext.restoreContext')
   @DocsEditable()
-  void restoreContext() => _blink.BlinkWebGLLoseContext.restoreContext_Callback(this);
+  void restoreContext() => _blink.BlinkWebGLLoseContext.restoreContext_Callback_0(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1126,7 +1126,7 @@ class OesVertexArrayObject extends NativeFieldWrapperClass2 {
 
   @DomName('OESVertexArrayObject.createVertexArrayOES')
   @DocsEditable()
-  VertexArrayObject createVertexArray() => _blink.BlinkOESVertexArrayObject.createVertexArrayOES_Callback(this);
+  VertexArrayObject createVertexArray() => _blink.BlinkOESVertexArrayObject.createVertexArrayOES_Callback_0(this);
 
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   @DocsEditable()
@@ -2525,19 +2525,19 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
   @DomName('WebGLRenderingContext.createBuffer')
   @DocsEditable()
-  Buffer createBuffer() => _blink.BlinkWebGLRenderingContext.createBuffer_Callback(this);
+  Buffer createBuffer() => _blink.BlinkWebGLRenderingContext.createBuffer_Callback_0(this);
 
   @DomName('WebGLRenderingContext.createFramebuffer')
   @DocsEditable()
-  Framebuffer createFramebuffer() => _blink.BlinkWebGLRenderingContext.createFramebuffer_Callback(this);
+  Framebuffer createFramebuffer() => _blink.BlinkWebGLRenderingContext.createFramebuffer_Callback_0(this);
 
   @DomName('WebGLRenderingContext.createProgram')
   @DocsEditable()
-  Program createProgram() => _blink.BlinkWebGLRenderingContext.createProgram_Callback(this);
+  Program createProgram() => _blink.BlinkWebGLRenderingContext.createProgram_Callback_0(this);
 
   @DomName('WebGLRenderingContext.createRenderbuffer')
   @DocsEditable()
-  Renderbuffer createRenderbuffer() => _blink.BlinkWebGLRenderingContext.createRenderbuffer_Callback(this);
+  Renderbuffer createRenderbuffer() => _blink.BlinkWebGLRenderingContext.createRenderbuffer_Callback_0(this);
 
   @DomName('WebGLRenderingContext.createShader')
   @DocsEditable()
@@ -2545,7 +2545,7 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
   @DomName('WebGLRenderingContext.createTexture')
   @DocsEditable()
-  Texture createTexture() => _blink.BlinkWebGLRenderingContext.createTexture_Callback(this);
+  Texture createTexture() => _blink.BlinkWebGLRenderingContext.createTexture_Callback_0(this);
 
   @DomName('WebGLRenderingContext.cullFace')
   @DocsEditable()
@@ -2617,11 +2617,11 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
   @DomName('WebGLRenderingContext.finish')
   @DocsEditable()
-  void finish() => _blink.BlinkWebGLRenderingContext.finish_Callback(this);
+  void finish() => _blink.BlinkWebGLRenderingContext.finish_Callback_0(this);
 
   @DomName('WebGLRenderingContext.flush')
   @DocsEditable()
-  void flush() => _blink.BlinkWebGLRenderingContext.flush_Callback(this);
+  void flush() => _blink.BlinkWebGLRenderingContext.flush_Callback_0(this);
 
   @DomName('WebGLRenderingContext.framebufferRenderbuffer')
   @DocsEditable()
@@ -2661,11 +2661,11 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
   @DomName('WebGLRenderingContext.getContextAttributes')
   @DocsEditable()
-  ContextAttributes getContextAttributes() => _blink.BlinkWebGLRenderingContext.getContextAttributes_Callback(this);
+  ContextAttributes getContextAttributes() => _blink.BlinkWebGLRenderingContext.getContextAttributes_Callback_0(this);
 
   @DomName('WebGLRenderingContext.getError')
   @DocsEditable()
-  int getError() => _blink.BlinkWebGLRenderingContext.getError_Callback(this);
+  int getError() => _blink.BlinkWebGLRenderingContext.getError_Callback_0(this);
 
   @DomName('WebGLRenderingContext.getExtension')
   @DocsEditable()
@@ -2709,7 +2709,7 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
   @DomName('WebGLRenderingContext.getSupportedExtensions')
   @DocsEditable()
-  List<String> getSupportedExtensions() => _blink.BlinkWebGLRenderingContext.getSupportedExtensions_Callback(this);
+  List<String> getSupportedExtensions() => _blink.BlinkWebGLRenderingContext.getSupportedExtensions_Callback_0(this);
 
   @DomName('WebGLRenderingContext.getTexParameter')
   @DocsEditable()
@@ -2741,7 +2741,7 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
   @DomName('WebGLRenderingContext.isContextLost')
   @DocsEditable()
-  bool isContextLost() => _blink.BlinkWebGLRenderingContext.isContextLost_Callback(this);
+  bool isContextLost() => _blink.BlinkWebGLRenderingContext.isContextLost_Callback_0(this);
 
   @DomName('WebGLRenderingContext.isEnabled')
   @DocsEditable()

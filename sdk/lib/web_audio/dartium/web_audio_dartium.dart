@@ -238,7 +238,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
       _blink.BlinkAudioBufferSourceNode.start_Callback_1(this, when);
       return;
     }
-    _blink.BlinkAudioBufferSourceNode.start_Callback(this);
+    _blink.BlinkAudioBufferSourceNode.start_Callback_0(this);
     return;
   }
 
@@ -247,7 +247,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
       _blink.BlinkAudioBufferSourceNode.stop_Callback_1(this, when);
       return;
     }
-    _blink.BlinkAudioBufferSourceNode.stop_Callback(this);
+    _blink.BlinkAudioBufferSourceNode.stop_Callback_0(this);
     return;
   }
 
@@ -285,7 +285,7 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.AudioContext')
   @DocsEditable()
   factory AudioContext() {
-    return _blink.BlinkAudioContext.constructorCallback();
+    return _blink.BlinkAudioContext.constructorCallback_0();
   }
 
   /// Checks if this type is supported on the current platform.
@@ -309,11 +309,11 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.createAnalyser')
   @DocsEditable()
-  AnalyserNode createAnalyser() => _blink.BlinkAudioContext.createAnalyser_Callback(this);
+  AnalyserNode createAnalyser() => _blink.BlinkAudioContext.createAnalyser_Callback_0(this);
 
   @DomName('AudioContext.createBiquadFilter')
   @DocsEditable()
-  BiquadFilterNode createBiquadFilter() => _blink.BlinkAudioContext.createBiquadFilter_Callback(this);
+  BiquadFilterNode createBiquadFilter() => _blink.BlinkAudioContext.createBiquadFilter_Callback_0(this);
 
   @DomName('AudioContext.createBuffer')
   @DocsEditable()
@@ -321,40 +321,40 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.createBufferSource')
   @DocsEditable()
-  AudioBufferSourceNode createBufferSource() => _blink.BlinkAudioContext.createBufferSource_Callback(this);
+  AudioBufferSourceNode createBufferSource() => _blink.BlinkAudioContext.createBufferSource_Callback_0(this);
 
   ChannelMergerNode createChannelMerger([int numberOfInputs]) {
     if (numberOfInputs != null) {
       return _blink.BlinkAudioContext.createChannelMerger_Callback_1(this, numberOfInputs);
     }
-    return _blink.BlinkAudioContext.createChannelMerger_Callback(this);
+    return _blink.BlinkAudioContext.createChannelMerger_Callback_0(this);
   }
 
   ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) {
     if (numberOfOutputs != null) {
       return _blink.BlinkAudioContext.createChannelSplitter_Callback_1(this, numberOfOutputs);
     }
-    return _blink.BlinkAudioContext.createChannelSplitter_Callback(this);
+    return _blink.BlinkAudioContext.createChannelSplitter_Callback_0(this);
   }
 
   @DomName('AudioContext.createConvolver')
   @DocsEditable()
-  ConvolverNode createConvolver() => _blink.BlinkAudioContext.createConvolver_Callback(this);
+  ConvolverNode createConvolver() => _blink.BlinkAudioContext.createConvolver_Callback_0(this);
 
   DelayNode createDelay([num maxDelayTime]) {
     if (maxDelayTime != null) {
       return _blink.BlinkAudioContext.createDelay_Callback_1(this, maxDelayTime);
     }
-    return _blink.BlinkAudioContext.createDelay_Callback(this);
+    return _blink.BlinkAudioContext.createDelay_Callback_0(this);
   }
 
   @DomName('AudioContext.createDynamicsCompressor')
   @DocsEditable()
-  DynamicsCompressorNode createDynamicsCompressor() => _blink.BlinkAudioContext.createDynamicsCompressor_Callback(this);
+  DynamicsCompressorNode createDynamicsCompressor() => _blink.BlinkAudioContext.createDynamicsCompressor_Callback_0(this);
 
   @DomName('AudioContext.createGain')
   @DocsEditable()
-  GainNode createGain() => _blink.BlinkAudioContext.createGain_Callback(this);
+  GainNode createGain() => _blink.BlinkAudioContext.createGain_Callback_0(this);
 
   @DomName('AudioContext.createMediaElementSource')
   @DocsEditable()
@@ -362,7 +362,7 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.createMediaStreamDestination')
   @DocsEditable()
-  MediaStreamAudioDestinationNode createMediaStreamDestination() => _blink.BlinkAudioContext.createMediaStreamDestination_Callback(this);
+  MediaStreamAudioDestinationNode createMediaStreamDestination() => _blink.BlinkAudioContext.createMediaStreamDestination_Callback_0(this);
 
   @DomName('AudioContext.createMediaStreamSource')
   @DocsEditable()
@@ -370,11 +370,11 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.createOscillator')
   @DocsEditable()
-  OscillatorNode createOscillator() => _blink.BlinkAudioContext.createOscillator_Callback(this);
+  OscillatorNode createOscillator() => _blink.BlinkAudioContext.createOscillator_Callback_0(this);
 
   @DomName('AudioContext.createPanner')
   @DocsEditable()
-  PannerNode createPanner() => _blink.BlinkAudioContext.createPanner_Callback(this);
+  PannerNode createPanner() => _blink.BlinkAudioContext.createPanner_Callback_0(this);
 
   @DomName('AudioContext.createPeriodicWave')
   @DocsEditable()
@@ -391,12 +391,12 @@ class AudioContext extends EventTarget {
     if (bufferSize != null) {
       return _blink.BlinkAudioContext.createScriptProcessor_Callback_1(this, bufferSize);
     }
-    return _blink.BlinkAudioContext.createScriptProcessor_Callback(this);
+    return _blink.BlinkAudioContext.createScriptProcessor_Callback_0(this);
   }
 
   @DomName('AudioContext.createWaveShaper')
   @DocsEditable()
-  WaveShaperNode createWaveShaper() => _blink.BlinkAudioContext.createWaveShaper_Callback(this);
+  WaveShaperNode createWaveShaper() => _blink.BlinkAudioContext.createWaveShaper_Callback_0(this);
 
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable()
@@ -404,7 +404,7 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.startRendering')
   @DocsEditable()
-  void startRendering() => _blink.BlinkAudioContext.startRendering_Callback(this);
+  void startRendering() => _blink.BlinkAudioContext.startRendering_Callback_0(this);
 
   /// Stream of `complete` events handled by this [AudioContext].
   @DomName('AudioContext.oncomplete')
@@ -1010,7 +1010,7 @@ class OscillatorNode extends AudioSourceNode {
       _blink.BlinkOscillatorNode.start_Callback_1(this, when);
       return;
     }
-    _blink.BlinkOscillatorNode.start_Callback(this);
+    _blink.BlinkOscillatorNode.start_Callback_0(this);
     return;
   }
 
@@ -1019,7 +1019,7 @@ class OscillatorNode extends AudioSourceNode {
       _blink.BlinkOscillatorNode.stop_Callback_1(this, when);
       return;
     }
-    _blink.BlinkOscillatorNode.stop_Callback(this);
+    _blink.BlinkOscillatorNode.stop_Callback_0(this);
     return;
   }
 

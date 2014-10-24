@@ -746,7 +746,7 @@ class AnimationElement extends SvgElement implements Tests {
 
   @DomName('SVGAnimationElement.beginElement')
   @DocsEditable()
-  void beginElement() => _blink.BlinkSVGAnimationElement.beginElement_Callback(this);
+  void beginElement() => _blink.BlinkSVGAnimationElement.beginElement_Callback_0(this);
 
   @DomName('SVGAnimationElement.beginElementAt')
   @DocsEditable()
@@ -754,7 +754,7 @@ class AnimationElement extends SvgElement implements Tests {
 
   @DomName('SVGAnimationElement.endElement')
   @DocsEditable()
-  void endElement() => _blink.BlinkSVGAnimationElement.endElement_Callback(this);
+  void endElement() => _blink.BlinkSVGAnimationElement.endElement_Callback_0(this);
 
   @DomName('SVGAnimationElement.endElementAt')
   @DocsEditable()
@@ -762,15 +762,15 @@ class AnimationElement extends SvgElement implements Tests {
 
   @DomName('SVGAnimationElement.getCurrentTime')
   @DocsEditable()
-  double getCurrentTime() => _blink.BlinkSVGAnimationElement.getCurrentTime_Callback(this);
+  double getCurrentTime() => _blink.BlinkSVGAnimationElement.getCurrentTime_Callback_0(this);
 
   @DomName('SVGAnimationElement.getSimpleDuration')
   @DocsEditable()
-  double getSimpleDuration() => _blink.BlinkSVGAnimationElement.getSimpleDuration_Callback(this);
+  double getSimpleDuration() => _blink.BlinkSVGAnimationElement.getSimpleDuration_Callback_0(this);
 
   @DomName('SVGAnimationElement.getStartTime')
   @DocsEditable()
-  double getStartTime() => _blink.BlinkSVGAnimationElement.getStartTime_Callback(this);
+  double getStartTime() => _blink.BlinkSVGAnimationElement.getStartTime_Callback_0(this);
 
   @DomName('SVGAnimationElement.requiredExtensions')
   @DocsEditable()
@@ -2565,23 +2565,23 @@ abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass
 
   @DomName('SVGFilterPrimitiveStandardAttributes.height')
   @DocsEditable()
-  AnimatedLength get height => _blink.BlinkSVGFilterPrimitiveStandardAttributes.height_Getter(this);
+  AnimatedLength get height;
 
   @DomName('SVGFilterPrimitiveStandardAttributes.result')
   @DocsEditable()
-  AnimatedString get result => _blink.BlinkSVGFilterPrimitiveStandardAttributes.result_Getter(this);
+  AnimatedString get result;
 
   @DomName('SVGFilterPrimitiveStandardAttributes.width')
   @DocsEditable()
-  AnimatedLength get width => _blink.BlinkSVGFilterPrimitiveStandardAttributes.width_Getter(this);
+  AnimatedLength get width;
 
   @DomName('SVGFilterPrimitiveStandardAttributes.x')
   @DocsEditable()
-  AnimatedLength get x => _blink.BlinkSVGFilterPrimitiveStandardAttributes.x_Getter(this);
+  AnimatedLength get x;
 
   @DomName('SVGFilterPrimitiveStandardAttributes.y')
   @DocsEditable()
-  AnimatedLength get y => _blink.BlinkSVGFilterPrimitiveStandardAttributes.y_Getter(this);
+  AnimatedLength get y;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2600,11 +2600,11 @@ abstract class FitToViewBox extends NativeFieldWrapperClass2 {
 
   @DomName('SVGFitToViewBox.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.BlinkSVGFitToViewBox.preserveAspectRatio_Getter(this);
+  AnimatedPreserveAspectRatio get preserveAspectRatio;
 
   @DomName('SVGFitToViewBox.viewBox')
   @DocsEditable()
-  AnimatedRect get viewBox => _blink.BlinkSVGFitToViewBox.viewBox_Getter(this);
+  AnimatedRect get viewBox;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2748,17 +2748,17 @@ class GraphicsElement extends SvgElement implements Tests {
   @DomName('SVGGraphicsElement.getBBox')
   @DocsEditable()
   @Experimental() // untriaged
-  Rect getBBox() => _blink.BlinkSVGGraphicsElement.getBBox_Callback(this);
+  Rect getBBox() => _blink.BlinkSVGGraphicsElement.getBBox_Callback_0(this);
 
   @DomName('SVGGraphicsElement.getCTM')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getCtm() => _blink.BlinkSVGGraphicsElement.getCTM_Callback(this);
+  Matrix getCtm() => _blink.BlinkSVGGraphicsElement.getCTM_Callback_0(this);
 
   @DomName('SVGGraphicsElement.getScreenCTM')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getScreenCtm() => _blink.BlinkSVGGraphicsElement.getScreenCTM_Callback(this);
+  Matrix getScreenCtm() => _blink.BlinkSVGGraphicsElement.getScreenCTM_Callback_0(this);
 
   @DomName('SVGGraphicsElement.getTransformToElement')
   @DocsEditable()
@@ -3008,7 +3008,7 @@ class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, Immuta
 
   @DomName('SVGLengthList.clear')
   @DocsEditable()
-  void clear() => _blink.BlinkSVGLengthList.clear_Callback(this);
+  void clear() => _blink.BlinkSVGLengthList.clear_Callback_0(this);
 
   @DomName('SVGLengthList.getItem')
   @DocsEditable()
@@ -3195,7 +3195,7 @@ class MarkerElement extends SvgElement implements FitToViewBox {
 
   @DomName('SVGMarkerElement.setOrientToAuto')
   @DocsEditable()
-  void setOrientToAuto() => _blink.BlinkSVGMarkerElement.setOrientToAuto_Callback(this);
+  void setOrientToAuto() => _blink.BlinkSVGMarkerElement.setOrientToAuto_Callback_0(this);
 
   @DomName('SVGMarkerElement.preserveAspectRatio')
   @DocsEditable()
@@ -3335,15 +3335,15 @@ class Matrix extends NativeFieldWrapperClass2 {
 
   @DomName('SVGMatrix.flipX')
   @DocsEditable()
-  Matrix flipX() => _blink.BlinkSVGMatrix.flipX_Callback(this);
+  Matrix flipX() => _blink.BlinkSVGMatrix.flipX_Callback_0(this);
 
   @DomName('SVGMatrix.flipY')
   @DocsEditable()
-  Matrix flipY() => _blink.BlinkSVGMatrix.flipY_Callback(this);
+  Matrix flipY() => _blink.BlinkSVGMatrix.flipY_Callback_0(this);
 
   @DomName('SVGMatrix.inverse')
   @DocsEditable()
-  Matrix inverse() => _blink.BlinkSVGMatrix.inverse_Callback(this);
+  Matrix inverse() => _blink.BlinkSVGMatrix.inverse_Callback_0(this);
 
   @DomName('SVGMatrix.multiply')
   @DocsEditable()
@@ -3500,7 +3500,7 @@ class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, Immuta
 
   @DomName('SVGNumberList.clear')
   @DocsEditable()
-  void clear() => _blink.BlinkSVGNumberList.clear_Callback(this);
+  void clear() => _blink.BlinkSVGNumberList.clear_Callback_0(this);
 
   @DomName('SVGNumberList.getItem')
   @DocsEditable()
@@ -3577,7 +3577,7 @@ class PathElement extends GeometryElement {
 
   @DomName('SVGPathElement.createSVGPathSegClosePath')
   @DocsEditable()
-  PathSegClosePath createSvgPathSegClosePath() => _blink.BlinkSVGPathElement.createSVGPathSegClosePath_Callback(this);
+  PathSegClosePath createSvgPathSegClosePath() => _blink.BlinkSVGPathElement.createSVGPathSegClosePath_Callback_0(this);
 
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicAbs')
   @DocsEditable()
@@ -3653,7 +3653,7 @@ class PathElement extends GeometryElement {
 
   @DomName('SVGPathElement.getTotalLength')
   @DocsEditable()
-  double getTotalLength() => _blink.BlinkSVGPathElement.getTotalLength_Callback(this);
+  double getTotalLength() => _blink.BlinkSVGPathElement.getTotalLength_Callback_0(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4524,7 +4524,7 @@ class PathSegList extends NativeFieldWrapperClass2 with ListMixin<PathSeg>, Immu
 
   @DomName('SVGPathSegList.clear')
   @DocsEditable()
-  void clear() => _blink.BlinkSVGPathSegList.clear_Callback(this);
+  void clear() => _blink.BlinkSVGPathSegList.clear_Callback_0(this);
 
   @DomName('SVGPathSegList.getItem')
   @DocsEditable()
@@ -4759,7 +4759,7 @@ class PointList extends NativeFieldWrapperClass2 {
 
   @DomName('SVGPointList.clear')
   @DocsEditable()
-  void clear() => _blink.BlinkSVGPointList.clear_Callback(this);
+  void clear() => _blink.BlinkSVGPointList.clear_Callback_0(this);
 
   @DomName('SVGPointList.getItem')
   @DocsEditable()
@@ -5294,7 +5294,7 @@ class StringList extends NativeFieldWrapperClass2 with ListMixin<String>, Immuta
 
   @DomName('SVGStringList.clear')
   @DocsEditable()
-  void clear() => _blink.BlinkSVGStringList.clear_Callback(this);
+  void clear() => _blink.BlinkSVGStringList.clear_Callback_0(this);
 
   @DomName('SVGStringList.getItem')
   @DocsEditable()
@@ -6199,7 +6199,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
 
   @DomName('SVGSVGElement.animationsPaused')
   @DocsEditable()
-  bool animationsPaused() => _blink.BlinkSVGSVGElement.animationsPaused_Callback(this);
+  bool animationsPaused() => _blink.BlinkSVGSVGElement.animationsPaused_Callback_0(this);
 
   @DomName('SVGSVGElement.checkEnclosure')
   @DocsEditable()
@@ -6211,31 +6211,31 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
 
   @DomName('SVGSVGElement.createSVGAngle')
   @DocsEditable()
-  Angle createSvgAngle() => _blink.BlinkSVGSVGElement.createSVGAngle_Callback(this);
+  Angle createSvgAngle() => _blink.BlinkSVGSVGElement.createSVGAngle_Callback_0(this);
 
   @DomName('SVGSVGElement.createSVGLength')
   @DocsEditable()
-  Length createSvgLength() => _blink.BlinkSVGSVGElement.createSVGLength_Callback(this);
+  Length createSvgLength() => _blink.BlinkSVGSVGElement.createSVGLength_Callback_0(this);
 
   @DomName('SVGSVGElement.createSVGMatrix')
   @DocsEditable()
-  Matrix createSvgMatrix() => _blink.BlinkSVGSVGElement.createSVGMatrix_Callback(this);
+  Matrix createSvgMatrix() => _blink.BlinkSVGSVGElement.createSVGMatrix_Callback_0(this);
 
   @DomName('SVGSVGElement.createSVGNumber')
   @DocsEditable()
-  Number createSvgNumber() => _blink.BlinkSVGSVGElement.createSVGNumber_Callback(this);
+  Number createSvgNumber() => _blink.BlinkSVGSVGElement.createSVGNumber_Callback_0(this);
 
   @DomName('SVGSVGElement.createSVGPoint')
   @DocsEditable()
-  Point createSvgPoint() => _blink.BlinkSVGSVGElement.createSVGPoint_Callback(this);
+  Point createSvgPoint() => _blink.BlinkSVGSVGElement.createSVGPoint_Callback_0(this);
 
   @DomName('SVGSVGElement.createSVGRect')
   @DocsEditable()
-  Rect createSvgRect() => _blink.BlinkSVGSVGElement.createSVGRect_Callback(this);
+  Rect createSvgRect() => _blink.BlinkSVGSVGElement.createSVGRect_Callback_0(this);
 
   @DomName('SVGSVGElement.createSVGTransform')
   @DocsEditable()
-  Transform createSvgTransform() => _blink.BlinkSVGSVGElement.createSVGTransform_Callback(this);
+  Transform createSvgTransform() => _blink.BlinkSVGSVGElement.createSVGTransform_Callback_0(this);
 
   @DomName('SVGSVGElement.createSVGTransformFromMatrix')
   @DocsEditable()
@@ -6243,15 +6243,15 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
 
   @DomName('SVGSVGElement.deselectAll')
   @DocsEditable()
-  void deselectAll() => _blink.BlinkSVGSVGElement.deselectAll_Callback(this);
+  void deselectAll() => _blink.BlinkSVGSVGElement.deselectAll_Callback_0(this);
 
   @DomName('SVGSVGElement.forceRedraw')
   @DocsEditable()
-  void forceRedraw() => _blink.BlinkSVGSVGElement.forceRedraw_Callback(this);
+  void forceRedraw() => _blink.BlinkSVGSVGElement.forceRedraw_Callback_0(this);
 
   @DomName('SVGSVGElement.getCurrentTime')
   @DocsEditable()
-  double getCurrentTime() => _blink.BlinkSVGSVGElement.getCurrentTime_Callback(this);
+  double getCurrentTime() => _blink.BlinkSVGSVGElement.getCurrentTime_Callback_0(this);
 
   @DomName('SVGSVGElement.getElementById')
   @DocsEditable()
@@ -6267,7 +6267,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
 
   @DomName('SVGSVGElement.pauseAnimations')
   @DocsEditable()
-  void pauseAnimations() => _blink.BlinkSVGSVGElement.pauseAnimations_Callback(this);
+  void pauseAnimations() => _blink.BlinkSVGSVGElement.pauseAnimations_Callback_0(this);
 
   @DomName('SVGSVGElement.setCurrentTime')
   @DocsEditable()
@@ -6279,7 +6279,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
 
   @DomName('SVGSVGElement.unpauseAnimations')
   @DocsEditable()
-  void unpauseAnimations() => _blink.BlinkSVGSVGElement.unpauseAnimations_Callback(this);
+  void unpauseAnimations() => _blink.BlinkSVGSVGElement.unpauseAnimations_Callback_0(this);
 
   @DomName('SVGSVGElement.unsuspendRedraw')
   @DocsEditable()
@@ -6287,7 +6287,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
 
   @DomName('SVGSVGElement.unsuspendRedrawAll')
   @DocsEditable()
-  void unsuspendRedrawAll() => _blink.BlinkSVGSVGElement.unsuspendRedrawAll_Callback(this);
+  void unsuspendRedrawAll() => _blink.BlinkSVGSVGElement.unsuspendRedrawAll_Callback_0(this);
 
   @DomName('SVGSVGElement.preserveAspectRatio')
   @DocsEditable()
@@ -6405,19 +6405,19 @@ abstract class Tests extends NativeFieldWrapperClass2 {
 
   @DomName('SVGTests.requiredExtensions')
   @DocsEditable()
-  StringList get requiredExtensions => _blink.BlinkSVGTests.requiredExtensions_Getter(this);
+  StringList get requiredExtensions;
 
   @DomName('SVGTests.requiredFeatures')
   @DocsEditable()
-  StringList get requiredFeatures => _blink.BlinkSVGTests.requiredFeatures_Getter(this);
+  StringList get requiredFeatures;
 
   @DomName('SVGTests.systemLanguage')
   @DocsEditable()
-  StringList get systemLanguage => _blink.BlinkSVGTests.systemLanguage_Getter(this);
+  StringList get systemLanguage;
 
   @DomName('SVGTests.hasExtension')
   @DocsEditable()
-  bool hasExtension(String extension) => _blink.BlinkSVGTests.hasExtension_Callback_1(this, extension);
+  bool hasExtension(String extension);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6466,7 +6466,7 @@ class TextContentElement extends GraphicsElement {
 
   @DomName('SVGTextContentElement.getComputedTextLength')
   @DocsEditable()
-  double getComputedTextLength() => _blink.BlinkSVGTextContentElement.getComputedTextLength_Callback(this);
+  double getComputedTextLength() => _blink.BlinkSVGTextContentElement.getComputedTextLength_Callback_0(this);
 
   @DomName('SVGTextContentElement.getEndPositionOfChar')
   @DocsEditable()
@@ -6478,7 +6478,7 @@ class TextContentElement extends GraphicsElement {
 
   @DomName('SVGTextContentElement.getNumberOfChars')
   @DocsEditable()
-  int getNumberOfChars() => _blink.BlinkSVGTextContentElement.getNumberOfChars_Callback(this);
+  int getNumberOfChars() => _blink.BlinkSVGTextContentElement.getNumberOfChars_Callback_0(this);
 
   @DomName('SVGTextContentElement.getRotationOfChar')
   @DocsEditable()
@@ -6806,11 +6806,11 @@ class TransformList extends NativeFieldWrapperClass2 with ListMixin<Transform>, 
 
   @DomName('SVGTransformList.clear')
   @DocsEditable()
-  void clear() => _blink.BlinkSVGTransformList.clear_Callback(this);
+  void clear() => _blink.BlinkSVGTransformList.clear_Callback_0(this);
 
   @DomName('SVGTransformList.consolidate')
   @DocsEditable()
-  Transform consolidate() => _blink.BlinkSVGTransformList.consolidate_Callback(this);
+  Transform consolidate() => _blink.BlinkSVGTransformList.consolidate_Callback_0(this);
 
   @DomName('SVGTransformList.createSVGTransformFromMatrix')
   @DocsEditable()
@@ -6880,7 +6880,7 @@ abstract class UriReference extends NativeFieldWrapperClass2 {
 
   @DomName('SVGURIReference.href')
   @DocsEditable()
-  AnimatedString get href => _blink.BlinkSVGURIReference.href_Getter(this);
+  AnimatedString get href;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7060,11 +7060,11 @@ abstract class ZoomAndPan extends NativeFieldWrapperClass2 {
 
   @DomName('SVGZoomAndPan.zoomAndPan')
   @DocsEditable()
-  int get zoomAndPan => _blink.BlinkSVGZoomAndPan.zoomAndPan_Getter(this);
+  int get zoomAndPan;
 
   @DomName('SVGZoomAndPan.zoomAndPan')
   @DocsEditable()
-  void set zoomAndPan(int value) => _blink.BlinkSVGZoomAndPan.zoomAndPan_Setter(this, value);
+  void set zoomAndPan(int value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

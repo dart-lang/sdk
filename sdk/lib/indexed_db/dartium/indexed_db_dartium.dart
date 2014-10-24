@@ -105,14 +105,14 @@ class Cursor extends NativeFieldWrapperClass2 {
 
   @DomName('IDBCursor.delete')
   @DocsEditable()
-  Request _delete() => _blink.BlinkIDBCursor.delete_Callback(this);
+  Request _delete() => _blink.BlinkIDBCursor.delete_Callback_0(this);
 
   void next([Object key]) {
     if (key != null) {
       _blink.BlinkIDBCursor.continue_Callback_1(this, key);
       return;
     }
-    _blink.BlinkIDBCursor.continue_Callback(this);
+    _blink.BlinkIDBCursor.continue_Callback_0(this);
     return;
   }
 
@@ -232,7 +232,7 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.close')
   @DocsEditable()
-  void close() => _blink.BlinkIDBDatabase.close_Callback(this);
+  void close() => _blink.BlinkIDBDatabase.close_Callback_0(this);
 
   ObjectStore _createObjectStore(String name, [Map options]) {
     if (options != null) {
@@ -420,7 +420,7 @@ class IdbFactory extends NativeFieldWrapperClass2 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  Request _webkitGetDatabaseNames() => _blink.BlinkIDBFactory.webkitGetDatabaseNames_Callback(this);
+  Request _webkitGetDatabaseNames() => _blink.BlinkIDBFactory.webkitGetDatabaseNames_Callback_0(this);
 
 }
 
@@ -827,7 +827,7 @@ class ObjectStore extends NativeFieldWrapperClass2 {
 
   @DomName('IDBObjectStore.clear')
   @DocsEditable()
-  Request _clear() => _blink.BlinkIDBObjectStore.clear_Callback(this);
+  Request _clear() => _blink.BlinkIDBObjectStore.clear_Callback_0(this);
 
   @DomName('IDBObjectStore.count')
   @DocsEditable()
@@ -1108,7 +1108,7 @@ class Transaction extends EventTarget {
 
   @DomName('IDBTransaction.abort')
   @DocsEditable()
-  void abort() => _blink.BlinkIDBTransaction.abort_Callback(this);
+  void abort() => _blink.BlinkIDBTransaction.abort_Callback_0(this);
 
   @DomName('IDBTransaction.objectStore')
   @DocsEditable()

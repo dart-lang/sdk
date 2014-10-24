@@ -127,7 +127,6 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
 
 @DocsEditable()
 @DomName('AbstractWorker')
-@Native("AbstractWorker")
 abstract class AbstractWorker extends Interceptor implements EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AbstractWorker._() { throw new UnsupportedError("Not supported"); }
@@ -21251,7 +21250,7 @@ class MutationRecord extends Interceptor {
 
 @DomName('Navigator')
 @Native("Navigator")
-class Navigator extends NavigatorCpu implements NavigatorLanguage, NavigatorOnLine, NavigatorID {
+class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, NavigatorOnLine, NavigatorID {
 
   @DomName('Navigator.language')
   String get language => JS('String', '#.language || #.userLanguage', this,
@@ -21454,6 +21453,13 @@ class Navigator extends NavigatorCpu implements NavigatorLanguage, NavigatorOnLi
   @Experimental() // untriaged
   void unregisterProtocolHandler(String scheme, String url) native;
 
+  // From NavigatorCPU
+
+  @DomName('Navigator.hardwareConcurrency')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int hardwareConcurrency;
+
   // From NavigatorID
 
   @DomName('Navigator.appCodeName')
@@ -21510,14 +21516,10 @@ class Navigator extends NavigatorCpu implements NavigatorLanguage, NavigatorOnLi
 @DocsEditable()
 @DomName('NavigatorCPU')
 @Experimental() // untriaged
-@Native("NavigatorCPU")
-class NavigatorCpu extends Interceptor {
+abstract class NavigatorCpu extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory NavigatorCpu._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('NavigatorCPU.hardwareConcurrency')
-  @DocsEditable()
-  @Experimental() // untriaged
   final int hardwareConcurrency;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21554,19 +21556,12 @@ abstract class NavigatorID extends Interceptor {
 @DocsEditable()
 @DomName('NavigatorLanguage')
 @Experimental() // untriaged
-@Native("NavigatorLanguage")
-class NavigatorLanguage extends Interceptor {
+abstract class NavigatorLanguage extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory NavigatorLanguage._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('NavigatorLanguage.language')
-  @DocsEditable()
-  @Experimental() // untriaged
   final String language;
 
-  @DomName('NavigatorLanguage.languages')
-  @DocsEditable()
-  @Experimental() // untriaged
   final List<String> languages;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33904,9 +33899,11 @@ abstract class _WorkerLocation extends Interceptor implements UrlUtilsReadOnly {
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workernavigator
 @Experimental()
 @Native("WorkerNavigator")
-abstract class _WorkerNavigator extends NavigatorCpu implements NavigatorOnLine, NavigatorID {
+abstract class _WorkerNavigator extends Interceptor implements NavigatorCpu, NavigatorOnLine, NavigatorID {
   // To suppress missing implicit constructor warnings.
   factory _WorkerNavigator._() { throw new UnsupportedError("Not supported"); }
+
+  // From NavigatorCPU
 
   // From NavigatorID
 
