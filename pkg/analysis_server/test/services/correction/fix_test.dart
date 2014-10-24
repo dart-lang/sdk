@@ -37,6 +37,24 @@ class FixProcessorTest extends AbstractSingleUnitTest {
   SourceChange change;
   String resultCode;
 
+  void assert_undefinedFunction_create_returnType_bool(String lineWithTest) {
+    _indexTestUnit('''
+main() {
+  bool b = true;
+  $lineWithTest
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  bool b = true;
+  $lineWithTest
+}
+
+bool test() {
+}
+''');
+  }
+
   void assertHasFix(FixKind kind, String expected) {
     AnalysisError error = _findErrorToFix();
     fix = _assertHasFix(kind, error);
@@ -57,24 +75,6 @@ class FixProcessorTest extends AbstractSingleUnitTest {
         throw fail('Unexpected fix $kind in\n${fixes.join('\n')}');
       }
     }
-  }
-
-  void assert_undefinedFunction_create_returnType_bool(String lineWithTest) {
-    _indexTestUnit('''
-main() {
-  bool b = true;
-  $lineWithTest
-}
-''');
-    assertHasFix(FixKind.CREATE_FUNCTION, '''
-main() {
-  bool b = true;
-  $lineWithTest
-}
-
-bool test() {
-}
-''');
   }
 
   Position expectedPosition(String search) {
@@ -186,6 +186,54 @@ class Test {
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  void test_createConstructor_insteadOfSyntheticDefault() {
+    _indexTestUnit('''
+class A {
+  int field;
+
+  method() {}
+}
+main() {
+  new A(1, 2.0);
+}
+''');
+    assertHasFix(FixKind.CREATE_CONSTRUCTOR, '''
+class A {
+  int field;
+
+  A(int i, double d) {
+  }
+
+  method() {}
+}
+main() {
+  new A(1, 2.0);
+}
+''');
+  }
+
+  void test_createConstructor_named() {
+    _indexTestUnit('''
+class A {
+  method() {}
+}
+main() {
+  new A.named(1, 2.0);
+}
+''');
+    assertHasFix(FixKind.CREATE_CONSTRUCTOR, '''
+class A {
+  A.named(int i, double d) {
+  }
+
+  method() {}
+}
+main() {
+  new A.named(1, 2.0);
+}
+''');
   }
 
   void test_createConstructorSuperExplicit() {
@@ -347,54 +395,6 @@ class B extends A {
     assertNoFix(FixKind.CREATE_CONSTRUCTOR_SUPER);
   }
 
-  void test_createConstructor_insteadOfSyntheticDefault() {
-    _indexTestUnit('''
-class A {
-  int field;
-
-  method() {}
-}
-main() {
-  new A(1, 2.0);
-}
-''');
-    assertHasFix(FixKind.CREATE_CONSTRUCTOR, '''
-class A {
-  int field;
-
-  A(int i, double d) {
-  }
-
-  method() {}
-}
-main() {
-  new A(1, 2.0);
-}
-''');
-  }
-
-  void test_createConstructor_named() {
-    _indexTestUnit('''
-class A {
-  method() {}
-}
-main() {
-  new A.named(1, 2.0);
-}
-''');
-    assertHasFix(FixKind.CREATE_CONSTRUCTOR, '''
-class A {
-  A.named(int i, double d) {
-  }
-
-  method() {}
-}
-main() {
-  new A.named(1, 2.0);
-}
-''');
-  }
-
   void test_createField_getter_multiLevel() {
     _indexTestUnit('''
 class A {
@@ -464,25 +464,6 @@ f(String s) {}
 ''');
   }
 
-  void test_createField_getter_unqualified_instance_asStatement() {
-    _indexTestUnit('''
-class A {
-  main() {
-    test;
-  }
-}
-''');
-    assertHasFix(FixKind.CREATE_FIELD, '''
-class A {
-  var test;
-
-  main() {
-    test;
-  }
-}
-''');
-  }
-
   void test_createField_getter_unqualified_instance_assignmentLhs() {
     _indexTestUnit('''
 class A {
@@ -497,6 +478,25 @@ class A {
 
   main() {
     int v = test;
+  }
+}
+''');
+  }
+
+  void test_createField_getter_unqualified_instance_asStatement() {
+    _indexTestUnit('''
+class A {
+  main() {
+    test;
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FIELD, '''
+class A {
+  var test;
+
+  main() {
+    test;
   }
 }
 ''');
@@ -621,6 +621,81 @@ import 'my_file.dart';
     expect(fileEdit.file, '/my/project/bin/my_file.dart');
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits[0].replacement, contains('library my.file;'));
+  }
+
+  void test_createLocalVariable_read_typeAssignment() {
+    _indexTestUnit('''
+main() {
+  int a = test;
+}
+''');
+    assertHasFix(FixKind.CREATE_LOCAL_VARIABLE, '''
+main() {
+  int test;
+  int a = test;
+}
+''');
+  }
+
+  void test_createLocalVariable_read_typeCondition() {
+    _indexTestUnit('''
+main() {
+  if (!test) {
+    print(42);
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_LOCAL_VARIABLE, '''
+main() {
+  bool test;
+  if (!test) {
+    print(42);
+  }
+}
+''');
+  }
+
+  void test_createLocalVariable_read_typeInvocationArgument() {
+    _indexTestUnit('''
+main() {
+  f(test);
+}
+f(String p) {}
+''');
+    assertHasFix(FixKind.CREATE_LOCAL_VARIABLE, '''
+main() {
+  String test;
+  f(test);
+}
+f(String p) {}
+''');
+  }
+
+  void test_createLocalVariable_write_assignment() {
+    _indexTestUnit('''
+main() {
+  test = 42;
+}
+''');
+    assertHasFix(FixKind.CREATE_LOCAL_VARIABLE, '''
+main() {
+  var test = 42;
+}
+''');
+  }
+
+  void test_createLocalVariable_write_assignment_compound() {
+    _indexTestUnit('''
+main() {
+  test += 42;
+}
+''');
+    assertHasFix(FixKind.CREATE_LOCAL_VARIABLE, '''
+main() {
+  int test;
+  test += 42;
+}
+''');
   }
 
   void test_createMissingOverrides_functionType() {

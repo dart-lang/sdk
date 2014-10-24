@@ -68,6 +68,8 @@ class FixKind {
       const FixKind('CREATE_FILE', 50, "Create file '{0}'");
   static const CREATE_FUNCTION =
       const FixKind('CREATE_FUNCTION', 49, "Create function '{0}'");
+  static const CREATE_LOCAL_VARIABLE =
+      const FixKind('CREATE_LOCAL_VARIABLE', 50, "Create local variable '{0}'");
   static const CREATE_METHOD =
       const FixKind('CREATE_METHOD', 50, "Create method '{0}'");
   static const CREATE_MISSING_OVERRIDES = const FixKind(

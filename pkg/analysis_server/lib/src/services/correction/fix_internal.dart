@@ -202,6 +202,7 @@ class FixProcessor {
       _addFix_createFunction_forFunctionType();
       _addFix_importLibrary_withType();
       _addFix_importLibrary_withTopLevelVariable();
+      _addFix_createLocalVariable();
     }
     if (errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER) {
       _addFix_useStaticAccess_method();
@@ -720,6 +721,54 @@ class FixProcessor {
         _addFix(FixKind.CREATE_FILE, [file], file: file, fileStamp: -1);
       }
     }
+  }
+
+  void _addFix_createLocalVariable() {
+    SimpleIdentifier nameNode = node;
+    String name = nameNode.name;
+    // if variable is assigned, convert assignment into declaration
+    if (node.parent is AssignmentExpression) {
+      AssignmentExpression assignment = node.parent;
+      if (assignment.leftHandSide == node &&
+          assignment.operator.type == TokenType.EQ &&
+          assignment.parent is ExpressionStatement) {
+        _addInsertEdit(node.offset, 'var ');
+        _addFix(FixKind.CREATE_LOCAL_VARIABLE, [name]);
+        return;
+      }
+    }
+    // prepare target Statement
+    Statement target = node.getAncestor((x) => x is Statement);
+    if (target == null) {
+      return;
+    }
+    String prefix = utils.getNodePrefix(target);
+    // build variable declaration source
+    SourceBuilder sb = new SourceBuilder(file, target.offset);
+    {
+      // append type
+      DartType fieldType = _inferUndefinedExpressionType(node);
+      if (fieldType != null) {
+        _appendType(sb, fieldType, 'TYPE');
+      } else {
+        sb.append('var ');
+      }
+      // append name
+      {
+        sb.startPosition('NAME');
+        sb.append(name);
+        sb.endPosition();
+      }
+      sb.append(';');
+      sb.append(eol);
+      sb.append(prefix);
+    }
+    // insert source
+    _insertBuilder(sb);
+    // add linked positions
+    _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+    // add proposal
+    _addFix(FixKind.CREATE_LOCAL_VARIABLE, [name]);
   }
 
   void _addFix_createMissingOverrides(List<ExecutableElement> elements) {
