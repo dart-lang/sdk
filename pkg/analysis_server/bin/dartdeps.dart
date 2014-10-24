@@ -28,7 +28,7 @@ void main(List<String> args) {
  */
 class _DartDependencyAnalyzer {
   /**
-   * The name of the application that is used to start the analyzer.
+   * The name of the application that is used to start the dependency analyzer.
    */
   static const BINARY_NAME = 'dartdeps';
 
@@ -180,6 +180,6 @@ class _DartDependencyAnalyzer {
     print('Usage: $BINARY_NAME [flags] <application_directory>');
     print('');
     print('Supported flags are:');
-    print(parser.getUsage());
+    print(parser.usage);
   }
 }
