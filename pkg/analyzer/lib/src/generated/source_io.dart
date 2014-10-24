@@ -345,6 +345,18 @@ class PackageUriResolver extends UriResolver {
     }
   }
 
+  /**
+   * If the list of package directories contains one element, return it.
+   * Otherwise raise an exception.  Intended for testing.
+   */
+  String get packagesDirectory_forTesting {
+    int length = _packagesDirectories.length;
+    if (length != 1) {
+      throw new Exception('Expected 1 package directory, found $length');
+    }
+    return _packagesDirectories[0].getPath();
+  }
+
   @override
   Source resolveAbsolute(Uri uri) {
     if (!isPackageUri(uri)) {

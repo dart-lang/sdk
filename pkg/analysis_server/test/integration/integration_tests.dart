@@ -67,10 +67,14 @@ abstract class AbstractAnalysisServerIntegrationTest extends
    * overwritten.
    *
    * Parent directories are created as necessary.
+   *
+   * Return a normalized path to the file (with symbolic links resolved).
    */
-  void writeFile(String pathname, String contents) {
+  String writeFile(String pathname, String contents) {
     new Directory(dirname(pathname)).createSync(recursive: true);
-    new File(pathname).writeAsStringSync(contents);
+    File file = new File(pathname);
+    file.writeAsStringSync(contents);
+    return file.resolveSymbolicLinksSync();
   }
 
   /**

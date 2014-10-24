@@ -9,8 +9,10 @@ import 'reflective_tests.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
@@ -190,14 +192,10 @@ class ContextManagerTest {
     manager.assertContextFiles(subProjectA, [subProjectA_file]);
     manager.assertContextFiles(subProjectB, [subProjectB_file]);
     // verify package maps
-    expect(
-        manager.currentContextPackageMaps[root],
-        equals(packageMapProvider.packageMaps[root]));
-    expect(
-        manager.currentContextPackageMaps[subProjectA],
+    _checkPackageMap(root, equals(packageMapProvider.packageMaps[root]));
+    _checkPackageMap(subProjectA,
         equals(packageMapProvider.packageMaps[subProjectA]));
-    expect(
-        manager.currentContextPackageMaps[subProjectB],
+    _checkPackageMap(subProjectB,
         equals(packageMapProvider.packageMaps[subProjectB]));
   }
 
@@ -208,6 +206,35 @@ class ContextManagerTest {
     expect(manager.currentContextPaths, hasLength(1));
     expect(manager.currentContextPaths, contains(projPath));
     expect(manager.currentContextFilePaths[projPath], hasLength(0));
+  }
+
+  void test_setRoots_addPackageRoot() {
+    String packagePathFoo = '/package1/foo';
+    String packageRootPath = '/package2/foo';
+    Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
+    packageMapProvider.packageMap = {
+      'foo': [packageFolder]
+    };
+    List<String> includedPaths = <String>[projPath];
+    List<String> excludedPaths = <String>[];
+    manager.setRoots(includedPaths, excludedPaths, <String, String>{});
+    _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
+    manager.setRoots(includedPaths, excludedPaths,
+        <String, String>{ projPath: packageRootPath });
+    _checkPackageRoot(projPath, equals(packageRootPath));
+  }
+
+  void test_setRoots_changePackageRoot() {
+    String packageRootPath1 = '/package1';
+    String packageRootPath2 = '/package2';
+    List<String> includedPaths = <String>[projPath];
+    List<String> excludedPaths = <String>[];
+    manager.setRoots(includedPaths, excludedPaths,
+        <String, String>{ projPath: packageRootPath1 });
+    _checkPackageRoot(projPath, equals(packageRootPath1));
+    manager.setRoots(includedPaths, excludedPaths,
+        <String, String>{ projPath: packageRootPath2 });
+    _checkPackageRoot(projPath, equals(packageRootPath2));
   }
 
   void test_setRoots_exclude_newRoot_withExcludedFile() {
@@ -343,9 +370,14 @@ class ContextManagerTest {
       'foo': [packageFolder]
     };
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    expect(
-        manager.currentContextPackageMaps[projPath],
-        equals(packageMapProvider.packageMap));
+    _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
+  }
+
+  void test_setRoots_newFolderWithPackageRoot() {
+    String packageRootPath = '/package';
+    manager.setRoots(<String>[projPath], <String>[],
+        <String, String>{ projPath: packageRootPath });
+    _checkPackageRoot(projPath, equals(packageRootPath));
   }
 
   void test_setRoots_removeFolderWithPubspec() {
@@ -404,6 +436,22 @@ class ContextManagerTest {
     manager.setRoots(<String>[], <String>[], <String, String>{});
     expect(manager.currentContextPaths, hasLength(0));
     expect(manager.currentContextFilePaths, hasLength(0));
+  }
+
+  void test_setRoots_removePackageRoot() {
+    String packagePathFoo = '/package1/foo';
+    String packageRootPath = '/package2/foo';
+    Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
+    packageMapProvider.packageMap = {
+      'foo': [packageFolder]
+    };
+    List<String> includedPaths = <String>[projPath];
+    List<String> excludedPaths = <String>[];
+    manager.setRoots(includedPaths, excludedPaths,
+        <String, String>{ projPath: packageRootPath });
+    _checkPackageRoot(projPath, equals(packageRootPath));
+    manager.setRoots(includedPaths, excludedPaths, <String, String>{});
+    _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
   }
 
   test_watch_addDummyLink() {
@@ -630,7 +678,7 @@ class ContextManagerTest {
     resourceProvider.newFile(dartFilePath, 'contents');
     // the created context has the expected empty package map
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    expect(manager.currentContextPackageMaps[projPath], isEmpty);
+    _checkPackageMap(projPath, isEmpty);
     // configure package map
     String packagePath = '/package/foo';
     resourceProvider.newFolder(packagePath);
@@ -641,13 +689,11 @@ class ContextManagerTest {
     // package map to be picked up.
     resourceProvider.modifyFile(dartFilePath, 'new contents');
     return pumpEventQueue().then((_) {
-      expect(manager.currentContextPackageMaps[projPath], isEmpty);
+      _checkPackageMap(projPath, isEmpty);
       // However, changing the package map dependency should.
       resourceProvider.modifyFile(dependencyPath, 'new contents');
       return pumpEventQueue().then((_) {
-        expect(
-            manager.currentContextPackageMaps[projPath],
-            equals(packageMapProvider.packageMap));
+        _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
       });
     });
   }
@@ -662,15 +708,37 @@ class ContextManagerTest {
     resourceProvider.newFile(dartFilePath, 'contents');
     // the created context has the expected empty package map
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    expect(manager.currentContextPackageMaps[projPath], isEmpty);
+    _checkPackageMap(projPath, isEmpty);
     // Change the package map dependency so that the packageMapProvider is
     // re-run, and arrange for it to return null from computePackageMap().
     packageMapProvider.packageMap = null;
     resourceProvider.modifyFile(dependencyPath, 'new contents');
     return pumpEventQueue().then((_) {
       // The package map should have been changed to null.
-      expect(manager.currentContextPackageMaps[projPath], isNull);
+      _checkPackageMap(projPath, isNull);
     });
+  }
+
+  /**
+   * Verify that package URI's for source files in [path] will be resolved
+   * using a package map matching [expectation].
+   */
+  void _checkPackageMap(String path, expectation) {
+    UriResolver resolver = manager.currentContextPackageUriResolvers[path];
+    expect(resolver, new isInstanceOf<PackageMapUriResolver>());
+    PackageMapUriResolver packageMapUriResolver = resolver;
+    expect(packageMapUriResolver.packageMap, expectation);
+  }
+
+  /**
+   * Verify that package URI's for source files in [path] will be resolved
+   * using a package root maching [expectation].
+   */
+  void _checkPackageRoot(String path, expectation) {
+    UriResolver resolver = manager.currentContextPackageUriResolvers[path];
+    expect(resolver, new isInstanceOf<PackageUriResolver>());
+    PackageUriResolver packageUriResolver = resolver;
+    expect(packageUriResolver.packagesDirectory_forTesting, expectation);
   }
 }
 
@@ -698,22 +766,22 @@ class TestContextManager extends ContextManager {
       Map<String, int>>{};
 
   /**
-   * Map from context to package map.
+   * Map from context to package URI resolver.
    */
-  final Map<String, Map<String, List<Folder>>> currentContextPackageMaps =
-      <String, Map<String, List<Folder>>>{};
+  final Map<String, UriResolver> currentContextPackageUriResolvers =
+      <String, UriResolver>{};
 
   TestContextManager(MemoryResourceProvider resourceProvider,
       PackageMapProvider packageMapProvider)
       : super(resourceProvider, packageMapProvider);
 
   @override
-  void addContext(Folder folder, Map<String, List<Folder>> packageMap) {
+  void addContext(Folder folder, UriResolver packageUriResolver) {
     String path = folder.path;
     expect(currentContextPaths, isNot(contains(path)));
     currentContextTimestamps[path] = now;
     currentContextFilePaths[path] = <String, int>{};
-    currentContextPackageMaps[path] = packageMap;
+    currentContextPackageUriResolvers[path] = packageUriResolver;
   }
 
   @override
@@ -748,12 +816,12 @@ class TestContextManager extends ContextManager {
     expect(currentContextPaths, contains(path));
     currentContextTimestamps.remove(path);
     currentContextFilePaths.remove(path);
-    currentContextPackageMaps.remove(path);
+    currentContextPackageUriResolvers.remove(path);
   }
 
   @override
-  void updateContextPackageMap(Folder contextFolder, Map<String,
-      List<Folder>> packageMap) {
-    currentContextPackageMaps[contextFolder.path] = packageMap;
+  void updateContextPackageUriResolver(Folder contextFolder,
+                                       UriResolver packageUriResolver) {
+    currentContextPackageUriResolvers[contextFolder.path] = packageUriResolver;
   }
 }

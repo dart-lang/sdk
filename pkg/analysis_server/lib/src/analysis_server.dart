@@ -16,7 +16,6 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analyzer/source/package_map_provider.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -42,10 +41,10 @@ class ServerContextManager extends ContextManager {
       : super(resourceProvider, packageMapProvider);
 
   @override
-  void addContext(Folder folder, Map<String, List<Folder>> packageMap) {
+  void addContext(Folder folder, UriResolver packageUriResolver) {
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     analysisServer.folderMap[folder] = context;
-    context.sourceFactory = _createSourceFactory(packageMap);
+    context.sourceFactory = _createSourceFactory(packageUriResolver);
     context.analysisOptions = new AnalysisOptionsImpl.con1(defaultOptions);
     analysisServer.schedulePerformAnalysisOperation(context);
   }
@@ -71,22 +70,22 @@ class ServerContextManager extends ContextManager {
   }
 
   @override
-  void updateContextPackageMap(Folder contextFolder, Map<String,
-      List<Folder>> packageMap) {
+  void updateContextPackageUriResolver(Folder contextFolder,
+                                       UriResolver packageUriResolver) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(packageMap);
+    context.sourceFactory = _createSourceFactory(packageUriResolver);
     analysisServer.schedulePerformAnalysisOperation(context);
   }
 
   /**
    * Set up a [SourceFactory] that resolves packages using the given
-   * [packageMap].
+   * [packageUriResolver].
    */
-  SourceFactory _createSourceFactory(Map<String, List<Folder>> packageMap) {
+  SourceFactory _createSourceFactory(UriResolver packageUriResolver) {
     List<UriResolver> resolvers = <UriResolver>[
         new DartUriResolver(analysisServer.defaultSdk),
         new ResourceUriResolver(resourceProvider),
-        new PackageMapUriResolver(resourceProvider, packageMap)];
+        packageUriResolver];
     return new SourceFactory(resolvers);
   }
 }

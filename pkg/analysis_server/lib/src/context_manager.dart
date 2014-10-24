@@ -9,8 +9,11 @@ import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 
@@ -66,19 +69,25 @@ abstract class ContextManager {
   Map<String, String> packageRoots = <String, String>{};
 
   /**
+   * Same as [packageRoots], except that source folders have been normalized
+   * and non-folders have been removed.
+   */
+  Map<String, String> normalizedPackageRoots = <String, String>{};
+
+  /**
    * Provider which is used to determine the mapping from package name to
    * package folder.
    */
-  final PackageMapProvider packageMapProvider;
+  final PackageMapProvider _packageMapProvider;
 
-  ContextManager(this.resourceProvider, this.packageMapProvider) {
+  ContextManager(this.resourceProvider, this._packageMapProvider) {
     pathContext = resourceProvider.pathContext;
   }
 
   /**
    * Called when a new context needs to be created.
    */
-  void addContext(Folder folder, Map<String, List<Folder>> packageMap);
+  void addContext(Folder folder, UriResolver packageUriResolver);
 
   /**
    * Called when the set of files associated with a context have changed (or
@@ -130,8 +139,18 @@ abstract class ContextManager {
    */
   void setRoots(List<String> includedPaths, List<String> excludedPaths,
       Map<String, String> packageRoots) {
-    // TODO(paulberry): process package roots.
     this.packageRoots = packageRoots;
+
+    // Normalize all package root sources by mapping them to folders on the
+    // filesystem.  Ignore any package root sources that aren't folders.
+    normalizedPackageRoots = <String, String>{};
+    packageRoots.forEach((String sourcePath, String targetPath) {
+      Resource resource = resourceProvider.getResource(sourcePath);
+      if (resource is Folder) {
+        normalizedPackageRoots[resource.path] = targetPath;
+      }
+    });
+
     List<Folder> contextFolders = _contexts.keys.toList();
     // included
     Set<Folder> includedFolders = new HashSet<Folder>();
@@ -160,6 +179,14 @@ abstract class ContextManager {
         _destroyContext(contextFolder);
       }
     }
+    // Update package roots for existing contexts
+    _contexts.forEach((Folder folder, _ContextInfo info) {
+      String newPackageRoot = normalizedPackageRoots[folder.path];
+      if (info.packageRoot != newPackageRoot) {
+        info.packageRoot = newPackageRoot;
+        _recomputePackageUriResolver(info);
+      }
+    });
     // create new contexts
     for (Folder includedFolder in includedFolders) {
       bool wasIncluded = contextFolders.any((folder) {
@@ -198,8 +225,8 @@ abstract class ContextManager {
   /**
    * Called when the package map for a context has changed.
    */
-  void updateContextPackageMap(Folder contextFolder, Map<String,
-      List<Folder>> packageMap);
+  void updateContextPackageUriResolver(Folder contextFolder,
+                                       UriResolver packageUriResolver);
 
   /**
    * Resursively adds all Dart and HTML files to the [changeSet].
@@ -266,20 +293,39 @@ abstract class ContextManager {
   }
 
   /**
+   * Compute the appropriate package URI resolver for [folder], and store
+   * dependency information in [info].
+   */
+  UriResolver _computePackageUriResolver(Folder folder, _ContextInfo info) {
+    UriResolver packageUriResolver;
+    if (info.packageRoot != null) {
+      info.packageMapDependencies = new Set<String>();
+      packageUriResolver = new PackageUriResolver(
+          [new JavaFile(info.packageRoot)]);
+    } else {
+      PackageMapInfo packageMapInfo =
+          _packageMapProvider.computePackageMap(folder);
+      info.packageMapDependencies = packageMapInfo.dependencies;
+      packageUriResolver = new PackageMapUriResolver(
+          resourceProvider, packageMapInfo.packageMap);
+      // TODO(paulberry): if any of the dependencies is outside of [folder],
+      // we'll need to watch their parent folders as well.
+    }
+    return packageUriResolver;
+  }
+
+  /**
    * Create a new empty context associated with [folder].
    */
   _ContextInfo _createContext(Folder folder, List<_ContextInfo> children) {
-    _ContextInfo info = new _ContextInfo(folder, children);
+    _ContextInfo info = new _ContextInfo(folder, children,
+        normalizedPackageRoots[folder.path]);
     _contexts[folder] = info;
     info.changeSubscription = folder.changes.listen((WatchEvent event) {
       _handleWatchEvent(folder, info, event);
     });
-    PackageMapInfo packageMapInfo =
-        packageMapProvider.computePackageMap(folder);
-    info.packageMapDependencies = packageMapInfo.dependencies;
-    // TODO(paulberry): if any of the dependencies is outside of [folder],
-    // we'll need to watch their parent folders as well.
-    addContext(folder, packageMapInfo.packageMap);
+    UriResolver packageUriResolver = _computePackageUriResolver(folder, info);
+    addContext(folder, packageUriResolver);
     return info;
   }
 
@@ -439,14 +485,7 @@ abstract class ContextManager {
     }
 
     if (info.packageMapDependencies.contains(path)) {
-      // TODO(paulberry): when computePackageMap is changed into an
-      // asynchronous API call, we'll want to suspend analysis for this context
-      // while we're rerunning "pub list", since any analysis we complete while
-      // "pub list" is in progress is just going to get thrown away anyhow.
-      PackageMapInfo packageMapInfo =
-          packageMapProvider.computePackageMap(folder);
-      info.packageMapDependencies = packageMapInfo.dependencies;
-      updateContextPackageMap(folder, packageMapInfo.packageMap);
+      _recomputePackageUriResolver(info);
     }
   }
 
@@ -505,6 +544,20 @@ abstract class ContextManager {
     }
   }
 
+  /**
+   * Recompute the package URI resolver for the context described by [info],
+   * and update the client appropriately.
+   */
+  void _recomputePackageUriResolver(_ContextInfo info) {
+    // TODO(paulberry): when computePackageMap is changed into an
+    // asynchronous API call, we'll want to suspend analysis for this context
+    // while we're rerunning "pub list", since any analysis we complete while
+    // "pub list" is in progress is just going to get thrown away anyhow.
+    UriResolver packageUriResolver =
+        _computePackageUriResolver(info.folder, info);
+    updateContextPackageUriResolver(info.folder, packageUriResolver);
+  }
+
   static bool _shouldFileBeAnalyzed(File file) {
     if (!(AnalysisEngine.isDartFileName(file.path) ||
         AnalysisEngine.isHtmlFileName(file.path))) {
@@ -534,6 +587,11 @@ class _ContextInfo {
   final List<_ContextInfo> children;
 
   /**
+   * The package root for this context, or null if there is no package root.
+   */
+  String packageRoot;
+
+  /**
    * The [_ContextInfo] that encloses this one.
    */
   _ContextInfo parent;
@@ -561,7 +619,7 @@ class _ContextInfo {
    */
   Set<String> packageMapDependencies;
 
-  _ContextInfo(this.folder, this.children) {
+  _ContextInfo(this.folder, this.children, this.packageRoot) {
     pubspecPath = folder.getChild(PUBSPEC_NAME).path;
     for (_ContextInfo child in children) {
       child.parent = this;
