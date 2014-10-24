@@ -1171,7 +1171,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
    * @param visitedNode the visited node that should have been the parent of the node to be replaced
    */
   AstNode _notAChild(AstNode visitedNode) {
-    throw new IncrementalParseException.con1("Internal error: the visited node (a ${visitedNode.runtimeType.toString()}) was not the parent of the node to be replaced (a ${_oldNode.runtimeType.toString()})");
+    throw new IncrementalParseException.con1("Internal error: the visited node (a ${visitedNode.runtimeType}) was not the parent of the node to be replaced (a ${_oldNode.runtimeType})");
   }
 }
 
@@ -8299,7 +8299,7 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**

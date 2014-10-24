@@ -15911,7 +15911,7 @@ class SimpleIdentifier extends Identifier {
    */
   Element _returnOrReportElement(AstNode parent, bool isValid, Element element) {
     if (!isValid) {
-      AnalysisEngine.instance.logger.logInformation2("Internal error: attempting to set the name of a ${parent.runtimeType.toString()} to a ${element.runtimeType.toString()}", new JavaException());
+      AnalysisEngine.instance.logger.logInformation2("Internal error: attempting to set the name of a ${parent.runtimeType} to a ${element.runtimeType}", new JavaException());
       return null;
     }
     return element;

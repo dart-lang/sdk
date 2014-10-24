@@ -4636,7 +4636,7 @@ class ElementHolder {
       builder.append(" type parameters");
     }
     if (builder.length > 0) {
-      AnalysisEngine.instance.logger.logError("Failed to capture elements: ${builder.toString()}");
+      AnalysisEngine.instance.logger.logError("Failed to capture elements: $builder");
     }
   }
 }
@@ -14289,7 +14289,7 @@ class IncrementalResolver {
   bool _elementModelChanged(AstNode node) {
     Element element = _getElement(node);
     if (element == null) {
-      throw new AnalysisException("Cannot resolve node: a ${node.runtimeType.toString()} does not define an element");
+      throw new AnalysisException("Cannot resolve node: a ${node.runtimeType} does not define an element");
     }
     DeclarationMatcher matcher = new DeclarationMatcher();
     return !matcher.matches(node, element);
@@ -15181,7 +15181,7 @@ class InheritanceManager {
               // of the other, we create a warning, and have this class inherit nothing.
               //
               if (!classHasMember) {
-                String firstTwoFuntionTypesStr = "${executableElementTypes[0].toString()}, ${executableElementTypes[1].toString()}";
+                String firstTwoFuntionTypesStr = "${executableElementTypes[0]}, ${executableElementTypes[1]}";
                 _reportError(classElt, classElt.nameOffset, classElt.displayName.length, StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE, [key, firstTwoFuntionTypesStr]);
               }
             } else {
@@ -17895,7 +17895,7 @@ class NamespaceBuilder {
         definedNames = _show(definedNames, combinator.shownNames);
       } else {
         // Internal error.
-        AnalysisEngine.instance.logger.logError("Unknown type of combinator: ${combinator.runtimeType.toString()}");
+        AnalysisEngine.instance.logger.logError("Unknown type of combinator: ${combinator.runtimeType}");
       }
     }
     return definedNames;
@@ -18815,7 +18815,7 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
   ErrorSeverity get errorSeverity => type.severity;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**

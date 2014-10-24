@@ -52,7 +52,7 @@ class _ErrorCollector extends AnalysisErrorListener {
 
 class _ASTVisitor extends GeneralizingAstVisitor {
   visitNode(AstNode node) {
-    print('${node.runtimeType} : <"${node.toString()}">');
+    print('${node.runtimeType} : <"$node">');
     return super.visitNode(node);
   }
 }

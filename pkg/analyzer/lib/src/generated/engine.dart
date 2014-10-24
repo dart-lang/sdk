@@ -1209,7 +1209,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         return _getDartScanData2(source, SourceEntry.LINE_INFO, null);
       }
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute ${SourceEntry.LINE_INFO.toString()}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not compute ${SourceEntry.LINE_INFO}", exception);
     }
     return null;
   }
@@ -2836,7 +2836,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       return _getDartParseData(source, dartEntry, descriptor);
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute ${descriptor.toString()}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
       return defaultValue;
     }
   }
@@ -2890,7 +2890,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       return _getDartResolutionData(unitSource, librarySource, dartEntry, descriptor);
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute ${descriptor.toString()}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
       return defaultValue;
     }
   }
@@ -2935,7 +2935,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       return _getDartScanData(source, dartEntry, descriptor);
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute ${descriptor.toString()}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
       return defaultValue;
     }
   }
@@ -3009,7 +3009,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       return _getHtmlResolutionData2(source, htmlEntry, descriptor);
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not compute ${descriptor.toString()}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not compute $descriptor", exception);
       return defaultValue;
     }
   }
@@ -10852,7 +10852,7 @@ class ParseDartTask extends AnalysisTask {
                   _includedSources.add(referencedSource);
                 }
               } else {
-                throw new AnalysisException("${runtimeType.toString()} failed to handle a ${directive.runtimeType.toString()}");
+                throw new AnalysisException("$runtimeType failed to handle a ${directive.runtimeType}");
               }
             }
           }

@@ -3258,7 +3258,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 
   @override
-  String toString() => "@${element.toString()}";
+  String toString() => '@$element';
 }
 
 /**

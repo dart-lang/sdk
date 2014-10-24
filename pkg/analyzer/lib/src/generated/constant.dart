@@ -1926,7 +1926,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.stringType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("add returned a ${result.runtimeType.toString()}");
+    throw new IllegalStateException("add returned a ${result.runtimeType}");
   }
 
   /**
@@ -2011,7 +2011,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("divide returned a ${result.runtimeType.toString()}");
+    throw new IllegalStateException("divide returned a ${result.runtimeType}");
   }
 
   /**
@@ -2217,7 +2217,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("minus returned a ${result.runtimeType.toString()}");
+    throw new IllegalStateException("minus returned a ${result.runtimeType}");
   }
 
   /**
@@ -2237,7 +2237,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("negated returned a ${result.runtimeType.toString()}");
+    throw new IllegalStateException("negated returned a ${result.runtimeType}");
   }
 
   /**
@@ -2291,7 +2291,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("remainder returned a ${result.runtimeType.toString()}");
+    throw new IllegalStateException("remainder returned a ${result.runtimeType}");
   }
 
   /**
@@ -2341,11 +2341,11 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("times returned a ${result.runtimeType.toString()}");
+    throw new IllegalStateException("times returned a ${result.runtimeType}");
   }
 
   @override
-  String toString() => "${type.displayName} (${_state.toString()})";
+  String toString() => "${type.displayName} ($_state)";
 }
 
 /**

@@ -320,7 +320,7 @@ class EngineTestCase extends JUnitTestCase {
       Type expectedClass, Object object) {
     if (!predicate(object)) {
       JUnitTestCase.fail(
-          "Expected instance of ${expectedClass.toString()}, found ${(object == null ? "null" : object.runtimeType.toString())}");
+          "Expected instance of $expectedClass, found ${(object == null ? "null" : object.runtimeType)}");
     }
     return object;
   }
@@ -660,7 +660,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
         }
         builder.append(expectedCount);
         builder.append(" errors of type ");
-        builder.append("${code.runtimeType.toString()}.${code}");
+        builder.append("${code.runtimeType}.$code");
         builder.append(", found ");
         builder.append(actualCount);
       }
@@ -680,7 +680,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
         builder.append("; ");
       }
       builder.append("0 errors of type ");
-      builder.append("${code.runtimeType.toString()}.${code}");
+      builder.append("${code.runtimeType}.$code");
       builder.append(", found ");
       builder.append(actualCount);
       builder.append(" (");

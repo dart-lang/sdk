@@ -10958,7 +10958,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
   Object visitXmlAttributeNode(ht.XmlAttributeNode actual) {
     if (actual.parent is! ht.XmlTagNode) {
       _errors.add(
-          "Expected ${actual.runtimeType.toString()} to have parent of type XmlTagNode");
+          "Expected ${actual.runtimeType} to have parent of type XmlTagNode");
     }
     String actualName = actual.name;
     String actualValue = actual.valueToken.lexeme;
@@ -10987,7 +10987,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
   Object visitXmlTagNode(ht.XmlTagNode actual) {
     if (!(actual.parent is ht.HtmlUnit || actual.parent is ht.XmlTagNode)) {
       _errors.add(
-          "Expected ${actual.runtimeType.toString()} to have parent of type HtmlUnit or XmlTagNode");
+          "Expected ${actual.runtimeType} to have parent of type HtmlUnit or XmlTagNode");
     }
     if (_expectedTagsInOrderVisited != null) {
       String actualTag = actual.tag;
@@ -11073,15 +11073,15 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
   }
   void _validateNode(ht.XmlNode node) {
     if (node.beginToken == null) {
-      _errors.add("No begin token for ${node.runtimeType.toString()}");
+      _errors.add("No begin token for ${node.runtimeType}");
     }
     if (node.endToken == null) {
-      _errors.add("No end token for ${node.runtimeType.toString()}");
+      _errors.add("No end token for ${node.runtimeType}");
     }
     int nodeStart = node.offset;
     int nodeLength = node.length;
     if (nodeStart < 0 || nodeLength < 0) {
-      _errors.add("No source info for ${node.runtimeType.toString()}");
+      _errors.add("No source info for ${node.runtimeType}");
     }
     ht.XmlNode parent = node.parent;
     if (parent != null) {
@@ -11090,11 +11090,11 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
       int parentEnd = parentStart + parent.length;
       if (nodeStart < parentStart) {
         _errors.add(
-            "Invalid source start (${nodeStart}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
+            "Invalid source start (${nodeStart}) for ${node.runtimeType} inside ${parent.runtimeType} (${parentStart})");
       }
       if (nodeEnd > parentEnd) {
         _errors.add(
-            "Invalid source end (${nodeEnd}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
+            "Invalid source end (${nodeEnd}) for ${node.runtimeType} inside ${parent.runtimeType} (${parentStart})");
       }
     }
   }

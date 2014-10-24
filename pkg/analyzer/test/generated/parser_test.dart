@@ -77,29 +77,29 @@ class AstValidator extends UnifyingAstVisitor<Object> {
       }
     } else {
       if (parent == null) {
-        _errors.add("No parent for ${node.runtimeType.toString()}");
+        _errors.add("No parent for ${node.runtimeType}");
       }
     }
     if (node.beginToken == null) {
-      _errors.add("No begin token for ${node.runtimeType.toString()}");
+      _errors.add("No begin token for ${node.runtimeType}");
     }
     if (node.endToken == null) {
-      _errors.add("No end token for ${node.runtimeType.toString()}");
+      _errors.add("No end token for ${node.runtimeType}");
     }
     int nodeStart = node.offset;
     int nodeLength = node.length;
     if (nodeStart < 0 || nodeLength < 0) {
-      _errors.add("No source info for ${node.runtimeType.toString()}");
+      _errors.add("No source info for ${node.runtimeType}");
     }
     if (parent != null) {
       int nodeEnd = nodeStart + nodeLength;
       int parentStart = parent.offset;
       int parentEnd = parentStart + parent.length;
       if (nodeStart < parentStart) {
-        _errors.add("Invalid source start (${nodeStart}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
+        _errors.add("Invalid source start (${nodeStart}) for ${node.runtimeType} inside ${parent.runtimeType} (${parentStart})");
       }
       if (nodeEnd > parentEnd) {
-        _errors.add("Invalid source end (${nodeEnd}) for ${node.runtimeType.toString()} inside ${parent.runtimeType.toString()} (${parentStart})");
+        _errors.add("Invalid source end (${nodeEnd}) for ${node.runtimeType} inside ${parent.runtimeType} (${parentStart})");
       }
     }
   }

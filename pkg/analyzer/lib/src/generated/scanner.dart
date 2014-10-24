@@ -1925,7 +1925,7 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
 
   @override
-  String get uniqueName => "${runtimeType.toString()}.${name}";
+  String get uniqueName => "$runtimeType.$name";
 }
 
 /**
