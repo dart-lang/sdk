@@ -361,8 +361,8 @@ class SnapshotReader : public BaseReader {
   // Read an inlined object from the stream.
   RawObject* ReadInlinedObject(intptr_t object_id);
 
-  // Based on header field check to see if it is an internal VM class.
-  RawClass* LookupInternalClass(intptr_t class_header);
+  // Decode class id from the header field.
+  intptr_t LookupInternalClass(intptr_t class_header);
 
   void ArrayReadFrom(const Array& result, intptr_t len, intptr_t tags);
 
