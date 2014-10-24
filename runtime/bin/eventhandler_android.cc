@@ -174,16 +174,14 @@ void EventHandlerImplementation::HandleInterruptFd() {
       shutdown_ = true;
     } else {
       SocketData* sd = GetSocketData(msg[i].id);
-      if ((msg[i].data & (1 << kShutdownReadCommand)) != 0) {
-        ASSERT(msg[i].data == (1 << kShutdownReadCommand));
+
+      if (IS_COMMAND(msg[i].data, kShutdownReadCommand)) {
         // Close the socket for reading.
         shutdown(sd->fd(), SHUT_RD);
-      } else if ((msg[i].data & (1 << kShutdownWriteCommand)) != 0) {
-        ASSERT(msg[i].data == (1 << kShutdownWriteCommand));
+      } else if (IS_COMMAND(msg[i].data, kShutdownWriteCommand)) {
         // Close the socket for writing.
         shutdown(sd->fd(), SHUT_WR);
-      } else if ((msg[i].data & (1 << kCloseCommand)) != 0) {
-        ASSERT(msg[i].data == (1 << kCloseCommand));
+      } else if (IS_COMMAND(msg[i].data, kCloseCommand)) {
         // Close the socket and free system resources and move on to
         // next message.
         RemoveFromEpollInstance(epoll_fd_, sd);
@@ -192,14 +190,16 @@ void EventHandlerImplementation::HandleInterruptFd() {
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
         DartUtils::PostInt32(msg[i].dart_port, 1 << kDestroyedEvent);
-      } else if ((msg[i].data & (1 << kReturnTokenCommand)) != 0) {
-        int count = msg[i].data & ((1 << kReturnTokenCommand) - 1);
+      } else if (IS_COMMAND(msg[i].data, kReturnTokenCommand)) {
+        int count = TOKEN_COUNT(msg[i].data);
+
         for (int i = 0; i < count; i++) {
           if (sd->ReturnToken()) {
             AddToEpollInstance(epoll_fd_, sd);
           }
         }
       } else {
+        ASSERT_NO_COMMAND(msg[i].data);
         // Setup events to wait for.
         sd->SetPortAndMask(msg[i].dart_port, msg[i].data);
         AddToEpollInstance(epoll_fd_, sd);

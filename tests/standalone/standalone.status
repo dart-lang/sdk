@@ -156,3 +156,7 @@ package/package_test: CompileTimeError
 
 [ $system == windows ]
 io/skipping_dart2js_compilations_test: Fail # Issue 19551.
+
+[ $system != linux ]
+io/server_socket_reference_issue21383_and_issue21384_test: Skip # Not supported on other platforms so far
+

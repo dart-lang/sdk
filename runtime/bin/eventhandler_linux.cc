@@ -199,20 +199,17 @@ void EventHandlerImplementation::HandleInterruptFd() {
     } else {
       SocketData* sd = GetSocketData(
           msg[i].id, (msg[i].data & (1 << kListeningSocket)) != 0);
-      if ((msg[i].data & (1 << kShutdownReadCommand)) != 0) {
-        ASSERT(msg[i].data == (1 << kShutdownReadCommand));
+      if (IS_COMMAND(msg[i].data, kShutdownReadCommand)) {
         ASSERT(!sd->IsListeningSocket());
         // Close the socket for reading.
         VOID_NO_RETRY_EXPECTED(shutdown(sd->fd(), SHUT_RD));
-      } else if ((msg[i].data & (1 << kShutdownWriteCommand)) != 0) {
-        ASSERT(msg[i].data == (1 << kShutdownWriteCommand));
+      } else if (IS_COMMAND(msg[i].data, kShutdownWriteCommand)) {
         ASSERT(!sd->IsListeningSocket());
         // Close the socket for writing.
         VOID_NO_RETRY_EXPECTED(shutdown(sd->fd(), SHUT_WR));
-      } else if ((msg[i].data & (1 << kCloseCommand)) != 0) {
-        ASSERT(msg[i].data == (1 << kCloseCommand));
-        // Close the socket and free system resources and move on to
-        // next message.
+      } else if (IS_COMMAND(msg[i].data, kCloseCommand)) {
+        // Close the socket and free system resources and move on to next
+        // message.
         if (sd->RemovePort(msg[i].dart_port)) {
           RemoveFromEpollInstance(epoll_fd_, sd);
           intptr_t fd = sd->fd();
@@ -221,12 +218,13 @@ void EventHandlerImplementation::HandleInterruptFd() {
           delete sd;
         }
         DartUtils::PostInt32(msg[i].dart_port, 1 << kDestroyedEvent);
-      } else if ((msg[i].data & (1 << kReturnTokenCommand)) != 0) {
-        int count = msg[i].data & ((1 << kReturnTokenCommand) - 1);
+      } else if (IS_COMMAND(msg[i].data, kReturnTokenCommand)) {
+        int count = TOKEN_COUNT(msg[i].data);
         if (sd->ReturnToken(msg[i].dart_port, count)) {
           AddToEpollInstance(epoll_fd_, sd);
         }
       } else {
+        ASSERT_NO_COMMAND(msg[i].data);
         // Setup events to wait for.
         if (sd->AddPort(msg[i].dart_port)) {
           sd->SetMask(msg[i].data);
