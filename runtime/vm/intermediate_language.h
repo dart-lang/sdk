@@ -600,8 +600,8 @@ class Instruction : public ZoneAllocated {
   };
 #undef DECLARE_TAG
 
-  Instruction()
-      : deopt_id_(Isolate::kNoDeoptId),
+  explicit Instruction(intptr_t deopt_id = Isolate::kNoDeoptId)
+      : deopt_id_(deopt_id),
         lifetime_position_(-1),
         previous_(NULL),
         next_(NULL),
@@ -851,108 +851,12 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Definition;  // Needed for InsertBefore, InsertAfter.
   friend class CallSiteInliner;
 
-  // Classes that set or read deopt_id_.
-  friend class UnboxIntegerInstr;
-  friend class UnboxDoubleInstr;
-  friend class UnboxFloat32x4Instr;
-  friend class UnboxFloat64x2Instr;
-  friend class UnboxInt32x4Instr;
-  friend class BinaryDoubleOpInstr;
-  friend class BinaryFloat32x4OpInstr;
-  friend class Float32x4ZeroInstr;
-  friend class Float32x4SplatInstr;
-  friend class Simd32x4ShuffleInstr;
-  friend class Simd32x4ShuffleMixInstr;
-  friend class Simd32x4GetSignMaskInstr;
-  friend class Float32x4ConstructorInstr;
-  friend class Float32x4ComparisonInstr;
-  friend class Float32x4MinMaxInstr;
-  friend class Float32x4ScaleInstr;
-  friend class Float32x4SqrtInstr;
-  friend class Float32x4ZeroArgInstr;
-  friend class Float32x4ClampInstr;
-  friend class Float32x4WithInstr;
-  friend class Float32x4ToInt32x4Instr;
-  friend class Simd64x2ShuffleInstr;
-  friend class Float64x2ZeroArgInstr;
-  friend class Float64x2OneArgInstr;
-  friend class Float32x4ToFloat64x2Instr;
-  friend class Float64x2ToFloat32x4Instr;
-  friend class Float64x2ZeroInstr;
-  friend class Float64x2SplatInstr;
-  friend class Float64x2ConstructorInstr;
-  friend class Int32x4ConstructorInstr;
-  friend class Int32x4BoolConstructorInstr;
-  friend class Int32x4GetFlagInstr;
-  friend class Int32x4SetFlagInstr;
-  friend class Int32x4SelectInstr;
-  friend class Int32x4ToFloat32x4Instr;
-  friend class BinaryInt32x4OpInstr;
-  friend class BinaryFloat64x2OpInstr;
-  friend class UnaryDoubleOpInstr;
-  friend class MathUnaryInstr;
-  friend class MathMinMaxInstr;
-  friend class CheckClassInstr;
-  friend class CheckClassIdInstr;
-  friend class GuardFieldInstr;
-  friend class CheckSmiInstr;
-  friend class CheckArrayBoundInstr;
-  friend class CheckEitherNonSmiInstr;
+  // deopt_id_ write access.
+  friend class ComparisonInstr;
   friend class LICM;
   friend class Scheduler;
-  friend class DoubleToSmiInstr;
-  friend class DoubleToDoubleInstr;
-  friend class DoubleToFloatInstr;
-  friend class FloatToDoubleInstr;
-  friend class InvokeMathCFunctionInstr;
-  friend class MergedMathInstr;
-  friend class FlowGraphOptimizer;
-  friend class LoadIndexedInstr;
-  friend class StoreIndexedInstr;
-  friend class StoreInstanceFieldInstr;
-  friend class ComparisonInstr;
-  friend class TargetEntryInstr;
-  friend class JoinEntryInstr;
-  friend class InstanceOfInstr;
-  friend class PolymorphicInstanceCallInstr;
-  friend class SmiToDoubleInstr;
-  friend class MintToDoubleInstr;
-  friend class DoubleToIntegerInstr;
-  friend class BranchSimplifier;
   friend class BlockEntryInstr;
-  friend class RelationalOpInstr;
-  friend class EqualityCompareInstr;
-  friend class TestCidsInstr;
-  friend class UnboxIntNInstr;
-  friend class UnboxInt32Instr;
-  friend class UnboxUint32Instr;
-  friend class UnboxedIntConverterInstr;
-  friend class UnaryIntegerOpInstr;
-  friend class BinaryIntegerOpInstr;
-  friend class DeoptimizeInstr;
-
-  // deopt_id_ access.
-  friend class InstanceCallInstr;
-  friend class StaticCallInstr;
-  friend class GotoInstr;
-  friend class ReturnInstr;
-  friend class BranchInstr;
-  friend class AssertAssignableInstr;
-  friend class TestSmiInstr;
-  friend class IfThenElseInstr;
-  friend class StrictCompareInstr;
-  friend class ThrowInstr;
-  friend class ReThrowInstr;
-  friend class AssertBooleanInstr;
-  friend class CurrentContextInstr;
-  friend class ClosureCallInstr;
-  friend class StringInterpolateInstr;
-  friend class CreateArrayInstr;
-  friend class InstantiateTypeInstr;
-  friend class InstantiateTypeArgumentsInstr;
-  friend class InitStaticFieldInstr;
-  friend class CloneContextInstr;
-  friend class CheckStackOverflowInstr;
+  friend class BranchSimplifier;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -975,7 +879,8 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 template<intptr_t N>
 class TemplateInstruction: public Instruction {
  public:
-  TemplateInstruction<N>() : inputs_() { }
+  explicit TemplateInstruction<N>(intptr_t deopt_id = Isolate::kNoDeoptId)
+      : Instruction(deopt_id), inputs_() { }
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
@@ -1228,7 +1133,8 @@ class BlockEntryInstr : public Instruction {
 
  protected:
   BlockEntryInstr(intptr_t block_id, intptr_t try_index)
-      : block_id_(block_id),
+      : Instruction(Isolate::Current()->GetNextDeoptId()),
+        block_id_(block_id),
         try_index_(try_index),
         preorder_number_(-1),
         postorder_number_(-1),
@@ -1237,7 +1143,6 @@ class BlockEntryInstr : public Instruction {
         last_instruction_(NULL),
         parallel_move_(NULL),
         loop_info_(NULL) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
   }
 
  private:
@@ -1628,7 +1533,7 @@ class AliasIdentity : public ValueObject {
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
-  Definition();
+  explicit Definition(intptr_t deopt_id = Isolate::kNoDeoptId);
 
   // Overridden by definitions that have pushed arguments.
   virtual intptr_t ArgumentCount() const { return 0; }
@@ -1840,7 +1745,8 @@ inline void Value::BindToEnvironment(Definition* def) {
 template<intptr_t N>
 class TemplateDefinition : public Definition {
  public:
-  TemplateDefinition<N>() : inputs_() { }
+  explicit TemplateDefinition<N>(intptr_t deopt_id = Isolate::kNoDeoptId)
+      : Definition(deopt_id), inputs_() { }
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
@@ -2052,8 +1958,8 @@ inline Definition* Instruction::ArgumentAt(intptr_t index) const {
 class ReturnInstr : public TemplateInstruction<1> {
  public:
   ReturnInstr(intptr_t token_pos, Value* value)
-      : token_pos_(token_pos) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+      : TemplateInstruction<1>(Isolate::Current()->GetNextDeoptId()),
+        token_pos_(token_pos) {
     SetInputAt(0, value);
   }
 
@@ -2085,8 +1991,9 @@ class ReturnInstr : public TemplateInstruction<1> {
 
 class ThrowInstr : public TemplateInstruction<0> {
  public:
-  explicit ThrowInstr(intptr_t token_pos) : token_pos_(token_pos) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+  explicit ThrowInstr(intptr_t token_pos)
+      : TemplateInstruction<0>(Isolate::Current()->GetNextDeoptId()),
+        token_pos_(token_pos) {
   }
 
   DECLARE_INSTRUCTION(Throw)
@@ -2113,8 +2020,9 @@ class ReThrowInstr : public TemplateInstruction<0> {
   // 'catch_try_index' can be CatchClauseNode::kInvalidTryIndex if the
   // rethrow has been artifically generated by the parser.
   ReThrowInstr(intptr_t token_pos, intptr_t catch_try_index)
-      : token_pos_(token_pos), catch_try_index_(catch_try_index) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+      : TemplateInstruction<0>(Isolate::Current()->GetNextDeoptId()),
+        token_pos_(token_pos),
+        catch_try_index_(catch_try_index) {
   }
 
   DECLARE_INSTRUCTION(ReThrow)
@@ -2141,10 +2049,10 @@ class ReThrowInstr : public TemplateInstruction<0> {
 class GotoInstr : public TemplateInstruction<0> {
  public:
   explicit GotoInstr(JoinEntryInstr* entry)
-    : successor_(entry),
+    : TemplateInstruction<0>(Isolate::Current()->GetNextDeoptId()),
+      successor_(entry),
       edge_weight_(0.0),
       parallel_move_(NULL) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
   }
 
   DECLARE_INSTRUCTION(Goto)
@@ -2231,14 +2139,21 @@ class ComparisonInstr : public TemplateDefinition<2> {
     kind_ = Token::NegateComparison(kind_);
   }
 
+  virtual bool CanBecomeDeoptimizationTarget() const { return true; }
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
+
   DEFINE_INSTRUCTION_TYPE_CHECK(Comparison)
 
  protected:
   ComparisonInstr(intptr_t token_pos,
                   Token::Kind kind,
                   Value* left,
-                  Value* right)
-      : token_pos_(token_pos), kind_(kind), operation_cid_(kIllegalCid) {
+                  Value* right,
+                  intptr_t deopt_id = Isolate::kNoDeoptId)
+      : TemplateDefinition<2>(deopt_id),
+        token_pos_(token_pos),
+        kind_(kind),
+        operation_cid_(kIllegalCid) {
     SetInputAt(0, left);
     if (right != NULL) {
       SetInputAt(1, right);
@@ -2257,11 +2172,11 @@ class ComparisonInstr : public TemplateDefinition<2> {
 class BranchInstr : public Instruction {
  public:
   explicit BranchInstr(ComparisonInstr* comparison)
-      : comparison_(comparison),
+      : Instruction(Isolate::Current()->GetNextDeoptId()),
+        comparison_(comparison),
         is_checked_(false),
         constrained_type_(NULL),
         constant_target_(NULL) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     ASSERT(comparison->env() == NULL);
     for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
       comparison->InputAt(i)->set_instruction(this);
@@ -2393,8 +2308,8 @@ class StoreContextInstr : public TemplateInstruction<1> {
 class DeoptimizeInstr : public TemplateInstruction<0> {
  public:
   DeoptimizeInstr(ICData::DeoptReasonId deopt_reason, intptr_t deopt_id)
-      : deopt_reason_(deopt_reason) {
-    deopt_id_ = deopt_id;
+      : TemplateInstruction<0>(deopt_id),
+        deopt_reason_(deopt_reason) {
   }
 
   virtual intptr_t ArgumentCount() const { return 0; }
@@ -2554,11 +2469,12 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
                         Value* instantiator,
                         Value* instantiator_type_arguments,
                         const AbstractType& dst_type,
-                        const String& dst_name)
-      : token_pos_(token_pos),
+                        const String& dst_name,
+                        intptr_t deopt_id)
+      : TemplateDefinition<3>(deopt_id),
+        token_pos_(token_pos),
         dst_type_(AbstractType::ZoneHandle(dst_type.raw())),
         dst_name_(dst_name) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_name.IsNull());
     SetInputAt(0, value);
@@ -2612,8 +2528,8 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 class AssertBooleanInstr : public TemplateDefinition<1> {
  public:
   AssertBooleanInstr(intptr_t token_pos, Value* value)
-      : token_pos_(token_pos) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+      : TemplateDefinition<1>(Isolate::Current()->GetNextDeoptId()),
+        token_pos_(token_pos) {
     SetInputAt(0, value);
   }
 
@@ -2647,8 +2563,8 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
 // a computation, not a value, because it's mutable.
 class CurrentContextInstr : public TemplateDefinition<0> {
  public:
-  CurrentContextInstr() {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+  CurrentContextInstr()
+      : TemplateDefinition<0>(Isolate::Current()->GetNextDeoptId()) {
   }
 
   DECLARE_INSTRUCTION(CurrentContext)
@@ -2672,9 +2588,9 @@ class ClosureCallInstr : public TemplateDefinition<1> {
   ClosureCallInstr(Value* function,
                    ClosureCallNode* node,
                    ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : ast_node_(*node),
+      : TemplateDefinition<1>(Isolate::Current()->GetNextDeoptId()),
+        ast_node_(*node),
         arguments_(arguments) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     SetInputAt(0, function);
   }
 
@@ -2716,14 +2632,14 @@ class InstanceCallInstr : public TemplateDefinition<0> {
                     const Array& argument_names,
                     intptr_t checked_argument_count,
                     const ZoneGrowableArray<const ICData*>& ic_data_array)
-      : ic_data_(NULL),
+      : TemplateDefinition<0>(Isolate::Current()->GetNextDeoptId()),
+        ic_data_(NULL),
         token_pos_(token_pos),
         function_name_(function_name),
         token_kind_(token_kind),
         arguments_(arguments),
         argument_names_(argument_names),
         checked_argument_count_(checked_argument_count) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
@@ -2796,12 +2712,12 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
   PolymorphicInstanceCallInstr(InstanceCallInstr* instance_call,
                                const ICData& ic_data,
                                bool with_checks)
-      : instance_call_(instance_call),
+      : TemplateDefinition<0>(instance_call->deopt_id()),
+        instance_call_(instance_call),
         ic_data_(ic_data),
         with_checks_(with_checks) {
     ASSERT(instance_call_ != NULL);
     ASSERT(ic_data.NumberOfChecks() > 0);
-    deopt_id_ = instance_call->deopt_id();
   }
 
   InstanceCallInstr* instance_call() const { return instance_call_; }
@@ -2858,11 +2774,6 @@ class StrictCompareInstr : public ComparisonInstr {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanBecomeDeoptimizationTarget() const {
-    // StrictCompare can be merged into Branch and thus needs an environment.
-    return true;
-  }
-
   virtual bool CanDeoptimize() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
@@ -2898,7 +2809,6 @@ class TestSmiInstr : public ComparisonInstr {
  public:
   TestSmiInstr(intptr_t token_pos, Token::Kind kind, Value* left, Value* right)
       : ComparisonInstr(token_pos, kind, left, right) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     ASSERT(kind == Token::kEQ || kind == Token::kNE);
   }
 
@@ -2909,15 +2819,6 @@ class TestSmiInstr : public ComparisonInstr {
   virtual CompileType ComputeType() const;
 
   virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool CanBecomeDeoptimizationTarget() const {
-    // TestSmi can be merged into Branch and thus needs an environment.
-    return true;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    return GetDeoptId();
-  }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     return kTagged;
@@ -2949,11 +2850,10 @@ class TestCidsInstr : public ComparisonInstr {
                 Value* value,
                 const ZoneGrowableArray<intptr_t>& cid_results,
                 intptr_t deopt_id)
-      : ComparisonInstr(token_pos, kind, value, NULL),
+      : ComparisonInstr(token_pos, kind, value, NULL, deopt_id),
         cid_results_(cid_results) {
     ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
     set_operation_cid(kObjectCid);
-    deopt_id_ = deopt_id;
   }
 
   virtual intptr_t InputCount() const { return 1; }
@@ -2969,16 +2869,7 @@ class TestCidsInstr : public ComparisonInstr {
   virtual CompileType ComputeType() const;
 
   virtual bool CanDeoptimize() const {
-    return deopt_id_ != Isolate::kNoDeoptId;
-  }
-
-  virtual bool CanBecomeDeoptimizationTarget() const {
-    // TestCid can be merged into Branch and thus needs an environment.
-    return true;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    return GetDeoptId();
+    return GetDeoptId() != Isolate::kNoDeoptId;
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
@@ -3015,10 +2906,9 @@ class EqualityCompareInstr : public ComparisonInstr {
                        Value* right,
                        intptr_t cid,
                        intptr_t deopt_id)
-      : ComparisonInstr(token_pos, kind, left, right) {
+      : ComparisonInstr(token_pos, kind, left, right, deopt_id) {
     ASSERT(Token::IsEqualityOperator(kind));
     set_operation_cid(cid);
-    deopt_id_ = deopt_id;  // Override generated deopt-id.
   }
 
   DECLARE_INSTRUCTION(EqualityCompare)
@@ -3031,20 +2921,11 @@ class EqualityCompareInstr : public ComparisonInstr {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool CanBecomeDeoptimizationTarget() const {
-    // EqualityCompare can be merged into Branch and thus needs an environment.
-    return true;
-  }
-
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
 
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels);
-
-  virtual intptr_t DeoptimizationTarget() const {
-    return GetDeoptId();
-  }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
@@ -3070,10 +2951,9 @@ class RelationalOpInstr : public ComparisonInstr {
                     Value* right,
                     intptr_t cid,
                     intptr_t deopt_id)
-      : ComparisonInstr(token_pos, kind, left, right) {
+      : ComparisonInstr(token_pos, kind, left, right, deopt_id) {
     ASSERT(Token::IsRelationalOperator(kind));
     set_operation_cid(cid);
-    deopt_id_ = deopt_id;  // Override generated deopt-id.
   }
 
   DECLARE_INSTRUCTION(RelationalOp)
@@ -3086,20 +2966,11 @@ class RelationalOpInstr : public ComparisonInstr {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool CanBecomeDeoptimizationTarget() const {
-    // RelationalOp can be merged into Branch and thus needs an environment.
-    return true;
-  }
-
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
 
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels);
-
-  virtual intptr_t DeoptimizationTarget() const {
-    return GetDeoptId();
-  }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
@@ -3126,10 +2997,10 @@ class IfThenElseInstr : public Definition {
   IfThenElseInstr(ComparisonInstr* comparison,
                   Value* if_true,
                   Value* if_false)
-      : comparison_(comparison),
+      : Definition(Isolate::Current()->GetNextDeoptId()),
+        comparison_(comparison),
         if_true_(Smi::Cast(if_true->BoundConstant()).Value()),
         if_false_(Smi::Cast(if_false->BoundConstant()).Value()) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     // Adjust uses at the comparison.
     ASSERT(comparison->env() == NULL);
     for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
@@ -3207,7 +3078,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
                   const Array& argument_names,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
                   const ZoneGrowableArray<const ICData*>& ic_data_array)
-      : ic_data_(NULL),
+      : TemplateDefinition<0>(Isolate::Current()->GetNextDeoptId()),
+        ic_data_(NULL),
         token_pos_(token_pos),
         function_(function),
         argument_names_(argument_names),
@@ -3216,7 +3088,6 @@ class StaticCallInstr : public TemplateDefinition<0> {
         is_known_list_constructor_(false),
         is_native_list_factory_(false),
         identity_(AliasIdentity::Unknown()) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
@@ -3622,8 +3493,8 @@ class GuardFieldInstr : public TemplateInstruction<1> {
   GuardFieldInstr(Value* value,
                   const Field& field,
                   intptr_t deopt_id)
-    : field_(field) {
-    deopt_id_ = deopt_id;
+    : TemplateInstruction<1>(deopt_id),
+      field_(field) {
     SetInputAt(0, value);
   }
 
@@ -3771,12 +3642,12 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
                    intptr_t class_id,
                    intptr_t deopt_id,
                    intptr_t token_pos)
-      : index_scale_(index_scale),
+      : TemplateDefinition<2>(deopt_id),
+        index_scale_(index_scale),
         class_id_(class_id),
         token_pos_(token_pos) {
     SetInputAt(0, array);
     SetInputAt(1, index);
-    deopt_id_ = deopt_id;
   }
 
   intptr_t token_pos() const { return token_pos_; }
@@ -3801,7 +3672,7 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   intptr_t class_id() const { return class_id_; }
 
   virtual bool CanDeoptimize() const {
-    return deopt_id_ != Isolate::kNoDeoptId;
+    return GetDeoptId() != Isolate::kNoDeoptId;
   }
 
   bool Typed32BitIsSmi() const {
@@ -3893,8 +3764,9 @@ class StringToCharCodeInstr : public TemplateDefinition<1> {
 class StringInterpolateInstr : public TemplateDefinition<1> {
  public:
   StringInterpolateInstr(Value* value, intptr_t token_pos)
-      : token_pos_(token_pos), function_(Function::Handle()) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+      : TemplateDefinition<1>(Isolate::Current()->GetNextDeoptId()),
+        token_pos_(token_pos),
+        function_(Function::Handle()) {
     SetInputAt(0, value);
   }
 
@@ -3931,14 +3803,14 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
                     intptr_t class_id,
                     intptr_t deopt_id,
                     intptr_t token_pos)
-      : emit_store_barrier_(emit_store_barrier),
+      : TemplateDefinition<3>(deopt_id),
+        emit_store_barrier_(emit_store_barrier),
         index_scale_(index_scale),
         class_id_(class_id),
         token_pos_(token_pos) {
     SetInputAt(kArrayPos, array);
     SetInputAt(kIndexPos, index);
     SetInputAt(kValuePos, value);
-    deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(StoreIndexed)
@@ -3972,7 +3844,7 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -4023,14 +3895,14 @@ class InstanceOfInstr : public TemplateDefinition<3> {
                   const AbstractType& type,
                   bool negate_result,
                   intptr_t deopt_id)
-      : token_pos_(token_pos),
+      : TemplateDefinition<3>(deopt_id),
+        token_pos_(token_pos),
         type_(type),
         negate_result_(negate_result) {
     ASSERT(!type.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator);
     SetInputAt(2, instantiator_type_arguments);
-    deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(InstanceOf)
@@ -4210,8 +4082,9 @@ class CreateArrayInstr : public TemplateDefinition<2> {
   CreateArrayInstr(intptr_t token_pos,
                    Value* element_type,
                    Value* num_elements)
-      : token_pos_(token_pos), identity_(AliasIdentity::Unknown())  {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+      : TemplateDefinition<2>(Isolate::Current()->GetNextDeoptId()),
+        token_pos_(token_pos),
+        identity_(AliasIdentity::Unknown())  {
     SetInputAt(kElementTypePos, element_type);
     SetInputAt(kLengthPos, num_elements);
   }
@@ -4415,10 +4288,10 @@ class InstantiateTypeInstr : public TemplateDefinition<1> {
                        const AbstractType& type,
                        const Class& instantiator_class,
                        Value* instantiator)
-      : token_pos_(token_pos),
+      : TemplateDefinition<1>(Isolate::Current()->GetNextDeoptId()),
+        token_pos_(token_pos),
         type_(type),
         instantiator_class_(instantiator_class) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     ASSERT(type.IsZoneHandle());
     SetInputAt(0, instantiator);
   }
@@ -4454,10 +4327,10 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
                                 const TypeArguments& type_arguments,
                                 const Class& instantiator_class,
                                 Value* instantiator)
-      : token_pos_(token_pos),
+      : TemplateDefinition<1>(Isolate::Current()->GetNextDeoptId()),
+        token_pos_(token_pos),
         type_arguments_(type_arguments),
         instantiator_class_(instantiator_class) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
     ASSERT(type_arguments.IsZoneHandle());
     SetInputAt(0, instantiator);
   }
@@ -4522,8 +4395,8 @@ class AllocateContextInstr : public TemplateDefinition<0> {
 class InitStaticFieldInstr : public TemplateInstruction<1> {
  public:
   InitStaticFieldInstr(Value* input, const Field& field)
-      : field_(field) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+      : TemplateInstruction<1>(Isolate::Current()->GetNextDeoptId()),
+        field_(field) {
     SetInputAt(0, input);
   }
 
@@ -4577,8 +4450,8 @@ class AllocateUninitializedContextInstr : public TemplateDefinition<0> {
 class CloneContextInstr : public TemplateDefinition<1> {
  public:
   CloneContextInstr(intptr_t token_pos, Value* context_value)
-      : token_pos_(token_pos) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+      : TemplateDefinition<1>(Isolate::Current()->GetNextDeoptId()),
+        token_pos_(token_pos) {
     SetInputAt(0, context_value);
   }
 
@@ -4604,11 +4477,9 @@ class CloneContextInstr : public TemplateDefinition<1> {
 class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
  public:
   CheckEitherNonSmiInstr(Value* left, Value* right, intptr_t deopt_id)
-      : licm_hoisted_(false) {
+      : TemplateInstruction<2>(deopt_id), licm_hoisted_(false) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -4829,9 +4700,9 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
 
 class UnboxDoubleInstr : public TemplateDefinition<1> {
  public:
-  UnboxDoubleInstr(Value* value, intptr_t deopt_id) {
+  UnboxDoubleInstr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -4864,9 +4735,9 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
 
 class UnboxFloat32x4Instr : public TemplateDefinition<1> {
  public:
-  UnboxFloat32x4Instr(Value* value, intptr_t deopt_id) {
+  UnboxFloat32x4Instr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -4898,9 +4769,9 @@ class UnboxFloat32x4Instr : public TemplateDefinition<1> {
 
 class UnboxFloat64x2Instr : public TemplateDefinition<1> {
  public:
-  UnboxFloat64x2Instr(Value* value, intptr_t deopt_id) {
+  UnboxFloat64x2Instr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -4932,9 +4803,9 @@ class UnboxFloat64x2Instr : public TemplateDefinition<1> {
 
 class UnboxInt32x4Instr : public TemplateDefinition<1> {
  public:
-  UnboxInt32x4Instr(Value* value, intptr_t deopt_id) {
+  UnboxInt32x4Instr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -4966,9 +4837,9 @@ class UnboxInt32x4Instr : public TemplateDefinition<1> {
 
 class UnboxIntegerInstr : public TemplateDefinition<1> {
  public:
-  UnboxIntegerInstr(Value* value, intptr_t deopt_id) {
+  UnboxIntegerInstr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -4982,7 +4853,7 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
     return kUnboxedMint;
   }
 
-  intptr_t deopt_id() const { return deopt_id_; }
+  intptr_t deopt_id() const { return GetDeoptId(); }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -5013,9 +4884,8 @@ class MathUnaryInstr : public TemplateDefinition<1> {
     kDoubleSquare,
   };
   MathUnaryInstr(MathUnaryKind kind, Value* value, intptr_t deopt_id)
-      : kind_(kind) {
+      : TemplateDefinition<1>(deopt_id), kind_(kind) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -5038,7 +4908,7 @@ class MathUnaryInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(MathUnary)
@@ -5072,11 +4942,12 @@ class MathMinMaxInstr : public TemplateDefinition<2> {
                   Value* right_value,
                   intptr_t deopt_id,
                   intptr_t result_cid)
-      : op_kind_(op_kind), result_cid_(result_cid) {
+      : TemplateDefinition<2>(deopt_id),
+        op_kind_(op_kind),
+        result_cid_(result_cid) {
     ASSERT((result_cid == kSmiCid) || (result_cid == kDoubleCid));
     SetInputAt(0, left_value);
     SetInputAt(1, right_value);
-    deopt_id_ = deopt_id;
   }
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
@@ -5107,7 +4978,7 @@ class MathMinMaxInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(MathMinMax)
@@ -5134,11 +5005,11 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
                       Value* right,
                       intptr_t deopt_id,
                       intptr_t token_pos)
-      : op_kind_(op_kind), token_pos_(token_pos) {
+      : TemplateDefinition<2>(deopt_id),
+        op_kind_(op_kind),
+        token_pos_(token_pos) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    // Overriden generated deopt_id.
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -5164,7 +5035,7 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(BinaryDoubleOp)
@@ -5195,10 +5066,9 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
                          Value* left,
                          Value* right,
                          intptr_t deopt_id)
-      : op_kind_(op_kind) {
+      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -5222,7 +5092,7 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(BinaryFloat32x4Op)
@@ -5249,9 +5119,8 @@ class Simd32x4ShuffleInstr : public TemplateDefinition<1> {
   Simd32x4ShuffleInstr(MethodRecognizer::Kind op_kind, Value* value,
                        intptr_t mask,
                        intptr_t deopt_id)
-      : op_kind_(op_kind), mask_(mask) {
+      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind), mask_(mask) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -5294,7 +5163,7 @@ class Simd32x4ShuffleInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Simd32x4Shuffle)
@@ -5322,10 +5191,9 @@ class Simd32x4ShuffleMixInstr : public TemplateDefinition<2> {
  public:
   Simd32x4ShuffleMixInstr(MethodRecognizer::Kind op_kind, Value* xy,
                            Value* zw, intptr_t mask, intptr_t deopt_id)
-      : op_kind_(op_kind), mask_(mask) {
+      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind), mask_(mask) {
     SetInputAt(0, xy);
     SetInputAt(1, zw);
-    deopt_id_ = deopt_id;
   }
 
   Value* xy() const { return inputs_[0]; }
@@ -5359,7 +5227,7 @@ class Simd32x4ShuffleMixInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Simd32x4ShuffleMix)
@@ -5385,13 +5253,16 @@ class Simd32x4ShuffleMixInstr : public TemplateDefinition<2> {
 
 class Float32x4ConstructorInstr : public TemplateDefinition<4> {
  public:
-  Float32x4ConstructorInstr(Value* value0, Value* value1, Value* value2,
-                            Value* value3, intptr_t deopt_id) {
+  Float32x4ConstructorInstr(Value* value0,
+                            Value* value1,
+                            Value* value2,
+                            Value* value3,
+                            intptr_t deopt_id)
+      : TemplateDefinition<4>(deopt_id) {
     SetInputAt(0, value0);
     SetInputAt(1, value1);
     SetInputAt(2, value2);
     SetInputAt(3, value3);
-    deopt_id_ = deopt_id;
   }
 
   Value* value0() const { return inputs_[0]; }
@@ -5415,7 +5286,7 @@ class Float32x4ConstructorInstr : public TemplateDefinition<4> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float32x4Constructor)
@@ -5435,9 +5306,9 @@ class Float32x4ConstructorInstr : public TemplateDefinition<4> {
 
 class Float32x4SplatInstr : public TemplateDefinition<1> {
  public:
-  Float32x4SplatInstr(Value* value, intptr_t deopt_id) {
+  Float32x4SplatInstr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -5458,7 +5329,7 @@ class Float32x4SplatInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float32x4Splat)
@@ -5476,31 +5347,15 @@ class Float32x4SplatInstr : public TemplateDefinition<1> {
 };
 
 
+// TODO(vegorov) replace with UnboxedConstantInstr.
 class Float32x4ZeroInstr : public TemplateDefinition<0> {
  public:
-  explicit Float32x4ZeroInstr(intptr_t deopt_id) {
-    deopt_id_ = deopt_id;
-  }
-
-  Value* value() const { return inputs_[0]; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  Float32x4ZeroInstr() { }
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
     return kUnboxedFloat32x4;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    UNIMPLEMENTED();
-    return kUnboxedFloat32x4;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
   }
 
   DECLARE_INSTRUCTION(Float32x4Zero)
@@ -5520,12 +5375,13 @@ class Float32x4ZeroInstr : public TemplateDefinition<0> {
 
 class Float32x4ComparisonInstr : public TemplateDefinition<2> {
  public:
-  Float32x4ComparisonInstr(MethodRecognizer::Kind op_kind, Value* left,
-                           Value* right, intptr_t deopt_id)
-      : op_kind_(op_kind) {
+  Float32x4ComparisonInstr(MethodRecognizer::Kind op_kind,
+                           Value* left,
+                           Value* right,
+                           intptr_t deopt_id)
+      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -5549,7 +5405,7 @@ class Float32x4ComparisonInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float32x4Comparison)
@@ -5573,12 +5429,13 @@ class Float32x4ComparisonInstr : public TemplateDefinition<2> {
 
 class Float32x4MinMaxInstr : public TemplateDefinition<2> {
  public:
-  Float32x4MinMaxInstr(MethodRecognizer::Kind op_kind, Value* left,
-                       Value* right, intptr_t deopt_id)
-      : op_kind_(op_kind) {
+  Float32x4MinMaxInstr(MethodRecognizer::Kind op_kind,
+                       Value* left,
+                       Value* right,
+                       intptr_t deopt_id)
+      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -5602,7 +5459,7 @@ class Float32x4MinMaxInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float32x4MinMax)
@@ -5626,12 +5483,13 @@ class Float32x4MinMaxInstr : public TemplateDefinition<2> {
 
 class Float32x4ScaleInstr : public TemplateDefinition<2> {
  public:
-  Float32x4ScaleInstr(MethodRecognizer::Kind op_kind, Value* left,
-                      Value* right, intptr_t deopt_id)
-      : op_kind_(op_kind) {
+  Float32x4ScaleInstr(MethodRecognizer::Kind op_kind,
+                      Value* left,
+                      Value* right,
+                      intptr_t deopt_id)
+      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -5658,7 +5516,7 @@ class Float32x4ScaleInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float32x4Scale)
@@ -5682,10 +5540,11 @@ class Float32x4ScaleInstr : public TemplateDefinition<2> {
 
 class Float32x4SqrtInstr : public TemplateDefinition<1> {
  public:
-  Float32x4SqrtInstr(MethodRecognizer::Kind op_kind, Value* left,
-                     intptr_t deopt_id) : op_kind_(op_kind) {
+  Float32x4SqrtInstr(MethodRecognizer::Kind op_kind,
+                     Value* left,
+                     intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -5708,7 +5567,7 @@ class Float32x4SqrtInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float32x4Sqrt)
@@ -5730,12 +5589,15 @@ class Float32x4SqrtInstr : public TemplateDefinition<1> {
 };
 
 
+// TODO(vegorov) rename to Unary to match naming convention for arithmetic.
 class Float32x4ZeroArgInstr : public TemplateDefinition<1> {
  public:
-  Float32x4ZeroArgInstr(MethodRecognizer::Kind op_kind, Value* left,
-                        intptr_t deopt_id) : op_kind_(op_kind) {
+  Float32x4ZeroArgInstr(MethodRecognizer::Kind op_kind,
+                        Value* left,
+                        intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id),
+        op_kind_(op_kind) {
     SetInputAt(0, left);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -5758,7 +5620,7 @@ class Float32x4ZeroArgInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float32x4ZeroArg)
@@ -5782,12 +5644,14 @@ class Float32x4ZeroArgInstr : public TemplateDefinition<1> {
 
 class Float32x4ClampInstr : public TemplateDefinition<3> {
  public:
-  Float32x4ClampInstr(Value* left, Value* lower, Value* upper,
-                      intptr_t deopt_id) {
+  Float32x4ClampInstr(Value* left,
+                      Value* lower,
+                      Value* upper,
+                      intptr_t deopt_id)
+      : TemplateDefinition<3>(deopt_id) {
     SetInputAt(0, left);
     SetInputAt(1, lower);
     SetInputAt(2, upper);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -5810,7 +5674,7 @@ class Float32x4ClampInstr : public TemplateDefinition<3> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float32x4Clamp)
@@ -5830,12 +5694,14 @@ class Float32x4ClampInstr : public TemplateDefinition<3> {
 
 class Float32x4WithInstr : public TemplateDefinition<2> {
  public:
-  Float32x4WithInstr(MethodRecognizer::Kind op_kind, Value* left,
-                     Value* replacement, intptr_t deopt_id)
-      : op_kind_(op_kind) {
+  Float32x4WithInstr(MethodRecognizer::Kind op_kind,
+                     Value* left,
+                     Value* replacement,
+                     intptr_t deopt_id)
+      : TemplateDefinition<2>(deopt_id),
+        op_kind_(op_kind) {
     SetInputAt(0, replacement);
     SetInputAt(1, left);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[1]; }
@@ -5862,7 +5728,7 @@ class Float32x4WithInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float32x4With)
@@ -5886,12 +5752,12 @@ class Float32x4WithInstr : public TemplateDefinition<2> {
 
 class Simd64x2ShuffleInstr : public TemplateDefinition<1> {
  public:
-  Simd64x2ShuffleInstr(MethodRecognizer::Kind op_kind, Value* value,
+  Simd64x2ShuffleInstr(MethodRecognizer::Kind op_kind,
+                       Value* value,
                        intptr_t mask,
                        intptr_t deopt_id)
-      : op_kind_(op_kind), mask_(mask) {
+      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind), mask_(mask) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -5926,7 +5792,7 @@ class Simd64x2ShuffleInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Simd64x2Shuffle)
@@ -5952,9 +5818,9 @@ class Simd64x2ShuffleInstr : public TemplateDefinition<1> {
 
 class Float32x4ToInt32x4Instr : public TemplateDefinition<1> {
  public:
-  Float32x4ToInt32x4Instr(Value* left, intptr_t deopt_id) {
+  Float32x4ToInt32x4Instr(Value* left, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, left);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -5975,7 +5841,7 @@ class Float32x4ToInt32x4Instr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float32x4ToInt32x4)
@@ -5995,9 +5861,9 @@ class Float32x4ToInt32x4Instr : public TemplateDefinition<1> {
 
 class Float32x4ToFloat64x2Instr : public TemplateDefinition<1> {
  public:
-  Float32x4ToFloat64x2Instr(Value* left, intptr_t deopt_id) {
+  Float32x4ToFloat64x2Instr(Value* left, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, left);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -6018,7 +5884,7 @@ class Float32x4ToFloat64x2Instr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float32x4ToFloat64x2)
@@ -6038,9 +5904,9 @@ class Float32x4ToFloat64x2Instr : public TemplateDefinition<1> {
 
 class Float64x2ToFloat32x4Instr : public TemplateDefinition<1> {
  public:
-  Float64x2ToFloat32x4Instr(Value* left, intptr_t deopt_id) {
+  Float64x2ToFloat32x4Instr(Value* left, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, left);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -6061,7 +5927,7 @@ class Float64x2ToFloat32x4Instr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float64x2ToFloat32x4)
@@ -6081,10 +5947,10 @@ class Float64x2ToFloat32x4Instr : public TemplateDefinition<1> {
 
 class Float64x2ConstructorInstr : public TemplateDefinition<2> {
  public:
-  Float64x2ConstructorInstr(Value* value0, Value* value1, intptr_t deopt_id) {
+  Float64x2ConstructorInstr(Value* value0, Value* value1, intptr_t deopt_id)
+      : TemplateDefinition<2>(deopt_id) {
     SetInputAt(0, value0);
     SetInputAt(1, value1);
-    deopt_id_ = deopt_id;
   }
 
   Value* value0() const { return inputs_[0]; }
@@ -6106,7 +5972,7 @@ class Float64x2ConstructorInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float64x2Constructor)
@@ -6126,9 +5992,9 @@ class Float64x2ConstructorInstr : public TemplateDefinition<2> {
 
 class Float64x2SplatInstr : public TemplateDefinition<1> {
  public:
-  Float64x2SplatInstr(Value* value, intptr_t deopt_id) {
+  Float64x2SplatInstr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -6149,7 +6015,7 @@ class Float64x2SplatInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float64x2Splat)
@@ -6169,27 +6035,12 @@ class Float64x2SplatInstr : public TemplateDefinition<1> {
 
 class Float64x2ZeroInstr : public TemplateDefinition<0> {
  public:
-  explicit Float64x2ZeroInstr(intptr_t deopt_id) {
-    deopt_id_ = deopt_id;
-  }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  Float64x2ZeroInstr() { }
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
     return kUnboxedFloat64x2;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    UNIMPLEMENTED();
-    return kUnboxedFloat64x2;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
   }
 
   DECLARE_INSTRUCTION(Float64x2Zero)
@@ -6207,12 +6058,14 @@ class Float64x2ZeroInstr : public TemplateDefinition<0> {
 };
 
 
+// TODO(vegorov) rename to Unary to match arithmetic instructions.
 class Float64x2ZeroArgInstr : public TemplateDefinition<1> {
  public:
-  Float64x2ZeroArgInstr(MethodRecognizer::Kind op_kind, Value* left,
-                        intptr_t deopt_id) : op_kind_(op_kind) {
+  Float64x2ZeroArgInstr(MethodRecognizer::Kind op_kind,
+                        Value* left,
+                        intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -6239,7 +6092,7 @@ class Float64x2ZeroArgInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float64x2ZeroArg)
@@ -6263,11 +6116,13 @@ class Float64x2ZeroArgInstr : public TemplateDefinition<1> {
 
 class Float64x2OneArgInstr : public TemplateDefinition<2> {
  public:
-  Float64x2OneArgInstr(MethodRecognizer::Kind op_kind, Value* left,
-                       Value* right, intptr_t deopt_id) : op_kind_(op_kind) {
+  Float64x2OneArgInstr(MethodRecognizer::Kind op_kind,
+                       Value* left,
+                       Value* right,
+                       intptr_t deopt_id)
+      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -6299,7 +6154,7 @@ class Float64x2OneArgInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Float64x2OneArg)
@@ -6323,13 +6178,16 @@ class Float64x2OneArgInstr : public TemplateDefinition<2> {
 
 class Int32x4ConstructorInstr : public TemplateDefinition<4> {
  public:
-  Int32x4ConstructorInstr(Value* value0, Value* value1, Value* value2,
-                          Value* value3, intptr_t deopt_id) {
+  Int32x4ConstructorInstr(Value* value0,
+                          Value* value1,
+                          Value* value2,
+                          Value* value3,
+                          intptr_t deopt_id)
+      : TemplateDefinition<4>(deopt_id) {
     SetInputAt(0, value0);
     SetInputAt(1, value1);
     SetInputAt(2, value2);
     SetInputAt(3, value3);
-    deopt_id_ = deopt_id;
   }
 
   Value* value0() const { return inputs_[0]; }
@@ -6353,7 +6211,7 @@ class Int32x4ConstructorInstr : public TemplateDefinition<4> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Int32x4Constructor)
@@ -6373,13 +6231,16 @@ class Int32x4ConstructorInstr : public TemplateDefinition<4> {
 
 class Int32x4BoolConstructorInstr : public TemplateDefinition<4> {
  public:
-  Int32x4BoolConstructorInstr(Value* value0, Value* value1, Value* value2,
-                              Value* value3, intptr_t deopt_id) {
+  Int32x4BoolConstructorInstr(Value* value0,
+                              Value* value1,
+                              Value* value2,
+                              Value* value3,
+                              intptr_t deopt_id)
+      : TemplateDefinition<4>(deopt_id) {
     SetInputAt(0, value0);
     SetInputAt(1, value1);
     SetInputAt(2, value2);
     SetInputAt(3, value3);
-    deopt_id_ = deopt_id;
   }
 
   Value* value0() const { return inputs_[0]; }
@@ -6403,7 +6264,7 @@ class Int32x4BoolConstructorInstr : public TemplateDefinition<4> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Int32x4BoolConstructor)
@@ -6423,11 +6284,11 @@ class Int32x4BoolConstructorInstr : public TemplateDefinition<4> {
 
 class Int32x4GetFlagInstr : public TemplateDefinition<1> {
  public:
-  Int32x4GetFlagInstr(MethodRecognizer::Kind op_kind, Value* value,
-                       intptr_t deopt_id)
-      : op_kind_(op_kind) {
+  Int32x4GetFlagInstr(MethodRecognizer::Kind op_kind,
+                      Value* value,
+                      intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -6450,7 +6311,7 @@ class Int32x4GetFlagInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Int32x4GetFlag)
@@ -6474,10 +6335,11 @@ class Int32x4GetFlagInstr : public TemplateDefinition<1> {
 
 class Simd32x4GetSignMaskInstr : public TemplateDefinition<1> {
  public:
-  Simd32x4GetSignMaskInstr(MethodRecognizer::Kind op_kind, Value* value,
-                           intptr_t deopt_id) : op_kind_(op_kind) {
+  Simd32x4GetSignMaskInstr(MethodRecognizer::Kind op_kind,
+                           Value* value,
+                           intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -6504,7 +6366,7 @@ class Simd32x4GetSignMaskInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Simd32x4GetSignMask)
@@ -6528,12 +6390,14 @@ class Simd32x4GetSignMaskInstr : public TemplateDefinition<1> {
 
 class Int32x4SelectInstr : public TemplateDefinition<3> {
  public:
-  Int32x4SelectInstr(Value* mask, Value* trueValue, Value* falseValue,
-                      intptr_t deopt_id) {
+  Int32x4SelectInstr(Value* mask,
+                     Value* trueValue,
+                     Value* falseValue,
+                     intptr_t deopt_id)
+      : TemplateDefinition<3>(deopt_id) {
     SetInputAt(0, mask);
     SetInputAt(1, trueValue);
     SetInputAt(2, falseValue);
-    deopt_id_ = deopt_id;
   }
 
   Value* mask() const { return inputs_[0]; }
@@ -6559,7 +6423,7 @@ class Int32x4SelectInstr : public TemplateDefinition<3> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Int32x4Select)
@@ -6579,12 +6443,13 @@ class Int32x4SelectInstr : public TemplateDefinition<3> {
 
 class Int32x4SetFlagInstr : public TemplateDefinition<2> {
  public:
-  Int32x4SetFlagInstr(MethodRecognizer::Kind op_kind, Value* value,
-                       Value* flagValue, intptr_t deopt_id)
-      : op_kind_(op_kind) {
+  Int32x4SetFlagInstr(MethodRecognizer::Kind op_kind,
+                      Value* value,
+                      Value* flagValue,
+                      intptr_t deopt_id)
+      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, value);
     SetInputAt(1, flagValue);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -6611,7 +6476,7 @@ class Int32x4SetFlagInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Int32x4SetFlag)
@@ -6635,9 +6500,9 @@ class Int32x4SetFlagInstr : public TemplateDefinition<2> {
 
 class Int32x4ToFloat32x4Instr : public TemplateDefinition<1> {
  public:
-  Int32x4ToFloat32x4Instr(Value* left, intptr_t deopt_id) {
+  Int32x4ToFloat32x4Instr(Value* left, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, left);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -6658,7 +6523,7 @@ class Int32x4ToFloat32x4Instr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(Int32x4ToFloat32x4)
@@ -6682,10 +6547,9 @@ class BinaryInt32x4OpInstr : public TemplateDefinition<2> {
                         Value* left,
                         Value* right,
                         intptr_t deopt_id)
-      : op_kind_(op_kind) {
+      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -6709,7 +6573,7 @@ class BinaryInt32x4OpInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(BinaryInt32x4Op)
@@ -6737,10 +6601,9 @@ class BinaryFloat64x2OpInstr : public TemplateDefinition<2> {
                          Value* left,
                          Value* right,
                          intptr_t deopt_id)
-      : op_kind_(op_kind) {
+      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    deopt_id_ = deopt_id;
   }
 
   Value* left() const { return inputs_[0]; }
@@ -6764,7 +6627,7 @@ class BinaryFloat64x2OpInstr : public TemplateDefinition<2> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   DECLARE_INSTRUCTION(BinaryFloat64x2Op)
@@ -6792,12 +6655,10 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1> {
   UnaryIntegerOpInstr(Token::Kind op_kind,
                       Value* value,
                       intptr_t deopt_id)
-      : op_kind_(op_kind) {
+      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind) {
     ASSERT((op_kind == Token::kNEGATE) ||
            (op_kind == Token::kBIT_NOT));
     SetInputAt(0, value);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
   }
 
   static UnaryIntegerOpInstr* Make(Representation representation,
@@ -6819,7 +6680,7 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   virtual bool MayThrow() const { return false; }
@@ -6916,13 +6777,12 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2> {
                        Value* left,
                        Value* right,
                        intptr_t deopt_id)
-      : op_kind_(op_kind),
+      : TemplateDefinition<2>(deopt_id),
+        op_kind_(op_kind),
         can_overflow_(true),
         is_truncating_(false) {
     SetInputAt(0, left);
     SetInputAt(1, right);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
   }
 
   static BinaryIntegerOpInstr* Make(Representation representation,
@@ -6982,7 +6842,7 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
 
-  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual bool MayThrow() const { return false; }
 
@@ -7219,11 +7079,9 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1> {
   UnaryDoubleOpInstr(Token::Kind op_kind,
                      Value* value,
                      intptr_t deopt_id)
-      : op_kind_(op_kind) {
+      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind) {
     ASSERT(op_kind == Token::kNEGATE);
     SetInputAt(0, value);
-    // Overriden generated deopt_id.
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -7239,7 +7097,7 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   virtual Representation representation() const {
@@ -7268,8 +7126,9 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1> {
 class CheckStackOverflowInstr : public TemplateInstruction<0> {
  public:
   CheckStackOverflowInstr(intptr_t token_pos, intptr_t loop_depth)
-      : token_pos_(token_pos), loop_depth_(loop_depth) {
-    deopt_id_ = Isolate::Current()->GetNextDeoptId();
+      : TemplateInstruction<0>(Isolate::Current()->GetNextDeoptId()),
+        token_pos_(token_pos),
+        loop_depth_(loop_depth) {
   }
 
   virtual intptr_t token_pos() const { return token_pos_; }
@@ -7367,7 +7226,7 @@ class Int32ToDoubleInstr : public TemplateDefinition<1> {
 class MintToDoubleInstr : public TemplateDefinition<1> {
  public:
   MintToDoubleInstr(Value* value, intptr_t deopt_id)
-      : deopt_id_(deopt_id) {
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, value);
   }
 
@@ -7388,7 +7247,7 @@ class MintToDoubleInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
+    return GetDeoptId();
   }
 
   virtual bool CanDeoptimize() const { return false; }
@@ -7401,8 +7260,6 @@ class MintToDoubleInstr : public TemplateDefinition<1> {
   virtual bool MayThrow() const { return false; }
 
  private:
-  const intptr_t deopt_id_;
-
   DISALLOW_COPY_AND_ASSIGN(MintToDoubleInstr);
 };
 
@@ -7410,9 +7267,9 @@ class MintToDoubleInstr : public TemplateDefinition<1> {
 class DoubleToIntegerInstr : public TemplateDefinition<1> {
  public:
   DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
-      : instance_call_(instance_call) {
+      : TemplateDefinition<1>(instance_call->deopt_id()),
+        instance_call_(instance_call) {
     SetInputAt(0, value);
-    deopt_id_ = instance_call->deopt_id();
   }
 
   Value* value() const { return inputs_[0]; }
@@ -7440,10 +7297,9 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
 // and creates a Smi.
 class DoubleToSmiInstr : public TemplateDefinition<1> {
  public:
-  DoubleToSmiInstr(Value* value, intptr_t deopt_id) {
+  DoubleToSmiInstr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, value);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -7458,7 +7314,7 @@ class DoubleToSmiInstr : public TemplateDefinition<1> {
     return kUnboxedDouble;
   }
 
-  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
@@ -7474,10 +7330,9 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
   DoubleToDoubleInstr(Value* value,
                       MethodRecognizer::Kind recognized_kind,
                       intptr_t deopt_id)
-    : recognized_kind_(recognized_kind) {
+    : TemplateDefinition<1>(deopt_id),
+      recognized_kind_(recognized_kind) {
     SetInputAt(0, value);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -7498,7 +7353,7 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
     return kUnboxedDouble;
   }
 
-  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -7518,10 +7373,9 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
 
 class DoubleToFloatInstr: public TemplateDefinition<1> {
  public:
-  DoubleToFloatInstr(Value* value, intptr_t deopt_id) {
+  DoubleToFloatInstr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, value);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -7545,7 +7399,7 @@ class DoubleToFloatInstr: public TemplateDefinition<1> {
     return kUnboxedDouble;
   }
 
-  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -7563,10 +7417,9 @@ class DoubleToFloatInstr: public TemplateDefinition<1> {
 
 class FloatToDoubleInstr: public TemplateDefinition<1> {
  public:
-  FloatToDoubleInstr(Value* value, intptr_t deopt_id) {
+  FloatToDoubleInstr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition<1>(deopt_id) {
     SetInputAt(0, value);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -7586,7 +7439,7 @@ class FloatToDoubleInstr: public TemplateDefinition<1> {
     return kUnboxedDouble;
   }
 
-  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -7605,7 +7458,7 @@ class FloatToDoubleInstr: public TemplateDefinition<1> {
 class InvokeMathCFunctionInstr : public Definition {
  public:
   InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
-                           intptr_t original_deopt_id,
+                           intptr_t deopt_id,
                            MethodRecognizer::Kind recognized_kind,
                            intptr_t token_pos);
 
@@ -7632,7 +7485,7 @@ class InvokeMathCFunctionInstr : public Definition {
     return kUnboxedDouble;
   }
 
-  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual intptr_t InputCount() const {
     return inputs_->length();
@@ -7796,7 +7649,7 @@ class MergedMathInstr : public Definition {
     }
   }
 
-  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   DECLARE_INSTRUCTION(MergedMath)
 
@@ -7879,10 +7732,11 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
 class CheckSmiInstr : public TemplateInstruction<1> {
  public:
-  CheckSmiInstr(Value* value, intptr_t original_deopt_id, intptr_t token_pos)
-      : token_pos_(token_pos), licm_hoisted_(false) {
+  CheckSmiInstr(Value* value, intptr_t deopt_id, intptr_t token_pos)
+      : TemplateInstruction<1>(deopt_id),
+        token_pos_(token_pos),
+        licm_hoisted_(false) {
     SetInputAt(0, value);
-    deopt_id_ = original_deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -7915,10 +7769,9 @@ class CheckSmiInstr : public TemplateInstruction<1> {
 
 class CheckClassIdInstr : public TemplateInstruction<1> {
  public:
-  CheckClassIdInstr(Value* value, intptr_t cid, intptr_t deopt_id) : cid_(cid) {
+  CheckClassIdInstr(Value* value, intptr_t cid, intptr_t deopt_id)
+      : TemplateInstruction<1>(deopt_id), cid_(cid) {
     SetInputAt(0, value);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -7951,11 +7804,11 @@ class CheckClassIdInstr : public TemplateInstruction<1> {
 class CheckArrayBoundInstr : public TemplateInstruction<2> {
  public:
   CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : generalized_(false), licm_hoisted_(false) {
+      : TemplateInstruction<2>(deopt_id),
+        generalized_(false),
+        licm_hoisted_(false) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
   }
 
   Value* length() const { return inputs_[kLengthPos]; }
@@ -8081,10 +7934,10 @@ class UnboxIntNInstr : public TemplateDefinition<1> {
   UnboxIntNInstr(Representation representation,
                  Value* value,
                  intptr_t deopt_id)
-      : representation_(representation),
+      : TemplateDefinition<1>(deopt_id),
+        representation_(representation),
         is_truncating_(representation == kUnboxedUint32) {
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -8168,7 +8021,8 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1> {
                            Representation to,
                            Value* value,
                            intptr_t deopt_id)
-      : from_representation_(from),
+      : TemplateDefinition<1>(deopt_id),
+        from_representation_(from),
         to_representation_(to),
         is_truncating_(to == kUnboxedUint32) {
     ASSERT(from != to);
@@ -8180,7 +8034,6 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1> {
            (to == kUnboxedInt32));
     ASSERT((to != kUnboxedInt32) || (deopt_id != Isolate::kNoDeoptId));
     SetInputAt(0, value);
-    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }

@@ -662,11 +662,6 @@ void Simd32x4GetSignMaskInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void Float32x4ZeroInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("ZERO ");
-}
-
-
 void Float32x4SplatInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("SPLAT ");
   value()->PrintTo(f);
@@ -747,11 +742,6 @@ void Simd64x2ShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
   // TODO(johnmccutchan): Add proper string enumeration of shuffle.
   f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
   value()->PrintTo(f);
-}
-
-
-void Float64x2ZeroInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("Float64x2.zero ");
 }
 
 

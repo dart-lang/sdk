@@ -3131,7 +3131,7 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ mtc1(TMP, STMP1);
     __ cvtdw(result, STMP1);
   } else {
-    Label* deopt = compiler->AddDeoptStub(deopt_id_,
+    Label* deopt = compiler->AddDeoptStub(GetDeoptId(),
                                           ICData::kDeoptBinaryDoubleOp);
     if (value_type->is_nullable() &&
         (value_type->ToNullableCid() == kDoubleCid)) {
@@ -4675,7 +4675,7 @@ void UnboxIntNInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
   Label* deopt = CanDeoptimize() ?
-        compiler->AddDeoptStub(deopt_id_, ICData::kDeoptUnboxInteger) : NULL;
+        compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnboxInteger) : NULL;
   Label* out_of_range = !is_truncating() ? deopt : NULL;
   ASSERT(value != out);
 
