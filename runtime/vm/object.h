@@ -4067,13 +4067,9 @@ class Context : public Object {
  public:
   RawContext* parent() const { return raw_ptr()->parent_; }
   void set_parent(const Context& parent) const {
-    ASSERT(parent.IsNull() || parent.isolate() == Isolate::Current());
     StorePointer(&raw_ptr()->parent_, parent.raw());
   }
   static intptr_t parent_offset() { return OFFSET_OF(RawContext, parent_); }
-
-  Isolate* isolate() const { return raw_ptr()->isolate_; }
-  static intptr_t isolate_offset() { return OFFSET_OF(RawContext, isolate_); }
 
   intptr_t num_variables() const { return raw_ptr()->num_variables_; }
   static intptr_t num_variables_offset() {
@@ -4112,10 +4108,6 @@ class Context : public Object {
   RawInstance* const* InstanceAddr(intptr_t context_index) const {
     ASSERT((context_index >= 0) && (context_index < num_variables()));
     return &raw_ptr()->data()[context_index];
-  }
-
-  void set_isolate(Isolate* isolate) const {
-    StoreNonPointer(&raw_ptr()->isolate_, isolate);
   }
 
   void set_num_variables(intptr_t num_variables) const {

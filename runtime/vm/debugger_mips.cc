@@ -42,6 +42,7 @@ void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
   const Code& code = Code::Handle(code_);
   const Instructions& instrs = Instructions::Handle(code.instructions());
+  Isolate* isolate = Isolate::Current();
   {
     WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
     switch (breakpoint_kind_) {
@@ -49,19 +50,19 @@ void CodeBreakpoint::PatchCode() {
       case RawPcDescriptors::kUnoptStaticCall: {
         saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
         CodePatcher::PatchStaticCallAt(
-            pc_, code, StubCode::ICCallBreakpointEntryPoint());
+            pc_, code, isolate->stub_code()->ICCallBreakpointEntryPoint());
         break;
       }
       case RawPcDescriptors::kClosureCall: {
         saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
         CodePatcher::PatchStaticCallAt(
-            pc_, code, StubCode::ClosureCallBreakpointEntryPoint());
+            pc_, code, isolate->stub_code()->ClosureCallBreakpointEntryPoint());
         break;
       }
       case RawPcDescriptors::kRuntimeCall: {
         saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
         CodePatcher::PatchStaticCallAt(
-            pc_, code, StubCode::RuntimeCallBreakpointEntryPoint());
+            pc_, code, isolate->stub_code()->RuntimeCallBreakpointEntryPoint());
         break;
       }
       default:

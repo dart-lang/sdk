@@ -1173,7 +1173,6 @@ class RawContext : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Context);
 
   int32_t num_variables_;
-  Isolate* isolate_;
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->parent_); }
   RawContext* parent_;

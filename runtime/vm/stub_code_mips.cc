@@ -48,8 +48,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ sw(FP, Address(SP, 0 * kWordSize));
   __ mov(FP, SP);
 
-  // Load current Isolate pointer from Context structure into A0.
-  __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(A0);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
@@ -174,8 +173,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ sw(FP, Address(SP, 0 * kWordSize));
   __ mov(FP, SP);
 
-  // Load current Isolate pointer from Context structure into A0.
-  __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(A0);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
@@ -289,8 +287,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ sw(FP, Address(SP, 0 * kWordSize));
   __ mov(FP, SP);
 
-  // Load current Isolate pointer from Context structure into A0.
-  __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(A0);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
@@ -1096,13 +1093,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // V0: new object.
     // T1: number of context variables as integer value (not object).
     __ sw(T1, FieldAddress(V0, Context::num_variables_offset()));
-
-    // Setup isolate field.
-    // V0: new object.
-    // T1: number of context variables.
-    // T2: isolate, not an object.
-    __ LoadIsolate(T2);
-    __ sw(T2, FieldAddress(V0, Context::isolate_offset()));
 
     __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
 
@@ -1939,7 +1929,7 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(T0);
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchNotEqual(T0, Immediate(0), &stepping);
   __ Bind(&done_stepping);
@@ -2228,7 +2218,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(T0);
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchNotEqual(T0, Immediate(0), &stepping);
   __ Bind(&done_stepping);

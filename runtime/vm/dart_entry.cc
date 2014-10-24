@@ -33,7 +33,6 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments_descriptor) {
   const Context& context =
       Context::Handle(Isolate::Current()->object_store()->empty_context());
-  ASSERT(context.isolate() == Isolate::Current());
   return InvokeFunction(function, arguments, arguments_descriptor, context);
 }
 

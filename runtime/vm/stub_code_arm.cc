@@ -45,8 +45,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ Push(IP);  // Push 0 for the PC marker.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
-  // Load current Isolate pointer from Context structure into R0.
-  __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(R0);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
@@ -159,8 +158,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ Push(IP);  // Push 0 for the PC marker.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
-  // Load current Isolate pointer from Context structure into R0.
-  __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(R0);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
@@ -267,8 +265,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ Push(IP);  // Push 0 for the PC marker.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
-  // Load current Isolate pointer from Context structure into R0.
-  __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(R0);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
@@ -815,7 +812,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Cache the new Context pointer into CTX while executing Dart code.
   __ ldr(CTX, Address(R3, VMHandles::kOffsetOfRawPtrInHandle));
 
-  // Load Isolate pointer into temporary register R8.
   __ LoadIsolate(R8);
 
   // Save the current VMTag on the stack.
@@ -987,16 +983,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R2: object size.
     // R4: allocation stats address.
     __ str(R1, FieldAddress(R0, Context::num_variables_offset()));
-
-    // Setup isolate field.
-    // Load Isolate pointer into R3.
-    // R0: new object.
-    // R1: number of context variables.
-    // R2: object size.
-    // R4: allocation stats address.
-    __ LoadIsolate(R3);
-    // R3: isolate, not an object.
-    __ str(R3, FieldAddress(R0, Context::isolate_offset()));
 
     // Setup the parent field.
     // R0: new object.
@@ -1761,7 +1747,7 @@ void StubCode::GenerateDebugStepCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ ldr(R1, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(R1);
   __ ldrb(R1, Address(R1, Isolate::single_step_offset()));
   __ CompareImmediate(R1, 0);
   __ b(&stepping, NE);
@@ -2021,7 +2007,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ ldr(R1, FieldAddress(CTX, Context::isolate_offset()));
+  __ LoadIsolate(R1);
   __ ldrb(R1, Address(R1, Isolate::single_step_offset()));
   __ CompareImmediate(R1, 0);
   __ b(&stepping, NE);

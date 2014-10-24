@@ -61,35 +61,35 @@ Assembler::Assembler(bool use_far_branches)
       patchable_pool_entries_.Add(kNotPatchable);
     }
 
-    if (StubCode::CallToRuntime_entry() != NULL) {
-      FindExternalLabel(&StubCode::CallToRuntimeLabel(), kNotPatchable);
+    if (stub_code->CallToRuntime_entry() != NULL) {
+      FindExternalLabel(&stub_code->CallToRuntimeLabel(), kNotPatchable);
     } else {
       object_pool_.Add(vacant, Heap::kOld);
       patchable_pool_entries_.Add(kNotPatchable);
     }
 
     // Create fixed object pool entries for debugger stubs.
-    if (StubCode::ICCallBreakpoint_entry() != NULL) {
+    if (stub_code->ICCallBreakpoint_entry() != NULL) {
       intptr_t index =
-          FindExternalLabel(&StubCode::ICCallBreakpointLabel(),
+          FindExternalLabel(&stub_code->ICCallBreakpointLabel(),
                             kNotPatchable);
       ASSERT(index == kICCallBreakpointCPIndex);
     } else {
       object_pool_.Add(vacant, Heap::kOld);
       patchable_pool_entries_.Add(kNotPatchable);
     }
-    if (StubCode::ClosureCallBreakpoint_entry() != NULL) {
+    if (stub_code->ClosureCallBreakpoint_entry() != NULL) {
       intptr_t index =
-          FindExternalLabel(&StubCode::ClosureCallBreakpointLabel(),
+          FindExternalLabel(&stub_code->ClosureCallBreakpointLabel(),
                             kNotPatchable);
       ASSERT(index == kClosureCallBreakpointCPIndex);
     } else {
       object_pool_.Add(vacant, Heap::kOld);
       patchable_pool_entries_.Add(kNotPatchable);
     }
-    if (StubCode::RuntimeCallBreakpoint_entry() != NULL) {
+    if (stub_code->RuntimeCallBreakpoint_entry() != NULL) {
       intptr_t index =
-          FindExternalLabel(&StubCode::RuntimeCallBreakpointLabel(),
+          FindExternalLabel(&stub_code->RuntimeCallBreakpointLabel(),
                             kNotPatchable);
       ASSERT(index == kRuntimeCallBreakpointCPIndex);
     } else {

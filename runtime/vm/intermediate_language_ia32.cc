@@ -2447,10 +2447,6 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
   __ movl(FieldAddress(result, Context::num_variables_offset()),
           Immediate(num_context_variables()));
 
-  // Setup isolate field.
-  __ movl(FieldAddress(result, Context::isolate_offset()),
-          Immediate(reinterpret_cast<int32_t>(Isolate::Current())));
-
   __ Bind(slow_path->exit_label());
 }
 

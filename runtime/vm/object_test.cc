@@ -2400,11 +2400,8 @@ TEST_CASE(EmbeddedScript) {
 TEST_CASE(Context) {
   const int kNumVariables = 5;
   const Context& parent_context = Context::Handle(Context::New(0));
-  EXPECT_EQ(parent_context.isolate(), Isolate::Current());
   const Context& context = Context::Handle(Context::New(kNumVariables));
   context.set_parent(parent_context);
-  const Context& check_parent_context = Context::Handle(context.parent());
-  EXPECT_EQ(context.isolate(), check_parent_context.isolate());
   EXPECT_EQ(kNumVariables, context.num_variables());
   EXPECT(Context::Handle(context.parent()).raw() == parent_context.raw());
   EXPECT_EQ(0, Context::Handle(context.parent()).num_variables());
