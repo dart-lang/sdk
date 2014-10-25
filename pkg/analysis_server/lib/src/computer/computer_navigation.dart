@@ -36,6 +36,9 @@ class DartUnitNavigationComputer {
     if (element == null || element == DynamicElementImpl.instance) {
       return;
     }
+    if (element.location == null) {
+      return;
+    }
     protocol.Element target = protocol.newElement_fromEngine(element);
     _regions.add(new protocol.NavigationRegion(offset, length, [target]));
   }

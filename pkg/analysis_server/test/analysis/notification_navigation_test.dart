@@ -369,6 +369,21 @@ main() {
     });
   }
 
+  test_multiplyDefinedElement() {
+    addFile('$projectPath/bin/libA.dart', 'library A; int TEST = 1;');
+    addFile('$projectPath/bin/libB.dart', 'library B; int TEST = 2;');
+    addTestFile('''
+import 'libA.dart';
+import 'libB.dart';
+main() {
+  TEST;
+}
+''');
+    return prepareNavigation().then((_) {
+      assertNoRegionAt('TEST');
+    });
+  }
+
   test_operator_arithmetic() {
     addTestFile('''
 class A {
