@@ -687,7 +687,7 @@ LayoutTests/fast/events/div-focus_t01: Pass, RuntimeError # co19-roll r786: Plea
 LayoutTests/fast/events/document-elementFromPoint_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/event-creation_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/events/initkeyboardevent-crash_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/events/initkeyboardevent-crash_t01: RuntimeError, Timeout # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/input-focus-no-duplicate-events_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/invalid-003_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/invalid-004_t01: RuntimeError # co19-roll r786: Please triage this failure.
