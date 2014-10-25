@@ -40,6 +40,9 @@ class StringUtilities {
     if (str == null || str.isEmpty) {
       return str;
     }
+    if (separator == null) {
+      return str;
+    }
     int pos = str.indexOf(separator);
     if (pos < 0) {
       return str;
