@@ -363,7 +363,7 @@ class AstFactory {
     for (String component in components) {
       identifierList.add(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, component));
     }
-    return new SymbolLiteral(TokenFactory.tokenFromType(TokenType.HASH), new List.from(identifierList));
+    return new SymbolLiteral(TokenFactory.tokenFromType(TokenType.HASH), identifierList);
   }
 
   static BlockFunctionBody syncBlockFunctionBody(List<Statement> statements) => new BlockFunctionBody(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"), null, block(statements));

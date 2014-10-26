@@ -900,10 +900,16 @@ class ConstantValueComputer {
 }
 
 /**
- * [AstCloner] that copies the necessary information from the AST to allow const constructor
- * initializers to be evaluated.
+ * A `ConstantValueComputer_InitializerCloner` is an [AstCloner] that copies the
+ * necessary information from the AST to allow const constructor initializers to
+ * be evaluated.
  */
 class ConstantValueComputer_InitializerCloner extends AstCloner {
+  // TODO(brianwilkerson) Investigate replacing uses of this class with uses of
+  // AstCloner and ResolutionCopier.
+
+  ConstantValueComputer_InitializerCloner() : super(true);
+
   @override
   InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) {
     InstanceCreationExpression expression = super.visitInstanceCreationExpression(node);

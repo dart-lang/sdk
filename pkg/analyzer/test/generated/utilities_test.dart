@@ -82,6 +82,10 @@ class AstClonerTest extends EngineTestCase {
             AstFactory.identifier3("b")));
   }
 
+  void test_visitAwaitExpression() {
+    _assertClone(AstFactory.awaitExpression(AstFactory.identifier3("a")));
+  }
+
   void test_visitBinaryExpression() {
     _assertClone(
         AstFactory.binaryExpression(
@@ -2031,18 +2035,53 @@ class AstClonerTest extends EngineTestCase {
     _assertClone(AstFactory.withClause([AstFactory.typeName4("A", [])]));
   }
 
+  void test_visitYieldStatement() {
+    _assertClone(AstFactory.yieldStatement(AstFactory.identifier3("A")));
+  }
+
   /**
-   * Assert that an `AstCloner` will produce the expected ASt structure when visiting the
-   * given node.
+   * Assert that an `AstCloner` will produce the expected AST structure when
+   * visiting the given [node].
    *
    * @param node the AST node being visited to produce the cloned structure
    * @throws AFE if the visitor does not produce the expected source for the given node
    */
   void _assertClone(AstNode node) {
     AstNode clone = node.accept(new AstCloner());
-    if (!AstComparator.equalNodes(node, clone)) {
+    AstCloneComparator comparitor = new AstCloneComparator(false);
+    if (!comparitor.isEqualNodes(node, clone)) {
       JUnitTestCase.fail("Failed to clone ${node.runtimeType.toString()}");
     }
+
+    clone = node.accept(new AstCloner(true));
+    comparitor = new AstCloneComparator(true);
+    if (!comparitor.isEqualNodes(node, clone)) {
+      JUnitTestCase.fail("Failed to clone ${node.runtimeType.toString()}");
+    }
+  }
+}
+
+class AstCloneComparator extends AstComparator {
+  final bool expectTokensCopied;
+
+  AstCloneComparator(this.expectTokensCopied);
+
+  @override
+  bool isEqualNodes(AstNode first, AstNode second) {
+    if (first != null && identical(first, second)) {
+      JUnitTestCase.fail('Failed to copy node: $first (${first.offset})');
+      return false;
+    }
+    return super.isEqualNodes(first, second);
+  }
+
+  @override
+  bool isEqualTokens(Token first, Token second) {
+    if (expectTokensCopied && first != null && identical(first, second)) {
+      JUnitTestCase.fail('Failed to copy token: ${first.lexeme} (${first.offset})');
+      return false;
+    }
+    return super.isEqualTokens(first, second);
   }
 }
 
