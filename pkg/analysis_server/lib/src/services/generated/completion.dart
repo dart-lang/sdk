@@ -1914,7 +1914,7 @@ class CompletionEngine_NameCollector {
   void _addNamesDefinedByHierarchy2(InterfaceType type, bool forSuper) {
     List<InterfaceType> superTypes = type.element.allSupertypes;
     if (!forSuper) {
-      superTypes = ArrayUtils.addAt(superTypes, 0, type);
+      superTypes.insert(0, type);
     }
     _addNamesDefinedByTypes(superTypes);
     // Collect names defined by subtypes separately so they can be identified later.

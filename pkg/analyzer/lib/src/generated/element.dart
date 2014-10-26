@@ -1286,13 +1286,16 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   accept(ElementVisitor visitor) => visitor.visitClassElement(this);
 
   /**
-   * Set the toolkit specific information objects attached to this class.
-   *
-   * @param toolkitObjects the toolkit objects attached to this class
+   * Add the given [toolkitObject] to the list of toolkit specific information
+   * objects attached to this class.
    */
   void addToolkitObjects(ToolkitObjectElement toolkitObject) {
     (toolkitObject as ToolkitObjectElementImpl).enclosingElement = this;
-    _toolkitObjects = ArrayUtils.add(_toolkitObjects, toolkitObject);
+    if (_toolkitObjects.isEmpty) {
+      // Convert from a non-growable list to a growable list.
+      _toolkitObjects = <ToolkitObjectElement>[];
+    }
+    _toolkitObjects.add(toolkitObject);
   }
 
   @override

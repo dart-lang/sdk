@@ -210,24 +210,6 @@ class FileNameUtilities {
   }
 }
 
-class ArrayUtils {
-  static List add(List target, Object value) {
-    target = new List.from(target);
-    target.add(value);
-    return target;
-  }
-  static List addAt(List target, int index, Object value) {
-    target = new List.from(target);
-    target.insert(index, value);
-    return target;
-  }
-  static List addAll(List target, List source) {
-    List result = new List.from(target);
-    result.addAll(source);
-    return result;
-  }
-}
-
 class ObjectUtilities {
   static int combineHashCodes(int first, int second) => first * 31 + second;
 }
