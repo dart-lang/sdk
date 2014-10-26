@@ -6746,6 +6746,12 @@ class EnumConstantDeclaration extends Declaration {
 
   @override
   Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(_name, visitor);
+  }
 }
 
 /**
@@ -6833,6 +6839,13 @@ class EnumDeclaration extends CompilationUnitMember {
 
   @override
   Token get firstTokenAfterCommentAndMetadata => keyword;
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(_name, visitor);
+    _constants.accept(visitor);
+  }
 }
 
 /**
@@ -16268,7 +16281,8 @@ class SimpleIdentifier extends Identifier {
     AstNode parent = this.parent;
     if (parent is CatchClause) {
       CatchClause clause = parent;
-      return identical(this, clause.exceptionParameter) || identical(this, clause.stackTraceParameter);
+      return identical(this, clause.exceptionParameter) ||
+          identical(this, clause.stackTraceParameter);
     } else if (parent is ClassDeclaration) {
       return identical(this, parent.name);
     } else if (parent is ClassTypeAlias) {
@@ -16277,6 +16291,10 @@ class SimpleIdentifier extends Identifier {
       return identical(this, parent.name);
     } else if (parent is DeclaredIdentifier) {
       return identical(this, parent.identifier);
+    } else if (parent is EnumDeclaration) {
+      return identical(this, parent.name);
+    } else if (parent is EnumConstantDeclaration) {
+      return identical(this, parent.name);
     } else if (parent is FunctionDeclaration) {
       return identical(this, parent.name);
     } else if (parent is FunctionTypeAlias) {

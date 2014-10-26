@@ -861,6 +861,18 @@ class SimpleIdentifierTest extends ParserTestCase {
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
 
+  void test_inDeclarationContext_enumConstantDeclaration() {
+    EnumDeclaration enumDeclaration = AstFactory.enumDeclaration2('MyEnum', ['CONST']);
+    SimpleIdentifier identifier = enumDeclaration.constants[0].name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
+  void test_inDeclarationContext_enumDeclaration() {
+    EnumDeclaration enumDeclaration = AstFactory.enumDeclaration2('MyEnum', ['A', 'B', 'C']);
+    SimpleIdentifier identifier = enumDeclaration.name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+
   void test_inDeclarationContext_fieldFormalParameter() {
     SimpleIdentifier identifier = AstFactory.fieldFormalParameter2("p").identifier;
     JUnitTestCase.assertFalse(identifier.inDeclarationContext());

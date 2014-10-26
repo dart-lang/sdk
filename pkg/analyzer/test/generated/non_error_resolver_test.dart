@@ -18,7 +18,7 @@ import '../reflective_tests.dart';
 
 class NonErrorResolverTest extends ResolverTestCase {
   void fail_undefinedEnumConstant() {
-    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "E e() {", "  return E.ONE;", "}"]));
+    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "E e() {", "  return E.TWO;", "}"]));
     resolve(source);
     assertNoErrors(source);
     verify([source]);
