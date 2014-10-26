@@ -1274,6 +1274,8 @@ final Matcher isHighlightRegion = new LazyMatcher(() => new MatchesJsonObject(
  *   CONSTRUCTOR
  *   DIRECTIVE
  *   DYNAMIC_TYPE
+ *   ENUM
+ *   ENUM_CONSTANT
  *   FIELD
  *   FIELD_STATIC
  *   FUNCTION
@@ -1313,6 +1315,8 @@ final Matcher isHighlightRegionType = new MatchesEnum("HighlightRegionType", [
   "CONSTRUCTOR",
   "DIRECTIVE",
   "DYNAMIC_TYPE",
+  "ENUM",
+  "ENUM_CONSTANT",
   "FIELD",
   "FIELD_STATIC",
   "FUNCTION",

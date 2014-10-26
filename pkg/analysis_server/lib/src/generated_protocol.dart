@@ -6410,6 +6410,8 @@ class HighlightRegion implements HasToJson {
  *   CONSTRUCTOR
  *   DIRECTIVE
  *   DYNAMIC_TYPE
+ *   ENUM
+ *   ENUM_CONSTANT
  *   FIELD
  *   FIELD_STATIC
  *   FUNCTION
@@ -6457,6 +6459,10 @@ class HighlightRegionType implements Enum {
   static const DIRECTIVE = const HighlightRegionType._("DIRECTIVE");
 
   static const DYNAMIC_TYPE = const HighlightRegionType._("DYNAMIC_TYPE");
+
+  static const ENUM = const HighlightRegionType._("ENUM");
+
+  static const ENUM_CONSTANT = const HighlightRegionType._("ENUM_CONSTANT");
 
   static const FIELD = const HighlightRegionType._("FIELD");
 
@@ -6536,6 +6542,10 @@ class HighlightRegionType implements Enum {
         return DIRECTIVE;
       case "DYNAMIC_TYPE":
         return DYNAMIC_TYPE;
+      case "ENUM":
+        return ENUM;
+      case "ENUM_CONSTANT":
+        return ENUM_CONSTANT;
       case "FIELD":
         return FIELD;
       case "FIELD_STATIC":
