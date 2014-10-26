@@ -1501,13 +1501,13 @@ abstract class XmlNode {
   /**
    * This method exists for debugging purposes only.
    */
-  void _appendIdentifier(JavaStringBuilder builder, XmlNode node) {
+  void _appendIdentifier(StringBuffer buffer, XmlNode node) {
     if (node is XmlTagNode) {
-      builder.append(node.tag);
+      buffer.write(node.tag);
     } else if (node is XmlAttributeNode) {
-      builder.append(node.name);
+      buffer.write(node.name);
     } else {
-      builder.append("htmlUnit");
+      buffer.write("htmlUnit");
     }
   }
 
@@ -1515,23 +1515,23 @@ abstract class XmlNode {
    * This method exists for debugging purposes only.
    */
   String _buildRecursiveStructureMessage(XmlNode newParent) {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("Attempt to create recursive structure: ");
+    StringBuffer buffer = new StringBuffer();
+    buffer.write("Attempt to create recursive structure: ");
     XmlNode current = newParent;
     while (current != null) {
       if (!identical(current, newParent)) {
-        builder.append(" -> ");
+        buffer.write(" -> ");
       }
       if (identical(current, this)) {
-        builder.appendChar(0x2A);
-        _appendIdentifier(builder, current);
-        builder.appendChar(0x2A);
+        buffer.writeCharCode(0x2A);
+        _appendIdentifier(buffer, current);
+        buffer.writeCharCode(0x2A);
       } else {
-        _appendIdentifier(builder, current);
+        _appendIdentifier(buffer, current);
       }
       current = current.parent;
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   /**
@@ -1952,27 +1952,27 @@ class XmlTagNode extends XmlNode {
   Token get beginToken => nodeStart;
 
   /**
-   * Answer a string representing the content contained in the receiver. This includes the textual
-   * representation of any child tag nodes ([getTagNodes]). Whitespace between '&lt;',
-   * '&lt;/', and '>', '/>' is discarded, but all other whitespace is preserved.
-   *
-   * @return the content (not `null`)
+   * Return a string representing the content contained in the receiver. This
+   * includes the textual representation of any child tag nodes ([getTagNodes]).
+   * Whitespace between '&lt;', '&lt;/', and '>', '/>' is discarded, but all
+   * other whitespace is preserved.
    */
   String get content {
     Token token = attributeEnd.next;
     if (identical(token, contentEnd)) {
       return "";
     }
-    //TODO (danrubel): handle CDATA and replace HTML character encodings with the actual characters
+    // TODO(danrubel) Handle CDATA and replace HTML character encodings with
+    // the actual characters.
     String content = token.lexeme;
     token = token.next;
     if (identical(token, contentEnd)) {
       return content;
     }
-    JavaStringBuilder buffer = new JavaStringBuilder();
-    buffer.append(content);
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(content);
     while (!identical(token, contentEnd)) {
-      buffer.append(token.lexeme);
+      buffer.write(token.lexeme);
       token = token.next;
     }
     return buffer.toString();

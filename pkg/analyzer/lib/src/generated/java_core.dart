@@ -466,36 +466,6 @@ int javaByte(Object o) {
   return (o as int) & 0xFF;
 }
 
-class JavaStringBuilder {
-  StringBuffer sb = new StringBuffer();
-  String toString() => sb.toString();
-  JavaStringBuilder append(x) {
-    sb.write(x);
-    return this;
-  }
-  JavaStringBuilder appendChar(int c) {
-    sb.writeCharCode(c);
-    return this;
-  }
-  int get length => sb.length;
-  void set length(int newLength) {
-    if (newLength < 0) {
-      throw new StringIndexOutOfBoundsException(newLength);
-    }
-    if (sb.length < newLength) {
-      while (sb.length < newLength) {
-        sb.writeCharCode(0);
-      }
-    } else if (sb.length > newLength) {
-      var s = sb.toString().substring(0, newLength);
-      sb = new StringBuffer(s);
-    }
-  }
-  void clear() {
-    sb = new StringBuffer();
-  }
-}
-
 abstract class Enum<E extends Enum> implements Comparable<E> {
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;

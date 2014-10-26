@@ -1429,15 +1429,15 @@ class Modifiers {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    bool needsSpace = _appendKeyword(builder, false, abstractKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, constKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, externalKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, factoryKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, finalKeyword);
-    needsSpace = _appendKeyword(builder, needsSpace, staticKeyword);
-    _appendKeyword(builder, needsSpace, varKeyword);
-    return builder.toString();
+    StringBuffer buffer = new StringBuffer();
+    bool needsSpace = _appendKeyword(buffer, false, abstractKeyword);
+    needsSpace = _appendKeyword(buffer, needsSpace, constKeyword);
+    needsSpace = _appendKeyword(buffer, needsSpace, externalKeyword);
+    needsSpace = _appendKeyword(buffer, needsSpace, factoryKeyword);
+    needsSpace = _appendKeyword(buffer, needsSpace, finalKeyword);
+    needsSpace = _appendKeyword(buffer, needsSpace, staticKeyword);
+    _appendKeyword(buffer, needsSpace, varKeyword);
+    return buffer.toString();
   }
 
   /**
@@ -1449,12 +1449,12 @@ class Modifiers {
    * @param keyword the keyword to be appended
    * @return `true` if subsequent keywords need to be prefixed with a space
    */
-  bool _appendKeyword(JavaStringBuilder builder, bool needsSpace, Token keyword) {
+  bool _appendKeyword(StringBuffer buffer, bool needsSpace, Token keyword) {
     if (keyword != null) {
       if (needsSpace) {
-        builder.appendChar(0x20);
+        buffer.writeCharCode(0x20);
       }
-      builder.append(keyword.lexeme);
+      buffer.write(keyword.lexeme);
       return true;
     }
     return needsSpace;
@@ -2827,15 +2827,15 @@ class Parser {
    * @param startIndex the index of the first character representing the scalar value
    * @param endIndex the index of the last character representing the scalar value
    */
-  void _appendScalarValue(JavaStringBuilder builder, String escapeSequence, int scalarValue, int startIndex, int endIndex) {
+  void _appendScalarValue(StringBuffer buffer, String escapeSequence, int scalarValue, int startIndex, int endIndex) {
     if (scalarValue < 0 || scalarValue > Character.MAX_CODE_POINT || (scalarValue >= 0xD800 && scalarValue <= 0xDFFF)) {
       _reportErrorForCurrentToken(ParserErrorCode.INVALID_CODE_POINT, [escapeSequence]);
       return;
     }
     if (scalarValue < Character.MAX_VALUE) {
-      builder.appendChar(scalarValue);
+      buffer.writeCharCode(scalarValue);
     } else {
-      builder.append(Character.toChars(scalarValue));
+      buffer.write(Character.toChars(scalarValue));
     }
   }
 
@@ -2878,12 +2878,12 @@ class Parser {
     if (isRaw) {
       return lexeme.substring(start, end);
     }
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     int index = start;
     while (index < end) {
-      index = _translateCharacter(builder, lexeme, index);
+      index = _translateCharacter(buffer, lexeme, index);
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   /**
@@ -7366,52 +7366,48 @@ class Parser {
   bool _tokenMatchesString(Token token, String identifier) => token.type == TokenType.IDENTIFIER && token.lexeme == identifier;
 
   /**
-   * Translate the characters at the given index in the given string, appending the translated
-   * character to the given builder. The index is assumed to be valid.
-   *
-   * @param builder the builder to which the translated character is to be appended
-   * @param lexeme the string containing the character(s) to be translated
-   * @param index the index of the character to be translated
-   * @return the index of the next character to be translated
+   * Translate the characters at the given [index] in the given [lexeme],
+   * appending the translated character to the given [buffer]. The index is
+   * assumed to be valid.
    */
-  int _translateCharacter(JavaStringBuilder builder, String lexeme, int index) {
+  int _translateCharacter(StringBuffer buffer, String lexeme, int index) {
     int currentChar = lexeme.codeUnitAt(index);
     if (currentChar != 0x5C) {
-      builder.appendChar(currentChar);
+      buffer.writeCharCode(currentChar);
       return index + 1;
     }
     //
-    // We have found an escape sequence, so we parse the string to determine what kind of escape
-    // sequence and what character to add to the builder.
+    // We have found an escape sequence, so we parse the string to determine
+    // what kind of escape sequence and what character to add to the builder.
     //
     int length = lexeme.length;
     int currentIndex = index + 1;
     if (currentIndex >= length) {
-      // Illegal escape sequence: no char after escape
-      // This cannot actually happen because it would require the escape character to be the last
-      // character in the string, but if it were it would escape the closing quote, leaving the
-      // string unclosed.
+      // Illegal escape sequence: no char after escape.
+      // This cannot actually happen because it would require the escape
+      // character to be the last character in the string, but if it were it
+      // would escape the closing quote, leaving the string unclosed.
       // reportError(ParserErrorCode.MISSING_CHAR_IN_ESCAPE_SEQUENCE);
       return length;
     }
     currentChar = lexeme.codeUnitAt(currentIndex);
     if (currentChar == 0x6E) {
-      builder.appendChar(0xA);
+      buffer.writeCharCode(0xA);
       // newline
     } else if (currentChar == 0x72) {
-      builder.appendChar(0xD);
+      buffer.writeCharCode(0xD);
       // carriage return
     } else if (currentChar == 0x66) {
-      builder.appendChar(0xC);
+      buffer.writeCharCode(0xC);
       // form feed
     } else if (currentChar == 0x62) {
-      builder.appendChar(0x8);
+      buffer.writeCharCode(0x8);
       // backspace
     } else if (currentChar == 0x74) {
-      builder.appendChar(0x9);
+      buffer.writeCharCode(0x9);
       // tab
     } else if (currentChar == 0x76) {
-      builder.appendChar(0xB);
+      buffer.writeCharCode(0xB);
       // vertical tab
     } else if (currentChar == 0x78) {
       if (currentIndex + 2 >= length) {
@@ -7425,7 +7421,9 @@ class Parser {
         // Illegal escape sequence: invalid hex digit
         _reportErrorForCurrentToken(ParserErrorCode.INVALID_HEX_ESCAPE, []);
       } else {
-        builder.appendChar(((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)));
+        int charCode = (Character.digit(firstDigit, 16) << 4)
+            + Character.digit(secondDigit, 16);
+        buffer.writeCharCode(charCode);
       }
       return currentIndex + 3;
     } else if (currentChar == 0x75) {
@@ -7440,7 +7438,9 @@ class Parser {
         currentIndex++;
         if (currentIndex >= length) {
           // Illegal escape sequence: incomplete escape
-          _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          _reportErrorForCurrentToken(
+              ParserErrorCode.INVALID_UNICODE_ESCAPE,
+              []);
           return length;
         }
         currentChar = lexeme.codeUnitAt(currentIndex);
@@ -7449,9 +7449,12 @@ class Parser {
         while (currentChar != 0x7D) {
           if (!_isHexDigit(currentChar)) {
             // Illegal escape sequence: invalid hex digit
-            _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+            _reportErrorForCurrentToken(
+                ParserErrorCode.INVALID_UNICODE_ESCAPE,
+                []);
             currentIndex++;
-            while (currentIndex < length && lexeme.codeUnitAt(currentIndex) != 0x7D) {
+            while (currentIndex < length
+                && lexeme.codeUnitAt(currentIndex) != 0x7D) {
               currentIndex++;
             }
             return currentIndex + 1;
@@ -7461,37 +7464,59 @@ class Parser {
           currentIndex++;
           if (currentIndex >= length) {
             // Illegal escape sequence: incomplete escape
-            _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+            _reportErrorForCurrentToken(
+                ParserErrorCode.INVALID_UNICODE_ESCAPE,
+                []);
             return length;
           }
           currentChar = lexeme.codeUnitAt(currentIndex);
         }
         if (digitCount < 1 || digitCount > 6) {
           // Illegal escape sequence: not enough or too many hex digits
-          _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          _reportErrorForCurrentToken(
+              ParserErrorCode.INVALID_UNICODE_ESCAPE,
+              []);
         }
-        _appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), value, index, currentIndex);
+        _appendScalarValue(
+            buffer,
+            lexeme.substring(index, currentIndex + 1),
+            value,
+            index,
+            currentIndex);
         return currentIndex + 1;
       } else {
         if (currentIndex + 3 >= length) {
           // Illegal escape sequence: not enough hex digits
-          _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          _reportErrorForCurrentToken(
+              ParserErrorCode.INVALID_UNICODE_ESCAPE,
+              []);
           return length;
         }
         int firstDigit = currentChar;
         int secondDigit = lexeme.codeUnitAt(currentIndex + 1);
         int thirdDigit = lexeme.codeUnitAt(currentIndex + 2);
         int fourthDigit = lexeme.codeUnitAt(currentIndex + 3);
-        if (!_isHexDigit(firstDigit) || !_isHexDigit(secondDigit) || !_isHexDigit(thirdDigit) || !_isHexDigit(fourthDigit)) {
+        if (!_isHexDigit(firstDigit)
+            || !_isHexDigit(secondDigit)
+            || !_isHexDigit(thirdDigit)
+            || !_isHexDigit(fourthDigit)) {
           // Illegal escape sequence: invalid hex digits
           _reportErrorForCurrentToken(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         } else {
-          _appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), (((((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) << 4) + Character.digit(thirdDigit, 16)) << 4) + Character.digit(fourthDigit, 16), index, currentIndex + 3);
+          _appendScalarValue(
+              buffer,
+              lexeme.substring(index, currentIndex + 1),
+              (((((Character.digit(firstDigit, 16) << 4)
+                  + Character.digit(secondDigit, 16)) << 4)
+                  + Character.digit(thirdDigit, 16)) << 4)
+                  + Character.digit(fourthDigit, 16),
+              index,
+              currentIndex + 3);
         }
         return currentIndex + 4;
       }
     } else {
-      builder.appendChar(currentChar);
+      buffer.writeCharCode(currentChar);
     }
     return currentIndex + 1;
   }

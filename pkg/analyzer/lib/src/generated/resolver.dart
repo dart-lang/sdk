@@ -3985,13 +3985,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     } catch (ex) {
       if (node.name.staticElement == null) {
         ClassDeclaration classNode = node.getAncestor((node) => node is ClassDeclaration);
-        JavaStringBuilder builder = new JavaStringBuilder();
-        builder.append("The element for the method ");
-        builder.append(node.name);
-        builder.append(" in ");
-        builder.append(classNode.name);
-        builder.append(" was not set while trying to build the element model.");
-        AnalysisEngine.instance.logger.logError2(builder.toString(), new AnalysisException(builder.toString(), new CaughtException(ex, null)));
+        StringBuffer buffer = new StringBuffer();
+        buffer.write("The element for the method ");
+        buffer.write(node.name);
+        buffer.write(" in ");
+        buffer.write(classNode.name);
+        buffer.write(" was not set while trying to build the element model.");
+        AnalysisEngine.instance.logger.logError2(buffer.toString(), new AnalysisException(buffer.toString(), new CaughtException(ex, null)));
       } else {
         String message = "Exception caught in ElementBuilder.visitMethodDeclaration()";
         AnalysisEngine.instance.logger.logError2(message, new AnalysisException(message, new CaughtException(ex, null)));
@@ -3999,13 +3999,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     } finally {
       if (node.name.staticElement == null) {
         ClassDeclaration classNode = node.getAncestor((node) => node is ClassDeclaration);
-        JavaStringBuilder builder = new JavaStringBuilder();
-        builder.append("The element for the method ");
-        builder.append(node.name);
-        builder.append(" in ");
-        builder.append(classNode.name);
-        builder.append(" was not set while trying to resolve types.");
-        AnalysisEngine.instance.logger.logError2(builder.toString(), new CaughtException(new AnalysisException(builder.toString()), null));
+        StringBuffer buffer = new StringBuffer();
+        buffer.write("The element for the method ");
+        buffer.write(node.name);
+        buffer.write(" in ");
+        buffer.write(classNode.name);
+        buffer.write(" was not set while trying to resolve types.");
+        AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(buffer.toString()), null));
       }
     }
     return null;
@@ -4553,90 +4553,90 @@ class ElementHolder {
   }
 
   void validate() {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     if (_accessors != null) {
-      builder.append(_accessors.length);
-      builder.append(" accessors");
+      buffer.write(_accessors.length);
+      buffer.write(" accessors");
     }
     if (_constructors != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_constructors.length);
-      builder.append(" constructors");
+      buffer.write(_constructors.length);
+      buffer.write(" constructors");
     }
     if (_fields != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_fields.length);
-      builder.append(" fields");
+      buffer.write(_fields.length);
+      buffer.write(" fields");
     }
     if (_functions != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_functions.length);
-      builder.append(" functions");
+      buffer.write(_functions.length);
+      buffer.write(" functions");
     }
     if (_labels != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_labels.length);
-      builder.append(" labels");
+      buffer.write(_labels.length);
+      buffer.write(" labels");
     }
     if (_localVariables != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_localVariables.length);
-      builder.append(" local variables");
+      buffer.write(_localVariables.length);
+      buffer.write(" local variables");
     }
     if (_methods != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_methods.length);
-      builder.append(" methods");
+      buffer.write(_methods.length);
+      buffer.write(" methods");
     }
     if (_parameters != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_parameters.length);
-      builder.append(" parameters");
+      buffer.write(_parameters.length);
+      buffer.write(" parameters");
     }
     if (_topLevelVariables != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_topLevelVariables.length);
-      builder.append(" top-level variables");
+      buffer.write(_topLevelVariables.length);
+      buffer.write(" top-level variables");
     }
     if (_types != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_types.length);
-      builder.append(" types");
+      buffer.write(_types.length);
+      buffer.write(" types");
     }
     if (_typeAliases != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_typeAliases.length);
-      builder.append(" type aliases");
+      buffer.write(_typeAliases.length);
+      buffer.write(" type aliases");
     }
     if (_typeParameters != null) {
-      if (builder.length > 0) {
-        builder.append("; ");
+      if (buffer.length > 0) {
+        buffer.write("; ");
       }
-      builder.append(_typeParameters.length);
-      builder.append(" type parameters");
+      buffer.write(_typeParameters.length);
+      buffer.write(" type parameters");
     }
-    if (builder.length > 0) {
-      AnalysisEngine.instance.logger.logError("Failed to capture elements: $builder");
+    if (buffer.length > 0) {
+      AnalysisEngine.instance.logger.logError("Failed to capture elements: $buffer");
     }
   }
 }
@@ -12709,13 +12709,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (size > 1) {
         // Construct a string showing the cyclic implements path: "A, B, C, D, A"
         String separator = ", ";
-        JavaStringBuilder builder = new JavaStringBuilder();
+        StringBuffer buffer = new StringBuffer();
         for (int i = 0; i < size; i++) {
-          builder.append(path[i].displayName);
-          builder.append(separator);
+          buffer.write(path[i].displayName);
+          buffer.write(separator);
         }
-        builder.append(classElt.displayName);
-        _errorReporter.reportErrorForOffset(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, _enclosingClass.nameOffset, enclosingClassName.length, [enclosingClassName, builder.toString()]);
+        buffer.write(classElt.displayName);
+        _errorReporter.reportErrorForOffset(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, _enclosingClass.nameOffset, enclosingClassName.length, [enclosingClassName, buffer.toString()]);
         return true;
       } else {
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS or
@@ -13634,25 +13634,25 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
     // least once. This code will guard against infinite recursion and might help us identify the
     // cause of the issue.
     //
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("Found circularity in XML nodes: ");
+    StringBuffer buffer = new StringBuffer();
+    buffer.write("Found circularity in XML nodes: ");
     bool first = true;
     for (ht.XmlTagNode pathNode in _parentNodes) {
       if (first) {
         first = false;
       } else {
-        builder.append(", ");
+        buffer.write(", ");
       }
       String tagName = pathNode.tag;
       if (identical(pathNode, node)) {
-        builder.append("*");
-        builder.append(tagName);
-        builder.append("*");
+        buffer.write("*");
+        buffer.write(tagName);
+        buffer.write("*");
       } else {
-        builder.append(tagName);
+        buffer.write(tagName);
       }
     }
-    AnalysisEngine.instance.logger.logError(builder.toString());
+    AnalysisEngine.instance.logger.logError(buffer.toString());
     return null;
   }
 
@@ -16054,20 +16054,20 @@ class LibraryImportScope extends Scope {
       }
     }
     int indirectCount = indirectSources.length;
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append(library.definingCompilationUnit.displayName);
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(library.definingCompilationUnit.displayName);
     if (indirectCount > 0) {
-      builder.append(" (via ");
+      buffer.write(" (via ");
       if (indirectCount > 1) {
         List<String> indirectNames = new List.from(indirectSources);
         indirectNames.sort();
-        builder.append(StringUtilities.printListOfQuotedNames(indirectNames));
+        buffer.write(StringUtilities.printListOfQuotedNames(indirectNames));
       } else {
-        builder.append(indirectSources[0]);
+        buffer.write(indirectSources[0]);
       }
-      builder.append(")");
+      buffer.write(")");
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   /**
@@ -20667,16 +20667,16 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     Scope outerScope = _nameScope;
     try {
       if (constructorElement == null) {
-        JavaStringBuilder builder = new JavaStringBuilder();
-        builder.append("Missing element for constructor ");
-        builder.append(node.returnType.name);
+        StringBuffer buffer = new StringBuffer();
+        buffer.write("Missing element for constructor ");
+        buffer.write(node.returnType.name);
         if (node.name != null) {
-          builder.append(".");
-          builder.append(node.name.name);
+          buffer.write(".");
+          buffer.write(node.name.name);
         }
-        builder.append(" in ");
-        builder.append(definingLibrary.source.fullName);
-        AnalysisEngine.instance.logger.logInformation2(builder.toString(), new JavaException());
+        buffer.write(" in ");
+        buffer.write(definingLibrary.source.fullName);
+        AnalysisEngine.instance.logger.logInformation2(buffer.toString(), new JavaException());
       } else {
         _nameScope = new FunctionScope(_nameScope, constructorElement);
       }
@@ -20783,19 +20783,19 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       try {
         ExecutableElement functionElement = node.element;
         if (functionElement == null) {
-          JavaStringBuilder builder = new JavaStringBuilder();
-          builder.append("Missing element for function ");
+          StringBuffer buffer = new StringBuffer();
+          buffer.write("Missing element for function ");
           AstNode parent = node.parent;
           while (parent != null) {
             if (parent is Declaration) {
               Element parentElement = (parent as Declaration).element;
-              builder.append(parentElement == null ? "<unknown> " : ("${parentElement.name} "));
+              buffer.write(parentElement == null ? "<unknown> " : "${parentElement.name} ");
             }
             parent = parent.parent;
           }
-          builder.append("in ");
-          builder.append(definingLibrary.source.fullName);
-          AnalysisEngine.instance.logger.logInformation2(builder.toString(), new JavaException());
+          buffer.write("in ");
+          buffer.write(definingLibrary.source.fullName);
+          AnalysisEngine.instance.logger.logInformation2(buffer.toString(), new JavaException());
         } else {
           _nameScope = new FunctionScope(_nameScope, functionElement);
         }
@@ -23947,19 +23947,19 @@ class TypeResolverVisitor extends ScopedVisitor {
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
     if (element == null) {
       ClassDeclaration classNode = node.getAncestor((node) => node is ClassDeclaration);
-      JavaStringBuilder builder = new JavaStringBuilder();
-      builder.append("The element for the constructor ");
-      builder.append(node.name == null ? "<unnamed>" : node.name.name);
-      builder.append(" in ");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("The element for the constructor ");
+      buffer.write(node.name == null ? "<unnamed>" : node.name.name);
+      buffer.write(" in ");
       if (classNode == null) {
-        builder.append("<unknown class>");
+        buffer.write("<unknown class>");
       } else {
-        builder.append(classNode.name.name);
+        buffer.write(classNode.name.name);
       }
-      builder.append(" in ");
-      builder.append(source.fullName);
-      builder.append(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError2(builder.toString(), new CaughtException(new AnalysisException(), null));
+      buffer.write(" in ");
+      buffer.write(source.fullName);
+      buffer.write(" was not set while trying to resolve types.");
+      AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(), null));
     } else {
       ClassElement definingClass = element.enclosingElement as ClassElement;
       element.returnType = definingClass.type;
@@ -24021,13 +24021,13 @@ class TypeResolverVisitor extends ScopedVisitor {
     super.visitFunctionDeclaration(node);
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
     if (element == null) {
-      JavaStringBuilder builder = new JavaStringBuilder();
-      builder.append("The element for the top-level function ");
-      builder.append(node.name);
-      builder.append(" in ");
-      builder.append(source.fullName);
-      builder.append(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError2(builder.toString(), new CaughtException(new AnalysisException(), null));
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("The element for the top-level function ");
+      buffer.write(node.name);
+      buffer.write(" in ");
+      buffer.write(source.fullName);
+      buffer.write(" was not set while trying to resolve types.");
+      AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(), null));
     }
     element.returnType = _computeReturnType(node.returnType);
     FunctionTypeImpl type = new FunctionTypeImpl.con1(element);
@@ -24068,19 +24068,19 @@ class TypeResolverVisitor extends ScopedVisitor {
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
     if (element == null) {
       ClassDeclaration classNode = node.getAncestor((node) => node is ClassDeclaration);
-      JavaStringBuilder builder = new JavaStringBuilder();
-      builder.append("The element for the method ");
-      builder.append(node.name.name);
-      builder.append(" in ");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("The element for the method ");
+      buffer.write(node.name.name);
+      buffer.write(" in ");
       if (classNode == null) {
-        builder.append("<unknown class>");
+        buffer.write("<unknown class>");
       } else {
-        builder.append(classNode.name.name);
+        buffer.write(classNode.name.name);
       }
-      builder.append(" in ");
-      builder.append(source.fullName);
-      builder.append(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError2(builder.toString(), new CaughtException(new AnalysisException(), null));
+      buffer.write(" in ");
+      buffer.write(source.fullName);
+      buffer.write(" was not set while trying to resolve types.");
+      AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(), null));
     }
     element.returnType = _computeReturnType(node.returnType);
     FunctionTypeImpl type = new FunctionTypeImpl.con1(element);

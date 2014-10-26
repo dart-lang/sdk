@@ -806,20 +806,12 @@ class SourceRange {
   }
 
   /**
-   * @return `true` if this [SourceRange] starts in <code>otherRange</code>.
+   * Return `true` if this [SourceRange] starts in the [otherRange].
    */
   bool startsIn(SourceRange otherRange) => otherRange.contains(offset);
 
   @override
-  String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append("[offset=");
-    builder.append(offset);
-    builder.append(", length=");
-    builder.append(length);
-    builder.append("]");
-    return builder.toString();
-  }
+  String toString() => '[offset=$offset, length=$length]';
 }
 
 /**

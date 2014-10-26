@@ -48,13 +48,13 @@ class AstValidator extends UnifyingAstVisitor<Object> {
    */
   void assertValid() {
     if (!_errors.isEmpty) {
-      JavaStringBuilder builder = new JavaStringBuilder();
-      builder.append("Invalid AST structure:");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("Invalid AST structure:");
       for (String message in _errors) {
-        builder.append("\r\n   ");
-        builder.append(message);
+        buffer.write("\r\n   ");
+        buffer.write(message);
       }
-      JUnitTestCase.fail(builder.toString());
+      JUnitTestCase.fail(buffer.toString());
     }
   }
 

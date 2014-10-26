@@ -1365,15 +1365,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitSymbolLiteral(SymbolLiteral node) {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     List<Token> components = node.components;
     for (int i = 0; i < components.length; i++) {
       if (i > 0) {
-        builder.appendChar(0x2E);
+        buffer.writeCharCode(0x2E);
       }
-      builder.append(components[i].lexeme);
+      buffer.write(components[i].lexeme);
     }
-    return new DartObjectImpl(_typeProvider.symbolType, new SymbolState(builder.toString()));
+    return new DartObjectImpl(_typeProvider.symbolType, new SymbolState(buffer.toString()));
   }
 
   /**

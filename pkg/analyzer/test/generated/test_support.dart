@@ -44,15 +44,15 @@ class EngineTestCase extends JUnitTestCase {
         }
       }
       if (!found) {
-        JavaStringBuilder msg = new JavaStringBuilder();
-        msg.append("Expected element named: ");
-        msg.append(elemName);
-        msg.append("\n  but found: ");
+        StringBuffer buffer = new StringBuffer();
+        buffer.write("Expected element named: ");
+        buffer.write(elemName);
+        buffer.write("\n  but found: ");
         for (Element elem in elements) {
-          msg.append(elem.name);
-          msg.append(", ");
+          buffer.write(elem.name);
+          buffer.write(", ");
         }
-        JUnitTestCase.fail(msg.toString());
+        JUnitTestCase.fail(buffer.toString());
       }
     }
     assertLength(names.length, elements);
@@ -603,7 +603,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    *           expected
    */
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     //
     // Verify that the expected error codes have a non-empty message.
     //
@@ -653,16 +653,16 @@ class GatheringErrorListener implements AnalysisErrorListener {
         actualCount = list.length;
       }
       if (actualCount != expectedCount) {
-        if (builder.length == 0) {
-          builder.append("Expected ");
+        if (buffer.length == 0) {
+          buffer.write("Expected ");
         } else {
-          builder.append("; ");
+          buffer.write("; ");
         }
-        builder.append(expectedCount);
-        builder.append(" errors of type ");
-        builder.append("${code.runtimeType}.$code");
-        builder.append(", found ");
-        builder.append(actualCount);
+        buffer.write(expectedCount);
+        buffer.write(" errors of type ");
+        buffer.write("${code.runtimeType}.$code");
+        buffer.write(", found ");
+        buffer.write(actualCount);
       }
     }
     //
@@ -674,27 +674,27 @@ class GatheringErrorListener implements AnalysisErrorListener {
       ErrorCode code = entry.getKey();
       List<AnalysisError> actualErrors = entry.getValue();
       int actualCount = actualErrors.length;
-      if (builder.length == 0) {
-        builder.append("Expected ");
+      if (buffer.length == 0) {
+        buffer.write("Expected ");
       } else {
-        builder.append("; ");
+        buffer.write("; ");
       }
-      builder.append("0 errors of type ");
-      builder.append("${code.runtimeType}.$code");
-      builder.append(", found ");
-      builder.append(actualCount);
-      builder.append(" (");
+      buffer.write("0 errors of type ");
+      buffer.write("${code.runtimeType}.$code");
+      buffer.write(", found ");
+      buffer.write(actualCount);
+      buffer.write(" (");
       for (int i = 0; i < actualErrors.length; i++) {
         AnalysisError error = actualErrors[i];
         if (i > 0) {
-          builder.append(", ");
+          buffer.write(", ");
         }
-        builder.append(error.offset);
+        buffer.write(error.offset);
       }
-      builder.append(")");
+      buffer.write(")");
     }
-    if (builder.length > 0) {
-      JUnitTestCase.fail(builder.toString());
+    if (buffer.length > 0) {
+      JUnitTestCase.fail(buffer.toString());
     }
   }
 

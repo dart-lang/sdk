@@ -69,9 +69,9 @@ class AdjacentStrings extends StringLiteral {
   }
 
   @override
-  void appendStringValue(JavaStringBuilder builder) {
+  void appendStringValue(StringBuffer buffer) {
     for (StringLiteral stringLiteral in strings) {
-      stringLiteral.appendStringValue(builder);
+      stringLiteral.appendStringValue(buffer);
     }
   }
 }
@@ -5055,15 +5055,15 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitAdjacentStrings(AdjacentStrings node) {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     for (StringLiteral string in node.strings) {
       Object value = string.accept(this);
       if (identical(value, NOT_A_CONSTANT)) {
         return value;
       }
-      builder.append(value);
+      buffer.write(value);
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   @override
@@ -5326,28 +5326,28 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitStringInterpolation(StringInterpolation node) {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     for (InterpolationElement element in node.elements) {
       Object value = element.accept(this);
       if (identical(value, NOT_A_CONSTANT)) {
         return value;
       }
-      builder.append(value);
+      buffer.write(value);
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   @override
   Object visitSymbolLiteral(SymbolLiteral node) {
     // TODO(brianwilkerson) This isn't optimal because a Symbol is not a String.
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     for (Token component in node.components) {
-      if (builder.length > 0) {
-        builder.appendChar(0x2E);
+      if (buffer.length > 0) {
+        buffer.writeCharCode(0x2E);
       }
-      builder.append(component.lexeme);
+      buffer.write(component.lexeme);
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   /**
@@ -11354,17 +11354,17 @@ class LibraryIdentifier extends Identifier {
 
   @override
   String get name {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     bool needsPeriod = false;
     for (SimpleIdentifier identifier in _components) {
       if (needsPeriod) {
-        builder.append(".");
+        buffer.write(".");
       } else {
         needsPeriod = true;
       }
-      builder.append(identifier.name);
+      buffer.write(identifier.name);
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   @override
@@ -16633,8 +16633,8 @@ class SimpleStringLiteral extends SingleStringLiteral {
   }
 
   @override
-  void appendStringValue(JavaStringBuilder builder) {
-    builder.append(value);
+  void appendStringValue(StringBuffer buffer) {
+    buffer.write(value);
   }
 }
 
@@ -16710,7 +16710,7 @@ class StringInterpolation extends SingleStringLiteral {
   }
 
   @override
-  void appendStringValue(JavaStringBuilder builder) {
+  void appendStringValue(StringBuffer buffer) {
     throw new IllegalArgumentException();
   }
 
@@ -16761,29 +16761,25 @@ class StringInterpolation extends SingleStringLiteral {
  */
 abstract class StringLiteral extends Literal {
   /**
-   * Return the value of the string literal, or `null` if the string is not a constant string
-   * without any string interpolation.
-   *
-   * @return the value of the string literal
+   * Return the value of the string literal, or `null` if the string is not a
+   * constant string without any string interpolation.
    */
   String get stringValue {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     try {
-      appendStringValue(builder);
+      appendStringValue(buffer);
     } on IllegalArgumentException catch (exception) {
       return null;
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   /**
-   * Append the value of the given string literal to the given string builder.
-   *
-   * @param builder the builder to which the string's value is to be appended
-   * @throws IllegalArgumentException if the string is not a constant string without any string
-   *           interpolation
+   * Append the value of this string literal to the given [buffer]. Throw an
+   * [IllegalArgumentException] if the string is not a constant string without
+   * any string interpolation.
    */
-  void appendStringValue(JavaStringBuilder builder);
+  void appendStringValue(StringBuffer buffer);
 }
 
 /**

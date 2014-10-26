@@ -201,16 +201,16 @@ class AnalysisError {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append((source != null) ? source.fullName : "<unknown source>");
-    builder.append("(");
-    builder.append(_offset);
-    builder.append("..");
-    builder.append(_offset + _length - 1);
-    builder.append("): ");
-    //builder.append("(" + lineNumber + ":" + columnNumber + "): ");
-    builder.append(_message);
-    return builder.toString();
+    StringBuffer buffer = new StringBuffer();
+    buffer.write((source != null) ? source.fullName : "<unknown source>");
+    buffer.write("(");
+    buffer.write(_offset);
+    buffer.write("..");
+    buffer.write(_offset + _length - 1);
+    buffer.write("): ");
+    //buffer.write("(" + lineNumber + ":" + columnNumber + "): ");
+    buffer.write(_message);
+    return buffer.toString();
   }
 }
 

@@ -1513,14 +1513,14 @@ class TokenStreamValidator {
    * @param token the first token in the stream of tokens to be validated
    */
   void validate(Token token) {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    _validateStream(builder, token);
-    if (builder.length > 0) {
-      JUnitTestCase.fail(builder.toString());
+    StringBuffer buffer = new StringBuffer();
+    _validateStream(buffer, token);
+    if (buffer.length > 0) {
+      JUnitTestCase.fail(buffer.toString());
     }
   }
 
-  void _validateStream(JavaStringBuilder builder, Token token) {
+  void _validateStream(StringBuffer buffer, Token token) {
     if (token == null) {
       return;
     }
@@ -1528,24 +1528,24 @@ class TokenStreamValidator {
     int previousEnd = -1;
     Token currentToken = token;
     while (currentToken != null && currentToken.type != TokenType.EOF) {
-      _validateStream(builder, currentToken.precedingComments);
+      _validateStream(buffer, currentToken.precedingComments);
       TokenType type = currentToken.type;
       if (type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
         if (currentToken is! BeginToken) {
-          builder.append("\r\nExpected BeginToken, found ");
-          builder.append(currentToken.runtimeType.toString());
-          builder.append(" ");
-          _writeToken(builder, currentToken);
+          buffer.write("\r\nExpected BeginToken, found ");
+          buffer.write(currentToken.runtimeType.toString());
+          buffer.write(" ");
+          _writeToken(buffer, currentToken);
         }
       }
       int currentStart = currentToken.offset;
       int currentLength = currentToken.length;
       int currentEnd = currentStart + currentLength - 1;
       if (currentStart <= previousEnd) {
-        builder.append("\r\nInvalid token sequence: ");
-        _writeToken(builder, previousToken);
-        builder.append(" followed by ");
-        _writeToken(builder, currentToken);
+        buffer.write("\r\nInvalid token sequence: ");
+        _writeToken(buffer, previousToken);
+        buffer.write(" followed by ");
+        _writeToken(buffer, currentToken);
       }
       previousEnd = currentEnd;
       previousToken = currentToken;
@@ -1553,16 +1553,16 @@ class TokenStreamValidator {
     }
   }
 
-  void _writeToken(JavaStringBuilder builder, Token token) {
-    builder.append("[");
-    builder.append(token.type);
-    builder.append(", '");
-    builder.append(token.lexeme);
-    builder.append("', ");
-    builder.append(token.offset);
-    builder.append(", ");
-    builder.append(token.length);
-    builder.append("]");
+  void _writeToken(StringBuffer buffer, Token token) {
+    buffer.write("[");
+    buffer.write(token.type);
+    buffer.write(", '");
+    buffer.write(token.lexeme);
+    buffer.write("', ");
+    buffer.write(token.offset);
+    buffer.write(", ");
+    buffer.write(token.length);
+    buffer.write("]");
   }
 }
 

@@ -441,18 +441,18 @@ abstract class AbstractScannerTest extends JUnitTestCase {
       }
     }
     if (!success) {
-      JavaStringBuilder msg = new JavaStringBuilder();
-      msg.append("Expected line starts ");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("Expected line starts ");
       for (int start in expectedLineStarts) {
-        msg.append(start);
-        msg.append(", ");
+        buffer.write(start);
+        buffer.write(", ");
       }
-      msg.append(" but found ");
+      buffer.write(" but found ");
       for (int start in lineStarts) {
-        msg.append(start);
-        msg.append(", ");
+        buffer.write(start);
+        buffer.write(", ");
       }
-      JUnitTestCase.fail(msg.toString());
+      JUnitTestCase.fail(buffer.toString());
     }
     return firstToken;
   }

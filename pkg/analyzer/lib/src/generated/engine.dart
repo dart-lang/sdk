@@ -1107,15 +1107,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (comment == null) {
           return null;
         }
-        JavaStringBuilder builder = new JavaStringBuilder();
+        StringBuffer buffer = new StringBuffer();
         List<Token> tokens = comment.tokens;
         for (int i = 0; i < tokens.length; i++) {
           if (i > 0) {
-            builder.append("\n");
+            buffer.write("\n");
           }
-          builder.append(tokens[i].lexeme);
+          buffer.write(tokens[i].lexeme);
         }
-        return builder.toString();
+        return buffer.toString();
       }
       nameNode = nameNode.parent;
     }
@@ -5307,36 +5307,32 @@ class AnalysisDelta {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    bool needsSeparator = _appendSources(builder, false, AnalysisLevel.ALL);
-    needsSeparator = _appendSources(builder, needsSeparator, AnalysisLevel.RESOLVED);
-    _appendSources(builder, needsSeparator, AnalysisLevel.NONE);
-    return builder.toString();
+    StringBuffer buffer = new StringBuffer();
+    bool needsSeparator = _appendSources(buffer, false, AnalysisLevel.ALL);
+    needsSeparator = _appendSources(buffer, needsSeparator, AnalysisLevel.RESOLVED);
+    _appendSources(buffer, needsSeparator, AnalysisLevel.NONE);
+    return buffer.toString();
   }
 
   /**
-   * Append sources with the given analysis level, prefixed with a label and possibly a separator.
-   *
-   * @param builder the builder to which the sources are to be appended
-   * @param needsSeparator `true` if a separator is needed before the label
-   * @param level the analysis level of the sources to be appended
-   * @return `true` if future lists of sources will need a separator
+   * Appendto the given [builder] all sources with the given analysis [level],
+   * prefixed with a label and a separator if [needsSeparator] is `true`.
    */
-  bool _appendSources(JavaStringBuilder builder, bool needsSeparator, AnalysisLevel level) {
+  bool _appendSources(StringBuffer buffer, bool needsSeparator, AnalysisLevel level) {
     bool first = true;
     for (MapEntry<Source, AnalysisLevel> entry in getMapEntrySet(_analysisMap)) {
       if (entry.getValue() == level) {
         if (first) {
           first = false;
           if (needsSeparator) {
-            builder.append("; ");
+            buffer.write("; ");
           }
-          builder.append(level);
-          builder.append(" ");
+          buffer.write(level);
+          buffer.write(" ");
         } else {
-          builder.append(", ");
+          buffer.write(", ");
         }
-        builder.append(entry.getKey().fullName);
+        buffer.write(entry.getKey().fullName);
       }
     }
     return needsSeparator || !first;
@@ -7581,29 +7577,29 @@ class ChangeSet {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
-    bool needsSeparator = _appendSources(builder, addedSources, false, "addedSources");
-    needsSeparator = _appendSources(builder, changedSources, needsSeparator, "changedSources");
-    needsSeparator = _appendSources2(builder, _changedContent, needsSeparator, "changedContent");
-    needsSeparator = _appendSources2(builder, changedRanges, needsSeparator, "changedRanges");
-    needsSeparator = _appendSources(builder, deletedSources, needsSeparator, "deletedSources");
-    needsSeparator = _appendSources(builder, removedSources, needsSeparator, "removedSources");
+    StringBuffer buffer = new StringBuffer();
+    bool needsSeparator = _appendSources(buffer, addedSources, false, "addedSources");
+    needsSeparator = _appendSources(buffer, changedSources, needsSeparator, "changedSources");
+    needsSeparator = _appendSources2(buffer, _changedContent, needsSeparator, "changedContent");
+    needsSeparator = _appendSources2(buffer, changedRanges, needsSeparator, "changedRanges");
+    needsSeparator = _appendSources(buffer, deletedSources, needsSeparator, "deletedSources");
+    needsSeparator = _appendSources(buffer, removedSources, needsSeparator, "removedSources");
     int count = removedContainers.length;
     if (count > 0) {
       if (removedSources.isEmpty) {
         if (needsSeparator) {
-          builder.append("; ");
+          buffer.write("; ");
         }
-        builder.append("removed: from ");
-        builder.append(count);
-        builder.append(" containers");
+        buffer.write("removed: from ");
+        buffer.write(count);
+        buffer.write(" containers");
       } else {
-        builder.append(", and more from ");
-        builder.append(count);
-        builder.append(" containers");
+        buffer.write(", and more from ");
+        buffer.write(count);
+        buffer.write(" containers");
       }
     }
-    return builder.toString();
+    return buffer.toString();
   }
 
   /**
@@ -7616,18 +7612,18 @@ class ChangeSet {
    * @param label the label used to prefix the sources
    * @return `true` if future lists of sources will need a separator
    */
-  bool _appendSources(JavaStringBuilder builder, List<Source> sources, bool needsSeparator, String label) {
+  bool _appendSources(StringBuffer buffer, List<Source> sources, bool needsSeparator, String label) {
     if (sources.isEmpty) {
       return needsSeparator;
     }
     if (needsSeparator) {
-      builder.append("; ");
+      buffer.write("; ");
     }
-    builder.append(label);
+    buffer.write(label);
     String prefix = " ";
     for (Source source in sources) {
-      builder.append(prefix);
-      builder.append(source.fullName);
+      buffer.write(prefix);
+      buffer.write(source.fullName);
       prefix = ", ";
     }
     return true;
@@ -7643,18 +7639,18 @@ class ChangeSet {
    * @param label the label used to prefix the sources
    * @return `true` if future lists of sources will need a separator
    */
-  bool _appendSources2(JavaStringBuilder builder, HashMap<Source, dynamic> sources, bool needsSeparator, String label) {
+  bool _appendSources2(StringBuffer buffer, HashMap<Source, dynamic> sources, bool needsSeparator, String label) {
     if (sources.isEmpty) {
       return needsSeparator;
     }
     if (needsSeparator) {
-      builder.append("; ");
+      buffer.write("; ");
     }
-    builder.append(label);
+    buffer.write(label);
     String prefix = " ";
     for (Source source in sources.keys.toSet()) {
-      builder.append(prefix);
-      builder.append(source.fullName);
+      buffer.write(prefix);
+      buffer.write(source.fullName);
       prefix = ", ";
     }
     return true;
@@ -11314,13 +11310,13 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
       int index = 0;
       int textOffset = attributesAttribute.textOffset;
       int nameOffset = -1;
-      JavaStringBuilder nameBuilder = new JavaStringBuilder();
+      StringBuffer nameBuffer = new StringBuffer();
       while (index < attributesText.length) {
         int c = attributesText.codeUnitAt(index++);
         if (Character.isWhitespace(c)) {
           if (nameOffset != -1) {
-            nameTokens.add(new PolymerHtmlUnitBuilder_NameToken(nameOffset, nameBuilder.toString()));
-            nameBuilder = new JavaStringBuilder();
+            nameTokens.add(new PolymerHtmlUnitBuilder_NameToken(nameOffset, nameBuffer.toString()));
+            nameBuffer = new StringBuffer();
             nameOffset = -1;
           }
           continue;
@@ -11328,11 +11324,11 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
         if (nameOffset == -1) {
           nameOffset = textOffset + index - 1;
         }
-        nameBuilder.appendChar(c);
+        nameBuffer.writeCharCode(c);
       }
       if (nameOffset != -1) {
-        nameTokens.add(new PolymerHtmlUnitBuilder_NameToken(nameOffset, nameBuilder.toString()));
-        nameBuilder = new JavaStringBuilder();
+        nameTokens.add(new PolymerHtmlUnitBuilder_NameToken(nameOffset, nameBuffer.toString()));
+        nameBuffer = new StringBuffer();
       }
     }
     // create attributes for name tokens
@@ -13399,7 +13395,7 @@ class WorkManager {
 
   @override
   String toString() {
-    JavaStringBuilder builder = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     List<SourcePriority> priorities = SourcePriority.values;
     bool needsSeparator = false;
     int queueCount = _workQueues.length;
@@ -13407,21 +13403,21 @@ class WorkManager {
       List<Source> queue = _workQueues[i];
       if (!queue.isEmpty) {
         if (needsSeparator) {
-          builder.append("; ");
+          buffer.write("; ");
         }
-        builder.append(priorities[i]);
-        builder.append(": ");
+        buffer.write(priorities[i]);
+        buffer.write(": ");
         int queueSize = queue.length;
         for (int j = 0; j < queueSize; j++) {
           if (j > 0) {
-            builder.append(", ");
+            buffer.write(", ");
           }
-          builder.append(queue[j].fullName);
+          buffer.write(queue[j].fullName);
         }
         needsSeparator = true;
       }
     }
-    return builder.toString();
+    return buffer.toString();
   }
 }
 
