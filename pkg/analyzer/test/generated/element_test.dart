@@ -128,7 +128,9 @@ class ClassElementImplTest extends EngineTestCase {
   void test_getNode() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource("/test.dart", EngineTestCase.createSource(["class A {}", "class B {}"]));
+    Source source = contextHelper.addSource("/test.dart", r'''
+class A {}
+class B {}''');
     // prepare CompilationUnitElement
     LibraryElement libraryElement = context.computeLibraryElement(source);
     CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;

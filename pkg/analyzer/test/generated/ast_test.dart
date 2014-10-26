@@ -60,25 +60,25 @@ class AssignmentKind extends Enum<AssignmentKind> {
 
 class BreadthFirstVisitorTest extends ParserTestCase {
   void test_it() {
-    String source = EngineTestCase.createSource([
-        "class A {",
-        "  bool get g => true;",
-        "}",
-        "class B {",
-        "  int f() {",
-        "    num q() {",
-        "      return 3;",
-        "    }",
-        "  return q() + 4;",
-        "  }",
-        "}",
-        "A f(var p) {",
-        "  if ((p as A).g) {",
-        "    return p;",
-        "  } else {",
-        "    return null;",
-        "  }",
-        "}"]);
+    String source = r'''
+class A {
+  bool get g => true;
+}
+class B {
+  int f() {
+    num q() {
+      return 3;
+    }
+  return q() + 4;
+  }
+}
+A f(var p) {
+  if ((p as A).g) {
+    return p;
+  } else {
+    return null;
+  }
+}''';
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
     List<AstNode> nodes = new List<AstNode>();
     BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_BreadthFirstVisitorTest_testIt(nodes);
@@ -805,14 +805,18 @@ class NodeLocatorTest extends ParserTestCase {
   }
 
   void test_searchWithin_offsetAfterNode() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+class A {}
+class B {}''', []);
     NodeLocator locator = new NodeLocator.con2(1024, 1024);
     AstNode node = locator.searchWithin(unit.declarations[0]);
     JUnitTestCase.assertNull(node);
   }
 
   void test_searchWithin_offsetBeforeNode() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+class A {}
+class B {}''', []);
     NodeLocator locator = new NodeLocator.con2(0, 0);
     AstNode node = locator.searchWithin(unit.declarations[1]);
     JUnitTestCase.assertNull(node);

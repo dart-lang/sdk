@@ -438,7 +438,7 @@ class EngineTestCase extends JUnitTestCase {
       Predicate<AstNode> predicate) {
     int offset = code.indexOf(prefix);
     if (offset == -1) {
-      throw new IllegalArgumentException("Not found '${prefix}'.");
+      throw new IllegalArgumentException("Not found '$prefix'.");
     }
     AstNode node = new NodeLocator.con1(offset).searchWithin(root);
     return node.getAncestor(predicate);

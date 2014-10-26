@@ -61,7 +61,9 @@ class BuildUnitElementTaskTest extends EngineTestCase {
   }
 
   void test_perform_valid() {
-    var content = EngineTestCase.createSource(["library lib;", "class A {}"]);
+    var content = """
+library lib;
+class A {}""";
     Source source = new TestSource('/test.dart', content);
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     CompilationUnit unit = parseUnit(context, source, content);

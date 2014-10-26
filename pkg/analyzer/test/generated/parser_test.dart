@@ -275,12 +275,12 @@ class ComplexParserTest extends ParserTestCase {
   }
 
   void test_constructor_initializer_withParenthesizedExpression() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource([
-        "class C {",
-        "  C() :",
-        "    this.a = (b == null ? c : d) {",
-        "  }",
-        "}"]), []);
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+class C {
+  C() :
+    this.a = (b == null ? c : d) {
+  }
+}''', []);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     EngineTestCase.assertSizeOfList(1, declarations);
   }
@@ -2111,15 +2111,15 @@ class ParserTestCase extends EngineTestCase {
  */
 class RecoveryParserTest extends ParserTestCase {
   void fail_incomplete_returnType() {
-    ParserTestCase.parseCompilationUnit(EngineTestCase.createSource([
-        "Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {",
-        "  if (map == null) return null;",
-        "  Map<Symbol, dynamic> result = new Map<Symbol, dynamic>();",
-        "  map.forEach((name, value) {",
-        "    result[new Symbol(name)] = value;",
-        "  });",
-        "  return result;",
-        "}"]), []);
+    ParserTestCase.parseCompilationUnit(r'''
+Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
+  if (map == null) return null;
+  Map<Symbol, dynamic> result = new Map<Symbol, dynamic>();
+  map.forEach((name, value) {
+    result[new Symbol(name)] = value;
+  });
+  return result;
+}''', []);
   }
 
   void test_additiveExpression_missing_LHS() {
@@ -2360,7 +2360,9 @@ class RecoveryParserTest extends ParserTestCase {
   }
 
   void test_classTypeAlias_withBody() {
-    ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B = Object with A {}"]), [ParserErrorCode.EXPECTED_TOKEN]);
+    ParserTestCase.parseCompilationUnit(r'''
+class A {}
+class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_conditionalExpression_missingElse() {
@@ -2520,7 +2522,10 @@ class RecoveryParserTest extends ParserTestCase {
   }
 
   void test_incompleteField_const() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class C {", "  const", "}"]), [
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+class C {
+  const
+}''', [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -2540,7 +2545,10 @@ class RecoveryParserTest extends ParserTestCase {
   }
 
   void test_incompleteField_final() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class C {", "  final", "}"]), [
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+class C {
+  final
+}''', [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -2560,7 +2568,10 @@ class RecoveryParserTest extends ParserTestCase {
   }
 
   void test_incompleteField_var() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class C {", "  var", "}"]), [
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+class C {
+  var
+}''', [
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -2675,7 +2686,11 @@ class RecoveryParserTest extends ParserTestCase {
   }
 
   void test_missingGet() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class C {", "  int length {}", "  void foo() {}", "}"]), [ParserErrorCode.MISSING_GET]);
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+class C {
+  int length {}
+  void foo() {}
+}''', [ParserErrorCode.MISSING_GET]);
     JUnitTestCase.assertNotNull(unit);
     ClassDeclaration classDeclaration = unit.declarations[0] as ClassDeclaration;
     NodeList<ClassMember> members = classDeclaration.members;
@@ -3903,7 +3918,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAwaitExpression_asStatement_inAsync() {
-    MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], EngineTestCase.createSource(["m() async { await x; }"]));
+    MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "m() async { await x; }");
     FunctionBody body = method.body;
     EngineTestCase.assertInstanceOf((obj) => obj is BlockFunctionBody, BlockFunctionBody, body);
     Statement statement = (body as BlockFunctionBody).block.statements[0];
@@ -3915,7 +3930,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAwaitExpression_asStatement_inSync() {
-    MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], EngineTestCase.createSource(["m() { await x; }"]));
+    MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "m() { await x; }");
     FunctionBody body = method.body;
     EngineTestCase.assertInstanceOf((obj) => obj is BlockFunctionBody, BlockFunctionBody, body);
     Statement statement = (body as BlockFunctionBody).block.statements[0];
@@ -3923,7 +3938,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAwaitExpression_inSync() {
-    MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], EngineTestCase.createSource(["m() { return await x + await y; }"]));
+    MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], "m() { return await x + await y; }");
     FunctionBody body = method.body;
     EngineTestCase.assertInstanceOf((obj) => obj is BlockFunctionBody, BlockFunctionBody, body);
     Statement statement = (body as BlockFunctionBody).block.statements[0];
@@ -4707,7 +4722,10 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCommentAndMetadata_singleLine() {
-    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", EngineTestCase.createSource(["/// 1", "/// 2", "void"]), []);
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", r'''
+/// 1
+/// 2
+void''', []);
     JUnitTestCase.assertNotNull(commentAndMetadata.comment);
     EngineTestCase.assertSizeOfList(0, commentAndMetadata.metadata);
   }

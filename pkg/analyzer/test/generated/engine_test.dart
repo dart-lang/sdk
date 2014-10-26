@@ -169,12 +169,11 @@ class AnalysisContextImplTest extends EngineTestCase {
   void fail_performAnalysisTask_importedLibraryDelete_html() {
     Source htmlSource = _addSource(
         "/page.html",
-        EngineTestCase.createSource(
-            [
-                "<html><body><script type=\"application/dart\">",
-                "  import 'libB.dart';",
-                "  main() {print('hello dart');}",
-                "</script></body></html>"]));
+        r'''
+<html><body><script type="application/dart">
+  import 'libB.dart';
+  main() {print('hello dart');}
+</script></body></html>''');
     Source libBSource = _addSource("/libB.dart", "library libB;");
     _analyzeAll_assertFinished();
     JUnitTestCase.assertNotNullMsg(
@@ -233,11 +232,15 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source librarySource = _addSource(
         "/lib.dart",
-        EngineTestCase.createSource(["library lib;", "int a = 0;"]));
+        r'''
+library lib;
+int a = 0;''');
     JUnitTestCase.assertNotNull(_context.computeLibraryElement(librarySource));
     _context.setContents(
         librarySource,
-        EngineTestCase.createSource(["library lib;", "int aa = 0;"]));
+        r'''
+library lib;
+int aa = 0;''');
     JUnitTestCase.assertNull(_context.getLibraryElement(librarySource));
   }
 
@@ -246,19 +249,27 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source librarySource = _addSource(
         "/lib.dart",
-        EngineTestCase.createSource(
-            ["library lib;", "part 'part.dart';", "int a = 0;"]));
+        r'''
+library lib;
+part 'part.dart';
+int a = 0;''');
     Source partSource = _addSource(
         "/part.dart",
-        EngineTestCase.createSource(["part of lib;", "int b = a;"]));
+        r'''
+part of lib;
+int b = a;''');
     _context.computeLibraryElement(librarySource);
     _context.setContents(
         librarySource,
-        EngineTestCase.createSource(
-            ["library lib;", "part 'part.dart';", "int aa = 0;"]));
+        r'''
+library lib;
+part 'part.dart';
+int aa = 0;''');
     _context.setContents(
         partSource,
-        EngineTestCase.createSource(["part of lib;", "int b = aa;"]));
+        r'''
+part of lib;
+int b = aa;''');
     _context.computeLibraryElement(librarySource);
     CompilationUnit libraryUnit =
         _context.resolveCompilationUnit2(librarySource, librarySource);
@@ -301,9 +312,11 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source libA = _addSource(
         "/libA.dart",
-        EngineTestCase.createSource(["library libA;", "import 'libB.dart';"]));
+        r'''
+library libA;
+import 'libB.dart';''');
     Source libB =
-        _addSource("/libB.dart", EngineTestCase.createSource(["library libB;"]));
+        _addSource("/libB.dart", "library libB;");
     LibraryElement libAElement = _context.computeLibraryElement(libA);
     List<LibraryElement> importedLibraries = libAElement.importedLibraries;
     EngineTestCase.assertLength(2, importedLibraries);
@@ -325,9 +338,11 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source libA = _addSource(
         "/libA.dart",
-        EngineTestCase.createSource(["library libA;", "import 'libB.dart';"]));
+        r'''
+library libA;
+import 'libB.dart';''');
     Source libB =
-        _addSource("/libB.dart", EngineTestCase.createSource(["library libB;"]));
+        _addSource("/libB.dart", "library libB;");
     _context.computeLibraryElement(libA);
     _context.computeErrors(libA);
     _context.computeErrors(libB);
@@ -346,7 +361,9 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     String comment = "/** Comment */";
     Source source =
-        _addSource("/test.dart", EngineTestCase.createSource([comment, "class A {}"]));
+        _addSource("/test.dart", """
+$comment
+class A {}""");
     LibraryElement libraryElement = _context.computeLibraryElement(source);
     JUnitTestCase.assertNotNull(libraryElement);
     ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
@@ -360,7 +377,7 @@ class AnalysisContextImplTest extends EngineTestCase {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
     Source source =
-        _addSource("/test.dart", EngineTestCase.createSource(["class A {}"]));
+        _addSource("/test.dart", "class A {}");
     LibraryElement libraryElement = _context.computeLibraryElement(source);
     JUnitTestCase.assertNotNull(libraryElement);
     ClassElement classElement = libraryElement.definingCompilationUnit.types[0];
@@ -503,7 +520,10 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_computeLineInfo_dart() {
     Source source = _addSource(
         "/test.dart",
-        EngineTestCase.createSource(["library lib;", "", "main() {}"]));
+        r'''
+library lib;
+
+main() {}''');
     LineInfo info = _context.computeLineInfo(source);
     JUnitTestCase.assertNotNull(info);
   }
@@ -511,8 +531,12 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_computeLineInfo_html() {
     Source source = _addSource(
         "/test.html",
-        EngineTestCase.createSource(
-            ["<html>", "  <body>", "    <h1>A</h1>", "  </body>", "</html>"]));
+        r'''
+<html>
+  <body>
+    <h1>A</h1>
+  </body>
+</html>''');
     LineInfo info = _context.computeLineInfo(source);
     JUnitTestCase.assertNotNull(info);
   }
@@ -624,7 +648,10 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_getElement_constructor_named() {
     Source source = _addSource(
         "/lib.dart",
-        EngineTestCase.createSource(["class A {", "  A.named() {}", "}"]));
+        r'''
+class A {
+  A.named() {}
+}''');
     _analyzeAll_assertFinished();
     LibraryElement library = _context.computeLibraryElement(source);
     ClassElement classA = _findClass(library.definingCompilationUnit, "A");
@@ -637,7 +664,10 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_getElement_constructor_unnamed() {
     Source source = _addSource(
         "/lib.dart",
-        EngineTestCase.createSource(["class A {", "  A() {}", "}"]));
+        r'''
+class A {
+  A() {}
+}''');
     _analyzeAll_assertFinished();
     LibraryElement library = _context.computeLibraryElement(source);
     ClassElement classA = _findClass(library.definingCompilationUnit, "A");
@@ -677,11 +707,10 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_getErrors_html_some() {
     Source source = _addSource(
         "/test.html",
-        EngineTestCase.createSource(
-            [
-                "<html><head>",
-                "<script type='application/dart' src='test.dart'/>",
-                "</head></html>"]));
+        r'''
+<html><head>
+<script type='application/dart' src='test.dart'/>
+</head></html>''');
     List<AnalysisError> errors = _context.getErrors(source).errors;
     EngineTestCase.assertLength(0, errors);
     _context.computeErrors(source);
@@ -710,12 +739,11 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source htmlSource = _addSource(
         "/test.html",
-        EngineTestCase.createSource(
-            [
-                "<html><head>",
-                "<script type='application/dart' src='test.dart'/>",
-                "<script type='application/dart' src='test.js'/>",
-                "</head></html>"]));
+        r'''
+<html><head>
+<script type='application/dart' src='test.dart'/>
+<script type='application/dart' src='test.js'/>
+</head></html>''');
     Source librarySource = _addSource("/test.dart", "library lib;");
     Source secondHtmlSource = _addSource("/test.html", "<html></html>");
     _context.computeLibraryElement(librarySource);
@@ -729,12 +757,11 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_getHtmlFilesReferencing_library() {
     Source htmlSource = _addSource(
         "/test.html",
-        EngineTestCase.createSource(
-            [
-                "<html><head>",
-                "<script type='application/dart' src='test.dart'/>",
-                "<script type='application/dart' src='test.js'/>",
-                "</head></html>"]));
+        r'''
+<html><head>
+<script type='application/dart' src='test.dart'/>
+<script type='application/dart' src='test.js'/>
+</head></html>''');
     Source librarySource = _addSource("/test.dart", "library lib;");
     List<Source> result = _context.getHtmlFilesReferencing(librarySource);
     EngineTestCase.assertLength(0, result);
@@ -749,12 +776,11 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source htmlSource = _addSource(
         "/test.html",
-        EngineTestCase.createSource(
-            [
-                "<html><head>",
-                "<script type='application/dart' src='test.dart'/>",
-                "<script type='application/dart' src='test.js'/>",
-                "</head></html>"]));
+        r'''
+<html><head>
+<script type='application/dart' src='test.dart'/>
+<script type='application/dart' src='test.js'/>
+</head></html>''');
     Source librarySource =
         _addSource("/test.dart", "library lib; part 'part.dart';");
     Source partSource = _addSource("/part.dart", "part of lib;");
@@ -808,7 +834,9 @@ class AnalysisContextImplTest extends EngineTestCase {
     EngineTestCase.assertLength(0, sources);
     Source source = _addSource(
         "/test.dart",
-        EngineTestCase.createSource(["import 'dart:html';", "main() {}"]));
+        r'''
+import 'dart:html';
+main() {}''');
     _context.computeLibraryElement(source);
     sources = _context.launchableClientLibrarySources;
     EngineTestCase.assertLength(1, sources);
@@ -830,7 +858,9 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source librarySource = _addSource(
         "/lib.dart",
-        EngineTestCase.createSource(["library lib;", "part 'part.dart';"]));
+        r'''
+library lib;
+part 'part.dart';''');
     Source partSource = _addSource("/part.dart", "part of lib;");
     _context.computeLibraryElement(librarySource);
     List<Source> result = _context.getLibrariesContaining(librarySource);
@@ -848,12 +878,16 @@ class AnalysisContextImplTest extends EngineTestCase {
     _addSource("/libB.dart", "library libB;");
     Source lib1Source = _addSource(
         "/lib1.dart",
-        EngineTestCase.createSource(
-            ["library lib1;", "import 'libA.dart';", "export 'libB.dart';"]));
+        r'''
+library lib1;
+import 'libA.dart';
+export 'libB.dart';''');
     Source lib2Source = _addSource(
         "/lib2.dart",
-        EngineTestCase.createSource(
-            ["library lib2;", "import 'libB.dart';", "export 'libA.dart';"]));
+        r'''
+library lib2;
+import 'libB.dart';
+export 'libA.dart';''');
     _context.computeLibraryElement(lib1Source);
     _context.computeLibraryElement(lib2Source);
     List<Source> result = _context.getLibrariesDependingOn(libASource);
@@ -865,12 +899,11 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source htmlSource = _addSource(
         "/test.html",
-        EngineTestCase.createSource(
-            [
-                "<html><head>",
-                "<script type='application/dart' src='test.dart'/>",
-                "<script type='application/dart' src='test.js'/>",
-                "</head></html>"]));
+        r'''
+<html><head>
+<script type='application/dart' src='test.dart'/>
+<script type='application/dart' src='test.js'/>
+</head></html>''');
     Source librarySource = _addSource("/test.dart", "library lib;");
     _context.computeLibraryElement(librarySource);
     _context.parseHtmlUnit(htmlSource);
@@ -884,11 +917,10 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source htmlSource = _addSource(
         "/test.html",
-        EngineTestCase.createSource(
-            [
-                "<html><head>",
-                "<script type='application/dart' src='test.js'/>",
-                "</head></html>"]));
+        r'''
+<html><head>
+<script type='application/dart' src='test.js'/>
+</head></html>''');
     _addSource("/test.dart", "library lib;");
     _context.parseHtmlUnit(htmlSource);
     List<Source> result = _context.getLibrariesReferencedFromHtml(htmlSource);
@@ -925,7 +957,10 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_getLineInfo() {
     Source source = _addSource(
         "/test.dart",
-        EngineTestCase.createSource(["library lib;", "", "main() {}"]));
+        r'''
+library lib;
+
+main() {}''');
     LineInfo info = _context.getLineInfo(source);
     JUnitTestCase.assertNull(info);
     _context.parseCompilationUnit(source);
@@ -1046,7 +1081,10 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource(
         "/test.dart",
-        EngineTestCase.createSource(["import 'dart:html';", "", "main() {}"]));
+        r'''
+import 'dart:html';
+
+main() {}''');
     JUnitTestCase.assertFalse(_context.isClientLibrary(source));
     JUnitTestCase.assertFalse(_context.isServerLibrary(source));
     _context.computeLibraryElement(source);
@@ -1064,7 +1102,10 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source source = _addSource(
         "/test.dart",
-        EngineTestCase.createSource(["library lib;", "", "main() {}"]));
+        r'''
+library lib;
+
+main() {}''');
     JUnitTestCase.assertFalse(_context.isClientLibrary(source));
     JUnitTestCase.assertFalse(_context.isServerLibrary(source));
     _context.computeLibraryElement(source);
@@ -1129,21 +1170,22 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_parseHtmlUnit_resolveDirectives() {
     Source libSource = _addSource(
         "/lib.dart",
-        EngineTestCase.createSource(["library lib;", "class ClassA {}"]));
+        r'''
+library lib;
+class ClassA {}''');
     Source source = _addSource(
         "/lib.html",
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "<head>",
-                "  <script type='application/dart'>",
-                "    import 'lib.dart';",
-                "    ClassA v = null;",
-                "  </script>",
-                "</head>",
-                "<body>",
-                "</body>",
-                "</html>"]));
+        r'''
+<html>
+<head>
+  <script type='application/dart'>
+    import 'lib.dart';
+    ClassA v = null;
+  </script>
+</head>
+<body>
+</body>
+</html>''');
     ht.HtmlUnit unit = _context.parseHtmlUnit(source);
     // import directive should be resolved
     ht.XmlTagNode htmlNode = unit.tagNodes[0];
@@ -1174,12 +1216,16 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_performAnalysisTask_addPart() {
     Source libSource = _addSource(
         "/lib.dart",
-        EngineTestCase.createSource(["library lib;", "part 'part.dart';"]));
+        r'''
+library lib;
+part 'part.dart';''');
     // run all tasks without part
     _analyzeAll_assertFinished();
     // add part and run all tasks
     Source partSource =
-        _addSource("/part.dart", EngineTestCase.createSource(["part of lib;", ""]));
+        _addSource("/part.dart", r'''
+part of lib;
+''');
     _analyzeAll_assertFinished();
     // "libSource" should be here
     List<Source> librariesWithPart =
@@ -1278,11 +1324,13 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_performAnalysisTask_changePartContents_makeItAPart() {
     Source libSource = _addSource(
         "/lib.dart",
-        EngineTestCase.createSource(
-            ["library lib;", "part 'part.dart';", "void f(x) {}"]));
+        r'''
+library lib;
+part 'part.dart';
+void f(x) {}''');
     Source partSource = _addSource(
         "/part.dart",
-        EngineTestCase.createSource(["void g() { f(null); }"]));
+        "void g() { f(null); }");
     _analyzeAll_assertFinished();
     JUnitTestCase.assertNotNullMsg(
         "library resolved 1",
@@ -1293,7 +1341,9 @@ class AnalysisContextImplTest extends EngineTestCase {
     // update and analyze
     _context.setContents(
         partSource,
-        EngineTestCase.createSource(["part of lib;", "void g() { f(null); }"]));
+        r'''
+part of lib;
+void g() { f(null); }''');
     JUnitTestCase.assertNullMsg(
         "library changed 2",
         _context.getResolvedCompilationUnit2(libSource, libSource));
@@ -1317,18 +1367,24 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_performAnalysisTask_changePartContents_makeItNotPart() {
     Source libSource = _addSource(
         "/lib.dart",
-        EngineTestCase.createSource(
-            ["library lib;", "part 'part.dart';", "void f(x) {}"]));
+        r'''
+library lib;
+part 'part.dart';
+void f(x) {}''');
     Source partSource = _addSource(
         "/part.dart",
-        EngineTestCase.createSource(["part of lib;", "void g() { f(null); }"]));
+        r'''
+part of lib;
+void g() { f(null); }''');
     _analyzeAll_assertFinished();
     EngineTestCase.assertLength(0, _context.getErrors(libSource).errors);
     EngineTestCase.assertLength(0, _context.getErrors(partSource).errors);
     // Remove 'part' directive, which should make "f(null)" an error.
     _context.setContents(
         partSource,
-        EngineTestCase.createSource(["//part of lib;", "void g() { f(null); }"]));
+        r'''
+//part of lib;
+void g() { f(null); }''');
     _analyzeAll_assertFinished();
     JUnitTestCase.assertTrue(_context.getErrors(libSource).errors.length != 0);
   }
@@ -1403,12 +1459,11 @@ class AnalysisContextImplTest extends EngineTestCase {
   void test_performAnalysisTask_importedLibraryAdd_html() {
     Source htmlSource = _addSource(
         "/page.html",
-        EngineTestCase.createSource(
-            [
-                "<html><body><script type=\"application/dart\">",
-                "  import '/libB.dart';",
-                "  main() {print('hello dart');}",
-                "</script></body></html>"]));
+        r'''
+<html><body><script type="application/dart">
+  import '/libB.dart';
+  main() {print('hello dart');}
+</script></body></html>''');
     _analyzeAll_assertFinished();
     JUnitTestCase.assertNotNullMsg(
         "htmlUnit resolved 1",
@@ -1601,19 +1656,25 @@ class AnalysisContextImplTest extends EngineTestCase {
     options.incremental = true;
     _context = AnalysisContextFactory.contextWithCoreAndOptions(options);
     _sourceFactory = _context.sourceFactory;
-    String oldCode = EngineTestCase.createSource(
-        ["library lib;", "part 'part.dart';", "int a = 0;"]);
+    String oldCode = r'''
+library lib;
+part 'part.dart';
+int a = 0;''';
     Source librarySource = _addSource("/lib.dart", oldCode);
     Source partSource = _addSource(
         "/part.dart",
-        EngineTestCase.createSource(["part of lib;", "int b = a;"]));
+        r'''
+part of lib;
+int b = a;''');
     LibraryElement element = _context.computeLibraryElement(librarySource);
     CompilationUnit unit =
         _context.getResolvedCompilationUnit(librarySource, element);
     JUnitTestCase.assertNotNull(unit);
     int offset = oldCode.indexOf("int a") + 4;
-    String newCode = EngineTestCase.createSource(
-        ["library lib;", "part 'part.dart';", "int ya = 0;"]);
+    String newCode = r'''
+library lib;
+part 'part.dart';
+int ya = 0;''';
     JUnitTestCase.assertNull(_getIncrementalAnalysisCache(_context));
     _context.setChangedContents(librarySource, newCode, offset, 0, 1);
     JUnitTestCase.assertEquals(
@@ -1636,11 +1697,15 @@ class AnalysisContextImplTest extends EngineTestCase {
     _context.analysisOptions = options;
     _sourceFactory = _context.sourceFactory;
     String oldCode =
-        EngineTestCase.createSource(["library lib;", "int a = 0;"]);
+        r'''
+library lib;
+int a = 0;''';
     Source librarySource = _addSource("/lib.dart", oldCode);
     int offset = oldCode.indexOf("int a") + 4;
     String newCode =
-        EngineTestCase.createSource(["library lib;", "int ya = 0;"]);
+        r'''
+library lib;
+int ya = 0;''';
     _context.setChangedContents(librarySource, newCode, offset, 0, 1);
     JUnitTestCase.assertEquals(
         newCode,
@@ -1653,11 +1718,15 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source librarySource = _addSource(
         "/lib.dart",
-        EngineTestCase.createSource(
-            ["library lib;", "part 'part.dart';", "int a = 0;"]));
+        r'''
+library lib;
+part 'part.dart';
+int a = 0;''');
     Source partSource = _addSource(
         "/part.dart",
-        EngineTestCase.createSource(["part of lib;", "int b = a;"]));
+        r'''
+part of lib;
+int b = a;''');
     _context.computeLibraryElement(librarySource);
     IncrementalAnalysisCache incrementalCache = new IncrementalAnalysisCache(
         librarySource,
@@ -1674,8 +1743,10 @@ class AnalysisContextImplTest extends EngineTestCase {
         _getIncrementalAnalysisCache(_context));
     _context.setContents(
         librarySource,
-        EngineTestCase.createSource(
-            ["library lib;", "part 'part.dart';", "int aa = 0;"]));
+        r'''
+library lib;
+part 'part.dart';
+int aa = 0;''');
     JUnitTestCase.assertNull(
         _context.getResolvedCompilationUnit2(partSource, librarySource));
     JUnitTestCase.assertNull(_getIncrementalAnalysisCache(_context));
@@ -1686,7 +1757,9 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source librarySource = _addSource(
         "/lib.dart",
-        EngineTestCase.createSource(["library lib;", "int a = 0;"]));
+        r'''
+library lib;
+int a = 0;''');
     _context.computeLibraryElement(librarySource);
     IncrementalAnalysisCache incrementalCache = new IncrementalAnalysisCache(
         librarySource,
@@ -1719,11 +1792,15 @@ class AnalysisContextImplTest extends EngineTestCase {
     _sourceFactory = _context.sourceFactory;
     Source test1 = _addSource(
         "/test1.dart",
-        EngineTestCase.createSource(["import 'test2.dart';", "library test1;"]));
+        r'''
+import 'test2.dart';
+library test1;''');
     Source test2 = _addSource(
         "/test2.dart",
-        EngineTestCase.createSource(
-            ["import 'test1.dart';", "import 'test3.dart';", "library test2;"]));
+        r'''
+import 'test1.dart';
+import 'test3.dart';
+library test2;''');
     Source test3 = _addSourceWithException("/test3.dart");
     _analyzeAll_assertFinished();
     // test1 and test2 should have been successfully analyzed
@@ -3463,8 +3540,11 @@ class GenerateDartErrorsTaskTest extends EngineTestCase {
     context.applyChanges(changeSet);
     context.setContents(
         source,
-        EngineTestCase.createSource(
-            ["library lib;", "class A {", "  int f = new A();", "}"]));
+        r'''
+library lib;
+class A {
+  int f = new A();
+}''');
     LibraryElement libraryElement = context.computeLibraryElement(source);
     CompilationUnit unit =
         context.getResolvedCompilationUnit(source, libraryElement);
@@ -3493,8 +3573,10 @@ class GenerateDartErrorsTaskTest extends EngineTestCase {
 //        "class A {}"]));
     context.setContents(
         source,
-        EngineTestCase.createSource(
-            ["library lib;", "part '/does/not/exist.dart';", "class A {}"]));
+        r'''
+library lib;
+part '/does/not/exist.dart';
+class A {}''');
     LibraryElement libraryElement = context.computeLibraryElement(source);
     CompilationUnit unit =
         context.getResolvedCompilationUnit(source, libraryElement);
@@ -3595,14 +3677,16 @@ class GenerateDartHintsTaskTest extends EngineTestCase {
     context.applyChanges(changeSet);
     context.setContents(
         librarySource,
-        EngineTestCase.createSource(
-            ["library lib;", "import 'unused.dart';", "part 'part.dart';"]));
+        r'''
+library lib;
+import 'unused.dart';
+part 'part.dart';''');
     context.setContents(
         unusedSource,
-        EngineTestCase.createSource(["library unused;"]));
+        "library unused;");
     context.setContents(
         partSource,
-        EngineTestCase.createSource(["part of lib;"]));
+        "part of lib;");
     List<TimestampedData<CompilationUnit>> units = new List<TimestampedData>(2);
     units[0] = new TimestampedData<CompilationUnit>(
         context.getModificationStamp(librarySource),
@@ -4576,10 +4660,8 @@ class IncrementalAnalysisTaskTest extends EngineTestCase {
 
   CompilationUnit _assertTask(String prefix, String removed, String added,
       String suffix) {
-    String oldCode =
-        EngineTestCase.createSource(["${prefix}${removed}${suffix}"]);
-    String newCode =
-        EngineTestCase.createSource(["${prefix}${added}${suffix}"]);
+    String oldCode = "${prefix}${removed}${suffix}";
+    String newCode = "${prefix}${added}${suffix}";
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     Source source = new TestSource("/test.dart", oldCode);
     DartEntry entry = new DartEntry();
@@ -5178,13 +5260,12 @@ class ParseDartTaskTest extends EngineTestCase {
   }
 
   void test_perform_library() {
-    String content = EngineTestCase.createSource(
-        [
-            "library lib;",
-            "import 'lib2.dart';",
-            "export 'lib3.dart';",
-            "part 'part.dart';",
-            "class A {"]);
+    String content = r'''
+library lib;
+import 'lib2.dart';
+export 'lib3.dart';
+part 'part.dart';
+class A {''';
     Source source = new TestSource('/test.dart', content);
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.sourceFactory = new SourceFactory([new FileUriResolver()]);
@@ -5194,7 +5275,9 @@ class ParseDartTaskTest extends EngineTestCase {
 
   void test_perform_part() {
     String content =
-        EngineTestCase.createSource(["part of lib;", "class B {}"]);
+        r'''
+part of lib;
+class B {}''';
     Source source = new TestSource('/test.dart', content);
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.sourceFactory = new SourceFactory([new FileUriResolver()]);
@@ -5203,14 +5286,13 @@ class ParseDartTaskTest extends EngineTestCase {
   }
 
   void test_perform_validateDirectives() {
-    String content = EngineTestCase.createSource(
-        [
-            "library lib;",
-            "import '/does/not/exist.dart';",
-            "import '://invaliduri.dart';",
-            "export '\${a}lib3.dart';",
-            "part 'part.dart';",
-            "class A {}"]);
+    String content = r'''
+library lib;
+import '/does/not/exist.dart';
+import '://invaliduri.dart';
+export '${a}lib3.dart';
+part 'part.dart';
+class A {}''';
     Source source = new TestSource('/test.dart', content);
     InternalAnalysisContext context = new AnalysisContextImpl();
     context.sourceFactory = new SourceFactory([new FileUriResolver()]);
@@ -5391,17 +5473,16 @@ class ParseHtmlTaskTest extends EngineTestCase {
   }
 
   void test_perform_embedded_source() {
-    String contents = EngineTestCase.createSource(
-        [
-            "<html>",
-            "<head>",
-            "  <script type='application/dart'>",
-            "    void buttonPressed() {}",
-            "  </script>",
-            "</head>",
-            "<body>",
-            "</body>",
-            "</html>"]);
+    String contents = r'''
+<html>
+<head>
+  <script type='application/dart'>
+    void buttonPressed() {}
+  </script>
+</head>
+<body>
+</body>
+</html>''';
     TestLogger testLogger = new TestLogger();
     ParseHtmlTask task = parseContents(contents, testLogger);
     EngineTestCase.assertLength(0, task.referencedLibraries);
@@ -5410,15 +5491,14 @@ class ParseHtmlTaskTest extends EngineTestCase {
   }
 
   void test_perform_empty_source_reference() {
-    String contents = EngineTestCase.createSource(
-        [
-            "<html>",
-            "<head>",
-            "  <script type='application/dart' src=''/>",
-            "</head>",
-            "<body>",
-            "</body>",
-            "</html>"]);
+    String contents = r'''
+<html>
+<head>
+  <script type='application/dart' src=''/>
+</head>
+<body>
+</body>
+</html>''';
     TestLogger testLogger = new TestLogger();
     ParseHtmlTask task = parseContents(contents, testLogger);
     EngineTestCase.assertLength(0, task.referencedLibraries);
@@ -5427,15 +5507,14 @@ class ParseHtmlTaskTest extends EngineTestCase {
   }
 
   void test_perform_invalid_source_reference() {
-    String contents = EngineTestCase.createSource(
-        [
-            "<html>",
-            "<head>",
-            "  <script type='application/dart' src='an;invalid:[]uri'/>",
-            "</head>",
-            "<body>",
-            "</body>",
-            "</html>"]);
+    String contents = r'''
+<html>
+<head>
+  <script type='application/dart' src='an;invalid:[]uri'/>
+</head>
+<body>
+</body>
+</html>''';
     TestLogger testLogger = new TestLogger();
     ParseHtmlTask task = parseContents(contents, testLogger);
     EngineTestCase.assertLength(0, task.referencedLibraries);
@@ -5444,15 +5523,14 @@ class ParseHtmlTaskTest extends EngineTestCase {
   }
 
   void test_perform_non_existing_source_reference() {
-    String contents = EngineTestCase.createSource(
-        [
-            "<html>",
-            "<head>",
-            "  <script type='application/dart' src='does/not/exist.dart'/>",
-            "</head>",
-            "<body>",
-            "</body>",
-            "</html>"]);
+    String contents = r'''
+<html>
+<head>
+  <script type='application/dart' src='does/not/exist.dart'/>
+</head>
+<body>
+</body>
+</html>''';
     TestLogger testLogger = new TestLogger();
     ParseHtmlTask task = parseSource(
         new ParseHtmlTaskTest_non_existing_source(contents),
@@ -5589,7 +5667,9 @@ class ResolveDartLibraryTaskTest extends EngineTestCase {
   void test_perform_library() {
     Source source = new TestSource(
         '/test.dart',
-        EngineTestCase.createSource(["library lib;", "class A {}"]));
+        r'''
+library lib;
+class A {}''');
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     ResolveDartLibraryTask task =
         new ResolveDartLibraryTask(context, source, source);
@@ -5690,7 +5770,9 @@ class ResolveDartUnitTaskTest extends EngineTestCase {
     Source source = unitElement.source;
     context.setContents(
         source,
-        EngineTestCase.createSource(["library lib;", "class A {}"]));
+        r'''
+library lib;
+class A {}''');
     ResolveDartUnitTask task =
         new ResolveDartUnitTask(context, source, libraryElement);
     task.perform(
@@ -5770,17 +5852,16 @@ class ResolveHtmlTaskTest extends EngineTestCase {
 
   void test_perform_valid() {
     int modificationStamp = 73;
-    String content = EngineTestCase.createSource(
-        [
-            "<html>",
-            "<head>",
-            "  <script type='application/dart'>",
-            "    void f() { x = 0; }",
-            "  </script>",
-            "</head>",
-            "<body>",
-            "</body>",
-            "</html>"]);
+    String content = r'''
+<html>
+<head>
+  <script type='application/dart'>
+    void f() { x = 0; }
+  </script>
+</head>
+<body>
+</body>
+</html>''';
     Source source = new TestSource("/test.html", content);
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     ParseHtmlTask parseTask =

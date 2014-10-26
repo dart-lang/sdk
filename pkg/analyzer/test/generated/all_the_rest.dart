@@ -760,15 +760,14 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_notAngular() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = EngineTestCase.createSource(
-        [
-            "class Component {",
-            "  const Component(a, b);",
-            "}",
-            "",
-            "@Component('foo', 42)",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = r'''
+class Component {
+  const Component(a, b);
+}
+
+@Component('foo', 42)
+class MyComponent {
+}''';
     resolveMainSource(mainContent);
     assertNoMainErrors();
   }
@@ -1088,8 +1087,11 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   void test_bad_notConstructorAnnotation() {
-    String mainContent = EngineTestCase.createSource(
-        ["const MY_ANNOTATION = null;", "@MY_ANNOTATION()", "class MyFilter {", "}"]);
+    String mainContent = r'''
+const MY_ANNOTATION = null;
+@MY_ANNOTATION()
+class MyFilter {
+}''';
     resolveMainSource(mainContent);
     // prepare AngularFilterElement
     ClassElement classElement = mainUnitElement.getType("MyFilter");
@@ -1287,9 +1289,13 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   void test_getElement_noClassElement() {
-    resolveMainSource(
-        EngineTestCase.createSource(
-            ["class A {", "  const A(p);", "}", "", "@A('bar')", "class B {}"]));
+    resolveMainSource(r'''
+class A {
+  const A(p);
+}
+
+@A('bar')
+class B {}''');
     SimpleStringLiteral node =
         _findMainNode("bar'", (n) => n is SimpleStringLiteral);
     // reset B element
@@ -1307,9 +1313,10 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   void test_getElement_notFound() {
-    resolveMainSource(
-        EngineTestCase.createSource(
-            ["class MyComponent {", "  var str = 'some string';", "}"]));
+    resolveMainSource(r'''
+class MyComponent {
+  var str = 'some string';
+}''');
     // prepare node
     SimpleStringLiteral node =
         _findMainNode("some string'", (n) => n is SimpleStringLiteral);
@@ -1489,26 +1496,25 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
 
 class AngularHtmlUnitResolverTest extends AngularTest {
   void test_NgComponent_resolveTemplateFile() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "  String field;",
-                "}"]));
+    addMainSource(r'''
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+  String field;
+}''');
     contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular([]));
     addIndexSource2(
         "/my_template.html",
-        EngineTestCase.createSource(
-            ["    <div>", "      {{ctrl.field}}", "    </div>"]));
+        r'''
+    <div>
+      {{ctrl.field}}
+    </div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     resolveIndex();
@@ -1520,19 +1526,20 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void test_NgComponent_updateDartFile() {
     Source componentSource = contextHelper.addSource(
         "/my_component.dart",
-        EngineTestCase.createSource(
-            [
-                "library my.component;",
-                "import 'angular.dart';",
-                "@Component(selector: 'myComponent')",
-                "class MyComponent {",
-                "}"]));
+        r'''
+library my.component;
+import 'angular.dart';
+@Component(selector: 'myComponent')
+class MyComponent {
+}''');
     contextHelper.addSource(
         "/my_module.dart",
-        EngineTestCase.createSource(
-            ["library my.module;", "import 'my_component.dart';"]));
-    addMainSource(
-        EngineTestCase.createSource(["library main;", "import 'my_module.dart';"]));
+        r'''
+library my.module;
+import 'my_component.dart';''');
+    addMainSource(r'''
+library main;
+import 'my_module.dart';''');
     _resolveIndexNoErrors(
         AngularTest.createHtmlWithMyController(["<myComponent/>"]));
     // "myComponent" tag was resolved
@@ -1570,23 +1577,23 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   void test_NgComponent_use_resolveAttributes() {
     contextHelper.addSource(
         "/my_template.html",
-        EngineTestCase.createSource(
-            ["    <div>", "      {{ctrl.field}}", "    </div>"]));
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent', // selector",
-                "    map: const {'attrA' : '=>setA', 'attrB' : '@setB'})",
-                "class MyComponent {",
-                "  set setA(value) {}",
-                "  set setB(value) {}",
-                "}"]));
+        r'''
+    <div>
+      {{ctrl.field}}
+    </div>''');
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent', // selector
+    map: const {'attrA' : '=>setA', 'attrB' : '@setB'})
+class MyComponent {
+  set setA(value) {}
+  set setB(value) {}
+}''');
     _resolveIndexNoErrors(
         AngularTest.createHtmlWithMyController(
             [
@@ -1625,47 +1632,41 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_NgDirective_noAttribute() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@NgDirective(selector: '[my-directive]', map: const {'foo': '=>input'})",
-                "class MyDirective {",
-                "  set input(value) {}",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@NgDirective(selector: '[my-directive]', map: const {'foo': '=>input'})
+class MyDirective {
+  set input(value) {}
+}''');
     _resolveIndexNoErrors(
         AngularTest.createHtmlWithMyController(["<div my-directive>", "</div>"]));
   }
 
   void test_NgDirective_noExpression() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@NgDirective(selector: '[my-directive]', map: const {'.': '=>input'})",
-                "class MyDirective {",
-                "  set input(value) {}",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@NgDirective(selector: '[my-directive]', map: const {'.': '=>input'})
+class MyDirective {
+  set input(value) {}
+}''');
     _resolveIndexNoErrors(
         AngularTest.createHtmlWithMyController(["<div my-directive>", "</div>"]));
   }
 
   void test_NgDirective_resolvedExpression() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Decorator(selector: '[my-directive]')",
-                "class MyDirective {",
-                "  @NgOneWay('my-property')",
-                "  String condition;",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Decorator(selector: '[my-directive]')
+class MyDirective {
+  @NgOneWay('my-property')
+  String condition;
+}''');
     _resolveIndexNoErrors(
         AngularTest.createHtmlWithMyController(
             [
@@ -1699,17 +1700,15 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_NgDirective_resolvedExpression_attrString() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@NgDirective(selector: '[my-directive])",
-                "class MyDirective {",
-                "  @NgAttr('my-property')",
-                "  String property;",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@NgDirective(selector: '[my-directive])
+class MyDirective {
+  @NgAttr('my-property')
+  String property;
+}''');
     _resolveIndexNoErrors(
         AngularTest.createHtmlWithMyController(
             [
@@ -1722,18 +1721,16 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_NgDirective_resolvedExpression_dotAsName() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Decorator(",
-                "    selector: '[my-directive]',",
-                "    map: const {'.' : '=>condition'})",
-                "class MyDirective {",
-                "  set condition(value) {}",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Decorator(
+    selector: '[my-directive]',
+    map: const {'.' : '=>condition'})
+class MyDirective {
+  set condition(value) {}
+}''');
     _resolveIndexNoErrors(
         AngularTest.createHtmlWithMyController(
             [
@@ -1745,25 +1742,25 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void fail_analysisContext_changeDart_invalidateApplication() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+}''');
     contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular([]));
     addIndexSource2(
         "/my_template.html",
-        EngineTestCase.createSource(
-            ["    <div>", "      {{ctrl.noMethod()}}", "    </div>"]));
+        r'''
+    <div>
+      {{ctrl.noMethod()}}
+    </div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     // there are some errors in my_template.html
@@ -1782,18 +1779,16 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_analysisContext_changeEntryPoint_clearAngularErrors_inDart() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+}''');
     Source entrySource = contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular([]));
@@ -1814,25 +1809,25 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_analysisContext_changeEntryPoint_clearAngularErrors_inTemplate() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+}''');
     Source entrySource = contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular([]));
     addIndexSource2(
         "/my_template.html",
-        EngineTestCase.createSource(
-            ["    <div>", "      {{ctrl.noMethod()}}", "    </div>"]));
+        r'''
+    <div>
+      {{ctrl.noMethod()}}
+    </div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     // there are some errors in my_template.html
@@ -1850,18 +1845,16 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_analysisContext_removeEntryPoint_clearAngularErrors_inDart() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'no-such-template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+}''');
     Source entrySource = contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular([]));
@@ -2165,16 +2158,14 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_notResolved_noDartScript() {
-    resolveIndex2(
-        EngineTestCase.createSource(
-            [
-                "<html ng-app>",
-                "  <body>",
-                "    <div my-marker>",
-                "      {{ctrl.field}}",
-                "    </div>",
-                "  </body>",
-                "</html>"]));
+    resolveIndex2(r'''
+<html ng-app>
+  <body>
+    <div my-marker>
+      {{ctrl.field}}
+    </div>
+  </body>
+</html>''');
     assertNoErrors();
     // Angular is not initialized, so "ctrl" is not parsed
     Expression expression =
@@ -2183,16 +2174,14 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_notResolved_notAngular() {
-    resolveIndex2(
-        EngineTestCase.createSource(
-            [
-                "<html no-ng-app>",
-                "  <body>",
-                "    <div my-marker>",
-                "      {{ctrl.field}}",
-                "    </div>",
-                "  </body>",
-                "</html>"]));
+    resolveIndex2(r'''
+<html no-ng-app>
+  <body>
+    <div my-marker>
+      {{ctrl.field}}
+    </div>
+  </body>
+</html>''');
     assertNoErrors();
     // Angular is not initialized, so "ctrl" is not parsed
     Expression expression =
@@ -2202,17 +2191,15 @@ class AngularHtmlUnitResolverTest extends AngularTest {
 
   void test_notResolved_wrongControllerMarker() {
     addMyController();
-    addIndexSource(
-        EngineTestCase.createSource(
-            [
-                "<html ng-app>",
-                "  <body>",
-                "    <div not-my-marker>",
-                "      {{ctrl.field}}",
-                "    </div>",
-                "    <script type='application/dart' src='main.dart'></script>",
-                "  </body>",
-                "</html>"]));
+    addIndexSource(r'''
+<html ng-app>
+  <body>
+    <div not-my-marker>
+      {{ctrl.field}}
+    </div>
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''');
     contextHelper.runTasks();
     resolveIndex();
     // no errors, because we decided to ignore them at the moment
@@ -2223,59 +2210,51 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_resolveExpression_evenWithout_ngBootstrap() {
-    resolveMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Controller(",
-                "    selector: '[my-controller]',",
-                "    publishAs: 'ctrl')",
-                "class MyController {",
-                "  String field;",
-                "}"]));
-    _resolveIndexNoErrors(
-        EngineTestCase.createSource(
-            [
-                "<html ng-app>",
-                "  <body>",
-                "    <div my-controller>",
-                "      {{ctrl.field}}",
-                "    </div>",
-                "    <script type='application/dart' src='main.dart'></script>",
-                "  </body>",
-                "</html>"]));
+    resolveMainSource(r'''
+
+import 'angular.dart';
+
+@Controller(
+    selector: '[my-controller]',
+    publishAs: 'ctrl')
+class MyController {
+  String field;
+}''');
+    _resolveIndexNoErrors(r'''
+<html ng-app>
+  <body>
+    <div my-controller>
+      {{ctrl.field}}
+    </div>
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''');
     assertResolvedIdentifier2("ctrl.", "MyController");
   }
 
   void test_resolveExpression_ignoreUnresolved() {
-    resolveMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Controller(",
-                "    selector: '[my-controller]',",
-                "    publishAs: 'ctrl')",
-                "class MyController {",
-                "  Map map;",
-                "  Object obj;",
-                "}"]));
-    resolveIndex2(
-        EngineTestCase.createSource(
-            [
-                "<html ng-app>",
-                "  <body>",
-                "    <div my-controller>",
-                "      {{ctrl.map.property}}",
-                "      {{ctrl.obj.property}}",
-                "      {{invisibleScopeProperty}}",
-                "    </div>",
-                "    <script type='application/dart' src='main.dart'></script>",
-                "  </body>",
-                "</html>"]));
+    resolveMainSource(r'''
+
+import 'angular.dart';
+
+@Controller(
+    selector: '[my-controller]',
+    publishAs: 'ctrl')
+class MyController {
+  Map map;
+  Object obj;
+}''');
+    resolveIndex2(r'''
+<html ng-app>
+  <body>
+    <div my-controller>
+      {{ctrl.map.property}}
+      {{ctrl.obj.property}}
+      {{invisibleScopeProperty}}
+    </div>
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''');
     assertNoErrors();
     // "ctrl.map" and "ctrl.obj" are resolved
     assertResolvedIdentifier2("map", "Map<dynamic, dynamic>");
@@ -2297,17 +2276,15 @@ class AngularHtmlUnitResolverTest extends AngularTest {
 
   void test_resolveExpression_ngApp_onBody() {
     addMyController();
-    _resolveIndexNoErrors(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "  <body ng-app>",
-                "    <div my-controller>",
-                "      {{ctrl.field}}",
-                "    </div>",
-                "    <script type='application/dart' src='main.dart'></script>",
-                "  </body>",
-                "</html>"]));
+    _resolveIndexNoErrors(r'''
+<html>
+  <body ng-app>
+    <div my-controller>
+      {{ctrl.field}}
+    </div>
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''');
     assertResolvedIdentifier2("ctrl", "MyController");
   }
 
@@ -2327,30 +2304,30 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_scopeProperties() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "  String field;",
-                "  MyComponent(Scope scope) {",
-                "    scope.context['scopeProperty'] = 'abc';",
-                "  }",
-                "}",
-                ""]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+  String field;
+  MyComponent(Scope scope) {
+    scope.context['scopeProperty'] = 'abc';
+  }
+}
+''');
     contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular([]));
     addIndexSource2(
         "/my_template.html",
-        EngineTestCase.createSource(
-            ["    <div>", "      {{scopeProperty}}", "    </div>"]));
+        r'''
+    <div>
+      {{scopeProperty}}
+    </div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     resolveIndex();
@@ -2364,29 +2341,30 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_scopeProperties_hideWithComponent() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Component(",
-                "    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "    publishAs: 'ctrl',",
-                "    selector: 'myComponent')",
-                "class MyComponent {",
-                "}",
-                "",
-                "void setScopeProperties(Scope scope) {",
-                "  scope.context['ctrl'] = 1;",
-                "}",
-                ""]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Component(
+    templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+    publishAs: 'ctrl',
+    selector: 'myComponent')
+class MyComponent {
+}
+
+void setScopeProperties(Scope scope) {
+  scope.context['ctrl'] = 1;
+}
+''');
     contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular([]));
     addIndexSource2(
         "/my_template.html",
-        EngineTestCase.createSource(["    <div>", "      {{ctrl}}", "    </div>"]));
+        r'''
+    <div>
+      {{ctrl}}
+    </div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     resolveIndex();
@@ -2402,31 +2380,31 @@ class AngularHtmlUnitResolverTest extends AngularTest {
   }
 
   void test_view_resolveTemplateFile() {
-    addMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "@Controller(",
-                "    selector: '[my-controller]',",
-                "    publishAs: 'ctrl')",
-                "class MyController {",
-                "  String field;",
-                "}",
-                "",
-                "class MyRouteInitializer {",
-                "  init(ViewFactory view) {",
-                "    view('my_template.html');",
-                "  }",
-                "}"]));
+    addMainSource(r'''
+
+import 'angular.dart';
+
+@Controller(
+    selector: '[my-controller]',
+    publishAs: 'ctrl')
+class MyController {
+  String field;
+}
+
+class MyRouteInitializer {
+  init(ViewFactory view) {
+    view('my_template.html');
+  }
+}''');
     contextHelper.addSource(
         "/entry-point.html",
         AngularTest.createHtmlWithAngular([]));
     addIndexSource2(
         "/my_template.html",
-        EngineTestCase.createSource(
-            ["    <div my-controller>", "      {{ctrl.field}}", "    </div>"]));
+        r'''
+    <div my-controller>
+      {{ctrl.field}}
+    </div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     resolveIndex();
@@ -2522,14 +2500,12 @@ class AngularHtmlUnitUtilsTest extends AngularTest {
   }
 
   void test_getEnclosingTagNode() {
-    resolveIndex2(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "  <body ng-app>",
-                "    <badge name='abc'> 123 </badge>",
-                "  </body>",
-                "</html>"]));
+    resolveIndex2(r'''
+<html>
+  <body ng-app>
+    <badge name='abc'> 123 </badge>
+  </body>
+</html>''');
     // no unit
     JUnitTestCase.assertNull(ht.HtmlUnitUtils.getEnclosingTagNode(null, 0));
     // wrong offset
@@ -2565,14 +2541,12 @@ class AngularHtmlUnitUtilsTest extends AngularTest {
   }
 
   void test_getTagNode() {
-    resolveIndex2(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "  <body ng-app>",
-                "    <badge name='abc'> 123 </badge> done",
-                "  </body>",
-                "</html>"]));
+    resolveIndex2(r'''
+<html>
+  <body ng-app>
+    <badge name='abc'> 123 </badge> done
+  </body>
+</html>''');
     // no unit
     JUnitTestCase.assertNull(ht.HtmlUnitUtils.getTagNode(null, 0));
     // wrong offset
@@ -2603,17 +2577,15 @@ class AngularHtmlUnitUtilsTest extends AngularTest {
   }
 
   void _resolveSimpleCtrlFieldHtml() {
-    resolveIndex2(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "  <body ng-app>",
-                "    <div my-controller>",
-                "      {{ctrl.field}}",
-                "    </div>",
-                "    <script type='application/dart' src='main.dart'></script>",
-                "  </body>",
-                "</html>"]));
+    resolveIndex2(r'''
+<html>
+  <body ng-app>
+    <div my-controller>
+      {{ctrl.field}}
+    </div>
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''');
   }
 }
 
@@ -2656,27 +2628,25 @@ abstract class AngularTest extends EngineTestCase {
     mainSource = contextHelper.addSource("/main.dart", content);
   }
   void addMyController() {
-    resolveMainSource(
-        EngineTestCase.createSource(
-            [
-                "",
-                "import 'angular.dart';",
-                "",
-                "class Item {",
-                "  String name;",
-                "  bool done;",
-                "}",
-                "",
-                "@Controller(",
-                "    selector: '[my-controller]',",
-                "    publishAs: 'ctrl')",
-                "class MyController {",
-                "  String field;",
-                "  List<String> names;",
-                "  List<Item> items;",
-                "  var untypedItems;",
-                "  doSomething(event) {}",
-                "}"]));
+    resolveMainSource(r'''
+
+import 'angular.dart';
+
+class Item {
+  String name;
+  bool done;
+}
+
+@Controller(
+    selector: '[my-controller]',
+    publishAs: 'ctrl')
+class MyController {
+  String field;
+  List<String> names;
+  List<Item> items;
+  var untypedItems;
+  doSomething(event) {}
+}''');
   }
   /**
    * Assert that the number of errors reported against the given source matches the number of errors
@@ -2897,152 +2867,152 @@ abstract class AngularTest extends EngineTestCase {
   void _configureForAngular(AnalysisContextHelper contextHelper) {
     contextHelper.addSource(
         "/angular.dart",
-        EngineTestCase.createSource(
-            [
-                "library angular;",
-                "",
-                "class Scope {",
-                "  Map context;",
-                "}",
-                "",
-                "class Formatter {",
-                "  final String name;",
-                "  const Formatter({this.name});",
-                "}",
-                "",
-                "class Directive {",
-                "  const Directive({",
-                "    selector,",
-                "    children,",
-                "    visibility,",
-                "    module,",
-                "    map,",
-                "    exportedExpressions,",
-                "    exportedExpressionAttrs",
-                "  });",
-                "}",
-                "",
-                "class Decorator {",
-                "  const Decorator({",
-                "    children/*: Directive.COMPILE_CHILDREN*/,",
-                "    map,",
-                "    selector,",
-                "    module,",
-                "    visibility,",
-                "    exportedExpressions,",
-                "    exportedExpressionAttrs",
-                "  });",
-                "}",
-                "",
-                "class Controller {",
-                "  const Controller({",
-                "    children,",
-                "    publishAs,",
-                "    map,",
-                "    selector,",
-                "    visibility,",
-                "    publishTypes,",
-                "    exportedExpressions,",
-                "    exportedExpressionAttrs",
-                "  });",
-                "}",
-                "",
-                "class NgAttr {",
-                "  const NgAttr(String name);",
-                "}",
-                "class NgCallback {",
-                "  const NgCallback(String name);",
-                "}",
-                "class NgOneWay {",
-                "  const NgOneWay(String name);",
-                "}",
-                "class NgOneWayOneTime {",
-                "  const NgOneWayOneTime(String name);",
-                "}",
-                "class NgTwoWay {",
-                "  const NgTwoWay(String name);",
-                "}",
-                "",
-                "class Component extends Directive {",
-                "  const Component({",
-                "    this.template,",
-                "    this.templateUrl,",
-                "    this.cssUrl,",
-                "    this.applyAuthorStyles,",
-                "    this.resetStyleInheritance,",
-                "    publishAs,",
-                "    module,",
-                "    map,",
-                "    selector,",
-                "    visibility,",
-                "    exportExpressions,",
-                "    exportExpressionAttrs",
-                "  }) : super(selector: selector,",
-                "             children: null/*NgAnnotation.COMPILE_CHILDREN*/,",
-                "             visibility: visibility,",
-                "             map: map,",
-                "             module: module,",
-                "             exportExpressions: exportExpressions,",
-                "             exportExpressionAttrs: exportExpressionAttrs);",
-                "}",
-                "",
-                "@Decorator(selector: '[ng-click]', map: const {'ng-click': '&onEvent'})",
-                "@Decorator(selector: '[ng-mouseout]', map: const {'ng-mouseout': '&onEvent'})",
-                "class NgEventDirective {",
-                "  set onEvent(value) {}",
-                "}",
-                "",
-                "@Decorator(selector: '[ng-if]', map: const {'ng-if': '=>condition'})",
-                "class NgIfDirective {",
-                "  set condition(value) {}",
-                "}",
-                "",
-                "@Decorator(selector: '[ng-show]', map: const {'ng-show': '=>show'})",
-                "class NgShowDirective {",
-                "  set show(value) {}",
-                "}",
-                "",
-                "@Formatter(name: 'filter')",
-                "class FilterFormatter {}",
-                "",
-                "@Formatter(name: 'orderBy')",
-                "class OrderByFilter {}",
-                "",
-                "@Formatter(name: 'uppercase')",
-                "class UppercaseFilter {}",
-                "",
-                "class ViewFactory {",
-                "  call(String templateUrl) => null;",
-                "}",
-                "",
-                "class Module {",
-                "  install(Module m) {}",
-                "  type(Type t) {}",
-                "  value(Type t, value) {}",
-                "}",
-                "",
-                "class Injector {}",
-                "",
-                "Injector ngBootstrap({",
-                "        Module module: null,",
-                "        List<Module> modules: null,",
-                "        /*dom.Element*/ element: null,",
-                "        String selector: '[ng-app]',",
-                "        /*Injector*/ injectorFactory/*(List<Module> modules): _defaultInjectorFactory*/}) {}",
-                ""]));
+        r'''
+library angular;
+
+class Scope {
+  Map context;
+}
+
+class Formatter {
+  final String name;
+  const Formatter({this.name});
+}
+
+class Directive {
+  const Directive({
+    selector,
+    children,
+    visibility,
+    module,
+    map,
+    exportedExpressions,
+    exportedExpressionAttrs
+  });
+}
+
+class Decorator {
+  const Decorator({
+    children/*: Directive.COMPILE_CHILDREN*/,
+    map,
+    selector,
+    module,
+    visibility,
+    exportedExpressions,
+    exportedExpressionAttrs
+  });
+}
+
+class Controller {
+  const Controller({
+    children,
+    publishAs,
+    map,
+    selector,
+    visibility,
+    publishTypes,
+    exportedExpressions,
+    exportedExpressionAttrs
+  });
+}
+
+class NgAttr {
+  const NgAttr(String name);
+}
+class NgCallback {
+  const NgCallback(String name);
+}
+class NgOneWay {
+  const NgOneWay(String name);
+}
+class NgOneWayOneTime {
+  const NgOneWayOneTime(String name);
+}
+class NgTwoWay {
+  const NgTwoWay(String name);
+}
+
+class Component extends Directive {
+  const Component({
+    this.template,
+    this.templateUrl,
+    this.cssUrl,
+    this.applyAuthorStyles,
+    this.resetStyleInheritance,
+    publishAs,
+    module,
+    map,
+    selector,
+    visibility,
+    exportExpressions,
+    exportExpressionAttrs
+  }) : super(selector: selector,
+             children: null/*NgAnnotation.COMPILE_CHILDREN*/,
+             visibility: visibility,
+             map: map,
+             module: module,
+             exportExpressions: exportExpressions,
+             exportExpressionAttrs: exportExpressionAttrs);
+}
+
+@Decorator(selector: '[ng-click]', map: const {'ng-click': '&onEvent'})
+@Decorator(selector: '[ng-mouseout]', map: const {'ng-mouseout': '&onEvent'})
+class NgEventDirective {
+  set onEvent(value) {}
+}
+
+@Decorator(selector: '[ng-if]', map: const {'ng-if': '=>condition'})
+class NgIfDirective {
+  set condition(value) {}
+}
+
+@Decorator(selector: '[ng-show]', map: const {'ng-show': '=>show'})
+class NgShowDirective {
+  set show(value) {}
+}
+
+@Formatter(name: 'filter')
+class FilterFormatter {}
+
+@Formatter(name: 'orderBy')
+class OrderByFilter {}
+
+@Formatter(name: 'uppercase')
+class UppercaseFilter {}
+
+class ViewFactory {
+  call(String templateUrl) => null;
+}
+
+class Module {
+  install(Module m) {}
+  type(Type t) {}
+  value(Type t, value) {}
+}
+
+class Injector {}
+
+Injector ngBootstrap({
+        Module module: null,
+        List<Module> modules: null,
+        /*dom.Element*/ element: null,
+        String selector: '[ng-app]',
+        /*Injector*/ injectorFactory/*(List<Module> modules): _defaultInjectorFactory*/}) {}
+''');
   }
 
   /**
    * Creates an HTML content that has Angular marker and script with "main.dart" reference.
    */
   static String createHtmlWithAngular(List<String> lines) {
-    String source = EngineTestCase.createSource(["<html ng-app>", "  <body>"]);
+    String source = r'''
+<html ng-app>
+  <body>''';
     source += EngineTestCase.createSource(lines);
-    source += EngineTestCase.createSource(
-        [
-            "    <script type='application/dart' src='main.dart'></script>",
-            "  </body>",
-            "</html>"]);
+    source += r'''
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''';
     return source;
   }
 
@@ -3051,15 +3021,16 @@ abstract class AngularTest extends EngineTestCase {
    * "MyController" injected.
    */
   static String createHtmlWithMyController(List<String> lines) {
-    String source = EngineTestCase.createSource(
-        ["<html ng-app>", "  <body>", "    <div my-controller>"]);
+    String source = r'''
+<html ng-app>
+  <body>
+    <div my-controller>''';
     source += EngineTestCase.createSource(lines);
-    source += EngineTestCase.createSource(
-        [
-            "    </div>",
-            "    <script type='application/dart' src='main.dart'></script>",
-            "  </body>",
-            "</html>"]);
+    source += r'''
+    </div>
+    <script type='application/dart' src='main.dart'></script>
+  </body>
+</html>''';
     return source;
   }
 
@@ -3597,9 +3568,10 @@ class ConstantValueComputerTest extends ResolverTestCase {
   void test_computeValues_cycle() {
     TestLogger logger = new TestLogger();
     AnalysisEngine.instance.logger = logger;
-    Source librarySource = addSource(
-        EngineTestCase.createSource(
-            ["const int a = c;", "const int b = a;", "const int c = b;"]));
+    Source librarySource = addSource(r'''
+const int a = c;
+const int b = a;
+const int c = b;''');
     LibraryElement libraryElement = resolve(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
@@ -3616,8 +3588,9 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_computeValues_dependentVariables() {
-    Source librarySource = addSource(
-        EngineTestCase.createSource(["const int b = a;", "const int a = 0;"]));
+    Source librarySource = addSource(r'''
+const int b = a;
+const int a = 0;''');
     LibraryElement libraryElement = resolve(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
@@ -3639,12 +3612,17 @@ class ConstantValueComputerTest extends ResolverTestCase {
   void test_computeValues_multipleSources() {
     Source librarySource = addNamedSource(
         "/lib.dart",
-        EngineTestCase.createSource(
-            ["library lib;", "part 'part.dart';", "const int c = b;", "const int a = 0;"]));
+        r'''
+library lib;
+part 'part.dart';
+const int c = b;
+const int a = 0;''');
     Source partSource = addNamedSource(
         "/part.dart",
-        EngineTestCase.createSource(
-            ["part of lib;", "const int b = a;", "const int d = c;"]));
+        r'''
+part of lib;
+const int b = a;
+const int d = c;''');
     LibraryElement libraryElement = resolve(librarySource);
     CompilationUnit libraryUnit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
@@ -3686,229 +3664,206 @@ class ConstantValueComputerTest extends ResolverTestCase {
 
   void test_dependencyOnConstructor() {
     // x depends on "const A()"
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            ["class A {", "  const A();", "}", "const x = const A();"]),
+    _assertProperDependencies(r'''
+class A {
+  const A();
+}
+const x = const A();''',
         []);
   }
 
   void test_dependencyOnConstructorArgument() {
     // "const A(x)" depends on x
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const A(this.next);",
-                "  final A next;",
-                "}",
-                "const A x = const A(null);",
-                "const A y = const A(x);"]),
+    _assertProperDependencies(r'''
+class A {
+  const A(this.next);
+  final A next;
+}
+const A x = const A(null);
+const A y = const A(x);''',
         []);
   }
 
   void test_dependencyOnConstructorArgument_unresolvedConstructor() {
     // "const A.a(x)" depends on x even if the constructor A.a can't be found.
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            ["class A {", "}", "const int x = 1;", "const A y = const A.a(x);"]),
+    _assertProperDependencies(r'''
+class A {
+}
+const int x = 1;
+const A y = const A.a(x);''',
         [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR]);
   }
 
   void test_dependencyOnConstructorInitializer() {
     // "const A()" depends on x
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const int x = 1;",
-                "class A {",
-                "  const A() : v = x;",
-                "  final int v;",
-                "}"]),
+    _assertProperDependencies(r'''
+const int x = 1;
+class A {
+  const A() : v = x;
+  final int v;
+}''',
         []);
   }
 
   void test_dependencyOnExplicitSuperConstructor() {
     // b depends on B() depends on A()
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const A(this.x);",
-                "  final int x;",
-                "}",
-                "class B extends A {",
-                "  const B() : super(5);",
-                "}",
-                "const B b = const B();"]),
+    _assertProperDependencies(r'''
+class A {
+  const A(this.x);
+  final int x;
+}
+class B extends A {
+  const B() : super(5);
+}
+const B b = const B();''',
         []);
   }
 
   void test_dependencyOnExplicitSuperConstructorParameters() {
     // b depends on B() depends on i
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const A(this.x);",
-                "  final int x;",
-                "}",
-                "class B extends A {",
-                "  const B() : super(i);",
-                "}",
-                "const B b = const B();",
-                "const int i = 5;"]),
+    _assertProperDependencies(r'''
+class A {
+  const A(this.x);
+  final int x;
+}
+class B extends A {
+  const B() : super(i);
+}
+const B b = const B();
+const int i = 5;''',
         []);
   }
 
   void test_dependencyOnFactoryRedirect() {
     // a depends on A.foo() depends on A.bar()
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "class A {",
-                "  factory const A.foo() = A.bar;",
-                "  const A.bar();",
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+class A {
+  factory const A.foo() = A.bar;
+  const A.bar();
+}''',
         []);
   }
 
   void test_dependencyOnFactoryRedirectWithTypeParams() {
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const factory A(var a) = B<int>;",
-                "}",
-                "",
-                "class B<T> implements A {",
-                "  final T x;",
-                "  const B(this.x);",
-                "}",
-                "",
-                "const A a = const A(10);"]),
+    _assertProperDependencies(r'''
+class A {
+  const factory A(var a) = B<int>;
+}
+
+class B<T> implements A {
+  final T x;
+  const B(this.x);
+}
+
+const A a = const A(10);''',
         []);
   }
 
   void test_dependencyOnImplicitSuperConstructor() {
     // b depends on B() depends on A()
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const A() : x = 5;",
-                "  final int x;",
-                "}",
-                "class B extends A {",
-                "  const B();",
-                "}",
-                "const B b = const B();"]),
+    _assertProperDependencies(r'''
+class A {
+  const A() : x = 5;
+  final int x;
+}
+class B extends A {
+  const B();
+}
+const B b = const B();''',
         []);
   }
 
   void test_dependencyOnNonFactoryRedirect() {
     // a depends on A.foo() depends on A.bar()
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "class A {",
-                "  const A.foo() : this.bar();",
-                "  const A.bar();",
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+class A {
+  const A.foo() : this.bar();
+  const A.bar();
+}''',
         []);
   }
 
   void test_dependencyOnNonFactoryRedirect_arg() {
     // a depends on A.foo() depends on b
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "const int b = 1;",
-                "class A {",
-                "  const A.foo() : this.bar(b);",
-                "  const A.bar(x) : y = x;",
-                "  final int y;"
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+const int b = 1;
+class A {
+  const A.foo() : this.bar(b);
+  const A.bar(x) : y = x;
+  final int y;
+}''',
         []);
   }
 
   void test_dependencyOnNonFactoryRedirect_defaultValue() {
     // a depends on A.foo() depends on A.bar() depends on b
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "const int b = 1;",
-                "class A {",
-                "  const A.foo() : this.bar();",
-                "  const A.bar([x = b]) : y = x;",
-                "  final int y;",
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+const int b = 1;
+class A {
+  const A.foo() : this.bar();
+  const A.bar([x = b]) : y = x;
+  final int y;
+}''',
         []);
   }
 
   void test_dependencyOnNonFactoryRedirect_toMissing() {
     // a depends on A.foo() which depends on nothing, since A.bar() is
     // missing.
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "class A {",
-                "  const A.foo() : this.bar();",
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+class A {
+  const A.foo() : this.bar();
+}''',
         [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
   }
 
   void test_dependencyOnNonFactoryRedirect_toNonConst() {
     // a depends on A.foo() which depends on nothing, since A.bar() is
     // non-const.
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "class A {",
-                "  const A.foo() : this.bar();",
-                "  A.bar();",
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+class A {
+  const A.foo() : this.bar();
+  A.bar();
+}''',
         []);
   }
 
   void test_dependencyOnNonFactoryRedirect_unnamed() {
     // a depends on A.foo() depends on A()
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "const A a = const A.foo();",
-                "class A {",
-                "  const A.foo() : this();",
-                "  const A();",
-                "}"]),
+    _assertProperDependencies(r'''
+const A a = const A.foo();
+class A {
+  const A.foo() : this();
+  const A();
+}''',
         []);
   }
 
   void test_dependencyOnOptionalParameterDefault() {
     // a depends on A() depends on B()
-    _assertProperDependencies(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const A([x = const B()]) : b = x;",
-                "  final B b;",
-                "}",
-                "class B {",
-                "  const B();",
-                "}",
-                "const A a = const A();"]),
+    _assertProperDependencies(r'''
+class A {
+  const A([x = const B()]) : b = x;
+  final B b;
+}
+class B {
+  const B();
+}
+const A a = const A();''',
         []);
   }
 
   void test_dependencyOnVariable() {
     // x depends on y
-    _assertProperDependencies(
-        EngineTestCase.createSource(["const x = y + 1;", "const y = 2;"]),
+    _assertProperDependencies(r'''
+const x = y + 1;
+const y = 2;''',
         []);
   }
 
@@ -4031,14 +3986,12 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_computedField() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A(4, 5);",
-                "class A {",
-                "  const A(int i, int j) : k = 2 * i + j;",
-                "  final int k;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A(4, 5);
+class A {
+  const A(int i, int j) : k = 2 * i + j;
+  final int k;
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
@@ -4067,18 +4020,16 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_computedField_usesConstConstructor() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A(3);",
-                "class A {",
-                "  const A(int i) : b = const B(4);",
-                "  final int b;",
-                "}",
-                "class B {",
-                "  const B(this.k);",
-                "  final int k;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A(3);
+class A {
+  const A(int i) : b = const B(4);
+  final int b;
+}
+class B {
+  const B(this.k);
+  final int k;
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fieldsOfA = _assertType(result, "A");
@@ -4090,17 +4041,15 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_computedField_usesStaticConst() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A(3);",
-                "class A {",
-                "  const A(int i) : k = i + B.bar;",
-                "  final int k;",
-                "}",
-                "class B {",
-                "  static const bar = 4;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A(3);
+class A {
+  const A(int i) : k = i + B.bar;
+  final int k;
+}
+class B {
+  static const bar = 4;
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
@@ -4109,15 +4058,13 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_computedField_usesToplevelConst() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A(3);",
-                "const bar = 4;",
-                "class A {",
-                "  const A(int i) : k = i + bar;",
-                "  final int k;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A(3);
+const bar = 4;
+class A {
+  const A(int i) : k = i + bar;
+  final int k;
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
@@ -4126,18 +4073,16 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_explicitSuper() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const B(4, 5);",
-                "class A {",
-                "  const A(this.x);",
-                "  final int x;",
-                "}",
-                "class B extends A {",
-                "  const B(int x, this.y) : super(x * 2);",
-                "  final int y;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const B(4, 5);
+class A {
+  const A(this.x);
+  final int x;
+}
+class B extends A {
+  const B(int x, this.y) : super(x * 2);
+  final int y;
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "B");
@@ -4150,14 +4095,12 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_fieldFormalParameter() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A(42);",
-                "class A {",
-                "  int x;",
-                "  const A(this.x)",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A(42);
+class A {
+  int x;
+  const A(this.x)
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
@@ -4186,18 +4129,16 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_implicitSuper() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const B(4);",
-                "class A {",
-                "  const A() : x(3);",
-                "  final int x;",
-                "}",
-                "class B extends A {",
-                "  const B(this.y);",
-                "  final int y;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const B(4);
+class A {
+  const A() : x(3);
+  final int x;
+}
+class B extends A {
+  const B(this.y);
+  final int y;
+}''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "B");
@@ -4210,15 +4151,13 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A.a1();",
-                "class A {",
-                "  const A.a1() : this.a2();",
-                "  const A.a2() : x = 5;",
-                "  final int x;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A.a1();
+class A {
+  const A.a1() : this.a2();
+  const A.a2() : x = 5;
+  final int x;
+}''');
     Map<String, DartObjectImpl> aFields = _assertType(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"),
         "A");
@@ -4226,15 +4165,13 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_arg() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A.a1(1);",
-                "class A {",
-                "  const A.a1(x) : this.a2(x + 100);",
-                "  const A.a2(x) : y = x + 10;",
-                "  final int y;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A.a1(1);
+class A {
+  const A.a1(x) : this.a2(x + 100);
+  const A.a2(x) : y = x + 10;
+  final int y;
+}''');
     Map<String, DartObjectImpl> aFields = _assertType(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"),
         "A");
@@ -4245,28 +4182,24 @@ class ConstantValueComputerTest extends ResolverTestCase {
     // It is an error to have a cycle in non-factory redirects; however, we
     // need to make sure that even if the error occurs, attempting to evaluate
     // the constant will terminate.
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A();",
-                "class A {",
-                "  const A() : this.b();",
-                "  const A.b() : this();",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  const A() : this.b();
+  const A.b() : this();
+}''');
     _assertValidUnknown(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"));
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_defaultArg() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A.a1();",
-                "class A {",
-                "  const A.a1() : this.a2();",
-                "  const A.a2([x = 100]) : y = x + 10;",
-                "  final int y;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A.a1();
+class A {
+  const A.a1() : this.a2();
+  const A.a2([x = 100]) : y = x + 10;
+  final int y;
+}''');
     Map<String, DartObjectImpl> aFields = _assertType(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"),
         "A");
@@ -4274,13 +4207,11 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_toMissing() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A.a1();",
-                "class A {",
-                "  const A.a1() : this.a2();",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A.a1();
+class A {
+  const A.a1() : this.a2();
+}''');
     // We don't care what value foo evaluates to (since there is a compile
     // error), but we shouldn't crash, and we should figure
     // out that it evaluates to an instance of class A.
@@ -4290,14 +4221,12 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_toNonConst() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A.a1();",
-                "class A {",
-                "  const A.a1() : this.a2();",
-                "  A.a2();",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A.a1();
+class A {
+  const A.a1() : this.a2();
+  A.a2();
+}''');
     // We don't care what value foo evaluates to (since there is a compile
     // error), but we shouldn't crash, and we should figure
     // out that it evaluates to an instance of class A.
@@ -4307,15 +4236,13 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_nonFactoryRedirect_unnamed() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A.a1();",
-                "class A {",
-                "  const A.a1() : this();",
-                "  const A() : x = 5;",
-                "  final int x;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A.a1();
+class A {
+  const A.a1() : this();
+  const A() : x = 5;
+  final int x;
+}''');
     Map<String, DartObjectImpl> aFields = _assertType(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"),
         "A");
@@ -4323,35 +4250,31 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_redirect() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A();",
-                "class A {",
-                "  const factory A() = B;",
-                "}",
-                "class B implements A {",
-                "  const B();",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  const factory A() = B;
+}
+class B implements A {
+  const B();
+}''');
     _assertType(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"),
         "B");
   }
 
   void test_instanceCreationExpression_redirectWithTypeParams() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "class A {",
-                "  const factory A(var a) = B<int>;",
-                "}",
-                "",
-                "class B<T> implements A {",
-                "  final T x;",
-                "  const B(this.x);",
-                "}",
-                "",
-                "const A a = const A(10);"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+class A {
+  const factory A(var a) = B<int>;
+}
+
+class B<T> implements A {
+  final T x;
+  const B(this.x);
+}
+
+const A a = const A(10);''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "a");
     Map<String, DartObjectImpl> fields = _assertType(result, "B<int>");
@@ -4363,19 +4286,17 @@ class ConstantValueComputerTest extends ResolverTestCase {
     // To evaluate the redirection of A<int>,
     // A's template argument (T=int) must be substituted
     // into B's template argument (B<U> where U=T) to get B<int>.
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "class A<T> {",
-                "  const factory A(var a) = B<T>;",
-                "}",
-                "",
-                "class B<U> implements A {",
-                "  final U x;",
-                "  const B(this.x);",
-                "}",
-                "",
-                "const A<int> a = const A<int>(10);"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+class A<T> {
+  const factory A(var a) = B<T>;
+}
+
+class B<U> implements A {
+  final U x;
+  const B(this.x);
+}
+
+const A<int> a = const A<int>(10);''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "a");
     Map<String, DartObjectImpl> fields = _assertType(result, "B<int>");
@@ -4387,22 +4308,22 @@ class ConstantValueComputerTest extends ResolverTestCase {
     // It is an error to have a cycle in factory redirects; however, we need
     // to make sure that even if the error occurs, attempting to evaluate the
     // constant will terminate.
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A();",
-                "class A {",
-                "  const factory A() = A.b;",
-                "  const factory A.b() = A;",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  const factory A() = A.b;
+  const factory A.b() = A;
+}''');
     _assertValidUnknown(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"));
   }
 
   void test_instanceCreationExpression_redirect_extern() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            ["const foo = const A();", "class A {", "  external const factory A();", "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  external const factory A();
+}''');
     _assertValidUnknown(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"));
   }
@@ -4411,21 +4332,19 @@ class ConstantValueComputerTest extends ResolverTestCase {
     // It is an error for a const factory constructor redirect to a non-const
     // constructor; however, we need to make sure that even if the error
     // attempting to evaluate the constant won't cause a crash.
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const foo = const A();",
-                "class A {",
-                "  const factory A() = A.b;",
-                "  A.b();",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+const foo = const A();
+class A {
+  const factory A() = A.b;
+  A.b();
+}''');
     _assertValidUnknown(
         _evaluateInstanceCreationExpression(compilationUnit, "foo"));
   }
 
   void test_instanceCreationExpression_symbol() {
     CompilationUnit compilationUnit =
-        resolveSource(EngineTestCase.createSource(["const foo = const Symbol('a');"]));
+        resolveSource("const foo = const Symbol('a');");
     EvaluationResultImpl evaluationResult =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     JUnitTestCase.assertNotNull(evaluationResult.value);
@@ -4443,14 +4362,12 @@ class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   void test_instanceCreationExpression_withTypeParams() {
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "class C<E> {",
-                "  const C();",
-                "}",
-                "const c_int = const C<int>();",
-                "const c_num = const C<num>();"]));
+    CompilationUnit compilationUnit = resolveSource(r'''
+class C<E> {
+  const C();
+}
+const c_int = const C<int>();
+const c_num = const C<num>();''');
     EvaluationResultImpl c_int =
         _evaluateInstanceCreationExpression(compilationUnit, "c_int");
     _assertType(c_int, "C<int>");
@@ -4506,7 +4423,7 @@ class ConstantValueComputerTest extends ResolverTestCase {
 
   void test_symbolLiteral_void() {
     CompilationUnit compilationUnit =
-        resolveSource(EngineTestCase.createSource(["const voidSymbol = #void;"]));
+        resolveSource("const voidSymbol = #void;");
     VariableDeclaration voidSymbol =
         findTopLevelDeclaration(compilationUnit, "voidSymbol");
     EvaluationResultImpl voidSymbolResult =
@@ -4597,15 +4514,13 @@ class ConstantValueComputerTest extends ResolverTestCase {
     String paramName = isFieldFormal ? fieldName : "i";
     String formalParam =
         "${(isFieldFormal ? "this." : "int ")}${paramName}${(hasDefault ? " = 3" : "")}";
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const x = const A();",
-                "const y = const A(${(isNamed ? "${paramName}: " : "")}10);",
-                "class A {",
-                "  const A(${(isNamed ? "{${formalParam}}" : "[${formalParam}]")})${(isFieldFormal ? "" : " : ${fieldName} = ${paramName}")};",
-                "  final int ${fieldName};",
-                "}"]));
+    CompilationUnit compilationUnit = resolveSource("""
+const x = const A();
+const y = const A(${isNamed ? '$paramName: ' : ''}10);
+class A {
+  const A(${isNamed ? "{${formalParam}}" : "[${formalParam}]"})${isFieldFormal ? "" : " : ${fieldName} = ${paramName}"};
+  final int ${fieldName};
+}""");
     EvaluationResultImpl x =
         _evaluateInstanceCreationExpression(compilationUnit, "x");
     Map<String, DartObjectImpl> fieldsOfX = _assertType(x, "A");
@@ -4624,20 +4539,18 @@ class ConstantValueComputerTest extends ResolverTestCase {
 
   void _checkInstanceCreation_withSupertypeParams(bool isExplicit) {
     String superCall = isExplicit ? " : super()" : "";
-    CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "class A<T> {",
-                "  const A();",
-                "}",
-                "class B<T, U> extends A<T> {",
-                "  const B()${superCall};",
-                "}",
-                "class C<T, U> extends A<U> {",
-                "  const C()${superCall};",
-                "}",
-                "const b_int_num = const B<int, num>();",
-                "const c_int_num = const C<int, num>();"]));
+    CompilationUnit compilationUnit = resolveSource("""
+class A<T> {
+  const A();
+}
+class B<T, U> extends A<T> {
+  const B()$superCall;
+}
+class C<T, U> extends A<U> {
+  const C()${superCall};
+}
+const b_int_num = const B<int, num>();
+const c_int_num = const C<int, num>();""");
     EvaluationResultImpl b_int_num =
         _evaluateInstanceCreationExpression(compilationUnit, "b_int_num");
     Map<String, DartObjectImpl> b_int_num_fields =
@@ -4660,9 +4573,7 @@ class ConstantValueComputerTest extends ResolverTestCase {
     String defaultArg =
         defaultExpr == null ? "" : ", defaultValue: ${defaultExpr}";
     CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const ${varName} = const bool.fromEnvironment('${envVarName}'${defaultArg});"]));
+                "const ${varName} = const bool.fromEnvironment('${envVarName}'${defaultArg});");
     return _evaluateInstanceCreationExpression(compilationUnit, varName);
   }
 
@@ -4676,9 +4587,7 @@ class ConstantValueComputerTest extends ResolverTestCase {
     String defaultArg =
         defaultExpr == null ? "" : ", defaultValue: ${defaultExpr}";
     CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const ${varName} = const int.fromEnvironment('${envVarName}'${defaultArg});"]));
+                "const ${varName} = const int.fromEnvironment('${envVarName}'${defaultArg});");
     return _evaluateInstanceCreationExpression(compilationUnit, varName);
   }
 
@@ -4692,9 +4601,7 @@ class ConstantValueComputerTest extends ResolverTestCase {
     String defaultArg =
         defaultExpr == null ? "" : ", defaultValue: ${defaultExpr}";
     CompilationUnit compilationUnit = resolveSource(
-        EngineTestCase.createSource(
-            [
-                "const ${varName} = const String.fromEnvironment('${envVarName}'${defaultArg});"]));
+                "const ${varName} = const String.fromEnvironment('${envVarName}'${defaultArg});");
     return _evaluateInstanceCreationExpression(compilationUnit, varName);
   }
 
@@ -4868,7 +4775,9 @@ class ConstantVisitorTest extends ResolverTestCase {
 
   void test_visitSimpleIdentifier_inEnvironment() {
     CompilationUnit compilationUnit =
-        resolveSource(EngineTestCase.createSource(["const a = b;", "const b = 3;"]));
+        resolveSource(r'''
+const a = b;
+const b = 3;''');
     Map<String, DartObjectImpl> environment = new Map<String, DartObjectImpl>();
     DartObjectImpl six =
         new DartObjectImpl(typeProvider.intType, new IntState(6));
@@ -4878,7 +4787,9 @@ class ConstantVisitorTest extends ResolverTestCase {
 
   void test_visitSimpleIdentifier_notInEnvironment() {
     CompilationUnit compilationUnit =
-        resolveSource(EngineTestCase.createSource(["const a = b;", "const b = 3;"]));
+        resolveSource(r'''
+const a = b;
+const b = 3;''');
     Map<String, DartObjectImpl> environment = new Map<String, DartObjectImpl>();
     DartObjectImpl six =
         new DartObjectImpl(typeProvider.intType, new IntState(6));
@@ -4888,7 +4799,9 @@ class ConstantVisitorTest extends ResolverTestCase {
 
   void test_visitSimpleIdentifier_withoutEnvironment() {
     CompilationUnit compilationUnit =
-        resolveSource(EngineTestCase.createSource(["const a = b;", "const b = 3;"]));
+        resolveSource(r'''
+const a = b;
+const b = 3;''');
     _assertValue(3, _evaluateConstant(compilationUnit, "a", null));
   }
 
@@ -8826,7 +8739,11 @@ class ElementLocatorTest extends ResolverTestCase {
 
   void test_locate_MethodInvocation_topLevel() {
     String contents =
-        EngineTestCase.createSource(["foo(x) {}", "void main() {", " foo(0);", "}"]);
+        r'''
+foo(x) {}
+void main() {
+ foo(0);
+}''';
     CompilationUnit cu = _resolveContents([contents]);
     int offset = contents.indexOf('foo(0)');
     AstNode node = new NodeLocator.con1(offset).searchWithin(cu);
@@ -9898,23 +9815,20 @@ class HtmlParserTest extends EngineTestCase {
    */
   static String _TAG_SCRIPT = "script";
   void fail_parse_scriptWithComment() {
-    String scriptBody = EngineTestCase.createSource(
-        [
-            "      /**",
-            "       *     <editable-label bind-value=\"dartAsignableValue\">",
-            "       *     </editable-label>",
-            "       */",
-            "      class Foo {}"]);
-    ht.HtmlUnit htmlUnit = parse(
-        EngineTestCase.createSource(
-            [
-                "  <html>",
-                "    <body>",
-                "      <script type=\"application/dart\">",
-                scriptBody,
-                "      </script>",
-                "    </body>",
-                "  </html>"]));
+    String scriptBody = r'''
+      /**
+       *     <editable-label bind-value="dartAsignableValue">
+       *     </editable-label>
+       */
+      class Foo {}''';
+    ht.HtmlUnit htmlUnit = parse("""
+<html>
+  <body>
+    <script type='application/dart'>
+$scriptBody
+    </script>
+  </body>
+</html>""");
     _validate(
         htmlUnit,
         [
@@ -9923,7 +9837,7 @@ class HtmlParserTest extends EngineTestCase {
                 [
                     _t4(
                         "body",
-                        [_t("script", _a(["type", "\"application/dart\""]), scriptBody, [])])])]);
+                        [_t("script", _a(["type", "'application/dart'"]), scriptBody, [])])])]);
   }
   ht.HtmlUnit parse(String contents) {
 //    TestSource source =
@@ -10032,16 +9946,15 @@ class HtmlParserTest extends EngineTestCase {
     JUnitTestCase.assertEquals(null, bodyNode.getAttributeText(null));
   }
   void test_parse_headers() {
-    String code = EngineTestCase.createSource(
-        [
-            "<html>",
-            "  <body>",
-            "    <h2>000</h2>",
-            "    <div>",
-            "      111",
-            "    </div>",
-            "  </body>",
-            "</html>"]);
+    String code = r'''
+<html>
+  <body>
+    <h2>000</h2>
+    <div>
+      111
+    </div>
+  </body>
+</html>''';
     ht.HtmlUnit htmlUnit = parse(code);
     _validate(
         htmlUnit,
@@ -10085,16 +9998,14 @@ class HtmlParserTest extends EngineTestCase {
 class HtmlTagInfoBuilderTest extends HtmlParserTest {
   void test_builder() {
     HtmlTagInfoBuilder builder = new HtmlTagInfoBuilder();
-    ht.HtmlUnit unit = parse(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "  <body>",
-                "    <div id=\"x\"></div>",
-                "    <p class='c'></p>",
-                "    <div class='c'></div>",
-                "  </body>",
-                "</html>"]));
+    ht.HtmlUnit unit = parse(r'''
+<html>
+  <body>
+    <div id="x"></div>
+    <p class='c'></p>
+    <div class='c'></div>
+  </body>
+</html>''');
     unit.accept(builder);
     HtmlTagInfo info = builder.getTagInfo();
     JUnitTestCase.assertNotNull(info);
@@ -10119,55 +10030,53 @@ class HtmlUnitBuilderTest extends EngineTestCase {
     super.tearDown();
   }
   void test_embedded_script() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(
-            ["<html>", "<script type=\"application/dart\">foo=2;</script>", "</html>"]));
+    HtmlElementImpl element = _build(r'''
+<html>
+<script type="application/dart">foo=2;</script>
+</html>''');
     _validate(element, [_s(_l([_v("foo")]))]);
   }
   void test_embedded_script_no_content() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(
-            ["<html>", "<script type=\"application/dart\"></script>", "</html>"]));
+    HtmlElementImpl element = _build(r'''
+<html>
+<script type="application/dart"></script>
+</html>''');
     _validate(element, [_s(_l([]))]);
   }
   void test_external_script() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "<script type=\"application/dart\" src=\"other.dart\"/>",
-                "</html>"]));
+    HtmlElementImpl element = _build(r'''
+<html>
+<script type="application/dart" src="other.dart"/>
+</html>''');
     _validate(element, [_s2("other.dart")]);
   }
   void test_external_script_no_source() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(
-            ["<html>", "<script type=\"application/dart\"/>", "</html>"]));
+    HtmlElementImpl element = _build(r'''
+<html>
+<script type="application/dart"/>
+</html>''');
     _validate(element, [_s2(null)]);
   }
   void test_external_script_with_content() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "<script type=\"application/dart\" src=\"other.dart\">blat=2;</script>",
-                "</html>"]));
+    HtmlElementImpl element = _build(r'''
+<html>
+<script type="application/dart" src="other.dart">blat=2;</script>
+</html>''');
     _validate(element, [_s2("other.dart")]);
   }
   void test_no_scripts() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(["<!DOCTYPE html>", "<html><p></p></html>"]));
+    HtmlElementImpl element = _build(r'''
+<!DOCTYPE html>
+<html><p></p></html>''');
     _validate(element, []);
   }
   void test_two_dart_scripts() {
-    HtmlElementImpl element = _build(
-        EngineTestCase.createSource(
-            [
-                "<html>",
-                "<script type=\"application/dart\">bar=2;</script>",
-                "<script type=\"application/dart\" src=\"other.dart\"/>",
-                "<script src=\"dart.js\"/>",
-                "</html>"]));
+    HtmlElementImpl element = _build(r'''
+<html>
+<script type="application/dart">bar=2;</script>
+<script type="application/dart" src="other.dart"/>
+<script src="dart.js"/>
+</html>''');
     _validate(element, [_s(_l([_v("bar")])), _s2("other.dart")]);
   }
   HtmlElementImpl _build(String contents) {
@@ -10285,17 +10194,19 @@ class HtmlWarningCodeTest extends EngineTestCase {
   }
 
   void test_invalidUri() {
-    _verify(
-        EngineTestCase.createSource(
-            ["<html>", "<script type='application/dart' src='ht:'/>", "</html>"]),
+    _verify(r'''
+<html>
+<script type='application/dart' src='ht:'/>
+</html>''',
         [HtmlWarningCode.INVALID_URI]);
     _assertErrorLocation2(_errors[0], "ht:");
   }
 
   void test_uriDoesNotExist() {
-    _verify(
-        EngineTestCase.createSource(
-            ["<html>", "<script type='application/dart' src='other.dart'/>", "</html>"]),
+    _verify(r'''
+<html>
+<script type='application/dart' src='other.dart'/>
+</html>''',
         [HtmlWarningCode.URI_DOES_NOT_EXIST]);
     _assertErrorLocation2(_errors[0], "other.dart");
   }
@@ -10535,16 +10446,15 @@ class SDKLibrariesReaderTest extends EngineTestCase {
     LibraryMap libraryMap = new SdkLibrariesReader(
         true).readFromFile(
             FileUtilities2.createFile("/libs.dart"),
-            EngineTestCase.createSource(
-                [
-                    "final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {",
-                    "  'first' : const LibraryInfo(",
-                    "    'first/first.dart',",
-                    "    category: 'First',",
-                    "    documented: true,",
-                    "    platforms: VM_PLATFORM,",
-                    "    dart2jsPath: 'first/first_dart2js.dart'),",
-                    "};"]));
+            r'''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'first' : const LibraryInfo(
+    'first/first.dart',
+    category: 'First',
+    documented: true,
+    platforms: VM_PLATFORM,
+    dart2jsPath: 'first/first_dart2js.dart'),
+};''');
     JUnitTestCase.assertNotNull(libraryMap);
     JUnitTestCase.assertEquals(1, libraryMap.size());
     SdkLibrary first = libraryMap.getLibrary("dart:first");
@@ -10567,22 +10477,21 @@ class SDKLibrariesReaderTest extends EngineTestCase {
     LibraryMap libraryMap = new SdkLibrariesReader(
         false).readFromFile(
             FileUtilities2.createFile("/libs.dart"),
-            EngineTestCase.createSource(
-                [
-                    "final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {",
-                    "  'first' : const LibraryInfo(",
-                    "    'first/first.dart',",
-                    "    category: 'First',",
-                    "    documented: true,",
-                    "    platforms: VM_PLATFORM),",
-                    "",
-                    "  'second' : const LibraryInfo(",
-                    "    'second/second.dart',",
-                    "    category: 'Second',",
-                    "    documented: false,",
-                    "    implementation: true,",
-                    "    platforms: 0),",
-                    "};"]));
+            r'''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'first' : const LibraryInfo(
+    'first/first.dart',
+    category: 'First',
+    documented: true,
+    platforms: VM_PLATFORM),
+
+  'second' : const LibraryInfo(
+    'second/second.dart',
+    category: 'Second',
+    documented: false,
+    implementation: true,
+    platforms: 0),
+};''');
     JUnitTestCase.assertNotNull(libraryMap);
     JUnitTestCase.assertEquals(2, libraryMap.size());
     SdkLibrary first = libraryMap.getLibrary("dart:first");

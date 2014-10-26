@@ -270,7 +270,10 @@ class IncrementalScannerTest extends EngineTestCase {
   void test_insert_whitespace_withMultipleComments() {
     // "//comment", "//comment2", "a + b;"
     // "//comment", "//comment2", "a  + b;"
-    _scan(EngineTestCase.createSource(["//comment", "//comment2", "a"]), "", " ", " + b;");
+    _scan(r'''
+//comment
+//comment2
+a''', "", " ", " + b;");
     _assertTokens(1, 2, ["a", "+", "b", ";"]);
     JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange);
   }
