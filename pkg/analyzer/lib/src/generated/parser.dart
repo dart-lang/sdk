@@ -8,6 +8,8 @@
 library engine.parser;
 
 import 'dart:collection';
+import "dart:math" as math;
+
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'instrumentation.dart';
@@ -6885,7 +6887,7 @@ class Parser {
     if (token.type == TokenType.EOF) {
       token = token.previous;
     }
-    _reportError(new AnalysisError.con2(_source, token.offset, Math.max(token.length, 1), errorCode, arguments));
+    _reportError(new AnalysisError.con2(_source, token.offset, math.max(token.length, 1), errorCode, arguments));
   }
 
   /**

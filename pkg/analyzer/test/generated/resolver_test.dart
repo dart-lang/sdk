@@ -5976,20 +5976,20 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
    */
   void assertResolved() {
     if (!_unresolvedNodes.isEmpty || !_wrongTypedNodes.isEmpty) {
-      PrintStringWriter writer = new PrintStringWriter();
+      StringBuffer buffer = new StringBuffer();
       if (!_unresolvedNodes.isEmpty) {
-        writer.print("Failed to resolve ");
-        writer.print(_unresolvedNodes.length);
-        writer.println(" nodes:");
-        _printNodes(writer, _unresolvedNodes);
+        buffer.write("Failed to resolve ");
+        buffer.write(_unresolvedNodes.length);
+        buffer.writeln(" nodes:");
+        _printNodes(buffer, _unresolvedNodes);
       }
       if (!_wrongTypedNodes.isEmpty) {
-        writer.print("Resolved ");
-        writer.print(_wrongTypedNodes.length);
-        writer.println(" to the wrong type of element:");
-        _printNodes(writer, _wrongTypedNodes);
+        buffer.write("Resolved ");
+        buffer.write(_wrongTypedNodes.length);
+        buffer.writeln(" to the wrong type of element:");
+        _printNodes(buffer, _wrongTypedNodes);
       }
-      JUnitTestCase.fail(writer.toString());
+      JUnitTestCase.fail(buffer.toString());
     }
   }
 
@@ -6182,15 +6182,15 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     return "<unknown file- ASTNode is null>";
   }
 
-  void _printNodes(PrintStringWriter writer, List<AstNode> nodes) {
+  void _printNodes(StringBuffer buffer, List<AstNode> nodes) {
     for (AstNode identifier in nodes) {
-      writer.print("  ");
-      writer.print(identifier.toString());
-      writer.print(" (");
-      writer.print(_getFileName(identifier));
-      writer.print(" : ");
-      writer.print(identifier.offset);
-      writer.println(")");
+      buffer.write("  ");
+      buffer.write(identifier.toString());
+      buffer.write(" (");
+      buffer.write(_getFileName(identifier));
+      buffer.write(" : ");
+      buffer.write(identifier.offset);
+      buffer.writeln(")");
     }
   }
 }
@@ -8837,64 +8837,64 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
    */
   void assertResolved() {
     if (!_unresolvedExpressions.isEmpty || !_unresolvedTypes.isEmpty) {
-      PrintStringWriter writer = new PrintStringWriter();
+      StringBuffer buffer = new StringBuffer();
       int unresolvedTypeCount = _unresolvedTypes.length;
       if (unresolvedTypeCount > 0) {
-        writer.print("Failed to resolve ");
-        writer.print(unresolvedTypeCount);
-        writer.print(" of ");
-        writer.print(_resolvedTypeCount + unresolvedTypeCount);
-        writer.println(" type names:");
+        buffer.write("Failed to resolve ");
+        buffer.write(unresolvedTypeCount);
+        buffer.write(" of ");
+        buffer.write(_resolvedTypeCount + unresolvedTypeCount);
+        buffer.writeln(" type names:");
         for (TypeName identifier in _unresolvedTypes) {
-          writer.print("  ");
-          writer.print(identifier.toString());
-          writer.print(" (");
-          writer.print(_getFileName(identifier));
-          writer.print(" : ");
-          writer.print(identifier.offset);
-          writer.println(")");
+          buffer.write("  ");
+          buffer.write(identifier.toString());
+          buffer.write(" (");
+          buffer.write(_getFileName(identifier));
+          buffer.write(" : ");
+          buffer.write(identifier.offset);
+          buffer.writeln(")");
         }
       }
       int unresolvedExpressionCount = _unresolvedExpressions.length;
       if (unresolvedExpressionCount > 0) {
-        writer.println("Failed to resolve ");
-        writer.print(unresolvedExpressionCount);
-        writer.print(" of ");
-        writer.print(_resolvedExpressionCount + unresolvedExpressionCount);
-        writer.println(" expressions:");
+        buffer.writeln("Failed to resolve ");
+        buffer.write(unresolvedExpressionCount);
+        buffer.write(" of ");
+        buffer.write(_resolvedExpressionCount + unresolvedExpressionCount);
+        buffer.writeln(" expressions:");
         for (Expression expression in _unresolvedExpressions) {
-          writer.print("  ");
-          writer.print(expression.toString());
-          writer.print(" (");
-          writer.print(_getFileName(expression));
-          writer.print(" : ");
-          writer.print(expression.offset);
-          writer.println(")");
+          buffer.write("  ");
+          buffer.write(expression.toString());
+          buffer.write(" (");
+          buffer.write(_getFileName(expression));
+          buffer.write(" : ");
+          buffer.write(expression.offset);
+          buffer.writeln(")");
         }
       }
       int invalidlyPropagatedExpressionCount = _invalidlyPropagatedExpressions.length;
       if (invalidlyPropagatedExpressionCount > 0) {
-        writer.println("Incorrectly propagated ");
-        writer.print(invalidlyPropagatedExpressionCount);
-        writer.print(" of ");
-        writer.print(_propagatedExpressionCount);
-        writer.println(" expressions:");
+        buffer.writeln("Incorrectly propagated ");
+        buffer.write(invalidlyPropagatedExpressionCount);
+        buffer.write(" of ");
+        buffer.write(_propagatedExpressionCount);
+        buffer.writeln(" expressions:");
         for (Expression expression in _invalidlyPropagatedExpressions) {
-          writer.print("  ");
-          writer.print(expression.toString());
-          writer.print(" [");
-          writer.print(expression.staticType.displayName);
-          writer.print(", ");
-          writer.print(expression.propagatedType.displayName);
-          writer.println("]");
-          writer.print("    ");
-          writer.print(_getFileName(expression));
-          writer.print(" : ");
-          writer.print(expression.offset);
-          writer.println(")");
+          buffer.write("  ");
+          buffer.write(expression.toString());
+          buffer.write(" [");
+          buffer.write(expression.staticType.displayName);
+          buffer.write(", ");
+          buffer.write(expression.propagatedType.displayName);
+          buffer.writeln("]");
+          buffer.write("    ");
+          buffer.write(_getFileName(expression));
+          buffer.write(" : ");
+          buffer.write(expression.offset);
+          buffer.writeln(")");
         }
       }
-      JUnitTestCase.fail(writer.toString());
+      JUnitTestCase.fail(buffer.toString());
     }
   }
 

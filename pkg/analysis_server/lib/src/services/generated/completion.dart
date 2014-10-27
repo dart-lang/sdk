@@ -8,8 +8,10 @@
 library services.completion;
 
 import 'dart:collection';
-import 'package:analysis_server/src/protocol.dart' show
-    CompletionSuggestionKind;
+import "dart:math" as math;
+
+import 'package:analysis_server/src/protocol.dart'
+    show CompletionSuggestionKind;
 import 'package:analyzer/src/generated/java_core.dart' hide StringUtils;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -22,6 +24,7 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+
 import 'stubs.dart';
 import 'util.dart';
 
@@ -603,7 +606,7 @@ class CompletionEngine {
   void _namespaceReference(NamespaceDirective node, SimpleStringLiteral literal) {
     String lit = literal.literal.lexeme;
     if (!lit.isEmpty) {
-      lit = lit.substring(1, Math.max(lit.length - 1, 0));
+      lit = lit.substring(1, math.max(lit.length - 1, 0));
     }
     _filter = _createFilter(new Ident.con2(node, lit, literal.offset + 1));
     Set<String> packageUris = new Set();

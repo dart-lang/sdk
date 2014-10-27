@@ -8,6 +8,7 @@
 library engine;
 
 import 'dart:collection';
+import "dart:math" as math;
 
 import 'package:analyzer/src/task/task_dart.dart';
 
@@ -1861,7 +1862,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // result in an infinite loop in performAnalysisTask() because re-caching one AST structure
       // can cause another priority source's AST structure to be flushed.
       //
-      int count = Math.min(sources.length, _options.cacheSize - _PRIORITY_ORDER_SIZE_DELTA);
+      int count = math.min(sources.length, _options.cacheSize - _PRIORITY_ORDER_SIZE_DELTA);
       _priorityOrder = new List<Source>(count);
       for (int i = 0; i < count; i++) {
         _priorityOrder[i] = sources[i];
@@ -4416,21 +4417,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     int consistencyCheckEnd = JavaSystem.nanoTime();
     if (changedSources.length > 0 || missingSources.length > 0) {
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.print("Consistency check took ");
-      writer.print((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
-      writer.println(" ms and found");
-      writer.print("  ");
-      writer.print(changedSources.length);
-      writer.println(" inconsistent entries");
-      writer.print("  ");
-      writer.print(missingSources.length);
-      writer.println(" missing sources");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("Consistency check took ");
+      buffer.write((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
+      buffer.writeln(" ms and found");
+      buffer.write("  ");
+      buffer.write(changedSources.length);
+      buffer.writeln(" inconsistent entries");
+      buffer.write("  ");
+      buffer.write(missingSources.length);
+      buffer.writeln(" missing sources");
       for (Source source in missingSources) {
-        writer.print("    ");
-        writer.println(source.fullName);
+        buffer.write("    ");
+        buffer.writeln(source.fullName);
       }
-      _logInformation(writer.toString());
+      _logInformation(buffer.toString());
     }
     return changedSources.length > 0;
   }

@@ -8,6 +8,8 @@
 library engine.source;
 
 import 'dart:collection';
+import "dart:math" as math;
+
 import 'java_core.dart';
 import 'sdk.dart' show DartSdk;
 import 'engine.dart';
@@ -781,8 +783,8 @@ class SourceRange {
    * @return the minimal [SourceRange] that cover this and the given [SourceRange]s.
    */
   SourceRange getUnion(SourceRange other) {
-    int newOffset = Math.min(offset, other.offset);
-    int newEnd = Math.max(offset + length, other.offset + other.length);
+    int newOffset = math.min(offset, other.offset);
+    int newEnd = math.max(offset + length, other.offset + other.length);
     return new SourceRange(newOffset, newEnd - newOffset);
   }
 

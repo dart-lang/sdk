@@ -8,6 +8,7 @@
 library engine.test_support;
 
 import 'dart:collection';
+import "dart:math" as math;
 
 import 'package:analyzer/src/generated/ast.dart' show AstNode, NodeLocator;
 import 'package:analyzer/src/generated/element.dart';
@@ -186,8 +187,8 @@ class EngineTestCase extends JUnitTestCase {
     }
     int diffPos = _getDiffPos(expected, actual);
     if (diffPos != -1) {
-      int diffAhead = Math.max(0, diffPos - _PRINT_RANGE);
-      int diffAfter = Math.min(actual.length, diffPos + _PRINT_RANGE);
+      int diffAhead = math.max(0, diffPos - _PRINT_RANGE);
+      int diffAfter = math.min(actual.length, diffPos + _PRINT_RANGE);
       String diffStr =
           "${actual.substring(diffAhead, diffPos)}^${actual.substring(diffPos, diffAfter)}";
       // use detailed message
@@ -424,11 +425,11 @@ class EngineTestCase extends JUnitTestCase {
    * @return the source string composed of the given lines
    */
   static String createSource(List<String> lines) {
-    PrintStringWriter writer = new PrintStringWriter();
+    StringBuffer buffer = new StringBuffer();
     for (String line in lines) {
-      writer.println(line);
+      buffer.writeln(line);
     }
-    return writer.toString();
+    return buffer.toString();
   }
 
   /**
@@ -452,7 +453,7 @@ class EngineTestCase extends JUnitTestCase {
    * @return the offset at which the strings differ (or <code>-1</code> if they do not)
    */
   static int _getDiffPos(String str1, String str2) {
-    int len1 = Math.min(str1.length, str2.length);
+    int len1 = math.min(str1.length, str2.length);
     int diffPos = -1;
     for (int i = 0; i < len1; i++) {
       if (str1.codeUnitAt(i) != str2.codeUnitAt(i)) {
@@ -825,17 +826,18 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @throws AssertionFailedError with
    */
   void _fail(List<AnalysisError> expectedErrors) {
-    PrintStringWriter writer = new PrintStringWriter();
-    writer.print("Expected ");
-    writer.print(expectedErrors.length);
-    writer.print(" errors:");
+    StringBuffer buffer = new StringBuffer();
+    buffer.write("Expected ");
+    buffer.write(expectedErrors.length);
+    buffer.write(" errors:");
     for (AnalysisError error in expectedErrors) {
       Source source = error.source;
       LineInfo lineInfo = _lineInfoMap[source];
-      writer.newLine();
+      buffer.writeln();
       if (lineInfo == null) {
         int offset = error.offset;
-        writer.printf(
+        StringUtils.printf(
+            buffer,
             "  %s %s (%d..%d)",
             [
                 source == null ? "" : source.shortName,
@@ -844,7 +846,8 @@ class GatheringErrorListener implements AnalysisErrorListener {
                 offset + error.length]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf(
+        StringUtils.printf(
+            buffer,
             "  %s %s (%d, %d/%d)",
             [
                 source == null ? "" : source.shortName,
@@ -854,17 +857,18 @@ class GatheringErrorListener implements AnalysisErrorListener {
                 error.length]);
       }
     }
-    writer.newLine();
-    writer.print("found ");
-    writer.print(_errors.length);
-    writer.print(" errors:");
+    buffer.writeln();
+    buffer.write("found ");
+    buffer.write(_errors.length);
+    buffer.write(" errors:");
     for (AnalysisError error in _errors) {
       Source source = error.source;
       LineInfo lineInfo = _lineInfoMap[source];
-      writer.newLine();
+      buffer.writeln();
       if (lineInfo == null) {
         int offset = error.offset;
-        writer.printf(
+        StringUtils.printf(
+            buffer,
             "  %s %s (%d..%d): %s",
             [
                 source == null ? "" : source.shortName,
@@ -874,7 +878,8 @@ class GatheringErrorListener implements AnalysisErrorListener {
                 error.message]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf(
+        StringUtils.printf(
+            buffer,
             "  %s %s (%d, %d/%d): %s",
             [
                 source == null ? "" : source.shortName,
@@ -885,7 +890,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
                 error.message]);
       }
     }
-    JUnitTestCase.fail(writer.toString());
+    JUnitTestCase.fail(buffer.toString());
   }
 
   /**

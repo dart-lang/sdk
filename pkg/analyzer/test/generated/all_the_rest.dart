@@ -10831,14 +10831,14 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
       _errors.add("Expected to visit node with tag: ${expectedTag}");
     }
     if (!_errors.isEmpty) {
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.print("Invalid XML structure:");
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("Invalid XML structure:");
       for (String message in _errors) {
-        writer.newLine();
-        writer.print("   ");
-        writer.print(message);
+        buffer.writeln();
+        buffer.write("   ");
+        buffer.write(message);
       }
-      JUnitTestCase.fail(writer.toString());
+      JUnitTestCase.fail(buffer.toString());
     }
   }
   /**

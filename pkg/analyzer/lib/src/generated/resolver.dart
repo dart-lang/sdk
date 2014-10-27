@@ -8,6 +8,8 @@
 library engine.resolver;
 
 import 'dart:collection';
+import "dart:math" as math;
+
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'instrumentation.dart';
@@ -3371,17 +3373,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
     ParameterElement element = parameters == null ? null : _findIdentifier(parameters, parameterName);
     if (element == null) {
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.println("Invalid state found in the Analysis Engine:");
-      writer.println("DeclarationResolver.getElementForParameter() is visiting a parameter that does not appear to be in a method or function.");
-      writer.println("Ancestors:");
+      StringBuffer buffer = new StringBuffer();
+      buffer.writeln("Invalid state found in the Analysis Engine:");
+      buffer.writeln("DeclarationResolver.getElementForParameter() is visiting a parameter that does not appear to be in a method or function.");
+      buffer.writeln("Ancestors:");
       AstNode parent = node.parent;
       while (parent != null) {
-        writer.println(parent.runtimeType.toString());
-        writer.println("---------");
+        buffer.writeln(parent.runtimeType.toString());
+        buffer.writeln("---------");
         parent = parent.parent;
       }
-      AnalysisEngine.instance.logger.logError2(writer.toString(), new CaughtException(new AnalysisException(), null));
+      AnalysisEngine.instance.logger.logError2(buffer.toString(), new CaughtException(new AnalysisException(), null));
     }
     return element;
   }
@@ -12058,7 +12060,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // iterate over each bounded type parameter and corresponding argument
     NodeList<TypeName> typeNameArgList = node.typeArguments.arguments;
     List<DartType> typeArguments = (type as InterfaceType).typeArguments;
-    int loopThroughIndex = Math.min(typeNameArgList.length, boundingElts.length);
+    int loopThroughIndex = math.min(typeNameArgList.length, boundingElts.length);
     bool foundError = false;
     for (int i = 0; i < loopThroughIndex; i++) {
       TypeName argTypeName = typeNameArgList[i];
@@ -13837,7 +13839,7 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
       }
     } else {
       NodeList<TypeName> arguments = typeArguments.arguments;
-      int argumentCount = Math.min(arguments.length, parameterCount);
+      int argumentCount = math.min(arguments.length, parameterCount);
       for (int i = 0; i < argumentCount; i++) {
         types[i] = arguments[i].type;
       }

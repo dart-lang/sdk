@@ -248,6 +248,10 @@ class StringUtils {
     return iter.join(separator);
   }
 
+  static void printf(StringBuffer buffer, String fmt, List args) {
+    buffer.write(_printf(fmt, args));
+  }
+
   static String remove(String str, String remove) {
     if (isEmpty(str) || isEmpty(remove)) {
       return str;
@@ -281,11 +285,6 @@ class StringUtils {
       pattern) {
     return s.split(pattern);
   }
-}
-
-class Math {
-  static num max(num a, num b) => math.max(a, b);
-  static num min(num a, num b) => math.min(a, b);
 }
 
 class RuntimeException extends JavaException {

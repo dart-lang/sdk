@@ -8,6 +8,8 @@
 library services.util;
 
 import 'dart:collection';
+import "dart:math" as math;
+
 import 'package:analyzer/src/generated/java_core.dart' hide StringUtils;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -16,6 +18,7 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+
 import 'stubs.dart';
 
 /**
@@ -376,7 +379,7 @@ class CorrectionUtils {
     // find min length
     int minLength = 2147483647;
     for (List<AstNode> parentList in parents) {
-      minLength = Math.min(minLength, parentList.length);
+      minLength = math.min(minLength, parentList.length);
     }
     // find deepest parent
     int i = 0;
@@ -516,7 +519,7 @@ class CorrectionUtils {
    */
   static String getRecommentedFileNameForClass(String className) {
     int len = className.length;
-    JavaStringBuilder sb = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     bool prevWasUpper = false;
     for (int i = 0; i < len; i++) {
       int c = className.codeUnitAt(i);
@@ -527,22 +530,22 @@ class CorrectionUtils {
           // HTTPServer
           //     ^
           if (!nextIsUpper) {
-            sb.appendChar(0x5F);
+            buffer.writeCharCode(0x5F);
           }
         } else {
           // HttpServer
           //     ^
-          sb.appendChar(0x5F);
+          buffer.writeCharCode(0x5F);
         }
         prevWasUpper = true;
         c = Character.toLowerCase(c);
       } else {
         prevWasUpper = false;
       }
-      sb.appendChar(c);
+      buffer.writeCharCode(c);
     }
-    sb.append(".dart");
-    String fileName = sb.toString();
+    buffer.write(".dart");
+    String fileName = buffer.toString();
     return fileName;
   }
 
@@ -598,27 +601,27 @@ class CorrectionUtils {
   static List<String> getVariableNameSuggestions(String text, Set<String> excluded) {
     // filter out everything except of letters and white spaces
     {
-      JavaStringBuilder sb = new JavaStringBuilder();
+      StringBuffer buffer = new StringBuffer();
       for (int i = 0; i < text.length; i++) {
         int c = text.codeUnitAt(i);
         if (Character.isLetter(c) || Character.isWhitespace(c)) {
-          sb.appendChar(c);
+          buffer.writeCharCode(c);
         }
       }
-      text = sb.toString();
+      text = buffer.toString();
     }
     // make single camel-case text
     {
       List<String> words = StringUtils.split(text);
-      JavaStringBuilder sb = new JavaStringBuilder();
+      StringBuffer buffer = new StringBuffer();
       for (int i = 0; i < words.length; i++) {
         String word = words[i];
         if (i > 0) {
           word = StringUtils.capitalize(word);
         }
-        sb.append(word);
+        buffer.write(word);
       }
-      text = sb.toString();
+      text = buffer.toString();
     }
     // split camel-case into separate suggested names
     Set<String> res = new LinkedHashSet();
@@ -958,7 +961,7 @@ class CorrectionUtils {
    * @return the source with changed indentation.
    */
   String getIndentSource2(String source, bool right) {
-    JavaStringBuilder sb = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     String indent = getIndent(1);
     String eol = endOfLine;
     List<String> lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, eol);
@@ -975,10 +978,10 @@ class CorrectionUtils {
         line = StringUtils.removeStart(line, indent);
       }
       // append line
-      sb.append(line);
-      sb.append(eol);
+      buffer.write(line);
+      buffer.write(eol);
     }
-    return sb.toString();
+    return buffer.toString();
   }
 
   /**
@@ -994,7 +997,7 @@ class CorrectionUtils {
       }
     }
     // re-indent lines
-    JavaStringBuilder sb = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     String eol = endOfLine;
     List<String> lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, eol);
     int lineOffset = 0;
@@ -1018,10 +1021,10 @@ class CorrectionUtils {
         line = "${newIndent}${StringUtils.removeStart(line, oldIndent)}";
       }
       // append line
-      sb.append(line);
-      sb.append(eol);
+      buffer.write(line);
+      buffer.write(eol);
     }
-    return sb.toString();
+    return buffer.toString();
   }
 
   /**
@@ -1308,28 +1311,28 @@ class CorrectionUtils {
     // function type
     if (type is FunctionType) {
       FunctionType functionType = type;
-      JavaStringBuilder sb = new JavaStringBuilder();
+      StringBuffer buffer = new StringBuffer();
       // return type
       DartType returnType = functionType.returnType;
       if (returnType != null && !returnType.isDynamic) {
-        sb.append(getTypeSource2(returnType));
-        sb.appendChar(0x20);
+        buffer.write(getTypeSource2(returnType));
+        buffer.writeCharCode(0x20);
       }
       // parameter name
-      sb.append(name);
+      buffer.write(name);
       // parameters
-      sb.appendChar(0x28);
+      buffer.writeCharCode(0x28);
       List<ParameterElement> fParameters = functionType.parameters;
       for (int i = 0; i < fParameters.length; i++) {
         ParameterElement fParameter = fParameters[i];
         if (i != 0) {
-          sb.append(", ");
+          buffer.write(", ");
         }
-        sb.append(getParameterSource(fParameter.type, fParameter.name));
+        buffer.write(getParameterSource(fParameter.type, fParameter.name));
       }
-      sb.appendChar(0x29);
+      buffer.writeCharCode(0x29);
       // done
-      return sb.toString();
+      return buffer.toString();
     }
     // simple type
     return "${getTypeSource2(type)} ${name}";
@@ -1383,7 +1386,7 @@ class CorrectionUtils {
    * @return the source to reference the given [Type] in this [CompilationUnit].
    */
   String getTypeSource2(DartType type) {
-    JavaStringBuilder sb = new JavaStringBuilder();
+    StringBuffer buffer = new StringBuffer();
     // prepare element
     Element element = type.element;
     if (element == null) {
@@ -1396,13 +1399,13 @@ class CorrectionUtils {
     {
       ImportElement imp = _getImportElement(element);
       if (imp != null && imp.prefix != null) {
-        sb.append(imp.prefix.displayName);
-        sb.append(".");
+        buffer.write(imp.prefix.displayName);
+        buffer.write(".");
       }
     }
     // append simple name
     String name = element.displayName;
-    sb.append(name);
+    buffer.write(name);
     // may be type arguments
     if (type is InterfaceType) {
       InterfaceType interfaceType = type;
@@ -1417,19 +1420,19 @@ class CorrectionUtils {
       }
       // append type arguments
       if (hasArguments) {
-        sb.append("<");
+        buffer.write("<");
         for (int i = 0; i < arguments.length; i++) {
           DartType argument = arguments[i];
           if (i != 0) {
-            sb.append(", ");
+            buffer.write(", ");
           }
-          sb.append(getTypeSource2(argument));
+          buffer.write(getTypeSource2(argument));
         }
-        sb.append(">");
+        buffer.write(">");
       }
     }
     // done
-    return sb.toString();
+    return buffer.toString();
   }
 
   /**
