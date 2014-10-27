@@ -80,33 +80,7 @@ patch class double {
     }
     if (!digitsSeen) return null;  // No digits.
     if (exponent == 0) return sign * doubleValue;
-    // Powers of 10 up to 10^22 are representable as doubles.
-    // Powers of 10 above that are only approximate due to lack of precission.
-    const P10 = const [
-                            1.0,  /*  0 */
-                           10.0,
-                          100.0,
-                         1000.0,
-                        10000.0,
-                       100000.0,  /*  5 */
-                      1000000.0,
-                     10000000.0,
-                    100000000.0,
-                   1000000000.0,
-                  10000000000.0,  /* 10 */
-                 100000000000.0,
-                1000000000000.0,
-               10000000000000.0,
-              100000000000000.0,
-             1000000000000000.0,  /*  15 */
-            10000000000000000.0,
-           100000000000000000.0,
-          1000000000000000000.0,
-         10000000000000000000.0,
-        100000000000000000000.0,  /*  20 */
-       1000000000000000000000.0,
-      10000000000000000000000.0,
-    ];
+    const P10 = POWERS_OF_TEN;  // From shared library
     if (exponent < 0) {
       int negExponent = -exponent;
       if (negExponent >= P10.length) return null;
