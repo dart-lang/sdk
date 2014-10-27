@@ -7419,6 +7419,7 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.forVariable(field);
     getter.getter = true;
     getter.returnType = field.type;
+    getter.type = new FunctionTypeImpl.con1(getter);
     field.getter = getter;
     return getter;
   }
