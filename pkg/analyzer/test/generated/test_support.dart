@@ -419,20 +419,6 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
-   * Convert the given array of lines into a single source string.
-   *
-   * @param lines the lines to be merged into a single source string
-   * @return the source string composed of the given lines
-   */
-  static String createSource(List<String> lines) {
-    StringBuffer buffer = new StringBuffer();
-    for (String line in lines) {
-      buffer.writeln(line);
-    }
-    return buffer.toString();
-  }
-
-  /**
    * @return the [AstNode] with requested type at offset of the "prefix".
    */
   static AstNode findNode(AstNode root, String code, String prefix,

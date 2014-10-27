@@ -461,19 +461,18 @@ abstract class AbstractScannerTest extends JUnitTestCase {
 
 class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_Decorator() {
-    String mainContent = _createAngularSource(
-        [
-            "@Decorator(selector: '[my-dir]',",
-            "             map: const {",
-            "               'my-dir' : '=>myPropA',",
-            "               '.' : '&myPropB',",
-            "             })",
-            "class MyDirective {",
-            "  set myPropA(value) {}",
-            "  set myPropB(value) {}",
-            "  @NgTwoWay('my-prop-c')",
-            "  String myPropC;",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Decorator(selector: '[my-dir]',
+             map: const {
+               'my-dir' : '=>myPropA',
+               '.' : '&myPropB',
+             })
+class MyDirective {
+  set myPropA(value) {}
+  set myPropB(value) {}
+  @NgTwoWay('my-prop-c')
+  String myPropC;
+}''');
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularDirectiveElement
     ClassElement classElement = mainUnitElement.getType("MyDirective");
@@ -511,42 +510,43 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   void test_Decorator_bad_cannotParseSelector() {
-    String mainContent = _createAngularSource(
-        [
-            "@Decorator(selector: '~bad-selector',",
-            "             map: const {",
-            "               'my-dir' : '=>myPropA',",
-            "               '.' : '&myPropB',",
-            "             })",
-            "class MyDirective {",
-            "  set myPropA(value) {}",
-            "  set myPropB(value) {}",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Decorator(selector: '~bad-selector',
+             map: const {
+               'my-dir' : '=>myPropA',
+               '.' : '&myPropB',
+             })
+class MyDirective {
+  set myPropA(value) {}
+  set myPropB(value) {}
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.CANNOT_PARSE_SELECTOR]);
   }
 
   void test_Decorator_bad_missingSelector() {
-    String mainContent = _createAngularSource(
-        [
-            "@Decorator(/*selector: '[my-dir]',*/",
-            "             map: const {",
-            "               'my-dir' : '=>myPropA',",
-            "               '.' : '&myPropB',",
-            "             })",
-            "class MyDirective {",
-            "  set myPropA(value) {}",
-            "  set myPropB(value) {}",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Decorator(/*selector: '[my-dir]',*/
+             map: const {
+               'my-dir' : '=>myPropA',
+               '.' : '&myPropB',
+             })
+class MyDirective {
+  set myPropA(value) {}
+  set myPropB(value) {}
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.MISSING_SELECTOR]);
   }
 
   void test_Formatter() {
-    String mainContent = _createAngularSource(
-        ["@Formatter(name: 'myFilter')", "class MyFilter {", "  call(p1, p2) {}", "}"]);
+    String mainContent = _createAngularSource(r'''
+@Formatter(name: 'myFilter')
+class MyFilter {
+  call(p1, p2) {}
+}''');
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularFilterElement
     ClassElement classElement = mainUnitElement.getType("MyFilter");
@@ -561,8 +561,11 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   }
 
   void test_Formatter_missingName() {
-    String mainContent = _createAngularSource(
-        ["@Formatter()", "class MyFilter {", "  call(p1, p2) {}", "}"]);
+    String mainContent = _createAngularSource(r'''
+@Formatter()
+class MyFilter {
+  call(p1, p2) {}
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.MISSING_NAME]);
@@ -576,12 +579,11 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_bad_cannotParseSelector() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: '~myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: '~myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.CANNOT_PARSE_SELECTOR]);
@@ -590,12 +592,11 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_bad_missingSelector() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', /*selector: 'myComp',*/",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', /*selector: 'myComp',*/
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.MISSING_SELECTOR]);
@@ -609,25 +610,23 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
     contextHelper.addSource("/my_template", "");
     contextHelper.addSource("/my_styles.css", "");
     addMainSource(
-        _createAngularSource(
-            [
-                "@NgComponent(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template', cssUrl: 'my_styles.css')",
-                "class MyComponent {",
-                "}"]));
+        _createAngularSource(r'''
+@NgComponent(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template', cssUrl: 'my_styles.css')
+class MyComponent {
+}'''));
     contextHelper.runTasks();
   }
 
   void test_NgComponent_bad_properties_invalidBinding() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {'name' : '?field'})",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {'name' : '?field'})
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.INVALID_PROPERTY_KIND]);
@@ -636,13 +635,12 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_bad_properties_nameNotStringLiteral() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {null : 'field'})",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {null : 'field'})
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.INVALID_PROPERTY_NAME]);
@@ -651,13 +649,12 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_bad_properties_noSuchField() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {'name' : '=>field'})",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {'name' : '=>field'})
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.INVALID_PROPERTY_FIELD]);
@@ -666,13 +663,12 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_bad_properties_notMapLiteral() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: null)",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: null)
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.INVALID_PROPERTY_MAP]);
@@ -681,13 +677,12 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_bad_properties_specNotStringLiteral() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-            "             map: const {'name' : null})",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {'name' : null})
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.INVALID_PROPERTY_SPEC]);
@@ -696,12 +691,11 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_no_cssUrl() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html'/*, cssUrl: 'my_styles.css'*/)",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html'/*, cssUrl: 'my_styles.css'*/)
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
@@ -716,12 +710,11 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_no_publishAs() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(/*publishAs: 'ctrl',*/ selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(/*publishAs: 'ctrl',*/ selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
@@ -736,12 +729,11 @@ class AngularCompilationUnitBuilderTest extends AngularTest {
   void test_NgComponent_no_templateUrl() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             /*templateUrl: 'my_template.html',*/ cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             /*templateUrl: 'my_template.html',*/ cssUrl: 'my_styles.css')
+class MyComponent {
+}''');
     resolveMainSource(mainContent);
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
@@ -776,21 +768,20 @@ class MyComponent {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     resolveMainSourceNoErrors(
-        _createAngularSource(
-            [
-                "class MySuper {",
-                "  var myPropA;",
-                "}",
-                "",
-                "",
-                "",
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "             map: const {",
-                "               'prop-a' : '@myPropA'",
-                "             })",
-                "class MyComponent extends MySuper {",
-                "}"]));
+        _createAngularSource(r'''
+class MySuper {
+  var myPropA;
+}
+
+
+
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {
+               'prop-a' : '@myPropA'
+             })
+class MyComponent extends MySuper {
+}'''));
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component =
@@ -812,22 +803,21 @@ class MyComponent {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     resolveMainSourceNoErrors(
-        _createAngularSource(
-            [
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-                "class MyComponent {",
-                "  @NgAttr('prop-a')",
-                "  var myPropA;",
-                "  @NgCallback('prop-b')",
-                "  var myPropB;",
-                "  @NgOneWay('prop-c')",
-                "  var myPropC;",
-                "  @NgOneWayOneTime('prop-d')",
-                "  var myPropD;",
-                "  @NgTwoWay('prop-e')",
-                "  var myPropE;",
-                "}"]));
+        _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+  @NgAttr('prop-a')
+  var myPropA;
+  @NgCallback('prop-b')
+  var myPropB;
+  @NgOneWay('prop-c')
+  var myPropC;
+  @NgOneWayOneTime('prop-d')
+  var myPropD;
+  @NgTwoWay('prop-e')
+  var myPropE;
+}'''));
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component =
@@ -877,24 +867,23 @@ class MyComponent {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
     resolveMainSourceNoErrors(
-        _createAngularSource(
-            [
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "             map: const {",
-                "               'prop-a' : '@myPropA',",
-                "               'prop-b' : '&myPropB',",
-                "               'prop-c' : '=>myPropC',",
-                "               'prop-d' : '=>!myPropD',",
-                "               'prop-e' : '<=>myPropE'",
-                "             })",
-                "class MyComponent {",
-                "  var myPropA;",
-                "  var myPropB;",
-                "  var myPropC;",
-                "  var myPropD;",
-                "  var myPropE;",
-                "}"]));
+        _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {
+               'prop-a' : '@myPropA',
+               'prop-b' : '&myPropB',
+               'prop-c' : '=>myPropC',
+               'prop-d' : '=>!myPropD',
+               'prop-e' : '<=>myPropE'
+             })
+class MyComponent {
+  var myPropA;
+  var myPropB;
+  var myPropC;
+  var myPropD;
+  var myPropE;
+}'''));
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
     AngularComponentElement component =
@@ -943,12 +932,11 @@ class MyComponent {
   void test_NgComponent_properties_no() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+}''');
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
@@ -975,25 +963,24 @@ class MyComponent {
   void test_NgComponent_scopeProperties() {
     contextHelper.addSource("/my_template.html", "");
     contextHelper.addSource("/my_styles.css", "");
-    String mainContent = _createAngularSource(
-        [
-            "@Component(publishAs: 'ctrl', selector: 'myComp',",
-            "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-            "class MyComponent {",
-            "  MyComponent(Scope scope) {",
-            "    scope.context['boolProp'] = true;",
-            "    scope.context['intProp'] = 42;",
-            "    scope.context['stringProp'] = 'foo';",
-            "    // duplicate is ignored",
-            "    scope.context['boolProp'] = true;",
-            "    // LHS is not an IndexExpression",
-            "    var v1;",
-            "    v1 = 1;",
-            "    // LHS is not a Scope access",
-            "    var v2;",
-            "    v2['name'] = 2;",
-            "  }",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+  MyComponent(Scope scope) {
+    scope.context['boolProp'] = true;
+    scope.context['intProp'] = 42;
+    scope.context['stringProp'] = 'foo';
+    // duplicate is ignored
+    scope.context['boolProp'] = true;
+    // LHS is not an IndexExpression
+    var v1;
+    v1 = 1;
+    // LHS is not a Scope access
+    var v2;
+    v2['name'] = 2;
+  }
+}''');
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularComponentElement
     ClassElement classElement = mainUnitElement.getType("MyComponent");
@@ -1034,11 +1021,10 @@ class MyComponent {
   }
 
   void test_NgController() {
-    String mainContent = _createAngularSource(
-        [
-            "@Controller(publishAs: 'ctrl', selector: '[myApp]')",
-            "class MyController {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Controller(publishAs: 'ctrl', selector: '[myApp]')
+class MyController {
+}''');
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularControllerElement
     ClassElement classElement = mainUnitElement.getType("MyController");
@@ -1054,27 +1040,30 @@ class MyComponent {
   }
 
   void test_NgController_cannotParseSelector() {
-    String mainContent = _createAngularSource(
-        [
-            "@Controller(publishAs: 'ctrl', selector: '~unknown')",
-            "class MyController {",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+@Controller(publishAs: 'ctrl', selector: '~unknown')
+class MyController {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.CANNOT_PARSE_SELECTOR]);
   }
 
   void test_NgController_missingPublishAs() {
-    String mainContent = _createAngularSource(
-        ["@Controller(selector: '[myApp]')", "class MyController {", "}"]);
+    String mainContent = _createAngularSource(r'''
+@Controller(selector: '[myApp]')
+class MyController {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.MISSING_PUBLISH_AS]);
   }
 
   void test_NgController_missingSelector() {
-    String mainContent = _createAngularSource(
-        ["@Controller(publishAs: 'ctrl')", "class MyController {", "}"]);
+    String mainContent = _createAngularSource(r'''
+@Controller(publishAs: 'ctrl')
+class MyController {
+}''');
     resolveMainSource(mainContent);
     // has error
     assertMainErrors([AngularCode.MISSING_SELECTOR]);
@@ -1082,7 +1071,10 @@ class MyComponent {
 
   void test_NgController_noAnnotationArguments() {
     String mainContent =
-        _createAngularSource(["@NgController", "class MyController {", "}"]);
+        _createAngularSource(r'''
+@NgController
+class MyController {
+}''');
     resolveMainSource(mainContent);
   }
 
@@ -1111,11 +1103,10 @@ class MyFilter {
 
   void test_getElement_component_name() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-                "class MyComponent {}"]));
+        _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {}'''));
     SimpleStringLiteral node =
         _findMainNode("ctrl'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
@@ -1129,14 +1120,13 @@ class MyFilter {
 
   void test_getElement_component_property_fromFieldAnnotation() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-                "class MyComponent {",
-                "  @NgOneWay('prop')",
-                "  var field;",
-                "}"]));
+        _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {
+  @NgOneWay('prop')
+  var field;
+}'''));
     // prepare node
     SimpleStringLiteral node =
         _findMainNode("prop'", (n) => n is SimpleStringLiteral);
@@ -1151,16 +1141,15 @@ class MyFilter {
 
   void test_getElement_component_property_fromMap() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',",
-                "             map: const {",
-                "               'prop' : '@field',",
-                "             })",
-                "class MyComponent {",
-                "  var field;",
-                "}"]));
+        _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css',
+             map: const {
+               'prop' : '@field',
+             })
+class MyComponent {
+  var field;
+}'''));
     // AngularPropertyElement
     {
       SimpleStringLiteral node =
@@ -1189,11 +1178,10 @@ class MyFilter {
 
   void test_getElement_component_selector() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Component(publishAs: 'ctrl', selector: 'myComp',",
-                "             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')",
-                "class MyComponent {}"]));
+        _createAngularSource(r'''
+@Component(publishAs: 'ctrl', selector: 'myComp',
+             templateUrl: 'my_template.html', cssUrl: 'my_styles.css')
+class MyComponent {}'''));
     SimpleStringLiteral node =
         _findMainNode("myComp'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
@@ -1207,11 +1195,10 @@ class MyFilter {
 
   void test_getElement_controller_name() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Controller(publishAs: 'ctrl', selector: '[myApp]')",
-                "class MyController {",
-                "}"]));
+        _createAngularSource(r'''
+@Controller(publishAs: 'ctrl', selector: '[myApp]')
+class MyController {
+}'''));
     SimpleStringLiteral node =
         _findMainNode("ctrl'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
@@ -1225,15 +1212,14 @@ class MyFilter {
 
   void test_getElement_directive_property() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Decorator(selector: '[my-dir]',",
-                "             map: const {",
-                "               'my-dir' : '=>field'",
-                "             })",
-                "class MyDirective {",
-                "  set field(value) {}",
-                "}"]));
+        _createAngularSource(r'''
+@Decorator(selector: '[my-dir]',
+             map: const {
+               'my-dir' : '=>field'
+             })
+class MyDirective {
+  set field(value) {}
+}'''));
     // prepare node
     SimpleStringLiteral node =
         _findMainNode("my-dir'", (n) => n is SimpleStringLiteral);
@@ -1248,8 +1234,9 @@ class MyFilter {
 
   void test_getElement_directive_selector() {
     resolveMainSource(
-        _createAngularSource(
-            ["@Decorator(selector: '[my-dir]')", "class MyDirective {}"]));
+        _createAngularSource(r'''
+@Decorator(selector: '[my-dir]')
+class MyDirective {}'''));
     SimpleStringLiteral node =
         _findMainNode("my-dir]'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
@@ -1263,12 +1250,11 @@ class MyFilter {
 
   void test_getElement_filter_name() {
     resolveMainSource(
-        _createAngularSource(
-            [
-                "@Formatter(name: 'myFilter')",
-                "class MyFilter {",
-                "  call(p1, p2) {}",
-                "}"]));
+        _createAngularSource(r'''
+@Formatter(name: 'myFilter')
+class MyFilter {
+  call(p1, p2) {}
+}'''));
     SimpleStringLiteral node =
         _findMainNode("myFilter'", (n) => n is SimpleStringLiteral);
     int offset = node.offset;
@@ -1389,19 +1375,18 @@ class MyComponent {
     contextHelper.addSource("/wrong.html", "");
     contextHelper.addSource("/my_templateA.html", "");
     contextHelper.addSource("/my_templateB.html", "");
-    String mainContent = _createAngularSource(
-        [
-            "class MyRouteInitializer {",
-            "  init(ViewFactory view, foo) {",
-            "    foo.view('wrong.html');   // has target",
-            "    foo();                    // less than one argument",
-            "    foo('wrong.html', 'bar'); // more than one argument",
-            "    foo('wrong' + '.html');   // not literal",
-            "    foo('wrong.html');        // not ViewFactory",
-            "    view('my_templateA.html');",
-            "    view('my_templateB.html');",
-            "  }",
-            "}"]);
+    String mainContent = _createAngularSource(r'''
+class MyRouteInitializer {
+  init(ViewFactory view, foo) {
+    foo.view('wrong.html');   // has target
+    foo();                    // less than one argument
+    foo('wrong.html', 'bar'); // more than one argument
+    foo('wrong' + '.html');   // not literal
+    foo('wrong.html');        // not ViewFactory
+    view('my_templateA.html');
+    view('my_templateB.html');
+  }
+}''');
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularViewElement(s)
     List<AngularViewElement> views = mainUnitElement.angularViews;
@@ -1486,10 +1471,8 @@ class MyComponent {
         (selector as AngularTagSelectorElementImpl).name);
   }
 
-  static String _createAngularSource(List<String> lines) {
-    String source = "import 'angular.dart';\n";
-    source += EngineTestCase.createSource(lines);
-    return source;
+  static String _createAngularSource(String code) {
+    return "import 'angular.dart';\n" + code;
   }
 }
 
@@ -1508,13 +1491,13 @@ class MyComponent {
 }''');
     contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     addIndexSource2(
         "/my_template.html",
         r'''
-    <div>
-      {{ctrl.field}}
-    </div>''');
+<div>
+  {{ctrl.field}}
+</div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     resolveIndex();
@@ -1541,7 +1524,7 @@ import 'my_component.dart';''');
 library main;
 import 'my_module.dart';''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(["<myComponent/>"]));
+        AngularTest.createHtmlWithMyController("<myComponent/>"));
     // "myComponent" tag was resolved
     {
       ht.XmlTagNode tagNode =
@@ -1595,10 +1578,9 @@ class MyComponent {
   set setB(value) {}
 }''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<input type='text' ng-model='someModel'/>",
-                "<myComponent attrA='someModel' attrB='bbb'/>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='someModel'/>
+<myComponent attrA='someModel' attrB='bbb'/>'''));
     // "attrA" attribute expression was resolved
     JUnitTestCase.assertNotNull(findIdentifier("someModel"));
     // "myComponent" tag was resolved
@@ -1641,7 +1623,9 @@ class MyDirective {
   set input(value) {}
 }''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(["<div my-directive>", "</div>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<div my-directive>
+</div>'''));
   }
 
   void test_NgDirective_noExpression() {
@@ -1654,7 +1638,9 @@ class MyDirective {
   set input(value) {}
 }''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(["<div my-directive>", "</div>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<div my-directive>
+</div>'''));
   }
 
   void test_NgDirective_resolvedExpression() {
@@ -1668,11 +1654,10 @@ class MyDirective {
   String condition;
 }''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<input type='text' ng-model='name'>",
-                "<div my-directive my-property='name != null'>",
-                "</div>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='name'>
+<div my-directive my-property='name != null'>
+</div>'''));
     resolveMainNoErrors();
     // "my-directive" attribute was resolved
     {
@@ -1710,11 +1695,10 @@ class MyDirective {
   String property;
 }''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<input type='text' ng-model='name'>",
-                "<div my-directive my-property='name != null'>",
-                "</div>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='name'>
+<div my-directive my-property='name != null'>
+</div>'''));
     resolveMain();
     // @NgAttr means "string attribute", which we don't parse
     JUnitTestCase.assertNull(findIdentifierMaybe("name != null"));
@@ -1732,11 +1716,10 @@ class MyDirective {
   set condition(value) {}
 }''');
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<input type='text' ng-model='name'>",
-                "<div my-directive='name != null'>",
-                "</div>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='name'>
+<div my-directive='name != null'>
+</div>'''));
     // "name" attribute was resolved
     JUnitTestCase.assertNotNull(findIdentifier("name != null"));
   }
@@ -1754,13 +1737,13 @@ class MyComponent {
 }''');
     contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     addIndexSource2(
         "/my_template.html",
         r'''
-    <div>
-      {{ctrl.noMethod()}}
-    </div>''');
+<div>
+  {{ctrl.noMethod()}}
+</div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     // there are some errors in my_template.html
@@ -1791,7 +1774,7 @@ class MyComponent {
 }''');
     Source entrySource = contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     // there are some errors in MyComponent
@@ -1821,13 +1804,13 @@ class MyComponent {
 }''');
     Source entrySource = contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     addIndexSource2(
         "/my_template.html",
         r'''
-    <div>
-      {{ctrl.noMethod()}}
-    </div>''');
+<div>
+  {{ctrl.noMethod()}}
+</div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     // there are some errors in my_template.html
@@ -1857,7 +1840,7 @@ class MyComponent {
 }''');
     Source entrySource = contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     // there are some errors in MyComponent
@@ -1881,8 +1864,12 @@ class MyComponent {
   void test_contextProperties() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithAngular(
-            ["<div>", "  {{\$id}}", "  {{\$parent}}", "  {{\$root}}", "</div>"]));
+        AngularTest.createHtmlWithAngular(r'''
+<div>
+  {{$id}}
+  {{$parent}}
+  {{$root}}
+</div>'''));
     assertResolvedIdentifier("\$id");
     assertResolvedIdentifier("\$parent");
     assertResolvedIdentifier("\$root");
@@ -1923,8 +1910,7 @@ class MyComponent {
   void test_ngClick() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<button ng-click='ctrl.doSomething(\$event)'/>"]));
+        AngularTest.createHtmlWithMyController(r"<button ng-click='ctrl.doSomething($event)'/>"));
     assertResolvedIdentifier("doSomething");
   }
 
@@ -1934,15 +1920,16 @@ class MyComponent {
   void test_ngIf() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(["<div ng-if='ctrl.field != null'/>"]));
+        AngularTest.createHtmlWithMyController("<div ng-if='ctrl.field != null'/>"));
     assertResolvedIdentifier("field");
   }
 
   void test_ngModel_modelAfterUsage() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<h3>Hello {{name}}!</h3>", "<input type='text' ng-model='name'>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<h3>Hello {{name}}!</h3>
+<input type='text' ng-model='name'>'''));
     assertResolvedIdentifier2("name}}!", "String");
     assertResolvedIdentifier2("name'>", "String");
   }
@@ -1950,8 +1937,9 @@ class MyComponent {
   void test_ngModel_modelBeforeUsage() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<input type='text' ng-model='name'>", "<h3>Hello {{name}}!</h3>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<input type='text' ng-model='name'>
+<h3>Hello {{name}}!</h3>'''));
     assertResolvedIdentifier2("name}}!", "String");
     Element element = assertResolvedIdentifier2("name'>", "String");
     JUnitTestCase.assertEquals("name", element.name);
@@ -1961,8 +1949,7 @@ class MyComponent {
   void test_ngModel_notIdentifier() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<input type='text' ng-model='ctrl.field'>"]));
+        AngularTest.createHtmlWithMyController("<input type='text' ng-model='ctrl.field'>"));
     assertResolvedIdentifier2("field'>", "String");
   }
 
@@ -1972,19 +1959,17 @@ class MyComponent {
   void test_ngMouseOut() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<button ng-mouseout='ctrl.doSomething(\$event)'/>"]));
+        AngularTest.createHtmlWithMyController(r"<button ng-mouseout='ctrl.doSomething($event)'/>"));
     assertResolvedIdentifier("doSomething");
   }
 
   void fail_ngRepeat_additionalVariables() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<li ng-repeat='name in ctrl.names'>",
-                "  {{\$index}} {{\$first}} {{\$middle}} {{\$last}} {{\$even}} {{\$odd}}",
-                "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name in ctrl.names'>
+  {{$index}} {{$first}} {{$middle}} {{$last}} {{$even}} {{$odd}}
+</li>'''));
     assertResolvedIdentifier2("\$index", "int");
     assertResolvedIdentifier2("\$first", "bool");
     assertResolvedIdentifier2("\$middle", "bool");
@@ -1996,24 +1981,27 @@ class MyComponent {
   void fail_ngRepeat_bad_expectedIdentifier() {
     addMyController();
     resolveIndex2(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat='name + 42 in ctrl.names'>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name + 42 in ctrl.names'>
+</li>'''));
     assertErrors(indexSource, [AngularCode.INVALID_REPEAT_ITEM_SYNTAX]);
   }
 
   void fail_ngRepeat_bad_expectedIn() {
     addMyController();
     resolveIndex2(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat='name : ctrl.names'>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name : ctrl.names'>
+</li>'''));
     assertErrors(indexSource, [AngularCode.INVALID_REPEAT_SYNTAX]);
   }
 
   void fail_ngRepeat_filters_filter_literal() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat='item in ctrl.items | filter:42:null'/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='item in ctrl.items | filter:42:null'/>
+</li>'''));
     // filter "filter" is resolved
     Element filterElement = assertResolvedIdentifier("filter");
     EngineTestCase.assertInstanceOf(
@@ -2025,10 +2013,9 @@ class MyComponent {
   void fail_ngRepeat_filters_filter_propertyMap() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<li ng-repeat='item in ctrl.items | filter:{name:null, done:false}'/>",
-                "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='item in ctrl.items | filter:{name:null, done:false}'/>
+</li>'''));
     assertResolvedIdentifier2("name:", "String");
     assertResolvedIdentifier2("done:", "bool");
   }
@@ -2036,16 +2023,18 @@ class MyComponent {
   void fail_ngRepeat_filters_missingColon() {
     addMyController();
     resolveIndex2(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.items | orderBy:'' true\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'' true"/>
+</li>'''));
     assertErrors(indexSource, [AngularCode.MISSING_FORMATTER_COLON]);
   }
 
   void fail_ngRepeat_filters_noArgs() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.items | orderBy\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy"/>
+</li>'''));
     // filter "orderBy" is resolved
     Element filterElement = assertResolvedIdentifier("orderBy");
     EngineTestCase.assertInstanceOf(
@@ -2057,8 +2046,9 @@ class MyComponent {
   void fail_ngRepeat_filters_orderBy_emptyString() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.items | orderBy:'':true\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'':true"/>
+</li>'''));
     // filter "orderBy" is resolved
     Element filterElement = assertResolvedIdentifier("orderBy");
     EngineTestCase.assertInstanceOf(
@@ -2070,10 +2060,9 @@ class MyComponent {
   void fail_ngRepeat_filters_orderBy_propertyList() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<li ng-repeat=\"item in ctrl.items | orderBy:['name', 'done']\"/>",
-                "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:['name', 'done']"/>
+</li>'''));
     assertResolvedIdentifier2("name'", "String");
     assertResolvedIdentifier2("done'", "bool");
   }
@@ -2081,42 +2070,45 @@ class MyComponent {
   void fail_ngRepeat_filters_orderBy_propertyName() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.items | orderBy:'name'\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'name'"/>
+</li>'''));
     assertResolvedIdentifier2("name'", "String");
   }
 
   void fail_ngRepeat_filters_orderBy_propertyName_minus() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.items | orderBy:'-name'\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'-name'"/>
+</li>'''));
     assertResolvedIdentifier2("name'", "String");
   }
 
   void fail_ngRepeat_filters_orderBy_propertyName_plus() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.items | orderBy:'+name'\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'+name'"/>
+</li>'''));
     assertResolvedIdentifier2("name'", "String");
   }
 
   void fail_ngRepeat_filters_orderBy_propertyName_untypedItems() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat=\"item in ctrl.untypedItems | orderBy:'name'\"/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.untypedItems | orderBy:'name'"/>
+</li>'''));
     assertResolvedIdentifier2("name'", "dynamic");
   }
 
   void fail_ngRepeat_filters_two() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            [
-                "<li ng-repeat=\"item in ctrl.items | orderBy:'+' | orderBy:'-'\"/>",
-                "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat="item in ctrl.items | orderBy:'+' | orderBy:'-'"/>
+</li>'''));
     EngineTestCase.assertInstanceOf(
         (obj) => obj is AngularFormatterElement,
         AngularFormatterElement,
@@ -2130,8 +2122,10 @@ class MyComponent {
   void fail_ngRepeat_resolvedExpressions() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat='name in ctrl.names'>", "  {{name}}", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name in ctrl.names'>
+  {{name}}
+</li>'''));
     assertResolvedIdentifier2("name in", "String");
     assertResolvedIdentifier2("ctrl.", "MyController");
     assertResolvedIdentifier2("names'", "List<String>");
@@ -2141,8 +2135,9 @@ class MyComponent {
   void fail_ngRepeat_trackBy() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<li ng-repeat='name in ctrl.names track by name.length'/>", "</li>"]));
+        AngularTest.createHtmlWithMyController(r'''
+<li ng-repeat='name in ctrl.names track by name.length'/>
+</li>'''));
     assertResolvedIdentifier2("length'", "int");
   }
 
@@ -2152,8 +2147,7 @@ class MyComponent {
   void test_ngShow() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<div ng-show='ctrl.field != null'/>"]));
+        AngularTest.createHtmlWithMyController("<div ng-show='ctrl.field != null'/>"));
     assertResolvedIdentifier("field");
   }
 
@@ -2269,8 +2263,7 @@ class MyController {
   void test_resolveExpression_inAttribute() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(
-            ["<button title='{{ctrl.field}}'></button>"]));
+        AngularTest.createHtmlWithMyController("<button title='{{ctrl.field}}'></button>"));
     assertResolvedIdentifier2("ctrl", "MyController");
   }
 
@@ -2291,7 +2284,7 @@ class MyController {
   void test_resolveExpression_withFilter() {
     addMyController();
     _resolveIndexNoErrors(
-        AngularTest.createHtmlWithMyController(["{{ctrl.field | uppercase}}"]));
+        AngularTest.createHtmlWithMyController("{{ctrl.field | uppercase}}"));
     assertResolvedIdentifier2("ctrl", "MyController");
     assertResolvedIdentifier("uppercase");
   }
@@ -2299,7 +2292,7 @@ class MyController {
   void test_resolveExpression_withFilter_notSimpleIdentifier() {
     addMyController();
     resolveIndex2(
-        AngularTest.createHtmlWithMyController(["{{ctrl.field | not.supported}}"]));
+        AngularTest.createHtmlWithMyController("{{ctrl.field | not.supported}}"));
     assertErrors(indexSource, [AngularCode.INVALID_FORMATTER_NAME]);
   }
 
@@ -2321,13 +2314,13 @@ class MyComponent {
 ''');
     contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     addIndexSource2(
         "/my_template.html",
         r'''
-    <div>
-      {{scopeProperty}}
-    </div>''');
+<div>
+  {{scopeProperty}}
+</div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     resolveIndex();
@@ -2358,13 +2351,13 @@ void setScopeProperties(Scope scope) {
 ''');
     contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     addIndexSource2(
         "/my_template.html",
         r'''
-    <div>
-      {{ctrl}}
-    </div>''');
+<div>
+  {{ctrl}}
+</div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     resolveIndex();
@@ -2398,13 +2391,13 @@ class MyRouteInitializer {
 }''');
     contextHelper.addSource(
         "/entry-point.html",
-        AngularTest.createHtmlWithAngular([]));
+        AngularTest.createHtmlWithAngular(''));
     addIndexSource2(
         "/my_template.html",
         r'''
-    <div my-controller>
-      {{ctrl.field}}
-    </div>''');
+<div my-controller>
+  {{ctrl.field}}
+</div>''');
     contextHelper.addSource("/my_styles.css", "");
     contextHelper.runTasks();
     resolveIndex();
@@ -3002,14 +2995,14 @@ Injector ngBootstrap({
   }
 
   /**
-   * Creates an HTML content that has Angular marker and script with "main.dart" reference.
+   * Creates an HTML content that has Angular marker and script with
+   * the "main.dart" reference.
    */
-  static String createHtmlWithAngular(List<String> lines) {
-    String source = r'''
+  static String createHtmlWithAngular(String innerCode) {
+    String source = '''
 <html ng-app>
-  <body>''';
-    source += EngineTestCase.createSource(lines);
-    source += r'''
+  <body>
+$innerCode
     <script type='application/dart' src='main.dart'></script>
   </body>
 </html>''';
@@ -3020,13 +3013,12 @@ Injector ngBootstrap({
    * Creates an HTML content that has Angular marker, script with "main.dart" reference and
    * "MyController" injected.
    */
-  static String createHtmlWithMyController(List<String> lines) {
-    String source = r'''
+  static String createHtmlWithMyController(String innerHtml) {
+    String source = '''
 <html ng-app>
   <body>
-    <div my-controller>''';
-    source += EngineTestCase.createSource(lines);
-    source += r'''
+    <div my-controller>
+$innerHtml
     </div>
     <script type='application/dart' src='main.dart'></script>
   </body>
@@ -8438,7 +8430,7 @@ class ElementBuilderTest extends EngineTestCase {
 
 class ElementLocatorTest extends ResolverTestCase {
   void fail_locate_ExportDirective() {
-    AstNode id = _findNodeIn("export", ["export 'dart:core';"]);
+    AstNode id = _findNodeIn("export", "export 'dart:core';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ImportElement,
@@ -8447,7 +8439,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void fail_locate_Identifier_libraryDirective() {
-    AstNode id = _findNodeIn("foo", ["library foo.bar;"]);
+    AstNode id = _findNodeIn("foo", "library foo.bar;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryElement,
@@ -8471,7 +8463,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locateWithOffset_BinaryExpression() {
-    AstNode id = _findNodeIn("+", ["var x = 3 + 4;"]);
+    AstNode id = _findNodeIn("+", "var x = 3 + 4;");
     Element element = ElementLocator.locateWithOffset(id, 0);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8480,14 +8472,18 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locateWithOffset_StringLiteral() {
-    AstNode id = _findNodeIn("abc", ["var x = 'abc';"]);
+    AstNode id = _findNodeIn("abc", "var x = 'abc';");
     Element element = ElementLocator.locateWithOffset(id, 1);
     JUnitTestCase.assertNull(element);
   }
 
   void test_locate_AssignmentExpression() {
     AstNode id =
-        _findNodeIn("+=", ["int x = 0;", "void main() {", "  x += 1;", "}"]);
+        _findNodeIn("+=", r'''
+int x = 0;
+void main() {
+  x += 1;
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8496,7 +8492,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_BinaryExpression() {
-    AstNode id = _findNodeIn("+", ["var x = 3 + 4;"]);
+    AstNode id = _findNodeIn("+", "var x = 3 + 4;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8505,7 +8501,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_ClassDeclaration() {
-    AstNode id = _findNodeIn("class", ["class A { }"]);
+    AstNode id = _findNodeIn("class", "class A { }");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassElement,
@@ -8514,7 +8510,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_CompilationUnit() {
-    CompilationUnit cu = _resolveContents(["// only comment"]);
+    CompilationUnit cu = _resolveContents("// only comment");
     JUnitTestCase.assertNotNull(cu.element);
     Element element = ElementLocator.locate(cu);
     JUnitTestCase.assertSame(cu.element, element);
@@ -8522,7 +8518,10 @@ class ElementLocatorTest extends ResolverTestCase {
 
   void test_locate_ConstructorDeclaration() {
     AstNode id =
-        _findNodeIndexedIn("bar", 0, ["class A {", "  A.bar() {}", "}"]);
+        _findNodeIndexedIn("bar", 0, r'''
+class A {
+  A.bar() {}
+}''');
     ConstructorDeclaration declaration =
         id.getAncestor((node) => node is ConstructorDeclaration);
     Element element = ElementLocator.locate(declaration);
@@ -8533,7 +8532,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_FunctionDeclaration() {
-    AstNode id = _findNodeIn("f", ["int f() => 3;"]);
+    AstNode id = _findNodeIn("f", "int f() => 3;");
     FunctionDeclaration declaration =
         id.getAncestor((node) => node is FunctionDeclaration);
     Element element = ElementLocator.locate(declaration);
@@ -8548,12 +8547,12 @@ class ElementLocatorTest extends ResolverTestCase {
     AstNode id = _findNodeIndexedIn(
         "Class",
         2,
-        [
-            "class Class {",
-            "  const Class.name();",
-            "}",
-            "void main(@Class.name() parameter) {",
-            "}"]);
+        r'''
+class Class {
+  const Class.name();
+}
+void main(@Class.name() parameter) {
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassElement,
@@ -8566,12 +8565,12 @@ class ElementLocatorTest extends ResolverTestCase {
     AstNode id = _findNodeIndexedIn(
         "Class",
         2,
-        [
-            "class Class {",
-            "  const Class();",
-            "}",
-            "void main(@Class() parameter) {",
-            "}"]);
+        r'''
+class Class {
+  const Class();
+}
+void main(@Class() parameter) {
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ConstructorElement,
@@ -8580,7 +8579,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_Identifier_className() {
-    AstNode id = _findNodeIn("A", ["class A { }"]);
+    AstNode id = _findNodeIn("A", "class A { }");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ClassElement,
@@ -8590,7 +8589,10 @@ class ElementLocatorTest extends ResolverTestCase {
 
   void test_locate_Identifier_constructor_named() {
     AstNode id =
-        _findNodeIndexedIn("bar", 0, ["class A {", "  A.bar() {}", "}"]);
+        _findNodeIndexedIn("bar", 0, r'''
+class A {
+  A.bar() {}
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ConstructorElement,
@@ -8599,7 +8601,10 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_Identifier_constructor_unnamed() {
-    AstNode id = _findNodeIndexedIn("A", 1, ["class A {", "  A() {}", "}"]);
+    AstNode id = _findNodeIndexedIn("A", 1, r'''
+class A {
+  A() {}
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ConstructorElement,
@@ -8608,7 +8613,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_Identifier_fieldName() {
-    AstNode id = _findNodeIn("x", ["class A { var x; }"]);
+    AstNode id = _findNodeIn("x", "class A { var x; }");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FieldElement,
@@ -8618,7 +8623,10 @@ class ElementLocatorTest extends ResolverTestCase {
 
   void test_locate_Identifier_propertAccess() {
     AstNode id =
-        _findNodeIn("length", ["void main() {", " int x = 'foo'.length;", "}"]);
+        _findNodeIn("length", r'''
+void main() {
+ int x = 'foo'.length;
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is PropertyAccessorElement,
@@ -8627,7 +8635,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_ImportDirective() {
-    AstNode id = _findNodeIn("import", ["import 'dart:core';"]);
+    AstNode id = _findNodeIn("import", "import 'dart:core';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ImportElement,
@@ -8639,7 +8647,11 @@ class ElementLocatorTest extends ResolverTestCase {
     AstNode id = _findNodeIndexedIn(
         "\\[",
         1,
-        ["void main() {", "  List x = [1, 2];", "  var y = x[0];", "}"]);
+        r'''
+void main() {
+  List x = [1, 2];
+  var y = x[0];
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8649,7 +8661,11 @@ class ElementLocatorTest extends ResolverTestCase {
 
   void test_locate_InstanceCreationExpression() {
     AstNode node =
-        _findNodeIndexedIn("A(", 0, ["class A {}", "void main() {", " new A();", "}"]);
+        _findNodeIndexedIn("A(", 0, r'''
+class A {}
+void main() {
+ new A();
+}''');
     Element element = ElementLocator.locate(node);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is ConstructorElement,
@@ -8700,7 +8716,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_LibraryDirective() {
-    AstNode id = _findNodeIn("library", ["library foo;"]);
+    AstNode id = _findNodeIn("library", "library foo;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryElement,
@@ -8709,7 +8725,10 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_MethodDeclaration() {
-    AstNode id = _findNodeIn("m", ["class A {", "  void m() {}", "}"]);
+    AstNode id = _findNodeIn("m", r'''
+class A {
+  void m() {}
+}''');
     MethodDeclaration declaration =
         id.getAncestor((node) => node is MethodDeclaration);
     Element element = ElementLocator.locate(declaration);
@@ -8723,13 +8742,13 @@ class ElementLocatorTest extends ResolverTestCase {
     AstNode id = _findNodeIndexedIn(
         "bar",
         1,
-        [
-            "class A {",
-            "  int bar() => 42;",
-            "}",
-            "void main() {",
-            " var f = new A().bar();",
-            "}"]);
+        r'''
+class A {
+  int bar() => 42;
+}
+void main() {
+ var f = new A().bar();
+}''');
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8738,14 +8757,14 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_MethodInvocation_topLevel() {
-    String contents =
+    String code =
         r'''
 foo(x) {}
 void main() {
  foo(0);
 }''';
-    CompilationUnit cu = _resolveContents([contents]);
-    int offset = contents.indexOf('foo(0)');
+    CompilationUnit cu = _resolveContents(code);
+    int offset = code.indexOf('foo(0)');
     AstNode node = new NodeLocator.con1(offset).searchWithin(cu);
     MethodInvocation invocation =
         node.getAncestor((n) => n is MethodInvocation);
@@ -8757,7 +8776,7 @@ void main() {
   }
 
   void test_locate_PostfixExpression() {
-    AstNode id = _findNodeIn("++", ["int addOne(int x) => x++;"]);
+    AstNode id = _findNodeIn("++", "int addOne(int x) => x++;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8766,7 +8785,7 @@ void main() {
   }
 
   void test_locate_PrefixExpression() {
-    AstNode id = _findNodeIn("++", ["int addOne(int x) => ++x;"]);
+    AstNode id = _findNodeIn("++", "int addOne(int x) => ++x;");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodElement,
@@ -8776,7 +8795,9 @@ void main() {
 
   void test_locate_PrefixedIdentifier() {
     AstNode id =
-        _findNodeIn("int", ["import 'dart:core' as core;", "core.int value;"]);
+        _findNodeIn("int", r'''
+import 'dart:core' as core;
+core.int value;''');
     PrefixedIdentifier identifier =
         id.getAncestor((node) => node is PrefixedIdentifier);
     Element element = ElementLocator.locate(identifier);
@@ -8788,7 +8809,7 @@ void main() {
 
   void test_locate_StringLiteral_exportUri() {
     addNamedSource("/foo.dart", "library foo;");
-    AstNode id = _findNodeIn("'foo.dart'", ["export 'foo.dart';"]);
+    AstNode id = _findNodeIn("'foo.dart'", "export 'foo.dart';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryElement,
@@ -8797,7 +8818,7 @@ void main() {
   }
 
   void test_locate_StringLiteral_expression() {
-    AstNode id = _findNodeIn("abc", ["var x = 'abc';"]);
+    AstNode id = _findNodeIn("abc", "var x = 'abc';");
     Element element = ElementLocator.locate(id);
     JUnitTestCase.assertNull(element);
   }
@@ -8805,7 +8826,7 @@ void main() {
   void test_locate_StringLiteral_importUri() {
     addNamedSource("/foo.dart", "library foo; class A {}");
     AstNode id =
-        _findNodeIn("'foo.dart'", ["import 'foo.dart'; class B extends A {}"]);
+        _findNodeIn("'foo.dart'", "import 'foo.dart'; class B extends A {}");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is LibraryElement,
@@ -8815,7 +8836,7 @@ void main() {
 
   void test_locate_StringLiteral_partUri() {
     addNamedSource("/foo.dart", "part of app;");
-    AstNode id = _findNodeIn("'foo.dart'", ["library app; part 'foo.dart';"]);
+    AstNode id = _findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
     Element element = ElementLocator.locate(id);
     EngineTestCase.assertInstanceOf(
         (obj) => obj is CompilationUnitElement,
@@ -8824,7 +8845,7 @@ void main() {
   }
 
   void test_locate_VariableDeclaration() {
-    AstNode id = _findNodeIn("x", ["var x = 'abc';"]);
+    AstNode id = _findNodeIn("x", "var x = 'abc';");
     VariableDeclaration declaration =
         id.getAncestor((node) => node is VariableDeclaration);
     Element element = ElementLocator.locate(declaration);
@@ -8837,30 +8858,27 @@ void main() {
   /**
    * Find the first AST node matching a pattern in the resolved AST for the given source.
    *
-   * @param nodePattern the (unique) pattern used to identify the node of interest
-   * @param lines the lines to be merged into a single source string
-   * @return the matched node in the resolved AST for the given source lines
-   * @throws Exception if source cannot be verified
+   * [nodePattern] the (unique) pattern used to identify the node of interest.
+   * [code] the code to resolve.
+   * Returns the matched node in the resolved AST for the given source lines.
    */
-  AstNode _findNodeIn(String nodePattern, List<String> lines) {
-    return _findNodeIndexedIn(nodePattern, 0, lines);
+  AstNode _findNodeIn(String nodePattern, String code) {
+    return _findNodeIndexedIn(nodePattern, 0, code);
   }
 
   /**
    * Find the AST node matching the given indexed occurrence of a pattern in the resolved AST for
    * the given source.
    *
-   * @param nodePattern the pattern used to identify the node of interest
-   * @param index the index of the pattern match of interest
-   * @param lines the lines to be merged into a single source string
-   * @return the matched node in the resolved AST for the given source lines
-   * @throws Exception if source cannot be verified
+   * [nodePattern] the pattern used to identify the node of interest.
+   * [index] the index of the pattern match of interest.
+   * [code] the code to resolve.
+   * Returns the matched node in the resolved AST for the given source lines
    */
   AstNode _findNodeIndexedIn(String nodePattern, int index,
-      List<String> lines) {
-    String contents = EngineTestCase.createSource(lines);
-    CompilationUnit cu = _resolveContents([contents]);
-    int start = _getOffsetOfMatch(contents, nodePattern, index);
+                             String code) {
+    CompilationUnit cu = _resolveContents(code);
+    int start = _getOffsetOfMatch(code, nodePattern, index);
     int end = start + nodePattern.length;
     return new NodeLocator.con2(start, end).searchWithin(cu);
   }
@@ -8882,14 +8900,18 @@ void main() {
   }
 
   /**
-   * Parse, resolve and verify the given source lines to produce a fully resolved AST.
+   * Parse, resolve and verify the given source lines to produce a fully
+   * resolved AST.
    *
-   * @param lines the lines to be merged into a single source string
-   * @return the result of resolving the AST structure representing the content of the source
-   * @throws Exception if source cannot be verified
+   * [code] the code to resolve.
+   *
+   * Returns the result of resolving the AST structure representing the content
+   * of the source.
+   *
+   * Throws if source cannot be verified.
    */
-  CompilationUnit _resolveContents(List<String> lines) {
-    Source source = addSource(EngineTestCase.createSource(lines));
+  CompilationUnit _resolveContents(String code) {
+    Source source = addSource(code);
     LibraryElement library = resolve(source);
     assertNoErrors(source);
     verify([source]);
