@@ -9,25 +9,6 @@
 namespace dart {
 
 
-// Provide access to private members of MessageQueue for testing.
-class MessageQueueTestPeer {
- public:
-  explicit MessageQueueTestPeer(MessageQueue* queue) : queue_(queue) {}
-
-  bool HasMessage() const {
-    // We don't really need to grab the monitor during the unit test,
-    // but it doesn't hurt.
-    bool result = (queue_->head_ != NULL);
-    return result;
-  }
-
- private:
-  MessageQueue* queue_;
-
-  DISALLOW_COPY_AND_ASSIGN(MessageQueueTestPeer);
-};
-
-
 static uint8_t* AllocMsg(const char* str) {
   return reinterpret_cast<uint8_t*>(strdup(str));
 }
@@ -35,8 +16,7 @@ static uint8_t* AllocMsg(const char* str) {
 
 TEST_CASE(MessageQueue_BasicOperations) {
   MessageQueue queue;
-  MessageQueueTestPeer queue_peer(&queue);
-  EXPECT(!queue_peer.HasMessage());
+  EXPECT(queue.IsEmpty());
 
   Dart_Port port = 1;
 
@@ -48,25 +28,25 @@ TEST_CASE(MessageQueue_BasicOperations) {
       new Message(port, AllocMsg(str1), strlen(str1) + 1,
                   Message::kNormalPriority);
   queue.Enqueue(msg1);
-  EXPECT(queue_peer.HasMessage());
+  EXPECT(!queue.IsEmpty());
 
   Message* msg2 =
       new Message(port, AllocMsg(str2), strlen(str2) + 1,
                   Message::kNormalPriority);
 
   queue.Enqueue(msg2);
-  EXPECT(queue_peer.HasMessage());
+  EXPECT(!queue.IsEmpty());
 
   // Remove two messages.
   Message* msg = queue.Dequeue();
   EXPECT(msg != NULL);
   EXPECT_STREQ(str1, reinterpret_cast<char*>(msg->data()));
-  EXPECT(queue_peer.HasMessage());
+  EXPECT(!queue.IsEmpty());
 
   msg = queue.Dequeue();
   EXPECT(msg != NULL);
   EXPECT_STREQ(str2, reinterpret_cast<char*>(msg->data()));
-  EXPECT(!queue_peer.HasMessage());
+  EXPECT(queue.IsEmpty());
 
   delete msg1;
   delete msg2;
@@ -75,7 +55,6 @@ TEST_CASE(MessageQueue_BasicOperations) {
 
 TEST_CASE(MessageQueue_Clear) {
   MessageQueue queue;
-  MessageQueueTestPeer queue_peer(&queue);
   Dart_Port port1 = 1;
   Dart_Port port2 = 2;
 
@@ -92,9 +71,9 @@ TEST_CASE(MessageQueue_Clear) {
                   Message::kNormalPriority);
   queue.Enqueue(msg2);
 
-  EXPECT(queue_peer.HasMessage());
+  EXPECT(!queue.IsEmpty());
   queue.Clear();
-  EXPECT(!queue_peer.HasMessage());
+  EXPECT(queue.IsEmpty());
 
   // msg1 and msg2 already delete by FlushAll.
 }

@@ -1547,6 +1547,13 @@ DART_EXPORT bool Dart_HandleServiceMessages() {
 }
 
 
+DART_EXPORT bool Dart_HasServiceMessages() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate);
+  return isolate->message_handler()->HasOOBMessages();
+}
+
+
 DART_EXPORT bool Dart_HasLivePorts() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate);

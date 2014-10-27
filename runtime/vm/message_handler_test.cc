@@ -148,6 +148,27 @@ UNIT_TEST_CASE(MessageHandler_PostMessage) {
 }
 
 
+UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
+  TestMessageHandler handler;
+  MessageHandlerTestPeer handler_peer(&handler);
+
+  EXPECT(!handler.HasOOBMessages());
+
+  // Post a normal message.
+  Message* message = new Message(1, NULL, 0, Message::kNormalPriority);
+  handler_peer.PostMessage(message);
+  EXPECT(!handler.HasOOBMessages());
+
+  // Post an oob message.
+  message = new Message(1, NULL, 0, Message::kOOBPriority);
+  handler_peer.PostMessage(message);
+  EXPECT(handler.HasOOBMessages());
+
+  // Delete all pending messages.
+  handler_peer.CloseAllPorts();
+}
+
+
 UNIT_TEST_CASE(MessageHandler_ClosePort) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);

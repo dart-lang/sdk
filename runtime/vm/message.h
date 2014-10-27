@@ -93,12 +93,12 @@ class MessageQueue {
   // message is available.  This function will not block.
   Message* Dequeue();
 
+  bool IsEmpty() { return head_ == NULL; }
+
   // Clear all messages from the message queue.
   void Clear();
 
  private:
-  friend class MessageQueueTestPeer;
-
   Message* head_;
   Message* tail_;
 
