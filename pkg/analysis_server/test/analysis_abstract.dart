@@ -232,6 +232,8 @@ class AbstractAnalysisTest {
     server = new AnalysisServer(
         serverChannel, resourceProvider, packageMapProvider, index,
         new MockSdk());
+    server.contextDirectoryManager.defaultOptions.enableAsync = true;
+    server.contextDirectoryManager.defaultOptions.enableEnum = true;
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
     Stream<Notification> notificationStream = serverChannel.notificationController.stream;

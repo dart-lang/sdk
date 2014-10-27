@@ -528,6 +528,33 @@ main(p) {
     });
   }
 
+  test_ENUM() {
+    addTestFile('''
+enum MyEnum {A, B, C}
+MyEnum value;
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.ENUM, 'MyEnum {');
+      assertHasRegion(HighlightRegionType.ENUM, 'MyEnum value;');
+    });
+  }
+
+  test_ENUM_CONSTANT() {
+    addTestFile('''
+enum MyEnum {AAA, BBB}
+main() {
+  print(MyEnum.AAA);
+  print(MyEnum.BBB);
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'AAA, ');
+      assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'BBB}');
+      assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'AAA);');
+      assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'BBB);');
+    });
+  }
+
   test_FIELD() {
     addTestFile('''
 class A {

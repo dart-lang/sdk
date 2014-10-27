@@ -118,7 +118,16 @@ class DartUnitHighlightsComputer {
     if (element is! ClassElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightRegionType.CLASS);
+    ClassElement classElement = element;
+    // prepare type
+    HighlightRegionType type;
+    if (classElement.isEnum) {
+      type = HighlightRegionType.ENUM;
+    } else {
+      type = HighlightRegionType.CLASS;
+    }
+    // add region
+    return _addRegion_node(node, type);
   }
 
   bool _addIdentifierRegion_constructor(SimpleIdentifier node) {
@@ -156,15 +165,23 @@ class DartUnitHighlightsComputer {
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }
+    // prepare type
+    HighlightRegionType type;
     if (element is FieldElement) {
-      if ((element as FieldElement).isStatic) {
-        return _addRegion_node(node, HighlightRegionType.FIELD_STATIC);
+      Element enclosingElement = element.enclosingElement;
+      if (enclosingElement is ClassElement && enclosingElement.isEnum) {
+        type = HighlightRegionType.ENUM_CONSTANT;
+      } else if ((element as FieldElement).isStatic) {
+        type = HighlightRegionType.FIELD_STATIC;
       } else {
-        return _addRegion_node(node, HighlightRegionType.FIELD);
+        type = HighlightRegionType.FIELD;
       }
+    } else if (element is TopLevelVariableElement) {
+      type = HighlightRegionType.TOP_LEVEL_VARIABLE;
     }
-    if (element is TopLevelVariableElement) {
-      return _addRegion_node(node, HighlightRegionType.TOP_LEVEL_VARIABLE);
+    // add region
+    if (type != null) {
+      return _addRegion_node(node, type);
     }
     return false;
   }
@@ -418,6 +435,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
   Object visitDoubleLiteral(DoubleLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_DOUBLE);
     return super.visitDoubleLiteral(node);
+  }
+
+  @override
+  Object visitEnumDeclaration(EnumDeclaration node) {
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    return super.visitEnumDeclaration(node);
   }
 
   @override
