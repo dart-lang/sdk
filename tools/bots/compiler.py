@@ -349,6 +349,8 @@ def RunCompilerTests(build_info):
   if build_info.minified: test_flags += ['--minified']
   if build_info.host_checked: test_flags += ['--host-checked']
   if build_info.batch: test_flags += ['--dart2js-batch']
+  if build_info.builder_tag: test_flags += ['--builder-tag=' +
+                                             build_info.builder_tag]
 
   if build_info.dart2js_full:
     compiler = build_info.compiler
