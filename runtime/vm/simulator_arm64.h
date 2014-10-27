@@ -17,11 +17,12 @@
 #endif
 
 #include "vm/constants_arm64.h"
-#include "vm/object.h"
 
 namespace dart {
 
 class Isolate;
+class Mutex;
+class RawObject;
 class SimulatorSetjmpBuffer;
 
 typedef struct {
@@ -77,7 +78,7 @@ class Simulator {
   void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
 
   // Call on program start.
-  static void InitOnce() {}
+  static void InitOnce();
 
   // Dart generally calls into generated code with 5 parameters. This is a
   // convenience function, which sets up the simulator state and grabs the
@@ -90,6 +91,12 @@ class Simulator {
                int64_t parameter3,
                bool fp_return = false,
                bool fp_args = false);
+
+  // Implementation of atomic compare and exchange in the same synchronization
+  // domain as other synchronization primitive instructions (e.g. ldrex, strex).
+  static uword CompareExchange(uword* address,
+                               uword compare_value,
+                               uword new_value);
 
   // Runtime and native call support.
   enum CallKind {
@@ -172,6 +179,38 @@ class Simulator {
 
   inline intptr_t ReadX(uword addr, Instr* instr);
   inline void WriteX(uword addr, intptr_t value, Instr* instr);
+
+  // In Dart, there is at most one thread per isolate.
+  // We keep track of 16 exclusive access address tags across all isolates.
+  // Since we cannot simulate a native context switch, which clears
+  // the exclusive access state of the local monitor (using the CLREX
+  // instruction), we associate the isolate requesting exclusive access to the
+  // address tag. Multiple isolates requesting exclusive access (using the LDREX
+  // instruction) to the same address will result in multiple address tags being
+  // created for the same address, one per isolate.
+  // At any given time, each isolate is associated to at most one address tag.
+  static Mutex* exclusive_access_lock_;
+  static const int kNumAddressTags = 16;
+  static struct AddressTag {
+    Isolate* isolate;
+    uword addr;
+  } exclusive_access_state_[kNumAddressTags];
+  static int next_address_tag_;
+
+  // Synchronization primitives support.
+  void ClearExclusive();
+  intptr_t ReadExclusiveW(uword addr, Instr* instr);
+  intptr_t WriteExclusiveW(uword addr, intptr_t value, Instr* instr);
+
+  // Set access to given address to 'exclusive state' for current isolate.
+  static void SetExclusiveAccess(uword addr);
+
+  // Returns true if the current isolate has exclusive access to given address,
+  // returns false otherwise. In either case, set access to given address to
+  // 'open state' for all isolates.
+  // If given addr is NULL, set access to 'open state' for current
+  // isolate (CLREX).
+  static bool HasExclusiveAccessAndOpen(uword addr);
 
   // Helper functions to set the conditional flags in the architecture state.
   void SetNZFlagsW(int32_t val);

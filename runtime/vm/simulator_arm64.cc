@@ -17,6 +17,7 @@
 #include "vm/constants_arm64.h"
 #include "vm/cpu.h"
 #include "vm/disassembler.h"
+#include "vm/lockers.h"
 #include "vm/native_arguments.h"
 #include "vm/stack_frame.h"
 #include "vm/thread.h"
@@ -529,6 +530,19 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
 }
 
 
+// Synchronization primitives support.
+Mutex* Simulator::exclusive_access_lock_ = NULL;
+Simulator::AddressTag Simulator::exclusive_access_state_[kNumAddressTags] =
+    {{NULL, 0}};
+int Simulator::next_address_tag_ = 0;
+
+
+void Simulator::InitOnce() {
+  // Setup exclusive access state lock.
+  exclusive_access_lock_ = new Mutex();
+}
+
+
 Simulator::Simulator() {
   // Setup simulator support first. Some of this information is needed to
   // setup the architecture state.
@@ -920,6 +934,97 @@ int8_t Simulator::ReadB(uword addr) {
 void Simulator::WriteB(uword addr, uint8_t value) {
   uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
   *ptr = value;
+}
+
+
+// Synchronization primitives support.
+void Simulator::SetExclusiveAccess(uword addr) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ASSERT(exclusive_access_lock_->Owner() == isolate);
+  int i = 0;
+  // Find an entry for this isolate in the exclusive access state.
+  while ((i < kNumAddressTags) &&
+         (exclusive_access_state_[i].isolate != isolate)) {
+    i++;
+  }
+  // Round-robin replacement of previously used entries.
+  if (i == kNumAddressTags) {
+    i = next_address_tag_;
+    if (++next_address_tag_ == kNumAddressTags) {
+      next_address_tag_ = 0;
+    }
+    exclusive_access_state_[i].isolate = isolate;
+  }
+  // Remember the address being reserved.
+  exclusive_access_state_[i].addr = addr;
+}
+
+
+bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ASSERT(addr != 0);
+  ASSERT(exclusive_access_lock_->Owner() == isolate);
+  bool result = false;
+  for (int i = 0; i < kNumAddressTags; i++) {
+    if (exclusive_access_state_[i].isolate == isolate) {
+      // Check whether the current isolates address reservation matches.
+      if (exclusive_access_state_[i].addr == addr) {
+        result = true;
+      }
+      exclusive_access_state_[i].addr = 0;
+    } else if (exclusive_access_state_[i].addr == addr) {
+      // Other isolates with matching address lose their reservations.
+      exclusive_access_state_[i].addr = 0;
+    }
+  }
+  return result;
+}
+
+
+void Simulator::ClearExclusive() {
+  MutexLocker ml(exclusive_access_lock_);
+  // Remove the reservation for this isolate.
+  SetExclusiveAccess(NULL);
+}
+
+
+intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
+  MutexLocker ml(exclusive_access_lock_);
+  SetExclusiveAccess(addr);
+  return ReadW(addr, instr);
+}
+
+
+intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
+  MutexLocker ml(exclusive_access_lock_);
+  bool write_allowed = HasExclusiveAccessAndOpen(addr);
+  if (write_allowed) {
+    WriteW(addr, value, instr);
+    return 0;  // Success.
+  }
+  return 1;  // Failure.
+}
+
+
+uword Simulator::CompareExchange(uword* address,
+                                 uword compare_value,
+                                 uword new_value) {
+  MutexLocker ml(exclusive_access_lock_);
+  // We do not get a reservation as it would be guaranteed to be found when
+  // writing below. No other isolate is able to make a reservation while we
+  // hold the lock.
+  uword value = *address;
+  if (value == compare_value) {
+    *address = new_value;
+    // Same effect on exclusive access state as a successful STREX.
+    HasExclusiveAccessAndOpen(reinterpret_cast<uword>(address));
+  } else {
+    // Same effect on exclusive access state as an LDREX.
+    SetExclusiveAccess(reinterpret_cast<uword>(address));
+  }
+  return value;
 }
 
 
