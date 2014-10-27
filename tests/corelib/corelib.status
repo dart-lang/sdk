@@ -127,6 +127,9 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim) ]
 string_trimlr_test/none: Fail
 
+[ $compiler == dart2js && $runtime == safarimobilesim ]
+string_split_test: RuntimeError  # Appears to be bug in safarimobilesim
+
 [ $compiler == dart2js && $runtime == ie10 ]
 string_case_test/01: Fail, OK  # Bug in IE.
 string_case_test/02: Fail, OK  # Bug in IE.

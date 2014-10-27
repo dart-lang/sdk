@@ -20,7 +20,7 @@ jsonTest(testName, expect, action(sink)) {
 
 jsonThrowsTest(testName, action(sink)) {
   var sink = new ChunkedConversionSink.withCallback((values) {
-    Expect.unreachable("Should have thrown.", testName);
+    Expect.fail("Should have thrown: $testName");
   });
   var decoderSink = JSON.decoder.startChunkedConversion(sink);
   Expect.throws(() { action(decoderSink); }, (e) => e is FormatException,

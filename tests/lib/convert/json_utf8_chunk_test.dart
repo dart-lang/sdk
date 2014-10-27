@@ -204,7 +204,7 @@ void jsonMalformedTest(name, expect, codes) {
     }
     {  // Not allowing malformed, expect throw.
       var sink = new ChunkedConversionSink.withCallback((values) {
-        Expect.unreachable(tag);
+        Expect.fail(tag);
       });
       var decoderSink = JSON.decoder.startChunkedConversion(sink)
                                     .asUtf8Sink(false);
@@ -240,7 +240,7 @@ void jsonThrows(String name, String codeString) {
   testJsonThrows(tag, action) {
     // Not allowing malformed, expect throw.
     var sink = new ChunkedConversionSink.withCallback((values) {
-      Expect.unreachable(tag);
+      Expect.fail(tag);
     });
     var decoderSink = JSON.decoder.startChunkedConversion(sink)
                                   .asUtf8Sink(true);
