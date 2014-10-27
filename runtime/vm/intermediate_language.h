@@ -876,14 +876,56 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 };
 
 
-template<intptr_t N>
-class TemplateInstruction: public Instruction {
+class PureInstruction : public Instruction {
  public:
-  explicit TemplateInstruction<N>(intptr_t deopt_id = Isolate::kNoDeoptId)
-      : Instruction(deopt_id), inputs_() { }
+  explicit PureInstruction(intptr_t deopt_id)
+      : Instruction(deopt_id) { }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+};
+
+
+// Types to be used as ThrowsTrait for TemplateInstruction/TemplateDefinition.
+struct Throws {
+  static const bool kCanThrow = true;
+};
+
+
+struct NoThrow {
+  static const bool kCanThrow = false;
+};
+
+
+// Types to be used as CSETrait for TemplateInstruction/TemplateDefinition.
+// Pure instructions are those that allow CSE and have no effects and
+// no dependencies.
+template<typename DefaultBase, typename PureBase>
+struct Pure {
+  typedef PureBase Base;
+};
+
+
+template<typename DefaultBase, typename PureBase>
+struct NoCSE {
+  typedef DefaultBase Base;
+};
+
+
+template<intptr_t N,
+         typename ThrowsTrait,
+         template<typename Default, typename Pure> class CSETrait = NoCSE>
+class TemplateInstruction: public CSETrait<Instruction, PureInstruction>::Base {
+ public:
+  explicit TemplateInstruction(intptr_t deopt_id = Isolate::kNoDeoptId)
+      : CSETrait<Instruction, PureInstruction>::Base(deopt_id), inputs_() { }
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
+  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -953,7 +995,7 @@ class MoveOperands : public ZoneAllocated {
 };
 
 
-class ParallelMoveInstr : public TemplateInstruction<0> {
+class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
  public:
   ParallelMoveInstr() : moves_(4) { }
 
@@ -986,8 +1028,6 @@ class ParallelMoveInstr : public TemplateInstruction<0> {
   bool IsRedundant() const;
 
   virtual void PrintTo(BufferFormatter* f) const;
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
@@ -1742,14 +1782,30 @@ inline void Value::BindToEnvironment(Definition* def) {
 }
 
 
-template<intptr_t N>
-class TemplateDefinition : public Definition {
+class PureDefinition : public Definition {
  public:
-  explicit TemplateDefinition<N>(intptr_t deopt_id = Isolate::kNoDeoptId)
-      : Definition(deopt_id), inputs_() { }
+  explicit PureDefinition(intptr_t deopt_id)
+      : Definition(deopt_id) { }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+};
+
+
+template<intptr_t N,
+         typename ThrowsTrait,
+         template<typename Impure, typename Pure> class CSETrait = NoCSE>
+class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
+ public:
+  explicit TemplateDefinition(intptr_t deopt_id = Isolate::kNoDeoptId)
+      : CSETrait<Definition, PureDefinition>::Base(deopt_id), inputs_() { }
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
+  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -1923,7 +1979,7 @@ class ParameterInstr : public Definition {
 };
 
 
-class PushArgumentInstr : public TemplateDefinition<1> {
+class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit PushArgumentInstr(Value* value) {
     SetInputAt(0, value);
@@ -1943,8 +1999,6 @@ class PushArgumentInstr : public TemplateDefinition<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
@@ -1955,10 +2009,10 @@ inline Definition* Instruction::ArgumentAt(intptr_t index) const {
 }
 
 
-class ReturnInstr : public TemplateInstruction<1> {
+class ReturnInstr : public TemplateInstruction<1, NoThrow> {
  public:
   ReturnInstr(intptr_t token_pos, Value* value)
-      : TemplateInstruction<1>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateInstruction(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos) {
     SetInputAt(0, value);
   }
@@ -1980,8 +2034,6 @@ class ReturnInstr : public TemplateInstruction<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   const intptr_t token_pos_;
 
@@ -1989,10 +2041,10 @@ class ReturnInstr : public TemplateInstruction<1> {
 };
 
 
-class ThrowInstr : public TemplateInstruction<0> {
+class ThrowInstr : public TemplateInstruction<0, Throws> {
  public:
   explicit ThrowInstr(intptr_t token_pos)
-      : TemplateInstruction<0>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateInstruction(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos) {
   }
 
@@ -2006,8 +2058,6 @@ class ThrowInstr : public TemplateInstruction<0> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return true; }
-
  private:
   const intptr_t token_pos_;
 
@@ -2015,12 +2065,12 @@ class ThrowInstr : public TemplateInstruction<0> {
 };
 
 
-class ReThrowInstr : public TemplateInstruction<0> {
+class ReThrowInstr : public TemplateInstruction<0, Throws> {
  public:
   // 'catch_try_index' can be CatchClauseNode::kInvalidTryIndex if the
   // rethrow has been artifically generated by the parser.
   ReThrowInstr(intptr_t token_pos, intptr_t catch_try_index)
-      : TemplateInstruction<0>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateInstruction(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         catch_try_index_(catch_try_index) {
   }
@@ -2036,8 +2086,6 @@ class ReThrowInstr : public TemplateInstruction<0> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return true; }
-
  private:
   const intptr_t token_pos_;
   const intptr_t catch_try_index_;
@@ -2046,10 +2094,10 @@ class ReThrowInstr : public TemplateInstruction<0> {
 };
 
 
-class GotoInstr : public TemplateInstruction<0> {
+class GotoInstr : public TemplateInstruction<0, NoThrow> {
  public:
   explicit GotoInstr(JoinEntryInstr* entry)
-    : TemplateInstruction<0>(Isolate::Current()->GetNextDeoptId()),
+    : TemplateInstruction(Isolate::Current()->GetNextDeoptId()),
       successor_(entry),
       edge_weight_(0.0),
       parallel_move_(NULL) {
@@ -2099,8 +2147,6 @@ class GotoInstr : public TemplateInstruction<0> {
 
   virtual void PrintTo(BufferFormatter* f) const;
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   JoinEntryInstr* successor_;
   double edge_weight_;
@@ -2111,7 +2157,7 @@ class GotoInstr : public TemplateInstruction<0> {
 };
 
 
-class ComparisonInstr : public TemplateDefinition<2> {
+class ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
@@ -2142,6 +2188,12 @@ class ComparisonInstr : public TemplateDefinition<2> {
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
+  virtual bool AttributesEqual(Instruction* other) const {
+    ComparisonInstr* other_comparison = other->AsComparison();
+    return kind() == other_comparison->kind() &&
+        (operation_cid() == other_comparison->operation_cid());
+  }
+
   DEFINE_INSTRUCTION_TYPE_CHECK(Comparison)
 
  protected:
@@ -2150,7 +2202,7 @@ class ComparisonInstr : public TemplateDefinition<2> {
                   Value* left,
                   Value* right,
                   intptr_t deopt_id = Isolate::kNoDeoptId)
-      : TemplateDefinition<2>(deopt_id),
+      : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         kind_(kind),
         operation_cid_(kIllegalCid) {
@@ -2278,7 +2330,7 @@ class BranchInstr : public Instruction {
 };
 
 
-class StoreContextInstr : public TemplateInstruction<1> {
+class StoreContextInstr : public TemplateInstruction<1, NoThrow> {
  public:
   explicit StoreContextInstr(Value* value) {
     SetInputAt(kValuePos, value);
@@ -2298,17 +2350,15 @@ class StoreContextInstr : public TemplateInstruction<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   DISALLOW_COPY_AND_ASSIGN(StoreContextInstr);
 };
 
 
-class DeoptimizeInstr : public TemplateInstruction<0> {
+class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
  public:
   DeoptimizeInstr(ICData::DeoptReasonId deopt_reason, intptr_t deopt_id)
-      : TemplateInstruction<0>(deopt_id),
+      : TemplateInstruction(deopt_id),
         deopt_reason_(deopt_reason) {
   }
 
@@ -2316,14 +2366,9 @@ class DeoptimizeInstr : public TemplateInstruction<0> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return true;
   }
-
-  virtual bool MayThrow() const { return false; }
 
   DECLARE_INSTRUCTION(Deoptimize)
 
@@ -2334,7 +2379,7 @@ class DeoptimizeInstr : public TemplateInstruction<0> {
 };
 
 
-class RedefinitionInstr : public TemplateDefinition<1> {
+class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit RedefinitionInstr(Value* value) {
     SetInputAt(0, value);
@@ -2351,14 +2396,12 @@ class RedefinitionInstr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
 };
 
 
-class ConstraintInstr : public TemplateDefinition<1> {
+class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
  public:
   ConstraintInstr(Value* value, Range* constraint)
       : constraint_(constraint),
@@ -2378,8 +2421,6 @@ class ConstraintInstr : public TemplateDefinition<1> {
     UNREACHABLE();
     return false;
   }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -2406,7 +2447,7 @@ class ConstraintInstr : public TemplateDefinition<1> {
 };
 
 
-class ConstantInstr : public TemplateDefinition<0> {
+class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   explicit ConstantInstr(const Object& value);
 
@@ -2423,12 +2464,7 @@ class ConstantInstr : public TemplateDefinition<0> {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const Object& value_;
@@ -2462,7 +2498,7 @@ class UnboxedConstantInstr : public ConstantInstr {
 };
 
 
-class AssertAssignableInstr : public TemplateDefinition<3> {
+class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
  public:
   AssertAssignableInstr(intptr_t token_pos,
                         Value* value,
@@ -2471,7 +2507,7 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
                         const AbstractType& dst_type,
                         const String& dst_name,
                         intptr_t deopt_id)
-      : TemplateDefinition<3>(deopt_id),
+      : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         dst_type_(AbstractType::ZoneHandle(dst_type.raw())),
         dst_name_(dst_name) {
@@ -2509,12 +2545,7 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool MayThrow() const { return true; }
 
  private:
   const intptr_t token_pos_;
@@ -2525,10 +2556,10 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 };
 
 
-class AssertBooleanInstr : public TemplateDefinition<1> {
+class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
   AssertBooleanInstr(intptr_t token_pos, Value* value)
-      : TemplateDefinition<1>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateDefinition(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos) {
     SetInputAt(0, value);
   }
@@ -2545,12 +2576,7 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return true; }
 
  private:
   const intptr_t token_pos_;
@@ -2561,10 +2587,10 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
 
 // Denotes the current context, normally held in a register.  This is
 // a computation, not a value, because it's mutable.
-class CurrentContextInstr : public TemplateDefinition<0> {
+class CurrentContextInstr : public TemplateDefinition<0, NoThrow> {
  public:
   CurrentContextInstr()
-      : TemplateDefinition<0>(Isolate::Current()->GetNextDeoptId()) {
+      : TemplateDefinition(Isolate::Current()->GetNextDeoptId()) {
   }
 
   DECLARE_INSTRUCTION(CurrentContext)
@@ -2576,19 +2602,17 @@ class CurrentContextInstr : public TemplateDefinition<0> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   DISALLOW_COPY_AND_ASSIGN(CurrentContextInstr);
 };
 
 
-class ClosureCallInstr : public TemplateDefinition<1> {
+class ClosureCallInstr : public TemplateDefinition<1, Throws> {
  public:
   ClosureCallInstr(Value* function,
                    ClosureCallNode* node,
                    ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : TemplateDefinition<1>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateDefinition(Isolate::Current()->GetNextDeoptId()),
         ast_node_(*node),
         arguments_(arguments) {
     SetInputAt(0, function);
@@ -2613,8 +2637,6 @@ class ClosureCallInstr : public TemplateDefinition<1> {
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
-  virtual bool MayThrow() const { return true; }
-
  private:
   const ClosureCallNode& ast_node_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
@@ -2623,7 +2645,7 @@ class ClosureCallInstr : public TemplateDefinition<1> {
 };
 
 
-class InstanceCallInstr : public TemplateDefinition<0> {
+class InstanceCallInstr : public TemplateDefinition<0, Throws> {
  public:
   InstanceCallInstr(intptr_t token_pos,
                     const String& function_name,
@@ -2632,7 +2654,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
                     const Array& argument_names,
                     intptr_t checked_argument_count,
                     const ZoneGrowableArray<const ICData*>& ic_data_array)
-      : TemplateDefinition<0>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateDefinition(Isolate::Current()->GetNextDeoptId()),
         ic_data_(NULL),
         token_pos_(token_pos),
         function_name_(function_name),
@@ -2688,8 +2710,6 @@ class InstanceCallInstr : public TemplateDefinition<0> {
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
-  virtual bool MayThrow() const { return true; }
-
  protected:
   friend class FlowGraphOptimizer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
@@ -2707,12 +2727,12 @@ class InstanceCallInstr : public TemplateDefinition<0> {
 };
 
 
-class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
+class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
  public:
   PolymorphicInstanceCallInstr(InstanceCallInstr* instance_call,
                                const ICData& ic_data,
                                bool with_checks)
-      : TemplateDefinition<0>(instance_call->deopt_id()),
+      : TemplateDefinition(instance_call->deopt_id()),
         instance_call_(instance_call),
         ic_data_(ic_data),
         with_checks_(with_checks) {
@@ -2746,8 +2766,6 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool MayThrow() const { return true; }
 
  private:
   InstanceCallInstr* instance_call_;
@@ -2787,12 +2805,7 @@ class StrictCompareInstr : public ComparisonInstr {
   bool needs_number_check() const { return needs_number_check_; }
   void set_needs_number_check(bool value) { needs_number_check_ = value; }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool MayThrow() const { return false; }
+  bool AttributesEqual(Instruction* other) const;
 
  private:
   // True if the comparison must check for double, Mint or Bigint and
@@ -2823,10 +2836,6 @@ class TestSmiInstr : public ComparisonInstr {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     return kTagged;
   }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
@@ -2875,12 +2884,6 @@ class TestCidsInstr : public ComparisonInstr {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     return kTagged;
   }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const;
 
@@ -2934,10 +2937,6 @@ class EqualityCompareInstr : public ComparisonInstr {
     return kTagged;
   }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
  private:
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);
 };
@@ -2978,12 +2977,6 @@ class RelationalOpInstr : public ComparisonInstr {
     if (operation_cid() == kMintCid) return kUnboxedMint;
     return kTagged;
   }
-
-  virtual EffectSet Effects() const {
-    return EffectSet::None();
-  }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(RelationalOpInstr);
@@ -3071,14 +3064,14 @@ class IfThenElseInstr : public Definition {
 };
 
 
-class StaticCallInstr : public TemplateDefinition<0> {
+class StaticCallInstr : public TemplateDefinition<0, Throws> {
  public:
   StaticCallInstr(intptr_t token_pos,
                   const Function& function,
                   const Array& argument_names,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
                   const ZoneGrowableArray<const ICData*>& ic_data_array)
-      : TemplateDefinition<0>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateDefinition(Isolate::Current()->GetNextDeoptId()),
         ic_data_(NULL),
         token_pos_(token_pos),
         function_(function),
@@ -3142,8 +3135,6 @@ class StaticCallInstr : public TemplateDefinition<0> {
     return is_known_list_constructor() || is_native_list_factory();
   }
 
-  virtual bool MayThrow() const { return true; }
-
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
@@ -3165,7 +3156,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
 };
 
 
-class LoadLocalInstr : public TemplateDefinition<0> {
+class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
  public:
   explicit LoadLocalInstr(const LocalVariable& local)
       : local_(local), is_last_(false) { }
@@ -3187,11 +3178,6 @@ class LoadLocalInstr : public TemplateDefinition<0> {
   void mark_last() { is_last_ = true; }
   bool is_last() const { return is_last_; }
 
-  virtual bool MayThrow() const {
-    UNREACHABLE();
-    return false;
-  }
-
  private:
   const LocalVariable& local_;
   bool is_last_;
@@ -3200,7 +3186,7 @@ class LoadLocalInstr : public TemplateDefinition<0> {
 };
 
 
-class PushTempInstr : public TemplateDefinition<1> {
+class PushTempInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit PushTempInstr(Value* value) {
     SetInputAt(0, value);
@@ -3217,11 +3203,6 @@ class PushTempInstr : public TemplateDefinition<1> {
   virtual EffectSet Effects() const {
     UNREACHABLE();  // Eliminated by SSA construction.
     return EffectSet::None();
-  }
-
-  virtual bool MayThrow() const {
-    UNREACHABLE();
-    return false;
   }
 
  private:
@@ -3278,7 +3259,7 @@ class DropTempsInstr : public Definition {
 };
 
 
-class StoreLocalInstr : public TemplateDefinition<1> {
+class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
  public:
   StoreLocalInstr(const LocalVariable& local, Value* value)
       : local_(local), is_dead_(false), is_last_(false) {
@@ -3306,11 +3287,6 @@ class StoreLocalInstr : public TemplateDefinition<1> {
     return EffectSet::None();
   }
 
-  virtual bool MayThrow() const {
-    UNREACHABLE();
-    return false;
-  }
-
  private:
   const LocalVariable& local_;
   bool is_dead_;
@@ -3320,7 +3296,7 @@ class StoreLocalInstr : public TemplateDefinition<1> {
 };
 
 
-class NativeCallInstr : public TemplateDefinition<0> {
+class NativeCallInstr : public TemplateDefinition<0, Throws> {
  public:
   explicit NativeCallInstr(NativeBodyNode* node)
       : ast_node_(*node) {}
@@ -3349,11 +3325,6 @@ class NativeCallInstr : public TemplateDefinition<0> {
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
-  virtual bool MayThrow() const {
-    UNREACHABLE();
-    return true;
-  }
-
  private:
   const NativeBodyNode& ast_node_;
 
@@ -3361,7 +3332,7 @@ class NativeCallInstr : public TemplateDefinition<0> {
 };
 
 
-class DebugStepCheckInstr : public TemplateInstruction<0> {
+class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
  public:
   DebugStepCheckInstr(intptr_t token_pos,
                       RawPcDescriptors::Kind stub_kind)
@@ -3372,7 +3343,6 @@ class DebugStepCheckInstr : public TemplateInstruction<0> {
   DECLARE_INSTRUCTION(DebugStepCheck)
 
   virtual intptr_t token_pos() const { return token_pos_; }
-  virtual bool MayThrow() const { return false; }
   virtual bool CanDeoptimize() const { return false; }
   virtual EffectSet Effects() const { return EffectSet::All(); }
   virtual intptr_t ArgumentCount() const { return 0; }
@@ -3392,7 +3362,7 @@ enum StoreBarrierType {
 };
 
 
-class StoreInstanceFieldInstr : public TemplateDefinition<2> {
+class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
  public:
   StoreInstanceFieldInstr(const Field& field,
                           Value* instance,
@@ -3460,8 +3430,6 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   // are marked as having no side-effects.
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
-
   bool IsUnboxedStore() const;
 
   bool IsPotentialUnboxedStore() const;
@@ -3488,12 +3456,12 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 };
 
 
-class GuardFieldInstr : public TemplateInstruction<1> {
+class GuardFieldInstr : public TemplateInstruction<1, NoThrow, Pure> {
  public:
   GuardFieldInstr(Value* value,
                   const Field& field,
                   intptr_t deopt_id)
-    : TemplateInstruction<1>(deopt_id),
+    : TemplateInstruction(deopt_id),
       field_(field) {
     SetInputAt(0, value);
   }
@@ -3509,12 +3477,6 @@ class GuardFieldInstr : public TemplateInstruction<1> {
     // Ensure that we record kDeopt PC descriptor in unoptimized code.
     return true;
   }
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3561,7 +3523,7 @@ class GuardFieldLengthInstr : public GuardFieldInstr {
 };
 
 
-class LoadStaticFieldInstr : public TemplateDefinition<1> {
+class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit LoadStaticFieldInstr(Value* field_value) {
     ASSERT(field_value->BindsToConstant());
@@ -3584,14 +3546,12 @@ class LoadStaticFieldInstr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
 
 
-class StoreStaticFieldInstr : public TemplateDefinition<1> {
+class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
   StoreStaticFieldInstr(const Field& field, Value* value)
       : field_(field) {
@@ -3618,8 +3578,6 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
   // are marked as having no side-effects.
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   bool CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
@@ -3634,7 +3592,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
 };
 
 
-class LoadIndexedInstr : public TemplateDefinition<2> {
+class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
  public:
   LoadIndexedInstr(Value* array,
                    Value* index,
@@ -3642,7 +3600,7 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
                    intptr_t class_id,
                    intptr_t deopt_id,
                    intptr_t token_pos)
-      : TemplateDefinition<2>(deopt_id),
+      : TemplateDefinition(deopt_id),
         index_scale_(index_scale),
         class_id_(class_id),
         token_pos_(token_pos) {
@@ -3682,12 +3640,7 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   virtual Representation representation() const;
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  virtual bool AllowsCSE() const { return false; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const;
-  virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const intptr_t index_scale_;
@@ -3698,7 +3651,7 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
 };
 
 
-class StringFromCharCodeInstr : public TemplateDefinition<1> {
+class StringFromCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   StringFromCharCodeInstr(Value* char_code, intptr_t cid) : cid_(cid) {
     ASSERT(char_code != NULL);
@@ -3715,14 +3668,9 @@ class StringFromCharCodeInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return other->AsStringFromCharCode()->cid_ == cid_;
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const intptr_t cid_;
@@ -3731,7 +3679,7 @@ class StringFromCharCodeInstr : public TemplateDefinition<1> {
 };
 
 
-class StringToCharCodeInstr : public TemplateDefinition<1> {
+class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   StringToCharCodeInstr(Value* str, intptr_t cid) : cid_(cid) {
     ASSERT(str != NULL);
@@ -3745,14 +3693,9 @@ class StringToCharCodeInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return other->AsStringToCharCode()->cid_ == cid_;
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const intptr_t cid_;
@@ -3761,10 +3704,10 @@ class StringToCharCodeInstr : public TemplateDefinition<1> {
 };
 
 
-class StringInterpolateInstr : public TemplateDefinition<1> {
+class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
  public:
   StringInterpolateInstr(Value* value, intptr_t token_pos)
-      : TemplateDefinition<1>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateDefinition(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         function_(Function::Handle()) {
     SetInputAt(0, value);
@@ -3777,7 +3720,6 @@ class StringInterpolateInstr : public TemplateDefinition<1> {
   // Issues a static call to Dart code which calls toString on objects.
   virtual EffectSet Effects() const { return EffectSet::All(); }
   virtual bool CanDeoptimize() const { return true; }
-  virtual bool MayThrow() const { return true; }
 
   const Function& CallFunction() const;
 
@@ -3793,7 +3735,7 @@ class StringInterpolateInstr : public TemplateDefinition<1> {
 };
 
 
-class StoreIndexedInstr : public TemplateDefinition<3> {
+class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
  public:
   StoreIndexedInstr(Value* array,
                     Value* index,
@@ -3803,7 +3745,7 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
                     intptr_t class_id,
                     intptr_t deopt_id,
                     intptr_t token_pos)
-      : TemplateDefinition<3>(deopt_id),
+      : TemplateDefinition(deopt_id),
         emit_store_barrier_(emit_store_barrier),
         index_scale_(index_scale),
         class_id_(class_id),
@@ -3849,8 +3791,6 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   const StoreBarrierType emit_store_barrier_;
   const intptr_t index_scale_;
@@ -3862,7 +3802,7 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
 
 
 // Note overrideable, built-in: value ? false : true.
-class BooleanNegateInstr : public TemplateDefinition<1> {
+class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit BooleanNegateInstr(Value* value) {
     SetInputAt(0, value);
@@ -3877,8 +3817,6 @@ class BooleanNegateInstr : public TemplateDefinition<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
-
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
@@ -3886,7 +3824,7 @@ class BooleanNegateInstr : public TemplateDefinition<1> {
 };
 
 
-class InstanceOfInstr : public TemplateDefinition<3> {
+class InstanceOfInstr : public TemplateDefinition<3, Throws> {
  public:
   InstanceOfInstr(intptr_t token_pos,
                   Value* value,
@@ -3895,7 +3833,7 @@ class InstanceOfInstr : public TemplateDefinition<3> {
                   const AbstractType& type,
                   bool negate_result,
                   intptr_t deopt_id)
-      : TemplateDefinition<3>(deopt_id),
+      : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         type_(type),
         negate_result_(negate_result) {
@@ -3922,8 +3860,6 @@ class InstanceOfInstr : public TemplateDefinition<3> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return true; }
-
  private:
   const intptr_t token_pos_;
   Value* value_;
@@ -3936,7 +3872,7 @@ class InstanceOfInstr : public TemplateDefinition<3> {
 };
 
 
-class AllocateObjectInstr : public TemplateDefinition<0> {
+class AllocateObjectInstr : public TemplateDefinition<0, NoThrow> {
  public:
   AllocateObjectInstr(intptr_t token_pos,
                       const Class& cls,
@@ -3971,8 +3907,6 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
@@ -4077,12 +4011,12 @@ class MaterializeObjectInstr : public Definition {
 };
 
 
-class CreateArrayInstr : public TemplateDefinition<2> {
+class CreateArrayInstr : public TemplateDefinition<2, Throws> {
  public:
   CreateArrayInstr(intptr_t token_pos,
                    Value* element_type,
                    Value* num_elements)
-      : TemplateDefinition<2>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateDefinition(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         identity_(AliasIdentity::Unknown())  {
     SetInputAt(kElementTypePos, element_type);
@@ -4107,9 +4041,6 @@ class CreateArrayInstr : public TemplateDefinition<2> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  // OutOfMemoryError can be called.
-  virtual bool MayThrow() const { return true; }
-
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
@@ -4121,7 +4052,12 @@ class CreateArrayInstr : public TemplateDefinition<2> {
 };
 
 
-class LoadUntaggedInstr : public TemplateDefinition<1> {
+// Note: this instruction must not be moved without the indexed access that
+// depends on it (e.g. out of loops). GC may cause collect
+// the array while the external data-array is still accessed.
+// TODO(vegorov) enable LICMing this instruction by ensuring that array itself
+// is kept alive.
+class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
  public:
   LoadUntaggedInstr(Value* object, intptr_t offset) : offset_(offset) {
     SetInputAt(0, object);
@@ -4138,15 +4074,8 @@ class LoadUntaggedInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  // This instruction must not be moved without the indexed access that
-  // depends on it (e.g. out of loops). GC may cause collect
-  // the array while the external data-array is still accessed.
-  virtual bool AllowsCSE() const { return false; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   intptr_t offset_;
@@ -4155,7 +4084,7 @@ class LoadUntaggedInstr : public TemplateDefinition<1> {
 };
 
 
-class LoadClassIdInstr : public TemplateDefinition<1> {
+class LoadClassIdInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit LoadClassIdInstr(Value* object) {
     SetInputAt(0, object);
@@ -4172,20 +4101,18 @@ class LoadClassIdInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const {
     return EffectSet::Externalization();
   }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
 };
 
 
-class LoadFieldInstr : public TemplateDefinition<1> {
+class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
   LoadFieldInstr(Value* instance,
                  intptr_t offset_in_bytes,
@@ -4266,8 +4193,6 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
@@ -4282,13 +4207,13 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 };
 
 
-class InstantiateTypeInstr : public TemplateDefinition<1> {
+class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
  public:
   InstantiateTypeInstr(intptr_t token_pos,
                        const AbstractType& type,
                        const Class& instantiator_class,
                        Value* instantiator)
-      : TemplateDefinition<1>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateDefinition(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         type_(type),
         instantiator_class_(instantiator_class) {
@@ -4310,8 +4235,6 @@ class InstantiateTypeInstr : public TemplateDefinition<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return true; }
-
  private:
   const intptr_t token_pos_;
   const AbstractType& type_;
@@ -4321,13 +4244,13 @@ class InstantiateTypeInstr : public TemplateDefinition<1> {
 };
 
 
-class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
+class InstantiateTypeArgumentsInstr : public TemplateDefinition<1, Throws> {
  public:
   InstantiateTypeArgumentsInstr(intptr_t token_pos,
                                 const TypeArguments& type_arguments,
                                 const Class& instantiator_class,
                                 Value* instantiator)
-      : TemplateDefinition<1>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateDefinition(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         type_arguments_(type_arguments),
         instantiator_class_(instantiator_class) {
@@ -4350,8 +4273,6 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return true; }
-
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
@@ -4363,7 +4284,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
 };
 
 
-class AllocateContextInstr : public TemplateDefinition<0> {
+class AllocateContextInstr : public TemplateDefinition<0, NoThrow> {
  public:
   AllocateContextInstr(intptr_t token_pos,
                        intptr_t num_context_variables)
@@ -4382,8 +4303,6 @@ class AllocateContextInstr : public TemplateDefinition<0> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   const intptr_t token_pos_;
   const intptr_t num_context_variables_;
@@ -4392,10 +4311,10 @@ class AllocateContextInstr : public TemplateDefinition<0> {
 };
 
 
-class InitStaticFieldInstr : public TemplateInstruction<1> {
+class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
  public:
   InitStaticFieldInstr(Value* input, const Field& field)
-      : TemplateInstruction<1>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateInstruction(Isolate::Current()->GetNextDeoptId()),
         field_(field) {
     SetInputAt(0, input);
   }
@@ -4408,7 +4327,6 @@ class InitStaticFieldInstr : public TemplateInstruction<1> {
   virtual intptr_t ArgumentCount() const { return 0; }
   virtual bool CanDeoptimize() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::All(); }
-  virtual bool MayThrow() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
  private:
@@ -4418,7 +4336,8 @@ class InitStaticFieldInstr : public TemplateInstruction<1> {
 };
 
 
-class AllocateUninitializedContextInstr : public TemplateDefinition<0> {
+class AllocateUninitializedContextInstr
+    : public TemplateDefinition<0, NoThrow> {
  public:
   AllocateUninitializedContextInstr(intptr_t token_pos,
                                     intptr_t num_context_variables)
@@ -4437,8 +4356,6 @@ class AllocateUninitializedContextInstr : public TemplateDefinition<0> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   const intptr_t token_pos_;
   const intptr_t num_context_variables_;
@@ -4447,10 +4364,10 @@ class AllocateUninitializedContextInstr : public TemplateDefinition<0> {
 };
 
 
-class CloneContextInstr : public TemplateDefinition<1> {
+class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
  public:
   CloneContextInstr(intptr_t token_pos, Value* context_value)
-      : TemplateDefinition<1>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateDefinition(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos) {
     SetInputAt(0, context_value);
   }
@@ -4465,8 +4382,6 @@ class CloneContextInstr : public TemplateDefinition<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
-
  private:
   const intptr_t token_pos_;
 
@@ -4474,10 +4389,10 @@ class CloneContextInstr : public TemplateDefinition<1> {
 };
 
 
-class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
+class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
  public:
   CheckEitherNonSmiInstr(Value* left, Value* right, intptr_t deopt_id)
-      : TemplateInstruction<2>(deopt_id), licm_hoisted_(false) {
+      : TemplateInstruction(deopt_id), licm_hoisted_(false) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -4493,12 +4408,7 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
@@ -4509,7 +4419,7 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
 };
 
 
-class BoxDoubleInstr : public TemplateDefinition<1> {
+class BoxDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   explicit BoxDoubleInstr(Value* value) {
     SetInputAt(0, value);
@@ -4531,12 +4441,7 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
     return kUnboxedDouble;
   }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4545,7 +4450,7 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
 };
 
 
-class BoxFloat32x4Instr : public TemplateDefinition<1> {
+class BoxFloat32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   explicit BoxFloat32x4Instr(Value* value) {
     SetInputAt(0, value);
@@ -4567,12 +4472,7 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(BoxFloat32x4)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4581,7 +4481,7 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
 };
 
 
-class BoxFloat64x2Instr : public TemplateDefinition<1> {
+class BoxFloat64x2Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   explicit BoxFloat64x2Instr(Value* value) {
     SetInputAt(0, value);
@@ -4603,12 +4503,7 @@ class BoxFloat64x2Instr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(BoxFloat64x2)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4618,7 +4513,7 @@ class BoxFloat64x2Instr : public TemplateDefinition<1> {
 
 
 
-class BoxInt32x4Instr : public TemplateDefinition<1> {
+class BoxInt32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   explicit BoxInt32x4Instr(Value* value) {
     SetInputAt(0, value);
@@ -4640,12 +4535,7 @@ class BoxInt32x4Instr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(BoxInt32x4)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4654,7 +4544,7 @@ class BoxInt32x4Instr : public TemplateDefinition<1> {
 };
 
 
-class BoxIntegerInstr : public TemplateDefinition<1> {
+class BoxIntegerInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   explicit BoxIntegerInstr(Value* value) : is_smi_(false) {
     SetInputAt(0, value);
@@ -4682,12 +4572,7 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4698,10 +4583,10 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
 };
 
 
-class UnboxDoubleInstr : public TemplateDefinition<1> {
+class UnboxDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnboxDoubleInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value);
   }
 
@@ -4719,12 +4604,7 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(UnboxDouble)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4733,10 +4613,10 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
 };
 
 
-class UnboxFloat32x4Instr : public TemplateDefinition<1> {
+class UnboxFloat32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnboxFloat32x4Instr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value);
   }
 
@@ -4753,12 +4633,7 @@ class UnboxFloat32x4Instr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(UnboxFloat32x4)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4767,10 +4642,10 @@ class UnboxFloat32x4Instr : public TemplateDefinition<1> {
 };
 
 
-class UnboxFloat64x2Instr : public TemplateDefinition<1> {
+class UnboxFloat64x2Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnboxFloat64x2Instr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value);
   }
 
@@ -4787,12 +4662,7 @@ class UnboxFloat64x2Instr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(UnboxFloat64x2)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4801,10 +4671,10 @@ class UnboxFloat64x2Instr : public TemplateDefinition<1> {
 };
 
 
-class UnboxInt32x4Instr : public TemplateDefinition<1> {
+class UnboxInt32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnboxInt32x4Instr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value);
   }
 
@@ -4818,15 +4688,10 @@ class UnboxInt32x4Instr : public TemplateDefinition<1> {
     return kUnboxedInt32x4;
   }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   DECLARE_INSTRUCTION(UnboxInt32x4)
   virtual CompileType ComputeType() const;
-
-  virtual bool MayThrow() const { return false; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4835,10 +4700,10 @@ class UnboxInt32x4Instr : public TemplateDefinition<1> {
 };
 
 
-class UnboxIntegerInstr : public TemplateDefinition<1> {
+class UnboxIntegerInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnboxIntegerInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value);
   }
 
@@ -4860,12 +4725,7 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(UnboxInteger)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4874,7 +4734,7 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
 };
 
 
-class MathUnaryInstr : public TemplateDefinition<1> {
+class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   enum MathUnaryKind {
     kIllegal,
@@ -4884,7 +4744,7 @@ class MathUnaryInstr : public TemplateDefinition<1> {
     kDoubleSquare,
   };
   MathUnaryInstr(MathUnaryKind kind, Value* value, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id), kind_(kind) {
+      : TemplateDefinition(deopt_id), kind_(kind) {
     SetInputAt(0, value);
   }
 
@@ -4914,14 +4774,9 @@ class MathUnaryInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(MathUnary)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return kind() == other->AsMathUnary()->kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4935,14 +4790,14 @@ class MathUnaryInstr : public TemplateDefinition<1> {
 
 
 // Represents Math's static min and max functions.
-class MathMinMaxInstr : public TemplateDefinition<2> {
+class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   MathMinMaxInstr(MethodRecognizer::Kind op_kind,
                   Value* left_value,
                   Value* right_value,
                   intptr_t deopt_id,
                   intptr_t result_cid)
-      : TemplateDefinition<2>(deopt_id),
+      : TemplateDefinition(deopt_id),
         op_kind_(op_kind),
         result_cid_(result_cid) {
     ASSERT((result_cid == kSmiCid) || (result_cid == kDoubleCid));
@@ -4983,12 +4838,7 @@ class MathMinMaxInstr : public TemplateDefinition<2> {
 
   DECLARE_INSTRUCTION(MathMinMax)
   virtual CompileType ComputeType() const;
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -4998,14 +4848,14 @@ class MathMinMaxInstr : public TemplateDefinition<2> {
 };
 
 
-class BinaryDoubleOpInstr : public TemplateDefinition<2> {
+class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   BinaryDoubleOpInstr(Token::Kind op_kind,
                       Value* left,
                       Value* right,
                       intptr_t deopt_id,
                       intptr_t token_pos)
-      : TemplateDefinition<2>(deopt_id),
+      : TemplateDefinition(deopt_id),
         op_kind_(op_kind),
         token_pos_(token_pos) {
     SetInputAt(0, left);
@@ -5043,14 +4893,9 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsBinaryDoubleOp()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const Token::Kind op_kind_;
@@ -5060,13 +4905,13 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
 };
 
 
-class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
+class BinaryFloat32x4OpInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   BinaryFloat32x4OpInstr(Token::Kind op_kind,
                          Value* left,
                          Value* right,
                          intptr_t deopt_id)
-      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -5098,14 +4943,9 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(BinaryFloat32x4Op)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsBinaryFloat32x4Op()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const Token::Kind op_kind_;
@@ -5114,12 +4954,12 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
 };
 
 
-class Simd32x4ShuffleInstr : public TemplateDefinition<1> {
+class Simd32x4ShuffleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Simd32x4ShuffleInstr(MethodRecognizer::Kind op_kind, Value* value,
                        intptr_t mask,
                        intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind), mask_(mask) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind), mask_(mask) {
     SetInputAt(0, value);
   }
 
@@ -5169,15 +5009,10 @@ class Simd32x4ShuffleInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Simd32x4Shuffle)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return (op_kind() == other->AsSimd32x4Shuffle()->op_kind()) &&
            (mask() == other->AsSimd32x4Shuffle()->mask());
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -5187,11 +5022,11 @@ class Simd32x4ShuffleInstr : public TemplateDefinition<1> {
 };
 
 
-class Simd32x4ShuffleMixInstr : public TemplateDefinition<2> {
+class Simd32x4ShuffleMixInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   Simd32x4ShuffleMixInstr(MethodRecognizer::Kind op_kind, Value* xy,
                            Value* zw, intptr_t mask, intptr_t deopt_id)
-      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind), mask_(mask) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind), mask_(mask) {
     SetInputAt(0, xy);
     SetInputAt(1, zw);
   }
@@ -5233,15 +5068,10 @@ class Simd32x4ShuffleMixInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(Simd32x4ShuffleMix)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return (op_kind() == other->AsSimd32x4ShuffleMix()->op_kind()) &&
            (mask() == other->AsSimd32x4ShuffleMix()->mask());
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -5251,14 +5081,14 @@ class Simd32x4ShuffleMixInstr : public TemplateDefinition<2> {
 };
 
 
-class Float32x4ConstructorInstr : public TemplateDefinition<4> {
+class Float32x4ConstructorInstr : public TemplateDefinition<4, NoThrow, Pure> {
  public:
   Float32x4ConstructorInstr(Value* value0,
                             Value* value1,
                             Value* value2,
                             Value* value3,
                             intptr_t deopt_id)
-      : TemplateDefinition<4>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value0);
     SetInputAt(1, value1);
     SetInputAt(2, value2);
@@ -5292,22 +5122,17 @@ class Float32x4ConstructorInstr : public TemplateDefinition<4> {
   DECLARE_INSTRUCTION(Float32x4Constructor)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ConstructorInstr);
 };
 
 
-class Float32x4SplatInstr : public TemplateDefinition<1> {
+class Float32x4SplatInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float32x4SplatInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value);
   }
 
@@ -5335,12 +5160,7 @@ class Float32x4SplatInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Float32x4Splat)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4SplatInstr);
@@ -5348,7 +5168,7 @@ class Float32x4SplatInstr : public TemplateDefinition<1> {
 
 
 // TODO(vegorov) replace with UnboxedConstantInstr.
-class Float32x4ZeroInstr : public TemplateDefinition<0> {
+class Float32x4ZeroInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   Float32x4ZeroInstr() { }
 
@@ -5361,25 +5181,20 @@ class Float32x4ZeroInstr : public TemplateDefinition<0> {
   DECLARE_INSTRUCTION(Float32x4Zero)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ZeroInstr);
 };
 
 
-class Float32x4ComparisonInstr : public TemplateDefinition<2> {
+class Float32x4ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   Float32x4ComparisonInstr(MethodRecognizer::Kind op_kind,
                            Value* left,
                            Value* right,
                            intptr_t deopt_id)
-      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -5411,14 +5226,9 @@ class Float32x4ComparisonInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(Float32x4Comparison)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsFloat32x4Comparison()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -5427,13 +5237,13 @@ class Float32x4ComparisonInstr : public TemplateDefinition<2> {
 };
 
 
-class Float32x4MinMaxInstr : public TemplateDefinition<2> {
+class Float32x4MinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   Float32x4MinMaxInstr(MethodRecognizer::Kind op_kind,
                        Value* left,
                        Value* right,
                        intptr_t deopt_id)
-      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -5465,14 +5275,9 @@ class Float32x4MinMaxInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(Float32x4MinMax)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsFloat32x4MinMax()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -5481,13 +5286,13 @@ class Float32x4MinMaxInstr : public TemplateDefinition<2> {
 };
 
 
-class Float32x4ScaleInstr : public TemplateDefinition<2> {
+class Float32x4ScaleInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   Float32x4ScaleInstr(MethodRecognizer::Kind op_kind,
                       Value* left,
                       Value* right,
                       intptr_t deopt_id)
-      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -5522,14 +5327,9 @@ class Float32x4ScaleInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(Float32x4Scale)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsFloat32x4Scale()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -5538,12 +5338,12 @@ class Float32x4ScaleInstr : public TemplateDefinition<2> {
 };
 
 
-class Float32x4SqrtInstr : public TemplateDefinition<1> {
+class Float32x4SqrtInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float32x4SqrtInstr(MethodRecognizer::Kind op_kind,
                      Value* left,
                      intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
   }
 
@@ -5573,14 +5373,9 @@ class Float32x4SqrtInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Float32x4Sqrt)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsFloat32x4Sqrt()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -5590,12 +5385,12 @@ class Float32x4SqrtInstr : public TemplateDefinition<1> {
 
 
 // TODO(vegorov) rename to Unary to match naming convention for arithmetic.
-class Float32x4ZeroArgInstr : public TemplateDefinition<1> {
+class Float32x4ZeroArgInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float32x4ZeroArgInstr(MethodRecognizer::Kind op_kind,
                         Value* left,
                         intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id),
+      : TemplateDefinition(deopt_id),
         op_kind_(op_kind) {
     SetInputAt(0, left);
   }
@@ -5626,14 +5421,9 @@ class Float32x4ZeroArgInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Float32x4ZeroArg)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsFloat32x4ZeroArg()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -5642,13 +5432,13 @@ class Float32x4ZeroArgInstr : public TemplateDefinition<1> {
 };
 
 
-class Float32x4ClampInstr : public TemplateDefinition<3> {
+class Float32x4ClampInstr : public TemplateDefinition<3, NoThrow, Pure> {
  public:
   Float32x4ClampInstr(Value* left,
                       Value* lower,
                       Value* upper,
                       intptr_t deopt_id)
-      : TemplateDefinition<3>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, left);
     SetInputAt(1, lower);
     SetInputAt(2, upper);
@@ -5680,25 +5470,20 @@ class Float32x4ClampInstr : public TemplateDefinition<3> {
   DECLARE_INSTRUCTION(Float32x4Clamp)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ClampInstr);
 };
 
 
-class Float32x4WithInstr : public TemplateDefinition<2> {
+class Float32x4WithInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   Float32x4WithInstr(MethodRecognizer::Kind op_kind,
                      Value* left,
                      Value* replacement,
                      intptr_t deopt_id)
-      : TemplateDefinition<2>(deopt_id),
+      : TemplateDefinition(deopt_id),
         op_kind_(op_kind) {
     SetInputAt(0, replacement);
     SetInputAt(1, left);
@@ -5734,14 +5519,9 @@ class Float32x4WithInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(Float32x4With)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsFloat32x4With()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -5750,13 +5530,13 @@ class Float32x4WithInstr : public TemplateDefinition<2> {
 };
 
 
-class Simd64x2ShuffleInstr : public TemplateDefinition<1> {
+class Simd64x2ShuffleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Simd64x2ShuffleInstr(MethodRecognizer::Kind op_kind,
                        Value* value,
                        intptr_t mask,
                        intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind), mask_(mask) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind), mask_(mask) {
     SetInputAt(0, value);
   }
 
@@ -5798,15 +5578,10 @@ class Simd64x2ShuffleInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Simd64x2Shuffle)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return (op_kind() == other->AsSimd64x2Shuffle()->op_kind()) &&
            (mask() == other->AsSimd64x2Shuffle()->mask());
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -5816,10 +5591,10 @@ class Simd64x2ShuffleInstr : public TemplateDefinition<1> {
 };
 
 
-class Float32x4ToInt32x4Instr : public TemplateDefinition<1> {
+class Float32x4ToInt32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float32x4ToInt32x4Instr(Value* left, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, left);
   }
 
@@ -5847,22 +5622,17 @@ class Float32x4ToInt32x4Instr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Float32x4ToInt32x4)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ToInt32x4Instr);
 };
 
 
-class Float32x4ToFloat64x2Instr : public TemplateDefinition<1> {
+class Float32x4ToFloat64x2Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float32x4ToFloat64x2Instr(Value* left, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, left);
   }
 
@@ -5890,22 +5660,17 @@ class Float32x4ToFloat64x2Instr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Float32x4ToFloat64x2)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ToFloat64x2Instr);
 };
 
 
-class Float64x2ToFloat32x4Instr : public TemplateDefinition<1> {
+class Float64x2ToFloat32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float64x2ToFloat32x4Instr(Value* left, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, left);
   }
 
@@ -5933,22 +5698,17 @@ class Float64x2ToFloat32x4Instr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Float64x2ToFloat32x4)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float64x2ToFloat32x4Instr);
 };
 
 
-class Float64x2ConstructorInstr : public TemplateDefinition<2> {
+class Float64x2ConstructorInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   Float64x2ConstructorInstr(Value* value0, Value* value1, intptr_t deopt_id)
-      : TemplateDefinition<2>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value0);
     SetInputAt(1, value1);
   }
@@ -5978,22 +5738,17 @@ class Float64x2ConstructorInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(Float64x2Constructor)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float64x2ConstructorInstr);
 };
 
 
-class Float64x2SplatInstr : public TemplateDefinition<1> {
+class Float64x2SplatInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float64x2SplatInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value);
   }
 
@@ -6021,19 +5776,14 @@ class Float64x2SplatInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Float64x2Splat)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float64x2SplatInstr);
 };
 
 
-class Float64x2ZeroInstr : public TemplateDefinition<0> {
+class Float64x2ZeroInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   Float64x2ZeroInstr() { }
 
@@ -6046,12 +5796,7 @@ class Float64x2ZeroInstr : public TemplateDefinition<0> {
   DECLARE_INSTRUCTION(Float64x2Zero)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float64x2ZeroInstr);
@@ -6059,12 +5804,12 @@ class Float64x2ZeroInstr : public TemplateDefinition<0> {
 
 
 // TODO(vegorov) rename to Unary to match arithmetic instructions.
-class Float64x2ZeroArgInstr : public TemplateDefinition<1> {
+class Float64x2ZeroArgInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Float64x2ZeroArgInstr(MethodRecognizer::Kind op_kind,
                         Value* left,
                         intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
   }
 
@@ -6098,14 +5843,9 @@ class Float64x2ZeroArgInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Float64x2ZeroArg)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsFloat64x2ZeroArg()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -6114,13 +5854,13 @@ class Float64x2ZeroArgInstr : public TemplateDefinition<1> {
 };
 
 
-class Float64x2OneArgInstr : public TemplateDefinition<2> {
+class Float64x2OneArgInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   Float64x2OneArgInstr(MethodRecognizer::Kind op_kind,
                        Value* left,
                        Value* right,
                        intptr_t deopt_id)
-      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -6160,14 +5900,9 @@ class Float64x2OneArgInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(Float64x2OneArg)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsFloat64x2OneArg()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -6176,14 +5911,14 @@ class Float64x2OneArgInstr : public TemplateDefinition<2> {
 };
 
 
-class Int32x4ConstructorInstr : public TemplateDefinition<4> {
+class Int32x4ConstructorInstr : public TemplateDefinition<4, NoThrow, Pure> {
  public:
   Int32x4ConstructorInstr(Value* value0,
                           Value* value1,
                           Value* value2,
                           Value* value3,
                           intptr_t deopt_id)
-      : TemplateDefinition<4>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value0);
     SetInputAt(1, value1);
     SetInputAt(2, value2);
@@ -6217,26 +5952,22 @@ class Int32x4ConstructorInstr : public TemplateDefinition<4> {
   DECLARE_INSTRUCTION(Int32x4Constructor)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Int32x4ConstructorInstr);
 };
 
 
-class Int32x4BoolConstructorInstr : public TemplateDefinition<4> {
+class Int32x4BoolConstructorInstr
+    : public TemplateDefinition<4, NoThrow, Pure> {
  public:
   Int32x4BoolConstructorInstr(Value* value0,
                               Value* value1,
                               Value* value2,
                               Value* value3,
                               intptr_t deopt_id)
-      : TemplateDefinition<4>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value0);
     SetInputAt(1, value1);
     SetInputAt(2, value2);
@@ -6270,24 +6001,19 @@ class Int32x4BoolConstructorInstr : public TemplateDefinition<4> {
   DECLARE_INSTRUCTION(Int32x4BoolConstructor)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Int32x4BoolConstructorInstr);
 };
 
 
-class Int32x4GetFlagInstr : public TemplateDefinition<1> {
+class Int32x4GetFlagInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Int32x4GetFlagInstr(MethodRecognizer::Kind op_kind,
                       Value* value,
                       intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, value);
   }
 
@@ -6317,14 +6043,9 @@ class Int32x4GetFlagInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Int32x4GetFlag)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsInt32x4GetFlag()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -6333,12 +6054,12 @@ class Int32x4GetFlagInstr : public TemplateDefinition<1> {
 };
 
 
-class Simd32x4GetSignMaskInstr : public TemplateDefinition<1> {
+class Simd32x4GetSignMaskInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Simd32x4GetSignMaskInstr(MethodRecognizer::Kind op_kind,
                            Value* value,
                            intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, value);
   }
 
@@ -6372,14 +6093,9 @@ class Simd32x4GetSignMaskInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Simd32x4GetSignMask)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return other->AsSimd32x4GetSignMask()->op_kind() == op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -6388,13 +6104,13 @@ class Simd32x4GetSignMaskInstr : public TemplateDefinition<1> {
 };
 
 
-class Int32x4SelectInstr : public TemplateDefinition<3> {
+class Int32x4SelectInstr : public TemplateDefinition<3, NoThrow, Pure> {
  public:
   Int32x4SelectInstr(Value* mask,
                      Value* trueValue,
                      Value* falseValue,
                      intptr_t deopt_id)
-      : TemplateDefinition<3>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, mask);
     SetInputAt(1, trueValue);
     SetInputAt(2, falseValue);
@@ -6429,25 +6145,20 @@ class Int32x4SelectInstr : public TemplateDefinition<3> {
   DECLARE_INSTRUCTION(Int32x4Select)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Int32x4SelectInstr);
 };
 
 
-class Int32x4SetFlagInstr : public TemplateDefinition<2> {
+class Int32x4SetFlagInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   Int32x4SetFlagInstr(MethodRecognizer::Kind op_kind,
                       Value* value,
                       Value* flagValue,
                       intptr_t deopt_id)
-      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, value);
     SetInputAt(1, flagValue);
   }
@@ -6482,14 +6193,9 @@ class Int32x4SetFlagInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(Int32x4SetFlag)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsInt32x4SetFlag()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -6498,10 +6204,10 @@ class Int32x4SetFlagInstr : public TemplateDefinition<2> {
 };
 
 
-class Int32x4ToFloat32x4Instr : public TemplateDefinition<1> {
+class Int32x4ToFloat32x4Instr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   Int32x4ToFloat32x4Instr(Value* left, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, left);
   }
 
@@ -6529,25 +6235,20 @@ class Int32x4ToFloat32x4Instr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Int32x4ToFloat32x4)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Int32x4ToFloat32x4Instr);
 };
 
 
-class BinaryInt32x4OpInstr : public TemplateDefinition<2> {
+class BinaryInt32x4OpInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   BinaryInt32x4OpInstr(Token::Kind op_kind,
                         Value* left,
                         Value* right,
                         intptr_t deopt_id)
-      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -6579,14 +6280,9 @@ class BinaryInt32x4OpInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(BinaryInt32x4Op)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsBinaryInt32x4Op()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const Token::Kind op_kind_;
@@ -6595,13 +6291,13 @@ class BinaryInt32x4OpInstr : public TemplateDefinition<2> {
 };
 
 
-class BinaryFloat64x2OpInstr : public TemplateDefinition<2> {
+class BinaryFloat64x2OpInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   BinaryFloat64x2OpInstr(Token::Kind op_kind,
                          Value* left,
                          Value* right,
                          intptr_t deopt_id)
-      : TemplateDefinition<2>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -6633,15 +6329,9 @@ class BinaryFloat64x2OpInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(BinaryFloat64x2Op)
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
-    ASSERT(other->IsBinaryFloat64x2Op());
     return op_kind() == other->AsBinaryFloat64x2Op()->op_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const Token::Kind op_kind_;
@@ -6650,12 +6340,12 @@ class BinaryFloat64x2OpInstr : public TemplateDefinition<2> {
 };
 
 
-class UnaryIntegerOpInstr : public TemplateDefinition<1> {
+class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnaryIntegerOpInstr(Token::Kind op_kind,
                       Value* value,
                       intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     ASSERT((op_kind == Token::kNEGATE) ||
            (op_kind == Token::kBIT_NOT));
     SetInputAt(0, value);
@@ -6670,9 +6360,6 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
   Token::Kind op_kind() const { return op_kind_; }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return other->AsUnaryIntegerOp()->op_kind() == op_kind();
   }
@@ -6682,8 +6369,6 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1> {
     // was inherited from another instruction that could deoptimize.
     return GetDeoptId();
   }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -6771,13 +6456,13 @@ class UnaryMintOpInstr : public UnaryIntegerOpInstr {
 };
 
 
-class BinaryIntegerOpInstr : public TemplateDefinition<2> {
+class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   BinaryIntegerOpInstr(Token::Kind op_kind,
                        Value* left,
                        Value* right,
                        intptr_t deopt_id)
-      : TemplateDefinition<2>(deopt_id),
+      : TemplateDefinition(deopt_id),
         op_kind_(op_kind),
         can_overflow_(true),
         is_truncating_(false) {
@@ -6837,14 +6522,10 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2> {
         return false;
     }
   }
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+
   virtual bool AttributesEqual(Instruction* other) const;
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -7074,12 +6755,12 @@ class ShiftMintOpInstr : public BinaryIntegerOpInstr {
 
 
 // Handles only NEGATE.
-class UnaryDoubleOpInstr : public TemplateDefinition<1> {
+class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnaryDoubleOpInstr(Token::Kind op_kind,
                      Value* value,
                      intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id), op_kind_(op_kind) {
+      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
     ASSERT(op_kind == Token::kNEGATE);
     SetInputAt(0, value);
   }
@@ -7109,12 +6790,7 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1> {
     return kUnboxedDouble;
   }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const Token::Kind op_kind_;
@@ -7123,10 +6799,10 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1> {
 };
 
 
-class CheckStackOverflowInstr : public TemplateInstruction<0> {
+class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
  public:
   CheckStackOverflowInstr(intptr_t token_pos, intptr_t loop_depth)
-      : TemplateInstruction<0>(Isolate::Current()->GetNextDeoptId()),
+      : TemplateInstruction(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         loop_depth_(loop_depth) {
   }
@@ -7143,8 +6819,6 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return false; }
-
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
@@ -7156,7 +6830,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
 
 
 // TODO(vegorov): remove this instruction in favor of Int32ToDouble.
-class SmiToDoubleInstr : public TemplateDefinition<1> {
+class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   SmiToDoubleInstr(Value* value, intptr_t token_pos)
       : token_pos_(token_pos) {
@@ -7175,12 +6849,7 @@ class SmiToDoubleInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const intptr_t token_pos_;
@@ -7189,7 +6858,7 @@ class SmiToDoubleInstr : public TemplateDefinition<1> {
 };
 
 
-class Int32ToDoubleInstr : public TemplateDefinition<1> {
+class Int32ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   explicit Int32ToDoubleInstr(Value* value) {
     SetInputAt(0, value);
@@ -7211,22 +6880,17 @@ class Int32ToDoubleInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Int32ToDoubleInstr);
 };
 
 
-class MintToDoubleInstr : public TemplateDefinition<1> {
+class MintToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   MintToDoubleInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value);
   }
 
@@ -7251,23 +6915,17 @@ class MintToDoubleInstr : public TemplateDefinition<1> {
   }
 
   virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MintToDoubleInstr);
 };
 
 
-class DoubleToIntegerInstr : public TemplateDefinition<1> {
+class DoubleToIntegerInstr : public TemplateDefinition<1, Throws> {
  public:
   DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
-      : TemplateDefinition<1>(instance_call->deopt_id()),
+      : TemplateDefinition(instance_call->deopt_id()),
         instance_call_(instance_call) {
     SetInputAt(0, value);
   }
@@ -7284,8 +6942,6 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual bool MayThrow() const { return true; }
-
  private:
   InstanceCallInstr* instance_call_;
 
@@ -7295,10 +6951,10 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
 
 // Similar to 'DoubleToIntegerInstr' but expects unboxed double as input
 // and creates a Smi.
-class DoubleToSmiInstr : public TemplateDefinition<1> {
+class DoubleToSmiInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   DoubleToSmiInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value);
   }
 
@@ -7316,21 +6972,19 @@ class DoubleToSmiInstr : public TemplateDefinition<1> {
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DoubleToSmiInstr);
 };
 
 
-class DoubleToDoubleInstr : public TemplateDefinition<1> {
+class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   DoubleToDoubleInstr(Value* value,
                       MethodRecognizer::Kind recognized_kind,
                       intptr_t deopt_id)
-    : TemplateDefinition<1>(deopt_id),
+    : TemplateDefinition(deopt_id),
       recognized_kind_(recognized_kind) {
     SetInputAt(0, value);
   }
@@ -7355,14 +7009,9 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return other->AsDoubleToDouble()->recognized_kind() == recognized_kind();
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind recognized_kind_;
@@ -7371,10 +7020,10 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
 };
 
 
-class DoubleToFloatInstr: public TemplateDefinition<1> {
+class DoubleToFloatInstr: public TemplateDefinition<1, NoThrow, Pure> {
  public:
   DoubleToFloatInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value);
   }
 
@@ -7401,12 +7050,7 @@ class DoubleToFloatInstr: public TemplateDefinition<1> {
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -7415,10 +7059,10 @@ class DoubleToFloatInstr: public TemplateDefinition<1> {
 };
 
 
-class FloatToDoubleInstr: public TemplateDefinition<1> {
+class FloatToDoubleInstr: public TemplateDefinition<1, NoThrow, Pure> {
  public:
   FloatToDoubleInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id) {
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value);
   }
 
@@ -7441,12 +7085,7 @@ class FloatToDoubleInstr: public TemplateDefinition<1> {
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -7455,7 +7094,7 @@ class FloatToDoubleInstr: public TemplateDefinition<1> {
 };
 
 
-class InvokeMathCFunctionInstr : public Definition {
+class InvokeMathCFunctionInstr : public PureDefinition {
  public:
   InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
                            intptr_t deopt_id,
@@ -7495,9 +7134,6 @@ class InvokeMathCFunctionInstr : public Definition {
     return (*inputs_)[i];
   }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     InvokeMathCFunctionInstr* other_invoke = other->AsInvokeMathCFunction();
     return other_invoke->recognized_kind() == recognized_kind();
@@ -7522,7 +7158,7 @@ class InvokeMathCFunctionInstr : public Definition {
 };
 
 
-class ExtractNthOutputInstr : public TemplateDefinition<1> {
+class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   // Extract the Nth output register from value.
   ExtractNthOutputInstr(Value* value,
@@ -7560,16 +7196,11 @@ class ExtractNthOutputInstr : public TemplateDefinition<1> {
     return definition_rep_;
   }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     ExtractNthOutputInstr* other_extract = other->AsExtractNthOutput();
     return (other_extract->representation() == representation()) &&
            (other_extract->index() == index());
   }
-
-  virtual bool MayThrow() const { return false; }
 
  private:
   const intptr_t index_;
@@ -7579,7 +7210,7 @@ class ExtractNthOutputInstr : public TemplateDefinition<1> {
 };
 
 
-class MergedMathInstr : public Definition {
+class MergedMathInstr : public PureDefinition {
  public:
   enum Kind {
     kTruncDivMod,
@@ -7653,9 +7284,6 @@ class MergedMathInstr : public Definition {
 
   DECLARE_INSTRUCTION(MergedMath)
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     MergedMathInstr* other_invoke = other->AsMergedMath();
     return other_invoke->kind() == kind();
@@ -7680,7 +7308,7 @@ class MergedMathInstr : public Definition {
 };
 
 
-class CheckClassInstr : public TemplateInstruction<1> {
+class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
  public:
   CheckClassInstr(Value* value,
                   intptr_t deopt_id,
@@ -7712,11 +7340,9 @@ class CheckClassInstr : public TemplateInstruction<1> {
   static bool IsDenseMask(intptr_t mask);
 
   virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const;
+  virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool MayThrow() const { return false; }
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
@@ -7730,10 +7356,10 @@ class CheckClassInstr : public TemplateInstruction<1> {
 };
 
 
-class CheckSmiInstr : public TemplateInstruction<1> {
+class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
  public:
   CheckSmiInstr(Value* value, intptr_t deopt_id, intptr_t token_pos)
-      : TemplateInstruction<1>(deopt_id),
+      : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
         licm_hoisted_(false) {
     SetInputAt(0, value);
@@ -7750,12 +7376,7 @@ class CheckSmiInstr : public TemplateInstruction<1> {
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
@@ -7767,10 +7388,10 @@ class CheckSmiInstr : public TemplateInstruction<1> {
 };
 
 
-class CheckClassIdInstr : public TemplateInstruction<1> {
+class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
  public:
   CheckClassIdInstr(Value* value, intptr_t cid, intptr_t deopt_id)
-      : TemplateInstruction<1>(deopt_id), cid_(cid) {
+      : TemplateInstruction(deopt_id), cid_(cid) {
     SetInputAt(0, value);
   }
 
@@ -7786,11 +7407,9 @@ class CheckClassIdInstr : public TemplateInstruction<1> {
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const;
+  virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -7801,10 +7420,10 @@ class CheckClassIdInstr : public TemplateInstruction<1> {
 };
 
 
-class CheckArrayBoundInstr : public TemplateInstruction<2> {
+class CheckArrayBoundInstr : public TemplateInstruction<2, NoThrow, Pure> {
  public:
   CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateInstruction<2>(deopt_id),
+      : TemplateInstruction(deopt_id),
         generalized_(false),
         licm_hoisted_(false) {
     SetInputAt(kLengthPos, length);
@@ -7833,12 +7452,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
   static bool IsFixedLengthArrayType(intptr_t class_id);
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
@@ -7856,7 +7470,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 };
 
 
-class BoxIntNInstr : public TemplateDefinition<1> {
+class BoxIntNInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   BoxIntNInstr(Representation representation, Value* value)
       : from_representation_(representation) {
@@ -7882,14 +7496,9 @@ class BoxIntNInstr : public TemplateDefinition<1> {
     return from_representation_;
   }
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     return other->AsBoxIntN()->from_representation_ == from_representation_;
   }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -7929,12 +7538,12 @@ class BoxInt32Instr : public BoxIntNInstr {
 };
 
 
-class UnboxIntNInstr : public TemplateDefinition<1> {
+class UnboxIntNInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnboxIntNInstr(Representation representation,
                  Value* value,
                  intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id),
+      : TemplateDefinition(deopt_id),
         representation_(representation),
         is_truncating_(representation == kUnboxedUint32) {
     SetInputAt(0, value);
@@ -7951,16 +7560,11 @@ class UnboxIntNInstr : public TemplateDefinition<1> {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
     UnboxIntNInstr* other_unbox = other->AsUnboxIntN();
     return (other_unbox->representation_ == representation_) &&
         (other_unbox->is_truncating_ == is_truncating_);
   }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -8015,13 +7619,13 @@ class UnboxInt32Instr : public UnboxIntNInstr {
 };
 
 
-class UnboxedIntConverterInstr : public TemplateDefinition<1> {
+class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
  public:
   UnboxedIntConverterInstr(Representation from,
                            Representation to,
                            Value* value,
                            intptr_t deopt_id)
-      : TemplateDefinition<1>(deopt_id),
+      : TemplateDefinition(deopt_id),
         from_representation_(from),
         to_representation_(to),
         is_truncating_(to == kUnboxedUint32) {
@@ -8066,8 +7670,6 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1> {
         (converter->to() == to()) &&
         (converter->is_truncating() == is_truncating());
   }
-
-  virtual bool MayThrow() const { return false; }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
