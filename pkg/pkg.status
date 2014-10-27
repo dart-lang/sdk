@@ -266,7 +266,7 @@ scheduled_test/test/scheduled_test/timeout_test: Timeout # Issue 21007
 scheduled_test/test/scheduled_test/wrap_async_test: Timeout # Issue 21007
 scheduled_test/test/scheduled_test/wrap_future_test: Timeout # Issue 21007
 
-[ $runtime == safari || $runtime == safarimobilesim ]
+[ ($runtime == safari && $builder_tag == mac10_7) || $runtime == safarimobilesim ]
 # Unexplained errors only occuring on Safari.
 typed_data/test/typed_buffers_test: RuntimeError
 
@@ -495,3 +495,10 @@ http/test/html/client_test: Skip # Issue 18566
 
 [ $system == windows ]
 analysis_server/test/integration/search/get_type_hierarchy_test: Pass, Fail # Issue 20436
+
+[ $runtime == safari && $builder_tag == mac10_8 ]
+polymer/e2e_test/good_import/test/import_test: RuntimeError # Issue 21424
+polymer/test/custom_event_test: RuntimeError # Issue 21425
+polymer/test/instance_attrs_test: RuntimeError # Issue 21425
+polymer/test/property_observe_test: RuntimeError # Issue 21425
+intl/test/date_time_format_http_request_test: RuntimeError # Issue 21428

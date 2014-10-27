@@ -139,6 +139,7 @@ def GetBuildInfo(builder_name, is_buildbot):
 
   # We have both 10.8 and 10.7 bots, functionality is the same.
   if system == 'mac10.8' or system == 'mac10.7':
+    builder_tag = system.replace('.', '_')
     system = 'mac'
 
   if (system == 'windows' and platform.system() != 'Windows') or (

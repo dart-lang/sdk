@@ -100,13 +100,19 @@ mirrors/raw_type_test/01: RuntimeError # http://dartbug.com/6490
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 
 [ $runtime == safari || $runtime == safarimobilesim ]
-typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
-typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
-typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 mirrors/null_test: Fail # http://dartbug.com/16831
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
+
+[ ($runtime == safari && $builder_tag == mac10_7)|| $runtime == safarimobilesim ]
+typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+
+
+[ $runtime == safari && $builder_tag == mac10_8 ]
+mirrors/generics_test/none: RuntimeError # Issue 21427
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.

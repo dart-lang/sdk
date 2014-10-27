@@ -234,9 +234,7 @@ audiocontext_test/functional: Fail # Issue 14354
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
 element_types_test/supported_shadow: Fail
-element_types_test/supported_template: Fail
 fileapi_test/supported: Fail
-indexeddb_1_test/supported: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
@@ -245,6 +243,10 @@ performance_api_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
+
+[ ($runtime == safari && $builder_tag == mac10_7) || $runtime == safarimobilesim ]
+indexeddb_1_test/supported: Fail
+element_types_test/supported_template: Fail
 xhr_test/json: Fail # Safari doesn't support JSON response type
 
 [ $runtime == safari ]
@@ -254,6 +256,15 @@ input_element_test/supported_week: RuntimeError
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 touchevent_test/supported: Fail
+
+[ $runtime == safari && $builder_tag == mac10_8 ]
+element_test/_ElementList: RuntimeError # Issue 21434
+indexeddb_1_test/functional: RuntimeError # Issue 21433
+indexeddb_2_test: RuntimeError # Issue 21433
+indexeddb_4_test: RuntimeError # Issue 21433
+indexeddb_5_test: RuntimeError # Issue 21433
+wheelevent_test: RuntimeError # Issue 21434
+js_test: RuntimeError # Issue 21434
 
 [ $runtime == opera ]
 blob_constructor_test: Fail
