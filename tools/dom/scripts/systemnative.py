@@ -136,18 +136,6 @@ _cpp_overloaded_callback_map = {
   ('DOMURL', '_createObjectURL_3Callback'): 'URLMediaStream',
 }
 
-_blink_1916_rename_map = {
-  'NavigatorID': 'Navigator',
-  'CanvasRenderingContext' : 'CanvasRenderingContext2D',
-  'Clipboard': 'DataTransfer',
-  'Player': 'AnimationPlayer',
-  'Algorithm': 'KeyAlgorithm',
-  'any': 'ScriptValue',
-  'URLUtils': 'URL',
-  'URLUtilsReadOnly': 'WorkerLocation',
-  'Path': 'Path2D'
-}
-
 _cpp_partial_map = {}
 
 _cpp_no_auto_scope_list = set([
@@ -330,8 +318,6 @@ def TypeIdToBlinkName(interface_id, database):
     t = TypeIdToBlinkName(arr_match, database)
     return "%s[]" % t
 
-  if interface_id in _blink_1916_rename_map:
-    interface_id = _blink_1916_rename_map[interface_id]
   return interface_id
 
 def _GetCPPTypeName(interface_name, callback_name, cpp_name):
@@ -375,42 +361,21 @@ def EncodeType(t):
 
   return _type_encoding_map.get(t) or t
 
-# FIXME(leafp) This should really go elsewhere.  I think the right thing
-# to do is to add support in the DartLibraries objects in systemhtml
-# for emitting top level code in libraries.  This can then just be a
-# normal use of that kind of object
-def GetNativeLibraryEmitter(emitters, template_loader, 
-                            dartium_output_dir, dart_output_dir,
-                            auxiliary_dir):
-    def massage_path(path):
-        # The most robust way to emit path separators is to use / always.
-        return path.replace('\\', '/')
-    template = template_loader.Load('_blink_dartium.darttemplate')
-    dart_path = os.path.join(dartium_output_dir, '_blink_dartium.dart')
-    library_emitter = emitters.FileEmitter(dart_path)
-    auxiliary_dir = os.path.relpath(auxiliary_dir, dartium_output_dir)
-    emitter = \
-        library_emitter.Emit(template,
-                             AUXILIARY_DIR=massage_path(auxiliary_dir))
-    return emitter
-
 class DartiumBackend(HtmlDartGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
-  def __init__(self, interface, native_library_emitter,
+  def __init__(self, interface, 
                cpp_library_emitter, options):
     super(DartiumBackend, self).__init__(interface, options, True)
 
     self._interface = interface
     self._cpp_library_emitter = cpp_library_emitter
-    self._native_library_emitter = native_library_emitter
     self._database = options.database
     self._template_loader = options.templates
     self._type_registry = options.type_registry
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._metadata = options.metadata
     # These get initialized by StartInterface
-    self._blink_entries = None
     self._cpp_header_emitter = None
     self._cpp_impl_emitter = None
     self._members_emitter = None
@@ -418,7 +383,6 @@ class DartiumBackend(HtmlDartGenerator):
     self._cpp_impl_includes = None
     self._cpp_definitions_emitter = None
     self._cpp_resolver_emitter = None
-    self._native_class_emitter = None
 
   def ImplementsMergedMembers(self):
     # We could not add merged functions to implementation class because
@@ -647,21 +611,6 @@ class DartiumBackend(HtmlDartGenerator):
         '    WebCore::DartArrayBufferViewInternal::constructWebGLArray<Dart$(INTERFACE_NAME)>(args);\n'
         '}\n',
         INTERFACE_NAME=self._interface.id);
-    self._native_class_emitter = self._native_library_emitter.Emit(
-      '\n'
-      'class $INTERFACE_NAME {'
-      '$!METHODS'
-      '}\n',
-      INTERFACE_NAME=DeriveBlinkClassName(self._interface.id))
-    # TODO(vsm): Should we check for collisions between EventConstructors and others?
-    # Should we unify at some point?
-    if 'EventConstructor' in self._interface.ext_attrs:
-        self._native_class_emitter.Emit(
-            '\n'
-            '  static constructorCallback_2(type, options) native "$(INTERFACE_NAME)_constructorCallback";\n',
-            INTERFACE_NAME=self._interface.id
-            )
-    self._blink_entries = {}
 
   def _EmitConstructorInfrastructure(self,
       constructor_info, cpp_prefix, cpp_suffix, factory_method_name,
@@ -681,10 +630,6 @@ class DartiumBackend(HtmlDartGenerator):
 
     dart_native_name, constructor_callback_id = \
         self.DeriveNativeEntry(cpp_suffix, 'Constructor', argument_count)
-    if dart_native_name not in self._blink_entries:
-      entry = '  static %s(%s) native "%s";' % \
-              (dart_native_name, parameters, constructor_callback_id)
-      self._blink_entries[dart_native_name] = entry
 
     # Then we emit the impedance matching wrapper to call out to the
     # toplevel wrapper
@@ -783,12 +728,6 @@ class DartiumBackend(HtmlDartGenerator):
       supertype = '-1'
 
     self._GenerateCPPHeader()
-
-    for entry in sorted(self._blink_entries):
-      self._native_class_emitter.Emit(
-        '\n' + self._blink_entries[entry] + '\n')
-
-    self._native_class_emitter.Emit('\n')
 
     self._cpp_impl_emitter.Emit(
         self._template_loader.Load('cpp_implementation.template'),
@@ -1676,10 +1615,6 @@ class DartiumBackend(HtmlDartGenerator):
     else:
         formals = ", ".join(parameters)
         actuals = ", ".join(parameters)
-    if dart_native_name not in self._blink_entries:
-      entry = '  static %s(%s) native "%s";' % \
-              (dart_native_name, formals, native_binding)
-      self._blink_entries[dart_native_name] = entry
 
     if not emit_to_native:
         caller_emitter = self._members_emitter

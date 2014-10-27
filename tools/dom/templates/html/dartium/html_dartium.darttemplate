@@ -89,7 +89,7 @@ part '$AUXILIARY_DIR/dartium_Platform.dart';
 part '$AUXILIARY_DIR/dartium_WrappedEvent.dart';
 part '$AUXILIARY_DIR/shared_html.dart';
 
-part '$AUXILIARY_DIR/html_native_DOMImplementation.dart';
+part '$AUXILIARY_DIR/native_DOMImplementation.dart';
 
 Window _window;
 
