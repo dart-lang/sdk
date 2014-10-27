@@ -80,6 +80,13 @@ class AbstractContextTest {
     resourceResolver = new ResourceUriResolver(provider);
     context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory = new SourceFactory([SDK_RESOLVER, resourceResolver]);
+    {
+      AnalysisOptionsImpl options =
+          new AnalysisOptionsImpl.con1(context.analysisOptions);
+      options.enableAsync = true;
+      options.enableEnum = true;
+      context.analysisOptions = options;
+    }
   }
 
   void tearDown() {

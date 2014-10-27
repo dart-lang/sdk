@@ -298,6 +298,16 @@ main(a) {
         _expectedLocation(classElement, 'A {}'));
   }
 
+  void test_definesClassEnum() {
+    _indexTestUnit('enum MyEnum {A, B, c}');
+    // prepare elements
+    ClassElement classElement = findElement("MyEnum");
+    // verify
+    _assertDefinesTopLevelElement(
+        IndexConstants.DEFINES,
+        _expectedLocation(classElement, 'MyEnum {'));
+  }
+
   void test_definesClassAlias() {
     _indexTestUnit('''
 class Mix {}
