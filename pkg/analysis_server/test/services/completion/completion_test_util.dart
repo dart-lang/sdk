@@ -1399,6 +1399,16 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_PrefixedIdentifier_propertyAccess() {
+    // PrefixedIdentifier  ExpressionStatement  Block  BlockFunctionBody
+    addTestSource('class A {String x; int get foo {x.^}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('isEmpty', 'bool');
+      assertSuggestInvocationMethod('compareTo', 'Comparable', 'int');
+    });
+  }
+
   test_PrefixedIdentifier_class_imported() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addSource('/testB.dart', '''

@@ -162,6 +162,21 @@ class _InvocationElementVisitor extends GeneralizingElementVisitor<Future<bool>>
   }
 
   @override
+  Future<bool> visitPropertyAccessorElement(PropertyAccessorElement element) {
+    if (element != null) {
+      PropertyInducingElement elemVar = element.variable;
+      if (elemVar != null) {
+        DartType type = elemVar.type;
+        if (type != null) {
+          ClassElementSuggestionBuilder.suggestionsFor(request, type.element);
+        }
+      }
+      return new Future.value(true);
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitVariableElement(VariableElement element) {
     DartType type = element.type;
     if (type != null) {
