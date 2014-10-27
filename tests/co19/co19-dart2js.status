@@ -453,8 +453,6 @@ Language/15_Types/4_Interface_Types_A12_t10: fail # co19 issue 716
 LibTest/core/DateTime/DateTime_A01_t03: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Duration/operator_div_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/Match/pattern_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/core/RegExp/allMatches_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/contains_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/typed_data/Float32List/Float32List.view_A05_t01: RuntimeError # co19-roll r559: Please triage this failure

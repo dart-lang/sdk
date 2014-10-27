@@ -1371,7 +1371,7 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
     _sink.close();
   }
 
-  Utf8ConversionSink asUtf8Sink(bool allowMalformed) {
+  ByteConversionSink asUtf8Sink(bool allowMalformed) {
     _parser = null;
     return new _JsonUtf8DecoderSink(_reviver, _sink, allowMalformed);
   }
@@ -1679,7 +1679,7 @@ double _parseDouble(String source, int start, int end)
  * to its corresponding object.
  */
 class _JsonUtf8DecoderSink extends ByteConversionSinkBase {
-  _ChunkedUtf8Parser _parser;
+  _JsonUtf8Parser _parser;
   final Sink<Object> _sink;
 
   _JsonUtf8DecoderSink(reviver, this._sink, bool allowMalformed)
