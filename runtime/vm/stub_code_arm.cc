@@ -785,8 +785,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
   // Save new context and C++ ABI callee-saved registers.
-  const intptr_t kNewContextOffsetFromFp =
-      -(1 + kAbiPreservedCpuRegCount) * kWordSize;
   __ PushList((1 << R3) | kAbiPreservedCpuRegs);
 
   const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
@@ -871,14 +869,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Call the Dart code entrypoint.
   __ blx(R0);  // R4 is the arguments descriptor array.
 
-  // Read the saved new Context pointer.
-  __ ldr(CTX, Address(FP, kNewContextOffsetFromFp));
-  __ ldr(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
-
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize);
 
-  // Load Isolate pointer into CTX. Drop Context.
+  // Load Isolate pointer into CTX.
   __ LoadIsolate(CTX);
 
   // Restore the saved Context pointer into the Isolate structure.

@@ -879,10 +879,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Call the dart code entrypoint.
   __ call(Address(EBP, kEntryPointOffset));
 
-  // Reread the Context pointer.
-  __ movl(CTX, Address(EBP, kNewContextOffset));
-  __ movl(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
-
   // Reread the arguments descriptor array to obtain the number of passed
   // arguments.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
@@ -891,7 +887,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
 
-  // Load Isolate pointer into CTX. Drop Context.
+  // Load Isolate pointer into CTX.
   __ LoadIsolate(CTX);
 
   // Restore the saved Context pointer into the Isolate structure.

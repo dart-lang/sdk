@@ -747,7 +747,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save arguments descriptor array and new context.
   const intptr_t kArgumentsDescOffset = -(kInitialOffset) * kWordSize;
   __ pushq(kArgDescReg);
-  const intptr_t kNewContextOffset = -(kInitialOffset + 1) * kWordSize;
   __ pushq(kNewContextReg);
 
   // Save C++ ABI callee-saved registers.
@@ -864,10 +863,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Call the Dart code entrypoint.
   __ call(kEntryPointReg);  // R10 is the arguments descriptor array.
-
-  // Restore CTX from the saved context handle.
-  __ movq(CTX, Address(RBP, kNewContextOffset));
-  __ movq(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
 
   // Read the saved arguments descriptor array to obtain the number of passed
   // arguments.

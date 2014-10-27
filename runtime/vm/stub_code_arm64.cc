@@ -812,9 +812,6 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 //   R3 : new context containing the current isolate pointer.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
-  // The new context, saved vm tag, the top exit frame, and the old context.
-  const intptr_t kNewContextOffsetFromFp =
-      -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
 
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
   // to access the stack, and put the C stack pointer at the stack limit.
@@ -841,6 +838,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 #if defined(DEBUG)
   {
     Label ok;
+    // The new context, saved vm tag, the top exit frame, and the old context.
+    const intptr_t kNewContextOffsetFromFp =
+        -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
     __ AddImmediate(R4, FP, kNewContextOffsetFromFp, kNoPP);
     __ CompareRegisters(R4, SP);
     __ b(&ok, EQ);
@@ -865,9 +865,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Load Isolate pointer into temporary register R5.
   __ LoadIsolate(R5, PP);
-
-  // Cache the new Context pointer into CTX while executing Dart code.
-  __ LoadFromOffset(CTX, R3, VMHandles::kOffsetOfRawPtrInHandle, PP);
 
   // Save the current VMTag on the stack.
   ASSERT(kSavedVMTagSlotFromEntryFp == -20);
@@ -930,14 +927,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore constant pool pointer after return.
   __ LoadPoolPointer(PP);
 
-  // Read the saved new Context pointer.
-  __ LoadFromOffset(CTX, FP, kNewContextOffsetFromFp, PP);
-  __ LoadFromOffset(CTX, CTX, VMHandles::kOffsetOfRawPtrInHandle, PP);
-
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize, PP);
 
-  // Load Isolate pointer into CTX. Drop Context.
+  // Load Isolate pointer into CTX.
   __ LoadIsolate(CTX, PP);
 
   // Restore the current VMTag from the stack.

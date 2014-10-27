@@ -870,8 +870,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // The new context, saved vm tag, the top exit frame, and the old context.
   const intptr_t kPreservedContextSlots = 4;
-  const intptr_t kNewContextOffsetFromFp =
-      -(1 + kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount) * kWordSize;
   const intptr_t kPreservedRegSpace =
       kWordSize * (kAbiPreservedCpuRegCount + kAbiPreservedFpuRegCount +
                    kPreservedContextSlots);
@@ -973,14 +971,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ jalr(A0);  // S4 is the arguments descriptor array.
   __ TraceSimMsg("InvokeDartCodeStub return");
 
-  // Read the saved new Context pointer.
-  __ lw(CTX, Address(FP, kNewContextOffsetFromFp));
-  __ lw(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
-
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize);
 
-  // Load Isolate pointer into CTX. Drop Context.
+  // Load Isolate pointer into CTX.
   __ LoadIsolate(CTX);
 
   // Restore the current VMTag from the stack.
