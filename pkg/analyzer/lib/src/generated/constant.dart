@@ -378,14 +378,12 @@ class ConstantValueComputer {
     _variableDeclarationMap = _constantFinder.variableMap;
     constructorDeclarationMap = _constantFinder.constructorMap;
     _constructorInvocations = _constantFinder.constructorInvocations;
-    for (MapEntry<VariableElement, VariableDeclaration> entry in getMapEntrySet(_variableDeclarationMap)) {
-      VariableDeclaration declaration = entry.getValue();
+    _variableDeclarationMap.values.forEach((VariableDeclaration declaration) {
       ReferenceFinder referenceFinder = new ReferenceFinder(declaration, referenceGraph, _variableDeclarationMap, constructorDeclarationMap);
       referenceGraph.addNode(declaration);
       declaration.initializer.accept(referenceFinder);
-    }
-    for (MapEntry<ConstructorElement, ConstructorDeclaration> entry in getMapEntrySet(constructorDeclarationMap)) {
-      ConstructorDeclaration declaration = entry.getValue();
+    });
+    constructorDeclarationMap.forEach((ConstructorElement element, ConstructorDeclaration declaration) {
       ReferenceFinder referenceFinder = new ReferenceFinder(declaration, referenceGraph, _variableDeclarationMap, constructorDeclarationMap);
       referenceGraph.addNode(declaration);
       bool superInvocationFound = false;
@@ -399,7 +397,7 @@ class ConstantValueComputer {
       if (!superInvocationFound) {
         // No explicit superconstructor invocation found, so we need to manually insert
         // a reference to the implicit superconstructor.
-        InterfaceType superclass = (entry.getKey().returnType as InterfaceType).superclass;
+        InterfaceType superclass = (element.returnType as InterfaceType).superclass;
         if (superclass != null && !superclass.isObject) {
           ConstructorElement unnamedConstructor = superclass.element.unnamedConstructor;
           ConstructorDeclaration superConstructorDeclaration = findConstructorDeclaration(unnamedConstructor);
@@ -419,7 +417,7 @@ class ConstantValueComputer {
           }
         }
       }
-    }
+    });
     for (InstanceCreationExpression expression in _constructorInvocations) {
       referenceGraph.addNode(expression);
       ConstructorElement constructor = expression.staticElement;
@@ -4188,9 +4186,8 @@ class MapState extends InstanceState {
     } else if (count == 0) {
       return true;
     }
-    for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
-      DartObjectImpl key = entry.getKey();
-      DartObjectImpl value = entry.getValue();
+    for (DartObjectImpl key in _entries.keys) {
+      DartObjectImpl value = _entries[key];
       DartObjectImpl otherValue = otherElements[key];
       if (value != otherValue) {
         return false;
@@ -4205,9 +4202,8 @@ class MapState extends InstanceState {
   @override
   Map<Object, Object> get value {
     HashMap<Object, Object> result = new HashMap<Object, Object>();
-    for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
-      DartObjectImpl key = entry.getKey();
-      DartObjectImpl value = entry.getValue();
+    for (DartObjectImpl key in _entries.keys) {
+      DartObjectImpl value = _entries[key];
       if (!key.hasExactValue || !value.hasExactValue) {
         return null;
       }
@@ -4218,8 +4214,8 @@ class MapState extends InstanceState {
 
   @override
   bool get hasExactValue {
-    for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
-      if (!entry.getKey().hasExactValue || !entry.getValue().hasExactValue) {
+    for (DartObjectImpl key in _entries.keys) {
+      if (!key.hasExactValue || !_entries[key].hasExactValue) {
         return false;
       }
     }

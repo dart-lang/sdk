@@ -8572,9 +8572,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
       EngineTestCase.assertSizeOfMap(0, namedTypes);
     } else {
       EngineTestCase.assertSizeOfMap(expectedNamedTypes.length, namedTypes);
-      for (MapEntry<String, DartType> entry in getMapEntrySet(expectedNamedTypes)) {
-        JUnitTestCase.assertSame(entry.getValue(), namedTypes[entry.getKey()]);
-      }
+      expectedNamedTypes.forEach((String name, DartType type) {
+        JUnitTestCase.assertSame(type, namedTypes[name]);
+      });
     }
     JUnitTestCase.assertSame(expectedReturnType, functionType.returnType);
   }

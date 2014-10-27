@@ -643,9 +643,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compare the expected and actual number of each type of error.
     //
-    for (MapEntry<ErrorCode, int> entry in getMapEntrySet(expectedCounts)) {
-      ErrorCode code = entry.getKey();
-      int expectedCount = entry.getValue();
+    expectedCounts.forEach((ErrorCode code, int expectedCount) {
       int actualCount;
       List<AnalysisError> list = errorsByCode.remove(code);
       if (list == null) {
@@ -665,15 +663,12 @@ class GatheringErrorListener implements AnalysisErrorListener {
         buffer.write(", found ");
         buffer.write(actualCount);
       }
-    }
+    });
     //
     // Check that there are no more errors in the actual-errors map,
     // otherwise record message.
     //
-    for (MapEntry<ErrorCode, List<AnalysisError>> entry in getMapEntrySet(
-        errorsByCode)) {
-      ErrorCode code = entry.getKey();
-      List<AnalysisError> actualErrors = entry.getValue();
+    errorsByCode.forEach((ErrorCode code, List<AnalysisError> actualErrors) {
       int actualCount = actualErrors.length;
       if (buffer.length == 0) {
         buffer.write("Expected ");
@@ -693,7 +688,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
         buffer.write(error.offset);
       }
       buffer.write(")");
-    }
+    });
     if (buffer.length > 0) {
       JUnitTestCase.fail(buffer.toString());
     }

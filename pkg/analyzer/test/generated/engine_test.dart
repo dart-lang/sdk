@@ -7047,13 +7047,11 @@ class UniversalCachePartitionTest extends EngineTestCase {
     TestSource source = new TestSource();
     DartEntry entry = new DartEntry();
     partition.put(source, entry);
-    JavaIterator<MapEntry<Source, SourceEntry>> entries =
-        new JavaIterator(getMapEntrySet(partition.map));
-    JUnitTestCase.assertTrue(entries.hasNext);
-    MapEntry<Source, SourceEntry> mapEntry = entries.next();
-    JUnitTestCase.assertSame(source, mapEntry.getKey());
-    JUnitTestCase.assertSame(entry, mapEntry.getValue());
-    JUnitTestCase.assertFalse(entries.hasNext);
+    Map<Source, SourceEntry> entryMap = partition.map;
+    JUnitTestCase.assertEquals(1, entryMap.length);
+    Source entryKey = entryMap.keys.first;
+    JUnitTestCase.assertSame(source, entryKey);
+    JUnitTestCase.assertSame(entry, entryMap[entryKey]);
   }
   void test_get() {
     UniversalCachePartition partition =
@@ -7111,15 +7109,12 @@ class UniversalCachePartitionTest extends EngineTestCase {
   void _assertNonFlushedCount(int expectedCount,
       UniversalCachePartition partition) {
     int nonFlushedCount = 0;
-    JavaIterator<MapEntry<Source, SourceEntry>> entries =
-        new JavaIterator(getMapEntrySet(partition.map));
-    while (entries.hasNext) {
-      MapEntry<Source, SourceEntry> entry = entries.next();
-      if (entry.getValue().getState(DartEntry.PARSED_UNIT) !=
-          CacheState.FLUSHED) {
+    Map<Source, SourceEntry> entryMap = partition.map;
+    entryMap.values.forEach((SourceEntry value) {
+      if (value.getState(DartEntry.PARSED_UNIT) != CacheState.FLUSHED) {
         nonFlushedCount++;
       }
-    }
+    });
     JUnitTestCase.assertEquals(expectedCount, nonFlushedCount);
   }
 }

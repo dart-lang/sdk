@@ -10355,7 +10355,7 @@ class ReferenceFinderTest extends EngineTestCase {
   void _assertOneArc(AstNode tail) {
     Set<AstNode> tails = _referenceGraph.getTails(_head);
     EngineTestCase.assertSizeOfSet(1, tails);
-    JUnitTestCase.assertSame(tail, new JavaIterator(tails).next());
+    JUnitTestCase.assertSame(tail, tails.first);
   }
   ReferenceFinder _createReferenceFinder(AstNode source) =>
       new ReferenceFinder(

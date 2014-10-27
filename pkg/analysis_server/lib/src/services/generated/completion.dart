@@ -822,13 +822,14 @@ class CompletionEngine {
 
   List<Element> _findAllNotTypes(List<Element> elements) {
     elements = [];
-    for (JavaIterator<Element> I = new JavaIterator(elements); I.hasNext;) {
-      Element element = I.next();
-      ElementKind kind = element.kind;
-      if (kind == ElementKind.FUNCTION || kind == ElementKind.TOP_LEVEL_VARIABLE || kind == ElementKind.GETTER || kind == ElementKind.SETTER) {
-        continue;
+    for (int i = elements.length - 1; i >= 0; i--) {
+      ElementKind kind = elements[i].kind;
+      if (kind != ElementKind.FUNCTION
+          && kind != ElementKind.TOP_LEVEL_VARIABLE
+          && kind != ElementKind.GETTER
+          && kind != ElementKind.SETTER) {
+        elements.removeAt(i);
       }
-      I.remove();
     }
     return new List.from(elements);
   }
@@ -845,13 +846,12 @@ class CompletionEngine {
 
   List<Element> _findAllTypes2(List<Element> elements) {
     elements = [];
-    for (JavaIterator<Element> I = new JavaIterator(elements); I.hasNext;) {
-      Element element = I.next();
-      ElementKind kind = element.kind;
-      if (kind == ElementKind.CLASS || kind == ElementKind.FUNCTION_TYPE_ALIAS) {
-        continue;
+    for (int i = elements.length - 1; i >= 0; i--) {
+      ElementKind kind = elements[i].kind;
+      if (kind != ElementKind.CLASS
+          && kind != ElementKind.FUNCTION_TYPE_ALIAS) {
+        elements.removeAt(i);
       }
-      I.remove();
     }
     return new List.from(elements);
   }
@@ -3586,10 +3586,9 @@ class Filter {
   }
 
   void _removeNotMatching(List<Element> elements) {
-    for (JavaIterator<Element> I = new JavaIterator(elements); I.hasNext;) {
-      Element element = I.next();
-      if (!_match(element)) {
-        I.remove();
+    for (int i = elements.length - 1; i >= 0; i--) {
+      if (!_match(elements[i])) {
+        elements.removeAt(i);
       }
     }
   }

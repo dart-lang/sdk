@@ -5281,12 +5281,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (secondTypes.length != firstTypes.length) {
       return false;
     }
-    JavaIterator<MapEntry<String, DartType>> firstIterator = new JavaIterator(getMapEntrySet(firstTypes));
-    JavaIterator<MapEntry<String, DartType>> secondIterator = new JavaIterator(getMapEntrySet(secondTypes));
-    while (firstIterator.hasNext) {
-      MapEntry<String, DartType> firstEntry = firstIterator.next();
-      MapEntry<String, DartType> secondEntry = secondIterator.next();
-      if (firstEntry.getKey() != secondEntry.getKey() || !(firstEntry.getValue() as TypeImpl).internalEquals(secondEntry.getValue(), visitedElementPairs)) {
+    Iterator<String> firstKeys = firstTypes.keys.iterator;
+    Iterator<String> secondKeys = secondTypes.keys.iterator;
+    while (firstKeys.moveNext() && secondKeys.moveNext()) {
+      String firstKey = firstKeys.current;
+      String secondKey = secondKeys.current;
+      TypeImpl firstType = firstTypes[firstKey];
+      TypeImpl secondType = secondTypes[secondKey];
+      if (firstKey != secondKey
+          || !firstType.internalEquals(secondType, visitedElementPairs)) {
         return false;
       }
     }
@@ -5363,16 +5366,16 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
           needsComma = false;
         }
         buffer.write("{");
-        for (MapEntry<String, DartType> entry in getMapEntrySet(namedParameterTypes)) {
+        namedParameterTypes.forEach((String name, DartType type) {
           if (needsComma) {
             buffer.write(", ");
           } else {
             needsComma = true;
           }
-          buffer.write(entry.getKey());
+          buffer.write(name);
           buffer.write(": ");
-          buffer.write(entry.getValue().displayName);
-        }
+          buffer.write(type.displayName);
+        });
         buffer.write("}");
         needsComma = true;
       }
@@ -5559,16 +5562,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (namedTypesT.length < namedTypesS.length) {
         return false;
       }
-      // Loop through each element in S verifying that T has a matching parameter name and that the
-      // corresponding type is more specific then the type in S.
-      JavaIterator<MapEntry<String, DartType>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
-      while (iteratorS.hasNext) {
-        MapEntry<String, DartType> entryS = iteratorS.next();
-        DartType typeT = namedTypesT[entryS.getKey()];
+      // Loop through each element in S verifying that T has a matching
+      // parameter name and that the corresponding type is more specific then
+      // the type in S.
+      for (String keyS in namedTypesS.keys) {
+        DartType typeT = namedTypesT[keyS];
         if (typeT == null) {
           return false;
         }
-        if (!(typeT as TypeImpl).isMoreSpecificThan2(entryS.getValue(), withDynamic, visitedTypePairs)) {
+        if (!(typeT as TypeImpl).isMoreSpecificThan2(namedTypesS[keyS], withDynamic, visitedTypePairs)) {
           return false;
         }
       }
@@ -5691,16 +5693,16 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         needsComma = false;
       }
       buffer.write("{");
-      for (MapEntry<String, DartType> entry in getMapEntrySet(namedParameterTypes)) {
+      namedParameterTypes.forEach((String name, DartType type) {
         if (needsComma) {
           buffer.write(", ");
         } else {
           needsComma = true;
         }
-        buffer.write(entry.getKey());
+        buffer.write(name);
         buffer.write(": ");
-        (entry.getValue() as TypeImpl).appendTo(buffer);
-      }
+        (type as TypeImpl).appendTo(buffer);
+      });
       buffer.write("}");
       needsComma = true;
     }
@@ -5787,16 +5789,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (namedTypesT.length < namedTypesS.length) {
         return false;
       }
-      // Loop through each element in S verifying that T has a matching parameter name and that the
-      // corresponding type is assignable to the type in S.
-      JavaIterator<MapEntry<String, DartType>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
-      while (iteratorS.hasNext) {
-        MapEntry<String, DartType> entryS = iteratorS.next();
-        DartType typeT = namedTypesT[entryS.getKey()];
+      // Loop through each element in S verifying that T has a matching
+      // parameter name and that the corresponding type is assignable to the
+      // type in S.
+      for (String keyS in namedTypesS.keys) {
+        DartType typeT = namedTypesT[keyS];
         if (typeT == null) {
           return false;
         }
-        if (!(typeT as TypeImpl).isAssignableTo2(entryS.getValue(), visitedTypePairs)) {
+        if (!(typeT as TypeImpl).isAssignableTo2(namedTypesS[keyS], visitedTypePairs)) {
           return false;
         }
       }
@@ -11254,7 +11255,7 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
       // instead of raising an exception.
       throw new IllegalArgumentException("No known use case for empty unions.");
     } else if (set.length == 1) {
-      return new JavaIterator(set).next();
+      return set.first;
     } else {
       return new UnionTypeImpl(set);
     }

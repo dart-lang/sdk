@@ -360,65 +360,6 @@ class MissingFormatArgumentException implements Exception {
   MissingFormatArgumentException(this.s);
 }
 
-class JavaIterator<E> {
-  Iterable<E> _iterable;
-  List<E> _elements = new List<E>();
-  int _coPos = 0;
-  int _elPos = 0;
-  E _current = null;
-  JavaIterator(this._iterable) {
-    Iterator iterator = _iterable.iterator;
-    while (iterator.moveNext()) {
-      _elements.add(iterator.current);
-    }
-  }
-
-  bool get hasNext {
-    return _elPos < _elements.length;
-  }
-
-  E next() {
-    _current = _elements[_elPos];
-    _coPos++;
-    _elPos++;
-    return _current;
-  }
-
-  void remove() {
-    if (_iterable is List) {
-      _coPos--;
-      (_iterable as List).remove(_coPos);
-    } else if (_iterable is Set) {
-      (_iterable as Set).remove(_current);
-    } else {
-      throw new StateError("Unsupported iterable ${_iterable.runtimeType}");
-    }
-  }
-}
-
-class MapEntry<K, V> {
-  final Map<K, V> _map;
-  final K _key;
-  V _value;
-  MapEntry(this._map, this._key, this._value);
-  K getKey() => _key;
-  V getValue() => _value;
-  V setValue(V v) {
-    V prevValue = _value;
-    _value = v;
-    _map[_key] = v;
-    return prevValue;
-  }
-}
-
-Iterable<MapEntry> getMapEntrySet(Map m) {
-  List<MapEntry> result = [];
-  m.forEach((k, v) {
-    result.add(new MapEntry(m, k, v));
-  });
-  return result;
-}
-
 javaListSet(List list, int index, newValue) {
   var oldValue = list[index];
   list[index] = newValue;

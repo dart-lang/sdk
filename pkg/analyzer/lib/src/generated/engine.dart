@@ -1004,14 +1004,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void applyAnalysisDelta(AnalysisDelta delta) {
     ChangeSet changeSet = new ChangeSet();
-    for (MapEntry<Source, AnalysisLevel> entry in getMapEntrySet(delta.analysisLevels)) {
-      Source source = entry.getKey();
-      if (entry.getValue() == AnalysisLevel.NONE) {
+    delta.analysisLevels.forEach((Source source, AnalysisLevel level) {
+      if (level == AnalysisLevel.NONE) {
         changeSet.removedSource(source);
       } else {
         changeSet.addedSource(source);
       }
-    }
+    });
     applyChanges(changeSet);
   }
 
@@ -1044,13 +1043,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       _sourceChanged(source);
     }
-    for (MapEntry<Source, String> entry in getMapEntrySet(changeSet.changedContents)) {
-      setContents(entry.getKey(), entry.getValue());
-    }
-    for (MapEntry<Source, ChangeSet_ContentChange> entry in getMapEntrySet(changeSet.changedRanges)) {
-      ChangeSet_ContentChange change = entry.getValue();
-      setChangedContents(entry.getKey(), change.contents, change.offset, change.oldLength, change.newLength);
-    }
+    changeSet.changedContents.forEach((Source key, String value) {
+      setContents(key, value);
+    });
+    changeSet.changedRanges.forEach((Source source, ChangeSet_ContentChange change) {
+      setChangedContents(
+          source,
+          change.contents,
+          change.offset,
+          change.oldLength,
+          change.newLength);
+    });
     for (Source source in changeSet.deletedSources) {
       _sourceDeleted(source);
     }
@@ -1756,9 +1759,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     Source htmlSource = _sourceFactory.forUri(DartSdk.DART_HTML);
-    for (MapEntry<Source, LibraryElement> entry in getMapEntrySet(elementMap)) {
-      Source librarySource = entry.getKey();
-      LibraryElement library = entry.getValue();
+    elementMap.forEach((Source librarySource, LibraryElement library) {
       //
       // Cache the element in the library's info.
       //
@@ -1785,7 +1786,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartEntry.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, AnalysisError.NO_ERRORS);
         dartEntry.setValueInLibrary(DartEntry.HINTS, librarySource, AnalysisError.NO_ERRORS);
       }
-    }
+    });
   }
 
   @override
@@ -4231,9 +4232,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param oldPartMap the table containing the parts associated with each library
    */
   void _removeFromPartsUsingMap(HashMap<Source, List<Source>> oldPartMap) {
-    for (MapEntry<Source, List<Source>> entry in getMapEntrySet(oldPartMap)) {
-      Source librarySource = entry.getKey();
-      List<Source> oldParts = entry.getValue();
+    oldPartMap.forEach((Source librarySource, List<Source> oldParts) {
       for (int i = 0; i < oldParts.length; i++) {
         Source partSource = oldParts[i];
         if (partSource != librarySource) {
@@ -4246,7 +4245,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
         }
       }
-    }
+    });
   }
 
   /**
@@ -5321,8 +5320,8 @@ class AnalysisDelta {
    */
   bool _appendSources(StringBuffer buffer, bool needsSeparator, AnalysisLevel level) {
     bool first = true;
-    for (MapEntry<Source, AnalysisLevel> entry in getMapEntrySet(_analysisMap)) {
-      if (entry.getValue() == level) {
+    _analysisMap.forEach((Source source, AnalysisLevel sourceLevel) {
+      if (sourceLevel == level) {
         if (first) {
           first = false;
           if (needsSeparator) {
@@ -5333,9 +5332,9 @@ class AnalysisDelta {
         } else {
           buffer.write(", ");
         }
-        buffer.write(entry.getKey().fullName);
+        buffer.write(source.fullName);
       }
-    }
+    });
     return needsSeparator || !first;
   }
 }
@@ -11631,14 +11630,13 @@ class RecordingErrorListener implements AnalysisErrorListener {
    * @return an array of errors (not `null`, contains no `null`s)
    */
   List<AnalysisError> get errors {
-    Iterable<MapEntry<Source, HashSet<AnalysisError>>> entrySet = getMapEntrySet(_errors);
-    int numEntries = entrySet.length;
+    int numEntries = _errors.length;
     if (numEntries == 0) {
       return AnalysisError.NO_ERRORS;
     }
     List<AnalysisError> resultList = new List<AnalysisError>();
-    for (MapEntry<Source, HashSet<AnalysisError>> entry in entrySet) {
-      resultList.addAll(entry.getValue());
+    for (HashSet<AnalysisError> errors in _errors.values) {
+      resultList.addAll(errors);
     }
     return new List.from(resultList);
   }

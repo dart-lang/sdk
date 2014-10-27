@@ -8560,19 +8560,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     }
-    // Visit all of the states in the map to ensure that none were never initialized.
-    for (MapEntry<FieldElement, INIT_STATE> entry in getMapEntrySet(fieldElementsMap)) {
-      if (entry.getValue() == INIT_STATE.NOT_INIT) {
-        FieldElement fieldElement = entry.getKey();
+    // Visit all of the states in the map to ensure that none were never
+    // initialized.
+    fieldElementsMap.forEach((FieldElement fieldElement, INIT_STATE state) {
+      if (state == INIT_STATE.NOT_INIT) {
         if (fieldElement.isConst) {
-          _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_NOT_INITIALIZED, node.returnType, [fieldElement.name]);
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+                  node.returnType,
+                  [fieldElement.name]);
           foundError = true;
         } else if (fieldElement.isFinal) {
-          _errorReporter.reportErrorForNode(StaticWarningCode.FINAL_NOT_INITIALIZED, node.returnType, [fieldElement.name]);
+          _errorReporter.reportErrorForNode(
+              StaticWarningCode.FINAL_NOT_INITIALIZED,
+                  node.returnType,
+                  [fieldElement.name]);
           foundError = true;
         }
       }
-    }
+    });
     return foundError;
   }
 
@@ -8633,17 +8639,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           overriddenExecutable.enclosingElement.displayName]);
       return true;
     }
-    // For each named parameter in the overridden method, verify that there is the same name in
-    // the overriding method, and in the same order.
-    Set<String> overridingParameterNameSet = overridingNamedPT.keys.toSet();
-    JavaIterator<String> overriddenParameterNameIterator = new JavaIterator(overriddenNamedPT.keys.toSet());
-    while (overriddenParameterNameIterator.hasNext) {
-      String overriddenParamName = overriddenParameterNameIterator.next();
-      if (!overridingParameterNameSet.contains(overriddenParamName)) {
-        // The overridden method expected the overriding method to have overridingParamName,
-        // but it does not.
-        _errorReporter.reportErrorForNode(StaticWarningCode.INVALID_OVERRIDE_NAMED, errorNameTarget, [
-            overriddenParamName,
+    // For each named parameter in the overridden method, verify that there is
+    // the same name in the overriding method.
+    for (String overriddenParamName in overriddenNamedPT.keys) {
+      if (!overridingNamedPT.containsKey(overriddenParamName)) {
+        // The overridden method expected the overriding method to have
+        // overridingParamName, but it does not.
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.INVALID_OVERRIDE_NAMED,
+            errorNameTarget,
+            [overriddenParamName,
             overriddenExecutable.enclosingElement.displayName]);
         return true;
       }
@@ -8683,31 +8688,33 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       parameterIndex++;
     }
     // SWC.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE & SWC.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES
-    JavaIterator<MapEntry<String, DartType>> overriddenNamedPTIterator = new JavaIterator(getMapEntrySet(overriddenNamedPT));
-    while (overriddenNamedPTIterator.hasNext) {
-      MapEntry<String, DartType> overriddenNamedPTEntry = overriddenNamedPTIterator.next();
-      DartType overridingType = overridingNamedPT[overriddenNamedPTEntry.getKey()];
+    for (String overriddenName in overriddenNamedPT.keys) {
+      DartType overridingType = overridingNamedPT[overriddenName];
       if (overridingType == null) {
-        // Error, this is never reached- INVALID_OVERRIDE_NAMED would have been created above if
-        // this could be reached.
+        // Error, this is never reached- INVALID_OVERRIDE_NAMED would have been
+        // created above if this could be reached.
         continue;
       }
-      if (!overriddenNamedPTEntry.getValue().isAssignableTo(overridingType)) {
+      DartType overriddenType = overriddenNamedPT[overriddenName];
+      if (!overriddenType.isAssignableTo(overridingType)) {
         // lookup the parameter for the error to select
         ParameterElement parameterToSelect = null;
         AstNode parameterLocationToSelect = null;
         for (int i = 0; i < parameters.length; i++) {
           ParameterElement parameter = parameters[i];
-          if (parameter.parameterKind == ParameterKind.NAMED && overriddenNamedPTEntry.getKey() == parameter.name) {
+          if (parameter.parameterKind == ParameterKind.NAMED
+              && overriddenName == parameter.name) {
             parameterToSelect = parameter;
             parameterLocationToSelect = parameterLocations[i];
             break;
           }
         }
         if (parameterToSelect != null) {
-          _errorReporter.reportTypeErrorForNode(StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE, parameterLocationToSelect, [
-              overridingType,
-              overriddenNamedPTEntry.getValue(),
+          _errorReporter.reportTypeErrorForNode(
+              StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE,
+              parameterLocationToSelect,
+              [overridingType,
+              overriddenType,
               overriddenExecutable.enclosingElement.displayName]);
           return true;
         }
@@ -9043,9 +9050,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // check exported names
     Namespace namespace = new NamespaceBuilder().createExportNamespaceForDirective(exportElement);
     Map<String, Element> definedNames = namespace.definedNames;
-    for (MapEntry<String, Element> definedEntry in getMapEntrySet(definedNames)) {
-      String name = definedEntry.getKey();
-      Element element = definedEntry.getValue();
+    for (String name in definedNames.keys) {
+      Element element = definedNames[name];
       Element prevElement = _exportedElements[name];
       if (element != null && prevElement != null && prevElement != element) {
         _errorReporter.reportErrorForNode(CompileTimeErrorCode.AMBIGUOUS_EXPORT, node, [
@@ -15084,9 +15090,7 @@ class InheritanceManager {
    */
   MemberMap _resolveInheritanceLookup(ClassElement classElt, HashMap<String, List<ExecutableElement>> unionMap) {
     MemberMap resultMap = new MemberMap();
-    for (MapEntry<String, List<ExecutableElement>> entry in getMapEntrySet(unionMap)) {
-      String key = entry.getKey();
-      List<ExecutableElement> list = entry.getValue();
+    unionMap.forEach((String key, List<ExecutableElement> list) {
       int numOfEltsWithMatchingNames = list.length;
       if (numOfEltsWithMatchingNames == 1) {
         //
@@ -15206,7 +15210,7 @@ class InheritanceManager {
           _reportError(classElt, classElt.nameOffset, classElt.displayName.length, StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD, [key]);
         }
       }
-    }
+    });
     return resultMap;
   }
 
@@ -17830,9 +17834,9 @@ class NamespaceBuilder {
    * @param namespace the namespace containing the names to be added to this namespace
    */
   void _addAllFromMap(Map<String, Element> definedNames, Map<String, Element> newNames) {
-    for (MapEntry<String, Element> entry in getMapEntrySet(newNames)) {
-      definedNames[entry.getKey()] = entry.getValue();
-    }
+    newNames.forEach((String name, Element element) {
+      definedNames[name] = element;
+    });
   }
 
   /**
@@ -17913,9 +17917,9 @@ class NamespaceBuilder {
     if (prefixElement != null) {
       String prefix = prefixElement.name;
       HashMap<String, Element> newNames = new HashMap<String, Element>();
-      for (MapEntry<String, Element> entry in getMapEntrySet(definedNames)) {
-        newNames["${prefix}.${entry.getKey()}"] = entry.getValue();
-      }
+      definedNames.forEach((String name, Element element) {
+        newNames["$prefix.$name"] = element;
+      });
       return newNames;
     } else {
       return definedNames;
@@ -23195,9 +23199,9 @@ class TypeOverrideManager_TypeOverrideScope {
    * @param overrides the overrides to be applied
    */
   void applyOverrides(Map<VariableElement, DartType> overrides) {
-    for (MapEntry<VariableElement, DartType> entry in getMapEntrySet(overrides)) {
-      _overridenTypes[entry.getKey()] = entry.getValue();
-    }
+    overrides.forEach((VariableElement element, DartType type) {
+      _overridenTypes[element] = type;
+    });
   }
 
   /**

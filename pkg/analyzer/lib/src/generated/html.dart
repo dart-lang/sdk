@@ -1488,12 +1488,9 @@ abstract class XmlNode {
       }
     }
     if (children != null) {
-      for (JavaIterator iter = new JavaIterator(children); iter.hasNext;) {
-        XmlNode node = iter.next();
+      children.forEach((XmlNode node) {
         node.parent = this;
-      }
-      // This will create ArrayList for exactly given number of elements.
-      return new List.from(children);
+      });
     }
     return children;
   }
