@@ -1667,7 +1667,7 @@ class _JsonUtf8Parser extends _ChunkedJsonParser {
 
   double parseDouble(int start, int end) {
     String string = getString(start, end);
-    reutrn _parseDouble(string, 0, string.length);
+    return _parseDouble(string, 0, string.length);
   }
 }
 
