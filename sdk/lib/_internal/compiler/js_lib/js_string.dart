@@ -83,12 +83,40 @@ class JSString extends Interceptor implements String, JSIndexable {
     checkNull(pattern);
     if (pattern is String) {
       return JS('JSExtendableArray', r'#.split(#)', this, pattern);
-    } else if (pattern is JSSyntaxRegExp) {
+    } else if (pattern is JSSyntaxRegExp && regExpCaptureCount(pattern) == 0) {
       var re = regExpGetNative(pattern);
       return JS('JSExtendableArray', r'#.split(#)', this, re);
     } else {
-      throw "String.split(Pattern) UNIMPLEMENTED";
+      return _defaultSplit(pattern);
     }
+  }
+
+  List<String> _defaultSplit(Pattern pattern) {
+    List<String> result = <String>[];
+    // End of most recent match. That is, start of next part to add to result.
+    int start = 0;
+    // Length of most recent match.
+    // Set >0, so no match on the empty string causes the result to be [""].
+    int length = 1;
+    for (var match in pattern.allMatches(this)) {
+      int matchStart = match.start;
+      int matchEnd = match.end;
+      length = matchEnd - matchStart;
+      if (length == 0 && start == matchStart) {
+        // An empty match right after another match is ignored.
+        // This includes an empty match at the start of the string.
+        continue;
+      }
+      int end = matchStart;
+      result.add(this.substring(start, end));
+      start = matchEnd;
+    }
+    if (start < this.length || length > 0) {
+      // An empty match at the end of the string does not cause a "" at the end.
+      // A non-empty match ending at the end of the string does add a "".
+      result.add(this.substring(start));
+    }
+    return result;
   }
 
   bool startsWith(Pattern pattern, [int index = 0]) {
