@@ -1122,18 +1122,18 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   }
 
   ir.Primitive visitNewExpression(ast.NewExpression node) {
-    assert(irBuilder.isOpen);
     if (node.isConst) {
       return translateConstant(node);
     }
     FunctionElement element = elements[node.send];
     Selector selector = elements.getSelector(node.send);
-    ast.Node selectorNode = node.send.selector;
     DartType type = elements.getType(node);
-    List<ir.Primitive> args =
+    ast.Node selectorNode = node.send.selector;
+    List<ir.Definition> arguments =
         node.send.arguments.mapToList(visit, growable:false);
-    return irBuilder.continueWithExpression(
-        (k) => new ir.InvokeConstructor(type, element,selector, k, args));
+    return irBuilder.buildConstructorInvocation(
+        element, selector, type, arguments);
+
   }
 
   ir.Primitive visitStringJuxtaposition(ast.StringJuxtaposition node) {

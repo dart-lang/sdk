@@ -261,8 +261,8 @@ class TreeShakingVisitor extends SemanticVisitor {
   @override
   void visitDynamicInvocation(MethodInvocation node,
       AccessSemantics semantics) {
-    analysis.invokes.add(
-        createSelectorFromMethodInvocation(node, node.methodName.name));
+    analysis.invokes.add(createSelectorFromMethodInvocation(
+        node.argumentList, node.methodName.name));
   }
 
   @override
@@ -288,7 +288,8 @@ class TreeShakingVisitor extends SemanticVisitor {
       AccessSemantics semantics) {
     // Invocation of a static field.
     analysis.accesses.add(semantics.element);
-    analysis.invokes.add(createSelectorFromMethodInvocation(node, 'call'));
+    analysis.invokes.add(createSelectorFromMethodInvocation(
+        node.argumentList, 'call'));
   }
 
   void visitStaticMethodInvocation(MethodInvocation node,

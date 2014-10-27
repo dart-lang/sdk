@@ -445,4 +445,18 @@ main(a) {
 }
 '''),
   ]),
+
+  const Group('Constructor invocation', const <TestSpec>[
+    const TestSpec('''
+main(a) {
+  new Object();
+}
+'''),
+
+const TestSpec('''
+main(a) {
+  new Deprecated("");
+}
+'''),
+  ]),
 ];

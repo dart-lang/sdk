@@ -702,4 +702,31 @@ main(a) {
   (Branch (IsTrue a) k0 k2))
 '''),
   ]),
+
+  const Group('Constructor invocation', const <TestSpec>[
+    const TestSpec('''
+main(a) {
+  new Object();
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0 v0)
+    (LetPrim v1 (Constant NullConstant))
+    (InvokeContinuation return v1))
+  (InvokeConstructor Object  k0))
+'''),
+
+    const TestSpec('''
+main(a) {
+  new Deprecated("");
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetPrim v0 (Constant StringConstant("")))
+  (LetCont (k0 v1)
+    (LetPrim v2 (Constant NullConstant))
+    (InvokeContinuation return v2))
+  (InvokeConstructor Deprecated v0 k0))
+'''),
+  ]),
 ];

@@ -491,7 +491,7 @@ class IrBuilder {
 
   }
 
-  /// Create a dynamic invocation on [receiver] with method name and arguments
+  /// Create a dynamic invocation on [receiver] with method name and argument
   /// structure defined by [selector] and argument values defined by
   /// [arguments].
   ir.Primitive buildDynamicInvocation(ir.Definition receiver,
@@ -502,13 +502,25 @@ class IrBuilder {
         (k) => new ir.InvokeMethod(receiver, selector, k, arguments));
   }
 
-  /// Create a static invocation of [element] with arguments structure defined
+  /// Create a static invocation of [element] with argument structure defined
   /// by [selector] and argument values defined by [arguments].
   ir.Primitive buildStaticInvocation(Element element,
                                      Selector selector,
                                      List<ir.Definition> arguments) {
     return continueWithExpression(
         (k) => new ir.InvokeStatic(element, selector, k, arguments));
+  }
+
+  /// Create a constructor invocation of [element] on [type] with argument
+  /// structure defined by [selector] and argument values defined by
+  /// [arguments].
+  ir.Primitive buildConstructorInvocation(FunctionElement element,
+                                         Selector selector,
+                                         DartType type,
+                                         List<ir.Definition> arguments) {
+    assert(isOpen);
+    return continueWithExpression(
+        (k) => new ir.InvokeConstructor(type, element, selector, k, arguments));
   }
 
   /// Creates an if-then-else statement with the provided [condition] where the

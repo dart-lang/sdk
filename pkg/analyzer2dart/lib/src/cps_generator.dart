@@ -6,6 +6,7 @@ library analyzer2dart.cps_generator;
 
 import 'package:analyzer/analyzer.dart';
 
+import 'package:compiler/implementation/dart_types.dart' as dart2js;
 import 'package:compiler/implementation/elements/elements.dart' as dart2js;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/element.dart' as analyzer;
@@ -82,7 +83,8 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     List<ir.Definition> arguments = visitArguments(node.argumentList);
     return irBuilder.buildDynamicInvocation(
         receiver,
-        createSelectorFromMethodInvocation(node, node.methodName.name),
+        createSelectorFromMethodInvocation(
+            node.argumentList, node.methodName.name),
         arguments);
   }
 
@@ -94,8 +96,30 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     List<ir.Definition> arguments = visitArguments(node.argumentList);
     return irBuilder.buildStaticInvocation(
         element,
-        createSelectorFromMethodInvocation(node, node.methodName.name),
+        createSelectorFromMethodInvocation(
+            node.argumentList, node.methodName.name),
         arguments);
+  }
+
+  @override
+  ir.Primitive visitInstanceCreationExpression(
+      InstanceCreationExpression node) {
+    analyzer.Element staticElement = node.staticElement;
+    if (staticElement != null) {
+      dart2js.Element element = converter.convertElement(staticElement);
+      dart2js.DartType type = converter.convertType(node.staticType);
+      List<ir.Definition> arguments = visitArguments(node.argumentList);
+      String name = '';
+      if (node.constructorName.name != null) {
+        name = node.constructorName.name.name;
+      }
+      return irBuilder.buildConstructorInvocation(
+          element,
+          createSelectorFromMethodInvocation(node.argumentList, name),
+          type,
+          arguments);
+    }
+    return giveUp(node, "Unresolved constructor invocation.");
   }
 
   @override

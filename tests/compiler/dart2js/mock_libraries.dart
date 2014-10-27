@@ -28,7 +28,12 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
         DateTime(year);
         DateTime.utc(year);
       }''',
-  'deprecated': 'const deprecated = 0;',
+      'Deprecated': r'''
+      class Deprecated extends Object {
+        final String expires;
+        const Deprecated(this.expires);
+      }''',
+  'deprecated': 'const Object deprecated = const Deprecated("next release");',
   'double': r'''
       abstract class double extends num {
         static var NAN = 0;

@@ -345,21 +345,8 @@ abstract class TopLevelElementMixin implements ElementY {
   bool get isAbstract => false;
 }
 
-class TopLevelFunctionElementY extends ElementY
-    with AnalyzableElementY, AstElementY, TopLevelElementMixin
-    implements dart2js.FunctionElement {
-  analyzer.FunctionElement get element => super.element;
-
-  @override
-  dart2js.ElementKind get kind => dart2js.ElementKind.FUNCTION;
-
-  @override
-  dart2js.FunctionType get type => converter.convertType(element.type);
-
-  TopLevelFunctionElementY(ElementConverter converter,
-                           analyzer.FunctionElement element)
-      : super(converter, element);
-
+abstract class FunctionElementMixin
+    implements ElementY, dart2js.FunctionElement {
   @override
   get abstractField => unsupported('abstractField');
 
@@ -374,6 +361,25 @@ class TopLevelFunctionElementY extends ElementY
 
   @override
   bool get hasFunctionSignature => unsupported('hasFunctionSignature');
+}
+
+class TopLevelFunctionElementY extends ElementY
+    with AnalyzableElementY,
+         AstElementY,
+         TopLevelElementMixin,
+         FunctionElementMixin
+    implements dart2js.FunctionElement {
+  analyzer.FunctionElement get element => super.element;
+
+  @override
+  dart2js.ElementKind get kind => dart2js.ElementKind.FUNCTION;
+
+  @override
+  dart2js.FunctionType get type => converter.convertType(element.type);
+
+  TopLevelFunctionElementY(ElementConverter converter,
+                           analyzer.FunctionElement element)
+      : super(converter, element);
 }
 
 class ParameterElementY extends ElementY
@@ -688,4 +694,47 @@ class LocalVariableElementY extends ElementY
 
   @override
   dart2js.DartType get type => unsupported('type');
+}
+
+class ConstructorElementY extends ElementY
+    with AnalyzableElementY,
+         AstElementY,
+         FunctionElementMixin
+    implements dart2js.ConstructorElement {
+
+  analyzer.ConstructorElement get element => super.element;
+
+  @override
+  dart2js.ClassElement get enclosingClass {
+    return converter.convertElement(element.enclosingElement);
+  }
+
+  // TODO(johnniwinther): Support redirecting/factory constructors.
+  @override
+  dart2js.ElementKind get kind => dart2js.ElementKind.GENERATIVE_CONSTRUCTOR;
+
+  ConstructorElementY(ElementConverter converter,
+                      analyzer.ConstructorElement element)
+      : super(converter, element);
+
+  @override
+  computeEffectiveTargetType(_) => unsupported('computeEffectiveTargetType');
+
+  @override
+  get definingConstructor => unsupported('definingConstructor');
+
+  @override
+  get effectiveTarget => unsupported('effectiveTarget');
+
+  @override
+  get immediateRedirectionTarget => unsupported('immediateRedirectionTarget');
+
+  @override
+  bool get isRedirectingFactory => unsupported('isRedirectingFactory');
+
+  @override
+  get nestedClosures => unsupported('nestedClosures');
+
+  @override
+  get type => unsupported('type');
 }
