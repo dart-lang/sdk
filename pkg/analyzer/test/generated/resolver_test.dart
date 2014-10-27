@@ -4259,7 +4259,7 @@ class InheritanceManagerTest extends EngineTestCase {
     MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
     classB.methods = <MethodElement> [methodMinB];
     List<ExecutableElement> overrides = _inheritanceManager.lookupOverrides(classB, methodName);
-    EngineTestCase.assertEqualsIgnoreOrder(<Object> [methodMinA], new List.from(overrides));
+    EngineTestCase.assertEqualsIgnoreOrder(<Object> [methodMinA], overrides);
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -4274,7 +4274,7 @@ class InheritanceManagerTest extends EngineTestCase {
     MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
     classB.methods = <MethodElement> [methodMinB];
     List<ExecutableElement> overrides = _inheritanceManager.lookupOverrides(classB, methodName);
-    EngineTestCase.assertEqualsIgnoreOrder(<Object> [methodMinA], new List.from(overrides));
+    EngineTestCase.assertEqualsIgnoreOrder(<Object> [methodMinA], overrides);
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -4292,7 +4292,7 @@ class InheritanceManagerTest extends EngineTestCase {
     MethodElementImpl methodMinC = ElementFactory.methodElement(methodName, _typeProvider.numType, []);
     classC.methods = <MethodElement> [methodMinC];
     List<ExecutableElement> overrides = _inheritanceManager.lookupOverrides(classC, methodName);
-    EngineTestCase.assertEqualsIgnoreOrder(<Object> [methodMinA, methodMinB], new List.from(overrides));
+    EngineTestCase.assertEqualsIgnoreOrder(<Object> [methodMinA, methodMinB], overrides);
     _assertNoErrors(classA);
     _assertNoErrors(classB);
     _assertNoErrors(classC);
@@ -8657,7 +8657,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     }
     FunctionExpression node = AstFactory.functionExpression2(parameters, body);
     FunctionElementImpl element = new FunctionElementImpl.forNode(null);
-    element.parameters = new List.from(parameterElements);
+    element.parameters = parameterElements;
     element.type = new FunctionTypeImpl.con1(element);
     node.element = element;
     return node;

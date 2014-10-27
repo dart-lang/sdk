@@ -1305,7 +1305,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   List<InterfaceType> get allSupertypes {
     List<InterfaceType> list = new List<InterfaceType>();
     _collectAllSupertypes(list);
-    return new List.from(list);
+    return list;
   }
 
   @override
@@ -3776,7 +3776,7 @@ class ElementLocationImpl implements ElementLocation {
       components.insert(0, (ancestor as ElementImpl).identifier);
       ancestor = ancestor.enclosingElement;
     }
-    this._components = new List.from(components);
+    this._components = components;
   }
 
   /**
@@ -3876,7 +3876,7 @@ class ElementLocationImpl implements ElementLocation {
       }
     }
     components.add(buffer.toString());
-    return new List.from(components);
+    return components;
   }
 
   /**
@@ -5428,7 +5428,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         types.add(type);
       }
     }
-    return new List.from(types);
+    return types;
   }
 
   @override
@@ -5448,7 +5448,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         types.add(type);
       }
     }
-    return new List.from(types);
+    return types;
   }
 
   @override
@@ -7918,7 +7918,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         importList.add(_imports[i]);
       }
     }
-    return new List.from(importList);
+    return importList;
   }
 
   @override
@@ -11310,7 +11310,7 @@ class UnionTypeImpl extends TypeImpl implements UnionType {
     for (DartType t in _types) {
       out.add(t.substitute2(argumentTypes, parameterTypes));
     }
-    return union(new List.from(out));
+    return union(out);
   }
 
   @override

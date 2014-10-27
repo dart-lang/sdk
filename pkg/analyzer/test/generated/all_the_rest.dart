@@ -10872,7 +10872,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
     // Flatten the hierarchy into expected order in which the tags are visited
     List<XmlValidator_Tag> expected = new List<XmlValidator_Tag>();
     _expectTags(expected, expectedTags);
-    this._expectedTagsInOrderVisited = new List.from(expected);
+    this._expectedTagsInOrderVisited = expected;
   }
   @override
   Object visitHtmlUnit(ht.HtmlUnit node) {

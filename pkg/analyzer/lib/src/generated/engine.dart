@@ -1164,7 +1164,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (errors.isEmpty) {
         return AnalysisError.NO_ERRORS;
       }
-      return new List.from(errors);
+      return errors;
     } else if (sourceEntry is HtmlEntry) {
       HtmlEntry htmlEntry = sourceEntry;
       try {
@@ -1386,7 +1386,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (htmlSources.isEmpty) {
       return Source.EMPTY_ARRAY;
     }
-    return new List.from(htmlSources);
+    return htmlSources;
   }
 
   @override
@@ -1417,7 +1417,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         //          }
       }
     }
-    return new List.from(sources);
+    return sources;
   }
 
   @override
@@ -1436,7 +1436,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         //          }
       }
     }
-    return new List.from(sources);
+    return sources;
   }
 
   @override
@@ -1466,7 +1466,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (dependentLibraries.isEmpty) {
       return Source.EMPTY_ARRAY;
     }
-    return new List.from(dependentLibraries);
+    return dependentLibraries;
   }
 
   @override
@@ -3380,7 +3380,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         sources.add(iterator.key);
       }
     }
-    return new List.from(sources);
+    return sources;
   }
 
   /**
@@ -4707,7 +4707,7 @@ class AnalysisContextImpl_CycleBuilder {
           _dependencyGraph.addEdge(library, importedLibrary);
         }
       }
-      library.importedLibraries = new List.from(importedLibraries);
+      library.importedLibraries = importedLibraries;
     } else {
       library.explicitlyImportsCore = false;
       ResolvableLibrary importedLibrary = _libraryMap[AnalysisContextImpl_this._coreLibrarySource];
@@ -4745,7 +4745,7 @@ class AnalysisContextImpl_CycleBuilder {
           _dependencyGraph.addEdge(library, exportedLibrary);
         }
       }
-      library.exportedLibraries = new List.from(exportedLibraries);
+      library.exportedLibraries = exportedLibraries;
     }
   }
 
@@ -5101,10 +5101,8 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
   }
 
   @override
-  List<AnalysisContextStatistics_CacheRow> get cacheRows {
-    Iterable<AnalysisContextStatistics_CacheRow> items = _dataMap.values;
-    return new List.from(items);
-  }
+  List<AnalysisContextStatistics_CacheRow> get cacheRows
+      => _dataMap.values.toList();
 
   @override
   List<CaughtException> get exceptions => new List.from(_exceptions);
@@ -5113,7 +5111,7 @@ class AnalysisContextStatisticsImpl implements AnalysisContextStatistics {
   List<AnalysisContextStatistics_PartitionData> get partitionData => _partitionData;
 
   @override
-  List<Source> get sources => new List.from(_sources);
+  List<Source> get sources => _sources;
 
   void putCacheItem(SourceEntry dartEntry, DataDescriptor descriptor) {
     _internalPutCacheItem(dartEntry, descriptor, dartEntry.getState(descriptor));
@@ -6736,15 +6734,15 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
   }
 
   void _parseEmbeddedExpressionsInAttribute(ht.XmlAttributeNode node) {
-    List<AngularMoustacheXmlExpression> expressions = [];
+    List<AngularMoustacheXmlExpression> expressions = <AngularMoustacheXmlExpression>[];
     _parseEmbeddedExpressions(expressions, node.valueToken);
     if (!expressions.isEmpty) {
-      node.expressions = new List.from(expressions);
+      node.expressions = expressions;
     }
   }
 
   void _parseEmbeddedExpressionsInTag(ht.XmlTagNode node) {
-    List<AngularMoustacheXmlExpression> expressions = [];
+    List<AngularMoustacheXmlExpression> expressions = <AngularMoustacheXmlExpression>[];
     ht.Token token = node.attributeEnd;
     ht.Token endToken = node.endToken;
     bool inChild = false;
@@ -6764,7 +6762,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
       }
       token = token.next;
     }
-    node.expressions = new List.from(expressions);
+    node.expressions = expressions;
   }
 
   void _recordDefinedVariable(LocalVariableElementImpl variable) {
@@ -6835,13 +6833,13 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     _unit.accept(this);
     // simulate imports for injects
     {
-      List<ImportElement> imports = [];
+      List<ImportElement> imports = <ImportElement>[];
       for (LibraryElement injectedLibrary in _injectedLibraries) {
         ImportElementImpl importElement = new ImportElementImpl(-1);
         importElement.importedLibrary = injectedLibrary;
         imports.add(importElement);
       }
-      _libraryElement.imports = new List.from(imports);
+      _libraryElement.imports = imports;
     }
   }
 
@@ -7948,7 +7946,7 @@ class DartEntry extends SourceEntry {
     if (errors.length == 0) {
       return AnalysisError.NO_ERRORS;
     }
-    return new List.from(errors);
+    return errors;
   }
 
   /**
@@ -8006,7 +8004,7 @@ class DartEntry extends SourceEntry {
       }
       state = state._nextState;
     }
-    return new List.from(result);
+    return result;
   }
 
   /**
@@ -11332,7 +11330,7 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
       }
     }
     // create attributes for name tokens
-    List<PolymerAttributeElement> attributes = [];
+    List<PolymerAttributeElement> attributes = <PolymerAttributeElement>[];
     Set<String> definedNames = new Set();
     ClassElement classElement = _dartElement.classElement;
     for (PolymerHtmlUnitBuilder_NameToken nameToken in nameTokens) {
@@ -11361,7 +11359,7 @@ class PolymerHtmlUnitBuilder extends ht.RecursiveXmlVisitor<Object> {
       }
       attribute.field = field;
     }
-    _htmlElement.attributes = new List.from(attributes);
+    _htmlElement.attributes = attributes;
   }
 
   void _createTagHtmlElement(ht.XmlTagNode node) {
@@ -11638,7 +11636,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
     for (HashSet<AnalysisError> errors in _errors.values) {
       resultList.addAll(errors);
     }
-    return new List.from(resultList);
+    return resultList;
   }
 
   /**

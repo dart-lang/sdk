@@ -128,7 +128,7 @@ class ElementFactory {
     //
     // Finish building the enum.
     //
-    enumElement.fields = new List.from(fields);
+    enumElement.fields = fields;
     // Client code isn't allowed to invoke the constructor, so we do not model it.
     return enumElement;
   }

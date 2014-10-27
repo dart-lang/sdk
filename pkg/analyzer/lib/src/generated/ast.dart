@@ -197,12 +197,10 @@ abstract class AnnotatedNode extends AstNode {
    *         appeared in the original source
    */
   List<AstNode> get sortedCommentAndAnnotations {
-    List<AstNode> childList = new List<AstNode>();
-    childList.add(_comment);
-    childList.addAll(_metadata);
-    List<AstNode> children = new List.from(childList);
-    children.sort(AstNode.LEXICAL_ORDER);
-    return children;
+    return <AstNode>[]
+      ..add(_comment)
+      ..addAll(_metadata)
+      ..sort(AstNode.LEXICAL_ORDER);
   }
 }
 
@@ -4854,12 +4852,10 @@ class CompilationUnit extends AstNode {
    *         appeared in the original source
    */
   List<AstNode> get sortedDirectivesAndDeclarations {
-    List<AstNode> childList = new List<AstNode>();
-    childList.addAll(_directives);
-    childList.addAll(_declarations);
-    List<AstNode> children = new List.from(childList);
-    children.sort(AstNode.LEXICAL_ORDER);
-    return children;
+    return <AstNode>[]
+      ..addAll(_directives)
+      ..addAll(_declarations)
+      ..sort(AstNode.LEXICAL_ORDER);
   }
 }
 
@@ -13773,12 +13769,10 @@ abstract class NormalFormalParameter extends FormalParameter {
    *         appeared in the original source
    */
   List<AstNode> get sortedCommentAndAnnotations {
-    List<AstNode> childList = new List<AstNode>();
-    childList.add(_comment);
-    childList.addAll(_metadata);
-    List<AstNode> children = new List.from(childList);
-    children.sort(AstNode.LEXICAL_ORDER);
-    return children;
+    return <AstNode>[]
+      ..add(_comment)
+      ..addAll(_metadata)
+      ..sort(AstNode.LEXICAL_ORDER);
   }
 }
 

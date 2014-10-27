@@ -821,17 +821,13 @@ class CompletionEngine {
   bool _filterDisallows2(String name) => !_filter._match2(name);
 
   List<Element> _findAllNotTypes(List<Element> elements) {
-    elements = [];
-    for (int i = elements.length - 1; i >= 0; i--) {
-      ElementKind kind = elements[i].kind;
-      if (kind != ElementKind.FUNCTION
-          && kind != ElementKind.TOP_LEVEL_VARIABLE
-          && kind != ElementKind.GETTER
-          && kind != ElementKind.SETTER) {
-        elements.removeAt(i);
-      }
-    }
-    return new List.from(elements);
+    return elements.where((Element element) {
+      ElementKind kind = element.kind;
+      return kind == ElementKind.FUNCTION
+          || kind == ElementKind.TOP_LEVEL_VARIABLE
+          || kind == ElementKind.GETTER
+          || kind == ElementKind.SETTER;
+      }).toList();
   }
 
   List<Element> _findAllPrefixes() {
@@ -845,15 +841,11 @@ class CompletionEngine {
   }
 
   List<Element> _findAllTypes2(List<Element> elements) {
-    elements = [];
-    for (int i = elements.length - 1; i >= 0; i--) {
-      ElementKind kind = elements[i].kind;
-      if (kind != ElementKind.CLASS
-          && kind != ElementKind.FUNCTION_TYPE_ALIAS) {
-        elements.removeAt(i);
-      }
-    }
-    return new List.from(elements);
+    return elements.where((Element element) {
+      ElementKind kind = element.kind;
+      return kind == ElementKind.CLASS
+          || kind == ElementKind.FUNCTION_TYPE_ALIAS;
+      }).toList();
   }
 
   List<Element> _findTopLevelElements(LibraryElement library, TopLevelNamesKind topKind) {
@@ -943,7 +935,7 @@ class CompletionEngine {
 
   List<ImportElement> _importsWithName(SimpleIdentifier libName) {
     String name = libName.name;
-    List<ImportElement> imports = [];
+    List<ImportElement> imports = <ImportElement>[];
     for (ImportElement imp in currentLibrary.imports) {
       PrefixElement prefix = imp.prefix;
       if (prefix != null) {
@@ -953,7 +945,7 @@ class CompletionEngine {
         }
       }
     }
-    return new List.from(imports);
+    return imports;
   }
 
   bool _isCompletingKeyword(Token keyword) {
@@ -1331,8 +1323,8 @@ class CompletionEngine {
         types.add(param.type.toString());
       }
     }
-    prop.setParameterNames(new List.from(params));
-    prop.setParameterTypes(new List.from(types));
+    prop.setParameterNames(params);
+    prop.setParameterTypes(types);
     prop.setParameterStyle(posCount, named, positional);
   }
 

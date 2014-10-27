@@ -424,10 +424,10 @@ class AngularCompilationUnitBuilder {
    * Parses [AngularPropertyElement]s from [annotation] and [classDeclaration].
    */
   List<AngularPropertyElement> _parseComponentProperties() {
-    List<AngularPropertyElement> properties = [];
+    List<AngularPropertyElement> properties = <AngularPropertyElement>[];
     _parseComponentProperties_fromMap(properties);
     _parseComponentProperties_fromFields(properties);
-    return new List.from(properties);
+    return properties;
   }
 
   /**
@@ -613,9 +613,9 @@ class AngularCompilationUnitBuilder {
   }
 
   List<AngularScopePropertyElement> _parseScopeProperties() {
-    List<AngularScopePropertyElement> properties = [];
+    List<AngularScopePropertyElement> properties = <AngularScopePropertyElement>[];
     _classDeclaration.accept(new RecursiveAstVisitor_AngularCompilationUnitBuilder_parseScopeProperties(properties));
-    return new List.from(properties);
+    return properties;
   }
 
   /**
@@ -623,10 +623,10 @@ class AngularCompilationUnitBuilder {
    * where <code>view</code> is <code>ViewFactory</code>.
    */
   void _parseViews() {
-    List<AngularViewElement> views = [];
+    List<AngularViewElement> views = <AngularViewElement>[];
     _unit.accept(new RecursiveAstVisitor_AngularCompilationUnitBuilder_parseViews(views));
     if (!views.isEmpty) {
-      List<AngularViewElement> viewArray = new List.from(views);
+      List<AngularViewElement> viewArray = views;
       (_unit.element as CompilationUnitElementImpl).angularViews = viewArray;
     }
   }
@@ -4300,7 +4300,7 @@ class ElementHolder {
 
   List<LabelElement> _labels;
 
-  List<VariableElement> _localVariables;
+  List<LocalVariableElement> _localVariables;
 
   List<MethodElement> _methods;
 
@@ -4358,7 +4358,7 @@ class ElementHolder {
 
   void addLocalVariable(LocalVariableElement element) {
     if (_localVariables == null) {
-      _localVariables = new List<VariableElement>();
+      _localVariables = new List<LocalVariableElement>();
     }
     _localVariables.add(element);
   }
@@ -4409,7 +4409,7 @@ class ElementHolder {
     if (_accessors == null) {
       return PropertyAccessorElementImpl.EMPTY_ARRAY;
     }
-    List<PropertyAccessorElement> result = new List.from(_accessors);
+    List<PropertyAccessorElement> result = _accessors;
     _accessors = null;
     return result;
   }
@@ -4418,7 +4418,7 @@ class ElementHolder {
     if (_constructors == null) {
       return ConstructorElementImpl.EMPTY_ARRAY;
     }
-    List<ConstructorElement> result = new List.from(_constructors);
+    List<ConstructorElement> result = _constructors;
     _constructors = null;
     return result;
   }
@@ -4427,7 +4427,7 @@ class ElementHolder {
     if (_enums == null) {
       return ClassElementImpl.EMPTY_ARRAY;
     }
-    List<ClassElement> result = new List.from(_enums);
+    List<ClassElement> result = _enums;
     _enums = null;
     return result;
   }
@@ -4448,7 +4448,7 @@ class ElementHolder {
     if (_fields == null) {
       return FieldElementImpl.EMPTY_ARRAY;
     }
-    List<FieldElement> result = new List.from(_fields);
+    List<FieldElement> result = _fields;
     _fields = null;
     return result;
   }
@@ -4457,7 +4457,7 @@ class ElementHolder {
     if (_fields == null) {
       return FieldElementImpl.EMPTY_ARRAY;
     }
-    List<FieldElement> result = new List.from(_fields);
+    List<FieldElement> result = _fields;
     return result;
   }
 
@@ -4465,7 +4465,7 @@ class ElementHolder {
     if (_functions == null) {
       return FunctionElementImpl.EMPTY_ARRAY;
     }
-    List<FunctionElement> result = new List.from(_functions);
+    List<FunctionElement> result = _functions;
     _functions = null;
     return result;
   }
@@ -4474,7 +4474,7 @@ class ElementHolder {
     if (_labels == null) {
       return LabelElementImpl.EMPTY_ARRAY;
     }
-    List<LabelElement> result = new List.from(_labels);
+    List<LabelElement> result = _labels;
     _labels = null;
     return result;
   }
@@ -4483,7 +4483,7 @@ class ElementHolder {
     if (_localVariables == null) {
       return LocalVariableElementImpl.EMPTY_ARRAY;
     }
-    List<LocalVariableElement> result = new List.from(_localVariables);
+    List<LocalVariableElement> result = _localVariables;
     _localVariables = null;
     return result;
   }
@@ -4492,7 +4492,7 @@ class ElementHolder {
     if (_methods == null) {
       return MethodElementImpl.EMPTY_ARRAY;
     }
-    List<MethodElement> result = new List.from(_methods);
+    List<MethodElement> result = _methods;
     _methods = null;
     return result;
   }
@@ -4501,7 +4501,7 @@ class ElementHolder {
     if (_parameters == null) {
       return ParameterElementImpl.EMPTY_ARRAY;
     }
-    List<ParameterElement> result = new List.from(_parameters);
+    List<ParameterElement> result = _parameters;
     _parameters = null;
     return result;
   }
@@ -4522,7 +4522,7 @@ class ElementHolder {
     if (_topLevelVariables == null) {
       return TopLevelVariableElementImpl.EMPTY_ARRAY;
     }
-    List<TopLevelVariableElement> result = new List.from(_topLevelVariables);
+    List<TopLevelVariableElement> result = _topLevelVariables;
     _topLevelVariables = null;
     return result;
   }
@@ -4531,7 +4531,7 @@ class ElementHolder {
     if (_typeAliases == null) {
       return FunctionTypeAliasElementImpl.EMPTY_ARRAY;
     }
-    List<FunctionTypeAliasElement> result = new List.from(_typeAliases);
+    List<FunctionTypeAliasElement> result = _typeAliases;
     _typeAliases = null;
     return result;
   }
@@ -4540,7 +4540,7 @@ class ElementHolder {
     if (_typeParameters == null) {
       return TypeParameterElementImpl.EMPTY_ARRAY;
     }
-    List<TypeParameterElement> result = new List.from(_typeParameters);
+    List<TypeParameterElement> result = _typeParameters;
     _typeParameters = null;
     return result;
   }
@@ -4549,7 +4549,7 @@ class ElementHolder {
     if (_types == null) {
       return ClassElementImpl.EMPTY_ARRAY;
     }
-    List<ClassElement> result = new List.from(_types);
+    List<ClassElement> result = _types;
     _types = null;
     return result;
   }
@@ -7180,7 +7180,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     if (!annotationList.isEmpty) {
-      (element as ElementImpl).metadata = new List.from(annotationList);
+      (element as ElementImpl).metadata = annotationList;
     }
   }
 
@@ -7199,7 +7199,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     List<ElementAnnotationImpl> annotationList = new List<ElementAnnotationImpl>();
     _addAnnotations(annotationList, node.metadata);
     if (!annotationList.isEmpty) {
-      (element as ElementImpl).metadata = new List.from(annotationList);
+      (element as ElementImpl).metadata = annotationList;
     }
   }
 
@@ -7403,8 +7403,8 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     //
     // Finish building the enum.
     //
-    enumElement.fields = new List.from(fields);
-    enumElement.accessors = new List.from(getters);
+    enumElement.fields = fields;
+    enumElement.accessors = getters;
     // Client code isn't allowed to invoke the constructor, so we do not model it.
     return super.visitEnumDeclaration(node);
   }
@@ -13043,8 +13043,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     _enclosingBlockContainsBreak = false;
     try {
       bool hasDefault = false;
-      NodeList<SwitchMember> memberList = node.members;
-      List<SwitchMember> members = new List.from(memberList);
+      List<SwitchMember> members = node.members;
       for (int i = 0; i < members.length; i++) {
         SwitchMember switchMember = members[i];
         if (switchMember is SwitchDefault) {
@@ -13773,7 +13772,7 @@ class ImplicitConstructorBuilder extends ScopedVisitor {
               implicitConstructors.add(_createImplicitContructor(classType, explicitConstructor, parameterTypes, argumentTypes));
             }
           }
-          classElement.constructors = new List.from(implicitConstructors);
+          classElement.constructors = implicitConstructors;
         }
       }
     }
@@ -15471,7 +15470,7 @@ class Library {
         unitArrayList.add(getAST(source));
       }
     }
-    return new List.from(unitArrayList);
+    return unitArrayList;
   }
 
   /**
@@ -15746,7 +15745,7 @@ class LibraryElementBuilder {
       libraryElement.entryPoint = entryPoint;
     }
     int sourcedUnitCount = sourcedCompilationUnits.length;
-    libraryElement.parts = new List.from(sourcedCompilationUnits);
+    libraryElement.parts = sourcedCompilationUnits;
     for (Directive directive in directivesToResolve) {
       directive.element = libraryElement;
     }
@@ -15834,7 +15833,7 @@ class LibraryElementBuilder {
       libraryElement.entryPoint = entryPoint;
     }
     int sourcedUnitCount = sourcedCompilationUnits.length;
-    libraryElement.parts = new List.from(sourcedCompilationUnits);
+    libraryElement.parts = sourcedCompilationUnits;
     for (Directive directive in directivesToResolve) {
       directive.element = libraryElement;
     }
@@ -16065,9 +16064,8 @@ class LibraryImportScope extends Scope {
     if (indirectCount > 0) {
       buffer.write(" (via ");
       if (indirectCount > 1) {
-        List<String> indirectNames = new List.from(indirectSources);
-        indirectNames.sort();
-        buffer.write(StringUtilities.printListOfQuotedNames(indirectNames));
+        indirectSources.sort();
+        buffer.write(StringUtilities.printListOfQuotedNames(indirectSources));
       } else {
         buffer.write(indirectSources[0]);
       }
@@ -16455,7 +16453,7 @@ class LibraryResolver {
         combinators.add(show);
       }
     }
-    return new List.from(combinators);
+    return combinators;
   }
 
   /**
@@ -16547,8 +16545,8 @@ class LibraryResolver {
         imports.add(importElement);
       }
       LibraryElementImpl libraryElement = library.libraryElement;
-      libraryElement.imports = new List.from(imports);
-      libraryElement.exports = new List.from(exports);
+      libraryElement.imports = imports;
+      libraryElement.exports = exports;
       if (libraryElement.entryPoint == null) {
         Namespace namespace = new NamespaceBuilder().createExportNamespaceForLibrary(libraryElement);
         Element element = namespace.get(LibraryElementBuilder.ENTRY_POINT_NAME);
@@ -16762,7 +16760,7 @@ class LibraryResolver {
         importedLibraries.add(importedLibrary);
       }
     }
-    library.importedLibraries = new List.from(importedLibraries);
+    library.importedLibraries = importedLibraries;
     List<Library> exportedLibraries = new List<Library>();
     for (Source exportedSource in exportedSources) {
       Library exportedLibrary = _libraryMap[exportedSource];
@@ -16776,7 +16774,7 @@ class LibraryResolver {
         exportedLibraries.add(exportedLibrary);
       }
     }
-    library.exportedLibraries = new List.from(exportedLibraries);
+    library.exportedLibraries = exportedLibraries;
     library.explicitlyImportsCore = explicitlyImportsCore;
     if (!explicitlyImportsCore && _coreLibrarySource != library.librarySource) {
       Library importedLibrary = _libraryMap[_coreLibrarySource];
@@ -17117,7 +17115,7 @@ class LibraryResolver2 {
         combinators.add(show);
       }
     }
-    return new List.from(combinators);
+    return combinators;
   }
 
   /**
@@ -17213,8 +17211,8 @@ class LibraryResolver2 {
         imports.add(importElement);
       }
       LibraryElementImpl libraryElement = library.libraryElement;
-      libraryElement.imports = new List.from(imports);
-      libraryElement.exports = new List.from(exports);
+      libraryElement.imports = imports;
+      libraryElement.exports = exports;
       if (libraryElement.entryPoint == null) {
         Namespace namespace = new NamespaceBuilder().createExportNamespaceForLibrary(libraryElement);
         Element element = namespace.get(LibraryElementBuilder.ENTRY_POINT_NAME);
@@ -24484,7 +24482,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         elements.add(element);
       }
     }
-    return new List.from(elements);
+    return elements;
   }
 
   /**
@@ -24706,17 +24704,17 @@ class TypeResolverVisitor extends ScopedVisitor {
         classElement.interfaces = interfaceTypes;
       }
       // TODO(brianwilkerson) Move the following checks to ErrorVerifier.
-      List<TypeName> typeNames = new List.from(interfaces);
-      List<bool> detectedRepeatOnIndex = new List<bool>.filled(typeNames.length, false);
+      int count = interfaces.length;
+      List<bool> detectedRepeatOnIndex = new List<bool>.filled(count, false);
       for (int i = 0; i < detectedRepeatOnIndex.length; i++) {
         detectedRepeatOnIndex[i] = false;
       }
-      for (int i = 0; i < typeNames.length; i++) {
-        TypeName typeName = typeNames[i];
+      for (int i = 0; i < count; i++) {
+        TypeName typeName = interfaces[i];
         if (!detectedRepeatOnIndex[i]) {
           Element element = typeName.name.staticElement;
-          for (int j = i + 1; j < typeNames.length; j++) {
-            TypeName typeName2 = typeNames[j];
+          for (int j = i + 1; j < count; j++) {
+            TypeName typeName2 = interfaces[j];
             Identifier identifier2 = typeName2.name;
             String name2 = identifier2.name;
             Element element2 = identifier2.staticElement;
@@ -24778,7 +24776,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         types.add(type);
       }
     }
-    return new List.from(types);
+    return types;
   }
 
   void _setElement(Identifier typeName, Element element) {

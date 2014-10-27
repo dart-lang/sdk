@@ -1199,7 +1199,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
     }
     InterfaceType listType = _typeProvider.listType.substitute4([elementType]);
-    return new DartObjectImpl(listType, new ListState(new List.from(elements)));
+    return new DartObjectImpl(listType, new ListState(elements));
   }
 
   @override

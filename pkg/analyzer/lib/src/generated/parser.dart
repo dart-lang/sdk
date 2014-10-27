@@ -4600,9 +4600,8 @@ class Parser {
     if (commentTokens.isEmpty) {
       return null;
     }
-    List<Token> tokens = new List.from(commentTokens);
-    List<CommentReference> references = _parseCommentReferences(tokens);
-    return Comment.createDocumentationCommentWithReferences(tokens, references);
+    List<CommentReference> references = _parseCommentReferences(commentTokens);
+    return Comment.createDocumentationCommentWithReferences(commentTokens, references);
   }
 
   /**
@@ -6444,7 +6443,7 @@ class Parser {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER, []);
       components.add(_createSyntheticToken(TokenType.IDENTIFIER));
     }
-    return new SymbolLiteral(poundSign, new List.from(components));
+    return new SymbolLiteral(poundSign, components);
   }
 
   /**
