@@ -939,7 +939,7 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<Object> {
           new _Occurrence(nodeRange, ref.selectionRange.intersects(nodeRange));
       ref._occurrences.add(occurrence);
       // prepare mapping of parameter names to the occurrence variables
-      nodePattern.originalToPatternNames.forEach((String patternName, String originalName) {
+      nodePattern.originalToPatternNames.forEach((String originalName, String patternName) {
         String selectionName = patternToSelectionName[patternName];
         occurrence._parameterOldToOccurrenceName[selectionName] = originalName;
       });
