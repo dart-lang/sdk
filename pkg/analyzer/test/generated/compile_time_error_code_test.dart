@@ -4655,7 +4655,7 @@ class A {
   }
 
   void _check_constEvalThrowsException_binary_null(String expr, bool resolved) {
-    Source source = addSource("const C = ${expr};");
+    Source source = addSource("const C = $expr;");
     resolve(source);
     if (resolved) {
       assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);

@@ -248,7 +248,7 @@ abstract class AbstractScanner {
             String tag = _tail.lexeme;
             for (String str in _passThroughElements) {
               if (str == tag) {
-                endPassThrough = "</${str}>";
+                endPassThrough = "</$str>";
                 break;
               }
             }

@@ -2874,7 +2874,7 @@ class Parser {
       }
     }
     if (end - start + 1 < 0) {
-      AnalysisEngine.instance.logger.logError("Internal error: computeStringValue(${lexeme}, ${first}, ${last})");
+      AnalysisEngine.instance.logger.logError("Internal error: computeStringValue($lexeme, $first, $last)");
       return "";
     }
     if (isRaw) {
@@ -4528,7 +4528,7 @@ class Parser {
     } else {
       // Internal error: this method should not have been invoked if the current token was something
       // other than one of the above.
-      throw new IllegalStateException("parseDirective invoked in an invalid state; currentToken = ${_currentToken}");
+      throw new IllegalStateException("parseDirective invoked in an invalid state; currentToken = $_currentToken");
     }
   }
 

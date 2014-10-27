@@ -108,7 +108,7 @@ class AnalysisCacheTest extends EngineTestCase {
     AnalysisCache cache = new AnalysisCache(<CachePartition>[partition]);
     int size = 6;
     for (int i = 0; i < size; i++) {
-      Source source = new TestSource("/test${i}.dart");
+      Source source = new TestSource("/test$i.dart");
       DartEntry entry = new DartEntry();
       entry.setValue(DartEntry.PARSED_UNIT, null);
       cache.put(source, entry);
@@ -126,7 +126,7 @@ class AnalysisCacheTest extends EngineTestCase {
     AnalysisCache cache = new AnalysisCache(<CachePartition>[partition]);
     int size = 4;
     for (int i = 0; i < size; i++) {
-      Source source = new TestSource("/test${i}.dart");
+      Source source = new TestSource("/test$i.dart");
       cache.put(source, new DartEntry());
       cache.accessedAst(source);
     }
@@ -1620,7 +1620,7 @@ void g() { f(null); }''');
         new AnalysisOptionsImpl.con1(_context.analysisOptions);
     List<Source> sources = new List<Source>();
     for (int index = 0; index < options.cacheSize; index++) {
-      sources.add(_addSource("/lib.dart${index}", ""));
+      sources.add(_addSource("/lib.dart$index", ""));
     }
     _context.analysisPriorityOrder = sources;
     int oldPriorityOrderSize = _getPriorityOrder(_context).length;
@@ -1638,7 +1638,7 @@ void g() { f(null); }''');
     AnalysisOptions options = _context.analysisOptions;
     List<Source> sources = new List<Source>();
     for (int index = 0; index < options.cacheSize; index++) {
-      sources.add(_addSource("/lib.dart${index}", ""));
+      sources.add(_addSource("/lib.dart$index", ""));
     }
     _context.analysisPriorityOrder = sources;
     JUnitTestCase.assertTrue(
@@ -1836,7 +1836,7 @@ library test2;''');
     List<Source> sources = new List<Source>();
     ChangeSet changeSet = new ChangeSet();
     for (int i = 0; i < sourceCount; i++) {
-      Source source = _addSource("/lib${i}.dart", "library lib${i};");
+      Source source = _addSource("/lib$i.dart", "library lib$i;");
       sources.add(source);
       changeSet.addedSource(source);
     }
@@ -4660,8 +4660,8 @@ class IncrementalAnalysisTaskTest extends EngineTestCase {
 
   CompilationUnit _assertTask(String prefix, String removed, String added,
       String suffix) {
-    String oldCode = "${prefix}${removed}${suffix}";
-    String newCode = "${prefix}${added}${suffix}";
+    String oldCode = "$prefix$removed$suffix";
+    String newCode = "$prefix$added$suffix";
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     Source source = new TestSource("/test.dart", oldCode);
     DartEntry entry = new DartEntry();
@@ -7084,7 +7084,7 @@ class UniversalCachePartitionTest extends EngineTestCase {
         new _UniversalCachePartitionTest_test_setMaxCacheSize());
     int size = 6;
     for (int i = 0; i < size; i++) {
-      Source source = new TestSource("/test${i}.dart");
+      Source source = new TestSource("/test$i.dart");
       DartEntry entry = new DartEntry();
       entry.setValue(DartEntry.PARSED_UNIT, null);
       partition.put(source, entry);
@@ -7100,7 +7100,7 @@ class UniversalCachePartitionTest extends EngineTestCase {
         new UniversalCachePartition(null, 8, null);
     int size = 4;
     for (int i = 0; i < size; i++) {
-      Source source = new TestSource("/test${i}.dart");
+      Source source = new TestSource("/test$i.dart");
       partition.put(source, new DartEntry());
       partition.accessedAst(source);
     }

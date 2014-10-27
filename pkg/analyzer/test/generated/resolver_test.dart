@@ -3776,7 +3776,7 @@ class InheritanceManagerTest extends EngineTestCase {
     JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapA.size);
     PropertyAccessorElementImpl syntheticAccessor = ElementFactory.setterElement(accessorName, false, _typeProvider.dynamicType);
     syntheticAccessor.returnType = _typeProvider.dynamicType;
-    JUnitTestCase.assertEquals(syntheticAccessor.type, mapA.get("${accessorName}=").type);
+    JUnitTestCase.assertEquals(syntheticAccessor.type, mapA.get("$accessorName=").type);
     _assertNoErrors(classA);
   }
 
@@ -3879,7 +3879,7 @@ class InheritanceManagerTest extends EngineTestCase {
     JUnitTestCase.assertEquals(_numOfMembersInObject + 1, mapD.size);
     PropertyAccessorElementImpl syntheticAccessor = ElementFactory.setterElement(accessorName, false, _typeProvider.dynamicType);
     syntheticAccessor.returnType = _typeProvider.dynamicType;
-    JUnitTestCase.assertEquals(syntheticAccessor.type, mapD.get("${accessorName}=").type);
+    JUnitTestCase.assertEquals(syntheticAccessor.type, mapD.get("$accessorName=").type);
     _assertNoErrors(classD);
   }
 
@@ -4009,7 +4009,7 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.accessors = <PropertyAccessorElement> [setterS];
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
     classB.interfaces = <InterfaceType> [classA.type];
-    JUnitTestCase.assertSame(setterS, _inheritanceManager.lookupInheritance(classB, "${setterName}="));
+    JUnitTestCase.assertSame(setterS, _inheritanceManager.lookupInheritance(classB, "$setterName="));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -4094,7 +4094,7 @@ class InheritanceManagerTest extends EngineTestCase {
     classA.accessors = <PropertyAccessorElement> [setterS];
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
     classB.mixins = <InterfaceType> [classA.type];
-    JUnitTestCase.assertSame(setterS, _inheritanceManager.lookupInheritance(classB, "${setterName}="));
+    JUnitTestCase.assertSame(setterS, _inheritanceManager.lookupInheritance(classB, "$setterName="));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -4163,7 +4163,7 @@ class InheritanceManagerTest extends EngineTestCase {
     PropertyAccessorElement setterS = ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [setterS];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    JUnitTestCase.assertSame(setterS, _inheritanceManager.lookupInheritance(classB, "${setterName}="));
+    JUnitTestCase.assertSame(setterS, _inheritanceManager.lookupInheritance(classB, "$setterName="));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -4228,7 +4228,7 @@ class InheritanceManagerTest extends EngineTestCase {
     String setterName = "s";
     PropertyAccessorElement setterS = ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement> [setterS];
-    JUnitTestCase.assertSame(setterS, _inheritanceManager.lookupMember(classA, "${setterName}="));
+    JUnitTestCase.assertSame(setterS, _inheritanceManager.lookupMember(classA, "$setterName="));
     _assertNoErrors(classA);
   }
 
@@ -4481,7 +4481,7 @@ class A {}''');
         }
       }
       if (!wasExpected) {
-        JUnitTestCase.fail("Found unexpected type ${actualTypeName}");
+        JUnitTestCase.fail("Found unexpected type $actualTypeName");
       }
     }
   }
@@ -6294,13 +6294,13 @@ class ResolverTestCase extends EngineTestCase {
     for (int i = 0; i < count; i++) {
       String typeName = typeNames[i];
       ClassElementImpl type = new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
-      String fileName = "${typeName}.dart";
+      String fileName = "$typeName.dart";
       CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
       compilationUnit.source = _createNamedSource(fileName);
       compilationUnit.types = <ClassElement> [type];
       sourcedCompilationUnits[i] = compilationUnit;
     }
-    String fileName = "${libraryName}.dart";
+    String fileName = "$libraryName.dart";
     CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
     compilationUnit.source = _createNamedSource(fileName);
     LibraryElementImpl library = new LibraryElementImpl.forNode(context, AstFactory.libraryIdentifier2([libraryName]));
@@ -11048,7 +11048,7 @@ main() {
       // here should be a failure, in both "test_*" and "fail_*" tests.
       // However, an assertion failure is success for the purpose of "fail_*" tests, so
       // without catching them here "fail_*" tests can succeed by failing for the wrong reason.
-      throw new JavaException("Unexexpected assertion failure: ${exception}");
+      throw new JavaException("Unexexpected assertion failure: $exception");
     }
   }
 }

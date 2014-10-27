@@ -1731,10 +1731,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       task.perform(_resultRecorder);
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not perform analysis task: ${taskDescription}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not perform analysis task: $taskDescription", exception);
     } on AnalysisException catch (exception) {
       if (exception.cause is! JavaIOException) {
-        AnalysisEngine.instance.logger.logError2("Internal error while performing the task: ${task}", exception);
+        AnalysisEngine.instance.logger.logError2("Internal error while performing the task: $task", exception);
       }
     }
     int performEnd = JavaSystem.currentTimeMillis();
@@ -5052,7 +5052,7 @@ class AnalysisContextImpl_TaskData {
   @override
   String toString() {
     if (task == null) {
-      return "blocked: ${_blocked}";
+      return "blocked: $_blocked";
     }
     return task.toString();
   }
@@ -5936,7 +5936,7 @@ abstract class AnalysisTask {
       _safelyPerform();
     } on AnalysisException catch (exception, stackTrace) {
       _thrownException = new CaughtException(exception, stackTrace);
-      AnalysisEngine.instance.logger.logInformation2("Task failed: ${taskDescription}", new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.logger.logInformation2("Task failed: $taskDescription", new CaughtException(exception, stackTrace));
     }
     return accept(visitor);
   }
@@ -6372,7 +6372,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
         try {
           Source templateSource = _context.sourceFactory.forUri2(_source.resolveRelativeUri(parseUriWithException(templateUri)));
           if (!_context.exists(templateSource)) {
-            templateSource = _context.sourceFactory.resolveUri(_source, "package:${templateUri}");
+            templateSource = _context.sourceFactory.resolveUri(_source, "package:$templateUri");
             if (!_context.exists(templateSource)) {
               _errorListener.onError(new AnalysisError.con2(angularElement.source, hasTemplate.templateUriOffset, templateUri.length, AngularCode.URI_DOES_NOT_EXIST, [templateUri]));
               continue;
@@ -7425,7 +7425,7 @@ class ChangeNoticeImpl implements ChangeNotice {
     this._errors = errors;
     this._lineInfo = lineInfo;
     if (lineInfo == null) {
-      AnalysisEngine.instance.logger.logInformation2("No line info: ${source}", new JavaException());
+      AnalysisEngine.instance.logger.logInformation2("No line info: $source", new JavaException());
     }
   }
 
@@ -8924,7 +8924,7 @@ class GetContentTask extends AnalysisTask {
       _content = data.data;
       _modificationTime = data.modificationTime;
     } catch (exception, stackTrace) {
-      throw new AnalysisException("Could not get contents of ${source}", new CaughtException(exception, stackTrace));
+      throw new AnalysisException("Could not get contents of $source", new CaughtException(exception, stackTrace));
     }
   }
 }
@@ -10682,7 +10682,7 @@ class ParseDartTask extends AnalysisTask {
       errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
       return null;
     }
-    throw new RuntimeException(message: "Failed to handle validation code: ${code}");
+    throw new RuntimeException(message: "Failed to handle validation code: $code");
   }
 
   /**
@@ -12216,7 +12216,7 @@ class ResolveAngularComponentTemplateTask extends AnalysisTask {
   ht.HtmlUnit get resolvedUnit => _resolvedUnit;
 
   @override
-  String get taskDescription => "resolve as Angular template ${source}";
+  String get taskDescription => "resolve as Angular template $source";
 
   @override
   void internalPerform() {
@@ -13171,7 +13171,7 @@ abstract class SourceEntry {
     }
     CachedResult result = resultMap[CONTENT];
     if (result != null && result.state == CacheState.ERROR) {
-      String message = "contentState changing from ${result.state} to ${newState}";
+      String message = "contentState changing from ${result.state} to $newState";
       InstrumentationBuilder builder = Instrumentation.builder2("SourceEntry-validateStateChange");
       builder.data3("message", message);
       //builder.data("source", source.getFullName());

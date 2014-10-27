@@ -65,7 +65,7 @@ class ElementFactory {
     int count = argumentTypes.length;
     List<ParameterElement> parameters = new List<ParameterElement>(count);
     for (int i = 0; i < count; i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl("a${i}", i);
+      ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
       parameter.type = argumentTypes[i];
       parameter.parameterKind = ParameterKind.REQUIRED;
       parameters[i] = parameter;
@@ -159,7 +159,7 @@ class ElementFactory {
       setter.setter = true;
       setter.synthetic = true;
       setter.variable = field;
-      setter.parameters = <ParameterElement> [requiredParameter2("_${name}", type)];
+      setter.parameters = <ParameterElement> [requiredParameter2("_$name", type)];
       setter.returnType = VoidTypeImpl.instance;
       setter.type = new FunctionTypeImpl.con1(setter);
       field.setter = setter;
@@ -190,7 +190,7 @@ class ElementFactory {
     int totalCount = normalCount + optionalCount;
     List<ParameterElement> parameters = new List<ParameterElement>(totalCount);
     for (int i = 0; i < totalCount; i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl("a${i}", i);
+      ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
       if (i < normalCount) {
         parameter.type = normalParameters[i].type;
         parameter.parameterKind = ParameterKind.REQUIRED;
@@ -220,7 +220,7 @@ class ElementFactory {
     List<ParameterElement> parameters = new List<ParameterElement>(totalCount);
     for (int i = 0; i < totalCount; i++) {
       if (i < normalCount) {
-        ParameterElementImpl parameter = new ParameterElementImpl("a${i}", i);
+        ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
         parameter.type = normalParameters[i].type;
         parameter.parameterKind = ParameterKind.REQUIRED;
         parameters[i] = parameter;
@@ -296,7 +296,7 @@ class ElementFactory {
   }
 
   static LibraryElementImpl library(AnalysisContext context, String libraryName) {
-    String fileName = "/${libraryName}.dart";
+    String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
     LibraryElementImpl library = new LibraryElementImpl(context, libraryName, 0);
     library.definingCompilationUnit = unit;
@@ -312,7 +312,7 @@ class ElementFactory {
     int count = argumentTypes.length;
     List<ParameterElement> parameters = new List<ParameterElement>(count);
     for (int i = 0; i < count; i++) {
-      ParameterElementImpl parameter = new ParameterElementImpl("a${i}", i);
+      ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
       parameter.type = argumentTypes[i];
       parameter.parameterKind = ParameterKind.REQUIRED;
       parameters[i] = parameter;
@@ -422,7 +422,7 @@ class ElementFactory {
       setter.static = true;
       setter.synthetic = true;
       setter.variable = variable;
-      setter.parameters = <ParameterElement> [requiredParameter2("_${name}", type)];
+      setter.parameters = <ParameterElement> [requiredParameter2("_$name", type)];
       setter.returnType = VoidTypeImpl.instance;
       setter.type = new FunctionTypeImpl.con1(setter);
       variable.setter = setter;

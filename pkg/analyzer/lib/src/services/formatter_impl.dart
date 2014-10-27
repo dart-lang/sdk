@@ -51,7 +51,7 @@ class FormatterException implements Exception {
     //TODO(pquitslund): consider a verbosity flag to add/suppress details
     var errorCode = errors[0].errorCode;
     var phase = errorCode is ParserErrorCode ? 'parsing' : 'scanning';
-    return 'An error occured while ${phase} (${errorCode.name}).';
+    return 'An error occured while $phase (${errorCode.name}).';
   }
 
   String toString() => '$message';
@@ -206,7 +206,7 @@ class TokenStreamComparator {
     if (!isEOF(token2) &&
         !(isCLOSE_CURLY_BRACKET(token2) && isEOF(token2.next))) {
       throw new FormatterException(
-          'Expected "EOF" but got "${token2}".');
+          'Expected "EOF" but got "$token2".');
     }
   }
 
@@ -216,7 +216,7 @@ class TokenStreamComparator {
     while (comment1 != null) {
       if (comment2 == null) {
         throw new FormatterException(
-            'Expected comment, "${comment1}", at ${describeLocation(token1)}, '
+            'Expected comment, "$comment1", at ${describeLocation(token1)}, '
             'but got none.');
       }
       if (!equivalentComments(comment1, comment2)) {
@@ -227,7 +227,7 @@ class TokenStreamComparator {
     }
     if (comment2 != null) {
       throw new FormatterException(
-          'Unexpected comment, "${comment2}", at ${describeLocation(token2)}.');
+          'Unexpected comment, "$comment2", at ${describeLocation(token2)}.');
     }
   }
 
@@ -236,7 +236,7 @@ class TokenStreamComparator {
 
   throwNotEqualException(t1, t2) {
     throw new FormatterException(
-        'Expected "${t1}" but got "${t2}", at ${describeLocation(t1)}.');
+        'Expected "$t1" but got "$t2", at ${describeLocation(t1)}.');
   }
 
   String describeLocation(Token token) => lineInfo == null ? '<unknown>' :

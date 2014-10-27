@@ -306,7 +306,7 @@ class ConstantValueComputer {
   /**
    * RegExp that validates a non-empty non-private symbol. From sdk/lib/internal/symbol.dart.
    */
-  static RegExp _PUBLIC_SYMBOL_PATTERN = new RegExp("^(?:${ConstantValueComputer._OPERATOR_RE}\$|${_PUBLIC_IDENTIFIER_RE}(?:=?\$|[.](?!\$)))+?\$");
+  static RegExp _PUBLIC_SYMBOL_PATTERN = new RegExp("^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /**
    * Determine whether the given string is a valid name for a public symbol (i.e. whether it is
@@ -4526,7 +4526,7 @@ class StringState extends InstanceState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new StringState("${value}${rightValue}");
+      return new StringState("$value$rightValue");
     } else if (rightOperand is DynamicState) {
       return UNKNOWN_VALUE;
     }
@@ -4581,7 +4581,7 @@ class StringState extends InstanceState {
   }
 
   @override
-  String toString() => value == null ? "-unknown-" : "'${value}'";
+  String toString() => value == null ? "-unknown-" : "'$value'";
 }
 
 /**
@@ -4640,7 +4640,7 @@ class SymbolState extends InstanceState {
   int get hashCode => value == null ? 0 : value.hashCode;
 
   @override
-  String toString() => value == null ? "-unknown-" : "#${value}";
+  String toString() => value == null ? "-unknown-" : "#$value";
 }
 
 /**

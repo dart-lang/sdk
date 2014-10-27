@@ -370,7 +370,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
       return ht.TokenType.TEXT;
     }
     JUnitTestCase.fail(
-        "Unknown expected token ${count}: ${(expected != null ? expected.runtimeType : "null")}");
+        "Unknown expected token $count: ${(expected != null ? expected.runtimeType : "null")}");
     return null;
   }
 
@@ -409,16 +409,16 @@ abstract class AbstractScannerTest extends JUnitTestCase {
       Object expected = expectedTokens[count];
       ht.TokenType expectedTokenType = _getExpectedTokenType(count, expected);
       JUnitTestCase.assertSameMsg(
-          "token ${count}",
+          "token $count",
           expectedTokenType,
           token.type);
       if (expectedTokenType.lexeme != null) {
         JUnitTestCase.assertEqualsMsg(
-            "token ${count}",
+            "token $count",
             expectedTokenType.lexeme,
             token.lexeme);
       } else {
-        JUnitTestCase.assertEqualsMsg("token ${count}", expected, token.lexeme);
+        JUnitTestCase.assertEqualsMsg("token $count", expected, token.lexeme);
       }
       count++;
       previousToken = token;
@@ -2722,7 +2722,7 @@ class MyController {
    */
   SimpleIdentifier findIdentifier(String search) {
     SimpleIdentifier identifier = findIdentifierMaybe(search);
-    JUnitTestCase.assertNotNullMsg("${search} in ${indexContent}", identifier);
+    JUnitTestCase.assertNotNullMsg("$search in $indexContent", identifier);
     // check that offset/length of the identifier is valid
     {
       int offset = identifier.offset;
@@ -3426,7 +3426,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
   }
 
   EvaluationResult _getExpressionValue(String contents) {
-    Source source = addSource("var x = ${contents};");
+    Source source = addSource("var x = $contents;");
     LibraryElement library = resolve(source);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(source, library);
@@ -4505,13 +4505,13 @@ const c_num = const C<num>();''');
     String fieldName = "j";
     String paramName = isFieldFormal ? fieldName : "i";
     String formalParam =
-        "${(isFieldFormal ? "this." : "int ")}${paramName}${(hasDefault ? " = 3" : "")}";
+        "${(isFieldFormal ? "this." : "int ")}$paramName${(hasDefault ? " = 3" : "")}";
     CompilationUnit compilationUnit = resolveSource("""
 const x = const A();
 const y = const A(${isNamed ? '$paramName: ' : ''}10);
 class A {
-  const A(${isNamed ? "{${formalParam}}" : "[${formalParam}]"})${isFieldFormal ? "" : " : ${fieldName} = ${paramName}"};
-  final int ${fieldName};
+  const A(${isNamed ? "{$formalParam}" : "[$formalParam]"})${isFieldFormal ? "" : " : $fieldName = $paramName"};
+  final int $fieldName;
 }""");
     EvaluationResultImpl x =
         _evaluateInstanceCreationExpression(compilationUnit, "x");
@@ -4539,7 +4539,7 @@ class B<T, U> extends A<T> {
   const B()$superCall;
 }
 class C<T, U> extends A<U> {
-  const C()${superCall};
+  const C()$superCall;
 }
 const b_int_num = const B<int, num>();
 const c_int_num = const C<int, num>();""");
@@ -4563,9 +4563,9 @@ const c_int_num = const C<int, num>();""");
       analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
     }
     String defaultArg =
-        defaultExpr == null ? "" : ", defaultValue: ${defaultExpr}";
+        defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
     CompilationUnit compilationUnit = resolveSource(
-                "const ${varName} = const bool.fromEnvironment('${envVarName}'${defaultArg});");
+                "const $varName = const bool.fromEnvironment('$envVarName'$defaultArg);");
     return _evaluateInstanceCreationExpression(compilationUnit, varName);
   }
 
@@ -4577,9 +4577,9 @@ const c_int_num = const C<int, num>();""");
       analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
     }
     String defaultArg =
-        defaultExpr == null ? "" : ", defaultValue: ${defaultExpr}";
+        defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
     CompilationUnit compilationUnit = resolveSource(
-                "const ${varName} = const int.fromEnvironment('${envVarName}'${defaultArg});");
+                "const $varName = const int.fromEnvironment('$envVarName'$defaultArg);");
     return _evaluateInstanceCreationExpression(compilationUnit, varName);
   }
 
@@ -4591,9 +4591,9 @@ const c_int_num = const C<int, num>();""");
       analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
     }
     String defaultArg =
-        defaultExpr == null ? "" : ", defaultValue: ${defaultExpr}";
+        defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
     CompilationUnit compilationUnit = resolveSource(
-                "const ${varName} = const String.fromEnvironment('${envVarName}'${defaultArg});");
+                "const $varName = const String.fromEnvironment('$envVarName'$defaultArg);");
     return _evaluateInstanceCreationExpression(compilationUnit, varName);
   }
 
@@ -7690,7 +7690,7 @@ class ElementBuilderTest extends EngineTestCase {
     EngineTestCase.assertLength(1, accessors);
     PropertyAccessorElement accessor = accessors[0];
     JUnitTestCase.assertNotNull(accessor);
-    JUnitTestCase.assertEquals("${functionName}=", accessor.name);
+    JUnitTestCase.assertEquals("$functionName=", accessor.name);
     JUnitTestCase.assertSame(accessor, declaration.element);
     JUnitTestCase.assertSame(accessor, declaration.functionExpression.element);
     JUnitTestCase.assertFalse(accessor.isGetter);
@@ -7988,7 +7988,7 @@ class ElementBuilderTest extends EngineTestCase {
     JUnitTestCase.assertFalse(setter.isAbstract);
     JUnitTestCase.assertTrue(setter.isSetter);
     JUnitTestCase.assertFalse(setter.isSynthetic);
-    JUnitTestCase.assertEquals("${methodName}=", setter.name);
+    JUnitTestCase.assertEquals("$methodName=", setter.name);
     JUnitTestCase.assertEquals(methodName, setter.displayName);
     JUnitTestCase.assertEquals(field, setter.variable);
     EngineTestCase.assertLength(0, setter.functions);
@@ -8022,7 +8022,7 @@ class ElementBuilderTest extends EngineTestCase {
     JUnitTestCase.assertTrue(setter.isAbstract);
     JUnitTestCase.assertTrue(setter.isSetter);
     JUnitTestCase.assertFalse(setter.isSynthetic);
-    JUnitTestCase.assertEquals("${methodName}=", setter.name);
+    JUnitTestCase.assertEquals("$methodName=", setter.name);
     JUnitTestCase.assertEquals(methodName, setter.displayName);
     JUnitTestCase.assertEquals(field, setter.variable);
     EngineTestCase.assertLength(0, setter.functions);
@@ -8055,7 +8055,7 @@ class ElementBuilderTest extends EngineTestCase {
     JUnitTestCase.assertFalse(setter.isAbstract);
     JUnitTestCase.assertTrue(setter.isSetter);
     JUnitTestCase.assertFalse(setter.isSynthetic);
-    JUnitTestCase.assertEquals("${methodName}=", setter.name);
+    JUnitTestCase.assertEquals("$methodName=", setter.name);
     JUnitTestCase.assertEquals(methodName, setter.displayName);
     JUnitTestCase.assertEquals(field, setter.variable);
     EngineTestCase.assertLength(0, setter.functions);
@@ -10143,20 +10143,20 @@ class HtmlUnitBuilderTest_ExpectedLibrary {
       this._expectedVariables);
   void _validate(int scriptIndex, EmbeddedHtmlScriptElementImpl script) {
     LibraryElement library = script.scriptLibrary;
-    JUnitTestCase.assertNotNullMsg("script ${scriptIndex}", library);
+    JUnitTestCase.assertNotNullMsg("script $scriptIndex", library);
     JUnitTestCase.assertSameMsg(
-        "script ${scriptIndex}",
+        "script $scriptIndex",
         HtmlUnitBuilderTest_this._context,
         script.context);
     CompilationUnitElement unit = library.definingCompilationUnit;
-    JUnitTestCase.assertNotNullMsg("script ${scriptIndex}", unit);
+    JUnitTestCase.assertNotNullMsg("script $scriptIndex", unit);
     List<TopLevelVariableElement> variables = unit.topLevelVariables;
     EngineTestCase.assertLength(_expectedVariables.length, variables);
     for (int index = 0; index < variables.length; index++) {
       _expectedVariables[index].validate(scriptIndex, variables[index]);
     }
     JUnitTestCase.assertSameMsg(
-        "script ${scriptIndex}",
+        "script $scriptIndex",
         script,
         library.enclosingElement);
   }
@@ -10167,9 +10167,9 @@ class HtmlUnitBuilderTest_ExpectedVariable {
   final String _expectedName;
   HtmlUnitBuilderTest_ExpectedVariable(this._expectedName);
   void validate(int scriptIndex, TopLevelVariableElement variable) {
-    JUnitTestCase.assertNotNullMsg("script ${scriptIndex}", variable);
+    JUnitTestCase.assertNotNullMsg("script $scriptIndex", variable);
     JUnitTestCase.assertEqualsMsg(
-        "script ${scriptIndex}",
+        "script $scriptIndex",
         _expectedName,
         variable.name);
   }
@@ -10850,7 +10850,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
     while (_expectedTagsIndex < _expectedTagsInOrderVisited.length) {
       String expectedTag =
           _expectedTagsInOrderVisited[_expectedTagsIndex++]._tag;
-      _errors.add("Expected to visit node with tag: ${expectedTag}");
+      _errors.add("Expected to visit node with tag: $expectedTag");
     }
     if (!_errors.isEmpty) {
       StringBuffer buffer = new StringBuffer();
@@ -10898,17 +10898,17 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
           _expectedAttributeKeyValuePairs[_expectedAttributeIndex];
       if (expectedName != actualName) {
         _errors.add(
-            "Expected ${(_expectedTagsIndex - 1)} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${(_expectedAttributeIndex ~/ 2)} to have name: ${expectedName} but found: ${actualName}");
+            "Expected ${(_expectedTagsIndex - 1)} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${(_expectedAttributeIndex ~/ 2)} to have name: $expectedName but found: $actualName");
       }
       String expectedValue =
           _expectedAttributeKeyValuePairs[_expectedAttributeIndex + 1];
       if (expectedValue != actualValue) {
         _errors.add(
-            "Expected ${(_expectedTagsIndex - 1)} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${(_expectedAttributeIndex ~/ 2)} to have value: ${expectedValue} but found: ${actualValue}");
+            "Expected ${(_expectedTagsIndex - 1)} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${(_expectedAttributeIndex ~/ 2)} to have value: $expectedValue but found: $actualValue");
       }
     } else {
       _errors.add(
-          "Unexpected ${(_expectedTagsIndex - 1)} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${(_expectedAttributeIndex ~/ 2)} name: ${actualName} value: ${actualValue}");
+          "Unexpected ${(_expectedTagsIndex - 1)} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${(_expectedAttributeIndex ~/ 2)} name: $actualName value: $actualValue");
     }
     _expectedAttributeIndex += 2;
     _validateNode(actual);
@@ -10927,7 +10927,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
             _expectedTagsInOrderVisited[_expectedTagsIndex];
         if (expected._tag != actualTag) {
           _errors.add(
-              "Expected ${_expectedTagsIndex} tag: ${expected._tag} but found: ${actualTag}");
+              "Expected $_expectedTagsIndex tag: ${expected._tag} but found: $actualTag");
         }
         _expectedAttributeKeyValuePairs = expected._attributes._keyValuePairs;
         int expectedAttributeCount =
@@ -10936,7 +10936,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
         int actualAttributeCount = actual.attributes.length;
         if (expectedAttributeCount != actualAttributeCount) {
           _errors.add(
-              "Expected ${_expectedTagsIndex} tag: ${expected._tag} to have ${expectedAttributeCount} attributes but found ${actualAttributeCount}");
+              "Expected $_expectedTagsIndex tag: ${expected._tag} to have $expectedAttributeCount attributes but found $actualAttributeCount");
         }
         _expectedAttributeIndex = 0;
         _expectedTagsIndex++;
@@ -10949,7 +10949,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
           token = token.next;
           if (++count > 1000) {
             JUnitTestCase.fail(
-                "Expected ${_expectedTagsIndex} tag: ${expected._tag} to have a sequence of tokens from getAttributeEnd() to getContentEnd()");
+                "Expected $_expectedTagsIndex tag: ${expected._tag} to have a sequence of tokens from getAttributeEnd() to getContentEnd()");
             break;
           }
         }
@@ -10967,23 +10967,23 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
         }
         if (expected._content != null && expected._content != actual.content) {
           _errors.add(
-              "Expected ${_expectedTagsIndex} tag: ${expected._tag} to have content '${expected._content}' but found '${actual.content}'");
+              "Expected $_expectedTagsIndex tag: ${expected._tag} to have content '${expected._content}' but found '${actual.content}'");
         }
         if (expected._children.length != actual.tagNodes.length) {
           _errors.add(
-              "Expected ${_expectedTagsIndex} tag: ${expected._tag} to have ${expected._children.length} children but found ${actual.tagNodes.length}");
+              "Expected $_expectedTagsIndex tag: ${expected._tag} to have ${expected._children.length} children but found ${actual.tagNodes.length}");
         } else {
           for (int index = 0; index < expected._children.length; index++) {
             String expectedChildTag = expected._children[index]._tag;
             String actualChildTag = actual.tagNodes[index].tag;
             if (expectedChildTag != actualChildTag) {
               _errors.add(
-                  "Expected ${_expectedTagsIndex} tag: ${expected._tag} child ${index} to have tag: ${expectedChildTag} but found: ${actualChildTag}");
+                  "Expected $_expectedTagsIndex tag: ${expected._tag} child $index to have tag: $expectedChildTag but found: $actualChildTag");
             }
           }
         }
       } else {
-        _errors.add("Visited unexpected tag: ${actualTag}");
+        _errors.add("Visited unexpected tag: $actualTag");
       }
     }
     _validateNode(actual);
@@ -11021,11 +11021,11 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
       int parentEnd = parentStart + parent.length;
       if (nodeStart < parentStart) {
         _errors.add(
-            "Invalid source start (${nodeStart}) for ${node.runtimeType} inside ${parent.runtimeType} (${parentStart})");
+            "Invalid source start ($nodeStart) for ${node.runtimeType} inside ${parent.runtimeType} ($parentStart)");
       }
       if (nodeEnd > parentEnd) {
         _errors.add(
-            "Invalid source end (${nodeEnd}) for ${node.runtimeType} inside ${parent.runtimeType} (${parentStart})");
+            "Invalid source end ($nodeEnd) for ${node.runtimeType} inside ${parent.runtimeType} ($parentStart)");
       }
     }
   }
@@ -11087,7 +11087,7 @@ class _ExpectedScript {
   void _validateEmbedded(int scriptIndex, HtmlScriptElement script) {
     if (script is! EmbeddedHtmlScriptElementImpl) {
       JUnitTestCase.fail(
-          "Expected script ${scriptIndex} to be embedded, but found ${(script != null ? script.runtimeType : "null")}");
+          "Expected script $scriptIndex to be embedded, but found ${(script != null ? script.runtimeType : "null")}");
     }
     EmbeddedHtmlScriptElementImpl embeddedScript =
         script as EmbeddedHtmlScriptElementImpl;
@@ -11096,18 +11096,18 @@ class _ExpectedScript {
   void _validateExternal(int scriptIndex, HtmlScriptElement script) {
     if (script is! ExternalHtmlScriptElementImpl) {
       JUnitTestCase.fail(
-          "Expected script ${scriptIndex} to be external with src=${_expectedExternalScriptName} but found ${(script != null ? script.runtimeType : "null")}");
+          "Expected script $scriptIndex to be external with src=$_expectedExternalScriptName but found ${(script != null ? script.runtimeType : "null")}");
     }
     ExternalHtmlScriptElementImpl externalScript =
         script as ExternalHtmlScriptElementImpl;
     Source scriptSource = externalScript.scriptSource;
     if (_expectedExternalScriptName == null) {
-      JUnitTestCase.assertNullMsg("script ${scriptIndex}", scriptSource);
+      JUnitTestCase.assertNullMsg("script $scriptIndex", scriptSource);
     } else {
-      JUnitTestCase.assertNotNullMsg("script ${scriptIndex}", scriptSource);
+      JUnitTestCase.assertNotNullMsg("script $scriptIndex", scriptSource);
       String actualExternalScriptName = scriptSource.shortName;
       JUnitTestCase.assertEqualsMsg(
-          "script ${scriptIndex}",
+          "script $scriptIndex",
           _expectedExternalScriptName,
           actualExternalScriptName);
     }

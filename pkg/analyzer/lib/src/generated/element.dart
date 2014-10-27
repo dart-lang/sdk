@@ -167,7 +167,7 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
   }
 
   @override
-  String get identifier => "AngularComponent@${_annotationOffset}";
+  String get identifier => "AngularComponent@$_annotationOffset";
 }
 
 /**
@@ -271,7 +271,7 @@ class AngularDecoratorElementImpl extends AngularHasSelectorElementImpl implemen
   }
 
   @override
-  String get identifier => "Decorator@${_offset}";
+  String get identifier => "Decorator@$_offset";
 }
 
 /**
@@ -731,7 +731,7 @@ class AngularViewElementImpl extends AngularElementImpl implements AngularViewEl
   ElementKind get kind => ElementKind.ANGULAR_VIEW;
 
   @override
-  String get identifier => "AngularView@${templateUriOffset}";
+  String get identifier => "AngularView@$templateUriOffset";
 }
 
 /**
@@ -3378,7 +3378,7 @@ abstract class ElementImpl implements Element {
     }
     Source source = this.source;
     if (source != null) {
-      return "${shortName} (${source.fullName})";
+      return "$shortName (${source.fullName})";
     }
     return shortName;
   }
@@ -4910,7 +4910,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
   String get identifier {
     String identifier = super.identifier;
     if (!isStatic) {
-      identifier += "@${nameOffset}";
+      identifier += "@$nameOffset";
     }
     return identifier;
   }
@@ -6401,7 +6401,7 @@ class ImportElementImpl extends UriReferencedElementImpl implements ImportElemen
   }
 
   @override
-  String get identifier => "${(importedLibrary as LibraryElementImpl).identifier}@${nameOffset}";
+  String get identifier => "${(importedLibrary as LibraryElementImpl).identifier}@$nameOffset";
 }
 
 /**
@@ -7502,7 +7502,7 @@ class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
 
   String _attributeName;
 
-  IsTagHasAttributeSelectorElementImpl(String tagName, String attributeName) : super("${tagName}[${attributeName}]", -1) {
+  IsTagHasAttributeSelectorElementImpl(String tagName, String attributeName) : super("$tagName[$attributeName]", -1) {
     this._tagName = tagName;
     this._attributeName = attributeName;
   }
@@ -8345,7 +8345,7 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
   }
 
   @override
-  String get identifier => "${super.identifier}@${nameOffset}";
+  String get identifier => "${super.identifier}@$nameOffset";
 }
 
 /**
@@ -9987,7 +9987,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   String get identifier {
     String name = displayName;
     String suffix = isGetter ? "?" : "=";
-    return "${name}${suffix}";
+    return "$name$suffix";
   }
 }
 

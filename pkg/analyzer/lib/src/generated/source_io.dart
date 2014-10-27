@@ -32,7 +32,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
     if (path == null || path.length <= 0 || path.codeUnitAt(path.length - 1) == JavaFile.separatorChar) {
       return path;
     }
-    return "${path}${JavaFile.separator}";
+    return "$path${JavaFile.separator}";
   }
 
   /**
@@ -77,7 +77,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
   int get hashCode => _path.hashCode;
 
   @override
-  String toString() => "SourceContainer[${_path}]";
+  String toString() => "SourceContainer[$_path]";
 }
 
 /**
@@ -175,9 +175,9 @@ class FileBasedSource implements Source {
         String scheme = uri.scheme;
         String part = uri.path;
         if (scheme == DartUriResolver.DART_SCHEME && part.indexOf('/') < 0) {
-          part = "${part}/${part}.dart";
+          part = "$part/$part.dart";
         }
-        baseUri = parseUriWithException("${scheme}:/${part}");
+        baseUri = parseUriWithException("$scheme:/$part");
       }
       Uri result = baseUri.resolveUri(containedUri);
       if (isOpaque) {
@@ -185,7 +185,7 @@ class FileBasedSource implements Source {
       }
       return result;
     } catch (exception, stackTrace) {
-      throw new AnalysisException("Could not resolve URI (${containedUri}) relative to source (${uri})", new CaughtException(exception, stackTrace));
+      throw new AnalysisException("Could not resolve URI ($containedUri) relative to source ($uri)", new CaughtException(exception, stackTrace));
     }
   }
 
@@ -409,7 +409,7 @@ class PackageUriResolver extends UriResolver {
               String pkgCanonicalPath = pkgFolder.getCanonicalPath();
               if (sourcePath.startsWith(pkgCanonicalPath)) {
                 String relPath = sourcePath.substring(pkgCanonicalPath.length);
-                return parseUriWithException("${PACKAGE_SCHEME}:${pkgFolder.getName()}${relPath}");
+                return parseUriWithException("$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
               }
             } catch (e) {
             }
@@ -435,10 +435,10 @@ class PackageUriResolver extends UriResolver {
       pkgDir = pkgDir.getCanonicalFile();
     } on JavaIOException catch (e) {
       if (!e.toString().contains("Required key not available")) {
-        AnalysisEngine.instance.logger.logError2("Canonical failed: ${pkgDir}", e);
+        AnalysisEngine.instance.logger.logError2("Canonical failed: $pkgDir", e);
       } else if (_CanLogRequiredKeyIoException) {
         _CanLogRequiredKeyIoException = false;
-        AnalysisEngine.instance.logger.logError2("Canonical failed: ${pkgDir}", e);
+        AnalysisEngine.instance.logger.logError2("Canonical failed: $pkgDir", e);
       }
     }
     return new JavaFile.relative(pkgDir, relPath.replaceAll('/', new String.fromCharCode(JavaFile.separatorChar)));
@@ -455,7 +455,7 @@ class PackageUriResolver extends UriResolver {
     }
     String rootPath = rootDir.getAbsolutePath();
     String filePath = file.getAbsolutePath();
-    return filePath.startsWith("${rootPath}/lib");
+    return filePath.startsWith("$rootPath/lib");
   }
 }
 

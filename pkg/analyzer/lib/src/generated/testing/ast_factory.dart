@@ -340,7 +340,7 @@ class AstFactory {
 
   static StringInterpolation string(List<InterpolationElement> elements) => new StringInterpolation(list(elements));
 
-  static SimpleStringLiteral string2(String content) => new SimpleStringLiteral(TokenFactory.tokenFromString("'${content}'"), content);
+  static SimpleStringLiteral string2(String content) => new SimpleStringLiteral(TokenFactory.tokenFromString("'$content'"), content);
 
   static SuperConstructorInvocation superConstructorInvocation(List<Expression> arguments) => superConstructorInvocation2(null, arguments);
 

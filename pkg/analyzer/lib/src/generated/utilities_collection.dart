@@ -78,7 +78,7 @@ class BooleanArray {
    */
   static void _checkIndex(int index) {
     if (index < 0 || index > 30) {
-      throw new RangeError("Index not between 0 and 30: ${index}");
+      throw new RangeError("Index not between 0 and 30: $index");
     }
   }
 }

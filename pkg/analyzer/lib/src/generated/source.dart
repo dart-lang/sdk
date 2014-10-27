@@ -518,7 +518,7 @@ class SourceFactory {
         return _internalResolveUri(null, uri);
       }
     } catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not resolve URI: ${absoluteUri}", exception);
+      AnalysisEngine.instance.logger.logError2("Could not resolve URI: $absoluteUri", exception);
     }
     return null;
   }
@@ -535,7 +535,7 @@ class SourceFactory {
       try {
         return _internalResolveUri(null, absoluteUri);
       } on AnalysisException catch (exception, stackTrace) {
-        AnalysisEngine.instance.logger.logError2("Could not resolve URI: ${absoluteUri}", new CaughtException(exception, stackTrace));
+        AnalysisEngine.instance.logger.logError2("Could not resolve URI: $absoluteUri", new CaughtException(exception, stackTrace));
       }
     }
     return null;
@@ -552,7 +552,7 @@ class SourceFactory {
   Source fromEncoding(String encoding) {
     Source source = forUri(encoding);
     if (source == null) {
-      throw new IllegalArgumentException("Invalid source encoding: ${encoding}");
+      throw new IllegalArgumentException("Invalid source encoding: $encoding");
     }
     return source;
   }
@@ -600,7 +600,7 @@ class SourceFactory {
       // Force the creation of an escaped URI to deal with spaces, etc.
       return _internalResolveUri(containingSource, parseUriWithException(containedUri));
     } catch (exception) {
-      AnalysisEngine.instance.logger.logError2("Could not resolve URI (${containedUri}) relative to source (${containingSource.fullName})", exception);
+      AnalysisEngine.instance.logger.logError2("Could not resolve URI ($containedUri) relative to source (${containingSource.fullName})", exception);
       return null;
     }
   }
@@ -645,7 +645,7 @@ class SourceFactory {
   Source _internalResolveUri(Source containingSource, Uri containedUri) {
     if (!containedUri.isAbsolute) {
       if (containingSource == null) {
-        throw new AnalysisException("Cannot resolve a relative URI without a containing source: ${containedUri}");
+        throw new AnalysisException("Cannot resolve a relative URI without a containing source: $containedUri");
       }
       containedUri = containingSource.resolveRelativeUri(containedUri);
     }

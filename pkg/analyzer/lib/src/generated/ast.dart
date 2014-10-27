@@ -12444,7 +12444,7 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
     } on NodeLocator_NodeFoundException catch (exception) {
       // A node with the right source position was found.
     } catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Unable to locate element at offset (${_startOffset} - ${_endOffset})", exception);
+      AnalysisEngine.instance.logger.logInformation2("Unable to locate element at offset ($_startOffset - $_endOffset)", exception);
       return null;
     }
     return _foundNode;
@@ -20175,7 +20175,7 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
   void insert(int index, E node) {
     int length = _elements.length;
     if (index < 0 || index > length) {
-      throw new RangeError("Index: ${index}, Size: ${_elements.length}");
+      throw new RangeError("Index: $index, Size: ${_elements.length}");
     }
     owner.becomeParentOf(node);
     if (length == 0) {
@@ -20196,7 +20196,7 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
   }
   E operator[](int index) {
     if (index < 0 || index >= _elements.length) {
-      throw new RangeError("Index: ${index}, Size: ${_elements.length}");
+      throw new RangeError("Index: $index, Size: ${_elements.length}");
     }
     return _elements[index] as E;
   }
@@ -20226,7 +20226,7 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
   }
   E removeAt(int index) {
     if (index < 0 || index >= _elements.length) {
-      throw new RangeError("Index: ${index}, Size: ${_elements.length}");
+      throw new RangeError("Index: $index, Size: ${_elements.length}");
     }
     E removedNode = _elements[index] as E;
     int length = _elements.length;
@@ -20239,7 +20239,7 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
   }
   void operator[]=(int index, E node) {
     if (index < 0 || index >= _elements.length) {
-      throw new RangeError("Index: ${index}, Size: ${_elements.length}");
+      throw new RangeError("Index: $index, Size: ${_elements.length}");
     }
     owner.becomeParentOf(node);
     _elements[index] = node;

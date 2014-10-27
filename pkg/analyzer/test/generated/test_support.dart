@@ -79,7 +79,7 @@ class EngineTestCase extends JUnitTestCase {
       }
     }
     JUnitTestCase.fail(
-        "Could not find getter named ${getterName} in ${type.displayName}");
+        "Could not find getter named $getterName in ${type.displayName}");
     return null;
   }
 
@@ -97,7 +97,7 @@ class EngineTestCase extends JUnitTestCase {
       }
     }
     JUnitTestCase.fail(
-        "Could not find method named ${methodName} in ${type.displayName}");
+        "Could not find method named $methodName in ${type.displayName}");
     return null;
   }
 
@@ -131,10 +131,10 @@ class EngineTestCase extends JUnitTestCase {
   static void assertCollectionSize(int expectedSize, Iterable c) {
     if (c == null) {
       JUnitTestCase.fail(
-          "Expected collection of size ${expectedSize}; found null");
+          "Expected collection of size $expectedSize; found null");
     } else if (c.length != expectedSize) {
       JUnitTestCase.fail(
-          "Expected collection of size ${expectedSize}; contained ${c.length} elements");
+          "Expected collection of size $expectedSize; contained ${c.length} elements");
     }
   }
 
@@ -152,11 +152,11 @@ class EngineTestCase extends JUnitTestCase {
     int expectedSize = expectedElements.length;
     if (array == null) {
       JUnitTestCase.fail(
-          "Expected array of length ${expectedSize}; found null");
+          "Expected array of length $expectedSize; found null");
     }
     if (array.length != expectedSize) {
       JUnitTestCase.fail(
-          "Expected array of length ${expectedSize}; contained ${array.length} elements");
+          "Expected array of length $expectedSize; contained ${array.length} elements");
     }
     List<bool> found = new List<bool>.filled(expectedSize, false);
     for (int i = 0; i < expectedSize; i++) {
@@ -177,11 +177,11 @@ class EngineTestCase extends JUnitTestCase {
       }
       if (actual == null) {
         JUnitTestCase.assertTrueMsg(
-            "Content not as expected: is 'null' expected: ${expected}",
+            "Content not as expected: is 'null' expected: $expected",
             false);
       } else {
         JUnitTestCase.assertTrueMsg(
-            "Content not as expected: expected 'null' is: ${actual}",
+            "Content not as expected: expected 'null' is: $actual",
             false);
       }
     }
@@ -193,7 +193,7 @@ class EngineTestCase extends JUnitTestCase {
           "${actual.substring(diffAhead, diffPos)}^${actual.substring(diffPos, diffAfter)}";
       // use detailed message
       String message =
-          "Content not as expected: is\n${actual}\nDiffers at pos ${diffPos}: ${diffStr}\nexpected:\n${expected}";
+          "Content not as expected: is\n$actual\nDiffers at pos $diffPos: $diffStr\nexpected:\n$expected";
       JUnitTestCase.assertEqualsMsg(message, expected, actual);
     }
   }
@@ -225,7 +225,7 @@ class EngineTestCase extends JUnitTestCase {
         }
       }
       if (!wasExpected) {
-        JUnitTestCase.fail("The actual value ${actualValue} was not expected");
+        JUnitTestCase.fail("The actual value $actualValue was not expected");
       }
     }
   }
@@ -242,18 +242,18 @@ class EngineTestCase extends JUnitTestCase {
       List<Object> expectedElements) {
     int expectedSize = expectedElements.length;
     if (array == null) {
-      JUnitTestCase.fail("Expected array of size ${expectedSize}; found null");
+      JUnitTestCase.fail("Expected array of size $expectedSize; found null");
     }
     if (array.length != expectedSize) {
       JUnitTestCase.fail(
-          "Expected array of size ${expectedSize}; contained ${array.length} elements");
+          "Expected array of size $expectedSize; contained ${array.length} elements");
     }
     for (int i = 0; i < expectedSize; i++) {
       Object element = array[i];
       Object expectedElement = expectedElements[i];
       if (element != expectedElement) {
         JUnitTestCase.fail(
-            "Expected ${expectedElement} at [${i}]; found ${element}");
+            "Expected $expectedElement at [$i]; found $element");
       }
     }
   }
@@ -269,18 +269,18 @@ class EngineTestCase extends JUnitTestCase {
       List<Object> expectedElements) {
     int expectedSize = expectedElements.length;
     if (list == null) {
-      JUnitTestCase.fail("Expected list of size ${expectedSize}; found null");
+      JUnitTestCase.fail("Expected list of size $expectedSize; found null");
     }
     if (list.length != expectedSize) {
       JUnitTestCase.fail(
-          "Expected list of size ${expectedSize}; contained ${list.length} elements");
+          "Expected list of size $expectedSize; contained ${list.length} elements");
     }
     for (int i = 0; i < expectedSize; i++) {
       Object element = list[i];
       Object expectedElement = expectedElements[i];
       if (element != expectedElement) {
         JUnitTestCase.fail(
-            "Expected ${expectedElement} at [${i}]; found ${element}");
+            "Expected $expectedElement at [$i]; found $element");
       }
     }
   }
@@ -295,16 +295,16 @@ class EngineTestCase extends JUnitTestCase {
   static void assertExactElementsInSet(Set set, List<Object> expectedElements) {
     int expectedSize = expectedElements.length;
     if (set == null) {
-      JUnitTestCase.fail("Expected list of size ${expectedSize}; found null");
+      JUnitTestCase.fail("Expected list of size $expectedSize; found null");
     }
     if (set.length != expectedSize) {
       JUnitTestCase.fail(
-          "Expected list of size ${expectedSize}; contained ${set.length} elements");
+          "Expected list of size $expectedSize; contained ${set.length} elements");
     }
     for (int i = 0; i < expectedSize; i++) {
       Object expectedElement = expectedElements[i];
       if (!set.contains(expectedElement)) {
-        JUnitTestCase.fail("Expected ${expectedElement} in set${set}");
+        JUnitTestCase.fail("Expected $expectedElement in set$set");
       }
     }
   }
@@ -337,10 +337,10 @@ class EngineTestCase extends JUnitTestCase {
   static void assertLength(int expectedLength, List<Object> array) {
     if (array == null) {
       JUnitTestCase.fail(
-          "Expected array of length ${expectedLength}; found null");
+          "Expected array of length $expectedLength; found null");
     } else if (array.length != expectedLength) {
       JUnitTestCase.fail(
-          "Expected array of length ${expectedLength}; contained ${array.length} elements");
+          "Expected array of length $expectedLength; contained ${array.length} elements");
     }
   }
 
@@ -377,10 +377,10 @@ class EngineTestCase extends JUnitTestCase {
    */
   static void assertSizeOfList(int expectedSize, List list) {
     if (list == null) {
-      JUnitTestCase.fail("Expected list of size ${expectedSize}; found null");
+      JUnitTestCase.fail("Expected list of size $expectedSize; found null");
     } else if (list.length != expectedSize) {
       JUnitTestCase.fail(
-          "Expected list of size ${expectedSize}; contained ${list.length} elements");
+          "Expected list of size $expectedSize; contained ${list.length} elements");
     }
   }
 
@@ -394,10 +394,10 @@ class EngineTestCase extends JUnitTestCase {
    */
   static void assertSizeOfMap(int expectedSize, Map map) {
     if (map == null) {
-      JUnitTestCase.fail("Expected map of size ${expectedSize}; found null");
+      JUnitTestCase.fail("Expected map of size $expectedSize; found null");
     } else if (map.length != expectedSize) {
       JUnitTestCase.fail(
-          "Expected map of size ${expectedSize}; contained ${map.length} elements");
+          "Expected map of size $expectedSize; contained ${map.length} elements");
     }
   }
 
@@ -411,10 +411,10 @@ class EngineTestCase extends JUnitTestCase {
    */
   static void assertSizeOfSet(int expectedSize, Set set) {
     if (set == null) {
-      JUnitTestCase.fail("Expected set of size ${expectedSize}; found null");
+      JUnitTestCase.fail("Expected set of size $expectedSize; found null");
     } else if (set.length != expectedSize) {
       JUnitTestCase.fail(
-          "Expected set of size ${expectedSize}; contained ${set.length} elements");
+          "Expected set of size $expectedSize; contained ${set.length} elements");
     }
   }
 
@@ -474,7 +474,7 @@ class EngineTestCase extends JUnitTestCase {
           }
         }
       }
-      JUnitTestCase.fail("Does not contain ${element}");
+      JUnitTestCase.fail("Does not contain $element");
     }
   }
 }
@@ -711,7 +711,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     if (expectedErrorCount != actualErrorCount ||
         expectedWarningCount != actualWarningCount) {
       JUnitTestCase.fail(
-          "Expected ${expectedErrorCount} errors and ${expectedWarningCount} warnings, found ${actualErrorCount} errors and ${actualWarningCount} warnings");
+          "Expected $expectedErrorCount errors and $expectedWarningCount warnings, found $actualErrorCount errors and $actualWarningCount warnings");
     }
   }
 

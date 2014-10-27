@@ -297,7 +297,7 @@ class JavaException implements Exception {
   final Exception cause;
   JavaException([this.message = "", this.cause = null]);
   JavaException.withCause(this.cause) : message = null;
-  String toString() => "${runtimeType}: $message $cause";
+  String toString() => "$runtimeType: $message $cause";
 }
 
 class JavaIOException extends JavaException {

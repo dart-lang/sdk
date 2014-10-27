@@ -96,10 +96,10 @@ class AstValidator extends UnifyingAstVisitor<Object> {
       int parentStart = parent.offset;
       int parentEnd = parentStart + parent.length;
       if (nodeStart < parentStart) {
-        _errors.add("Invalid source start (${nodeStart}) for ${node.runtimeType} inside ${parent.runtimeType} (${parentStart})");
+        _errors.add("Invalid source start ($nodeStart) for ${node.runtimeType} inside ${parent.runtimeType} ($parentStart)");
       }
       if (nodeEnd > parentEnd) {
-        _errors.add("Invalid source end (${nodeEnd}) for ${node.runtimeType} inside ${parent.runtimeType} (${parentStart})");
+        _errors.add("Invalid source end ($nodeEnd) for ${node.runtimeType} inside ${parent.runtimeType} ($parentStart)");
       }
     }
   }
@@ -1782,8 +1782,8 @@ class IncrementalParserTest extends EngineTestCase {
     //
     // Compute the information needed to perform the test.
     //
-    String originalContents = "${prefix}${removed}${suffix}";
-    String modifiedContents = "${prefix}${added}${suffix}";
+    String originalContents = "$prefix$removed$suffix";
+    String modifiedContents = "$prefix$added$suffix";
     int replaceStart = prefix.length;
     Source source = new TestSource();
     //
@@ -7097,7 +7097,7 @@ void''', []);
 
   void test_parsePrimaryExpression_hex() {
     String hexLiteral = "3F";
-    IntegerLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "0x${hexLiteral}", []);
+    IntegerLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "0x$hexLiteral", []);
     JUnitTestCase.assertNotNull(literal.literal);
     JUnitTestCase.assertEquals(int.parse(hexLiteral, radix: 16), literal.value);
   }

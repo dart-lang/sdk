@@ -417,8 +417,8 @@ a''', "", " ", " + b;");
     //
     // Compute the information needed to perform the test.
     //
-    String originalContents = "${prefix}${removed}${suffix}";
-    String modifiedContents = "${prefix}${added}${suffix}";
+    String originalContents = "$prefix$removed$suffix";
+    String modifiedContents = "$prefix$added$suffix";
     int replaceStart = prefix.length;
     Source source = new TestSource();
     //
@@ -1173,7 +1173,7 @@ class ScannerTest extends JUnitTestCase {
 
   void test_string_raw_simple_unterminated_eol() {
     String source = "r'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "${source}\n", [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "$source\n", [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_simple_double() {
@@ -1267,7 +1267,7 @@ class ScannerTest extends JUnitTestCase {
 
   void test_string_simple_unterminated_eol() {
     String source = "'string";
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "${source}\r", [new StringToken(TokenType.STRING, source, 0)]);
+    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "$source\r", [new StringToken(TokenType.STRING, source, 0)]);
   }
 
   void test_string_simple_unterminated_interpolation_block() {
@@ -1319,7 +1319,7 @@ class ScannerTest extends JUnitTestCase {
     //
     // Test with a trailing end-of-line marker
     //
-    token = _scan("${source}\n");
+    token = _scan("$source\n");
     JUnitTestCase.assertNotNull(token);
     JUnitTestCase.assertEquals(TokenType.EOF, token.type);
     comment = token.precedingComments;
@@ -1375,7 +1375,7 @@ class ScannerTest extends JUnitTestCase {
     Object value = token.value();
     JUnitTestCase.assertTrue(value is Keyword);
     JUnitTestCase.assertEquals(source, (value as Keyword).syntax);
-    token = _scan(" ${source} ");
+    token = _scan(" $source ");
     JUnitTestCase.assertNotNull(token);
     JUnitTestCase.assertEquals(TokenType.KEYWORD, token.type);
     JUnitTestCase.assertEquals(1, token.offset);
@@ -1418,7 +1418,7 @@ class ScannerTest extends JUnitTestCase {
       return originalToken;
     } else if (expectedType == TokenType.SINGLE_LINE_COMMENT) {
       // Adding space to an end-of-line comment changes the comment.
-      Token tokenWithSpaces = _scan(" ${source}");
+      Token tokenWithSpaces = _scan(" $source");
       JUnitTestCase.assertNotNull(tokenWithSpaces);
       JUnitTestCase.assertEquals(expectedType, tokenWithSpaces.type);
       JUnitTestCase.assertEquals(1, tokenWithSpaces.offset);
@@ -1439,7 +1439,7 @@ class ScannerTest extends JUnitTestCase {
       JUnitTestCase.assertEquals(source.length, tokenWithUpperD.length);
       JUnitTestCase.assertEquals(source, tokenWithUpperD.lexeme);
     }
-    Token tokenWithSpaces = _scan(" ${source} ");
+    Token tokenWithSpaces = _scan(" $source ");
     JUnitTestCase.assertNotNull(tokenWithSpaces);
     JUnitTestCase.assertEquals(expectedType, tokenWithSpaces.type);
     JUnitTestCase.assertEquals(1, tokenWithSpaces.offset);
@@ -1466,10 +1466,10 @@ class ScannerTest extends JUnitTestCase {
     Token token = firstToken;
     for (int i = 0; i < expectedTokens.length; i++) {
       Token expectedToken = expectedTokens[i];
-      JUnitTestCase.assertEqualsMsg("Wrong type for token ${i}", expectedToken.type, token.type);
-      JUnitTestCase.assertEqualsMsg("Wrong offset for token ${i}", expectedToken.offset, token.offset);
-      JUnitTestCase.assertEqualsMsg("Wrong length for token ${i}", expectedToken.length, token.length);
-      JUnitTestCase.assertEqualsMsg("Wrong lexeme for token ${i}", expectedToken.lexeme, token.lexeme);
+      JUnitTestCase.assertEqualsMsg("Wrong type for token $i", expectedToken.type, token.type);
+      JUnitTestCase.assertEqualsMsg("Wrong offset for token $i", expectedToken.offset, token.offset);
+      JUnitTestCase.assertEqualsMsg("Wrong length for token $i", expectedToken.length, token.length);
+      JUnitTestCase.assertEqualsMsg("Wrong lexeme for token $i", expectedToken.lexeme, token.lexeme);
       token = token.next;
       JUnitTestCase.assertNotNull(token);
     }

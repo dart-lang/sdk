@@ -1001,7 +1001,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         ConstructorElement constructorElement = element;
         displayName = constructorElement.enclosingElement.displayName;
         if (!constructorElement.displayName.isEmpty) {
-          displayName = "${displayName}.${constructorElement.displayName}";
+          displayName = "$displayName.${constructorElement.displayName}";
         }
       }
       _errorReporter.reportErrorForNode(HintCode.DEPRECATED_MEMBER_USE, node, [displayName]);
@@ -6883,7 +6883,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         String nameStr = name.name;
         Element element = namespace.get(nameStr);
         if (element == null) {
-          element = namespace.get("${nameStr}=");
+          element = namespace.get("$nameStr=");
         }
         if (element != null) {
           // Ensure that the name always resolves to a top-level variable
@@ -6983,7 +6983,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         // Look to see whether the name of the method is really part of a prefixed identifier for an
         // imported top-level function or top-level getter that returns a function.
         //
-        String name = "${target.name}.${methodName}";
+        String name = "${target.name}.$methodName";
         Identifier functionName = new ElementResolver_SyntheticIdentifier(name);
         Element element = _resolver.nameScope.lookup(functionName, _definingLibrary);
         if (element != null) {
@@ -11442,9 +11442,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
       if (enclosingElement != null) {
-        newStrMember = "${prefix}'${enclosingElement.displayName}.${missingOverridesArray[i].displayName}'";
+        newStrMember = "$prefix'${enclosingElement.displayName}.${missingOverridesArray[i].displayName}'";
       } else {
-        newStrMember = "${prefix}'${missingOverridesArray[i].displayName}'";
+        newStrMember = "$prefix'${missingOverridesArray[i].displayName}'";
       }
       stringMembersArrayListSet.add(newStrMember);
     }
@@ -16109,7 +16109,7 @@ class LibraryImportScope extends Scope {
       return conflictingMembers[0];
     } else if (to == 0) {
       // All members were removed
-      AnalysisEngine.instance.logger.logInformation("Multiply defined SDK element: ${foundElement}");
+      AnalysisEngine.instance.logger.logInformation("Multiply defined SDK element: $foundElement");
       return foundElement;
     }
     List<Element> remaining = new List<Element>(to);
@@ -17964,7 +17964,7 @@ class NamespaceBuilder {
   void _hide(HashMap<String, Element> definedNames, List<String> hiddenNames) {
     for (String name in hiddenNames) {
       definedNames.remove(name);
-      definedNames.remove("${name}=");
+      definedNames.remove("$name=");
     }
   }
 
@@ -17982,7 +17982,7 @@ class NamespaceBuilder {
       if (element != null) {
         newNames[name] = element;
       }
-      String setterName = "${name}=";
+      String setterName = "$name=";
       element = definedNames[setterName];
       if (element != null) {
         newNames[setterName] = element;
@@ -23709,7 +23709,7 @@ class TypeProviderImpl implements TypeProvider {
   InterfaceType _getType(Namespace namespace, String typeName) {
     Element element = namespace.get(typeName);
     if (element == null) {
-      AnalysisEngine.instance.logger.logInformation("No definition of type ${typeName}");
+      AnalysisEngine.instance.logger.logInformation("No definition of type $typeName");
       return null;
     }
     return (element as ClassElement).type;

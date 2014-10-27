@@ -3365,7 +3365,7 @@ class UnionTypeImplTest extends EngineTestCase {
     UnionType u = UnionTypeImpl.union([_uAB, _typeA]) as UnionType;
     for (DartType t in u.elements) {
       if (t is UnionType) {
-        JUnitTestCase.fail("Expected only non-union types but found ${t}!");
+        JUnitTestCase.fail("Expected only non-union types but found $t!");
       }
     }
   }
