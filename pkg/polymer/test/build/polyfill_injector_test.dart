@@ -74,6 +74,40 @@ void runTests({bool js: true}) {
           '</body></html>',
     });
 
+  testPhases('dart_support.js after platform.js, platform present', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '$PLATFORM_JS_TAG'
+          '</head><body>'
+          '<script type="application/dart" src="a.dart"></script>'
+          '$dartJsTag'
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '$WEB_COMPONENTS_TAG'
+          '</head><body>'
+          '<script ${type}src="a.dart$ext"$async></script>'
+          '$dartJsTag'
+          '</body></html>',
+    });
+
+  testPhases('dart_support.js after platform.js, dart_support present', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '$DART_SUPPORT_TAG'
+          '</head><body>'
+          '<script type="application/dart" src="a.dart"></script>'
+          '$dartJsTag'
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '$WEB_COMPONENTS_TAG'
+          '</head><body>'
+          '<script ${type}src="a.dart$ext"$async></script>'
+          '$dartJsTag'
+          '</body></html>',
+    });
+
   var noPlatformPhases = [[new PolyfillInjector(new TransformOptions(
         directlyIncludeJS: js, injectPlatformJs: false))]];
 

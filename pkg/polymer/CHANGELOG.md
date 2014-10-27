@@ -1,3 +1,7 @@
+#### 0.15.1+3
+  * Make sure that `dart_support.js` is always appended after `platform.js`,
+    [21435](http://dartbug.com/21435).
+
 #### 0.15.1+2
   * Handle and warn about cases where a script file is included twice from the
     same entrypoint [21332](http://dartbug.com/21332).
