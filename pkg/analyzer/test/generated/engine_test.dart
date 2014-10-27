@@ -210,6 +210,8 @@ class AnalysisContextImplTest extends EngineTestCase {
     AnalysisOptionsImpl options =
         new AnalysisOptionsImpl.con1(_context.analysisOptions);
     options.cacheSize = 256;
+    options.enableAsync = true;
+    options.enableEnum = true;
     _context.analysisOptions = options;
   }
 
@@ -675,6 +677,16 @@ class A {
     ElementLocation location = constructor.location;
     Element element = _context.getElement(location);
     JUnitTestCase.assertSame(constructor, element);
+  }
+
+  void test_getElement_enum() {
+    Source source = _addSource('/test.dart', 'enum MyEnum {A, B, C}');
+    _analyzeAll_assertFinished();
+    LibraryElement library = _context.computeLibraryElement(source);
+    ClassElement myEnum = library.definingCompilationUnit.getEnum('MyEnum');
+    ElementLocation location = myEnum.location;
+    Element element = _context.getElement(location);
+    JUnitTestCase.assertSame(myEnum, element);
   }
 
   void test_getErrors_dart_none() {

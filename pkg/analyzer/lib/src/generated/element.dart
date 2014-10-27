@@ -2086,6 +2086,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements Com
         return type as ClassElementImpl;
       }
     }
+    for (ClassElement type in _enums) {
+      if ((type as ClassElementImpl).identifier == identifier) {
+        return type as ClassElementImpl;
+      }
+    }
     return null;
   }
 
