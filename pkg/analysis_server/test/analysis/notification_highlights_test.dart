@@ -161,6 +161,32 @@ main() {
     });
   }
 
+  test_BUILT_IN_async() {
+    addTestFile('''
+fa() async {}
+fb() async* {}
+main() {
+  bool async = false;
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightRegionType.BUILT_IN, 'async');
+      assertHasStringRegion(HighlightRegionType.BUILT_IN, 'async*');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'async = false');
+    });
+  }
+
+  test_BUILT_IN_await() {
+    addTestFile('''
+main() async {
+  await 42;
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'await 42');
+    });
+  }
+
   test_BUILT_IN_deferred() {
     addTestFile('''
 import 'dart:math' deferred as math;
@@ -400,6 +426,21 @@ main() {
     });
   }
 
+  test_BUILT_IN_sync() {
+    addTestFile('''
+fa() sync {}
+fb() sync* {}
+main() {
+  bool sync = false;
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightRegionType.BUILT_IN, 'sync');
+      assertHasStringRegion(HighlightRegionType.BUILT_IN, 'sync*');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'sync = false');
+    });
+  }
+
   test_BUILT_IN_typedef() {
     addTestFile('''
 typedef A();
@@ -409,6 +450,28 @@ main() {
     return prepareHighlights().then((_) {
       assertHasRegion(HighlightRegionType.BUILT_IN, 'typedef A();');
       assertNoRegion(HighlightRegionType.BUILT_IN, 'typedef = 42');
+    });
+  }
+
+  test_BUILT_IN_yield() {
+    addTestFile('''
+main() async* {
+  yield 42;
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'yield 42');
+    });
+  }
+
+  test_BUILT_IN_yieldStar() {
+    addTestFile('''
+main() async* {
+  yield* [];
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightRegionType.BUILT_IN, 'yield*');
     });
   }
 

@@ -371,6 +371,18 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAwaitExpression(AwaitExpression node) {
+    computer._addRegion_token(node.awaitKeyword, HighlightRegionType.BUILT_IN);
+    return super.visitAwaitExpression(node);
+  }
+
+  @override
+  Object visitBlockFunctionBody(BlockFunctionBody node) {
+    _addRegions_functionBody(node);
+    return super.visitBlockFunctionBody(node);
+  }
+
+  @override
   Object visitBooleanLiteral(BooleanLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.KEYWORD);
     computer._addRegion_node(node, HighlightRegionType.LITERAL_BOOLEAN);
@@ -448,6 +460,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     return super.visitExportDirective(node);
+  }
+
+  @override
+  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    _addRegions_functionBody(node);
+    return super.visitExpressionFunctionBody(node);
   }
 
   @override
@@ -693,5 +711,25 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
   Object visitWithClause(WithClause node) {
     computer._addRegion_token(node.withKeyword, HighlightRegionType.KEYWORD);
     return super.visitWithClause(node);
+  }
+
+  @override
+  Object visitYieldStatement(YieldStatement node) {
+    Token keyword = node.yieldKeyword;
+    Token star = node.star;
+    int offset = keyword.offset;
+    int end = star != null ? star.end : keyword.end;
+    computer._addRegion(offset, end - offset, HighlightRegionType.BUILT_IN);
+    return super.visitYieldStatement(node);
+  }
+
+  void _addRegions_functionBody(FunctionBody node) {
+    Token keyword = node.keyword;
+    if (keyword != null) {
+      Token star = node.star;
+      int offset = keyword.offset;
+      int end = star != null ? star.end : keyword.end;
+      computer._addRegion(offset, end - offset, HighlightRegionType.BUILT_IN);
+    }
   }
 }
