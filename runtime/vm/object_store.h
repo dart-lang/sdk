@@ -124,6 +124,11 @@ class ObjectStore {
     completer_class_ = value.raw();
   }
 
+  RawClass* stream_iterator_class() const { return stream_iterator_class_; }
+  void set_stream_iterator_class(const Class& value) {
+    stream_iterator_class_ = value.raw();
+  }
+
   RawClass* one_byte_string_class() const { return one_byte_string_class_; }
   void set_one_byte_string_class(const Class& value) {
     one_byte_string_class_ = value.raw();
@@ -447,6 +452,7 @@ class ObjectStore {
   RawType* string_type_;
   RawClass* future_class_;
   RawClass* completer_class_;
+  RawClass* stream_iterator_class_;
   RawClass* one_byte_string_class_;
   RawClass* two_byte_string_class_;
   RawClass* external_one_byte_string_class_;

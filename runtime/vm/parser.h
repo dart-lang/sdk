@@ -568,6 +568,7 @@ class Parser : public ValueObject {
   AstNode* ParseWhileStatement(String* label_name);
   AstNode* ParseDoWhileStatement(String* label_name);
   AstNode* ParseForStatement(String* label_name);
+  AstNode* ParseAwaitForStatement(String* label_name);
   AstNode* ParseForInStatement(intptr_t forin_pos, SourceLabel* label);
   RawClass* CheckCaseExpressions(const GrowableArray<LiteralNode*>& values);
   CaseNode* ParseCaseClause(LocalVariable* switch_expr_value,
