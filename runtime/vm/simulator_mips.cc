@@ -957,7 +957,7 @@ void Simulator::WriteD(uword addr, double value, Instr* instr) {
 void Simulator::SetExclusiveAccess(uword addr) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  ASSERT(exclusive_access_lock_->Owner() == isolate);
+  DEBUG_ASSERT(exclusive_access_lock_->Owner() == isolate);
   int i = 0;
   // Find an entry for this isolate in the exclusive access state.
   while ((i < kNumAddressTags) &&
@@ -981,7 +981,7 @@ bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ASSERT(addr != 0);
-  ASSERT(exclusive_access_lock_->Owner() == isolate);
+  DEBUG_ASSERT(exclusive_access_lock_->Owner() == isolate);
   bool result = false;
   for (int i = 0; i < kNumAddressTags; i++) {
     if (exclusive_access_state_[i].isolate == isolate) {
