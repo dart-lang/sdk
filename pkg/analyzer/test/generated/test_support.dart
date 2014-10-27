@@ -321,7 +321,7 @@ class EngineTestCase extends JUnitTestCase {
       Type expectedClass, Object object) {
     if (!predicate(object)) {
       JUnitTestCase.fail(
-          "Expected instance of $expectedClass, found ${(object == null ? "null" : object.runtimeType)}");
+          "Expected instance of $expectedClass, found ${object == null ? "null" : object.runtimeType}");
     }
     return object;
   }

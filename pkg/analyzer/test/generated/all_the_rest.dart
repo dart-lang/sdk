@@ -370,7 +370,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
       return ht.TokenType.TEXT;
     }
     JUnitTestCase.fail(
-        "Unknown expected token $count: ${(expected != null ? expected.runtimeType : "null")}");
+        "Unknown expected token $count: ${expected != null ? expected.runtimeType : "null"}");
     return null;
   }
 
@@ -4505,7 +4505,7 @@ const c_num = const C<num>();''');
     String fieldName = "j";
     String paramName = isFieldFormal ? fieldName : "i";
     String formalParam =
-        "${(isFieldFormal ? "this." : "int ")}$paramName${(hasDefault ? " = 3" : "")}";
+        "${isFieldFormal ? "this." : "int "}$paramName${hasDefault ? " = 3" : ""}";
     CompilationUnit compilationUnit = resolveSource("""
 const x = const A();
 const y = const A(${isNamed ? '$paramName: ' : ''}10);
@@ -10898,17 +10898,17 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
           _expectedAttributeKeyValuePairs[_expectedAttributeIndex];
       if (expectedName != actualName) {
         _errors.add(
-            "Expected ${(_expectedTagsIndex - 1)} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${(_expectedAttributeIndex ~/ 2)} to have name: $expectedName but found: $actualName");
+            "Expected ${_expectedTagsIndex - 1} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${_expectedAttributeIndex ~/ 2} to have name: $expectedName but found: $actualName");
       }
       String expectedValue =
           _expectedAttributeKeyValuePairs[_expectedAttributeIndex + 1];
       if (expectedValue != actualValue) {
         _errors.add(
-            "Expected ${(_expectedTagsIndex - 1)} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${(_expectedAttributeIndex ~/ 2)} to have value: $expectedValue but found: $actualValue");
+            "Expected ${_expectedTagsIndex - 1} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${_expectedAttributeIndex ~/ 2} to have value: $expectedValue but found: $actualValue");
       }
     } else {
       _errors.add(
-          "Unexpected ${(_expectedTagsIndex - 1)} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${(_expectedAttributeIndex ~/ 2)} name: $actualName value: $actualValue");
+          "Unexpected ${_expectedTagsIndex - 1} tag: ${_expectedTagsInOrderVisited[_expectedTagsIndex - 1]._tag} attribute ${_expectedAttributeIndex ~/ 2} name: $actualName value: $actualValue");
     }
     _expectedAttributeIndex += 2;
     _validateNode(actual);
@@ -11087,7 +11087,7 @@ class _ExpectedScript {
   void _validateEmbedded(int scriptIndex, HtmlScriptElement script) {
     if (script is! EmbeddedHtmlScriptElementImpl) {
       JUnitTestCase.fail(
-          "Expected script $scriptIndex to be embedded, but found ${(script != null ? script.runtimeType : "null")}");
+          "Expected script $scriptIndex to be embedded, but found ${script != null ? script.runtimeType : "null"}");
     }
     EmbeddedHtmlScriptElementImpl embeddedScript =
         script as EmbeddedHtmlScriptElementImpl;
@@ -11096,7 +11096,7 @@ class _ExpectedScript {
   void _validateExternal(int scriptIndex, HtmlScriptElement script) {
     if (script is! ExternalHtmlScriptElementImpl) {
       JUnitTestCase.fail(
-          "Expected script $scriptIndex to be external with src=$_expectedExternalScriptName but found ${(script != null ? script.runtimeType : "null")}");
+          "Expected script $scriptIndex to be external with src=$_expectedExternalScriptName but found ${script != null ? script.runtimeType : "null"}");
     }
     ExternalHtmlScriptElementImpl externalScript =
         script as ExternalHtmlScriptElementImpl;

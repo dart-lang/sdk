@@ -6406,7 +6406,7 @@ class ResolverTestCase extends EngineTestCase {
 
   Source resolveSources(List<String> sourceTexts) {
     for (int i = 0; i < sourceTexts.length; i++) {
-      CompilationUnit unit = resolveSource2("/lib${(i + 1)}.dart", sourceTexts[i]);
+      CompilationUnit unit = resolveSource2("/lib${i + 1}.dart", sourceTexts[i]);
       // reference the source if this is the last source
       if (i + 1 == sourceTexts.length) {
         return unit.element.source;

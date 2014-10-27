@@ -9405,7 +9405,7 @@ class IncrementalAnalysisTask extends AnalysisTask {
   Source get source => cache != null ? cache.source : null;
 
   @override
-  String get taskDescription => "incremental analysis ${(cache != null ? cache.source : "null")}";
+  String get taskDescription => "incremental analysis ${cache != null ? cache.source : "null"}";
 
   @override
   void internalPerform() {
