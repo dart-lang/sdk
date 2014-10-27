@@ -236,7 +236,7 @@ void jsonMalformedTest(name, expect, codes) {
 
 // Test that `codeString.codeUnits` fails to parse as UTF-8 JSON,
 // even with decoder not throwing on malformed encodings.
-void jsonThrows(Strig name, String codeString) {
+void jsonThrows(String name, String codeString) {
   testJsonThrows(tag, action) {
     // Not allowing malformed, expect throw.
     var sink = new ChunkedConversionSink.withCallback((values) {

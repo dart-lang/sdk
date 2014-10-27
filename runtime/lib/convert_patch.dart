@@ -945,7 +945,8 @@ abstract class _ChunkedJsonParser {
       }
       if (char == BACKSLASH) {
         beginString();
-        addSliceToString(start, position - 1);
+        int sliceEnd = position - 1;
+        if (start < sliceEnd) addSliceToString(start, sliceEnd);
         return parseStringToBuffer(position - 1);
       }
       if (char == QUOTE) {
@@ -957,7 +958,7 @@ abstract class _ChunkedJsonParser {
       }
     }
     beginString();
-    addSliceToString(start, end);
+    if (start < end) addSliceToString(start, end);
     return chunkString(STR_PLAIN);
   }
 
@@ -1635,7 +1636,7 @@ class _JsonUtf8Parser extends _ChunkedJsonParser {
 
   String getString(int start, int end) {
     beginString();
-    addSliceToString(start, end);
+    if (start < end) addSliceToString(start, end);
     String result = endString();
     return result;
   }
