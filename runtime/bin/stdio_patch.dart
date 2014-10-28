@@ -30,7 +30,7 @@ patch class _StdIOUtils {
       case _STDIO_HANDLE_TYPE_PIPE:
       case _STDIO_HANDLE_TYPE_SOCKET:
       case _STDIO_HANDLE_TYPE_FILE:
-        return wrap(new IOSink(new _FileStreamConsumer.fromStdio(fd)));
+        return wrap(new IOSink(new _StdConsumer(fd)));
       default:
         throw new FileSystemException("Unsupported stdin type");
     }

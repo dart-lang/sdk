@@ -176,11 +176,6 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
     _openFuture = _file.open(mode: mode);
   }
 
-  _FileStreamConsumer.fromStdio(int fd) {
-    assert(1 <= fd && fd <= 2);
-    _openFuture = new Future.value(_File._openStdioSync(fd));
-  }
-
   Future<File> addStream(Stream<List<int>> stream) {
     Completer<File> completer = new Completer<File>.sync();
     _openFuture

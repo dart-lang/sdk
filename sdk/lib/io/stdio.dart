@@ -191,6 +191,36 @@ class StdoutException implements IOException {
 }
 
 
+class _StdConsumer implements StreamConsumer<List<int>> {
+  final _file;
+
+  _StdConsumer(int fd) : _file = _File._openStdioSync(fd);
+
+  Future addStream(Stream<List<int>> stream) {
+    var completer = new Completer();
+    var sub;
+    sub = stream.listen(
+        (data) {
+          try {
+            _file.writeFromSync(data);
+          } catch (e, s) {
+            sub.cancel();
+            completer.completeError(e, s);
+          }
+        },
+        onError: completer.completeError,
+        onDone: completer.complete,
+        cancelOnError: true);
+    return completer.future;
+  }
+
+  Future close() {
+    _file.closeSync();
+    return new Future.value();
+  }
+}
+
+
 class _StdSink implements IOSink {
   final IOSink _sink;
 
