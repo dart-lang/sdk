@@ -15,7 +15,7 @@ import 'navigation_test.dart' as navigation_test;
 import 'occurrences_test.dart' as occurrences_test;
 import 'outline_test.dart' as outline_test;
 import 'overrides_test.dart' as overrides_test;
-import 'package_root.dart' as package_root_test;
+import 'package_root_test.dart' as package_root_test;
 import 'update_content_test.dart' as update_content_test;
 import 'update_content_list_test.dart' as update_content_list_test;
 
