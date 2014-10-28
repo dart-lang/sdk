@@ -154,6 +154,10 @@ abstract class AbstractAnalysisServerIntegrationTest extends
       expect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
+    onServerError.listen((ServerErrorParams params) {
+      // A server error should never happen during an integration test.
+      fail(params.message);
+    });
     return server.start().then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {

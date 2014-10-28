@@ -180,12 +180,13 @@ class AnalysisServer {
 
   /**
    * A queue of the operations to perform in this server.
-   *
-   * Invariant: when this queue is non-empty, there is exactly one pending call
-   * to [performOperation] on the event queue.  When this list is empty, there are
-   * no calls to [performOperation] on the event queue.
    */
   ServerOperationQueue operationQueue;
+
+  /**
+   * True if there is a pending future which will execute [performOperation].
+   */
+  bool performOperationPending = false;
 
   /**
    * A set of the [ServerService]s to send notifications for.
@@ -268,9 +269,8 @@ class AnalysisServer {
    * Schedules execution of the given [ServerOperation].
    */
   void scheduleOperation(ServerOperation operation) {
-    bool wasEmpty = operationQueue.isEmpty;
     addOperation(operation);
-    if (wasEmpty) {
+    if (!performOperationPending) {
       _schedulePerformOperation();
     }
   }
@@ -485,6 +485,8 @@ class AnalysisServer {
    * Perform the next available [ServerOperation].
    */
   void performOperation() {
+    assert(performOperationPending);
+    performOperationPending = false;
     if (!running) {
       // An error has occurred, or the connection to the client has been
       // closed, since this method was scheduled on the event queue.  So
@@ -494,6 +496,12 @@ class AnalysisServer {
     }
     // prepare next operation
     ServerOperation operation = operationQueue.take();
+    if (operation == null) {
+      // This can happen if the operation queue is cleared while the operation
+      // loop is in progress.  No problem; we just need to exit the operation
+      // loop and wait for the next operation to be added.
+      return;
+    }
     sendStatusNotification(operation);
     // perform the operation
     try {
@@ -911,7 +919,9 @@ class AnalysisServer {
    * Schedules [performOperation] exection.
    */
   void _schedulePerformOperation() {
+    assert (!performOperationPending);
     new Future(performOperation);
+    performOperationPending = true;
   }
 
   /**

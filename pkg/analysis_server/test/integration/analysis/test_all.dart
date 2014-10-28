@@ -16,6 +16,8 @@ import 'occurrences_test.dart' as occurrences_test;
 import 'outline_test.dart' as outline_test;
 import 'overrides_test.dart' as overrides_test;
 import 'package_root_test.dart' as package_root_test;
+import 'reanalyze_concurrent_test.dart' as reanalyze_concurrent_test;
+import 'reanalyze_test.dart' as reanalyze_test;
 import 'update_content_test.dart' as update_content_test;
 import 'update_content_list_test.dart' as update_content_list_test;
 
@@ -35,6 +37,8 @@ main() {
     outline_test.main();
     overrides_test.main();
     package_root_test.main();
+    reanalyze_concurrent_test.main();
+    reanalyze_test.main();
     update_content_test.main();
     update_content_list_test.main();
   });

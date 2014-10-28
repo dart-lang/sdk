@@ -94,6 +94,7 @@ main() {
       MockServerOperation operation = new MockServerOperation(
           ServerOperationPriority.ANALYSIS, (_) { throw exceptionToThrow; });
       helper.server.operationQueue.add(operation);
+      helper.server.performOperationPending = true;
       try {
         helper.server.performOperation();
         fail('exception not rethrown');
