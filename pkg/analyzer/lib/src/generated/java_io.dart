@@ -1,7 +1,7 @@
 library java.io;
 
 import "dart:io";
-import 'java_core.dart' show JavaIOException, CharSequence;
+import 'java_core.dart' show JavaIOException;
 import 'package:path/path.dart' as pathos;
 
 class JavaSystemIO {

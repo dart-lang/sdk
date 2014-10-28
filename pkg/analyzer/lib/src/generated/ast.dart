@@ -13627,7 +13627,7 @@ class NodeReplacer implements AstVisitor<bool> {
     int count = list.length;
     for (int i = 0; i < count; i++) {
       if (identical(_oldNode, list[i])) {
-        javaListSet(list, i, _newNode);
+        list[i] = _newNode;
         return true;
       }
     }

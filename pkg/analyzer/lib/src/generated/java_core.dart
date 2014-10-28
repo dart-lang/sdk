@@ -116,20 +116,6 @@ class Character {
   }
 }
 
-class CharSequence {
-  final String _content;
-  CharSequence(this._content);
-  static CharSequence wrap(String content) => new CharBuffer(content);
-  int charAt(int index) => _content.codeUnitAt(index);
-  int length() => _content.length;
-  String subSequence(int start, int end) => _content.substring(start, end);
-}
-
-class CharBuffer extends CharSequence {
-  CharBuffer(String content) : super(content);
-  static CharBuffer wrap(String content) => new CharBuffer(content);
-}
-
 class JavaString {
   static int indexOf(String target, String str, int fromIndex) {
     if (fromIndex > target.length) return -1;
@@ -369,12 +355,6 @@ bool javaCollectionContainsAll(Iterable list, Iterable c) {
 
 bool javaSetEquals(Set a, Set b) {
   return a.containsAll(b) && b.containsAll(a);
-}
-
-javaMapPut(Map target, key, value) {
-  var oldValue = target[key];
-  target[key] = value;
-  return oldValue;
 }
 
 bool javaStringEqualsIgnoreCase(String a, String b) {

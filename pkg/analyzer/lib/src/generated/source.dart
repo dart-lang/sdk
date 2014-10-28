@@ -71,13 +71,17 @@ class ContentCache {
       return _contentMap.remove(source);
     } else {
       int newStamp = JavaSystem.currentTimeMillis();
-      int oldStamp = javaMapPut(_stampMap, source, newStamp);
-      // Occasionally, if this method is called in rapid succession, the timestamps are equal.
-      // Guard against this by artificially incrementing the new timestamp
+      int oldStamp = _stampMap[source];
+      _stampMap[source] = newStamp;
+      // Occasionally, if this method is called in rapid succession, the
+      // timestamps are equal. Guard against this by artificially incrementing
+      // the new timestamp.
       if (newStamp == oldStamp) {
         _stampMap[source] = newStamp + 1;
       }
-      return javaMapPut(_contentMap, source, contents);
+      String oldContent =_contentMap[source];
+      _contentMap[source] = contents;
+      return oldContent;
     }
   }
 }
