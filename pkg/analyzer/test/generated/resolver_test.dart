@@ -336,7 +336,7 @@ class AnalysisDeltaTest extends EngineTestCase {
     delta.setAnalysisLevel(source3, AnalysisLevel.NONE);
     List<Source> addedSources = delta.addedSources;
     expect(addedSources, hasLength(2));
-    EngineTestCase.assertContains(addedSources, [source1, source2]);
+    expect(addedSources, unorderedEquals([source1, source2]));
   }
 
   void test_getAnalysisLevels() {
@@ -4258,7 +4258,7 @@ class InheritanceManagerTest extends EngineTestCase {
     MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
     classB.methods = <MethodElement> [methodMinB];
     List<ExecutableElement> overrides = _inheritanceManager.lookupOverrides(classB, methodName);
-    EngineTestCase.assertEqualsIgnoreOrder(<Object> [methodMinA], overrides);
+    expect(overrides, unorderedEquals([methodMinA]));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -4273,7 +4273,7 @@ class InheritanceManagerTest extends EngineTestCase {
     MethodElementImpl methodMinB = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
     classB.methods = <MethodElement> [methodMinB];
     List<ExecutableElement> overrides = _inheritanceManager.lookupOverrides(classB, methodName);
-    EngineTestCase.assertEqualsIgnoreOrder(<Object> [methodMinA], overrides);
+    expect(overrides, unorderedEquals([methodMinA]));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -4291,7 +4291,7 @@ class InheritanceManagerTest extends EngineTestCase {
     MethodElementImpl methodMinC = ElementFactory.methodElement(methodName, _typeProvider.numType, []);
     classC.methods = <MethodElement> [methodMinC];
     List<ExecutableElement> overrides = _inheritanceManager.lookupOverrides(classC, methodName);
-    EngineTestCase.assertEqualsIgnoreOrder(<Object> [methodMinA, methodMinB], overrides);
+    expect(overrides, unorderedEquals([methodMinA, methodMinB]));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
     _assertNoErrors(classC);
@@ -9178,7 +9178,7 @@ class SubtypeManagerTest extends EngineTestCase {
     HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
     List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
     expect(subtypesOfA, hasLength(2));
-    EngineTestCase.assertContains(arraySubtypesOfA, [classA, classB]);
+    expect(arraySubtypesOfA, unorderedEquals([classA, classB]));
   }
 
   void test_computeAllSubtypes_manyRecursiveSubtypes() {
@@ -9200,9 +9200,9 @@ class SubtypeManagerTest extends EngineTestCase {
     HashSet<ClassElement> subtypesOfB = _subtypeManager.computeAllSubtypes(classB);
     List<ClassElement> arraySubtypesOfB = new List.from(subtypesOfB);
     expect(subtypesOfA, hasLength(4));
-    EngineTestCase.assertContains(arraySubtypesOfA, [classB, classC, classD, classE]);
+    expect(arraySubtypesOfA, unorderedEquals([classB, classC, classD, classE]));
     expect(subtypesOfB, hasLength(3));
-    EngineTestCase.assertContains(arraySubtypesOfB, [classC, classD, classE]);
+    expect(arraySubtypesOfB, unorderedEquals([classC, classD, classE]));
   }
 
   void test_computeAllSubtypes_noSubtypes() {
@@ -9226,7 +9226,7 @@ class SubtypeManagerTest extends EngineTestCase {
     HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
     List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
     expect(subtypesOfA, hasLength(1));
-    EngineTestCase.assertContains(arraySubtypesOfA, [classB]);
+    expect(arraySubtypesOfA, unorderedEquals([classB]));
   }
 
   @override

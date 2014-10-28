@@ -2990,7 +2990,7 @@ class LibraryElementImplTest extends EngineTestCase {
         ElementFactory.importFor(library4, prefixA, [])];
     library1.imports = imports;
     List<LibraryElement> libraries = library1.importedLibraries;
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library2, library3, library4], libraries);
+    expect(libraries, unorderedEquals(<LibraryElement> [library2, library3, library4]));
   }
 
   void test_getPrefixes() {
@@ -3022,7 +3022,7 @@ class LibraryElementImplTest extends EngineTestCase {
     CompilationUnitElementImpl unitA = ElementFactory.compilationUnit("unit_a.dart");
     CompilationUnitElementImpl unitB = ElementFactory.compilationUnit("unit_b.dart");
     library.parts = <CompilationUnitElement> [unitA, unitB];
-    EngineTestCase.assertEqualsIgnoreOrder(<CompilationUnitElement> [unitLib, unitA, unitB], library.units);
+    expect(library.units, unorderedEquals(<CompilationUnitElement> [unitLib, unitA, unitB]));
   }
 
   void test_getVisibleLibraries_cycle() {
@@ -3032,7 +3032,7 @@ class LibraryElementImplTest extends EngineTestCase {
     libraryA.imports = <ImportElementImpl> [ElementFactory.importFor(library, null, [])];
     library.imports = <ImportElementImpl> [ElementFactory.importFor(libraryA, null, [])];
     List<LibraryElement> libraries = library.visibleLibraries;
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA], libraries);
+    expect(libraries, unorderedEquals(<LibraryElement> [library, libraryA]));
   }
 
   void test_getVisibleLibraries_directExports() {
@@ -3041,7 +3041,7 @@ class LibraryElementImplTest extends EngineTestCase {
     LibraryElementImpl libraryA = ElementFactory.library(context, "A");
     library.exports = <ExportElementImpl> [ElementFactory.exportFor(libraryA, [])];
     List<LibraryElement> libraries = library.visibleLibraries;
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library], libraries);
+    expect(libraries, unorderedEquals(<LibraryElement> [library]));
   }
 
   void test_getVisibleLibraries_directImports() {
@@ -3050,7 +3050,7 @@ class LibraryElementImplTest extends EngineTestCase {
     LibraryElementImpl libraryA = ElementFactory.library(context, "A");
     library.imports = <ImportElementImpl> [ElementFactory.importFor(libraryA, null, [])];
     List<LibraryElement> libraries = library.visibleLibraries;
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA], libraries);
+    expect(libraries, unorderedEquals(<LibraryElement> [library, libraryA]));
   }
 
   void test_getVisibleLibraries_indirectExports() {
@@ -3061,7 +3061,7 @@ class LibraryElementImplTest extends EngineTestCase {
     libraryA.exports = <ExportElementImpl> [ElementFactory.exportFor(libraryAA, [])];
     library.imports = <ImportElementImpl> [ElementFactory.importFor(libraryA, null, [])];
     List<LibraryElement> libraries = library.visibleLibraries;
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA, libraryAA], libraries);
+    expect(libraries, unorderedEquals(<LibraryElement> [library, libraryA, libraryAA]));
   }
 
   void test_getVisibleLibraries_indirectImports() {
@@ -3075,13 +3075,13 @@ class LibraryElementImplTest extends EngineTestCase {
         ElementFactory.importFor(libraryA, null, []),
         ElementFactory.importFor(libraryB, null, [])];
     List<LibraryElement> libraries = library.visibleLibraries;
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA, libraryAA, libraryB], libraries);
+    expect(libraries, unorderedEquals(<LibraryElement> [library, libraryA, libraryAA, libraryB]));
   }
 
   void test_getVisibleLibraries_noImports() {
     AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = ElementFactory.library(context, "app");
-    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library], library.visibleLibraries);
+    expect(library.visibleLibraries, unorderedEquals(<LibraryElement> [library]));
   }
 
   void test_isUpToDate() {

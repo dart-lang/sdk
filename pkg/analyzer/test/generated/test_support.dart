@@ -8,7 +8,6 @@
 library engine.test_support;
 
 import 'dart:collection';
-import "dart:math" as math;
 
 import 'package:analyzer/src/generated/ast.dart' show AstNode, NodeLocator;
 import 'package:analyzer/src/generated/element.dart';
@@ -16,7 +15,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
@@ -102,62 +100,6 @@ class EngineTestCase {
   }
 
   /**
-   * Assert that the given array is non-`null` and contains the expected elements. The
-   * elements can appear in any order.
-   *
-   * @param array the array being tested
-   * @param expectedElements the expected elements
-   * @throws AssertionFailedError if the array is `null` or does not contain the expected
-   *           elements
-   */
-  static void assertContains(List<Object> array,
-      List<Object> expectedElements) {
-    int expectedSize = expectedElements.length;
-    if (array == null) {
-      fail("Expected array of length $expectedSize; found null");
-    }
-    if (array.length != expectedSize) {
-      fail("Expected array of length $expectedSize; contained ${array.length} elements");
-    }
-    List<bool> found = new List<bool>.filled(expectedSize, false);
-    for (int i = 0; i < expectedSize; i++) {
-      _privateAssertContains(array, found, expectedElements[i]);
-    }
-  }
-
-  /**
-   * Assert that the array of actual values contain exactly the same values as those in the array of
-   * expected value, with the exception that the order of the elements is not required to be the
-   * same.
-   *
-   * @param expectedValues the values that are expected to be found
-   * @param actualValues the actual values that are being compared against the expected values
-   */
-  static void assertEqualsIgnoreOrder(List<Object> expectedValues,
-      List<Object> actualValues) {
-    expect(actualValues, isNotNull);
-    int expectedLength = expectedValues.length;
-    expect(actualValues.length, expectedLength);
-    List<bool> found = new List<bool>.filled(expectedLength, false);
-    for (int i = 0; i < expectedLength; i++) {
-      found[i] = false;
-    }
-    for (Object actualValue in actualValues) {
-      bool wasExpected = false;
-      for (int i = 0; i < expectedLength; i++) {
-        if (!found[i] && expectedValues[i] == actualValue) {
-          found[i] = true;
-          wasExpected = true;
-          break;
-        }
-      }
-      if (!wasExpected) {
-        fail("The actual value $actualValue was not expected");
-      }
-    }
-  }
-
-  /**
    * Assert that the given object is an instance of the expected class.
    *
    * @param expectedClass the class that the object is expected to be an instance of
@@ -184,31 +126,6 @@ class EngineTestCase {
     }
     AstNode node = new NodeLocator.con1(offset).searchWithin(root);
     return node.getAncestor(predicate);
-  }
-
-  static void _privateAssertContains(List<Object> array, List<bool> found,
-      Object element) {
-    if (element == null) {
-      for (int i = 0; i < array.length; i++) {
-        if (!found[i]) {
-          if (array[i] == null) {
-            found[i] = true;
-            return;
-          }
-        }
-      }
-      fail("Does not contain null");
-    } else {
-      for (int i = 0; i < array.length; i++) {
-        if (!found[i]) {
-          if (element == array[i]) {
-            found[i] = true;
-            return;
-          }
-        }
-      }
-      fail("Does not contain $element");
-    }
   }
 }
 

@@ -2402,8 +2402,8 @@ class DirectedGraphTest extends EngineTestCase {
     List<List<DirectedGraphTest_Node>> topologicalSort =
         graph.computeTopologicalSort();
     expect(topologicalSort, hasLength(2));
-    EngineTestCase.assertContains(topologicalSort[0], [node3, node4]);
-    EngineTestCase.assertContains(topologicalSort[1], [node1, node2]);
+    expect(topologicalSort[0], unorderedEquals([node3, node4]));
+    expect(topologicalSort[1], unorderedEquals([node1, node2]));
   }
 }
 

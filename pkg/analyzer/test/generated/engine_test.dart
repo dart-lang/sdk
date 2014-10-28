@@ -881,7 +881,7 @@ export 'libA.dart';''');
     _context.computeLibraryElement(lib1Source);
     _context.computeLibraryElement(lib2Source);
     List<Source> result = _context.getLibrariesDependingOn(libASource);
-    EngineTestCase.assertContains(result, [lib1Source, lib2Source]);
+    expect(result, unorderedEquals([lib1Source, lib2Source]));
   }
 
   void test_getLibrariesReferencedFromHtml() {
@@ -1210,7 +1210,7 @@ part of lib;
     // "libSource" should be here
     List<Source> librariesWithPart =
         _context.getLibrariesContaining(partSource);
-    EngineTestCase.assertContains(librariesWithPart, [libSource]);
+    expect(librariesWithPart, unorderedEquals([libSource]));
   }
 
   void test_performAnalysisTask_changeLibraryContents() {
