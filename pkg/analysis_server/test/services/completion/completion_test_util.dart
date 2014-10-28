@@ -552,6 +552,21 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     }
   }
 
+  test_ArgumentList() {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addSource('/libA.dart', '''
+      library A;
+      bool hasLength(int expected) { }''');
+    addTestSource('''
+      import '/libA.dart'
+      main() {expect(^)}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestLocalFunction('main', null);
+      assertSuggestImportedFunction('hasLength', 'bool');
+    });
+  }
+
   test_AssignmentExpression_name() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
@@ -1399,16 +1414,6 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
-  test_PrefixedIdentifier_propertyAccess() {
-    // PrefixedIdentifier  ExpressionStatement  Block  BlockFunctionBody
-    addTestSource('class A {String x; int get foo {x.^}');
-    computeFast();
-    return computeFull(true).then((_) {
-      assertSuggestInvocationGetter('isEmpty', 'bool');
-      assertSuggestInvocationMethod('compareTo', 'Comparable', 'int');
-    });
-  }
-
   test_PrefixedIdentifier_class_imported() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addSource('/testB.dart', '''
@@ -1532,6 +1537,16 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalMethod('foo', 'X', null);
       assertNotSuggested('bar');
       assertNotSuggested('_B');
+    });
+  }
+
+  test_PrefixedIdentifier_propertyAccess() {
+    // PrefixedIdentifier  ExpressionStatement  Block  BlockFunctionBody
+    addTestSource('class A {String x; int get foo {x.^}');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('isEmpty', 'bool');
+      assertSuggestInvocationMethod('compareTo', 'Comparable', 'int');
     });
   }
 
