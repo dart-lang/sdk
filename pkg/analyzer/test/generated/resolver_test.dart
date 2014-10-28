@@ -335,7 +335,7 @@ class AnalysisDeltaTest extends EngineTestCase {
     delta.setAnalysisLevel(source2, AnalysisLevel.ERRORS);
     delta.setAnalysisLevel(source3, AnalysisLevel.NONE);
     List<Source> addedSources = delta.addedSources;
-    EngineTestCase.assertLength(2, addedSources);
+    expect(addedSources, hasLength(2));
     EngineTestCase.assertContains(addedSources, [source1, source2]);
   }
 
@@ -369,15 +369,15 @@ class ChangeSetTest extends EngineTestCase {
     String content = "";
     ChangeSet changeSet = new ChangeSet();
     changeSet.changedContent(source, content);
-    EngineTestCase.assertSizeOfList(0, changeSet.addedSources);
-    EngineTestCase.assertSizeOfList(0, changeSet.changedSources);
+    expect(changeSet.addedSources, hasLength(0));
+    expect(changeSet.changedSources, hasLength(0));
     Map<Source, String> map = changeSet.changedContents;
-    EngineTestCase.assertSizeOfMap(1, map);
+    expect(map, hasLength(1));
     expect(map[source], same(content));
-    EngineTestCase.assertSizeOfMap(0, changeSet.changedRanges);
-    EngineTestCase.assertSizeOfList(0, changeSet.deletedSources);
-    EngineTestCase.assertSizeOfList(0, changeSet.removedSources);
-    EngineTestCase.assertSizeOfList(0, changeSet.removedContainers);
+    expect(changeSet.changedRanges, hasLength(0));
+    expect(changeSet.deletedSources, hasLength(0));
+    expect(changeSet.removedSources, hasLength(0));
+    expect(changeSet.removedContainers, hasLength(0));
   }
 
   void test_changedRange() {
@@ -385,20 +385,20 @@ class ChangeSetTest extends EngineTestCase {
     String content = "";
     ChangeSet changeSet = new ChangeSet();
     changeSet.changedRange(source, content, 1, 2, 3);
-    EngineTestCase.assertSizeOfList(0, changeSet.addedSources);
-    EngineTestCase.assertSizeOfList(0, changeSet.changedSources);
-    EngineTestCase.assertSizeOfMap(0, changeSet.changedContents);
+    expect(changeSet.addedSources, hasLength(0));
+    expect(changeSet.changedSources, hasLength(0));
+    expect(changeSet.changedContents, hasLength(0));
     Map<Source, ChangeSet_ContentChange> map = changeSet.changedRanges;
-    EngineTestCase.assertSizeOfMap(1, map);
+    expect(map, hasLength(1));
     ChangeSet_ContentChange change = map[source];
     expect(change, isNotNull);
     expect(change.contents, content);
     expect(change.offset, 1);
     expect(change.oldLength, 2);
     expect(change.newLength, 3);
-    EngineTestCase.assertSizeOfList(0, changeSet.deletedSources);
-    EngineTestCase.assertSizeOfList(0, changeSet.removedSources);
-    EngineTestCase.assertSizeOfList(0, changeSet.removedContainers);
+    expect(changeSet.deletedSources, hasLength(0));
+    expect(changeSet.removedSources, hasLength(0));
+    expect(changeSet.removedContainers, hasLength(0));
   }
 
   void test_toString() {
@@ -1927,17 +1927,17 @@ class C {
     expect(unit, isNotNull);
     var types = unit.types;
     expect(types, isNotNull);
-    EngineTestCase.assertSizeOfList(1, types);
+    expect(types, hasLength(1));
     var type = types[0];
     expect(type, isNotNull);
     var constructors = type.constructors;
     expect(constructors, isNotNull);
-    EngineTestCase.assertSizeOfList(1, constructors);
+    expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
     List<FunctionElement> functions = constructor.functions;
     expect(functions, isNotNull);
-    EngineTestCase.assertSizeOfList(1, functions);
+    expect(functions, hasLength(1));
     expect(functions[0].enclosingElement, constructor);
     assertErrors(source, [ParserErrorCode.GETTER_IN_FUNCTION]);
   }
@@ -4245,7 +4245,7 @@ class InheritanceManagerTest extends EngineTestCase {
     String methodName = "m";
     MethodElementImpl methodM = ElementFactory.methodElement(methodName, _typeProvider.intType, []);
     classA.methods = <MethodElement> [methodM];
-    EngineTestCase.assertSizeOfList(0, _inheritanceManager.lookupOverrides(classA, methodName));
+    expect(_inheritanceManager.lookupOverrides(classA, methodName), hasLength(0));
     _assertNoErrors(classA);
   }
 
@@ -4357,11 +4357,11 @@ void set V(int v) {}''');
     LibraryElement element = _buildLibrary(librarySource, []);
     expect(element, isNotNull);
     List<CompilationUnitElement> sourcedUnits = element.parts;
-    EngineTestCase.assertLength(2, sourcedUnits);
+    expect(sourcedUnits, hasLength(2));
     List<PropertyAccessorElement> firstAccessors = sourcedUnits[0].accessors;
-    EngineTestCase.assertLength(1, firstAccessors);
+    expect(firstAccessors, hasLength(1));
     List<PropertyAccessorElement> secondAccessors = sourcedUnits[1].accessors;
-    EngineTestCase.assertLength(1, secondAccessors);
+    expect(secondAccessors, hasLength(1));
     expect(secondAccessors[0].variable, same(firstAccessors[0].variable));
   }
 
@@ -4371,20 +4371,20 @@ void set V(int v) {}''');
     expect(element, isNotNull);
     expect(element.name, "lib");
     expect(element.entryPoint, isNull);
-    EngineTestCase.assertLength(0, element.importedLibraries);
-    EngineTestCase.assertLength(0, element.imports);
+    expect(element.importedLibraries, hasLength(0));
+    expect(element.imports, hasLength(0));
     expect(element.library, same(element));
-    EngineTestCase.assertLength(0, element.prefixes);
-    EngineTestCase.assertLength(0, element.parts);
+    expect(element.prefixes, hasLength(0));
+    expect(element.parts, hasLength(0));
     CompilationUnitElement unit = element.definingCompilationUnit;
     expect(unit, isNotNull);
     expect(unit.name, "lib.dart");
     expect(unit.library, element);
-    EngineTestCase.assertLength(0, unit.accessors);
-    EngineTestCase.assertLength(0, unit.functions);
-    EngineTestCase.assertLength(0, unit.functionTypeAliases);
-    EngineTestCase.assertLength(0, unit.types);
-    EngineTestCase.assertLength(0, unit.topLevelVariables);
+    expect(unit.accessors, hasLength(0));
+    expect(unit.functions, hasLength(0));
+    expect(unit.functionTypeAliases, hasLength(0));
+    expect(unit.types, hasLength(0));
+    expect(unit.topLevelVariables, hasLength(0));
   }
 
   void test_missingLibraryDirectiveWithPart() {
@@ -4420,7 +4420,7 @@ class C {}''');
     LibraryElement element = _buildLibrary(librarySource, []);
     expect(element, isNotNull);
     List<CompilationUnitElement> sourcedUnits = element.parts;
-    EngineTestCase.assertLength(2, sourcedUnits);
+    expect(sourcedUnits, hasLength(2));
     _assertTypes(element.definingCompilationUnit, ["A"]);
     if (sourcedUnits[0].name == "first.dart") {
       _assertTypes(sourcedUnits[0], ["B"]);
@@ -4469,7 +4469,7 @@ class A {}''');
   void _assertTypes(CompilationUnitElement unit, List<String> typeNames) {
     expect(unit, isNotNull);
     List<ClassElement> types = unit.types;
-    EngineTestCase.assertLength(typeNames.length, types);
+    expect(types, hasLength(typeNames.length));
     for (ClassElement type in types) {
       expect(type, isNotNull);
       String actualTypeName = type.displayName;
@@ -4536,7 +4536,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
       errorListener.assertErrorsWithCodes([StaticWarningCode.AMBIGUOUS_IMPORT]);
       EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement, MultiplyDefinedElement, element);
       List<Element> conflictingElements = (element as MultiplyDefinedElement).conflictingElements;
-      EngineTestCase.assertLength(2, conflictingElements);
+      expect(conflictingElements, hasLength(2));
       if (identical(conflictingElements[0], typeB1)) {
         expect(conflictingElements[1], same(typeB2));
       } else if (identical(conflictingElements[0], typeB2)) {
@@ -4800,19 +4800,19 @@ class LibraryTest extends EngineTestCase {
   }
 
   void test_getExports() {
-    EngineTestCase.assertLength(0, _library.exports);
+    expect(_library.exports, hasLength(0));
     _errorListener.assertNoErrors();
   }
 
   void test_getImports() {
-    EngineTestCase.assertLength(0, _library.imports);
+    expect(_library.imports, hasLength(0));
     _errorListener.assertNoErrors();
   }
 
   void test_getImportsAndExports() {
     _library.importedLibraries = <Library> [_createLibrary("/imported.dart")];
     _library.exportedLibraries = <Library> [_createLibrary("/exported.dart")];
-    EngineTestCase.assertLength(2, _library.importsAndExports);
+    expect(_library.importsAndExports, hasLength(2));
     _errorListener.assertNoErrors();
   }
 
@@ -4838,7 +4838,7 @@ class LibraryTest extends EngineTestCase {
     Library exportLibrary = _createLibrary("/exported.dart");
     _library.exportedLibraries = <Library> [exportLibrary];
     List<Library> exports = _library.exports;
-    EngineTestCase.assertLength(1, exports);
+    expect(exports, hasLength(1));
     expect(exports[0], same(exportLibrary));
     _errorListener.assertNoErrors();
   }
@@ -4847,7 +4847,7 @@ class LibraryTest extends EngineTestCase {
     Library importLibrary = _createLibrary("/imported.dart");
     _library.importedLibraries = <Library> [importLibrary];
     List<Library> imports = _library.imports;
-    EngineTestCase.assertLength(1, imports);
+    expect(imports, hasLength(1));
     expect(imports[0], same(importLibrary));
     _errorListener.assertNoErrors();
   }
@@ -7150,7 +7150,7 @@ class B {toString() => super.toString();}''');
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<ClassElement> classes = unit.types;
-    EngineTestCase.assertLength(2, classes);
+    expect(classes, hasLength(2));
     expect(classes[0].hasReferenceToSuper, isFalse);
     expect(classes[1].hasReferenceToSuper, isTrue);
     assertNoErrors(source);
@@ -7280,7 +7280,7 @@ class B {}''');
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<ClassElement> classes = unit.types;
-    EngineTestCase.assertLength(2, classes);
+    expect(classes, hasLength(2));
     expect(classes[0].isValidMixin, isFalse);
     assertNoErrors(source);
     verify([source]);
@@ -7296,7 +7296,7 @@ class A {
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<ClassElement> classes = unit.types;
-    EngineTestCase.assertLength(1, classes);
+    expect(classes, hasLength(1));
     expect(classes[0].isValidMixin, isFalse);
     assertNoErrors(source);
     verify([source]);
@@ -7314,7 +7314,7 @@ class A {
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<ClassElement> classes = unit.types;
-    EngineTestCase.assertLength(1, classes);
+    expect(classes, hasLength(1));
     expect(classes[0].isValidMixin, isFalse);
     assertNoErrors(source);
     verify([source]);
@@ -7327,7 +7327,7 @@ class A {
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<ClassElement> classes = unit.types;
-    EngineTestCase.assertLength(1, classes);
+    expect(classes, hasLength(1));
     expect(classes[0].isValidMixin, isTrue);
     assertNoErrors(source);
     verify([source]);
@@ -7380,14 +7380,14 @@ const A = null;
     CompilationUnitElement unitElement = library.definingCompilationUnit;
     expect(unitElement, isNotNull);
     List<ClassElement> classes = unitElement.types;
-    EngineTestCase.assertLength(1, classes);
+    expect(classes, hasLength(1));
     List<ElementAnnotation> annotations = classes[0].metadata;
-    EngineTestCase.assertLength(1, annotations);
+    expect(annotations, hasLength(1));
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(2, declarations);
+    expect(declarations, hasLength(2));
     Element expectedElement = (declarations[0] as TopLevelVariableDeclaration).variables.variables[0].name.staticElement;
     EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement, PropertyInducingElement, expectedElement);
     expectedElement = (expectedElement as PropertyInducingElement).getter;
@@ -7406,10 +7406,10 @@ class C {
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<ClassElement> classes = unit.types;
-    EngineTestCase.assertLength(1, classes);
+    expect(classes, hasLength(1));
     FieldElement field = classes[0].fields[0];
     List<ElementAnnotation> annotations = field.metadata;
-    EngineTestCase.assertLength(1, annotations);
+    expect(annotations, hasLength(1));
     assertNoErrors(source);
     verify([source]);
   }
@@ -7426,13 +7426,13 @@ class C {
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<ClassElement> classes = unit.types;
-    EngineTestCase.assertLength(1, classes);
+    expect(classes, hasLength(1));
     List<ConstructorElement> constructors = classes[0].constructors;
-    EngineTestCase.assertLength(1, constructors);
+    expect(constructors, hasLength(1));
     List<ParameterElement> parameters = constructors[0].parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     List<ElementAnnotation> annotations = parameters[0].metadata;
-    EngineTestCase.assertLength(1, annotations);
+    expect(annotations, hasLength(1));
     assertNoErrors(source);
     verify([source]);
   }
@@ -7446,9 +7446,9 @@ const A = null;
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<FunctionElement> functions = unit.functions;
-    EngineTestCase.assertLength(1, functions);
+    expect(functions, hasLength(1));
     List<ElementAnnotation> annotations = functions[0].metadata;
-    EngineTestCase.assertLength(1, annotations);
+    expect(annotations, hasLength(1));
     assertNoErrors(source);
     verify([source]);
   }
@@ -7462,11 +7462,11 @@ f(@A int p(int x)) {}''');
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<FunctionElement> functions = unit.functions;
-    EngineTestCase.assertLength(1, functions);
+    expect(functions, hasLength(1));
     List<ParameterElement> parameters = functions[0].parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     List<ElementAnnotation> annotations1 = parameters[0].metadata;
-    EngineTestCase.assertLength(1, annotations1);
+    expect(annotations1, hasLength(1));
     assertNoErrors(source);
     verify([source]);
   }
@@ -7478,7 +7478,7 @@ const A = null;''');
     LibraryElement library = resolve(source);
     expect(library, isNotNull);
     List<ElementAnnotation> annotations = library.metadata;
-    EngineTestCase.assertLength(1, annotations);
+    expect(annotations, hasLength(1));
     assertNoErrors(source);
     verify([source]);
   }
@@ -7494,10 +7494,10 @@ class C {
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<ClassElement> classes = unit.types;
-    EngineTestCase.assertLength(1, classes);
+    expect(classes, hasLength(1));
     MethodElement method = classes[0].methods[0];
     List<ElementAnnotation> annotations = method.metadata;
-    EngineTestCase.assertLength(1, annotations);
+    expect(annotations, hasLength(1));
     assertNoErrors(source);
     verify([source]);
   }
@@ -7511,11 +7511,11 @@ f({@A int p : 0}) {}''');
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<FunctionElement> functions = unit.functions;
-    EngineTestCase.assertLength(1, functions);
+    expect(functions, hasLength(1));
     List<ParameterElement> parameters = functions[0].parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     List<ElementAnnotation> annotations1 = parameters[0].metadata;
-    EngineTestCase.assertLength(1, annotations1);
+    expect(annotations1, hasLength(1));
     assertNoErrors(source);
     verify([source]);
   }
@@ -7529,11 +7529,11 @@ f([@A int p = 0]) {}''');
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<FunctionElement> functions = unit.functions;
-    EngineTestCase.assertLength(1, functions);
+    expect(functions, hasLength(1));
     List<ParameterElement> parameters = functions[0].parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     List<ElementAnnotation> annotations1 = parameters[0].metadata;
-    EngineTestCase.assertLength(1, annotations1);
+    expect(annotations1, hasLength(1));
     assertNoErrors(source);
     verify([source]);
   }
@@ -7547,13 +7547,13 @@ f(@A p1, @A int p2) {}''');
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
     List<FunctionElement> functions = unit.functions;
-    EngineTestCase.assertLength(1, functions);
+    expect(functions, hasLength(1));
     List<ParameterElement> parameters = functions[0].parameters;
-    EngineTestCase.assertLength(2, parameters);
+    expect(parameters, hasLength(2));
     List<ElementAnnotation> annotations1 = parameters[0].metadata;
-    EngineTestCase.assertLength(1, annotations1);
+    expect(annotations1, hasLength(1));
     List<ElementAnnotation> annotations2 = parameters[1].metadata;
-    EngineTestCase.assertLength(1, annotations2);
+    expect(annotations2, hasLength(1));
     assertNoErrors(source);
     verify([source]);
   }
@@ -7567,14 +7567,14 @@ const A = null;
     CompilationUnitElement unitElement = library.definingCompilationUnit;
     expect(unitElement, isNotNull);
     List<FunctionTypeAliasElement> aliases = unitElement.functionTypeAliases;
-    EngineTestCase.assertLength(1, aliases);
+    expect(aliases, hasLength(1));
     List<ElementAnnotation> annotations = aliases[0].metadata;
-    EngineTestCase.assertLength(1, annotations);
+    expect(annotations, hasLength(1));
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(2, declarations);
+    expect(declarations, hasLength(2));
     Element expectedElement = (declarations[0] as TopLevelVariableDeclaration).variables.variables[0].name.staticElement;
     EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement, PropertyInducingElement, expectedElement);
     expectedElement = (expectedElement as PropertyInducingElement).getter;
@@ -8547,29 +8547,29 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FunctionType functionType = actualType as FunctionType;
     List<DartType> normalTypes = functionType.normalParameterTypes;
     if (expectedNormalTypes == null) {
-      EngineTestCase.assertLength(0, normalTypes);
+      expect(normalTypes, hasLength(0));
     } else {
       int expectedCount = expectedNormalTypes.length;
-      EngineTestCase.assertLength(expectedCount, normalTypes);
+      expect(normalTypes, hasLength(expectedCount));
       for (int i = 0; i < expectedCount; i++) {
         expect(normalTypes[i], same(expectedNormalTypes[i]));
       }
     }
     List<DartType> optionalTypes = functionType.optionalParameterTypes;
     if (expectedOptionalTypes == null) {
-      EngineTestCase.assertLength(0, optionalTypes);
+      expect(optionalTypes, hasLength(0));
     } else {
       int expectedCount = expectedOptionalTypes.length;
-      EngineTestCase.assertLength(expectedCount, optionalTypes);
+      expect(optionalTypes, hasLength(expectedCount));
       for (int i = 0; i < expectedCount; i++) {
         expect(optionalTypes[i], same(expectedOptionalTypes[i]));
       }
     }
     Map<String, DartType> namedTypes = functionType.namedParameterTypes;
     if (expectedNamedTypes == null) {
-      EngineTestCase.assertSizeOfMap(0, namedTypes);
+      expect(namedTypes, hasLength(0));
     } else {
-      EngineTestCase.assertSizeOfMap(expectedNamedTypes.length, namedTypes);
+      expect(namedTypes, hasLength(expectedNamedTypes.length));
       expectedNamedTypes.forEach((String name, DartType type) {
         expect(namedTypes[name], same(type));
       });
@@ -8583,7 +8583,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     List<DartType> expectedArguments = expectedType.typeArguments;
     int length = expectedArguments.length;
     List<DartType> actualArguments = actualType.typeArguments;
-    EngineTestCase.assertLength(length, actualArguments);
+    expect(actualArguments, hasLength(length));
     for (int i = 0; i < length; i++) {
       _assertType2(expectedArguments[i], actualArguments[i]);
     }
@@ -9177,7 +9177,7 @@ class SubtypeManagerTest extends EngineTestCase {
     _definingCompilationUnit.types = <ClassElement> [classA, classB];
     HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
     List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
-    EngineTestCase.assertSizeOfSet(2, subtypesOfA);
+    expect(subtypesOfA, hasLength(2));
     EngineTestCase.assertContains(arraySubtypesOfA, [classA, classB]);
   }
 
@@ -9199,9 +9199,9 @@ class SubtypeManagerTest extends EngineTestCase {
     List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
     HashSet<ClassElement> subtypesOfB = _subtypeManager.computeAllSubtypes(classB);
     List<ClassElement> arraySubtypesOfB = new List.from(subtypesOfB);
-    EngineTestCase.assertSizeOfSet(4, subtypesOfA);
+    expect(subtypesOfA, hasLength(4));
     EngineTestCase.assertContains(arraySubtypesOfA, [classB, classC, classD, classE]);
-    EngineTestCase.assertSizeOfSet(3, subtypesOfB);
+    expect(subtypesOfB, hasLength(3));
     EngineTestCase.assertContains(arraySubtypesOfB, [classC, classD, classE]);
   }
 
@@ -9212,7 +9212,7 @@ class SubtypeManagerTest extends EngineTestCase {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     _definingCompilationUnit.types = <ClassElement> [classA];
     HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
-    EngineTestCase.assertSizeOfSet(0, subtypesOfA);
+    expect(subtypesOfA, hasLength(0));
   }
 
   void test_computeAllSubtypes_oneSubtype() {
@@ -9225,7 +9225,7 @@ class SubtypeManagerTest extends EngineTestCase {
     _definingCompilationUnit.types = <ClassElement> [classA, classB];
     HashSet<ClassElement> subtypesOfA = _subtypeManager.computeAllSubtypes(classA);
     List<ClassElement> arraySubtypesOfA = new List.from(subtypesOfA);
-    EngineTestCase.assertSizeOfSet(1, subtypesOfA);
+    expect(subtypesOfA, hasLength(1));
     EngineTestCase.assertContains(arraySubtypesOfA, [classB]);
   }
 
@@ -10754,7 +10754,7 @@ f() {
     InterfaceType propagatedType = v.propagatedType as InterfaceType;
     expect(propagatedType.element, same(typeProvider.listType.element));
     List<DartType> typeArguments = propagatedType.typeArguments;
-    EngineTestCase.assertLength(1, typeArguments);
+    expect(typeArguments, hasLength(1));
     expect(typeArguments[0], same(typeProvider.dynamicType));
   }
 
@@ -10775,7 +10775,7 @@ f() {
     InterfaceType propagatedType = identifier.propagatedType as InterfaceType;
     expect(propagatedType.element, same(typeProvider.mapType.element));
     List<DartType> typeArguments = propagatedType.typeArguments;
-    EngineTestCase.assertLength(2, typeArguments);
+    expect(typeArguments, hasLength(2));
     expect(typeArguments[0], same(typeProvider.dynamicType));
     expect(typeArguments[1], same(typeProvider.dynamicType));
   }
@@ -10797,7 +10797,7 @@ f() {
     InterfaceType propagatedType = identifier.propagatedType as InterfaceType;
     expect(propagatedType.element, same(typeProvider.mapType.element));
     List<DartType> typeArguments = propagatedType.typeArguments;
-    EngineTestCase.assertLength(2, typeArguments);
+    expect(typeArguments, hasLength(2));
     expect(typeArguments[0], same(typeProvider.dynamicType));
     expect(typeArguments[1], same(typeProvider.dynamicType));
   }
@@ -11266,10 +11266,10 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _resolveNode(declaration, [elementA, elementB, elementC, elementD]);
     expect(elementA.supertype, same(elementB.type));
     List<InterfaceType> mixins = elementA.mixins;
-    EngineTestCase.assertLength(1, mixins);
+    expect(mixins, hasLength(1));
     expect(mixins[0], same(elementC.type));
     List<InterfaceType> interfaces = elementA.interfaces;
-    EngineTestCase.assertLength(1, interfaces);
+    expect(interfaces, hasLength(1));
     expect(interfaces[0], same(elementD.type));
     _listener.assertNoErrors();
   }
@@ -11303,10 +11303,10 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _resolveNode(alias, [elementA, elementB, elementC, elementD]);
     expect(elementA.supertype, same(elementB.type));
     List<InterfaceType> mixins = elementA.mixins;
-    EngineTestCase.assertLength(1, mixins);
+    expect(mixins, hasLength(1));
     expect(mixins[0], same(elementC.type));
     List<InterfaceType> interfaces = elementA.interfaces;
-    EngineTestCase.assertLength(1, interfaces);
+    expect(interfaces, hasLength(1));
     expect(interfaces[0], same(elementD.type));
     _listener.assertNoErrors();
   }
@@ -11324,7 +11324,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionType, FunctionType, parameterType);
     FunctionType functionType = parameterType as FunctionType;
     expect(functionType.returnType, same(intType));
-    EngineTestCase.assertLength(1, functionType.parameters);
+    expect(functionType.parameters, hasLength(1));
     _listener.assertNoErrors();
   }
 
@@ -11384,7 +11384,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     InterfaceType resultType = typeName.type as InterfaceType;
     expect(resultType.element, same(classA));
     List<DartType> resultArguments = resultType.typeArguments;
-    EngineTestCase.assertLength(1, resultArguments);
+    expect(resultArguments, hasLength(1));
     expect(resultArguments[0], same(classB.type));
     _listener.assertNoErrors();
   }
@@ -11397,7 +11397,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     InterfaceType resultType = typeName.type as InterfaceType;
     expect(resultType.element, same(classA));
     List<DartType> resultArguments = resultType.typeArguments;
-    EngineTestCase.assertLength(1, resultArguments);
+    expect(resultArguments, hasLength(1));
     expect(resultArguments[0], same(DynamicTypeImpl.instance));
     _listener.assertNoErrors();
   }

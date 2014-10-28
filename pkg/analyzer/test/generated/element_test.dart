@@ -95,7 +95,7 @@ class ClassElementImplTest extends EngineTestCase {
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
     classA.supertype = classB.type;
     List<InterfaceType> supers = classB.allSupertypes;
-    EngineTestCase.assertLength(1, supers);
+    expect(supers, hasLength(1));
   }
 
   void test_getField() {
@@ -941,7 +941,7 @@ class ElementLocationImplTest extends EngineTestCase {
     String encoding = "a;b;c";
     ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
     List<String> components = location.components;
-    EngineTestCase.assertLength(3, components);
+    expect(components, hasLength(3));
     expect(components[0], "a");
     expect(components[1], "b");
     expect(components[2], "c");
@@ -975,13 +975,13 @@ class FunctionTypeImplTest extends EngineTestCase {
   void test_getNamedParameterTypes() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     Map<String, DartType> types = type.namedParameterTypes;
-    EngineTestCase.assertSizeOfMap(0, types);
+    expect(types, hasLength(0));
   }
 
   void test_getNormalParameterTypes() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     List<DartType> types = type.normalParameterTypes;
-    EngineTestCase.assertLength(0, types);
+    expect(types, hasLength(0));
   }
 
   void test_getReturnType() {
@@ -996,7 +996,7 @@ class FunctionTypeImplTest extends EngineTestCase {
   void test_getTypeArguments() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
     List<DartType> types = type.typeArguments;
-    EngineTestCase.assertLength(0, types);
+    expect(types, hasLength(0));
   }
 
   void test_hashCode_element() {
@@ -1342,7 +1342,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     DartType expectedType = enclosingClass.typeParameters[0].type;
     type.typeArguments = <DartType> [expectedType];
     List<DartType> arguments = type.typeArguments;
-    EngineTestCase.assertLength(1, arguments);
+    expect(arguments, hasLength(1));
     expect(arguments[0], expectedType);
   }
 
@@ -1363,13 +1363,13 @@ class FunctionTypeImplTest extends EngineTestCase {
     FunctionType result = functionType.substitute2(<DartType> [argumentType], <DartType> [parameterType]);
     expect(result.returnType, argumentType);
     List<DartType> normalParameters = result.normalParameterTypes;
-    EngineTestCase.assertLength(1, normalParameters);
+    expect(normalParameters, hasLength(1));
     expect(normalParameters[0], argumentType);
     List<DartType> optionalParameters = result.optionalParameterTypes;
-    EngineTestCase.assertLength(1, optionalParameters);
+    expect(optionalParameters, hasLength(1));
     expect(optionalParameters[0], argumentType);
     Map<String, DartType> namedParameters = result.namedParameterTypes;
-    EngineTestCase.assertSizeOfMap(1, namedParameters);
+    expect(namedParameters, hasLength(1));
     expect(namedParameters[namedParameterName], argumentType);
   }
 
@@ -1391,13 +1391,13 @@ class FunctionTypeImplTest extends EngineTestCase {
     FunctionType result = functionType.substitute2(<DartType> [argumentType], <DartType> [parameterType]);
     expect(result.returnType, returnType);
     List<DartType> normalParameters = result.normalParameterTypes;
-    EngineTestCase.assertLength(1, normalParameters);
+    expect(normalParameters, hasLength(1));
     expect(normalParameters[0], normalParameterType);
     List<DartType> optionalParameters = result.optionalParameterTypes;
-    EngineTestCase.assertLength(1, optionalParameters);
+    expect(optionalParameters, hasLength(1));
     expect(optionalParameters[0], optionalParameterType);
     Map<String, DartType> namedParameters = result.namedParameterTypes;
-    EngineTestCase.assertSizeOfMap(1, namedParameters);
+    expect(namedParameters, hasLength(1));
     expect(namedParameters[namedParameterName], namedParameterType);
   }
 }
@@ -1570,21 +1570,21 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classC.interfaces = <InterfaceType> [typeBT];
     // A
     Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(typeA);
-    EngineTestCase.assertSizeOfSet(1, superinterfacesOfA);
+    expect(superinterfacesOfA, hasLength(1));
     InterfaceType typeObject = ElementFactory.object.type;
     expect(superinterfacesOfA.contains(typeObject), isTrue);
     // B<D>
     InterfaceTypeImpl typeBD = new InterfaceTypeImpl.con1(classB);
     typeBD.typeArguments = <DartType> [classD.type];
     Set<InterfaceType> superinterfacesOfBD = InterfaceTypeImpl.computeSuperinterfaceSet(typeBD);
-    EngineTestCase.assertSizeOfSet(2, superinterfacesOfBD);
+    expect(superinterfacesOfBD, hasLength(2));
     expect(superinterfacesOfBD.contains(typeObject), isTrue);
     expect(superinterfacesOfBD.contains(typeA), isTrue);
     // C<D>
     InterfaceTypeImpl typeCD = new InterfaceTypeImpl.con1(classC);
     typeCD.typeArguments = <DartType> [classD.type];
     Set<InterfaceType> superinterfacesOfCD = InterfaceTypeImpl.computeSuperinterfaceSet(typeCD);
-    EngineTestCase.assertSizeOfSet(3, superinterfacesOfCD);
+    expect(superinterfacesOfCD, hasLength(3));
     expect(superinterfacesOfCD.contains(typeObject), isTrue);
     expect(superinterfacesOfCD.contains(typeA), isTrue);
     expect(superinterfacesOfCD.contains(typeBD), isTrue);
@@ -1611,21 +1611,21 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classD = ElementFactory.classElement2("D", []);
     // A
     Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(typeA);
-    EngineTestCase.assertSizeOfSet(1, superinterfacesOfA);
+    expect(superinterfacesOfA, hasLength(1));
     InterfaceType typeObject = ElementFactory.object.type;
     expect(superinterfacesOfA.contains(typeObject), isTrue);
     // B<D>
     InterfaceTypeImpl typeBD = new InterfaceTypeImpl.con1(classB);
     typeBD.typeArguments = <DartType> [classD.type];
     Set<InterfaceType> superinterfacesOfBD = InterfaceTypeImpl.computeSuperinterfaceSet(typeBD);
-    EngineTestCase.assertSizeOfSet(2, superinterfacesOfBD);
+    expect(superinterfacesOfBD, hasLength(2));
     expect(superinterfacesOfBD.contains(typeObject), isTrue);
     expect(superinterfacesOfBD.contains(typeA), isTrue);
     // C<D>
     InterfaceTypeImpl typeCD = new InterfaceTypeImpl.con1(classC);
     typeCD.typeArguments = <DartType> [classD.type];
     Set<InterfaceType> superinterfacesOfCD = InterfaceTypeImpl.computeSuperinterfaceSet(typeCD);
-    EngineTestCase.assertSizeOfSet(3, superinterfacesOfCD);
+    expect(superinterfacesOfCD, hasLength(3));
     expect(superinterfacesOfCD.contains(typeObject), isTrue);
     expect(superinterfacesOfCD.contains(typeA), isTrue);
     expect(superinterfacesOfCD.contains(typeBD), isTrue);
@@ -1643,13 +1643,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classE.interfaces = <InterfaceType> [classB.type, classD.type];
     // D
     Set<InterfaceType> superinterfacesOfD = InterfaceTypeImpl.computeSuperinterfaceSet(classD.type);
-    EngineTestCase.assertSizeOfSet(3, superinterfacesOfD);
+    expect(superinterfacesOfD, hasLength(3));
     expect(superinterfacesOfD.contains(ElementFactory.object.type), isTrue);
     expect(superinterfacesOfD.contains(classA.type), isTrue);
     expect(superinterfacesOfD.contains(classC.type), isTrue);
     // E
     Set<InterfaceType> superinterfacesOfE = InterfaceTypeImpl.computeSuperinterfaceSet(classE.type);
-    EngineTestCase.assertSizeOfSet(5, superinterfacesOfE);
+    expect(superinterfacesOfE, hasLength(5));
     expect(superinterfacesOfE.contains(ElementFactory.object.type), isTrue);
     expect(superinterfacesOfE.contains(classA.type), isTrue);
     expect(superinterfacesOfE.contains(classB.type), isTrue);
@@ -1666,13 +1666,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classE.interfaces = <InterfaceType> [classD.type];
     // D
     Set<InterfaceType> superinterfacesOfD = InterfaceTypeImpl.computeSuperinterfaceSet(classD.type);
-    EngineTestCase.assertSizeOfSet(3, superinterfacesOfD);
+    expect(superinterfacesOfD, hasLength(3));
     expect(superinterfacesOfD.contains(ElementFactory.object.type), isTrue);
     expect(superinterfacesOfD.contains(classA.type), isTrue);
     expect(superinterfacesOfD.contains(classC.type), isTrue);
     // E
     Set<InterfaceType> superinterfacesOfE = InterfaceTypeImpl.computeSuperinterfaceSet(classE.type);
-    EngineTestCase.assertSizeOfSet(5, superinterfacesOfE);
+    expect(superinterfacesOfE, hasLength(5));
     expect(superinterfacesOfE.contains(ElementFactory.object.type), isTrue);
     expect(superinterfacesOfE.contains(classA.type), isTrue);
     expect(superinterfacesOfE.contains(classB.type), isTrue);
@@ -1685,7 +1685,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
     classA.supertype = classB.type;
     Set<InterfaceType> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(classB.type);
-    EngineTestCase.assertSizeOfSet(2, superinterfacesOfB);
+    expect(superinterfacesOfB, hasLength(2));
   }
 
   void test_computeSuperinterfaceSet_singleInterfacePath() {
@@ -1696,16 +1696,16 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classC.interfaces = <InterfaceType> [classB.type];
     // A
     Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(classA.type);
-    EngineTestCase.assertSizeOfSet(1, superinterfacesOfA);
+    expect(superinterfacesOfA, hasLength(1));
     expect(superinterfacesOfA.contains(ElementFactory.object.type), isTrue);
     // B
     Set<InterfaceType> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(classB.type);
-    EngineTestCase.assertSizeOfSet(2, superinterfacesOfB);
+    expect(superinterfacesOfB, hasLength(2));
     expect(superinterfacesOfB.contains(ElementFactory.object.type), isTrue);
     expect(superinterfacesOfB.contains(classA.type), isTrue);
     // C
     Set<InterfaceType> superinterfacesOfC = InterfaceTypeImpl.computeSuperinterfaceSet(classC.type);
-    EngineTestCase.assertSizeOfSet(3, superinterfacesOfC);
+    expect(superinterfacesOfC, hasLength(3));
     expect(superinterfacesOfC.contains(ElementFactory.object.type), isTrue);
     expect(superinterfacesOfC.contains(classA.type), isTrue);
     expect(superinterfacesOfC.contains(classB.type), isTrue);
@@ -1724,16 +1724,16 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classC = ElementFactory.classElement("C", classB.type, []);
     // A
     Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(classA.type);
-    EngineTestCase.assertSizeOfSet(1, superinterfacesOfA);
+    expect(superinterfacesOfA, hasLength(1));
     expect(superinterfacesOfA.contains(ElementFactory.object.type), isTrue);
     // B
     Set<InterfaceType> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(classB.type);
-    EngineTestCase.assertSizeOfSet(2, superinterfacesOfB);
+    expect(superinterfacesOfB, hasLength(2));
     expect(superinterfacesOfB.contains(ElementFactory.object.type), isTrue);
     expect(superinterfacesOfB.contains(classA.type), isTrue);
     // C
     Set<InterfaceType> superinterfacesOfC = InterfaceTypeImpl.computeSuperinterfaceSet(classC.type);
-    EngineTestCase.assertSizeOfSet(3, superinterfacesOfC);
+    expect(superinterfacesOfC, hasLength(3));
     expect(superinterfacesOfC.contains(ElementFactory.object.type), isTrue);
     expect(superinterfacesOfC.contains(classA.type), isTrue);
     expect(superinterfacesOfC.contains(classB.type), isTrue);
@@ -1818,7 +1818,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classC = ElementFactory.classElement2("C", []);
     classC.interfaces = <InterfaceType> [typeA, typeB];
     List<InterfaceType> interfaces = classC.type.interfaces;
-    EngineTestCase.assertLength(2, interfaces);
+    expect(interfaces, hasLength(2));
     if (identical(interfaces[0], typeA)) {
       expect(interfaces[1], same(typeB));
     } else {
@@ -1845,7 +1845,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceTypeImpl typeBI = new InterfaceTypeImpl.con1(classB);
     typeBI.typeArguments = <DartType> [typeI];
     List<InterfaceType> interfaces = typeBI.interfaces;
-    EngineTestCase.assertLength(1, interfaces);
+    expect(interfaces, hasLength(1));
     InterfaceType result = interfaces[0];
     expect(result.element, same(classA));
     expect(result.typeArguments[0], same(typeI));
@@ -2115,7 +2115,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     FunctionType methodType = method.type;
     expect(methodType.returnType, same(typeI));
     List<DartType> parameterTypes = methodType.normalParameterTypes;
-    EngineTestCase.assertLength(1, parameterTypes);
+    expect(parameterTypes, hasLength(1));
     expect(parameterTypes[0], same(typeI));
   }
 
@@ -2154,7 +2154,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classC = ElementFactory.classElement2("C", []);
     classC.mixins = <InterfaceType> [typeA, typeB];
     List<InterfaceType> interfaces = classC.type.mixins;
-    EngineTestCase.assertLength(2, interfaces);
+    expect(interfaces, hasLength(2));
     if (identical(interfaces[0], typeA)) {
       expect(interfaces[1], same(typeB));
     } else {
@@ -2181,7 +2181,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceTypeImpl typeBI = new InterfaceTypeImpl.con1(classB);
     typeBI.typeArguments = <DartType> [typeI];
     List<InterfaceType> interfaces = typeBI.mixins;
-    EngineTestCase.assertLength(1, interfaces);
+    expect(interfaces, hasLength(1));
     InterfaceType result = interfaces[0];
     expect(result.element, same(classA));
     expect(result.typeArguments[0], same(typeI));
@@ -2219,7 +2219,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     expect(setter, isNotNull);
     FunctionType setterType = setter.type;
     List<DartType> parameterTypes = setterType.normalParameterTypes;
-    EngineTestCase.assertLength(1, parameterTypes);
+    expect(parameterTypes, hasLength(1));
     expect(parameterTypes[0], same(typeI));
   }
 
@@ -2267,7 +2267,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
 
   void test_getTypeArguments_empty() {
     InterfaceType type = ElementFactory.classElement2("A", []).type;
-    EngineTestCase.assertLength(0, type.typeArguments);
+    expect(type.typeArguments, hasLength(0));
   }
 
   void test_hashCode() {
@@ -2820,7 +2820,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     FunctionType methodType = method.type;
     expect(methodType.returnType, same(typeI));
     List<DartType> parameterTypes = methodType.normalParameterTypes;
-    EngineTestCase.assertLength(1, parameterTypes);
+    expect(parameterTypes, hasLength(1));
     expect(parameterTypes[0], same(typeI));
   }
 
@@ -2928,7 +2928,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeAESubbed = typeAE.substitute2(args, params);
     expect(typeAESubbed.element, classAE);
     List<DartType> resultArguments = typeAESubbed.typeArguments;
-    EngineTestCase.assertLength(1, resultArguments);
+    expect(resultArguments, hasLength(1));
     expect(resultArguments[0], argumentType);
   }
 
@@ -2956,7 +2956,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType result = type.substitute2(<DartType> [argumentType], <DartType> [parameterType]);
     expect(result.element, classA);
     List<DartType> resultArguments = result.typeArguments;
-    EngineTestCase.assertLength(1, resultArguments);
+    expect(resultArguments, hasLength(1));
     expect(resultArguments[0], parameter);
   }
 }
@@ -3006,7 +3006,7 @@ class LibraryElementImplTest extends EngineTestCase {
         ElementFactory.importFor(ElementFactory.library(context, "l6"), prefixB, [])];
     library.imports = imports;
     List<PrefixElement> prefixes = library.prefixes;
-    EngineTestCase.assertLength(2, prefixes);
+    expect(prefixes, hasLength(2));
     if (identical(prefixA, prefixes[0])) {
       expect(prefixes[1], same(prefixB));
     } else {
@@ -3103,7 +3103,7 @@ class LibraryElementImplTest extends EngineTestCase {
         ElementFactory.importFor(ElementFactory.library(context, "l3"), null, [])];
     library.imports = expectedImports;
     List<ImportElement> actualImports = library.imports;
-    EngineTestCase.assertLength(expectedImports.length, actualImports);
+    expect(actualImports, hasLength(expectedImports.length));
     for (int i = 0; i < actualImports.length; i++) {
       expect(actualImports[i], same(expectedImports[i]));
     }
@@ -3117,7 +3117,7 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
     Element result = MultiplyDefinedElementImpl.fromElements(null, firstElement, secondElement);
     EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement, MultiplyDefinedElement, result);
     List<Element> elements = (result as MultiplyDefinedElement).conflictingElements;
-    EngineTestCase.assertLength(2, elements);
+    expect(elements, hasLength(2));
     for (int i = 0; i < elements.length; i++) {
       EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement, LocalVariableElement, elements[i]);
     }
@@ -3130,7 +3130,7 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
     Element result = MultiplyDefinedElementImpl.fromElements(null, MultiplyDefinedElementImpl.fromElements(null, firstElement, secondElement), thirdElement);
     EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement, MultiplyDefinedElement, result);
     List<Element> elements = (result as MultiplyDefinedElement).conflictingElements;
-    EngineTestCase.assertLength(3, elements);
+    expect(elements, hasLength(3));
     for (int i = 0; i < elements.length; i++) {
       EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement, LocalVariableElement, elements[i]);
     }

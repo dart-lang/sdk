@@ -2229,7 +2229,7 @@ class DirectedGraphTest extends EngineTestCase {
     graph.addEdge(node4, node5);
     graph.addEdge(node5, node3);
     List<DirectedGraphTest_Node> cycle = graph.findCycleContaining(node1);
-    EngineTestCase.assertSizeOfList(5, cycle);
+    expect(cycle, hasLength(5));
     expect(cycle.contains(node1), isTrue);
     expect(cycle.contains(node2), isTrue);
     expect(cycle.contains(node3), isTrue);
@@ -2249,7 +2249,7 @@ class DirectedGraphTest extends EngineTestCase {
     graph.addEdge(node3, node1);
     graph.addEdge(node3, new DirectedGraphTest_Node());
     List<DirectedGraphTest_Node> cycle = graph.findCycleContaining(node1);
-    EngineTestCase.assertSizeOfList(3, cycle);
+    expect(cycle, hasLength(3));
     expect(cycle.contains(node1), isTrue);
     expect(cycle.contains(node2), isTrue);
     expect(cycle.contains(node3), isTrue);
@@ -2260,7 +2260,7 @@ class DirectedGraphTest extends EngineTestCase {
     DirectedGraph<DirectedGraphTest_Node> graph =
         new DirectedGraph<DirectedGraphTest_Node>();
     List<DirectedGraphTest_Node> cycle = graph.findCycleContaining(node);
-    EngineTestCase.assertSizeOfList(1, cycle);
+    expect(cycle, hasLength(1));
     expect(cycle[0], node);
   }
 
@@ -2284,7 +2284,7 @@ class DirectedGraphTest extends EngineTestCase {
     graph.addEdge(node1, node2);
     graph.addEdge(node2, node3);
     List<DirectedGraphTest_Node> cycle = graph.findCycleContaining(node1);
-    EngineTestCase.assertSizeOfList(1, cycle);
+    expect(cycle, hasLength(1));
     expect(cycle[0], node1);
   }
 
@@ -2308,11 +2308,11 @@ class DirectedGraphTest extends EngineTestCase {
     DirectedGraphTest_Node node3 = new DirectedGraphTest_Node();
     DirectedGraph<DirectedGraphTest_Node> graph =
         new DirectedGraph<DirectedGraphTest_Node>();
-    EngineTestCase.assertSizeOfSet(0, graph.getTails(node1));
+    expect(graph.getTails(node1), hasLength(0));
     graph.addEdge(node1, node2);
-    EngineTestCase.assertSizeOfSet(1, graph.getTails(node1));
+    expect(graph.getTails(node1), hasLength(1));
     graph.addEdge(node1, node3);
-    EngineTestCase.assertSizeOfSet(2, graph.getTails(node1));
+    expect(graph.getTails(node1), hasLength(2));
   }
 
   void test_removeAllNodes() {
@@ -2338,9 +2338,9 @@ class DirectedGraphTest extends EngineTestCase {
         new DirectedGraph<DirectedGraphTest_Node>();
     graph.addEdge(node1, node2);
     graph.addEdge(node1, node3);
-    EngineTestCase.assertSizeOfSet(2, graph.getTails(node1));
+    expect(graph.getTails(node1), hasLength(2));
     graph.removeEdge(node1, node2);
-    EngineTestCase.assertSizeOfSet(1, graph.getTails(node1));
+    expect(graph.getTails(node1), hasLength(1));
   }
 
   void test_removeNode() {
@@ -2351,9 +2351,9 @@ class DirectedGraphTest extends EngineTestCase {
         new DirectedGraph<DirectedGraphTest_Node>();
     graph.addEdge(node1, node2);
     graph.addEdge(node1, node3);
-    EngineTestCase.assertSizeOfSet(2, graph.getTails(node1));
+    expect(graph.getTails(node1), hasLength(2));
     graph.removeNode(node2);
-    EngineTestCase.assertSizeOfSet(1, graph.getTails(node1));
+    expect(graph.getTails(node1), hasLength(1));
   }
 
   void test_removeSink() {
@@ -2378,12 +2378,12 @@ class DirectedGraphTest extends EngineTestCase {
     graph.addEdge(node2, node3);
     List<List<DirectedGraphTest_Node>> topologicalSort =
         graph.computeTopologicalSort();
-    EngineTestCase.assertSizeOfList(3, topologicalSort);
-    EngineTestCase.assertSizeOfList(1, topologicalSort[0]);
+    expect(topologicalSort, hasLength(3));
+    expect(topologicalSort[0], hasLength(1));
     expect(topologicalSort[0][0], node3);
-    EngineTestCase.assertSizeOfList(1, topologicalSort[1]);
+    expect(topologicalSort[1], hasLength(1));
     expect(topologicalSort[1][0], node2);
-    EngineTestCase.assertSizeOfList(1, topologicalSort[2]);
+    expect(topologicalSort[2], hasLength(1));
     expect(topologicalSort[2][0], node1);
   }
 
@@ -2401,7 +2401,7 @@ class DirectedGraphTest extends EngineTestCase {
     graph.addEdge(node4, node3);
     List<List<DirectedGraphTest_Node>> topologicalSort =
         graph.computeTopologicalSort();
-    EngineTestCase.assertSizeOfList(2, topologicalSort);
+    expect(topologicalSort, hasLength(2));
     EngineTestCase.assertContains(topologicalSort[0], [node3, node4]);
     EngineTestCase.assertContains(topologicalSort[1], [node1, node2]);
   }

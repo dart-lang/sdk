@@ -477,7 +477,7 @@ class MyDirective {
     _assertHasAttributeSelector(directive.selector, "my-dir");
     // verify properties
     List<AngularPropertyElement> properties = directive.properties;
-    EngineTestCase.assertLength(3, properties);
+    expect(properties, hasLength(3));
     _assertProperty(
         properties[0],
         "my-dir",
@@ -779,7 +779,7 @@ class MyComponent extends MySuper {
     expect(component, isNotNull);
     // verify
     List<AngularPropertyElement> properties = component.properties;
-    EngineTestCase.assertLength(1, properties);
+    expect(properties, hasLength(1));
     _assertProperty(
         properties[0],
         "prop-a",
@@ -815,7 +815,7 @@ class MyComponent {
     expect(component, isNotNull);
     // verify
     List<AngularPropertyElement> properties = component.properties;
-    EngineTestCase.assertLength(5, properties);
+    expect(properties, hasLength(5));
     _assertProperty(
         properties[0],
         "prop-a",
@@ -881,7 +881,7 @@ class MyComponent {
     expect(component, isNotNull);
     // verify
     List<AngularPropertyElement> properties = component.properties;
-    EngineTestCase.assertLength(5, properties);
+    expect(properties, hasLength(5));
     _assertProperty(
         properties[0],
         "prop-a",
@@ -941,7 +941,7 @@ class MyComponent {
     expect(component.templateUriOffset, AngularTest.findOffset(mainContent, "my_template.html'"));
     expect(component.styleUri, "my_styles.css");
     expect(component.styleUriOffset, AngularTest.findOffset(mainContent, "my_styles.css'"));
-    EngineTestCase.assertLength(0, component.properties);
+    expect(component.properties, hasLength(0));
   }
 
   void test_NgComponent_scopeProperties() {
@@ -974,7 +974,7 @@ class MyComponent {
     // verify
     List<AngularScopePropertyElement> scopeProperties =
         component.scopeProperties;
-    EngineTestCase.assertLength(3, scopeProperties);
+    expect(scopeProperties, hasLength(3));
     {
       AngularScopePropertyElement property = scopeProperties[0];
       expect(findMainElement2("boolProp"), same(property));
@@ -1360,7 +1360,7 @@ class MyRouteInitializer {
     resolveMainSourceNoErrors(mainContent);
     // prepare AngularViewElement(s)
     List<AngularViewElement> views = mainUnitElement.angularViews;
-    EngineTestCase.assertLength(2, views);
+    expect(views, hasLength(2));
     {
       AngularViewElement view = views[0];
       expect(view.templateUri, "my_templateA.html");
@@ -3381,7 +3381,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
         analysisContext.resolveCompilationUnit(source, library);
     expect(unit, isNotNull);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, declarations);
+    expect(declarations, hasLength(1));
     CompilationUnitMember declaration = declarations[0];
     EngineTestCase.assertInstanceOf(
         (obj) => obj is TopLevelVariableDeclaration,
@@ -3389,7 +3389,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
         declaration);
     NodeList<VariableDeclaration> variables =
         (declaration as TopLevelVariableDeclaration).variables.variables;
-    EngineTestCase.assertSizeOfList(1, variables);
+    expect(variables, hasLength(1));
     ConstantEvaluator evaluator = new ConstantEvaluator(
         source,
         (analysisContext as AnalysisContextImpl).typeProvider);
@@ -3522,7 +3522,7 @@ const int c = b;''');
     computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
-    EngineTestCase.assertSizeOfList(3, members);
+    expect(members, hasLength(3));
     _validate(false, (members[0] as TopLevelVariableDeclaration).variables);
     _validate(false, (members[1] as TopLevelVariableDeclaration).variables);
     _validate(false, (members[2] as TopLevelVariableDeclaration).variables);
@@ -3540,7 +3540,7 @@ const int a = 0;''');
     computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
-    EngineTestCase.assertSizeOfList(2, members);
+    expect(members, hasLength(2));
     _validate(true, (members[0] as TopLevelVariableDeclaration).variables);
     _validate(true, (members[1] as TopLevelVariableDeclaration).variables);
   }
@@ -3576,7 +3576,7 @@ const int d = c;''');
     computer.add(partUnit);
     computer.computeValues();
     NodeList<CompilationUnitMember> libraryMembers = libraryUnit.declarations;
-    EngineTestCase.assertSizeOfList(2, libraryMembers);
+    expect(libraryMembers, hasLength(2));
     _validate(
         true,
         (libraryMembers[0] as TopLevelVariableDeclaration).variables);
@@ -3584,7 +3584,7 @@ const int d = c;''');
         true,
         (libraryMembers[1] as TopLevelVariableDeclaration).variables);
     NodeList<CompilationUnitMember> partMembers = libraryUnit.declarations;
-    EngineTestCase.assertSizeOfList(2, partMembers);
+    expect(partMembers, hasLength(2));
     _validate(true, (partMembers[0] as TopLevelVariableDeclaration).variables);
     _validate(true, (partMembers[1] as TopLevelVariableDeclaration).variables);
   }
@@ -3599,7 +3599,7 @@ const int d = c;''');
     computer.add(unit);
     computer.computeValues();
     NodeList<CompilationUnitMember> members = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, members);
+    expect(members, hasLength(1));
     _validate(true, (members[0] as TopLevelVariableDeclaration).variables);
   }
 
@@ -3906,7 +3906,7 @@ class A {
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
-    EngineTestCase.assertSizeOfMap(1, fields);
+    expect(fields, hasLength(1));
     _assertIntField(fields, "k", 13);
   }
 
@@ -3944,10 +3944,10 @@ class B {
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fieldsOfA = _assertType(result, "A");
-    EngineTestCase.assertSizeOfMap(1, fieldsOfA);
+    expect(fieldsOfA, hasLength(1));
     Map<String, DartObjectImpl> fieldsOfB =
         _assertFieldType(fieldsOfA, "b", "B");
-    EngineTestCase.assertSizeOfMap(1, fieldsOfB);
+    expect(fieldsOfB, hasLength(1));
     _assertIntField(fieldsOfB, "k", 4);
   }
 
@@ -3964,7 +3964,7 @@ class B {
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
-    EngineTestCase.assertSizeOfMap(1, fields);
+    expect(fields, hasLength(1));
     _assertIntField(fields, "k", 7);
   }
 
@@ -3979,7 +3979,7 @@ class A {
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
-    EngineTestCase.assertSizeOfMap(1, fields);
+    expect(fields, hasLength(1));
     _assertIntField(fields, "k", 7);
   }
 
@@ -3997,11 +3997,11 @@ class B extends A {
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "B");
-    EngineTestCase.assertSizeOfMap(2, fields);
+    expect(fields, hasLength(2));
     _assertIntField(fields, "y", 5);
     Map<String, DartObjectImpl> superclassFields =
         _assertFieldType(fields, GenericState.SUPERCLASS_FIELD, "A");
-    EngineTestCase.assertSizeOfMap(1, superclassFields);
+    expect(superclassFields, hasLength(1));
     _assertIntField(superclassFields, "x", 8);
   }
 
@@ -4015,7 +4015,7 @@ class A {
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "A");
-    EngineTestCase.assertSizeOfMap(1, fields);
+    expect(fields, hasLength(1));
     _assertIntField(fields, "x", 42);
   }
 
@@ -4053,11 +4053,11 @@ class B extends A {
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "foo");
     Map<String, DartObjectImpl> fields = _assertType(result, "B");
-    EngineTestCase.assertSizeOfMap(2, fields);
+    expect(fields, hasLength(2));
     _assertIntField(fields, "y", 4);
     Map<String, DartObjectImpl> superclassFields =
         _assertFieldType(fields, GenericState.SUPERCLASS_FIELD, "A");
-    EngineTestCase.assertSizeOfMap(1, superclassFields);
+    expect(superclassFields, hasLength(1));
     _assertIntField(superclassFields, "x", 3);
   }
 
@@ -4189,7 +4189,7 @@ const A a = const A(10);''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "a");
     Map<String, DartObjectImpl> fields = _assertType(result, "B<int>");
-    EngineTestCase.assertSizeOfMap(1, fields);
+    expect(fields, hasLength(1));
     _assertIntField(fields, "x", 10);
   }
 
@@ -4211,7 +4211,7 @@ const A<int> a = const A<int>(10);''');
     EvaluationResultImpl result =
         _evaluateInstanceCreationExpression(compilationUnit, "a");
     Map<String, DartObjectImpl> fields = _assertType(result, "B<int>");
-    EngineTestCase.assertSizeOfMap(1, fields);
+    expect(fields, hasLength(1));
     _assertIntField(fields, "x", 10);
   }
 
@@ -4420,7 +4420,7 @@ class A {
     EvaluationResultImpl x =
         _evaluateInstanceCreationExpression(compilationUnit, "x");
     Map<String, DartObjectImpl> fieldsOfX = _assertType(x, "A");
-    EngineTestCase.assertSizeOfMap(1, fieldsOfX);
+    expect(fieldsOfX, hasLength(1));
     if (hasDefault) {
       _assertIntField(fieldsOfX, fieldName, 3);
     } else {
@@ -4429,7 +4429,7 @@ class A {
     EvaluationResultImpl y =
         _evaluateInstanceCreationExpression(compilationUnit, "y");
     Map<String, DartObjectImpl> fieldsOfY = _assertType(y, "A");
-    EngineTestCase.assertSizeOfMap(1, fieldsOfY);
+    expect(fieldsOfY, hasLength(1));
     _assertIntField(fieldsOfY, fieldName, 10);
   }
 
@@ -5122,21 +5122,21 @@ class DartObjectImplTest extends EngineTestCase {
     Object result = _listValue([]).value;
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
-    EngineTestCase.assertLength(0, array);
+    expect(array, hasLength(0));
   }
 
   void test_getValue_list_valid() {
     Object result = _listValue([_intValue(23)]).value;
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
-    EngineTestCase.assertLength(1, array);
+    expect(array, hasLength(1));
   }
 
   void test_getValue_map_empty() {
     Object result = _mapValue([]).value;
     EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, result);
     Map map = result as Map;
-    EngineTestCase.assertSizeOfMap(0, map);
+    expect(map, hasLength(0));
   }
 
   void test_getValue_map_valid() {
@@ -5144,7 +5144,7 @@ class DartObjectImplTest extends EngineTestCase {
         _mapValue([_stringValue("key"), _stringValue("value")]).value;
     EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, result);
     Map map = result as Map;
-    EngineTestCase.assertSizeOfMap(1, map);
+    expect(map, hasLength(1));
   }
 
   void test_getValue_null() {
@@ -7162,7 +7162,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.catchClause2(exceptionParameterName, stackParameterName, []);
     clause.accept(builder);
     List<LocalVariableElement> variables = holder.localVariables;
-    EngineTestCase.assertLength(2, variables);
+    expect(variables, hasLength(2));
     VariableElement exceptionVariable = variables[0];
     expect(exceptionVariable, isNotNull);
     expect(exceptionVariable.name, exceptionParameterName);
@@ -7193,12 +7193,12 @@ class ElementBuilderTest extends EngineTestCase {
         []);
     classDeclaration.accept(builder);
     List<ClassElement> types = holder.types;
-    EngineTestCase.assertLength(1, types);
+    expect(types, hasLength(1));
     ClassElement type = types[0];
     expect(type, isNotNull);
     expect(type.name, className);
     List<TypeParameterElement> typeParameters = type.typeParameters;
-    EngineTestCase.assertLength(0, typeParameters);
+    expect(typeParameters, hasLength(0));
     expect(type.isAbstract, isTrue);
     expect(type.isSynthetic, isFalse);
   }
@@ -7211,12 +7211,12 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.classDeclaration(null, className, null, null, null, null, []);
     classDeclaration.accept(builder);
     List<ClassElement> types = holder.types;
-    EngineTestCase.assertLength(1, types);
+    expect(types, hasLength(1));
     ClassElement type = types[0];
     expect(type, isNotNull);
     expect(type.name, className);
     List<TypeParameterElement> typeParameters = type.typeParameters;
-    EngineTestCase.assertLength(0, typeParameters);
+    expect(typeParameters, hasLength(0));
     expect(type.isAbstract, isFalse);
     expect(type.isSynthetic, isFalse);
   }
@@ -7237,12 +7237,12 @@ class ElementBuilderTest extends EngineTestCase {
         []);
     classDeclaration.accept(builder);
     List<ClassElement> types = holder.types;
-    EngineTestCase.assertLength(1, types);
+    expect(types, hasLength(1));
     ClassElement type = types[0];
     expect(type, isNotNull);
     expect(type.name, className);
     List<TypeParameterElement> typeParameters = type.typeParameters;
-    EngineTestCase.assertLength(2, typeParameters);
+    expect(typeParameters, hasLength(2));
     expect(typeParameters[0].name, firstVariableName);
     expect(typeParameters[1].name, secondVariableName);
     expect(type.isAbstract, isFalse);
@@ -7278,24 +7278,24 @@ class ElementBuilderTest extends EngineTestCase {
                 AstFactory.blockFunctionBody2([]))]);
     classDeclaration.accept(builder);
     List<ClassElement> types = holder.types;
-    EngineTestCase.assertLength(1, types);
+    expect(types, hasLength(1));
     ClassElement type = types[0];
     expect(type, isNotNull);
     expect(type.name, className);
     expect(type.isAbstract, isFalse);
     expect(type.isSynthetic, isFalse);
     List<TypeParameterElement> typeParameters = type.typeParameters;
-    EngineTestCase.assertLength(1, typeParameters);
+    expect(typeParameters, hasLength(1));
     TypeParameterElement typeParameter = typeParameters[0];
     expect(typeParameter, isNotNull);
     expect(typeParameter.name, typeParameterName);
     List<FieldElement> fields = type.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
     expect(field, isNotNull);
     expect(field.name, fieldName);
     List<MethodElement> methods = type.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
     expect(method.name, methodName);
@@ -7316,15 +7316,15 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([]));
     constructorDeclaration.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
-    EngineTestCase.assertLength(1, constructors);
+    expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
     expect(constructor.isFactory, isTrue);
     expect(constructor.name, "");
-    EngineTestCase.assertLength(0, constructor.functions);
-    EngineTestCase.assertLength(0, constructor.labels);
-    EngineTestCase.assertLength(0, constructor.localVariables);
-    EngineTestCase.assertLength(0, constructor.parameters);
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
   }
 
   void test_visitConstructorDeclaration_minimal() {
@@ -7342,15 +7342,15 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([]));
     constructorDeclaration.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
-    EngineTestCase.assertLength(1, constructors);
+    expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
-    EngineTestCase.assertLength(0, constructor.functions);
-    EngineTestCase.assertLength(0, constructor.labels);
-    EngineTestCase.assertLength(0, constructor.localVariables);
-    EngineTestCase.assertLength(0, constructor.parameters);
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
   }
 
   void test_visitConstructorDeclaration_named() {
@@ -7369,15 +7369,15 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([]));
     constructorDeclaration.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
-    EngineTestCase.assertLength(1, constructors);
+    expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, constructorName);
-    EngineTestCase.assertLength(0, constructor.functions);
-    EngineTestCase.assertLength(0, constructor.labels);
-    EngineTestCase.assertLength(0, constructor.localVariables);
-    EngineTestCase.assertLength(0, constructor.parameters);
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
     expect(constructorDeclaration.name.staticElement, same(constructor));
     expect(constructorDeclaration.element, same(constructor));
   }
@@ -7397,15 +7397,15 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([]));
     constructorDeclaration.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
-    EngineTestCase.assertLength(1, constructors);
+    expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
-    EngineTestCase.assertLength(0, constructor.functions);
-    EngineTestCase.assertLength(0, constructor.labels);
-    EngineTestCase.assertLength(0, constructor.localVariables);
-    EngineTestCase.assertLength(0, constructor.parameters);
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
     expect(constructorDeclaration.element, same(constructor));
   }
 
@@ -7417,7 +7417,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.enumDeclaration2(enumName, ["ONE"]);
     enumDeclaration.accept(builder);
     List<ClassElement> enums = holder.enums;
-    EngineTestCase.assertLength(1, enums);
+    expect(enums, hasLength(1));
     ClassElement enumElement = enums[0];
     expect(enumElement, isNotNull);
     expect(enumElement.name, enumName);
@@ -7436,7 +7436,7 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.variableDeclaration(secondFieldName)]);
     fieldDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(2, fields);
+    expect(fields, hasLength(2));
     FieldElement firstField = fields[0];
     expect(firstField, isNotNull);
     expect(firstField.name, firstFieldName);
@@ -7461,7 +7461,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.fieldFormalParameter(null, null, parameterName);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter, isNotNull);
     expect(parameter.name, parameterName);
@@ -7470,7 +7470,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    EngineTestCase.assertLength(0, parameter.parameters);
+    expect(parameter.parameters, hasLength(0));
   }
 
   void test_visitFieldFormalParameter_funtionTyped() {
@@ -7484,7 +7484,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList([AstFactory.simpleFormalParameter3("a")]));
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter, isNotNull);
     expect(parameter.name, parameterName);
@@ -7493,7 +7493,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    EngineTestCase.assertLength(1, parameter.parameters);
+    expect(parameter.parameters, hasLength(1));
   }
 
   void test_visitFormalParameterList() {
@@ -7507,7 +7507,7 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.simpleFormalParameter3(secondParameterName)]);
     parameterList.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
-    EngineTestCase.assertLength(2, parameters);
+    expect(parameters, hasLength(2));
     expect(parameters[0].name, firstParameterName);
     expect(parameters[1].name, secondParameterName);
   }
@@ -7525,7 +7525,7 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([])));
     declaration.accept(builder);
     List<PropertyAccessorElement> accessors = holder.accessors;
-    EngineTestCase.assertLength(1, accessors);
+    expect(accessors, hasLength(1));
     PropertyAccessorElement accessor = accessors[0];
     expect(accessor, isNotNull);
     expect(accessor.name, functionName);
@@ -7555,7 +7555,7 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([])));
     declaration.accept(builder);
     List<FunctionElement> functions = holder.functions;
-    EngineTestCase.assertLength(1, functions);
+    expect(functions, hasLength(1));
     FunctionElement function = functions[0];
     expect(function, isNotNull);
     expect(function.name, functionName);
@@ -7577,7 +7577,7 @@ class ElementBuilderTest extends EngineTestCase {
             AstFactory.blockFunctionBody2([])));
     declaration.accept(builder);
     List<PropertyAccessorElement> accessors = holder.accessors;
-    EngineTestCase.assertLength(1, accessors);
+    expect(accessors, hasLength(1));
     PropertyAccessorElement accessor = accessors[0];
     expect(accessor, isNotNull);
     expect(accessor.name, "$functionName=");
@@ -7602,7 +7602,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([]));
     expression.accept(builder);
     List<FunctionElement> functions = holder.functions;
-    EngineTestCase.assertLength(1, functions);
+    expect(functions, hasLength(1));
     FunctionElement function = functions[0];
     expect(function, isNotNull);
     expect(expression.element, same(function));
@@ -7621,13 +7621,13 @@ class ElementBuilderTest extends EngineTestCase {
         null);
     aliasNode.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
-    EngineTestCase.assertLength(1, aliases);
+    expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
     expect(alias, isNotNull);
     expect(alias.name, aliasName);
-    EngineTestCase.assertLength(0, alias.parameters);
+    expect(alias.parameters, hasLength(0));
     List<TypeParameterElement> typeParameters = alias.typeParameters;
-    EngineTestCase.assertLength(1, typeParameters);
+    expect(typeParameters, hasLength(1));
     TypeParameterElement typeParameter = typeParameters[0];
     expect(typeParameter, isNotNull);
     expect(typeParameter.name, parameterName);
@@ -7642,7 +7642,7 @@ class ElementBuilderTest extends EngineTestCase {
     _useParameterInMethod(formalParameter, 100, 110);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter, isNotNull);
     expect(parameter.name, parameterName);
@@ -7667,7 +7667,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.breakStatement());
     statement.accept(builder);
     List<LabelElement> labels = holder.labels;
-    EngineTestCase.assertLength(1, labels);
+    expect(labels, hasLength(1));
     LabelElement label = labels[0];
     expect(label, isNotNull);
     expect(label.name, labelName);
@@ -7688,14 +7688,14 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.emptyFunctionBody());
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
     expect(method.name, methodName);
-    EngineTestCase.assertLength(0, method.functions);
-    EngineTestCase.assertLength(0, method.labels);
-    EngineTestCase.assertLength(0, method.localVariables);
-    EngineTestCase.assertLength(0, method.parameters);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
     expect(method.isAbstract, isTrue);
     expect(method.isStatic, isFalse);
     expect(method.isSynthetic, isFalse);
@@ -7715,7 +7715,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([]));
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
     expect(field, isNotNull);
     expect(field.name, methodName);
@@ -7728,10 +7728,10 @@ class ElementBuilderTest extends EngineTestCase {
     expect(getter.isSynthetic, isFalse);
     expect(getter.name, methodName);
     expect(getter.variable, field);
-    EngineTestCase.assertLength(0, getter.functions);
-    EngineTestCase.assertLength(0, getter.labels);
-    EngineTestCase.assertLength(0, getter.localVariables);
-    EngineTestCase.assertLength(0, getter.parameters);
+    expect(getter.functions, hasLength(0));
+    expect(getter.labels, hasLength(0));
+    expect(getter.localVariables, hasLength(0));
+    expect(getter.parameters, hasLength(0));
   }
 
   void test_visitMethodDeclaration_getter_abstract() {
@@ -7748,7 +7748,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.emptyFunctionBody());
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
     expect(field, isNotNull);
     expect(field.name, methodName);
@@ -7761,10 +7761,10 @@ class ElementBuilderTest extends EngineTestCase {
     expect(getter.isSynthetic, isFalse);
     expect(getter.name, methodName);
     expect(getter.variable, field);
-    EngineTestCase.assertLength(0, getter.functions);
-    EngineTestCase.assertLength(0, getter.labels);
-    EngineTestCase.assertLength(0, getter.localVariables);
-    EngineTestCase.assertLength(0, getter.parameters);
+    expect(getter.functions, hasLength(0));
+    expect(getter.labels, hasLength(0));
+    expect(getter.localVariables, hasLength(0));
+    expect(getter.parameters, hasLength(0));
   }
 
   void test_visitMethodDeclaration_getter_external() {
@@ -7780,7 +7780,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList([]));
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
     expect(field, isNotNull);
     expect(field.name, methodName);
@@ -7793,10 +7793,10 @@ class ElementBuilderTest extends EngineTestCase {
     expect(getter.isSynthetic, isFalse);
     expect(getter.name, methodName);
     expect(getter.variable, field);
-    EngineTestCase.assertLength(0, getter.functions);
-    EngineTestCase.assertLength(0, getter.labels);
-    EngineTestCase.assertLength(0, getter.localVariables);
-    EngineTestCase.assertLength(0, getter.parameters);
+    expect(getter.functions, hasLength(0));
+    expect(getter.labels, hasLength(0));
+    expect(getter.localVariables, hasLength(0));
+    expect(getter.parameters, hasLength(0));
   }
 
   void test_visitMethodDeclaration_minimal() {
@@ -7813,14 +7813,14 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([]));
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
     expect(method.name, methodName);
-    EngineTestCase.assertLength(0, method.functions);
-    EngineTestCase.assertLength(0, method.labels);
-    EngineTestCase.assertLength(0, method.localVariables);
-    EngineTestCase.assertLength(0, method.parameters);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
     expect(method.isAbstract, isFalse);
     expect(method.isStatic, isFalse);
     expect(method.isSynthetic, isFalse);
@@ -7840,14 +7840,14 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([]));
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
     expect(method.name, methodName);
-    EngineTestCase.assertLength(0, method.functions);
-    EngineTestCase.assertLength(0, method.labels);
-    EngineTestCase.assertLength(0, method.localVariables);
-    EngineTestCase.assertLength(1, method.parameters);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(1));
     expect(method.isAbstract, isFalse);
     expect(method.isStatic, isFalse);
     expect(method.isSynthetic, isFalse);
@@ -7867,7 +7867,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([]));
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
     expect(field, isNotNull);
     expect(field.name, methodName);
@@ -7881,10 +7881,10 @@ class ElementBuilderTest extends EngineTestCase {
     expect(setter.name, "$methodName=");
     expect(setter.displayName, methodName);
     expect(setter.variable, field);
-    EngineTestCase.assertLength(0, setter.functions);
-    EngineTestCase.assertLength(0, setter.labels);
-    EngineTestCase.assertLength(0, setter.localVariables);
-    EngineTestCase.assertLength(0, setter.parameters);
+    expect(setter.functions, hasLength(0));
+    expect(setter.labels, hasLength(0));
+    expect(setter.localVariables, hasLength(0));
+    expect(setter.parameters, hasLength(0));
   }
 
   void test_visitMethodDeclaration_setter_abstract() {
@@ -7901,7 +7901,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.emptyFunctionBody());
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
     expect(field, isNotNull);
     expect(field.name, methodName);
@@ -7915,10 +7915,10 @@ class ElementBuilderTest extends EngineTestCase {
     expect(setter.name, "$methodName=");
     expect(setter.displayName, methodName);
     expect(setter.variable, field);
-    EngineTestCase.assertLength(0, setter.functions);
-    EngineTestCase.assertLength(0, setter.labels);
-    EngineTestCase.assertLength(0, setter.localVariables);
-    EngineTestCase.assertLength(0, setter.parameters);
+    expect(setter.functions, hasLength(0));
+    expect(setter.labels, hasLength(0));
+    expect(setter.localVariables, hasLength(0));
+    expect(setter.parameters, hasLength(0));
   }
 
   void test_visitMethodDeclaration_setter_external() {
@@ -7934,7 +7934,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList([]));
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
-    EngineTestCase.assertLength(1, fields);
+    expect(fields, hasLength(1));
     FieldElement field = fields[0];
     expect(field, isNotNull);
     expect(field.name, methodName);
@@ -7948,10 +7948,10 @@ class ElementBuilderTest extends EngineTestCase {
     expect(setter.name, "$methodName=");
     expect(setter.displayName, methodName);
     expect(setter.variable, field);
-    EngineTestCase.assertLength(0, setter.functions);
-    EngineTestCase.assertLength(0, setter.labels);
-    EngineTestCase.assertLength(0, setter.localVariables);
-    EngineTestCase.assertLength(0, setter.parameters);
+    expect(setter.functions, hasLength(0));
+    expect(setter.labels, hasLength(0));
+    expect(setter.localVariables, hasLength(0));
+    expect(setter.parameters, hasLength(0));
   }
 
   void test_visitMethodDeclaration_static() {
@@ -7968,14 +7968,14 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([]));
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
     expect(method.name, methodName);
-    EngineTestCase.assertLength(0, method.functions);
-    EngineTestCase.assertLength(0, method.labels);
-    EngineTestCase.assertLength(0, method.localVariables);
-    EngineTestCase.assertLength(0, method.parameters);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
     expect(method.isAbstract, isFalse);
     expect(method.isStatic, isTrue);
     expect(method.isSynthetic, isFalse);
@@ -8011,7 +8011,7 @@ class ElementBuilderTest extends EngineTestCase {
                     [AstFactory.catchClause(exceptionParameterName, [])])]));
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
     expect(method.name, methodName);
@@ -8019,12 +8019,12 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.isStatic, isFalse);
     expect(method.isSynthetic, isFalse);
     List<VariableElement> parameters = method.parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     VariableElement parameter = parameters[0];
     expect(parameter, isNotNull);
     expect(parameter.name, parameterName);
     List<VariableElement> localVariables = method.localVariables;
-    EngineTestCase.assertLength(2, localVariables);
+    expect(localVariables, hasLength(2));
     VariableElement firstVariable = localVariables[0];
     VariableElement secondVariable = localVariables[1];
     expect(firstVariable, isNotNull);
@@ -8034,7 +8034,7 @@ class ElementBuilderTest extends EngineTestCase {
             (firstVariable.name == exceptionParameterName &&
                 secondVariable.name == localVariableName), isTrue);
     List<LabelElement> labels = method.labels;
-    EngineTestCase.assertLength(1, labels);
+    expect(labels, hasLength(1));
     LabelElement label = labels[0];
     expect(label, isNotNull);
     expect(label.name, labelName);
@@ -8050,7 +8050,7 @@ class ElementBuilderTest extends EngineTestCase {
     _useParameterInMethod(formalParameter, 100, 110);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter, isNotNull);
     expect(parameter.name, parameterName);
@@ -8078,7 +8078,7 @@ class ElementBuilderTest extends EngineTestCase {
     _useParameterInMethod(formalParameter, 100, 110);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
-    EngineTestCase.assertLength(1, parameters);
+    expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter, isNotNull);
     expect(parameter.name, parameterName);
@@ -8101,7 +8101,7 @@ class ElementBuilderTest extends EngineTestCase {
     TypeAlias typeAlias = AstFactory.typeAlias(null, aliasName, null, null);
     typeAlias.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
-    EngineTestCase.assertLength(1, aliases);
+    expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
     expect(alias, isNotNull);
     expect(alias.name, aliasName);
@@ -8125,19 +8125,19 @@ class ElementBuilderTest extends EngineTestCase {
                 AstFactory.simpleFormalParameter3(secondParameterName)]));
     typeAlias.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
-    EngineTestCase.assertLength(1, aliases);
+    expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
     expect(alias, isNotNull);
     expect(alias.name, aliasName);
     expect(alias.type, isNotNull);
     expect(alias.isSynthetic, isFalse);
     List<VariableElement> parameters = alias.parameters;
-    EngineTestCase.assertLength(2, parameters);
+    expect(parameters, hasLength(2));
     expect(parameters[0].name, firstParameterName);
     expect(parameters[1].name, secondParameterName);
     List<TypeParameterElement> typeParameters = alias.typeParameters;
     expect(typeParameters, isNotNull);
-    EngineTestCase.assertLength(0, typeParameters);
+    expect(typeParameters, hasLength(0));
   }
 
   void test_visitTypeAlias_withTypeParameters() {
@@ -8153,7 +8153,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList([]));
     typeAlias.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
-    EngineTestCase.assertLength(1, aliases);
+    expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
     expect(alias, isNotNull);
     expect(alias.name, aliasName);
@@ -8161,9 +8161,9 @@ class ElementBuilderTest extends EngineTestCase {
     expect(alias.isSynthetic, isFalse);
     List<VariableElement> parameters = alias.parameters;
     expect(parameters, isNotNull);
-    EngineTestCase.assertLength(0, parameters);
+    expect(parameters, hasLength(0));
     List<TypeParameterElement> typeParameters = alias.typeParameters;
-    EngineTestCase.assertLength(2, typeParameters);
+    expect(typeParameters, hasLength(2));
     expect(typeParameters[0].name, firstTypeParameterName);
     expect(typeParameters[1].name, secondTypeParameterName);
   }
@@ -8175,7 +8175,7 @@ class ElementBuilderTest extends EngineTestCase {
     TypeParameter typeParameter = AstFactory.typeParameter(parameterName);
     typeParameter.accept(builder);
     List<TypeParameterElement> typeParameters = holder.typeParameters;
-    EngineTestCase.assertLength(1, typeParameters);
+    expect(typeParameters, hasLength(1));
     TypeParameterElement typeParameterElement = typeParameters[0];
     expect(typeParameterElement, isNotNull);
     expect(typeParameterElement.name, parameterName);
@@ -8204,10 +8204,10 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([statement]));
     constructor.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
-    EngineTestCase.assertLength(1, constructors);
+    expect(constructors, hasLength(1));
     List<LocalVariableElement> variableElements =
         constructors[0].localVariables;
-    EngineTestCase.assertLength(1, variableElements);
+    expect(variableElements, hasLength(1));
     LocalVariableElement variableElement = variableElements[0];
     expect(variableElement.name, variableName);
   }
@@ -8233,9 +8233,9 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2([statement]));
     constructor.accept(builder);
     List<MethodElement> methods = holder.methods;
-    EngineTestCase.assertLength(1, methods);
+    expect(methods, hasLength(1));
     List<LocalVariableElement> variableElements = methods[0].localVariables;
-    EngineTestCase.assertLength(1, variableElements);
+    expect(variableElements, hasLength(1));
     LocalVariableElement variableElement = variableElements[0];
     expect(variableElement.name, variableName);
   }
@@ -8261,16 +8261,16 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.fieldDeclaration2(false, null, [field]);
     fieldDeclaration.accept(builder);
     List<FieldElement> variables = holder.fields;
-    EngineTestCase.assertLength(1, variables);
+    expect(variables, hasLength(1));
     FieldElement fieldElement = variables[0];
     expect(fieldElement, isNotNull);
     FunctionElement initializerElement = fieldElement.initializer;
     expect(initializerElement, isNotNull);
     List<FunctionElement> functionElements = initializerElement.functions;
-    EngineTestCase.assertLength(1, functionElements);
+    expect(functionElements, hasLength(1));
     List<LocalVariableElement> variableElements =
         functionElements[0].localVariables;
-    EngineTestCase.assertLength(1, variableElements);
+    expect(variableElements, hasLength(1));
     LocalVariableElement variableElement = variableElements[0];
     expect(variableElement.name, variableName);
     expect(variableElement.isConst, isFalse);
@@ -8287,7 +8287,7 @@ class ElementBuilderTest extends EngineTestCase {
     AstFactory.variableDeclarationList2(null, [variableDeclaration]);
     variableDeclaration.accept(builder);
     List<TopLevelVariableElement> variables = holder.topLevelVariables;
-    EngineTestCase.assertLength(1, variables);
+    expect(variables, hasLength(1));
     TopLevelVariableElement variable = variables[0];
     expect(variable, isNotNull);
     expect(variable.initializer, isNull);
@@ -8819,7 +8819,7 @@ class EnumMemberBuilderTest extends EngineTestCase {
 
     ClassElement enumElement = _buildElement(enumDeclaration);
     List<FieldElement> fields = enumElement.fields;
-    EngineTestCase.assertLength(5, fields);
+    expect(fields, hasLength(5));
 
     FieldElement constant = fields[2];
     expect(constant, isNotNull);
@@ -8847,7 +8847,7 @@ class EnumMemberBuilderTest extends EngineTestCase {
 
     ClassElement enumElement = _buildElement(enumDeclaration);
     List<FieldElement> fields = enumElement.fields;
-    EngineTestCase.assertLength(3, fields);
+    expect(fields, hasLength(3));
 
     FieldElement field = fields[0];
     expect(field, isNotNull);
@@ -8885,7 +8885,7 @@ class EnumMemberBuilderTest extends EngineTestCase {
         new EnumMemberBuilder(new TestTypeProvider());
     enumDeclaration.accept(memberBuilder);
     List<ClassElement> enums = holder.enums;
-    EngineTestCase.assertLength(1, enums);
+    expect(enums, hasLength(1));
     return enums[0];
   }
 }
@@ -9922,10 +9922,10 @@ class HtmlTagInfoBuilderTest extends HtmlParserTest {
     HtmlTagInfo info = builder.getTagInfo();
     expect(info, isNotNull);
     List<String> allTags = info.allTags;
-    EngineTestCase.assertLength(4, allTags);
+    expect(allTags, hasLength(4));
     expect(info.getTagWithId("x"), "div");
     List<String> tagsWithClass = info.getTagsWithClass("c");
-    EngineTestCase.assertLength(2, tagsWithClass);
+    expect(tagsWithClass, hasLength(2));
   }
 }
 
@@ -10018,7 +10018,7 @@ class HtmlUnitBuilderTest extends EngineTestCase {
     expect(element.context, same(_context));
     List<HtmlScriptElement> scripts = element.scripts;
     expect(scripts, isNotNull);
-    EngineTestCase.assertLength(expectedScripts.length, scripts);
+    expect(scripts, hasLength(expectedScripts.length));
     for (int scriptIndex = 0; scriptIndex < scripts.length; scriptIndex++) {
       expectedScripts[scriptIndex]._validate(scriptIndex, scripts[scriptIndex]);
     }
@@ -10038,7 +10038,7 @@ class HtmlUnitBuilderTest_ExpectedLibrary {
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull, reason: "script $scriptIndex");
     List<TopLevelVariableElement> variables = unit.topLevelVariables;
-    EngineTestCase.assertLength(_expectedVariables.length, variables);
+    expect(variables, hasLength(_expectedVariables.length));
     for (int index = 0; index < variables.length; index++) {
       _expectedVariables[index].validate(scriptIndex, variables[index]);
     }
@@ -10247,11 +10247,11 @@ class ReferenceFinderTest extends EngineTestCase {
   }
   void _assertNoArcs() {
     Set<AstNode> tails = _referenceGraph.getTails(_head);
-    EngineTestCase.assertSizeOfSet(0, tails);
+    expect(tails, hasLength(0));
   }
   void _assertOneArc(AstNode tail) {
     Set<AstNode> tails = _referenceGraph.getTails(_head);
-    EngineTestCase.assertSizeOfSet(1, tails);
+    expect(tails, hasLength(1));
     expect(tails.first, same(tail));
   }
   ReferenceFinder _createReferenceFinder(AstNode source) =>

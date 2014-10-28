@@ -60,7 +60,7 @@ class EngineTestCase {
         fail(buffer.toString());
       }
     }
-    assertLength(names.length, elements);
+    expect(elements, hasLength(names.length));
   }
 
   AnalysisContextImpl createAnalysisContext() {
@@ -119,22 +119,6 @@ class EngineTestCase {
       assertMatches(left, right);
       left = left.next;
       right = right.next;
-    }
-  }
-
-  /**
-   * Assert that the given collection is non-`null` and has the expected number of elements.
-   *
-   * @param expectedSize the expected number of elements
-   * @param c the collection being tested
-   * @throws AssertionFailedError if the list is `null` or does not have the expected number
-   *           of elements
-   */
-  static void assertCollectionSize(int expectedSize, Iterable c) {
-    if (c == null) {
-      fail("Expected collection of size $expectedSize; found null");
-    } else if (c.length != expectedSize) {
-      fail("Expected collection of size $expectedSize; contained ${c.length} elements");
     }
   }
 
@@ -315,22 +299,6 @@ class EngineTestCase {
   }
 
   /**
-   * Assert that the given array is non-`null` and has the expected number of elements.
-   *
-   * @param expectedLength the expected number of elements
-   * @param array the array being tested
-   * @throws AssertionFailedError if the array is `null` or does not have the expected number
-   *           of elements
-   */
-  static void assertLength(int expectedLength, List<Object> array) {
-    if (array == null) {
-      fail("Expected array of length $expectedLength; found null");
-    } else if (array.length != expectedLength) {
-      fail("Expected array of length $expectedLength; contained ${array.length} elements");
-    }
-  }
-
-  /**
    * Assert that the actual token has the same type and lexeme as the expected token. Note that this
    * does not assert anything about the offsets of the tokens (although the lengths will be equal).
    *
@@ -349,53 +317,6 @@ class EngineTestCase {
     }
   }
 
-  /**
-   * Assert that the given list is non-`null` and has the expected number of elements.
-   *
-   * @param expectedSize the expected number of elements
-   * @param list the list being tested
-   * @throws AssertionFailedError if the list is `null` or does not have the expected number
-   *           of elements
-   */
-  static void assertSizeOfList(int expectedSize, List list) {
-    if (list == null) {
-      fail("Expected list of size $expectedSize; found null");
-    } else if (list.length != expectedSize) {
-      fail("Expected list of size $expectedSize; contained ${list.length} elements");
-    }
-  }
-
-  /**
-   * Assert that the given map is non-`null` and has the expected number of elements.
-   *
-   * @param expectedSize the expected number of elements
-   * @param map the map being tested
-   * @throws AssertionFailedError if the map is `null` or does not have the expected number of
-   *           elements
-   */
-  static void assertSizeOfMap(int expectedSize, Map map) {
-    if (map == null) {
-      fail("Expected map of size $expectedSize; found null");
-    } else if (map.length != expectedSize) {
-      fail("Expected map of size $expectedSize; contained ${map.length} elements");
-    }
-  }
-
-  /**
-   * Assert that the given set is non-`null` and has the expected number of elements.
-   *
-   * @param expectedSize the expected number of elements
-   * @param set the set being tested
-   * @throws AssertionFailedError if the set is `null` or does not have the expected number of
-   *           elements
-   */
-  static void assertSizeOfSet(int expectedSize, Set set) {
-    if (set == null) {
-      fail("Expected set of size $expectedSize; found null");
-    } else if (set.length != expectedSize) {
-      fail("Expected set of size $expectedSize; contained ${set.length} elements");
-    }
-  }
 
   /**
    * @return the [AstNode] with requested type at offset of the "prefix".

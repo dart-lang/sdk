@@ -271,7 +271,7 @@ g(h(_A a)) {}''');
     // Furthermore, the error message should mention both _A and the filenames
     // so the user can figure out what's going on.
     List<AnalysisError> errors = analysisContext2.computeErrors(source);
-    EngineTestCase.assertLength(1, errors);
+    expect(errors, hasLength(1));
     AnalysisError error = errors[0];
     expect(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, error.errorCode);
     String message = error.message;

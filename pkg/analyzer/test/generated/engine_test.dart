@@ -292,7 +292,7 @@ int b = aa;''');
     ChangeSet changeSet = new ChangeSet();
     changeSet.changedSource(source);
     _context.applyChanges(changeSet);
-    EngineTestCase.assertSizeOfList(0, _context.sourcesNeedingProcessing);
+    expect(_context.sourcesNeedingProcessing, hasLength(0));
   }
 
   void test_applyChanges_remove() {
@@ -307,18 +307,18 @@ import 'libB.dart';''');
         _addSource("/libB.dart", "library libB;");
     LibraryElement libAElement = _context.computeLibraryElement(libA);
     List<LibraryElement> importedLibraries = libAElement.importedLibraries;
-    EngineTestCase.assertLength(2, importedLibraries);
+    expect(importedLibraries, hasLength(2));
     _context.computeErrors(libA);
     _context.computeErrors(libB);
-    EngineTestCase.assertSizeOfList(0, _context.sourcesNeedingProcessing);
+    expect(_context.sourcesNeedingProcessing, hasLength(0));
     _context.setContents(libB, null);
     _removeSource(libB);
     List<Source> sources = _context.sourcesNeedingProcessing;
-    EngineTestCase.assertSizeOfList(1, sources);
+    expect(sources, hasLength(1));
     expect(sources[0], same(libA));
     libAElement = _context.computeLibraryElement(libA);
     importedLibraries = libAElement.importedLibraries;
-    EngineTestCase.assertLength(1, importedLibraries);
+    expect(importedLibraries, hasLength(1));
   }
 
   void test_applyChanges_removeContainer() {
@@ -334,13 +334,13 @@ import 'libB.dart';''');
     _context.computeLibraryElement(libA);
     _context.computeErrors(libA);
     _context.computeErrors(libB);
-    EngineTestCase.assertSizeOfList(0, _context.sourcesNeedingProcessing);
+    expect(_context.sourcesNeedingProcessing, hasLength(0));
     ChangeSet changeSet = new ChangeSet();
     changeSet.removedContainer(
         new _AnalysisContextImplTest_test_applyChanges_removeContainer(libB));
     _context.applyChanges(changeSet);
     List<Source> sources = _context.sourcesNeedingProcessing;
-    EngineTestCase.assertSizeOfList(1, sources);
+    expect(sources, hasLength(1));
     expect(sources[0], same(libA));
   }
 
@@ -404,7 +404,7 @@ class A {}""");
   void test_computeErrors_dart_none() {
     Source source = _addSource("/lib.dart", "library lib;");
     List<AnalysisError> errors = _context.computeErrors(source);
-    EngineTestCase.assertLength(0, errors);
+    expect(errors, hasLength(0));
   }
 
   void test_computeErrors_dart_part() {
@@ -427,12 +427,12 @@ class A {}""");
   void test_computeErrors_html_none() {
     Source source = _addSource("/test.html", "<html></html>");
     List<AnalysisError> errors = _context.computeErrors(source);
-    EngineTestCase.assertLength(0, errors);
+    expect(errors, hasLength(0));
   }
 
   void test_computeExportedLibraries_none() {
     Source source = _addSource("/test.dart", "library test;");
-    EngineTestCase.assertLength(0, _context.computeExportedLibraries(source));
+    expect(_context.computeExportedLibraries(source), hasLength(0));
   }
 
   void test_computeExportedLibraries_some() {
@@ -441,7 +441,7 @@ class A {}""");
     Source source = _addSource(
         "/test.dart",
         "library test; export 'lib1.dart'; export 'lib2.dart';");
-    EngineTestCase.assertLength(2, _context.computeExportedLibraries(source));
+    expect(_context.computeExportedLibraries(source), hasLength(2));
   }
 
   void test_computeHtmlElement_nonHtml() {
@@ -458,7 +458,7 @@ class A {}""");
 
   void test_computeImportedLibraries_none() {
     Source source = _addSource("/test.dart", "library test;");
-    EngineTestCase.assertLength(0, _context.computeImportedLibraries(source));
+    expect(_context.computeImportedLibraries(source), hasLength(0));
   }
 
   void test_computeImportedLibraries_some() {
@@ -467,7 +467,7 @@ class A {}""");
     Source source = _addSource(
         "/test.dart",
         "library test; import 'lib1.dart'; import 'lib2.dart';");
-    EngineTestCase.assertLength(2, _context.computeImportedLibraries(source));
+    expect(_context.computeImportedLibraries(source), hasLength(2));
   }
 
   void test_computeKindOf_html() {
@@ -670,28 +670,28 @@ class A {
   void test_getErrors_dart_none() {
     Source source = _addSource("/lib.dart", "library lib;");
     List<AnalysisError> errors = _context.getErrors(source).errors;
-    EngineTestCase.assertLength(0, errors);
+    expect(errors, hasLength(0));
     _context.computeErrors(source);
     errors = _context.getErrors(source).errors;
-    EngineTestCase.assertLength(0, errors);
+    expect(errors, hasLength(0));
   }
 
   void test_getErrors_dart_some() {
     Source source = _addSource("/lib.dart", "library 'lib';");
     List<AnalysisError> errors = _context.getErrors(source).errors;
-    EngineTestCase.assertLength(0, errors);
+    expect(errors, hasLength(0));
     _context.computeErrors(source);
     errors = _context.getErrors(source).errors;
-    EngineTestCase.assertLength(1, errors);
+    expect(errors, hasLength(1));
   }
 
   void test_getErrors_html_none() {
     Source source = _addSource("/test.html", "<html></html>");
     List<AnalysisError> errors = _context.getErrors(source).errors;
-    EngineTestCase.assertLength(0, errors);
+    expect(errors, hasLength(0));
     _context.computeErrors(source);
     errors = _context.getErrors(source).errors;
-    EngineTestCase.assertLength(0, errors);
+    expect(errors, hasLength(0));
   }
 
   void test_getErrors_html_some() {
@@ -702,10 +702,10 @@ class A {
 <script type='application/dart' src='test.dart'/>
 </head></html>''');
     List<AnalysisError> errors = _context.getErrors(source).errors;
-    EngineTestCase.assertLength(0, errors);
+    expect(errors, hasLength(0));
     _context.computeErrors(source);
     errors = _context.getErrors(source).errors;
-    EngineTestCase.assertLength(1, errors);
+    expect(errors, hasLength(1));
   }
 
   void test_getHtmlElement_dart() {
@@ -738,10 +738,10 @@ class A {
     Source secondHtmlSource = _addSource("/test.html", "<html></html>");
     _context.computeLibraryElement(librarySource);
     List<Source> result = _context.getHtmlFilesReferencing(secondHtmlSource);
-    EngineTestCase.assertLength(0, result);
+    expect(result, hasLength(0));
     _context.parseHtmlUnit(htmlSource);
     result = _context.getHtmlFilesReferencing(secondHtmlSource);
-    EngineTestCase.assertLength(0, result);
+    expect(result, hasLength(0));
   }
 
   void test_getHtmlFilesReferencing_library() {
@@ -754,10 +754,10 @@ class A {
 </head></html>''');
     Source librarySource = _addSource("/test.dart", "library lib;");
     List<Source> result = _context.getHtmlFilesReferencing(librarySource);
-    EngineTestCase.assertLength(0, result);
+    expect(result, hasLength(0));
     _context.parseHtmlUnit(htmlSource);
     result = _context.getHtmlFilesReferencing(librarySource);
-    EngineTestCase.assertLength(1, result);
+    expect(result, hasLength(1));
     expect(result[0], htmlSource);
   }
 
@@ -776,20 +776,20 @@ class A {
     Source partSource = _addSource("/part.dart", "part of lib;");
     _context.computeLibraryElement(librarySource);
     List<Source> result = _context.getHtmlFilesReferencing(partSource);
-    EngineTestCase.assertLength(0, result);
+    expect(result, hasLength(0));
     _context.parseHtmlUnit(htmlSource);
     result = _context.getHtmlFilesReferencing(partSource);
-    EngineTestCase.assertLength(1, result);
+    expect(result, hasLength(1));
     expect(result[0], htmlSource);
   }
 
   void test_getHtmlSources() {
     List<Source> sources = _context.htmlSources;
-    EngineTestCase.assertLength(0, sources);
+    expect(sources, hasLength(0));
     Source source = _addSource("/test.html", "");
     _context.computeKindOf(source);
     sources = _context.htmlSources;
-    EngineTestCase.assertLength(1, sources);
+    expect(sources, hasLength(1));
     expect(sources[0], source);
   }
 
@@ -821,7 +821,7 @@ class A {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
     List<Source> sources = _context.launchableClientLibrarySources;
-    EngineTestCase.assertLength(0, sources);
+    expect(sources, hasLength(0));
     Source source = _addSource(
         "/test.dart",
         r'''
@@ -829,18 +829,18 @@ import 'dart:html';
 main() {}''');
     _context.computeLibraryElement(source);
     sources = _context.launchableClientLibrarySources;
-    EngineTestCase.assertLength(1, sources);
+    expect(sources, hasLength(1));
   }
 
   void test_getLaunchableServerLibrarySources() {
     _context = AnalysisContextFactory.contextWithCore();
     _sourceFactory = _context.sourceFactory;
     List<Source> sources = _context.launchableServerLibrarySources;
-    EngineTestCase.assertLength(0, sources);
+    expect(sources, hasLength(0));
     Source source = _addSource("/test.dart", "main() {}");
     _context.computeLibraryElement(source);
     sources = _context.launchableServerLibrarySources;
-    EngineTestCase.assertLength(1, sources);
+    expect(sources, hasLength(1));
   }
 
   void test_getLibrariesContaining() {
@@ -854,10 +854,10 @@ part 'part.dart';''');
     Source partSource = _addSource("/part.dart", "part of lib;");
     _context.computeLibraryElement(librarySource);
     List<Source> result = _context.getLibrariesContaining(librarySource);
-    EngineTestCase.assertLength(1, result);
+    expect(result, hasLength(1));
     expect(result[0], librarySource);
     result = _context.getLibrariesContaining(partSource);
-    EngineTestCase.assertLength(1, result);
+    expect(result, hasLength(1));
     expect(result[0], librarySource);
   }
 
@@ -898,7 +898,7 @@ export 'libA.dart';''');
     _context.computeLibraryElement(librarySource);
     _context.parseHtmlUnit(htmlSource);
     List<Source> result = _context.getLibrariesReferencedFromHtml(htmlSource);
-    EngineTestCase.assertLength(1, result);
+    expect(result, hasLength(1));
     expect(result[0], librarySource);
   }
 
@@ -914,7 +914,7 @@ export 'libA.dart';''');
     _addSource("/test.dart", "library lib;");
     _context.parseHtmlUnit(htmlSource);
     List<Source> result = _context.getLibrariesReferencedFromHtml(htmlSource);
-    EngineTestCase.assertLength(0, result);
+    expect(result, hasLength(0));
   }
 
   void test_getLibraryElement() {
@@ -934,7 +934,7 @@ export 'libA.dart';''');
     Source source = _addSource("/test.dart", "library lib;");
     _context.computeKindOf(source);
     sources = _context.librarySources;
-    EngineTestCase.assertLength(originalLength + 1, sources);
+    expect(sources, hasLength(originalLength + 1));
     for (Source returnedSource in sources) {
       if (returnedSource == source) {
         return;
@@ -987,16 +987,16 @@ main() {}''');
   void test_getRefactoringUnsafeSources() {
     // not sources initially
     List<Source> sources = _context.refactoringUnsafeSources;
-    EngineTestCase.assertLength(0, sources);
+    expect(sources, hasLength(0));
     // add new source, unresolved
     Source source = _addSource("/test.dart", "library lib;");
     sources = _context.refactoringUnsafeSources;
-    EngineTestCase.assertLength(1, sources);
+    expect(sources, hasLength(1));
     expect(sources[0], source);
     // resolve source
     _context.computeLibraryElement(source);
     sources = _context.refactoringUnsafeSources;
-    EngineTestCase.assertLength(0, sources);
+    expect(sources, hasLength(0));
   }
 
   void test_getResolvedCompilationUnit_library() {
@@ -1127,7 +1127,7 @@ main() {}''');
     Source source = _addSource("/lib.dart", "library lib;");
     CompilationUnit compilationUnit = _context.parseCompilationUnit(source);
     expect(compilationUnit, isNotNull);
-    EngineTestCase.assertLength(0, _context.getErrors(source).errors);
+    expect(_context.getErrors(source).errors, hasLength(0));
   }
 
   void test_parseCompilationUnit_nonExistentSource() {
@@ -1285,8 +1285,8 @@ void g() { f(null); }''');
     _analyzeAll_assertFinished();
     expect(_context.getResolvedCompilationUnit2(libSource, libSource), isNotNull, reason: "library resolved 2");
     expect(_context.getResolvedCompilationUnit2(partSource, libSource), isNotNull, reason: "part resolved 2");
-    EngineTestCase.assertLength(0, _context.getErrors(libSource).errors);
-    EngineTestCase.assertLength(0, _context.getErrors(partSource).errors);
+    expect(_context.getErrors(libSource).errors, hasLength(0));
+    expect(_context.getErrors(partSource).errors, hasLength(0));
   }
 
   /**
@@ -1305,8 +1305,8 @@ void f(x) {}''');
 part of lib;
 void g() { f(null); }''');
     _analyzeAll_assertFinished();
-    EngineTestCase.assertLength(0, _context.getErrors(libSource).errors);
-    EngineTestCase.assertLength(0, _context.getErrors(partSource).errors);
+    expect(_context.getErrors(libSource).errors, hasLength(0));
+    expect(_context.getErrors(partSource).errors, hasLength(0));
     // Remove 'part' directive, which should make "f(null)" an error.
     _context.setContents(
         partSource,
@@ -2040,7 +2040,7 @@ class DartEntryTest extends EngineTestCase {
   void test_getAllErrors() {
     Source source = new TestSource();
     DartEntry entry = new DartEntry();
-    EngineTestCase.assertLength(0, entry.allErrors);
+    expect(entry.allErrors, hasLength(0));
     entry.setValue(
         DartEntry.SCAN_ERRORS,
         <AnalysisError>[
@@ -2072,7 +2072,7 @@ class DartEntryTest extends EngineTestCase {
         DartEntry.HINTS,
         source,
         <AnalysisError>[new AnalysisError.con1(source, HintCode.DEAD_CODE, [])]);
-    EngineTestCase.assertLength(5, entry.allErrors);
+    expect(entry.allErrors, hasLength(5));
   }
 
   void test_getResolvableCompilationUnit_none() {
@@ -2201,14 +2201,14 @@ class DartEntryTest extends EngineTestCase {
     Source testSource = new TestSource();
     DartEntry entry = new DartEntry();
     List<Source> value = entry.containingLibraries;
-    EngineTestCase.assertLength(0, value);
+    expect(value, hasLength(0));
     entry.addContainingLibrary(testSource);
     value = entry.containingLibraries;
-    EngineTestCase.assertLength(1, value);
+    expect(value, hasLength(1));
     expect(value[0], testSource);
     entry.removeContainingLibrary(testSource);
     value = entry.containingLibraries;
-    EngineTestCase.assertLength(0, value);
+    expect(value, hasLength(0));
   }
 
   void test_getValueInLibrary_invalid_element() {
@@ -3040,7 +3040,7 @@ class GenerateDartErrorsTaskTestTV_perform extends TestTaskVisitor<bool> {
     expect(task.libraryElement, same(libraryElement));
     expect(task.source, same(source));
     List<AnalysisError> errors = task.errors;
-    EngineTestCase.assertLength(1, errors);
+    expect(errors, hasLength(1));
     return true;
   }
 }
@@ -3061,7 +3061,7 @@ class GenerateDartErrorsTaskTestTV_perform_validateDirectives extends
     expect(task.libraryElement, same(libraryElement));
     expect(task.source, same(source));
     List<AnalysisError> errors = task.errors;
-    EngineTestCase.assertLength(1, errors);
+    expect(errors, hasLength(1));
     expect(errors[0].errorCode, same(CompileTimeErrorCode.URI_DOES_NOT_EXIST));
     return true;
   }
@@ -3147,9 +3147,9 @@ class GenerateDartHintsTaskTestTV_perform extends TestTaskVisitor<bool> {
     }
     expect(task.libraryElement, isNotNull);
     HashMap<Source, List<AnalysisError>> hintMap = task.hintMap;
-    EngineTestCase.assertSizeOfMap(2, hintMap);
-    EngineTestCase.assertLength(1, hintMap[librarySource]);
-    EngineTestCase.assertLength(0, hintMap[partSource]);
+    expect(hintMap, hasLength(2));
+    expect(hintMap[librarySource], hasLength(1));
+    expect(hintMap[partSource], hasLength(0));
     return true;
   }
 }
@@ -3247,7 +3247,7 @@ class HtmlEntryTest extends EngineTestCase {
   void test_getAllErrors() {
     Source source = new TestSource();
     HtmlEntry entry = new HtmlEntry();
-    EngineTestCase.assertLength(0, entry.allErrors);
+    expect(entry.allErrors, hasLength(0));
     entry.setValue(
         HtmlEntry.PARSE_ERRORS,
         <AnalysisError>[
@@ -3271,7 +3271,7 @@ class HtmlEntryTest extends EngineTestCase {
     entry.setValue(
         HtmlEntry.HINTS,
         <AnalysisError>[new AnalysisError.con1(source, HintCode.DEAD_CODE, [])]);
-    EngineTestCase.assertLength(6, entry.allErrors);
+    expect(entry.allErrors, hasLength(6));
   }
 
   void test_invalidateAllResolutionInformation() {
@@ -4522,7 +4522,7 @@ class ParseDartTaskTest extends EngineTestCase {
 
   void test_getErrors() {
     ParseDartTask task = new ParseDartTask(null, null, null, null);
-    EngineTestCase.assertLength(0, task.errors);
+    expect(task.errors, hasLength(0));
   }
 
   void test_getException() {
@@ -4655,7 +4655,7 @@ class ParseDartTaskTestTV_perform_library extends TestTaskVisitor<Object> {
       throw exception;
     }
     expect(task.compilationUnit, isNotNull);
-    EngineTestCase.assertLength(1, task.errors);
+    expect(task.errors, hasLength(1));
     expect(task.source, same(source));
     expect(task.hasNonPartOfDirective, isTrue);
     expect(task.hasPartOfDirective, isFalse);
@@ -4675,7 +4675,7 @@ class ParseDartTaskTestTV_perform_part extends TestTaskVisitor<Object> {
       throw exception;
     }
     expect(task.compilationUnit, isNotNull);
-    EngineTestCase.assertLength(0, task.errors);
+    expect(task.errors, hasLength(0));
     expect(task.source, same(source));
     expect(task.hasNonPartOfDirective, isFalse);
     expect(task.hasPartOfDirective, isTrue);
@@ -4759,7 +4759,7 @@ class ParseHtmlTaskTest extends EngineTestCase {
 
   void test_getReferencedLibraries() {
     ParseHtmlTask task = new ParseHtmlTask(null, null, "");
-    EngineTestCase.assertLength(0, task.referencedLibraries);
+    expect(task.referencedLibraries, hasLength(0));
   }
 
   void test_getSource() {
@@ -4781,7 +4781,7 @@ class ParseHtmlTaskTest extends EngineTestCase {
 </html>''';
     TestLogger testLogger = new TestLogger();
     ParseHtmlTask task = parseContents(contents, testLogger);
-    EngineTestCase.assertLength(0, task.referencedLibraries);
+    expect(task.referencedLibraries, hasLength(0));
     expect(testLogger.errorCount, 0);
     expect(testLogger.infoCount, 0);
   }
@@ -4797,7 +4797,7 @@ class ParseHtmlTaskTest extends EngineTestCase {
 </html>''';
     TestLogger testLogger = new TestLogger();
     ParseHtmlTask task = parseContents(contents, testLogger);
-    EngineTestCase.assertLength(0, task.referencedLibraries);
+    expect(task.referencedLibraries, hasLength(0));
     expect(testLogger.errorCount, 0);
     expect(testLogger.infoCount, 0);
   }
@@ -4813,7 +4813,7 @@ class ParseHtmlTaskTest extends EngineTestCase {
 </html>''';
     TestLogger testLogger = new TestLogger();
     ParseHtmlTask task = parseContents(contents, testLogger);
-    EngineTestCase.assertLength(0, task.referencedLibraries);
+    expect(task.referencedLibraries, hasLength(0));
     expect(testLogger.errorCount, 0);
     expect(testLogger.infoCount, 0);
   }
@@ -4832,7 +4832,7 @@ class ParseHtmlTaskTest extends EngineTestCase {
         new ParseHtmlTaskTest_non_existing_source(contents),
         contents,
         testLogger);
-    EngineTestCase.assertLength(0, task.referencedLibraries);
+    expect(task.referencedLibraries, hasLength(0));
     expect(testLogger.errorCount, 0);
     expect(testLogger.infoCount, 0);
   }
@@ -5127,7 +5127,7 @@ class ResolveHtmlTaskTest extends EngineTestCase {
 
   void test_getResolutionErrors() {
     ResolveHtmlTask task = new ResolveHtmlTask(null, null, 0, null);
-    EngineTestCase.assertLength(0, task.resolutionErrors);
+    expect(task.resolutionErrors, hasLength(0));
   }
 
   void test_getSource() {
@@ -5198,7 +5198,7 @@ class ResolveHtmlTaskTestTV_perform_valid extends TestTaskVisitor<Object> {
       throw exception;
     }
     expect(task.element, isNotNull);
-    EngineTestCase.assertLength(1, task.resolutionErrors);
+    expect(task.resolutionErrors, hasLength(1));
     expect(task.source, same(source));
     return null;
   }
@@ -5219,7 +5219,7 @@ class ScanDartTaskTest extends EngineTestCase {
 
   void test_getErrors() {
     ScanDartTask task = new ScanDartTask(null, null, null);
-    EngineTestCase.assertLength(0, task.errors);
+    expect(task.errors, hasLength(0));
   }
 
   void test_getException() {
@@ -5267,7 +5267,7 @@ class ScanDartTaskTestTV_perform_valid extends TestTaskVisitor<bool> {
       throw exception;
     }
     expect(task.tokenStream, isNotNull);
-    EngineTestCase.assertLength(0, task.errors);
+    expect(task.errors, hasLength(0));
     expect(task.lineInfo, isNotNull);
     expect(task.source, same(source));
     return true;

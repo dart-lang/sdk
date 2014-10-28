@@ -152,14 +152,14 @@ class ComplexParserTest extends ParserTestCase {
     expect(invocation2.methodName.name, "d");
     ArgumentList argumentList2 = invocation2.argumentList;
     expect(argumentList2, isNotNull);
-    EngineTestCase.assertSizeOfList(1, argumentList2.arguments);
+    expect(argumentList2.arguments, hasLength(1));
     //
     // a(b)(c)
     //
     FunctionExpressionInvocation invocation3 = EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpressionInvocation, FunctionExpressionInvocation, invocation2.target);
     ArgumentList argumentList3 = invocation3.argumentList;
     expect(argumentList3, isNotNull);
-    EngineTestCase.assertSizeOfList(1, argumentList3.arguments);
+    expect(argumentList3.arguments, hasLength(1));
     //
     // a(b)
     //
@@ -167,7 +167,7 @@ class ComplexParserTest extends ParserTestCase {
     expect(invocation4.methodName.name, "a");
     ArgumentList argumentList4 = invocation4.argumentList;
     expect(argumentList4, isNotNull);
-    EngineTestCase.assertSizeOfList(1, argumentList4.arguments);
+    expect(argumentList4.arguments, hasLength(1));
   }
 
   void test_assignmentExpression_compound() {
@@ -280,7 +280,7 @@ class C {
   }
 }''', []);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, declarations);
+    expect(declarations, hasLength(1));
   }
 
   void test_equalityExpression_normal() {
@@ -335,7 +335,7 @@ class C {
 
   void test_multipleLabels_statement() {
     LabeledStatement statement = ParserTestCase.parseStatement("a: b: c: return x;", []);
-    EngineTestCase.assertSizeOfList(3, statement.labels);
+    expect(statement.labels, hasLength(3));
     EngineTestCase.assertInstanceOf((obj) => obj is ReturnStatement, ReturnStatement, statement.statement);
   }
 
@@ -1341,7 +1341,7 @@ class ErrorParserTest extends ParserTestCase {
     MethodInvocation methodInvocation = ParserTestCase.parse4("parseCascadeSection", "..()", [ParserErrorCode.MISSING_IDENTIFIER]);
     expect(methodInvocation.target, isNull);
     expect(methodInvocation.methodName.name, "");
-    EngineTestCase.assertSizeOfList(0, methodInvocation.argumentList.arguments);
+    expect(methodInvocation.argumentList.arguments, hasLength(0));
   }
 
   void test_positionalAfterNamedArgument() {
@@ -2013,7 +2013,7 @@ class ParserTestCase extends EngineTestCase {
     Token token = scanner.tokenize();
     Parser parser = createParser(listener);
     List<Statement> statements = parser.parseStatements(token);
-    EngineTestCase.assertSizeOfList(expectedCount, statements);
+    expect(statements, hasLength(expectedCount));
     listener.assertErrorsWithCodes(errorCodes);
     return statements;
   }
@@ -2429,7 +2429,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
 
   void test_expressionList_multiple_end() {
     List<Expression> result = ParserTestCase.parse4("parseExpressionList", ", 2, 3, 4", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertSizeOfList(4, result);
+    expect(result, hasLength(4));
     Expression syntheticExpression = result[0];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
     expect(syntheticExpression.isSynthetic, isTrue);
@@ -2437,7 +2437,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
 
   void test_expressionList_multiple_middle() {
     List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1, 2, , 4", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertSizeOfList(4, result);
+    expect(result, hasLength(4));
     Expression syntheticExpression = result[2];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
     expect(syntheticExpression.isSynthetic, isTrue);
@@ -2445,7 +2445,7 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
 
   void test_expressionList_multiple_start() {
     List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1, 2, 3,", [ParserErrorCode.MISSING_IDENTIFIER]);
-    EngineTestCase.assertSizeOfList(4, result);
+    expect(result, hasLength(4));
     Expression syntheticExpression = result[3];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier, SimpleIdentifier, syntheticExpression);
     expect(syntheticExpression.isSynthetic, isTrue);
@@ -2461,18 +2461,18 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
     ClassMember fieldDecl = members[1];
     EngineTestCase.assertInstanceOf((obj) => obj is FieldDeclaration, FieldDeclaration, fieldDecl);
     NodeList<VariableDeclaration> vars = (fieldDecl as FieldDeclaration).fields.variables;
-    EngineTestCase.assertSizeOfList(1, vars);
+    expect(vars, hasLength(1));
     expect(vars[0].name.name, "v");
   }
 
   void test_incomplete_topLevelVariable() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("String", [ParserErrorCode.EXPECTED_EXECUTABLE]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, declarations);
+    expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableDeclaration, TopLevelVariableDeclaration, member);
     NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
-    EngineTestCase.assertSizeOfList(1, variables);
+    expect(variables, hasLength(1));
     SimpleIdentifier name = variables[0].name;
     expect(name.isSynthetic, isTrue);
   }
@@ -2482,11 +2482,11 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, declarations);
+    expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableDeclaration, TopLevelVariableDeclaration, member);
     NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
-    EngineTestCase.assertSizeOfList(1, variables);
+    expect(variables, hasLength(1));
     SimpleIdentifier name = variables[0].name;
     expect(name.isSynthetic, isTrue);
   }
@@ -2496,11 +2496,11 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, declarations);
+    expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableDeclaration, TopLevelVariableDeclaration, member);
     NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
-    EngineTestCase.assertSizeOfList(1, variables);
+    expect(variables, hasLength(1));
     SimpleIdentifier name = variables[0].name;
     expect(name.isSynthetic, isTrue);
   }
@@ -2510,11 +2510,11 @@ class B = Object with A {}''', [ParserErrorCode.EXPECTED_TOKEN]);
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, declarations);
+    expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableDeclaration, TopLevelVariableDeclaration, member);
     NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
-    EngineTestCase.assertSizeOfList(1, variables);
+    expect(variables, hasLength(1));
     SimpleIdentifier name = variables[0].name;
     expect(name.isSynthetic, isTrue);
   }
@@ -2527,17 +2527,17 @@ class C {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, declarations);
+    expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
     EngineTestCase.assertInstanceOf((obj) => obj is ClassDeclaration, ClassDeclaration, unitMember);
     NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
-    EngineTestCase.assertSizeOfList(1, members);
+    expect(members, hasLength(1));
     ClassMember classMember = members[0];
     EngineTestCase.assertInstanceOf((obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList = (classMember as FieldDeclaration).fields;
     expect((fieldList.keyword as KeywordToken).keyword, Keyword.CONST);
     NodeList<VariableDeclaration> fields = fieldList.variables;
-    EngineTestCase.assertSizeOfList(1, fields);
+    expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
     expect(field.name.isSynthetic, isTrue);
   }
@@ -2550,17 +2550,17 @@ class C {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, declarations);
+    expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
     EngineTestCase.assertInstanceOf((obj) => obj is ClassDeclaration, ClassDeclaration, unitMember);
     NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
-    EngineTestCase.assertSizeOfList(1, members);
+    expect(members, hasLength(1));
     ClassMember classMember = members[0];
     EngineTestCase.assertInstanceOf((obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList = (classMember as FieldDeclaration).fields;
     expect((fieldList.keyword as KeywordToken).keyword, Keyword.FINAL);
     NodeList<VariableDeclaration> fields = fieldList.variables;
-    EngineTestCase.assertSizeOfList(1, fields);
+    expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
     expect(field.name.isSynthetic, isTrue);
   }
@@ -2573,17 +2573,17 @@ class C {
         ParserErrorCode.MISSING_IDENTIFIER,
         ParserErrorCode.EXPECTED_TOKEN]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, declarations);
+    expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
     EngineTestCase.assertInstanceOf((obj) => obj is ClassDeclaration, ClassDeclaration, unitMember);
     NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
-    EngineTestCase.assertSizeOfList(1, members);
+    expect(members, hasLength(1));
     ClassMember classMember = members[0];
     EngineTestCase.assertInstanceOf((obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList = (classMember as FieldDeclaration).fields;
     expect((fieldList.keyword as KeywordToken).keyword, Keyword.VAR);
     NodeList<VariableDeclaration> fields = fieldList.variables;
-    EngineTestCase.assertSizeOfList(1, fields);
+    expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
     expect(field.name.isSynthetic, isTrue);
   }
@@ -2692,7 +2692,7 @@ class C {
     expect(unit, isNotNull);
     ClassDeclaration classDeclaration = unit.declarations[0] as ClassDeclaration;
     NodeList<ClassMember> members = classDeclaration.members;
-    EngineTestCase.assertSizeOfList(2, members);
+    expect(members, hasLength(2));
     EngineTestCase.assertInstanceOf((obj) => obj is MethodDeclaration, MethodDeclaration, members[0]);
     ClassMember member = members[1];
     EngineTestCase.assertInstanceOf((obj) => obj is MethodDeclaration, MethodDeclaration, member);
@@ -2703,7 +2703,7 @@ class C {
     MethodDeclaration method = ParserTestCase.parse3("parseClassMember", <Object> ["C"], "@override }", [ParserErrorCode.EXPECTED_CLASS_MEMBER]);
     expect(method.documentationComment, isNull);
     NodeList<Annotation> metadata = method.metadata;
-    EngineTestCase.assertSizeOfList(1, metadata);
+    expect(metadata, hasLength(1));
     expect(metadata[0].name.name, "override");
   }
 
@@ -2851,7 +2851,7 @@ class C {
         ParserErrorCode.EXPECTED_TOKEN,
         ParserErrorCode.MISSING_TYPEDEF_PARAMETERS]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
-    EngineTestCase.assertSizeOfList(1, declarations);
+    expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionTypeAlias, FunctionTypeAlias, member);
   }
@@ -3789,25 +3789,25 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseArgumentList_empty() {
     ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "()", []);
     NodeList<Expression> arguments = argumentList.arguments;
-    EngineTestCase.assertSizeOfList(0, arguments);
+    expect(arguments, hasLength(0));
   }
 
   void test_parseArgumentList_mixed() {
     ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(w, x, y: y, z: z)", []);
     NodeList<Expression> arguments = argumentList.arguments;
-    EngineTestCase.assertSizeOfList(4, arguments);
+    expect(arguments, hasLength(4));
   }
 
   void test_parseArgumentList_noNamed() {
     ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(x, y, z)", []);
     NodeList<Expression> arguments = argumentList.arguments;
-    EngineTestCase.assertSizeOfList(3, arguments);
+    expect(arguments, hasLength(3));
   }
 
   void test_parseArgumentList_onlyNamed() {
     ArgumentList argumentList = ParserTestCase.parse4("parseArgumentList", "(x: x, y: y)", []);
     NodeList<Expression> arguments = argumentList.arguments;
-    EngineTestCase.assertSizeOfList(2, arguments);
+    expect(arguments, hasLength(2));
   }
 
   void test_parseAssertStatement() {
@@ -3825,7 +3825,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(invocation.function, isNotNull);
     ArgumentList argumentList = invocation.argumentList;
     expect(argumentList, isNotNull);
-    EngineTestCase.assertSizeOfList(1, argumentList.arguments);
+    expect(argumentList.arguments, hasLength(1));
     expect(propertyAccess.operator, isNotNull);
     expect(propertyAccess.propertyName, isNotNull);
   }
@@ -3856,7 +3856,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(invocation.methodName.name, "x");
     ArgumentList argumentList = invocation.argumentList;
     expect(argumentList, isNotNull);
-    EngineTestCase.assertSizeOfList(1, argumentList.arguments);
+    expect(argumentList.arguments, hasLength(1));
     expect(propertyAccess.operator, isNotNull);
     expect(propertyAccess.propertyName, isNotNull);
   }
@@ -3998,14 +3998,14 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseBlock_empty() {
     Block block = ParserTestCase.parse4("parseBlock", "{}", []);
     expect(block.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(0, block.statements);
+    expect(block.statements, hasLength(0));
     expect(block.rightBracket, isNotNull);
   }
 
   void test_parseBlock_nonEmpty() {
     Block block = ParserTestCase.parse4("parseBlock", "{;}", []);
     expect(block.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, block.statements);
+    expect(block.statements, hasLength(1));
     expect(block.rightBracket, isNotNull);
   }
 
@@ -4043,7 +4043,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(section.period, isNotNull);
     expect(section.methodName, isNotNull);
     expect(section.argumentList, isNotNull);
-    EngineTestCase.assertSizeOfList(1, section.argumentList.arguments);
+    expect(section.argumentList.arguments, hasLength(1));
   }
 
   void test_parseCascadeSection_p() {
@@ -4082,21 +4082,21 @@ class SimpleParserTest extends ParserTestCase {
     expect(section.period, isNotNull);
     expect(section.methodName, isNotNull);
     expect(section.argumentList, isNotNull);
-    EngineTestCase.assertSizeOfList(1, section.argumentList.arguments);
+    expect(section.argumentList.arguments, hasLength(1));
   }
 
   void test_parseCascadeSection_paa() {
     FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)(c)", []);
     EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.function);
     expect(section.argumentList, isNotNull);
-    EngineTestCase.assertSizeOfList(1, section.argumentList.arguments);
+    expect(section.argumentList.arguments, hasLength(1));
   }
 
   void test_parseCascadeSection_paapaa() {
     FunctionExpressionInvocation section = ParserTestCase.parse4("parseCascadeSection", "..a(b)(c).d(e)(f)", []);
     EngineTestCase.assertInstanceOf((obj) => obj is MethodInvocation, MethodInvocation, section.function);
     expect(section.argumentList, isNotNull);
-    EngineTestCase.assertSizeOfList(1, section.argumentList.arguments);
+    expect(section.argumentList.arguments, hasLength(1));
   }
 
   void test_parseCascadeSection_pap() {
@@ -4117,7 +4117,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(declaration.classKeyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
     expect(declaration.name, isNotNull);
-    EngineTestCase.assertSizeOfList(0, declaration.members);
+    expect(declaration.members, hasLength(0));
     expect(declaration.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
@@ -4131,7 +4131,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(declaration.classKeyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
     expect(declaration.name, isNotNull);
-    EngineTestCase.assertSizeOfList(0, declaration.members);
+    expect(declaration.members, hasLength(0));
     expect(declaration.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
@@ -4145,7 +4145,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(declaration.classKeyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
     expect(declaration.name, isNotNull);
-    EngineTestCase.assertSizeOfList(0, declaration.members);
+    expect(declaration.members, hasLength(0));
     expect(declaration.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
@@ -4159,7 +4159,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(declaration.classKeyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
     expect(declaration.name, isNotNull);
-    EngineTestCase.assertSizeOfList(0, declaration.members);
+    expect(declaration.members, hasLength(0));
     expect(declaration.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
@@ -4175,7 +4175,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(declaration.withClause, isNotNull);
     expect(declaration.implementsClause, isNull);
     expect(declaration.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(0, declaration.members);
+    expect(declaration.members, hasLength(0));
     expect(declaration.rightBracket, isNotNull);
   }
 
@@ -4190,7 +4190,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(declaration.withClause, isNotNull);
     expect(declaration.implementsClause, isNotNull);
     expect(declaration.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(0, declaration.members);
+    expect(declaration.members, hasLength(0));
     expect(declaration.rightBracket, isNotNull);
   }
 
@@ -4203,7 +4203,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(declaration.classKeyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
     expect(declaration.name, isNotNull);
-    EngineTestCase.assertSizeOfList(0, declaration.members);
+    expect(declaration.members, hasLength(0));
     expect(declaration.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
@@ -4227,7 +4227,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(declaration.classKeyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
     expect(declaration.name, isNotNull);
-    EngineTestCase.assertSizeOfList(1, declaration.members);
+    expect(declaration.members, hasLength(1));
     expect(declaration.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
@@ -4265,10 +4265,10 @@ class SimpleParserTest extends ParserTestCase {
     expect(declaration.classKeyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
     expect(declaration.name, isNotNull);
-    EngineTestCase.assertSizeOfList(0, declaration.members);
+    expect(declaration.members, hasLength(0));
     expect(declaration.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNotNull);
-    EngineTestCase.assertSizeOfList(1, declaration.typeParameters.typeParameters);
+    expect(declaration.typeParameters.typeParameters, hasLength(1));
   }
 
   void test_parseClassMember_constructor_withInitializers() {
@@ -4283,18 +4283,18 @@ class SimpleParserTest extends ParserTestCase {
     expect(constructor.parameters, isNotNull);
     expect(constructor.period, isNull);
     expect(constructor.returnType, isNotNull);
-    EngineTestCase.assertSizeOfList(1, constructor.initializers);
+    expect(constructor.initializers, hasLength(1));
   }
 
   void test_parseClassMember_field_instance_prefixedType() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "p.A f;");
     expect(field.documentationComment, isNull);
-    EngineTestCase.assertSizeOfList(0, field.metadata);
+    expect(field.metadata, hasLength(0));
     expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
     NodeList<VariableDeclaration> variables = list.variables;
-    EngineTestCase.assertSizeOfList(1, variables);
+    expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
     expect(variable.name, isNotNull);
   }
@@ -4302,12 +4302,12 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseClassMember_field_namedGet() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var get;");
     expect(field.documentationComment, isNull);
-    EngineTestCase.assertSizeOfList(0, field.metadata);
+    expect(field.metadata, hasLength(0));
     expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
     NodeList<VariableDeclaration> variables = list.variables;
-    EngineTestCase.assertSizeOfList(1, variables);
+    expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
     expect(variable.name, isNotNull);
   }
@@ -4315,12 +4315,12 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseClassMember_field_namedOperator() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var operator;");
     expect(field.documentationComment, isNull);
-    EngineTestCase.assertSizeOfList(0, field.metadata);
+    expect(field.metadata, hasLength(0));
     expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
     NodeList<VariableDeclaration> variables = list.variables;
-    EngineTestCase.assertSizeOfList(1, variables);
+    expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
     expect(variable.name, isNotNull);
   }
@@ -4328,12 +4328,12 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseClassMember_field_namedOperator_withAssignment() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var operator = (5);");
     expect(field.documentationComment, isNull);
-    EngineTestCase.assertSizeOfList(0, field.metadata);
+    expect(field.metadata, hasLength(0));
     expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
     NodeList<VariableDeclaration> variables = list.variables;
-    EngineTestCase.assertSizeOfList(1, variables);
+    expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
     expect(variable.name, isNotNull);
     expect(variable.initializer, isNotNull);
@@ -4342,12 +4342,12 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseClassMember_field_namedSet() {
     FieldDeclaration field = ParserTestCase.parse("parseClassMember", <Object> ["C"], "var set;");
     expect(field.documentationComment, isNull);
-    EngineTestCase.assertSizeOfList(0, field.metadata);
+    expect(field.metadata, hasLength(0));
     expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
     NodeList<VariableDeclaration> variables = list.variables;
-    EngineTestCase.assertSizeOfList(1, variables);
+    expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
     expect(variable.name, isNotNull);
   }
@@ -4556,7 +4556,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.separator, isNotNull);
-    EngineTestCase.assertSizeOfList(0, constructor.initializers);
+    expect(constructor.initializers, hasLength(0));
     expect(constructor.redirectedConstructor, isNotNull);
     expect(constructor.body, isNotNull);
   }
@@ -4571,7 +4571,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.separator, isNotNull);
-    EngineTestCase.assertSizeOfList(0, constructor.initializers);
+    expect(constructor.initializers, hasLength(0));
     expect(constructor.redirectedConstructor, isNotNull);
     expect(constructor.body, isNotNull);
   }
@@ -4631,92 +4631,92 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseCombinators_h() {
     List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a;", []);
-    EngineTestCase.assertSizeOfList(1, combinators);
+    expect(combinators, hasLength(1));
     HideCombinator combinator = combinators[0] as HideCombinator;
     expect(combinator, isNotNull);
     expect(combinator.keyword, isNotNull);
-    EngineTestCase.assertSizeOfList(1, combinator.hiddenNames);
+    expect(combinator.hiddenNames, hasLength(1));
   }
 
   void test_parseCombinators_hs() {
     List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a show b;", []);
-    EngineTestCase.assertSizeOfList(2, combinators);
+    expect(combinators, hasLength(2));
     HideCombinator hideCombinator = combinators[0] as HideCombinator;
     expect(hideCombinator, isNotNull);
     expect(hideCombinator.keyword, isNotNull);
-    EngineTestCase.assertSizeOfList(1, hideCombinator.hiddenNames);
+    expect(hideCombinator.hiddenNames, hasLength(1));
     ShowCombinator showCombinator = combinators[1] as ShowCombinator;
     expect(showCombinator, isNotNull);
     expect(showCombinator.keyword, isNotNull);
-    EngineTestCase.assertSizeOfList(1, showCombinator.shownNames);
+    expect(showCombinator.shownNames, hasLength(1));
   }
 
   void test_parseCombinators_hshs() {
     List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "hide a show b hide c show d;", []);
-    EngineTestCase.assertSizeOfList(4, combinators);
+    expect(combinators, hasLength(4));
   }
 
   void test_parseCombinators_s() {
     List<Combinator> combinators = ParserTestCase.parse4("parseCombinators", "show a;", []);
-    EngineTestCase.assertSizeOfList(1, combinators);
+    expect(combinators, hasLength(1));
     ShowCombinator combinator = combinators[0] as ShowCombinator;
     expect(combinator, isNotNull);
     expect(combinator.keyword, isNotNull);
-    EngineTestCase.assertSizeOfList(1, combinator.shownNames);
+    expect(combinator.shownNames, hasLength(1));
   }
 
   void test_parseCommentAndMetadata_c() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ void", []);
     expect(commentAndMetadata.comment, isNotNull);
-    EngineTestCase.assertSizeOfList(0, commentAndMetadata.metadata);
+    expect(commentAndMetadata.metadata, hasLength(0));
   }
 
   void test_parseCommentAndMetadata_cmc() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ void", []);
     expect(commentAndMetadata.comment, isNotNull);
-    EngineTestCase.assertSizeOfList(1, commentAndMetadata.metadata);
+    expect(commentAndMetadata.metadata, hasLength(1));
   }
 
   void test_parseCommentAndMetadata_cmcm() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A /** 2 */ @B void", []);
     expect(commentAndMetadata.comment, isNotNull);
-    EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
+    expect(commentAndMetadata.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_cmm() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "/** 1 */ @A @B void", []);
     expect(commentAndMetadata.comment, isNotNull);
-    EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
+    expect(commentAndMetadata.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_m() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A void", []);
     expect(commentAndMetadata.comment, isNull);
-    EngineTestCase.assertSizeOfList(1, commentAndMetadata.metadata);
+    expect(commentAndMetadata.metadata, hasLength(1));
   }
 
   void test_parseCommentAndMetadata_mcm() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A /** 1 */ @B void", []);
     expect(commentAndMetadata.comment, isNotNull);
-    EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
+    expect(commentAndMetadata.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_mcmc() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A /** 1 */ @B /** 2 */ void", []);
     expect(commentAndMetadata.comment, isNotNull);
-    EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
+    expect(commentAndMetadata.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_mm() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "@A @B(x) void", []);
     expect(commentAndMetadata.comment, isNull);
-    EngineTestCase.assertSizeOfList(2, commentAndMetadata.metadata);
+    expect(commentAndMetadata.metadata, hasLength(2));
   }
 
   void test_parseCommentAndMetadata_none() {
     CommentAndMetadata commentAndMetadata = ParserTestCase.parse4("parseCommentAndMetadata", "void", []);
     expect(commentAndMetadata.comment, isNull);
-    EngineTestCase.assertSizeOfList(0, commentAndMetadata.metadata);
+    expect(commentAndMetadata.metadata, hasLength(0));
   }
 
   void test_parseCommentAndMetadata_singleLine() {
@@ -4725,7 +4725,7 @@ class SimpleParserTest extends ParserTestCase {
 /// 2
 void''', []);
     expect(commentAndMetadata.comment, isNotNull);
-    EngineTestCase.assertSizeOfList(0, commentAndMetadata.metadata);
+    expect(commentAndMetadata.metadata, hasLength(0));
   }
 
   void test_parseCommentReference_new_prefixed() {
@@ -4785,7 +4785,7 @@ void''', []);
   void test_parseCommentReferences_multiLine() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** xxx [a] yyy [b] zzz */", 3)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSizeOfList(2, references);
+    expect(references, hasLength(2));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
@@ -4799,7 +4799,7 @@ void''', []);
   void test_parseCommentReferences_notClosed_noIdentifier() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSizeOfList(1, references);
+    expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
@@ -4810,7 +4810,7 @@ void''', []);
   void test_parseCommentReferences_notClosed_withIdentifier() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSizeOfList(1, references);
+    expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
@@ -4823,7 +4823,7 @@ void''', []);
         new StringToken(TokenType.SINGLE_LINE_COMMENT, "/// xxx [a] yyy [b] zzz", 3),
         new StringToken(TokenType.SINGLE_LINE_COMMENT, "/// x [c]", 28)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSizeOfList(3, references);
+    expect(references, hasLength(3));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
@@ -4841,7 +4841,7 @@ void''', []);
   void test_parseCommentReferences_skipCodeBlock_bracketed() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [:xxx [a] yyy:] [b] zzz */", 3)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSizeOfList(1, references);
+    expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
@@ -4851,7 +4851,7 @@ void''', []);
   void test_parseCommentReferences_skipCodeBlock_spaces() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/**\n *     a[i]\n * xxx [i] zzz\n */", 3)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSizeOfList(1, references);
+    expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
@@ -4861,7 +4861,7 @@ void''', []);
   void test_parseCommentReferences_skipLinkDefinition() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [a]: http://www.google.com (Google) [b] zzz */", 3)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSizeOfList(1, references);
+    expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
@@ -4871,7 +4871,7 @@ void''', []);
   void test_parseCommentReferences_skipLinked() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [a](http://www.google.com) [b] zzz */", 3)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSizeOfList(1, references);
+    expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
@@ -4881,7 +4881,7 @@ void''', []);
   void test_parseCommentReferences_skipReferenceLink() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [a][c] [b] zzz */", 3)];
     List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
-    EngineTestCase.assertSizeOfList(1, references);
+    expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
@@ -4891,8 +4891,8 @@ void''', []);
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "abstract<dynamic> _abstract = new abstract.A();", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(0, unit.directives);
-    EngineTestCase.assertSizeOfList(1, unit.declarations);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnit_builtIn_asFunctionName() {
@@ -4916,71 +4916,71 @@ void''', []);
   void test_parseCompilationUnit_directives_multiple() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "library l;\npart 'a.dart';", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(2, unit.directives);
-    EngineTestCase.assertSizeOfList(0, unit.declarations);
+    expect(unit.directives, hasLength(2));
+    expect(unit.declarations, hasLength(0));
   }
 
   void test_parseCompilationUnit_directives_single() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "library l;", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(1, unit.directives);
-    EngineTestCase.assertSizeOfList(0, unit.declarations);
+    expect(unit.directives, hasLength(1));
+    expect(unit.declarations, hasLength(0));
   }
 
   void test_parseCompilationUnit_empty() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(0, unit.directives);
-    EngineTestCase.assertSizeOfList(0, unit.declarations);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(0));
   }
 
   void test_parseCompilationUnit_exportAsPrefix() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "export.A _export = new export.A();", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(0, unit.directives);
-    EngineTestCase.assertSizeOfList(1, unit.declarations);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnit_exportAsPrefix_parameterized() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "export<dynamic> _export = new export.A();", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(0, unit.directives);
-    EngineTestCase.assertSizeOfList(1, unit.declarations);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "operator<dynamic> _operator = new operator.A();", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(0, unit.directives);
-    EngineTestCase.assertSizeOfList(1, unit.declarations);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnit_script() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "#! /bin/dart", []);
     expect(unit.scriptTag, isNotNull);
-    EngineTestCase.assertSizeOfList(0, unit.directives);
-    EngineTestCase.assertSizeOfList(0, unit.declarations);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(0));
   }
 
   void test_parseCompilationUnit_skipFunctionBody_withInterpolation() {
     ParserTestCase.parseFunctionBodies = false;
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "f() { '\${n}'; }", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(1, unit.declarations);
+    expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnit_topLevelDeclaration() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "class A {}", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(0, unit.directives);
-    EngineTestCase.assertSizeOfList(1, unit.declarations);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnit_typedefAsPrefix() {
     CompilationUnit unit = ParserTestCase.parse4("parseCompilationUnit", "typedef.A _typedef = new typedef.A();", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(0, unit.directives);
-    EngineTestCase.assertSizeOfList(1, unit.declarations);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
   }
 
   void test_parseCompilationUnitMember_abstractAsPrefix() {
@@ -4992,7 +4992,7 @@ void''', []);
   void test_parseCompilationUnitMember_class() {
     ClassDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "class A {}");
     expect(declaration.name.name, "A");
-    EngineTestCase.assertSizeOfList(0, declaration.members);
+    expect(declaration.members, hasLength(0));
   }
 
   void test_parseCompilationUnitMember_classTypeAlias() {
@@ -5114,7 +5114,7 @@ void''', []);
     ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "class C<E> = S<E> with M<E> implements I<E>;");
     expect(typeAlias.keyword, isNotNull);
     expect(typeAlias.name.name, "C");
-    EngineTestCase.assertSizeOfList(1, typeAlias.typeParameters.typeParameters);
+    expect(typeAlias.typeParameters.typeParameters, hasLength(1));
     expect(typeAlias.equals, isNotNull);
     expect(typeAlias.abstractKeyword, isNull);
     expect(typeAlias.superclass.name.name, "S");
@@ -5152,7 +5152,7 @@ void''', []);
   void test_parseCompilationUnitMember_typedef() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "typedef F();");
     expect(typeAlias.name.name, "F");
-    EngineTestCase.assertSizeOfList(0, typeAlias.parameters.parameters);
+    expect(typeAlias.parameters.parameters, hasLength(0));
   }
 
   void test_parseCompilationUnitMember_variable() {
@@ -5198,7 +5198,7 @@ void''', []);
     expect(literal.constKeyword, isNotNull);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(0, literal.elements);
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -5207,14 +5207,14 @@ void''', []);
     expect(literal.constKeyword, isNotNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(0, literal.elements);
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseConstExpression_mapLiteral_typed() {
     MapLiteral literal = ParserTestCase.parse4("parseConstExpression", "const <A, B> {}", []);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(0, literal.entries);
+    expect(literal.entries, hasLength(0));
     expect(literal.rightBracket, isNotNull);
     expect(literal.typeArguments, isNotNull);
   }
@@ -5222,7 +5222,7 @@ void''', []);
   void test_parseConstExpression_mapLiteral_untyped() {
     MapLiteral literal = ParserTestCase.parse4("parseConstExpression", "const {}", []);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(0, literal.entries);
+    expect(literal.entries, hasLength(0));
     expect(literal.rightBracket, isNotNull);
     expect(literal.typeArguments, isNull);
   }
@@ -5241,7 +5241,7 @@ void''', []);
     EngineTestCase.assertInstanceOf((obj) => obj is ConstructorDeclaration, ConstructorDeclaration, classMember);
     ConstructorDeclaration constructor = classMember as ConstructorDeclaration;
     NodeList<ConstructorInitializer> initializers = constructor.initializers;
-    EngineTestCase.assertSizeOfList(1, initializers);
+    expect(initializers, hasLength(1));
     ConstructorInitializer initializer = initializers[0];
     EngineTestCase.assertInstanceOf((obj) => obj is ConstructorFieldInitializer, ConstructorFieldInitializer, initializer);
     EngineTestCase.assertInstanceOf((obj) => obj is ParenthesizedExpression, ParenthesizedExpression, (initializer as ConstructorFieldInitializer).expression);
@@ -5312,7 +5312,7 @@ void''', []);
     ExportDirective directive = ParserTestCase.parse("parseDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart';");
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
-    EngineTestCase.assertSizeOfList(0, directive.combinators);
+    expect(directive.combinators, hasLength(0));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -5322,7 +5322,7 @@ void''', []);
     expect(directive.uri, isNotNull);
     expect(directive.asToken, isNull);
     expect(directive.prefix, isNull);
-    EngineTestCase.assertSizeOfList(0, directive.combinators);
+    expect(directive.combinators, hasLength(0));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -5351,43 +5351,43 @@ void''', []);
   void test_parseDirectives_complete() {
     CompilationUnit unit = _parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}", []);
     expect(unit.scriptTag, isNotNull);
-    EngineTestCase.assertSizeOfList(1, unit.directives);
+    expect(unit.directives, hasLength(1));
   }
 
   void test_parseDirectives_empty() {
     CompilationUnit unit = _parseDirectives("", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(0, unit.directives);
+    expect(unit.directives, hasLength(0));
   }
 
   void test_parseDirectives_mixed() {
     CompilationUnit unit = _parseDirectives("library l; class A {} part 'foo.dart';", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(1, unit.directives);
+    expect(unit.directives, hasLength(1));
   }
 
   void test_parseDirectives_multiple() {
     CompilationUnit unit = _parseDirectives("library l;\npart 'a.dart';", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(2, unit.directives);
+    expect(unit.directives, hasLength(2));
   }
 
   void test_parseDirectives_script() {
     CompilationUnit unit = _parseDirectives("#! /bin/dart", []);
     expect(unit.scriptTag, isNotNull);
-    EngineTestCase.assertSizeOfList(0, unit.directives);
+    expect(unit.directives, hasLength(0));
   }
 
   void test_parseDirectives_single() {
     CompilationUnit unit = _parseDirectives("library l;", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(1, unit.directives);
+    expect(unit.directives, hasLength(1));
   }
 
   void test_parseDirectives_topLevelDeclaration() {
     CompilationUnit unit = _parseDirectives("class A {}", []);
     expect(unit.scriptTag, isNull);
-    EngineTestCase.assertSizeOfList(0, unit.directives);
+    expect(unit.directives, hasLength(0));
   }
 
   void test_parseDocumentationComment_block() {
@@ -5403,7 +5403,7 @@ void''', []);
     expect(comment.isDocumentation, isTrue);
     expect(comment.isEndOfLine, isFalse);
     NodeList<CommentReference> references = comment.references;
-    EngineTestCase.assertSizeOfList(1, references);
+    expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
     expect(reference.offset, 5);
@@ -5438,7 +5438,7 @@ void''', []);
     expect(declaration.keyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
     expect(declaration.name, isNotNull);
-    EngineTestCase.assertSizeOfList(1, declaration.constants);
+    expect(declaration.constants, hasLength(1));
     expect(declaration.rightBracket, isNotNull);
   }
 
@@ -5448,7 +5448,7 @@ void''', []);
     expect(declaration.keyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
     expect(declaration.name, isNotNull);
-    EngineTestCase.assertSizeOfList(1, declaration.constants);
+    expect(declaration.constants, hasLength(1));
     expect(declaration.rightBracket, isNotNull);
   }
 
@@ -5458,7 +5458,7 @@ void''', []);
     expect(declaration.keyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
     expect(declaration.name, isNotNull);
-    EngineTestCase.assertSizeOfList(2, declaration.constants);
+    expect(declaration.constants, hasLength(2));
     expect(declaration.rightBracket, isNotNull);
   }
 
@@ -5482,7 +5482,7 @@ void''', []);
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart' hide A, B;");
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
-    EngineTestCase.assertSizeOfList(1, directive.combinators);
+    expect(directive.combinators, hasLength(1));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -5490,7 +5490,7 @@ void''', []);
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart' hide A show B;");
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
-    EngineTestCase.assertSizeOfList(2, directive.combinators);
+    expect(directive.combinators, hasLength(2));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -5498,7 +5498,7 @@ void''', []);
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart';");
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
-    EngineTestCase.assertSizeOfList(0, directive.combinators);
+    expect(directive.combinators, hasLength(0));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -5506,7 +5506,7 @@ void''', []);
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart' show A, B;");
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
-    EngineTestCase.assertSizeOfList(1, directive.combinators);
+    expect(directive.combinators, hasLength(1));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -5514,7 +5514,7 @@ void''', []);
     ExportDirective directive = ParserTestCase.parse("parseExportDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart' show B hide A;");
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
-    EngineTestCase.assertSizeOfList(2, directive.combinators);
+    expect(directive.combinators, hasLength(2));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -5575,7 +5575,7 @@ void''', []);
     expect(expression.body, isNotNull);
     ArgumentList list = invocation.argumentList;
     expect(list, isNotNull);
-    EngineTestCase.assertSizeOfList(1, list.arguments);
+    expect(list.arguments, hasLength(1));
   }
 
   void test_parseExpression_superMethodInvocation() {
@@ -5587,12 +5587,12 @@ void''', []);
 
   void test_parseExpressionList_multiple() {
     List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1, 2, 3", []);
-    EngineTestCase.assertSizeOfList(3, result);
+    expect(result, hasLength(3));
   }
 
   void test_parseExpressionList_single() {
     List<Expression> result = ParserTestCase.parse4("parseExpressionList", "1", []);
-    EngineTestCase.assertSizeOfList(1, result);
+    expect(result, hasLength(1));
   }
 
   void test_parseExpressionWithoutCascade_assign() {
@@ -5813,7 +5813,7 @@ void''', []);
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "()", []);
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNull);
-    EngineTestCase.assertSizeOfList(0, parameterList.parameters);
+    expect(parameterList.parameters, hasLength(0));
     expect(parameterList.rightDelimiter, isNull);
     expect(parameterList.rightParenthesis, isNotNull);
   }
@@ -5822,7 +5822,7 @@ void''', []);
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "({A a : 1, B b, C c : 3})", []);
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
-    EngineTestCase.assertSizeOfList(3, parameterList.parameters);
+    expect(parameterList.parameters, hasLength(3));
     expect(parameterList.rightDelimiter, isNotNull);
     expect(parameterList.rightParenthesis, isNotNull);
   }
@@ -5831,7 +5831,7 @@ void''', []);
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "({A a})", []);
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
-    EngineTestCase.assertSizeOfList(1, parameterList.parameters);
+    expect(parameterList.parameters, hasLength(1));
     expect(parameterList.rightDelimiter, isNotNull);
     expect(parameterList.rightParenthesis, isNotNull);
   }
@@ -5840,7 +5840,7 @@ void''', []);
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, B b, C c)", []);
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNull);
-    EngineTestCase.assertSizeOfList(3, parameterList.parameters);
+    expect(parameterList.parameters, hasLength(3));
     expect(parameterList.rightDelimiter, isNull);
     expect(parameterList.rightParenthesis, isNotNull);
   }
@@ -5849,7 +5849,7 @@ void''', []);
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, {B b})", []);
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
-    EngineTestCase.assertSizeOfList(2, parameterList.parameters);
+    expect(parameterList.parameters, hasLength(2));
     expect(parameterList.rightDelimiter, isNotNull);
     expect(parameterList.rightParenthesis, isNotNull);
   }
@@ -5858,7 +5858,7 @@ void''', []);
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a, [B b])", []);
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
-    EngineTestCase.assertSizeOfList(2, parameterList.parameters);
+    expect(parameterList.parameters, hasLength(2));
     expect(parameterList.rightDelimiter, isNotNull);
     expect(parameterList.rightParenthesis, isNotNull);
   }
@@ -5867,7 +5867,7 @@ void''', []);
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "(A a)", []);
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNull);
-    EngineTestCase.assertSizeOfList(1, parameterList.parameters);
+    expect(parameterList.parameters, hasLength(1));
     expect(parameterList.rightDelimiter, isNull);
     expect(parameterList.rightParenthesis, isNotNull);
   }
@@ -5876,7 +5876,7 @@ void''', []);
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "([A a = null, B b, C c = null])", []);
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
-    EngineTestCase.assertSizeOfList(3, parameterList.parameters);
+    expect(parameterList.parameters, hasLength(3));
     expect(parameterList.rightDelimiter, isNotNull);
     expect(parameterList.rightParenthesis, isNotNull);
   }
@@ -5885,7 +5885,7 @@ void''', []);
     FormalParameterList parameterList = ParserTestCase.parse4("parseFormalParameterList", "([A a = null])", []);
     expect(parameterList.leftParenthesis, isNotNull);
     expect(parameterList.leftDelimiter, isNotNull);
-    EngineTestCase.assertSizeOfList(1, parameterList.parameters);
+    expect(parameterList.parameters, hasLength(1));
     expect(parameterList.rightDelimiter, isNotNull);
     expect(parameterList.rightParenthesis, isNotNull);
   }
@@ -5922,7 +5922,7 @@ void''', []);
     expect(statement.forKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.loopVariable, isNotNull);
-    EngineTestCase.assertSizeOfList(1, statement.loopVariable.metadata);
+    expect(statement.loopVariable.metadata, hasLength(1));
     expect(statement.identifier, isNull);
     expect(statement.inKeyword, isNotNull);
     expect(statement.iterator, isNotNull);
@@ -5965,7 +5965,7 @@ void''', []);
     expect(statement.leftSeparator, isNotNull);
     expect(statement.condition, isNotNull);
     expect(statement.rightSeparator, isNotNull);
-    EngineTestCase.assertSizeOfList(0, statement.updaters);
+    expect(statement.updaters, hasLength(0));
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -5979,7 +5979,7 @@ void''', []);
     expect(statement.leftSeparator, isNotNull);
     expect(statement.condition, isNotNull);
     expect(statement.rightSeparator, isNotNull);
-    EngineTestCase.assertSizeOfList(1, statement.updaters);
+    expect(statement.updaters, hasLength(1));
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -5993,7 +5993,7 @@ void''', []);
     expect(statement.leftSeparator, isNotNull);
     expect(statement.condition, isNotNull);
     expect(statement.rightSeparator, isNotNull);
-    EngineTestCase.assertSizeOfList(1, statement.updaters);
+    expect(statement.updaters, hasLength(1));
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -6004,13 +6004,13 @@ void''', []);
     expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
     expect(variables, isNotNull);
-    EngineTestCase.assertSizeOfList(0, variables.metadata);
-    EngineTestCase.assertSizeOfList(1, variables.variables);
+    expect(variables.metadata, hasLength(0));
+    expect(variables.variables, hasLength(1));
     expect(statement.initialization, isNull);
     expect(statement.leftSeparator, isNotNull);
     expect(statement.condition, isNull);
     expect(statement.rightSeparator, isNotNull);
-    EngineTestCase.assertSizeOfList(0, statement.updaters);
+    expect(statement.updaters, hasLength(0));
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -6021,13 +6021,13 @@ void''', []);
     expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
     expect(variables, isNotNull);
-    EngineTestCase.assertSizeOfList(1, variables.metadata);
-    EngineTestCase.assertSizeOfList(1, variables.variables);
+    expect(variables.metadata, hasLength(1));
+    expect(variables.variables, hasLength(1));
     expect(statement.initialization, isNull);
     expect(statement.leftSeparator, isNotNull);
     expect(statement.condition, isNull);
     expect(statement.rightSeparator, isNotNull);
-    EngineTestCase.assertSizeOfList(0, statement.updaters);
+    expect(statement.updaters, hasLength(0));
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -6038,12 +6038,12 @@ void''', []);
     expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
     expect(variables, isNotNull);
-    EngineTestCase.assertSizeOfList(1, variables.variables);
+    expect(variables.variables, hasLength(1));
     expect(statement.initialization, isNull);
     expect(statement.leftSeparator, isNotNull);
     expect(statement.condition, isNotNull);
     expect(statement.rightSeparator, isNotNull);
-    EngineTestCase.assertSizeOfList(0, statement.updaters);
+    expect(statement.updaters, hasLength(0));
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -6054,12 +6054,12 @@ void''', []);
     expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
     expect(variables, isNotNull);
-    EngineTestCase.assertSizeOfList(1, variables.variables);
+    expect(variables.variables, hasLength(1));
     expect(statement.initialization, isNull);
     expect(statement.leftSeparator, isNotNull);
     expect(statement.condition, isNotNull);
     expect(statement.rightSeparator, isNotNull);
-    EngineTestCase.assertSizeOfList(1, statement.updaters);
+    expect(statement.updaters, hasLength(1));
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -6070,12 +6070,12 @@ void''', []);
     expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
     expect(variables, isNotNull);
-    EngineTestCase.assertSizeOfList(2, variables.variables);
+    expect(variables.variables, hasLength(2));
     expect(statement.initialization, isNull);
     expect(statement.leftSeparator, isNotNull);
     expect(statement.condition, isNotNull);
     expect(statement.rightSeparator, isNotNull);
-    EngineTestCase.assertSizeOfList(2, statement.updaters);
+    expect(statement.updaters, hasLength(2));
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -6086,12 +6086,12 @@ void''', []);
     expect(statement.leftParenthesis, isNotNull);
     VariableDeclarationList variables = statement.variables;
     expect(variables, isNotNull);
-    EngineTestCase.assertSizeOfList(1, variables.variables);
+    expect(variables.variables, hasLength(1));
     expect(statement.initialization, isNull);
     expect(statement.leftSeparator, isNotNull);
     expect(statement.condition, isNull);
     expect(statement.rightSeparator, isNotNull);
-    EngineTestCase.assertSizeOfList(1, statement.updaters);
+    expect(statement.updaters, hasLength(1));
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -6105,7 +6105,7 @@ void''', []);
     expect(statement.leftSeparator, isNotNull);
     expect(statement.condition, isNull);
     expect(statement.rightSeparator, isNotNull);
-    EngineTestCase.assertSizeOfList(1, statement.updaters);
+    expect(statement.updaters, hasLength(1));
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.body, isNotNull);
   }
@@ -6303,12 +6303,12 @@ void''', []);
 
   void test_parseIdentifierList_multiple() {
     List<SimpleIdentifier> list = ParserTestCase.parse4("parseIdentifierList", "a, b, c", []);
-    EngineTestCase.assertSizeOfList(3, list);
+    expect(list, hasLength(3));
   }
 
   void test_parseIdentifierList_single() {
     List<SimpleIdentifier> list = ParserTestCase.parse4("parseIdentifierList", "a", []);
-    EngineTestCase.assertSizeOfList(1, list);
+    expect(list, hasLength(1));
   }
 
   void test_parseIfStatement_else_block() {
@@ -6357,13 +6357,13 @@ void''', []);
 
   void test_parseImplementsClause_multiple() {
     ImplementsClause clause = ParserTestCase.parse4("parseImplementsClause", "implements A, B, C", []);
-    EngineTestCase.assertSizeOfList(3, clause.interfaces);
+    expect(clause.interfaces, hasLength(3));
     expect(clause.keyword, isNotNull);
   }
 
   void test_parseImplementsClause_single() {
     ImplementsClause clause = ParserTestCase.parse4("parseImplementsClause", "implements A", []);
-    EngineTestCase.assertSizeOfList(1, clause.interfaces);
+    expect(clause.interfaces, hasLength(1));
     expect(clause.keyword, isNotNull);
   }
 
@@ -6374,7 +6374,7 @@ void''', []);
     expect(directive.deferredToken, isNotNull);
     expect(directive.asToken, isNotNull);
     expect(directive.prefix, isNotNull);
-    EngineTestCase.assertSizeOfList(0, directive.combinators);
+    expect(directive.combinators, hasLength(0));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -6385,7 +6385,7 @@ void''', []);
     expect(directive.deferredToken, isNull);
     expect(directive.asToken, isNull);
     expect(directive.prefix, isNull);
-    EngineTestCase.assertSizeOfList(1, directive.combinators);
+    expect(directive.combinators, hasLength(1));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -6396,7 +6396,7 @@ void''', []);
     expect(directive.deferredToken, isNull);
     expect(directive.asToken, isNull);
     expect(directive.prefix, isNull);
-    EngineTestCase.assertSizeOfList(0, directive.combinators);
+    expect(directive.combinators, hasLength(0));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -6407,7 +6407,7 @@ void''', []);
     expect(directive.deferredToken, isNull);
     expect(directive.asToken, isNotNull);
     expect(directive.prefix, isNotNull);
-    EngineTestCase.assertSizeOfList(0, directive.combinators);
+    expect(directive.combinators, hasLength(0));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -6418,7 +6418,7 @@ void''', []);
     expect(directive.deferredToken, isNull);
     expect(directive.asToken, isNotNull);
     expect(directive.prefix, isNotNull);
-    EngineTestCase.assertSizeOfList(2, directive.combinators);
+    expect(directive.combinators, hasLength(2));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -6429,7 +6429,7 @@ void''', []);
     expect(directive.deferredToken, isNull);
     expect(directive.asToken, isNotNull);
     expect(directive.prefix, isNotNull);
-    EngineTestCase.assertSizeOfList(2, directive.combinators);
+    expect(directive.combinators, hasLength(2));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -6440,7 +6440,7 @@ void''', []);
     expect(directive.deferredToken, isNull);
     expect(directive.asToken, isNull);
     expect(directive.prefix, isNull);
-    EngineTestCase.assertSizeOfList(1, directive.combinators);
+    expect(directive.combinators, hasLength(1));
     expect(directive.semicolon, isNotNull);
   }
 
@@ -6458,7 +6458,7 @@ void''', []);
     expect(fields, isNotNull);
     expect(fields.keyword, isNull);
     expect(fields.type, type);
-    EngineTestCase.assertSizeOfList(3, fields.variables);
+    expect(fields.variables, hasLength(3));
     expect(declaration.staticKeyword, staticKeyword);
     expect(declaration.semicolon, isNotNull);
   }
@@ -6477,7 +6477,7 @@ void''', []);
     expect(fields, isNotNull);
     expect(fields.keyword, varKeyword);
     expect(fields.type, isNull);
-    EngineTestCase.assertSizeOfList(3, fields.variables);
+    expect(fields.variables, hasLength(3));
     expect(declaration.staticKeyword, staticKeyword);
     expect(declaration.semicolon, isNotNull);
   }
@@ -6556,7 +6556,7 @@ void''', []);
     expect(literal.constKeyword, token);
     expect(literal.typeArguments, typeArguments);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(0, literal.elements);
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6567,7 +6567,7 @@ void''', []);
     expect(literal.constKeyword, token);
     expect(literal.typeArguments, typeArguments);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(0, literal.elements);
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6576,7 +6576,7 @@ void''', []);
     expect(literal.constKeyword, isNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(3, literal.elements);
+    expect(literal.elements, hasLength(3));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6585,7 +6585,7 @@ void''', []);
     expect(literal.constKeyword, isNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, literal.elements);
+    expect(literal.elements, hasLength(1));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6594,7 +6594,7 @@ void''', []);
     expect(literal.constKeyword, isNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, literal.elements);
+    expect(literal.elements, hasLength(1));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6603,7 +6603,7 @@ void''', []);
     expect(literal.constKeyword, isNull);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, literal.elements);
+    expect(literal.elements, hasLength(1));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6612,7 +6612,7 @@ void''', []);
     expect(literal.constKeyword, isNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, literal.entries);
+    expect(literal.entries, hasLength(1));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6621,7 +6621,7 @@ void''', []);
     expect(literal.constKeyword, isNull);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, literal.entries);
+    expect(literal.entries, hasLength(1));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6650,21 +6650,21 @@ void''', []);
     expect(literal.constKeyword, token);
     expect(literal.typeArguments, typeArguments);
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(0, literal.entries);
+    expect(literal.entries, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseMapLiteral_multiple() {
     MapLiteral literal = ParserTestCase.parse("parseMapLiteral", <Object> [null, null], "{'a' : b, 'x' : y}");
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(2, literal.entries);
+    expect(literal.entries, hasLength(2));
     expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseMapLiteral_single() {
     MapLiteral literal = ParserTestCase.parse("parseMapLiteral", <Object> [null, null], "{'x' : y}");
     expect(literal.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, literal.entries);
+    expect(literal.entries, hasLength(1));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -6819,7 +6819,7 @@ void''', []);
     expect(expression.body, isNotNull);
     ArgumentList list = invocation.argumentList;
     expect(list, isNotNull);
-    EngineTestCase.assertSizeOfList(1, list.arguments);
+    expect(list.arguments, hasLength(1));
   }
 
   void test_parseNonLabeledStatement_null() {
@@ -6881,7 +6881,7 @@ void''', []);
     expect(parameter.identifier, isNotNull);
     FormalParameterList parameterList = parameter.parameters;
     expect(parameterList, isNotNull);
-    EngineTestCase.assertSizeOfList(1, parameterList.parameters);
+    expect(parameterList.parameters, hasLength(1));
   }
 
   void test_parseNormalFormalParameter_field_function_noNested() {
@@ -6891,7 +6891,7 @@ void''', []);
     expect(parameter.identifier, isNotNull);
     FormalParameterList parameterList = parameter.parameters;
     expect(parameterList, isNotNull);
-    EngineTestCase.assertSizeOfList(0, parameterList.parameters);
+    expect(parameterList.parameters, hasLength(0));
   }
 
   void test_parseNormalFormalParameter_field_noType() {
@@ -7125,7 +7125,7 @@ void''', []);
   void test_parsePrimaryExpression_listLiteral_typed() {
     ListLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "<A>[ ]", []);
     expect(literal.typeArguments, isNotNull);
-    EngineTestCase.assertSizeOfList(1, literal.typeArguments.arguments);
+    expect(literal.typeArguments.arguments, hasLength(1));
   }
 
   void test_parsePrimaryExpression_mapLiteral() {
@@ -7136,7 +7136,7 @@ void''', []);
   void test_parsePrimaryExpression_mapLiteral_typed() {
     MapLiteral literal = ParserTestCase.parse4("parsePrimaryExpression", "<A, B>{}", []);
     expect(literal.typeArguments, isNotNull);
-    EngineTestCase.assertSizeOfList(2, literal.typeArguments.arguments);
+    expect(literal.typeArguments.arguments, hasLength(2));
   }
 
   void test_parsePrimaryExpression_new() {
@@ -7361,7 +7361,7 @@ void''', []);
 
   void test_parseStatement_mulipleLabels() {
     LabeledStatement statement = ParserTestCase.parse4("parseStatement", "l: m: return x;", []);
-    EngineTestCase.assertSizeOfList(2, statement.labels);
+    expect(statement.labels, hasLength(2));
     expect(statement.statement, isNotNull);
   }
 
@@ -7371,24 +7371,24 @@ void''', []);
 
   void test_parseStatement_singleLabel() {
     LabeledStatement statement = ParserTestCase.parse4("parseStatement", "l: return x;", []);
-    EngineTestCase.assertSizeOfList(1, statement.labels);
+    expect(statement.labels, hasLength(1));
     expect(statement.statement, isNotNull);
   }
 
   void test_parseStatements_multiple() {
     List<Statement> statements = ParserTestCase.parseStatements("return; return;", 2, []);
-    EngineTestCase.assertSizeOfList(2, statements);
+    expect(statements, hasLength(2));
   }
 
   void test_parseStatements_single() {
     List<Statement> statements = ParserTestCase.parseStatements("return;", 1, []);
-    EngineTestCase.assertSizeOfList(1, statements);
+    expect(statements, hasLength(1));
   }
 
   void test_parseStringLiteral_adjacent() {
     AdjacentStrings literal = ParserTestCase.parse4("parseStringLiteral", "'a' 'b'", []);
     NodeList<StringLiteral> strings = literal.strings;
-    EngineTestCase.assertSizeOfList(2, strings);
+    expect(strings, hasLength(2));
     StringLiteral firstString = strings[0];
     StringLiteral secondString = strings[1];
     expect((firstString as SimpleStringLiteral).value, "a");
@@ -7398,7 +7398,7 @@ void''', []);
   void test_parseStringLiteral_interpolated() {
     StringInterpolation literal = ParserTestCase.parse4("parseStringLiteral", "'a \${b} c \$this d'", []);
     NodeList<InterpolationElement> elements = literal.elements;
-    EngineTestCase.assertSizeOfList(5, elements);
+    expect(elements, hasLength(5));
     expect(elements[0] is InterpolationString, isTrue);
     expect(elements[1] is InterpolationExpression, isTrue);
     expect(elements[2] is InterpolationString, isTrue);
@@ -7435,7 +7435,7 @@ void''', []);
     expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, statement.members);
+    expect(statement.members, hasLength(1));
     expect(statement.rightBracket, isNotNull);
   }
 
@@ -7446,7 +7446,7 @@ void''', []);
     expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(0, statement.members);
+    expect(statement.members, hasLength(0));
     expect(statement.rightBracket, isNotNull);
   }
 
@@ -7457,8 +7457,8 @@ void''', []);
     expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, statement.members);
-    EngineTestCase.assertSizeOfList(3, statement.members[0].labels);
+    expect(statement.members, hasLength(1));
+    expect(statement.members[0].labels, hasLength(3));
     expect(statement.rightBracket, isNotNull);
   }
 
@@ -7469,8 +7469,8 @@ void''', []);
     expect(statement.expression, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, statement.members);
-    EngineTestCase.assertSizeOfList(3, statement.members[0].statements);
+    expect(statement.members, hasLength(1));
+    expect(statement.members[0].statements, hasLength(3));
     expect(statement.rightBracket, isNotNull);
   }
 
@@ -7478,7 +7478,7 @@ void''', []);
     SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#dynamic.static.abstract", []);
     expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
-    EngineTestCase.assertLength(3, components);
+    expect(components, hasLength(3));
     expect(components[0].lexeme, "dynamic");
     expect(components[1].lexeme, "static");
     expect(components[2].lexeme, "abstract");
@@ -7488,7 +7488,7 @@ void''', []);
     SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#a.b.c", []);
     expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
-    EngineTestCase.assertLength(3, components);
+    expect(components, hasLength(3));
     expect(components[0].lexeme, "a");
     expect(components[1].lexeme, "b");
     expect(components[2].lexeme, "c");
@@ -7498,7 +7498,7 @@ void''', []);
     SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#==", []);
     expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
-    EngineTestCase.assertLength(1, components);
+    expect(components, hasLength(1));
     expect(components[0].lexeme, "==");
   }
 
@@ -7506,7 +7506,7 @@ void''', []);
     SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#a", []);
     expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
-    EngineTestCase.assertLength(1, components);
+    expect(components, hasLength(1));
     expect(components[0].lexeme, "a");
   }
 
@@ -7514,7 +7514,7 @@ void''', []);
     SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#void", []);
     expect(literal.poundSign, isNotNull);
     List<Token> components = literal.components;
-    EngineTestCase.assertLength(1, components);
+    expect(components, hasLength(1));
     expect(components[0].lexeme, "void");
   }
 
@@ -7535,7 +7535,7 @@ void''', []);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
-    EngineTestCase.assertSizeOfList(1, catchClauses);
+    expect(catchClauses, hasLength(1));
     CatchClause clause = catchClauses[0];
     expect(clause.onKeyword, isNull);
     expect(clause.exceptionType, isNull);
@@ -7553,7 +7553,7 @@ void''', []);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
-    EngineTestCase.assertSizeOfList(1, catchClauses);
+    expect(catchClauses, hasLength(1));
     CatchClause clause = catchClauses[0];
     expect(clause.onKeyword, isNull);
     expect(clause.exceptionType, isNull);
@@ -7570,7 +7570,7 @@ void''', []);
     TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} finally {}", []);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
-    EngineTestCase.assertSizeOfList(0, statement.catchClauses);
+    expect(statement.catchClauses, hasLength(0));
     expect(statement.finallyKeyword, isNotNull);
     expect(statement.finallyBlock, isNotNull);
   }
@@ -7579,7 +7579,7 @@ void''', []);
     TryStatement statement = ParserTestCase.parse4("parseTryStatement", "try {} on NPE catch (e) {} on Error {} catch (e) {}", []);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
-    EngineTestCase.assertSizeOfList(3, statement.catchClauses);
+    expect(statement.catchClauses, hasLength(3));
     expect(statement.finallyKeyword, isNull);
     expect(statement.finallyBlock, isNull);
   }
@@ -7589,7 +7589,7 @@ void''', []);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
-    EngineTestCase.assertSizeOfList(1, catchClauses);
+    expect(catchClauses, hasLength(1));
     CatchClause clause = catchClauses[0];
     expect(clause.onKeyword, isNotNull);
     expect(clause.exceptionType, isNotNull);
@@ -7607,7 +7607,7 @@ void''', []);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
-    EngineTestCase.assertSizeOfList(1, catchClauses);
+    expect(catchClauses, hasLength(1));
     CatchClause clause = catchClauses[0];
     expect(clause.onKeyword, isNotNull);
     expect(clause.exceptionType, isNotNull);
@@ -7625,7 +7625,7 @@ void''', []);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
-    EngineTestCase.assertSizeOfList(1, catchClauses);
+    expect(catchClauses, hasLength(1));
     CatchClause clause = catchClauses[0];
     expect(clause.onKeyword, isNotNull);
     expect(clause.exceptionType, isNotNull);
@@ -7701,26 +7701,26 @@ void''', []);
   void test_parseTypeArgumentList_multiple() {
     TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<int, int, int>", []);
     expect(argumentList.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(3, argumentList.arguments);
+    expect(argumentList.arguments, hasLength(3));
     expect(argumentList.rightBracket, isNotNull);
   }
 
   void test_parseTypeArgumentList_nested() {
     TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<A<B>>", []);
     expect(argumentList.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, argumentList.arguments);
+    expect(argumentList.arguments, hasLength(1));
     TypeName argument = argumentList.arguments[0];
     expect(argument, isNotNull);
     TypeArgumentList innerList = argument.typeArguments;
     expect(innerList, isNotNull);
-    EngineTestCase.assertSizeOfList(1, innerList.arguments);
+    expect(innerList.arguments, hasLength(1));
     expect(argumentList.rightBracket, isNotNull);
   }
 
   void test_parseTypeArgumentList_single() {
     TypeArgumentList argumentList = ParserTestCase.parse4("parseTypeArgumentList", "<int>", []);
     expect(argumentList.leftBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, argumentList.arguments);
+    expect(argumentList.arguments, hasLength(1));
     expect(argumentList.rightBracket, isNotNull);
   }
 
@@ -7754,28 +7754,28 @@ void''', []);
     TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A, B extends C, D>", []);
     expect(parameterList.leftBracket, isNotNull);
     expect(parameterList.rightBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(3, parameterList.typeParameters);
+    expect(parameterList.typeParameters, hasLength(3));
   }
 
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
     TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A extends B<E>>=", []);
     expect(parameterList.leftBracket, isNotNull);
     expect(parameterList.rightBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, parameterList.typeParameters);
+    expect(parameterList.typeParameters, hasLength(1));
   }
 
   void test_parseTypeParameterList_single() {
     TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A>", []);
     expect(parameterList.leftBracket, isNotNull);
     expect(parameterList.rightBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, parameterList.typeParameters);
+    expect(parameterList.typeParameters, hasLength(1));
   }
 
   void test_parseTypeParameterList_withTrailingEquals() {
     TypeParameterList parameterList = ParserTestCase.parse4("parseTypeParameterList", "<A>=", []);
     expect(parameterList.leftBracket, isNotNull);
     expect(parameterList.rightBracket, isNotNull);
-    EngineTestCase.assertSizeOfList(1, parameterList.typeParameters);
+    expect(parameterList.typeParameters, hasLength(1));
   }
 
   void test_parseUnaryExpression_decrement_normal() {
@@ -7895,56 +7895,56 @@ void''', []);
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "const a");
     expect(declarationList.keyword, isNotNull);
     expect(declarationList.type, isNull);
-    EngineTestCase.assertSizeOfList(1, declarationList.variables);
+    expect(declarationList.variables, hasLength(1));
   }
 
   void test_parseVariableDeclarationListAfterMetadata_const_type() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "const A a");
     expect(declarationList.keyword, isNotNull);
     expect(declarationList.type, isNotNull);
-    EngineTestCase.assertSizeOfList(1, declarationList.variables);
+    expect(declarationList.variables, hasLength(1));
   }
 
   void test_parseVariableDeclarationListAfterMetadata_final_noType() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "final a");
     expect(declarationList.keyword, isNotNull);
     expect(declarationList.type, isNull);
-    EngineTestCase.assertSizeOfList(1, declarationList.variables);
+    expect(declarationList.variables, hasLength(1));
   }
 
   void test_parseVariableDeclarationListAfterMetadata_final_type() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "final A a");
     expect(declarationList.keyword, isNotNull);
     expect(declarationList.type, isNotNull);
-    EngineTestCase.assertSizeOfList(1, declarationList.variables);
+    expect(declarationList.variables, hasLength(1));
   }
 
   void test_parseVariableDeclarationListAfterMetadata_type_multiple() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "A a, b, c");
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNotNull);
-    EngineTestCase.assertSizeOfList(3, declarationList.variables);
+    expect(declarationList.variables, hasLength(3));
   }
 
   void test_parseVariableDeclarationListAfterMetadata_type_single() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "A a");
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNotNull);
-    EngineTestCase.assertSizeOfList(1, declarationList.variables);
+    expect(declarationList.variables, hasLength(1));
   }
 
   void test_parseVariableDeclarationListAfterMetadata_var_multiple() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "var a, b, c");
     expect(declarationList.keyword, isNotNull);
     expect(declarationList.type, isNull);
-    EngineTestCase.assertSizeOfList(3, declarationList.variables);
+    expect(declarationList.variables, hasLength(3));
   }
 
   void test_parseVariableDeclarationListAfterMetadata_var_single() {
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterMetadata", <Object> [emptyCommentAndMetadata()], "var a");
     expect(declarationList.keyword, isNotNull);
     expect(declarationList.type, isNull);
-    EngineTestCase.assertSizeOfList(1, declarationList.variables);
+    expect(declarationList.variables, hasLength(1));
   }
 
   void test_parseVariableDeclarationListAfterType_type() {
@@ -7952,7 +7952,7 @@ void''', []);
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterType", <Object> [emptyCommentAndMetadata(), null, type], "a");
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, type);
-    EngineTestCase.assertSizeOfList(1, declarationList.variables);
+    expect(declarationList.variables, hasLength(1));
   }
 
   void test_parseVariableDeclarationListAfterType_var() {
@@ -7960,7 +7960,7 @@ void''', []);
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationListAfterType", <Object> [emptyCommentAndMetadata(), keyword, null], "a, b, c");
     expect(declarationList.keyword, keyword);
     expect(declarationList.type, isNull);
-    EngineTestCase.assertSizeOfList(3, declarationList.variables);
+    expect(declarationList.variables, hasLength(3));
   }
 
   void test_parseVariableDeclarationStatementAfterMetadata_multiple() {
@@ -7968,7 +7968,7 @@ void''', []);
     expect(statement.semicolon, isNotNull);
     VariableDeclarationList variableList = statement.variables;
     expect(variableList, isNotNull);
-    EngineTestCase.assertSizeOfList(3, variableList.variables);
+    expect(variableList.variables, hasLength(3));
   }
 
   void test_parseVariableDeclarationStatementAfterMetadata_single() {
@@ -7976,7 +7976,7 @@ void''', []);
     expect(statement.semicolon, isNotNull);
     VariableDeclarationList variableList = statement.variables;
     expect(variableList, isNotNull);
-    EngineTestCase.assertSizeOfList(1, variableList.variables);
+    expect(variableList.variables, hasLength(1));
   }
 
   void test_parseWhileStatement() {
@@ -7991,13 +7991,13 @@ void''', []);
   void test_parseWithClause_multiple() {
     WithClause clause = ParserTestCase.parse4("parseWithClause", "with A, B, C", []);
     expect(clause.withKeyword, isNotNull);
-    EngineTestCase.assertSizeOfList(3, clause.mixinTypes);
+    expect(clause.mixinTypes, hasLength(3));
   }
 
   void test_parseWithClause_single() {
     WithClause clause = ParserTestCase.parse4("parseWithClause", "with M", []);
     expect(clause.withKeyword, isNotNull);
-    EngineTestCase.assertSizeOfList(1, clause.mixinTypes);
+    expect(clause.mixinTypes, hasLength(1));
   }
 
   void test_parseYieldStatement_each() {
@@ -8243,7 +8243,7 @@ void''', []);
     Parser parser = new Parser(null, listener);
     CompilationUnit unit = parser.parseDirectives(token);
     expect(unit, isNotNull);
-    EngineTestCase.assertSizeOfList(0, unit.declarations);
+    expect(unit.declarations, hasLength(0));
     listener.assertErrorsWithCodes(errorCodes);
     return unit;
   }

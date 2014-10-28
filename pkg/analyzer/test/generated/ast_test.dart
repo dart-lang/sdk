@@ -82,7 +82,7 @@ A f(var p) {
     List<AstNode> nodes = new List<AstNode>();
     BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_BreadthFirstVisitorTest_testIt(nodes);
     visitor.visitAllNodes(unit);
-    EngineTestCase.assertSizeOfList(59, nodes);
+    expect(nodes, hasLength(59));
     EngineTestCase.assertInstanceOf((obj) => obj is CompilationUnit, CompilationUnit, nodes[0]);
     EngineTestCase.assertInstanceOf((obj) => obj is ClassDeclaration, ClassDeclaration, nodes[2]);
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionDeclaration, FunctionDeclaration, nodes[3]);
@@ -562,14 +562,14 @@ class NodeListTest extends EngineTestCase {
     NodeList<AstNode> list = new NodeList<AstNode>(parent);
     list.insert(0, secondNode);
     list.insert(0, firstNode);
-    EngineTestCase.assertSizeOfList(2, list);
+    expect(list, hasLength(2));
     expect(list[0], same(firstNode));
     expect(list[1], same(secondNode));
     expect(firstNode.parent, same(parent));
     expect(secondNode.parent, same(parent));
     AstNode thirdNode = AstFactory.booleanLiteral(false);
     list.insert(1, thirdNode);
-    EngineTestCase.assertSizeOfList(3, list);
+    expect(list, hasLength(3));
     expect(list[0], same(firstNode));
     expect(list[1], same(thirdNode));
     expect(list[2], same(secondNode));
@@ -607,7 +607,7 @@ class NodeListTest extends EngineTestCase {
     firstNodes.add(secondNode);
     NodeList<AstNode> list = new NodeList<AstNode>(parent);
     list.addAll(firstNodes);
-    EngineTestCase.assertSizeOfList(2, list);
+    expect(list, hasLength(2));
     expect(list[0], same(firstNode));
     expect(list[1], same(secondNode));
     expect(firstNode.parent, same(parent));
@@ -618,7 +618,7 @@ class NodeListTest extends EngineTestCase {
     secondNodes.add(thirdNode);
     secondNodes.add(fourthNode);
     list.addAll(secondNodes);
-    EngineTestCase.assertSizeOfList(4, list);
+    expect(list, hasLength(4));
     expect(list[0], same(firstNode));
     expect(list[1], same(secondNode));
     expect(list[2], same(thirdNode));
@@ -633,7 +633,7 @@ class NodeListTest extends EngineTestCase {
     AstNode owner = AstFactory.argumentList([]);
     NodeList<AstNode> list = NodeList.create(owner);
     expect(list, isNotNull);
-    EngineTestCase.assertSizeOfList(0, list);
+    expect(list, hasLength(0));
     expect(list.owner, same(owner));
   }
 
@@ -641,7 +641,7 @@ class NodeListTest extends EngineTestCase {
     AstNode owner = AstFactory.argumentList([]);
     NodeList<AstNode> list = new NodeList<AstNode>(owner);
     expect(list, isNotNull);
-    EngineTestCase.assertSizeOfList(0, list);
+    expect(list, hasLength(0));
     expect(list.owner, same(owner));
   }
 
@@ -700,7 +700,7 @@ class NodeListTest extends EngineTestCase {
     nodes.add(thirdNode);
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     list.addAll(nodes);
-    EngineTestCase.assertSizeOfList(3, list);
+    expect(list, hasLength(3));
     expect(list.indexOf(firstNode), 0);
     expect(list.indexOf(secondNode), 1);
     expect(list.indexOf(thirdNode), 2);
@@ -718,9 +718,9 @@ class NodeListTest extends EngineTestCase {
     nodes.add(thirdNode);
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     list.addAll(nodes);
-    EngineTestCase.assertSizeOfList(3, list);
+    expect(list, hasLength(3));
     expect(list.removeAt(1), same(secondNode));
-    EngineTestCase.assertSizeOfList(2, list);
+    expect(list, hasLength(2));
     expect(list[0], same(firstNode));
     expect(list[1], same(thirdNode));
   }
@@ -755,10 +755,10 @@ class NodeListTest extends EngineTestCase {
     nodes.add(thirdNode);
     NodeList<AstNode> list = new NodeList<AstNode>(AstFactory.argumentList([]));
     list.addAll(nodes);
-    EngineTestCase.assertSizeOfList(3, list);
+    expect(list, hasLength(3));
     AstNode fourthNode = AstFactory.integer(0);
     expect(javaListSet(list, 1, fourthNode), same(secondNode));
-    EngineTestCase.assertSizeOfList(3, list);
+    expect(list, hasLength(3));
     expect(list[0], same(firstNode));
     expect(list[1], same(fourthNode));
     expect(list[2], same(thirdNode));
