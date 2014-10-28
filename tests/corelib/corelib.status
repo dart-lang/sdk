@@ -226,5 +226,3 @@ regexp/*: Skip
 
 [ $runtime == d8 ]
 regexp/constructor_test: Fail # Issue 21396.
-regexp/capture_test: Fail # Issue 21396.
-regexp/non-capturing-groups_test: Fail # Issue 21396.
