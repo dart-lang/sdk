@@ -65,22 +65,33 @@ class CharSequenceReaderTest {
 
 class IncrementalScannerTest extends EngineTestCase {
   /**
-   * The first token from the token stream resulting from parsing the original source, or
-   * `null` if [scan] has not been invoked.
+   * The first token from the token stream resulting from parsing the original
+   * source, or `null` if [scan] has not been invoked.
    */
   Token _originalTokens;
 
   /**
-   * The scanner used to perform incremental scanning, or `null` if [scan] has not been
-   * invoked.
+   * The scanner used to perform incremental scanning, or `null` if [scan] has
+   * not been invoked.
    */
   IncrementalScanner _incrementalScanner;
 
   /**
-   * The first token from the token stream resulting from performing an incremental scan, or
-   * `null` if [scan] has not been invoked.
+   * The first token from the token stream resulting from performing an
+   * incremental scan, or `null` if [scan] has not been invoked.
    */
   Token _incrementalTokens;
+
+  void fail_insert_beginning() {
+    // This is currently reporting the changed range as being from 0 to 5, but
+    // that would force us to re-parse both classes, which is clearly sub-optimal.
+    //
+    // "class B {}"
+    // "class A {} class B {}"
+    _scan("", "", "class A {} ", "class B {}");
+    _assertTokens(-1, 4, ["class", "A", "{", "}", "class", "B", "{", "}"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
 
   void test_delete_identifier_beginning() {
     // "abs + b;"
@@ -114,7 +125,15 @@ class IncrementalScannerTest extends EngineTestCase {
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_afterIdentifier1() {
+  void test_delete_whitespace() {
+    // "a + b + c;"
+    // "a+ b + c;")
+    _scan("a", " ", "", "+ b + c;");
+    _assertTokens(1, 2, ["a", "+", "b", "+", "c", ";"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
+  }
+
+  void test_insert_afterIdentifier_firstToken() {
     // "a + b;"
     // "abs + b;"
     _scan("a", "", "bs", " + b;");
@@ -123,7 +142,15 @@ class IncrementalScannerTest extends EngineTestCase {
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_afterIdentifier2() {
+  void test_insert_afterIdentifier_lastToken() {
+    // "a + b"
+    // "a + bc")
+    _scan("a + b", "", "c", "");
+    _assertTokens(1, 3, ["a", "+", "bc"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_afterIdentifier_middleToken() {
     // "a + b;"
     // "a + by;"
     _scan("a + b", "", "y", ";");
@@ -155,6 +182,14 @@ class IncrementalScannerTest extends EngineTestCase {
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
+  void test_insert_convertOneFunctionToTwo_overlap() {
+    // "f() {}"
+    // "f() {} g() {}"
+    _scan("f() {", "", "} g() {", "}");
+    _assertTokens(4, 10, ["f", "(", ")", "{", "}", "g", "(", ")", "{", "}"]);
+    expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
   void test_insert_end() {
     // "class A {}"
     // "class A {} class B {}"
@@ -171,20 +206,20 @@ class IncrementalScannerTest extends EngineTestCase {
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_newIdentifier1() {
-    // "a;  c;"
-    // "a; b c;"
-    _scan("a; ", "", "b", " c;");
+  void test_insert_newIdentifier_noSpaceBefore() {
+    // "a; c;"
+    // "a;b c;"
+    _scan("a;", "", "b", " c;");
     _assertTokens(1, 3, ["a", ";", "b", "c", ";"]);
+    _assertReplaced(1, ";");
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_newIdentifier2() {
-    // "a;  c;"
-    // "a;b  c;"
-    _scan("a;", "", "b", "  c;");
+  void test_insert_newIdentifier_spaceBefore() {
+    // "a; c;"
+    // "a; b c;"
+    _scan("a; ", "", "b ", "c;");
     _assertTokens(1, 3, ["a", ";", "b", "c", ";"]);
-    _assertReplaced(1, ";");
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
@@ -195,7 +230,7 @@ class IncrementalScannerTest extends EngineTestCase {
     _assertTokens(2, 4, ["a", "+", "b", ".", ";"]);
   }
 
-  void test_insert_period_betweenIdentifiers1() {
+  void test_insert_period_betweenIdentifiers_left() {
     // "a b;"
     // "a. b;"
     _scan("a", "", ".", " b;");
@@ -203,19 +238,19 @@ class IncrementalScannerTest extends EngineTestCase {
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
   }
 
-  void test_insert_period_betweenIdentifiers2() {
-    // "a b;"
-    // "a .b;"
-    _scan("a ", "", ".", "b;");
-    _assertTokens(0, 2, ["a", ".", "b", ";"]);
-  }
-
-  void test_insert_period_betweenIdentifiers3() {
+  void test_insert_period_betweenIdentifiers_middle() {
     // "a  b;"
     // "a . b;"
     _scan("a ", "", ".", " b;");
     _assertTokens(0, 2, ["a", ".", "b", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isTrue);
+  }
+
+  void test_insert_period_betweenIdentifiers_right() {
+    // "a b;"
+    // "a .b;"
+    _scan("a ", "", ".", "b;");
+    _assertTokens(0, 2, ["a", ".", "b", ";"]);
   }
 
   void test_insert_period_insideExistingIdentifier() {
@@ -341,15 +376,12 @@ a''', "", " ", " + b;");
   }
 
   /**
-   * Assert that the token at the given offset was replaced with a new token having the given
-   * lexeme.
-   *
-   * @param tokenOffset the offset of the token being tested
-   * @param lexeme the expected lexeme of the new token
+   * Assert that the token at the given [offset] was replaced with a new token
+   * having the given [lexeme].
    */
-  void _assertReplaced(int tokenOffset, String lexeme) {
+  void _assertReplaced(int offset, String lexeme) {
     Token oldToken = _originalTokens;
-    for (int i = 0; i < tokenOffset; i++) {
+    for (int i = 0; i < offset; i++) {
       oldToken = oldToken.next;
     }
     expect(oldToken.lexeme, lexeme);
@@ -360,17 +392,20 @@ a''', "", " ", " + b;");
   }
 
   /**
-   * Assert that the result of the incremental scan matches the given list of lexemes and that the
-   * left and right tokens correspond to the tokens at the given indices.
-   *
-   * @param leftIndex the expected index of the left token
-   * @param rightIndex the expected index of the right token
-   * @param lexemes the expected lexemes of the resulting tokens
+   * Assert that the result of the incremental scan matches the given list of
+   * [lexemes] and that the left and right tokens correspond to the tokens at
+   * the [leftIndex] and [rightIndex].
    */
   void _assertTokens(int leftIndex, int rightIndex, List<String> lexemes) {
     int count = lexemes.length;
-    expect(leftIndex >= -1 && leftIndex < count, isTrue, reason: "Invalid left index");
-    expect(rightIndex >= 0 && rightIndex <= count, isTrue, reason: "Invalid right index");
+    expect(
+        leftIndex >= -1 && leftIndex < count,
+        isTrue,
+        reason: "Invalid left index");
+    expect(
+        rightIndex >= 0 && rightIndex <= count,
+        isTrue,
+        reason: "Invalid right index");
     Token leftToken = null;
     Token rightToken = null;
     Token token = _incrementalTokens;
@@ -394,22 +429,28 @@ a''', "", " ", " + b;");
     if (leftIndex >= 0) {
       expect(leftToken, isNotNull);
     }
-    expect(_incrementalScanner.leftToken, same(leftToken), reason: "Invalid left token");
+    expect(
+        _incrementalScanner.leftToken,
+        same(leftToken),
+        reason: "Invalid left token");
     if (rightIndex >= 0) {
       expect(rightToken, isNotNull);
     }
-    expect(_incrementalScanner.rightToken, same(rightToken), reason: "Invalid right token");
+    expect(
+        _incrementalScanner.rightToken,
+        same(rightToken),
+        reason: "Invalid right token");
   }
 
   /**
-   * Given a description of the original and modified contents, perform an incremental scan of the
-   * two pieces of text. Verify that the incremental scan produced the same tokens as those that
-   * would be produced by a full scan of the new contents.
+   * Given a description of the original and modified contents, perform an
+   * incremental scan of the two pieces of text. Verify that the incremental
+   * scan produced the same tokens as those that would be produced by a full
+   * scan of the new contents.
    *
-   * @param prefix the unchanged text before the edit region
-   * @param removed the text that was removed from the original contents
-   * @param added the text that was added to the modified contents
-   * @param suffix the unchanged text after the edit region
+   * The original content is the concatenation of the [prefix], [removed] and
+   * [suffix] fragments. The modeified content is the concatenation of the
+   * [prefix], [added] and [suffix] fragments.
    */
   void _scan(String prefix, String removed, String added, String suffix) {
     //
@@ -423,38 +464,70 @@ a''', "", " ", " + b;");
     // Scan the original contents.
     //
     GatheringErrorListener originalListener = new GatheringErrorListener();
-    Scanner originalScanner = new Scanner(source, new CharSequenceReader(originalContents), originalListener);
+    Scanner originalScanner = new Scanner(
+        source,
+        new CharSequenceReader(originalContents),
+        originalListener);
     _originalTokens = originalScanner.tokenize();
     expect(_originalTokens, isNotNull);
     //
     // Scan the modified contents.
     //
     GatheringErrorListener modifiedListener = new GatheringErrorListener();
-    Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(modifiedContents), modifiedListener);
+    Scanner modifiedScanner = new Scanner(
+        source,
+        new CharSequenceReader(modifiedContents),
+        modifiedListener);
     Token modifiedTokens = modifiedScanner.tokenize();
     expect(modifiedTokens, isNotNull);
     //
     // Incrementally scan the modified contents.
     //
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
-    _incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(modifiedContents), incrementalListener);
-    _incrementalTokens = _incrementalScanner.rescan(_originalTokens, replaceStart, removed.length, added.length);
+    _incrementalScanner = new IncrementalScanner(
+        source,
+        new CharSequenceReader(modifiedContents),
+        incrementalListener);
+    _incrementalTokens = _incrementalScanner.rescan(
+        _originalTokens,
+        replaceStart,
+        removed.length,
+        added.length);
     //
-    // Validate that the results of the incremental scan are the same as the full scan of the
-    // modified source.
+    // Validate that the results of the incremental scan are the same as the
+    // full scan of the modified source.
     //
     Token incrementalToken = _incrementalTokens;
     expect(incrementalToken, isNotNull);
-    while (incrementalToken.type != TokenType.EOF && modifiedTokens.type != TokenType.EOF) {
-      expect(incrementalToken.type, same(modifiedTokens.type), reason: "Wrong type for token");
-      expect(incrementalToken.offset, modifiedTokens.offset, reason: "Wrong offset for token");
-      expect(incrementalToken.length, modifiedTokens.length, reason: "Wrong length for token");
-      expect(incrementalToken.lexeme, modifiedTokens.lexeme, reason: "Wrong lexeme for token");
+    while (incrementalToken.type != TokenType.EOF
+        && modifiedTokens.type != TokenType.EOF) {
+      expect(
+          incrementalToken.type,
+          same(modifiedTokens.type),
+          reason: "Wrong type for token");
+      expect(
+          incrementalToken.offset,
+              modifiedTokens.offset,
+              reason: "Wrong offset for token");
+      expect(
+          incrementalToken.length,
+              modifiedTokens.length,
+              reason: "Wrong length for token");
+      expect(
+          incrementalToken.lexeme,
+              modifiedTokens.lexeme,
+              reason: "Wrong lexeme for token");
       incrementalToken = incrementalToken.next;
       modifiedTokens = modifiedTokens.next;
     }
-    expect(incrementalToken.type, same(TokenType.EOF), reason: "Too many tokens");
-    expect(modifiedTokens.type, same(TokenType.EOF), reason: "Not enough tokens");
+    expect(
+        incrementalToken.type,
+        same(TokenType.EOF),
+        reason: "Too many tokens");
+    expect(
+        modifiedTokens.type,
+        same(TokenType.EOF),
+        reason: "Not enough tokens");
     // TODO(brianwilkerson) Verify that the errors are correct?
   }
 }
