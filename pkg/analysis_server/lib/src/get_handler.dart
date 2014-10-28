@@ -4,9 +4,13 @@
 
 library get.handler;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/src/socket_server.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 
 /**
  * Instances of the class [GetHandler] handle GET requests.
@@ -63,58 +67,58 @@ class GetHandler {
           response,
           ['Context', 'ERROR', 'FLUSHED', 'IN_PROCESS', 'INVALID', 'VALID'],
           true);
-      // TODO(scheglov) replace with using folder based contexts
-//      _server.analysisServer.contextMap.forEach((String key, AnalysisContext context) {
-//        AnalysisContentStatistics statistics =
-//            (context as AnalysisContextImpl).statistics;
-//        int errorCount = 0;
-//        int flushedCount = 0;
-//        int inProcessCount = 0;
-//        int invalidCount = 0;
-//        int validCount = 0;
-//        statistics.cacheRows.forEach((AnalysisContentStatistics_CacheRow row) {
-//          errorCount += row.errorCount;
-//          flushedCount += row.flushedCount;
-//          inProcessCount += row.inProcessCount;
-//          invalidCount += row.invalidCount;
-//          validCount += row.validCount;
-//        });
-//        _writeRow(response, [
-//            '<a href="#context_$key">$key</a>',
-//            errorCount,
-//            flushedCount,
-//            inProcessCount,
-//            invalidCount,
-//            validCount]);
-//      });
+      _server.analysisServer.folderMap.forEach((Folder folder, AnalysisContextImpl context) {
+        String key = folder.shortName;
+        AnalysisContextStatistics statistics = context.statistics;
+        int errorCount = 0;
+        int flushedCount = 0;
+        int inProcessCount = 0;
+        int invalidCount = 0;
+        int validCount = 0;
+        statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
+          errorCount += row.errorCount;
+          flushedCount += row.flushedCount;
+          inProcessCount += row.inProcessCount;
+          invalidCount += row.invalidCount;
+          validCount += row.validCount;
+        });
+        _writeRow(response, [
+            '<a href="#context_${HTML_ESCAPE.convert(key)}">$key</a>',
+            errorCount,
+            flushedCount,
+            inProcessCount,
+            invalidCount,
+            validCount]);
+      });
       response.write('</table>');
-//      _server.analysisServer.contextMap.forEach((String key, AnalysisContext context) {
-//        response.write('<h2><a name="context_$key">Analysis Context: $key</a></h2>');
-//        AnalysisContentStatistics statistics = (context as AnalysisContextImpl).statistics;
-//        response.write('<table>');
-//        _writeRow(
-//            response,
-//            ['Item', 'ERROR', 'FLUSHED', 'IN_PROCESS', 'INVALID', 'VALID'],
-//            true);
-//        statistics.cacheRows.forEach((AnalysisContentStatistics_CacheRow row) {
-//          _writeRow(
-//              response,
-//              [row.name,
-//               row.errorCount,
-//               row.flushedCount,
-//               row.inProcessCount,
-//               row.invalidCount,
-//               row.validCount]);
-//        });
-//        response.write('</table>');
-//        List<CaughtException> exceptions = statistics.exceptions;
-//        if (!exceptions.isEmpty) {
-//          response.write('<h2>Exceptions</h2>');
-//          exceptions.forEach((CaughtException exception) {
-//            response.write('<p>${exception.exception}</p>');
-//          });
-//        }
-//      });
+      _server.analysisServer.folderMap.forEach((Folder folder, AnalysisContextImpl context) {
+        String key = folder.shortName;
+        response.write('<h2><a name="context_${HTML_ESCAPE.convert(key)}">Analysis Context: $key</a></h2>');
+        AnalysisContextStatistics statistics = context.statistics;
+        response.write('<table>');
+        _writeRow(
+            response,
+            ['Item', 'ERROR', 'FLUSHED', 'IN_PROCESS', 'INVALID', 'VALID'],
+            true);
+        statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
+          _writeRow(
+              response,
+              [row.name,
+               row.errorCount,
+               row.flushedCount,
+               row.inProcessCount,
+               row.invalidCount,
+               row.validCount]);
+        });
+        response.write('</table>');
+        List<CaughtException> exceptions = statistics.exceptions;
+        if (!exceptions.isEmpty) {
+          response.write('<h2>Exceptions</h2>');
+          exceptions.forEach((CaughtException exception) {
+            response.write('<p>${exception.exception}</p>');
+          });
+        }
+      });
     }
     response.write('</body>');
     response.write('</html>');
@@ -139,20 +143,20 @@ class GetHandler {
    * [header] is `true`.
    */
   void _writeRow(HttpResponse response, List<Object> columns, [bool header = false]) {
-    if (header) {
-      response.write('<th>');
-    } else {
-      response.write('<tr>');
-    }
+    response.write('<tr>');
     columns.forEach((Object value) {
-      response.write('<td>');
+      if (header) {
+        response.write('<th>');
+      } else {
+        response.write('<td>');
+      }
       response.write(value);
-      response.write('</td>');
+      if (header) {
+        response.write('</th>');
+      } else {
+        response.write('</td>');
+      }
     });
-    if (header) {
-      response.write('</th>');
-    } else {
-      response.write('</tr>');
-    }
+    response.write('</tr>');
   }
 }
