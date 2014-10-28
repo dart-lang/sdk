@@ -25,8 +25,6 @@ import 'package:unittest/unittest.dart';
  * The class `EngineTestCase` defines utility methods for making assertions.
  */
 class EngineTestCase {
-  static int _PRINT_RANGE = 6;
-
   void setUp() {}
 
   void tearDown() {}
@@ -104,25 +102,6 @@ class EngineTestCase {
   }
 
   /**
-   * Assert that the tokens in the actual stream of tokens have the same types and lexemes as the
-   * tokens in the expected stream of tokens. Note that this does not assert anything about the
-   * offsets of the tokens (although the lengths will be equal).
-   *
-   * @param expectedStream the head of the stream of tokens that were expected
-   * @param actualStream the head of the stream of tokens that were actually found
-   * @throws AssertionFailedError if the two streams of tokens are not the same
-   */
-  static void assertAllMatch(Token expectedStream, Token actualStream) {
-    Token left = expectedStream;
-    Token right = actualStream;
-    while (left.type != TokenType.EOF && right.type != TokenType.EOF) {
-      assertMatches(left, right);
-      left = left.next;
-      right = right.next;
-    }
-  }
-
-  /**
    * Assert that the given array is non-`null` and contains the expected elements. The
    * elements can appear in any order.
    *
@@ -143,36 +122,6 @@ class EngineTestCase {
     List<bool> found = new List<bool>.filled(expectedSize, false);
     for (int i = 0; i < expectedSize; i++) {
       _privateAssertContains(array, found, expectedElements[i]);
-    }
-  }
-
-  /**
-   * Assert that a given String is equal to an expected value.
-   *
-   * @param expected the expected String value
-   * @param actual the actual String value
-   */
-  static void assertEqualString(String expected, String actual) {
-    if (actual == null || expected == null) {
-      if (identical(actual, expected)) {
-        return;
-      }
-      if (actual == null) {
-        fail("Content not as expected: is 'null' expected: $expected");
-      } else {
-        fail("Content not as expected: expected 'null' is: $actual");
-      }
-    }
-    int diffPos = _getDiffPos(expected, actual);
-    if (diffPos != -1) {
-      int diffAhead = math.max(0, diffPos - _PRINT_RANGE);
-      int diffAfter = math.min(actual.length, diffPos + _PRINT_RANGE);
-      String diffStr =
-          "${actual.substring(diffAhead, diffPos)}^${actual.substring(diffPos, diffAfter)}";
-      // use detailed message
-      String message =
-          "Content not as expected: is\n$actual\nDiffers at pos $diffPos: $diffStr\nexpected:\n$expected";
-      expect(actual, expected, reason: message);
     }
   }
 
@@ -209,80 +158,6 @@ class EngineTestCase {
   }
 
   /**
-   * Assert that the given array is non-`null` and has exactly expected elements.
-   *
-   * @param array the array being tested
-   * @param expectedElements the expected elements
-   * @throws AssertionFailedError if the array is `null` or does not have the expected
-   *           elements
-   */
-  static void assertExactElementsInArray(List<Object> array,
-      List<Object> expectedElements) {
-    int expectedSize = expectedElements.length;
-    if (array == null) {
-      fail("Expected array of size $expectedSize; found null");
-    }
-    if (array.length != expectedSize) {
-      fail("Expected array of size $expectedSize; contained ${array.length} elements");
-    }
-    for (int i = 0; i < expectedSize; i++) {
-      Object element = array[i];
-      Object expectedElement = expectedElements[i];
-      if (element != expectedElement) {
-        fail("Expected $expectedElement at [$i]; found $element");
-      }
-    }
-  }
-
-  /**
-   * Assert that the given list is non-`null` and has exactly expected elements.
-   *
-   * @param list the list being tested
-   * @param expectedElements the expected elements
-   * @throws AssertionFailedError if the list is `null` or does not have the expected elements
-   */
-  static void assertExactElementsInList(List list,
-      List<Object> expectedElements) {
-    int expectedSize = expectedElements.length;
-    if (list == null) {
-      fail("Expected list of size $expectedSize; found null");
-    }
-    if (list.length != expectedSize) {
-      fail("Expected list of size $expectedSize; contained ${list.length} elements");
-    }
-    for (int i = 0; i < expectedSize; i++) {
-      Object element = list[i];
-      Object expectedElement = expectedElements[i];
-      if (element != expectedElement) {
-        fail("Expected $expectedElement at [$i]; found $element");
-      }
-    }
-  }
-
-  /**
-   * Assert that the given list is non-`null` and has exactly expected elements.
-   *
-   * @param set the list being tested
-   * @param expectedElements the expected elements
-   * @throws AssertionFailedError if the list is `null` or does not have the expected elements
-   */
-  static void assertExactElementsInSet(Set set, List<Object> expectedElements) {
-    int expectedSize = expectedElements.length;
-    if (set == null) {
-      fail("Expected list of size $expectedSize; found null");
-    }
-    if (set.length != expectedSize) {
-      fail("Expected list of size $expectedSize; contained ${set.length} elements");
-    }
-    for (int i = 0; i < expectedSize; i++) {
-      Object expectedElement = expectedElements[i];
-      if (!set.contains(expectedElement)) {
-        fail("Expected $expectedElement in set$set");
-      }
-    }
-  }
-
-  /**
    * Assert that the given object is an instance of the expected class.
    *
    * @param expectedClass the class that the object is expected to be an instance of
@@ -299,26 +174,6 @@ class EngineTestCase {
   }
 
   /**
-   * Assert that the actual token has the same type and lexeme as the expected token. Note that this
-   * does not assert anything about the offsets of the tokens (although the lengths will be equal).
-   *
-   * @param expectedToken the token that was expected
-   * @param actualToken the token that was found
-   * @throws AssertionFailedError if the two tokens are not the same
-   */
-  static void assertMatches(Token expectedToken, Token actualToken) {
-    expect(actualToken.type, expectedToken.type);
-    if (expectedToken is KeywordToken) {
-      assertInstanceOf((obj) => obj is KeywordToken, KeywordToken, actualToken);
-      expect((actualToken as KeywordToken).keyword, expectedToken.keyword);
-    } else if (expectedToken is StringToken) {
-      assertInstanceOf((obj) => obj is StringToken, StringToken, actualToken);
-      expect((actualToken as StringToken).lexeme, expectedToken.lexeme);
-    }
-  }
-
-
-  /**
    * @return the [AstNode] with requested type at offset of the "prefix".
    */
   static AstNode findNode(AstNode root, String code, String prefix,
@@ -329,28 +184,6 @@ class EngineTestCase {
     }
     AstNode node = new NodeLocator.con1(offset).searchWithin(root);
     return node.getAncestor(predicate);
-  }
-
-  /**
-   * Calculate the offset where the given strings differ.
-   *
-   * @param str1 the first String to compare
-   * @param str2 the second String to compare
-   * @return the offset at which the strings differ (or <code>-1</code> if they do not)
-   */
-  static int _getDiffPos(String str1, String str2) {
-    int len1 = math.min(str1.length, str2.length);
-    int diffPos = -1;
-    for (int i = 0; i < len1; i++) {
-      if (str1.codeUnitAt(i) != str2.codeUnitAt(i)) {
-        diffPos = i;
-        break;
-      }
-    }
-    if (diffPos == -1 && str1.length != str2.length) {
-      diffPos = len1;
-    }
-    return diffPos;
   }
 
   static void _privateAssertContains(List<Object> array, List<bool> found,
