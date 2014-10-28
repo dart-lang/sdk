@@ -667,8 +667,10 @@ class For extends Loop {
   For asFor() => this;
 
   Expression get condition {
-    if (conditionStatement is ExpressionStatement) {
-      return conditionStatement.asExpressionStatement().expression;
+    ExpressionStatement expressionStatement =
+        conditionStatement.asExpressionStatement();
+    if (expressionStatement != null) {
+      return expressionStatement.expression;
     } else {
       return null;
     }

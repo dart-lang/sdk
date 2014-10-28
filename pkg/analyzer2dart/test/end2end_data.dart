@@ -514,4 +514,48 @@ main(a) {
 }
 '''),
   ]),
+
+  const Group('For loop', const <TestSpec>[
+    const TestSpec('''
+main() {
+  for (;;) {}
+}
+''', '''
+main() {
+  while (true) {}
+}
+'''),
+
+const TestSpec('''
+main() {
+  for (int i = 0; i < 10; i = i + 1) {
+    print(i);
+  }
+}
+''', '''
+main() {
+  var i = 0;
+  while (i < 10) {
+    print(i);
+    ++i;
+  }
+}
+'''),
+
+const TestSpec('''
+main(i) {
+  for (i = 0; i < 10; i = i + 1) {
+    print(i);
+  }
+}
+''', '''
+main(i) {
+  i = 0;
+  while (i < 10) {
+    print(i);
+    ++i;
+  }
+}
+'''),
+  ]),
 ];

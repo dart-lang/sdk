@@ -302,4 +302,19 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
   visitBlock(Block node) {
     irBuilder.buildBlock(node.statements, build);
   }
+
+  @override
+  visitForStatement(ForStatement node) {
+    // TODO(johnniwinther): Support `for` as a jump target.
+    SubbuildFunction buildInitializer;
+    if (node.variables != null) {
+      buildInitializer = subbuild(node.variables);
+    } else {
+      buildInitializer = subbuild(node.initialization);
+    }
+    irBuilder.buildFor(buildInitializer: buildInitializer,
+                       buildCondition: subbuild(node.condition),
+                       buildBody: subbuild(node.body),
+                       buildUpdate: subbuildSequence(node.updaters));
+  }
 }

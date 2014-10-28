@@ -21,7 +21,11 @@ void compileToDart(Driver driver, ConvertedWorld convertedWorld) {
     mainFunction: convertedWorld.mainFunction,
     computeElementAst: (Element element) {
       return DartBackend.createElementAst(
-          null, null, null, null, convertedWorld.getIr(element));
+          null, // No compiler.
+          null, // No tracer.
+          DART_CONSTANT_SYSTEM,
+          element,
+          convertedWorld.getIr(element));
     },
     shouldOutput: (_) => true,
     isSafeToRemoveTypeDeclarations: (_) => false);

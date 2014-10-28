@@ -162,6 +162,16 @@ abstract class IrBuilderMixin<N> {
   SubbuildFunction subbuild(N node) {
     return (IrBuilder builder) => withBuilder(builder, () => build(node));
   }
+
+  /// Returns a closure that takes an [IrBuilder] and builds the sequence of
+  /// [nodes] in its context using [build].
+  // TODO(johnniwinther): Type [nodes] as `Iterable<N>` when `NodeList` uses
+  // `List` instead of `Link`.
+  SubbuildFunction subbuildSequence(/*Iterable<N>*/ nodes) {
+    return (IrBuilder builder) {
+      return withBuilder(builder, () => builder.buildSequence(nodes, build));
+    };
+  }
 }
 
 /// Shared state between nested builders.
@@ -619,6 +629,154 @@ class IrBuilder {
     }
   }
 
+  /// Invoke a join-point continuation that contains arguments for all local
+  /// variables.
+  ///
+  /// Given the continuation and a list of uninitialized invocations, fill
+  /// in each invocation with the continuation and appropriate arguments.
+  void invokeFullJoin(ir.Continuation join,
+                      JumpCollector jumps,
+                      {recursive: false}) {
+    join.isRecursive = recursive;
+    for (int i = 0; i < jumps.length; ++i) {
+      Environment currentEnvironment = jumps.environments[i];
+      ir.InvokeContinuation invoke = jumps.invocations[i];
+      invoke.continuation = new ir.Reference(join);
+      invoke.arguments = new List<ir.Reference>.generate(
+          join.parameters.length,
+          (i) => new ir.Reference(currentEnvironment[i]));
+      invoke.isRecursive = recursive;
+    }
+  }
+
+  /// Creates a for loop in which the initializer, condition, body, update are
+  /// created by [buildInitializer], [buildCondition], [buildBody] and
+  /// [buildUpdate], respectively.
+  ///
+  /// The jump [target] is used to identify which `break` and `continue`
+  /// statements that have this `for` statement as their target.
+  void buildFor({SubbuildFunction buildInitializer,
+                 SubbuildFunction buildCondition,
+                 SubbuildFunction buildBody,
+                 SubbuildFunction buildUpdate,
+                 JumpTarget target}) {
+    assert(isOpen);
+
+    // For loops use four named continuations: the entry to the condition,
+    // the entry to the body, the loop exit, and the loop successor (break).
+    // The CPS translation of
+    // [[for (initializer; condition; update) body; successor]] is:
+    //
+    // [[initializer]];
+    // let cont loop(x, ...) =
+    //     let prim cond = [[condition]] in
+    //     let cont break() = [[successor]] in
+    //     let cont exit() = break(v, ...) in
+    //     let cont body() =
+    //       let cont continue(x, ...) = [[update]]; loop(v, ...) in
+    //       [[body]]; continue(v, ...) in
+    //     branch cond (body, exit) in
+    // loop(v, ...)
+    //
+    // If there are no breaks in the body, the break continuation is inlined
+    // in the exit continuation (i.e., the translation of the successor
+    // statement occurs in the exit continuation).  If there is only one
+    // invocation of the continue continuation (i.e., no continues in the
+    // body), the continue continuation is inlined in the body.
+
+    buildInitializer(this);
+
+    IrBuilder condBuilder = new IrBuilder.recursive(this);
+    ir.Primitive condition = buildCondition(condBuilder);
+    if (condition == null) {
+      // If the condition is empty then the body is entered unconditionally.
+      condition = condBuilder.buildBooleanLiteral(true);
+    }
+
+    JumpCollector breakCollector = new JumpCollector(target);
+    JumpCollector continueCollector = new JumpCollector(target);
+    state.breakCollectors.add(breakCollector);
+    state.continueCollectors.add(continueCollector);
+
+    IrBuilder bodyBuilder = new IrBuilder.delimited(condBuilder);
+    buildBody(bodyBuilder);
+    assert(state.breakCollectors.last == breakCollector);
+    assert(state.continueCollectors.last == continueCollector);
+    state.breakCollectors.removeLast();
+    state.continueCollectors.removeLast();
+
+    // The binding of the continue continuation should occur as late as
+    // possible, that is, at the nearest common ancestor of all the continue
+    // sites in the body.  However, that is difficult to compute here, so it
+    // is instead placed just outside the body of the body continuation.
+    bool hasContinues = !continueCollector.isEmpty;
+    IrBuilder updateBuilder = hasContinues
+        ? new IrBuilder.recursive(condBuilder)
+        : bodyBuilder;
+    buildUpdate(updateBuilder);
+
+    // Create body entry and loop exit continuations and a branch to them.
+    ir.Continuation bodyContinuation = new ir.Continuation([]);
+    ir.Continuation exitContinuation = new ir.Continuation([]);
+    ir.LetCont branch =
+        new ir.LetCont(exitContinuation,
+            new ir.LetCont(bodyContinuation,
+                new ir.Branch(new ir.IsTrue(condition),
+                              bodyContinuation,
+                              exitContinuation)));
+    // If there are breaks in the body, then there must be a join-point
+    // continuation for the normal exit and the breaks.
+    bool hasBreaks = !breakCollector.isEmpty;
+    ir.LetCont letJoin;
+    if (hasBreaks) {
+      letJoin = new ir.LetCont(null, branch);
+      condBuilder.add(letJoin);
+      condBuilder._current = branch;
+    } else {
+      condBuilder.add(branch);
+    }
+    ir.Continuation continueContinuation;
+    if (hasContinues) {
+      // If there are continues in the body, we need a named continue
+      // continuation as a join point.
+      continueContinuation = new ir.Continuation(updateBuilder._parameters);
+      if (bodyBuilder.isOpen) continueCollector.addJump(bodyBuilder);
+      invokeFullJoin(continueContinuation, continueCollector);
+    }
+    ir.Continuation loopContinuation =
+        new ir.Continuation(condBuilder._parameters);
+    if (updateBuilder.isOpen) {
+      JumpCollector backEdges = new JumpCollector(null);
+      backEdges.addJump(updateBuilder);
+      invokeFullJoin(loopContinuation, backEdges, recursive: true);
+    }
+
+    // Fill in the body and possible continue continuation bodies.  Do this
+    // only after it is guaranteed that they are not empty.
+    if (hasContinues) {
+      continueContinuation.body = updateBuilder._root;
+      bodyContinuation.body =
+          new ir.LetCont(continueContinuation, bodyBuilder._root);
+    } else {
+      bodyContinuation.body = bodyBuilder._root;
+    }
+
+    loopContinuation.body = condBuilder._root;
+    add(new ir.LetCont(loopContinuation,
+            new ir.InvokeContinuation(loopContinuation,
+                environment.index2value)));
+    if (hasBreaks) {
+      _current = branch;
+      environment = condBuilder.environment;
+      breakCollector.addJump(this);
+      letJoin.continuation = createJoin(environment.length, breakCollector);
+      _current = letJoin;
+    } else {
+      _current = condBuilder._current;
+      environment = condBuilder.environment;
+    }
+  }
+
   /// Create a return statement `return value;` or `return;` if [value] is
   /// null.
   void buildReturn([ir.Primitive value]) {
@@ -635,16 +793,25 @@ class IrBuilder {
   }
 
   /// Create a blocks of [statements] by applying [build] to all reachable
-  /// statements.
+  /// statements. The first statement is assumed to be reachable.
   // TODO(johnniwinther): Type [statements] as `Iterable` when `NodeList` uses
   // `List` instead of `Link`.
   void buildBlock(var statements, build(statement)) {
     // Build(Block(stamements), C) = C'
     //   where C' = statements.fold(Build, C)
     assert(isOpen);
-    for (var statement in statements) {
-      build(statement);
+    return buildSequence(statements, build);
+  }
+
+  /// Creates a sequence of [nodes] by applying [build] to all reachable nodes.
+  ///
+  /// The first node in the sequence does not need to be reachable.
+  // TODO(johnniwinther): Type [nodes] as `Iterable` when `NodeList` uses
+  // `List` instead of `Link`.
+  void buildSequence(var nodes, build(node)) {
+    for (var node in nodes) {
       if (!isOpen) return;
+      build(node);
     }
   }
 
