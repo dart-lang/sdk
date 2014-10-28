@@ -1045,8 +1045,25 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Ret();
 
   __ Bind(&add_to_buffer);
-  __ orr(R2, R2, Operand(1 << RawObject::kRememberedBit));
-  __ str(R2, FieldAddress(R0, Object::tags_offset()));
+  // R2: Header word.
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    // TODO(21263): Implement 'swp' and use it below.
+    ASSERT(OS::NumberOfAvailableProcessors() <= 1);
+    __ orr(R2, R2, Operand(1 << RawObject::kRememberedBit));
+    __ str(R2, FieldAddress(R0, Object::tags_offset()));
+  } else {
+    // Atomically set the remembered bit of the object header.
+    ASSERT(Object::tags_offset() == 0);
+    __ sub(R3, R0, Operand(kHeapObjectTag));
+    // R3: Untagged address of header word (ldrex/strex do not support offsets).
+    Label retry;
+    __ Bind(&retry);
+    __ ldrex(R2, R3);
+    __ orr(R2, R2, Operand(1 << RawObject::kRememberedBit));
+    __ strex(R1, R2, R3);
+    __ cmp(R1, Operand(1));
+    __ b(&retry, EQ);
+  }
 
   // Load the isolate.
   // Spilled: R1, R2, R3.
