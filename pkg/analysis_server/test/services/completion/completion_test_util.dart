@@ -1414,12 +1414,58 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_PrefixedIdentifier_class_const() {
+    // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
+    addSource('/testB.dart', '''
+      lib B;
+      class I {
+        static const scI = 'boo';
+        X get f => new A();
+        get _g => new A();}
+      class B implements I {
+        static const int scB = 12;
+        var b; X _c;
+        X get d => new A();get _e => new A();
+        set s1(I x) {} set _s2(I x) {}
+        m(X x) {} I _n(X x) {}}
+      class X{}''');
+    addTestSource('''
+      import "/testB.dart";
+      class A extends B {
+        static const String scA = 'foo';
+        w() { }}
+      main() {A.^}''');
+    computeFast();
+    return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('scA', 'String');
+      assertSuggestInvocationGetter('scB', 'int');
+      assertSuggestInvocationGetter('scI', null);
+      assertNotSuggested('b');
+      assertNotSuggested('_c');
+      assertNotSuggested('d');
+      assertNotSuggested('_e');
+      assertNotSuggested('f');
+      assertNotSuggested('_g');
+      assertNotSuggested('s1');
+      assertNotSuggested('_s2');
+      assertNotSuggested('m');
+      assertNotSuggested('_n');
+      assertNotSuggested('a');
+      assertNotSuggested('A');
+      assertNotSuggested('X');
+      assertNotSuggested('w');
+      assertNotSuggested('Object');
+      assertNotSuggested('==');
+    });
+  }
+
   test_PrefixedIdentifier_class_imported() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addSource('/testB.dart', '''
       lib B;
       class I {X get f => new A();get _g => new A();}
       class A implements I {
+        static const int sc = 12;
         var b; X _c;
         X get d => new A();get _e => new A();
         set s1(I x) {} set _s2(I x) {}
@@ -1430,6 +1476,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A a; a.^}''');
     computeFast();
     return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('sc', 'int');
       assertSuggestInvocationGetter('b', null);
       assertNotSuggested('_c');
       assertSuggestInvocationGetter('d', 'X');
@@ -1454,6 +1501,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       main() {A a; a.^}
       class I {X get f => new A();get _g => new A();}
       class A implements I {
+        static const int sc = 12;
         var b; X _c;
         X get d => new A();get _e => new A();
         set s1(I x) {} set _s2(I x) {}
@@ -1461,6 +1509,7 @@ class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class X{}''');
     computeFast();
     return computeFull(true).then((_) {
+      assertSuggestInvocationGetter('sc', 'int');
       assertSuggestInvocationGetter('b', null);
       assertSuggestInvocationGetter('_c', 'X');
       assertSuggestInvocationGetter('d', 'X');

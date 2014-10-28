@@ -94,8 +94,12 @@ void visitInheritedTypes(ClassDeclaration node, void
  * [ClassElementSuggestionBuilder.suggestionsFor].
  */
 class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
+  final bool staticOnly;
 
-  ClassElementSuggestionBuilder(DartCompletionRequest request) : super(request);
+  ClassElementSuggestionBuilder(DartCompletionRequest request, {bool staticOnly:
+      false})
+      : super(request),
+        this.staticOnly = staticOnly;
 
   @override
   visitClassElement(ClassElement element) {
@@ -112,6 +116,9 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 
   @override
   visitFieldElement(FieldElement element) {
+    if (staticOnly && !element.isStatic) {
+      return;
+    }
     _addElementSuggestion(
         element,
         CompletionSuggestionKind.GETTER,
@@ -121,6 +128,9 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 
   @override
   visitMethodElement(MethodElement element) {
+    if (staticOnly && !element.isStatic) {
+      return;
+    }
     if (element.isOperator) {
       return;
     }
@@ -133,6 +143,9 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
 
   @override
   visitPropertyAccessorElement(PropertyAccessorElement element) {
+    if (staticOnly && !element.isStatic) {
+      return;
+    }
     if (element.isGetter) {
       _addElementSuggestion(
           element,
@@ -155,6 +168,15 @@ class ClassElementSuggestionBuilder extends _AbstractSuggestionBuilder {
     if (element is ClassElement) {
       return element.accept(new ClassElementSuggestionBuilder(request));
     }
+  }
+
+  /**
+   * Add suggestions for the visible static members in the given class
+   */
+  static void staticSuggestionsFor(DartCompletionRequest request,
+      ClassElement element) {
+    return element.accept(
+        new ClassElementSuggestionBuilder(request, staticOnly: true));
   }
 }
 

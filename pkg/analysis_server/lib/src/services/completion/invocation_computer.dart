@@ -136,6 +136,17 @@ class _InvocationElementVisitor extends GeneralizingElementVisitor<Future<bool>>
   _InvocationElementVisitor(this.request);
 
   @override
+  Future<bool> visitClassElement(ClassElement element) {
+    if (element != null) {
+      InterfaceType type = element.type;
+      if (type != null) {
+        ClassElementSuggestionBuilder.staticSuggestionsFor(request, type.element);
+      }
+    }
+    return new Future.value(false);
+  }
+
+  @override
   Future<bool> visitElement(Element element) {
     return new Future.value(false);
   }
