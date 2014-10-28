@@ -162,9 +162,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         () {
       FunctionSignature signature = element.functionSignature;
       signature.orderedForEachParameter((ParameterElement parameterElement) {
-        irBuilder.createParameter(
-            parameterElement,
-            isClosureVariable: isClosureVariable(parameterElement));
+        irBuilder.createParameter(parameterElement);
       });
 
       List<ConstantExpression> defaults = new List<ConstantExpression>();
@@ -239,7 +237,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
       ast.VariableDefinitions definitions = node.initializer;
       for (ast.Node definition in definitions.definitions.nodes) {
         Element element = elements[definition];
-        if (isClosureVariable(element)) {
+        if (irBuilder.isClosureVariable(element)) {
           return giveup(definition, 'Closure variable in for loop initializer');
         }
       }
@@ -521,7 +519,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         new ir.InvokeMethod(iterator, new Selector.getter("current", null),
             currentInvoked, emptyArguments)));
     if (Elements.isLocal(variableElement)) {
-      withBuilder(bodyBuilder, () => setLocal(variableElement, currentValue));
+      bodyBuilder.buildLocalSet(variableElement, currentValue);
     } else if (Elements.isStaticOrTopLevel(variableElement)) {
       withBuilder(bodyBuilder,
           () => setStatic(variableElement, selector, currentValue));
@@ -605,9 +603,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
         } else {
           assert(definition is ast.Identifier);
         }
-        irBuilder.declareLocalVariable(element,
-            initialValue: initialValue,
-            isClosureVariable: isClosureVariable(element));
+        irBuilder.declareLocalVariable(element, initialValue: initialValue);
       }
     }
     return null;
@@ -778,7 +774,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     ir.Primitive closureTarget;
     if (element == null) {
       closureTarget = visit(node.selector);
-    } else if (isClosureVariable(element)) {
+    } else if (irBuilder.isClosureVariable(element)) {
       LocalElement local = element;
       closureTarget = new ir.GetClosureVariable(local);
       irBuilder.add(new ir.LetPrim(closureTarget));
@@ -832,10 +828,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     if (element != null && element.isConst) {
       // Reference to constant local, top-level or static field
       result = translateConstant(node);
-    } else if (isClosureVariable(element)) {
-      LocalElement local = element;
-      result = new ir.GetClosureVariable(local);
-      irBuilder.add(new ir.LetPrim(result));
     } else if (Elements.isLocal(element)) {
       // Reference to local variable
       result = irBuilder.buildLocalGet(element);
@@ -988,25 +980,6 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     }
   }
 
-  /// True if [element] is a local variable, local function, or parameter that
-  /// is accessed from an inner function. Recursive self-references in a local
-  /// function count as closure accesses.
-  ///
-  /// If `true`, [element] is a [LocalElement].
-  bool isClosureVariable(Element element) {
-    return irBuilder.state.closureLocals.contains(element);
-  }
-
-  void setLocal(Element element, ir.Primitive valueToStore) {
-    if (isClosureVariable(element)) {
-      LocalElement local = element;
-      irBuilder.add(new ir.SetClosureVariable(local, valueToStore));
-    } else {
-      valueToStore.useElementAsHint(element);
-      irBuilder.environment.update(element, valueToStore);
-    }
-  }
-
   void setStatic(Element element,
                  Selector selector,
                  ir.Primitive valueToStore) {
@@ -1097,7 +1070,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
     }
 
     if (Elements.isLocal(element)) {
-      setLocal(element, valueToStore);
+      irBuilder.buildLocalSet(element, valueToStore);
     } else if ((!node.isSuperCall && Elements.isErroneousElement(element)) ||
                 Elements.isStaticOrTopLevel(element)) {
       setStatic(element, elements.getSelector(node), valueToStore);
@@ -1183,7 +1156,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive>
   ir.Primitive visitFunctionDeclaration(ast.FunctionDeclaration node) {
     LocalFunctionElement element = elements[node.function];
     ir.FunctionDefinition inner = makeSubFunction(node.function);
-    if (isClosureVariable(element)) {
+    if (irBuilder.isClosureVariable(element)) {
       irBuilder.add(new ir.DeclareFunction(element, inner));
     } else {
       ir.CreateFunction prim = new ir.CreateFunction(inner);

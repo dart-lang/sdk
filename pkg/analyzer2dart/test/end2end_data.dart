@@ -191,6 +191,61 @@ main() {
 '''),
   ]),
 
+  const Group('Local variable writes', const <TestSpec>[
+    const TestSpec('''
+main() {
+  var a;
+  a = 10;
+  return a;
+}
+''', '''
+main() {
+  return 10;
+}
+'''),
+
+    const TestSpec('''
+main() {
+  var a = 0;
+  a = 10;
+  return a;
+}
+''', '''
+main() {
+  return 10;
+}
+'''),
+
+    const TestSpec('''
+main() {
+  var a = 0;
+  print(a);
+  a = "";
+  print(a);
+  return a;
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  print(a);
+  a = "";
+  print(a);
+  return a;
+}
+'''),
+
+    const TestSpec('''
+main(a) {
+  if (a) {
+    a = "";
+  }
+  print(a);
+  return a;
+}
+'''),
+  ]),
+
   const Group('Dynamic access', const <TestSpec>[
     const TestSpec('''
 main(a) {

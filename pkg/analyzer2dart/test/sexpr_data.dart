@@ -183,6 +183,92 @@ main(a) {
 '''),
     ]),
 
+  const Group('Local variable writes', const <TestSpec>[
+    const TestSpec('''
+main() {
+  var a;
+  a = 10;
+  return a;
+}
+''', '''
+(FunctionDefinition main ( return)
+  (LetPrim v0 (Constant NullConstant))
+  (LetPrim v1 (Constant IntConstant(10)))
+  (InvokeContinuation return v1))
+'''),
+
+    const TestSpec('''
+main() {
+  var a = 0;
+  a = 10;
+  return a;
+}
+''', '''
+(FunctionDefinition main ( return)
+  (LetPrim v0 (Constant IntConstant(0)))
+  (LetPrim v1 (Constant IntConstant(10)))
+  (InvokeContinuation return v1))
+'''),
+
+    const TestSpec('''
+main() {
+  var a = 0;
+  print(a);
+  a = "";
+  print(a);
+  return a;
+}
+''', '''
+(FunctionDefinition main ( return)
+  (LetPrim v0 (Constant IntConstant(0)))
+  (LetCont (k0 v1)
+    (LetPrim v2 (Constant StringConstant("")))
+    (LetCont (k1 v3)
+      (InvokeContinuation return v2))
+    (InvokeStatic print v2 k1))
+  (InvokeStatic print v0 k0))
+'''),
+
+    const TestSpec('''
+main(a) {
+  print(a);
+  a = "";
+  print(a);
+  return a;
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0 v0)
+    (LetPrim v1 (Constant StringConstant("")))
+    (LetCont (k1 v2)
+      (InvokeContinuation return v1))
+    (InvokeStatic print v1 k1))
+  (InvokeStatic print a k0))
+'''),
+
+    const TestSpec('''
+main(a) {
+  if (a) {
+    a = "";
+  }
+  print(a);
+  return a;
+}
+''', '''
+(FunctionDefinition main (a return)
+  (LetCont (k0 v0)
+    (LetCont (k1 v1)
+      (InvokeContinuation return v0))
+    (InvokeStatic print v0 k1))
+  (LetCont (k2)
+    (LetPrim v2 (Constant StringConstant("")))
+    (InvokeContinuation k0 v2))
+  (LetCont (k3)
+    (InvokeContinuation k0 a))
+  (Branch (IsTrue a) k2 k3))
+'''),
+  ]),
+
   const Group('Dynamic access', const [
     const TestSpec('''
 main(a) {

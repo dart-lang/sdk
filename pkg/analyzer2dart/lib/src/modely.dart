@@ -685,6 +685,9 @@ class LocalVariableElementY extends ElementY
   @override
   bool get isConst => element.isConst;
 
+  @override
+  bool get isStatic => false;
+
   LocalVariableElementY(ElementConverter converter,
                         analyzer.LocalVariableElement element)
       : super(converter, element);

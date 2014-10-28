@@ -81,7 +81,7 @@ abstract class SemanticVisitor<R> extends RecursiveAstVisitor<R> {
   }
 
   R handleMethodInvocation(MethodInvocation node) {
-    AccessSemantics semantics = classifyMethodInvocation(node);
+    AccessSemantics semantics = node.accept(ACCESS_SEMANTICS_VISITOR);
     switch (semantics.kind) {
       case AccessKind.DYNAMIC:
         return visitDynamicInvocation(node, semantics);
@@ -113,7 +113,7 @@ abstract class SemanticVisitor<R> extends RecursiveAstVisitor<R> {
   }
 
   R handlePropertyAccess(PropertyAccess node) {
-    return _handlePropertyAccess(node, classifyPropertyAccess(node));
+    return _handlePropertyAccess(node, node.accept(ACCESS_SEMANTICS_VISITOR));
   }
 
   @override
@@ -123,12 +123,12 @@ abstract class SemanticVisitor<R> extends RecursiveAstVisitor<R> {
   }
 
   R handlePrefixedIdentifier(PrefixedIdentifier node) {
-    return _handlePropertyAccess(node, classifyPrefixedIdentifier(node));
+    return _handlePropertyAccess(node, node.accept(ACCESS_SEMANTICS_VISITOR));
   }
 
   @override
   R visitSimpleIdentifier(SimpleIdentifier node) {
-    AccessSemantics semantics = classifySimpleIdentifier(node);
+    AccessSemantics semantics = node.accept(ACCESS_SEMANTICS_VISITOR);
     if (semantics != null) {
       return _handlePropertyAccess(node, semantics);
     } else {
@@ -184,6 +184,76 @@ abstract class SemanticVisitor<R> extends RecursiveAstVisitor<R> {
         // Unexpected access kind.
         return giveUp(node,
             'Unexpected ${semantics} in _handlePropertyAccess.');
+    }
+  }
+
+  R visitDynamicPropertyAssignment(AssignmentExpression node,
+                                   AccessSemantics semantics) {
+    return giveUp(node, 'visitDynamicPropertyAssignment of $semantics');
+  }
+
+  R visitLocalFunctionAssignment(AssignmentExpression node,
+                                 AccessSemantics semantics) {
+    return giveUp(node, 'visitLocalFunctionAssignment of $semantics');
+  }
+
+  R visitLocalVariableAssignment(AssignmentExpression node,
+                                 AccessSemantics semantics) {
+    return giveUp(node, 'visitLocalVariableAssignment of $semantics');
+  }
+
+  R visitParameterAssignment(AssignmentExpression node,
+                             AccessSemantics semantics) {
+    return giveUp(node, 'visitParameterAssignment of $semantics');
+  }
+
+  R visitStaticFieldAssignment(AssignmentExpression node,
+                               AccessSemantics semantics) {
+    return giveUp(node, 'visitStaticFieldAssignment of $semantics');
+  }
+
+  R visitStaticMethodAssignment(AssignmentExpression node,
+                                AccessSemantics semantics) {
+    return giveUp(node, 'visitStaticMethodAssignment of $semantics');
+  }
+
+  R visitStaticPropertyAssignment(AssignmentExpression node,
+                                  AccessSemantics semantics) {
+    return giveUp(node, 'visitStaticPropertyAssignment of $semantics');
+  }
+
+  @override
+  R visitAssignmentExpression(AssignmentExpression node) {
+    super.visitAssignmentExpression(node);
+    return handleAssignmentExpression(node);
+  }
+
+  R handleAssignmentExpression(AssignmentExpression node) {
+    AccessSemantics semantics =
+        node.leftHandSide.accept(ACCESS_SEMANTICS_VISITOR);
+    if (semantics == null) {
+      return giveUp(node, 'handleAssignmentExpression with no AccessSemantics');
+    } else {
+      switch (semantics.kind) {
+        case AccessKind.DYNAMIC:
+          return visitDynamicPropertyAssignment(node, semantics);
+        case AccessKind.LOCAL_FUNCTION:
+          return visitLocalFunctionAssignment(node, semantics);
+        case AccessKind.LOCAL_VARIABLE:
+          return visitLocalVariableAssignment(node, semantics);
+        case AccessKind.PARAMETER:
+          return visitParameterAssignment(node, semantics);
+        case AccessKind.STATIC_FIELD:
+          return visitStaticFieldAssignment(node, semantics);
+        case AccessKind.STATIC_METHOD:
+          return visitStaticMethodAssignment(node, semantics);
+        case AccessKind.STATIC_PROPERTY:
+          return visitStaticPropertyAssignment(node, semantics);
+        default:
+          // Unexpected access kind.
+          return giveUp(node,
+              'Unexpected ${semantics} in _handlePropertyAccess.');
+      }
     }
   }
 }

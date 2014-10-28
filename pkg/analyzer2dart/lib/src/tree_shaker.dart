@@ -207,7 +207,6 @@ class TreeShaker {
     _addElement(_world.mainFunction);
     while (_queue.isNotEmpty) {
       Element element = _queue.removeLast();
-      print('Tree shaker handling $element');
       if (element is ExecutableElement) {
         MethodAnalysis analysis = _localComputer.analyzeMethod(element);
         _world.executableElements[element] = analysis.declaration;
@@ -233,7 +232,6 @@ class TreeShaker {
                 '$element (${element.runtimeType})');
       }
     }
-    print('Tree shaking done');
     return _world;
   }
 }
@@ -292,18 +290,20 @@ class TreeShakingVisitor extends SemanticVisitor {
         node.argumentList, 'call'));
   }
 
+  @override
   void visitStaticMethodInvocation(MethodInvocation node,
       AccessSemantics semantics) {
     analysis.calls.add(semantics.element);
   }
 
+  @override
   void visitStaticPropertyInvocation(MethodInvocation node,
       AccessSemantics semantics) {
     // Invocation of a property.  TODO(paulberry): handle this.
     super.visitStaticPropertyInvocation(node, semantics);
   }
 
-  void visitDynamicAccess(AstNode node, AccessSemantics semantics) {
+  void handleDynamicAccess(AccessSemantics semantics) {
     if (semantics.isRead) {
       analysis.invokes.add(
           new Selector.getter(semantics.identifier.name, null));
@@ -316,27 +316,38 @@ class TreeShakingVisitor extends SemanticVisitor {
     }
   }
 
+  @override
+  void visitDynamicAccess(AstNode node, AccessSemantics semantics) {
+    handleDynamicAccess(semantics);
+  }
+
+  @override
   void visitLocalFunctionAccess(AstNode node, AccessSemantics semantics) {
     // Locals don't need to be tree shaken.
   }
 
+  @override
   void visitLocalVariableAccess(AstNode node, AccessSemantics semantics) {
     // Locals don't need to be tree shaken.
   }
 
+  @override
   void visitParameterAccess(AstNode node, AccessSemantics semantics) {
     // Locals don't need to be tree shaken.
   }
 
+  @override
   void visitStaticFieldAccess(AstNode node, AccessSemantics semantics) {
     analysis.accesses.add(semantics.element);
   }
 
+  @override
   void visitStaticMethodAccess(AstNode node, AccessSemantics semantics) {
     // Method tear-off.  TODO(paulberry): implement.
     super.visitStaticMethodAccess(node, semantics);
   }
 
+  @override
   void visitStaticPropertyAccess(AstNode node, AccessSemantics semantics) {
     // TODO(paulberry): implement.
     super.visitStaticPropertyAccess(node, semantics);
@@ -374,5 +385,10 @@ class TreeShakingVisitor extends SemanticVisitor {
     // null, because that would have been detected by the analyzer and
     // reported as a compile time error.
     analysis.calls.add(node.staticElement);
+  }
+
+  @override
+  void handleAssignmentExpression(AssignmentExpression node) {
+    // Don't special-case assignment expressions.
   }
 }

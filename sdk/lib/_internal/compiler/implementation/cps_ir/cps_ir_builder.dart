@@ -260,16 +260,24 @@ class IrBuilder {
 
   bool get isOpen => _root == null || _current != null;
 
+  /// True if [element] is a local variable, local function, or parameter that
+  /// is accessed from an inner function. Recursive self-references in a local
+  /// function count as closure accesses.
+  ///
+  /// If `true`, [element] is a [LocalElement].
+  bool isClosureVariable(Element element) {
+    return state.closureLocals.contains(element);
+  }
+
   /// Create a parameter for [parameterElement] and add it to the current
   /// environment.
   ///
   /// [isClosureVariable] marks whether [parameterElement] is accessed from an
   /// inner function.
-  void createParameter(LocalElement parameterElement,
-                       {bool isClosureVariable: false}) {
+  void createParameter(LocalElement parameterElement) {
     ir.Parameter parameter = new ir.Parameter(parameterElement);
     _parameters.add(parameter);
-    if (isClosureVariable) {
+    if (isClosureVariable(parameterElement)) {
       add(new ir.SetClosureVariable(parameterElement, parameter));
     } else {
       environment.extend(parameterElement, parameter);
@@ -289,15 +297,14 @@ class IrBuilder {
   /// [isClosureVariable] marks whether [variableElement] is accessed from an
   /// inner function.
   void declareLocalVariable(LocalVariableElement variableElement,
-                            {ir.Primitive initialValue,
-                             bool isClosureVariable: false}) {
+                            {ir.Primitive initialValue}) {
     assert(isOpen);
     if (initialValue == null) {
       // TODO(kmillikin): Consider pooling constants.
       // The initial value is null.
       initialValue = buildNullLiteral();
     }
-    if (isClosureVariable) {
+    if (isClosureVariable(variableElement)) {
       add(new ir.SetClosureVariable(variableElement,
                                     initialValue,
                                     isDeclaration: true));
@@ -420,10 +427,28 @@ class IrBuilder {
 
   }
 
-  /// Create a get access of [local].
-  ir.Primitive buildLocalGet(Element local) {
+  /// Create a read access of [local].
+  ir.Primitive buildLocalGet(LocalElement local) {
     assert(isOpen);
-    return environment.lookup(local);
+    if (isClosureVariable(local)) {
+      ir.Primitive result = new ir.GetClosureVariable(local);
+      add(new ir.LetPrim(result));
+      return result;
+    } else {
+      return environment.lookup(local);
+    }
+  }
+
+  /// Create a write access to [local].
+  ir.Primitive buildLocalSet(LocalElement local, ir.Primitive valueToStore) {
+    assert(isOpen);
+    if (isClosureVariable(local)) {
+      add(new ir.SetClosureVariable(local, valueToStore));
+    } else {
+      valueToStore.useElementAsHint(local);
+      environment.update(local, valueToStore);
+    }
+    return valueToStore;
   }
 
   /// Create a get access of the static [element].

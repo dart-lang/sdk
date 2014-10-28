@@ -46,8 +46,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
       function.parameters.forEach((analyzer.ParameterElement parameter) {
         // TODO(johnniwinther): Support "closure variables", that is variables
         // accessed from an inner function.
-        irBuilder.createParameter(converter.convertElement(parameter),
-                                  isClosureVariable: false);
+        irBuilder.createParameter(converter.convertElement(parameter));
       });
       // Visit the body directly to avoid processing the signature as
       // expressions.
@@ -191,11 +190,43 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
         initialValue: initialValue);
   }
 
-  ir.Primitive handleLocalAccess(AstNode node, AccessSemantics semantics) {
+  dart2js.Element getLocal(AstNode node, AccessSemantics semantics) {
     analyzer.Element element = semantics.element;
     dart2js.Element target = converter.convertElement(element);
     assert(invariant(node, target.isLocal, '$target expected to be local.'));
-    return irBuilder.buildLocalGet(target);
+    return target;
+  }
+
+  ir.Primitive handleLocalAccess(AstNode node, AccessSemantics semantics) {
+    return irBuilder.buildLocalGet(getLocal(node, semantics));
+  }
+
+  ir.Primitive handleLocalAssignment(AssignmentExpression node,
+                                     AccessSemantics semantics) {
+    if (node.operator.lexeme != '=') {
+      return giveUp(node, 'Assignment operator: ${node.operator.lexeme}');
+    }
+    return irBuilder.buildLocalSet(
+        getLocal(node, semantics),
+        build(node.rightHandSide));
+  }
+
+  @override
+  ir.Node visitAssignmentExpression(AssignmentExpression node) {
+    // Avoid eager visiting of left and right hand side.
+    return handleAssignmentExpression(node);
+  }
+
+  @override
+  ir.Node visitLocalVariableAssignment(AssignmentExpression node,
+                                       AccessSemantics semantics) {
+    return handleLocalAssignment(node, semantics);
+  }
+
+  @override
+  ir.Node visitParameterAssignment(AssignmentExpression node,
+                                   AccessSemantics semantics) {
+    return handleLocalAssignment(node, semantics);
   }
 
   @override

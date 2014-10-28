@@ -2119,22 +2119,22 @@ class TestVisitor extends RecursiveAstVisitor {
 
   @override
   visitMethodInvocation(MethodInvocation node) {
-    onAccess(node, classifyMethodInvocation(node));
+    onAccess(node, node.accept(ACCESS_SEMANTICS_VISITOR));
   }
 
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
-    onAccess(node, classifyPrefixedIdentifier(node));
+    onAccess(node, node.accept(ACCESS_SEMANTICS_VISITOR));
   }
 
   @override
   visitPropertyAccess(PropertyAccess node) {
-    onAccess(node, classifyPropertyAccess(node));
+    onAccess(node, node.accept(ACCESS_SEMANTICS_VISITOR));
   }
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    AccessSemantics semantics = classifySimpleIdentifier(node);
+    AccessSemantics semantics = node.accept(ACCESS_SEMANTICS_VISITOR);
     if (semantics != null) {
       onAccess(node, semantics);
     }
