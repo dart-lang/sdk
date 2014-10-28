@@ -27,9 +27,14 @@ class GetHandler {
   SocketServer _server;
 
   /**
+   * Buffer containing strings printed by the analysis server.
+   */
+  List<String> _printBuffer;
+
+  /**
    * Initialize a newly created handler for GET requests.
    */
-  GetHandler(SocketServer this._server);
+  GetHandler(this._server, this._printBuffer);
 
   /**
    * Handle a GET request received by the HTTP server.
@@ -120,6 +125,10 @@ class GetHandler {
         }
       });
     }
+    response.write('<h1>Most recent strings printed by analysis server</h2>');
+    response.write('<pre>');
+    response.write(HTML_ESCAPE.convert(_printBuffer.join('\n')));
+    response.write('</pre>');
     response.write('</body>');
     response.write('</html>');
     response.close();

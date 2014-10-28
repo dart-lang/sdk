@@ -4,6 +4,7 @@
 
 library driver;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/http_server.dart';
@@ -125,12 +126,28 @@ class Driver {
     if (serve_http) {
       httpServer.serveHttp(port);
     }
-    stdioServer.serveStdio().then((_) {
-      if (serve_http) {
-        httpServer.close();
-      }
-      exit(0);
+    _capturePrints(() {
+      stdioServer.serveStdio().then((_) {
+        if (serve_http) {
+          httpServer.close();
+        }
+        exit(0);
+      });
+    }, httpServer.recordPrint);
+  }
+
+  /**
+   * Execute [callback], capturing any data it prints out and redirecting it to
+   * the function [printHandler].
+   */
+  dynamic _capturePrints(dynamic callback(), void printHandler(String line)) {
+    ZoneSpecification zoneSpecification = new ZoneSpecification(print:
+        (Zone self, ZoneDelegate parent, Zone zone, String line) {
+      printHandler(line);
+      // Note: we don't pass the line on to stdout, because that is reserved
+      // for communication to the client.
     });
+    return runZoned(callback, zoneSpecification: zoneSpecification);
   }
 
   /**
