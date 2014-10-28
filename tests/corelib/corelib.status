@@ -219,3 +219,12 @@ num_parse_test/01: RuntimeError  # Issue 15316
 [ $system == windows && $arch == x64 ]
 stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 
+[ $runtime != d8 ]
+# JSCRE does not pass all of the tests ported for irregexp.
+# Ignore all of the tests until irregexp is fully ported.
+regexp/*: Skip
+
+[ $runtime == d8 ]
+regexp/constructor_test: Fail # Issue 21396.
+regexp/capture_test: Fail # Issue 21396.
+regexp/non-capturing-groups_test: Fail # Issue 21396.
